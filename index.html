@@ -54,12 +54,12 @@
   <button type="button" id="openBlog">Open Blog</button>
 </header>
 
-<!-- Install bar (only shows when NOT installed) -->
+<!-- Install bar (GitHub only) -->
 <div id="rm-install-bar">
   <div id="rm-install-inner">
     <div id="rm-install-left">
       <div id="rm-install-title">Install the app</div>
-      <div id="rm-install-sub">Android: tap Install. iPhone: Share → Add to Home Screen.</div>
+      <div id="rm-install-sub">Loading install options…</div>
     </div>
     <div id="rm-install-actions">
       <button id="rm-install-btn" type="button">Install App</button>
@@ -116,14 +116,13 @@
   const BLOG_URL = "https://recoverymisfits.blogspot.com/";
   document.getElementById("openBlog").addEventListener("click", () => window.open(BLOG_URL, "_blank"));
 
-  // Standalone detection (installed)
   function isStandalone() {
     const mql = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
     const iosStandalone = window.navigator.standalone === true;
     return !!(mql || iosStandalone);
   }
 
-  // ===== Install Bar Logic (Android real prompt) =====
+  // ===== Install Bar Logic =====
   const installBar = document.getElementById("rm-install-bar");
   const installBtn = document.getElementById("rm-install-btn");
   const installClose = document.getElementById("rm-install-close");
@@ -134,36 +133,43 @@
 
   let deferredPrompt = null;
 
-  // Only show bar when NOT installed
-  function showInstallBar(msg) {
+  function showInstallBar(msg){
     if (isStandalone()) return;
-    if (msg) installSub.textContent = msg;
+    installSub.textContent = msg || "";
     installBar.style.display = "block";
   }
-  function hideInstallBar() {
+  function hideInstallBar(){
     installBar.style.display = "none";
   }
 
-  // iPhone: no beforeinstallprompt exists, so show instructions
-  if (!isStandalone() && isSafari) {
-    showInstallBar("iPhone/iPad: Share → Add to Home Screen.");
+  // Only show if not installed
+  if (!isStandalone()) {
+    showInstallBar(isSafari
+      ? "iPhone/iPad: Share → Add to Home Screen."
+      : "Android: use Install App button (or Chrome menu ⋮ → Install app)."
+    );
+  }
+
+  // iOS: can’t trigger prompt
+  if (isSafari) {
     installBtn.textContent = "How to Install";
     installBtn.addEventListener("click", (e) => {
       e.preventDefault();
       alert("On iPhone/iPad: tap Share, then 'Add to Home Screen'.");
     });
-  } else if (!isStandalone()) {
-    // Android/others: wait for beforeinstallprompt
+  } else {
+    // Android: capture prompt when available
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      showInstallBar("Android: tap Install App (or Chrome menu ⋮ → Install app).");
+      installBtn.disabled = false;
+      showInstallBar("Android: tap Install App now.");
     });
 
     installBtn.addEventListener("click", async (e) => {
-      e.preventDefault(); // IMPORTANT: no reload
+      e.preventDefault(); // prevents reload
       if (!deferredPrompt) {
-        showInstallBar("If you don’t see a prompt: Chrome menu (⋮) → Install app.");
+        showInstallBar("No prompt yet. Try: Chrome menu (⋮) → Install app.");
         return;
       }
       deferredPrompt.prompt();
@@ -177,11 +183,10 @@
     hideInstallBar();
   });
 
-  window.addEventListener("appinstalled", () => {
-    hideInstallBar();
-  });
+  window.addEventListener("appinstalled", () => hideInstallBar());
+  if (isStandalone()) hideInstallBar();
 
-  // ===== Sobriety + Streak (your existing behavior) =====
+  // ===== Sobriety + Streak =====
   const LS_DATE   = "rm_sob_date";
   const LS_MODE   = "rm_sob_mode"; // "days" | "date"
   const LS_STREAK = "rm_streak";
@@ -278,9 +283,6 @@
     if (v) sobDate.value = v;
     updateStreak();
     renderSob();
-
-    // If installed, ensure install bar is hidden
-    if (isStandalone()) hideInstallBar();
   })();
 </script>
 
