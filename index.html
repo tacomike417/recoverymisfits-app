@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Recovery Misfits</title>
 
-  <!-- PWA essentials -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#ffffff" />
   <link rel="icon" href="./icon-192.png">
@@ -20,32 +19,99 @@
     header{
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 9999;
       background: #fff;
       border-bottom: 1px solid rgba(0,0,0,.12);
-      padding: 12px 14px;
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
     }
-    .title{
-      font-size: 18px;
+    .brand{
       font-weight: 900;
-      margin: 0;
+      font-size: 16px;
       line-height: 1.2;
     }
-    .sub{
-      margin: 4px 0 0 0;
-      font-size: 13px;
-      opacity: .75;
+    .actions{
+      display:flex;
+      align-items:center;
+      gap: 8px;
     }
-    .wrap{
-      max-width: 900px;
-      margin: 0 auto;
+    button{
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.18);
+      background: #fff;
+      font-weight: 900;
+      cursor: pointer;
+      color:#111;
+      white-space: nowrap;
+    }
+    .frameWrap{
+      height: calc(100vh - 52px);
+      width: 100%;
+    }
+    iframe{
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display:block;
+      background:#fff;
+    }
+
+    /* Tools panel (bottom sheet) */
+    .sheetBackdrop{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      display: none;
+      z-index: 10000;
+    }
+    .sheet{
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #fff;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      border: 1px solid rgba(0,0,0,.12);
+      box-shadow: 0 -10px 40px rgba(0,0,0,.18);
       padding: 14px;
+      max-height: 75vh;
+      overflow: auto;
+      transform: translateY(110%);
+      transition: transform .22s ease;
+      z-index: 10001;
     }
+    .sheet.open{ transform: translateY(0); }
+    .sheetHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom: 8px;
+    }
+    .sheetTitle{
+      font-weight: 1000;
+      font-size: 16px;
+    }
+    .muted{ opacity: .75; }
     .card{
       border: 1px solid rgba(0,0,0,.12);
       border-radius: 16px;
-      padding: 14px;
-      background: #fff;
+      padding: 12px;
+      margin-top: 10px;
+    }
+    input{
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,.18);
+      font-weight: 700;
+      margin-top: 8px;
     }
     .row{
       display:flex;
@@ -54,169 +120,206 @@
       flex-wrap: wrap;
       margin-top: 10px;
     }
-    input[type="date"]{
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(0,0,0,.18);
-      font-weight: 700;
+    .big{
+      font-size: 22px;
+      font-weight: 1000;
+      margin-top: 8px;
     }
-    button{
-      padding: 10px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,.18);
-      background: #fff;
-      font-weight: 900;
-      cursor: pointer;
-    }
-    .muted{opacity:.75}
-    .content{
-      margin-top: 14px;
-      line-height: 1.55;
-      font-size: 16px;
-    }
-    /* Make Blogger content look decent */
-    .content img{max-width:100%; height:auto; border-radius: 12px;}
-    .content blockquote{border-left:4px solid rgba(0,0,0,.15); padding-left:12px; margin-left:0; opacity:.9}
-    .content h1,.content h2,.content h3{margin-top:18px}
-    a{color:#111}
   </style>
 </head>
 
 <body>
-  <header>
-    <p class="title">Recovery Misfits</p>
-    <p class="sub">Today’s reading loads from your Blogger labels (MM-DD).</p>
-  </header>
 
-  <div class="wrap">
-    <div class="card">
-      <div class="row">
-        <div><b>Label:</b> <span id="labelText">--</span></div>
-        <button id="reloadBtn" type="button">Reload</button>
-        <button id="openBlogBtn" type="button">Open Blog</button>
-      </div>
+<header>
+  <div class="brand">Recovery Misfits</div>
+  <div class="actions">
+    <button id="toolsBtn" type="button">Tools</button>
+    <button id="openBlogBtn" type="button">Open in Browser</button>
+  </div>
+</header>
 
-      <div class="row">
-        <label class="muted"><b>Pick a date:</b></label>
-        <input id="datePicker" type="date" />
-        <button id="loadDateBtn" type="button">Load Date</button>
-      </div>
+<div class="frameWrap">
+  <iframe id="blogFrame" title="Recovery Misfits Blog" src="https://recoverymisfits.blogspot.com/"></iframe>
+</div>
 
-      <div id="status" class="muted" style="margin-top:12px;">Loading…</div>
-      <div id="postTitle" style="margin-top:12px;font-weight:900;font-size:18px;"></div>
-      <div id="postContent" class="content"></div>
-    </div>
+<!-- Tools Bottom Sheet -->
+<div id="backdrop" class="sheetBackdrop"></div>
+<div id="sheet" class="sheet" aria-hidden="true">
+  <div class="sheetHeader">
+    <div class="sheetTitle">Tools</div>
+    <button id="closeSheetBtn" type="button">Close</button>
   </div>
 
-  <script>
-    // REQUIRED: service worker for installability
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js");
+  <div class="card">
+    <div><b>Sobriety Date</b></div>
+    <div class="muted">Set it once. The app will remember on this device.</div>
+    <input id="sobDate" type="date" />
+    <div class="row">
+      <button id="saveSobBtn" type="button">Save</button>
+      <button id="clearSobBtn" type="button">Clear</button>
+    </div>
+    <div id="sobOut" class="big"></div>
+    <div id="sobNext" class="muted" style="margin-top:6px;"></div>
+  </div>
+
+  <div class="card">
+    <div><b>Visiting Streak</b></div>
+    <div class="muted">Counts days you opened the app.</div>
+    <div id="streakOut" class="big"></div>
+    <div id="streakBest" class="muted" style="margin-top:6px;"></div>
+  </div>
+
+  <div class="card">
+    <div><b>Tip</b></div>
+    <div class="muted">
+      This “Tools” panel is part of the app (GitHub Pages). The reading itself is your real Blogger theme, embedded.
+    </div>
+  </div>
+</div>
+
+<script>
+  // Service worker for installability
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js");
+  }
+
+  const BLOG_URL = "https://recoverymisfits.blogspot.com/";
+
+  // Header buttons
+  document.getElementById("openBlogBtn").addEventListener("click", () => {
+    window.open(BLOG_URL, "_blank");
+  });
+
+  // Bottom sheet open/close
+  const toolsBtn = document.getElementById("toolsBtn");
+  const sheet = document.getElementById("sheet");
+  const backdrop = document.getElementById("backdrop");
+  const closeSheetBtn = document.getElementById("closeSheetBtn");
+
+  function openSheet(){
+    backdrop.style.display = "block";
+    sheet.classList.add("open");
+    sheet.setAttribute("aria-hidden", "false");
+  }
+  function closeSheet(){
+    sheet.classList.remove("open");
+    sheet.setAttribute("aria-hidden", "true");
+    backdrop.style.display = "none";
+  }
+
+  toolsBtn.addEventListener("click", openSheet);
+  closeSheetBtn.addEventListener("click", closeSheet);
+  backdrop.addEventListener("click", closeSheet);
+
+  // ===== Sobriety Date Calculator (local only) =====
+  const sobDateEl = document.getElementById("sobDate");
+  const sobOut = document.getElementById("sobOut");
+  const sobNext = document.getElementById("sobNext");
+
+  function pad2(n){ return String(n).padStart(2,"0"); }
+
+  function loadSobDate(){
+    const v = localStorage.getItem("rm_sob_date");
+    if (v) sobDateEl.value = v;
+    renderSob();
+  }
+
+  function daysBetween(startDate, endDate){
+    const ms = 24*60*60*1000;
+    const a = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const b = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    return Math.floor((b - a) / ms);
+  }
+
+  function nextMilestone(days){
+    const milestones = [1,7,14,30,60,90,180,365,730,1095,1825,3650];
+    for (const m of milestones){
+      if (m > days) return m;
+    }
+    return null;
+  }
+
+  function renderSob(){
+    const v = localStorage.getItem("rm_sob_date");
+    if (!v) {
+      sobOut.textContent = "";
+      sobNext.textContent = "";
+      return;
+    }
+    const start = new Date(v + "T00:00:00");
+    const today = new Date();
+    const days = daysBetween(start, today);
+    const cleanDays = Math.max(0, days);
+
+    sobOut.textContent = cleanDays + " days sober";
+
+    const next = nextMilestone(cleanDays);
+    if (next !== null) {
+      const remaining = next - cleanDays;
+      sobNext.textContent = "Next milestone: " + next + " days (" + remaining + " days to go)";
+    } else {
+      sobNext.textContent = "You’re in bonus miles now. Keep going.";
+    }
+  }
+
+  document.getElementById("saveSobBtn").addEventListener("click", () => {
+    if (!sobDateEl.value) return;
+    localStorage.setItem("rm_sob_date", sobDateEl.value);
+    renderSob();
+  });
+
+  document.getElementById("clearSobBtn").addEventListener("click", () => {
+    localStorage.removeItem("rm_sob_date");
+    sobDateEl.value = "";
+    renderSob();
+  });
+
+  sobDateEl.addEventListener("change", renderSob);
+
+  // ===== Visiting Streak (local only) =====
+  const streakOut = document.getElementById("streakOut");
+  const streakBest = document.getElementById("streakBest");
+
+  function todayKey(d=new Date()){
+    return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate());
+  }
+
+  function yesterdayKey(){
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return todayKey(d);
+  }
+
+  function updateStreak(){
+    const t = todayKey();
+    const last = localStorage.getItem("rm_last_open") || "";
+    let streak = Number(localStorage.getItem("rm_streak") || "0");
+    let best = Number(localStorage.getItem("rm_best_streak") || "0");
+
+    if (last === t) {
+      // already counted today
+    } else if (last === yesterdayKey()) {
+      streak = streak + 1;
+    } else {
+      streak = 1;
     }
 
-    // === CONFIG ===
-    const BLOG_BASE = "https://recoverymisfits.blogspot.com";
-    // We’ll pull by label like: /-/01-23
-    function feedUrlForLabel(label) {
-      // JSON-in-script lets us use JSONP to avoid CORS problems.
-      return `${BLOG_BASE}/feeds/posts/default/-/${encodeURIComponent(label)}?alt=json-in-script&callback=rmFeedCallback`;
+    localStorage.setItem("rm_last_open", t);
+    localStorage.setItem("rm_streak", String(streak));
+
+    if (streak > best) {
+      best = streak;
+      localStorage.setItem("rm_best_streak", String(best));
     }
 
-    // === UI ===
-    const statusEl = document.getElementById("status");
-    const titleEl = document.getElementById("postTitle");
-    const contentEl = document.getElementById("postContent");
-    const labelTextEl = document.getElementById("labelText");
-    const datePicker = document.getElementById("datePicker");
+    streakOut.textContent = streak + " day streak";
+    streakBest.textContent = "Best streak: " + best + " days";
+  }
 
-    document.getElementById("openBlogBtn").addEventListener("click", () => {
-      window.location.href = BLOG_BASE;
-    });
+  // Run streak update when app opens
+  updateStreak();
+  loadSobDate();
+</script>
 
-    document.getElementById("reloadBtn").addEventListener("click", () => {
-      loadLabel(currentLabel());
-    });
-
-    document.getElementById("loadDateBtn").addEventListener("click", () => {
-      if (!datePicker.value) return;
-      const d = new Date(datePicker.value + "T00:00:00");
-      loadLabel(formatLabel(d));
-    });
-
-    // === Label helpers ===
-    function pad2(n){ return String(n).padStart(2, "0"); }
-    function formatLabel(d){
-      const mm = pad2(d.getMonth() + 1);
-      const dd = pad2(d.getDate());
-      return `${mm}-${dd}`;
-    }
-    function currentLabel(){
-      return formatLabel(new Date());
-    }
-
-    // Pre-fill date picker with today
-    (function initDatePicker(){
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = pad2(now.getMonth() + 1);
-      const dd = pad2(now.getDate());
-      datePicker.value = `${yyyy}-${mm}-${dd}`;
-    })();
-
-    // === JSONP loader ===
-    function loadJsonp(src){
-      // remove old script if any
-      const old = document.getElementById("rm-jsonp");
-      if (old) old.remove();
-
-      const s = document.createElement("script");
-      s.id = "rm-jsonp";
-      s.src = src;
-      s.onerror = () => {
-        statusEl.textContent = "Could not load today’s reading. Tap “Open Blog”.";
-      };
-      document.head.appendChild(s);
-    }
-
-    // JSONP callback (must be global)
-    window.rmFeedCallback = function(data){
-      try {
-        const entries = data && data.feed && data.feed.entry ? data.feed.entry : [];
-        if (!entries.length) {
-          statusEl.textContent = "No post found for this label yet. (Is today’s label published?)";
-          titleEl.textContent = "";
-          contentEl.innerHTML = "";
-          return;
-        }
-
-        // pick first entry
-        const e = entries[0];
-        const postTitle = (e.title && e.title.$t) ? e.title.$t : "";
-        const html = (e.content && e.content.$t) ? e.content.$t : "";
-
-        statusEl.textContent = "";
-        titleEl.textContent = postTitle;
-        contentEl.innerHTML = html;
-
-      } catch (err) {
-        statusEl.textContent = "Loaded something weird — tap “Open Blog” as a fallback.";
-        titleEl.textContent = "";
-        contentEl.innerHTML = "";
-      }
-    };
-
-    // === Main loader ===
-    function loadLabel(label){
-      labelTextEl.textContent = label;
-      statusEl.textContent = "Loading…";
-      titleEl.textContent = "";
-      contentEl.innerHTML = "";
-
-      loadJsonp(feedUrlForLabel(label));
-    }
-
-    // Load today by default
-    loadLabel(currentLabel());
-  </script>
 </body>
 </html>
