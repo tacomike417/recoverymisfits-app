@@ -10,120 +10,40 @@
   <link rel="icon" href="./icon-192.png">
 
   <style>
-    body{
-      font-family: Roboto, Arial, sans-serif;
-      margin: 0;
-      background: #fff;
-      color: #111;
-    }
+    body{font-family:Roboto,Arial,sans-serif;margin:0;background:#fff;color:#111;}
+    header{position:sticky;top:0;z-index:9000;background:#fff;border-bottom:1px solid rgba(0,0,0,.12);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;}
+    .brand{font-weight:900;font-size:16px;}
+    button{padding:9px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.18);background:#fff;font-weight:900;cursor:pointer;color:#111;}
+    .frameWrap{height:calc(100vh - 52px - 62px - 54px);} /* header + bottom bar + install bar */
+    iframe{width:100%;height:100%;border:0;background:#fff;display:block;}
 
-    header{
-      position: sticky;
-      top: 0;
-      z-index: 9999;
-      background: #fff;
-      border-bottom: 1px solid rgba(0,0,0,.12);
-      padding: 10px 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .brand{
-      font-weight: 900;
-      font-size: 16px;
-    }
-    button{
-      padding: 9px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,.18);
-      background: #fff;
-      font-weight: 900;
-      cursor: pointer;
-    }
-
-    .frameWrap{
-      height: calc(100vh - 52px - 62px);
-    }
-    iframe{
-      width: 100%;
-      height: 100%;
-      border: 0;
-    }
+    /* Install bar (GitHub only) */
+    #rm-install-bar{display:none;position:sticky;top:52px;z-index:9500;background:#fff;border-bottom:1px solid rgba(0,0,0,.12);}
+    #rm-install-inner{max-width:980px;margin:0 auto;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+    #rm-install-left{display:flex;flex-direction:column;gap:2px;}
+    #rm-install-title{font-weight:1000;font-size:13px;}
+    #rm-install-sub{font-weight:700;font-size:12px;color:#666;}
+    #rm-install-actions{display:flex;gap:8px;align-items:center;}
+    #rm-install-btn{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
+    #rm-install-close{border:none;background:transparent;font-size:18px;opacity:.6;padding:6px 8px;}
+    #rm-install-close:hover{opacity:1;}
 
     /* Bottom bar */
-    .bottomBar{
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: #fff;
-      border-top: 1px solid rgba(0,0,0,.12);
-      padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
-    }
-    .bottomInner{
-      max-width: 980px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .pill{
-      border: 1px solid rgba(0,0,0,.18);
-      border-radius: 16px;
-      padding: 10px 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      cursor: pointer;
-    }
-    .label{
-      font-size: 12px;
-      font-weight: 800;
-      opacity: .7;
-    }
-    .value{
-      font-size: 14px;
-      font-weight: 1000;
-    }
-    .hint{
-      font-size: 12px;
-      font-weight: 800;
-      color: #666;
-      letter-spacing: .2px;
-      white-space: nowrap;
-    }
+    .bottomBar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid rgba(0,0,0,.12);padding:10px 10px calc(10px + env(safe-area-inset-bottom));z-index:9999;}
+    .bottomInner{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .pill{border:1px solid rgba(0,0,0,.18);border-radius:16px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+    .label{font-size:12px;font-weight:800;opacity:.7;}
+    .value{font-size:14px;font-weight:1000;}
+    .hint{font-size:12px;font-weight:800;color:#666;letter-spacing:.2px;white-space:nowrap;}
 
     /* Sheet */
-    .backdrop{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.35);
-      display: none;
-    }
-    .sheet{
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: #fff;
-      border-radius: 18px 18px 0 0;
-      padding: 14px;
-      transform: translateY(110%);
-      transition: transform .2s ease;
-    }
-    .sheet.open{ transform: translateY(0); }
-    input{
-      width: 100%;
-      padding: 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(0,0,0,.18);
-      margin-top: 8px;
-      font-weight: 700;
-      box-sizing: border-box;
-    }
-    .row{ display:flex; gap:10px; margin-top:10px; }
-    .big{ font-size: 22px; font-weight: 1000; margin-top: 10px; }
-    .muted{ opacity:.75; }
+    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:10000;}
+    .sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:14px;transform:translateY(110%);transition:transform .2s ease;z-index:10001;}
+    .sheet.open{transform:translateY(0);}
+    input{width:100%;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.18);margin-top:8px;font-weight:700;box-sizing:border-box;}
+    .row{display:flex;gap:10px;margin-top:10px;}
+    .big{font-size:22px;font-weight:1000;margin-top:10px;}
+    .muted{opacity:.75;}
   </style>
 </head>
 
@@ -131,8 +51,22 @@
 
 <header>
   <div class="brand">Recovery Misfits</div>
-  <button type="button" onclick="window.open('https://recoverymisfits.blogspot.com/')">Open Blog</button>
+  <button type="button" id="openBlog">Open Blog</button>
 </header>
+
+<!-- Install bar (only shows when NOT installed) -->
+<div id="rm-install-bar">
+  <div id="rm-install-inner">
+    <div id="rm-install-left">
+      <div id="rm-install-title">Install the app</div>
+      <div id="rm-install-sub">Android: tap Install. iPhone: Share → Add to Home Screen.</div>
+    </div>
+    <div id="rm-install-actions">
+      <button id="rm-install-btn" type="button">Install App</button>
+      <button id="rm-install-close" type="button" aria-label="Close">✕</button>
+    </div>
+  </div>
+</div>
 
 <div class="frameWrap">
   <iframe src="https://recoverymisfits.blogspot.com/"></iframe>
@@ -141,7 +75,6 @@
 <!-- Bottom Bar -->
 <div class="bottomBar">
   <div class="bottomInner">
-
     <div class="pill" id="sobPill">
       <div>
         <div class="label">SOBRIETY</div>
@@ -157,7 +90,6 @@
       </div>
       <div class="hint">Details</div>
     </div>
-
   </div>
 </div>
 
@@ -166,26 +98,90 @@
 <div class="sheet" id="sheet">
   <div style="display:flex;align-items:center;justify-content:space-between;">
     <h3 style="margin:0;">Sobriety</h3>
-    <button id="closeSheet">Close</button>
+    <button id="closeSheet" type="button">Close</button>
   </div>
-
   <div class="muted" style="margin-top:6px;">Set your sobriety date once. Stored on this device.</div>
-
   <input type="date" id="sobDate">
-
   <div class="row">
-    <button id="saveSob">Save</button>
-    <button id="clearSob">Clear</button>
+    <button id="saveSob" type="button">Save</button>
+    <button id="clearSob" type="button">Clear</button>
   </div>
-
   <div class="big" id="sobOut"></div>
 </div>
 
 <script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js");
+  // Service worker
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+
+  const BLOG_URL = "https://recoverymisfits.blogspot.com/";
+  document.getElementById("openBlog").addEventListener("click", () => window.open(BLOG_URL, "_blank"));
+
+  // Standalone detection (installed)
+  function isStandalone() {
+    const mql = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
+    const iosStandalone = window.navigator.standalone === true;
+    return !!(mql || iosStandalone);
   }
 
+  // ===== Install Bar Logic (Android real prompt) =====
+  const installBar = document.getElementById("rm-install-bar");
+  const installBtn = document.getElementById("rm-install-btn");
+  const installClose = document.getElementById("rm-install-close");
+  const installSub = document.getElementById("rm-install-sub");
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = isIOS && /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
+
+  let deferredPrompt = null;
+
+  // Only show bar when NOT installed
+  function showInstallBar(msg) {
+    if (isStandalone()) return;
+    if (msg) installSub.textContent = msg;
+    installBar.style.display = "block";
+  }
+  function hideInstallBar() {
+    installBar.style.display = "none";
+  }
+
+  // iPhone: no beforeinstallprompt exists, so show instructions
+  if (!isStandalone() && isSafari) {
+    showInstallBar("iPhone/iPad: Share → Add to Home Screen.");
+    installBtn.textContent = "How to Install";
+    installBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      alert("On iPhone/iPad: tap Share, then 'Add to Home Screen'.");
+    });
+  } else if (!isStandalone()) {
+    // Android/others: wait for beforeinstallprompt
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      showInstallBar("Android: tap Install App (or Chrome menu ⋮ → Install app).");
+    });
+
+    installBtn.addEventListener("click", async (e) => {
+      e.preventDefault(); // IMPORTANT: no reload
+      if (!deferredPrompt) {
+        showInstallBar("If you don’t see a prompt: Chrome menu (⋮) → Install app.");
+        return;
+      }
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    });
+  }
+
+  installClose.addEventListener("click", (e) => {
+    e.preventDefault();
+    hideInstallBar();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    hideInstallBar();
+  });
+
+  // ===== Sobriety + Streak (your existing behavior) =====
   const LS_DATE   = "rm_sob_date";
   const LS_MODE   = "rm_sob_mode"; // "days" | "date"
   const LS_STREAK = "rm_streak";
@@ -201,28 +197,16 @@
   const backdrop = document.getElementById("backdrop");
   const closeSheetBtn = document.getElementById("closeSheet");
 
-  function openSheet(){
-    backdrop.style.display = "block";
-    sheet.classList.add("open");
-  }
-  function closeSheet(){
-    sheet.classList.remove("open");
-    backdrop.style.display = "none";
-  }
-
+  function openSheet(){ backdrop.style.display="block"; sheet.classList.add("open"); }
+  function closeSheet(){ sheet.classList.remove("open"); backdrop.style.display="none"; }
   backdrop.onclick = closeSheet;
   closeSheetBtn.onclick = closeSheet;
 
-  function daysBetween(a,b){
-    return Math.floor((b-a)/(1000*60*60*24));
-  }
+  function daysBetween(a,b){ return Math.floor((b-a)/(1000*60*60*24)); }
 
   function getMode(){
     let mode = localStorage.getItem(LS_MODE);
-    if (!mode) {
-      mode = "days";
-      localStorage.setItem(LS_MODE, mode);
-    }
+    if (!mode) { mode = "days"; localStorage.setItem(LS_MODE, mode); }
     return mode;
   }
 
@@ -248,26 +232,18 @@
       sobValue.textContent = "Sober: " + days + "d";
       sobHint.textContent  = "Sobriety date";
     }
-
     sobOut.textContent = days + " days sober";
   }
 
   document.getElementById("sobPill").onclick = () => {
     const v = localStorage.getItem(LS_DATE);
-
-    if(!v){
-      openSheet();
-      return;
-    }
-
+    if(!v){ openSheet(); return; }
     const mode = getMode();
     localStorage.setItem(LS_MODE, mode === "date" ? "days" : "date");
     renderSob();
   };
 
-  document.getElementById("streakPill").onclick = () => {
-    openSheet();
-  };
+  document.getElementById("streakPill").onclick = () => openSheet();
 
   document.getElementById("saveSob").onclick = () => {
     if(sobDate.value){
@@ -286,7 +262,6 @@
   function updateStreak(){
     const today = new Date().toISOString().slice(0,10);
     const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
-
     const last = localStorage.getItem(LS_LAST);
     let streak = Number(localStorage.getItem(LS_STREAK) || 0);
 
@@ -295,7 +270,6 @@
       localStorage.setItem(LS_LAST, today);
       localStorage.setItem(LS_STREAK, String(streak));
     }
-
     streakValue.textContent = streak + "🔥";
   }
 
@@ -304,6 +278,9 @@
     if (v) sobDate.value = v;
     updateStreak();
     renderSob();
+
+    // If installed, ensure install bar is hidden
+    if (isStandalone()) hideInstallBar();
   })();
 </script>
 
