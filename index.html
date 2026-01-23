@@ -87,8 +87,9 @@
     }
     .hint{
       font-size: 12px;
-      font-weight: 900;
-      opacity: .6;
+      font-weight: 800;
+      color: #666;
+      letter-spacing: .2px;
       white-space: nowrap;
     }
 
@@ -141,7 +142,7 @@
 <div class="bottomBar">
   <div class="bottomInner">
 
-    <div class="pill" id="sobPill" role="button" aria-label="Sobriety">
+    <div class="pill" id="sobPill">
       <div>
         <div class="label">SOBRIETY</div>
         <div class="value" id="sobValue">Tap to set</div>
@@ -149,7 +150,7 @@
       <div class="hint" id="sobHint">Tap to set</div>
     </div>
 
-    <div class="pill" id="streakPill" role="button" aria-label="Streak">
+    <div class="pill" id="streakPill">
       <div>
         <div class="label">STREAK</div>
         <div class="value" id="streakValue">—</div>
@@ -162,10 +163,10 @@
 
 <!-- Sheet -->
 <div class="backdrop" id="backdrop"></div>
-<div class="sheet" id="sheet" aria-hidden="true">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+<div class="sheet" id="sheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;">
     <h3 style="margin:0;">Sobriety</h3>
-    <button id="closeSheet" type="button">Close</button>
+    <button id="closeSheet">Close</button>
   </div>
 
   <div class="muted" style="margin-top:6px;">Set your sobriety date once. Stored on this device.</div>
@@ -173,18 +174,20 @@
   <input type="date" id="sobDate">
 
   <div class="row">
-    <button id="saveSob" type="button">Save</button>
-    <button id="clearSob" type="button">Clear</button>
+    <button id="saveSob">Save</button>
+    <button id="clearSob">Clear</button>
   </div>
 
   <div class="big" id="sobOut"></div>
 </div>
 
 <script>
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js");
+  }
 
-  const LS_DATE  = "rm_sob_date";
-  const LS_MODE  = "rm_sob_mode";   // "days" | "date"
+  const LS_DATE   = "rm_sob_date";
+  const LS_MODE   = "rm_sob_mode"; // "days" | "date"
   const LS_STREAK = "rm_streak";
   const LS_LAST   = "rm_last";
 
@@ -201,11 +204,9 @@
   function openSheet(){
     backdrop.style.display = "block";
     sheet.classList.add("open");
-    sheet.setAttribute("aria-hidden","false");
   }
   function closeSheet(){
     sheet.classList.remove("open");
-    sheet.setAttribute("aria-hidden","true");
     backdrop.style.display = "none";
   }
 
@@ -229,11 +230,10 @@
     const v = localStorage.getItem(LS_DATE);
     const mode = getMode();
 
-    // If not set yet
     if(!v){
       sobValue.textContent = "Tap to set";
-      sobHint.textContent = "Tap to set";
-      sobOut.textContent = "";
+      sobHint.textContent  = "Tap to set";
+      sobOut.textContent   = "";
       return;
     }
 
@@ -241,37 +241,31 @@
     const d1 = new Date();
     const days = Math.max(0, daysBetween(d0, d1));
 
-    // Main value on left
     if (mode === "date") {
       sobValue.textContent = "Sober: " + v;
-      // Hint shows what tap will switch to
-      sobHint.textContent = "Day count";
+      sobHint.textContent  = "Day count";
     } else {
       sobValue.textContent = "Sober: " + days + "d";
-      sobHint.textContent = "Sobriety date";
+      sobHint.textContent  = "Sobriety date";
     }
 
-    // Sheet always shows day count
     sobOut.textContent = days + " days sober";
   }
 
   document.getElementById("sobPill").onclick = () => {
     const v = localStorage.getItem(LS_DATE);
 
-    // If not set, tap opens set sheet
     if(!v){
       openSheet();
       return;
     }
 
-    // If set, tap flips mode
     const mode = getMode();
     localStorage.setItem(LS_MODE, mode === "date" ? "days" : "date");
     renderSob();
   };
 
   document.getElementById("streakPill").onclick = () => {
-    // Optional: open the sheet for now (or build a streak sheet later)
     openSheet();
   };
 
@@ -305,15 +299,12 @@
     streakValue.textContent = streak + "🔥";
   }
 
-  // Init
-  // If there is a saved date, prefill the sheet input
-  (function initDateInput(){
+  (function init(){
     const v = localStorage.getItem(LS_DATE);
     if (v) sobDate.value = v;
+    updateStreak();
+    renderSob();
   })();
-
-  updateStreak();
-  renderSob();
 </script>
 
 </body>
