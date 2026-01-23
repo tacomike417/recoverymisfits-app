@@ -89,6 +89,7 @@
       font-size: 12px;
       font-weight: 900;
       opacity: .6;
+      white-space: nowrap;
     }
 
     /* Sheet */
@@ -117,9 +118,11 @@
       border: 1px solid rgba(0,0,0,.18);
       margin-top: 8px;
       font-weight: 700;
+      box-sizing: border-box;
     }
     .row{ display:flex; gap:10px; margin-top:10px; }
     .big{ font-size: 22px; font-weight: 1000; margin-top: 10px; }
+    .muted{ opacity:.75; }
   </style>
 </head>
 
@@ -127,7 +130,7 @@
 
 <header>
   <div class="brand">Recovery Misfits</div>
-  <button onclick="window.open('https://recoverymisfits.blogspot.com/')">Open Blog</button>
+  <button type="button" onclick="window.open('https://recoverymisfits.blogspot.com/')">Open Blog</button>
 </header>
 
 <div class="frameWrap">
@@ -137,7 +140,8 @@
 <!-- Bottom Bar -->
 <div class="bottomBar">
   <div class="bottomInner">
-    <div class="pill" id="sobPill">
+
+    <div class="pill" id="sobPill" role="button" aria-label="Sobriety">
       <div>
         <div class="label">SOBRIETY</div>
         <div class="value" id="sobValue">Tap to set</div>
@@ -145,115 +149,171 @@
       <div class="hint" id="sobHint">Tap to set</div>
     </div>
 
-    <div class="pill" id="streakPill">
+    <div class="pill" id="streakPill" role="button" aria-label="Streak">
       <div>
         <div class="label">STREAK</div>
         <div class="value" id="streakValue">—</div>
       </div>
+      <div class="hint">Details</div>
     </div>
+
   </div>
 </div>
 
 <!-- Sheet -->
 <div class="backdrop" id="backdrop"></div>
-<div class="sheet" id="sheet">
-  <h3>Sobriety</h3>
-  <input type="date" id="sobDate">
-  <div class="row">
-    <button id="saveSob">Save</button>
-    <button id="clearSob">Clear</button>
+<div class="sheet" id="sheet" aria-hidden="true">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Sobriety</h3>
+    <button id="closeSheet" type="button">Close</button>
   </div>
+
+  <div class="muted" style="margin-top:6px;">Set your sobriety date once. Stored on this device.</div>
+
+  <input type="date" id="sobDate">
+
+  <div class="row">
+    <button id="saveSob" type="button">Save</button>
+    <button id="clearSob" type="button">Clear</button>
+  </div>
+
   <div class="big" id="sobOut"></div>
 </div>
 
 <script>
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
-const LS_DATE = "rm_sob_date";
-const LS_MODE = "rm_sob_mode";
-const LS_STREAK = "rm_streak";
-const LS_LAST = "rm_last";
+  const LS_DATE  = "rm_sob_date";
+  const LS_MODE  = "rm_sob_mode";   // "days" | "date"
+  const LS_STREAK = "rm_streak";
+  const LS_LAST   = "rm_last";
 
-const sobValue = document.getElementById("sobValue");
-const sobHint = document.getElementById("sobHint");
-const sobDate = document.getElementById("sobDate");
-const sobOut = document.getElementById("sobOut");
-const streakValue = document.getElementById("streakValue");
+  const sobValue = document.getElementById("sobValue");
+  const sobHint  = document.getElementById("sobHint");
+  const sobDate  = document.getElementById("sobDate");
+  const sobOut   = document.getElementById("sobOut");
+  const streakValue = document.getElementById("streakValue");
 
-const sheet = document.getElementById("sheet");
-const backdrop = document.getElementById("backdrop");
+  const sheet = document.getElementById("sheet");
+  const backdrop = document.getElementById("backdrop");
+  const closeSheetBtn = document.getElementById("closeSheet");
 
-function daysBetween(a,b){
-  return Math.floor((b-a)/(1000*60*60*24));
-}
-
-function renderSob(){
-  const v = localStorage.getItem(LS_DATE);
-  const mode = localStorage.getItem(LS_MODE)||"days";
-
-  if(!v){
-    sobValue.textContent = "Tap to set";
-    sobHint.style.display = "block";
-    sobOut.textContent = "";
-    return;
-  }
-
-  sobHint.style.display = "none";
-
-  const d0 = new Date(v+"T00:00:00");
-  const d1 = new Date();
-  const days = Math.max(0,daysBetween(d0,d1));
-
-  sobValue.textContent =
-    mode==="date" ? "Sober: "+v : "Sober: "+days+"d";
-
-  sobOut.textContent = days+" days sober";
-}
-
-document.getElementById("sobPill").onclick = () => {
-  if(!localStorage.getItem(LS_DATE)){
+  function openSheet(){
+    backdrop.style.display = "block";
     sheet.classList.add("open");
-    backdrop.style.display="block";
-  } else {
-    localStorage.setItem(LS_MODE,
-      localStorage.getItem(LS_MODE)==="date"?"days":"date");
-    renderSob();
+    sheet.setAttribute("aria-hidden","false");
   }
-};
-
-document.getElementById("saveSob").onclick = () => {
-  if(sobDate.value){
-    localStorage.setItem(LS_DATE,sobDate.value);
-    renderSob();
+  function closeSheet(){
+    sheet.classList.remove("open");
+    sheet.setAttribute("aria-hidden","true");
+    backdrop.style.display = "none";
   }
-};
 
-document.getElementById("clearSob").onclick = () => {
-  localStorage.removeItem(LS_DATE);
+  backdrop.onclick = closeSheet;
+  closeSheetBtn.onclick = closeSheet;
+
+  function daysBetween(a,b){
+    return Math.floor((b-a)/(1000*60*60*24));
+  }
+
+  function getMode(){
+    let mode = localStorage.getItem(LS_MODE);
+    if (!mode) {
+      mode = "days";
+      localStorage.setItem(LS_MODE, mode);
+    }
+    return mode;
+  }
+
+  function renderSob(){
+    const v = localStorage.getItem(LS_DATE);
+    const mode = getMode();
+
+    // If not set yet
+    if(!v){
+      sobValue.textContent = "Tap to set";
+      sobHint.textContent = "Tap to set";
+      sobOut.textContent = "";
+      return;
+    }
+
+    const d0 = new Date(v + "T00:00:00");
+    const d1 = new Date();
+    const days = Math.max(0, daysBetween(d0, d1));
+
+    // Main value on left
+    if (mode === "date") {
+      sobValue.textContent = "Sober: " + v;
+      // Hint shows what tap will switch to
+      sobHint.textContent = "Day count";
+    } else {
+      sobValue.textContent = "Sober: " + days + "d";
+      sobHint.textContent = "Sobriety date";
+    }
+
+    // Sheet always shows day count
+    sobOut.textContent = days + " days sober";
+  }
+
+  document.getElementById("sobPill").onclick = () => {
+    const v = localStorage.getItem(LS_DATE);
+
+    // If not set, tap opens set sheet
+    if(!v){
+      openSheet();
+      return;
+    }
+
+    // If set, tap flips mode
+    const mode = getMode();
+    localStorage.setItem(LS_MODE, mode === "date" ? "days" : "date");
+    renderSob();
+  };
+
+  document.getElementById("streakPill").onclick = () => {
+    // Optional: open the sheet for now (or build a streak sheet later)
+    openSheet();
+  };
+
+  document.getElementById("saveSob").onclick = () => {
+    if(sobDate.value){
+      localStorage.setItem(LS_DATE, sobDate.value);
+      renderSob();
+      closeSheet();
+    }
+  };
+
+  document.getElementById("clearSob").onclick = () => {
+    localStorage.removeItem(LS_DATE);
+    renderSob();
+    closeSheet();
+  };
+
+  function updateStreak(){
+    const today = new Date().toISOString().slice(0,10);
+    const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+
+    const last = localStorage.getItem(LS_LAST);
+    let streak = Number(localStorage.getItem(LS_STREAK) || 0);
+
+    if(last !== today){
+      streak = (last === yesterday) ? streak + 1 : 1;
+      localStorage.setItem(LS_LAST, today);
+      localStorage.setItem(LS_STREAK, String(streak));
+    }
+
+    streakValue.textContent = streak + "🔥";
+  }
+
+  // Init
+  // If there is a saved date, prefill the sheet input
+  (function initDateInput(){
+    const v = localStorage.getItem(LS_DATE);
+    if (v) sobDate.value = v;
+  })();
+
+  updateStreak();
   renderSob();
-};
-
-backdrop.onclick = () => {
-  sheet.classList.remove("open");
-  backdrop.style.display="none";
-};
-
-function updateStreak(){
-  const today = new Date().toISOString().slice(0,10);
-  const last = localStorage.getItem(LS_LAST);
-  let streak = Number(localStorage.getItem(LS_STREAK)||0);
-
-  if(last!==today){
-    streak = last===new Date(Date.now()-86400000).toISOString().slice(0,10)
-      ? streak+1 : 1;
-    localStorage.setItem(LS_LAST,today);
-    localStorage.setItem(LS_STREAK,streak);
-  }
-  streakValue.textContent = streak+"🔥";
-}
-
-updateStreak();
-renderSob();
 </script>
 
 </body>
