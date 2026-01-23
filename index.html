@@ -16,6 +16,7 @@
       background: #fff;
       color: #111;
     }
+
     header{
       position: sticky;
       top: 0;
@@ -48,8 +49,10 @@
       color:#111;
       white-space: nowrap;
     }
+
+    /* Frame area leaves space for bottom bar */
     .frameWrap{
-      height: calc(100vh - 52px);
+      height: calc(100vh - 52px - 62px);
       width: 100%;
     }
     iframe{
@@ -58,6 +61,49 @@
       border: 0;
       display:block;
       background:#fff;
+    }
+
+    /* Bottom bar */
+    .bottomBar{
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      background: #fff;
+      border-top: 1px solid rgba(0,0,0,.12);
+      padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    }
+    .bottomInner{
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .pill{
+      border: 1px solid rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 10px 12px;
+      background: #fff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .pill .label{
+      font-size: 12px;
+      opacity: .70;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .pill .value{
+      font-size: 14px;
+      font-weight: 1000;
+      text-align: right;
+      line-height: 1.15;
     }
 
     /* Tools panel (bottom sheet) */
@@ -125,6 +171,24 @@
       font-weight: 1000;
       margin-top: 8px;
     }
+    .toggleRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .chip{
+      border: 1px solid rgba(0,0,0,.18);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-weight: 900;
+      background: #fff;
+      cursor: pointer;
+    }
+    .chip.active{
+      background: rgba(0,0,0,.06);
+    }
   </style>
 </head>
 
@@ -133,7 +197,6 @@
 <header>
   <div class="brand">Recovery Misfits</div>
   <div class="actions">
-    <button id="toolsBtn" type="button">Tools</button>
     <button id="openBlogBtn" type="button">Open in Browser</button>
   </div>
 </header>
@@ -142,22 +205,52 @@
   <iframe id="blogFrame" title="Recovery Misfits Blog" src="https://recoverymisfits.blogspot.com/"></iframe>
 </div>
 
+<!-- Bottom bar -->
+<div class="bottomBar">
+  <div class="bottomInner">
+    <div class="pill" id="sobPill" role="button" aria-label="Sobriety">
+      <div>
+        <div class="label">SOBRIETY</div>
+        <div class="value" id="sobPillValue">Set date</div>
+      </div>
+      <div class="muted" style="font-weight:900;">Tap to flip</div>
+    </div>
+
+    <div class="pill" id="streakPill" role="button" aria-label="Streak">
+      <div>
+        <div class="label">STREAK</div>
+        <div class="value" id="streakPillValue">—</div>
+      </div>
+      <div class="muted" style="font-weight:900;">Details</div>
+    </div>
+  </div>
+</div>
+
 <!-- Tools Bottom Sheet -->
 <div id="backdrop" class="sheetBackdrop"></div>
 <div id="sheet" class="sheet" aria-hidden="true">
   <div class="sheetHeader">
-    <div class="sheetTitle">Tools</div>
+    <div class="sheetTitle" id="sheetTitle">Tools</div>
     <button id="closeSheetBtn" type="button">Close</button>
   </div>
 
   <div class="card">
     <div><b>Sobriety Date</b></div>
-    <div class="muted">Set it once. The app will remember on this device.</div>
+    <div class="muted">Stored on this device only.</div>
+
     <input id="sobDate" type="date" />
+
     <div class="row">
       <button id="saveSobBtn" type="button">Save</button>
       <button id="clearSobBtn" type="button">Clear</button>
     </div>
+
+    <div class="toggleRow">
+      <div class="muted" style="font-weight:900;">Bottom bar shows:</div>
+      <div id="modeDays" class="chip" role="button">Days</div>
+      <div id="modeDate" class="chip" role="button">Date</div>
+    </div>
+
     <div id="sobOut" class="big"></div>
     <div id="sobNext" class="muted" style="margin-top:6px;"></div>
   </div>
@@ -170,9 +263,8 @@
   </div>
 
   <div class="card">
-    <div><b>Tip</b></div>
     <div class="muted">
-      This “Tools” panel is part of the app (GitHub Pages). The reading itself is your real Blogger theme, embedded.
+      Note: The reading is your real Blogger theme (embedded). The sobriety + streak features are the app layer.
     </div>
   </div>
 </div>
@@ -185,18 +277,19 @@
 
   const BLOG_URL = "https://recoverymisfits.blogspot.com/";
 
-  // Header buttons
+  // Header button
   document.getElementById("openBlogBtn").addEventListener("click", () => {
     window.open(BLOG_URL, "_blank");
   });
 
   // Bottom sheet open/close
-  const toolsBtn = document.getElementById("toolsBtn");
   const sheet = document.getElementById("sheet");
   const backdrop = document.getElementById("backdrop");
   const closeSheetBtn = document.getElementById("closeSheetBtn");
+  const sheetTitle = document.getElementById("sheetTitle");
 
-  function openSheet(){
+  function openSheet(title){
+    sheetTitle.textContent = title || "Tools";
     backdrop.style.display = "block";
     sheet.classList.add("open");
     sheet.setAttribute("aria-hidden", "false");
@@ -207,21 +300,19 @@
     backdrop.style.display = "none";
   }
 
-  toolsBtn.addEventListener("click", openSheet);
   closeSheetBtn.addEventListener("click", closeSheet);
   backdrop.addEventListener("click", closeSheet);
 
-  // ===== Sobriety Date Calculator (local only) =====
-  const sobDateEl = document.getElementById("sobDate");
-  const sobOut = document.getElementById("sobOut");
-  const sobNext = document.getElementById("sobNext");
-
+  // ===== Helpers =====
   function pad2(n){ return String(n).padStart(2,"0"); }
 
-  function loadSobDate(){
-    const v = localStorage.getItem("rm_sob_date");
-    if (v) sobDateEl.value = v;
-    renderSob();
+  function todayKey(d=new Date()){
+    return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate());
+  }
+  function yesterdayKey(){
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return todayKey(d);
   }
 
   function daysBetween(startDate, endDate){
@@ -239,23 +330,91 @@
     return null;
   }
 
-  function renderSob(){
-    const v = localStorage.getItem("rm_sob_date");
-    if (!v) {
+  // ===== Local settings =====
+  const LS_SOB_DATE = "rm_sob_date";
+  const LS_SOB_MODE = "rm_sob_mode"; // "days" | "date"
+  const LS_LAST_OPEN = "rm_last_open";
+  const LS_STREAK = "rm_streak";
+  const LS_BEST = "rm_best_streak";
+
+  // Default mode
+  if (!localStorage.getItem(LS_SOB_MODE)) localStorage.setItem(LS_SOB_MODE, "days");
+
+  // ===== UI refs =====
+  const sobPill = document.getElementById("sobPill");
+  const sobPillValue = document.getElementById("sobPillValue");
+  const streakPill = document.getElementById("streakPill");
+  const streakPillValue = document.getElementById("streakPillValue");
+
+  const sobDateEl = document.getElementById("sobDate");
+  const sobOut = document.getElementById("sobOut");
+  const sobNext = document.getElementById("sobNext");
+
+  const streakOut = document.getElementById("streakOut");
+  const streakBest = document.getElementById("streakBest");
+
+  const modeDays = document.getElementById("modeDays");
+  const modeDate = document.getElementById("modeDate");
+
+  // ===== Sobriety logic =====
+  function loadSobDate(){
+    const v = localStorage.getItem(LS_SOB_DATE);
+    if (v) sobDateEl.value = v;
+  }
+
+  function setMode(mode){
+    localStorage.setItem(LS_SOB_MODE, mode);
+    renderModeChips();
+    renderSobAll();
+  }
+
+  function toggleMode(){
+    const m = localStorage.getItem(LS_SOB_MODE) || "days";
+    setMode(m === "days" ? "date" : "days");
+  }
+
+  function renderModeChips(){
+    const m = localStorage.getItem(LS_SOB_MODE) || "days";
+    modeDays.classList.toggle("active", m === "days");
+    modeDate.classList.toggle("active", m === "date");
+  }
+
+  modeDays.addEventListener("click", () => setMode("days"));
+  modeDate.addEventListener("click", () => setMode("date"));
+
+  function sobrietyDays(){
+    const v = localStorage.getItem(LS_SOB_DATE);
+    if (!v) return null;
+    const start = new Date(v + "T00:00:00");
+    const today = new Date();
+    const days = Math.max(0, daysBetween(start, today));
+    return { v, days };
+  }
+
+  function renderSobAll(){
+    const data = sobrietyDays();
+    const mode = localStorage.getItem(LS_SOB_MODE) || "days";
+
+    if (!data) {
+      sobPillValue.textContent = "Set date";
       sobOut.textContent = "";
       sobNext.textContent = "";
       return;
     }
-    const start = new Date(v + "T00:00:00");
-    const today = new Date();
-    const days = daysBetween(start, today);
-    const cleanDays = Math.max(0, days);
 
-    sobOut.textContent = cleanDays + " days sober";
+    // Bottom bar display
+    if (mode === "date") {
+      sobPillValue.textContent = "Sober: " + data.v;
+    } else {
+      sobPillValue.textContent = "Sober: " + data.days + "d";
+    }
 
-    const next = nextMilestone(cleanDays);
+    // Sheet display (always show days + next milestone)
+    sobOut.textContent = data.days + " days sober";
+
+    const next = nextMilestone(data.days);
     if (next !== null) {
-      const remaining = next - cleanDays;
+      const remaining = next - data.days;
       sobNext.textContent = "Next milestone: " + next + " days (" + remaining + " days to go)";
     } else {
       sobNext.textContent = "You’re in bonus miles now. Keep going.";
@@ -264,37 +423,32 @@
 
   document.getElementById("saveSobBtn").addEventListener("click", () => {
     if (!sobDateEl.value) return;
-    localStorage.setItem("rm_sob_date", sobDateEl.value);
-    renderSob();
+    localStorage.setItem(LS_SOB_DATE, sobDateEl.value);
+    renderSobAll();
   });
 
   document.getElementById("clearSobBtn").addEventListener("click", () => {
-    localStorage.removeItem("rm_sob_date");
+    localStorage.removeItem(LS_SOB_DATE);
     sobDateEl.value = "";
-    renderSob();
+    renderSobAll();
   });
 
-  sobDateEl.addEventListener("change", renderSob);
+  // Bottom bar sobriety pill: tap flips mode; long tap not needed
+  sobPill.addEventListener("click", () => {
+    // If no date set, open sheet so they can set it
+    if (!localStorage.getItem(LS_SOB_DATE)) {
+      openSheet("Sobriety");
+      return;
+    }
+    toggleMode();
+  });
 
-  // ===== Visiting Streak (local only) =====
-  const streakOut = document.getElementById("streakOut");
-  const streakBest = document.getElementById("streakBest");
-
-  function todayKey(d=new Date()){
-    return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate());
-  }
-
-  function yesterdayKey(){
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return todayKey(d);
-  }
-
+  // ===== Streak logic =====
   function updateStreak(){
     const t = todayKey();
-    const last = localStorage.getItem("rm_last_open") || "";
-    let streak = Number(localStorage.getItem("rm_streak") || "0");
-    let best = Number(localStorage.getItem("rm_best_streak") || "0");
+    const last = localStorage.getItem(LS_LAST_OPEN) || "";
+    let streak = Number(localStorage.getItem(LS_STREAK) || "0");
+    let best = Number(localStorage.getItem(LS_BEST) || "0");
 
     if (last === t) {
       // already counted today
@@ -304,21 +458,32 @@
       streak = 1;
     }
 
-    localStorage.setItem("rm_last_open", t);
-    localStorage.setItem("rm_streak", String(streak));
+    localStorage.setItem(LS_LAST_OPEN, t);
+    localStorage.setItem(LS_STREAK, String(streak));
 
     if (streak > best) {
       best = streak;
-      localStorage.setItem("rm_best_streak", String(best));
+      localStorage.setItem(LS_BEST, String(best));
     }
 
+    // Bottom bar display
+    streakPillValue.textContent = streak + "🔥";
+
+    // Sheet display
     streakOut.textContent = streak + " day streak";
     streakBest.textContent = "Best streak: " + best + " days";
   }
 
-  // Run streak update when app opens
-  updateStreak();
+  // Bottom bar streak pill opens details
+  streakPill.addEventListener("click", () => {
+    openSheet("Streak + Tools");
+  });
+
+  // Init
   loadSobDate();
+  renderModeChips();
+  updateStreak();
+  renderSobAll();
 </script>
 
 </body>
