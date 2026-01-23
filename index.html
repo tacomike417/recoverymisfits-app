@@ -1,225 +1,150 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits</title>
-
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#ffffff" />
-  <link rel="icon" href="./icon-192.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sobriety Tracker</title>
 
   <style>
-    body{font-family:Roboto,Arial,sans-serif;margin:0;background:#fff;color:#111;}
-    header{position:sticky;top:0;z-index:9000;background:#fff;border-bottom:1px solid rgba(0,0,0,.12);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;}
-    .brand{font-weight:900;font-size:16px;}
-    button{padding:9px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.18);background:#fff;font-weight:900;cursor:pointer;color:#111;}
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 2rem;
+      text-align: center;
+    }
 
-    /* Install bar */
-    #rm-install-bar{display:none;position:sticky;top:52px;z-index:9500;background:#fff;border-bottom:1px solid rgba(0,0,0,.12);}
-    #rm-install-inner{max-width:980px;margin:0 auto;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
-    #rm-install-left{display:flex;flex-direction:column;gap:2px;}
-    #rm-install-title{font-weight:1000;font-size:13px;}
-    #rm-install-sub{font-weight:700;font-size:12px;color:#666;}
-    #rm-install-actions{display:flex;gap:8px;align-items:center;}
-    #rm-install-btn{background:#111;color:#fff;}
-    #rm-install-close{border:none;background:transparent;font-size:18px;opacity:.6;padding:6px 8px;}
-    #rm-install-close:hover{opacity:1;}
+    button {
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      background: #222;
+      color: white;
+    }
 
-    .frameWrap{height:calc(100vh - 52px - 54px - 62px);}
-    iframe{width:100%;height:100%;border:0;display:block;}
+    /* Modal backdrop */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
 
-    /* Bottom bar */
-    .bottomBar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid rgba(0,0,0,.12);padding:10px 10px calc(10px + env(safe-area-inset-bottom));z-index:9999;}
-    .bottomInner{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-    .pill{border:1px solid rgba(0,0,0,.18);border-radius:16px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
-    .label{font-size:12px;font-weight:800;opacity:.7;}
-    .value{font-size:14px;font-weight:1000;}
-    .hint{font-size:12px;font-weight:800;color:#666;white-space:nowrap;}
+    /* Modal */
+    .modal {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
 
-    /* Sheet */
-    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:10000;}
-    .sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:14px;transform:translateY(110%);transition:transform .2s ease;z-index:10001;}
-    .sheet.open{transform:translateY(0);}
-    input{width:100%;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.18);margin-top:8px;font-weight:700;}
-    .row{display:flex;gap:10px;margin-top:10px;}
-    .big{font-size:22px;font-weight:1000;margin-top:10px;}
-    .muted{opacity:.75;}
+    .modal h2 {
+      margin-top: 0;
+    }
+
+    /* Close button */
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 1.3rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    input[type="date"] {
+      font-size: 1rem;
+      padding: 0.5rem;
+      width: 100%;
+      margin: 1rem 0;
+    }
+
+    .days {
+      margin-top: 1.5rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
   </style>
 </head>
-
 <body>
+  <h1>Sobriety Tracker</h1>
 
-<header>
-  <div class="brand">Recovery Misfits</div>
-  <button id="openBlog" type="button">Open Blog</button>
-</header>
+  <button id="openModalBtn">Set Sobriety Date</button>
 
-<!-- Install Bar -->
-<div id="rm-install-bar">
-  <div id="rm-install-inner">
-    <div id="rm-install-left">
-      <div id="rm-install-title">Install the app</div>
-      <div id="rm-install-sub">Loading…</div>
-    </div>
-    <div id="rm-install-actions">
-      <button id="rm-install-btn" type="button">Install</button>
-      <button id="rm-install-close" type="button">✕</button>
-    </div>
-  </div>
-</div>
+  <div class="days" id="daysSober"></div>
 
-<div class="frameWrap">
-  <iframe src="https://recoverymisfits.blogspot.com/"></iframe>
-</div>
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <button class="close-btn" id="closeModalBtn">✕</button>
+      <h2>Select Your Sobriety Date</h2>
 
-<!-- Bottom Bar -->
-<div class="bottomBar">
-  <div class="bottomInner">
-    <div class="pill" id="sobPill">
-      <div>
-        <div class="label">SOBRIETY</div>
-        <div class="value" id="sobValue">Tap to set</div>
-      </div>
-      <div class="hint" id="sobHint">Tap to set</div>
-    </div>
+      <input type="date" id="sobrietyDate" />
 
-    <div class="pill" id="streakPill">
-      <div>
-        <div class="label">STREAK</div>
-        <div class="value" id="streakValue">—</div>
-      </div>
-      <div class="hint">Details</div>
+      <button id="saveDateBtn">Save</button>
     </div>
   </div>
-</div>
 
-<!-- Sobriety Sheet -->
-<div class="backdrop" id="backdrop"></div>
-<div class="sheet" id="sheet">
-  <div style="display:flex;justify-content:space-between;">
-    <h3 style="margin:0;">Sobriety</h3>
-    <button id="closeSheet">Close</button>
-  </div>
-  <div class="muted">Stored only on this device.</div>
-  <input type="date" id="sobDate">
-  <div class="row">
-    <button id="saveSob">Save</button>
-    <button id="clearSob">Clear</button>
-  </div>
-  <div class="big" id="sobOut"></div>
-</div>
+  <script>
+    const openModalBtn = document.getElementById("openModalBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const saveDateBtn = document.getElementById("saveDateBtn");
+    const sobrietyDateInput = document.getElementById("sobrietyDate");
+    const daysSoberEl = document.getElementById("daysSober");
 
-<!-- iOS Install Coach -->
-<div class="backdrop" id="iosCoachBackdrop"></div>
-<div class="sheet" id="iosCoachSheet">
-  <h3>Add to Home Screen</h3>
-  <p class="muted">Apple doesn’t allow one-tap install.</p>
-  <p><b>1.</b> Tap Share ⬆︎</p>
-  <p><b>2.</b> Tap <b>Add to Home Screen</b></p>
-  <p><b>3.</b> Tap <b>Add</b></p>
-</div>
+    // Open modal
+    openModalBtn.addEventListener("click", () => {
+      modalBackdrop.style.display = "flex";
+    });
 
-<script>
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+    // Close modal (X button)
+    closeModalBtn.addEventListener("click", () => {
+      modalBackdrop.style.display = "none";
+    });
 
-  const BLOG_URL = "https://recoverymisfits.blogspot.com/";
-  document.getElementById("openBlog").onclick = () => window.open(BLOG_URL, "_blank");
+    // Close modal by clicking backdrop
+    modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalBackdrop) {
+        modalBackdrop.style.display = "none";
+      }
+    });
 
-  function isStandalone(){
-    return (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone);
-  }
+    // Save date
+    saveDateBtn.addEventListener("click", () => {
+      const selectedDate = sobrietyDateInput.value;
+      if (!selectedDate) return;
 
-  const installBar = document.getElementById("rm-install-bar");
-  const installBtn = document.getElementById("rm-install-btn");
-  const installSub = document.getElementById("rm-install-sub");
-  const installClose = document.getElementById("rm-install-close");
+      localStorage.setItem("sobrietyDate", selectedDate);
+      modalBackdrop.style.display = "none";
+      updateDaysSober();
+    });
 
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  let deferredPrompt = null;
+    function updateDaysSober() {
+      const storedDate = localStorage.getItem("sobrietyDate");
+      if (!storedDate) return;
 
-  function showInstall(msg){
-    if (isStandalone()) return;
-    installSub.textContent = msg;
-    installBar.style.display = "block";
-  }
-  function hideInstall(){ installBar.style.display = "none"; }
+      const start = new Date(storedDate);
+      const today = new Date();
 
-  if (!isStandalone()){
-    if (isIOS){
-      installBtn.textContent = "Add to Home Screen";
-      showInstall("iPhone/iPad: Share → Add to Home Screen");
-      installBtn.onclick = () => {
-        document.getElementById("iosCoachBackdrop").style.display="block";
-        document.getElementById("iosCoachSheet").classList.add("open");
-      };
-    } else {
-      showInstall("Android: tap Install App");
-      window.addEventListener("beforeinstallprompt", e => {
-        e.preventDefault();
-        deferredPrompt = e;
-        showInstall("Android: tap Install App now");
-      });
-      installBtn.onclick = async () => {
-        if (!deferredPrompt) {
-          showInstall("Use Chrome menu ⋮ → Install app");
-          return;
-        }
-        deferredPrompt.prompt();
-        deferredPrompt = null;
-      };
+      const diffTime = today - start;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      daysSoberEl.textContent = `Days sober: ${diffDays}`;
     }
-  }
 
-  installClose.onclick = hideInstall;
-  window.addEventListener("appinstalled", hideInstall);
-
-  // Sobriety + streak
-  const LS_DATE="rm_date", LS_MODE="rm_mode", LS_STREAK="rm_streak", LS_LAST="rm_last";
-  const sobValue=document.getElementById("sobValue"), sobHint=document.getElementById("sobHint");
-  const sobDate=document.getElementById("sobDate"), sobOut=document.getElementById("sobOut");
-  const streakValue=document.getElementById("streakValue");
-
-  function daysBetween(a,b){return Math.floor((b-a)/(86400000));}
-  function getMode(){return localStorage.getItem(LS_MODE)||"days";}
-  function renderSob(){
-    const d=localStorage.getItem(LS_DATE);
-    if(!d){sobValue.textContent="Tap to set";sobHint.textContent="Tap to set";sobOut.textContent="";return;}
-    const days=Math.max(0,daysBetween(new Date(d),new Date()));
-    if(getMode()==="date"){sobValue.textContent="Sober: "+d;sobHint.textContent="Day count";}
-    else{sobValue.textContent="Sober: "+days+"d";sobHint.textContent="Sobriety date";}
-    sobOut.textContent=days+" days sober";
-  }
-
-  document.getElementById("sobPill").onclick=()=>{
-    if(!localStorage.getItem(LS_DATE)){
-      document.getElementById("backdrop").style.display="block";
-      document.getElementById("sheet").classList.add("open");
-      return;
-    }
-    localStorage.setItem(LS_MODE,getMode()==="date"?"days":"date");
-    renderSob();
-  };
-
-  document.getElementById("saveSob").onclick=()=>{
-    if(sobDate.value){localStorage.setItem(LS_DATE,sobDate.value);renderSob();}
-  };
-  document.getElementById("clearSob").onclick=()=>{
-    localStorage.removeItem(LS_DATE);renderSob();
-  };
-
-  function updateStreak(){
-    const t=new Date().toISOString().slice(0,10);
-    const y=new Date(Date.now()-86400000).toISOString().slice(0,10);
-    const last=localStorage.getItem(LS_LAST);
-    let s=+localStorage.getItem(LS_STREAK)||0;
-    if(last!==t){s=(last===y)?s+1:1;localStorage.setItem(LS_LAST,t);localStorage.setItem(LS_STREAK,s);}
-    streakValue.textContent=s+"🔥";
-  }
-
-  updateStreak();
-  renderSob();
-</script>
-
+    // Load on refresh
+    updateDaysSober();
+  </script>
 </body>
 </html>
