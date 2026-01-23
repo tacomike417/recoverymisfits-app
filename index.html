@@ -27,17 +27,10 @@
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap: 10px;
     }
     .brand{
       font-weight: 900;
       font-size: 16px;
-      line-height: 1.2;
-    }
-    .actions{
-      display:flex;
-      align-items:center;
-      gap: 8px;
     }
     button{
       padding: 9px 12px;
@@ -46,21 +39,15 @@
       background: #fff;
       font-weight: 900;
       cursor: pointer;
-      color:#111;
-      white-space: nowrap;
     }
 
-    /* Frame area leaves space for bottom bar */
     .frameWrap{
       height: calc(100vh - 52px - 62px);
-      width: 100%;
     }
     iframe{
       width: 100%;
       height: 100%;
       border: 0;
-      display:block;
-      background:#fff;
     }
 
     /* Bottom bar */
@@ -69,7 +56,6 @@
       left: 0;
       right: 0;
       bottom: 0;
-      z-index: 9999;
       background: #fff;
       border-top: 1px solid rgba(0,0,0,.12);
       padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
@@ -85,34 +71,32 @@
       border: 1px solid rgba(0,0,0,.18);
       border-radius: 16px;
       padding: 10px 12px;
-      background: #fff;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap: 10px;
       cursor: pointer;
-      user-select: none;
     }
-    .pill .label{
+    .label{
       font-size: 12px;
-      opacity: .70;
       font-weight: 800;
-      letter-spacing: .2px;
+      opacity: .7;
     }
-    .pill .value{
+    .value{
       font-size: 14px;
       font-weight: 1000;
-      text-align: right;
-      line-height: 1.15;
+    }
+    .hint{
+      font-size: 12px;
+      font-weight: 900;
+      opacity: .6;
     }
 
-    /* Tools panel (bottom sheet) */
-    .sheetBackdrop{
+    /* Sheet */
+    .backdrop{
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,.35);
       display: none;
-      z-index: 10000;
     }
     .sheet{
       position: fixed;
@@ -120,75 +104,22 @@
       right: 0;
       bottom: 0;
       background: #fff;
-      border-top-left-radius: 18px;
-      border-top-right-radius: 18px;
-      border: 1px solid rgba(0,0,0,.12);
-      box-shadow: 0 -10px 40px rgba(0,0,0,.18);
+      border-radius: 18px 18px 0 0;
       padding: 14px;
-      max-height: 75vh;
-      overflow: auto;
       transform: translateY(110%);
-      transition: transform .22s ease;
-      z-index: 10001;
+      transition: transform .2s ease;
     }
     .sheet.open{ transform: translateY(0); }
-    .sheetHeader{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      margin-bottom: 8px;
-    }
-    .sheetTitle{
-      font-weight: 1000;
-      font-size: 16px;
-    }
-    .muted{ opacity: .75; }
-    .card{
-      border: 1px solid rgba(0,0,0,.12);
-      border-radius: 16px;
-      padding: 12px;
-      margin-top: 10px;
-    }
     input{
       width: 100%;
-      box-sizing: border-box;
-      padding: 10px 12px;
+      padding: 10px;
       border-radius: 12px;
       border: 1px solid rgba(0,0,0,.18);
+      margin-top: 8px;
       font-weight: 700;
-      margin-top: 8px;
     }
-    .row{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-    .big{
-      font-size: 22px;
-      font-weight: 1000;
-      margin-top: 8px;
-    }
-    .toggleRow{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-    .chip{
-      border: 1px solid rgba(0,0,0,.18);
-      border-radius: 999px;
-      padding: 8px 10px;
-      font-weight: 900;
-      background: #fff;
-      cursor: pointer;
-    }
-    .chip.active{
-      background: rgba(0,0,0,.06);
-    }
+    .row{ display:flex; gap:10px; margin-top:10px; }
+    .big{ font-size: 22px; font-weight: 1000; margin-top: 10px; }
   </style>
 </head>
 
@@ -196,294 +127,133 @@
 
 <header>
   <div class="brand">Recovery Misfits</div>
-  <div class="actions">
-    <button id="openBlogBtn" type="button">Open in Browser</button>
-  </div>
+  <button onclick="window.open('https://recoverymisfits.blogspot.com/')">Open Blog</button>
 </header>
 
 <div class="frameWrap">
-  <iframe id="blogFrame" title="Recovery Misfits Blog" src="https://recoverymisfits.blogspot.com/"></iframe>
+  <iframe src="https://recoverymisfits.blogspot.com/"></iframe>
 </div>
 
-<!-- Bottom bar -->
+<!-- Bottom Bar -->
 <div class="bottomBar">
   <div class="bottomInner">
-    <div class="pill" id="sobPill" role="button" aria-label="Sobriety">
+    <div class="pill" id="sobPill">
       <div>
         <div class="label">SOBRIETY</div>
-        <div class="value" id="sobPillValue">Set date</div>
+        <div class="value" id="sobValue">Tap to set</div>
       </div>
-      <div class="muted" style="font-weight:900;">Tap to set</div>
+      <div class="hint" id="sobHint">Tap to set</div>
     </div>
 
-    <div class="pill" id="streakPill" role="button" aria-label="Streak">
+    <div class="pill" id="streakPill">
       <div>
         <div class="label">STREAK</div>
-        <div class="value" id="streakPillValue">—</div>
+        <div class="value" id="streakValue">—</div>
       </div>
-      <div class="muted" style="font-weight:900;">Details</div>
     </div>
   </div>
 </div>
 
-<!-- Tools Bottom Sheet -->
-<div id="backdrop" class="sheetBackdrop"></div>
-<div id="sheet" class="sheet" aria-hidden="true">
-  <div class="sheetHeader">
-    <div class="sheetTitle" id="sheetTitle">Tools</div>
-    <button id="closeSheetBtn" type="button">Close</button>
+<!-- Sheet -->
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet">
+  <h3>Sobriety</h3>
+  <input type="date" id="sobDate">
+  <div class="row">
+    <button id="saveSob">Save</button>
+    <button id="clearSob">Clear</button>
   </div>
-
-  <div class="card">
-    <div><b>Sobriety Date</b></div>
-    <div class="muted">Stored on this device only.</div>
-
-    <input id="sobDate" type="date" />
-
-    <div class="row">
-      <button id="saveSobBtn" type="button">Save</button>
-      <button id="clearSobBtn" type="button">Clear</button>
-    </div>
-
-    <div class="toggleRow">
-      <div class="muted" style="font-weight:900;">Bottom bar shows:</div>
-      <div id="modeDays" class="chip" role="button">Days</div>
-      <div id="modeDate" class="chip" role="button">Date</div>
-    </div>
-
-    <div id="sobOut" class="big"></div>
-    <div id="sobNext" class="muted" style="margin-top:6px;"></div>
-  </div>
-
-  <div class="card">
-    <div><b>Visiting Streak</b></div>
-    <div class="muted">Counts days you opened the app.</div>
-    <div id="streakOut" class="big"></div>
-    <div id="streakBest" class="muted" style="margin-top:6px;"></div>
-  </div>
-
-  <div class="card">
-    <div class="muted">
-      Note: The reading is your real Blogger theme (embedded). The sobriety + streak features are the app layer.
-    </div>
-  </div>
+  <div class="big" id="sobOut"></div>
 </div>
 
 <script>
-  // Service worker for installability
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js");
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+
+const LS_DATE = "rm_sob_date";
+const LS_MODE = "rm_sob_mode";
+const LS_STREAK = "rm_streak";
+const LS_LAST = "rm_last";
+
+const sobValue = document.getElementById("sobValue");
+const sobHint = document.getElementById("sobHint");
+const sobDate = document.getElementById("sobDate");
+const sobOut = document.getElementById("sobOut");
+const streakValue = document.getElementById("streakValue");
+
+const sheet = document.getElementById("sheet");
+const backdrop = document.getElementById("backdrop");
+
+function daysBetween(a,b){
+  return Math.floor((b-a)/(1000*60*60*24));
+}
+
+function renderSob(){
+  const v = localStorage.getItem(LS_DATE);
+  const mode = localStorage.getItem(LS_MODE)||"days";
+
+  if(!v){
+    sobValue.textContent = "Tap to set";
+    sobHint.style.display = "block";
+    sobOut.textContent = "";
+    return;
   }
 
-  const BLOG_URL = "https://recoverymisfits.blogspot.com/";
+  sobHint.style.display = "none";
 
-  // Header button
-  document.getElementById("openBlogBtn").addEventListener("click", () => {
-    window.open(BLOG_URL, "_blank");
-  });
+  const d0 = new Date(v+"T00:00:00");
+  const d1 = new Date();
+  const days = Math.max(0,daysBetween(d0,d1));
 
-  // Bottom sheet open/close
-  const sheet = document.getElementById("sheet");
-  const backdrop = document.getElementById("backdrop");
-  const closeSheetBtn = document.getElementById("closeSheetBtn");
-  const sheetTitle = document.getElementById("sheetTitle");
+  sobValue.textContent =
+    mode==="date" ? "Sober: "+v : "Sober: "+days+"d";
 
-  function openSheet(title){
-    sheetTitle.textContent = title || "Tools";
-    backdrop.style.display = "block";
+  sobOut.textContent = days+" days sober";
+}
+
+document.getElementById("sobPill").onclick = () => {
+  if(!localStorage.getItem(LS_DATE)){
     sheet.classList.add("open");
-    sheet.setAttribute("aria-hidden", "false");
+    backdrop.style.display="block";
+  } else {
+    localStorage.setItem(LS_MODE,
+      localStorage.getItem(LS_MODE)==="date"?"days":"date");
+    renderSob();
   }
-  function closeSheet(){
-    sheet.classList.remove("open");
-    sheet.setAttribute("aria-hidden", "true");
-    backdrop.style.display = "none";
+};
+
+document.getElementById("saveSob").onclick = () => {
+  if(sobDate.value){
+    localStorage.setItem(LS_DATE,sobDate.value);
+    renderSob();
   }
+};
 
-  closeSheetBtn.addEventListener("click", closeSheet);
-  backdrop.addEventListener("click", closeSheet);
+document.getElementById("clearSob").onclick = () => {
+  localStorage.removeItem(LS_DATE);
+  renderSob();
+};
 
-  // ===== Helpers =====
-  function pad2(n){ return String(n).padStart(2,"0"); }
+backdrop.onclick = () => {
+  sheet.classList.remove("open");
+  backdrop.style.display="none";
+};
 
-  function todayKey(d=new Date()){
-    return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate());
+function updateStreak(){
+  const today = new Date().toISOString().slice(0,10);
+  const last = localStorage.getItem(LS_LAST);
+  let streak = Number(localStorage.getItem(LS_STREAK)||0);
+
+  if(last!==today){
+    streak = last===new Date(Date.now()-86400000).toISOString().slice(0,10)
+      ? streak+1 : 1;
+    localStorage.setItem(LS_LAST,today);
+    localStorage.setItem(LS_STREAK,streak);
   }
-  function yesterdayKey(){
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return todayKey(d);
-  }
+  streakValue.textContent = streak+"🔥";
+}
 
-  function daysBetween(startDate, endDate){
-    const ms = 24*60*60*1000;
-    const a = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-    const b = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-    return Math.floor((b - a) / ms);
-  }
-
-  function nextMilestone(days){
-    const milestones = [1,7,14,30,60,90,180,365,730,1095,1825,3650];
-    for (const m of milestones){
-      if (m > days) return m;
-    }
-    return null;
-  }
-
-  // ===== Local settings =====
-  const LS_SOB_DATE = "rm_sob_date";
-  const LS_SOB_MODE = "rm_sob_mode"; // "days" | "date"
-  const LS_LAST_OPEN = "rm_last_open";
-  const LS_STREAK = "rm_streak";
-  const LS_BEST = "rm_best_streak";
-
-  // Default mode
-  if (!localStorage.getItem(LS_SOB_MODE)) localStorage.setItem(LS_SOB_MODE, "days");
-
-  // ===== UI refs =====
-  const sobPill = document.getElementById("sobPill");
-  const sobPillValue = document.getElementById("sobPillValue");
-  const streakPill = document.getElementById("streakPill");
-  const streakPillValue = document.getElementById("streakPillValue");
-
-  const sobDateEl = document.getElementById("sobDate");
-  const sobOut = document.getElementById("sobOut");
-  const sobNext = document.getElementById("sobNext");
-
-  const streakOut = document.getElementById("streakOut");
-  const streakBest = document.getElementById("streakBest");
-
-  const modeDays = document.getElementById("modeDays");
-  const modeDate = document.getElementById("modeDate");
-
-  // ===== Sobriety logic =====
-  function loadSobDate(){
-    const v = localStorage.getItem(LS_SOB_DATE);
-    if (v) sobDateEl.value = v;
-  }
-
-  function setMode(mode){
-    localStorage.setItem(LS_SOB_MODE, mode);
-    renderModeChips();
-    renderSobAll();
-  }
-
-  function toggleMode(){
-    const m = localStorage.getItem(LS_SOB_MODE) || "days";
-    setMode(m === "days" ? "date" : "days");
-  }
-
-  function renderModeChips(){
-    const m = localStorage.getItem(LS_SOB_MODE) || "days";
-    modeDays.classList.toggle("active", m === "days");
-    modeDate.classList.toggle("active", m === "date");
-  }
-
-  modeDays.addEventListener("click", () => setMode("days"));
-  modeDate.addEventListener("click", () => setMode("date"));
-
-  function sobrietyDays(){
-    const v = localStorage.getItem(LS_SOB_DATE);
-    if (!v) return null;
-    const start = new Date(v + "T00:00:00");
-    const today = new Date();
-    const days = Math.max(0, daysBetween(start, today));
-    return { v, days };
-  }
-
-  function renderSobAll(){
-    const data = sobrietyDays();
-    const mode = localStorage.getItem(LS_SOB_MODE) || "days";
-
-    if (!data) {
-      sobPillValue.textContent = "Set date";
-      sobOut.textContent = "";
-      sobNext.textContent = "";
-      return;
-    }
-
-    // Bottom bar display
-    if (mode === "date") {
-      sobPillValue.textContent = "Sober: " + data.v;
-    } else {
-      sobPillValue.textContent = "Sober: " + data.days + "d";
-    }
-
-    // Sheet display (always show days + next milestone)
-    sobOut.textContent = data.days + " days sober";
-
-    const next = nextMilestone(data.days);
-    if (next !== null) {
-      const remaining = next - data.days;
-      sobNext.textContent = "Next milestone: " + next + " days (" + remaining + " days to go)";
-    } else {
-      sobNext.textContent = "You’re in bonus miles now. Keep going.";
-    }
-  }
-
-  document.getElementById("saveSobBtn").addEventListener("click", () => {
-    if (!sobDateEl.value) return;
-    localStorage.setItem(LS_SOB_DATE, sobDateEl.value);
-    renderSobAll();
-  });
-
-  document.getElementById("clearSobBtn").addEventListener("click", () => {
-    localStorage.removeItem(LS_SOB_DATE);
-    sobDateEl.value = "";
-    renderSobAll();
-  });
-
-  // Bottom bar sobriety pill: tap flips mode; long tap not needed
-  sobPill.addEventListener("click", () => {
-    // If no date set, open sheet so they can set it
-    if (!localStorage.getItem(LS_SOB_DATE)) {
-      openSheet("Sobriety");
-      return;
-    }
-    toggleMode();
-  });
-
-  // ===== Streak logic =====
-  function updateStreak(){
-    const t = todayKey();
-    const last = localStorage.getItem(LS_LAST_OPEN) || "";
-    let streak = Number(localStorage.getItem(LS_STREAK) || "0");
-    let best = Number(localStorage.getItem(LS_BEST) || "0");
-
-    if (last === t) {
-      // already counted today
-    } else if (last === yesterdayKey()) {
-      streak = streak + 1;
-    } else {
-      streak = 1;
-    }
-
-    localStorage.setItem(LS_LAST_OPEN, t);
-    localStorage.setItem(LS_STREAK, String(streak));
-
-    if (streak > best) {
-      best = streak;
-      localStorage.setItem(LS_BEST, String(best));
-    }
-
-    // Bottom bar display
-    streakPillValue.textContent = streak + "🔥";
-
-    // Sheet display
-    streakOut.textContent = streak + " day streak";
-    streakBest.textContent = "Best streak: " + best + " days";
-  }
-
-  // Bottom bar streak pill opens details
-  streakPill.addEventListener("click", () => {
-    openSheet("Streak + Tools");
-  });
-
-  // Init
-  loadSobDate();
-  renderModeChips();
-  updateStreak();
-  renderSobAll();
+updateStreak();
+renderSob();
 </script>
 
 </body>
