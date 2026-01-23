@@ -2,36 +2,105 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Recovery Misfits</title>
 
-  <link rel="manifest" href="./manifest.json" />
+  <!-- PWA essentials -->
+  <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#ffffff" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Recovery Misfits" />
 
-  <!-- iOS icon -->
-  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <!-- Optional: basic icon for browser tab -->
+  <link rel="icon" href="./icon-192.png">
 
   <style>
-    html, body { height: 100%; margin: 0; }
-    iframe { width: 100%; height: 100%; border: 0; }
+    body {
+      font-family: Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      max-width: 900px;
+    }
+    .card {
+      border: 1px solid rgba(0,0,0,.15);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .muted {
+      opacity: .75;
+    }
   </style>
 </head>
 <body>
-  <iframe
-    src="https://recoverymisfits.blogspot.com/"
-    title="Recovery Misfits"
-    referrerpolicy="no-referrer-when-downgrade"
-    allow="fullscreen"
-  ></iframe>
+
+  <h1>Recovery Misfits</h1>
+  <p class="muted">This is the installable app shell.</p>
+
+  <div class="card">
+    <button id="installBtn" type="button">Install App</button>
+
+    <div id="installHelp" class="muted" style="display:none; margin-top:10px;">
+      <div><b>iPhone / iPad:</b> Share → Add to Home Screen</div>
+      <div style="margin-top:6px;"><b>Android:</b> Chrome menu (⋮) → Install app</div>
+    </div>
+  </div>
 
   <script>
+    // Register service worker (required)
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("./sw.js");
     }
+
+    // Install logic
+    (function () {
+      const installBtn = document.getElementById("installBtn");
+      const help = document.getElementById("installHelp");
+
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const isSafari = isIOS && /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
+
+      let deferredPrompt = null;
+
+      // On Android, hide until install is possible
+      if (!isSafari) installBtn.style.display = "none";
+
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = "inline-block";
+      });
+
+      installBtn.addEventListener("click", async function () {
+        if (isSafari) {
+          help.style.display = "block";
+          return;
+        }
+
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const choice = await deferredPrompt.userChoice;
+          deferredPrompt = null;
+
+          if (choice && choice.outcome === "accepted") {
+            installBtn.style.display = "none";
+          } else {
+            help.style.display = "block";
+          }
+        } else {
+          help.style.display = "block";
+        }
+      });
+
+      window.addEventListener("appinstalled", function () {
+        installBtn.style.display = "none";
+      });
+    })();
   </script>
+
 </body>
 </html>
