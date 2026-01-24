@@ -11,75 +11,100 @@
 
   <style>
     /* ===========================
-       CSS: GLOBAL + LAYOUT
+       GLOBAL
        =========================== */
-    body{font-family:Roboto,Arial,sans-serif;margin:0;background:#fff;color:#111;}
+    body{
+      font-family:Roboto,Arial,sans-serif;
+      margin:0;
+      background:#fff;
+      color:#111;
+    }
 
     /* ===========================
-       CSS: HEADER (TITLE ONLY)
+       HEADER
        =========================== */
     header{
-      position:sticky;top:0;z-index:9000;background:#fff;
+      position:sticky;
+      top:0;
+      z-index:9000;
+      background:#fff;
       border-bottom:1px solid rgba(0,0,0,.12);
-      padding:12px;text-align:center;
+      padding:12px;
+      text-align:center;
     }
     .brand{font-weight:900;font-size:16px;}
 
     /* ===========================
-       CSS: INSTALL BAR
+       INSTALL BAR
        =========================== */
     #rm-install-bar{
       display:none;
       position:sticky;
-      top:48px; /* just below header */
+      top:48px;
       z-index:9500;
       background:#fff;
       border-bottom:1px solid rgba(0,0,0,.12);
     }
     #rm-install-inner{
-      max-width:980px;margin:0 auto;
+      max-width:980px;
+      margin:0 auto;
       padding:10px 12px;
-      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
     }
-    #rm-install-left{display:flex;flex-direction:column;gap:2px;}
     #rm-install-title{font-weight:1000;font-size:13px;}
-    #rm-install-sub{font-weight:800;font-size:12px;color:#666;line-height:1.25;}
-    #rm-install-actions{display:flex;gap:8px;align-items:center;}
+    #rm-install-sub{font-weight:800;font-size:12px;color:#666;}
     #rm-install-btn{
-      padding:9px 12px;border-radius:999px;
+      padding:9px 12px;
+      border-radius:999px;
       border:1px solid rgba(0,0,0,.18);
-      background:#111;color:#fff;font-weight:900;cursor:pointer;
+      background:#111;
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
     }
     #rm-install-close{
-      border:none;background:transparent;font-size:18px;opacity:.6;
-      padding:6px 8px;cursor:pointer;
+      background:none;
+      border:none;
+      font-size:18px;
+      cursor:pointer;
+      opacity:.6;
     }
-    #rm-install-close:hover{opacity:1;}
-    #rm-install-btn:disabled{opacity:.55;cursor:not-allowed;}
 
     /* ===========================
-       CSS: MAIN CONTENT (IFRAME)
+       IFRAME
        =========================== */
-    .frameWrap{height:200px;} /* set by JS so it fits exactly */
-    iframe{width:100%;height:100%;border:0;background:#fff;display:block;}
+    .frameWrap{height:200px;}
+    iframe{width:100%;height:100%;border:0;}
 
     /* ===========================
-       CSS: BOTTOM BAR
+       BOTTOM BAR
        =========================== */
     .bottomBar{
-      position:fixed;left:0;right:0;bottom:0;
-      background:#fff;border-top:1px solid rgba(0,0,0,.12);
+      position:fixed;
+      left:0;right:0;bottom:0;
+      background:#fff;
+      border-top:1px solid rgba(0,0,0,.12);
       padding:10px 10px calc(10px + env(safe-area-inset-bottom));
       z-index:9999;
     }
     .bottomInner{
-      max-width:980px;margin:0 auto;
-      display:grid;grid-template-columns:1fr 1fr;gap:10px;
+      max-width:980px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
     }
     .pill{
       border:1px solid rgba(0,0,0,.18);
-      border-radius:16px;padding:10px 12px;
-      display:flex;align-items:center;justify-content:space-between;
+      border-radius:16px;
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
       cursor:pointer;
     }
     .label{font-size:12px;font-weight:900;opacity:.7;}
@@ -87,429 +112,464 @@
     .hint{font-size:12px;font-weight:900;color:#666;}
 
     /* ===========================
-       CSS: CONNECTION WHISPER
+       CONNECTION WHISPER + BADGE
        =========================== */
     #rm-whisper{
+      display:flex;
+      align-items:center;
+      gap:6px;
       margin-top:6px;
+      user-select:none;
+
+      /* fade-in */
+      opacity:0;
+      transition:opacity .8s ease;
+    }
+    #rm-whisper.show{opacity:1;}
+
+    .whisper-dot{
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:#bbb;
+      flex-shrink:0;
+    }
+    .whisper-text{
       font-size:12px;
       font-weight:900;
       color:#777;
       letter-spacing:.2px;
-      user-select:none;
     }
 
     /* ===========================
-       CSS: SHEETS (MODALS)
+       SHEETS
        =========================== */
-    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:10000;}
+    .backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.35);
+      display:none;
+      z-index:10000;
+    }
     .sheet{
-      position:fixed;left:0;right:0;bottom:0;
-      background:#fff;border-radius:18px 18px 0 0;
-      padding:14px;transform:translateY(110%);
-      transition:transform .2s ease;z-index:10001;
+      position:fixed;
+      left:0;right:0;bottom:0;
+      background:#fff;
+      border-radius:18px 18px 0 0;
+      padding:14px;
+      transform:translateY(110%);
+      transition:transform .2s ease;
+      z-index:10001;
     }
     .sheet.open{transform:translateY(0);}
     input{
-      width:100%;padding:10px;border-radius:12px;
+      width:100%;
+      padding:10px;
+      border-radius:12px;
       border:1px solid rgba(0,0,0,.18);
-      margin-top:8px;font-weight:800;box-sizing:border-box;
+      margin-top:8px;
+      font-weight:800;
+      box-sizing:border-box;
     }
     .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
-    .big{font-size:22px;font-weight:1000;margin-top:10px;}
     .btn{
-      padding:9px 12px;border-radius:999px;
+      padding:9px 12px;
+      border-radius:999px;
       border:1px solid rgba(0,0,0,.18);
-      background:#fff;font-weight:900;cursor:pointer;color:#111;
+      background:#fff;
+      font-weight:900;
+      cursor:pointer;
     }
     .btn.primary{background:#111;color:#fff;}
+    .big{font-size:22px;font-weight:1000;margin-top:10px;}
+    .muted{color:#666;font-weight:800;line-height:1.25;}
   </style>
 </head>
 
 <body>
 
-  <!-- ===========================
-       HEADER (TITLE ONLY)
-       =========================== -->
-  <header>
-    <div class="brand">Recovery Misfits</div>
-  </header>
-  <!-- /HEADER -->
+<!-- ===========================
+     HEADER
+     =========================== -->
+<header>
+  <div class="brand">Recovery Misfits</div>
+</header>
 
-  <!-- ===========================
-       INSTALL BAR (iPhone + Android)
-       =========================== -->
-  <div id="rm-install-bar">
-    <div id="rm-install-inner">
-      <div id="rm-install-left">
-        <div id="rm-install-title">Install the app</div>
-        <div id="rm-install-sub"></div>
-      </div>
-      <div id="rm-install-actions">
-        <button id="rm-install-btn" type="button">Install</button>
-        <button id="rm-install-close" type="button" aria-label="Close">✕</button>
-      </div>
+<!-- ===========================
+     INSTALL BAR
+     =========================== -->
+<div id="rm-install-bar">
+  <div id="rm-install-inner">
+    <div>
+      <div id="rm-install-title">Install the app</div>
+      <div id="rm-install-sub"></div>
+    </div>
+    <div>
+      <button id="rm-install-btn" type="button">Install</button>
+      <button id="rm-install-close" type="button" aria-label="Close">✕</button>
     </div>
   </div>
-  <!-- /INSTALL BAR -->
+</div>
 
-  <!-- ===========================
-       MAIN CONTENT (BLOG IFRAME)
-       =========================== -->
-  <div class="frameWrap" id="frameWrap">
-    <iframe id="blogFrame" src="https://recoverymisfits.blogspot.com/"></iframe>
-  </div>
-  <!-- /MAIN CONTENT -->
+<!-- ===========================
+     BLOG
+     =========================== -->
+<div class="frameWrap" id="frameWrap">
+  <iframe src="https://recoverymisfits.blogspot.com/"></iframe>
+</div>
 
-  <!-- ===========================
-       BOTTOM BAR (SOBRIETY + CHECK-IN)
-       =========================== -->
-  <div class="bottomBar">
-    <div class="bottomInner">
+<!-- ===========================
+     BOTTOM BAR
+     =========================== -->
+<div class="bottomBar">
+  <div class="bottomInner">
 
-      <!-- SOBRIETY -->
-      <div class="pill" id="sobPill">
+    <!-- SOBRIETY -->
+    <div class="pill" id="sobPill">
+      <div>
+        <div class="label">SOBRIETY</div>
+        <div class="value" id="sobValue">Tap to set</div>
+      </div>
+      <div class="hint" id="sobHint">Tap to set</div>
+    </div>
+
+    <!-- DAILY CHECK-IN -->
+    <div>
+      <div class="pill" id="streakPill">
         <div>
-          <div class="label">SOBRIETY</div>
-          <div class="value" id="sobValue">Tap to set</div>
+          <div class="label">DAILY CHECK-IN</div>
+          <div class="value" id="streakValue">—</div>
         </div>
-        <div class="hint" id="sobHint">Tap to set</div>
+        <div class="hint">Today</div>
       </div>
 
-      <!-- DAILY CHECK-IN + CONNECTION WHISPER -->
-      <div>
-        <div class="pill" id="streakPill">
-          <div>
-            <div class="label">DAILY CHECK-IN</div>
-            <div class="value" id="streakValue">—</div>
-          </div>
-          <div class="hint" id="checkinHint">Today</div>
-        </div>
-
-        <!-- CONNECTION WHISPER (subtle, non-interactive) -->
-        <div id="rm-whisper"></div>
-        <!-- /CONNECTION WHISPER -->
+      <!-- CONNECTION WHISPER -->
+      <div id="rm-whisper" aria-hidden="true">
+        <span class="whisper-dot" aria-hidden="true"></span>
+        <span class="whisper-text"></span>
       </div>
+      <!-- /CONNECTION WHISPER -->
+    </div>
 
+  </div>
+</div>
+
+<!-- ===========================
+     SOBRIETY SHEET
+     =========================== -->
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Sobriety</h3>
+    <button class="btn" id="closeSheet" type="button">Close</button>
+  </div>
+  <div class="muted" style="margin-top:6px;">Set your sobriety date once. Stored on this device.</div>
+  <input type="date" id="sobDate">
+  <div class="row">
+    <button class="btn primary" id="saveSob" type="button">Save</button>
+    <button class="btn" id="clearSob" type="button">Clear</button>
+  </div>
+  <div class="big" id="sobOut"></div>
+</div>
+
+<!-- ===========================
+     iOS INSTALL SHEET
+     =========================== -->
+<div class="backdrop" id="iosBackdrop"></div>
+<div class="sheet" id="iosSheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Add to Home Screen</h3>
+    <button class="btn" id="closeIOS" type="button">Close</button>
+  </div>
+
+  <div style="margin-top:12px;font-weight:900;line-height:1.45;">
+    <div style="margin-bottom:12px;">
+      <b>1)</b> Tap the iPhone <b>Share</b> button
+      <span style="margin-left:6px;border:1px solid rgba(0,0,0,.18);border-radius:8px;padding:2px 8px;font-weight:1000;">⤴︎</span>
+    </div>
+    <div style="margin-bottom:12px;">
+      <b>2)</b> Scroll and tap <b>Add to Home Screen</b>
+    </div>
+    <div>
+      <b>3)</b> Tap <b>Add</b>
     </div>
   </div>
-  <!-- /BOTTOM BAR -->
 
-  <!-- ===========================
-       SHEET: SOBRIETY (DATE + DISPLAY)
-       =========================== -->
-  <div class="backdrop" id="backdrop"></div>
-  <div class="sheet" id="sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <h3 style="margin:0;">Sobriety</h3>
-      <button class="btn" id="closeSheet" type="button">Close</button>
-    </div>
-    <div style="margin-top:6px;font-weight:800;color:#666;line-height:1.25;">
-      Set your sobriety date once. Stored on this device.
-    </div>
-    <input type="date" id="sobDate">
-    <div class="row">
-      <button class="btn primary" id="saveSob" type="button">Save</button>
-      <button class="btn" id="clearSob" type="button">Clear</button>
-    </div>
-    <div class="big" id="sobOut"></div>
-  </div>
-  <!-- /SHEET: SOBRIETY -->
+  <div class="muted" style="margin-top:12px;">Tip: this works best in Safari (some in-app browsers block it).</div>
+</div>
 
-  <!-- ===========================
-       SHEET: iOS INSTALL (1-2-3 STEPS)
-       =========================== -->
-  <div class="backdrop" id="iosBackdrop"></div>
-  <div class="sheet" id="iosSheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <h3 style="margin:0;">Add to Home Screen</h3>
-      <button class="btn" id="closeIOS" type="button">Close</button>
-    </div>
+<!-- ===========================
+     JAVASCRIPT
+     =========================== -->
+<script>
+  /* ===========================
+     Service Worker
+     =========================== */
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
-    <div style="margin-top:12px;font-weight:900;line-height:1.45;">
-      <div style="margin-bottom:12px;">
-        <b>1)</b> Tap the iPhone <b>Share</b> button
-        <span style="margin-left:6px;border:1px solid rgba(0,0,0,.18);border-radius:8px;padding:2px 8px;font-weight:1000;">⤴︎</span>
-      </div>
-      <div style="margin-bottom:12px;">
-        <b>2)</b> Scroll and tap <b>Add to Home Screen</b>
-      </div>
-      <div>
-        <b>3)</b> Tap <b>Add</b>
-      </div>
-    </div>
-  </div>
-  <!-- /SHEET: iOS INSTALL -->
+  /* ===========================
+     Layout sizing (iframe fits screen)
+     =========================== */
+  const frameWrap = document.getElementById("frameWrap");
+  function setFrameHeight(){
+    const headerH = document.querySelector("header").offsetHeight || 48;
+    const installBarEl = document.getElementById("rm-install-bar");
+    const installH = (installBarEl && getComputedStyle(installBarEl).display !== "none") ? installBarEl.offsetHeight : 0;
+    const bottomH = document.querySelector(".bottomBar").offsetHeight || 70;
+    const total = window.innerHeight - headerH - installH - bottomH;
+    frameWrap.style.height = Math.max(220, total) + "px";
+  }
+  window.addEventListener("resize", setFrameHeight);
 
-  <!-- ===========================
-       JS: APP LOGIC (INSTALL + TRACKERS + WHISPER)
-       =========================== -->
-  <script>
-    /* ==========
-       JS: Service Worker
-       ========== */
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+  /* ===========================
+     Standalone detection
+     =========================== */
+  function isStandalone(){
+    const mql = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
+    const iosStandalone = window.navigator.standalone === true;
+    return !!(mql || iosStandalone);
+  }
 
-    /* ==========
-       JS: Layout sizing (iframe fits screen)
-       ========== */
-    const frameWrap = document.getElementById("frameWrap");
-    function setFrameHeight(){
-      const headerH = document.querySelector("header").offsetHeight || 48;
-      const installBarEl = document.getElementById("rm-install-bar");
-      const installH = (installBarEl && getComputedStyle(installBarEl).display !== "none") ? installBarEl.offsetHeight : 0;
-      const bottomH = document.querySelector(".bottomBar").offsetHeight || 70;
-      const total = window.innerHeight - headerH - installH - bottomH;
-      frameWrap.style.height = Math.max(220, total) + "px";
-    }
-    window.addEventListener("resize", setFrameHeight);
+  /* ===========================
+     Install Bar (Android + iPhone)
+     =========================== */
+  const installBar = document.getElementById("rm-install-bar");
+  const installBtn = document.getElementById("rm-install-btn");
+  const installClose = document.getElementById("rm-install-close");
+  const installSub = document.getElementById("rm-install-sub");
 
-    /* ==========
-       JS: Standalone detection
-       ========== */
-    function isStandalone(){
-      const mql = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
-      const iosStandalone = window.navigator.standalone === true;
-      return !!(mql || iosStandalone);
-    }
+  const ua = navigator.userAgent || "";
+  const isIOS = /iphone|ipad|ipod/i.test(ua);
+  const isInAppBrowserIOS = isIOS && /(fbav|fban|instagram|line\/|wv)/i.test(ua);
 
-    /* ==========
-       JS: Install Bar (Android + iPhone)
-       ========== */
-    const installBar = document.getElementById("rm-install-bar");
-    const installBtn = document.getElementById("rm-install-btn");
-    const installClose = document.getElementById("rm-install-close");
-    const installSub = document.getElementById("rm-install-sub");
+  let deferredPrompt = null;
 
-    const ua = navigator.userAgent || "";
-    const isIOS = /iphone|ipad|ipod/i.test(ua);
-    const isInAppBrowserIOS = isIOS && /(fbav|fban|instagram|line\/|wv)/i.test(ua);
+  function showInstallBar(msg){
+    if (isStandalone()) return;
+    installSub.textContent = msg || "";
+    installBar.style.display = "block";
+    setFrameHeight();
+  }
+  function hideInstallBar(){
+    installBar.style.display = "none";
+    setFrameHeight();
+  }
 
-    let deferredPrompt = null;
-
-    function showInstallBar(msg){
-      if (isStandalone()) return;
-      installSub.textContent = msg || "";
-      installBar.style.display = "block";
-      setFrameHeight();
-    }
-    function hideInstallBar(){
-      installBar.style.display = "none";
-      setFrameHeight();
-    }
-
-    if (!isStandalone()) {
-      if (isIOS) {
-        showInstallBar(isInAppBrowserIOS ? "Open in Safari to install." : "Tap Install for iPhone steps.");
-        installBtn.textContent = "Add to Home Screen";
-      } else {
-        showInstallBar("Android: tap Install (or Chrome menu ⋮ → Install app).");
-        installBtn.textContent = "Install";
-        installBtn.disabled = true;
-      }
-    }
-
-    // iOS sheet wiring
-    const iosBackdrop = document.getElementById("iosBackdrop");
-    const iosSheet = document.getElementById("iosSheet");
-    function openIOS(){ iosBackdrop.style.display="block"; iosSheet.classList.add("open"); }
-    function closeIOS(){ iosSheet.classList.remove("open"); iosBackdrop.style.display="none"; }
-    iosBackdrop.onclick = closeIOS;
-    document.getElementById("closeIOS").onclick = closeIOS;
-
+  if (!isStandalone()) {
     if (isIOS) {
-      installBtn.onclick = (e) => { e.preventDefault(); openIOS(); };
+      showInstallBar(isInAppBrowserIOS ? "Open in Safari to install." : "Tap Install for iPhone steps.");
+      installBtn.textContent = "Add to Home Screen";
     } else {
-      window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installBtn.disabled = false;
-        showInstallBar("Android: tap Install now.");
-      });
-
-      installBtn.onclick = async (e) => {
-        e.preventDefault();
-        if (!deferredPrompt) {
-          showInstallBar("Try: Chrome menu (⋮) → Install app.");
-          return;
-        }
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-      };
+      showInstallBar("Android: tap Install (or Chrome menu ⋮ → Install app).");
+      installBtn.textContent = "Install";
+      installBtn.disabled = true;
     }
+  }
 
-    installClose.onclick = (e) => { e.preventDefault(); hideInstallBar(); };
-    window.addEventListener("appinstalled", () => hideInstallBar());
-    if (isStandalone()) hideInstallBar();
+  // iOS install sheet wiring
+  const iosBackdrop = document.getElementById("iosBackdrop");
+  const iosSheet = document.getElementById("iosSheet");
+  function openIOS(){ iosBackdrop.style.display="block"; iosSheet.classList.add("open"); }
+  function closeIOS(){ iosSheet.classList.remove("open"); iosBackdrop.style.display="none"; }
+  iosBackdrop.onclick = closeIOS;
+  document.getElementById("closeIOS").onclick = closeIOS;
 
-    /* ==========
-       JS: Sobriety + Daily Check-in
-       ========== */
-    const LS_DATE   = "rm_sob_date";
-    const LS_MODE   = "rm_sob_mode"; // "days" | "date"
-    const LS_STREAK = "rm_streak";
-    const LS_LAST   = "rm_last";
+  if (isIOS) {
+    installBtn.onclick = (e) => { e.preventDefault(); openIOS(); };
+  } else {
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.disabled = false;
+      showInstallBar("Android: tap Install now.");
+    });
 
-    const sobValue = document.getElementById("sobValue");
-    const sobHint  = document.getElementById("sobHint");
-    const sobDate  = document.getElementById("sobDate");
-    const sobOut   = document.getElementById("sobOut");
-    const streakValue = document.getElementById("streakValue");
-    const checkinHint = document.getElementById("checkinHint");
-
-    const sheet = document.getElementById("sheet");
-    const backdrop = document.getElementById("backdrop");
-
-    function openSheet(){ backdrop.style.display="block"; sheet.classList.add("open"); }
-    function closeSheet(){ sheet.classList.remove("open"); backdrop.style.display="none"; }
-    backdrop.onclick = closeSheet;
-    document.getElementById("closeSheet").onclick = closeSheet;
-
-    function daysBetween(a,b){ return Math.floor((b-a)/(1000*60*60*24)); }
-
-    function getMode(){
-      let mode = localStorage.getItem(LS_MODE);
-      if (!mode) { mode = "days"; localStorage.setItem(LS_MODE, mode); }
-      return mode;
-    }
-
-    function renderSob(){
-      const v = localStorage.getItem(LS_DATE);
-      const mode = getMode();
-
-      if(!v){
-        sobValue.textContent = "Tap to set";
-        sobHint.textContent  = "Tap to set";
-        sobOut.textContent   = "";
+    installBtn.onclick = async (e) => {
+      e.preventDefault();
+      if (!deferredPrompt) {
+        showInstallBar("Try: Chrome menu (⋮) → Install app.");
         return;
       }
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    };
+  }
 
-      const d0 = new Date(v + "T00:00:00");
-      const d1 = new Date();
-      const days = Math.max(0, daysBetween(d0, d1));
+  installClose.onclick = (e) => { e.preventDefault(); hideInstallBar(); };
+  window.addEventListener("appinstalled", () => hideInstallBar());
+  if (isStandalone()) hideInstallBar();
 
-      if (mode === "date") {
-        sobValue.textContent = v;               // <-- removed "Sober:"
-        sobHint.textContent  = "Tap: show days";
-      } else {
-        sobValue.textContent = days + " days";  // <-- removed "Sober:"
-        sobHint.textContent  = "Tap: show date";
-      }
-      sobOut.textContent = days + " days sober";
+  /* ===========================
+     Sobriety + Daily Check-in
+     =========================== */
+  const LS_DATE   = "rm_sob_date";
+  const LS_MODE   = "rm_sob_mode"; // "days" | "date"
+  const LS_STREAK = "rm_streak";
+  const LS_LAST   = "rm_last";
+
+  const sobValue = document.getElementById("sobValue");
+  const sobHint  = document.getElementById("sobHint");
+  const sobDate  = document.getElementById("sobDate");
+  const sobOut   = document.getElementById("sobOut");
+
+  const sheet = document.getElementById("sheet");
+  const backdrop = document.getElementById("backdrop");
+
+  function openSheet(){ backdrop.style.display="block"; sheet.classList.add("open"); }
+  function closeSheet(){ sheet.classList.remove("open"); backdrop.style.display="none"; }
+  backdrop.onclick = closeSheet;
+  document.getElementById("closeSheet").onclick = closeSheet;
+
+  function daysBetween(a,b){ return Math.floor((b-a)/(1000*60*60*24)); }
+
+  function getMode(){
+    let mode = localStorage.getItem(LS_MODE);
+    if (!mode) { mode = "days"; localStorage.setItem(LS_MODE, mode); }
+    return mode;
+  }
+
+  function renderSob(){
+    const v = localStorage.getItem(LS_DATE);
+    const mode = getMode();
+
+    if(!v){
+      sobValue.textContent = "Tap to set";
+      sobHint.textContent  = "Tap to set";
+      sobOut.textContent   = "";
+      return;
     }
 
-    document.getElementById("sobPill").onclick = () => {
-      const v = localStorage.getItem(LS_DATE);
-      if(!v){ openSheet(); return; }
-      const mode = getMode();
-      localStorage.setItem(LS_MODE, mode === "date" ? "days" : "date");
-      renderSob();
-    };
+    const d0 = new Date(v + "T00:00:00");
+    const d1 = new Date();
+    const days = Math.max(0, daysBetween(d0, d1));
 
-    document.getElementById("streakPill").onclick = () => openSheet();
+    if (mode === "date") {
+      sobValue.textContent = v;
+      sobHint.textContent  = "Tap: show days";
+    } else {
+      sobValue.textContent = days + " days";
+      sobHint.textContent  = "Tap: show date";
+    }
+    sobOut.textContent = days + " days sober";
+  }
 
-    document.getElementById("saveSob").onclick = () => {
-      if(sobDate.value){
-        localStorage.setItem(LS_DATE, sobDate.value);
-        renderSob();
-        closeSheet();
-      }
-    };
+  document.getElementById("sobPill").onclick = () => {
+    const v = localStorage.getItem(LS_DATE);
+    if(!v){ openSheet(); return; }
+    const mode = getMode();
+    localStorage.setItem(LS_MODE, mode === "date" ? "days" : "date");
+    renderSob();
+  };
 
-    document.getElementById("clearSob").onclick = () => {
-      localStorage.removeItem(LS_DATE);
+  document.getElementById("streakPill").onclick = () => openSheet();
+
+  document.getElementById("saveSob").onclick = () => {
+    if(sobDate.value){
+      localStorage.setItem(LS_DATE, sobDate.value);
       renderSob();
       closeSheet();
-    };
+    }
+  };
 
-    function updateStreak(){
-      const today = new Date().toISOString().slice(0,10);
-      const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
-      const last = localStorage.getItem(LS_LAST);
-      let streak = Number(localStorage.getItem(LS_STREAK) || 0);
+  document.getElementById("clearSob").onclick = () => {
+    localStorage.removeItem(LS_DATE);
+    renderSob();
+    closeSheet();
+  };
 
-      if(last !== today){
-        streak = (last === yesterday) ? streak + 1 : 1;
-        localStorage.setItem(LS_LAST, today);
-        localStorage.setItem(LS_STREAK, String(streak));
-      }
-      streakValue.textContent = streak + "🔥";
-      checkinHint.textContent = "Today";
+  function updateStreak(){
+    const today = new Date().toISOString().slice(0,10);
+    const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+    const last = localStorage.getItem(LS_LAST);
+    let streak = Number(localStorage.getItem(LS_STREAK) || 0);
+
+    if(last !== today){
+      streak = (last === yesterday) ? streak + 1 : 1;
+      localStorage.setItem(LS_LAST, today);
+      localStorage.setItem(LS_STREAK, String(streak));
+    }
+    document.getElementById("streakValue").textContent = streak + "🔥";
+  }
+
+  /* ===========================
+     Connection Whisper (sticks for the day + fades in)
+     =========================== */
+  const WHISPER_KEY_DATE = "rm_whisper_date";
+  const WHISPER_KEY_TEXT = "rm_whisper_text";
+
+  const WHISPERS = [
+    "A few people re-read this lately",
+    "This one’s getting re-read",
+    "This one’s making the rounds",
+    "This hit somebody else too",
+    "You weren’t the only one here",
+    "Others paused on this one",
+    "This one drew a second look",
+    "This one slowed someone down",
+    "This one didn’t go unnoticed",
+    "More than one set of eyes here",
+    "Someone else needed this too",
+    "This one met a few people where they were",
+    "You’re in quiet company here",
+    "This one landed for somebody",
+    "A few folks stayed with this one",
+    "This one found its way around",
+    "Others sat with this for a bit",
+    "You weren’t alone with this thought",
+    "This one didn’t just pass by",
+    "Not the only one to read this",
+    "Shared moment today",
+    "Quietly revisited today",
+    "This one stayed today",
+    "Others were here today"
+  ];
+
+  function pickRandom(arr){
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+  function getTodayISO(){
+    return new Date().toISOString().slice(0,10);
+  }
+
+  function renderWhisper(){
+    const wrap = document.getElementById("rm-whisper");
+    const textEl = document.querySelector(".whisper-text");
+    if (!wrap || !textEl) return;
+
+    const today = getTodayISO();
+    const savedDate = localStorage.getItem(WHISPER_KEY_DATE);
+    const savedText = localStorage.getItem(WHISPER_KEY_TEXT);
+
+    let text = savedText;
+
+    if (savedDate !== today || !savedText) {
+      text = pickRandom(WHISPERS);
+      localStorage.setItem(WHISPER_KEY_DATE, today);
+      localStorage.setItem(WHISPER_KEY_TEXT, text);
     }
 
-    /* ==========
-       JS: Connection Whisper (sticks for the day)
-       ========== */
-    const WHISPER_KEY_DATE = "rm_whisper_date";
-    const WHISPER_KEY_TEXT = "rm_whisper_text";
+    textEl.textContent = text;
 
-    const WHISPERS = [
-      "A few people re-read this lately",
-      "This one’s getting re-read",
-      "This one’s making the rounds",
-      "This hit somebody else too",
-      "You weren’t the only one here",
-      "Others paused on this one",
-      "This one drew a second look",
-      "This one slowed someone down",
-      "This one didn’t go unnoticed",
-      "More than one set of eyes here",
-      "Someone else needed this too",
-      "This one met a few people where they were",
-      "You’re in quiet company here",
-      "This one landed for somebody",
-      "A few folks stayed with this one",
-      "This one found its way around",
-      "Others sat with this for a bit",
-      "You weren’t alone with this thought",
-      "This one didn’t just pass by",
-      "Not the only one to read this",
-      "Shared moment today",
-      "Quietly revisited today",
-      "This one stayed today",
-      "Others were here today"
-    ];
+    // Fade it in quietly after the app settles
+    setTimeout(() => {
+      wrap.classList.add("show");
+    }, 900);
+  }
 
-    function pickRandom(arr){
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-    function getTodayISO(){
-      return new Date().toISOString().slice(0,10);
-    }
+  /* ===========================
+     Init
+     =========================== */
+  (function init(){
+    const v = localStorage.getItem(LS_DATE);
+    if (v) sobDate.value = v;
 
-    function renderWhisper(){
-      const el = document.getElementById("rm-whisper");
-      if (!el) return;
-
-      const today = getTodayISO();
-      const savedDate = localStorage.getItem(WHISPER_KEY_DATE);
-      const savedText = localStorage.getItem(WHISPER_KEY_TEXT);
-
-      let text = savedText;
-
-      if (savedDate !== today || !savedText) {
-        text = pickRandom(WHISPERS);
-        localStorage.setItem(WHISPER_KEY_DATE, today);
-        localStorage.setItem(WHISPER_KEY_TEXT, text);
-      }
-
-      el.textContent = text;
-    }
-
-    /* ==========
-       JS: Init
-       ========== */
-    (function init(){
-      const v = localStorage.getItem(LS_DATE);
-      if (v) sobDate.value = v;
-
-      updateStreak();
-      renderSob();
-      renderWhisper();
-      setFrameHeight();
-    })();
-  </script>
-  <!-- /JS: APP LOGIC -->
+    updateStreak();
+    renderSob();
+    renderWhisper();
+    setFrameHeight();
+  })();
+</script>
 
 </body>
 </html>
