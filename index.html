@@ -14,18 +14,6 @@
        CSS: GLOBAL + LAYOUT
        =========================== */
     body{font-family:Roboto,Arial,sans-serif;margin:0;background:#fff;color:#111;}
-    /* ===========================
-   CSS: CONNECTION WHISPER
-   =========================== */
-#rm-whisper{
-  margin-top:6px;
-  font-size:12px;
-  font-weight:900;
-  color:#777;
-  letter-spacing:.2px;
-  user-select:none;
-}
-
 
     /* ===========================
        CSS: HEADER (TITLE ONLY)
@@ -99,6 +87,18 @@
     .hint{font-size:12px;font-weight:900;color:#666;}
 
     /* ===========================
+       CSS: CONNECTION WHISPER
+       =========================== */
+    #rm-whisper{
+      margin-top:6px;
+      font-size:12px;
+      font-weight:900;
+      color:#777;
+      letter-spacing:.2px;
+      user-select:none;
+    }
+
+    /* ===========================
        CSS: SHEETS (MODALS)
        =========================== */
     .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:10000;}
@@ -161,38 +161,38 @@
   <!-- /MAIN CONTENT -->
 
   <!-- ===========================
-     BOTTOM BAR (SOBRIETY + CHECK-IN)
-     =========================== -->
-<div class="bottomBar">
-  <div class="bottomInner">
+       BOTTOM BAR (SOBRIETY + CHECK-IN)
+       =========================== -->
+  <div class="bottomBar">
+    <div class="bottomInner">
 
-    <!-- SOBRIETY -->
-    <div class="pill" id="sobPill">
-      <div>
-        <div class="label">SOBRIETY</div>
-        <div class="value" id="sobValue">Tap to set</div>
-      </div>
-      <div class="hint" id="sobHint">Tap to set</div>
-    </div>
-
-    <!-- DAILY CHECK-IN + CONNECTION WHISPER -->
-    <div>
-      <div class="pill" id="streakPill">
+      <!-- SOBRIETY -->
+      <div class="pill" id="sobPill">
         <div>
-          <div class="label">DAILY CHECK-IN</div>
-          <div class="value" id="streakValue">—</div>
+          <div class="label">SOBRIETY</div>
+          <div class="value" id="sobValue">Tap to set</div>
         </div>
-        <div class="hint" id="checkinHint">Today</div>
+        <div class="hint" id="sobHint">Tap to set</div>
       </div>
 
-      <!-- CONNECTION WHISPER (subtle, non-interactive) -->
-      <div id="rm-whisper"></div>
-      <!-- /CONNECTION WHISPER -->
-    </div>
+      <!-- DAILY CHECK-IN + CONNECTION WHISPER -->
+      <div>
+        <div class="pill" id="streakPill">
+          <div>
+            <div class="label">DAILY CHECK-IN</div>
+            <div class="value" id="streakValue">—</div>
+          </div>
+          <div class="hint" id="checkinHint">Today</div>
+        </div>
 
+        <!-- CONNECTION WHISPER (subtle, non-interactive) -->
+        <div id="rm-whisper"></div>
+        <!-- /CONNECTION WHISPER -->
+      </div>
+
+    </div>
   </div>
-</div>
-<!-- /BOTTOM BAR -->
+  <!-- /BOTTOM BAR -->
 
   <!-- ===========================
        SHEET: SOBRIETY (DATE + DISPLAY)
@@ -241,7 +241,7 @@
   <!-- /SHEET: iOS INSTALL -->
 
   <!-- ===========================
-       JS: APP LOGIC (INSTALL + TRACKERS)
+       JS: APP LOGIC (INSTALL + TRACKERS + WHISPER)
        =========================== -->
   <script>
     /* ==========
@@ -250,15 +250,9 @@
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
     /* ==========
-       JS: Constants
-       ========== */
-    const BLOG_URL = "https://recoverymisfits.blogspot.com/";
-    const blogFrame = document.getElementById("blogFrame");
-    const frameWrap = document.getElementById("frameWrap");
-
-    /* ==========
        JS: Layout sizing (iframe fits screen)
        ========== */
+    const frameWrap = document.getElementById("frameWrap");
     function setFrameHeight(){
       const headerH = document.querySelector("header").offsetHeight || 48;
       const installBarEl = document.getElementById("rm-install-bar");
@@ -303,18 +297,14 @@
       setFrameHeight();
     }
 
-    // Only show install bar when not installed
     if (!isStandalone()) {
       if (isIOS) {
-        showInstallBar(isInAppBrowserIOS
-          ? "Open in Safari to install."
-          : "Tap Install for iPhone steps."
-        );
+        showInstallBar(isInAppBrowserIOS ? "Open in Safari to install." : "Tap Install for iPhone steps.");
         installBtn.textContent = "Add to Home Screen";
       } else {
         showInstallBar("Android: tap Install (or Chrome menu ⋮ → Install app).");
         installBtn.textContent = "Install";
-        installBtn.disabled = true; // enabled when prompt is available
+        installBtn.disabled = true;
       }
     }
 
@@ -329,7 +319,6 @@
     if (isIOS) {
       installBtn.onclick = (e) => { e.preventDefault(); openIOS(); };
     } else {
-      // Android: capture install prompt when available
       window.addEventListener("beforeinstallprompt", (e) => {
         e.preventDefault();
         deferredPrompt = e;
@@ -400,10 +389,10 @@
       const days = Math.max(0, daysBetween(d0, d1));
 
       if (mode === "date") {
-        sobValue.textContent = v;
+        sobValue.textContent = v;               // <-- removed "Sober:"
         sobHint.textContent  = "Tap: show days";
       } else {
-        sobValue.textContent = + days + " days";
+        sobValue.textContent = days + " days";  // <-- removed "Sober:"
         sobHint.textContent  = "Tap: show date";
       }
       sobOut.textContent = days + " days sober";
@@ -449,6 +438,65 @@
     }
 
     /* ==========
+       JS: Connection Whisper (sticks for the day)
+       ========== */
+    const WHISPER_KEY_DATE = "rm_whisper_date";
+    const WHISPER_KEY_TEXT = "rm_whisper_text";
+
+    const WHISPERS = [
+      "A few people re-read this lately",
+      "This one’s getting re-read",
+      "This one’s making the rounds",
+      "This hit somebody else too",
+      "You weren’t the only one here",
+      "Others paused on this one",
+      "This one drew a second look",
+      "This one slowed someone down",
+      "This one didn’t go unnoticed",
+      "More than one set of eyes here",
+      "Someone else needed this too",
+      "This one met a few people where they were",
+      "You’re in quiet company here",
+      "This one landed for somebody",
+      "A few folks stayed with this one",
+      "This one found its way around",
+      "Others sat with this for a bit",
+      "You weren’t alone with this thought",
+      "This one didn’t just pass by",
+      "Not the only one to read this",
+      "Shared moment today",
+      "Quietly revisited today",
+      "This one stayed today",
+      "Others were here today"
+    ];
+
+    function pickRandom(arr){
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+    function getTodayISO(){
+      return new Date().toISOString().slice(0,10);
+    }
+
+    function renderWhisper(){
+      const el = document.getElementById("rm-whisper");
+      if (!el) return;
+
+      const today = getTodayISO();
+      const savedDate = localStorage.getItem(WHISPER_KEY_DATE);
+      const savedText = localStorage.getItem(WHISPER_KEY_TEXT);
+
+      let text = savedText;
+
+      if (savedDate !== today || !savedText) {
+        text = pickRandom(WHISPERS);
+        localStorage.setItem(WHISPER_KEY_DATE, today);
+        localStorage.setItem(WHISPER_KEY_TEXT, text);
+      }
+
+      el.textContent = text;
+    }
+
+    /* ==========
        JS: Init
        ========== */
     (function init(){
@@ -457,6 +505,7 @@
 
       updateStreak();
       renderSob();
+      renderWhisper();
       setFrameHeight();
     })();
   </script>
