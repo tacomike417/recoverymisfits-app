@@ -170,6 +170,7 @@
       margin-top:8px;
       font-weight:800;
       box-sizing:border-box;
+      font-size:16px; /* helps iPhone avoid zoom */
     }
     .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
     .btn{
@@ -416,7 +417,16 @@
   const sheet = document.getElementById("sheet");
   const backdrop = document.getElementById("backdrop");
 
-  function openSheet(){ backdrop.style.display="block"; sheet.classList.add("open"); }
+  function openSheet(){
+    backdrop.style.display="block";
+    sheet.classList.add("open");
+
+    // EASIEST UX WIN: focus the date input and try to open the picker
+    setTimeout(() => {
+      sobDate.focus({ preventScroll: true });
+      if (sobDate.showPicker) sobDate.showPicker();
+    }, 150);
+  }
   function closeSheet(){ sheet.classList.remove("open"); backdrop.style.display="none"; }
   backdrop.onclick = closeSheet;
   document.getElementById("closeSheet").onclick = closeSheet;
@@ -499,25 +509,30 @@
   const WHISPER_KEY_TEXT = "rm_whisper_text";
 
   const WHISPERS = [
-    "Someone re-read this",
+    "A few people re-read this lately",
     "This one’s getting re-read",
     "This one’s making the rounds",
     "This hit somebody else too",
-    "You weren’t the only one here today",
-    "Someone paused on this reading",
+    "You weren’t the only one here",
+    "Others paused on this one",
+    "This one drew a second look",
     "This one slowed someone down",
     "This one didn’t go unnoticed",
     "More than one set of eyes here",
     "Someone else needed this too",
+    "This one met a few people where they were",
     "You’re in quiet company here",
     "This one landed for somebody",
-    "This reading found its way around",
-    "Someone sat with this for a bit",
-    "You aren’t alone with this thought",
-    "Not the only one to read this today",
+    "A few folks stayed with this one",
+    "This one found its way around",
+    "Others sat with this for a bit",
+    "You weren’t alone with this thought",
+    "This one didn’t just pass by",
+    "Not the only one to read this",
     "Shared moment today",
     "Quietly revisited today",
-    "Other people were here today"
+    "This one stayed today",
+    "Others were here today"
   ];
 
   function pickRandom(arr){
@@ -546,7 +561,6 @@
 
     textEl.textContent = text;
 
-    // Fade it in quietly after the app settles
     setTimeout(() => {
       wrap.classList.add("show");
     }, 900);
@@ -558,6 +572,9 @@
   (function init(){
     const v = localStorage.getItem(LS_DATE);
     if (v) sobDate.value = v;
+
+    // Prevent picking a future sobriety date (nice iPhone UX)
+    sobDate.max = new Date().toISOString().slice(0,10);
 
     updateStreak();
     renderSob();
