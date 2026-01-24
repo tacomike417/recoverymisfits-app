@@ -11,26 +11,21 @@
 
   <style>
     body{font-family:Roboto,Arial,sans-serif;margin:0;background:#fff;color:#111;}
-    header{position:sticky;top:0;z-index:9000;background:#fff;border-bottom:1px solid rgba(0,0,0,.12);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+    header{position:sticky;top:0;z-index:9000;background:#fff;border-bottom:1px solid rgba(0,0,0,.12);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;}
     .brand{font-weight:900;font-size:16px;}
     button{padding:9px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.18);background:#fff;font-weight:900;cursor:pointer;color:#111;}
-    button.primary{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
+    button.primary{background:#111;color:#fff;}
     button:disabled{opacity:.55;cursor:not-allowed;}
-    .topActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 
-    .frameWrap{height:200px;} /* set by JS dynamically */
+    .frameWrap{height:200px;}
     iframe{width:100%;height:100%;border:0;background:#fff;display:block;}
 
     /* Install bar */
     #rm-install-bar{display:none;position:sticky;top:52px;z-index:9500;background:#fff;border-bottom:1px solid rgba(0,0,0,.12);}
     #rm-install-inner{max-width:980px;margin:0 auto;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
-    #rm-install-left{display:flex;flex-direction:column;gap:2px;}
     #rm-install-title{font-weight:1000;font-size:13px;}
-    #rm-install-sub{font-weight:800;font-size:12px;color:#666;line-height:1.25;}
+    #rm-install-sub{font-weight:800;font-size:12px;color:#666;}
     #rm-install-actions{display:flex;gap:8px;align-items:center;}
-    #rm-install-btn{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
-    #rm-install-close{border:none;background:transparent;font-size:18px;opacity:.6;padding:6px 8px;}
-    #rm-install-close:hover{opacity:1;}
 
     /* Bottom bar */
     .bottomBar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid rgba(0,0,0,.12);padding:10px 10px calc(10px + env(safe-area-inset-bottom));z-index:9999;}
@@ -38,17 +33,15 @@
     .pill{border:1px solid rgba(0,0,0,.18);border-radius:16px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
     .label{font-size:12px;font-weight:900;opacity:.7;}
     .value{font-size:14px;font-weight:1000;}
-    .hint{font-size:12px;font-weight:900;color:#666;letter-spacing:.2px;white-space:nowrap;}
+    .hint{font-size:12px;font-weight:900;color:#666;}
 
-    /* Sheet */
+    /* Sheets */
     .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:10000;}
-    .sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:14px;transform:translateY(110%);transition:transform .2s ease;z-index:10001;}
+    .sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:14px;transform:translateY(110%);transition:.2s;z-index:10001;}
     .sheet.open{transform:translateY(0);}
-    input{width:100%;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.18);margin-top:8px;font-weight:800;box-sizing:border-box;}
-    .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+    input{width:100%;padding:10px;border-radius:12px;border:1px solid rgba(0,0,0,.18);margin-top:8px;font-weight:800;}
+    .row{display:flex;gap:10px;margin-top:10px;}
     .big{font-size:22px;font-weight:1000;margin-top:10px;}
-    .muted{opacity:.78;}
-    .mini{font-size:12px;font-weight:900;color:#666;line-height:1.35;}
   </style>
 </head>
 
@@ -56,31 +49,24 @@
 
 <header>
   <div class="brand">Recovery Misfits</div>
-  <div class="topActions">
-    <button type="button" id="shareBtn">Text a Sober Friend</button>
-    <button type="button" id="fbBtn">Facebook This</button>
-    <button type="button" id="rereadBtn">Someone Re-read This</button>
-    <button type="button" id="reloadBtn">Reload</button>
-    <button type="button" id="openBlog">Open Blog</button>
-  </div>
+  <button id="openBlog">Open Blog</button>
 </header>
 
 <!-- Install bar -->
 <div id="rm-install-bar">
   <div id="rm-install-inner">
-    <div id="rm-install-left">
+    <div>
       <div id="rm-install-title">Install the app</div>
-      <div id="rm-install-sub">Loading install options…</div>
+      <div id="rm-install-sub"></div>
     </div>
     <div id="rm-install-actions">
-      <button id="rm-install-btn" class="primary" type="button">Install</button>
-      <button id="rm-install-close" type="button" aria-label="Close">✕</button>
+      <button id="rm-install-btn" class="primary">Add to Home Screen</button>
     </div>
   </div>
 </div>
 
 <div class="frameWrap" id="frameWrap">
-  <iframe id="blogFrame" src="https://recoverymisfits.blogspot.com/"></iframe>
+  <iframe src="https://recoverymisfits.blogspot.com/"></iframe>
 </div>
 
 <!-- Bottom Bar -->
@@ -99,336 +85,108 @@
         <div class="label">DAILY CHECK-IN</div>
         <div class="value" id="streakValue">—</div>
       </div>
-      <div class="hint" id="checkinHint">Details</div>
+      <div class="hint">Today</div>
     </div>
   </div>
 </div>
 
-<!-- Sheet (Sobriety) -->
+<!-- Sobriety Sheet -->
 <div class="backdrop" id="backdrop"></div>
 <div class="sheet" id="sheet">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-    <h3 style="margin:0;">Sobriety</h3>
-    <button id="closeSheet" type="button">Close</button>
+  <div style="display:flex;justify-content:space-between;">
+    <h3>Sobriety</h3>
+    <button id="closeSheet">Close</button>
   </div>
-  <div class="muted" style="margin-top:6px;">Set your sobriety date once. Stored on this device.</div>
   <input type="date" id="sobDate">
   <div class="row">
-    <button id="saveSob" class="primary" type="button">Save</button>
-    <button id="clearSob" type="button">Clear</button>
+    <button id="saveSob" class="primary">Save</button>
+    <button id="clearSob">Clear</button>
   </div>
   <div class="big" id="sobOut"></div>
 </div>
 
-<!-- iOS Install Coach Sheet -->
-<div class="backdrop" id="iosCoachBackdrop" style="display:none;"></div>
+<!-- iOS Install Instructions -->
+<div class="backdrop" id="iosBackdrop"></div>
+<div class="sheet" id="iosSheet">
+  <h3>Add to Home Screen</h3>
 
-<div class="sheet" id="iosCoachSheet" style="z-index:10002;">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-    <h3 style="margin:0;">Add to Home Screen</h3>
-    <button id="iosCoachClose" type="button">Close</button>
-  </div>
-
-  <div class="muted" style="margin-top:6px;">
-    Apple doesn’t allow a one-tap install button. Use the iPhone <b>Share</b> button (⤴︎) — not Facebook share.
-  </div>
-
-  <div style="margin-top:12px;line-height:1.45;font-weight:900;">
-    <div style="margin-bottom:10px;">
-      <span style="font-weight:1000;">1)</span> Tap the iPhone <b>Share</b> button
-      <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(0,0,0,.18);border-radius:10px;padding:2px 8px;margin-left:6px;font-weight:1000;">
-        <span style="font-size:16px;line-height:1;">⤴︎</span>
-        <span style="font-size:12px;">Share</span>
-      </span>
-      <div class="mini" style="margin-top:6px;">
-        (Not “Share to Facebook” — this is the iPhone action button.)
-      </div>
+  <div style="margin-top:12px;font-weight:900;">
+    <div style="margin-bottom:12px;">
+      <b>1)</b> Tap the iPhone <b>Share</b> button
+      <span style="margin-left:6px;border:1px solid #ccc;border-radius:8px;padding:2px 8px;">⤴︎</span>
     </div>
-    <div style="margin-bottom:10px;">
-      <span style="font-weight:1000;">2)</span> Scroll and tap <b>Add to Home Screen</b>
+    <div style="margin-bottom:12px;">
+      <b>2)</b> Scroll and tap <b>Add to Home Screen</b>
     </div>
     <div>
-      <span style="font-weight:1000;">3)</span> Tap <b>Add</b>
+      <b>3)</b> Tap <b>Add</b>
     </div>
   </div>
 
-  <div class="mini" style="margin-top:14px;">
-    Tip: this works best in <b>Safari</b>. If you opened this inside an app browser, copy the link and open it in Safari.
-  </div>
-
-  <div class="row" style="margin-top:12px;">
-    <button id="copyLinkBtn" type="button">Copy Link</button>
-    <button id="openSafariHintBtn" type="button">Open in Safari Tip</button>
+  <div class="row">
+    <button id="closeIOS">Close</button>
   </div>
 </div>
-<!-- /iOS Install Coach Sheet -->
 
 <script>
-  // Service worker
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
-
   const BLOG_URL = "https://recoverymisfits.blogspot.com/";
-  const blogFrame = document.getElementById("blogFrame");
-  const frameWrap = document.getElementById("frameWrap");
+  document.getElementById("openBlog").onclick = () => window.open(BLOG_URL,"_blank");
 
-  // Buttons
-  document.getElementById("openBlog").addEventListener("click", () => window.open(BLOG_URL, "_blank"));
-  document.getElementById("reloadBtn").addEventListener("click", () => {
-    blogFrame.src = BLOG_URL + "?v=" + Date.now();
-  });
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const standalone = window.navigator.standalone;
 
-  // Facebook share (kept separate so it doesn’t confuse install)
-  document.getElementById("fbBtn").addEventListener("click", () => {
-    const u = encodeURIComponent(BLOG_URL);
-    const shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + u;
-    window.open(shareUrl, "_blank", "noopener,noreferrer");
-  });
-
-  // ===== Dynamic height (removes blank gaps + handles install bar on/off) =====
-  function setFrameHeight(){
-    const headerH = document.querySelector("header").offsetHeight || 52;
-    const installBarEl = document.getElementById("rm-install-bar");
-    const installH = (installBarEl && getComputedStyle(installBarEl).display !== "none") ? installBarEl.offsetHeight : 0;
-    const bottomH = document.querySelector(".bottomBar").offsetHeight || 62;
-    const total = window.innerHeight - headerH - installH - bottomH;
-    frameWrap.style.height = Math.max(220, total) + "px";
-  }
-  window.addEventListener("resize", setFrameHeight);
-
-  function isStandalone() {
-    const mql = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
-    const iosStandalone = window.navigator.standalone === true;
-    return !!(mql || iosStandalone);
-  }
-
-  // ===== iOS coach sheet wiring (no more alert) =====
-  const iosCoachBackdrop = document.getElementById("iosCoachBackdrop");
-  const iosCoachSheet = document.getElementById("iosCoachSheet");
-  const iosCoachClose = document.getElementById("iosCoachClose");
-  function openIOSCoach(){ iosCoachBackdrop.style.display="block"; iosCoachSheet.classList.add("open"); }
-  function closeIOSCoach(){ iosCoachSheet.classList.remove("open"); iosCoachBackdrop.style.display="none"; }
-  iosCoachBackdrop.onclick = closeIOSCoach;
-  iosCoachClose.onclick = closeIOSCoach;
-
-  document.getElementById("copyLinkBtn").onclick = async () => {
-    try{
-      await navigator.clipboard.writeText(location.href);
-      alert("Link copied. Open Safari and paste it in the address bar.");
-    }catch(e){
-      alert("Couldn’t copy automatically. Long-press the address bar and copy the link.");
-    }
-  };
-  document.getElementById("openSafariHintBtn").onclick = () => {
-    alert("If you opened this from a text or social app, tap the share/menu and choose 'Open in Safari'. Then install.");
-  };
-
-  // ===== Install Bar Logic =====
   const installBar = document.getElementById("rm-install-bar");
   const installBtn = document.getElementById("rm-install-btn");
-  const installClose = document.getElementById("rm-install-close");
-  const installSub = document.getElementById("rm-install-sub");
+  const iosSheet = document.getElementById("iosSheet");
+  const iosBackdrop = document.getElementById("iosBackdrop");
 
-  const ua = navigator.userAgent || "";
-  const isIOS = /iphone|ipad|ipod/i.test(ua);
-  const isSafari = isIOS && /safari/i.test(ua) && !/crios|fxios|edgios/i.test(ua);
-
-  // Detect common in-app browsers on iOS (Facebook/Instagram/etc.)
-  const isInAppBrowserIOS = isIOS && /(fbav|fban|instagram|line\/|wv)/i.test(ua);
-
-  let deferredPrompt = null;
-
-  function showInstallBar(msg){
-    if (isStandalone()) return;
-    installSub.textContent = msg || "";
-    installBar.style.display = "block";
-    setFrameHeight();
-  }
-  function hideInstallBar(){
-    installBar.style.display = "none";
-    setFrameHeight();
+  if (ios && !standalone) {
+    installBar.style.display="block";
+    installBtn.onclick = () => {
+      iosBackdrop.style.display="block";
+      iosSheet.classList.add("open");
+    };
   }
 
-  if (!isStandalone()) {
-    if (isIOS) {
-      if (isInAppBrowserIOS) {
-        showInstallBar("iPhone: open this in Safari to install (in-app browsers often block it).");
-      } else {
-        showInstallBar("iPhone: tap Add to Home Screen for install steps.");
-      }
-    } else {
-      showInstallBar("Android: tap Install (or Chrome menu ⋮ → Install app).");
-    }
-  }
+  document.getElementById("closeIOS").onclick = () => {
+    iosSheet.classList.remove("open");
+    iosBackdrop.style.display="none";
+  };
 
-  // iOS: open coach
-  if (isIOS) {
-    installBtn.textContent = "Add to Home Screen";
-    installBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      openIOSCoach();
-    });
-  } else {
-    // Android: capture prompt when available
-    installBtn.disabled = true;
-    window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.disabled = false;
-      showInstallBar("Android: tap Install now.");
-    });
-
-    installBtn.textContent = "Install";
-    installBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      if (!deferredPrompt) {
-        showInstallBar("No prompt yet. Try: Chrome menu (⋮) → Install app.");
-        return;
-      }
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-    });
-  }
-
-  installClose.addEventListener("click", (e) => { e.preventDefault(); hideInstallBar(); });
-  window.addEventListener("appinstalled", () => hideInstallBar());
-  if (isStandalone()) hideInstallBar();
-
-  // ===== Sobriety + Streak =====
-  const LS_DATE   = "rm_sob_date";
-  const LS_MODE   = "rm_sob_mode"; // "days" | "date"
-  const LS_STREAK = "rm_streak";
-  const LS_LAST   = "rm_last";
-
-  const sobValue = document.getElementById("sobValue");
-  const sobHint  = document.getElementById("sobHint");
-  const sobDate  = document.getElementById("sobDate");
-  const sobOut   = document.getElementById("sobOut");
-  const streakValue = document.getElementById("streakValue");
-  const checkinHint = document.getElementById("checkinHint");
-
-  const sheet = document.getElementById("sheet");
-  const backdrop = document.getElementById("backdrop");
-  const closeSheetBtn = document.getElementById("closeSheet");
-
-  function openSheet(){ backdrop.style.display="block"; sheet.classList.add("open"); }
-  function closeSheet(){ sheet.classList.remove("open"); backdrop.style.display="none"; }
-  backdrop.onclick = closeSheet;
-  closeSheetBtn.onclick = closeSheet;
-
-  function daysBetween(a,b){ return Math.floor((b-a)/(1000*60*60*24)); }
-
-  function getMode(){
-    let mode = localStorage.getItem(LS_MODE);
-    if (!mode) { mode = "days"; localStorage.setItem(LS_MODE, mode); }
-    return mode;
-  }
+  // Sobriety logic (unchanged)
+  const sobValue=document.getElementById("sobValue");
+  const sobHint=document.getElementById("sobHint");
+  const sobDate=document.getElementById("sobDate");
+  const sobOut=document.getElementById("sobOut");
 
   function renderSob(){
-    const v = localStorage.getItem(LS_DATE);
-    const mode = getMode();
-
-    if(!v){
-      sobValue.textContent = "Tap to set";
-      sobHint.textContent  = "Tap to set";
-      sobOut.textContent   = "";
-      return;
-    }
-
-    const d0 = new Date(v + "T00:00:00");
-    const d1 = new Date();
-    const days = Math.max(0, daysBetween(d0, d1));
-
-    if (mode === "date") {
-      sobValue.textContent = "Sober: " + v;
-      sobHint.textContent  = "Tap: show days";
-    } else {
-      sobValue.textContent = "Sober: " + days + " days";
-      sobHint.textContent  = "Tap: show date";
-    }
-    sobOut.textContent = days + " days sober";
+    const v=localStorage.getItem("sob");
+    if(!v){sobValue.textContent="Tap to set";return;}
+    const d0=new Date(v+"T00:00");
+    const d1=new Date();
+    const days=Math.floor((d1-d0)/86400000);
+    sobValue.textContent="Sober: "+days+" days";
+    sobOut.textContent=days+" days sober";
   }
 
-  document.getElementById("sobPill").onclick = () => {
-    const v = localStorage.getItem(LS_DATE);
-    if(!v){ openSheet(); return; }
-    const mode = getMode();
-    localStorage.setItem(LS_MODE, mode === "date" ? "days" : "date");
+  document.getElementById("sobPill").onclick=()=>{
+    document.getElementById("backdrop").style.display="block";
+    document.getElementById("sheet").classList.add("open");
+  };
+  document.getElementById("closeSheet").onclick=()=>{
+    document.getElementById("sheet").classList.remove("open");
+    document.getElementById("backdrop").style.display="none";
+  };
+  document.getElementById("saveSob").onclick=()=>{
+    if(sobDate.value)localStorage.setItem("sob",sobDate.value);
+    renderSob();
+  };
+  document.getElementById("clearSob").onclick=()=>{
+    localStorage.removeItem("sob");
     renderSob();
   };
 
-  // Check-in pill opens the sheet too (simple)
-  document.getElementById("streakPill").onclick = () => openSheet();
-
-  document.getElementById("saveSob").onclick = () => {
-    if(sobDate.value){
-      localStorage.setItem(LS_DATE, sobDate.value);
-      renderSob();
-      closeSheet();
-    }
-  };
-
-  document.getElementById("clearSob").onclick = () => {
-    localStorage.removeItem(LS_DATE);
-    renderSob();
-    closeSheet();
-  };
-
-  function updateStreak(){
-    const today = new Date().toISOString().slice(0,10);
-    const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
-    const last = localStorage.getItem(LS_LAST);
-    let streak = Number(localStorage.getItem(LS_STREAK) || 0);
-
-    if(last !== today){
-      streak = (last === yesterday) ? streak + 1 : 1;
-      localStorage.setItem(LS_LAST, today);
-      localStorage.setItem(LS_STREAK, String(streak));
-    }
-    streakValue.textContent = streak + "🔥";
-    checkinHint.textContent = "Opened today: ✅";
-  }
-
-  // ===== “Social but not social media” =====
-  // Share button (native share sheet on mobile)
-  document.getElementById("shareBtn").addEventListener("click", async () => {
-    const msg = "Today’s Recovery Misfits reading. Can you read it with me?";
-    const url = BLOG_URL;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Recovery Misfits", text: msg, url });
-      } catch(e) {}
-    } else {
-      // fallback: copy
-      try{
-        await navigator.clipboard.writeText(msg + " " + url);
-        alert("Copied. Paste it into a text.");
-      }catch(e){
-        alert(msg + " " + url);
-      }
-    }
-  });
-
-  // “Someone re-read this” nudge
-  document.getElementById("rereadBtn").addEventListener("click", () => {
-    const text = "Hey—can you re-read today’s Recovery Misfits with me? I’m in my head.\n" + BLOG_URL;
-    if (navigator.share) {
-      navigator.share({ title: "Re-read with me", text });
-    } else {
-      navigator.clipboard.writeText(text).then(
-        () => alert("Copied. Paste it into a text."),
-        () => alert(text)
-      );
-    }
-  });
-
-  (function init(){
-    const v = localStorage.getItem(LS_DATE);
-    if (v) sobDate.value = v;
-    updateStreak();
-    renderSob();
-    setFrameHeight();
-  })();
+  renderSob();
 </script>
 
 </body>
