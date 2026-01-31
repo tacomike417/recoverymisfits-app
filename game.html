@@ -119,6 +119,7 @@
     player.vy = 0;
     player.onGround = true;
     frame = 0;
+    maybeStatusUpdate();
   }
 
   /* =========================
@@ -200,13 +201,13 @@
 
   // statuses triggered by coin thresholds
   const statusTable = [
-    { c: 1,  name:"Newcomer",            sub:"Still showing up." },
-    { c: 3,  name:"Keep Coming Back",    sub:"It works if we work it." },
-    { c: 10, name:"Old Timer",           sub:"Still figuring it out." },
-    { c: 25, name:"Grizzled Sober Human",sub:"Less drama. More truth." },
-    { c: 50, name:"Spiritual Janitor",   sub:"Quiet work. No applause." },
+    { c: 1,  name:"Newcomer",             sub:"Still showing up." },
+    { c: 3,  name:"Keep Coming Back",     sub:"It works if we work it." },
+    { c: 10, name:"Old Timer",            sub:"Still figuring it out." },
+    { c: 25, name:"Grizzled Sober Human", sub:"Less drama. More truth." },
+    { c: 50, name:"Spiritual Janitor",    sub:"Quiet work. No applause." },
     { c: 75, name:"Elder of the Folding Chairs", sub:"Listening is a superpower." },
-    { c: 100,name:"Almost There",        sub:"Don’t rush the miracle." }
+    { c: 100,name:"Almost There",         sub:"Don’t rush the miracle." }
   ];
 
   /* =========================
@@ -234,16 +235,20 @@
       player.onGround = false;
     }
   }
+
   addEventListener("keydown", e => {
     if (e.code === "Space") {
       if (mode === "gameover" || mode === "ending") resetGame();
       else jump();
     }
   });
+
+  // Click/tap anywhere to jump; if gameover/ending, resets.
   addEventListener("mousedown", () => {
     if (mode === "gameover" || mode === "ending") resetGame();
     else jump();
   }, {passive:true});
+
   addEventListener("touchstart", () => {
     if (mode === "gameover" || mode === "ending") resetGame();
     else jump();
@@ -265,7 +270,7 @@
     const o = rand(obstaclesPool);
     obstacles.push({
       x: innerWidth + 30,
-      y: GROUND_Y() - 18,
+      y: GROUND_Y() - 18, // baseline for emoji
       w: 26,
       h: 26,
       e: o.e,
@@ -321,13 +326,11 @@
 
   function onCoinGained() {
     // sayings: not every time, but often enough
-    if (Math.random() < 0.8) {
-      makePopup(rand(coinSayings), "", 85);
-    }
+    if (Math.random() < 0.8) makePopup(rand(coinSayings), "", 85);
+
     // rare easter egg
-    if (Math.random() < 0.01) {
-      makePopup(rand(rareEasterEggs), "", 120);
-    }
+    if (Math.random() < 0.01) makePopup(rand(rareEasterEggs), "", 120);
+
     maybeStatusUpdate();
   }
 
@@ -378,7 +381,6 @@
     if (clearNext) {
       const target = obstacles.find(o => o.x > player.x && o.x < player.x + 220);
       if (target) {
-        // poof it
         target.x = -9999;
         clearNext = false;
         makeWhisper("Cleared one.", 70);
@@ -394,7 +396,6 @@
         lastObstacleLabel = o.l;
         streak = 0;
 
-        // gentle, non-lecturey feedback sometimes
         if (Math.random() < 0.35) makeWhisper("Oof.", 55);
 
         // remove obstacle
@@ -406,8 +407,7 @@
         }
       }
 
-      // close call: obstacle passes very near player without collision
-      // (only once per obstacle)
+      // close call: obstacle passes very near player without collision (only once per obstacle)
       if (!o.closeChecked && closeCallCooldown === 0) {
         const nearX = Math.abs((o.x + o.w/2) - (player.x + player.w/2)) < 22;
         const nearY = (o.y < player.y + player.h) && (o.y + o.h > player.y + player.h - 10);
@@ -431,14 +431,10 @@
         }
 
         // streak grace (25)
-        if (streak === 25) {
-          makePopup("Progress, not perfection.", "", 110);
-        }
+        if (streak === 25) makePopup("Progress, not perfection.", "", 110);
 
         // quiet help message occasionally (not constant)
-        if (!whisper && Math.random() < 0.015) {
-          makeWhisper(rand(quietHelps), 85);
-        }
+        if (!whisper && Math.random() < 0.015) makeWhisper(rand(quietHelps), 85);
       }
     }
 
@@ -464,14 +460,13 @@
 
     // cleanup offscreen
     for (let i = obstacles.length - 1; i >= 0; i--) {
-      if (obstacles[i].x < -80) obstacles.splice(i, 1);
+      if (obstacles[i].x < -120) obstacles.splice(i, 1);
     }
     for (let i = bonuses.length - 1; i >= 0; i--) {
-      if (bonuses[i].x < -80) bonuses.splice(i, 1);
+      if (bonuses[i].x < -120) bonuses.splice(i, 1);
     }
 
     // spawning rhythm (kept gentle)
-    // add slight variability so it doesn’t feel robotic
     const obstacleChance = 0.020 + Math.min(0.010, coins * 0.00008);
     const bonusChance    = 0.0055;
 
@@ -523,17 +518,32 @@
       ctx.fillRect(i, GROUND_Y()+10, 10, 2);
     }
 
-    // player (rectangle stick-ish)
-    // body
+    // player (simple blocky figure)
     ctx.fillStyle = "#fff";
+    // body
     ctx.fillRect(player.x, player.y, player.w, player.h);
-    // head (tiny)
+    // head
     ctx.fillRect(player.x + 4, player.y - 8, 10, 8);
 
-    // emojis
-    ctx.font = "22px serif";
-    for (const o of obstacles) ctx.fillText(o.e, o.x, o.y + 20);
-    for (const b of bonuses)  ctx.fillText(b.e, b.x, b.y + 20);
+    // Obstacles + labels (THIS is the change you asked for)
+    for (const o of obstacles) {
+      // emoji
+      ctx.font = "22px serif";
+      ctx.fillText(o.e, o.x, o.y + 18);
+
+      // label under it
+      ctx.font = "8px 'Press Start 2P'";
+      ctx.fillText(o.l.toUpperCase(), o.x - 6, o.y + 36);
+    }
+
+    // Bonuses + labels
+    for (const b of bonuses) {
+      ctx.font = "22px serif";
+      ctx.fillText(b.e, b.x, b.y + 18);
+
+      ctx.font = "8px 'Press Start 2P'";
+      ctx.fillText(b.l.toUpperCase(), b.x - 6, b.y + 36);
+    }
 
     // HUD
     ctx.font = "10px 'Press Start 2P'";
