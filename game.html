@@ -40,6 +40,31 @@
   window.addEventListener("resize", resize);
   resize();
 
+  // ======================
+  // SPRITES
+  // ======================
+  const sprites = {
+    runner: new Image(),
+    bottle: new Image(),
+    gorilla: new Image(),
+    ready: false
+  };
+
+  sprites.runner.src = "./runner.png";
+  sprites.bottle.src = "./bottle.png";
+  sprites.gorilla.src = "./gorilla.png";
+
+  let loaded = 0;
+  [sprites.runner, sprites.bottle, sprites.gorilla].forEach(img => {
+    img.onload = () => {
+      loaded++;
+      sprites.ready = (loaded === 3);
+    };
+  });
+
+  // ======================
+  // GAME STATE
+  // ======================
   let state = "play";
   let score = 0;
 
@@ -48,23 +73,23 @@
   const player = {
     x: 70,
     y: 0,
-    w: 28,
-    h: 34,
+    w: 48,
+    h: 48,
     vy: 0,
     grounded: true
   };
 
   const bottle = {
     x: innerWidth,
-    w: 18,
-    h: 44
+    w: 28,
+    h: 64
   };
 
   const gorilla = {
     x: 0,
     y: 0,
-    w: 120,
-    h: 120
+    w: 160,
+    h: 160
   };
 
   let speed = 6;
@@ -106,37 +131,51 @@
     );
   }
 
+  // ======================
+  // DRAW FUNCTIONS
+  // ======================
   function drawGround() {
     ctx.fillStyle = "#141414";
     ctx.fillRect(0, innerHeight - groundHeight, innerWidth, groundHeight);
   }
 
   function drawPlayer() {
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(player.x, player.y, player.w, player.h);
+    if (sprites.ready) {
+      ctx.drawImage(sprites.runner, player.x, player.y, player.w, player.h);
+    } else {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+    }
   }
 
   function drawBottle() {
     const y = innerHeight - groundHeight - bottle.h;
-    ctx.fillStyle = "#2fd066";
-    ctx.fillRect(bottle.x, y, bottle.w, bottle.h);
+    if (sprites.ready) {
+      ctx.drawImage(sprites.bottle, bottle.x, y, bottle.w, bottle.h);
+    } else {
+      ctx.fillStyle = "#2fd066";
+      ctx.fillRect(bottle.x, y, bottle.w, bottle.h);
+    }
+  }
+
+  function drawGorilla() {
+    if (sprites.ready) {
+      ctx.drawImage(sprites.gorilla, gorilla.x, gorilla.y, gorilla.w, gorilla.h);
+    } else {
+      ctx.fillStyle = "#3b2a1a";
+      ctx.fillRect(gorilla.x, gorilla.y, gorilla.w, gorilla.h);
+    }
   }
 
   function drawUI() {
     ctx.fillStyle = "#fff";
     ctx.font = "bold 28px monospace";
     ctx.fillText(score.toFixed(1), 20, 40);
-    ctx.font = "bold 36px monospace";
-    ctx.fillText("✕", innerWidth - 40, 40);
   }
 
-  function drawGorilla() {
-    ctx.fillStyle = "#3b2a1a";
-    ctx.fillRect(gorilla.x, gorilla.y, gorilla.w, gorilla.h);
-    ctx.fillStyle = "#d9b38c";
-    ctx.fillRect(gorilla.x + 30, gorilla.y + 30, 50, 50);
-  }
-
+  // ======================
+  // GAME LOOP
+  // ======================
   function loop() {
     ctx.clearRect(0, 0, innerWidth, innerHeight);
 
@@ -164,11 +203,9 @@
         h: bottle.h
       };
 
-      const playerRect = player;
-
-      if (collide(playerRect, bottleRect)) {
+      if (collide(player, bottleRect)) {
         state = "caught";
-        gorilla.x = player.x + 100;
+        gorilla.x = player.x + 80;
         gorilla.y = innerHeight - groundHeight - gorilla.h;
       }
 
@@ -186,7 +223,7 @@
       ctx.font = "bold 42px sans-serif";
       ctx.fillText("500-Pound Gorilla", innerWidth / 2 - 180, 120);
       ctx.font = "18px sans-serif";
-      ctx.fillText("Tap to try again", innerWidth / 2 - 60, 150);
+      ctx.fillText("Tap to try again", innerWidth / 2 - 70, 150);
     }
 
     requestAnimationFrame(loop);
