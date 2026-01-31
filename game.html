@@ -8,29 +8,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: #000;
-    overflow: hidden;
-    height: 100%;
-    font-family: "Press Start 2P", monospace;
+  html, body{
+    margin:0;
+    padding:0;
+    background:#000;
+    overflow:hidden;
+    height:100%;
+    font-family:"Press Start 2P", monospace;
   }
-  canvas { display:block; width:100vw; height:100vh; }
+  canvas{ display:block; width:100vw; height:100vh; }
   #pauseBtn{
-    position: fixed;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: "Press Start 2P", monospace;
-    font-size: 10px;
-    padding: 10px 14px;
-    background: #111;
-    color: #fff;
-    border: 1px solid #444;
-    border-radius: 8px;
-    opacity: 0.9;
-    z-index: 10;
+    position:fixed;
+    bottom:10px;
+    left:50%;
+    transform:translateX(-50%);
+    font-family:"Press Start 2P", monospace;
+    font-size:10px;
+    padding:10px 14px;
+    background:#111;
+    color:#fff;
+    border:1px solid #444;
+    border-radius:8px;
+    opacity:.92;
+    z-index:10;
   }
 </style>
 </head>
@@ -44,7 +44,7 @@
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
 
-  function resize() {
+  function resize(){
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     canvas.width  = Math.floor(innerWidth * dpr);
     canvas.height = Math.floor(innerHeight * dpr);
@@ -56,34 +56,35 @@
   /* =========================
      STATE
   ========================= */
-  let mode = "play"; // "play" | "pause" | "gameover" | "ending"
+  let mode = "play"; // play | pause | gameover | ending
   let lives = 5;
-  let coins = 1; // start with 24-hour coin
+  let coins = 1; // 24-hour coin
   let obstaclesCleared = 0;
 
   let lastObstacleLabel = "something";
-  let streak = 0;               // obstacles cleared in a row without hits
-  let closeCallCooldown = 0;    // frames
-  let slowTimer = 0;            // frames
-  let clearNext = false;        // bonus: clears next obstacle ahead
-  let popup = null;             // {text, sub, t, ttl}
-  let whisper = null;           // {text, t, ttl}
-  let lastStatusName = "";      // prevent repeats
+  let streak = 0;
+  let closeCallCooldown = 0;
+  let slowTimer = 0;
+  let clearNext = false;
+  let popup = null;   // {text, sub, t, ttl}
+  let whisper = null; // {text, t, ttl}
+  let lastStatusName = "";
 
-  // timing
-  let frame = 0;
+  // controlled spawns (prevents unfair clusters)
+  let obstacleCooldown = 0;
+  let bonusCooldown = 0;
 
   /* =========================
-     CONSTANTS
+     CONSTANTS (EASIER)
   ========================= */
   const MAX_LIVES = 5;
   const END_COINS = 101;
 
-  // base game feel (kept gentle)
-  const BASE_SPEED = 4.0;
-  const MAX_SPEED  = 7.0; // keep it calm
-  const GRAVITY    = 0.8;
-  const JUMP_VY    = -14;
+  // Make it playable:
+  const BASE_SPEED = 3.2;   // slower
+  const MAX_SPEED  = 5.2;   // calmer top speed
+  const GRAVITY    = 0.75;
+  const JUMP_VY    = -16.5; // higher jump
 
   const GROUND_H = 44;
   const GROUND_Y = () => (innerHeight - GROUND_H);
@@ -99,28 +100,6 @@
     vy: 0,
     onGround: false
   };
-
-  function resetGame() {
-    mode = "play";
-    lives = 5;
-    coins = 1;
-    obstaclesCleared = 0;
-    lastObstacleLabel = "something";
-    streak = 0;
-    closeCallCooldown = 0;
-    slowTimer = 0;
-    clearNext = false;
-    popup = null;
-    whisper = null;
-    lastStatusName = "";
-    obstacles.length = 0;
-    bonuses.length = 0;
-    player.y = GROUND_Y() - player.h;
-    player.vy = 0;
-    player.onGround = true;
-    frame = 0;
-    maybeStatusUpdate();
-  }
 
   /* =========================
      POOLS
@@ -163,7 +142,6 @@
     { e:"❓", l:"Uncertainty" }
   ];
 
-  // bonuses: same pickup, different effects (still simple)
   const bonusesPool = [
     { e:"📞", l:"Call a friend", type:"life" },
     { e:"🤝", l:"Go to a meeting", type:"life" },
@@ -199,15 +177,14 @@
     "This isn’t your first restart."
   ];
 
-  // statuses triggered by coin thresholds
   const statusTable = [
-    { c: 1,  name:"Newcomer",             sub:"Still showing up." },
-    { c: 3,  name:"Keep Coming Back",     sub:"It works if we work it." },
-    { c: 10, name:"Old Timer",            sub:"Still figuring it out." },
-    { c: 25, name:"Grizzled Sober Human", sub:"Less drama. More truth." },
-    { c: 50, name:"Spiritual Janitor",    sub:"Quiet work. No applause." },
+    { c: 1,  name:"Newcomer",              sub:"Still showing up." },
+    { c: 3,  name:"Keep Coming Back",      sub:"It works if we work it." },
+    { c: 10, name:"Old Timer",             sub:"Still figuring it out." },
+    { c: 25, name:"Grizzled Sober Human",  sub:"Less drama. More truth." },
+    { c: 50, name:"Spiritual Janitor",     sub:"Quiet work. No applause." },
     { c: 75, name:"Elder of the Folding Chairs", sub:"Listening is a superpower." },
-    { c: 100,name:"Almost There",         sub:"Don’t rush the miracle." }
+    { c: 100,name:"Almost There",          sub:"Don’t rush the miracle." }
   ];
 
   /* =========================
@@ -218,37 +195,68 @@
 
   function rand(arr){ return arr[(Math.random() * arr.length) | 0]; }
 
-  function makePopup(text, sub="", ttl=110) {
-    popup = { text, sub, t: 0, ttl };
+  function makePopup(text, sub="", ttl=110){ popup = { text, sub, t:0, ttl }; }
+  function makeWhisper(text, ttl=90){ whisper = { text, t:0, ttl }; }
+
+  function maybeStatusUpdate(){
+    let chosen = null;
+    for (const s of statusTable) if (coins >= s.c) chosen = s;
+    if (chosen && chosen.name !== lastStatusName){
+      lastStatusName = chosen.name;
+      makePopup(chosen.name, chosen.sub, 125);
+    }
   }
-  function makeWhisper(text, ttl=90) {
-    whisper = { text, t: 0, ttl };
+
+  function onCoinGained(){
+    if (Math.random() < 0.85) makePopup(rand(coinSayings), "", 90);
+    if (Math.random() < 0.01) makePopup(rand(rareEasterEggs), "", 120);
+    maybeStatusUpdate();
+  }
+
+  function resetGame(){
+    mode = "play";
+    lives = 5;
+    coins = 1;
+    obstaclesCleared = 0;
+    lastObstacleLabel = "something";
+    streak = 0;
+    closeCallCooldown = 0;
+    slowTimer = 0;
+    clearNext = false;
+    popup = null;
+    whisper = null;
+    lastStatusName = "";
+    obstacles.length = 0;
+    bonuses.length = 0;
+    obstacleCooldown = 0;
+    bonusCooldown = 0;
+    player.y = GROUND_Y() - player.h;
+    player.vy = 0;
+    player.onGround = true;
+    maybeStatusUpdate();
   }
 
   /* =========================
-     INPUT (one button jump)
+     INPUT
   ========================= */
-  function jump() {
+  function jump(){
     if (mode !== "play") return;
-    if (player.onGround) {
+    if (player.onGround){
       player.vy = JUMP_VY;
       player.onGround = false;
     }
   }
 
   addEventListener("keydown", e => {
-    if (e.code === "Space") {
+    if (e.code === "Space"){
       if (mode === "gameover" || mode === "ending") resetGame();
       else jump();
     }
   });
-
-  // Click/tap anywhere to jump; if gameover/ending, resets.
   addEventListener("mousedown", () => {
     if (mode === "gameover" || mode === "ending") resetGame();
     else jump();
   }, {passive:true});
-
   addEventListener("touchstart", () => {
     if (mode === "gameover" || mode === "ending") resetGame();
     else jump();
@@ -264,86 +272,55 @@
   };
 
   /* =========================
-     SPAWNERS
+     SPAWNERS (SPACED OUT)
   ========================= */
-  function spawnObstacle() {
+  function spawnObstacle(){
     const o = rand(obstaclesPool);
     obstacles.push({
       x: innerWidth + 30,
-      y: GROUND_Y() - 18, // baseline for emoji
-      w: 26,
-      h: 26,
-      e: o.e,
-      l: o.l,
-      passed: false,
-      closeChecked: false
+      y: GROUND_Y() - 26,  // emoji baseline
+      w: 34, h: 34,
+      e: o.e, l: o.l,
+      passed:false,
+      closeChecked:false
     });
   }
 
-  function spawnBonus() {
+  function spawnBonus(){
     const b = rand(bonusesPool);
     bonuses.push({
       x: innerWidth + 30,
-      y: GROUND_Y() - 92,
-      w: 26,
-      h: 26,
-      e: b.e,
-      l: b.l,
-      type: b.type
+      y: GROUND_Y() - 110,
+      w: 34, h: 34,
+      e: b.e, l: b.l, type: b.type
     });
   }
 
   /* =========================
      COLLISION
   ========================= */
-  function aabb(ax, ay, aw, ah, bx, by, bw, bh) {
+  function aabb(ax, ay, aw, ah, bx, by, bw, bh){
     return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
   }
 
   /* =========================
      GAME FEEL
   ========================= */
-  function currentSpeed() {
-    // soft curve: increases gently with coins and cleared obstacles, capped
-    let s = BASE_SPEED + (coins * 0.03) + (Math.floor(obstaclesCleared/30) * 0.15);
+  function currentSpeed(){
+    let s = BASE_SPEED + (coins * 0.015) + (Math.floor(obstaclesCleared/40) * 0.10);
     s = Math.min(MAX_SPEED, s);
-
-    // slow bonus effect
     if (slowTimer > 0) s *= 0.65;
-
     return s;
-  }
-
-  function maybeStatusUpdate() {
-    // find highest status <= coins
-    let chosen = null;
-    for (const s of statusTable) if (coins >= s.c) chosen = s;
-    if (chosen && chosen.name !== lastStatusName) {
-      lastStatusName = chosen.name;
-      makePopup(chosen.name, chosen.sub, 120);
-    }
-  }
-
-  function onCoinGained() {
-    // sayings: not every time, but often enough
-    if (Math.random() < 0.8) makePopup(rand(coinSayings), "", 85);
-
-    // rare easter egg
-    if (Math.random() < 0.01) makePopup(rand(rareEasterEggs), "", 120);
-
-    maybeStatusUpdate();
   }
 
   /* =========================
      UPDATE
   ========================= */
-  function update() {
+  function update(){
     if (mode !== "play") return;
 
-    frame++;
-
-    // ending check (101 coins)
-    if (coins >= END_COINS) {
+    // ending
+    if (coins >= END_COINS){
       mode = "ending";
       return;
     }
@@ -351,21 +328,24 @@
     // timers
     if (closeCallCooldown > 0) closeCallCooldown--;
     if (slowTimer > 0) slowTimer--;
-    if (popup) {
+    if (obstacleCooldown > 0) obstacleCooldown--;
+    if (bonusCooldown > 0) bonusCooldown--;
+
+    if (popup){
       popup.t++;
       if (popup.t > popup.ttl) popup = null;
     }
-    if (whisper) {
+    if (whisper){
       whisper.t++;
       if (whisper.t > whisper.ttl) whisper = null;
     }
 
-    // gravity + ground
+    // physics
     player.vy += GRAVITY;
     player.y += player.vy;
 
     const groundTop = GROUND_Y();
-    if (player.y + player.h >= groundTop) {
+    if (player.y + player.h >= groundTop){
       player.y = groundTop - player.h;
       player.vy = 0;
       player.onGround = true;
@@ -373,119 +353,122 @@
 
     const spd = currentSpeed();
 
-    // move objects
+    // move
     for (const o of obstacles) o.x -= spd;
     for (const b of bonuses) b.x -= spd;
 
-    // clear-next bonus: remove one upcoming obstacle when it gets close
-    if (clearNext) {
-      const target = obstacles.find(o => o.x > player.x && o.x < player.x + 220);
-      if (target) {
+    // clear-next effect
+    if (clearNext){
+      const target = obstacles.find(o => o.x > player.x && o.x < player.x + 240);
+      if (target){
         target.x = -9999;
         clearNext = false;
         makeWhisper("Cleared one.", 70);
       }
     }
 
-    // obstacles: collision + passing + close calls
-    for (const o of obstacles) {
-      // collision area slightly smaller than emoji box for fairness
-      const hit = aabb(player.x, player.y, player.w, player.h, o.x+4, o.y+4, o.w-8, o.h-8);
-      if (hit) {
+    // obstacles logic
+    for (const o of obstacles){
+      const hit = aabb(player.x, player.y, player.w, player.h, o.x+6, o.y+6, o.w-12, o.h-12);
+      if (hit){
         lives--;
         lastObstacleLabel = o.l;
         streak = 0;
-
-        if (Math.random() < 0.35) makeWhisper("Oof.", 55);
-
-        // remove obstacle
         o.x = -9999;
 
-        if (lives <= 0) {
+        if (lives <= 0){
           mode = "gameover";
           return;
         }
       }
 
-      // close call: obstacle passes very near player without collision (only once per obstacle)
-      if (!o.closeChecked && closeCallCooldown === 0) {
+      // close call (rare)
+      if (!o.closeChecked && closeCallCooldown === 0){
         const nearX = Math.abs((o.x + o.w/2) - (player.x + player.w/2)) < 22;
         const nearY = (o.y < player.y + player.h) && (o.y + o.h > player.y + player.h - 10);
-        if (nearX && nearY && !hit) {
+        if (nearX && nearY && !hit){
           o.closeChecked = true;
-          closeCallCooldown = 90;
-          if (Math.random() < 0.65) makeWhisper("That was close.", 80);
+          closeCallCooldown = 110;
+          if (Math.random() < 0.55) makeWhisper("That was close.", 80);
         }
       }
 
       // passed
-      if (!o.passed && o.x + o.w < player.x) {
+      if (!o.passed && o.x + o.w < player.x){
         o.passed = true;
         obstaclesCleared++;
         streak++;
 
-        // every 12 cleared => coin
-        if (obstaclesCleared % 12 === 0) {
+        if (obstaclesCleared % 12 === 0){
           coins++;
           onCoinGained();
         }
 
-        // streak grace (25)
-        if (streak === 25) makePopup("Progress, not perfection.", "", 110);
+        if (streak === 25) makePopup("Progress, not perfection.", "", 115);
 
-        // quiet help message occasionally (not constant)
-        if (!whisper && Math.random() < 0.015) makeWhisper(rand(quietHelps), 85);
+        if (!whisper && Math.random() < 0.012){
+          makeWhisper(rand(quietHelps), 85);
+        }
       }
     }
 
-    // bonuses: collision
-    for (const b of bonuses) {
-      const got = aabb(player.x, player.y, player.w, player.h, b.x+4, b.y+4, b.w-8, b.h-8);
-      if (got) {
-        if (b.type === "life") {
+    // bonuses
+    for (const b of bonuses){
+      const got = aabb(player.x, player.y, player.w, player.h, b.x+6, b.y+6, b.w-12, b.h-12);
+      if (got){
+        if (b.type === "life"){
           const before = lives;
           lives = Math.min(MAX_LIVES, lives + 1);
-          if (lives > before) makePopup(b.l, "+1 life", 85);
-          else makePopup(b.l, "Already full.", 75);
-        } else if (b.type === "slow") {
-          slowTimer = 180; // ~3 seconds
+          if (lives > before) makePopup(b.l, "+1 life", 90);
+          else makePopup(b.l, "Already full.", 80);
+        } else if (b.type === "slow"){
+          slowTimer = 200;
           makePopup(b.l, "Quiet for a second.", 95);
-        } else if (b.type === "clear") {
+        } else if (b.type === "clear"){
           clearNext = true;
-          makePopup(b.l, "One obstacle gets cleared.", 95);
+          makePopup(b.l, "One obstacle gets cleared.", 100);
         }
         b.x = -9999;
       }
     }
 
-    // cleanup offscreen
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-      if (obstacles[i].x < -120) obstacles.splice(i, 1);
+    // cleanup
+    for (let i = obstacles.length - 1; i >= 0; i--){
+      if (obstacles[i].x < -160) obstacles.splice(i, 1);
     }
-    for (let i = bonuses.length - 1; i >= 0; i--) {
-      if (bonuses[i].x < -120) bonuses.splice(i, 1);
+    for (let i = bonuses.length - 1; i >= 0; i--){
+      if (bonuses[i].x < -160) bonuses.splice(i, 1);
     }
 
-    // spawning rhythm (kept gentle)
-    const obstacleChance = 0.020 + Math.min(0.010, coins * 0.00008);
-    const bonusChance    = 0.0055;
+    // spawning with spacing (key fix)
+    // Guarantee minimum gap by using cooldown frames.
+    // Slightly reduces cooldown as coins rise, but stays fair.
+    const minGap = Math.max(38, 54 - Math.floor(coins / 10) * 2); // frames
+    const minBonusGap = 140;
 
-    if (Math.random() < obstacleChance) spawnObstacle();
-    if (Math.random() < bonusChance) spawnBonus();
+    if (obstacleCooldown <= 0){
+      spawnObstacle();
+      obstacleCooldown = minGap + (Math.random()*18|0);
+    }
+
+    if (bonusCooldown <= 0 && Math.random() < 0.35){
+      spawnBonus();
+      bonusCooldown = minBonusGap + (Math.random()*60|0);
+    }
   }
 
   /* =========================
      DRAW HELPERS
   ========================= */
-  function drawTextCenter(lines, yStart, lineH) {
+  function drawTextCenter(lines, yStart, lineH){
     ctx.textAlign = "center";
-    for (let i = 0; i < lines.length; i++) {
+    for (let i = 0; i < lines.length; i++){
       ctx.fillText(lines[i], innerWidth/2, yStart + i*lineH);
     }
     ctx.textAlign = "left";
   }
 
-  function drawButtonCentered(label, y, w=260, h=50) {
+  function drawButtonCentered(label, y, w=260, h=50){
     const x = innerWidth/2 - w/2;
     ctx.fillStyle = "#111";
     ctx.fillRect(x, y, w, h);
@@ -500,49 +483,68 @@
     return {x, y, w, h};
   }
 
+  function drawLabelBackplate(text, x, y){
+    // draw a subtle dark box behind text so it’s always readable
+    ctx.font = "10px 'Press Start 2P'";
+    const padX = 6, padY = 4;
+    const w = ctx.measureText(text).width + padX*2;
+    const h = 14;
+
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    ctx.fillRect(x - padX, y - h + padY, w, h);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.20)";
+    ctx.strokeRect(x - padX, y - h + padY, w, h);
+
+    ctx.fillStyle = "#fff";
+    ctx.fillText(text, x, y);
+  }
+
   /* =========================
      DRAW
   ========================= */
-  function draw() {
+  let overlayButtons = { resumeBtn:null, quitBtn:null, tryAgainBtn:null };
+
+  function draw(){
     // background
     ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, innerWidth, innerHeight);
+    ctx.fillRect(0,0,innerWidth,innerHeight);
 
     // ground
     ctx.fillStyle = "#222";
     ctx.fillRect(0, GROUND_Y(), innerWidth, GROUND_H);
 
-    // small ground detail
+    // ground detail
     ctx.fillStyle = "#2f2f2f";
-    for (let i = 0; i < innerWidth; i += 28) {
+    for (let i = 0; i < innerWidth; i += 28){
       ctx.fillRect(i, GROUND_Y()+10, 10, 2);
     }
 
-    // player (simple blocky figure)
+    // player
     ctx.fillStyle = "#fff";
-    // body
     ctx.fillRect(player.x, player.y, player.w, player.h);
-    // head
     ctx.fillRect(player.x + 4, player.y - 8, 10, 8);
 
-    // Obstacles + labels (THIS is the change you asked for)
-    for (const o of obstacles) {
+    // obstacles: emoji + BIG WORDS (visible)
+    for (const o of obstacles){
       // emoji
-      ctx.font = "22px serif";
-      ctx.fillText(o.e, o.x, o.y + 18);
+      ctx.font = "26px serif";
+      ctx.fillStyle = "#fff";
+      ctx.fillText(o.e, o.x, o.y + 22);
 
-      // label under it
-      ctx.font = "8px 'Press Start 2P'";
-      ctx.fillText(o.l.toUpperCase(), o.x - 6, o.y + 36);
+      // label ABOVE the emoji (so it won't get lost in ground)
+      const label = o.l.toUpperCase();
+      drawLabelBackplate(label, o.x - 4, o.y - 8);
     }
 
-    // Bonuses + labels
-    for (const b of bonuses) {
-      ctx.font = "22px serif";
-      ctx.fillText(b.e, b.x, b.y + 18);
+    // bonuses: emoji + words
+    for (const b of bonuses){
+      ctx.font = "26px serif";
+      ctx.fillStyle = "#fff";
+      ctx.fillText(b.e, b.x, b.y + 22);
 
-      ctx.font = "8px 'Press Start 2P'";
-      ctx.fillText(b.l.toUpperCase(), b.x - 6, b.y + 36);
+      const label = b.l.toUpperCase();
+      drawLabelBackplate(label, b.x - 4, b.y - 8);
     }
 
     // HUD
@@ -551,33 +553,33 @@
     ctx.fillText(`LIVES: ${lives}`, 12, 22);
     ctx.fillText(`COINS: ${coins}`, 12, 38);
 
-    // subtle indicators
     if (slowTimer > 0) ctx.fillText(`QUIET: ${Math.ceil(slowTimer/60)}s`, 12, 54);
-    if (clearNext) ctx.fillText(`NOTE: READY`, 12, 70);
 
-    // popup
-    if (popup) {
+    // popup (top)
+    if (popup){
       const alpha = popup.t < 15 ? popup.t/15 : (popup.t > popup.ttl-15 ? (popup.ttl - popup.t)/15 : 1);
       ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
       ctx.textAlign = "center";
+      ctx.fillStyle = "#fff";
       ctx.fillText(popup.text, innerWidth/2, 110);
       if (popup.sub) ctx.fillText(popup.sub, innerWidth/2, 130);
       ctx.textAlign = "left";
       ctx.globalAlpha = 1;
     }
 
-    // whisper (small near ground)
-    if (whisper) {
+    // whisper near ground
+    if (whisper){
       const alpha = whisper.t < 10 ? whisper.t/10 : (whisper.t > whisper.ttl-10 ? (whisper.ttl - whisper.t)/10 : 1);
       ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
       ctx.textAlign = "center";
+      ctx.fillStyle = "#fff";
       ctx.fillText(whisper.text, innerWidth/2, GROUND_Y() - 10);
       ctx.textAlign = "left";
       ctx.globalAlpha = 1;
     }
 
     // overlays
-    if (mode === "pause") {
+    if (mode === "pause"){
       ctx.fillStyle = "rgba(0,0,0,0.75)";
       ctx.fillRect(0,0,innerWidth,innerHeight);
 
@@ -592,91 +594,68 @@
       overlayButtons = { resumeBtn, quitBtn, tryAgainBtn:null };
     }
 
-    if (mode === "gameover") {
+    if (mode === "gameover"){
       ctx.fillStyle = "rgba(0,0,0,0.82)";
       ctx.fillRect(0,0,innerWidth,innerHeight);
 
       ctx.fillStyle = "#fff";
       ctx.font = "10px 'Press Start 2P'";
+      drawTextCenter([`You caught ${lastObstacleLabel}.`, "GAME OVER"], innerHeight/2 - 60, 18);
 
-      const line1 = `You caught ${lastObstacleLabel}.`;
-      drawTextCenter([line1, "GAME OVER"], innerHeight/2 - 60, 18);
-
-      // gentle reflection line (one line only)
       ctx.font = "9px 'Press Start 2P'";
       drawTextCenter(["Try again — or don’t. We’ll be here."], innerHeight/2 - 10, 16);
 
       ctx.font = "10px 'Press Start 2P'";
       const tryAgainBtn = drawButtonCentered("TRY AGAIN", innerHeight/2 + 35);
-
       overlayButtons = { resumeBtn:null, quitBtn:null, tryAgainBtn };
     }
 
-    if (mode === "ending") {
+    if (mode === "ending"){
       ctx.fillStyle = "rgba(0,0,0,0.86)";
       ctx.fillRect(0,0,innerWidth,innerHeight);
 
       ctx.fillStyle = "#fff";
       ctx.font = "10px 'Press Start 2P'";
-      const lines = [
+      drawTextCenter([
         "CONGRATULATIONS.",
         "YOU ARE NOW A SPIRITUAL BEING",
         "WHO HAD A HUMAN EXPERIENCE."
-      ];
-      drawTextCenter(lines, innerHeight/2 - 85, 18);
-
-      ctx.font = "9px 'Press Start 2P'";
-      drawTextCenter(["No fireworks. Just truth."], innerHeight/2 - 20, 16);
+      ], innerHeight/2 - 85, 18);
 
       ctx.font = "10px 'Press Start 2P'";
       const tryAgainBtn = drawButtonCentered("TRY AGAIN", innerHeight/2 + 35);
-
       overlayButtons = { resumeBtn:null, quitBtn:null, tryAgainBtn };
     }
   }
 
-  /* =========================
-     OVERLAY CLICK HANDLING
-  ========================= */
-  let overlayButtons = { resumeBtn:null, quitBtn:null, tryAgainBtn:null };
-
-  function pointInRect(px, py, r) {
+  function pointInRect(px, py, r){
     return r && px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h;
   }
 
-  function handlePointer(px, py) {
-    if (mode === "pause") {
+  function handlePointer(px, py){
+    if (mode === "pause"){
       if (pointInRect(px, py, overlayButtons.resumeBtn)) mode = "play";
       if (pointInRect(px, py, overlayButtons.quitBtn)) resetGame();
       return;
     }
-    if (mode === "gameover" || mode === "ending") {
+    if (mode === "gameover" || mode === "ending"){
       if (pointInRect(px, py, overlayButtons.tryAgainBtn)) resetGame();
       return;
     }
   }
 
   canvas.addEventListener("click", (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const px = e.clientX - rect.left;
-    const py = e.clientY - rect.top;
-    handlePointer(px, py);
+    const r = canvas.getBoundingClientRect();
+    handlePointer(e.clientX - r.left, e.clientY - r.top);
   });
-
   canvas.addEventListener("touchstart", (e) => {
-    const t = e.touches[0];
-    if (!t) return;
-    const rect = canvas.getBoundingClientRect();
-    const px = t.clientX - rect.left;
-    const py = t.clientY - rect.top;
-    handlePointer(px, py);
+    const t = e.touches[0]; if (!t) return;
+    const r = canvas.getBoundingClientRect();
+    handlePointer(t.clientX - r.left, t.clientY - r.top);
   }, {passive:true});
 
-  /* =========================
-     MAIN LOOP
-  ========================= */
-  function loop() {
-    update();
+  function loop(){
+    if (mode === "play") update();
     draw();
     requestAnimationFrame(loop);
   }
