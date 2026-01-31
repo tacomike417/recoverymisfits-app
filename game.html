@@ -23,7 +23,7 @@
 </head>
 <body>
 <canvas id="game"></canvas>
-<button id="pauseBtn">PAUSE</button>
+<button id="pauseBtn">PAUSE / BREATHE</button>
 
 <script>
 (() => {
@@ -48,7 +48,7 @@
   runnerImg.onload = () => runnerReady = true;
   runnerImg.onerror = () => runnerReady = false;
 
-  const RUNNER_FRAMES = 1; // set >1 if you later use a sprite sheet
+  const RUNNER_FRAMES = 1; // set >1 if sprite sheet later
   const RUNNER_FPS = 10;
   let runnerFrame = 0;
   let runnerTick = 0;
@@ -57,12 +57,12 @@
      MODES
   ========================= */
   let mode = "title"; // title | countdown | play | pause | gameover | ending
-
-  function setMode(m){
+  function _setMode(m){
     mode = m;
     document.getElementById("pauseBtn").style.display =
       (mode === "play" || mode === "pause") ? "block" : "none";
   }
+  let setMode = _setMode;
 
   /* =========================
      GAME FEEL / GOALS
@@ -85,19 +85,27 @@
   // Base speed and ramp; "New Game+" increases via prestigeSpeedBoost
   const BASE_SPEED = 3.7;
   const MAX_SPEED  = 7.2;
-  let prestige = 0;               // increments each time you beat Step 12
-  let prestigeSpeedBoost = 0.0;   // derived from prestige
+  let prestige = 0;
+  let prestigeSpeedBoost = 0.0;
 
-  // Spawning gaps (tuned for ~10 minutes to finish, depending on play)
+  // Spawning gaps
   let obstacleGapPx = 420;
-  let bonusGapPx = 950;
+  let bonusGapPx = 980;
+  let microGapPx = 620;
 
-  // Step token pacing: roughly one step opportunity every ~35–60 seconds
-  let stepCooldown = 0;         // frames until the next Step token can spawn
-  let stepSpawnBias = 0;        // increases if you haven’t seen a step in a while
+  // Step pacing
+  let stepCooldown = 0;
+  let stepSpawnBias = 0;
 
   // grace after hit
   let invuln = 0;
+
+  /* =========================
+     LOBBY FRIENDLY: WARM-UP
+     first ~15 seconds: less pressure
+  ========================= */
+  let warmupFrames = 0;
+  const WARMUP_TOTAL = 60 * 15; // 15 seconds
 
   /* =========================
      CONTENT
@@ -113,7 +121,7 @@
     "Restless","Irritable","Discontent","Catastrophizing","Projection"
   ];
 
-  // AA actions (still give you help / lives / calm)
+  // AA actions (help / lives / calm)
   const bonusesPool = [
     { label:"Go to a meeting", type:"life" },
     { label:"Call a friend", type:"life" },
@@ -122,7 +130,7 @@
     { label:"Write it down", type:"clear" }
   ];
 
-  // Step + principle (you can edit these anytime)
+  // Steps + principles
   const steps = [
     { n: 1, p: "HONESTY" },
     { n: 2, p: "HOPE" },
@@ -138,13 +146,13 @@
     { n:12, p: "SERVICE" }
   ];
 
-  const levelSayings = [
-    "Keep coming back",
-    "Easy does it",
-    "Progress, not perfection",
-    "One day at a time",
-    "Keep it simple",
-    "Stay in the middle"
+  const calmWhispers = [
+    "Breathe.",
+    "You’re not alone.",
+    "Stay in the middle.",
+    "Keep it simple.",
+    "Just for today.",
+    "Don’t do it by yourself."
   ];
 
   /* =========================
@@ -152,15 +160,13 @@
   ========================= */
   let lives = MAX_LIVES;
   let lastObstacleLabel = "something";
+  let stepIndex = 0; // next required step index 0..11
 
-  // Progress is now Steps collected in order
-  let stepIndex = 0; // 0 means next is Step 1, ... 11 means next is Step 12
-
-  // “big messages”
+  // big banner messages
   let banner = null; // {kind,title,sub,t,ttl}
   let slowMo = 0;
 
-  function makeBanner(kind, title, sub="", ttl=150){
+  function makeBanner(kind, title, sub="", ttl=160){
     banner = { kind, title, sub, t:0, ttl };
     slowMo = (kind === "bad") ? 85 : 65;
   }
@@ -171,8 +177,9 @@
 
   // objects
   const obstacles = []; // {x,y,w,h,label,lane,passed}
-  const bonuses = [];   // {x,y,w,h,label,lane,type}
-  const stepTokens = []; // {x,y,w,h,stepN,principle,lane}
+  const bonuses = [];   // {x,y,w,h,label,lane,type,cloud}
+  const stepTokens = []; // {x,y,w,h,lane,label,cloud}
+  const microClouds = []; // {x,y,w,h,lane,cloud}
 
   // title/countdown
   let titleTimer = 0;
@@ -191,7 +198,7 @@
       stars.push({
         x: Math.random() * innerWidth,
         y: Math.random() * innerHeight,
-        z: 0.4 + Math.random() * 1.6, // parallax
+        z: 0.4 + Math.random() * 1.6,
         ch: STAR_CHARS[(Math.random()*STAR_CHARS.length)|0],
         tw: Math.random()*1000
       });
@@ -201,8 +208,6 @@
   addEventListener("resize", initStars);
 
   function drawStarfield(scrollSpeed){
-    // move left with slight parallax
-    ctx.globalAlpha = 0.85;
     ctx.fillStyle = "#fff";
     ctx.font = "10px 'Press Start 2P'";
     for (const s of stars){
@@ -210,11 +215,9 @@
       s.tw += 1;
       if (s.x < -10) { s.x = innerWidth + 10; s.y = Math.random()*innerHeight; s.z = 0.4 + Math.random()*1.6; }
 
-      // subtle twinkle
-      const a = 0.35 + 0.35 * (0.5 + 0.5 * Math.sin((s.tw/35) + s.y*0.02));
+      const a = 0.28 + 0.40 * (0.5 + 0.5 * Math.sin((s.tw/35) + s.y*0.02));
       ctx.globalAlpha = a;
 
-      // some stars are ASCII chars, some are dots
       if (s.ch === "." || s.ch === "·" || s.ch === "˙"){
         ctx.fillRect(s.x|0, s.y|0, 2, 2);
       } else {
@@ -242,19 +245,46 @@
     return { w, h };
   }
 
+  // Prebuilt “cloud puff” patterns (performance-friendly, more cloud-like)
+  function buildCloudPattern(w, h){
+    const puffs = [];
+    const cx = w/2, cy = h/2;
+    const count = 14;
+    for (let i=0;i<count;i++){
+      const angle = (i / count) * Math.PI * 2;
+      const radiusX = (w * 0.28) + (Math.random()*w*0.06);
+      const radiusY = (h * 0.22) + (Math.random()*h*0.06);
+      const px = cx + Math.cos(angle) * radiusX + (Math.random()*10 - 5);
+      const py = cy + Math.sin(angle) * radiusY + (Math.random()*8 - 4);
+      const r  = 16 + Math.random()*16;
+      puffs.push({x:px, y:py, r});
+    }
+    // inner puffs
+    for (let i=0;i<8;i++){
+      const px = cx + (Math.random()*w*0.36 - w*0.18);
+      const py = cy + (Math.random()*h*0.32 - h*0.16);
+      const r  = 12 + Math.random()*12;
+      puffs.push({x:px, y:py, r});
+    }
+    // sparkles
+    const sparks = [];
+    for (let i=0;i<10;i++){
+      sparks.push({x: Math.random()*w, y: Math.random()*h});
+    }
+    return { puffs, sparks };
+  }
+
   function currentSpeed(){
     let s = BASE_SPEED + prestigeSpeedBoost;
-
-    // ramp slowly as you get deeper into steps (so it feels like “levels”)
     s += stepIndex * 0.20;
-
-    // also ramp a little by time/pressure (obstacles passed)
-    s += Math.min(1.4, obstaclesPassed * 0.0025);
-
+    s += Math.min(1.6, obstaclesPassed * 0.0026);
     s = Math.min(MAX_SPEED + prestigeSpeedBoost, s);
 
     if (slowTimer > 0) s *= 0.72;
     if (slowMo > 0) s *= 0.35;
+
+    // warmup: softer speed
+    if (warmupFrames < WARMUP_TOTAL) s *= 0.88;
 
     return s;
   }
@@ -262,15 +292,16 @@
   function resetRun(keepPrestige=true){
     lives = MAX_LIVES;
     lastObstacleLabel = "something";
-
     stepIndex = 0;
 
     obstacles.length = 0;
     bonuses.length = 0;
     stepTokens.length = 0;
+    microClouds.length = 0;
 
-    obstacleGapPx = 420;
-    bonusGapPx = 950;
+    obstacleGapPx = 480; // slightly gentler start
+    bonusGapPx = 1040;
+    microGapPx = 620;
 
     slowTimer = 0;
     clearArmed = false;
@@ -279,10 +310,12 @@
     banner = null;
     slowMo = 0;
 
-    stepCooldown = 60 * 8; // ~8 seconds before step tokens can start
+    stepCooldown = 60 * 8;
     stepSpawnBias = 0;
 
     obstaclesPassed = 0;
+
+    warmupFrames = 0;
 
     player.lane = 1;
     player.laneTarget = 1;
@@ -293,7 +326,7 @@
       prestigeSpeedBoost = 0;
     }
 
-    makeBanner("good", "STEP 1 — HONESTY", "Gather steps in order.", 160);
+    makeBanner("good", "STEP 1 — HONESTY", "Gather steps in order.", 170);
   }
 
   function startCountdown(){
@@ -309,7 +342,6 @@
   function onTap(){
     if (mode === "title"){ startCountdown(); return; }
     if (mode === "gameover" || mode === "ending"){
-      // Try again = start over, speed increases after winning
       setMode("title");
       titleTimer = 0;
       return;
@@ -331,35 +363,20 @@
   /* =========================
      SPAWN
   ========================= */
-  function spawnObstacle(){
-    const label = rand(obstaclesPool);
-    const lane = (Math.random() * LANE_COUNT) | 0;
+  function spawnObstacle(labelOverride=null, laneOverride=null, xOverride=null){
+    const label = labelOverride || rand(obstaclesPool);
     const lanes = laneYCenters();
+    const lane = (laneOverride !== null) ? laneOverride : ((Math.random() * LANE_COUNT) | 0);
     const { w, h } = sizeForLabel(label, 220, 540, 46);
 
     obstacles.push({
-      x: innerWidth + 90,
+      x: (xOverride !== null) ? xOverride : (innerWidth + 90),
       y: lanes[lane] - h/2,
       w, h,
       label,
       lane,
       passed:false
     });
-
-    // occasional double trouble
-    if (Math.random() < 0.20){
-      const lane2 = (lane + 1 + ((Math.random()*2)|0)) % LANE_COUNT;
-      const label2 = rand(obstaclesPool);
-      const { w: w2, h: h2 } = sizeForLabel(label2, 210, 520, 44);
-      obstacles.push({
-        x: innerWidth + 90 + 280,
-        y: lanes[lane2] - h2/2,
-        w: w2, h: h2,
-        label: label2,
-        lane: lane2,
-        passed:false
-      });
-    }
   }
 
   function spawnBonus(){
@@ -369,38 +386,69 @@
     const lane = r < 0.55 ? 1 : (r < 0.78 ? 0 : 2);
 
     const { w, h } = sizeForLabel(b.label, 280, 580, 42);
-
     bonuses.push({
       x: innerWidth + 90,
       y: lanes[lane] - h/2,
       w, h,
       label: b.label,
       lane,
-      type: b.type
+      type: b.type,
+      cloud: buildCloudPattern(w, h)
+    });
+  }
+
+  function spawnMicroCloud(){
+    const lanes = laneYCenters();
+    const lane = (Math.random() * LANE_COUNT) | 0;
+
+    // Small “puff” collectible that gives calm (tiny slow)
+    const w = 110;
+    const h = 40;
+
+    microClouds.push({
+      x: innerWidth + 90,
+      y: lanes[lane] - h/2,
+      w, h,
+      lane,
+      cloud: buildCloudPattern(w, h)
     });
   }
 
   function spawnStepToken(){
-    // Spawn the NEXT required step (in order) as a pink cloud token.
     if (stepIndex >= 12) return;
 
     const next = steps[stepIndex];
     const label = `STEP ${next.n} — ${next.p}`;
-
     const lanes = laneYCenters();
     const lane = (Math.random() * LANE_COUNT) | 0;
 
     const { w, h } = sizeForLabel(label, 360, 760, 52);
 
+    // Step cloud
+    const stepX = innerWidth + 110;
     stepTokens.push({
-      x: innerWidth + 110,
+      x: stepX,
       y: lanes[lane] - h/2,
       w, h,
-      stepN: next.n,
-      principle: next.p,
       lane,
-      label
+      label,
+      cloud: buildCloudPattern(w, h)
     });
+
+    // =========================
+    // STEP GAUNTLET LITE:
+    // 2 guard traps in the other lanes,
+    // offset slightly before & after the Step cloud.
+    // (Readable, fair, feels like “protected progress.”)
+    // =========================
+    const other1 = (lane + 1) % 3;
+    const other2 = (lane + 2) % 3;
+
+    // Guard 1: slightly BEFORE in other lane
+    spawnObstacle(null, other1, stepX - 220);
+
+    // Guard 2: slightly AFTER in the other other lane
+    spawnObstacle(null, other2, stepX + 220);
   }
 
   /* =========================
@@ -429,13 +477,13 @@
     ctx.font = "14px 'Press Start 2P'";
     ctx.fillText("TRUDGE THE ROAD", innerWidth/2, 38);
 
-    // Step progress (clear, obvious)
+    // Step progress
     const stepText = `STEP ${Math.min(12, stepIndex+1)} / 12`;
     ctx.font = "10px 'Press Start 2P'";
     ctx.textAlign = "left";
     ctx.fillText(stepText, 12, 86);
 
-    // hint the objective briefly
+    // objective hint
     ctx.textAlign = "right";
     ctx.fillText("Gather steps. Avoid traps.", innerWidth - 12, 86);
 
@@ -493,42 +541,22 @@
     ctx.textBaseline = "alphabetic";
   }
 
-  // More “cloudy” pink cloud: overlapping puffs + outline + sparkle dots
-  function drawPinkCloud(x, y, w, h, alpha=1){
-    const cx = x + w/2;
-    const cy = y + h/2;
-
+  function drawCloudFromPattern(x, y, w, h, cloud, alpha=1, isMicro=false){
     // glow halo
-    ctx.globalAlpha = 0.16 * alpha;
+    ctx.globalAlpha = (isMicro ? 0.10 : 0.16) * alpha;
     ctx.fillStyle = "rgba(255,105,180,1)";
-    ctx.fillRect(x-18, y-16, w+36, h+32);
+    ctx.fillRect(x-(isMicro?10:18), y-(isMicro?10:16), w+(isMicro?20:36), h+(isMicro?20:32));
 
-    // main puffs
-    ctx.globalAlpha = 0.34 * alpha;
+    // puffs
+    ctx.globalAlpha = (isMicro ? 0.30 : 0.34) * alpha;
     ctx.fillStyle = "rgba(255,105,180,1)";
-    const puffCount = 14;
-    for (let i=0;i<puffCount;i++){
-      const px = cx + (Math.random()*w*0.55 - w*0.275);
-      const py = cy + (Math.random()*h*0.55 - h*0.275);
-      const r  = 18 + Math.random()*18;
+    for (const p of cloud.puffs){
       ctx.beginPath();
-      ctx.arc(px, py, r, 0, Math.PI*2);
+      ctx.arc(x + p.x, y + p.y, p.r, 0, Math.PI*2);
       ctx.fill();
     }
 
-    // bright inner layer
-    ctx.globalAlpha = 0.20 * alpha;
-    ctx.fillStyle = "rgba(255,200,225,1)";
-    for (let i=0;i<8;i++){
-      const px = cx + (Math.random()*w*0.38 - w*0.19);
-      const py = cy + (Math.random()*h*0.38 - h*0.19);
-      const r  = 14 + Math.random()*12;
-      ctx.beginPath();
-      ctx.arc(px, py, r, 0, Math.PI*2);
-      ctx.fill();
-    }
-
-    // outline to “read” as a thing
+    // outline
     ctx.globalAlpha = 0.95 * alpha;
     ctx.strokeStyle = "rgba(255,180,220,0.95)";
     ctx.lineWidth = 2;
@@ -536,19 +564,17 @@
     ctx.lineWidth = 1;
 
     // sparkles
-    ctx.globalAlpha = 0.7 * alpha;
+    ctx.globalAlpha = 0.70 * alpha;
     ctx.fillStyle = "rgba(255,240,250,1)";
-    for (let i=0;i<10;i++){
-      const sx = x + Math.random()*w;
-      const sy = y + Math.random()*h;
-      ctx.fillRect(sx|0, sy|0, 2, 2);
+    for (const s of cloud.sparks){
+      ctx.fillRect((x + s.x)|0, (y + s.y)|0, 2, 2);
     }
 
     ctx.globalAlpha = 1;
   }
 
   function drawBonus(b){
-    drawPinkCloud(b.x, b.y, b.w, b.h, 1);
+    drawCloudFromPattern(b.x, b.y, b.w, b.h, b.cloud, 1, false);
     ctx.font = "12px 'Press Start 2P'";
     ctx.fillStyle = "rgba(255,245,250,1)";
     ctx.textAlign = "center";
@@ -559,9 +585,9 @@
   }
 
   function drawStepToken(tk){
-    drawPinkCloud(tk.x, tk.y, tk.w, tk.h, 1);
+    drawCloudFromPattern(tk.x, tk.y, tk.w, tk.h, tk.cloud, 1, false);
 
-    // Make step token feel “special”
+    // extra frame for “special”
     ctx.strokeStyle = "rgba(255,255,255,0.35)";
     ctx.strokeRect(tk.x-4, tk.y-4, tk.w+8, tk.h+8);
 
@@ -574,8 +600,18 @@
     ctx.textBaseline = "alphabetic";
   }
 
+  function drawMicroCloud(m){
+    drawCloudFromPattern(m.x, m.y, m.w, m.h, m.cloud, 0.95, true);
+    ctx.font = "12px 'Press Start 2P'";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("☁", m.x + m.w/2, m.y + m.h/2 + 2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
   function drawRunner(){
-    // optional sprite-sheet animation
     if (RUNNER_FRAMES > 1 && runnerReady && mode === "play"){
       runnerTick++;
       const frameEvery = Math.max(1, Math.floor(60 / RUNNER_FPS));
@@ -692,7 +728,7 @@
       y += 22;
     }
     ctx.font="10px 'Press Start 2P'";
-    ctx.fillText("Try again", innerWidth/2, y + 30);
+    ctx.fillText("Press Space / Tap", innerWidth/2, y + 30);
     ctx.textAlign="left";
   }
 
@@ -714,11 +750,12 @@
   }
 
   function updatePlay(){
+    warmupFrames++;
+
     if (invuln > 0) invuln--;
     if (slowTimer > 0) slowTimer--;
     if (slowMo > 0) slowMo--;
 
-    // Smooth slide to target lane
     const lanes = laneYCenters();
     const targetY = lanes[player.laneTarget] - player.h/2;
     const dy = targetY - player.y;
@@ -730,7 +767,7 @@
 
     const spd = currentSpeed();
 
-    // Step spawn pacing
+    // Step pacing
     if (stepCooldown > 0) stepCooldown--;
     else stepSpawnBias += 1;
 
@@ -738,24 +775,25 @@
     for (const o of obstacles) o.x -= spd;
     for (const b of bonuses) b.x -= spd;
     for (const s of stepTokens) s.x -= spd;
+    for (const m of microClouds) m.x -= spd;
 
-    // clear effect: clears the next obstacle in your lane
+    // clear effect: clears next obstacle in your lane
     if (clearArmed){
       const next = obstacles.find(o => o.x > player.x && o.x < player.x + 460 && o.lane === player.lane);
       if (next){
         next.x = -9999;
         clearArmed = false;
-        makeBanner("good", "WRITE IT DOWN", "Cleared one trap.", 150);
+        makeBanner("good", "WRITE IT DOWN", "Cleared one trap.", 160);
       }
     }
 
-    // Player hitbox (tight but fair)
+    // Player hitbox
     const rx = player.x + 14;
     const ry = player.y + 10;
     const rw = player.w - 26;
     const rh = player.h - 18;
 
-    // Obstacle collisions (same lane)
+    // Obstacle collisions
     for (const o of obstacles){
       if (o.lane !== player.lane) continue;
 
@@ -770,7 +808,7 @@
         invuln = 90;
         o.x = -9999;
 
-        makeBanner("bad", `YOU CAUGHT: ${lastObstacleLabel.toUpperCase()}`, "-1 LIFE", 170);
+        makeBanner("bad", `YOU CAUGHT: ${lastObstacleLabel.toUpperCase()}`, "-1 LIFE", 175);
 
         if (lives <= 0){
           setMode("gameover");
@@ -778,19 +816,13 @@
         }
       }
 
-      // passed count drives speed ramp
       if (!o.passed && (o.x + o.w) < player.x){
         o.passed = true;
         obstaclesPassed++;
-
-        // occasionally remind them what to do
-        if (Math.random() < 0.012 && !banner){
-          makeBanner("good", rand(levelSayings).toUpperCase(), "", 140);
-        }
       }
     }
 
-    // Bonus collisions (same lane)
+    // Bonus collisions
     for (const b of bonuses){
       if (b.lane !== player.lane) continue;
 
@@ -803,88 +835,123 @@
         if (b.type === "life"){
           const before = lives;
           lives = Math.min(MAX_LIVES, lives + 1);
-          makeBanner("good", b.label.toUpperCase(), (lives>before ? "+1 LIFE" : "LIVES FULL"), 170);
+          makeBanner("good", b.label.toUpperCase(), (lives>before ? "+1 LIFE" : "LIVES FULL"), 175);
         } else if (b.type === "slow"){
-          slowTimer = 280;
-          makeBanner("good", b.label.toUpperCase(), "SLOWING DOWN.", 160);
+          slowTimer = 300;
+          makeBanner("good", b.label.toUpperCase(), "SLOWING DOWN.", 170);
         } else if (b.type === "clear"){
           clearArmed = true;
-          makeBanner("good", b.label.toUpperCase(), "NEXT TRAP CLEARS.", 160);
+          makeBanner("good", b.label.toUpperCase(), "NEXT TRAP CLEARS.", 170);
         }
         b.x = -9999;
       }
     }
 
-    // Step token collisions (same lane)
+    // Micro-cloud collisions (calm reward)
+    for (const m of microClouds){
+      if (m.lane !== player.lane) continue;
+
+      const mx = m.x + 10;
+      const my = m.y + 8;
+      const mw = m.w - 20;
+      const mh = m.h - 16;
+
+      if (aabb(rx, ry, rw, rh, mx, my, mw, mh)){
+        // tiny calm: gentle slow down for a moment
+        slowTimer = Math.max(slowTimer, 90);
+        if (!banner && Math.random() < 0.85){
+          makeBanner("good", "PINK CLOUD", rand(calmWhispers), 140);
+        }
+        m.x = -9999;
+      }
+    }
+
+    // Step token collisions
     for (const s of stepTokens){
       if (s.lane !== player.lane) continue;
 
       const sx = s.x + 18;
       const sy = s.y + 12;
-      const sw = Math.max(2, s.w - 36);
-      const sh = Math.max(2, s.h - 22);
+      const sw = s.w - 36;
+      const sh = s.h - 22;
 
       if (aabb(rx, ry, rw, rh, sx, sy, sw, sh)){
-        // This token is always the NEXT step (spawned that way), so advance.
         stepIndex++;
         s.x = -9999;
 
-        if (stepIndex <= 12){
-          if (stepIndex < 12){
-            const next = steps[stepIndex];
-            makeBanner("good", `STEP ${steps[stepIndex-1].n} — ${steps[stepIndex-1].p}`, "Nice. Keep moving.", 180);
-            // set cooldown until the next step token appears
-            stepCooldown = 60 * (28 + (Math.random()*18|0)); // 28–46 seconds
-            stepSpawnBias = 0;
-          } else {
-            // Completed Step 12
-            setMode("ending");
-            return;
-          }
+        if (stepIndex < 12){
+          const got = steps[stepIndex-1];
+          makeBanner("good", `STEP ${got.n} — ${got.p}`, "Nice. Keep moving.", 190);
+
+          // next step appears later
+          stepCooldown = 60 * (26 + (Math.random()*16|0)); // 26–42 sec
+          stepSpawnBias = 0;
+        } else {
+          setMode("ending");
+          return;
         }
       }
     }
 
-    // Cleanup offscreen
+    // Cleanup
     for (let i = obstacles.length - 1; i >= 0; i--){
-      if (obstacles[i].x < -1200) obstacles.splice(i, 1);
+      if (obstacles[i].x < -1400) obstacles.splice(i, 1);
     }
     for (let i = bonuses.length - 1; i >= 0; i--){
-      if (bonuses[i].x < -1200) bonuses.splice(i, 1);
+      if (bonuses[i].x < -1400) bonuses.splice(i, 1);
     }
     for (let i = stepTokens.length - 1; i >= 0; i--){
-      if (stepTokens[i].x < -1400) stepTokens.splice(i, 1);
+      if (stepTokens[i].x < -1600) stepTokens.splice(i, 1);
+    }
+    for (let i = microClouds.length - 1; i >= 0; i--){
+      if (microClouds[i].x < -900) microClouds.splice(i, 1);
     }
 
     // Spawn spacing
     obstacleGapPx -= spd;
     bonusGapPx -= spd;
+    microGapPx -= spd;
+
+    // Lobby-friendly warmup = bigger gaps, no doubles
+    const inWarmup = (warmupFrames < WARMUP_TOTAL);
 
     if (obstacleGapPx <= 0){
       spawnObstacle();
-      obstacleGapPx = 420 + ((Math.random() * 260) | 0); // 420–680px
+      const base = inWarmup ? 560 : 420;
+      const spread = inWarmup ? 320 : 260;
+      obstacleGapPx = base + ((Math.random() * spread) | 0);
+
+      // After warmup, occasionally spawn a second obstacle shortly after (adds challenge)
+      if (!inWarmup && Math.random() < 0.18){
+        const laneA = ((Math.random()*LANE_COUNT)|0);
+        const laneB = (laneA + 1 + ((Math.random()*2)|0)) % LANE_COUNT;
+        spawnObstacle(null, laneB, innerWidth + 90 + 280);
+      }
     }
 
-    if (bonusGapPx <= 0 && Math.random() < 0.42){
+    if (bonusGapPx <= 0 && Math.random() < (inWarmup ? 0.55 : 0.42)){
       spawnBonus();
-      bonusGapPx = 980 + ((Math.random() * 560) | 0); // 980–1540px
+      bonusGapPx = (inWarmup ? 980 : 980) + ((Math.random() * 560) | 0);
     }
 
-    // Step token spawn logic:
-    // - only if you haven't already spawned one recently
-    // - only if there isn't already a step token on screen
-    // - chance increases the longer it’s been since last step
+    // Micro-clouds: frequent small “gather” wins
+    if (microGapPx <= 0 && Math.random() < (inWarmup ? 0.70 : 0.55)){
+      spawnMicroCloud();
+      microGapPx = (inWarmup ? 520 : 620) + ((Math.random() * 420) | 0);
+    }
+
+    // Step spawn logic
     if (stepIndex < 12 && stepTokens.length === 0 && stepCooldown <= 0){
-      const chance = Math.min(0.020 + stepSpawnBias * 0.00008, 0.08); // grows up to 8%
+      const chance = Math.min(0.018 + stepSpawnBias * 0.00008, 0.075);
       if (Math.random() < chance){
         spawnStepToken();
+
         // after spawning, prevent immediate respawns
-        stepCooldown = 60 * (18 + (Math.random()*12|0)); // 18–30 seconds minimum
+        stepCooldown = 60 * (18 + (Math.random()*12|0)); // 18–30 sec minimum
         stepSpawnBias = 0;
 
-        // subtle banner to make “level progression” obvious
         const next = steps[stepIndex];
-        makeBanner("status", `NEXT: STEP ${next.n} — ${next.p}`, "Find the pink cloud.", 160);
+        makeBanner("status", `NEXT: STEP ${next.n} — ${next.p}`, "Find the big pink cloud.", 170);
       }
     }
   }
@@ -900,7 +967,6 @@
      DRAW SCREENS
   ========================= */
   function drawTitle(){
-    // background
     ctx.fillStyle = "#000";
     ctx.fillRect(0,0,innerWidth,innerHeight);
     drawStarfield(0.6);
@@ -954,22 +1020,15 @@
     ctx.fillStyle = "#000";
     ctx.fillRect(0,0,innerWidth,innerHeight);
 
-    // scrolling background
     drawStarfield(currentSpeed());
-
     drawHeaderTitle();
     drawLanes();
 
-    // obstacles (danger)
     for (const o of obstacles) drawDangerObstacle(o);
-
-    // bonuses (pink clouds)
     for (const b of bonuses) drawBonus(b);
-
-    // step tokens (special pink clouds)
     for (const s of stepTokens) drawStepToken(s);
+    for (const m of microClouds) drawMicroCloud(m);
 
-    // runner
     drawRunner();
 
     // invuln hint
@@ -995,7 +1054,6 @@
   }
 
   function drawEnding(){
-    // Prestige bump happens when you press to go back to title and start again
     drawOverlay([
       "YOU GOT THROUGH THE 12 STEPS.",
       "NOW DO IT AGAIN.",
@@ -1020,22 +1078,19 @@
   }
 
   /* =========================
-     ENDING / TRY AGAIN BEHAVIOR
+     ENDING / TRY AGAIN (New Game+)
   ========================= */
   function handleTryAgainFromEnding(){
-    // called implicitly when you tap on title next time;
-    // we apply prestige boost once you complete a run.
     prestige++;
     prestigeSpeedBoost = Math.min(2.0, prestige * 0.30); // +0.30 per win, caps at +2.0
   }
 
-  // hook into mode changes: when leaving ending to title, apply prestige
-  const _setMode = setMode;
+  const __setMode = setMode;
   setMode = (m) => {
     if (mode === "ending" && m === "title"){
       handleTryAgainFromEnding();
     }
-    _setMode(m);
+    __setMode(m);
   };
 
   /* =========================
