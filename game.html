@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gorilla Run</title>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow: hidden;
+      height: 100%;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<script>
+(() => {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * dpr;
+    canvas.height = innerHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  let state = "play";
+  let score = 0;
+
+  const groundHeight = 60;
+
+  const player = {
+    x: 70,
+    y: 0,
+    w: 28,
+    h: 34,
+    vy: 0,
+    grounded: true
+  };
+
+  const bottle = {
+    x: innerWidth,
+    w: 18,
+    h: 44
+  };
+
+  const gorilla = {
+    x: 0,
+    y: 0,
+    w: 120,
+    h: 120
+  };
+
+  let speed = 6;
+  const gravity = 1.1;
+  const jumpForce = -18;
+
+  function resetGame() {
+    state = "play";
+    score = 0;
+    speed = 6;
+    player.y = innerHeight - groundHeight - player.h;
+    player.vy = 0;
+    player.grounded = true;
+    bottle.x = innerWidth + 200;
+  }
+
+  resetGame();
+
+  function jump() {
+    if (state === "play" && player.grounded) {
+      player.vy = jumpForce;
+      player.grounded = false;
+    }
+  }
+
+  function handleTap() {
+    if (state === "play") jump();
+    else resetGame();
+  }
+
+  window.addEventListener("pointerdown", handleTap);
+
+  function collide(a, b) {
+    return (
+      a.x < b.x + b.w &&
+      a.x + a.w > b.x &&
+      a.y < b.y + b.h &&
+      a.y + a.h > b.y
+    );
+  }
+
+  function drawGround() {
+    ctx.fillStyle = "#141414";
+    ctx.fillRect(0, innerHeight - groundHeight, innerWidth, groundHeight);
+  }
+
+  function drawPlayer() {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+  }
+
+  function drawBottle() {
+    const y = innerHeight - groundHeight - bottle.h;
+    ctx.fillStyle = "#2fd066";
+    ctx.fillRect(bottle.x, y, bottle.w, bottle.h);
+  }
+
+  function drawUI() {
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 28px monospace";
+    ctx.fillText(score.toFixed(1), 20, 40);
+    ctx.font = "bold 36px monospace";
+    ctx.fillText("✕", innerWidth - 40, 40);
+  }
+
+  function drawGorilla() {
+    ctx.fillStyle = "#3b2a1a";
+    ctx.fillRect(gorilla.x, gorilla.y, gorilla.w, gorilla.h);
+    ctx.fillStyle = "#d9b38c";
+    ctx.fillRect(gorilla.x + 30, gorilla.y + 30, 50, 50);
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+    if (state === "play") {
+      player.vy += gravity;
+      player.y += player.vy;
+
+      const groundY = innerHeight - groundHeight - player.h;
+      if (player.y >= groundY) {
+        player.y = groundY;
+        player.vy = 0;
+        player.grounded = true;
+      }
+
+      bottle.x -= speed;
+      if (bottle.x < -40) {
+        bottle.x = innerWidth + Math.random() * 300;
+        speed += 0.15;
+      }
+
+      const bottleRect = {
+        x: bottle.x,
+        y: innerHeight - groundHeight - bottle.h,
+        w: bottle.w,
+        h: bottle.h
+      };
+
+      const playerRect = player;
+
+      if (collide(playerRect, bottleRect)) {
+        state = "caught";
+        gorilla.x = player.x + 100;
+        gorilla.y = innerHeight - groundHeight - gorilla.h;
+      }
+
+      score += 0.02 * speed;
+    }
+
+    drawGround();
+    drawBottle();
+    drawPlayer();
+    drawUI();
+
+    if (state === "caught") {
+      drawGorilla();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 42px sans-serif";
+      ctx.fillText("500-Pound Gorilla", innerWidth / 2 - 180, 120);
+      ctx.font = "18px sans-serif";
+      ctx.fillText("Tap to try again", innerWidth / 2 - 60, 150);
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  loop();
+})();
+</script>
+
+</body>
+</html>
