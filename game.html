@@ -48,7 +48,7 @@
   runnerImg.onload = () => runnerReady = true;
   runnerImg.onerror = () => runnerReady = false;
 
-  // If runner.png is a horizontal sprite sheet, set >1 and adjust.
+  // If runner.png is a horizontal sprite sheet, set >1
   const RUNNER_FRAMES = 1;
   const RUNNER_FPS = 10;
   let runnerFrame = 0;
@@ -58,7 +58,6 @@
      MODES
   ========================= */
   let mode = "title"; // title | countdown | play | pause | gameover | ending
-
   function setMode(m){
     mode = m;
     document.getElementById("pauseBtn").style.display =
@@ -66,23 +65,36 @@
   }
 
   /* =========================
-     CONSTANTS
+     CONSTANTS / FEEL
   ========================= */
   const MAX_LIVES = 5;
   const END_COINS = 101;
 
-  const LANE_COUNT = 3;              // 3 lanes
-  const LANE_SNAP_SPEED = 0.30;      // how quickly you slide to the next lane
-  const PLAYER_X = 120;
+  const LANE_COUNT = 3;
+  const PLAYER_X = 140;
 
-  const BASE_SPEED = 3.0;
-  const MAX_SPEED  = 5.4;
+  // Bigger sprite (2x-ish vs previous)
+  const player = {
+    x: PLAYER_X,
+    y: 0,
+    w: 68,   // doubled
+    h: 88,   // doubled
+    lane: 1,
+    laneTarget: 1
+  };
 
-  // Spawning as pixels (consistent & fair)
-  let obstacleGapPx = 520;
-  let bonusGapPx = 1100;
+  // Slide speed between lanes (faster = snappier)
+  const LANE_SNAP_SPEED = 0.35;
 
-  // Small grace window after a hit (prevents chain hits)
+  // Make it harder: faster base + faster ramp
+  const BASE_SPEED = 3.8;
+  const MAX_SPEED  = 6.6;
+
+  // Spawning gaps (lower = harder). We’ll keep readable, but more pressure.
+  let obstacleGapPx = 420;
+  let bonusGapPx = 1050;
+
+  // Brief grace after hit
   let invuln = 0;
 
   /* =========================
@@ -120,16 +132,6 @@
     "First things first"
   ];
 
-  const quietHelps = [
-    "Breathe.",
-    "Slow down.",
-    "Call someone.",
-    "You don’t have to solve this.",
-    "Just do the next right thing.",
-    "Don’t do it alone.",
-    "Stay in the middle."
-  ];
-
   const statusTable = [
     { c: 1,  name:"Newcomer",                 sub:"Still showing up." },
     { c: 3,  name:"Keep Coming Back",         sub:"It works if we work it." },
@@ -147,55 +149,58 @@
   let coins = 1; // 24-hour coin
   let obstaclesCleared = 0;
   let lastObstacleLabel = "something";
-
-  let popup = null;   // {text, sub, t, ttl}
-  let whisper = null; // {text, t, ttl}
   let lastStatusName = "";
 
-  let slowTimer = 0; // reduces speed temporarily
-  let clearArmed = false; // next obstacle in your lane gets cleared
+  let slowTimer = 0;
+  let clearArmed = false;
 
-  // title/countdown
+  // Title / countdown
   let titleTimer = 0;
   let countdownTimer = 0;
   let countdownValue = 3;
 
-  const obstacles = []; // {x,y,w,h,label,lane,passed}
-  const bonuses = [];   // {x,y,w,h,label,lane,type}
+  const obstacles = [];
+  const bonuses = [];
 
-  function rand(arr){ return arr[(Math.random() * arr.length) | 0]; }
-  function makePopup(text, sub="", ttl=110){ popup = { text, sub, t:0, ttl }; }
-  function makeWhisper(text, ttl=90){ whisper = { text, t:0, ttl }; }
+  /* =========================
+     BIG MESSAGE SYSTEM
+     - Larger text
+     - Longer display
+     - Brief slow-mo while shown
+  ========================= */
+  let banner = null; // {kind, title, sub, t, ttl}
+  let slowMo = 0;    // frames: when >0, gameplay slows
+
+  function makeBanner(kind, title, sub="", ttl=110){
+    banner = { kind, title, sub, t:0, ttl };
+    // slow motion: good messages slow a bit, bad messages slow more
+    slowMo = (kind === "bad") ? 75 : 55;
+  }
+
+  function rand(arr){ return arr[(Math.random()*arr.length)|0]; }
 
   function laneYCenters(){
-    const top = 150;
-    const bottom = innerHeight - 130;
+    const top = 170;
+    const bottom = innerHeight - 150;
     const gap = (bottom - top) / (LANE_COUNT - 1);
     return [top, top + gap, bottom];
   }
-
-  const player = {
-    x: PLAYER_X,
-    y: 0,
-    w: 34,
-    h: 44,
-    lane: 1,
-    laneTarget: 1
-  };
 
   function maybeStatusUpdate(){
     let chosen = null;
     for (const s of statusTable) if (coins >= s.c) chosen = s;
     if (chosen && chosen.name !== lastStatusName){
       lastStatusName = chosen.name;
-      makePopup(chosen.name, chosen.sub, 125);
+      makeBanner("status", chosen.name, chosen.sub, 140);
     }
   }
 
   function currentSpeed(){
-    let s = BASE_SPEED + (coins * 0.020) + (Math.floor(obstaclesCleared/50) * 0.10);
+    // ramp speed by progress, not just time
+    let s = BASE_SPEED + (coins * 0.05) + (Math.floor(obstaclesCleared/35) * 0.12);
     s = Math.min(MAX_SPEED, s);
     if (slowTimer > 0) s *= 0.70;
+    if (slowMo > 0) s *= 0.35; // slow-motion during important messages
     return s;
   }
 
@@ -205,17 +210,19 @@
     obstaclesCleared = 0;
     lastObstacleLabel = "something";
     lastStatusName = "";
-    popup = null;
-    whisper = null;
-    slowTimer = 0;
-    clearArmed = false;
-    invuln = 0;
 
     obstacles.length = 0;
     bonuses.length = 0;
 
-    obstacleGapPx = 520;
-    bonusGapPx = 1100;
+    obstacleGapPx = 420;
+    bonusGapPx = 1050;
+
+    slowTimer = 0;
+    clearArmed = false;
+    invuln = 0;
+
+    banner = null;
+    slowMo = 0;
 
     player.lane = 1;
     player.laneTarget = 1;
@@ -233,7 +240,6 @@
 
   /* =========================
      INPUT: TAP = CHANGE LANE
-     (NO JUMP EXISTS)
   ========================= */
   function onTap(){
     if (mode === "title"){ startCountdown(); return; }
@@ -242,7 +248,6 @@
 
     player.laneTarget = (player.laneTarget + 1) % LANE_COUNT;
   }
-
   addEventListener("keydown", e => { if (e.code === "Space") onTap(); });
   addEventListener("mousedown", onTap, {passive:true});
   addEventListener("touchstart", onTap, {passive:true});
@@ -256,7 +261,7 @@
      SPAWNING
   ========================= */
   function sizeForLabel(label, minW, maxW, h){
-    const extra = Math.min(260, Math.max(0, (label.length - 10) * 9));
+    const extra = Math.min(320, Math.max(0, (label.length - 10) * 10));
     const w = Math.min(maxW, minW + extra);
     return { w, h };
   }
@@ -266,30 +271,45 @@
     const lane = (Math.random() * LANE_COUNT) | 0;
     const lanes = laneYCenters();
 
-    const { w, h } = sizeForLabel(label, 170, 400, 30);
+    const { w, h } = sizeForLabel(label, 210, 520, 44);
 
     obstacles.push({
-      x: innerWidth + 60,
+      x: innerWidth + 80,
       y: lanes[lane] - h/2,
       w, h,
       label,
       lane,
       passed:false
     });
+
+    // Occasionally spawn a second obstacle shortly after (adds challenge)
+    if (Math.random() < 0.18){
+      const lane2 = (lane + 1 + ((Math.random()*2)|0)) % LANE_COUNT;
+      const label2 = rand(obstaclesPool);
+      const { w: w2, h: h2 } = sizeForLabel(label2, 200, 500, 42);
+      obstacles.push({
+        x: innerWidth + 80 + 260,
+        y: lanes[lane2] - h2/2,
+        w: w2, h: h2,
+        label: label2,
+        lane: lane2,
+        passed:false
+      });
+    }
   }
 
   function spawnBonus(){
     const b = rand(bonusesPool);
     const lanes = laneYCenters();
 
-    // bias bonuses slightly toward middle
+    // Bonuses a bit rarer now (since game is faster)
     const r = Math.random();
     const lane = r < 0.55 ? 1 : (r < 0.78 ? 0 : 2);
 
-    const { w, h } = sizeForLabel(b.label, 220, 440, 28);
+    const { w, h } = sizeForLabel(b.label, 260, 560, 40);
 
     bonuses.push({
-      x: innerWidth + 60,
+      x: innerWidth + 80,
       y: lanes[lane] - h/2,
       w, h,
       label: b.label,
@@ -306,7 +326,7 @@
   }
 
   /* =========================
-     NES TITLE BACKGROUND
+     TITLE FLASH BACKGROUND
   ========================= */
   function drawNesFlashBG(t){
     const phase = (t / 10) | 0;
@@ -320,23 +340,34 @@
       if (((y/bandH)|0) % 2 === (phase % 2)) ctx.fillRect(0, y, innerWidth, bandH);
     }
     ctx.globalAlpha = 1;
-
-    ctx.globalAlpha = 0.55;
-    ctx.fillStyle = "#fff";
-    for (let i = 0; i < 90; i++){
-      const x = (Math.random() * innerWidth) | 0;
-      const y = (Math.random() * innerHeight) | 0;
-      ctx.fillRect(x, y, 2, 2);
-    }
-    ctx.globalAlpha = 1;
   }
 
   /* =========================
-     DRAW HELPERS
+     DRAW: STYLE
   ========================= */
+  function drawHeaderTitle(){
+    // Persistent header during play
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillRect(0, 0, innerWidth, 54);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.beginPath();
+    ctx.moveTo(0, 54);
+    ctx.lineTo(innerWidth, 54);
+    ctx.stroke();
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.font = "14px 'Press Start 2P'";
+    ctx.fillText("TRUDGE THE ROAD", innerWidth/2, 34);
+    ctx.textAlign = "left";
+    ctx.globalAlpha = 1;
+  }
+
   function drawLanes(){
     const lanes = laneYCenters();
-    ctx.globalAlpha = 0.25;
+    ctx.globalAlpha = 0.18;
     ctx.strokeStyle = "#333";
     for (let i = 0; i < lanes.length; i++){
       ctx.beginPath();
@@ -347,53 +378,98 @@
     ctx.globalAlpha = 1;
   }
 
-  function drawTile(x, y, w, h, kind){
-    ctx.fillStyle = (kind === "bonus") ? "#0f0" : "#111";
-    ctx.globalAlpha = (kind === "bonus") ? 0.12 : 1;
-    ctx.fillRect(x, y, w, h);
-    ctx.globalAlpha = 1;
+  function drawDangerObstacle(o){
+    // Jagged/spiky look
+    const x=o.x, y=o.y, w=o.w, h=o.h;
 
-    ctx.strokeStyle = (kind === "bonus") ? "rgba(0,255,0,0.55)" : "#777";
-    ctx.strokeRect(x, y, w, h);
+    // base shadow
+    ctx.fillStyle = "rgba(255,0,0,0.10)";
+    ctx.fillRect(x-6, y-4, w+12, h+8);
 
-    ctx.fillStyle = (kind === "bonus") ? "rgba(0,255,0,0.35)" : "#444";
-    ctx.fillRect(x, y + h - 6, w, 6);
-  }
+    // spiky polygon
+    ctx.fillStyle = "#0b0b0b";
+    ctx.strokeStyle = "rgba(255,80,80,0.9)";
+    ctx.lineWidth = 2;
 
-  function drawCenteredLabel(text, x, y, w, h, kind){
-    ctx.font = "10px 'Press Start 2P'";
-    ctx.fillStyle = (kind === "bonus") ? "rgba(0,255,0,0.9)" : "#fff";
+    ctx.beginPath();
+    const spikes = 9;
+    const step = w / spikes;
+    ctx.moveTo(x, y+h);
+    for (let i=0;i<=spikes;i++){
+      const px = x + i*step;
+      const py = (i%2===0) ? y : (y + 10);
+      ctx.lineTo(px, py);
+    }
+    ctx.lineTo(x+w, y+h);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.lineWidth = 1;
+
+    // label
+    ctx.font = "11px 'Press Start 2P'";
+    ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(text.toUpperCase(), x + w/2, y + h/2);
+    ctx.fillText(o.label.toUpperCase(), x + w/2, y + h/2 + 6);
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
   }
 
-  function drawRunner(x, y, w, h){
-    // sprite sheet animation if configured
+  function drawPinkCloudBonus(b){
+    // Pink “cloud” puffs behind text (no PNG)
+    const x=b.x, y=b.y, w=b.w, h=b.h;
+
+    const cx = x + w/2;
+    const cy = y + h/2;
+
+    ctx.globalAlpha = 0.30;
+    ctx.fillStyle = "rgba(255,105,180,1)";
+    for (let i=0;i<9;i++){
+      const ox = (Math.cos(i)*1.0) * (w*0.12) + (Math.random()*10-5);
+      const oy = (Math.sin(i)*1.0) * (h*0.20) + (Math.random()*8-4);
+      const r = 18 + Math.random()*16;
+      ctx.beginPath();
+      ctx.arc(cx + ox, cy + oy, r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // soft frame
+    ctx.strokeStyle = "rgba(255,180,220,0.85)";
+    ctx.strokeRect(x, y, w, h);
+
+    // label
+    ctx.font = "11px 'Press Start 2P'";
+    ctx.fillStyle = "rgba(255,230,245,1)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(b.label.toUpperCase(), x + w/2, y + h/2 + 2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawRunner(){
+    // Optional sprite-sheet animation
     if (RUNNER_FRAMES > 1 && runnerReady && mode === "play"){
       runnerTick++;
       const frameEvery = Math.max(1, Math.floor(60 / RUNNER_FPS));
-      if (runnerTick % frameEvery === 0){
-        runnerFrame = (runnerFrame + 1) % RUNNER_FRAMES;
-      }
+      if (runnerTick % frameEvery === 0) runnerFrame = (runnerFrame + 1) % RUNNER_FRAMES;
     }
+
+    const x = player.x, y = player.y, w = player.w, h = player.h;
 
     if (!runnerReady){
       ctx.fillStyle = "#fff";
       ctx.fillRect(x, y, w, h);
-      ctx.fillRect(x+10, y-8, 14, 8);
       return;
     }
 
     const imgW = runnerImg.width;
     const imgH = runnerImg.height;
-    let sx = 0, sy = 0, sw = imgW, sh = imgH;
-
+    let sx=0, sy=0, sw=imgW, sh=imgH;
     if (RUNNER_FRAMES > 1){
       sw = Math.floor(imgW / RUNNER_FRAMES);
-      sh = imgH;
       sx = sw * runnerFrame;
     }
 
@@ -402,20 +478,18 @@
   }
 
   function drawLivesHUD(){
-    // “little 8bit guy” lives: tiny runner icons
-    const startX = 12, y = 12;
-    const sizeW = 14, sizeH = 18, gap = 6;
+    // tiny runner icons for lives
+    const startX = 12, y = 62; // under header
+    const sizeW = 16, sizeH = 20, gap = 6;
 
     for (let i = 0; i < MAX_LIVES; i++){
       const x = startX + i * (sizeW + gap);
-
       if (i < lives){
         if (runnerReady){
           const imgW = runnerImg.width, imgH = runnerImg.height;
-          let sx = 0, sy = 0, sw = imgW, sh = imgH;
+          let sx=0, sy=0, sw=imgW, sh=imgH;
           if (RUNNER_FRAMES > 1){
             sw = Math.floor(imgW / RUNNER_FRAMES);
-            sh = imgH;
             sx = 0;
           }
           ctx.imageSmoothingEnabled = false;
@@ -433,56 +507,75 @@
   }
 
   function drawCoinsHUD(){
-    ctx.font = "10px 'Press Start 2P'";
+    ctx.font = "12px 'Press Start 2P'";
     ctx.fillStyle = "#fff";
     ctx.textAlign = "right";
-    ctx.fillText(`🪙 x ${coins}`, innerWidth - 12, 24);
+    ctx.fillText(`🪙 x ${coins}`, innerWidth - 12, 78);
     ctx.textAlign = "left";
   }
 
-  function drawPopupAndWhisper(){
-    if (popup){
-      popup.t++;
-      const alpha = popup.t < 15 ? popup.t/15 : (popup.t > popup.ttl-15 ? (popup.ttl - popup.t)/15 : 1);
-      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-      ctx.textAlign="center";
-      ctx.fillStyle="#fff";
-      ctx.font="10px 'Press Start 2P'";
-      ctx.fillText(popup.text, innerWidth/2, 88);
-      if (popup.sub) ctx.fillText(popup.sub, innerWidth/2, 108);
-      ctx.textAlign="left";
-      ctx.globalAlpha=1;
-      if (popup.t > popup.ttl) popup = null;
+  function drawBanner(){
+    if (!banner) return;
+
+    banner.t++;
+    const t = banner.t;
+    const ttl = banner.ttl;
+
+    // fade in/out
+    const fadeIn = Math.min(1, t / 18);
+    const fadeOut = Math.min(1, (ttl - t) / 18);
+    const alpha = Math.max(0, Math.min(1, Math.min(fadeIn, fadeOut)));
+
+    ctx.globalAlpha = 0.92 * alpha;
+
+    // box
+    const boxW = Math.min(innerWidth - 40, 880);
+    const boxH = 120;
+    const bx = (innerWidth - boxW)/2;
+    const by = 98;
+
+    ctx.fillStyle = (banner.kind === "bad") ? "rgba(70,0,0,0.75)" :
+                    (banner.kind === "good") ? "rgba(0,40,0,0.70)" :
+                    "rgba(0,0,0,0.70)";
+    ctx.fillRect(bx, by, boxW, boxH);
+
+    ctx.strokeStyle = (banner.kind === "bad") ? "rgba(255,80,80,0.85)" :
+                      (banner.kind === "good") ? "rgba(120,255,140,0.80)" :
+                      "rgba(255,255,255,0.18)";
+    ctx.strokeRect(bx, by, boxW, boxH);
+
+    // text
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#fff";
+
+    ctx.font = "16px 'Press Start 2P'";
+    ctx.fillText(banner.title, innerWidth/2, by + 46);
+
+    if (banner.sub){
+      ctx.font = "11px 'Press Start 2P'";
+      ctx.fillText(banner.sub, innerWidth/2, by + 82);
     }
 
-    if (whisper){
-      whisper.t++;
-      const alpha = whisper.t < 10 ? whisper.t/10 : (whisper.t > whisper.ttl-10 ? (whisper.ttl - whisper.t)/10 : 1);
-      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-      ctx.textAlign="center";
-      ctx.fillStyle="#fff";
-      ctx.font="10px 'Press Start 2P'";
-      ctx.fillText(whisper.text, innerWidth/2, innerHeight - 22);
-      ctx.textAlign="left";
-      ctx.globalAlpha=1;
-      if (whisper.t > whisper.ttl) whisper = null;
-    }
+    ctx.textAlign = "left";
+    ctx.globalAlpha = 1;
+
+    if (banner.t >= banner.ttl) banner = null;
   }
 
   function drawOverlay(lines){
-    ctx.fillStyle="rgba(0,0,0,0.82)";
+    ctx.fillStyle="rgba(0,0,0,0.86)";
     ctx.fillRect(0,0,innerWidth,innerHeight);
 
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
-    ctx.font="10px 'Press Start 2P'";
+    ctx.font="11px 'Press Start 2P'";
     let y = innerHeight/2 - 70;
     for (const line of lines){
       ctx.fillText(line, innerWidth/2, y);
-      y += 18;
+      y += 20;
     }
-    ctx.font="9px 'Press Start 2P'";
-    ctx.fillText("Press Space / Tap", innerWidth/2, y + 24);
+    ctx.font="10px 'Press Start 2P'";
+    ctx.fillText("Press Space / Tap", innerWidth/2, y + 30);
     ctx.textAlign="left";
   }
 
@@ -509,13 +602,14 @@
 
     if (invuln > 0) invuln--;
     if (slowTimer > 0) slowTimer--;
+    if (slowMo > 0) slowMo--;
 
-    // Smooth slide to target lane (no jump exists)
+    // Smooth slide to target lane
     const lanes = laneYCenters();
     const targetY = lanes[player.laneTarget] - player.h/2;
     const dy = targetY - player.y;
     player.y += dy * LANE_SNAP_SPEED;
-    if (Math.abs(dy) < 0.8){
+    if (Math.abs(dy) < 0.9){
       player.y = targetY;
       player.lane = player.laneTarget;
     }
@@ -526,36 +620,38 @@
     for (const o of obstacles) o.x -= spd;
     for (const b of bonuses) b.x -= spd;
 
-    // armed clear: clears the next obstacle in your lane
+    // clear effect: clears the next obstacle in your lane
     if (clearArmed){
-      const next = obstacles.find(o => o.x > player.x && o.x < player.x + 380 && o.lane === player.lane);
+      const next = obstacles.find(o => o.x > player.x && o.x < player.x + 420 && o.lane === player.lane);
       if (next){
         next.x = -9999;
         clearArmed = false;
-        makeWhisper("Cleared one.", 70);
+        makeBanner("good", "WRITE IT DOWN", "Cleared one obstacle.", 120);
       }
     }
 
     // player hitbox (tight & fair)
-    const rx = player.x + 8;
-    const ry = player.y + 6;
-    const rw = player.w - 16;
-    const rh = player.h - 10;
+    const rx = player.x + 14;
+    const ry = player.y + 10;
+    const rw = player.w - 26;
+    const rh = player.h - 18;
 
     // obstacle collisions (only same lane)
     for (const o of obstacles){
       if (o.lane !== player.lane) continue;
 
-      const ox = o.x + 10;
-      const oy = o.y + 6;
-      const ow = Math.max(2, o.w - 20);
-      const oh = Math.max(2, o.h - 10);
+      const ox = o.x + 14;
+      const oy = o.y + 10;
+      const ow = Math.max(2, o.w - 28);
+      const oh = Math.max(2, o.h - 18);
 
       if (invuln === 0 && aabb(rx, ry, rw, rh, ox, oy, ow, oh)){
         lives--;
         lastObstacleLabel = o.label;
-        invuln = 75;
+        invuln = 85;
         o.x = -9999;
+
+        makeBanner("bad", `YOU CAUGHT: ${lastObstacleLabel.toUpperCase()}`, "-1 LIFE", 150);
 
         if (lives <= 0){
           setMode("gameover");
@@ -570,12 +666,8 @@
         // coin every 12 obstacles
         if (obstaclesCleared % 12 === 0){
           coins++;
-          makePopup(rand(coinSayings), "", 90);
+          makeBanner("good", rand(coinSayings).toUpperCase(), `🪙 x ${coins}`, 120);
           maybeStatusUpdate();
-        }
-
-        if (!whisper && Math.random() < 0.012){
-          makeWhisper(rand(quietHelps), 90);
         }
       }
     }
@@ -584,22 +676,26 @@
     for (const b of bonuses){
       if (b.lane !== player.lane) continue;
 
-      const bx = b.x + 10;
-      const by = b.y + 6;
-      const bw = Math.max(2, b.w - 20);
-      const bh = Math.max(2, b.h - 10);
+      const bx = b.x + 14;
+      const by = b.y + 10;
+      const bw = Math.max(2, b.w - 28);
+      const bh = Math.max(2, b.h - 18);
 
       if (aabb(rx, ry, rw, rh, bx, by, bw, bh)){
         if (b.type === "life"){
           const before = lives;
           lives = Math.min(MAX_LIVES, lives + 1);
-          makePopup(b.label, (lives > before) ? "+1 life" : "Already full.", 95);
+          if (lives > before){
+            makeBanner("good", b.label.toUpperCase(), "+1 LIFE", 150);
+          } else {
+            makeBanner("good", b.label.toUpperCase(), "LIVES FULL", 130);
+          }
         } else if (b.type === "slow"){
-          slowTimer = 240;
-          makePopup(b.label, "Quiet for a second.", 100);
+          slowTimer = 260;
+          makeBanner("good", b.label.toUpperCase(), "SLOWING DOWN.", 140);
         } else if (b.type === "clear"){
           clearArmed = true;
-          makePopup(b.label, "One obstacle gets cleared.", 100);
+          makeBanner("good", b.label.toUpperCase(), "NEXT ONE CLEARS.", 140);
         }
         b.x = -9999;
       }
@@ -607,10 +703,10 @@
 
     // cleanup
     for (let i = obstacles.length - 1; i >= 0; i--){
-      if (obstacles[i].x < -900) obstacles.splice(i, 1);
+      if (obstacles[i].x < -1000) obstacles.splice(i, 1);
     }
     for (let i = bonuses.length - 1; i >= 0; i--){
-      if (bonuses[i].x < -900) bonuses.splice(i, 1);
+      if (bonuses[i].x < -1000) bonuses.splice(i, 1);
     }
 
     // spawn gaps
@@ -619,25 +715,17 @@
 
     if (obstacleGapPx <= 0){
       spawnObstacle();
-      obstacleGapPx = 520 + ((Math.random() * 320) | 0); // 520–840px
+      obstacleGapPx = 420 + ((Math.random() * 260) | 0); // 420–680px (harder)
     }
-    if (bonusGapPx <= 0 && Math.random() < 0.45){
+
+    // bonuses less frequent now
+    if (bonusGapPx <= 0 && Math.random() < 0.40){
       spawnBonus();
-      bonusGapPx = 1100 + ((Math.random() * 520) | 0); // 1100–1620px
+      bonusGapPx = 1050 + ((Math.random() * 520) | 0); // 1050–1570px
     }
   }
 
   function update(){
-    // expire popup/whisper
-    if (popup){
-      popup.t++;
-      if (popup.t > popup.ttl) popup = null;
-    }
-    if (whisper){
-      whisper.t++;
-      if (whisper.t > whisper.ttl) whisper = null;
-    }
-
     if (mode === "title") return updateTitle();
     if (mode === "countdown") return updateCountdown();
     if (mode === "pause" || mode === "gameover" || mode === "ending") return;
@@ -653,20 +741,20 @@
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
 
-    ctx.font="24px 'Press Start 2P'";
-    ctx.fillText("TRUDGE", innerWidth/2, innerHeight/2 - 86);
-    ctx.fillText("THE ROAD", innerWidth/2, innerHeight/2 - 52);
+    ctx.font="26px 'Press Start 2P'";
+    ctx.fillText("TRUDGE", innerWidth/2, innerHeight/2 - 92);
+    ctx.fillText("THE ROAD", innerWidth/2, innerHeight/2 - 54);
 
     ctx.font="10px 'Press Start 2P'";
-    ctx.fillText("ONE BUTTON LANE RUNNER", innerWidth/2, innerHeight/2 + 4);
+    ctx.fillText("Rocketed into the 4th dimension in...", innerWidth/2, innerHeight/2 + 10);
 
     const blink = ((titleTimer/18)|0) % 2 === 0;
     if (blink){
-      ctx.fillText("PRESS SPACE / TAP", innerWidth/2, innerHeight/2 + 56);
+      ctx.fillText("PRESS SPACE / TAP", innerWidth/2, innerHeight/2 + 62);
     }
 
     ctx.font="9px 'Press Start 2P'";
-    ctx.fillText("TAP = CHANGE LANES", innerWidth/2, innerHeight/2 + 86);
+    ctx.fillText("TAP = CHANGE LANES", innerWidth/2, innerHeight/2 + 92);
 
     ctx.textAlign="left";
   }
@@ -677,16 +765,15 @@
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
 
-    ctx.font="16px 'Press Start 2P'";
-    ctx.fillText("GET READY", innerWidth/2, innerHeight/2 - 92);
+    ctx.font="14px 'Press Start 2P'";
+    ctx.fillText("ROCKETED INTO THE 4TH DIMENSION IN...", innerWidth/2, innerHeight/2 - 110);
 
     const show = (countdownValue >= 1) ? String(countdownValue) : (countdownValue === 0 ? "GO!" : "");
-
-    ctx.font="44px 'Press Start 2P'";
-    ctx.fillText(show, innerWidth/2, innerHeight/2 + 10);
+    ctx.font="52px 'Press Start 2P'";
+    ctx.fillText(show, innerWidth/2, innerHeight/2 - 20);
 
     ctx.font="10px 'Press Start 2P'";
-    ctx.fillText("SPACE/TAP = CHANGE LANES", innerWidth/2, innerHeight/2 + 86);
+    ctx.fillText("SPACE/TAP = CHANGE LANES", innerWidth/2, innerHeight/2 + 70);
 
     ctx.textAlign="left";
   }
@@ -695,26 +782,27 @@
     ctx.fillStyle = "#000";
     ctx.fillRect(0,0,innerWidth,innerHeight);
 
+    drawHeaderTitle();
     drawLanes();
 
-    // draw obstacles + bonuses
+    // obstacles
     for (const o of obstacles){
-      drawTile(o.x, o.y, o.w, o.h, "obstacle");
-      drawCenteredLabel(o.label, o.x, o.y, o.w, o.h, "obstacle");
+      drawDangerObstacle(o);
     }
+
+    // bonuses
     for (const b of bonuses){
-      drawTile(b.x, b.y, b.w, b.h, "bonus");
-      drawCenteredLabel(b.label, b.x, b.y, b.w, b.h, "bonus");
+      drawPinkCloudBonus(b);
     }
 
     // runner
-    drawRunner(player.x, player.y, player.w, player.h);
+    drawRunner();
 
-    // invuln indicator
+    // invuln hint
     if (invuln > 0){
-      ctx.globalAlpha = 0.25;
+      ctx.globalAlpha = 0.18;
       ctx.fillStyle = "#fff";
-      ctx.fillRect(player.x - 6, player.y - 6, player.w + 12, player.h + 12);
+      ctx.fillRect(player.x - 10, player.y - 10, player.w + 20, player.h + 20);
       ctx.globalAlpha = 1;
     }
 
@@ -722,13 +810,13 @@
     drawLivesHUD();
     drawCoinsHUD();
 
-    // messages
-    drawPopupAndWhisper();
+    // big message banner
+    drawBanner();
   }
 
   function drawGameOver(){
     drawOverlay([
-      `You caught ${lastObstacleLabel}.`,
+      `YOU CAUGHT: ${lastObstacleLabel.toUpperCase()}`,
       "GAME OVER",
       "",
       "Try again — or don’t.",
@@ -760,7 +848,7 @@
   }
 
   /* =========================
-     INIT + LOOP
+     LOOP
   ========================= */
   resetRun();
   setMode("title");
