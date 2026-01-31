@@ -31,6 +31,7 @@
     border-radius:8px;
     opacity:.92;
     z-index:10;
+    display:none; /* show only during play/pause */
   }
 </style>
 </head>
@@ -54,23 +55,32 @@
   resize();
 
   /* =========================
-     STATE
+     MODES
+     title -> countdown -> play
+     pause, gameover, ending
   ========================= */
-  let mode = "play"; // play | pause | gameover | ending
+  let mode = "title";
   let lives = 5;
   let coins = 1; // 24-hour coin
   let obstaclesCleared = 0;
   let lastObstacleLabel = "something";
 
-  let streak = 0;
-  let slowTimer = 0;
+  // UX messages
   let popup = null;   // {text, sub, t, ttl}
   let whisper = null; // {text, t, ttl}
   let lastStatusName = "";
 
-  // Pixel-based spacing (KEY FIX)
-  let obstacleGapPx = 260; // countdown in pixels until next obstacle spawn
-  let bonusGapPx = 520;
+  // effects
+  let slowTimer = 0;
+
+  // spacing in pixels (fair)
+  let obstacleGapPx = 380;
+  let bonusGapPx = 760;
+
+  // title / countdown
+  let titleTimer = 0;         // frames
+  let countdownTimer = 0;     // frames
+  let countdownValue = 3;     // 3,2,1,GO
 
   /* =========================
      CONSTANTS (PLAYABLE)
@@ -78,16 +88,22 @@
   const MAX_LIVES = 5;
   const END_COINS = 101;
 
-  const BASE_SPEED = 3.0;    // calmer
-  const MAX_SPEED  = 4.8;
-  const GRAVITY    = 0.72;
-  const JUMP_VY    = -16.8;  // higher jump
+  // feel
+  const BASE_SPEED = 2.8;
+  const MAX_SPEED  = 4.4;
+  const GRAVITY    = 0.70;
+  const JUMP_VY    = -18.2;     // higher jump
 
+  // jump forgiveness (THIS fixes "wonky")
+  const COYOTE_FRAMES = 8;      // can jump shortly after leaving ground
+  const BUFFER_FRAMES = 8;      // can queue jump shortly before landing
+
+  // ground
   const GROUND_H = 44;
   const GROUND_Y = () => (innerHeight - GROUND_H);
 
   /* =========================
-     PLAYER (simple blocky)
+     PLAYER
   ========================= */
   const player = {
     x: 90,
@@ -95,7 +111,9 @@
     w: 18,
     h: 34,
     vy: 0,
-    onGround: false
+    onGround: false,
+    coyote: 0,
+    buffer: 0
   };
 
   /* =========================
@@ -175,59 +193,73 @@
     maybeStatusUpdate();
   }
 
-  function resetGame(){
-    mode = "play";
+  function setMode(newMode){
+    mode = newMode;
+    const pauseBtn = document.getElementById("pauseBtn");
+    pauseBtn.style.display = (mode === "play" || mode === "pause") ? "block" : "none";
+  }
+
+  function resetRun(){
     lives = 5;
     coins = 1;
     obstaclesCleared = 0;
     lastObstacleLabel = "something";
-    streak = 0;
-    slowTimer = 0;
     popup = null;
     whisper = null;
     lastStatusName = "";
+    slowTimer = 0;
     obstacles.length = 0;
     bonuses.length = 0;
-    obstacleGapPx = 260;
-    bonusGapPx = 520;
+    obstacleGapPx = 380;
+    bonusGapPx = 760;
+
     player.y = GROUND_Y() - player.h;
     player.vy = 0;
     player.onGround = true;
+    player.coyote = COYOTE_FRAMES;
+    player.buffer = 0;
+
     maybeStatusUpdate();
   }
 
+  function startCountdown(){
+    resetRun();
+    countdownValue = 3;
+    countdownTimer = 0;
+    setMode("countdown");
+  }
+
   /* =========================
-     INPUT
+     INPUT (one button)
   ========================= */
-  function jump(){
-    if (mode !== "play") return;
-    if (player.onGround){
-      player.vy = JUMP_VY;
-      player.onGround = false;
+  function queueJump(){
+    // Buffer jump so it can trigger on landing
+    player.buffer = BUFFER_FRAMES;
+
+    if (mode === "title") {
+      startCountdown();
+      return;
     }
+    if (mode === "gameover" || mode === "ending") {
+      setMode("title");
+      titleTimer = 0;
+      return;
+    }
+    if (mode !== "play") return;
   }
 
   addEventListener("keydown", e => {
-    if (e.code === "Space"){
-      if (mode === "gameover" || mode === "ending") resetGame();
-      else jump();
-    }
+    if (e.code === "Space") queueJump();
   });
-  addEventListener("mousedown", () => {
-    if (mode === "gameover" || mode === "ending") resetGame();
-    else jump();
-  }, {passive:true});
-  addEventListener("touchstart", () => {
-    if (mode === "gameover" || mode === "ending") resetGame();
-    else jump();
-  }, {passive:true});
+  addEventListener("mousedown", queueJump, {passive:true});
+  addEventListener("touchstart", queueJump, {passive:true});
 
   /* =========================
      PAUSE BUTTON
   ========================= */
   document.getElementById("pauseBtn").onclick = () => {
-    if (mode === "play") mode = "pause";
-    else if (mode === "pause") mode = "play";
+    if (mode === "play") setMode("pause");
+    else if (mode === "pause") setMode("play");
   };
 
   /* =========================
@@ -243,30 +275,33 @@
   function spawnObstacle(){
     const label = rand(obstaclesPool);
 
-    // tile size: based on label length (so it always fits and is readable)
+    // slightly shorter obstacles (easier)
+    const h = 34;
+
+    // width based on label length
     const minW = 150;
-    const extra = Math.min(220, Math.max(0, (label.length - 10) * 9));
-    const w = Math.min(320, minW + extra);
-    const h = 42;
+    const extra = Math.min(240, Math.max(0, (label.length - 10) * 9));
+    const w = Math.min(340, minW + extra);
 
     obstacles.push({
-      x: innerWidth + 40,
+      x: innerWidth + 60,
       y: GROUND_Y() - h,
       w, h,
-      label
+      label,
+      passed:false
     });
   }
 
   function spawnBonus(){
     const b = rand(bonusesPool);
 
-    const minW = 180;
-    const extra = Math.min(240, Math.max(0, (b.label.length - 12) * 8));
-    const w = Math.min(340, minW + extra);
-    const h = 36;
+    const h = 30;
+    const minW = 190;
+    const extra = Math.min(260, Math.max(0, (b.label.length - 12) * 8));
+    const w = Math.min(360, minW + extra);
 
     bonuses.push({
-      x: innerWidth + 40,
+      x: innerWidth + 60,
       y: GROUND_Y() - 120,
       w, h,
       label: b.label,
@@ -278,41 +313,74 @@
      SPEED
   ========================= */
   function currentSpeed(){
-    let s = BASE_SPEED + (coins * 0.010) + (Math.floor(obstaclesCleared/50) * 0.08);
+    let s = BASE_SPEED + (coins * 0.010) + (Math.floor(obstaclesCleared/60) * 0.08);
     s = Math.min(MAX_SPEED, s);
     if (slowTimer > 0) s *= 0.65;
     return s;
   }
 
   /* =========================
+     NES-ish flashing background
+  ========================= */
+  function drawNesFlashBG(t){
+    // alternating blocks + noise dots (simple NES-ish vibe)
+    const phase = (t / 10) | 0;
+
+    // base
+    ctx.fillStyle = (phase % 2 === 0) ? "#001" : "#010";
+    ctx.fillRect(0,0,innerWidth,innerHeight);
+
+    // big flashing bands
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = (phase % 2 === 0) ? "#0ff" : "#f0f";
+    const bandH = 36;
+    for (let y = 0; y < innerHeight; y += bandH){
+      if (((y/bandH)|0) % 2 === (phase % 2)) ctx.fillRect(0, y, innerWidth, bandH);
+    }
+    ctx.globalAlpha = 1;
+
+    // pixel sparkles
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = "#fff";
+    for (let i = 0; i < 90; i++){
+      const x = (Math.random() * innerWidth) | 0;
+      const y = (Math.random() * innerHeight) | 0;
+      ctx.fillRect(x, y, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* =========================
      DRAW TILE HELPERS
   ========================= */
   function drawTile(x, y, w, h){
-    // dark tile + light border = clear hitbox cue
     ctx.fillStyle = "#111";
     ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = "#666";
+    ctx.strokeStyle = "#777";
     ctx.strokeRect(x, y, w, h);
 
-    // base "foot" marker touching ground (helps timing)
+    // "foot" marker helps timing (clear jump cue)
     ctx.fillStyle = "#444";
     ctx.fillRect(x, y + h - 6, w, 6);
   }
 
-  function drawLabel(text, x, y){
+  function drawCenteredLabel(text, x, y, w, h){
     ctx.font = "10px 'Press Start 2P'";
     ctx.fillStyle = "#fff";
-    ctx.fillText(text.toUpperCase(), x, y);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text.toUpperCase(), x + w/2, y + h/2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
   }
 
   /* =========================
      UPDATE
   ========================= */
-  function update(){
-    if (mode !== "play") return;
-
+  function updatePlay(){
+    // end at 101
     if (coins >= END_COINS){
-      mode = "ending";
+      setMode("ending");
       return;
     }
 
@@ -327,70 +395,84 @@
       if (whisper.t > whisper.ttl) whisper = null;
     }
 
-    // physics
+    // Physics
     player.vy += GRAVITY;
     player.y += player.vy;
 
     const groundTop = GROUND_Y();
+    const wasOnGround = player.onGround;
+
     if (player.y + player.h >= groundTop){
       player.y = groundTop - player.h;
       player.vy = 0;
       player.onGround = true;
+    } else {
+      player.onGround = false;
+    }
+
+    // coyote time
+    if (player.onGround) player.coyote = COYOTE_FRAMES;
+    else player.coyote = Math.max(0, player.coyote - 1);
+
+    // buffer countdown
+    if (player.buffer > 0) player.buffer--;
+
+    // Execute buffered jump if possible
+    if (player.buffer > 0 && (player.onGround || player.coyote > 0)){
+      player.vy = JUMP_VY;
+      player.onGround = false;
+      player.coyote = 0;
+      player.buffer = 0;
     }
 
     const spd = currentSpeed();
 
-    // move objects
+    // Move objects
     for (const o of obstacles) o.x -= spd;
     for (const b of bonuses) b.x -= spd;
 
-    // collisions: obstacles
+    // Obstacles collision/passing
     for (const o of obstacles){
       const hit = aabb(player.x, player.y, player.w, player.h, o.x, o.y, o.w, o.h);
       if (hit){
         lives--;
         lastObstacleLabel = o.label;
-        streak = 0;
         o.x = -9999;
 
         if (lives <= 0){
-          mode = "gameover";
+          setMode("gameover");
           return;
         }
       }
 
-      // passed (when tile fully behind player)
       if (!o.passed && (o.x + o.w) < player.x){
         o.passed = true;
         obstaclesCleared++;
-        streak++;
 
+        // coin every 12 obstacles
         if (obstaclesCleared % 12 === 0){
           coins++;
           onCoinGained();
         }
 
-        if (!whisper && Math.random() < 0.012){
-          makeWhisper(rand(quietHelps), 90);
-        }
+        // occasional quiet help
+        if (!whisper && Math.random() < 0.012) makeWhisper(rand(quietHelps), 90);
       }
     }
 
-    // collisions: bonuses
+    // Bonuses collision
     for (const b of bonuses){
       const got = aabb(player.x, player.y, player.w, player.h, b.x, b.y, b.w, b.h);
       if (got){
         if (b.type === "life"){
           const before = lives;
           lives = Math.min(MAX_LIVES, lives + 1);
-          if (lives > before) makePopup(b.label, "+1 life", 95);
-          else makePopup(b.label, "Already full.", 80);
+          makePopup(b.label, (lives > before) ? "+1 life" : "Already full.", 95);
         } else if (b.type === "slow"){
-          slowTimer = 220;
+          slowTimer = 240;
           makePopup(b.label, "Quiet for a second.", 100);
         } else if (b.type === "clear"){
-          // remove the nearest upcoming obstacle
-          const target = obstacles.find(o => o.x > player.x && o.x < player.x + 320);
+          const target = obstacles.find(o => o.x > player.x && o.x < player.x + 360);
           if (target) target.x = -9999;
           makePopup(b.label, "Cleared one.", 95);
         }
@@ -398,85 +480,99 @@
       }
     }
 
-    // cleanup
+    // Cleanup
     for (let i = obstacles.length - 1; i >= 0; i--){
-      if (obstacles[i].x < -400) obstacles.splice(i, 1);
+      if (obstacles[i].x < -500) obstacles.splice(i, 1);
     }
     for (let i = bonuses.length - 1; i >= 0; i--){
-      if (bonuses[i].x < -400) bonuses.splice(i, 1);
+      if (bonuses[i].x < -500) bonuses.splice(i, 1);
     }
 
-    // pixel spacing: count down by speed (fair & consistent)
+    // Pixel spacing (fair)
     obstacleGapPx -= spd;
     bonusGapPx -= spd;
 
     if (obstacleGapPx <= 0){
       spawnObstacle();
-
-      // BIGGER gap so it never feels stacked
-      // (a little randomness keeps it from being robotic)
-      obstacleGapPx = 320 + ((Math.random()*220)|0); // 320–540px
+      // bigger gap = clearer jump timing
+      obstacleGapPx = 420 + ((Math.random()*260)|0); // 420–680px
     }
 
     if (bonusGapPx <= 0 && Math.random() < 0.45){
       spawnBonus();
-      bonusGapPx = 680 + ((Math.random()*260)|0); // 680–940px
+      bonusGapPx = 860 + ((Math.random()*320)|0); // 860–1180px
     }
+  }
+
+  function update(){
+    if (mode === "title"){
+      titleTimer++;
+      // auto-start after a moment, but still lets someone tap/space to start immediately
+      if (titleTimer === 90) {
+        // optional: auto-start countdown
+        // startCountdown();
+      }
+      return;
+    }
+
+    if (mode === "countdown"){
+      countdownTimer++;
+
+      // 60 frames per count (~1 second)
+      if (countdownTimer % 60 === 0){
+        countdownValue--;
+        if (countdownValue < 0){
+          setMode("play");
+        }
+      }
+      return;
+    }
+
+    if (mode === "pause") return;
+    if (mode === "gameover") return;
+    if (mode === "ending") return;
+
+    if (mode === "play") updatePlay();
   }
 
   /* =========================
      DRAW
   ========================= */
-  let overlayButtons = { resumeBtn:null, quitBtn:null, tryAgainBtn:null };
-
-  function drawTextCenter(lines, yStart, lineH){
-    ctx.textAlign = "center";
-    for (let i=0;i<lines.length;i++){
-      ctx.fillText(lines[i], innerWidth/2, yStart + i*lineH);
-    }
-    ctx.textAlign = "left";
-  }
-
-  function drawButtonCentered(label, y, w=260, h=50){
-    const x = innerWidth/2 - w/2;
-    ctx.fillStyle = "#111";
-    ctx.fillRect(x,y,w,h);
-    ctx.strokeStyle = "#444";
-    ctx.strokeRect(x,y,w,h);
+  function drawHUD(){
+    ctx.font = "10px 'Press Start 2P'";
     ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.fillText(label, innerWidth/2, y + h/2 + 6);
-    ctx.textAlign = "left";
-    return {x,y,w,h};
+    ctx.fillText(`LIVES: ${lives}`, 12, 22);
+    ctx.fillText(`COINS: ${coins}`, 12, 38);
+    if (slowTimer > 0) ctx.fillText(`QUIET: ${Math.ceil(slowTimer/60)}s`, 12, 54);
   }
 
-  function pointInRect(px,py,r){
-    return r && px>=r.x && px<=r.x+r.w && py>=r.y && py<=r.y+r.h;
-  }
-
-  function handlePointer(px,py){
-    if (mode === "pause"){
-      if (pointInRect(px,py,overlayButtons.resumeBtn)) mode="play";
-      if (pointInRect(px,py,overlayButtons.quitBtn)) resetGame();
-      return;
+  function drawPopupAndWhisper(){
+    if (popup){
+      const alpha = popup.t < 15 ? popup.t/15 : (popup.t > popup.ttl-15 ? (popup.ttl - popup.t)/15 : 1);
+      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+      ctx.textAlign="center";
+      ctx.fillStyle="#fff";
+      ctx.font="10px 'Press Start 2P'";
+      ctx.fillText(popup.text, innerWidth/2, 110);
+      if (popup.sub) ctx.fillText(popup.sub, innerWidth/2, 130);
+      ctx.textAlign="left";
+      ctx.globalAlpha=1;
     }
-    if (mode === "gameover" || mode === "ending"){
-      if (pointInRect(px,py,overlayButtons.tryAgainBtn)) resetGame();
-      return;
+
+    if (whisper){
+      const alpha = whisper.t < 10 ? whisper.t/10 : (whisper.t > whisper.ttl-10 ? (whisper.ttl - whisper.t)/10 : 1);
+      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+      ctx.textAlign="center";
+      ctx.fillStyle="#fff";
+      ctx.font="10px 'Press Start 2P'";
+      ctx.fillText(whisper.text, innerWidth/2, GROUND_Y() - 10);
+      ctx.textAlign="left";
+      ctx.globalAlpha=1;
     }
   }
 
-  canvas.addEventListener("click", (e) => {
-    const r = canvas.getBoundingClientRect();
-    handlePointer(e.clientX - r.left, e.clientY - r.top);
-  });
-  canvas.addEventListener("touchstart", (e) => {
-    const t = e.touches[0]; if(!t) return;
-    const r = canvas.getBoundingClientRect();
-    handlePointer(t.clientX - r.left, t.clientY - r.top);
-  }, {passive:true});
-
-  function draw(){
+  function drawPlayfield(){
+    // background
     ctx.fillStyle = "#000";
     ctx.fillRect(0,0,innerWidth,innerHeight);
 
@@ -490,110 +586,131 @@
       ctx.fillRect(i, GROUND_Y()+10, 10, 2);
     }
 
-    // player
+    // player (blocky)
     ctx.fillStyle = "#fff";
     ctx.fillRect(player.x, player.y, player.w, player.h);
     ctx.fillRect(player.x+4, player.y-8, 10, 8);
 
-    // obstacles as clear tiles with words INSIDE (no overlap)
+    // obstacles (tiles with centered text)
     for (const o of obstacles){
       drawTile(o.x, o.y, o.w, o.h);
-      drawLabel(o.label, o.x + 10, o.y + 26);
+      drawCenteredLabel(o.label, o.x, o.y, o.w, o.h);
     }
 
-    // bonuses as smaller tiles above ground
+    // bonuses (tiles above)
     for (const b of bonuses){
       drawTile(b.x, b.y, b.w, b.h);
-      drawLabel(b.label, b.x + 10, b.y + 24);
-    }
-
-    // HUD
-    ctx.font = "10px 'Press Start 2P'";
-    ctx.fillStyle = "#fff";
-    ctx.fillText(`LIVES: ${lives}`, 12, 22);
-    ctx.fillText(`COINS: ${coins}`, 12, 38);
-    if (slowTimer > 0) ctx.fillText(`QUIET: ${Math.ceil(slowTimer/60)}s`, 12, 54);
-
-    // popup
-    if (popup){
-      popup.t++;
-      const alpha = popup.t < 15 ? popup.t/15 : (popup.t > popup.ttl-15 ? (popup.ttl - popup.t)/15 : 1);
-      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-      ctx.textAlign="center";
-      ctx.fillStyle="#fff";
-      ctx.fillText(popup.text, innerWidth/2, 110);
-      if (popup.sub) ctx.fillText(popup.sub, innerWidth/2, 130);
-      ctx.textAlign="left";
-      ctx.globalAlpha=1;
-      if (popup.t > popup.ttl) popup = null;
-    }
-
-    // whisper
-    if (whisper){
-      whisper.t++;
-      const alpha = whisper.t < 10 ? whisper.t/10 : (whisper.t > whisper.ttl-10 ? (whisper.ttl - whisper.t)/10 : 1);
-      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-      ctx.textAlign="center";
-      ctx.fillStyle="#fff";
-      ctx.fillText(whisper.text, innerWidth/2, GROUND_Y() - 10);
-      ctx.textAlign="left";
-      ctx.globalAlpha=1;
-      if (whisper.t > whisper.ttl) whisper = null;
-    }
-
-    // overlays
-    if (mode === "pause"){
-      ctx.fillStyle="rgba(0,0,0,0.75)";
-      ctx.fillRect(0,0,innerWidth,innerHeight);
-      ctx.fillStyle="#fff";
-      ctx.font="12px 'Press Start 2P'";
-      drawTextCenter(["PAUSED"], innerHeight/2 - 90, 18);
-      ctx.font="10px 'Press Start 2P'";
-      const resumeBtn = drawButtonCentered("RESUME", innerHeight/2 - 40);
-      const quitBtn   = drawButtonCentered("QUIT", innerHeight/2 + 20);
-      overlayButtons = { resumeBtn, quitBtn, tryAgainBtn:null };
-    }
-
-    if (mode === "gameover"){
-      ctx.fillStyle="rgba(0,0,0,0.82)";
-      ctx.fillRect(0,0,innerWidth,innerHeight);
-      ctx.fillStyle="#fff";
-      ctx.font="10px 'Press Start 2P'";
-      drawTextCenter([`You caught ${lastObstacleLabel}.`, "GAME OVER"], innerHeight/2 - 60, 18);
-      ctx.font="9px 'Press Start 2P'";
-      drawTextCenter(["Try again — or don’t. We’ll be here."], innerHeight/2 - 10, 16);
-      ctx.font="10px 'Press Start 2P'";
-      const tryAgainBtn = drawButtonCentered("TRY AGAIN", innerHeight/2 + 35);
-      overlayButtons = { resumeBtn:null, quitBtn:null, tryAgainBtn };
-    }
-
-    if (mode === "ending"){
-      ctx.fillStyle="rgba(0,0,0,0.86)";
-      ctx.fillRect(0,0,innerWidth,innerHeight);
-      ctx.fillStyle="#fff";
-      ctx.font="10px 'Press Start 2P'";
-      drawTextCenter([
-        "CONGRATULATIONS.",
-        "YOU ARE NOW A SPIRITUAL BEING",
-        "WHO HAD A HUMAN EXPERIENCE."
-      ], innerHeight/2 - 85, 18);
-      ctx.font="10px 'Press Start 2P'";
-      const tryAgainBtn = drawButtonCentered("TRY AGAIN", innerHeight/2 + 35);
-      overlayButtons = { resumeBtn:null, quitBtn:null, tryAgainBtn };
+      drawCenteredLabel(b.label, b.x, b.y, b.w, b.h);
     }
   }
 
+  function drawTitle(){
+    drawNesFlashBG(titleTimer);
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+
+    // BIG title
+    ctx.font = "20px 'Press Start 2P'";
+    ctx.fillText("TRUDGE", innerWidth/2, innerHeight/2 - 70);
+    ctx.fillText("THE ROAD", innerWidth/2, innerHeight/2 - 40);
+
+    ctx.font = "10px 'Press Start 2P'";
+    ctx.fillText("ONE BUTTON RUNNER", innerWidth/2, innerHeight/2 + 5);
+
+    // flashing prompt
+    const blink = ((titleTimer/20)|0) % 2 === 0;
+    if (blink) {
+      ctx.fillText("PRESS SPACE / TAP TO START", innerWidth/2, innerHeight/2 + 55);
+    }
+
+    ctx.textAlign = "left";
+  }
+
+  function drawCountdown(){
+    // keep the fun background through countdown
+    drawNesFlashBG(titleTimer + countdownTimer);
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+
+    ctx.font = "16px 'Press Start 2P'";
+    ctx.fillText("GET READY", innerWidth/2, innerHeight/2 - 80);
+
+    const show =
+      countdownValue >= 1 ? String(countdownValue)
+      : countdownValue === 0 ? "GO!"
+      : "";
+
+    ctx.font = "36px 'Press Start 2P'";
+    ctx.fillText(show, innerWidth/2, innerHeight/2 + 10);
+
+    ctx.font = "10px 'Press Start 2P'";
+    ctx.fillText("JUMP = SPACE / TAP", innerWidth/2, innerHeight/2 + 70);
+
+    ctx.textAlign = "left";
+  }
+
+  function drawOverlay(textLines){
+    ctx.fillStyle="rgba(0,0,0,0.82)";
+    ctx.fillRect(0,0,innerWidth,innerHeight);
+
+    ctx.fillStyle="#fff";
+    ctx.textAlign="center";
+    ctx.font="10px 'Press Start 2P'";
+    let y = innerHeight/2 - 60;
+    for (const line of textLines){
+      ctx.fillText(line, innerWidth/2, y);
+      y += 18;
+    }
+    ctx.font="9px 'Press Start 2P'";
+    ctx.fillText("Press Space / Tap", innerWidth/2, y + 18);
+    ctx.textAlign="left";
+  }
+
+  function draw(){
+    if (mode === "title") { drawTitle(); return; }
+    if (mode === "countdown") { drawCountdown(); return; }
+
+    // playfield always visible in play/pause/gameover/ending
+    drawPlayfield();
+    drawHUD();
+    drawPopupAndWhisper();
+
+    if (mode === "pause"){
+      drawOverlay(["PAUSED"]);
+      return;
+    }
+
+    if (mode === "gameover"){
+      drawOverlay([`You caught ${lastObstacleLabel}.`, "GAME OVER", ""]);
+      return;
+    }
+
+    if (mode === "ending"){
+      drawOverlay([
+        "CONGRATULATIONS.",
+        "YOU ARE NOW A SPIRITUAL BEING",
+        "WHO HAD A HUMAN EXPERIENCE."
+      ]);
+      return;
+    }
+  }
+
+  /* =========================
+     MAIN LOOP
+  ========================= */
   function loop(){
-    if (mode === "play") update();
+    update();
     draw();
     requestAnimationFrame(loop);
   }
 
   // init
-  player.y = GROUND_Y() - player.h;
-  player.onGround = true;
-  maybeStatusUpdate();
+  resetRun();
+  setMode("title");
   loop();
+
 })();
 </script>
 </body>
