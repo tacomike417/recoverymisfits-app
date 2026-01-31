@@ -1,37 +1,23 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <title>Trudge the Road</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
   html, body{
-    margin:0;
-    padding:0;
-    background:#000;
-    overflow:hidden;
-    height:100%;
+    margin:0; padding:0; background:#000; overflow:hidden; height:100%;
     font-family:"Press Start 2P", monospace;
   }
   canvas{ display:block; width:100vw; height:100vh; }
   #pauseBtn{
-    position:fixed;
-    bottom:10px;
-    left:50%;
-    transform:translateX(-50%);
-    font-family:"Press Start 2P", monospace;
-    font-size:10px;
-    padding:10px 14px;
-    background:#111;
-    color:#fff;
-    border:1px solid #444;
-    border-radius:8px;
-    opacity:.92;
-    z-index:10;
-    display:none; /* show only during play/pause */
+    position:fixed; bottom:10px; left:50%; transform:translateX(-50%);
+    font-family:"Press Start 2P", monospace; font-size:10px;
+    padding:10px 14px; background:#111; color:#fff;
+    border:1px solid #444; border-radius:8px; opacity:.92; z-index:10;
+    display:none;
   }
 </style>
 </head>
@@ -55,50 +41,77 @@
   resize();
 
   /* =========================
-     MODES
-     title -> countdown -> play
-     pause, gameover, ending
+     SPRITE: runner.png
+     - If runner.png is a sprite sheet, set RUNNER_FRAMES > 1 and adjust frameW/frameH.
+     - If it's a single image, leave RUNNER_FRAMES = 1.
   ========================= */
-  let mode = "title";
+  const runnerImg = new Image();
+  runnerImg.src = "./runner.png";
+  let runnerReady = false;
+  runnerImg.onload = () => { runnerReady = true; };
+  runnerImg.onerror = () => { runnerReady = false; };
+
+  // If your runner.png is a horizontal sprite sheet, set this to e.g. 6 or 8.
+  const RUNNER_FRAMES = 1;
+  let runnerFrame = 0;
+  let runnerAnimTick = 0;
+  const RUNNER_FPS = 10; // animation speed for sprite sheets
+
+  /* =========================
+     MODES
+  ========================= */
+  let mode = "title"; // title | countdown | play | pause | gameover | ending
+
+  /* =========================
+     RUN STATE
+  ========================= */
   let lives = 5;
-  let coins = 1; // 24-hour coin
+  let coins = 1;              // starts with 24-hour coin
   let obstaclesCleared = 0;
   let lastObstacleLabel = "something";
 
-  // UX messages
-  let popup = null;   // {text, sub, t, ttl}
-  let whisper = null; // {text, t, ttl}
+  let popup = null;           // {text, sub, t, ttl}
+  let whisper = null;         // {text, t, ttl}
   let lastStatusName = "";
-
-  // effects
   let slowTimer = 0;
 
-  // spacing in pixels (fair)
-  let obstacleGapPx = 380;
-  let bonusGapPx = 760;
+  // Spacing (pixel-based: consistent + fair)
+  let obstacleGapPx = 560;
+  let bonusGapPx = 1300;
 
-  // title / countdown
+  // Title / countdown
   let titleTimer = 0;         // frames
   let countdownTimer = 0;     // frames
   let countdownValue = 3;     // 3,2,1,GO
 
   /* =========================
-     CONSTANTS (PLAYABLE)
+     CONSTANTS (EASIER)
   ========================= */
   const MAX_LIVES = 5;
   const END_COINS = 101;
 
-  // feel
-  const BASE_SPEED = 2.8;
-  const MAX_SPEED  = 4.4;
-  const GRAVITY    = 0.70;
-  const JUMP_VY    = -18.2;     // higher jump
+  // Feel
+  const BASE_SPEED = 2.55;
+  const MAX_SPEED  = 3.9;
 
-  // jump forgiveness (THIS fixes "wonky")
-  const COYOTE_FRAMES = 8;      // can jump shortly after leaving ground
-  const BUFFER_FRAMES = 8;      // can queue jump shortly before landing
+  // Jump physics
+  const GRAVITY     = 0.55;    // less gravity => more hang-time
+  const JUMP_VY     = -22.0;   // higher jump
+  const MAX_FALL_VY = 12.0;    // cap fall speed
 
-  // ground
+  // Forgiveness
+  const COYOTE_FRAMES = 10;    // jump shortly after leaving ground
+  const BUFFER_FRAMES = 10;    // press slightly early, still jumps on landing
+
+  // Variable jump (hold to jump higher)
+  const HOLD_FRAMES_MAX = 14;
+  const HOLD_BOOST      = -0.55; // negative = adds upward lift while rising
+
+  // Forgiving obstacle hitbox (shrink it)
+  const OBSTACLE_INSET_X = 12;
+  const OBSTACLE_INSET_Y = 8;
+
+  // Ground
   const GROUND_H = 44;
   const GROUND_Y = () => (innerHeight - GROUND_H);
 
@@ -108,12 +121,14 @@
   const player = {
     x: 90,
     y: 0,
-    w: 18,
-    h: 34,
+    w: 26,     // draw size (scaled)
+    h: 40,     // draw size (scaled)
     vy: 0,
     onGround: false,
     coyote: 0,
-    buffer: 0
+    buffer: 0,
+    holding: false,
+    holdFrames: 0
   };
 
   /* =========================
@@ -169,13 +184,12 @@
   ];
 
   /* =========================
-     OBJECT LISTS
+     OBJECTS
   ========================= */
   const obstacles = [];
   const bonuses = [];
 
   function rand(arr){ return arr[(Math.random()*arr.length)|0]; }
-
   function makePopup(text, sub="", ttl=110){ popup = { text, sub, t:0, ttl }; }
   function makeWhisper(text, ttl=90){ whisper = { text, t:0, ttl }; }
 
@@ -187,16 +201,15 @@
       makePopup(chosen.name, chosen.sub, 125);
     }
   }
-
   function onCoinGained(){
     if (Math.random() < 0.85) makePopup(rand(coinSayings), "", 90);
     maybeStatusUpdate();
   }
 
-  function setMode(newMode){
-    mode = newMode;
-    const pauseBtn = document.getElementById("pauseBtn");
-    pauseBtn.style.display = (mode === "play" || mode === "pause") ? "block" : "none";
+  function setMode(m){
+    mode = m;
+    document.getElementById("pauseBtn").style.display =
+      (mode === "play" || mode === "pause") ? "block" : "none";
   }
 
   function resetRun(){
@@ -208,16 +221,20 @@
     whisper = null;
     lastStatusName = "";
     slowTimer = 0;
+
     obstacles.length = 0;
     bonuses.length = 0;
-    obstacleGapPx = 380;
-    bonusGapPx = 760;
+
+    obstacleGapPx = 560;
+    bonusGapPx = 1300;
 
     player.y = GROUND_Y() - player.h;
     player.vy = 0;
     player.onGround = true;
     player.coyote = COYOTE_FRAMES;
     player.buffer = 0;
+    player.holding = false;
+    player.holdFrames = 0;
 
     maybeStatusUpdate();
   }
@@ -230,33 +247,31 @@
   }
 
   /* =========================
-     INPUT (one button)
+     INPUT (tap/hold)
   ========================= */
-  function queueJump(){
-    // Buffer jump so it can trigger on landing
-    player.buffer = BUFFER_FRAMES;
-
-    if (mode === "title") {
-      startCountdown();
-      return;
-    }
-    if (mode === "gameover" || mode === "ending") {
-      setMode("title");
-      titleTimer = 0;
-      return;
-    }
+  function press(){
+    if (mode === "title") { startCountdown(); return; }
+    if (mode === "gameover" || mode === "ending") { setMode("title"); titleTimer = 0; return; }
     if (mode !== "play") return;
+
+    player.buffer = BUFFER_FRAMES;
+    player.holding = true;
+    player.holdFrames = 0;
+  }
+  function release(){
+    player.holding = false;
+    player.holdFrames = 0;
   }
 
-  addEventListener("keydown", e => {
-    if (e.code === "Space") queueJump();
-  });
-  addEventListener("mousedown", queueJump, {passive:true});
-  addEventListener("touchstart", queueJump, {passive:true});
+  addEventListener("keydown", e => { if (e.code === "Space") press(); });
+  addEventListener("keyup",   e => { if (e.code === "Space") release(); });
 
-  /* =========================
-     PAUSE BUTTON
-  ========================= */
+  addEventListener("mousedown", press, {passive:true});
+  addEventListener("mouseup", release, {passive:true});
+  addEventListener("touchstart", press, {passive:true});
+  addEventListener("touchend", release, {passive:true});
+  addEventListener("touchcancel", release, {passive:true});
+
   document.getElementById("pauseBtn").onclick = () => {
     if (mode === "play") setMode("pause");
     else if (mode === "pause") setMode("play");
@@ -270,18 +285,14 @@
   }
 
   /* =========================
-     SPAWN (TILES)
+     SPAWN (tiles)
   ========================= */
   function spawnObstacle(){
     const label = rand(obstaclesPool);
-
-    // slightly shorter obstacles (easier)
-    const h = 34;
-
-    // width based on label length
-    const minW = 150;
-    const extra = Math.min(240, Math.max(0, (label.length - 10) * 9));
-    const w = Math.min(340, minW + extra);
+    const h = 26; // shorter
+    const minW = 160;
+    const extra = Math.min(280, Math.max(0, (label.length - 10) * 9));
+    const w = Math.min(380, minW + extra);
 
     obstacles.push({
       x: innerWidth + 60,
@@ -296,9 +307,9 @@
     const b = rand(bonusesPool);
 
     const h = 30;
-    const minW = 190;
-    const extra = Math.min(260, Math.max(0, (b.label.length - 12) * 8));
-    const w = Math.min(360, minW + extra);
+    const minW = 210;
+    const extra = Math.min(300, Math.max(0, (b.label.length - 12) * 8));
+    const w = Math.min(400, minW + extra);
 
     bonuses.push({
       x: innerWidth + 60,
@@ -313,24 +324,20 @@
      SPEED
   ========================= */
   function currentSpeed(){
-    let s = BASE_SPEED + (coins * 0.010) + (Math.floor(obstaclesCleared/60) * 0.08);
+    let s = BASE_SPEED + (coins * 0.010) + (Math.floor(obstaclesCleared/80) * 0.06);
     s = Math.min(MAX_SPEED, s);
     if (slowTimer > 0) s *= 0.65;
     return s;
   }
 
   /* =========================
-     NES-ish flashing background
+     NES-ish title background
   ========================= */
   function drawNesFlashBG(t){
-    // alternating blocks + noise dots (simple NES-ish vibe)
     const phase = (t / 10) | 0;
-
-    // base
     ctx.fillStyle = (phase % 2 === 0) ? "#001" : "#010";
     ctx.fillRect(0,0,innerWidth,innerHeight);
 
-    // big flashing bands
     ctx.globalAlpha = 0.18;
     ctx.fillStyle = (phase % 2 === 0) ? "#0ff" : "#f0f";
     const bandH = 36;
@@ -339,7 +346,6 @@
     }
     ctx.globalAlpha = 1;
 
-    // pixel sparkles
     ctx.globalAlpha = 0.55;
     ctx.fillStyle = "#fff";
     for (let i = 0; i < 90; i++){
@@ -351,15 +357,13 @@
   }
 
   /* =========================
-     DRAW TILE HELPERS
+     DRAW HELPERS
   ========================= */
   function drawTile(x, y, w, h){
     ctx.fillStyle = "#111";
     ctx.fillRect(x, y, w, h);
     ctx.strokeStyle = "#777";
     ctx.strokeRect(x, y, w, h);
-
-    // "foot" marker helps timing (clear jump cue)
     ctx.fillStyle = "#444";
     ctx.fillRect(x, y + h - 6, w, 6);
   }
@@ -374,11 +378,91 @@
     ctx.textBaseline = "alphabetic";
   }
 
+  function drawHUD(){
+    ctx.font = "10px 'Press Start 2P'";
+    ctx.fillStyle = "#fff";
+    ctx.fillText(`LIVES: ${lives}`, 12, 22);
+    ctx.fillText(`COINS: ${coins}`, 12, 38);
+    if (slowTimer > 0) ctx.fillText(`QUIET: ${Math.ceil(slowTimer/60)}s`, 12, 54);
+  }
+
+  function drawPopupAndWhisper(){
+    if (popup){
+      popup.t++;
+      const alpha = popup.t < 15 ? popup.t/15 : (popup.t > popup.ttl-15 ? (popup.ttl - popup.t)/15 : 1);
+      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+      ctx.textAlign="center";
+      ctx.fillStyle="#fff";
+      ctx.font="10px 'Press Start 2P'";
+      ctx.fillText(popup.text, innerWidth/2, 110);
+      if (popup.sub) ctx.fillText(popup.sub, innerWidth/2, 130);
+      ctx.textAlign="left";
+      ctx.globalAlpha=1;
+      if (popup.t > popup.ttl) popup = null;
+    }
+
+    if (whisper){
+      whisper.t++;
+      const alpha = whisper.t < 10 ? whisper.t/10 : (whisper.t > whisper.ttl-10 ? (whisper.ttl - whisper.t)/10 : 1);
+      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+      ctx.textAlign="center";
+      ctx.fillStyle="#fff";
+      ctx.font="10px 'Press Start 2P'";
+      ctx.fillText(whisper.text, innerWidth/2, GROUND_Y() - 10);
+      ctx.textAlign="left";
+      ctx.globalAlpha=1;
+      if (whisper.t > whisper.ttl) whisper = null;
+    }
+  }
+
+  /* =========================
+     RUNNER DRAW
+  ========================= */
+  function drawRunner(){
+    const x = player.x;
+    const y = player.y;
+
+    // Animate sprite sheet if configured
+    if (RUNNER_FRAMES > 1 && runnerReady){
+      runnerAnimTick++;
+      const frameEvery = Math.max(1, Math.floor(60 / RUNNER_FPS));
+      if (runnerAnimTick % frameEvery === 0){
+        runnerFrame = (runnerFrame + 1) % RUNNER_FRAMES;
+      }
+    }
+
+    if (!runnerReady){
+      // fallback block
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(x, y, player.w, player.h);
+      ctx.fillRect(x+6, y-8, 12, 8);
+      return;
+    }
+
+    // Determine source rect
+    const imgW = runnerImg.width;
+    const imgH = runnerImg.height;
+
+    let sx = 0, sy = 0, sw = imgW, sh = imgH;
+
+    if (RUNNER_FRAMES > 1){
+      sw = Math.floor(imgW / RUNNER_FRAMES);
+      sh = imgH;
+      sx = sw * runnerFrame;
+      sy = 0;
+    }
+
+    // Draw the image scaled to player.w/h, anchored at feet (bottom aligned)
+    ctx.imageSmoothingEnabled = false;
+    const drawW = player.w;
+    const drawH = player.h;
+    ctx.drawImage(runnerImg, sx, sy, sw, sh, x, y, drawW, drawH);
+  }
+
   /* =========================
      UPDATE
   ========================= */
   function updatePlay(){
-    // end at 101
     if (coins >= END_COINS){
       setMode("ending");
       return;
@@ -386,22 +470,12 @@
 
     if (slowTimer > 0) slowTimer--;
 
-    if (popup){
-      popup.t++;
-      if (popup.t > popup.ttl) popup = null;
-    }
-    if (whisper){
-      whisper.t++;
-      if (whisper.t > whisper.ttl) whisper = null;
-    }
-
-    // Physics
+    // physics
     player.vy += GRAVITY;
+    if (player.vy > MAX_FALL_VY) player.vy = MAX_FALL_VY;
     player.y += player.vy;
 
     const groundTop = GROUND_Y();
-    const wasOnGround = player.onGround;
-
     if (player.y + player.h >= groundTop){
       player.y = groundTop - player.h;
       player.vy = 0;
@@ -410,14 +484,13 @@
       player.onGround = false;
     }
 
-    // coyote time
+    // coyote + buffer
     if (player.onGround) player.coyote = COYOTE_FRAMES;
     else player.coyote = Math.max(0, player.coyote - 1);
 
-    // buffer countdown
     if (player.buffer > 0) player.buffer--;
 
-    // Execute buffered jump if possible
+    // buffered jump
     if (player.buffer > 0 && (player.onGround || player.coyote > 0)){
       player.vy = JUMP_VY;
       player.onGround = false;
@@ -425,15 +498,26 @@
       player.buffer = 0;
     }
 
+    // variable jump hold
+    if (player.holding && player.holdFrames < HOLD_FRAMES_MAX && player.vy < 0){
+      player.vy += HOLD_BOOST; // HOLD_BOOST is negative => more upward
+      player.holdFrames++;
+    }
+
     const spd = currentSpeed();
 
-    // Move objects
+    // move objects
     for (const o of obstacles) o.x -= spd;
     for (const b of bonuses) b.x -= spd;
 
-    // Obstacles collision/passing
+    // obstacle collisions (forgiving hitbox)
     for (const o of obstacles){
-      const hit = aabb(player.x, player.y, player.w, player.h, o.x, o.y, o.w, o.h);
+      const bx = o.x + OBSTACLE_INSET_X;
+      const by = o.y + OBSTACLE_INSET_Y;
+      const bw = Math.max(2, o.w - OBSTACLE_INSET_X*2);
+      const bh = Math.max(2, o.h - OBSTACLE_INSET_Y);
+
+      const hit = aabb(player.x, player.y, player.w, player.h, bx, by, bw, bh);
       if (hit){
         lives--;
         lastObstacleLabel = o.label;
@@ -449,20 +533,20 @@
         o.passed = true;
         obstaclesCleared++;
 
-        // coin every 12 obstacles
         if (obstaclesCleared % 12 === 0){
           coins++;
           onCoinGained();
         }
 
-        // occasional quiet help
-        if (!whisper && Math.random() < 0.012) makeWhisper(rand(quietHelps), 90);
+        if (!whisper && Math.random() < 0.012){
+          makeWhisper(rand(quietHelps), 90);
+        }
       }
     }
 
-    // Bonuses collision
+    // bonus collisions (a little forgiving too)
     for (const b of bonuses){
-      const got = aabb(player.x, player.y, player.w, player.h, b.x, b.y, b.w, b.h);
+      const got = aabb(player.x, player.y, player.w, player.h, b.x+10, b.y+6, b.w-20, b.h-10);
       if (got){
         if (b.type === "life"){
           const before = lives;
@@ -472,7 +556,7 @@
           slowTimer = 240;
           makePopup(b.label, "Quiet for a second.", 100);
         } else if (b.type === "clear"){
-          const target = obstacles.find(o => o.x > player.x && o.x < player.x + 360);
+          const target = obstacles.find(o => o.x > player.x && o.x < player.x + 420);
           if (target) target.x = -9999;
           makePopup(b.label, "Cleared one.", 95);
         }
@@ -480,45 +564,36 @@
       }
     }
 
-    // Cleanup
+    // cleanup
     for (let i = obstacles.length - 1; i >= 0; i--){
-      if (obstacles[i].x < -500) obstacles.splice(i, 1);
+      if (obstacles[i].x < -700) obstacles.splice(i, 1);
     }
     for (let i = bonuses.length - 1; i >= 0; i--){
-      if (bonuses[i].x < -500) bonuses.splice(i, 1);
+      if (bonuses[i].x < -700) bonuses.splice(i, 1);
     }
 
-    // Pixel spacing (fair)
+    // spacing
     obstacleGapPx -= spd;
     bonusGapPx -= spd;
 
     if (obstacleGapPx <= 0){
       spawnObstacle();
-      // bigger gap = clearer jump timing
-      obstacleGapPx = 420 + ((Math.random()*260)|0); // 420–680px
+      obstacleGapPx = 620 + ((Math.random()*360)|0); // 620–980px (very forgiving)
     }
-
     if (bonusGapPx <= 0 && Math.random() < 0.45){
       spawnBonus();
-      bonusGapPx = 860 + ((Math.random()*320)|0); // 860–1180px
+      bonusGapPx = 1300 + ((Math.random()*520)|0); // 1300–1820px
     }
   }
 
   function update(){
     if (mode === "title"){
       titleTimer++;
-      // auto-start after a moment, but still lets someone tap/space to start immediately
-      if (titleTimer === 90) {
-        // optional: auto-start countdown
-        // startCountdown();
-      }
       return;
     }
 
     if (mode === "countdown"){
       countdownTimer++;
-
-      // 60 frames per count (~1 second)
       if (countdownTimer % 60 === 0){
         countdownValue--;
         if (countdownValue < 0){
@@ -528,49 +603,13 @@
       return;
     }
 
-    if (mode === "pause") return;
-    if (mode === "gameover") return;
-    if (mode === "ending") return;
-
+    if (mode === "pause" || mode === "gameover" || mode === "ending") return;
     if (mode === "play") updatePlay();
   }
 
   /* =========================
      DRAW
   ========================= */
-  function drawHUD(){
-    ctx.font = "10px 'Press Start 2P'";
-    ctx.fillStyle = "#fff";
-    ctx.fillText(`LIVES: ${lives}`, 12, 22);
-    ctx.fillText(`COINS: ${coins}`, 12, 38);
-    if (slowTimer > 0) ctx.fillText(`QUIET: ${Math.ceil(slowTimer/60)}s`, 12, 54);
-  }
-
-  function drawPopupAndWhisper(){
-    if (popup){
-      const alpha = popup.t < 15 ? popup.t/15 : (popup.t > popup.ttl-15 ? (popup.ttl - popup.t)/15 : 1);
-      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-      ctx.textAlign="center";
-      ctx.fillStyle="#fff";
-      ctx.font="10px 'Press Start 2P'";
-      ctx.fillText(popup.text, innerWidth/2, 110);
-      if (popup.sub) ctx.fillText(popup.sub, innerWidth/2, 130);
-      ctx.textAlign="left";
-      ctx.globalAlpha=1;
-    }
-
-    if (whisper){
-      const alpha = whisper.t < 10 ? whisper.t/10 : (whisper.t > whisper.ttl-10 ? (whisper.ttl - whisper.t)/10 : 1);
-      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-      ctx.textAlign="center";
-      ctx.fillStyle="#fff";
-      ctx.font="10px 'Press Start 2P'";
-      ctx.fillText(whisper.text, innerWidth/2, GROUND_Y() - 10);
-      ctx.textAlign="left";
-      ctx.globalAlpha=1;
-    }
-  }
-
   function drawPlayfield(){
     // background
     ctx.fillStyle = "#000";
@@ -586,18 +625,16 @@
       ctx.fillRect(i, GROUND_Y()+10, 10, 2);
     }
 
-    // player (blocky)
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(player.x, player.y, player.w, player.h);
-    ctx.fillRect(player.x+4, player.y-8, 10, 8);
+    // runner sprite
+    drawRunner();
 
-    // obstacles (tiles with centered text)
+    // obstacles
     for (const o of obstacles){
       drawTile(o.x, o.y, o.w, o.h);
       drawCenteredLabel(o.label, o.x, o.y, o.w, o.h);
     }
 
-    // bonuses (tiles above)
+    // bonuses
     for (const b of bonuses){
       drawTile(b.x, b.y, b.w, b.h);
       drawCenteredLabel(b.label, b.x, b.y, b.w, b.h);
@@ -607,51 +644,52 @@
   function drawTitle(){
     drawNesFlashBG(titleTimer);
 
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
+    ctx.fillStyle="#fff";
+    ctx.textAlign="center";
 
-    // BIG title
-    ctx.font = "20px 'Press Start 2P'";
-    ctx.fillText("TRUDGE", innerWidth/2, innerHeight/2 - 70);
-    ctx.fillText("THE ROAD", innerWidth/2, innerHeight/2 - 40);
+    // big title
+    ctx.font="22px 'Press Start 2P'";
+    ctx.fillText("TRUDGE", innerWidth/2, innerHeight/2 - 75);
+    ctx.fillText("THE ROAD", innerWidth/2, innerHeight/2 - 42);
 
-    ctx.font = "10px 'Press Start 2P'";
-    ctx.fillText("ONE BUTTON RUNNER", innerWidth/2, innerHeight/2 + 5);
+    ctx.font="10px 'Press Start 2P'";
+    ctx.fillText("ONE BUTTON RUNNER", innerWidth/2, innerHeight/2 + 8);
 
-    // flashing prompt
-    const blink = ((titleTimer/20)|0) % 2 === 0;
-    if (blink) {
-      ctx.fillText("PRESS SPACE / TAP TO START", innerWidth/2, innerHeight/2 + 55);
+    const blink = ((titleTimer/18)|0) % 2 === 0;
+    if (blink){
+      ctx.fillText("PRESS SPACE / TAP", innerWidth/2, innerHeight/2 + 60);
     }
 
-    ctx.textAlign = "left";
+    ctx.font="9px 'Press Start 2P'";
+    ctx.fillText("HOLD TO JUMP HIGHER", innerWidth/2, innerHeight/2 + 88);
+
+    ctx.textAlign="left";
   }
 
   function drawCountdown(){
-    // keep the fun background through countdown
     drawNesFlashBG(titleTimer + countdownTimer);
 
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
+    ctx.fillStyle="#fff";
+    ctx.textAlign="center";
 
-    ctx.font = "16px 'Press Start 2P'";
-    ctx.fillText("GET READY", innerWidth/2, innerHeight/2 - 80);
+    ctx.font="16px 'Press Start 2P'";
+    ctx.fillText("GET READY", innerWidth/2, innerHeight/2 - 90);
 
     const show =
       countdownValue >= 1 ? String(countdownValue)
       : countdownValue === 0 ? "GO!"
       : "";
 
-    ctx.font = "36px 'Press Start 2P'";
+    ctx.font="40px 'Press Start 2P'";
     ctx.fillText(show, innerWidth/2, innerHeight/2 + 10);
 
-    ctx.font = "10px 'Press Start 2P'";
-    ctx.fillText("JUMP = SPACE / TAP", innerWidth/2, innerHeight/2 + 70);
+    ctx.font="10px 'Press Start 2P'";
+    ctx.fillText("SPACE/TAP = JUMP (HOLD = HIGH)", innerWidth/2, innerHeight/2 + 80);
 
-    ctx.textAlign = "left";
+    ctx.textAlign="left";
   }
 
-  function drawOverlay(textLines){
+  function drawOverlay(lines){
     ctx.fillStyle="rgba(0,0,0,0.82)";
     ctx.fillRect(0,0,innerWidth,innerHeight);
 
@@ -659,7 +697,7 @@
     ctx.textAlign="center";
     ctx.font="10px 'Press Start 2P'";
     let y = innerHeight/2 - 60;
-    for (const line of textLines){
+    for (const line of lines){
       ctx.fillText(line, innerWidth/2, y);
       y += 18;
     }
@@ -669,24 +707,18 @@
   }
 
   function draw(){
-    if (mode === "title") { drawTitle(); return; }
-    if (mode === "countdown") { drawCountdown(); return; }
+    if (mode === "title"){ drawTitle(); return; }
+    if (mode === "countdown"){ drawCountdown(); return; }
 
-    // playfield always visible in play/pause/gameover/ending
     drawPlayfield();
     drawHUD();
     drawPopupAndWhisper();
 
-    if (mode === "pause"){
-      drawOverlay(["PAUSED"]);
-      return;
-    }
-
+    if (mode === "pause"){ drawOverlay(["PAUSED"]); return; }
     if (mode === "gameover"){
-      drawOverlay([`You caught ${lastObstacleLabel}.`, "GAME OVER", ""]);
+      drawOverlay([`You caught ${lastObstacleLabel}.`, "GAME OVER"]);
       return;
     }
-
     if (mode === "ending"){
       drawOverlay([
         "CONGRATULATIONS.",
@@ -698,17 +730,16 @@
   }
 
   /* =========================
-     MAIN LOOP
+     INIT + LOOP
   ========================= */
+  resetRun();
+  setMode("title");
+
   function loop(){
     update();
     draw();
     requestAnimationFrame(loop);
   }
-
-  // init
-  resetRun();
-  setMode("title");
   loop();
 
 })();
