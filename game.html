@@ -264,16 +264,14 @@ ${PASS_URL}`;
     return { w, h };
   }
 
-  // ===== THE slow-down dial (THIS is the 15% control) =====
+  // ===== THE slow-down dial (15% control) =====
   function currentSpeed(){
     let s = BASE_SPEED + prestigeSpeedBoost;
     s += stepIndex * 0.18;
     s += Math.min(1.2, obstaclesPassed * 0.0022);
     s = Math.min(MAX_SPEED + prestigeSpeedBoost, s);
 
-    // ***** Meditation: slow to 15% *****
-    if (slowTimer > 0) s *= 0.15;
-
+    if (slowTimer > 0) s *= 0.15;  // meditation: VERY slow
     if (warmupFrames < WARMUP_TOTAL) s *= 0.86;
 
     return s;
@@ -396,7 +394,7 @@ ${PASS_URL}`;
     }
   }
 
-  // ===== sparkle FX (THIS is the stars) =====
+  // ===== sparkle FX =====
   const sparkleFx = [];
   function spawnSparkles(x, y, count=20){
     for (let i=0;i<count;i++){
@@ -778,13 +776,21 @@ ${PASS_URL}`;
     for (const s of stepTokens) s.x -= spd;
     for (const m of microClouds) m.x -= spd;
 
-    // clear effect
+    // ===== CLEAR EFFECT: clear ALL traps currently on the page =====
     if (clearArmed){
-      const next = obstacles.find(o => o.x > player.x && o.x < player.x + 460 && o.lane === playerLane);
-      if (next){
-        next.x = -9999;
-        clearArmed = false;
-        pushBanner("good", "WRITE IT DOWN", "Cleared one trap.", 70);
+      let cleared = 0;
+      for (const o of obstacles){
+        if (o.x > -200 && o.x < W + 200){
+          o.x = -9999;
+          cleared++;
+        }
+      }
+      clearArmed = false;
+
+      if (cleared > 0){
+        pushBanner("good", "WRITE IT DOWN", "Nice! You cleared out the traps!", 90);
+      } else {
+        pushBanner("good", "WRITE IT DOWN", "Nothing to clear... yet.", 70);
       }
     }
 
@@ -837,14 +843,12 @@ ${PASS_URL}`;
           lives = Math.min(MAX_LIVES, lives + 1);
           pushBanner("good", b.label.toUpperCase(), (lives>before ? "+1 LIFE" : "LIVES FULL"), 75);
         } else if (b.type === "slow"){
-          // ***** 5 seconds of 15% speed *****
           slowTimer = 60 * 5;
           pushBanner("good", "PRAYER & MEDITATION", "Deep calm for 5 seconds.", 80);
-          // ***** star burst *****
           spawnSparkles(player.x + player.w*0.60, player.y + player.h*0.40, 24);
         } else if (b.type === "clear"){
           clearArmed = true;
-          pushBanner("good", "WRITE IT DOWN", "Next trap clears.", 75);
+          pushBanner("good", "WRITE IT DOWN", "Clearing traps...", 55);
         }
         b.x = -9999;
       }
@@ -896,7 +900,7 @@ ${PASS_URL}`;
     for (let i = stepTokens.length - 1; i >= 0; i--) if (stepTokens[i].x < -1800) stepTokens.splice(i, 1);
     for (let i = microClouds.length - 1; i >= 0; i--) if (microClouds[i].x < -1200) microClouds.splice(i, 1);
 
-    // spawn timers (distance-based)
+    // spawn timers
     obstacleGapPx -= spd;
     bonusGapPx -= spd;
     microGapPx -= spd;
@@ -1027,7 +1031,6 @@ ${PASS_URL}`;
   }
 
   function drawBonus(b){
-    // ***** Purple for meditation bonus *****
     const theme = (b.type === "slow") ? "purple" : "blue";
     drawCloud(b.x, b.y, b.w, b.h, b.cloud, 1, false, theme);
 
@@ -1179,7 +1182,8 @@ ${PASS_URL}`;
     const lines = [
       "Drag Bill around to go thru all 12 steps.",
       "Be careful — pitfalls cost a life.",
-      "Blue clouds help you stay alive."
+      "Blue clouds help you stay alive.",
+      "Purple cloud slows life down."
     ];
 
     ctx.font = "12px 'Press Start 2P'";
@@ -1382,7 +1386,6 @@ ${PASS_URL}`;
     drawLivesHUD();
     drawBanner();
 
-    // ***** show stars on top *****
     drawSparkles();
 
     if (mode === "play") drawIntroRules();
@@ -1397,7 +1400,6 @@ ${PASS_URL}`;
   }
 
   function drawEnding(){
-    // bright ending so coins are visible
     drawSky();
     drawCoins();
     drawEndingCard("YOU MADE IT THROUGH THE STEPS.", [
