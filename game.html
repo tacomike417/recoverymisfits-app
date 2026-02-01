@@ -25,7 +25,6 @@
 
 <canvas id="game"></canvas>
 
-<!-- Spaces in filenames on GitHub Pages should be encoded as %20 -->
 <audio id="bgm" loop preload="auto">
   <source src="E-Lot%20-%208-Bit%20Boss.mp3" type="audio/mpeg">
 </audio>
@@ -39,35 +38,33 @@
   const bgm = document.getElementById("bgm");
   const pauseBtn = document.getElementById("pauseBtn");
 
-  // Always draw in CSS pixels using W/H (NOT innerWidth/innerHeight directly)
+  // draw using CSS pixels
   let W = 0, H = 0;
 
   function resize(){
     const rect = canvas.getBoundingClientRect();
     W = Math.max(1, Math.floor(rect.width));
     H = Math.max(1, Math.floor(rect.height));
-
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     canvas.width  = Math.floor(W * dpr);
     canvas.height = Math.floor(H * dpr);
-
-    // scale so coordinates are in CSS pixels
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   addEventListener("resize", resize);
   resize();
 
   /* =========================
      SPRITE (runner.png)
-     If you have 2 frames side-by-side, set RUNNER_FRAMES=2.
+     You said you have ONE static runner.png right now.
+     So set frames to 1 and stop animation.
   ========================= */
   const runnerImg = new Image();
   runnerImg.src = "./runner.png";
   let runnerReady = false;
   runnerImg.onload = () => runnerReady = true;
 
-  const RUNNER_FRAMES = 2;
-  const RUNNER_FPS = 8;
+  const RUNNER_FRAMES = 1;   // <-- static
+  const RUNNER_FPS = 0;      // <-- no animation
   let runnerFrame = 0;
   let runnerTick = 0;
 
@@ -81,7 +78,7 @@
   }
 
   /* =========================
-     GAME CONSTANTS
+     CONSTANTS
   ========================= */
   const MAX_LIVES = 5;
   const LANE_COUNT = 3;
@@ -90,10 +87,9 @@
   const BASE_SPEED = 3.7;
   const MAX_SPEED  = 7.5;
 
-  const WARMUP_TOTAL = 60 * 15; // ~15 seconds
+  const WARMUP_TOTAL = 60 * 15;
   let warmupFrames = 0;
 
-  // New Game+ speed boost
   let prestige = 0;
   let prestigeSpeedBoost = 0;
 
@@ -115,14 +111,13 @@
   const player = {
     x: 140,
     y: 0,
-    w: 72,
-    h: 96,
+    w: 86,   // bigger on screen
+    h: 114,
     lane: 1,
     laneTarget: 1
   };
 
   function laneYCenters(){
-    // Make lanes adapt to screen height safely
     const top = Math.max(120, Math.floor(H * 0.28));
     const bottom = Math.min(H - 120, Math.floor(H * 0.78));
     const gap = (bottom - top) / (LANE_COUNT - 1);
@@ -193,7 +188,7 @@
      BANNERS (queue)
   ========================= */
   const bannerQueue = [];
-  let banner = null; // {kind,title,sub,t,ttl}
+  let banner = null;
 
   function pushBanner(kind, title, sub="", ttl=170){
     bannerQueue.push({ kind, title, sub, t:0, ttl });
@@ -221,7 +216,7 @@
   }
 
   /* =========================
-     INPUT (one button)
+     INPUT
   ========================= */
   function onTap(){
     startMusic();
@@ -293,7 +288,7 @@
   }
 
   /* =========================
-     STARFIELD (ASCII-ish)
+     STARFIELD
   ========================= */
   const stars = [];
   const STAR_CHARS = [".",".",".","*","+","·","˙"];
@@ -338,7 +333,7 @@
   }
 
   /* =========================
-     CLOUD LOOK
+     CLOUD LOOK (bonuses only)
   ========================= */
   function buildCloudPattern(w, h){
     const puffs = [];
@@ -395,7 +390,7 @@
   }
 
   /* =========================
-     SPAWN (CLUMP-PROOF)
+     SPAWN (clump-proof)
   ========================= */
   function spawnObstacle(labelOverride=null, laneOverride=null, xOverride=null){
     const label = labelOverride || rand(obstaclesPool);
@@ -404,8 +399,8 @@
     const { w, h } = sizeForLabel(label, 220, 540, 46);
     const x = (xOverride !== null) ? xOverride : (W + 90);
 
-    // hard "too close" check for same lane to prevent overlaps
-    const tooClose = obstacles.some(o => o.lane === lane && Math.abs(o.x - x) < (w * 0.75));
+    // hard spacing check for same lane
+    const tooClose = obstacles.some(o => o.lane === lane && Math.abs(o.x - x) < Math.max(260, w * 0.80));
     if (tooClose) return;
 
     obstacles.push({
@@ -465,15 +460,12 @@
       y: lanes[lane] - h/2,
       w, h,
       lane,
-      label,
-      cloud: buildCloudPattern(w, h)
+      label
     });
 
-    // Step Gauntlet Lite (guards)
-    const other1 = (lane + 1) % 3;
-    const other2 = (lane + 2) % 3;
-    spawnObstacle(null, other1, x - 220);
-    spawnObstacle(null, other2, x + 220);
+    // ONLY ONE guard (less "I hit something I didn't see")
+    const guardLane = (lane + 1 + ((Math.random()*2)|0)) % 3;
+    spawnObstacle(null, guardLane, x - 220);
   }
 
   /* =========================
@@ -518,11 +510,11 @@
 
     pushBanner("good", "TRUDGE THE ROAD", "Go through the steps IN ORDER", 190);
     const s1 = steps[0];
-    pushBanner("good", `STEP ${s1.n} — ${s1.p}`, "Gather the big pink clouds.", 190);
+    pushBanner("good", `STEP ${s1.n} — ${s1.p}`, "Find the STEP card.", 190);
   }
 
   /* =========================
-     DRAW HELPERS
+     DRAW
   ========================= */
   function drawHeader(){
     ctx.globalAlpha = 0.95;
@@ -596,16 +588,27 @@
     ctx.textBaseline = "alphabetic";
   }
 
+  // STEPS: draw as a clean "card" (no clouds)
   function drawStepToken(tk){
-    drawCloud(tk.x, tk.y, tk.w, tk.h, tk.cloud, 1, false);
-    ctx.strokeStyle = "rgba(255,255,255,0.35)";
-    ctx.strokeRect(tk.x-4, tk.y-4, tk.w+8, tk.h+8);
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.fillRect(tk.x, tk.y, tk.w, tk.h);
+
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(0,0,0,0.85)";
+    ctx.strokeRect(tk.x, tk.y, tk.w, tk.h);
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    ctx.strokeRect(tk.x+4, tk.y+4, tk.w-8, tk.h-8);
 
     ctx.font = "13px 'Press Start 2P'";
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "rgba(0,0,0,0.92)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(tk.label.toUpperCase(), tk.x + tk.w/2, tk.y + tk.h/2 + 2);
+    ctx.fillText(tk.label.toUpperCase(), tk.x + tk.w/2, tk.y + tk.h/2 + 1);
+
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
   }
@@ -628,23 +631,12 @@
       return;
     }
 
-    runnerTick++;
-    const frameEvery = Math.max(1, Math.floor(60 / RUNNER_FPS));
-    if (runnerTick % frameEvery === 0){
-      runnerFrame = (runnerFrame + 1) % Math.max(1, RUNNER_FRAMES);
-    }
-
+    // No animation when frames=1
     const imgW = runnerImg.width;
     const imgH = runnerImg.height;
 
-    let sx = 0, sy = 0, sw = imgW, sh = imgH;
-    if (RUNNER_FRAMES > 1){
-      sw = Math.floor(imgW / RUNNER_FRAMES);
-      sx = sw * runnerFrame;
-    }
-
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(runnerImg, sx, sy, sw, sh, player.x, player.y, player.w, player.h);
+    ctx.drawImage(runnerImg, 0, 0, imgW, imgH, player.x, player.y, player.w, player.h);
   }
 
   function drawLivesHUD(){
@@ -655,14 +647,8 @@
       const x = startX + i * (sizeW + gap);
       if (i < lives){
         if (runnerReady){
-          const imgW = runnerImg.width, imgH = runnerImg.height;
-          let sw = imgW, sx = 0;
-          if (RUNNER_FRAMES > 1){
-            sw = Math.floor(imgW / RUNNER_FRAMES);
-            sx = 0;
-          }
           ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(runnerImg, sx, 0, sw, imgH, x, y, sizeW, sizeH);
+          ctx.drawImage(runnerImg, 0, 0, runnerImg.width, runnerImg.height, x, y, sizeW, sizeH);
         } else {
           ctx.font = "16px 'Press Start 2P'";
           ctx.fillStyle = "#fff";
@@ -776,7 +762,7 @@
     for (const s of stepTokens) s.x -= spd;
     for (const m of microClouds) m.x -= spd;
 
-    // Clear effect (one trap)
+    // Clear effect: clears next trap in your lane
     if (clearArmed){
       const next = obstacles.find(o => o.x > player.x && o.x < player.x + 460 && o.lane === player.lane);
       if (next){
@@ -786,20 +772,20 @@
       }
     }
 
-    // Player hitbox
-    const rx = player.x + 14;
-    const ry = player.y + 10;
-    const rw = player.w - 26;
-    const rh = player.h - 18;
+    // Slightly smaller hitbox to reduce "I didn't hit it" moments
+    const rx = player.x + 20;
+    const ry = player.y + 18;
+    const rw = player.w - 40;
+    const rh = player.h - 34;
 
     // Obstacles
     for (const o of obstacles){
       if (o.lane !== player.lane) continue;
 
-      const ox = o.x + 16;
-      const oy = o.y + 10;
-      const ow = Math.max(2, o.w - 32);
-      const oh = Math.max(2, o.h - 18);
+      const ox = o.x + 22;
+      const oy = o.y + 12;
+      const ow = Math.max(2, o.w - 44);
+      const oh = Math.max(2, o.h - 22);
 
       if (invuln === 0 && aabb(rx, ry, rw, rh, ox, oy, ow, oh)){
         lives--;
@@ -825,9 +811,9 @@
     for (const b of bonuses){
       if (b.lane !== player.lane) continue;
 
-      const bx = b.x + 16;
+      const bx = b.x + 18;
       const by = b.y + 10;
-      const bw = Math.max(2, b.w - 32);
+      const bw = Math.max(2, b.w - 36);
       const bh = Math.max(2, b.h - 18);
 
       if (aabb(rx, ry, rw, rh, bx, by, bw, bh)){
@@ -850,9 +836,9 @@
     for (const m of microClouds){
       if (m.lane !== player.lane) continue;
 
-      const mx = m.x + 10;
+      const mx = m.x + 12;
       const my = m.y + 8;
-      const mw = m.w - 20;
+      const mw = m.w - 24;
       const mh = m.h - 16;
 
       if (aabb(rx, ry, rw, rh, mx, my, mw, mh)){
@@ -862,14 +848,14 @@
       }
     }
 
-    // Steps (IN ORDER)
+    // Steps (IN ORDER) — cards are easy to see now
     for (const s of stepTokens){
       if (s.lane !== player.lane) continue;
 
-      const sx = s.x + 18;
-      const sy = s.y + 12;
-      const sw = Math.max(2, s.w - 36);
-      const sh = Math.max(2, s.h - 22);
+      const sx = s.x + 12;
+      const sy = s.y + 10;
+      const sw = Math.max(2, s.w - 24);
+      const sh = Math.max(2, s.h - 20);
 
       if (aabb(rx, ry, rw, rh, sx, sy, sw, sh)){
         stepIndex++;
@@ -887,7 +873,7 @@
       }
     }
 
-    // CLEANUP (hard remove offscreen / deleted)
+    // CLEANUP
     for (let i = obstacles.length - 1; i >= 0; i--){
       if (obstacles[i].x < -1600) obstacles.splice(i, 1);
     }
@@ -901,12 +887,13 @@
       if (microClouds[i].x < -1200) microClouds.splice(i, 1);
     }
 
-    // SPAWN (distance-based gaps)
+    // SPAWN (distance gaps)
     obstacleGapPx -= spd;
     bonusGapPx -= spd;
     microGapPx -= spd;
 
     const inWarmup = warmupFrames < WARMUP_TOTAL;
+    const stepOnScreen = stepTokens.length > 0;
 
     if (obstacleGapPx <= 0){
       spawnObstacle();
@@ -921,14 +908,20 @@
       }
     }
 
-    if (bonusGapPx <= 0 && Math.random() < (inWarmup ? 0.55 : 0.42)){
-      spawnBonus();
-      bonusGapPx = 980 + ((Math.random() * 560) | 0);
-    }
+    // IMPORTANT: when a STEP is present, stop spawning extra clouds/bonuses
+    if (!stepOnScreen){
+      if (bonusGapPx <= 0 && Math.random() < (inWarmup ? 0.55 : 0.42)){
+        spawnBonus();
+        bonusGapPx = 980 + ((Math.random() * 560) | 0);
+      }
 
-    if (microGapPx <= 0 && Math.random() < (inWarmup ? 0.70 : 0.55)){
-      spawnMicroCloud();
-      microGapPx = (inWarmup ? 520 : 620) + ((Math.random() * 420) | 0);
+      if (microGapPx <= 0 && Math.random() < (inWarmup ? 0.70 : 0.55)){
+        spawnMicroCloud();
+        microGapPx = (inWarmup ? 520 : 620) + ((Math.random() * 420) | 0);
+      }
+    } else {
+      bonusGapPx = Math.max(bonusGapPx, 80);
+      microGapPx = Math.max(microGapPx, 80);
     }
 
     if (stepIndex < 12 && stepTokens.length === 0 && stepCooldown <= 0){
@@ -939,11 +932,10 @@
         stepSpawnBias = 0;
 
         const next = steps[stepIndex];
-        pushBanner("status", `NEXT: STEP ${next.n} — ${next.p}`, "Find the big pink cloud.", 170);
+        pushBanner("status", `NEXT: STEP ${next.n} — ${next.p}`, "Find the STEP card.", 170);
       }
     }
 
-    // Banner tick ALWAYS in play mode
     tickBanner();
   }
 
@@ -1015,21 +1007,12 @@
     drawStarfield(currentSpeed());
     drawHeader();
 
-    // draw objects
     for (const o of obstacles) drawDangerObstacle(o);
     for (const b of bonuses) drawBonus(b);
     for (const s of stepTokens) drawStepToken(s);
     for (const m of microClouds) drawMicroCloud(m);
 
     drawRunner();
-
-    if (invuln > 0){
-      ctx.globalAlpha = 0.16;
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(player.x - 10, player.y - 10, player.w + 20, player.h + 20);
-      ctx.globalAlpha = 1;
-    }
-
     drawLivesHUD();
     drawBanner();
   }
