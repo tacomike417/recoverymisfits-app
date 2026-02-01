@@ -6,457 +6,1100 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-html, body {
-  margin:0; padding:0; height:100%;
-  background:#000; overflow:hidden;
-  font-family:"Press Start 2P", monospace;
-}
-canvas { display:block; width:100vw; height:100vh; }
-#pauseBtn{
-  position:fixed;
-  bottom:10px;
-  left:50%;
-  transform:translateX(-50%);
-  font-family:"Press Start 2P", monospace;
-  font-size:10px;
-  padding:10px 14px;
-  background:#111;
-  color:#fff;
-  border:1px solid #444;
-  border-radius:8px;
-  opacity:.92;
-  z-index:10;
-  display:none;
-}
+  html, body{
+    margin:0; padding:0; height:100%;
+    background:#000; overflow:hidden;
+    font-family:"Press Start 2P", monospace;
+  }
+  canvas{ display:block; width:100vw; height:100vh; }
+  #pauseBtn{
+    position:fixed; bottom:10px; left:50%; transform:translateX(-50%);
+    font-family:"Press Start 2P", monospace; font-size:10px;
+    padding:10px 14px; background:#111; color:#fff;
+    border:1px solid #444; border-radius:10px; opacity:.93; z-index:10;
+    display:none;
+  }
 </style>
 </head>
 <body>
 
 <canvas id="game"></canvas>
 
+<!-- NOTE: spaces in filenames on GitHub Pages are served as %20, so we use an encoded src -->
 <audio id="bgm" loop preload="auto">
-  <source src="E-Lot - 8-Bit Boss.mp3" type="audio/mpeg">
+  <source src="E-Lot%20-%208-Bit%20Boss.mp3" type="audio/mpeg">
 </audio>
 
 <button id="pauseBtn">PAUSE / BREATHE</button>
 
 <script>
 (() => {
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const bgm = document.getElementById("bgm");
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const bgm = document.getElementById("bgm");
+  const pauseBtn = document.getElementById("pauseBtn");
 
-function resize(){
-  const dpr = Math.max(1, window.devicePixelRatio || 1);
-  canvas.width = innerWidth * dpr;
-  canvas.height = innerHeight * dpr;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-}
-addEventListener("resize", resize);
-resize();
-
-/* =======================
-   SPRITE
-======================= */
-const runnerImg = new Image();
-runnerImg.src = "./runner.png";
-let runnerReady = false;
-runnerImg.onload = () => runnerReady = true;
-
-const RUNNER_FRAMES = 2;
-let runnerFrame = 0;
-let runnerTick = 0;
-
-/* =======================
-   MODES
-======================= */
-let mode = "title"; // title | countdown | play | pause | gameover | ending
-function setMode(m){
-  mode = m;
-  pauseBtn.style.display =
-    (mode === "play" || mode === "pause") ? "block" : "none";
-}
-
-/* =======================
-   PLAYER / LANES
-======================= */
-const LANE_COUNT = 3;
-const player = {
-  x: 140,
-  y: 0,
-  w: 72,
-  h: 96,
-  lane: 1,
-  laneTarget: 1
-};
-
-function laneCenters(){
-  const top = 190;
-  const bottom = innerHeight - 160;
-  const gap = (bottom - top) / (LANE_COUNT - 1);
-  return [top, top+gap, bottom];
-}
-
-/* =======================
-   GAME STATE
-======================= */
-const MAX_LIVES = 5;
-let lives = MAX_LIVES;
-let stepIndex = 0;
-let obstaclesPassed = 0;
-let invuln = 0;
-let slowTimer = 0;
-let slowMo = 0;
-let warmupFrames = 0;
-
-let prestige = 0;
-let prestigeSpeedBoost = 0;
-
-const obstacles = [];
-const bonuses = [];
-const microClouds = [];
-const stepTokens = [];
-
-let banner = null;
-
-/* =======================
-   CONTENT
-======================= */
-const obstaclesPool = [
-  "Anger","Resentment","Fear","Ego","Anxiety","Guilt","Shame",
-  "Control","Isolation","Overthinking","People-pleasing",
-  "Self-pity","Dishonesty","Avoidance","Restless","Irritable"
-];
-
-const bonusesPool = [
-  "Go to a meeting",
-  "Call a friend",
-  "Call your sponsor",
-  "Pray / pause",
-  "Write it down"
-];
-
-const steps = [
-  ["STEP 1","HONESTY"],
-  ["STEP 2","HOPE"],
-  ["STEP 3","FAITH"],
-  ["STEP 4","COURAGE"],
-  ["STEP 5","INTEGRITY"],
-  ["STEP 6","WILLINGNESS"],
-  ["STEP 7","HUMILITY"],
-  ["STEP 8","LOVE"],
-  ["STEP 9","DISCIPLINE"],
-  ["STEP 10","PERSEVERANCE"],
-  ["STEP 11","AWARENESS"],
-  ["STEP 12","SERVICE"]
-];
-
-const calmWhispers = [
-  "Breathe.",
-  "You’re not alone.",
-  "Easy does it.",
-  "Stay in the middle."
-];
-
-/* =======================
-   INPUT
-======================= */
-function startMusic(){
-  if (bgm.paused){
-    bgm.volume = 0.22;
-    bgm.play().catch(()=>{});
+  function resize(){
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width  = Math.floor(innerWidth * dpr);
+    canvas.height = Math.floor(innerHeight * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
   }
-}
+  addEventListener("resize", resize);
+  resize();
 
-function onTap(){
-  startMusic();
+  /* =========================
+     SPRITE (runner.png)
+     If you make a 2-frame sprite sheet (frames side-by-side), set RUNNER_FRAMES=2
+  ========================= */
+  const runnerImg = new Image();
+  runnerImg.src = "./runner.png";
+  let runnerReady = false;
+  runnerImg.onload = () => runnerReady = true;
 
-  if (mode === "title"){ startCountdown(); return; }
-  if (mode === "gameover" || mode === "ending"){
-    setMode("title");
-    return;
+  const RUNNER_FRAMES = 2;
+  const RUNNER_FPS = 8;
+  let runnerFrame = 0;
+  let runnerTick = 0;
+
+  /* =========================
+     MODES
+  ========================= */
+  let mode = "title"; // title | countdown | play | pause | gameover | ending
+
+  function setMode(m){
+    mode = m;
+    pauseBtn.style.display = (mode === "play" || mode === "pause") ? "block" : "none";
   }
-  if (mode !== "play") return;
 
-  player.laneTarget = (player.laneTarget + 1) % LANE_COUNT;
-}
+  /* =========================
+     GAME FEEL
+  ========================= */
+  const MAX_LIVES = 5;
+  const LANE_COUNT = 3;
+  const LANE_SNAP = 0.36;
 
-addEventListener("keydown", e => e.code==="Space" && onTap());
-addEventListener("mousedown", onTap, {passive:true});
-addEventListener("touchstart", onTap, {passive:true});
+  // meeting-lobby warmup
+  const WARMUP_TOTAL = 60 * 15; // ~15 seconds
+  let warmupFrames = 0;
 
-pauseBtn.onclick = () => {
-  if (mode === "play"){
-    bgm.pause();
-    setMode("pause");
-  } else if (mode === "pause"){
-    bgm.play().catch(()=>{});
-    setMode("play");
-  }
-};
+  // New Game+ speed boost
+  let prestige = 0;
+  let prestigeSpeedBoost = 0;
 
-/* =======================
-   TITLE / COUNTDOWN
-======================= */
-let titleTimer = 0;
-let countdown = 3;
-let countdownTick = 0;
+  const BASE_SPEED = 3.7;
+  const MAX_SPEED  = 7.5;
 
-function startCountdown(){
-  resetRun();
-  countdown = 3;
-  countdownTick = 0;
-  setMode("countdown");
-}
+  // spawn gaps (distance-based — prevents clumping)
+  let obstacleGapPx = 520;
+  let bonusGapPx = 980;
+  let microGapPx = 560;
+  let stepCooldown = 60 * 8;
+  let stepSpawnBias = 0;
 
-/* =======================
-   RESET
-======================= */
-function resetRun(){
-  lives = MAX_LIVES;
-  stepIndex = 0;
-  obstacles.length = 0;
-  bonuses.length = 0;
-  microClouds.length = 0;
-  stepTokens.length = 0;
-  obstaclesPassed = 0;
-  invuln = 0;
-  slowTimer = 0;
-  warmupFrames = 0;
+  // effects
+  let invuln = 0;
+  let slowTimer = 0;
+  let slowMo = 0;
 
-  const lanes = laneCenters();
-  player.lane = 1;
-  player.laneTarget = 1;
-  player.y = lanes[1] - player.h/2;
-
-  banner = {text:"STEP 1 — HONESTY", sub:"Go through the steps IN ORDER", t:0};
-}
-
-/* =======================
-   GAME LOOP
-======================= */
-function speed(){
-  let s = 3.6 + prestigeSpeedBoost;
-  s += stepIndex * 0.2;
-  s += Math.min(1.6, obstaclesPassed * 0.0025);
-  if (slowTimer > 0) s *= 0.7;
-  if (slowMo > 0) s *= 0.4;
-  if (warmupFrames < 900) s *= 0.85;
-  return s;
-}
-
-function spawnObstacle(xOff=0, lane=null){
-  const label = obstaclesPool[Math.random()*obstaclesPool.length|0];
-  const lanes = laneCenters();
-  const l = lane===null ? Math.random()*3|0 : lane;
-  obstacles.push({
-    x: innerWidth + xOff,
-    y: lanes[l] - 28,
-    w: 260,
-    h: 46,
-    lane: l,
-    label
-  });
-}
-
-function spawnBonus(){
-  const label = bonusesPool[Math.random()*bonusesPool.length|0];
-  const lanes = laneCenters();
-  bonuses.push({
-    x: innerWidth,
-    y: lanes[1] - 22,
-    w: 360,
-    h: 44,
+  /* =========================
+     PLAYER
+  ========================= */
+  const player = {
+    x: 140,
+    y: 0,
+    w: 72,   // bigger sprite
+    h: 96,
     lane: 1,
-    label
-  });
-}
+    laneTarget: 1
+  };
 
-function spawnStep(){
-  if (stepIndex >= 12) return;
-  const lanes = laneCenters();
-  const lane = Math.random()*3|0;
-  stepTokens.push({
-    x: innerWidth,
-    y: lanes[lane] - 26,
-    w: 420,
-    h: 52,
-    lane,
-    label: steps[stepIndex][0] + " — " + steps[stepIndex][1]
-  });
-  spawnObstacle(-240,(lane+1)%3);
-  spawnObstacle(240,(lane+2)%3);
-}
-
-function update(){
-  if (mode === "title"){ titleTimer++; return; }
-  if (mode === "countdown"){
-    countdownTick++;
-    if (countdownTick % 60 === 0){
-      countdown--;
-      if (countdown < 0) setMode("play");
-    }
-    return;
-  }
-  if (mode !== "play") return;
-
-  warmupFrames++;
-  if (invuln>0) invuln--;
-  if (slowTimer>0) slowTimer--;
-  if (slowMo>0) slowMo--;
-
-  const lanes = laneCenters();
-  const ty = lanes[player.laneTarget] - player.h/2;
-  player.y += (ty - player.y)*0.35;
-  if (Math.abs(ty-player.y)<1){ player.y=ty; player.lane=player.laneTarget; }
-
-  const spd = speed();
-  obstacles.forEach(o=>o.x-=spd);
-  bonuses.forEach(b=>b.x-=spd);
-  stepTokens.forEach(s=>s.x-=spd);
-
-  if (Math.random()<0.02) spawnObstacle();
-  if (Math.random()<0.005) spawnBonus();
-  if (Math.random()<0.002 && stepTokens.length===0) spawnStep();
-
-  obstacles.forEach(o=>{
-    if (o.lane!==player.lane) return;
-    if (o.x<player.x+player.w-20 && o.x+o.w>player.x+20 && invuln===0){
-      lives--; invuln=90; banner={text:"YOU CAUGHT: "+o.label.toUpperCase(),sub:"-1 LIFE",t:0};
-      if (lives<=0) setMode("gameover");
-    }
-    if (o.x+o.w<player.x) obstaclesPassed++;
-  });
-
-  bonuses.forEach(b=>{
-    if (b.lane!==player.lane) return;
-    if (b.x<player.x+player.w){
-      lives=Math.min(MAX_LIVES,lives+1);
-      slowTimer=120;
-      banner={text:b.label.toUpperCase(),sub:"+1 LIFE",t:0};
-      b.x=-9999;
-    }
-  });
-
-  stepTokens.forEach(s=>{
-    if (s.lane!==player.lane) return;
-    if (s.x<player.x+player.w){
-      stepIndex++;
-      banner={text:s.label.toUpperCase(),sub:"Nice. Keep moving.",t:0};
-      s.x=-9999;
-      if (stepIndex>=12) setMode("ending");
-    }
-  });
-
-  obstacles.filter(o=>o.x>-600);
-}
-
-/* =======================
-   DRAW
-======================= */
-function draw(){
-  ctx.clearRect(0,0,innerWidth,innerHeight);
-
-  if (mode==="title"){
-    ctx.fillStyle="#000"; ctx.fillRect(0,0,innerWidth,innerHeight);
-    ctx.fillStyle="#fff"; ctx.textAlign="center";
-    ctx.font="28px 'Press Start 2P'";
-    ctx.fillText("TRUDGE",innerWidth/2,innerHeight/2-100);
-    ctx.fillText("THE ROAD",innerWidth/2,innerHeight/2-60);
-    ctx.font="10px 'Press Start 2P'";
-    ctx.fillText("avoid the traps, gather the pink clouds",innerWidth/2,innerHeight/2-10);
-    ctx.fillText("go through the steps IN ORDER",innerWidth/2,innerHeight/2+20);
-    ctx.fillText("PRESS SPACE / TAP",innerWidth/2,innerHeight/2+80);
-    return;
+  function laneYCenters(){
+    const top = 190;
+    const bottom = innerHeight - 160;
+    const gap = (bottom - top) / (LANE_COUNT - 1);
+    return [top, top + gap, bottom];
   }
 
-  if (mode==="countdown"){
-    ctx.fillStyle="#000"; ctx.fillRect(0,0,innerWidth,innerHeight);
-    ctx.fillStyle="#fff"; ctx.textAlign="center";
-    ctx.font="14px 'Press Start 2P'";
-    ctx.fillText("ROCKETED INTO THE 4TH DIMENSION IN...",innerWidth/2,innerHeight/2-120);
-    ctx.font="56px 'Press Start 2P'";
-    ctx.fillText(countdown>0?countdown:"GO!",innerWidth/2,innerHeight/2);
-    return;
+  /* =========================
+     CONTENT
+  ========================= */
+  const obstaclesPool = [
+    "Anger","Resentment","Fear","Self-pity","Anxiety","Guilt","Shame",
+    "Ego","Overthinking","Self-obsession","Self-righteousness","Control",
+    "People-pleasing","Comparison","Relationship drama","Family conflict",
+    "Isolation","Unsaid resentment","Not speaking up","Old friends",
+    "Work stress","Money worries","Time pressure","Social media","Home chaos","Traffic",
+    "Complacency","Dishonesty","Not listening","Selective hearing",
+    "Not asking for help","Emotional numbness","Avoidance","Confusion","Uncertainty",
+    "Restless","Irritable","Discontent","Catastrophizing","Projection"
+  ];
+
+  const bonusesPool = [
+    { label:"Go to a meeting", type:"life" },
+    { label:"Call a friend", type:"life" },
+    { label:"Call your sponsor", type:"life" },
+    { label:"Pray / pause", type:"slow" },
+    { label:"Write it down", type:"clear" }
+  ];
+
+  const steps = [
+    { n: 1, p: "HONESTY" },
+    { n: 2, p: "HOPE" },
+    { n: 3, p: "FAITH" },
+    { n: 4, p: "COURAGE" },
+    { n: 5, p: "INTEGRITY" },
+    { n: 6, p: "WILLINGNESS" },
+    { n: 7, p: "HUMILITY" },
+    { n: 8, p: "BROTHERLY LOVE" },
+    { n: 9, p: "DISCIPLINE" },
+    { n:10, p: "PERSEVERANCE" },
+    { n:11, p: "SPIRITUAL AWARENESS" },
+    { n:12, p: "SERVICE" }
+  ];
+
+  const calmWhispers = [
+    "Breathe.",
+    "You’re not alone.",
+    "Easy does it.",
+    "Keep it simple.",
+    "Stay in the middle.",
+    "Just for today."
+  ];
+
+  /* =========================
+     STARRY BACKGROUND (ASCII-ish)
+  ========================= */
+  const stars = [];
+  const STAR_CHARS = [".",".",".","*","+","·","˙"];
+  function initStars(){
+    stars.length = 0;
+    const count = Math.min(220, Math.floor((innerWidth * innerHeight) / 7000));
+    for (let i=0;i<count;i++){
+      stars.push({
+        x: Math.random()*innerWidth,
+        y: Math.random()*innerHeight,
+        z: 0.4 + Math.random()*1.6,
+        ch: STAR_CHARS[(Math.random()*STAR_CHARS.length)|0],
+        tw: Math.random()*1000
+      });
+    }
+  }
+  initStars();
+  addEventListener("resize", initStars);
+
+  function drawStarfield(scrollSpeed){
+    ctx.fillStyle = "#fff";
+    ctx.font = "10px 'Press Start 2P'";
+    for (const s of stars){
+      s.x -= scrollSpeed * 0.35 * s.z;
+      s.tw += 1;
+      if (s.x < -10){
+        s.x = innerWidth + 10;
+        s.y = Math.random()*innerHeight;
+        s.z = 0.4 + Math.random()*1.6;
+      }
+      const a = 0.26 + 0.42 * (0.5 + 0.5 * Math.sin((s.tw/35) + s.y*0.02));
+      ctx.globalAlpha = a;
+
+      if (s.ch === "." || s.ch === "·" || s.ch === "˙"){
+        ctx.fillRect(s.x|0, s.y|0, 2, 2);
+      } else {
+        ctx.fillText(s.ch, s.x|0, s.y|0);
+      }
+    }
+    ctx.globalAlpha = 1;
   }
 
-  ctx.fillStyle="#111"; ctx.fillRect(0,0,innerWidth,innerHeight);
-
-  ctx.fillStyle="#fff";
-  ctx.font="14px 'Press Start 2P'";
-  ctx.textAlign="center";
-  ctx.fillText("TRUDGE THE ROAD",innerWidth/2,36);
-
-  ctx.textAlign="left";
-  ctx.font="10px 'Press Start 2P'";
-  ctx.fillText("STEP "+(stepIndex+1)+" / 12",12,90);
-
-  obstacles.forEach(o=>{
-    ctx.strokeStyle="#f44";
-    ctx.strokeRect(o.x,o.y,o.w,o.h);
-    ctx.fillText(o.label.toUpperCase(),o.x+10,o.y+30);
-  });
-
-  bonuses.forEach(b=>{
-    ctx.strokeStyle="#f8a";
-    ctx.strokeRect(b.x,b.y,b.w,b.h);
-    ctx.fillText(b.label.toUpperCase(),b.x+10,b.y+28);
-  });
-
-  stepTokens.forEach(s=>{
-    ctx.strokeStyle="#fff";
-    ctx.strokeRect(s.x,s.y,s.w,s.h);
-    ctx.fillText(s.label.toUpperCase(),s.x+10,s.y+30);
-  });
-
-  if (runnerReady){
-    runnerTick++;
-    if (runnerTick%20===0) runnerFrame=(runnerFrame+1)%RUNNER_FRAMES;
-    const sw=runnerImg.width/RUNNER_FRAMES;
-    ctx.drawImage(runnerImg,sw*runnerFrame,0,sw,runnerImg.height,player.x,player.y,player.w,player.h);
+  /* =========================
+     CLOUD PATTERNS (precomputed, faster & nicer)
+  ========================= */
+  function buildCloudPattern(w, h){
+    const puffs = [];
+    const cx = w/2, cy = h/2;
+    const count = 14;
+    for (let i=0;i<count;i++){
+      const angle = (i / count) * Math.PI * 2;
+      const rx = (w * 0.28) + (Math.random()*w*0.06);
+      const ry = (h * 0.22) + (Math.random()*h*0.06);
+      const px = cx + Math.cos(angle)*rx + (Math.random()*10 - 5);
+      const py = cy + Math.sin(angle)*ry + (Math.random()*8 - 4);
+      const r  = 16 + Math.random()*16;
+      puffs.push({x:px, y:py, r});
+    }
+    for (let i=0;i<8;i++){
+      puffs.push({
+        x: cx + (Math.random()*w*0.36 - w*0.18),
+        y: cy + (Math.random()*h*0.32 - h*0.16),
+        r: 12 + Math.random()*12
+      });
+    }
+    const sparks = [];
+    for (let i=0;i<10;i++){
+      sparks.push({x: Math.random()*w, y: Math.random()*h});
+    }
+    return { puffs, sparks };
   }
 
-  if (banner){
+  function drawCloud(x, y, w, h, cloud, alpha=1, micro=false){
+    ctx.globalAlpha = (micro ? 0.10 : 0.16) * alpha;
+    ctx.fillStyle = "rgba(255,105,180,1)";
+    ctx.fillRect(x-(micro?10:18), y-(micro?10:16), w+(micro?20:36), h+(micro?20:32));
+
+    ctx.globalAlpha = (micro ? 0.30 : 0.34) * alpha;
+    ctx.fillStyle = "rgba(255,105,180,1)";
+    for (const p of cloud.puffs){
+      ctx.beginPath();
+      ctx.arc(x+p.x, y+p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.globalAlpha = 0.95 * alpha;
+    ctx.strokeStyle = "rgba(255,180,220,0.95)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, w, h);
+    ctx.lineWidth = 1;
+
+    ctx.globalAlpha = 0.70 * alpha;
+    ctx.fillStyle = "rgba(255,240,250,1)";
+    for (const s of cloud.sparks){
+      ctx.fillRect((x+s.x)|0, (y+s.y)|0, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* =========================
+     STATE
+  ========================= */
+  let lives = MAX_LIVES;
+  let lastObstacleLabel = "something";
+  let stepIndex = 0; // next required step index (0..11)
+  let obstaclesPassed = 0;
+  let clearArmed = false;
+
+  const obstacles = [];
+  const bonuses = [];
+  const microClouds = [];
+  const stepTokens = [];
+
+  /* =========================
+     BANNERS (queue — prevents "not working" overwrites)
+  ========================= */
+  const bannerQueue = [];
+  let banner = null; // {kind,title,sub,t,ttl}
+
+  function pushBanner(kind, title, sub="", ttl=170){
+    bannerQueue.push({kind, title, sub, t:0, ttl});
+    if (!banner) banner = bannerQueue.shift();
+    slowMo = (kind === "bad") ? 85 : 65;
+  }
+
+  function tickBanner(){
+    if (!banner) return;
     banner.t++;
-    ctx.fillStyle="rgba(0,0,0,.8)";
-    ctx.fillRect(innerWidth/2-320,120,640,120);
-    ctx.strokeStyle="#fff";
-    ctx.strokeRect(innerWidth/2-320,120,640,120);
-    ctx.textAlign="center";
-    ctx.font="16px 'Press Start 2P'";
-    ctx.fillText(banner.text,innerWidth/2,170);
-    ctx.font="12px 'Press Start 2P'";
-    ctx.fillText(banner.sub,innerWidth/2,210);
-    if (banner.t>140) banner=null;
+    if (banner.t >= banner.ttl){
+      banner = bannerQueue.shift() || null;
+    }
   }
 
-  if (mode==="gameover"){
-    ctx.fillStyle="rgba(0,0,0,.85)";
+  /* =========================
+     AUDIO (starts on first tap/keypress)
+  ========================= */
+  let musicArmed = false;
+  function startMusic(){
+    if (!bgm) return;
+    if (bgm.paused){
+      bgm.volume = 0.22; // subtle
+      bgm.play().catch(()=>{});
+    }
+  }
+
+  /* =========================
+     INPUT (one button: cycle lanes)
+  ========================= */
+  function onTap(){
+    startMusic();
+
+    if (mode === "title"){ startCountdown(); return; }
+    if (mode === "gameover" || mode === "ending"){
+      setMode("title");
+      return;
+    }
+    if (mode !== "play") return;
+
+    player.laneTarget = (player.laneTarget + 1) % LANE_COUNT;
+  }
+
+  addEventListener("keydown", e => { if (e.code === "Space") onTap(); });
+  addEventListener("mousedown", onTap, {passive:true});
+  addEventListener("touchstart", onTap, {passive:true});
+
+  pauseBtn.onclick = () => {
+    if (mode === "play"){
+      bgm && bgm.pause();
+      setMode("pause");
+    } else if (mode === "pause"){
+      bgm && bgm.play().catch(()=>{});
+      setMode("play");
+    }
+  };
+
+  /* =========================
+     TITLE / COUNTDOWN
+  ========================= */
+  let titleTimer = 0;
+  let countdownTimer = 0;
+  let countdownValue = 3;
+
+  function startCountdown(){
+    resetRun(true);
+    countdownValue = 3;
+    countdownTimer = 0;
+    setMode("countdown");
+  }
+
+  /* =========================
+     SPEED / RESET
+  ========================= */
+  function currentSpeed(){
+    let s = BASE_SPEED + prestigeSpeedBoost;
+    s += stepIndex * 0.20;
+    s += Math.min(1.6, obstaclesPassed * 0.0026);
+    s = Math.min(MAX_SPEED + prestigeSpeedBoost, s);
+
+    if (slowTimer > 0) s *= 0.72;
+    if (slowMo > 0) s *= 0.35;
+    if (warmupFrames < WARMUP_TOTAL) s *= 0.88;
+
+    return s;
+  }
+
+  function resetRun(keepPrestige=true){
+    lives = MAX_LIVES;
+    lastObstacleLabel = "something";
+    stepIndex = 0;
+
+    obstacles.length = 0;
+    bonuses.length = 0;
+    microClouds.length = 0;
+    stepTokens.length = 0;
+
+    obstaclesPassed = 0;
+
+    warmupFrames = 0;
+    invuln = 0;
+    slowTimer = 0;
+    slowMo = 0;
+    clearArmed = false;
+
+    obstacleGapPx = 560;
+    bonusGapPx = 1000;
+    microGapPx = 520;
+    stepCooldown = 60 * 8;
+    stepSpawnBias = 0;
+
+    bannerQueue.length = 0;
+    banner = null;
+
+    const lanes = laneYCenters();
+    player.lane = 1;
+    player.laneTarget = 1;
+    player.y = lanes[1] - player.h/2;
+
+    if (!keepPrestige){
+      prestige = 0;
+      prestigeSpeedBoost = 0;
+    }
+
+    pushBanner("good", "TRUDGE THE ROAD", "Go through the steps IN ORDER", 190);
+    const s1 = steps[0];
+    pushBanner("good", `STEP ${s1.n} — ${s1.p}`, "Gather the big pink clouds.", 190);
+  }
+
+  /* =========================
+     SPAWN HELPERS
+  ========================= */
+  function rand(arr){ return arr[(Math.random()*arr.length)|0]; }
+
+  function sizeForLabel(label, minW, maxW, h){
+    const extra = Math.min(360, Math.max(0, (label.length - 10) * 11));
+    const w = Math.min(maxW, minW + extra);
+    return { w, h };
+  }
+
+  function spawnObstacle(labelOverride=null, laneOverride=null, xOverride=null){
+    const label = labelOverride || rand(obstaclesPool);
+    const lanes = laneYCenters();
+    const lane = (laneOverride !== null) ? laneOverride : ((Math.random() * LANE_COUNT) | 0);
+    const { w, h } = sizeForLabel(label, 220, 540, 46);
+
+    // avoid placing directly on top of another obstacle in same lane nearby
+    const x = (xOverride !== null) ? xOverride : (innerWidth + 90);
+    const tooClose = obstacles.some(o => o.lane === lane && Math.abs(o.x - x) < 220);
+    if (tooClose) return;
+
+    obstacles.push({
+      x,
+      y: lanes[lane] - h/2,
+      w, h,
+      label,
+      lane,
+      passed:false
+    });
+  }
+
+  function spawnBonus(){
+    const b = rand(bonusesPool);
+    const lanes = laneYCenters();
+    const r = Math.random();
+    const lane = r < 0.55 ? 1 : (r < 0.78 ? 0 : 2);
+
+    const { w, h } = sizeForLabel(b.label, 280, 580, 42);
+    bonuses.push({
+      x: innerWidth + 90,
+      y: lanes[lane] - h/2,
+      w, h,
+      lane,
+      type: b.type,
+      label: b.label,
+      cloud: buildCloudPattern(w, h)
+    });
+  }
+
+  function spawnMicroCloud(){
+    const lanes = laneYCenters();
+    const lane = (Math.random() * LANE_COUNT) | 0;
+
+    const w = 110, h = 40;
+    microClouds.push({
+      x: innerWidth + 90,
+      y: lanes[lane] - h/2,
+      w, h,
+      lane,
+      cloud: buildCloudPattern(w, h)
+    });
+  }
+
+  function spawnStepToken(){
+    if (stepIndex >= 12) return;
+
+    const next = steps[stepIndex];
+    const label = `STEP ${next.n} — ${next.p}`;
+    const lanes = laneYCenters();
+    const lane = (Math.random() * LANE_COUNT) | 0;
+
+    const { w, h } = sizeForLabel(label, 360, 760, 52);
+    const x = innerWidth + 110;
+
+    stepTokens.push({
+      x,
+      y: lanes[lane] - h/2,
+      w, h,
+      lane,
+      label,
+      cloud: buildCloudPattern(w, h)
+    });
+
+    // Step Gauntlet Lite: 2 guards in the other lanes, before & after
+    const other1 = (lane + 1) % 3;
+    const other2 = (lane + 2) % 3;
+    spawnObstacle(null, other1, x - 220);
+    spawnObstacle(null, other2, x + 220);
+  }
+
+  /* =========================
+     COLLISION
+  ========================= */
+  function aabb(ax, ay, aw, ah, bx, by, bw, bh){
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  }
+
+  /* =========================
+     DRAW HELPERS
+  ========================= */
+  function drawHeader(){
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = "rgba(0,0,0,0.60)";
+    ctx.fillRect(0, 0, innerWidth, 62);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.beginPath();
+    ctx.moveTo(0, 62);
+    ctx.lineTo(innerWidth, 62);
+    ctx.stroke();
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.font = "14px 'Press Start 2P'";
+    ctx.fillText("TRUDGE THE ROAD", innerWidth/2, 38);
+
+    ctx.font = "10px 'Press Start 2P'";
+    ctx.textAlign = "left";
+    ctx.fillText(`STEP ${Math.min(12, stepIndex+1)} / 12`, 12, 86);
+
+    ctx.textAlign = "right";
+    ctx.fillText("Go through steps IN ORDER", innerWidth - 12, 86);
+
+    ctx.textAlign = "left";
+    ctx.globalAlpha = 1;
+  }
+
+  function drawDangerObstacle(o){
+    const x=o.x, y=o.y, w=o.w, h=o.h;
+
+    ctx.fillStyle = "rgba(255,0,0,0.12)";
+    ctx.fillRect(x-8, y-6, w+16, h+12);
+
+    ctx.fillStyle = "#0b0b0b";
+    ctx.strokeStyle = "rgba(255,80,80,0.9)";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    const spikes = 10;
+    const step = w / spikes;
+    ctx.moveTo(x, y+h);
+    for (let i=0;i<=spikes;i++){
+      const px = x + i*step;
+      const py = (i%2===0) ? y : (y + 12);
+      ctx.lineTo(px, py);
+    }
+    ctx.lineTo(x+w, y+h);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.lineWidth = 1;
+
+    ctx.font = "12px 'Press Start 2P'";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(o.label.toUpperCase(), x + w/2, y + h/2 + 8);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawBonus(b){
+    drawCloud(b.x, b.y, b.w, b.h, b.cloud, 1, false);
+    ctx.font = "12px 'Press Start 2P'";
+    ctx.fillStyle = "rgba(255,245,250,1)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(b.label.toUpperCase(), b.x + b.w/2, b.y + b.h/2 + 2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawStepToken(tk){
+    drawCloud(tk.x, tk.y, tk.w, tk.h, tk.cloud, 1, false);
+    ctx.strokeStyle = "rgba(255,255,255,0.35)";
+    ctx.strokeRect(tk.x-4, tk.y-4, tk.w+8, tk.h+8);
+
+    ctx.font = "13px 'Press Start 2P'";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(tk.label.toUpperCase(), tk.x + tk.w/2, tk.y + tk.h/2 + 2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawMicroCloud(m){
+    drawCloud(m.x, m.y, m.w, m.h, m.cloud, 0.95, true);
+    ctx.font = "12px 'Press Start 2P'";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("☁", m.x + m.w/2, m.y + m.h/2 + 2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawRunner(){
+    if (!runnerReady){
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+      return;
+    }
+
+    // animate sprite sheet
+    runnerTick++;
+    const frameEvery = Math.max(1, Math.floor(60 / RUNNER_FPS));
+    if (runnerTick % frameEvery === 0){
+      runnerFrame = (runnerFrame + 1) % Math.max(1, RUNNER_FRAMES);
+    }
+
+    const imgW = runnerImg.width;
+    const imgH = runnerImg.height;
+    let sx = 0, sy = 0, sw = imgW, sh = imgH;
+
+    if (RUNNER_FRAMES > 1){
+      sw = Math.floor(imgW / RUNNER_FRAMES);
+      sx = sw * runnerFrame;
+    }
+
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(runnerImg, sx, sy, sw, sh, player.x, player.y, player.w, player.h);
+  }
+
+  function drawLivesHUD(){
+    const startX = 12, y = 96;
+    const sizeW = 16, sizeH = 20, gap = 6;
+
+    for (let i = 0; i < MAX_LIVES; i++){
+      const x = startX + i * (sizeW + gap);
+      if (i < lives){
+        if (runnerReady){
+          // tiny runner head as life icon (frame 0)
+          const imgW = runnerImg.width;
+          const imgH = runnerImg.height;
+          let sw = imgW, sx = 0;
+          if (RUNNER_FRAMES > 1){
+            sw = Math.floor(imgW / RUNNER_FRAMES);
+            sx = 0;
+          }
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(runnerImg, sx, 0, sw, imgH, x, y, sizeW, sizeH);
+        } else {
+          ctx.font = "16px 'Press Start 2P'";
+          ctx.fillStyle = "#fff";
+          ctx.fillText("🧍", x, y+16);
+        }
+      } else {
+        ctx.strokeStyle = "#333";
+        ctx.strokeRect(x, y, sizeW, sizeH);
+      }
+    }
+  }
+
+  function drawBanner(){
+    if (!banner) return;
+
+    const t = banner.t;
+    const ttl = banner.ttl;
+    const fadeIn = Math.min(1, t / 18);
+    const fadeOut = Math.min(1, (ttl - t) / 18);
+    const alpha = Math.max(0, Math.min(1, Math.min(fadeIn, fadeOut)));
+
+    ctx.globalAlpha = 0.92 * alpha;
+
+    const boxW = Math.min(innerWidth - 40, 920);
+    const boxH = 132;
+    const bx = (innerWidth - boxW)/2;
+    const by = 120;
+
+    ctx.fillStyle =
+      (banner.kind === "bad") ? "rgba(70,0,0,0.78)" :
+      (banner.kind === "good") ? "rgba(0,40,0,0.72)" :
+      "rgba(0,0,0,0.72)";
+    ctx.fillRect(bx, by, boxW, boxH);
+
+    ctx.strokeStyle =
+      (banner.kind === "bad") ? "rgba(255,80,80,0.88)" :
+      (banner.kind === "good") ? "rgba(120,255,140,0.82)" :
+      "rgba(255,255,255,0.18)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bx, by, boxW, boxH);
+    ctx.lineWidth = 1;
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#fff";
+
+    ctx.font = "16px 'Press Start 2P'";
+    ctx.fillText(banner.title, innerWidth/2, by + 52);
+
+    if (banner.sub){
+      ctx.font = "12px 'Press Start 2P'";
+      ctx.fillText(banner.sub, innerWidth/2, by + 92);
+    }
+
+    ctx.textAlign = "left";
+    ctx.globalAlpha = 1;
+  }
+
+  function drawOverlay(lines){
+    ctx.fillStyle="rgba(0,0,0,0.86)";
     ctx.fillRect(0,0,innerWidth,innerHeight);
+
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
-    ctx.font="12px 'Press Start 2P'";
-    ctx.fillText("GAME OVER",innerWidth/2,innerHeight/2);
-    ctx.fillText("Press to try again",innerWidth/2,innerHeight/2+40);
+    ctx.font="11px 'Press Start 2P'";
+    let y = innerHeight/2 - 90;
+    for (const line of lines){
+      ctx.fillText(line, innerWidth/2, y);
+      y += 22;
+    }
+    ctx.font="10px 'Press Start 2P'";
+    ctx.fillText("Press Space / Tap", innerWidth/2, y + 30);
+    ctx.textAlign="left";
   }
 
-  if (mode==="ending"){
-    ctx.fillStyle="rgba(0,0,0,.85)";
+  /* =========================
+     UPDATE LOOP
+  ========================= */
+  function updateTitle(){
+    titleTimer++;
+  }
+
+  function updateCountdown(){
+    countdownTimer++;
+    if (countdownTimer % 60 === 0){
+      countdownValue--;
+      if (countdownValue < 0) setMode("play");
+    }
+  }
+
+  function updatePlay(){
+    warmupFrames++;
+
+    if (invuln > 0) invuln--;
+    if (slowTimer > 0) slowTimer--;
+    if (slowMo > 0) slowMo--;
+
+    // move to target lane smoothly
+    const lanes = laneYCenters();
+    const targetY = lanes[player.laneTarget] - player.h/2;
+    const dy = targetY - player.y;
+    player.y += dy * LANE_SNAP;
+    if (Math.abs(dy) < 1.0){
+      player.y = targetY;
+      player.lane = player.laneTarget;
+    }
+
+    const spd = currentSpeed();
+
+    // step pacing
+    if (stepCooldown > 0) stepCooldown--;
+    else stepSpawnBias += 1;
+
+    // move objects
+    for (const o of obstacles) o.x -= spd;
+    for (const b of bonuses) b.x -= spd;
+    for (const s of stepTokens) s.x -= spd;
+    for (const m of microClouds) m.x -= spd;
+
+    // clear effect: clear next trap in your lane
+    if (clearArmed){
+      const next = obstacles.find(o => o.x > player.x && o.x < player.x + 460 && o.lane === player.lane);
+      if (next){
+        next.x = -9999;
+        clearArmed = false;
+        pushBanner("good", "WRITE IT DOWN", "Cleared one trap.", 160);
+      }
+    }
+
+    // player hitbox
+    const rx = player.x + 14;
+    const ry = player.y + 10;
+    const rw = player.w - 26;
+    const rh = player.h - 18;
+
+    // obstacle collisions
+    for (const o of obstacles){
+      if (o.lane !== player.lane) continue;
+
+      const ox = o.x + 16;
+      const oy = o.y + 10;
+      const ow = Math.max(2, o.w - 32);
+      const oh = Math.max(2, o.h - 18);
+
+      if (invuln === 0 && aabb(rx, ry, rw, rh, ox, oy, ow, oh)){
+        lives--;
+        lastObstacleLabel = o.label;
+        invuln = 90;
+        o.x = -9999;
+
+        pushBanner("bad", `YOU CAUGHT: ${lastObstacleLabel.toUpperCase()}`, "-1 LIFE", 175);
+
+        if (lives <= 0){
+          setMode("gameover");
+          return;
+        }
+      }
+
+      if (!o.passed && (o.x + o.w) < player.x){
+        o.passed = true;
+        obstaclesPassed++;
+      }
+    }
+
+    // bonus collisions
+    for (const b of bonuses){
+      if (b.lane !== player.lane) continue;
+
+      const bx = b.x + 16;
+      const by = b.y + 10;
+      const bw = Math.max(2, b.w - 32);
+      const bh = Math.max(2, b.h - 18);
+
+      if (aabb(rx, ry, rw, rh, bx, by, bw, bh)){
+        if (b.type === "life"){
+          const before = lives;
+          lives = Math.min(MAX_LIVES, lives + 1);
+          pushBanner("good", b.label.toUpperCase(), (lives>before ? "+1 LIFE" : "LIVES FULL"), 175);
+        } else if (b.type === "slow"){
+          slowTimer = 300;
+          pushBanner("good", b.label.toUpperCase(), "SLOWING DOWN.", 170);
+        } else if (b.type === "clear"){
+          clearArmed = true;
+          pushBanner("good", b.label.toUpperCase(), "NEXT TRAP CLEARS.", 170);
+        }
+        b.x = -9999;
+      }
+    }
+
+    // micro-cloud collisions (calm)
+    for (const m of microClouds){
+      if (m.lane !== player.lane) continue;
+
+      const mx = m.x + 10;
+      const my = m.y + 8;
+      const mw = m.w - 20;
+      const mh = m.h - 16;
+
+      if (aabb(rx, ry, rw, rh, mx, my, mw, mh)){
+        slowTimer = Math.max(slowTimer, 90);
+        pushBanner("good", "PINK CLOUD", rand(calmWhispers), 140);
+        m.x = -9999;
+      }
+    }
+
+    // step token collisions (in order)
+    for (const s of stepTokens){
+      if (s.lane !== player.lane) continue;
+
+      const sx = s.x + 18;
+      const sy = s.y + 12;
+      const sw = Math.max(2, s.w - 36);
+      const sh = Math.max(2, s.h - 22);
+
+      if (aabb(rx, ry, rw, rh, sx, sy, sw, sh)){
+        stepIndex++;
+        s.x = -9999;
+
+        if (stepIndex < 12){
+          const got = steps[stepIndex-1];
+          pushBanner("good", `STEP ${got.n} — ${got.p}`, "Nice. Keep moving.", 190);
+          stepCooldown = 60 * (26 + (Math.random()*16|0));
+          stepSpawnBias = 0;
+        } else {
+          setMode("ending");
+          return;
+        }
+      }
+    }
+
+    // CLEANUP (this is the clump fix)
+    for (let i = obstacles.length - 1; i >= 0; i--){
+      if (obstacles[i].x < -1400) obstacles.splice(i, 1);
+    }
+    for (let i = bonuses.length - 1; i >= 0; i--){
+      if (bonuses[i].x < -1400) bonuses.splice(i, 1);
+    }
+    for (let i = stepTokens.length - 1; i >= 0; i--){
+      if (stepTokens[i].x < -1600) stepTokens.splice(i, 1);
+    }
+    for (let i = microClouds.length - 1; i >= 0; i--){
+      if (microClouds[i].x < -900) microClouds.splice(i, 1);
+    }
+
+    // SPAWN (distance-based gaps — prevents overlap/clumps)
+    obstacleGapPx -= spd;
+    bonusGapPx -= spd;
+    microGapPx -= spd;
+
+    const inWarmup = warmupFrames < WARMUP_TOTAL;
+
+    if (obstacleGapPx <= 0){
+      spawnObstacle();
+      const base = inWarmup ? 600 : 420;
+      const spread = inWarmup ? 320 : 260;
+      obstacleGapPx = base + ((Math.random() * spread) | 0);
+
+      // after warmup, occasional second trap shortly after (adds spice)
+      if (!inWarmup && Math.random() < 0.18){
+        const laneA = (Math.random()*LANE_COUNT)|0;
+        const laneB = (laneA + 1 + ((Math.random()*2)|0)) % LANE_COUNT;
+        spawnObstacle(null, laneB, innerWidth + 90 + 280);
+      }
+    }
+
+    if (bonusGapPx <= 0 && Math.random() < (inWarmup ? 0.55 : 0.42)){
+      spawnBonus();
+      bonusGapPx = 980 + ((Math.random() * 560) | 0);
+    }
+
+    if (microGapPx <= 0 && Math.random() < (inWarmup ? 0.70 : 0.55)){
+      spawnMicroCloud();
+      microGapPx = (inWarmup ? 520 : 620) + ((Math.random() * 420) | 0);
+    }
+
+    if (stepIndex < 12 && stepTokens.length === 0 && stepCooldown <= 0){
+      const chance = Math.min(0.018 + stepSpawnBias * 0.00008, 0.075);
+      if (Math.random() < chance){
+        spawnStepToken();
+        stepCooldown = 60 * (18 + (Math.random()*12|0));
+        stepSpawnBias = 0;
+
+        const next = steps[stepIndex];
+        pushBanner("status", `NEXT: STEP ${next.n} — ${next.p}`, "Find the big pink cloud.", 170);
+      }
+    }
+
+    // banner ticking
+    tickBanner();
+  }
+
+  function update(){
+    if (mode === "title") return updateTitle();
+    if (mode === "countdown") return updateCountdown();
+    if (mode === "pause") return;
+    if (mode === "gameover") return;
+    if (mode === "ending") return;
+    if (mode === "play") return updatePlay();
+  }
+
+  /* =========================
+     DRAW SCREENS
+  ========================= */
+  function drawTitle(){
+    ctx.fillStyle = "#000";
     ctx.fillRect(0,0,innerWidth,innerHeight);
+    drawStarfield(0.6);
+
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
-    ctx.font="12px 'Press Start 2P'";
-    ctx.fillText("YOU GOT THROUGH THE 12 STEPS.",innerWidth/2,innerHeight/2-20);
-    ctx.fillText("NOW DO IT AGAIN.",innerWidth/2,innerHeight/2+20);
-  }
-}
 
-function loop(){
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-loop();
+    ctx.font="28px 'Press Start 2P'";
+    ctx.fillText("TRUDGE", innerWidth/2, innerHeight/2 - 110);
+    ctx.fillText("THE ROAD", innerWidth/2, innerHeight/2 - 70);
+
+    ctx.font="10px 'Press Start 2P'";
+    ctx.fillText("avoid the traps, gather the pink clouds", innerWidth/2, innerHeight/2 - 22);
+    ctx.fillText("go through the steps IN ORDER", innerWidth/2, innerHeight/2 + 4);
+
+    ctx.font="10px 'Press Start 2P'";
+    ctx.fillText("Rocketed into the 4th dimension in...", innerWidth/2, innerHeight/2 + 34);
+
+    const blink = ((titleTimer/18)|0) % 2 === 0;
+    if (blink) ctx.fillText("PRESS SPACE / TAP", innerWidth/2, innerHeight/2 + 84);
+
+    ctx.font="9px 'Press Start 2P'";
+    ctx.fillText("TAP = CHANGE LANES", innerWidth/2, innerHeight/2 + 112);
+
+    ctx.textAlign="left";
+  }
+
+  function drawCountdown(){
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,innerWidth,innerHeight);
+    drawStarfield(1.0);
+
+    ctx.fillStyle="#fff";
+    ctx.textAlign="center";
+
+    ctx.font="14px 'Press Start 2P'";
+    ctx.fillText("ROCKETED INTO THE 4TH DIMENSION IN...", innerWidth/2, innerHeight/2 - 120);
+
+    const show = (countdownValue >= 1) ? String(countdownValue) : (countdownValue === 0 ? "GO!" : "");
+    ctx.font="56px 'Press Start 2P'";
+    ctx.fillText(show, innerWidth/2, innerHeight/2 - 20);
+
+    ctx.font="10px 'Press Start 2P'";
+    ctx.fillText("SPACE/TAP = CHANGE LANES", innerWidth/2, innerHeight/2 + 80);
+
+    ctx.textAlign="left";
+  }
+
+  function drawPlayfield(){
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,innerWidth,innerHeight);
+
+    drawStarfield(currentSpeed());
+    drawHeader();
+
+    // objects
+    for (const o of obstacles) drawDangerObstacle(o);
+    for (const b of bonuses) drawBonus(b);
+    for (const s of stepTokens) drawStepToken(s);
+    for (const m of microClouds) drawMicroCloud(m);
+
+    // runner
+    drawRunner();
+
+    // invuln hint
+    if (invuln > 0){
+      ctx.globalAlpha = 0.16;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(player.x - 10, player.y - 10, player.w + 20, player.h + 20);
+      ctx.globalAlpha = 1;
+    }
+
+    drawLivesHUD();
+    drawBanner();
+  }
+
+  function drawPause(){
+    drawOverlay(["PAUSED", "", "Take a breath."]);
+  }
+
+  function drawGameOver(){
+    drawOverlay([
+      `YOU CAUGHT: ${lastObstacleLabel.toUpperCase()}`,
+      "GAME OVER",
+      "",
+      "Try again — or don’t.",
+      "We’ll be here."
+    ]);
+  }
+
+  function drawEnding(){
+    drawOverlay([
+      "YOU GOT THROUGH THE 12 STEPS.",
+      "NOW DO IT AGAIN.",
+      "",
+      "NEXT RUN = FASTER ROAD."
+    ]);
+  }
+
+  function draw(){
+    if (mode === "title") return drawTitle();
+    if (mode === "countdown") return drawCountdown();
+
+    drawPlayfield();
+
+    if (mode === "pause") return drawPause();
+    if (mode === "gameover") return drawGameOver();
+    if (mode === "ending") return drawEnding();
+  }
+
+  /* =========================
+     ENDING / TRY AGAIN (New Game+)
+  ========================= */
+  function handleTryAgainFromEnding(){
+    prestige++;
+    prestigeSpeedBoost = Math.min(2.0, prestige * 0.30);
+  }
+
+  const _setMode = setMode;
+  setMode = (m) => {
+    if (mode === "ending" && m === "title"){
+      handleTryAgainFromEnding();
+    }
+    _setMode(m);
+  };
+
+  /* =========================
+     MAIN LOOP
+  ========================= */
+  resetRun(true);
+  setMode("title");
+
+  function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+  loop();
 
 })();
 </script>
