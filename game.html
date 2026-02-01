@@ -5,1218 +5,288 @@
 <title>Trudge the Road</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<style>
-  html, body{
-    margin:0; padding:0; height:100%;
-    background:#000; overflow:hidden;
-    font-family:"Press Start 2P", monospace;
-    touch-action: none; /* important for drag on mobile */
-  }
-  canvas{ display:block; width:100vw; height:100vh; }
 
-  #pauseBtn{
-    position:fixed; bottom:10px; left:50%; transform:translateX(-50%);
-    font-family:"Press Start 2P", monospace; font-size:10px;
-    padding:10px 14px; background:#111; color:#fff;
-    border:1px solid #444; border-radius:10px; opacity:.93; z-index:10;
-    display:none;
-  }
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  background:#000;
+  overflow:hidden;
+  font-family:"Press Start 2P", monospace;
+  touch-action:none;
+}
+canvas{
+  width:100vw;
+  height:100vh;
+  display:block;
+}
 </style>
 </head>
+
 <body>
-
 <canvas id="game"></canvas>
-
-<audio id="bgm" loop preload="auto">
-  <source src="E-Lot%20-%208-Bit%20Boss.mp3" type="audio/mpeg">
-</audio>
-
-<button id="pauseBtn">PAUSE / BREATHE</button>
 
 <script>
 (() => {
-  const canvas = document.getElementById("game");
-  const ctx = canvas.getContext("2d");
-  const bgm = document.getElementById("bgm");
-  const pauseBtn = document.getElementById("pauseBtn");
 
-  // draw using CSS pixels
-  let W = 0, H = 0;
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-  function resize(){
-    const rect = canvas.getBoundingClientRect();
-    W = Math.max(1, Math.floor(rect.width));
-    H = Math.max(1, Math.floor(rect.height));
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    canvas.width  = Math.floor(W * dpr);
-    canvas.height = Math.floor(H * dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  addEventListener("resize", resize);
-  resize();
+let W=0, H=0;
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resize);
+resize();
 
-  /* =========================
-     SPRITE (runner.png)
-  ========================= */
-  const runnerImg = new Image();
-  runnerImg.src = "./runner.png";
-  let runnerReady = false;
-  runnerImg.onload = () => runnerReady = true;
+/* =========================
+   RUNNER
+========================= */
+const runnerImg = new Image();
+runnerImg.src = "./runner.png";
+let runnerReady = false;
+runnerImg.onload = () => runnerReady = true;
 
-  /* =========================
-     MODES
-  ========================= */
-  let mode = "title"; // title | countdown | play | pause | gameover | ending
-  function setMode(m){
-    mode = m;
-    pauseBtn.style.display = (mode === "play" || mode === "pause") ? "block" : "none";
-  }
+/* =========================
+   GAME STATE
+========================= */
+let mode = "title"; // title | play | win | gameover
 
-  /* =========================
-     CONSTANTS
-  ========================= */
-  const MAX_LIVES = 5;
-  const LANE_COUNT = 3;
-  const LANE_SNAP = 0.36;
+const MAX_LIVES = 5;
+let lives = MAX_LIVES;
 
-  const BASE_SPEED = 3.7;
-  const MAX_SPEED  = 7.5;
+const steps = [
+  "HONESTY","HOPE","FAITH","COURAGE","INTEGRITY","WILLINGNESS",
+  "HUMILITY","BROTHERLY LOVE","DISCIPLINE","PERSEVERANCE",
+  "SPIRITUAL AWARENESS","SERVICE"
+];
+let stepIndex = 0;
 
-  const WARMUP_TOTAL = 60 * 15;
-  let warmupFrames = 0;
+/* =========================
+   PLAYER (YOU ARE BILL)
+========================= */
+const player = {
+  x: 120,
+  y: H/2,
+  w: 100,
+  h: 140,
+  vy: 0
+};
 
-  let prestige = 0;
-  let prestigeSpeedBoost = 0;
+const CENTER_Y = () => H/2;
+const EDGE_PADDING = 80;
 
-  // spacing (distance-based)
-  let obstacleGapPx = 560;
-  let bonusGapPx = 1000;
-  let microGapPx = 520;
-  let stepCooldown = 60 * 8;
-  let stepSpawnBias = 0;
+/* =========================
+   TOUCH CONTROL (FREE + COMFY)
+========================= */
+let dragging = false;
+let fingerY = null;
 
-  // effects
-  let invuln = 0;
-  let slowTimer = 0;
-  let slowMo = 0;
+canvas.addEventListener("pointerdown", e=>{
+  if(mode==="title"){ mode="play"; return; }
+  if(mode==="gameover"||mode==="win"){ resetGame(); return; }
+  dragging = true;
+  fingerY = e.clientY;
+});
 
-  /* =========================
-     PLAYER (runner ~20% bigger)
-  ========================= */
-  const player = {
-    x: 140,
-    y: 0,
-    w: Math.round(86 * 1.2),
-    h: Math.round(114 * 1.2),
-    lane: 1,
-    laneTarget: 1
-  };
+canvas.addEventListener("pointermove", e=>{
+  if(!dragging) return;
+  fingerY = e.clientY - 60; // offset so thumb doesn't cover Bill
+});
 
-  function laneYCenters(){
-    const top = Math.max(120, Math.floor(H * 0.28));
-    const bottom = Math.min(H - 120, Math.floor(H * 0.78));
-    const gap = (bottom - top) / (LANE_COUNT - 1);
-    return [top, top + gap, bottom];
-  }
+canvas.addEventListener("pointerup", ()=>{
+  dragging = false;
+  fingerY = null;
+});
 
-  /* =========================
-     DRAG GHOST INPUT (mobile-first)
-     - Drag to choose lane (ghost)
-     - Release to snap
-  ========================= */
-  let dragging = false;
-  let dragPointerId = null;
-  let ghostLane = 1;
+/* =========================
+   BANNER (NO BACKLOG)
+========================= */
+let banner = null;
+let bannerTimer = 0;
 
-  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+function showBanner(text, time=60){
+  banner = text;
+  bannerTimer = time;
+}
 
-  function nearestLaneFromY(y){
-    const lanes = laneYCenters();
-    let best = 0, bestD = Infinity;
-    for (let i=0;i<lanes.length;i++){
-      const d = Math.abs(lanes[i] - y);
-      if (d < bestD){ bestD = d; best = i; }
-    }
-    return best;
-  }
+/* =========================
+   CELEBRATION
+========================= */
+let confetti = [];
 
-  function startMusic(){
-    if (!bgm) return;
-    if (bgm.paused){
-      bgm.volume = 0.22;
-      bgm.play().catch(()=>{});
-    }
-  }
-
-  function startCountdown(){
-    resetRun(true);
-    countdownValue = 3;
-    countdownTimer = 0;
-    setMode("countdown");
-  }
-
-  function pointerDown(e){
-    // make sure we get consistent move/up
-    canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
-
-    startMusic();
-
-    if (mode === "title"){ startCountdown(); return; }
-    if (mode === "gameover" || mode === "ending"){
-      setMode("title");
-      return;
-    }
-    if (mode !== "play") return;
-
-    dragging = true;
-    dragPointerId = e.pointerId;
-
-    // use pointer Y to select a "ghost lane"
-    const lanes = laneYCenters();
-    const y = e.clientY; // CSS pixels
-    ghostLane = nearestLaneFromY(y);
-
-    // if you start dragging near your current lane, keep it stable
-    ghostLane = clamp(ghostLane, 0, LANE_COUNT - 1);
-  }
-
-  function pointerMove(e){
-    if (!dragging) return;
-    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
-    if (mode !== "play") return;
-
-    const y = e.clientY;
-    ghostLane = clamp(nearestLaneFromY(y), 0, LANE_COUNT - 1);
-  }
-
-  function pointerUp(e){
-    if (!dragging) return;
-    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
-
-    if (mode === "play"){
-      // release snaps to the chosen lane
-      player.laneTarget = ghostLane;
-    }
-
-    dragging = false;
-    dragPointerId = null;
-  }
-
-  canvas.addEventListener("pointerdown", pointerDown, {passive:true});
-  canvas.addEventListener("pointermove", pointerMove, {passive:true});
-  canvas.addEventListener("pointerup", pointerUp, {passive:true});
-  canvas.addEventListener("pointercancel", pointerUp, {passive:true});
-
-  pauseBtn.onclick = () => {
-    if (mode === "play"){
-      bgm && bgm.pause();
-      setMode("pause");
-    } else if (mode === "pause"){
-      bgm && bgm.play().catch(()=>{});
-      setMode("play");
-    }
-  };
-
-  /* =========================
-     CONTENT
-  ========================= */
-  const obstaclesPool = [
-    "Anger","Resentment","Fear","Self-pity","Anxiety","Guilt","Shame",
-    "Ego","Overthinking","Self-obsession","Self-righteousness","Control",
-    "People-pleasing","Comparison","Relationship drama","Family conflict",
-    "Isolation","Unsaid resentment","Not speaking up","Old friends",
-    "Work stress","Money worries","Time pressure","Social media","Home chaos","Traffic",
-    "Complacency","Dishonesty","Not listening","Selective hearing",
-    "Not asking for help","Emotional numbness","Avoidance","Confusion","Uncertainty",
-    "Restless","Irritable","Discontent","Catastrophizing","Projection"
-  ];
-
-  const bonusesPool = [
-    { label:"Go to a meeting", type:"life" },
-    { label:"Call a friend", type:"life" },
-    { label:"Call your sponsor", type:"life" },
-    { label:"Pray / pause", type:"slow" },
-    { label:"Write it down", type:"clear" }
-  ];
-
-  const steps = [
-    { n: 1, p: "HONESTY" },
-    { n: 2, p: "HOPE" },
-    { n: 3, p: "FAITH" },
-    { n: 4, p: "COURAGE" },
-    { n: 5, p: "INTEGRITY" },
-    { n: 6, p: "WILLINGNESS" },
-    { n: 7, p: "HUMILITY" },
-    { n: 8, p: "BROTHERLY LOVE" },
-    { n: 9, p: "DISCIPLINE" },
-    { n:10, p: "PERSEVERANCE" },
-    { n:11, p: "SPIRITUAL AWARENESS" },
-    { n:12, p: "SERVICE" }
-  ];
-
-  const calmWhispers = [
-    "Breathe.",
-    "You’re not alone.",
-    "Easy does it.",
-    "Keep it simple.",
-    "Stay in the middle.",
-    "Just for today."
-  ];
-
-  /* =========================
-     STATE
-  ========================= */
-  let lives = MAX_LIVES;
-  let lastObstacleLabel = "something";
-  let stepIndex = 0;
-  let obstaclesPassed = 0;
-  let clearArmed = false;
-
-  const obstacles = [];
-  const bonuses = [];
-  const microClouds = [];
-  const stepTokens = [];
-
-  /* =========================
-     BANNERS (queue)
-  ========================= */
-  const bannerQueue = [];
-  let banner = null;
-
-  function pushBanner(kind, title, sub="", ttl=170){
-    bannerQueue.push({ kind, title, sub, t:0, ttl });
-    if (!banner) banner = bannerQueue.shift();
-    slowMo = (kind === "bad") ? 85 : 65;
-  }
-
-  function tickBanner(){
-    if (!banner) return;
-    banner.t += 1;
-    if (banner.t >= banner.ttl){
-      banner = bannerQueue.shift() || null;
-    }
-  }
-
-  /* =========================
-     TITLE / COUNTDOWN
-  ========================= */
-  let titleTimer = 0;
-  let countdownTimer = 0;
-  let countdownValue = 3;
-
-  /* =========================
-     HELPERS
-  ========================= */
-  function rand(arr){ return arr[(Math.random()*arr.length)|0]; }
-
-  function aabb(ax, ay, aw, ah, bx, by, bw, bh){
-    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
-  }
-
-  function sizeForLabel(label, minW, maxW, h){
-    const extra = Math.min(360, Math.max(0, (label.length - 10) * 11));
-    const w = Math.min(maxW, minW + extra);
-    return { w, h };
-  }
-
-  function currentSpeed(){
-    let s = BASE_SPEED + prestigeSpeedBoost;
-    s += stepIndex * 0.20;
-    s += Math.min(1.6, obstaclesPassed * 0.0026);
-    s = Math.min(MAX_SPEED + prestigeSpeedBoost, s);
-
-    if (slowTimer > 0) s *= 0.72;
-    if (slowMo > 0) s *= 0.35;
-    if (warmupFrames < WARMUP_TOTAL) s *= 0.88;
-
-    return s;
-  }
-
-  // Canvas text wrapping (Option A)
-  function wrapLines(text, maxWidth){
-    const words = String(text || "").split(/\s+/).filter(Boolean);
-    const lines = [];
-    let line = "";
-
-    for (const w of words){
-      const test = line ? (line + " " + w) : w;
-      if (ctx.measureText(test).width <= maxWidth){
-        line = test;
-      } else {
-        if (line) lines.push(line);
-        line = w;
-      }
-    }
-    if (line) lines.push(line);
-    return lines;
-  }
-
-  function drawWrappedCentered(text, centerX, startY, maxWidth, lineHeight){
-    const lines = wrapLines(text, maxWidth);
-    let y = startY;
-    for (const ln of lines){
-      ctx.fillText(ln, centerX, y);
-      y += lineHeight;
-    }
-    return lines.length;
-  }
-
-  /* =========================
-     STARFIELD
-  ========================= */
-  const stars = [];
-  const STAR_CHARS = [".",".",".","*","+","·","˙"];
-
-  function initStars(){
-    stars.length = 0;
-    const count = Math.min(220, Math.floor((W * H) / 7000));
-    for (let i=0;i<count;i++){
-      stars.push({
-        x: Math.random()*W,
-        y: Math.random()*H,
-        z: 0.4 + Math.random()*1.6,
-        ch: STAR_CHARS[(Math.random()*STAR_CHARS.length)|0],
-        tw: Math.random()*1000
-      });
-    }
-  }
-  initStars();
-  addEventListener("resize", () => { resize(); initStars(); });
-
-  function drawStarfield(scrollSpeed){
-    ctx.fillStyle = "#fff";
-    ctx.font = "10px 'Press Start 2P'";
-    for (const s of stars){
-      s.x -= scrollSpeed * 0.35 * s.z;
-      s.tw += 1;
-      if (s.x < -10){
-        s.x = W + 10;
-        s.y = Math.random()*H;
-        s.z = 0.4 + Math.random()*1.6;
-      }
-      const a = 0.26 + 0.42 * (0.5 + 0.5 * Math.sin((s.tw/35) + s.y*0.02));
-      ctx.globalAlpha = a;
-
-      if (s.ch === "." || s.ch === "·" || s.ch === "˙"){
-        ctx.fillRect(s.x|0, s.y|0, 2, 2);
-      } else {
-        ctx.fillText(s.ch, s.x|0, s.y|0);
-      }
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  /* =========================
-     CLOUD LOOK
-     - Bonuses: light blue
-     - Micro (inspiration): pink
-  ========================= */
-  function buildCloudPattern(w, h){
-    const puffs = [];
-    const cx = w/2, cy = h/2;
-    const count = 14;
-    for (let i=0;i<count;i++){
-      const angle = (i / count) * Math.PI * 2;
-      const rx = (w * 0.28) + (Math.random()*w*0.06);
-      const ry = (h * 0.22) + (Math.random()*h*0.06);
-      const px = cx + Math.cos(angle)*rx + (Math.random()*10 - 5);
-      const py = cy + Math.sin(angle)*ry + (Math.random()*8 - 4);
-      const r  = 16 + Math.random()*16;
-      puffs.push({x:px, y:py, r});
-    }
-    for (let i=0;i<8;i++){
-      puffs.push({
-        x: cx + (Math.random()*w*0.36 - w*0.18),
-        y: cy + (Math.random()*h*0.32 - h*0.16),
-        r: 12 + Math.random()*12
-      });
-    }
-    const sparks = [];
-    for (let i=0;i<10;i++){
-      sparks.push({x: Math.random()*w, y: Math.random()*h});
-    }
-    return { puffs, sparks };
-  }
-
-  function drawCloud(x, y, w, h, cloud, alpha=1, micro=false, theme="pink"){
-    const isBlue = (theme === "blue");
-    const fill = isBlue ? "rgba(126,203,255,1)" : "rgba(255,105,180,1)";
-    const stroke = isBlue ? "rgba(190,235,255,0.95)" : "rgba(255,180,220,0.95)";
-    const spark = isBlue ? "rgba(240,250,255,1)" : "rgba(255,240,250,1)";
-
-    ctx.globalAlpha = (micro ? 0.10 : 0.16) * alpha;
-    ctx.fillStyle = fill;
-    ctx.fillRect(x-(micro?10:18), y-(micro?10:16), w+(micro?20:36), h+(micro?20:32));
-
-    ctx.globalAlpha = (micro ? 0.30 : 0.34) * alpha;
-    ctx.fillStyle = fill;
-    for (const p of cloud.puffs){
-      ctx.beginPath();
-      ctx.arc(x+p.x, y+p.y, p.r, 0, Math.PI*2);
-      ctx.fill();
-    }
-
-    ctx.globalAlpha = 0.95 * alpha;
-    ctx.strokeStyle = stroke;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x, y, w, h);
-    ctx.lineWidth = 1;
-
-    ctx.globalAlpha = 0.70 * alpha;
-    ctx.fillStyle = spark;
-    for (const s of cloud.sparks){
-      ctx.fillRect((x+s.x)|0, (y+s.y)|0, 2, 2);
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  /* =========================
-     SPAWN (clump-proof)
-  ========================= */
-  function spawnObstacle(labelOverride=null, laneOverride=null, xOverride=null){
-    const label = labelOverride || rand(obstaclesPool);
-    const lanes = laneYCenters();
-    const lane = (laneOverride !== null) ? laneOverride : ((Math.random() * LANE_COUNT) | 0);
-    const { w, h } = sizeForLabel(label, 220, 540, 46);
-    const x = (xOverride !== null) ? xOverride : (W + 90);
-
-    const tooClose = obstacles.some(o => o.lane === lane && Math.abs(o.x - x) < Math.max(260, w * 0.80));
-    if (tooClose) return;
-
-    obstacles.push({
-      x,
-      y: lanes[lane] - h/2,
-      w, h,
-      label,
-      lane,
-      passed:false
+function spawnConfetti(){
+  for(let i=0;i<80;i++){
+    confetti.push({
+      x: Math.random()*W,
+      y: H+20,
+      vy: -4 - Math.random()*4,
+      vx: -2 + Math.random()*4,
+      emoji: Math.random()>0.5 ? "🪙" : "✨"
     });
   }
-
-  function spawnBonus(){
-    const b = rand(bonusesPool);
-    const lanes = laneYCenters();
-    const r = Math.random();
-    const lane = r < 0.55 ? 1 : (r < 0.78 ? 0 : 2);
-
-    const { w, h } = sizeForLabel(b.label, 280, 580, 42);
-    bonuses.push({
-      x: W + 90,
-      y: lanes[lane] - h/2,
-      w, h,
-      lane,
-      type: b.type,
-      label: b.label,
-      cloud: buildCloudPattern(w, h)
-    });
-  }
-
-  function spawnMicroCloud(){
-    const lanes = laneYCenters();
-    const lane = (Math.random() * LANE_COUNT) | 0;
-    const w = 110, h = 40;
-    microClouds.push({
-      x: W + 90,
-      y: lanes[lane] - h/2,
-      w, h,
-      lane,
-      cloud: buildCloudPattern(w, h)
-    });
-  }
-
-  function spawnStepToken(){
-    if (stepIndex >= 12) return;
-
-    const next = steps[stepIndex];
-    const label = `STEP ${next.n} — ${next.p}`;
-    const lanes = laneYCenters();
-    const lane = (Math.random() * LANE_COUNT) | 0;
-
-    const { w, h } = sizeForLabel(label, 360, 760, 52);
-    const x = W + 110;
-
-    stepTokens.push({
-      x,
-      y: lanes[lane] - h/2,
-      w, h,
-      lane,
-      label
-    });
-
-    const guardLane = (lane + 1 + ((Math.random()*2)|0)) % 3;
-    spawnObstacle(null, guardLane, x - 220);
-  }
-
-  /* =========================
-     RESET
-  ========================= */
-  function resetRun(keepPrestige=true){
-    lives = MAX_LIVES;
-    lastObstacleLabel = "something";
-    stepIndex = 0;
-
-    obstacles.length = 0;
-    bonuses.length = 0;
-    microClouds.length = 0;
-    stepTokens.length = 0;
-
-    obstaclesPassed = 0;
-
-    warmupFrames = 0;
-    invuln = 0;
-    slowTimer = 0;
-    slowMo = 0;
-    clearArmed = false;
-
-    obstacleGapPx = 560;
-    bonusGapPx = 1000;
-    microGapPx = 520;
-    stepCooldown = 60 * 8;
-    stepSpawnBias = 0;
-
-    bannerQueue.length = 0;
-    banner = null;
-
-    const lanes = laneYCenters();
-    player.lane = 1;
-    player.laneTarget = 1;
-    player.y = lanes[1] - player.h/2;
-
-    dragging = false;
-    dragPointerId = null;
-    ghostLane = 1;
-
-    if (!keepPrestige){
-      prestige = 0;
-      prestigeSpeedBoost = 0;
-    }
-
-    pushBanner("good", "TRUDGE THE ROAD", "Go through the steps IN ORDER", 190);
-    const s1 = steps[0];
-    pushBanner("good", `STEP ${s1.n} — ${s1.p}`, "Find the STEP card.", 190);
-  }
-
-  /* =========================
-     DRAW
-  ========================= */
-  function drawHeader(){
-    ctx.globalAlpha = 0.95;
-    ctx.fillStyle = "rgba(0,0,0,0.60)";
-    ctx.fillRect(0, 0, W, 62);
-
-    ctx.strokeStyle = "rgba(255,255,255,0.12)";
-    ctx.beginPath();
-    ctx.moveTo(0, 62);
-    ctx.lineTo(W, 62);
-    ctx.stroke();
-
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.font = "14px 'Press Start 2P'";
-    ctx.fillText("TRUDGE THE ROAD", W/2, 38);
-
-    ctx.font = "10px 'Press Start 2P'";
-    ctx.textAlign = "left";
-    ctx.fillText(`STEP ${Math.min(12, stepIndex+1)} / 12`, 12, 86);
-
-    ctx.textAlign = "right";
-    ctx.fillText("Steps IN ORDER", W - 12, 86);
-
-    ctx.textAlign = "left";
-    ctx.globalAlpha = 1;
-  }
-
-  function drawDangerObstacle(o){
-    const x=o.x, y=o.y, w=o.w, h=o.h;
-
-    ctx.fillStyle = "rgba(255,0,0,0.12)";
-    ctx.fillRect(x-8, y-6, w+16, h+12);
-
-    ctx.fillStyle = "#0b0b0b";
-    ctx.strokeStyle = "rgba(255,80,80,0.9)";
-    ctx.lineWidth = 2;
-
-    ctx.beginPath();
-    const spikes = 10;
-    const step = w / spikes;
-    ctx.moveTo(x, y+h);
-    for (let i=0;i<=spikes;i++){
-      const px = x + i*step;
-      const py = (i%2===0) ? y : (y + 12);
-      ctx.lineTo(px, py);
-    }
-    ctx.lineTo(x+w, y+h);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.lineWidth = 1;
-
-    // obstacle font size (you asked earlier): 12px
-    ctx.font = "12px 'Press Start 2P'";
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(o.label.toUpperCase(), x + w/2, y + h/2 + 8);
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-  }
-
-  function drawBonus(b){
-    // Action clouds: light blue
-    drawCloud(b.x, b.y, b.w, b.h, b.cloud, 1, false, "blue");
-    ctx.font = "12px 'Press Start 2P'";
-    ctx.fillStyle = "rgba(10,20,30,0.95)";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(b.label.toUpperCase(), b.x + b.w/2, b.y + b.h/2 + 2);
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-  }
-
-  function drawStepToken(tk){
-    ctx.globalAlpha = 0.92;
-    ctx.fillStyle = "rgba(255,255,255,0.92)";
-    ctx.fillRect(tk.x, tk.y, tk.w, tk.h);
-
-    ctx.globalAlpha = 1;
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = "rgba(0,0,0,0.85)";
-    ctx.strokeRect(tk.x, tk.y, tk.w, tk.h);
-
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "rgba(0,0,0,0.35)";
-    ctx.strokeRect(tk.x+4, tk.y+4, tk.w-8, tk.h-8);
-
-    ctx.font = "13px 'Press Start 2P'";
-    ctx.fillStyle = "rgba(0,0,0,0.92)";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(tk.label.toUpperCase(), tk.x + tk.w/2, tk.y + tk.h/2 + 1);
-
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-  }
-
-  function drawMicroCloud(m){
-    // Pink clouds: inspiration only
-    drawCloud(m.x, m.y, m.w, m.h, m.cloud, 0.95, true, "pink");
-    ctx.font = "12px 'Press Start 2P'";
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText("☁", m.x + m.w/2, m.y + m.h/2 + 2);
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-  }
-
-  function drawRunnerAt(x, y, alpha=1){
-    if (!runnerReady){
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(x, y, player.w, player.h);
-      ctx.globalAlpha = 1;
-      return;
-    }
-    ctx.globalAlpha = alpha;
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(runnerImg, 0, 0, runnerImg.width, runnerImg.height, x, y, player.w, player.h);
-    ctx.globalAlpha = 1;
-  }
-
-  function drawRunner(){
-    drawRunnerAt(player.x, player.y, 1);
-  }
-
-  function drawGhost(){
-    if (!dragging) return;
-    const lanes = laneYCenters();
-    const gy = lanes[ghostLane] - player.h/2;
-
-    // ghost: a slightly transparent runner + light outline
-    drawRunnerAt(player.x, gy, 0.45);
-
-    ctx.globalAlpha = 0.55;
-    ctx.strokeStyle = "rgba(255,255,255,0.55)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(player.x-2, gy-2, player.w+4, player.h+4);
-    ctx.lineWidth = 1;
-    ctx.globalAlpha = 1;
-  }
-
-  function drawLivesHUD(){
-    const startX = 12, y = 96;
-    const sizeW = 16, sizeH = 20, gap = 6;
-
-    for (let i = 0; i < MAX_LIVES; i++){
-      const x = startX + i * (sizeW + gap);
-      if (i < lives){
-        if (runnerReady){
-          ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(runnerImg, 0, 0, runnerImg.width, runnerImg.height, x, y, sizeW, sizeH);
-        } else {
-          ctx.font = "16px 'Press Start 2P'";
-          ctx.fillStyle = "#fff";
-          ctx.fillText("🧍", x, y+16);
-        }
-      } else {
-        ctx.strokeStyle = "#333";
-        ctx.strokeRect(x, y, sizeW, sizeH);
-      }
-    }
-  }
-
-  function drawBanner(){
-    if (!banner) return;
-
-    const t = banner.t || 0;
-    const ttl = banner.ttl || 160;
-    const fadeIn = Math.min(1, t / 18);
-    const fadeOut = Math.min(1, (ttl - t) / 18);
-    const alpha = Math.max(0, Math.min(1, Math.min(fadeIn, fadeOut)));
-
-    ctx.globalAlpha = 0.92 * alpha;
-
-    const boxW = Math.min(W - 40, 920);
-    const boxH = 132;
-    const bx = (W - boxW)/2;
-    const by = 120;
-
-    ctx.fillStyle =
-      (banner.kind === "bad") ? "rgba(70,0,0,0.78)" :
-      (banner.kind === "good") ? "rgba(0,40,0,0.72)" :
-      "rgba(0,0,0,0.72)";
-    ctx.fillRect(bx, by, boxW, boxH);
-
-    ctx.strokeStyle =
-      (banner.kind === "bad") ? "rgba(255,80,80,0.88)" :
-      (banner.kind === "good") ? "rgba(120,255,140,0.82)" :
-      "rgba(255,255,255,0.18)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(bx, by, boxW, boxH);
-    ctx.lineWidth = 1;
-
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#fff";
-
-    ctx.font = "16px 'Press Start 2P'";
-    ctx.fillText(String(banner.title || ""), W/2, by + 52);
-
-    if (banner.sub){
-      ctx.font = "12px 'Press Start 2P'";
-      ctx.fillText(String(banner.sub), W/2, by + 92);
-    }
-
-    ctx.textAlign = "left";
-    ctx.globalAlpha = 1;
-  }
-
-  function drawOverlay(lines){
-    ctx.fillStyle="rgba(0,0,0,0.86)";
-    ctx.fillRect(0,0,W,H);
-
-    ctx.fillStyle="#fff";
-    ctx.textAlign="center";
-    ctx.font="11px 'Press Start 2P'";
-    let y = H/2 - 90;
-    for (const line of lines){
-      ctx.fillText(line, W/2, y);
-      y += 22;
-    }
-    ctx.font="10px 'Press Start 2P'";
-    ctx.fillText("TAP TO CONTINUE", W/2, y + 30);
-    ctx.textAlign="left";
-  }
-
-  /* =========================
-     UPDATE
-  ========================= */
-  function updateTitle(){ titleTimer++; }
-
-  function updateCountdown(){
-    countdownTimer++;
-    if (countdownTimer % 60 === 0){
-      countdownValue--;
-      if (countdownValue < 0) setMode("play");
-    }
-  }
-
-  function updatePlay(){
-    warmupFrames++;
-
-    if (invuln > 0) invuln--;
-    if (slowTimer > 0) slowTimer--;
-    if (slowMo > 0) slowMo--;
-
-    const lanes = laneYCenters();
-    const targetY = lanes[player.laneTarget] - player.h/2;
-    const dy = targetY - player.y;
-    player.y += dy * LANE_SNAP;
-    if (Math.abs(dy) < 1.0){
-      player.y = targetY;
-      player.lane = player.laneTarget;
-    }
-
-    const spd = currentSpeed();
-
-    if (stepCooldown > 0) stepCooldown--;
-    else stepSpawnBias += 1;
-
-    for (const o of obstacles) o.x -= spd;
-    for (const b of bonuses) b.x -= spd;
-    for (const s of stepTokens) s.x -= spd;
-    for (const m of microClouds) m.x -= spd;
-
-    // Clear effect: clears next trap in your lane
-    if (clearArmed){
-      const next = obstacles.find(o => o.x > player.x && o.x < player.x + 460 && o.lane === player.lane);
-      if (next){
-        next.x = -9999;
-        clearArmed = false;
-        pushBanner("good", "WRITE IT DOWN", "Cleared one trap.", 160);
-      }
-    }
-
-    // Slightly smaller hitbox
-    const rx = player.x + 20;
-    const ry = player.y + 18;
-    const rw = player.w - 40;
-    const rh = player.h - 34;
-
-    // Obstacles
-    for (const o of obstacles){
-      if (o.lane !== player.lane) continue;
-
-      const ox = o.x + 22;
-      const oy = o.y + 12;
-      const ow = Math.max(2, o.w - 44);
-      const oh = Math.max(2, o.h - 22);
-
-      if (invuln === 0 && aabb(rx, ry, rw, rh, ox, oy, ow, oh)){
-        lives--;
-        lastObstacleLabel = o.label;
-        invuln = 90;
-        o.x = -9999;
-
-        pushBanner("bad", `${lastObstacleLabel.toUpperCase()} TOOK YOU OUT`, "-1 LIFE", 175);
-
-        if (lives <= 0){
-          setMode("gameover");
-          return;
-        }
-      }
-
-      if (!o.passed && (o.x + o.w) < player.x){
-        o.passed = true;
-        obstaclesPassed++;
-      }
-    }
-
-    // Bonuses (blue action clouds)
-    for (const b of bonuses){
-      if (b.lane !== player.lane) continue;
-
-      const bx = b.x + 18;
-      const by = b.y + 10;
-      const bw = Math.max(2, b.w - 36);
-      const bh = Math.max(2, b.h - 18);
-
-      if (aabb(rx, ry, rw, rh, bx, by, bw, bh)){
-        if (b.type === "life"){
-          const before = lives;
-          lives = Math.min(MAX_LIVES, lives + 1);
-          pushBanner("good", b.label.toUpperCase(), (lives>before ? "+1 LIFE" : "LIVES FULL"), 175);
-        } else if (b.type === "slow"){
-          slowTimer = 300;
-          pushBanner("good", b.label.toUpperCase(), "SLOWING DOWN.", 170);
-        } else if (b.type === "clear"){
-          clearArmed = true;
-          pushBanner("good", b.label.toUpperCase(), "NEXT TRAP CLEARS.", 170);
-        }
-        b.x = -9999;
-      }
-    }
-
-    // Micro-clouds (pink inspiration)
-    for (const m of microClouds){
-      if (m.lane !== player.lane) continue;
-
-      const mx = m.x + 12;
-      const my = m.y + 8;
-      const mw = m.w - 24;
-      const mh = m.h - 16;
-
-      if (aabb(rx, ry, rw, rh, mx, my, mw, mh)){
-        slowTimer = Math.max(slowTimer, 90);
-        pushBanner("good", "PINK CLOUD", rand(calmWhispers), 140);
-        m.x = -9999;
-      }
-    }
-
-    // Steps (IN ORDER)
-    for (const s of stepTokens){
-      if (s.lane !== player.lane) continue;
-
-      const sx = s.x + 12;
-      const sy = s.y + 10;
-      const sw = Math.max(2, s.w - 24);
-      const sh = Math.max(2, s.h - 20);
-
-      if (aabb(rx, ry, rw, rh, sx, sy, sw, sh)){
-        stepIndex++;
-        s.x = -9999;
-
-        if (stepIndex < 12){
-          const got = steps[stepIndex-1];
-          pushBanner("good", `STEP ${got.n} — ${got.p}`, "Nice. Keep moving.", 190);
-          stepCooldown = 60 * (26 + (Math.random()*16|0));
-          stepSpawnBias = 0;
-        } else {
-          setMode("ending");
-          return;
-        }
-      }
-    }
-
-    // CLEANUP
-    for (let i = obstacles.length - 1; i >= 0; i--){
-      if (obstacles[i].x < -1600) obstacles.splice(i, 1);
-    }
-    for (let i = bonuses.length - 1; i >= 0; i--){
-      if (bonuses[i].x < -1600) bonuses.splice(i, 1);
-    }
-    for (let i = stepTokens.length - 1; i >= 0; i--){
-      if (stepTokens[i].x < -1800) stepTokens.splice(i, 1);
-    }
-    for (let i = microClouds.length - 1; i >= 0; i--){
-      if (microClouds[i].x < -1200) microClouds.splice(i, 1);
-    }
-
-    // SPAWN (distance gaps)
-    obstacleGapPx -= spd;
-    bonusGapPx -= spd;
-    microGapPx -= spd;
-
-    const inWarmup = warmupFrames < WARMUP_TOTAL;
-    const stepOnScreen = stepTokens.length > 0;
-
-    if (obstacleGapPx <= 0){
-      spawnObstacle();
-      const base = inWarmup ? 600 : 420;
-      const spread = inWarmup ? 320 : 260;
-      obstacleGapPx = base + ((Math.random() * spread) | 0);
-
-      if (!inWarmup && Math.random() < 0.18){
-        const laneA = (Math.random()*LANE_COUNT)|0;
-        const laneB = (laneA + 1 + ((Math.random()*2)|0)) % LANE_COUNT;
-        spawnObstacle(null, laneB, W + 90 + 280);
-      }
-    }
-
-    // When a STEP is present, stop spawning extra clouds/bonuses
-    if (!stepOnScreen){
-      if (bonusGapPx <= 0 && Math.random() < (inWarmup ? 0.55 : 0.42)){
-        spawnBonus();
-        bonusGapPx = 980 + ((Math.random() * 560) | 0);
-      }
-
-      if (microGapPx <= 0 && Math.random() < (inWarmup ? 0.70 : 0.55)){
-        spawnMicroCloud();
-        microGapPx = (inWarmup ? 520 : 620) + ((Math.random() * 420) | 0);
-      }
+}
+
+/* =========================
+   RESET
+========================= */
+function resetGame(){
+  lives = MAX_LIVES;
+  stepIndex = 0;
+  mode = "title";
+  confetti = [];
+}
+
+/* =========================
+   UPDATE
+========================= */
+function update(){
+
+  if(mode==="play"){
+
+    // FOLLOW FINGER
+    if(fingerY!==null){
+      player.y += (fingerY - player.y) * 0.25;
     } else {
-      bonusGapPx = Math.max(bonusGapPx, 80);
-      microGapPx = Math.max(microGapPx, 80);
+      // gentle drift to center
+      player.y += (CENTER_Y() - player.y) * 0.02;
     }
 
-    if (stepIndex < 12 && stepTokens.length === 0 && stepCooldown <= 0){
-      const chance = Math.min(0.018 + stepSpawnBias * 0.00008, 0.075);
-      if (Math.random() < chance){
-        spawnStepToken();
-        stepCooldown = 60 * (18 + (Math.random()*12|0));
-        stepSpawnBias = 0;
+    // soft edges
+    if(player.y < EDGE_PADDING){
+      player.y += (EDGE_PADDING - player.y) * 0.2;
+    }
+    if(player.y > H-EDGE_PADDING){
+      player.y -= (player.y - (H-EDGE_PADDING)) * 0.2;
+    }
 
-        const next = steps[stepIndex];
-        pushBanner("status", `NEXT: STEP ${next.n} — ${next.p}`, "Find the STEP card.", 170);
+    // fake step progression for demo feel
+    if(Math.random()<0.004){
+      stepIndex++;
+      showBanner(`STEP ${stepIndex} — ${steps[stepIndex-1]}`, 50);
+      if(stepIndex>=12){
+        mode="win";
+        spawnConfetti();
       }
     }
-
-    tickBanner();
   }
 
-  function update(){
-    if (mode === "title") return updateTitle();
-    if (mode === "countdown") return updateCountdown();
-    if (mode === "pause") return;
-    if (mode === "gameover") return;
-    if (mode === "ending") return;
-    if (mode === "play") return updatePlay();
+  if(bannerTimer>0) bannerTimer--;
+  else banner=null;
+
+  // confetti physics
+  confetti.forEach(c=>{
+    c.y += c.vy;
+    c.x += c.vx;
+  });
+}
+
+/* =========================
+   DRAW HELPERS
+========================= */
+function drawTextBox(x,y,w,h){
+  ctx.fillStyle="rgba(255,255,255,0.95)";
+  ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle="#000";
+  ctx.lineWidth=3;
+  ctx.strokeRect(x,y,w,h);
+}
+
+function wrapText(text,x,y,maxW,lineH){
+  const words = text.split(" ");
+  let line="";
+  for(let i=0;i<words.length;i++){
+    const test = line+words[i]+" ";
+    if(ctx.measureText(test).width>maxW){
+      ctx.fillText(line,x,y);
+      line=words[i]+" ";
+      y+=lineH;
+    } else line=test;
   }
+  ctx.fillText(line,x,y);
+}
 
-  /* =========================
-     DRAW SCREENS
-  ========================= */
-  function drawTitle(){
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0,0,W,H);
-    drawStarfield(0.6);
+/* =========================
+   DRAW
+========================= */
+function draw(){
+  ctx.clearRect(0,0,W,H);
 
+  if(mode==="title"){
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
-
     ctx.font="28px 'Press Start 2P'";
-    ctx.fillText("TRUDGE", W/2, H/2 - 170);
-    ctx.fillText("THE ROAD", W/2, H/2 - 130);
+    ctx.fillText("TRUDGE",W/2,120);
+    ctx.fillText("THE ROAD",W/2,160);
 
-    // White instruction card
-    const cardW = Math.min(W - 40, 920);
-    const cardH = 170;
-    const cx = (W - cardW)/2;
-    const cy = H/2 - 95;
+    const boxW = Math.min(W-40,700);
+    drawTextBox((W-boxW)/2,200,boxW,220);
 
-    ctx.globalAlpha = 0.95;
-    ctx.fillStyle = "rgba(255,255,255,0.95)";
-    ctx.fillRect(cx, cy, cardW, cardH);
-
-    ctx.globalAlpha = 1;
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = "rgba(0,0,0,0.85)";
-    ctx.strokeRect(cx, cy, cardW, cardH);
-
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "rgba(0,0,0,0.35)";
-    ctx.strokeRect(cx+4, cy+4, cardW-8, cardH-8);
-
-    ctx.fillStyle = "rgba(0,0,0,0.92)";
-    ctx.textAlign = "left";
-    ctx.font = "11px 'Press Start 2P'";
-    let y = cy + 44;
-    ctx.fillText("GOAL: Go through the Steps IN ORDER", cx + 18, y);
-    y += 46;
-    ctx.fillText("Pitfalls: Lose a life", cx + 18, y);
-    y += 46;
-    ctx.fillText("Actions (blue clouds): Gain a life", cx + 18, y);
-
-    // Rocketed line (wrapped) under the card
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#fff";
-    ctx.font="10px 'Press Start 2P'";
-    const maxW = Math.floor(W * 0.86);
-    drawWrappedCentered("Rocketed into the 4th dimension in...", W/2, cy + cardH + 38, maxW, 18);
-
-    // Tap to start
-    const blink = ((titleTimer/18)|0) % 2 === 0;
-    if (blink){
-      ctx.font="12px 'Press Start 2P'";
-      ctx.fillText("TAP TO START", W/2, cy + cardH + 96);
-    }
-
-    ctx.textAlign="left";
-  }
-
-  function drawCountdown(){
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0,0,W,H);
-    drawStarfield(1.0);
+    ctx.fillStyle="#000";
+    ctx.font="11px 'Press Start 2P'";
+    wrapText("GOAL: Go through the Steps IN ORDER", (W-boxW)/2+20,240,boxW-40,28);
+    wrapText("Pitfalls: Lose a life", (W-boxW)/2+20,300,boxW-40,28);
+    wrapText("Actions (blue clouds): Gain a life", (W-boxW)/2+20,360,boxW-40,28);
 
     ctx.fillStyle="#fff";
-    ctx.textAlign="center";
+    ctx.font="12px 'Press Start 2P'";
+    ctx.fillText("TAP TO START",W/2,470);
+  }
 
-    ctx.font="14px 'Press Start 2P'";
-    const maxW = Math.floor(W * 0.86);
-    drawWrappedCentered("ROCKETED INTO THE 4TH DIMENSION IN...", W/2, H/2 - 128, maxW, 22);
-
-    const show = (countdownValue >= 1) ? String(countdownValue) : (countdownValue === 0 ? "GO!" : "");
-    ctx.font="56px 'Press Start 2P'";
-    ctx.fillText(show, W/2, H/2 - 20);
-
+  if(mode==="play"){
+    // HUD
+    ctx.fillStyle="#fff";
+    ctx.font="12px 'Press Start 2P'";
     ctx.textAlign="left";
-  }
+    ctx.fillText(`STEP ${stepIndex+1} / 12`,20,30);
+    ctx.textAlign="right";
+    ctx.fillText(steps[stepIndex]||"",W-20,30);
 
-  function drawPlayfield(){
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0,0,W,H);
-
-    drawStarfield(currentSpeed());
-    drawHeader();
-
-    for (const o of obstacles) drawDangerObstacle(o);
-    for (const b of bonuses) drawBonus(b);
-    for (const s of stepTokens) drawStepToken(s);
-    for (const m of microClouds) drawMicroCloud(m);
-
-    // ghost draws first so real runner stays "real"
-    drawGhost();
-    drawRunner();
-
-    drawLivesHUD();
-    drawBanner();
-
-    // small hint during play (only when dragging once in a while would be better, but keeping it minimal)
-    // (left intentionally quiet)
-  }
-
-  function drawPause(){
-    drawOverlay(["PAUSED", "", "Take a breath."]);
-  }
-
-  function drawGameOver(){
-    drawOverlay([
-      `${lastObstacleLabel.toUpperCase()} TOOK YOU OUT`,
-      "GAME OVER",
-      "",
-      "Try again — or don’t.",
-      "We’ll be here."
-    ]);
-  }
-
-  function drawEnding(){
-    drawOverlay([
-      "YOU GOT THROUGH THE 12 STEPS.",
-      "NOW DO IT AGAIN.",
-      "",
-      "NEXT RUN = FASTER ROAD."
-    ]);
-  }
-
-  function draw(){
-    if (mode === "title") return drawTitle();
-    if (mode === "countdown") return drawCountdown();
-
-    drawPlayfield();
-
-    if (mode === "pause") return drawPause();
-    if (mode === "gameover") return drawGameOver();
-    if (mode === "ending") return drawEnding();
-  }
-
-  /* =========================
-     ENDING / TRY AGAIN (New Game+)
-  ========================= */
-  function handleTryAgainFromEnding(){
-    prestige++;
-    prestigeSpeedBoost = Math.min(2.0, prestige * 0.30);
-  }
-
-  const _setMode = setMode;
-  setMode = (m) => {
-    if (mode === "ending" && m === "title"){
-      handleTryAgainFromEnding();
+    // PLAYER
+    if(runnerReady){
+      ctx.drawImage(runnerImg,0,0,runnerImg.width,runnerImg.height,
+        player.x,player.y-player.h/2,player.w,player.h);
+    } else {
+      ctx.fillRect(player.x,player.y-70,80,120);
     }
-    _setMode(m);
-  };
 
-  /* =========================
-     MAIN LOOP
-  ========================= */
-  resetRun(true);
-  setMode("title");
-
-  function loop(){
-    update();
-    draw();
-    requestAnimationFrame(loop);
+    // BANNER
+    if(banner){
+      ctx.fillStyle="rgba(0,0,0,0.75)";
+      ctx.fillRect(W/2-220,80,440,60);
+      ctx.fillStyle="#fff";
+      ctx.textAlign="center";
+      ctx.font="12px 'Press Start 2P'";
+      ctx.fillText(banner,W/2,120);
+    }
   }
-  loop();
+
+  if(mode==="win"){
+    ctx.fillStyle="#fff";
+    ctx.textAlign="center";
+    ctx.font="16px 'Press Start 2P'";
+    ctx.fillText("YOU MADE IT THROUGH THE STEPS!",W/2,120);
+
+    confetti.forEach(c=>{
+      ctx.font="20px serif";
+      ctx.fillText(c.emoji,c.x,c.y);
+    });
+
+    ctx.font="12px 'Press Start 2P'";
+    ctx.fillText("TAP TO PLAY AGAIN",W/2,H-60);
+  }
+}
+
+/* =========================
+   LOOP
+========================= */
+function loop(){
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
 
 })();
 </script>
