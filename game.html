@@ -117,7 +117,7 @@
 
   // effects
   let invuln = 0;
-  let slowTimer = 0;
+  let slowTimer = 0; // frames remaining for meditation calm
 
   // intro rules overlay (start of gameplay)
   const INTRO_HOLD = 60 * 4;  // 4 seconds
@@ -260,7 +260,7 @@
     s += Math.min(1.2, obstaclesPassed * 0.0022);
     s = Math.min(MAX_SPEED + prestigeSpeedBoost, s);
 
-    if (slowTimer > 0) s *= 0.65;           // prayer/meditation slows life down
+    if (slowTimer > 0) s *= 0.55;           // noticeable calm (meditation)
     if (warmupFrames < WARMUP_TOTAL) s *= 0.86;
 
     return s;
@@ -345,7 +345,6 @@ ${PASS_URL}`;
     }
   }
   initStars();
-  addEventListener("resize", () => { resize(); initStars(); });
 
   function drawStarfield(scrollSpeed){
     ctx.fillStyle = "#fff";
@@ -369,6 +368,67 @@ ${PASS_URL}`;
     }
     ctx.globalAlpha = 1;
   }
+
+  // ===== meditation sky (simple blue + pixel clouds) =====
+  const skyClouds = [];
+  function initSky(){
+    skyClouds.length = 0;
+    const count = Math.min(10, Math.max(6, Math.floor(W / 180)));
+    for (let i=0;i<count;i++){
+      const w = 70 + Math.random()*90;
+      const h = 22 + Math.random()*18;
+      skyClouds.push({
+        x: Math.random()*W,
+        y: 90 + Math.random()*(Math.max(120, H*0.45)),
+        w, h,
+        vx: 0.20 + Math.random()*0.25
+      });
+    }
+  }
+
+  function drawSky(){
+    // flat sky blue
+    ctx.fillStyle = "#7cc9ff";
+    ctx.fillRect(0,0,W,H);
+
+    // soft haze to keep text readable / calm vibe
+    ctx.globalAlpha = 0.10;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha = 1;
+
+    // pixel clouds
+    for (const c of skyClouds){
+      c.x -= c.vx; // slow drift
+      if (c.x < -c.w - 40){
+        c.x = W + 40 + Math.random()*120;
+        c.y = 90 + Math.random()*(Math.max(120, H*0.45));
+        c.w = 70 + Math.random()*90;
+        c.h = 22 + Math.random()*18;
+        c.vx = 0.20 + Math.random()*0.25;
+      }
+
+      // cloud body (simple chunky puffs)
+      const x = c.x, y = c.y, w = c.w, h = c.h;
+      ctx.globalAlpha = 0.92;
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      // base
+      ctx.fillRect(x, y, w, h);
+      // puffs
+      ctx.fillRect(x + 10, y - 8, w*0.35, h*0.70);
+      ctx.fillRect(x + w*0.30, y - 12, w*0.40, h*0.85);
+      ctx.fillRect(x + w*0.62, y - 7, w*0.28, h*0.65);
+
+      // tiny outline for pixel pop
+      ctx.globalAlpha = 0.22;
+      ctx.strokeStyle = "rgba(255,255,255,0.75)";
+      ctx.strokeRect(x, y, w, h);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  addEventListener("resize", () => { resize(); initStars(); initSky(); });
+  initSky();
 
   // ===== cloud look =====
   function buildCloudPattern(w, h){
@@ -780,8 +840,8 @@ ${PASS_URL}`;
           lives = Math.min(MAX_LIVES, lives + 1);
           pushBanner("good", b.label.toUpperCase(), (lives>before ? "+1 LIFE" : "LIVES FULL"), 75);
         } else if (b.type === "slow"){
-          slowTimer = 260;
-          pushBanner("good", "PRAYER & MEDITATION", "Slows life down.", 80);
+          slowTimer = 60 * 3; // exactly 3 seconds
+          pushBanner("good", "PRAYER & MEDITATION", "Calms the pace for 3 seconds.", 80);
         } else if (b.type === "clear"){
           clearArmed = true;
           pushBanner("good", "WRITE IT DOWN", "Next trap clears.", 75);
@@ -1270,10 +1330,15 @@ ${PASS_URL}`;
   }
 
   function drawPlayfield(){
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0,0,W,H);
+    // meditation background when slowTimer is active
+    if (slowTimer > 0){
+      drawSky();
+    } else {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0,0,W,H);
+      drawStarfield(currentSpeed());
+    }
 
-    drawStarfield(currentSpeed());
     drawHeader();
 
     for (const o of obstacles) drawDangerObstacle(o);
