@@ -22,6 +22,24 @@
     border:1px solid #444; border-radius:10px; opacity:.93; z-index:10;
     display:none;
   }
+
+  /* PASS IT ON button (ending screen only) */
+  #shareBtn{
+    position:fixed;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    font-family:"Press Start 2P", monospace;
+    font-size:10px;
+    padding:10px 14px;
+    background:#111;
+    color:#fff;
+    border:1px solid #444;
+    border-radius:10px;
+    opacity:.95;
+    z-index:10;
+    display:none;
+  }
 </style>
 </head>
 <body>
@@ -33,6 +51,7 @@
 </audio>
 
 <button id="pauseBtn">PAUSE / BREATHE</button>
+<button id="shareBtn">PASS IT ON</button>
 
 <script>
 (() => {
@@ -40,6 +59,7 @@
   const ctx = canvas.getContext("2d");
   const bgm = document.getElementById("bgm");
   const pauseBtn = document.getElementById("pauseBtn");
+  const shareBtn = document.getElementById("shareBtn");
 
   // ===== screen size in CSS pixels =====
   let W = 0, H = 0;
@@ -65,7 +85,9 @@
   let mode = "title"; // title | countdown | play | pause | gameover | ending
   function setMode(m){
     mode = m;
+
     pauseBtn.style.display = (mode === "play" || mode === "pause") ? "block" : "none";
+    if (shareBtn) shareBtn.style.display = (mode === "ending") ? "block" : "none";
   }
 
   // ===== constants =====
@@ -138,7 +160,7 @@
     { label:"Call your sponsor", type:"life" },
     { label:"Make meeting coffee", type:"life" },
     { label:"Do service work", type:"life" },
-     { label:"Read the Big Book", type:"life" },
+    { label:"Read the Big Book", type:"life" },
     { label:"Pray / meditate", type:"slow" },
     { label:"Write it down", type:"clear" }
   ];
@@ -243,6 +265,40 @@
 
     return s;
   }
+
+  // ===== share: PASS IT ON =====
+  const PASS_URL = "https://recoverymisfits.blogspot.com/";
+  function sharePassItOn(){
+    const text =
+`PASS IT ON — Recovery Misfits
+Find the app here:
+${PASS_URL}`;
+
+    // 1) Native share (best on phones)
+    if (navigator.share){
+      navigator.share({ title: "Pass it on", text, url: PASS_URL }).catch(()=>{});
+      return;
+    }
+
+    // 2) SMS fallback (works on many phones)
+    const sms = `sms:?&body=${encodeURIComponent(text)}`;
+    try { window.location.href = sms; return; } catch(e){}
+
+    // 3) Clipboard fallback (desktop)
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=>{
+        alert("Copied! Paste it in a text to a friend.");
+      }).catch(()=>{});
+    } else {
+      prompt("Copy this and text it:", text);
+    }
+  }
+
+  if (shareBtn) shareBtn.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    sharePassItOn();
+  };
 
   // ===== text wrap on canvas =====
   function wrapLines(text, maxWidth){
@@ -550,33 +606,58 @@
     setMode("countdown");
   }
 
-  // ===== ending coins =====
+  // ===== ending coins: NES-style fountain (loops forever) =====
   const coins = [];
+  let endingFrames = 0;
+
+  function spawnFountainBurst(n=24){
+    const ox = W/2;
+    const oy = H - 110;   // bottom-center origin (classic fountain)
+    for (let i=0;i<n;i++){
+      const angle = (-Math.PI/2) + (Math.random()*0.95 - 0.475); // spray cone
+      const speed = 7.5 + Math.random()*6.5;
+      const vx = Math.cos(angle) * speed * (0.8 + Math.random()*0.35);
+      const vy = Math.sin(angle) * speed;
+
+      coins.push({
+        x: ox + (Math.random()*18 - 9),
+        y: oy + (Math.random()*10 - 5),
+        vx,
+        vy,
+        g: 0.42 + Math.random()*0.22,
+        t: 0,
+        ttl: 110 + (Math.random()*70|0),
+        ch: (Math.random() < 0.86 ? "🪙" : "✨")
+      });
+    }
+
+    // keep it sane on long celebrations
+    if (coins.length > 260) coins.splice(0, coins.length - 260);
+  }
+
   function startEnding(){
     setMode("ending");
     coins.length = 0;
+    endingFrames = 0;
 
-    const count = 60;
-    for (let i=0;i<count;i++){
-      coins.push({
-        x: W/2,
-        y: H/2,
-        vx: (Math.random()*10 - 5),
-        vy: -(Math.random()*10 + 6),
-        g: 0.35 + Math.random()*0.25,
-        t: 0,
-        ttl: 90 + (Math.random()*40|0),
-        ch: (Math.random() < 0.7 ? "🪙" : "✨")
-      });
-    }
+    // immediate celebration + a bit of extra spice
+    spawnFountainBurst(46);
+    setTimeout(() => { if (mode === "ending") spawnFountainBurst(32); }, 220);
+    setTimeout(() => { if (mode === "ending") spawnFountainBurst(26); }, 520);
   }
 
   function updateCoins(){
-    for (const c of coins){
+    for (let i = coins.length - 1; i >= 0; i--){
+      const c = coins[i];
       c.t++;
       c.vy += c.g;
       c.x += c.vx;
       c.y += c.vy;
+
+      // fade out or remove once offscreen / expired
+      if (c.t > c.ttl || c.y > H + 140 || c.x < -140 || c.x > W + 140){
+        coins.splice(i, 1);
+      }
     }
   }
 
@@ -807,7 +888,12 @@
   }
 
   function updateEnding(){
+    endingFrames++;
     updateCoins();
+
+    // steady, classic fountain pulses
+    if (endingFrames % 42 === 0) spawnFountainBurst(18);
+    if (endingFrames % 140 === 0) spawnFountainBurst(30);
   }
 
   function update(){
@@ -1218,9 +1304,9 @@
 
     drawCoins();
 
-    drawOverlay("YOU GOT THROUGH THE 12 STEPS.", [
-      "Nice.",
-      "Now do it again."
+    drawOverlay("YOU MADE IT THROUGH THE STEPS.", [
+      "That matters.",
+      "PASS IT ON below."
     ]);
   }
 
