@@ -12,6 +12,7 @@
     font-family:"Press Start 2P", monospace;
   }
   canvas{ display:block; width:100vw; height:100vh; }
+
   #pauseBtn{
     position:fixed; bottom:10px; left:50%; transform:translateX(-50%);
     font-family:"Press Start 2P", monospace; font-size:10px;
@@ -19,6 +20,33 @@
     border:1px solid #444; border-radius:10px; opacity:.93; z-index:10;
     display:none;
   }
+
+  /* On-screen lane controls (mobile-friendly) */
+  #controls{
+    position:fixed;
+    bottom:18px;
+    right:18px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    z-index:12;
+    display:none;
+  }
+  #controls button{
+    width:64px;
+    height:64px;
+    font-family:"Press Start 2P", monospace;
+    font-size:22px;
+    line-height:1;
+    background:rgba(255,255,255,0.92);
+    color:#000;
+    border:none;
+    border-radius:14px;
+    box-shadow:0 6px 16px rgba(0,0,0,.35);
+    opacity:.92;
+    touch-action:manipulation;
+  }
+  #controls button:active{ transform:translateY(1px); opacity:1; }
 </style>
 </head>
 <body>
@@ -31,12 +59,21 @@
 
 <button id="pauseBtn">PAUSE / BREATHE</button>
 
+<div id="controls" aria-label="lane controls">
+  <button id="upBtn" aria-label="up">▲</button>
+  <button id="downBtn" aria-label="down">▼</button>
+</div>
+
 <script>
 (() => {
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
   const bgm = document.getElementById("bgm");
   const pauseBtn = document.getElementById("pauseBtn");
+
+  const controls = document.getElementById("controls");
+  const upBtn = document.getElementById("upBtn");
+  const downBtn = document.getElementById("downBtn");
 
   // draw using CSS pixels
   let W = 0, H = 0;
@@ -55,16 +92,14 @@
 
   /* =========================
      SPRITE (runner.png)
-     You said you have ONE static runner.png right now.
-     So set frames to 1 and stop animation.
   ========================= */
   const runnerImg = new Image();
   runnerImg.src = "./runner.png";
   let runnerReady = false;
   runnerImg.onload = () => runnerReady = true;
 
-  const RUNNER_FRAMES = 1;   // <-- static
-  const RUNNER_FPS = 0;      // <-- no animation
+  const RUNNER_FRAMES = 1;   // static
+  const RUNNER_FPS = 0;      // no animation
   let runnerFrame = 0;
   let runnerTick = 0;
 
@@ -75,6 +110,7 @@
   function setMode(m){
     mode = m;
     pauseBtn.style.display = (mode === "play" || mode === "pause") ? "block" : "none";
+    controls.style.display = (mode === "play" || mode === "pause") ? "flex" : "none";
   }
 
   /* =========================
@@ -106,13 +142,21 @@
   let slowMo = 0;
 
   /* =========================
-     PLAYER
+     INTRO BANNER (start of gameplay)
+     Hold 4s, then fade out
+  ========================= */
+  const INTRO_HOLD = 60 * 4;    // 4 seconds hold
+  const INTRO_FADE = 60 * 1;    // 1 second fade
+  let introTimer = 0;           // counts up while playing (only at run start)
+
+  /* =========================
+     PLAYER (runner ~20% bigger)
   ========================= */
   const player = {
     x: 140,
     y: 0,
-    w: 86,   // bigger on screen
-    h: 114,
+    w: Math.round(86 * 1.2),   // +20%
+    h: Math.round(114 * 1.2),  // +20%
     lane: 1,
     laneTarget: 1
   };
@@ -218,22 +262,36 @@
   /* =========================
      INPUT
   ========================= */
-  function onTap(){
-    startMusic();
+  function moveLane(delta){
+    if (mode !== "play") return;
+    const next = Math.max(0, Math.min(LANE_COUNT - 1, player.laneTarget + delta));
+    player.laneTarget = next;
+  }
 
+  // Tap/click only starts/restarts (no lane change)
+  function onTapStart(){
+    startMusic();
     if (mode === "title"){ startCountdown(); return; }
     if (mode === "gameover" || mode === "ending"){
       setMode("title");
       return;
     }
-    if (mode !== "play") return;
-
-    player.laneTarget = (player.laneTarget + 1) % LANE_COUNT;
+    // in play: do nothing (no accidental lane jumps)
   }
 
-  addEventListener("keydown", e => { if (e.code === "Space") onTap(); });
-  addEventListener("mousedown", onTap, {passive:true});
-  addEventListener("touchstart", onTap, {passive:true});
+  addEventListener("keydown", e => {
+    if (e.code === "Space") { onTapStart(); return; }
+
+    if (e.code === "ArrowUp" || e.code === "KeyW") { moveLane(-1); return; }
+    if (e.code === "ArrowDown" || e.code === "KeyS") { moveLane(+1); return; }
+  });
+
+  addEventListener("mousedown", onTapStart, {passive:true});
+  addEventListener("touchstart", onTapStart, {passive:true});
+
+  // On-screen buttons
+  upBtn.addEventListener("click", (e)=>{ e.preventDefault(); startMusic(); moveLane(-1); });
+  downBtn.addEventListener("click", (e)=>{ e.preventDefault(); startMusic(); moveLane(+1); });
 
   pauseBtn.onclick = () => {
     if (mode === "play"){
@@ -287,6 +345,35 @@
     return s;
   }
 
+  // Canvas text wrapping (Option A)
+  function wrapLines(text, maxWidth){
+    const words = String(text || "").split(/\s+/).filter(Boolean);
+    const lines = [];
+    let line = "";
+
+    for (const w of words){
+      const test = line ? (line + " " + w) : w;
+      if (ctx.measureText(test).width <= maxWidth){
+        line = test;
+      } else {
+        if (line) lines.push(line);
+        line = w;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function drawWrappedTextCentered(text, centerX, startY, maxWidth, lineHeight){
+    const lines = wrapLines(text, maxWidth);
+    let y = startY;
+    for (const ln of lines){
+      ctx.fillText(ln, centerX, y);
+      y += lineHeight;
+    }
+    return lines.length;
+  }
+
   /* =========================
      STARFIELD
   ========================= */
@@ -333,7 +420,9 @@
   }
 
   /* =========================
-     CLOUD LOOK (bonuses only)
+     CLOUD LOOK
+     - Bonuses: light blue
+     - Micro (inspiration): pink
   ========================= */
   function buildCloudPattern(w, h){
     const puffs = [];
@@ -362,13 +451,18 @@
     return { puffs, sparks };
   }
 
-  function drawCloud(x, y, w, h, cloud, alpha=1, micro=false){
+  function drawCloud(x, y, w, h, cloud, alpha=1, micro=false, theme="pink"){
+    const isBlue = (theme === "blue");
+    const fill = isBlue ? "rgba(126,203,255,1)" : "rgba(255,105,180,1)";
+    const stroke = isBlue ? "rgba(190,235,255,0.95)" : "rgba(255,180,220,0.95)";
+    const spark = isBlue ? "rgba(240,250,255,1)" : "rgba(255,240,250,1)";
+
     ctx.globalAlpha = (micro ? 0.10 : 0.16) * alpha;
-    ctx.fillStyle = "rgba(255,105,180,1)";
+    ctx.fillStyle = fill;
     ctx.fillRect(x-(micro?10:18), y-(micro?10:16), w+(micro?20:36), h+(micro?20:32));
 
     ctx.globalAlpha = (micro ? 0.30 : 0.34) * alpha;
-    ctx.fillStyle = "rgba(255,105,180,1)";
+    ctx.fillStyle = fill;
     for (const p of cloud.puffs){
       ctx.beginPath();
       ctx.arc(x+p.x, y+p.y, p.r, 0, Math.PI*2);
@@ -376,13 +470,13 @@
     }
 
     ctx.globalAlpha = 0.95 * alpha;
-    ctx.strokeStyle = "rgba(255,180,220,0.95)";
+    ctx.strokeStyle = stroke;
     ctx.lineWidth = 2;
     ctx.strokeRect(x, y, w, h);
     ctx.lineWidth = 1;
 
     ctx.globalAlpha = 0.70 * alpha;
-    ctx.fillStyle = "rgba(255,240,250,1)";
+    ctx.fillStyle = spark;
     for (const s of cloud.sparks){
       ctx.fillRect((x+s.x)|0, (y+s.y)|0, 2, 2);
     }
@@ -463,7 +557,7 @@
       label
     });
 
-    // ONLY ONE guard (less "I hit something I didn't see")
+    // ONLY ONE guard
     const guardLane = (lane + 1 + ((Math.random()*2)|0)) % 3;
     spawnObstacle(null, guardLane, x - 220);
   }
@@ -497,6 +591,9 @@
 
     bannerQueue.length = 0;
     banner = null;
+
+    // Reset intro timer for this run
+    introTimer = 0;
 
     const lanes = laneYCenters();
     player.lane = 1;
@@ -578,9 +675,10 @@
   }
 
   function drawBonus(b){
-    drawCloud(b.x, b.y, b.w, b.h, b.cloud, 1, false);
+    // Action clouds: light blue
+    drawCloud(b.x, b.y, b.w, b.h, b.cloud, 1, false, "blue");
     ctx.font = "12px 'Press Start 2P'";
-    ctx.fillStyle = "rgba(255,245,250,1)";
+    ctx.fillStyle = "rgba(10,20,30,0.95)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(b.label.toUpperCase(), b.x + b.w/2, b.y + b.h/2 + 2);
@@ -588,7 +686,6 @@
     ctx.textBaseline = "alphabetic";
   }
 
-  // STEPS: draw as a clean "card" (no clouds)
   function drawStepToken(tk){
     ctx.globalAlpha = 0.92;
     ctx.fillStyle = "rgba(255,255,255,0.92)";
@@ -614,7 +711,8 @@
   }
 
   function drawMicroCloud(m){
-    drawCloud(m.x, m.y, m.w, m.h, m.cloud, 0.95, true);
+    // Pink clouds: inspiration only
+    drawCloud(m.x, m.y, m.w, m.h, m.cloud, 0.95, true, "pink");
     ctx.font = "12px 'Press Start 2P'";
     ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
@@ -631,7 +729,6 @@
       return;
     }
 
-    // No animation when frames=1
     const imgW = runnerImg.width;
     const imgH = runnerImg.height;
 
@@ -706,6 +803,53 @@
     ctx.globalAlpha = 1;
   }
 
+  function drawIntroRules(){
+    // Only show at the beginning of play
+    const t = introTimer;
+
+    const holdEnd = INTRO_HOLD;
+    const fadeEnd = INTRO_HOLD + INTRO_FADE;
+
+    if (t >= fadeEnd) return;
+
+    let alpha = 1;
+    if (t > holdEnd){
+      const u = (t - holdEnd) / INTRO_FADE; // 0..1
+      alpha = Math.max(0, 1 - u);
+    }
+
+    ctx.globalAlpha = 0.88 * alpha;
+
+    const boxW = Math.min(W - 44, 980);
+    const boxH = 190;
+    const bx = (W - boxW)/2;
+    const by = Math.max(92, Math.floor(H * 0.18));
+
+    ctx.fillStyle = "rgba(0,0,0,0.82)";
+    ctx.fillRect(bx, by, boxW, boxH);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.20)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bx, by, boxW, boxH);
+    ctx.lineWidth = 1;
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "left";
+
+    ctx.font = "12px 'Press Start 2P'";
+    const padX = bx + 22;
+    let y = by + 48;
+
+    ctx.fillText("GOAL: Go through the steps IN ORDER", padX, y);
+    y += 46;
+    ctx.fillText("Pitfalls: Lose a life", padX, y);
+    y += 46;
+    ctx.fillText("Actions (blue clouds): Gain a life", padX, y);
+
+    ctx.textAlign = "left";
+    ctx.globalAlpha = 1;
+  }
+
   function drawOverlay(lines){
     ctx.fillStyle="rgba(0,0,0,0.86)";
     ctx.fillRect(0,0,W,H);
@@ -738,6 +882,9 @@
 
   function updatePlay(){
     warmupFrames++;
+
+    // intro timer ticks only at start of run
+    if (introTimer < (INTRO_HOLD + INTRO_FADE + 5)) introTimer++;
 
     if (invuln > 0) invuln--;
     if (slowTimer > 0) slowTimer--;
@@ -772,7 +919,7 @@
       }
     }
 
-    // Slightly smaller hitbox to reduce "I didn't hit it" moments
+    // Slightly smaller hitbox
     const rx = player.x + 20;
     const ry = player.y + 18;
     const rw = player.w - 40;
@@ -807,7 +954,7 @@
       }
     }
 
-    // Bonuses
+    // Bonuses (blue action clouds)
     for (const b of bonuses){
       if (b.lane !== player.lane) continue;
 
@@ -832,7 +979,7 @@
       }
     }
 
-    // Micro-clouds
+    // Micro-clouds (pink inspiration)
     for (const m of microClouds){
       if (m.lane !== player.lane) continue;
 
@@ -848,7 +995,7 @@
       }
     }
 
-    // Steps (IN ORDER) — cards are easy to see now
+    // Steps (IN ORDER)
     for (const s of stepTokens){
       if (s.lane !== player.lane) continue;
 
@@ -908,7 +1055,7 @@
       }
     }
 
-    // IMPORTANT: when a STEP is present, stop spawning extra clouds/bonuses
+    // When a STEP is present, stop spawning extra clouds/bonuses
     if (!stepOnScreen){
       if (bonusGapPx <= 0 && Math.random() < (inWarmup ? 0.55 : 0.42)){
         spawnBonus();
@@ -964,17 +1111,18 @@
     ctx.fillText("THE ROAD", W/2, H/2 - 70);
 
     ctx.font="10px 'Press Start 2P'";
-    ctx.fillText("avoid the traps, gather the pink clouds", W/2, H/2 - 22);
+    ctx.fillText("avoid the traps, follow the steps", W/2, H/2 - 22);
     ctx.fillText("go through the steps IN ORDER", W/2, H/2 + 4);
 
     ctx.font="10px 'Press Start 2P'";
-    ctx.fillText("Rocketed into the 4th dimension in...", W/2, H/2 + 34);
+    const maxW = Math.floor(W * 0.86);
+    drawWrappedTextCentered("Rocketed into the 4th dimension in...", W/2, H/2 + 34, maxW, 18);
 
     const blink = ((titleTimer/18)|0) % 2 === 0;
-    if (blink) ctx.fillText("PRESS SPACE / TAP", W/2, H/2 + 84);
+    if (blink) ctx.fillText("PRESS SPACE / TAP", W/2, H/2 + 92);
 
     ctx.font="9px 'Press Start 2P'";
-    ctx.fillText("TAP = CHANGE LANES", W/2, H/2 + 112);
+    ctx.fillText("▲/▼ OR ↑/↓ = CHANGE LANES", W/2, H/2 + 122);
 
     ctx.textAlign="left";
   }
@@ -988,14 +1136,15 @@
     ctx.textAlign="center";
 
     ctx.font="14px 'Press Start 2P'";
-    ctx.fillText("ROCKETED INTO THE 4TH DIMENSION IN...", W/2, H/2 - 120);
+    const maxW = Math.floor(W * 0.86);
+    drawWrappedTextCentered("ROCKETED INTO THE 4TH DIMENSION IN...", W/2, H/2 - 128, maxW, 22);
 
     const show = (countdownValue >= 1) ? String(countdownValue) : (countdownValue === 0 ? "GO!" : "");
     ctx.font="56px 'Press Start 2P'";
     ctx.fillText(show, W/2, H/2 - 20);
 
     ctx.font="10px 'Press Start 2P'";
-    ctx.fillText("SPACE/TAP = CHANGE LANES", W/2, H/2 + 80);
+    ctx.fillText("▲/▼ OR ↑/↓ = CHANGE LANES", W/2, H/2 + 80);
 
     ctx.textAlign="left";
   }
@@ -1015,6 +1164,9 @@
     drawRunner();
     drawLivesHUD();
     drawBanner();
+
+    // Intro rules overlay (start of play)
+    if (mode === "play") drawIntroRules();
   }
 
   function drawPause(){
