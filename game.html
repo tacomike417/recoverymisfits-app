@@ -5,288 +5,1299 @@
 <title>Trudge the Road</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-
 <style>
-html,body{
-  margin:0;
-  padding:0;
-  background:#000;
-  overflow:hidden;
-  font-family:"Press Start 2P", monospace;
-  touch-action:none;
-}
-canvas{
-  width:100vw;
-  height:100vh;
-  display:block;
-}
+  html, body{
+    margin:0; padding:0; height:100%;
+    background:#000; overflow:hidden;
+    font-family:"Press Start 2P", monospace;
+    touch-action:none; /* drag-friendly */
+  }
+  canvas{ display:block; width:100vw; height:100vh; }
+
+  #pauseBtn{
+    position:fixed; bottom:10px; left:50%; transform:translateX(-50%);
+    font-family:"Press Start 2P", monospace; font-size:10px;
+    padding:10px 14px; background:#111; color:#fff;
+    border:1px solid #444; border-radius:10px; opacity:.93; z-index:10;
+    display:none;
+  }
 </style>
 </head>
-
 <body>
+
 <canvas id="game"></canvas>
+
+<audio id="bgm" loop preload="auto">
+  <source src="E-Lot%20-%208-Bit%20Boss.mp3" type="audio/mpeg">
+</audio>
+
+<button id="pauseBtn">PAUSE / BREATHE</button>
 
 <script>
 (() => {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const bgm = document.getElementById("bgm");
+  const pauseBtn = document.getElementById("pauseBtn");
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+  // ====== SIZE / DPI ======
+  let W=0, H=0;
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    W = Math.max(1, Math.floor(rect.width));
+    H = Math.max(1, Math.floor(rect.height));
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width  = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  addEventListener("resize", resize);
+  resize();
 
-let W=0, H=0;
-function resize(){
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-window.addEventListener("resize", resize);
-resize();
+  // ====== SPRITE ======
+  const runnerImg = new Image();
+  runnerImg.src = "./runner.png";
+  let runnerReady = false;
+  runnerImg.onload = () => runnerReady = true;
 
-/* =========================
-   RUNNER
-========================= */
-const runnerImg = new Image();
-runnerImg.src = "./runner.png";
-let runnerReady = false;
-runnerImg.onload = () => runnerReady = true;
+  // ====== MODES ======
+  let mode = "title"; // title | countdown | play | pause | gameover | ending
+  function setMode(m){
+    mode = m;
+    pauseBtn.style.display = (mode === "play" || mode === "pause") ? "block" : "none";
+  }
 
-/* =========================
-   GAME STATE
-========================= */
-let mode = "title"; // title | play | win | gameover
+  // ====== CONSTANTS ======
+  const MAX_LIVES = 5;
+  const LANE_COUNT = 3;
 
-const MAX_LIVES = 5;
-let lives = MAX_LIVES;
+  const BASE_SPEED = 3.7;
+  const MAX_SPEED  = 7.5;
 
-const steps = [
-  "HONESTY","HOPE","FAITH","COURAGE","INTEGRITY","WILLINGNESS",
-  "HUMILITY","BROTHERLY LOVE","DISCIPLINE","PERSEVERANCE",
-  "SPIRITUAL AWARENESS","SERVICE"
-];
-let stepIndex = 0;
+  const WARMUP_TOTAL = 60 * 15;
+  let warmupFrames = 0;
 
-/* =========================
-   PLAYER (YOU ARE BILL)
-========================= */
-const player = {
-  x: 120,
-  y: H/2,
-  w: 100,
-  h: 140,
-  vy: 0
-};
+  let prestige = 0;
+  let prestigeSpeedBoost = 0;
 
-const CENTER_Y = () => H/2;
-const EDGE_PADDING = 80;
+  // spacing (distance-based)
+  let obstacleGapPx = 560;
+  let bonusGapPx = 1000;
+  let microGapPx = 520;
+  let stepCooldown = 60 * 8;
+  let stepSpawnBias = 0;
 
-/* =========================
-   TOUCH CONTROL (FREE + COMFY)
-========================= */
-let dragging = false;
-let fingerY = null;
+  // effects
+  let invuln = 0;
+  let slowTimer = 0;
+  let slowMo = 0;
 
-canvas.addEventListener("pointerdown", e=>{
-  if(mode==="title"){ mode="play"; return; }
-  if(mode==="gameover"||mode==="win"){ resetGame(); return; }
-  dragging = true;
-  fingerY = e.clientY;
-});
+  // Intro rules overlay
+  const INTRO_HOLD = 60 * 4;
+  const INTRO_FADE = 60 * 1;
+  let introTimer = 0;
 
-canvas.addEventListener("pointermove", e=>{
-  if(!dragging) return;
-  fingerY = e.clientY - 60; // offset so thumb doesn't cover Bill
-});
+  // ====== PLAYER (20% bigger) ======
+  const player = {
+    x: 140,
+    y: 0, // top-left
+    w: Math.round(86 * 1.2),
+    h: Math.round(114 * 1.2),
+  };
 
-canvas.addEventListener("pointerup", ()=>{
-  dragging = false;
-  fingerY = null;
-});
+  // Bounds so Bill doesn't go under header or off-screen
+  function playerBounds(){
+    const minY = 84; // below header + a little cushion
+    const maxY = Math.max(minY, H - player.h - 40);
+    return { minY, maxY };
+  }
 
-/* =========================
-   BANNER (NO BACKLOG)
-========================= */
-let banner = null;
-let bannerTimer = 0;
+  // Spawn rows (still 3 for readability)
+  function laneYCenters(){
+    const top = Math.max(120, Math.floor(H * 0.28));
+    const bottom = Math.min(H - 120, Math.floor(H * 0.78));
+    const gap = (bottom - top) / (LANE_COUNT - 1);
+    return [top, top + gap, bottom];
+  }
 
-function showBanner(text, time=60){
-  banner = text;
-  bannerTimer = time;
-}
+  // ====== CONTENT ======
+  const obstaclesPool = [
+    "Anger","Resentment","Fear","Self-pity","Anxiety","Guilt","Shame",
+    "Ego","Overthinking","Self-obsession","Self-righteousness","Control",
+    "People-pleasing","Comparison","Relationship drama","Family conflict",
+    "Isolation","Unsaid resentment","Not speaking up","Old friends",
+    "Work stress","Money worries","Time pressure","Social media","Home chaos","Traffic",
+    "Complacency","Dishonesty","Not listening","Selective hearing",
+    "Not asking for help","Emotional numbness","Avoidance","Confusion","Uncertainty",
+    "Restless","Irritable","Discontent","Catastrophizing","Projection"
+  ];
 
-/* =========================
-   CELEBRATION
-========================= */
-let confetti = [];
+  const bonusesPool = [
+    { label:"Go to a meeting", type:"life" },
+    { label:"Call a friend", type:"life" },
+    { label:"Call your sponsor", type:"life" },
+    { label:"Pray / pause", type:"slow" },
+    { label:"Write it down", type:"clear" }
+  ];
 
-function spawnConfetti(){
-  for(let i=0;i<80;i++){
-    confetti.push({
-      x: Math.random()*W,
-      y: H+20,
-      vy: -4 - Math.random()*4,
-      vx: -2 + Math.random()*4,
-      emoji: Math.random()>0.5 ? "🪙" : "✨"
+  const steps = [
+    { n: 1, p: "HONESTY" },
+    { n: 2, p: "HOPE" },
+    { n: 3, p: "FAITH" },
+    { n: 4, p: "COURAGE" },
+    { n: 5, p: "INTEGRITY" },
+    { n: 6, p: "WILLINGNESS" },
+    { n: 7, p: "HUMILITY" },
+    { n: 8, p: "BROTHERLY LOVE" },
+    { n: 9, p: "DISCIPLINE" },
+    { n:10, p: "PERSEVERANCE" },
+    { n:11, p: "SPIRITUAL AWARENESS" },
+    { n:12, p: "SERVICE" }
+  ];
+
+  const calmWhispers = [
+    "Breathe.",
+    "You’re not alone.",
+    "Easy does it.",
+    "Keep it simple.",
+    "Stay in the middle.",
+    "Just for today."
+  ];
+
+  // ====== STATE ======
+  let lives = MAX_LIVES;
+  let lastObstacleLabel = "something";
+  let stepIndex = 0;
+  let obstaclesPassed = 0;
+  let clearArmed = false;
+
+  const obstacles = [];
+  const bonuses = [];
+  const microClouds = [];
+  const stepTokens = [];
+
+  // ====== BANNER (NO BACKLOG) ======
+  let banner = null; // { kind, title, sub, t, ttl }
+  function showBanner(kind, title, sub="", ttl=85){
+    // replace immediately (no queue)
+    banner = { kind, title, sub, t:0, ttl };
+    slowMo = (kind === "bad") ? 55 : 35; // shorter slow-mo so it doesn't “lag”
+  }
+  function tickBanner(){
+    if (!banner) return;
+    banner.t++;
+    if (banner.t >= banner.ttl) banner = null;
+  }
+
+  // ====== AUDIO ======
+  function startMusic(){
+    if (!bgm) return;
+    if (bgm.paused){
+      bgm.volume = 0.22;
+      bgm.play().catch(()=>{});
+    }
+  }
+
+  // ====== INPUT: DRAG = YOU ARE BILL ======
+  let dragging = false;
+  let dragPointerId = null;
+  let targetY = null; // player.y target (top-left)
+  const THUMB_OFFSET = 74; // keeps Bill visible above thumb
+
+  function setTargetFromPointer(clientY){
+    const { minY, maxY } = playerBounds();
+    const yTop = (clientY - THUMB_OFFSET) - (player.h/2);
+    targetY = Math.max(minY, Math.min(maxY, yTop));
+  }
+
+  function pointerDown(e){
+    canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+    startMusic();
+
+    if (mode === "title"){ startCountdown(); return; }
+    if (mode === "gameover" || mode === "ending"){
+      setMode("title");
+      return;
+    }
+    if (mode !== "play") return;
+
+    dragging = true;
+    dragPointerId = e.pointerId;
+    setTargetFromPointer(e.clientY);
+  }
+
+  function pointerMove(e){
+    if (!dragging) return;
+    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
+    if (mode !== "play") return;
+    setTargetFromPointer(e.clientY);
+  }
+
+  function pointerUp(e){
+    if (!dragging) return;
+    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
+    dragging = false;
+    dragPointerId = null;
+    targetY = null; // release -> drift to center
+  }
+
+  canvas.addEventListener("pointerdown", pointerDown, {passive:true});
+  canvas.addEventListener("pointermove", pointerMove, {passive:true});
+  canvas.addEventListener("pointerup", pointerUp, {passive:true});
+  canvas.addEventListener("pointercancel", pointerUp, {passive:true});
+
+  // Desktop convenience: Space starts game / continues
+  addEventListener("keydown", e => {
+    if (e.code !== "Space") return;
+    startMusic();
+    if (mode === "title"){ startCountdown(); return; }
+    if (mode === "gameover" || mode === "ending"){ setMode("title"); return; }
+  });
+
+  pauseBtn.onclick = () => {
+    if (mode === "play"){
+      bgm && bgm.pause();
+      setMode("pause");
+    } else if (mode === "pause"){
+      bgm && bgm.play().catch(()=>{});
+      setMode("play");
+    }
+  };
+
+  // ====== TITLE / COUNTDOWN ======
+  let titleTimer = 0;
+  let countdownTimer = 0;
+  let countdownValue = 3;
+
+  function startCountdown(){
+    resetRun(true);
+    countdownValue = 3;
+    countdownTimer = 0;
+    setMode("countdown");
+  }
+
+  // ====== HELPERS ======
+  function rand(arr){ return arr[(Math.random()*arr.length)|0]; }
+
+  function aabb(ax, ay, aw, ah, bx, by, bw, bh){
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  }
+
+  function sizeForLabel(label, minW, maxW, h){
+    const extra = Math.min(360, Math.max(0, (label.length - 10) * 11));
+    const w = Math.min(maxW, minW + extra);
+    return { w, h };
+  }
+
+  function currentSpeed(){
+    let s = BASE_SPEED + prestigeSpeedBoost;
+    s += stepIndex * 0.20;
+    s += Math.min(1.6, obstaclesPassed * 0.0026);
+    s = Math.min(MAX_SPEED + prestigeSpeedBoost, s);
+
+    if (slowTimer > 0) s *= 0.72;
+    if (slowMo > 0) s *= 0.35;
+    if (warmupFrames < WARMUP_TOTAL) s *= 0.88;
+
+    return s;
+  }
+
+  // ====== TEXT WRAP (USED EVERYWHERE) ======
+  function wrapLines(text, maxWidth){
+    const words = String(text || "").split(/\s+/).filter(Boolean);
+    const lines = [];
+    let line = "";
+    for (const w of words){
+      const test = line ? (line + " " + w) : w;
+      if (ctx.measureText(test).width <= maxWidth){
+        line = test;
+      } else {
+        if (line) lines.push(line);
+        line = w;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function drawWrappedCentered(text, cx, startY, maxWidth, lineHeight){
+    const lines = wrapLines(text, maxWidth);
+    let y = startY;
+    for (const ln of lines){
+      ctx.fillText(ln, cx, y);
+      y += lineHeight;
+    }
+    return lines.length;
+  }
+
+  // ====== STARFIELD ======
+  const stars = [];
+  const STAR_CHARS = [".",".",".","*","+","·","˙"];
+
+  function initStars(){
+    stars.length = 0;
+    const count = Math.min(220, Math.floor((W * H) / 7000));
+    for (let i=0;i<count;i++){
+      stars.push({
+        x: Math.random()*W,
+        y: Math.random()*H,
+        z: 0.4 + Math.random()*1.6,
+        ch: STAR_CHARS[(Math.random()*STAR_CHARS.length)|0],
+        tw: Math.random()*1000
+      });
+    }
+  }
+  initStars();
+  addEventListener("resize", () => { resize(); initStars(); });
+
+  function drawStarfield(scrollSpeed){
+    ctx.fillStyle = "#fff";
+    ctx.font = "10px 'Press Start 2P'";
+    for (const s of stars){
+      s.x -= scrollSpeed * 0.35 * s.z;
+      s.tw += 1;
+      if (s.x < -10){
+        s.x = W + 10;
+        s.y = Math.random()*H;
+        s.z = 0.4 + Math.random()*1.6;
+      }
+      const a = 0.26 + 0.42 * (0.5 + 0.5 * Math.sin((s.tw/35) + s.y*0.02));
+      ctx.globalAlpha = a;
+
+      if (s.ch === "." || s.ch === "·" || s.ch === "˙"){
+        ctx.fillRect(s.x|0, s.y|0, 2, 2);
+      } else {
+        ctx.fillText(s.ch, s.x|0, s.y|0);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ====== CLOUD LOOK ======
+  function buildCloudPattern(w, h){
+    const puffs = [];
+    const cx = w/2, cy = h/2;
+    const count = 14;
+    for (let i=0;i<count;i++){
+      const angle = (i / count) * Math.PI * 2;
+      const rx = (w * 0.28) + (Math.random()*w*0.06);
+      const ry = (h * 0.22) + (Math.random()*h*0.06);
+      const px = cx + Math.cos(angle)*rx + (Math.random()*10 - 5);
+      const py = cy + Math.sin(angle)*ry + (Math.random()*8 - 4);
+      const r  = 16 + Math.random()*16;
+      puffs.push({x:px, y:py, r});
+    }
+    for (let i=0;i<8;i++){
+      puffs.push({
+        x: cx + (Math.random()*w*0.36 - w*0.18),
+        y: cy + (Math.random()*h*0.32 - h*0.16),
+        r: 12 + Math.random()*12
+      });
+    }
+    const sparks = [];
+    for (let i=0;i<10;i++){
+      sparks.push({x: Math.random()*w, y: Math.random()*h});
+    }
+    return { puffs, sparks };
+  }
+
+  function drawCloud(x, y, w, h, cloud, alpha=1, micro=false, theme="pink"){
+    const isBlue = (theme === "blue");
+    const fill = isBlue ? "rgba(126,203,255,1)" : "rgba(255,105,180,1)";
+    const stroke = isBlue ? "rgba(190,235,255,0.95)" : "rgba(255,180,220,0.95)";
+    const spark = isBlue ? "rgba(240,250,255,1)" : "rgba(255,240,250,1)";
+
+    ctx.globalAlpha = (micro ? 0.10 : 0.16) * alpha;
+    ctx.fillStyle = fill;
+    ctx.fillRect(x-(micro?10:18), y-(micro?10:16), w+(micro?20:36), h+(micro?20:32));
+
+    ctx.globalAlpha = (micro ? 0.30 : 0.34) * alpha;
+    ctx.fillStyle = fill;
+    for (const p of cloud.puffs){
+      ctx.beginPath();
+      ctx.arc(x+p.x, y+p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.globalAlpha = 0.95 * alpha;
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, w, h);
+    ctx.lineWidth = 1;
+
+    ctx.globalAlpha = 0.70 * alpha;
+    ctx.fillStyle = spark;
+    for (const s of cloud.sparks){
+      ctx.fillRect((x+s.x)|0, (y+s.y)|0, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ====== SPAWN ======
+  function spawnObstacle(labelOverride=null, laneOverride=null, xOverride=null){
+    const label = labelOverride || rand(obstaclesPool);
+    const lanes = laneYCenters();
+    const lane = (laneOverride !== null) ? laneOverride : ((Math.random() * LANE_COUNT) | 0);
+    const { w, h } = sizeForLabel(label, 220, 540, 46);
+    const x = (xOverride !== null) ? xOverride : (W + 90);
+
+    // spacing check (still based on spawn row for readability)
+    const tooClose = obstacles.some(o => o.lane === lane && Math.abs(o.x - x) < Math.max(260, w * 0.80));
+    if (tooClose) return;
+
+    obstacles.push({
+      x,
+      y: lanes[lane] - h/2,
+      w, h,
+      label,
+      lane,
+      passed:false
     });
   }
-}
 
-/* =========================
-   RESET
-========================= */
-function resetGame(){
-  lives = MAX_LIVES;
-  stepIndex = 0;
-  mode = "title";
-  confetti = [];
-}
+  function spawnBonus(){
+    const b = rand(bonusesPool);
+    const lanes = laneYCenters();
+    const r = Math.random();
+    const lane = r < 0.55 ? 1 : (r < 0.78 ? 0 : 2);
 
-/* =========================
-   UPDATE
-========================= */
-function update(){
+    const { w, h } = sizeForLabel(b.label, 280, 580, 42);
+    bonuses.push({
+      x: W + 90,
+      y: lanes[lane] - h/2,
+      w, h,
+      type: b.type,
+      label: b.label,
+      cloud: buildCloudPattern(w, h)
+    });
+  }
 
-  if(mode==="play"){
+  function spawnMicroCloud(){
+    const lanes = laneYCenters();
+    const lane = (Math.random() * LANE_COUNT) | 0;
+    const w = 110, h = 40;
+    microClouds.push({
+      x: W + 90,
+      y: lanes[lane] - h/2,
+      w, h,
+      cloud: buildCloudPattern(w, h)
+    });
+  }
 
-    // FOLLOW FINGER
-    if(fingerY!==null){
-      player.y += (fingerY - player.y) * 0.25;
-    } else {
-      // gentle drift to center
-      player.y += (CENTER_Y() - player.y) * 0.02;
+  function spawnStepToken(){
+    if (stepIndex >= 12) return;
+
+    const next = steps[stepIndex];
+    const label = `STEP ${next.n} — ${next.p}`;
+    const lanes = laneYCenters();
+    const lane = (Math.random() * LANE_COUNT) | 0;
+
+    const { w, h } = sizeForLabel(label, 360, 760, 52);
+    const x = W + 110;
+
+    stepTokens.push({
+      x,
+      y: lanes[lane] - h/2,
+      w, h,
+      label
+    });
+
+    // One guard trap nearby
+    const guardLane = (lane + 1 + ((Math.random()*2)|0)) % 3;
+    spawnObstacle(null, guardLane, x - 220);
+  }
+
+  // ====== RESET ======
+  function resetRun(keepPrestige=true){
+    lives = MAX_LIVES;
+    lastObstacleLabel = "something";
+    stepIndex = 0;
+
+    obstacles.length = 0;
+    bonuses.length = 0;
+    microClouds.length = 0;
+    stepTokens.length = 0;
+
+    obstaclesPassed = 0;
+
+    warmupFrames = 0;
+    invuln = 0;
+    slowTimer = 0;
+    slowMo = 0;
+    clearArmed = false;
+
+    obstacleGapPx = 560;
+    bonusGapPx = 1000;
+    microGapPx = 520;
+    stepCooldown = 60 * 8;
+    stepSpawnBias = 0;
+
+    banner = null;
+    introTimer = 0;
+
+    const lanes = laneYCenters();
+    player.y = (lanes[1] - player.h/2);
+
+    dragging = false;
+    dragPointerId = null;
+    targetY = null;
+
+    if (!keepPrestige){
+      prestige = 0;
+      prestigeSpeedBoost = 0;
     }
 
-    // soft edges
-    if(player.y < EDGE_PADDING){
-      player.y += (EDGE_PADDING - player.y) * 0.2;
-    }
-    if(player.y > H-EDGE_PADDING){
-      player.y -= (player.y - (H-EDGE_PADDING)) * 0.2;
-    }
+    showBanner("good", "TRUDGE THE ROAD", "Go through the steps IN ORDER", 95);
+    const s1 = steps[0];
+    showBanner("good", `STEP ${s1.n} — ${s1.p}`, "Find the STEP card.", 95);
+  }
 
-    // fake step progression for demo feel
-    if(Math.random()<0.004){
-      stepIndex++;
-      showBanner(`STEP ${stepIndex} — ${steps[stepIndex-1]}`, 50);
-      if(stepIndex>=12){
-        mode="win";
-        spawnConfetti();
+  // ====== DRAW ======
+  function drawHeader(){
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = "rgba(0,0,0,0.60)";
+    ctx.fillRect(0, 0, W, 62);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.beginPath();
+    ctx.moveTo(0, 62);
+    ctx.lineTo(W, 62);
+    ctx.stroke();
+
+    // Title
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.font = "14px 'Press Start 2P'";
+    ctx.fillText("TRUDGE THE ROAD", W/2, 38);
+
+    // Big step counter
+    const nextStep = Math.min(12, stepIndex + 1);
+    const stepName = (steps[stepIndex] && steps[stepIndex].p) ? steps[stepIndex].p : "";
+    ctx.font = "10px 'Press Start 2P'";
+    ctx.textAlign = "left";
+    ctx.fillText(`STEP ${nextStep} / 12`, 12, 86);
+
+    ctx.textAlign = "right";
+    ctx.fillText(stepName, W - 12, 86);
+
+    ctx.textAlign = "left";
+    ctx.globalAlpha = 1;
+  }
+
+  function drawDangerObstacle(o){
+    const x=o.x, y=o.y, w=o.w, h=o.h;
+
+    ctx.fillStyle = "rgba(255,0,0,0.12)";
+    ctx.fillRect(x-8, y-6, w+16, h+12);
+
+    ctx.fillStyle = "#0b0b0b";
+    ctx.strokeStyle = "rgba(255,80,80,0.9)";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    const spikes = 10;
+    const step = w / spikes;
+    ctx.moveTo(x, y+h);
+    for (let i=0;i<=spikes;i++){
+      const px = x + i*step;
+      const py = (i%2===0) ? y : (y + 12);
+      ctx.lineTo(px, py);
+    }
+    ctx.lineTo(x+w, y+h);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.lineWidth = 1;
+
+    // obstacle font size: 12px
+    ctx.font = "12px 'Press Start 2P'";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(o.label.toUpperCase(), x + w/2, y + h/2 + 8);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawBonus(b){
+    drawCloud(b.x, b.y, b.w, b.h, b.cloud, 1, false, "blue");
+    ctx.font = "12px 'Press Start 2P'";
+    ctx.fillStyle = "rgba(10,20,30,0.95)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(b.label.toUpperCase(), b.x + b.w/2, b.y + b.h/2 + 2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawStepToken(tk){
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.fillRect(tk.x, tk.y, tk.w, tk.h);
+
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(0,0,0,0.85)";
+    ctx.strokeRect(tk.x, tk.y, tk.w, tk.h);
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    ctx.strokeRect(tk.x+4, tk.y+4, tk.w-8, tk.h-8);
+
+    ctx.font = "13px 'Press Start 2P'";
+    ctx.fillStyle = "rgba(0,0,0,0.92)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(tk.label.toUpperCase(), tk.x + tk.w/2, tk.y + tk.h/2 + 1);
+
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawMicroCloud(m){
+    drawCloud(m.x, m.y, m.w, m.h, m.cloud, 0.95, true, "pink");
+    ctx.font = "12px 'Press Start 2P'";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("☁", m.x + m.w/2, m.y + m.h/2 + 2);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  function drawRunner(){
+    if (!runnerReady){
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+      return;
+    }
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(runnerImg, 0, 0, runnerImg.width, runnerImg.height, player.x, player.y, player.w, player.h);
+  }
+
+  function drawLivesHUD(){
+    const startX = 12, y = 96;
+    const sizeW = 16, sizeH = 20, gap = 6;
+
+    for (let i=0;i<MAX_LIVES;i++){
+      const x = startX + i*(sizeW+gap);
+      if (i < lives){
+        if (runnerReady){
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(runnerImg, 0, 0, runnerImg.width, runnerImg.height, x, y, sizeW, sizeH);
+        } else {
+          ctx.font = "16px 'Press Start 2P'";
+          ctx.fillStyle = "#fff";
+          ctx.fillText("🧍", x, y+16);
+        }
+      } else {
+        ctx.strokeStyle = "#333";
+        ctx.strokeRect(x, y, sizeW, sizeH);
       }
     }
   }
 
-  if(bannerTimer>0) bannerTimer--;
-  else banner=null;
+  function drawBanner(){
+    if (!banner) return;
 
-  // confetti physics
-  confetti.forEach(c=>{
-    c.y += c.vy;
-    c.x += c.vx;
-  });
-}
+    const t = banner.t || 0;
+    const ttl = banner.ttl || 80;
+    const fadeIn = Math.min(1, t / 12);
+    const fadeOut = Math.min(1, (ttl - t) / 12);
+    const alpha = Math.max(0, Math.min(1, Math.min(fadeIn, fadeOut)));
 
-/* =========================
-   DRAW HELPERS
-========================= */
-function drawTextBox(x,y,w,h){
-  ctx.fillStyle="rgba(255,255,255,0.95)";
-  ctx.fillRect(x,y,w,h);
-  ctx.strokeStyle="#000";
-  ctx.lineWidth=3;
-  ctx.strokeRect(x,y,w,h);
-}
+    ctx.globalAlpha = 0.92 * alpha;
 
-function wrapText(text,x,y,maxW,lineH){
-  const words = text.split(" ");
-  let line="";
-  for(let i=0;i<words.length;i++){
-    const test = line+words[i]+" ";
-    if(ctx.measureText(test).width>maxW){
-      ctx.fillText(line,x,y);
-      line=words[i]+" ";
-      y+=lineH;
-    } else line=test;
+    const boxW = Math.min(W - 40, 920);
+    const boxH = 120;
+    const bx = (W - boxW)/2;
+    const by = 120;
+
+    ctx.fillStyle =
+      (banner.kind === "bad") ? "rgba(70,0,0,0.78)" :
+      (banner.kind === "good") ? "rgba(0,40,0,0.72)" :
+      "rgba(0,0,0,0.72)";
+    ctx.fillRect(bx, by, boxW, boxH);
+
+    ctx.strokeStyle =
+      (banner.kind === "bad") ? "rgba(255,80,80,0.88)" :
+      (banner.kind === "good") ? "rgba(120,255,140,0.82)" :
+      "rgba(255,255,255,0.18)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bx, by, boxW, boxH);
+    ctx.lineWidth = 1;
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.font = "14px 'Press Start 2P'";
+    drawWrappedCentered(String(banner.title || ""), W/2, by + 46, boxW - 44, 18);
+
+    if (banner.sub){
+      ctx.font = "11px 'Press Start 2P'";
+      drawWrappedCentered(String(banner.sub), W/2, by + 88, boxW - 44, 16);
+    }
+
+    ctx.textAlign = "left";
+    ctx.globalAlpha = 1;
   }
-  ctx.fillText(line,x,y);
-}
 
-/* =========================
-   DRAW
-========================= */
-function draw(){
-  ctx.clearRect(0,0,W,H);
+  function drawIntroRules(){
+    const t = introTimer;
+    const holdEnd = INTRO_HOLD;
+    const fadeEnd = INTRO_HOLD + INTRO_FADE;
+    if (t >= fadeEnd) return;
 
-  if(mode==="title"){
+    let alpha = 1;
+    if (t > holdEnd){
+      const u = (t - holdEnd) / INTRO_FADE;
+      alpha = Math.max(0, 1 - u);
+    }
+
+    ctx.globalAlpha = 0.90 * alpha;
+
+    const boxW = Math.min(W - 44, 980);
+    const bx = (W - boxW)/2;
+    const by = Math.max(92, Math.floor(H * 0.16));
+
+    // height auto-ish based on lines
+    ctx.fillStyle = "rgba(0,0,0,0.82)";
+    ctx.strokeStyle = "rgba(255,255,255,0.20)";
+    ctx.lineWidth = 2;
+
+    // compute wrapped lines
+    ctx.font = "12px 'Press Start 2P'";
+    const pad = 18;
+    const maxTextW = boxW - pad*2;
+
+    const l1 = wrapLines("GOAL: Go through the steps IN ORDER", maxTextW);
+    const l2 = wrapLines("Pitfalls: Lose a life", maxTextW);
+    const l3 = wrapLines("Actions (blue clouds): Gain a life", maxTextW);
+
+    const lineH = 20;
+    const totalLines = l1.length + l2.length + l3.length + 2; // spacer lines
+    const boxH = pad + totalLines*lineH + pad;
+
+    ctx.fillRect(bx, by, boxW, boxH);
+    ctx.strokeRect(bx, by, boxW, boxH);
+    ctx.lineWidth = 1;
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "left";
+
+    let y = by + pad + lineH;
+    for (const s of l1){ ctx.fillText(s, bx+pad, y); y += lineH; }
+    y += lineH * 0.6;
+    for (const s of l2){ ctx.fillText(s, bx+pad, y); y += lineH; }
+    y += lineH * 0.6;
+    for (const s of l3){ ctx.fillText(s, bx+pad, y); y += lineH; }
+
+    ctx.textAlign = "left";
+    ctx.globalAlpha = 1;
+  }
+
+  function drawOverlay(lines, footer="TAP TO CONTINUE"){
+    ctx.fillStyle="rgba(0,0,0,0.86)";
+    ctx.fillRect(0,0,W,H);
+
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
-    ctx.font="28px 'Press Start 2P'";
-    ctx.fillText("TRUDGE",W/2,120);
-    ctx.fillText("THE ROAD",W/2,160);
-
-    const boxW = Math.min(W-40,700);
-    drawTextBox((W-boxW)/2,200,boxW,220);
-
-    ctx.fillStyle="#000";
     ctx.font="11px 'Press Start 2P'";
-    wrapText("GOAL: Go through the Steps IN ORDER", (W-boxW)/2+20,240,boxW-40,28);
-    wrapText("Pitfalls: Lose a life", (W-boxW)/2+20,300,boxW-40,28);
-    wrapText("Actions (blue clouds): Gain a life", (W-boxW)/2+20,360,boxW-40,28);
 
-    ctx.fillStyle="#fff";
-    ctx.font="12px 'Press Start 2P'";
-    ctx.fillText("TAP TO START",W/2,470);
-  }
+    const maxW = Math.floor(W * 0.86);
+    const lineH = 22;
+    let y = Math.floor(H/2 - 120);
 
-  if(mode==="play"){
-    // HUD
-    ctx.fillStyle="#fff";
-    ctx.font="12px 'Press Start 2P'";
+    for (const line of lines){
+      const wrapped = wrapLines(line, maxW);
+      for (const w of wrapped){
+        ctx.fillText(w, W/2, y);
+        y += lineH;
+      }
+      y += 6;
+    }
+
+    ctx.font="10px 'Press Start 2P'";
+    ctx.fillText(footer, W/2, y + 24);
     ctx.textAlign="left";
-    ctx.fillText(`STEP ${stepIndex+1} / 12`,20,30);
-    ctx.textAlign="right";
-    ctx.fillText(steps[stepIndex]||"",W-20,30);
+  }
 
-    // PLAYER
-    if(runnerReady){
-      ctx.drawImage(runnerImg,0,0,runnerImg.width,runnerImg.height,
-        player.x,player.y-player.h/2,player.w,player.h);
-    } else {
-      ctx.fillRect(player.x,player.y-70,80,120);
-    }
-
-    // BANNER
-    if(banner){
-      ctx.fillStyle="rgba(0,0,0,0.75)";
-      ctx.fillRect(W/2-220,80,440,60);
-      ctx.fillStyle="#fff";
-      ctx.textAlign="center";
-      ctx.font="12px 'Press Start 2P'";
-      ctx.fillText(banner,W/2,120);
+  // ====== CELEBRATION ======
+  const confetti = [];
+  function spawnConfettiBurst(){
+    confetti.length = 0;
+    const EMO = ["🪙","✨","💥","⭐"];
+    for (let i=0;i<90;i++){
+      confetti.push({
+        x: W/2 + (Math.random()*140 - 70),
+        y: Math.floor(H*0.58),
+        vx: (Math.random()*10 - 5),
+        vy: -(6 + Math.random()*8),
+        g: 0.38 + Math.random()*0.18,
+        rot: Math.random()*Math.PI*2,
+        vr: (Math.random()*0.2 - 0.1),
+        emoji: EMO[(Math.random()*EMO.length)|0],
+        life: 0,
+        max: 140 + ((Math.random()*60)|0)
+      });
     }
   }
 
-  if(mode==="win"){
+  function updateConfetti(){
+    for (const c of confetti){
+      c.life++;
+      c.vy += c.g;
+      c.x += c.vx;
+      c.y += c.vy;
+      c.rot += c.vr;
+    }
+    for (let i=confetti.length-1;i>=0;i--){
+      if (confetti[i].life > confetti[i].max || confetti[i].y > H + 80){
+        confetti.splice(i,1);
+      }
+    }
+  }
+
+  function drawConfetti(){
+    if (!confetti.length) return;
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "22px serif";
+    for (const c of confetti){
+      const a = Math.max(0, Math.min(1, 1 - (c.life / c.max)));
+      ctx.globalAlpha = a;
+      ctx.fillText(c.emoji, c.x, c.y);
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  // ====== UPDATE ======
+  function updateTitle(){ titleTimer++; }
+
+  function updateCountdown(){
+    countdownTimer++;
+    if (countdownTimer % 60 === 0){
+      countdownValue--;
+      if (countdownValue < 0) setMode("play");
+    }
+  }
+
+  function updatePlay(){
+    warmupFrames++;
+
+    if (introTimer < (INTRO_HOLD + INTRO_FADE + 5)) introTimer++;
+
+    if (invuln > 0) invuln--;
+    if (slowTimer > 0) slowTimer--;
+    if (slowMo > 0) slowMo--;
+
+    // ====== PLAYER MOVEMENT (FREE, COMFY) ======
+    const { minY, maxY } = playerBounds();
+    const centerY = (minY + maxY) / 2;
+
+    if (targetY !== null){
+      // follow finger smoothly
+      player.y += (targetY - player.y) * 0.35;
+    } else {
+      // drift back toward center when not touching
+      player.y += (centerY - player.y) * 0.02;
+    }
+
+    // soft edges: slow/press back gently if you drift too far
+    if (player.y < minY){
+      player.y += (minY - player.y) * 0.25;
+    } else if (player.y > maxY){
+      player.y -= (player.y - maxY) * 0.25;
+    }
+
+    const spd = currentSpeed();
+
+    if (stepCooldown > 0) stepCooldown--;
+    else stepSpawnBias += 1;
+
+    for (const o of obstacles) o.x -= spd;
+    for (const b of bonuses) b.x -= spd;
+    for (const s of stepTokens) s.x -= spd;
+    for (const m of microClouds) m.x -= spd;
+
+    // Clear effect: clears next trap in front of you (same Y zone)
+    if (clearArmed){
+      const next = obstacles.find(o => o.x > player.x && o.x < player.x + 460);
+      if (next){
+        next.x = -9999;
+        clearArmed = false;
+        showBanner("good", "WRITE IT DOWN", "Cleared one trap.", 80);
+      }
+    }
+
+    // Slightly smaller hitbox (feels fair)
+    const rx = player.x + 20;
+    const ry = player.y + 18;
+    const rw = player.w - 40;
+    const rh = player.h - 34;
+
+    // ====== COLLISIONS (NO LANES — TRUE AABB) ======
+    for (const o of obstacles){
+      const ox = o.x + 22;
+      const oy = o.y + 12;
+      const ow = Math.max(2, o.w - 44);
+      const oh = Math.max(2, o.h - 22);
+
+      if (invuln === 0 && aabb(rx, ry, rw, rh, ox, oy, ow, oh)){
+        lives--;
+        lastObstacleLabel = o.label;
+        invuln = 90;
+        o.x = -9999;
+
+        showBanner("bad", `${lastObstacleLabel.toUpperCase()} TOOK YOU OUT`, "-1 LIFE", 90);
+
+        if (lives <= 0){
+          setMode("gameover");
+          return;
+        }
+      }
+
+      if (!o.passed && (o.x + o.w) < player.x){
+        o.passed = true;
+        obstaclesPassed++;
+      }
+    }
+
+    for (const b of bonuses){
+      const bx = b.x + 18;
+      const by = b.y + 10;
+      const bw = Math.max(2, b.w - 36);
+      const bh = Math.max(2, b.h - 18);
+
+      if (aabb(rx, ry, rw, rh, bx, by, bw, bh)){
+        if (b.type === "life"){
+          const before = lives;
+          lives = Math.min(MAX_LIVES, lives + 1);
+          showBanner("good", b.label.toUpperCase(), (lives>before ? "+1 LIFE" : "LIVES FULL"), 85);
+        } else if (b.type === "slow"){
+          slowTimer = 300;
+          showBanner("good", b.label.toUpperCase(), "SLOWING DOWN.", 85);
+        } else if (b.type === "clear"){
+          clearArmed = true;
+          showBanner("good", b.label.toUpperCase(), "NEXT TRAP CLEARS.", 85);
+        }
+        b.x = -9999;
+      }
+    }
+
+    for (const m of microClouds){
+      const mx = m.x + 12;
+      const my = m.y + 8;
+      const mw = m.w - 24;
+      const mh = m.h - 16;
+
+      if (aabb(rx, ry, rw, rh, mx, my, mw, mh)){
+        slowTimer = Math.max(slowTimer, 90);
+        showBanner("good", "PINK CLOUD", rand(calmWhispers), 75);
+        m.x = -9999;
+      }
+    }
+
+    for (const s of stepTokens){
+      const sx = s.x + 12;
+      const sy = s.y + 10;
+      const sw = Math.max(2, s.w - 24);
+      const sh = Math.max(2, s.h - 20);
+
+      if (aabb(rx, ry, rw, rh, sx, sy, sw, sh)){
+        stepIndex++;
+        s.x = -9999;
+
+        if (stepIndex < 12){
+          const got = steps[stepIndex-1];
+          showBanner("good", `STEP ${got.n} — ${got.p}`, "Nice. Keep moving.", 90);
+          stepCooldown = 60 * (26 + (Math.random()*16|0));
+          stepSpawnBias = 0;
+        } else {
+          setMode("ending");
+          spawnConfettiBurst();
+          return;
+        }
+      }
+    }
+
+    // CLEANUP
+    for (let i=obstacles.length-1;i>=0;i--){
+      if (obstacles[i].x < -1600) obstacles.splice(i,1);
+    }
+    for (let i=bonuses.length-1;i>=0;i--){
+      if (bonuses[i].x < -1600) bonuses.splice(i,1);
+    }
+    for (let i=stepTokens.length-1;i>=0;i--){
+      if (stepTokens[i].x < -1800) stepTokens.splice(i,1);
+    }
+    for (let i=microClouds.length-1;i>=0;i--){
+      if (microClouds[i].x < -1200) microClouds.splice(i,1);
+    }
+
+    // SPAWN (distance gaps)
+    obstacleGapPx -= spd;
+    bonusGapPx -= spd;
+    microGapPx -= spd;
+
+    const inWarmup = warmupFrames < WARMUP_TOTAL;
+    const stepOnScreen = stepTokens.length > 0;
+
+    if (obstacleGapPx <= 0){
+      spawnObstacle();
+      const base = inWarmup ? 600 : 420;
+      const spread = inWarmup ? 320 : 260;
+      obstacleGapPx = base + ((Math.random() * spread) | 0);
+
+      if (!inWarmup && Math.random() < 0.18){
+        const laneA = (Math.random()*LANE_COUNT)|0;
+        const laneB = (laneA + 1 + ((Math.random()*2)|0)) % LANE_COUNT;
+        spawnObstacle(null, laneB, W + 90 + 280);
+      }
+    }
+
+    // When a STEP is present, stop spawning extra clouds/bonuses
+    if (!stepOnScreen){
+      if (bonusGapPx <= 0 && Math.random() < (inWarmup ? 0.55 : 0.42)){
+        spawnBonus();
+        bonusGapPx = 980 + ((Math.random() * 560) | 0);
+      }
+
+      if (microGapPx <= 0 && Math.random() < (inWarmup ? 0.70 : 0.55)){
+        spawnMicroCloud();
+        microGapPx = (inWarmup ? 520 : 620) + ((Math.random() * 420) | 0);
+      }
+    } else {
+      bonusGapPx = Math.max(bonusGapPx, 80);
+      microGapPx = Math.max(microGapPx, 80);
+    }
+
+    if (stepIndex < 12 && stepTokens.length === 0 && stepCooldown <= 0){
+      const chance = Math.min(0.018 + stepSpawnBias * 0.00008, 0.075);
+      if (Math.random() < chance){
+        spawnStepToken();
+        stepCooldown = 60 * (18 + (Math.random()*12|0));
+        stepSpawnBias = 0;
+
+        const next = steps[stepIndex];
+        showBanner("status", `NEXT: STEP ${next.n} — ${next.p}`, "Find the STEP card.", 85);
+      }
+    }
+
+    tickBanner();
+  }
+
+  function update(){
+    if (mode === "title") return updateTitle();
+    if (mode === "countdown") return updateCountdown();
+    if (mode === "pause") return;
+    if (mode === "gameover") return;
+    if (mode === "ending"){
+      updateConfetti();
+      return;
+    }
+    if (mode === "play") return updatePlay();
+  }
+
+  // ====== DRAW SCREENS ======
+  function drawTitle(){
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,W,H);
+    drawStarfield(0.6);
+
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
-    ctx.font="16px 'Press Start 2P'";
-    ctx.fillText("YOU MADE IT THROUGH THE STEPS!",W/2,120);
 
-    confetti.forEach(c=>{
-      ctx.font="20px serif";
-      ctx.fillText(c.emoji,c.x,c.y);
-    });
+    ctx.font="28px 'Press Start 2P'";
+    ctx.fillText("TRUDGE", W/2, Math.floor(H*0.26));
+    ctx.fillText("THE ROAD", W/2, Math.floor(H*0.26) + 40);
+
+    // White instruction card (WRAPS)
+    const cardW = Math.min(W - 40, 920);
+    const cx = (W - cardW)/2;
+    const cy = Math.floor(H*0.35);
+    ctx.font = "11px 'Press Start 2P'";
+
+    const maxTextW = cardW - 36;
+
+    const a = wrapLines("GOAL: Go through the Steps IN ORDER", maxTextW);
+    const b = wrapLines("Pitfalls: Lose a life", maxTextW);
+    const c = wrapLines("Actions (blue clouds): Gain a life", maxTextW);
+
+    const lineH = 20;
+    const totalLines = a.length + b.length + c.length + 2;
+    const cardH = 24 + totalLines*lineH + 24;
+
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    ctx.fillRect(cx, cy, cardW, cardH);
+
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(0,0,0,0.85)";
+    ctx.strokeRect(cx, cy, cardW, cardH);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    ctx.strokeRect(cx+4, cy+4, cardW-8, cardH-8);
+
+    ctx.fillStyle = "rgba(0,0,0,0.92)";
+    ctx.textAlign = "left";
+
+    let y = cy + 36;
+    for (const s of a){ ctx.fillText(s, cx+18, y); y += lineH; }
+    y += lineH*0.6;
+    for (const s of b){ ctx.fillText(s, cx+18, y); y += lineH; }
+    y += lineH*0.6;
+    for (const s of c){ ctx.fillText(s, cx+18, y); y += lineH; }
+
+    // Rocketed line (WRAPS)
+    ctx.fillStyle="#fff";
+    ctx.textAlign="center";
+    ctx.font="10px 'Press Start 2P'";
+    drawWrappedCentered("Rocketed into the 4th dimension in...", W/2, cy + cardH + 34, Math.floor(W*0.86), 18);
+
+    // Tap to start (only)
+    const blink = ((titleTimer/18)|0) % 2 === 0;
+    if (blink){
+      ctx.font="12px 'Press Start 2P'";
+      ctx.fillText("TAP TO START", W/2, cy + cardH + 78);
+    }
+
+    ctx.textAlign="left";
+  }
+
+  function drawCountdown(){
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,W,H);
+    drawStarfield(1.0);
+
+    ctx.fillStyle="#fff";
+    ctx.textAlign="center";
+
+    ctx.font="14px 'Press Start 2P'";
+    drawWrappedCentered("ROCKETED INTO THE 4TH DIMENSION IN...", W/2, Math.floor(H*0.28), Math.floor(W*0.86), 22);
+
+    const show = (countdownValue >= 1) ? String(countdownValue) : (countdownValue === 0 ? "GO!" : "");
+    ctx.font="56px 'Press Start 2P'";
+    ctx.fillText(show, W/2, Math.floor(H*0.50));
+    ctx.textAlign="left";
+  }
+
+  function drawPlayfield(){
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,W,H);
+
+    drawStarfield(currentSpeed());
+    drawHeader();
+
+    for (const o of obstacles) drawDangerObstacle(o);
+    for (const b of bonuses) drawBonus(b);
+    for (const s of stepTokens) drawStepToken(s);
+    for (const m of microClouds) drawMicroCloud(m);
+
+    drawRunner();
+    drawLivesHUD();
+    drawBanner();
+
+    if (mode === "play") drawIntroRules();
+  }
+
+  function drawPause(){
+    drawOverlay(["PAUSED", "Take a breath."], "TAP TO RESUME");
+  }
+
+  function drawGameOver(){
+    drawOverlay([
+      `${lastObstacleLabel.toUpperCase()} TOOK YOU OUT`,
+      "GAME OVER",
+      "Try again — or don’t.",
+      "We’ll be here."
+    ], "TAP TO TRY AGAIN");
+  }
+
+  function drawEnding(){
+    // Background + confetti
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,W,H);
+    drawStarfield(0.8);
+    drawConfetti();
+
+    ctx.fillStyle="#fff";
+    ctx.textAlign="center";
+
+    const maxW = Math.floor(W*0.86);
+
+    ctx.font="14px 'Press Start 2P'";
+    drawWrappedCentered("YOU GOT THROUGH THE 12 STEPS.", W/2, Math.floor(H*0.30), maxW, 24);
 
     ctx.font="12px 'Press Start 2P'";
-    ctx.fillText("TAP TO PLAY AGAIN",W/2,H-60);
-  }
-}
+    drawWrappedCentered("NOW DO IT AGAIN.", W/2, Math.floor(H*0.38), maxW, 22);
 
-/* =========================
-   LOOP
-========================= */
-function loop(){
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-loop();
+    ctx.font="10px 'Press Start 2P'";
+    drawWrappedCentered("NEXT RUN = FASTER ROAD.", W/2, Math.floor(H*0.46), maxW, 18);
+
+    ctx.font="12px 'Press Start 2P'";
+    drawWrappedCentered("TAP TO PLAY AGAIN", W/2, Math.floor(H*0.70), maxW, 20);
+
+    ctx.textAlign="left";
+  }
+
+  function draw(){
+    if (mode === "title") return drawTitle();
+    if (mode === "countdown") return drawCountdown();
+
+    if (mode === "play") return drawPlayfield();
+    if (mode === "pause") return drawPause();
+    if (mode === "gameover") return drawGameOver();
+    if (mode === "ending") return drawEnding();
+  }
+
+  // ====== ENDING / TRY AGAIN (New Game+) ======
+  function handleTryAgainFromEnding(){
+    prestige++;
+    prestigeSpeedBoost = Math.min(2.0, prestige * 0.30);
+  }
+
+  const _setMode = setMode;
+  setMode = (m) => {
+    if (mode === "ending" && m === "title"){
+      handleTryAgainFromEnding();
+    }
+    _setMode(m);
+  };
+
+  // ====== MAIN LOOP ======
+  resetRun(true);
+  setMode("title");
+
+  function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  // ====== MODE TRANSITIONS ======
+  // Countdown -> play
+  function tickCountdownTransitions(){
+    // handled in updateCountdown()
+  }
+
+  // We also need to flip mode from countdown to play cleanly
+  const _updateCountdown = updateCountdown;
+  function updateCountdown(){
+    countdownTimer++;
+    if (countdownTimer % 60 === 0){
+      countdownValue--;
+      if (countdownValue < 0){
+        setMode("play");
+      }
+    }
+  }
+  // overwrite the function reference (since we declared it earlier)
+  // (safe because we call update() which calls updateCountdown by name)
+  window.__noop = _updateCountdown; // harmless
 
 })();
 </script>
