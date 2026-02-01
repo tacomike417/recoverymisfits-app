@@ -73,41 +73,20 @@
       cursor:pointer;
       opacity:.6;
     }
-    /* iPhone Share icon (passes the squint test) */
-.iosShareIcon{
-  display:inline-flex;
-  vertical-align:middle;
-  margin-left:6px;
-  border:1px solid rgba(0,0,0,.18);
-  border-radius:8px;
-  padding:2px 8px;
-  color:#007AFF;
-}
-.iosShareIcon svg{
-  width:18px;
-  height:18px;
-}
 
-    /* ===========================
-       SHARE BUTTONS (under sobriety)
-       =========================== */
-    .shareRow{
-      display:flex;
-      gap:6px;
-      margin-top:6px;
-    }
-    .shareBtn{
-      flex:1;
-      padding:7px 10px;
-      border-radius:999px;
+    /* iPhone Share icon (passes the squint test) */
+    .iosShareIcon{
+      display:inline-flex;
+      vertical-align:middle;
+      margin-left:6px;
       border:1px solid rgba(0,0,0,.18);
-      background:#fff;
-      font-weight:1000;
-      font-size:12px;
-      cursor:pointer;
+      border-radius:8px;
+      padding:2px 8px;
+      color:#007AFF;
     }
-    .shareBtn:active{
-      transform:scale(0.98);
+    .iosShareIcon svg{
+      width:18px;
+      height:18px;
     }
 
     /* ===========================
@@ -131,8 +110,9 @@
       max-width:980px;
       margin:0 auto;
       display:grid;
-      grid-template-columns:1fr 1fr;
+      grid-template-columns:1fr 1fr auto;
       gap:10px;
+      align-items:stretch;
     }
     .pill{
       border:1px solid rgba(0,0,0,.18);
@@ -142,10 +122,27 @@
       align-items:center;
       justify-content:space-between;
       cursor:pointer;
+      user-select:none;
     }
     .label{font-size:12px;font-weight:900;opacity:.7;}
     .value{font-size:14px;font-weight:1000;}
     .hint{font-size:12px;font-weight:900;color:#666;}
+
+    /* menu icon button (subtle) */
+    .menuBtn{
+      width:44px;
+      border:1px solid rgba(0,0,0,.18);
+      border-radius:16px;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      font-weight:1000;
+      cursor:pointer;
+      user-select:none;
+    }
+    .menuBtn:active{transform:scale(.98);}
 
     /* ===========================
        CONNECTION WHISPER + BADGE
@@ -216,8 +213,14 @@
       background:#fff;
       font-weight:900;
       cursor:pointer;
+      text-decoration:none;
+      color:#111;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
     }
-    .btn.primary{background:#111;color:#fff;}
+    .btn.primary{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
     .big{font-size:22px;font-weight:1000;margin-top:10px;}
     .muted{color:#666;font-weight:800;line-height:1.25;}
   </style>
@@ -262,20 +265,12 @@
   <div class="bottomInner">
 
     <!-- SOBRIETY -->
-    <div>
-      <div class="pill" id="sobPill">
-        <div>
-          <div class="label">SOBRIETY</div>
-          <div class="value" id="sobValue">Tap to set</div>
-        </div>
-        <div class="hint" id="sobHint">Tap to set</div>
+    <div class="pill" id="sobPill">
+      <div>
+        <div class="label">SOBRIETY</div>
+        <div class="value" id="sobValue">Tap to set</div>
       </div>
-
-      <!-- SHARE BUTTONS -->
-      <div class="shareRow">
-        <button class="shareBtn" type="button" onclick="shareText()">Text</button>
-        <button class="shareBtn" type="button" onclick="shareFacebook()">Facebook</button>
-      </div>
+      <div class="hint" id="sobHint">Tap to set</div>
     </div>
 
     <!-- DAILY CHECK-IN -->
@@ -294,8 +289,10 @@
         <span class="whisper-text"></span>
       </div>
       <!-- /CONNECTION WHISPER -->
-
     </div>
+
+    <!-- MENU -->
+    <button class="menuBtn" id="menuBtn" type="button" aria-label="Menu">☰</button>
 
   </div>
 </div>
@@ -319,6 +316,28 @@
 </div>
 
 <!-- ===========================
+     MENU SHEET
+     =========================== -->
+<div class="backdrop" id="menuBackdrop"></div>
+<div class="sheet" id="menuSheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Quick Tools</h3>
+    <button class="btn" id="closeMenu" type="button">Close</button>
+  </div>
+
+  <div class="muted" style="margin-top:6px;">Stuff you might want. Nothing loud.</div>
+
+  <div class="row" style="margin-top:12px;">
+    <a class="btn primary" href="game.html" id="playGameBtn" aria-label="Play Trudge the Road">🎮 Play Trudge the Road</a>
+  </div>
+
+  <div class="row" style="margin-top:10px;">
+    <button class="btn" id="shareTextBtn" type="button">📱 Share by Text</button>
+    <button class="btn" id="shareFbBtn" type="button">📣 Share on Facebook</button>
+  </div>
+</div>
+
+<!-- ===========================
      iOS INSTALL SHEET
      =========================== -->
 <div class="backdrop" id="iosBackdrop"></div>
@@ -331,14 +350,16 @@
   <div style="margin-top:12px;font-weight:900;line-height:1.45;">
     <div style="margin-bottom:12px;">
       <b>1)</b> Tap the iPhone <b>Share</b> button
-      <span style="margin-left:6px;border:1px solid rgba(0,0,0,.18);border-radius:8px;padding:2px 8px;font-weight:1000;"><span class="iosShareIcon" aria-hidden="true">
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <rect x="5" y="9" width="14" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
-  </svg>
-</span>
-</span>
+      <span style="margin-left:6px;border:1px solid rgba(0,0,0,.18);border-radius:8px;padding:2px 8px;font-weight:1000;">
+        <span class="iosShareIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="5" y="9" width="14" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+          </svg>
+       с
+        </span>
+      </span>
     </div>
     <div style="margin-bottom:12px;">
       <b>2)</b> Scroll and tap <b>Add to Home Screen</b>
@@ -359,23 +380,6 @@
      Service Worker
      =========================== */
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
-
-  /* ===========================
-     Share
-     =========================== */
-  const SHARE_URL = "https://recoverymisfits.blogspot.com/";
-  const SHARE_TEXT = "This has been helping me lately. No hype, just solid. " + SHARE_URL;
-
-  function shareText(){
-    // Same-tab open to SMS composer (works best on mobile)
-    window.location.href = "sms:?&body=" + encodeURIComponent(SHARE_TEXT);
-  }
-
-  function shareFacebook(){
-    // Opens Facebook share dialog in a new tab/window
-    const fb = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(SHARE_URL);
-    window.open(fb, "_blank", "noopener,noreferrer");
-  }
 
   /* ===========================
      Layout sizing (iframe fits screen)
@@ -471,6 +475,40 @@
   if (isStandalone()) hideInstallBar();
 
   /* ===========================
+     Menu sheet wiring
+     =========================== */
+  const menuBackdrop = document.getElementById("menuBackdrop");
+  const menuSheet = document.getElementById("menuSheet");
+  const menuBtn = document.getElementById("menuBtn");
+
+  function openMenu(){
+    menuBackdrop.style.display = "block";
+    menuSheet.classList.add("open");
+  }
+  function closeMenu(){
+    menuSheet.classList.remove("open");
+    menuBackdrop.style.display = "none";
+  }
+  menuBtn.onclick = openMenu;
+  menuBackdrop.onclick = closeMenu;
+  document.getElementById("closeMenu").onclick = closeMenu;
+
+  // Share buttons inside menu
+  const SHARE_URL = "https://recoverymisfits.blogspot.com/";
+  const SHARE_TEXT = "This has been helping me lately. No hype, just solid. " + SHARE_URL;
+
+  document.getElementById("shareTextBtn").onclick = () => {
+    // same-tab SMS composer (works best on mobile)
+    window.location.href = "sms:?&body=" + encodeURIComponent(SHARE_TEXT);
+  };
+
+  document.getElementById("shareFbBtn").onclick = () => {
+    // Facebook share dialog (often needs a new tab/window)
+    const fb = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(SHARE_URL);
+    window.open(fb, "_blank", "noopener,noreferrer");
+  };
+
+  /* ===========================
      Sobriety + Daily Check-in
      =========================== */
   const LS_DATE   = "rm_sob_date";
@@ -541,6 +579,7 @@
     renderSob();
   };
 
+  // leaving your original behavior: streak pill opens sobriety sheet
   document.getElementById("streakPill").onclick = () => openSheet();
 
   document.getElementById("saveSob").onclick = () => {
