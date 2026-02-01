@@ -10,7 +10,7 @@
     margin:0; padding:0; height:100%;
     background:#000; overflow:hidden;
     font-family:"Press Start 2P", monospace;
-    touch-action:none; /* drag-friendly */
+    touch-action: none; /* needed for smooth drag on mobile */
   }
   canvas{ display:block; width:100vw; height:100vh; }
 
@@ -40,8 +40,9 @@
   const bgm = document.getElementById("bgm");
   const pauseBtn = document.getElementById("pauseBtn");
 
-  // ====== SIZE / DPI ======
-  let W=0, H=0;
+  // draw using CSS pixels
+  let W = 0, H = 0;
+
   function resize(){
     const rect = canvas.getBoundingClientRect();
     W = Math.max(1, Math.floor(rect.width));
@@ -54,23 +55,31 @@
   addEventListener("resize", resize);
   resize();
 
-  // ====== SPRITE ======
+  /* =========================
+     SPRITE (runner.png)
+  ========================= */
   const runnerImg = new Image();
   runnerImg.src = "./runner.png";
   let runnerReady = false;
   runnerImg.onload = () => runnerReady = true;
 
-  // ====== MODES ======
+  /* =========================
+     MODES
+  ========================= */
   let mode = "title"; // title | countdown | play | pause | gameover | ending
   function setMode(m){
     mode = m;
     pauseBtn.style.display = (mode === "play" || mode === "pause") ? "block" : "none";
   }
 
-  // ====== CONSTANTS ======
-  const MAX_LIVES = 5;
+  /* =========================
+     CONSTANTS (Speed + Difficulty)
+  ========================= */
+  const MAX_LIVES = 3;      // <-- CHALLENGE: 3 lives
   const LANE_COUNT = 3;
+  const LANE_SNAP = 0.40;
 
+  // You already slowed this down — leaving it “comfortable”
   const BASE_SPEED = 2.8;
   const MAX_SPEED  = 5.6;
 
@@ -92,27 +101,26 @@
   let slowTimer = 0;
   let slowMo = 0;
 
-  // Intro rules overlay
+  /* =========================
+     INTRO RULES (4s hold + fade)
+  ========================= */
   const INTRO_HOLD = 60 * 4;
   const INTRO_FADE = 60 * 1;
   let introTimer = 0;
 
-  // ====== PLAYER (20% bigger) ======
+  /* =========================
+     PLAYER (runner ~20% bigger)
+     + a little left so your thumb doesn’t cover him
+  ========================= */
   const player = {
-    x: 140,
-    y: 0, // top-left
+    x: 0,
+    y: 0,
     w: Math.round(86 * 1.2),
     h: Math.round(114 * 1.2),
+    lane: 1,
+    laneTarget: 1
   };
 
-  // Bounds so Bill doesn't go under header or off-screen
-  function playerBounds(){
-    const minY = 84; // below header + a little cushion
-    const maxY = Math.max(minY, H - player.h - 40);
-    return { minY, maxY };
-  }
-
-  // Spawn rows (still 3 for readability)
   function laneYCenters(){
     const top = Math.max(120, Math.floor(H * 0.28));
     const bottom = Math.min(H - 120, Math.floor(H * 0.78));
@@ -120,7 +128,105 @@
     return [top, top + gap, bottom];
   }
 
-  // ====== CONTENT ======
+  function updatePlayerX(){
+    // left-ish, classic runner feel, and thumb-friendly
+    player.x = Math.floor(W * 0.22);
+  }
+  updatePlayerX();
+  addEventListener("resize", updatePlayerX);
+
+  /* =========================
+     DRAG TO MOVE (simple)
+  ========================= */
+  let dragging = false;
+  let dragPointerId = null;
+
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+  function nearestLaneFromY(y){
+    const lanes = laneYCenters();
+    let best = 0, bestD = Infinity;
+    for (let i=0;i<lanes.length;i++){
+      const d = Math.abs(lanes[i] - y);
+      if (d < bestD){ bestD = d; best = i; }
+    }
+    return best;
+  }
+
+  function startMusic(){
+    if (!bgm) return;
+    if (bgm.paused){
+      bgm.volume = 0.22;
+      bgm.play().catch(()=>{});
+    }
+  }
+
+  function startCountdown(){
+    resetRun(true);
+    countdownValue = 3;
+    countdownTimer = 0;
+    setMode("countdown");
+  }
+
+  function pointerDown(e){
+    canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+    startMusic();
+
+    if (mode === "title"){ startCountdown(); return; }
+    if (mode === "gameover" || mode === "ending"){ setMode("title"); return; }
+    if (mode !== "play") return;
+
+    dragging = true;
+    dragPointerId = e.pointerId;
+
+    // immediately move to your finger lane (feels “I am Bill”)
+    const lane = clamp(nearestLaneFromY(e.clientY), 0, LANE_COUNT - 1);
+    player.laneTarget = lane;
+  }
+
+  function pointerMove(e){
+    if (!dragging) return;
+    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
+    if (mode !== "play") return;
+
+    const lane = clamp(nearestLaneFromY(e.clientY), 0, LANE_COUNT - 1);
+    player.laneTarget = lane;
+  }
+
+  function pointerUp(e){
+    if (!dragging) return;
+    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
+    dragging = false;
+    dragPointerId = null;
+  }
+
+  canvas.addEventListener("pointerdown", pointerDown, {passive:true});
+  canvas.addEventListener("pointermove", pointerMove, {passive:true});
+  canvas.addEventListener("pointerup", pointerUp, {passive:true});
+  canvas.addEventListener("pointercancel", pointerUp, {passive:true});
+
+  // Tap/click starts/restarts only (no lane jump)
+  function onTapStart(){
+    startMusic();
+    if (mode === "title"){ startCountdown(); return; }
+    if (mode === "gameover" || mode === "ending"){ setMode("title"); return; }
+  }
+  addEventListener("mousedown", onTapStart, {passive:true});
+  addEventListener("touchstart", onTapStart, {passive:true});
+
+  pauseBtn.onclick = () => {
+    if (mode === "play"){
+      bgm && bgm.pause();
+      setMode("pause");
+    } else if (mode === "pause"){
+      bgm && bgm.play().catch(()=>{});
+      setMode("play");
+    }
+  };
+
+  /* =========================
+     CONTENT
+  ========================= */
   const obstaclesPool = [
     "Anger","Resentment","Fear","Self-pity","Anxiety","Guilt","Shame",
     "Ego","Overthinking","Self-obsession","Self-righteousness","Control",
@@ -132,12 +238,13 @@
     "Restless","Irritable","Discontent","Catastrophizing","Projection"
   ];
 
+  // Actions (blue clouds)
   const bonusesPool = [
     { label:"Go to a meeting", type:"life" },
     { label:"Call a friend", type:"life" },
-    { label:"Call your sponsor", type:"life" },
-    { label:"Pray / pause", type:"slow" },
-    { label:"Write it down", type:"clear" }
+    { label:"Prayer / meditation", type:"slow" },  // <-- your special slow-down
+    { label:"Write it down", type:"clear" },
+    { label:"Call sponsor (one time)", type:"panic" } // <-- fun “get out of jail” move
   ];
 
   const steps = [
@@ -164,119 +271,41 @@
     "Just for today."
   ];
 
-  // ====== STATE ======
+  /* =========================
+     STATE
+  ========================= */
   let lives = MAX_LIVES;
   let lastObstacleLabel = "something";
   let stepIndex = 0;
   let obstaclesPassed = 0;
   let clearArmed = false;
 
+  // one-time “call sponsor” use
+  let sponsorUsed = false;
+
   const obstacles = [];
   const bonuses = [];
   const microClouds = [];
   const stepTokens = [];
 
-  // ====== BANNER (NO BACKLOG) ======
-  let banner = null; // { kind, title, sub, t, ttl }
-  function showBanner(kind, title, sub="", ttl=85){
-    // replace immediately (no queue)
+  /* =========================
+     BANNERS (NO BACKLOG)
+     New banner replaces the old one so it never feels “late”
+  ========================= */
+  let banner = null;
+  function pushBanner(kind, title, sub="", ttl=120){
     banner = { kind, title, sub, t:0, ttl };
-    slowMo = (kind === "bad") ? 55 : 35; // shorter slow-mo so it doesn't “lag”
+    slowMo = (kind === "bad") ? 65 : 40; // tiny drama, not a traffic jam
   }
   function tickBanner(){
     if (!banner) return;
-    banner.t++;
+    banner.t += 1;
     if (banner.t >= banner.ttl) banner = null;
   }
 
-  // ====== AUDIO ======
-  function startMusic(){
-    if (!bgm) return;
-    if (bgm.paused){
-      bgm.volume = 0.22;
-      bgm.play().catch(()=>{});
-    }
-  }
-
-  // ====== INPUT: DRAG = YOU ARE BILL ======
-  let dragging = false;
-  let dragPointerId = null;
-  let targetY = null; // player.y target (top-left)
-  const THUMB_OFFSET = 74; // keeps Bill visible above thumb
-
-  function setTargetFromPointer(clientY){
-    const { minY, maxY } = playerBounds();
-    const yTop = (clientY - THUMB_OFFSET) - (player.h/2);
-    targetY = Math.max(minY, Math.min(maxY, yTop));
-  }
-
-  function pointerDown(e){
-    canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
-    startMusic();
-
-    if (mode === "title"){ startCountdown(); return; }
-    if (mode === "gameover" || mode === "ending"){
-      setMode("title");
-      return;
-    }
-    if (mode !== "play") return;
-
-    dragging = true;
-    dragPointerId = e.pointerId;
-    setTargetFromPointer(e.clientY);
-  }
-
-  function pointerMove(e){
-    if (!dragging) return;
-    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
-    if (mode !== "play") return;
-    setTargetFromPointer(e.clientY);
-  }
-
-  function pointerUp(e){
-    if (!dragging) return;
-    if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
-    dragging = false;
-    dragPointerId = null;
-    targetY = null; // release -> drift to center
-  }
-
-  canvas.addEventListener("pointerdown", pointerDown, {passive:true});
-  canvas.addEventListener("pointermove", pointerMove, {passive:true});
-  canvas.addEventListener("pointerup", pointerUp, {passive:true});
-  canvas.addEventListener("pointercancel", pointerUp, {passive:true});
-
-  // Desktop convenience: Space starts game / continues
-  addEventListener("keydown", e => {
-    if (e.code !== "Space") return;
-    startMusic();
-    if (mode === "title"){ startCountdown(); return; }
-    if (mode === "gameover" || mode === "ending"){ setMode("title"); return; }
-  });
-
-  pauseBtn.onclick = () => {
-    if (mode === "play"){
-      bgm && bgm.pause();
-      setMode("pause");
-    } else if (mode === "pause"){
-      bgm && bgm.play().catch(()=>{});
-      setMode("play");
-    }
-  };
-
-  // ====== TITLE / COUNTDOWN ======
-  let titleTimer = 0;
-  let countdownTimer = 0;
-  let countdownValue = 3;
-
-  function startCountdown(){
-    resetRun(true);
-    countdownValue = 3;
-    countdownTimer = 0;
-    setMode("countdown");
-  }
-
-  // ====== HELPERS ======
+  /* =========================
+     HELPERS
+  ========================= */
   function rand(arr){ return arr[(Math.random()*arr.length)|0]; }
 
   function aabb(ax, ay, aw, ah, bx, by, bw, bh){
@@ -291,18 +320,26 @@
 
   function currentSpeed(){
     let s = BASE_SPEED + prestigeSpeedBoost;
-    s += stepIndex * 0.20;
-    s += Math.min(1.6, obstaclesPassed * 0.0026);
+
+    // gentle ramp
+    s += stepIndex * 0.14;
+    s += Math.min(1.1, obstaclesPassed * 0.0019);
+
     s = Math.min(MAX_SPEED + prestigeSpeedBoost, s);
 
-    if (slowTimer > 0) s *= 0.72;
-    if (slowMo > 0) s *= 0.35;
-    if (warmupFrames < WARMUP_TOTAL) s *= 0.88;
+    // prayer/meditation slows life down (strong + consistent)
+    if (slowTimer > 0) s *= 0.55;
+
+    // tiny slow-mo when banner hits (short)
+    if (slowMo > 0) s *= 0.60;
+
+    // early warmup
+    if (warmupFrames < WARMUP_TOTAL) s *= 0.80;
 
     return s;
   }
 
-  // ====== TEXT WRAP (USED EVERYWHERE) ======
+  // text wrap for phones
   function wrapLines(text, maxWidth){
     const words = String(text || "").split(/\s+/).filter(Boolean);
     const lines = [];
@@ -320,17 +357,19 @@
     return lines;
   }
 
-  function drawWrappedCentered(text, cx, startY, maxWidth, lineHeight){
+  function drawWrappedCentered(text, centerX, startY, maxWidth, lineHeight){
     const lines = wrapLines(text, maxWidth);
     let y = startY;
     for (const ln of lines){
-      ctx.fillText(ln, cx, y);
+      ctx.fillText(ln, centerX, y);
       y += lineHeight;
     }
     return lines.length;
   }
 
-  // ====== STARFIELD ======
+  /* =========================
+     STARFIELD
+  ========================= */
   const stars = [];
   const STAR_CHARS = [".",".",".","*","+","·","˙"];
 
@@ -348,7 +387,7 @@
     }
   }
   initStars();
-  addEventListener("resize", () => { resize(); initStars(); });
+  addEventListener("resize", () => { resize(); initStars(); updatePlayerX(); });
 
   function drawStarfield(scrollSpeed){
     ctx.fillStyle = "#fff";
@@ -373,7 +412,11 @@
     ctx.globalAlpha = 1;
   }
 
-  // ====== CLOUD LOOK ======
+  /* =========================
+     CLOUD LOOK
+     - Actions: light blue
+     - Pink clouds: inspiration only
+  ========================= */
   function buildCloudPattern(w, h){
     const puffs = [];
     const cx = w/2, cy = h/2;
@@ -433,7 +476,9 @@
     ctx.globalAlpha = 1;
   }
 
-  // ====== SPAWN ======
+  /* =========================
+     SPAWN
+  ========================= */
   function spawnObstacle(labelOverride=null, laneOverride=null, xOverride=null){
     const label = labelOverride || rand(obstaclesPool);
     const lanes = laneYCenters();
@@ -441,33 +486,33 @@
     const { w, h } = sizeForLabel(label, 220, 540, 46);
     const x = (xOverride !== null) ? xOverride : (W + 90);
 
-    // spacing check (still based on spawn row for readability)
     const tooClose = obstacles.some(o => o.lane === lane && Math.abs(o.x - x) < Math.max(260, w * 0.80));
     if (tooClose) return;
 
-    obstacles.push({
-      x,
-      y: lanes[lane] - h/2,
-      w, h,
-      label,
-      lane,
-      passed:false
-    });
+    obstacles.push({ x, y: lanes[lane] - h/2, w, h, label, lane, passed:false });
   }
 
   function spawnBonus(){
-    const b = rand(bonusesPool);
+    // keep “call sponsor” rare and only if not used
+    let pick = rand(bonusesPool);
+
+    if (pick.type === "panic"){
+      if (sponsorUsed) pick = rand(bonusesPool.filter(b=>b.type!=="panic"));
+      else if (Math.random() > 0.18) pick = rand(bonusesPool.filter(b=>b.type!=="panic")); // make it rare
+    }
+
     const lanes = laneYCenters();
     const r = Math.random();
     const lane = r < 0.55 ? 1 : (r < 0.78 ? 0 : 2);
 
-    const { w, h } = sizeForLabel(b.label, 280, 580, 42);
+    const { w, h } = sizeForLabel(pick.label, 300, 620, 42);
     bonuses.push({
       x: W + 90,
       y: lanes[lane] - h/2,
       w, h,
-      type: b.type,
-      label: b.label,
+      lane,
+      type: pick.type,
+      label: pick.label,
       cloud: buildCloudPattern(w, h)
     });
   }
@@ -480,6 +525,7 @@
       x: W + 90,
       y: lanes[lane] - h/2,
       w, h,
+      lane,
       cloud: buildCloudPattern(w, h)
     });
   }
@@ -495,36 +541,34 @@
     const { w, h } = sizeForLabel(label, 360, 760, 52);
     const x = W + 110;
 
-    stepTokens.push({
-      x,
-      y: lanes[lane] - h/2,
-      w, h,
-      label
-    });
+    stepTokens.push({ x, y: lanes[lane] - h/2, w, h, lane, label });
 
-    // One guard trap nearby
+    // one guard trap so steps feel “earned”
     const guardLane = (lane + 1 + ((Math.random()*2)|0)) % 3;
     spawnObstacle(null, guardLane, x - 220);
   }
 
-  // ====== RESET ======
+  /* =========================
+     RESET
+  ========================= */
   function resetRun(keepPrestige=true){
     lives = MAX_LIVES;
     lastObstacleLabel = "something";
     stepIndex = 0;
+    obstaclesPassed = 0;
 
     obstacles.length = 0;
     bonuses.length = 0;
     microClouds.length = 0;
     stepTokens.length = 0;
 
-    obstaclesPassed = 0;
-
     warmupFrames = 0;
     invuln = 0;
     slowTimer = 0;
     slowMo = 0;
     clearArmed = false;
+
+    sponsorUsed = false;
 
     obstacleGapPx = 560;
     bonusGapPx = 1000;
@@ -533,55 +577,66 @@
     stepSpawnBias = 0;
 
     banner = null;
+
     introTimer = 0;
 
     const lanes = laneYCenters();
-    player.y = (lanes[1] - player.h/2);
+    player.lane = 1;
+    player.laneTarget = 1;
+    player.y = lanes[1] - player.h/2;
 
     dragging = false;
     dragPointerId = null;
-    targetY = null;
 
     if (!keepPrestige){
       prestige = 0;
       prestigeSpeedBoost = 0;
     }
 
-    showBanner("good", "TRUDGE THE ROAD", "Go through the steps IN ORDER", 95);
-    const s1 = steps[0];
-    showBanner("good", `STEP ${s1.n} — ${s1.p}`, "Find the STEP card.", 95);
+    pushBanner("good", "TRUDGE THE ROAD", "Collect the steps IN ORDER.", 120);
   }
 
-  // ====== DRAW ======
+  /* =========================
+     DRAW
+  ========================= */
   function drawHeader(){
-    ctx.globalAlpha = 0.95;
-    ctx.fillStyle = "rgba(0,0,0,0.60)";
-    ctx.fillRect(0, 0, W, 62);
+    // taller header so STEP is obvious
+    const barH = 94;
 
-    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = "rgba(0,0,0,0.64)";
+    ctx.fillRect(0, 0, W, barH);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.14)";
     ctx.beginPath();
-    ctx.moveTo(0, 62);
-    ctx.lineTo(W, 62);
+    ctx.moveTo(0, barH);
+    ctx.lineTo(W, barH);
     ctx.stroke();
 
-    // Title
+    // Big step text (center)
+    const currentStepNum = Math.min(12, stepIndex + 1);
+    const principle = steps[Math.min(11, stepIndex)].p;
+
+    ctx.globalAlpha = 1;
     ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
-    ctx.font = "14px 'Press Start 2P'";
-    ctx.fillText("TRUDGE THE ROAD", W/2, 38);
 
-    // Big step counter
-    const nextStep = Math.min(12, stepIndex + 1);
-    const stepName = (steps[stepIndex] && steps[stepIndex].p) ? steps[stepIndex].p : "";
+    ctx.font = "16px 'Press Start 2P'";
+    ctx.fillText(`STEP ${currentStepNum}/12`, W/2, 36);
+
     ctx.font = "10px 'Press Start 2P'";
-    ctx.textAlign = "left";
-    ctx.fillText(`STEP ${nextStep} / 12`, 12, 86);
+    ctx.fillText(principle, W/2, 66);
 
+    // Left: title small
+    ctx.textAlign = "left";
+    ctx.font = "10px 'Press Start 2P'";
+    ctx.fillText("TRUDGE THE ROAD", 12, 36);
+
+    // Right: “IN ORDER”
     ctx.textAlign = "right";
-    ctx.fillText(stepName, W - 12, 86);
+    ctx.fillText("IN ORDER", W - 12, 36);
 
     ctx.textAlign = "left";
-    ctx.globalAlpha = 1;
   }
 
   function drawDangerObstacle(o){
@@ -676,22 +731,23 @@
   }
 
   function drawLivesHUD(){
-    const startX = 12, y = 96;
-    const sizeW = 16, sizeH = 20, gap = 6;
+    // 3 lives: big and obvious
+    const startX = 12;
+    const y = 102;     // under header
+    const sizeW = 18, sizeH = 22, gap = 8;
 
-    for (let i=0;i<MAX_LIVES;i++){
-      const x = startX + i*(sizeW+gap);
+    for (let i = 0; i < MAX_LIVES; i++){
+      const x = startX + i * (sizeW + gap);
       if (i < lives){
         if (runnerReady){
           ctx.imageSmoothingEnabled = false;
           ctx.drawImage(runnerImg, 0, 0, runnerImg.width, runnerImg.height, x, y, sizeW, sizeH);
         } else {
-          ctx.font = "16px 'Press Start 2P'";
-          ctx.fillStyle = "#fff";
-          ctx.fillText("🧍", x, y+16);
+          ctx.fillStyle="#fff";
+          ctx.fillRect(x, y, sizeW, sizeH);
         }
       } else {
-        ctx.strokeStyle = "#333";
+        ctx.strokeStyle = "rgba(255,255,255,0.22)";
         ctx.strokeRect(x, y, sizeW, sizeH);
       }
     }
@@ -701,7 +757,7 @@
     if (!banner) return;
 
     const t = banner.t || 0;
-    const ttl = banner.ttl || 80;
+    const ttl = banner.ttl || 120;
     const fadeIn = Math.min(1, t / 12);
     const fadeOut = Math.min(1, (ttl - t) / 12);
     const alpha = Math.max(0, Math.min(1, Math.min(fadeIn, fadeOut)));
@@ -711,7 +767,7 @@
     const boxW = Math.min(W - 40, 920);
     const boxH = 120;
     const bx = (W - boxW)/2;
-    const by = 120;
+    const by = Math.max(110, Math.floor(H * 0.20));
 
     ctx.fillStyle =
       (banner.kind === "bad") ? "rgba(70,0,0,0.78)" :
@@ -729,12 +785,21 @@
 
     ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
+
     ctx.font = "14px 'Press Start 2P'";
-    drawWrappedCentered(String(banner.title || ""), W/2, by + 46, boxW - 44, 18);
+    const maxW = Math.floor(boxW * 0.86);
+
+    // wrap title if needed
+    const titleLines = wrapLines(String(banner.title || ""), maxW);
+    let y = by + 42;
+    for (const ln of titleLines.slice(0,2)){
+      ctx.fillText(ln, W/2, y);
+      y += 18;
+    }
 
     if (banner.sub){
-      ctx.font = "11px 'Press Start 2P'";
-      drawWrappedCentered(String(banner.sub), W/2, by + 88, boxW - 44, 16);
+      ctx.font = "10px 'Press Start 2P'";
+      drawWrappedCentered(String(banner.sub), W/2, by + 92, maxW, 16);
     }
 
     ctx.textAlign = "left";
@@ -753,126 +818,129 @@
       alpha = Math.max(0, 1 - u);
     }
 
-    ctx.globalAlpha = 0.90 * alpha;
+    ctx.globalAlpha = 0.94 * alpha;
 
     const boxW = Math.min(W - 44, 980);
     const bx = (W - boxW)/2;
-    const by = Math.max(92, Math.floor(H * 0.16));
+    const by = Math.max(96, Math.floor(H * 0.18));
 
-    // height auto-ish based on lines
-    ctx.fillStyle = "rgba(0,0,0,0.82)";
-    ctx.strokeStyle = "rgba(255,255,255,0.20)";
-    ctx.lineWidth = 2;
-
-    // compute wrapped lines
-    ctx.font = "12px 'Press Start 2P'";
+    // dynamic height based on wrapping
+    ctx.font = "11px 'Press Start 2P'";
     const pad = 18;
     const maxTextW = boxW - pad*2;
 
-    const l1 = wrapLines("GOAL: Go through the steps IN ORDER", maxTextW);
-    const l2 = wrapLines("Pitfalls: Lose a life", maxTextW);
-    const l3 = wrapLines("Actions (blue clouds): Gain a life", maxTextW);
+    const msg1 = "Drag Bill to collect all 12 Steps — IN ORDER.";
+    const msg2 = "Be careful. Traps take lives.";
 
-    const lineH = 20;
-    const totalLines = l1.length + l2.length + l3.length + 2; // spacer lines
-    const boxH = pad + totalLines*lineH + pad;
+    const l1 = wrapLines(msg1, maxTextW);
+    const l2 = wrapLines(msg2, maxTextW);
+    const linesTotal = l1.length + l2.length;
 
+    const lineH = 18;
+    const boxH = 28 + linesTotal * lineH + 18;
+
+    ctx.fillStyle = "rgba(0,0,0,0.82)";
     ctx.fillRect(bx, by, boxW, boxH);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.20)";
+    ctx.lineWidth = 2;
     ctx.strokeRect(bx, by, boxW, boxH);
     ctx.lineWidth = 1;
 
     ctx.fillStyle = "#fff";
     ctx.textAlign = "left";
 
-    let y = by + pad + lineH;
-    for (const s of l1){ ctx.fillText(s, bx+pad, y); y += lineH; }
-    y += lineH * 0.6;
-    for (const s of l2){ ctx.fillText(s, bx+pad, y); y += lineH; }
-    y += lineH * 0.6;
-    for (const s of l3){ ctx.fillText(s, bx+pad, y); y += lineH; }
+    let y = by + 36;
+    for (const ln of l1){ ctx.fillText(ln, bx + pad, y); y += lineH; }
+    y += 6;
+    for (const ln of l2){ ctx.fillText(ln, bx + pad, y); y += lineH; }
 
     ctx.textAlign = "left";
     ctx.globalAlpha = 1;
   }
 
-  function drawOverlay(lines, footer="TAP TO CONTINUE"){
+  function drawOverlay(lines){
     ctx.fillStyle="rgba(0,0,0,0.86)";
     ctx.fillRect(0,0,W,H);
 
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
-    ctx.font="11px 'Press Start 2P'";
+    ctx.font="12px 'Press Start 2P'";
 
     const maxW = Math.floor(W * 0.86);
-    const lineH = 22;
-    let y = Math.floor(H/2 - 120);
+    let y = Math.floor(H * 0.38);
 
     for (const line of lines){
       const wrapped = wrapLines(line, maxW);
-      for (const w of wrapped){
-        ctx.fillText(w, W/2, y);
-        y += lineH;
+      for (const ln of wrapped){
+        ctx.fillText(ln, W/2, y);
+        y += 20;
       }
-      y += 6;
+      y += 8;
     }
 
-    ctx.font="10px 'Press Start 2P'";
-    ctx.fillText(footer, W/2, y + 24);
+    ctx.font="11px 'Press Start 2P'";
+    ctx.fillText("TAP TO CONTINUE", W/2, Math.floor(H * 0.78));
+
     ctx.textAlign="left";
   }
 
-  // ====== CELEBRATION ======
-  const confetti = [];
-  function spawnConfettiBurst(){
-    confetti.length = 0;
-    const EMO = ["🪙","✨","💥","⭐"];
-    for (let i=0;i<90;i++){
-      confetti.push({
-        x: W/2 + (Math.random()*140 - 70),
-        y: Math.floor(H*0.58),
-        vx: (Math.random()*10 - 5),
-        vy: -(6 + Math.random()*8),
-        g: 0.38 + Math.random()*0.18,
-        rot: Math.random()*Math.PI*2,
-        vr: (Math.random()*0.2 - 0.1),
-        emoji: EMO[(Math.random()*EMO.length)|0],
-        life: 0,
-        max: 140 + ((Math.random()*60)|0)
+  /* =========================
+     END CELEBRATION (coin burst)
+  ========================= */
+  const coins = [];
+  let endTimer = 0;
+
+  function startCoinExplosion(){
+    coins.length = 0;
+    endTimer = 0;
+
+    const count = 90;
+    for (let i=0;i<count;i++){
+      coins.push({
+        x: W/2 + (Math.random()*80 - 40),
+        y: H/2 + (Math.random()*60 - 30),
+        vx: (Math.random()*6 - 3),
+        vy: -(3 + Math.random()*6),
+        g: 0.18 + Math.random()*0.12,
+        life: 60 + (Math.random()*40|0),
+        t: 0,
+        spin: Math.random()*10
       });
     }
   }
 
-  function updateConfetti(){
-    for (const c of confetti){
-      c.life++;
-      c.vy += c.g;
+  function updateCoins(){
+    endTimer++;
+    for (const c of coins){
+      c.t++;
       c.x += c.vx;
       c.y += c.vy;
-      c.rot += c.vr;
-    }
-    for (let i=confetti.length-1;i>=0;i--){
-      if (confetti[i].life > confetti[i].max || confetti[i].y > H + 80){
-        confetti.splice(i,1);
-      }
+      c.vy += c.g;
     }
   }
 
-  function drawConfetti(){
-    if (!confetti.length) return;
-    ctx.save();
+  function drawCoins(){
     ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.font = "22px serif";
-    for (const c of confetti){
-      const a = Math.max(0, Math.min(1, 1 - (c.life / c.max)));
-      ctx.globalAlpha = a;
-      ctx.fillText(c.emoji, c.x, c.y);
+    ctx.font = "18px 'Press Start 2P'";
+    for (const c of coins){
+      const a = Math.max(0, 1 - (c.t / c.life));
+      if (a <= 0) continue;
+      ctx.globalAlpha = 0.95 * a;
+      // coin-ish emoji (simple + fun)
+      ctx.fillText("🪙", c.x, c.y);
     }
-    ctx.restore();
     ctx.globalAlpha = 1;
+    ctx.textAlign = "left";
   }
 
-  // ====== UPDATE ======
+  /* =========================
+     UPDATE
+  ========================= */
+  let titleTimer = 0;
+  let countdownTimer = 0;
+  let countdownValue = 3;
+
   function updateTitle(){ titleTimer++; }
 
   function updateCountdown(){
@@ -892,23 +960,13 @@
     if (slowTimer > 0) slowTimer--;
     if (slowMo > 0) slowMo--;
 
-    // ====== PLAYER MOVEMENT (FREE, COMFY) ======
-    const { minY, maxY } = playerBounds();
-    const centerY = (minY + maxY) / 2;
-
-    if (targetY !== null){
-      // follow finger smoothly
-      player.y += (targetY - player.y) * 0.35;
-    } else {
-      // drift back toward center when not touching
-      player.y += (centerY - player.y) * 0.02;
-    }
-
-    // soft edges: slow/press back gently if you drift too far
-    if (player.y < minY){
-      player.y += (minY - player.y) * 0.25;
-    } else if (player.y > maxY){
-      player.y -= (player.y - maxY) * 0.25;
+    const lanes = laneYCenters();
+    const targetY = lanes[player.laneTarget] - player.h/2;
+    const dy = targetY - player.y;
+    player.y += dy * LANE_SNAP;
+    if (Math.abs(dy) < 1.0){
+      player.y = targetY;
+      player.lane = player.laneTarget;
     }
 
     const spd = currentSpeed();
@@ -921,24 +979,26 @@
     for (const s of stepTokens) s.x -= spd;
     for (const m of microClouds) m.x -= spd;
 
-    // Clear effect: clears next trap in front of you (same Y zone)
+    // Clear effect: clears next trap in your lane
     if (clearArmed){
-      const next = obstacles.find(o => o.x > player.x && o.x < player.x + 460);
+      const next = obstacles.find(o => o.x > player.x && o.x < player.x + 460 && o.lane === player.lane);
       if (next){
         next.x = -9999;
         clearArmed = false;
-        showBanner("good", "WRITE IT DOWN", "Cleared one trap.", 80);
+        pushBanner("good", "WRITE IT DOWN", "Cleared one trap.", 110);
       }
     }
 
-    // Slightly smaller hitbox (feels fair)
+    // hitbox (smaller so it feels fair)
     const rx = player.x + 20;
     const ry = player.y + 18;
     const rw = player.w - 40;
     const rh = player.h - 34;
 
-    // ====== COLLISIONS (NO LANES — TRUE AABB) ======
+    // Obstacles
     for (const o of obstacles){
+      if (o.lane !== player.lane) continue;
+
       const ox = o.x + 22;
       const oy = o.y + 12;
       const ow = Math.max(2, o.w - 44);
@@ -950,7 +1010,7 @@
         invuln = 90;
         o.x = -9999;
 
-        showBanner("bad", `${lastObstacleLabel.toUpperCase()} TOOK YOU OUT`, "-1 LIFE", 90);
+        pushBanner("bad", `${lastObstacleLabel.toUpperCase()} TOOK YOU OUT`, "-1 LIFE", 120);
 
         if (lives <= 0){
           setMode("gameover");
@@ -964,7 +1024,10 @@
       }
     }
 
+    // Bonuses (blue action clouds)
     for (const b of bonuses){
+      if (b.lane !== player.lane) continue;
+
       const bx = b.x + 18;
       const by = b.y + 10;
       const bw = Math.max(2, b.w - 36);
@@ -974,19 +1037,37 @@
         if (b.type === "life"){
           const before = lives;
           lives = Math.min(MAX_LIVES, lives + 1);
-          showBanner("good", b.label.toUpperCase(), (lives>before ? "+1 LIFE" : "LIVES FULL"), 85);
+          pushBanner("good", b.label.toUpperCase(), (lives>before ? "+1 LIFE" : "LIVES FULL"), 110);
+
         } else if (b.type === "slow"){
-          slowTimer = 300;
-          showBanner("good", b.label.toUpperCase(), "SLOWING DOWN.", 85);
+          // prayer/meditation: slow for full duration, obvious
+          slowTimer = Math.max(slowTimer, 60 * 7); // ~7 seconds
+          pushBanner("good", "PRAYER & MEDITATION", "Slows life down.", 130);
+
         } else if (b.type === "clear"){
           clearArmed = true;
-          showBanner("good", b.label.toUpperCase(), "NEXT TRAP CLEARS.", 85);
+          pushBanner("good", "WRITE IT DOWN", "Next trap clears.", 110);
+
+        } else if (b.type === "panic"){
+          if (!sponsorUsed){
+            sponsorUsed = true;
+            // clear EVERYTHING on screen + short invuln
+            for (const o of obstacles) o.x = -9999;
+            invuln = Math.max(invuln, 120);
+            pushBanner("good", "CALL SPONSOR", "Cleared the board (one time).", 140);
+          } else {
+            pushBanner("good", "CALL SPONSOR", "Already used this run.", 110);
+          }
         }
+
         b.x = -9999;
       }
     }
 
+    // Micro-clouds (pink inspiration)
     for (const m of microClouds){
+      if (m.lane !== player.lane) continue;
+
       const mx = m.x + 12;
       const my = m.y + 8;
       const mw = m.w - 24;
@@ -994,12 +1075,15 @@
 
       if (aabb(rx, ry, rw, rh, mx, my, mw, mh)){
         slowTimer = Math.max(slowTimer, 90);
-        showBanner("good", "PINK CLOUD", rand(calmWhispers), 75);
+        pushBanner("good", "PINK CLOUD", rand(calmWhispers), 105);
         m.x = -9999;
       }
     }
 
+    // Steps (IN ORDER)
     for (const s of stepTokens){
+      if (s.lane !== player.lane) continue;
+
       const sx = s.x + 12;
       const sy = s.y + 10;
       const sw = Math.max(2, s.w - 24);
@@ -1011,29 +1095,30 @@
 
         if (stepIndex < 12){
           const got = steps[stepIndex-1];
-          showBanner("good", `STEP ${got.n} — ${got.p}`, "Nice. Keep moving.", 90);
-          stepCooldown = 60 * (26 + (Math.random()*16|0));
+          pushBanner("good", `STEP ${got.n} — ${got.p}`, "Nice. Keep moving.", 120);
+          stepCooldown = 60 * (24 + (Math.random()*14|0));
           stepSpawnBias = 0;
         } else {
+          // WIN
+          startCoinExplosion();
           setMode("ending");
-          spawnConfettiBurst();
           return;
         }
       }
     }
 
     // CLEANUP
-    for (let i=obstacles.length-1;i>=0;i--){
-      if (obstacles[i].x < -1600) obstacles.splice(i,1);
+    for (let i = obstacles.length - 1; i >= 0; i--){
+      if (obstacles[i].x < -1600) obstacles.splice(i, 1);
     }
-    for (let i=bonuses.length-1;i>=0;i--){
-      if (bonuses[i].x < -1600) bonuses.splice(i,1);
+    for (let i = bonuses.length - 1; i >= 0; i--){
+      if (bonuses[i].x < -1600) bonuses.splice(i, 1);
     }
-    for (let i=stepTokens.length-1;i>=0;i--){
-      if (stepTokens[i].x < -1800) stepTokens.splice(i,1);
+    for (let i = stepTokens.length - 1; i >= 0; i--){
+      if (stepTokens[i].x < -1800) stepTokens.splice(i, 1);
     }
-    for (let i=microClouds.length-1;i>=0;i--){
-      if (microClouds[i].x < -1200) microClouds.splice(i,1);
+    for (let i = microClouds.length - 1; i >= 0; i--){
+      if (microClouds[i].x < -1200) microClouds.splice(i, 1);
     }
 
     // SPAWN (distance gaps)
@@ -1046,45 +1131,52 @@
 
     if (obstacleGapPx <= 0){
       spawnObstacle();
-      const base = inWarmup ? 600 : 420;
-      const spread = inWarmup ? 320 : 260;
+      const base = inWarmup ? 640 : 440;
+      const spread = inWarmup ? 320 : 280;
       obstacleGapPx = base + ((Math.random() * spread) | 0);
 
-      if (!inWarmup && Math.random() < 0.18){
+      // occasional 2nd trap (not too mean)
+      if (!inWarmup && Math.random() < 0.14){
         const laneA = (Math.random()*LANE_COUNT)|0;
         const laneB = (laneA + 1 + ((Math.random()*2)|0)) % LANE_COUNT;
         spawnObstacle(null, laneB, W + 90 + 280);
       }
     }
 
-    // When a STEP is present, stop spawning extra clouds/bonuses
+    // When a STEP is present, stop spawning extra clouds/bonuses (cleaner screen)
     if (!stepOnScreen){
-      if (bonusGapPx <= 0 && Math.random() < (inWarmup ? 0.55 : 0.42)){
+      if (bonusGapPx <= 0 && Math.random() < (inWarmup ? 0.52 : 0.40)){
         spawnBonus();
-        bonusGapPx = 980 + ((Math.random() * 560) | 0);
+        bonusGapPx = 980 + ((Math.random() * 580) | 0);
       }
 
-      if (microGapPx <= 0 && Math.random() < (inWarmup ? 0.70 : 0.55)){
+      if (microGapPx <= 0 && Math.random() < (inWarmup ? 0.70 : 0.54)){
         spawnMicroCloud();
-        microGapPx = (inWarmup ? 520 : 620) + ((Math.random() * 420) | 0);
+        microGapPx = (inWarmup ? 520 : 640) + ((Math.random() * 420) | 0);
       }
     } else {
-      bonusGapPx = Math.max(bonusGapPx, 80);
-      microGapPx = Math.max(microGapPx, 80);
+      bonusGapPx = Math.max(bonusGapPx, 120);
+      microGapPx = Math.max(microGapPx, 120);
     }
 
     if (stepIndex < 12 && stepTokens.length === 0 && stepCooldown <= 0){
-      const chance = Math.min(0.018 + stepSpawnBias * 0.00008, 0.075);
+      const chance = Math.min(0.018 + stepSpawnBias * 0.00008, 0.070);
       if (Math.random() < chance){
         spawnStepToken();
         stepCooldown = 60 * (18 + (Math.random()*12|0));
         stepSpawnBias = 0;
 
         const next = steps[stepIndex];
-        showBanner("status", `NEXT: STEP ${next.n} — ${next.p}`, "Find the STEP card.", 85);
+        pushBanner("status", `NEXT: STEP ${next.n}`, next.p, 95);
       }
     }
 
+    tickBanner();
+  }
+
+  function updateEnding(){
+    updateCoins();
+    // let the coins party for a bit, then just keep showing end screen
     tickBanner();
   }
 
@@ -1093,14 +1185,13 @@
     if (mode === "countdown") return updateCountdown();
     if (mode === "pause") return;
     if (mode === "gameover") return;
-    if (mode === "ending"){
-      updateConfetti();
-      return;
-    }
+    if (mode === "ending") return updateEnding();
     if (mode === "play") return updatePlay();
   }
 
-  // ====== DRAW SCREENS ======
+  /* =========================
+     DRAW SCREENS
+  ========================= */
   function drawTitle(){
     ctx.fillStyle = "#000";
     ctx.fillRect(0,0,W,H);
@@ -1110,58 +1201,53 @@
     ctx.textAlign="center";
 
     ctx.font="28px 'Press Start 2P'";
-    ctx.fillText("TRUDGE", W/2, Math.floor(H*0.26));
-    ctx.fillText("THE ROAD", W/2, Math.floor(H*0.26) + 40);
+    ctx.fillText("TRUDGE", W/2, Math.floor(H*0.22));
+    ctx.fillText("THE ROAD", W/2, Math.floor(H*0.22) + 44);
 
-    // White instruction card (WRAPS)
+    // white instruction card (wrapped)
     const cardW = Math.min(W - 40, 920);
     const cx = (W - cardW)/2;
-    const cy = Math.floor(H*0.35);
-    ctx.font = "11px 'Press Start 2P'";
-
-    const maxTextW = cardW - 36;
-
-    const a = wrapLines("GOAL: Go through the Steps IN ORDER", maxTextW);
-    const b = wrapLines("Pitfalls: Lose a life", maxTextW);
-    const c = wrapLines("Actions (blue clouds): Gain a life", maxTextW);
-
-    const lineH = 20;
-    const totalLines = a.length + b.length + c.length + 2;
-    const cardH = 24 + totalLines*lineH + 24;
+    const cy = Math.floor(H*0.32);
 
     ctx.globalAlpha = 0.95;
     ctx.fillStyle = "rgba(255,255,255,0.95)";
-    ctx.fillRect(cx, cy, cardW, cardH);
+    ctx.fillRect(cx, cy, cardW, 190);
 
     ctx.globalAlpha = 1;
     ctx.lineWidth = 3;
     ctx.strokeStyle = "rgba(0,0,0,0.85)";
-    ctx.strokeRect(cx, cy, cardW, cardH);
+    ctx.strokeRect(cx, cy, cardW, 190);
+
     ctx.lineWidth = 1;
     ctx.strokeStyle = "rgba(0,0,0,0.35)";
-    ctx.strokeRect(cx+4, cy+4, cardW-8, cardH-8);
+    ctx.strokeRect(cx+4, cy+4, cardW-8, 190-8);
 
     ctx.fillStyle = "rgba(0,0,0,0.92)";
     ctx.textAlign = "left";
+    ctx.font = "11px 'Press Start 2P'";
 
-    let y = cy + 36;
-    for (const s of a){ ctx.fillText(s, cx+18, y); y += lineH; }
-    y += lineH*0.6;
-    for (const s of b){ ctx.fillText(s, cx+18, y); y += lineH; }
-    y += lineH*0.6;
-    for (const s of c){ ctx.fillText(s, cx+18, y); y += lineH; }
+    const pad = 16;
+    const maxTextW = cardW - pad*2;
+    let y = cy + 44;
 
-    // Rocketed line (WRAPS)
-    ctx.fillStyle="#fff";
-    ctx.textAlign="center";
+    const a = wrapLines("Drag Bill to collect all 12 Steps — IN ORDER.", maxTextW);
+    const b = wrapLines("Be careful. Traps take lives.", maxTextW);
+
+    for (const ln of a){ ctx.fillText(ln, cx + pad, y); y += 18; }
+    y += 10;
+    for (const ln of b){ ctx.fillText(ln, cx + pad, y); y += 18; }
+
+    // rocket line (wrapped) below
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#fff";
     ctx.font="10px 'Press Start 2P'";
-    drawWrappedCentered("Rocketed into the 4th dimension in...", W/2, cy + cardH + 34, Math.floor(W*0.86), 18);
+    const maxW = Math.floor(W * 0.86);
+    drawWrappedCentered("Rocketed into the 4th dimension in...", W/2, cy + 190 + 34, maxW, 18);
 
-    // Tap to start (only)
     const blink = ((titleTimer/18)|0) % 2 === 0;
     if (blink){
       ctx.font="12px 'Press Start 2P'";
-      ctx.fillText("TAP TO START", W/2, cy + cardH + 78);
+      ctx.fillText("TAP TO START", W/2, cy + 190 + 88);
     }
 
     ctx.textAlign="left";
@@ -1176,11 +1262,12 @@
     ctx.textAlign="center";
 
     ctx.font="14px 'Press Start 2P'";
-    drawWrappedCentered("ROCKETED INTO THE 4TH DIMENSION IN...", W/2, Math.floor(H*0.28), Math.floor(W*0.86), 22);
+    const maxW = Math.floor(W * 0.86);
+    drawWrappedCentered("ROCKETED INTO THE 4TH DIMENSION IN...", W/2, Math.floor(H*0.30), maxW, 22);
 
     const show = (countdownValue >= 1) ? String(countdownValue) : (countdownValue === 0 ? "GO!" : "");
     ctx.font="56px 'Press Start 2P'";
-    ctx.fillText(show, W/2, Math.floor(H*0.50));
+    ctx.fillText(show, W/2, Math.floor(H*0.48));
     ctx.textAlign="left";
   }
 
@@ -1204,41 +1291,46 @@
   }
 
   function drawPause(){
-    drawOverlay(["PAUSED", "Take a breath."], "TAP TO RESUME");
+    drawOverlay(["PAUSED", "Take a breath."]);
   }
 
   function drawGameOver(){
     drawOverlay([
       `${lastObstacleLabel.toUpperCase()} TOOK YOU OUT`,
-      "GAME OVER",
-      "Try again — or don’t.",
-      "We’ll be here."
-    ], "TAP TO TRY AGAIN");
+      "GAME OVER"
+    ]);
   }
 
   function drawEnding(){
-    // Background + confetti
+    // keep the starfield vibe + coins
     ctx.fillStyle = "#000";
     ctx.fillRect(0,0,W,H);
-    drawStarfield(0.8);
-    drawConfetti();
+    drawStarfield(0.9);
+    drawCoins();
 
+    // big wrapped congrats
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
-
-    const maxW = Math.floor(W*0.86);
-
     ctx.font="14px 'Press Start 2P'";
-    drawWrappedCentered("YOU GOT THROUGH THE 12 STEPS.", W/2, Math.floor(H*0.30), maxW, 24);
 
+    const maxW = Math.floor(W * 0.86);
+    let y = Math.floor(H*0.30);
+
+    const linesA = wrapLines("YOU MADE IT THROUGH ALL 12 STEPS.", maxW);
+    for (const ln of linesA){ ctx.fillText(ln, W/2, y); y += 22; }
+
+    y += 12;
     ctx.font="12px 'Press Start 2P'";
-    drawWrappedCentered("NOW DO IT AGAIN.", W/2, Math.floor(H*0.38), maxW, 22);
+    const linesB = wrapLines("Now do it again.", maxW);
+    for (const ln of linesB){ ctx.fillText(ln, W/2, y); y += 20; }
 
+    y += 10;
     ctx.font="10px 'Press Start 2P'";
-    drawWrappedCentered("NEXT RUN = FASTER ROAD.", W/2, Math.floor(H*0.46), maxW, 18);
+    const linesC = wrapLines("Next run = faster road.", maxW);
+    for (const ln of linesC){ ctx.fillText(ln, W/2, y); y += 18; }
 
-    ctx.font="12px 'Press Start 2P'";
-    drawWrappedCentered("TAP TO PLAY AGAIN", W/2, Math.floor(H*0.70), maxW, 20);
+    ctx.font="11px 'Press Start 2P'";
+    ctx.fillText("TAP TO CONTINUE", W/2, Math.floor(H*0.80));
 
     ctx.textAlign="left";
   }
@@ -1247,13 +1339,17 @@
     if (mode === "title") return drawTitle();
     if (mode === "countdown") return drawCountdown();
 
-    if (mode === "play") return drawPlayfield();
+    if (mode === "ending") return drawEnding();
+
+    drawPlayfield();
+
     if (mode === "pause") return drawPause();
     if (mode === "gameover") return drawGameOver();
-    if (mode === "ending") return drawEnding();
   }
 
-  // ====== ENDING / TRY AGAIN (New Game+) ======
+  /* =========================
+     ENDING / TRY AGAIN (New Game+)
+  ========================= */
   function handleTryAgainFromEnding(){
     prestige++;
     prestigeSpeedBoost = Math.min(2.0, prestige * 0.30);
@@ -1267,7 +1363,9 @@
     _setMode(m);
   };
 
-  // ====== MAIN LOOP ======
+  /* =========================
+     MAIN LOOP
+  ========================= */
   resetRun(true);
   setMode("title");
 
@@ -1277,27 +1375,6 @@
     requestAnimationFrame(loop);
   }
   loop();
-
-  // ====== MODE TRANSITIONS ======
-  // Countdown -> play
-  function tickCountdownTransitions(){
-    // handled in updateCountdown()
-  }
-
-  // We also need to flip mode from countdown to play cleanly
-  const _updateCountdown = updateCountdown;
-  function updateCountdown(){
-    countdownTimer++;
-    if (countdownTimer % 60 === 0){
-      countdownValue--;
-      if (countdownValue < 0){
-        setMode("play");
-      }
-    }
-  }
-  // overwrite the function reference (since we declared it earlier)
-  // (safe because we call update() which calls updateCountdown by name)
-  window.__noop = _updateCountdown; // harmless
 
 })();
 </script>
