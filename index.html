@@ -193,8 +193,12 @@
       transform:translateY(110%);
       transition:transform .2s ease;
       z-index:10001;
+      max-height: calc(92vh - env(safe-area-inset-bottom));
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
     }
     .sheet.open{transform:translateY(0);}
+
     input{
       width:100%;
       padding:10px;
@@ -205,6 +209,22 @@
       box-sizing:border-box;
       font-size:16px; /* helps iPhone avoid zoom */
     }
+
+    textarea{
+      width:100%;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,.18);
+      margin-top:8px;
+      font-weight:800;
+      box-sizing:border-box;
+      font-size:16px; /* iPhone zoom fix */
+      line-height:1.35;
+      resize:vertical;
+      min-height:88px;
+      font-family:inherit;
+    }
+
     .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
     .btn{
       padding:9px 12px;
@@ -223,6 +243,94 @@
     .btn.primary{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
     .big{font-size:22px;font-weight:1000;margin-top:10px;}
     .muted{color:#666;font-weight:800;line-height:1.25;}
+
+    /* ===========================
+       GRATITUDE INVENTORY
+       =========================== */
+    .qLabel{
+      margin-top:12px;
+      font-weight:1000;
+      letter-spacing:.2px;
+    }
+    .tinyMeta{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:8px;
+      font-weight:900;
+      color:#666;
+      font-size:12px;
+    }
+    .divider{
+      height:1px;
+      background:rgba(0,0,0,.10);
+      margin:12px 0;
+    }
+
+    /* Archive drawer */
+    .archiveHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      cursor:pointer;
+      user-select:none;
+      padding:10px 12px;
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;
+      margin-top:12px;
+    }
+    .archiveList{
+      display:none;
+      margin-top:8px;
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;
+      overflow:hidden;
+      max-height:220px;
+      overflow:auto;
+    }
+    .archiveList.open{display:block;}
+    .archiveItem{
+      padding:10px 12px;
+      border-bottom:1px solid rgba(0,0,0,.08);
+      cursor:pointer;
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background:#fff;
+    }
+    .archiveItem:last-child{border-bottom:none;}
+    .archiveItem:active{background:#f5f5f5;}
+    .chip{
+      font-size:12px;
+      font-weight:1000;
+      border:1px solid rgba(0,0,0,.14);
+      border-radius:999px;
+      padding:3px 8px;
+      color:#444;
+    }
+
+    /* Save button star burst */
+    .burstWrap{position:relative; display:inline-flex;}
+    .star{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      pointer-events:none;
+      will-change:transform,opacity;
+      font-size:16px;
+      opacity:0;
+      animation:starFly .85s ease-out forwards;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,.10));
+    }
+    @keyframes starFly{
+      0%   { opacity:0; transform:translate(-50%,-50%) scale(.9); }
+      10%  { opacity:1; }
+      100% { opacity:0; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15); }
+    }
   </style>
 </head>
 
@@ -332,9 +440,56 @@
   </div>
 
   <div class="row" style="margin-top:10px;">
+    <button class="btn" id="gratBtn" type="button">⭐ Gratitude Inventory</button>
+  </div>
+
+  <div class="row" style="margin-top:10px;">
     <button class="btn" id="shareTextBtn" type="button">📱 Share by Text</button>
     <button class="btn" id="shareFbBtn" type="button">📣 Share on Facebook</button>
   </div>
+</div>
+
+<!-- ===========================
+     GRATITUDE SHEET
+     =========================== -->
+<div class="backdrop" id="gratBackdrop"></div>
+<div class="sheet" id="gratSheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Gratitude Inventory</h3>
+    <button class="btn" id="closeGrat" type="button">Close</button>
+  </div>
+
+  <div class="tinyMeta">
+    <span id="gratViewing">Viewing: —</span>
+    <span class="chip" id="gratStatus" style="display:none;">Saved</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="qLabel">Where have I been happy today?</div>
+  <textarea id="gratHappy" placeholder=""></textarea>
+
+  <div class="qLabel">Where have I been at peace today?</div>
+  <textarea id="gratPeace" placeholder=""></textarea>
+
+  <div class="qLabel">Where have I been useful to other people today?</div>
+  <textarea id="gratUseful" placeholder=""></textarea>
+
+  <div class="qLabel">Gratitude Journal</div>
+  <textarea id="gratJournal" placeholder="God shots, good moments, things you noticed happening for you…"></textarea>
+
+  <div class="row" style="margin-top:12px;">
+    <span class="burstWrap">
+      <button class="btn primary" id="gratSave" type="button">Save</button>
+    </span>
+    <button class="btn" id="gratClear" type="button">Clear</button>
+  </div>
+
+  <div class="archiveHeader" id="archiveToggle" role="button" aria-expanded="false">
+    <div style="font-weight:1000;">Archive <span id="archiveCount" class="chip">0</span></div>
+    <div style="font-weight:1000;" id="archiveCaret">▾</div>
+  </div>
+  <div class="archiveList" id="archiveList"></div>
 </div>
 
 <!-- ===========================
@@ -357,7 +512,6 @@
             <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <rect x="5" y="9" width="14" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
           </svg>
-       с
         </span>
       </span>
     </div>
@@ -498,12 +652,10 @@
   const SHARE_TEXT = "This has been helping me lately. No hype, just solid. " + SHARE_URL;
 
   document.getElementById("shareTextBtn").onclick = () => {
-    // same-tab SMS composer (works best on mobile)
     window.location.href = "sms:?&body=" + encodeURIComponent(SHARE_TEXT);
   };
 
   document.getElementById("shareFbBtn").onclick = () => {
-    // Facebook share dialog (often needs a new tab/window)
     const fb = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(SHARE_URL);
     window.open(fb, "_blank", "noopener,noreferrer");
   };
@@ -527,8 +679,6 @@
   function openSheet(){
     backdrop.style.display="block";
     sheet.classList.add("open");
-
-    // EASIEST UX WIN: focus the date input and try to open the picker
     setTimeout(() => {
       sobDate.focus({ preventScroll: true });
       if (sobDate.showPicker) sobDate.showPicker();
@@ -579,7 +729,6 @@
     renderSob();
   };
 
-  // leaving your original behavior: streak pill opens sobriety sheet
   document.getElementById("streakPill").onclick = () => openSheet();
 
   document.getElementById("saveSob").onclick = () => {
@@ -611,7 +760,7 @@
   }
 
   /* ===========================
-     Connection Whisper (sticks for the day + fades in)
+     Connection Whisper
      =========================== */
   const WHISPER_KEY_DATE = "rm_whisper_date";
   const WHISPER_KEY_TEXT = "rm_whisper_text";
@@ -643,12 +792,8 @@
     "Others were here today"
   ];
 
-  function pickRandom(arr){
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-  function getTodayISO(){
-    return new Date().toISOString().slice(0,10);
-  }
+  function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+  function getTodayISO(){ return new Date().toISOString().slice(0,10); }
 
   function renderWhisper(){
     const wrap = document.getElementById("rm-whisper");
@@ -675,13 +820,203 @@
   }
 
   /* ===========================
+     GRATITUDE INVENTORY (localStorage + archive)
+     =========================== */
+  const GRAT_INDEX_KEY = "rm_grat_index";
+  const gratBackdrop = document.getElementById("gratBackdrop");
+  const gratSheet = document.getElementById("gratSheet");
+
+  const gratViewing = document.getElementById("gratViewing");
+  const gratStatus = document.getElementById("gratStatus");
+
+  const gratHappy = document.getElementById("gratHappy");
+  const gratPeace = document.getElementById("gratPeace");
+  const gratUseful = document.getElementById("gratUseful");
+  const gratJournal = document.getElementById("gratJournal");
+
+  const archiveToggle = document.getElementById("archiveToggle");
+  const archiveList = document.getElementById("archiveList");
+  const archiveCount = document.getElementById("archiveCount");
+  const archiveCaret = document.getElementById("archiveCaret");
+
+  let currentGratDate = null;
+
+  function gratKey(dateISO){ return "rm_grat_" + dateISO; }
+
+  function readIndex(){
+    try{
+      const raw = localStorage.getItem(GRAT_INDEX_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){
+      return [];
+    }
+  }
+  function writeIndex(arr){
+    localStorage.setItem(GRAT_INDEX_KEY, JSON.stringify(arr));
+  }
+
+  function saveEntry(dateISO, data){
+    localStorage.setItem(gratKey(dateISO), JSON.stringify(data));
+    let idx = readIndex();
+    if (!idx.includes(dateISO)){
+      idx.unshift(dateISO);
+      writeIndex(idx);
+    } else {
+      // keep newest-first by moving it to front
+      idx = [dateISO].concat(idx.filter(d => d !== dateISO));
+      writeIndex(idx);
+    }
+  }
+
+  function loadEntry(dateISO){
+    const raw = localStorage.getItem(gratKey(dateISO));
+    if (!raw) return null;
+    try{ return JSON.parse(raw); }catch(e){ return null; }
+  }
+
+  function setStatusSaved(){
+    gratStatus.style.display = "inline-flex";
+    gratStatus.textContent = "Saved";
+    setTimeout(() => { gratStatus.style.display = "none"; }, 1000);
+  }
+
+  function openGrat(dateISO){
+    currentGratDate = dateISO || getTodayISO();
+    gratViewing.textContent = "Viewing: " + currentGratDate;
+
+    // load if exists
+    const entry = loadEntry(currentGratDate);
+    gratHappy.value = entry?.happy || "";
+    gratPeace.value = entry?.peace || "";
+    gratUseful.value = entry?.useful || "";
+    gratJournal.value = entry?.journal || "";
+
+    // open sheet
+    gratBackdrop.style.display = "block";
+    gratSheet.classList.add("open");
+
+    renderArchive();
+  }
+  function closeGrat(){
+    gratSheet.classList.remove("open");
+    gratBackdrop.style.display = "none";
+  }
+
+  gratBackdrop.onclick = closeGrat;
+  document.getElementById("closeGrat").onclick = closeGrat;
+
+  // Menu button to open gratitude
+  document.getElementById("gratBtn").onclick = () => {
+    closeMenu();
+    openGrat(getTodayISO());
+  };
+
+  // Archive drawer
+  archiveToggle.onclick = () => {
+    const isOpen = archiveList.classList.toggle("open");
+    archiveToggle.setAttribute("aria-expanded", String(isOpen));
+    archiveCaret.textContent = isOpen ? "▴" : "▾";
+  };
+
+  function renderArchive(){
+    const idx = readIndex();
+    archiveCount.textContent = String(idx.length);
+
+    archiveList.innerHTML = "";
+    if (idx.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "archiveItem";
+      empty.style.cursor = "default";
+      empty.innerHTML = `<span style="opacity:.7;font-weight:900;">No saved entries yet</span><span class="chip">—</span>`;
+      archiveList.appendChild(empty);
+      return;
+    }
+
+    idx.forEach(dateISO => {
+      const row = document.createElement("div");
+      row.className = "archiveItem";
+      const isToday = (dateISO === getTodayISO());
+      row.innerHTML = `<span>${dateISO}</span><span class="chip">${isToday ? "today" : "open"}</span>`;
+      row.onclick = () => {
+        // load clicked date into fields
+        currentGratDate = dateISO;
+        gratViewing.textContent = "Viewing: " + currentGratDate;
+        const entry = loadEntry(currentGratDate);
+        gratHappy.value = entry?.happy || "";
+        gratPeace.value = entry?.peace || "";
+        gratUseful.value = entry?.useful || "";
+        gratJournal.value = entry?.journal || "";
+      };
+      archiveList.appendChild(row);
+    });
+  }
+
+  // Stars on Save
+  function burstStars(onButtonEl){
+    const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
+    if (!wrap) return;
+
+    const emojis = ["⭐","✨","🌟"];
+    const count = 14;
+
+    for(let i=0;i<count;i++){
+      const s = document.createElement("span");
+      s.className = "star";
+      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+
+      const dx = (Math.random()*90 - 45).toFixed(0) + "px";
+      const dy = (Math.random()*-80 - 20).toFixed(0) + "px";
+      const rot = (Math.random()*220 - 110).toFixed(0) + "deg";
+      s.style.setProperty("--dx", dx);
+      s.style.setProperty("--dy", dy);
+      s.style.setProperty("--rot", rot);
+
+      // small random delay so it feels organic
+      s.style.animationDelay = (Math.random()*0.08).toFixed(2) + "s";
+      wrap.appendChild(s);
+
+      // cleanup
+      setTimeout(() => s.remove(), 950);
+    }
+  }
+
+  document.getElementById("gratSave").onclick = () => {
+    const dateISO = currentGratDate || getTodayISO();
+    const payload = {
+      date: dateISO,
+      happy: gratHappy.value.trim(),
+      peace: gratPeace.value.trim(),
+      useful: gratUseful.value.trim(),
+      journal: gratJournal.value.trim()
+    };
+
+    try{
+      saveEntry(dateISO, payload);
+      setStatusSaved();
+      burstStars(document.getElementById("gratSave"));
+      renderArchive();
+    }catch(e){
+      gratStatus.style.display = "inline-flex";
+      gratStatus.textContent = "Couldn’t save";
+      setTimeout(() => { gratStatus.style.display = "none"; }, 1400);
+    }
+  };
+
+  document.getElementById("gratClear").onclick = () => {
+    // clears the fields only (doesn't delete saved entry unless they hit Save afterward)
+    gratHappy.value = "";
+    gratPeace.value = "";
+    gratUseful.value = "";
+    gratJournal.value = "";
+  };
+
+  /* ===========================
      Init
      =========================== */
   (function init(){
     const v = localStorage.getItem(LS_DATE);
     if (v) sobDate.value = v;
-
-    // Prevent picking a future sobriety date (nice iPhone UX)
     sobDate.max = new Date().toISOString().slice(0,10);
 
     updateStreak();
