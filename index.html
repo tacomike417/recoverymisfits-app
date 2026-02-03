@@ -10,9 +10,6 @@
   <link rel="icon" href="./icon-192.png">
 
   <style>
-    /* ===========================
-       GLOBAL
-       =========================== */
     body{
       font-family:Roboto,Arial,sans-serif;
       margin:0;
@@ -20,9 +17,6 @@
       color:#111;
     }
 
-    /* ===========================
-       HEADER
-       =========================== */
     header{
       position:sticky;
       top:0;
@@ -34,9 +28,6 @@
     }
     .brand{font-weight:900;font-size:16px;}
 
-    /* ===========================
-       INSTALL BAR
-       =========================== */
     #rm-install-bar{
       display:none;
       position:sticky;
@@ -74,7 +65,6 @@
       opacity:.6;
     }
 
-    /* iPhone Share icon (passes the squint test) */
     .iosShareIcon{
       display:inline-flex;
       vertical-align:middle;
@@ -85,19 +75,12 @@
       color:#007AFF;
     }
     .iosShareIcon svg{
-      width:18px;
-      height:18px;
+      width:18px;height:18px;
     }
 
-    /* ===========================
-       IFRAME
-       =========================== */
     .frameWrap{height:200px;}
     iframe{width:100%;height:100%;border:0;}
 
-    /* ===========================
-       BOTTOM BAR
-       =========================== */
     .bottomBar{
       position:fixed;
       left:0;right:0;bottom:0;
@@ -128,7 +111,6 @@
     .value{font-size:14px;font-weight:1000;}
     .hint{font-size:12px;font-weight:900;color:#666;}
 
-    /* menu icon button (subtle) */
     .menuBtn{
       width:44px;
       border:1px solid rgba(0,0,0,.18);
@@ -144,9 +126,6 @@
     }
     .menuBtn:active{transform:scale(.98);}
 
-    /* ===========================
-       CONNECTION WHISPER
-       =========================== */
     #rm-whisper{
       display:flex;
       align-items:center;
@@ -157,23 +136,9 @@
       transition:opacity .8s ease;
     }
     #rm-whisper.show{opacity:1;}
-    .whisper-dot{
-      width:6px;
-      height:6px;
-      border-radius:50%;
-      background:#bbb;
-      flex-shrink:0;
-    }
-    .whisper-text{
-      font-size:12px;
-      font-weight:900;
-      color:#777;
-      letter-spacing:.2px;
-    }
+    .whisper-dot{width:6px;height:6px;border-radius:50%;background:#bbb;flex-shrink:0;}
+    .whisper-text{font-size:12px;font-weight:900;color:#777;letter-spacing:.2px;}
 
-    /* ===========================
-       SHEETS
-       =========================== */
     .backdrop{
       position:fixed;
       inset:0;
@@ -204,9 +169,8 @@
       margin-top:8px;
       font-weight:800;
       box-sizing:border-box;
-      font-size:16px; /* helps iPhone avoid zoom */
+      font-size:16px;
     }
-
     textarea{
       width:100%;
       padding:10px;
@@ -215,7 +179,7 @@
       margin-top:8px;
       font-weight:800;
       box-sizing:border-box;
-      font-size:16px; /* iPhone zoom fix */
+      font-size:16px;
       line-height:1.35;
       resize:vertical;
       min-height:88px;
@@ -241,131 +205,67 @@
     .big{font-size:22px;font-weight:1000;margin-top:10px;}
     .muted{color:#666;font-weight:800;line-height:1.25;}
 
-    /* ===========================
-       GRATITUDE INVENTORY
-       =========================== */
-    .qLabel{
-      margin-top:12px;
-      font-weight:1000;
-      letter-spacing:.2px;
-    }
+    /* Gratitude */
+    .qLabel{margin-top:12px;font-weight:1000;letter-spacing:.2px;}
     .tinyMeta{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:8px;
-      font-weight:900;
-      color:#666;
-      font-size:12px;
+      display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;
+      font-weight:900;color:#666;font-size:12px;
     }
-    .divider{
-      height:1px;
-      background:rgba(0,0,0,.10);
-      margin:12px 0;
-    }
+    .divider{height:1px;background:rgba(0,0,0,.10);margin:12px 0;}
 
-    /* Archive drawer */
     .archiveHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      cursor:pointer;
-      user-select:none;
-      padding:10px 12px;
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:14px;
-      margin-top:12px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      cursor:pointer;user-select:none;
+      padding:10px 12px;border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;margin-top:12px;
     }
     .archiveList{
-      display:none;
-      margin-top:8px;
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:14px;
-      overflow:hidden;
-      max-height:220px;
-      overflow:auto;
+      display:none;margin-top:8px;border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;overflow:hidden;max-height:220px;overflow:auto;
     }
     .archiveList.open{display:block;}
     .archiveItem{
-      padding:10px 12px;
-      border-bottom:1px solid rgba(0,0,0,.08);
-      cursor:pointer;
-      font-weight:900;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      background:#fff;
+      padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.08);
+      cursor:pointer;font-weight:900;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;
     }
     .archiveItem:last-child{border-bottom:none;}
     .archiveItem:active{background:#f5f5f5;}
     .chip{
-      font-size:12px;
-      font-weight:1000;
-      border:1px solid rgba(0,0,0,.14);
-      border-radius:999px;
-      padding:3px 8px;
-      color:#444;
+      font-size:12px;font-weight:1000;border:1px solid rgba(0,0,0,.14);
+      border-radius:999px;padding:3px 8px;color:#444;
     }
 
-    /* Save/Release star burst */
+    /* star burst */
     .burstWrap{position:relative; display:inline-flex;}
     .star{
-      position:absolute;
-      left:50%;
-      top:50%;
-      transform:translate(-50%,-50%);
-      pointer-events:none;
-      will-change:transform,opacity;
-      font-size:16px;
-      opacity:0;
+      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+      pointer-events:none;will-change:transform,opacity;font-size:16px;opacity:0;
       animation:starFly .85s ease-out forwards;
       filter: drop-shadow(0 2px 2px rgba(0,0,0,.10));
     }
     @keyframes starFly{
-      0%   { opacity:0; transform:translate(-50%,-50%) scale(.9); }
-      10%  { opacity:1; }
-      100% { opacity:0; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15); }
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.9);}
+      10%{opacity:1;}
+      100%{opacity:0;transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15);}
     }
 
-    /* ===========================
-       BURN PAD
-       =========================== */
-    .stepWrap{ display:none; }
-    .stepWrap.active{ display:block; }
-
+    /* Burn pad */
+    .stepWrap{display:none;}
+    .stepWrap.active{display:block;}
     .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
     .chipBtn{
       border:1px solid rgba(0,0,0,.18);
-      border-radius:999px;
-      padding:7px 10px;
-      background:#fff;
-      font-weight:1000;
-      cursor:pointer;
-      user-select:none;
-      font-size:13px;
+      border-radius:999px;padding:7px 10px;background:#fff;
+      font-weight:1000;cursor:pointer;user-select:none;font-size:13px;
     }
-    .chipBtn.active{
-      background:#111;
-      color:#fff;
-      border-color:rgba(0,0,0,.18);
-    }
-
-    .burnHeaderLine{
-      margin-top:6px;
-      font-weight:900;
-      color:#666;
-      line-height:1.25;
-    }
+    .chipBtn.active{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
+    .burnHeaderLine{margin-top:6px;font-weight:900;color:#666;line-height:1.25;}
   </style>
 </head>
 
 <body>
 
-<header>
-  <div class="brand">Recovery Misfits</div>
-</header>
+<header><div class="brand">Recovery Misfits</div></header>
 
 <div id="rm-install-bar">
   <div id="rm-install-inner">
@@ -411,7 +311,6 @@
     </div>
 
     <button class="menuBtn" id="menuBtn" type="button" aria-label="Menu">☰</button>
-
   </div>
 </div>
 
@@ -509,7 +408,6 @@
     <button class="btn" id="closeBurn" type="button">Close</button>
   </div>
 
-  <!-- STEP 1 -->
   <div class="stepWrap active" id="burnStep1">
     <div class="burnHeaderLine">Write it out. This won’t be sent.</div>
 
@@ -523,7 +421,6 @@
     </div>
   </div>
 
-  <!-- STEP 2 -->
   <div class="stepWrap" id="burnStep2">
     <div class="muted" style="margin-top:6px;">
       Strong reactions usually mean something important got touched.
@@ -551,7 +448,7 @@
     <textarea id="burnNextMove" placeholder="Sometimes the move is to do nothing and let things cool."></textarea>
 
     <div class="qLabel">Who could help me see this more clearly?</div>
-    <textarea id="burnWho" placeholder=""></textarea>
+    <textarea id="burnWho"></textarea>
 
     <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:900;color:#444;user-select:none;">
       <input id="burnNotReady" type="checkbox" style="width:auto;margin:0;transform:scale(1.1);">
@@ -564,7 +461,6 @@
     <div class="muted" style="margin-top:12px;">
       Probably not a bad idea to talk this through with someone in recovery.
     </div>
-
     <div class="muted" style="margin-top:10px;">
       Feelings usually shift if we give them a little time.
     </div>
@@ -604,23 +500,15 @@
     <div style="margin-bottom:12px;">
       <b>2)</b> Scroll and tap <b>Add to Home Screen</b>
     </div>
-    <div>
-      <b>3)</b> Tap <b>Add</b>
-    </div>
+    <div><b>3)</b> Tap <b>Add</b></div>
   </div>
 
   <div class="muted" style="margin-top:12px;">Tip: this works best in Safari (some in-app browsers block it).</div>
 </div>
 
 <script>
-  /* ===========================
-     Service Worker
-     =========================== */
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
-  /* ===========================
-     Layout sizing (iframe fits screen)
-     =========================== */
   const frameWrap = document.getElementById("frameWrap");
   function setFrameHeight(){
     const headerH = document.querySelector("header").offsetHeight || 48;
@@ -632,18 +520,13 @@
   }
   window.addEventListener("resize", setFrameHeight);
 
-  /* ===========================
-     Standalone detection
-     =========================== */
   function isStandalone(){
     const mql = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
     const iosStandalone = window.navigator.standalone === true;
     return !!(mql || iosStandalone);
   }
 
-  /* ===========================
-     Install Bar (Android + iPhone)
-     =========================== */
+  /* Install Bar */
   const installBar = document.getElementById("rm-install-bar");
   const installBtn = document.getElementById("rm-install-btn");
   const installClose = document.getElementById("rm-install-close");
@@ -652,7 +535,6 @@
   const ua = navigator.userAgent || "";
   const isIOS = /iphone|ipad|ipod/i.test(ua);
   const isInAppBrowserIOS = isIOS && /(fbav|fban|instagram|line\/|wv)/i.test(ua);
-
   let deferredPrompt = null;
 
   function showInstallBar(msg){
@@ -677,7 +559,6 @@
     }
   }
 
-  // iOS install sheet wiring
   const iosBackdrop = document.getElementById("iosBackdrop");
   const iosSheet = document.getElementById("iosSheet");
   function openIOS(){ iosBackdrop.style.display="block"; iosSheet.classList.add("open"); }
@@ -711,43 +592,33 @@
   window.addEventListener("appinstalled", () => hideInstallBar());
   if (isStandalone()) hideInstallBar();
 
-  /* ===========================
-     Menu sheet wiring
-     =========================== */
+  /* Menu */
   const menuBackdrop = document.getElementById("menuBackdrop");
   const menuSheet = document.getElementById("menuSheet");
   const menuBtn = document.getElementById("menuBtn");
 
-  function openMenu(){
-    menuBackdrop.style.display = "block";
-    menuSheet.classList.add("open");
-  }
-  function closeMenu(){
-    menuSheet.classList.remove("open");
-    menuBackdrop.style.display = "none";
-  }
+  function openMenu(){ menuBackdrop.style.display="block"; menuSheet.classList.add("open"); }
+  function closeMenu(){ menuSheet.classList.remove("open"); menuBackdrop.style.display="none"; }
+
   menuBtn.onclick = openMenu;
   menuBackdrop.onclick = closeMenu;
   document.getElementById("closeMenu").onclick = closeMenu;
 
-  // Share buttons inside menu
+  /* Share */
   const SHARE_URL = "https://recoverymisfits.blogspot.com/";
   const SHARE_TEXT = "This has been helping me lately. No hype, just solid. " + SHARE_URL;
 
   document.getElementById("shareTextBtn").onclick = () => {
     window.location.href = "sms:?&body=" + encodeURIComponent(SHARE_TEXT);
   };
-
   document.getElementById("shareFbBtn").onclick = () => {
     const fb = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(SHARE_URL);
     window.open(fb, "_blank", "noopener,noreferrer");
   };
 
-  /* ===========================
-     Sobriety + Daily Check-in
-     =========================== */
+  /* Sobriety + check-in */
   const LS_DATE   = "rm_sob_date";
-  const LS_MODE   = "rm_sob_mode"; // "days" | "date"
+  const LS_MODE   = "rm_sob_mode";
   const LS_STREAK = "rm_streak";
   const LS_LAST   = "rm_last";
 
@@ -780,14 +651,12 @@
   function renderSob(){
     const v = localStorage.getItem(LS_DATE);
     const mode = getMode();
-
     if(!v){
-      sobValue.textContent = "Tap to set";
-      sobHint.textContent  = "Tap to set";
-      sobOut.textContent   = "";
+      sobValue.textContent="Tap to set";
+      sobHint.textContent="Tap to set";
+      sobOut.textContent="";
       return;
     }
-
     const d0 = new Date(v + "T00:00:00");
     const d1 = new Date();
     const days = Math.max(0, Math.floor((d1-d0)/(1000*60*60*24)));
@@ -809,7 +678,6 @@
     localStorage.setItem(LS_MODE, mode === "date" ? "days" : "date");
     renderSob();
   };
-
   document.getElementById("streakPill").onclick = () => openSheet();
 
   document.getElementById("saveSob").onclick = () => {
@@ -819,7 +687,6 @@
       closeSheet();
     }
   };
-
   document.getElementById("clearSob").onclick = () => {
     localStorage.removeItem(LS_DATE);
     renderSob();
@@ -840,94 +707,61 @@
     document.getElementById("streakValue").textContent = streak + "🔥";
   }
 
-  /* ===========================
-     Connection Whisper
-     =========================== */
+  /* Whisper */
   const WHISPER_KEY_DATE = "rm_whisper_date";
   const WHISPER_KEY_TEXT = "rm_whisper_text";
-
   const WHISPERS = [
-    "A few people re-read this lately",
-    "This one’s getting re-read",
-    "This one’s making the rounds",
-    "This hit somebody else too",
-    "You weren’t the only one here",
-    "Others paused on this one",
-    "This one drew a second look",
-    "This one slowed someone down",
-    "This one didn’t go unnoticed",
-    "More than one set of eyes here",
-    "Someone else needed this too",
-    "This one met a few people where they were",
-    "You’re in quiet company here",
-    "This one landed for somebody",
-    "A few folks stayed with this one",
-    "This one found its way around",
-    "Others sat with this for a bit",
-    "You weren’t alone with this thought",
-    "This one didn’t just pass by",
-    "Not the only one to read this",
-    "Shared moment today",
-    "Quietly revisited today",
-    "This one stayed today",
-    "Others were here today"
+    "A few people re-read this lately","This one’s getting re-read","This one’s making the rounds",
+    "This hit somebody else too","You weren’t the only one here","Others paused on this one",
+    "This one drew a second look","This one slowed someone down","This one didn’t go unnoticed",
+    "More than one set of eyes here","Someone else needed this too","This one met a few people where they were",
+    "You’re in quiet company here","This one landed for somebody","A few folks stayed with this one",
+    "This one found its way around","Others sat with this for a bit","You weren’t alone with this thought",
+    "This one didn’t just pass by","Not the only one to read this","Shared moment today",
+    "Quietly revisited today","This one stayed today","Others were here today"
   ];
-
-  function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+  function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
   function getTodayISO(){ return new Date().toISOString().slice(0,10); }
 
   function renderWhisper(){
     const wrap = document.getElementById("rm-whisper");
     const textEl = document.querySelector(".whisper-text");
-    if (!wrap || !textEl) return;
+    if(!wrap || !textEl) return;
 
     const today = getTodayISO();
     const savedDate = localStorage.getItem(WHISPER_KEY_DATE);
     const savedText = localStorage.getItem(WHISPER_KEY_TEXT);
 
     let text = savedText;
-
-    if (savedDate !== today || !savedText) {
+    if(savedDate !== today || !savedText){
       text = pickRandom(WHISPERS);
       localStorage.setItem(WHISPER_KEY_DATE, today);
       localStorage.setItem(WHISPER_KEY_TEXT, text);
     }
-
     textEl.textContent = text;
     setTimeout(() => wrap.classList.add("show"), 900);
   }
 
-  /* ===========================
-     Shared: star burst
-     =========================== */
+  /* star burst */
   function burstStars(onButtonEl){
     const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
-    if (!wrap) return;
-
+    if(!wrap) return;
     const emojis = ["⭐","✨","🌟"];
     const count = 14;
-
     for(let i=0;i<count;i++){
       const s = document.createElement("span");
-      s.className = "star";
+      s.className="star";
       s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-
-      const dx = (Math.random()*90 - 45).toFixed(0) + "px";
-      const dy = (Math.random()*-80 - 20).toFixed(0) + "px";
-      const rot = (Math.random()*220 - 110).toFixed(0) + "deg";
-      s.style.setProperty("--dx", dx);
-      s.style.setProperty("--dy", dy);
-      s.style.setProperty("--rot", rot);
-
-      s.style.animationDelay = (Math.random()*0.08).toFixed(2) + "s";
+      s.style.setProperty("--dx", (Math.random()*90 - 45).toFixed(0) + "px");
+      s.style.setProperty("--dy", (Math.random()*-80 - 20).toFixed(0) + "px");
+      s.style.setProperty("--rot", (Math.random()*220 - 110).toFixed(0) + "deg");
+      s.style.animationDelay = (Math.random()*0.08).toFixed(2)+"s";
       wrap.appendChild(s);
       setTimeout(() => s.remove(), 950);
     }
   }
 
-  /* ===========================
-     Gratitude Inventory (localStorage + archive)
-     =========================== */
+  /* Gratitude */
   const GRAT_INDEX_KEY = "rm_grat_index";
   const gratBackdrop = document.getElementById("gratBackdrop");
   const gratSheet = document.getElementById("gratSheet");
@@ -948,7 +782,6 @@
   let currentGratDate = null;
 
   function gratKey(dateISO){ return "rm_grat_" + dateISO; }
-
   function readIndex(){
     try{
       const raw = localStorage.getItem(GRAT_INDEX_KEY);
@@ -956,32 +789,25 @@
       return Array.isArray(arr) ? arr : [];
     }catch(e){ return []; }
   }
-  function writeIndex(arr){
-    localStorage.setItem(GRAT_INDEX_KEY, JSON.stringify(arr));
-  }
+  function writeIndex(arr){ localStorage.setItem(GRAT_INDEX_KEY, JSON.stringify(arr)); }
 
   function saveEntry(dateISO, data){
     localStorage.setItem(gratKey(dateISO), JSON.stringify(data));
     let idx = readIndex();
-    if (!idx.includes(dateISO)){
-      idx.unshift(dateISO);
-      writeIndex(idx);
-    } else {
-      idx = [dateISO].concat(idx.filter(d => d !== dateISO));
-      writeIndex(idx);
-    }
+    if(!idx.includes(dateISO)){ idx.unshift(dateISO); writeIndex(idx); }
+    else { idx = [dateISO].concat(idx.filter(d => d !== dateISO)); writeIndex(idx); }
   }
 
   function loadEntry(dateISO){
     const raw = localStorage.getItem(gratKey(dateISO));
-    if (!raw) return null;
+    if(!raw) return null;
     try{ return JSON.parse(raw); }catch(e){ return null; }
   }
 
   function setStatusSaved(){
-    gratStatus.style.display = "inline-flex";
-    gratStatus.textContent = "Saved";
-    setTimeout(() => { gratStatus.style.display = "none"; }, 1000);
+    gratStatus.style.display="inline-flex";
+    gratStatus.textContent="Saved";
+    setTimeout(() => gratStatus.style.display="none", 1000);
   }
 
   function openGrat(dateISO){
@@ -994,22 +820,16 @@
     gratUseful.value = entry?.useful || "";
     gratJournal.value = entry?.journal || "";
 
-    gratBackdrop.style.display = "block";
+    gratBackdrop.style.display="block";
     gratSheet.classList.add("open");
     renderArchive();
   }
-  function closeGrat(){
-    gratSheet.classList.remove("open");
-    gratBackdrop.style.display = "none";
-  }
+  function closeGrat(){ gratSheet.classList.remove("open"); gratBackdrop.style.display="none"; }
 
   gratBackdrop.onclick = closeGrat;
   document.getElementById("closeGrat").onclick = closeGrat;
 
-  document.getElementById("gratBtn").onclick = () => {
-    closeMenu();
-    openGrat(getTodayISO());
-  };
+  document.getElementById("gratBtn").onclick = () => { closeMenu(); openGrat(getTodayISO()); };
 
   archiveToggle.onclick = () => {
     const isOpen = archiveList.classList.toggle("open");
@@ -1020,12 +840,12 @@
   function renderArchive(){
     const idx = readIndex();
     archiveCount.textContent = String(idx.length);
-
     archiveList.innerHTML = "";
-    if (idx.length === 0){
+
+    if(idx.length === 0){
       const empty = document.createElement("div");
-      empty.className = "archiveItem";
-      empty.style.cursor = "default";
+      empty.className="archiveItem";
+      empty.style.cursor="default";
       empty.innerHTML = `<span style="opacity:.7;font-weight:900;">No saved entries yet</span><span class="chip">—</span>`;
       archiveList.appendChild(empty);
       return;
@@ -1033,7 +853,7 @@
 
     idx.forEach(dateISO => {
       const row = document.createElement("div");
-      row.className = "archiveItem";
+      row.className="archiveItem";
       const isToday = (dateISO === getTodayISO());
       row.innerHTML = `<span>${dateISO}</span><span class="chip">${isToday ? "today" : "open"}</span>`;
       row.onclick = () => {
@@ -1058,29 +878,22 @@
       useful: gratUseful.value.trim(),
       journal: gratJournal.value.trim()
     };
-
     try{
       saveEntry(dateISO, payload);
       setStatusSaved();
       burstStars(document.getElementById("gratSave"));
       renderArchive();
     }catch(e){
-      gratStatus.style.display = "inline-flex";
-      gratStatus.textContent = "Couldn’t save";
-      setTimeout(() => { gratStatus.style.display = "none"; }, 1400);
+      gratStatus.style.display="inline-flex";
+      gratStatus.textContent="Couldn’t save";
+      setTimeout(() => gratStatus.style.display="none", 1400);
     }
   };
-
   document.getElementById("gratClear").onclick = () => {
-    gratHappy.value = "";
-    gratPeace.value = "";
-    gratUseful.value = "";
-    gratJournal.value = "";
+    gratHappy.value=""; gratPeace.value=""; gratUseful.value=""; gratJournal.value="";
   };
 
-  /* ===========================
-     Burn Pad (never sends, no archive)
-     =========================== */
+  /* Burn Pad (no save) */
   const burnBackdrop = document.getElementById("burnBackdrop");
   const burnSheet = document.getElementById("burnSheet");
 
@@ -1095,110 +908,70 @@
   const burnWho = document.getElementById("burnWho");
 
   const burnThreatChips = document.getElementById("burnThreatChips");
-  let burnThreat = ""; // selected chip value (not saved)
+  let burnThreat = "";
 
   const burnNotReady = document.getElementById("burnNotReady");
   const burnNotReadyHint = document.getElementById("burnNotReadyHint");
   const burnReleaseBtn = document.getElementById("burnRelease");
 
   function showBurnStep(n){
-    if (n === 1){
-      burnStep1.classList.add("active");
-      burnStep2.classList.remove("active");
-    } else {
-      burnStep1.classList.remove("active");
-      burnStep2.classList.add("active");
-    }
+    if(n===1){ burnStep1.classList.add("active"); burnStep2.classList.remove("active"); }
+    else { burnStep1.classList.remove("active"); burnStep2.classList.add("active"); }
   }
-
   function openBurn(){
-    burnBackdrop.style.display = "block";
+    burnBackdrop.style.display="block";
     burnSheet.classList.add("open");
     showBurnStep(1);
-    setTimeout(() => burnDraft.focus({ preventScroll:true }), 120);
+    setTimeout(() => burnDraft.focus({preventScroll:true}), 120);
   }
-
-  function closeBurn(){
-    burnSheet.classList.remove("open");
-    burnBackdrop.style.display = "none";
-  }
+  function closeBurn(){ burnSheet.classList.remove("open"); burnBackdrop.style.display="none"; }
 
   function resetNotReadyUI(){
-    if (burnNotReady) burnNotReady.checked = false;
-    if (burnNotReadyHint) burnNotReadyHint.style.display = "none";
-    if (burnReleaseBtn) burnReleaseBtn.textContent = "Release it";
+    burnNotReady.checked = false;
+    burnNotReadyHint.style.display = "none";
+    burnReleaseBtn.textContent = "Release it";
   }
-
   function clearBurnAll(){
-    burnDraft.value = "";
-    burnMistake.value = "";
-    burnFlames.value = "";
-    burnControl.value = "";
-    burnNextMove.value = "";
-    burnWho.value = "";
-    burnThreat = "";
-    burnThreatChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
+    burnDraft.value=""; burnMistake.value=""; burnFlames.value=""; burnControl.value="";
+    burnNextMove.value=""; burnWho.value="";
+    burnThreat=""; burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
     resetNotReadyUI();
   }
 
   burnBackdrop.onclick = closeBurn;
   document.getElementById("closeBurn").onclick = closeBurn;
+  document.getElementById("burnBtn").onclick = () => { closeMenu(); openBurn(); };
 
-  document.getElementById("burnBtn").onclick = () => {
-    closeMenu();
-    openBurn();
-  };
+  document.getElementById("burnNext").onclick = () => { showBurnStep(2); setTimeout(() => burnMistake.focus({preventScroll:true}), 80); };
+  document.getElementById("burnBack").onclick = () => { showBurnStep(1); setTimeout(() => burnDraft.focus({preventScroll:true}), 80); };
 
-  document.getElementById("burnNext").onclick = () => {
-    showBurnStep(2);
-    setTimeout(() => burnMistake.focus({ preventScroll:true }), 80);
-  };
-
-  document.getElementById("burnBack").onclick = () => {
-    showBurnStep(1);
-    setTimeout(() => burnDraft.focus({ preventScroll:true }), 80);
-  };
-
-  document.getElementById("burnClear1").onclick = () => { burnDraft.value = ""; };
-
+  document.getElementById("burnClear1").onclick = () => { burnDraft.value=""; };
   document.getElementById("burnClear2").onclick = () => {
-    burnMistake.value = "";
-    burnFlames.value = "";
-    burnControl.value = "";
-    burnNextMove.value = "";
-    burnWho.value = "";
-    burnThreat = "";
-    burnThreatChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
+    burnMistake.value=""; burnFlames.value=""; burnControl.value=""; burnNextMove.value=""; burnWho.value="";
+    burnThreat=""; burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
     resetNotReadyUI();
   };
 
   burnThreatChips.addEventListener("click", (e) => {
     const btn = e.target.closest(".chipBtn");
-    if (!btn) return;
+    if(!btn) return;
     const v = btn.getAttribute("data-v") || "";
     const isActive = btn.classList.contains("active");
 
-    burnThreatChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
-    if (!isActive){
-      btn.classList.add("active");
-      burnThreat = v;
-    } else {
-      burnThreat = "";
-    }
+    burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    if(!isActive){ btn.classList.add("active"); burnThreat = v; }
+    else { burnThreat = ""; }
   });
 
-  if (burnNotReady) {
-    burnNotReady.addEventListener("change", () => {
-      if (!burnReleaseBtn) return;
-      if (burnNotReady.checked) {
-        burnReleaseBtn.textContent = "Pause it";
-        if (burnNotReadyHint) burnNotReadyHint.style.display = "block";
-      } else {
-        burnReleaseBtn.textContent = "Release it";
-        if (burnNotReadyHint) burnNotReadyHint.style.display = "none";
-      }
-    });
-  }
+  burnNotReady.addEventListener("change", () => {
+    if(burnNotReady.checked){
+      burnReleaseBtn.textContent="Pause it";
+      burnNotReadyHint.style.display="block";
+    } else {
+      burnReleaseBtn.textContent="Release it";
+      burnNotReadyHint.style.display="none";
+    }
+  });
 
   burnReleaseBtn.onclick = () => {
     burstStars(burnReleaseBtn);
@@ -1206,61 +979,7 @@
     closeBurn();
   };
 
-  /* ===========================
-     iOS install sheet wiring
-     =========================== */
-  const iosBackdrop = document.getElementById("iosBackdrop");
-  const iosSheet = document.getElementById("iosSheet");
-  function openIOS(){ iosBackdrop.style.display="block"; iosSheet.classList.add("open"); }
-  function closeIOS(){ iosSheet.classList.remove("open"); iosBackdrop.style.display="none"; }
-  iosBackdrop.onclick = closeIOS;
-  document.getElementById("closeIOS").onclick = closeIOS;
-
-  if (isIOS) {
-    installBtn.onclick = (e) => { e.preventDefault(); openIOS(); };
-  }
-
-  /* ===========================
-     Whisper init + frame sizing init
-     =========================== */
-  function initInstallBarOnce(){
-    if (!isStandalone()) {
-      if (isIOS) {
-        showInstallBar(isInAppBrowserIOS ? "Open in Safari to install." : "Tap Install for iPhone steps.");
-        installBtn.textContent = "Add to Home Screen";
-      } else {
-        showInstallBar("Android: tap Install (or Chrome menu ⋮ → Install app).");
-        installBtn.textContent = "Install";
-        installBtn.disabled = true;
-
-        window.addEventListener("beforeinstallprompt", (e) => {
-          e.preventDefault();
-          deferredPrompt = e;
-          installBtn.disabled = false;
-          showInstallBar("Android: tap Install now.");
-        });
-
-        installBtn.onclick = async (e) => {
-          e.preventDefault();
-          if (!deferredPrompt) {
-            showInstallBar("Try: Chrome menu (⋮) → Install app.");
-            return;
-          }
-          deferredPrompt.prompt();
-          await deferredPrompt.userChoice;
-          deferredPrompt = null;
-        };
-      }
-    }
-
-    installClose.onclick = (e) => { e.preventDefault(); hideInstallBar(); };
-    window.addEventListener("appinstalled", () => hideInstallBar());
-    if (isStandalone()) hideInstallBar();
-  }
-
-  /* ===========================
-     Init
-     =========================== */
+  /* Init */
   (function init(){
     const v = localStorage.getItem(LS_DATE);
     if (v) sobDate.value = v;
@@ -1270,7 +989,6 @@
     renderSob();
     renderWhisper();
     setFrameHeight();
-    initInstallBarOnce();
   })();
 </script>
 
