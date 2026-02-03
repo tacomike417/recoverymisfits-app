@@ -145,7 +145,7 @@
     .menuBtn:active{transform:scale(.98);}
 
     /* ===========================
-       CONNECTION WHISPER + BADGE
+       CONNECTION WHISPER
        =========================== */
     #rm-whisper{
       display:flex;
@@ -153,13 +153,10 @@
       gap:6px;
       margin-top:6px;
       user-select:none;
-
-      /* fade-in */
       opacity:0;
       transition:opacity .8s ease;
     }
     #rm-whisper.show{opacity:1;}
-
     .whisper-dot{
       width:6px;
       height:6px;
@@ -312,7 +309,7 @@
       color:#444;
     }
 
-    /* Save button star burst */
+    /* Save/Release star burst */
     .burstWrap{position:relative; display:inline-flex;}
     .star{
       position:absolute;
@@ -331,21 +328,45 @@
       10%  { opacity:1; }
       100% { opacity:0; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15); }
     }
+
+    /* ===========================
+       BURN PAD
+       =========================== */
+    .stepWrap{ display:none; }
+    .stepWrap.active{ display:block; }
+
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+    .chipBtn{
+      border:1px solid rgba(0,0,0,.18);
+      border-radius:999px;
+      padding:7px 10px;
+      background:#fff;
+      font-weight:1000;
+      cursor:pointer;
+      user-select:none;
+      font-size:13px;
+    }
+    .chipBtn.active{
+      background:#111;
+      color:#fff;
+      border-color:rgba(0,0,0,.18);
+    }
+
+    .burnHeaderLine{
+      margin-top:6px;
+      font-weight:900;
+      color:#666;
+      line-height:1.25;
+    }
   </style>
 </head>
 
 <body>
 
-<!-- ===========================
-     HEADER
-     =========================== -->
 <header>
   <div class="brand">Recovery Misfits</div>
 </header>
 
-<!-- ===========================
-     INSTALL BAR
-     =========================== -->
 <div id="rm-install-bar">
   <div id="rm-install-inner">
     <div>
@@ -359,20 +380,13 @@
   </div>
 </div>
 
-<!-- ===========================
-     BLOG
-     =========================== -->
 <div class="frameWrap" id="frameWrap">
   <iframe src="https://recoverymisfits.blogspot.com/"></iframe>
 </div>
 
-<!-- ===========================
-     BOTTOM BAR
-     =========================== -->
 <div class="bottomBar">
   <div class="bottomInner">
 
-    <!-- SOBRIETY -->
     <div class="pill" id="sobPill">
       <div>
         <div class="label">SOBRIETY</div>
@@ -381,7 +395,6 @@
       <div class="hint" id="sobHint">Tap to set</div>
     </div>
 
-    <!-- DAILY CHECK-IN -->
     <div>
       <div class="pill" id="streakPill">
         <div>
@@ -391,23 +404,18 @@
         <div class="hint">Today</div>
       </div>
 
-      <!-- CONNECTION WHISPER -->
       <div id="rm-whisper" aria-hidden="true">
         <span class="whisper-dot" aria-hidden="true"></span>
         <span class="whisper-text"></span>
       </div>
-      <!-- /CONNECTION WHISPER -->
     </div>
 
-    <!-- MENU -->
     <button class="menuBtn" id="menuBtn" type="button" aria-label="Menu">☰</button>
 
   </div>
 </div>
 
-<!-- ===========================
-     SOBRIETY SHEET
-     =========================== -->
+<!-- SOBRIETY SHEET -->
 <div class="backdrop" id="backdrop"></div>
 <div class="sheet" id="sheet">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -423,9 +431,7 @@
   <div class="big" id="sobOut"></div>
 </div>
 
-<!-- ===========================
-     MENU SHEET
-     =========================== -->
+<!-- MENU SHEET -->
 <div class="backdrop" id="menuBackdrop"></div>
 <div class="sheet" id="menuSheet">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -440,8 +446,11 @@
   </div>
 
   <div class="row" style="margin-top:10px;">
-<button class="btn primary" id="gratBtn" type="button">⭐ Gratitude Inventory</button>
+    <button class="btn primary" id="gratBtn" type="button">⭐ Gratitude Inventory</button>
+  </div>
 
+  <div class="row" style="margin-top:10px;">
+    <button class="btn primary" id="burnBtn" type="button">🔥 Burn Pad (never sends)</button>
   </div>
 
   <div class="row" style="margin-top:10px;">
@@ -450,9 +459,7 @@
   </div>
 </div>
 
-<!-- ===========================
-     GRATITUDE SHEET
-     =========================== -->
+<!-- GRATITUDE SHEET -->
 <div class="backdrop" id="gratBackdrop"></div>
 <div class="sheet" id="gratSheet">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -468,13 +475,13 @@
   <div class="divider"></div>
 
   <div class="qLabel">Where have I been happy today?</div>
-  <textarea id="gratHappy" placeholder=""></textarea>
+  <textarea id="gratHappy"></textarea>
 
   <div class="qLabel">Where have I been at peace today?</div>
-  <textarea id="gratPeace" placeholder=""></textarea>
+  <textarea id="gratPeace"></textarea>
 
   <div class="qLabel">Where have I been useful to other people today?</div>
-  <textarea id="gratUseful" placeholder=""></textarea>
+  <textarea id="gratUseful"></textarea>
 
   <div class="qLabel">Gratitude Journal</div>
   <textarea id="gratJournal" placeholder="God shots, good moments, things you noticed happening for you…"></textarea>
@@ -493,9 +500,87 @@
   <div class="archiveList" id="archiveList"></div>
 </div>
 
-<!-- ===========================
-     iOS INSTALL SHEET
-     =========================== -->
+<!-- BURN PAD SHEET -->
+<div class="backdrop" id="burnBackdrop"></div>
+<div class="sheet" id="burnSheet">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Burn Pad</h3>
+    <button class="btn" id="closeBurn" type="button">Close</button>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="stepWrap active" id="burnStep1">
+    <div class="burnHeaderLine">Write it out. This won’t be sent.</div>
+
+    <textarea id="burnDraft"
+      placeholder="This isn’t for replaying the struggle. It’s for getting it out and moving on."
+      style="min-height:160px;"></textarea>
+
+    <div class="row" style="margin-top:12px;">
+      <button class="btn primary" id="burnNext" type="button">Next</button>
+      <button class="btn" id="burnClear1" type="button">Clear</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="stepWrap" id="burnStep2">
+    <div class="muted" style="margin-top:6px;">
+      Strong reactions usually mean something important got touched.
+    </div>
+
+    <div class="qLabel">Where was my mistake?</div>
+    <textarea id="burnMistake"></textarea>
+
+    <div class="qLabel">Where did I fan the flames on this BS?</div>
+    <textarea id="burnFlames"></textarea>
+
+    <div class="qLabel">What was I trying to control, change, or force?</div>
+    <textarea id="burnControl"></textarea>
+
+    <div class="qLabel">What’s actually threatened here?</div>
+    <div class="chips" id="burnThreatChips">
+      <button class="chipBtn" type="button" data-v="ego">Ego</button>
+      <button class="chipBtn" type="button" data-v="fear">Fear</button>
+      <button class="chipBtn" type="button" data-v="comfort">Comfort</button>
+      <button class="chipBtn" type="button" data-v="image">Image</button>
+      <button class="chipBtn" type="button" data-v="security">Security</button>
+    </div>
+
+    <div class="qLabel">What’s the next right move — if any?</div>
+    <textarea id="burnNextMove" placeholder="Sometimes the move is to do nothing and let things cool."></textarea>
+
+    <div class="qLabel">Who could help me see this more clearly?</div>
+    <textarea id="burnWho" placeholder=""></textarea>
+
+    <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:900;color:#444;user-select:none;">
+      <input id="burnNotReady" type="checkbox" style="width:auto;margin:0;transform:scale(1.1);">
+      I’m not ready to let this go yet.
+    </label>
+    <div class="muted" id="burnNotReadyHint" style="margin-top:6px;display:none;">
+      That’s honest. You can still pause it and come back when you’re ready.
+    </div>
+
+    <div class="muted" style="margin-top:12px;">
+      Probably not a bad idea to talk this through with someone in recovery.
+    </div>
+
+    <div class="muted" style="margin-top:10px;">
+      Feelings usually shift if we give them a little time.
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <span class="burstWrap">
+        <button class="btn primary" id="burnRelease" type="button">Release it</button>
+      </span>
+      <button class="btn" id="burnBack" type="button">Back</button>
+      <button class="btn" id="burnClear2" type="button">Clear</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- iOS INSTALL SHEET -->
 <div class="backdrop" id="iosBackdrop"></div>
 <div class="sheet" id="iosSheet">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -527,9 +612,6 @@
   <div class="muted" style="margin-top:12px;">Tip: this works best in Safari (some in-app browsers block it).</div>
 </div>
 
-<!-- ===========================
-     JAVASCRIPT
-     =========================== -->
 <script>
   /* ===========================
      Service Worker
@@ -689,8 +771,6 @@
   backdrop.onclick = closeSheet;
   document.getElementById("closeSheet").onclick = closeSheet;
 
-  function daysBetween(a,b){ return Math.floor((b-a)/(1000*60*60*24)); }
-
   function getMode(){
     let mode = localStorage.getItem(LS_MODE);
     if (!mode) { mode = "days"; localStorage.setItem(LS_MODE, mode); }
@@ -710,7 +790,7 @@
 
     const d0 = new Date(v + "T00:00:00");
     const d1 = new Date();
-    const days = Math.max(0, daysBetween(d0, d1));
+    const days = Math.max(0, Math.floor((d1-d0)/(1000*60*60*24)));
 
     if (mode === "date") {
       sobValue.textContent = v;
@@ -814,14 +894,39 @@
     }
 
     textEl.textContent = text;
-
-    setTimeout(() => {
-      wrap.classList.add("show");
-    }, 900);
+    setTimeout(() => wrap.classList.add("show"), 900);
   }
 
   /* ===========================
-     GRATITUDE INVENTORY (localStorage + archive)
+     Shared: star burst
+     =========================== */
+  function burstStars(onButtonEl){
+    const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
+    if (!wrap) return;
+
+    const emojis = ["⭐","✨","🌟"];
+    const count = 14;
+
+    for(let i=0;i<count;i++){
+      const s = document.createElement("span");
+      s.className = "star";
+      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+
+      const dx = (Math.random()*90 - 45).toFixed(0) + "px";
+      const dy = (Math.random()*-80 - 20).toFixed(0) + "px";
+      const rot = (Math.random()*220 - 110).toFixed(0) + "deg";
+      s.style.setProperty("--dx", dx);
+      s.style.setProperty("--dy", dy);
+      s.style.setProperty("--rot", rot);
+
+      s.style.animationDelay = (Math.random()*0.08).toFixed(2) + "s";
+      wrap.appendChild(s);
+      setTimeout(() => s.remove(), 950);
+    }
+  }
+
+  /* ===========================
+     Gratitude Inventory (localStorage + archive)
      =========================== */
   const GRAT_INDEX_KEY = "rm_grat_index";
   const gratBackdrop = document.getElementById("gratBackdrop");
@@ -849,9 +954,7 @@
       const raw = localStorage.getItem(GRAT_INDEX_KEY);
       const arr = raw ? JSON.parse(raw) : [];
       return Array.isArray(arr) ? arr : [];
-    }catch(e){
-      return [];
-    }
+    }catch(e){ return []; }
   }
   function writeIndex(arr){
     localStorage.setItem(GRAT_INDEX_KEY, JSON.stringify(arr));
@@ -864,7 +967,6 @@
       idx.unshift(dateISO);
       writeIndex(idx);
     } else {
-      // keep newest-first by moving it to front
       idx = [dateISO].concat(idx.filter(d => d !== dateISO));
       writeIndex(idx);
     }
@@ -886,17 +988,14 @@
     currentGratDate = dateISO || getTodayISO();
     gratViewing.textContent = "Viewing: " + currentGratDate;
 
-    // load if exists
     const entry = loadEntry(currentGratDate);
     gratHappy.value = entry?.happy || "";
     gratPeace.value = entry?.peace || "";
     gratUseful.value = entry?.useful || "";
     gratJournal.value = entry?.journal || "";
 
-    // open sheet
     gratBackdrop.style.display = "block";
     gratSheet.classList.add("open");
-
     renderArchive();
   }
   function closeGrat(){
@@ -907,13 +1006,11 @@
   gratBackdrop.onclick = closeGrat;
   document.getElementById("closeGrat").onclick = closeGrat;
 
-  // Menu button to open gratitude
   document.getElementById("gratBtn").onclick = () => {
     closeMenu();
     openGrat(getTodayISO());
   };
 
-  // Archive drawer
   archiveToggle.onclick = () => {
     const isOpen = archiveList.classList.toggle("open");
     archiveToggle.setAttribute("aria-expanded", String(isOpen));
@@ -940,7 +1037,6 @@
       const isToday = (dateISO === getTodayISO());
       row.innerHTML = `<span>${dateISO}</span><span class="chip">${isToday ? "today" : "open"}</span>`;
       row.onclick = () => {
-        // load clicked date into fields
         currentGratDate = dateISO;
         gratViewing.textContent = "Viewing: " + currentGratDate;
         const entry = loadEntry(currentGratDate);
@@ -951,35 +1047,6 @@
       };
       archiveList.appendChild(row);
     });
-  }
-
-  // Stars on Save
-  function burstStars(onButtonEl){
-    const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
-    if (!wrap) return;
-
-    const emojis = ["⭐","✨","🌟"];
-    const count = 14;
-
-    for(let i=0;i<count;i++){
-      const s = document.createElement("span");
-      s.className = "star";
-      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-
-      const dx = (Math.random()*90 - 45).toFixed(0) + "px";
-      const dy = (Math.random()*-80 - 20).toFixed(0) + "px";
-      const rot = (Math.random()*220 - 110).toFixed(0) + "deg";
-      s.style.setProperty("--dx", dx);
-      s.style.setProperty("--dy", dy);
-      s.style.setProperty("--rot", rot);
-
-      // small random delay so it feels organic
-      s.style.animationDelay = (Math.random()*0.08).toFixed(2) + "s";
-      wrap.appendChild(s);
-
-      // cleanup
-      setTimeout(() => s.remove(), 950);
-    }
   }
 
   document.getElementById("gratSave").onclick = () => {
@@ -1005,12 +1072,191 @@
   };
 
   document.getElementById("gratClear").onclick = () => {
-    // clears the fields only (doesn't delete saved entry unless they hit Save afterward)
     gratHappy.value = "";
     gratPeace.value = "";
     gratUseful.value = "";
     gratJournal.value = "";
   };
+
+  /* ===========================
+     Burn Pad (never sends, no archive)
+     =========================== */
+  const burnBackdrop = document.getElementById("burnBackdrop");
+  const burnSheet = document.getElementById("burnSheet");
+
+  const burnStep1 = document.getElementById("burnStep1");
+  const burnStep2 = document.getElementById("burnStep2");
+
+  const burnDraft = document.getElementById("burnDraft");
+  const burnMistake = document.getElementById("burnMistake");
+  const burnFlames = document.getElementById("burnFlames");
+  const burnControl = document.getElementById("burnControl");
+  const burnNextMove = document.getElementById("burnNextMove");
+  const burnWho = document.getElementById("burnWho");
+
+  const burnThreatChips = document.getElementById("burnThreatChips");
+  let burnThreat = ""; // selected chip value (not saved)
+
+  const burnNotReady = document.getElementById("burnNotReady");
+  const burnNotReadyHint = document.getElementById("burnNotReadyHint");
+  const burnReleaseBtn = document.getElementById("burnRelease");
+
+  function showBurnStep(n){
+    if (n === 1){
+      burnStep1.classList.add("active");
+      burnStep2.classList.remove("active");
+    } else {
+      burnStep1.classList.remove("active");
+      burnStep2.classList.add("active");
+    }
+  }
+
+  function openBurn(){
+    burnBackdrop.style.display = "block";
+    burnSheet.classList.add("open");
+    showBurnStep(1);
+    setTimeout(() => burnDraft.focus({ preventScroll:true }), 120);
+  }
+
+  function closeBurn(){
+    burnSheet.classList.remove("open");
+    burnBackdrop.style.display = "none";
+  }
+
+  function resetNotReadyUI(){
+    if (burnNotReady) burnNotReady.checked = false;
+    if (burnNotReadyHint) burnNotReadyHint.style.display = "none";
+    if (burnReleaseBtn) burnReleaseBtn.textContent = "Release it";
+  }
+
+  function clearBurnAll(){
+    burnDraft.value = "";
+    burnMistake.value = "";
+    burnFlames.value = "";
+    burnControl.value = "";
+    burnNextMove.value = "";
+    burnWho.value = "";
+    burnThreat = "";
+    burnThreatChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
+    resetNotReadyUI();
+  }
+
+  burnBackdrop.onclick = closeBurn;
+  document.getElementById("closeBurn").onclick = closeBurn;
+
+  document.getElementById("burnBtn").onclick = () => {
+    closeMenu();
+    openBurn();
+  };
+
+  document.getElementById("burnNext").onclick = () => {
+    showBurnStep(2);
+    setTimeout(() => burnMistake.focus({ preventScroll:true }), 80);
+  };
+
+  document.getElementById("burnBack").onclick = () => {
+    showBurnStep(1);
+    setTimeout(() => burnDraft.focus({ preventScroll:true }), 80);
+  };
+
+  document.getElementById("burnClear1").onclick = () => { burnDraft.value = ""; };
+
+  document.getElementById("burnClear2").onclick = () => {
+    burnMistake.value = "";
+    burnFlames.value = "";
+    burnControl.value = "";
+    burnNextMove.value = "";
+    burnWho.value = "";
+    burnThreat = "";
+    burnThreatChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
+    resetNotReadyUI();
+  };
+
+  burnThreatChips.addEventListener("click", (e) => {
+    const btn = e.target.closest(".chipBtn");
+    if (!btn) return;
+    const v = btn.getAttribute("data-v") || "";
+    const isActive = btn.classList.contains("active");
+
+    burnThreatChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
+    if (!isActive){
+      btn.classList.add("active");
+      burnThreat = v;
+    } else {
+      burnThreat = "";
+    }
+  });
+
+  if (burnNotReady) {
+    burnNotReady.addEventListener("change", () => {
+      if (!burnReleaseBtn) return;
+      if (burnNotReady.checked) {
+        burnReleaseBtn.textContent = "Pause it";
+        if (burnNotReadyHint) burnNotReadyHint.style.display = "block";
+      } else {
+        burnReleaseBtn.textContent = "Release it";
+        if (burnNotReadyHint) burnNotReadyHint.style.display = "none";
+      }
+    });
+  }
+
+  burnReleaseBtn.onclick = () => {
+    burstStars(burnReleaseBtn);
+    clearBurnAll();
+    closeBurn();
+  };
+
+  /* ===========================
+     iOS install sheet wiring
+     =========================== */
+  const iosBackdrop = document.getElementById("iosBackdrop");
+  const iosSheet = document.getElementById("iosSheet");
+  function openIOS(){ iosBackdrop.style.display="block"; iosSheet.classList.add("open"); }
+  function closeIOS(){ iosSheet.classList.remove("open"); iosBackdrop.style.display="none"; }
+  iosBackdrop.onclick = closeIOS;
+  document.getElementById("closeIOS").onclick = closeIOS;
+
+  if (isIOS) {
+    installBtn.onclick = (e) => { e.preventDefault(); openIOS(); };
+  }
+
+  /* ===========================
+     Whisper init + frame sizing init
+     =========================== */
+  function initInstallBarOnce(){
+    if (!isStandalone()) {
+      if (isIOS) {
+        showInstallBar(isInAppBrowserIOS ? "Open in Safari to install." : "Tap Install for iPhone steps.");
+        installBtn.textContent = "Add to Home Screen";
+      } else {
+        showInstallBar("Android: tap Install (or Chrome menu ⋮ → Install app).");
+        installBtn.textContent = "Install";
+        installBtn.disabled = true;
+
+        window.addEventListener("beforeinstallprompt", (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          installBtn.disabled = false;
+          showInstallBar("Android: tap Install now.");
+        });
+
+        installBtn.onclick = async (e) => {
+          e.preventDefault();
+          if (!deferredPrompt) {
+            showInstallBar("Try: Chrome menu (⋮) → Install app.");
+            return;
+          }
+          deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+          deferredPrompt = null;
+        };
+      }
+    }
+
+    installClose.onclick = (e) => { e.preventDefault(); hideInstallBar(); };
+    window.addEventListener("appinstalled", () => hideInstallBar());
+    if (isStandalone()) hideInstallBar();
+  }
 
   /* ===========================
      Init
@@ -1024,6 +1270,7 @@
     renderSob();
     renderWhisper();
     setFrameHeight();
+    initInstallBarOnce();
   })();
 </script>
 
