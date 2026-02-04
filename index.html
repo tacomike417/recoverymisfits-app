@@ -252,6 +252,7 @@
     /* Burn pad */
     .stepWrap{display:none;}
     .stepWrap.active{display:block;}
+
     .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
     .chipBtn{
       border:1px solid rgba(0,0,0,.18);
@@ -260,6 +261,38 @@
     }
     .chipBtn.active{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
     .burnHeaderLine{margin-top:6px;font-weight:900;color:#666;line-height:1.25;}
+
+    .tinyLink{
+      background:none;border:none;padding:0;margin:0;
+      color:#111; font-weight:1000; cursor:pointer;
+      text-decoration:underline; text-underline-offset:3px;
+    }
+
+    .toolBtnRow .btn{
+      width:100%;
+    }
+
+    .passItOn{
+      font-weight:1000;
+      color:#666;
+      align-self:center;
+      white-space:nowrap;
+    }
+
+    .shareRow{
+      display:grid;
+      grid-template-columns: 1fr auto auto;
+      gap:10px;
+      align-items:center;
+      margin-top:10px;
+    }
+    @media (max-width:420px){
+      .shareRow{
+        grid-template-columns: 1fr;
+      }
+      .passItOn{white-space:normal;}
+      .shareRow .btn{width:100%;}
+    }
   </style>
 </head>
 
@@ -340,21 +373,22 @@
 
   <div class="muted" style="margin-top:6px;">Stuff you might want. Nothing loud.</div>
 
-  <div class="row" style="margin-top:12px;">
-    <a class="btn primary" href="game.html" id="playGameBtn" aria-label="Play Trudge the Road">🎮 Play Trudge the Road</a>
+  <div class="row toolBtnRow" style="margin-top:12px;">
+    <a class="btn primary" href="game.html" id="playGameBtn" aria-label="Play Trudge the Road">🎮 Trudge the Road</a>
   </div>
 
-  <div class="row" style="margin-top:10px;">
+  <div class="row toolBtnRow" style="margin-top:10px;">
     <button class="btn primary" id="gratBtn" type="button">⭐ Gratitude Inventory</button>
   </div>
 
-  <div class="row" style="margin-top:10px;">
-    <button class="btn primary" id="burnBtn" type="button">🔥 Burn Pad (never sends)</button>
+  <div class="row toolBtnRow" style="margin-top:10px;">
+    <button class="btn primary" id="burnBtn" type="button">🔥 Burn Pad</button>
   </div>
 
-  <div class="row" style="margin-top:10px;">
-    <button class="btn" id="shareTextBtn" type="button">📱 Share by Text</button>
-    <button class="btn" id="shareFbBtn" type="button">📣 Share on Facebook</button>
+  <div class="shareRow">
+    <div class="passItOn">Pass it on: share this app</div>
+    <button class="btn" id="shareTextBtn" type="button">By Text</button>
+    <button class="btn" id="shareFbBtn" type="button">Facebook</button>
   </div>
 </div>
 
@@ -409,7 +443,10 @@
   </div>
 
   <div class="stepWrap active" id="burnStep1">
-    <div class="burnHeaderLine">Write it out. This won’t be sent.</div>
+    <div class="burnHeaderLine">Write out the text that won’t be sent</div>
+
+    <div class="qLabel">Name</div>
+    <input id="burnName" type="text" placeholder="Who is this about? (optional)">
 
     <textarea id="burnDraft"
       placeholder="This isn’t for replaying the struggle. It’s for getting it out and moving on."
@@ -426,29 +463,46 @@
       Strong reactions usually mean something important got touched.
     </div>
 
-    <div class="qLabel">Where was my mistake?</div>
-    <textarea id="burnMistake"></textarea>
+    <div style="margin-top:10px;">
+      <button class="tinyLink" id="burnToggleSimple" type="button">Show fewer questions</button>
+    </div>
 
-    <div class="qLabel">Where did I fan the flames on this BS?</div>
+    <div class="qLabel">Right now I’m:</div>
+    <div class="chips" id="burnStateChips">
+      <button class="chipBtn" type="button" data-v="angry">Angry</button>
+      <button class="chipBtn" type="button" data-v="scared">Scared</button>
+      <button class="chipBtn" type="button" data-v="hurt">Hurt</button>
+      <button class="chipBtn" type="button" data-v="embarrassed">Embarrassed</button>
+      <button class="chipBtn" type="button" data-v="tired">Tired</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="qLabel">Where was my mistake?</div>
+    <textarea id="burnMistake" placeholder="Self-seeking… lied… held onto anger too long… passive aggressive… withheld a loving attitude…"></textarea>
+
+    <div class="qLabel">Where did I make it worse?</div>
     <textarea id="burnFlames"></textarea>
 
     <div class="qLabel">What was I trying to control, change, or force?</div>
     <textarea id="burnControl"></textarea>
 
-    <div class="qLabel">What’s actually threatened here?</div>
-    <div class="chips" id="burnThreatChips">
-      <button class="chipBtn" type="button" data-v="ego">Ego</button>
-      <button class="chipBtn" type="button" data-v="fear">Fear</button>
-      <button class="chipBtn" type="button" data-v="comfort">Comfort</button>
-      <button class="chipBtn" type="button" data-v="image">Image</button>
-      <button class="chipBtn" type="button" data-v="security">Security</button>
+    <div id="burnAdvanced">
+      <div class="qLabel">What’s actually threatened here?</div>
+      <div class="chips" id="burnThreatChips">
+        <button class="chipBtn" type="button" data-v="ego">Ego</button>
+        <button class="chipBtn" type="button" data-v="fear">Fear</button>
+        <button class="chipBtn" type="button" data-v="comfort">Comfort</button>
+        <button class="chipBtn" type="button" data-v="image">Image</button>
+        <button class="chipBtn" type="button" data-v="security">Security</button>
+      </div>
+
+      <div class="qLabel">What’s the next right move — if any?</div>
+      <textarea id="burnNextMove" placeholder="Sometimes the move is to do nothing and let things cool."></textarea>
+
+      <div class="qLabel">Who could help me see this more clearly?</div>
+      <textarea id="burnWho"></textarea>
     </div>
-
-    <div class="qLabel">What’s the next right move — if any?</div>
-    <textarea id="burnNextMove" placeholder="Sometimes the move is to do nothing and let things cool."></textarea>
-
-    <div class="qLabel">Who could help me see this more clearly?</div>
-    <textarea id="burnWho"></textarea>
 
     <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:900;color:#444;user-select:none;">
       <input id="burnNotReady" type="checkbox" style="width:auto;margin:0;transform:scale(1.1);">
@@ -807,7 +861,7 @@
   function setStatusSaved(){
     gratStatus.style.display="inline-flex";
     gratStatus.textContent="Saved";
-    setTimeout(() => gratStatus.style.display="none", 1000);
+    setTimeout(() => gratStatus.style.display = "none", 1000);
   }
 
   function openGrat(dateISO){
@@ -900,6 +954,7 @@
   const burnStep1 = document.getElementById("burnStep1");
   const burnStep2 = document.getElementById("burnStep2");
 
+  const burnName = document.getElementById("burnName");
   const burnDraft = document.getElementById("burnDraft");
   const burnMistake = document.getElementById("burnMistake");
   const burnFlames = document.getElementById("burnFlames");
@@ -909,6 +964,13 @@
 
   const burnThreatChips = document.getElementById("burnThreatChips");
   let burnThreat = "";
+
+  const burnStateChips = document.getElementById("burnStateChips");
+  let burnState = "";
+
+  const burnAdvanced = document.getElementById("burnAdvanced");
+  const burnToggleSimple = document.getElementById("burnToggleSimple");
+  let burnSimple = false;
 
   const burnNotReady = document.getElementById("burnNotReady");
   const burnNotReadyHint = document.getElementById("burnNotReadyHint");
@@ -922,7 +984,7 @@
     burnBackdrop.style.display="block";
     burnSheet.classList.add("open");
     showBurnStep(1);
-    setTimeout(() => burnDraft.focus({preventScroll:true}), 120);
+    setTimeout(() => burnName.focus({preventScroll:true}), 120);
   }
   function closeBurn(){ burnSheet.classList.remove("open"); burnBackdrop.style.display="none"; }
 
@@ -931,11 +993,20 @@
     burnNotReadyHint.style.display = "none";
     burnReleaseBtn.textContent = "Release it";
   }
+  function resetSimpleUI(){
+    burnSimple = false;
+    if(burnAdvanced) burnAdvanced.style.display = "";
+    if(burnToggleSimple) burnToggleSimple.textContent = "Show fewer questions";
+  }
   function clearBurnAll(){
+    burnName.value = "";
     burnDraft.value=""; burnMistake.value=""; burnFlames.value=""; burnControl.value="";
-    burnNextMove.value=""; burnWho.value="";
-    burnThreat=""; burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    if(burnNextMove) burnNextMove.value=""; if(burnWho) burnWho.value="";
+    burnThreat=""; burnState="";
+    if(burnThreatChips) burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    if(burnStateChips) burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
     resetNotReadyUI();
+    resetSimpleUI();
   }
 
   burnBackdrop.onclick = closeBurn;
@@ -943,25 +1014,52 @@
   document.getElementById("burnBtn").onclick = () => { closeMenu(); openBurn(); };
 
   document.getElementById("burnNext").onclick = () => { showBurnStep(2); setTimeout(() => burnMistake.focus({preventScroll:true}), 80); };
-  document.getElementById("burnBack").onclick = () => { showBurnStep(1); setTimeout(() => burnDraft.focus({preventScroll:true}), 80); };
+  document.getElementById("burnBack").onclick = () => { showBurnStep(1); setTimeout(() => burnName.focus({preventScroll:true}), 80); };
 
-  document.getElementById("burnClear1").onclick = () => { burnDraft.value=""; };
+  document.getElementById("burnClear1").onclick = () => { burnName.value=""; burnDraft.value=""; };
   document.getElementById("burnClear2").onclick = () => {
-    burnMistake.value=""; burnFlames.value=""; burnControl.value=""; burnNextMove.value=""; burnWho.value="";
-    burnThreat=""; burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    burnMistake.value=""; burnFlames.value=""; burnControl.value="";
+    if(burnNextMove) burnNextMove.value=""; if(burnWho) burnWho.value="";
+    burnThreat=""; burnState="";
+    if(burnThreatChips) burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    if(burnStateChips) burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
     resetNotReadyUI();
+    resetSimpleUI();
   };
 
-  burnThreatChips.addEventListener("click", (e) => {
-    const btn = e.target.closest(".chipBtn");
-    if(!btn) return;
-    const v = btn.getAttribute("data-v") || "";
-    const isActive = btn.classList.contains("active");
+  if(burnThreatChips){
+    burnThreatChips.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chipBtn");
+      if(!btn) return;
+      const v = btn.getAttribute("data-v") || "";
+      const isActive = btn.classList.contains("active");
 
-    burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
-    if(!isActive){ btn.classList.add("active"); burnThreat = v; }
-    else { burnThreat = ""; }
-  });
+      burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+      if(!isActive){ btn.classList.add("active"); burnThreat = v; }
+      else { burnThreat = ""; }
+    });
+  }
+
+  if(burnStateChips){
+    burnStateChips.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chipBtn");
+      if(!btn) return;
+      const v = btn.getAttribute("data-v") || "";
+      const isActive = btn.classList.contains("active");
+
+      burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+      if(!isActive){ btn.classList.add("active"); burnState = v; }
+      else { burnState = ""; }
+    });
+  }
+
+  if(burnToggleSimple){
+    burnToggleSimple.onclick = () => {
+      burnSimple = !burnSimple;
+      if(burnAdvanced) burnAdvanced.style.display = burnSimple ? "none" : "";
+      burnToggleSimple.textContent = burnSimple ? "Show all questions" : "Show fewer questions";
+    };
+  }
 
   burnNotReady.addEventListener("change", () => {
     if(burnNotReady.checked){
