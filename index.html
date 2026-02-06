@@ -187,6 +187,8 @@
     }
 
     .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+
+    /* ✅ normalize button sizing across <button> and <a> */
     .btn{
       padding:9px 12px;
       border-radius:999px;
@@ -200,6 +202,9 @@
       align-items:center;
       justify-content:center;
       gap:8px;
+      box-sizing:border-box;
+      min-height:44px;      /* <- keeps Trudge the Road same height as others */
+      line-height:1.1;
     }
     .btn.primary{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
     .big{font-size:22px;font-weight:1000;margin-top:10px;}
@@ -292,6 +297,17 @@
       }
       .passItOn{white-space:normal;}
       .shareRow .btn{width:100%;}
+    }
+
+    /* ✅ Prayer modal content */
+    .prayerBox{
+      margin-top:10px;
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      font-weight:900;
+      line-height:1.45;
     }
   </style>
 </head>
@@ -528,6 +544,25 @@
     </div>
   </div>
 
+</div>
+
+<!-- ✅ SICK MAN'S PRAYER MODAL -->
+<div class="backdrop" id="prayerBackdrop"></div>
+<div class="sheet" id="prayerSheet" role="dialog" aria-modal="true" aria-labelledby="prayerTitle">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 id="prayerTitle" style="margin:0;">Sick Man’s Prayer</h3>
+    <button class="btn" id="closePrayerX" type="button">Close</button>
+  </div>
+
+  <div class="prayerBox" style="margin-top:12px;">
+    This is a sick man. How can I be helpful to him?<br>
+    God save me from being angry.<br>
+    Thy will be done.
+  </div>
+
+  <div class="row" style="margin-top:14px;">
+    <button class="btn primary" id="prayerDone" type="button">Let it go</button>
+  </div>
 </div>
 
 <!-- iOS INSTALL SHEET -->
@@ -1071,10 +1106,38 @@
     }
   });
 
+  /* ✅ Sick Man’s Prayer modal */
+  const prayerBackdrop = document.getElementById("prayerBackdrop");
+  const prayerSheet = document.getElementById("prayerSheet");
+  const prayerDone = document.getElementById("prayerDone");
+  const closePrayerX = document.getElementById("closePrayerX");
+
+  function openPrayer(){
+    prayerBackdrop.style.display="block";
+    prayerSheet.classList.add("open");
+    setTimeout(() => prayerDone.focus({preventScroll:true}), 120);
+  }
+  function closePrayer(){
+    prayerSheet.classList.remove("open");
+    prayerBackdrop.style.display="none";
+  }
+  prayerBackdrop.onclick = closePrayer;
+  closePrayerX.onclick = closePrayer;
+  prayerDone.onclick = closePrayer;
+
   burnReleaseBtn.onclick = () => {
     burstStars(burnReleaseBtn);
+
+    /* If not ready: PAUSE (do not clear), just close */
+    if (burnNotReady.checked){
+      closeBurn();
+      return;
+    }
+
+    /* Release: clear + close + show Sick Man's Prayer */
     clearBurnAll();
     closeBurn();
+    openPrayer();
   };
 
   /* Init */
