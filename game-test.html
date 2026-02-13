@@ -3,59 +3,112 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AA Cutscene Test — Cinematic (No Sprites)</title>
+  <title>AA Cutscene Test — Cinematic + Sharp (No Sprites)</title>
   <style>
-    html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
-    .wrap{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:10px;box-sizing:border-box;}
+    :root{
+      --bg:#000;
+      --ink:#fff;
+    }
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    .wrap{
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:10px;
+      padding:12px;
+      box-sizing:border-box;
+    }
+    /* IMPORTANT: no "responsive width" here. We set exact integer-scaled size in JS for perfect crisp pixels. */
     canvas{
-      width:min(96vw, 980px);
+      display:block;
+      width:auto;
       height:auto;
+      background:#000;
       image-rendering:pixelated;
       image-rendering:crisp-edges;
-      border:1px solid rgba(255,255,255,.15);
+      border:1px solid rgba(255,255,255,.14);
       border-radius:14px;
-      box-shadow:0 18px 70px rgba(0,0,0,.65);
-      background:#000;
+      box-shadow:0 18px 70px rgba(0,0,0,.70);
     }
-    .hint{opacity:.8;font-size:14px;text-align:center;max-width:980px;line-height:1.35}
-    .kbd{display:inline-block;border:1px solid rgba(255,255,255,.35);border-bottom-width:3px;padding:.12rem .4rem;border-radius:.4rem;margin:0 .15rem;background:rgba(255,255,255,.06)}
+    .hint{
+      opacity:.82;
+      font-size:13px;
+      text-align:center;
+      max-width:980px;
+      line-height:1.35;
+      user-select:none;
+    }
+    .kbd{
+      display:inline-block;
+      border:1px solid rgba(255,255,255,.35);
+      border-bottom-width:3px;
+      padding:.10rem .38rem;
+      border-radius:.45rem;
+      margin:0 .15rem;
+      background:rgba(255,255,255,.06)
+    }
+    .small{opacity:.75;font-size:12px}
   </style>
 </head>
 <body>
 <div class="wrap">
-  <!-- SNES-ish internal res. Cinematic feel comes from lighting + motion + UI polish (still no sprites). -->
-  <canvas id="c" width="256" height="224"></canvas>
+  <!-- Internal render resolution (retro). JS forces exact integer scale on screen for sharpness. -->
+  <canvas id="c" width="320" height="240"></canvas>
   <div class="hint">
-    <span class="kbd">Space</span>/<span class="kbd">Enter</span>/<span class="kbd">Z</span> = advance & skip typing •
-    <span class="kbd">R</span> = restart •
-    <span class="kbd">F</span> = trigger flash (debug)
+    <span class="kbd">Space</span>/<span class="kbd">Enter</span>/<span class="kbd">Z</span> advance & skip typing •
+    <span class="kbd">R</span> restart •
+    <span class="kbd">D</span> toggle camera drift •
+    <span class="kbd">G</span> toggle grain/scanlines
+    <div class="small">If it looks blurry: your browser is scaling weird — this file forces integer scaling (SNES-sharp).</div>
   </div>
 </div>
 
 <script>
 (() => {
   const canvas = document.getElementById("c");
-  const ctx = canvas.getContext("2d", { alpha:false });
+  const ctx = canvas.getContext("2d", { alpha:false, desynchronized:true });
   ctx.imageSmoothingEnabled = false;
 
   const W = canvas.width, H = canvas.height;
+
+  // ---- Perfect integer scaling (THIS is the "SNES sharp" key) ----
+  function fitCanvasIntegerScale() {
+    const baseW = canvas.width, baseH = canvas.height;
+
+    const maxW = Math.floor(window.innerWidth * 0.96);
+    const maxH = Math.floor(window.innerHeight * 0.78);
+
+    let scale = Math.min(
+      Math.floor(maxW / baseW),
+      Math.floor(maxH / baseH)
+    );
+    if (!isFinite(scale) || scale < 1) scale = 1;
+
+    // exact integer pixels -> crisp
+    canvas.style.width  = (baseW * scale) + "px";
+    canvas.style.height = (baseH * scale) + "px";
+  }
+  window.addEventListener("resize", fitCanvasIntegerScale);
+  fitCanvasIntegerScale();
+
+  // ---- Helpers ----
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
   const lerp  = (a,b,t)=>a+(b-a)*t;
-  const easeInOut = (t)=>t<0.5 ? 2*t*t : 1- Math.pow(-2*t+2,2)/2;
-  const easeOutC = (t)=>1-Math.pow(1-t,3);
+  const easeOutC = t => 1 - Math.pow(1-t, 3);
+  const easeInOut = t => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
 
-  // --- "Cinematic" camera: slight pan + micro drift ---
+  function px(n){ return n|0; } // snap to pixel grid
+
+  // ---- Toggleable effects ----
+  let enableDrift = false;   // default OFF for tight SNES feel
+  let enableGrain = true;
+
+  // ---- Camera + shake (pixel-snapped) ----
   const cam = { x:0, y:0, tx:0, ty:0 };
   function setCamTarget(x,y){ cam.tx=x; cam.ty=y; }
-  function updateCam(dt, t){
-    // slow cinematic drift + ease to targets
-    const driftX = Math.sin(t*0.25)*1.2;
-    const driftY = Math.sin(t*0.18)*0.8;
-    cam.x = lerp(cam.x, cam.tx + driftX, clamp(dt*1.2,0,1));
-    cam.y = lerp(cam.y, cam.ty + driftY, clamp(dt*1.2,0,1));
-  }
 
-  // --- Screen shake / rumble ---
   let shakeT=0, shakeMag=0;
   function addShake(mag, seconds){
     shakeMag = Math.max(shakeMag, mag);
@@ -66,56 +119,29 @@
     shakeT -= dt;
     const k = clamp(shakeT/0.35,0,1);
     const mag = shakeMag * k;
-    return { x:(Math.random()*2-1)*mag, y:(Math.random()*2-1)*mag };
+    return { x: (Math.random()*2-1)*mag, y:(Math.random()*2-1)*mag };
   }
-
-  // --- Post overlays: CRT + film grain + vignette ---
-  function drawCinematicOverlays(g, t){
-    g.save();
-
-    // subtle scanlines
-    g.globalAlpha = 0.06;
-    g.fillStyle = "#000";
-    for (let y=0;y<H;y+=2) g.fillRect(0,y,W,1);
-
-    // film grain (tiny random dots)
-    g.globalAlpha = 0.06;
-    for (let i=0;i<120;i++){
-      const x = (Math.random()*W)|0;
-      const y = (Math.random()*H)|0;
-      g.fillRect(x,y,1,1);
+  function updateCam(dt, t){
+    let dx=0, dy=0;
+    if(enableDrift){
+      dx = Math.sin(t*0.22)*1.2;
+      dy = Math.sin(t*0.17)*0.9;
     }
-
-    // vignette
-    g.globalAlpha = 1;
-    const v = g.createRadialGradient(W/2,H/2,40,W/2,H/2,170);
-    v.addColorStop(0,"rgba(0,0,0,0)");
-    v.addColorStop(1,"rgba(0,0,0,0.55)");
-    g.fillStyle = v;
-    g.fillRect(0,0,W,H);
-
-    // very light "lens flare" near window
-    g.globalAlpha = 0.08 + 0.03*Math.sin(t*0.6);
-    const flare = g.createRadialGradient(56,52,10,56,52,85);
-    flare.addColorStop(0,"rgba(180,210,255,0.35)");
-    flare.addColorStop(1,"rgba(180,210,255,0)");
-    g.fillStyle = flare;
-    g.fillRect(0,0,W,H);
-
-    g.restore();
+    cam.x = lerp(cam.x, cam.tx + dx, clamp(dt*6,0,1));
+    cam.y = lerp(cam.y, cam.ty + dy, clamp(dt*6,0,1));
   }
 
-  // --- Text helpers ---
-  function setPixelFont(g, size=8){
+  // ---- Pixel text ----
+  function setFont(g, size=10){
     g.font = `${size}px monospace`;
     g.textBaseline = "top";
   }
-  function drawText(g, s, x, y, size=8, color="#fff", alpha=1){
+  function drawText(g, s, x, y, size=10, color="#fff", alpha=1){
     g.save();
-    setPixelFont(g,size);
     g.globalAlpha = alpha;
+    setFont(g,size);
     g.fillStyle = color;
-    g.fillText(s,x,y);
+    g.fillText(s, px(x), px(y));
     g.restore();
   }
   function wrapText(g, text, maxWidth){
@@ -125,16 +151,98 @@
     for (const w of words){
       const test = line ? (line+" "+w) : w;
       if (g.measureText(test).width <= maxWidth) line = test;
-      else { if (line) lines.push(line); line = w; }
+      else { if(line) lines.push(line); line = w; }
     }
     if (line) lines.push(line);
     return lines;
   }
 
-  // --- Dialogue box (SNES-ish but cinematic) ---
+  // ---- Cinematic overlays (grain/scanlines/vignette) ----
+  function drawOverlays(g, t){
+    if(!enableGrain) return;
+    g.save();
+
+    // scanlines
+    g.globalAlpha = 0.06;
+    g.fillStyle = "#000";
+    for (let y=0;y<H;y+=2) g.fillRect(0,y,W,1);
+
+    // film grain (random pixels)
+    g.globalAlpha = 0.06;
+    for (let i=0;i<140;i++){
+      const x = (Math.random()*W)|0;
+      const y = (Math.random()*H)|0;
+      g.fillRect(x,y,1,1);
+    }
+
+    // vignette
+    g.globalAlpha = 1;
+    const v = g.createRadialGradient(W/2,H/2,50,W/2,H/2,190);
+    v.addColorStop(0,"rgba(0,0,0,0)");
+    v.addColorStop(1,"rgba(0,0,0,0.60)");
+    g.fillStyle = v;
+    g.fillRect(0,0,W,H);
+
+    // subtle light haze near window
+    g.globalAlpha = 0.07 + 0.02*Math.sin(t*0.7);
+    const haze = g.createRadialGradient(74,52,10,74,52,120);
+    haze.addColorStop(0,"rgba(190,220,255,0.35)");
+    haze.addColorStop(1,"rgba(190,220,255,0)");
+    g.fillStyle = haze;
+    g.fillRect(0,0,W,H);
+
+    g.restore();
+  }
+
+  // ---- White flash w/ pseudo-bloom ----
+  const flash = { a:0, hold:0 };
+  function triggerFlash(){
+    flash.a = 1;
+    flash.hold = 0.14;
+    addShake(3.8, 0.38);
+  }
+  function updateFlash(dt){
+    if(flash.a<=0) return;
+    if(flash.hold>0){ flash.hold -= dt; return; }
+    flash.a = Math.max(0, flash.a - dt*1.1);
+  }
+  function drawFlash(g){
+    if(flash.a<=0) return;
+    g.save();
+    g.globalAlpha = flash.a;
+    g.fillStyle="#fff";
+    g.fillRect(0,0,W,H);
+
+    // bloom layers (bigger rects, lower alpha)
+    g.globalAlpha = flash.a*0.26;
+    g.fillRect(-3,-3,W+6,H+6);
+    g.globalAlpha = flash.a*0.12;
+    g.fillRect(-10,-10,W+20,H+20);
+    g.restore();
+  }
+
+  // ---- Fade ----
+  let fade=1, fadeDir=0; // 1 black, 0 visible
+  function fadeIn(){ fadeDir=-1; }
+  function fadeOut(){ fadeDir=+1; }
+  function updateFade(dt){
+    if(!fadeDir) return;
+    fade = clamp(fade + fadeDir*dt*1.2, 0, 1);
+    if(fade===0 || fade===1) fadeDir=0;
+  }
+  function drawFade(g){
+    if(fade<=0) return;
+    g.save();
+    g.globalAlpha = fade;
+    g.fillStyle="#000";
+    g.fillRect(0,0,W,H);
+    g.restore();
+  }
+
+  // ---- Dialogue box (polished) ----
   const Dialogue = {
     active:false, full:"", shown:"", who:"", done:false,
-    speed: 55, alpha:0, blink:0,
+    speed: 60, alpha:0, blink:0,
     set(text, who=""){
       this.active=true; this.full=text; this.shown=""; this.who=who;
       this.done=false; this.alpha=0; this.blink=0;
@@ -143,356 +251,305 @@
     clear(){ this.active=false; },
     update(dt){
       if(!this.active) return;
-      this.alpha = lerp(this.alpha, 1, clamp(dt*10,0,1));
+      this.alpha = lerp(this.alpha, 1, clamp(dt*12,0,1));
       if(!this.done){
         const nextLen = Math.min(this.full.length, Math.floor(this.shown.length + this.speed*dt));
         this.shown = this.full.slice(0,nextLen);
         if(this.shown.length>=this.full.length) this.done=true;
-      } else {
-        this.blink += dt;
-      }
+      } else this.blink += dt;
     },
     draw(g){
       if(!this.active) return;
-
-      const pad=10;
-      const boxH=72;
-      const x=10, y=H-boxH-10, w=W-20, h=boxH;
+      const pad=12, boxH=78;
+      const x=12, y=H-boxH-12, w=W-24, h=boxH;
 
       g.save();
-      g.globalAlpha = 0.92 * this.alpha;
+      g.globalAlpha = 0.95*this.alpha;
 
-      // drop shadow
+      // shadow
       g.fillStyle="rgba(0,0,0,0.55)";
-      g.fillRect(x+2,y+3,w,h);
+      g.fillRect(px(x+2),px(y+3),px(w),px(h));
 
-      // main panel (slight gradient)
+      // panel gradient
       const grad = g.createLinearGradient(0,y,0,y+h);
-      grad.addColorStop(0,"rgba(10,12,18,0.88)");
+      grad.addColorStop(0,"rgba(12,14,20,0.92)");
       grad.addColorStop(1,"rgba(0,0,0,0.78)");
       g.fillStyle=grad;
-      g.fillRect(x,y,w,h);
+      g.fillRect(px(x),px(y),px(w),px(h));
 
-      // border + corner accents
-      g.globalAlpha = 0.9*this.alpha;
-      g.strokeStyle="rgba(255,255,255,0.28)";
-      g.strokeRect(x+0.5,y+0.5,w-1,h-1);
-      g.fillStyle="rgba(255,255,255,0.18)";
-      g.fillRect(x,y,6,2); g.fillRect(x,y,2,6);
-      g.fillRect(x+w-6,y,6,2); g.fillRect(x+w-2,y,2,6);
-      g.fillRect(x,y+h-2,6,2); g.fillRect(x,y+h-6,2,6);
-      g.fillRect(x+w-6,y+h-2,6,2); g.fillRect(x+w-2,y+h-6,2,6);
+      // border
+      g.strokeStyle="rgba(255,255,255,0.24)";
+      g.strokeRect(px(x)+0.5,px(y)+0.5,px(w)-1,px(h)-1);
 
-      // name plate
-      g.globalAlpha = 1*this.alpha;
+      // corner ticks
+      g.fillStyle="rgba(255,255,255,0.14)";
+      g.fillRect(px(x),px(y),8,2); g.fillRect(px(x),px(y),2,8);
+      g.fillRect(px(x+w-8),px(y),8,2); g.fillRect(px(x+w-2),px(y),2,8);
+
+      // nameplate
       if(this.who){
-        g.fillStyle="rgba(255,255,255,0.10)";
-        g.fillRect(x+pad, y+6, Math.min(90, 10+this.who.length*7), 12);
-        drawText(g, this.who.toUpperCase(), x+pad+4, y+8, 8, "rgba(255,255,255,0.92)");
+        const plateW = Math.min(120, 14 + this.who.length*7);
+        g.fillStyle="rgba(255,255,255,0.09)";
+        g.fillRect(px(x+pad),px(y+8),plateW,12);
+        drawText(g, this.who.toUpperCase(), x+pad+4, y+10, 10, "rgba(255,255,255,0.92)", 1);
       }
 
       // text
-      setPixelFont(g,8);
-      const textX=x+pad, textY=y+22;
-      const maxW=w-pad*2;
+      setFont(g, 11);
+      const textX = x+pad;
+      const textY = y+26;
+      const maxW = w-pad*2;
       const lines = wrapText(g, this.shown, maxW);
-      for(let i=0;i<Math.min(lines.length,5);i++){
-        drawText(g, lines[i], textX, textY+i*10, 8, "#fff");
+      for(let i=0;i<Math.min(lines.length,4);i++){
+        drawText(g, lines[i], textX, textY + i*14, 11, "#fff", 1);
       }
 
-      // prompt triangle
+      // prompt
       if(this.done){
         const b = (Math.sin(this.blink*6)+1)/2;
-        drawText(g, "▶", x+w-18, y+h-18, 10, "#fff", 0.35+0.55*b);
+        drawText(g, "▶", x+w-20, y+h-20, 14, "#fff", 0.35+0.55*b);
       }
-
       g.restore();
     }
   };
 
-  // --- White flash with "bloom" feel (no real blur; stacked alphas) ---
-  let flash = { a:0, hold:0 };
-  function triggerWhiteFlash(){
-    flash.a = 1;
-    flash.hold = 0.12;           // keep it bright a moment
-    addShake(3.2, 0.35);
-  }
-  function updateFlash(dt){
-    if(flash.a<=0) return;
-    if(flash.hold>0){ flash.hold -= dt; return; }
-    flash.a = Math.max(0, flash.a - dt*1.35);
-  }
-  function drawFlash(g){
-    if(flash.a<=0) return;
-    g.save();
-    // base white
-    g.globalAlpha = flash.a;
-    g.fillStyle="#fff";
-    g.fillRect(0,0,W,H);
-
-    // "bloom" layers
-    g.globalAlpha = flash.a*0.35;
-    g.fillStyle="rgba(255,255,255,1)";
-    g.fillRect(-4,-4,W+8,H+8);
-
-    g.globalAlpha = flash.a*0.18;
-    g.fillRect(-10,-10,W+20,H+20);
-
-    g.restore();
-  }
-
-  // --- Fade transitions ---
-  let fade=1, fadeDir=0; // 1 black, 0 visible
-  function fadeIn(){ fadeDir=-1; }
-  function fadeOut(){ fadeDir=+1; }
-  function updateFade(dt){
-    if(!fadeDir) return;
-    fade = clamp(fade + fadeDir*dt*1.35, 0, 1);
-    if(fade===0 || fade===1) fadeDir=0;
-  }
-  function drawFade(g){
-    if(fade<=0) return;
-    g.save();
-    g.globalAlpha=fade;
-    g.fillStyle="#000";
-    g.fillRect(0,0,W,H);
-    g.restore();
-  }
-
-  // --- Title card ---
+  // ---- Title card (film-like) ----
   const TitleCard = {
-    active:false, t:0, text1:"DECEMBER 1934", text2:"TOWNES HOSPITAL — NEW YORK CITY",
-    show(){
-      this.active=true; this.t=0;
-    },
-    update(dt){
-      if(!this.active) return;
-      this.t += dt;
-    },
+    active:false, t:0,
+    text1:"DECEMBER 1934",
+    text2:"TOWNES HOSPITAL — NEW YORK CITY",
+    show(){ this.active=true; this.t=0; },
+    update(dt){ if(this.active) this.t += dt; },
     draw(g){
       if(!this.active) return;
       const t=this.t;
 
-      // background (near-black with subtle gradient)
-      g.save();
+      // background gradient
       const bg = g.createLinearGradient(0,0,0,H);
-      bg.addColorStop(0,"#020204");
+      bg.addColorStop(0,"#020205");
       bg.addColorStop(1,"#000000");
       g.fillStyle=bg;
       g.fillRect(0,0,W,H);
 
-      // fade in/out
+      // fade
       let a=1;
-      if(t<0.8) a = easeOutC(t/0.8);
-      else if(t>3.3) a = clamp(1-(t-3.3)/0.7,0,1);
-      g.globalAlpha = a;
+      if(t<0.7) a = easeOutC(t/0.7);
+      else if(t>3.4) a = clamp(1-(t-3.4)/0.7,0,1);
+
+      // slight letterbox bars
+      g.save();
+      g.globalAlpha = 0.85*a;
+      g.fillStyle="#000";
+      g.fillRect(0,0,W,18);
+      g.fillRect(0,H-18,W,18);
 
       // text
-      drawText(g, this.text1, 24, 92, 10, "rgba(255,255,255,0.92)", a);
-      drawText(g, this.text2, 24, 110, 8, "rgba(255,255,255,0.70)", a);
+      drawText(g, this.text1, 28, 102, 14, "rgba(255,255,255,0.92)", a);
+      drawText(g, this.text2, 28, 124, 11, "rgba(255,255,255,0.70)", a);
 
-      // small film scratch
+      // tiny scratch line
       g.globalAlpha = 0.08*a;
       g.fillStyle="#fff";
-      g.fillRect(180, 40, 1, 120);
-
+      g.fillRect(208, 34, 1, 160);
       g.restore();
 
-      // auto end
-      if(t>4.0){
-        this.active=false;
-      }
+      if(t>4.1) this.active=false;
     }
   };
 
-  // --- Scene art (all code, no sprites) ---
+  // ---- Scene drawing (no sprites, but more "magic") ----
   function drawHospitalRoom(g, t){
-    // base wall gradient
+    // Wall gradient
     const wall = g.createLinearGradient(0,0,0,H);
-    wall.addColorStop(0, "#070a12");
-    wall.addColorStop(1, "#020208");
+    wall.addColorStop(0, "#070b15");
+    wall.addColorStop(1, "#010105");
     g.fillStyle = wall;
     g.fillRect(0,0,W,H);
 
-    // window area
-    const winX=18, winY=18, winW=70, winH=54;
-    g.fillStyle="rgba(180,210,255,0.08)";
+    // Window (cool)
+    const winX=22, winY=22, winW=86, winH=64;
+    g.fillStyle="rgba(185,215,255,0.10)";
     g.fillRect(winX-2,winY-2,winW+4,winH+4);
-    g.fillStyle="rgba(0,0,0,0.45)";
+    g.fillStyle="rgba(0,0,0,0.55)";
     g.fillRect(winX,winY,winW,winH);
+
+    // crossbars
     g.fillStyle="rgba(210,230,255,0.06)";
-    // window crossbars
     g.fillRect(winX+winW/2-1, winY, 2, winH);
     g.fillRect(winX, winY+winH/2-1, winW, 2);
 
-    // moonlight beam (parallax-ish)
+    // Moonbeam polygon (slowly shifts)
+    const beamShift = Math.sin(t*0.22)*6;
     const beam = g.createLinearGradient(0,0,W,0);
-    beam.addColorStop(0, "rgba(170,210,255,0)");
-    beam.addColorStop(0.25, "rgba(170,210,255,0.05)");
-    beam.addColorStop(0.55, "rgba(170,210,255,0.02)");
-    beam.addColorStop(1, "rgba(170,210,255,0)");
+    beam.addColorStop(0.0,"rgba(190,220,255,0)");
+    beam.addColorStop(0.25,"rgba(190,220,255,0.07)");
+    beam.addColorStop(0.55,"rgba(190,220,255,0.03)");
+    beam.addColorStop(1.0,"rgba(190,220,255,0)");
     g.fillStyle = beam;
-    // moving slightly
-    const beamX = 20 + Math.sin(t*0.25)*6;
     g.save();
-    g.translate(beamX, 0);
+    g.translate(beamShift, 0);
     g.beginPath();
-    g.moveTo(60, 18);
-    g.lineTo(160, 110);
-    g.lineTo(120, 140);
-    g.lineTo(30, 60);
+    g.moveTo(82, 24);
+    g.lineTo(240, 132);
+    g.lineTo(190, 168);
+    g.lineTo(60, 70);
     g.closePath();
     g.fill();
     g.restore();
 
-    // floor
+    // Floor
     const floor = g.createLinearGradient(0,150,0,H);
-    floor.addColorStop(0,"rgba(0,0,0,0.25)");
-    floor.addColorStop(1,"rgba(0,0,0,0.55)");
-    g.fillStyle=floor;
-    g.fillRect(0,150,W,74);
+    floor.addColorStop(0,"rgba(0,0,0,0.22)");
+    floor.addColorStop(1,"rgba(0,0,0,0.60)");
+    g.fillStyle = floor;
+    g.fillRect(0,150,W,90);
 
-    // bedside cabinet (simple)
-    g.fillStyle="rgba(255,255,255,0.05)";
-    g.fillRect(190,120,46,34);
-    g.fillStyle="rgba(0,0,0,0.35)";
-    g.fillRect(192,122,42,30);
-    g.fillStyle="rgba(255,255,255,0.08)";
-    g.fillRect(192,122,42,1);
+    // Bed shadow
+    g.fillStyle="rgba(0,0,0,0.62)";
+    g.fillRect(74, 162, 190, 18);
 
-    // bed shadow
-    g.fillStyle="rgba(0,0,0,0.55)";
-    g.fillRect(56,140,150,18);
-
-    // bed frame (with highlight)
-    const bed = g.createLinearGradient(0,110,0,150);
-    bed.addColorStop(0,"rgba(255,255,255,0.10)");
+    // Bed frame
+    const bed = g.createLinearGradient(0,116,0,170);
+    bed.addColorStop(0,"rgba(255,255,255,0.11)");
     bed.addColorStop(1,"rgba(255,255,255,0.04)");
-    g.fillStyle=bed;
-    g.fillRect(48,108,150,44);
+    g.fillStyle = bed;
+    g.fillRect(66, 116, 198, 56);
 
-    // mattress
+    // Mattress
     g.fillStyle="rgba(0,0,0,0.35)";
-    g.fillRect(52,112,142,34);
+    g.fillRect(72, 122, 186, 44);
 
-    // sheet highlight strip
-    g.fillStyle="rgba(210,230,255,0.06)";
-    g.fillRect(52,118,142,2);
+    // Sheet highlight
+    g.fillStyle="rgba(210,230,255,0.07)";
+    g.fillRect(72, 130, 186, 2);
 
-    // pillow
+    // Pillow
     g.fillStyle="rgba(255,255,255,0.07)";
-    g.fillRect(60,112,46,14);
-    g.fillStyle="rgba(0,0,0,0.30)";
-    g.fillRect(62,114,42,10);
+    g.fillRect(82, 122, 58, 16);
+    g.fillStyle="rgba(0,0,0,0.28)";
+    g.fillRect(84, 124, 54, 12);
 
-    // "Townes Hospital" label
-    drawText(g, "TOWNES HOSPITAL", 10, 10, 8, "rgba(255,255,255,0.55)");
+    // Cabinet
+    g.fillStyle="rgba(255,255,255,0.05)";
+    g.fillRect(264, 140, 46, 36);
+    g.fillStyle="rgba(0,0,0,0.38)";
+    g.fillRect(266, 142, 42, 32);
+    g.fillStyle="rgba(255,255,255,0.06)";
+    g.fillRect(266, 142, 42, 1);
+
+    // Dust motes in beam (tiny floating pixels)
+    g.save();
+    g.globalAlpha = 0.12;
+    g.fillStyle = "rgba(210,230,255,1)";
+    for(let i=0;i<34;i++){
+      const px1 = 70 + ((i*11 + (t*12)) % 190);
+      const py1 = 34 + ((i*17 + (t*9)) % 140);
+      g.fillRect(px(px1), px(py1), 1, 1);
+    }
+    g.restore();
+
+    // Small location label
+    drawText(g, "TOWNES HOSPITAL", 12, 12, 10, "rgba(255,255,255,0.55)", 1);
   }
 
-  // Bill in bed (silhouette + subtle contour + sit-up animation)
   function drawBill(g, t, sitUp01){
-    // anchor near left side of bed
-    const baseX=86, baseY=127;
+    const s = clamp(sitUp01,0,1);
+    const breath = Math.sin(t*1.6)*0.8;
 
-    // breathing
-    const breath = Math.sin(t*1.8)*0.8;
+    const torsoRise = 14*s;
+    const headRise  = 18*s;
+    const lean      = 8*s;
 
-    // blanket contour
+    // Blanket contour
     g.save();
-    g.fillStyle="rgba(0,0,0,0.62)";
-    // blanket mound
+    g.fillStyle="rgba(0,0,0,0.64)";
     g.beginPath();
-    g.moveTo(80, 130);
-    g.quadraticCurveTo(120, 116, 152, 132);
-    g.quadraticCurveTo(156, 140, 150, 144);
-    g.quadraticCurveTo(120, 152, 88, 146);
-    g.quadraticCurveTo(78, 142, 80, 130);
+    g.moveTo(104, 142);
+    g.quadraticCurveTo(160, 120, 214, 144);
+    g.quadraticCurveTo(228, 158, 216, 164);
+    g.quadraticCurveTo(160, 176, 112, 162);
+    g.quadraticCurveTo(98, 154, 104, 142);
     g.closePath();
     g.fill();
 
-    // highlight edge (moonlight)
-    g.strokeStyle="rgba(200,225,255,0.07)";
+    // Moonlight edge highlight
+    g.strokeStyle="rgba(210,230,255,0.07)";
     g.beginPath();
-    g.moveTo(84, 132);
-    g.quadraticCurveTo(120, 120, 150, 134);
+    g.moveTo(112, 144);
+    g.quadraticCurveTo(160, 126, 212, 146);
     g.stroke();
 
-    // bill torso/head changes with sit-up
-    const s = clamp(sitUp01,0,1);
-    const torsoRise = 10*s;
-    const headRise  = 12*s;
-    const lean = 6*s;
+    // Torso
+    g.fillStyle="rgba(0,0,0,0.82)";
+    g.fillRect(132, 146 - torsoRise + breath, 54, 14);
 
-    // torso
-    g.fillStyle="rgba(0,0,0,0.78)";
-    g.fillRect(baseX, baseY - torsoRise + breath, 44, 12);
+    // Arm
+    g.fillRect(146, 154 - torsoRise, 22, 4);
 
-    // arm (simple)
-    g.fillRect(baseX+10, baseY - torsoRise + 6, 18, 3);
-
-    // head
+    // Head
     g.beginPath();
-    g.arc(baseX-8 + lean, baseY - 2 - headRise, 7, 0, Math.PI*2);
+    g.arc(122 + lean, 152 - headRise, 9, 0, Math.PI*2);
     g.fill();
 
-    // hairline hint
+    // Hairline hint
     g.strokeStyle="rgba(255,255,255,0.05)";
     g.beginPath();
-    g.arc(baseX-10 + lean, baseY - 4 - headRise, 6, Math.PI*1.05, Math.PI*1.75);
+    g.arc(121 + lean, 150 - headRise, 8, Math.PI*1.05, Math.PI*1.75);
     g.stroke();
 
     g.restore();
   }
 
-  // Doctor entrance (coat outline + steth line) drawn from shapes
   function drawDoctor(g, phase){
     const p = clamp(phase,0,1);
-    const x = lerp(300, 202, easeOutC(p)); // slide in
-    const y = 136;
+    const x = lerp(380, 264, easeOutC(p));
+    const y = 144;
 
-    // door frame + light leak
-    const doorX=198, doorY=76, doorW=52, doorH=94;
-    g.fillStyle="rgba(255,255,255,0.04)";
-    g.fillRect(doorX-2,doorY-2,doorW+4,doorH+4);
-    g.fillStyle="rgba(0,0,0,0.58)";
-    g.fillRect(doorX,doorY,doorW,doorH);
-    g.fillStyle="rgba(200,225,255,0.05)";
-    g.fillRect(doorX,doorY,2,doorH);
+    // Door frame
+    const doorX=252, doorY=76, doorW=56, doorH=106;
+    ctx.fillStyle="rgba(255,255,255,0.04)";
+    ctx.fillRect(doorX-2,doorY-2,doorW+4,doorH+4);
+    ctx.fillStyle="rgba(0,0,0,0.62)";
+    ctx.fillRect(doorX,doorY,doorW,doorH);
 
-    // Doctor shadow
-    g.fillStyle="rgba(0,0,0,0.50)";
-    g.fillRect(x-6, y+20, 30, 10);
+    // Light leak
+    ctx.fillStyle="rgba(200,225,255,0.05)";
+    ctx.fillRect(doorX,doorY,2,doorH);
 
-    // coat silhouette
-    g.fillStyle="rgba(0,0,0,0.80)";
-    // body
-    g.fillRect(x, y, 18, 30);
-    // coat flare
-    g.beginPath();
-    g.moveTo(x, y+30);
-    g.lineTo(x-3, y+38);
-    g.lineTo(x+21, y+38);
-    g.lineTo(x+18, y+30);
-    g.closePath();
-    g.fill();
+    // Shadow under feet
+    ctx.fillStyle="rgba(0,0,0,0.55)";
+    ctx.fillRect(px(x-8), px(y+26), 34, 10);
 
-    // head
-    g.beginPath();
-    g.arc(x+9, y-6, 7, 0, Math.PI*2);
-    g.fill();
+    // Coat silhouette
+    ctx.fillStyle="rgba(0,0,0,0.84)";
+    ctx.fillRect(px(x), px(y), 20, 34);
 
-    // arm/hand
-    g.fillRect(x-6, y+10, 10, 4);
+    // Coat flare
+    ctx.beginPath();
+    ctx.moveTo(px(x), px(y+34));
+    ctx.lineTo(px(x-4), px(y+44));
+    ctx.lineTo(px(x+26), px(y+44));
+    ctx.lineTo(px(x+20), px(y+34));
+    ctx.closePath();
+    ctx.fill();
 
-    // stethoscope hint (thin highlight line)
-    g.strokeStyle="rgba(255,255,255,0.05)";
-    g.beginPath();
-    g.moveTo(x+6, y+8);
-    g.quadraticCurveTo(x+10, y+14, x+14, y+18);
-    g.stroke();
+    // Head
+    ctx.beginPath();
+    ctx.arc(px(x+10), px(y-8), 8, 0, Math.PI*2);
+    ctx.fill();
+
+    // Arm
+    ctx.fillRect(px(x-7), px(y+12), 11, 4);
+
+    // Stethoscope hint
+    ctx.strokeStyle="rgba(255,255,255,0.06)";
+    ctx.beginPath();
+    ctx.moveTo(px(x+7), px(y+10));
+    ctx.quadraticCurveTo(px(x+11), px(y+16), px(x+15), px(y+22));
+    ctx.stroke();
   }
 
-  // --- Scene script ---
+  // ---- Scene logic ----
   const scene = {
     t:0, step:0, stepT:0,
     doctorPhase:0,
@@ -504,37 +561,32 @@
       TitleCard.show();
       fade=1; fadeDir=0; fadeIn();
       setCamTarget(0,0);
-      // Step flow begins once title card ends
     },
     advance(force=false){
       if(!force && Dialogue.active && !Dialogue.done){
         Dialogue.skip();
         return;
       }
-      // If title card still active, skip to end
       if(TitleCard.active && !force){
         TitleCard.active=false;
         return;
       }
-
       this.step++;
       this.stepT=0;
 
       switch(this.step){
         case 1:
-          // settle into room
-          setCamTarget(-1, 0);
+          setCamTarget(0,0);
           Dialogue.set("…", "");
           break;
         case 2:
-          setCamTarget(-2, 0);
+          setCamTarget(-1, 0);
           Dialogue.set("What if I get these drunks helping one another?", "Bill");
           break;
         case 3:
-          // white flash + sit-up
           Dialogue.clear();
-          triggerWhiteFlash();
-          this.sitUp = 1;      // will ease back down after
+          triggerFlash();
+          this.sitUp = 1;
           break;
         case 4:
           setCamTarget(1, 0);
@@ -545,8 +597,7 @@
           Dialogue.set("Press START to surrender.", "");
           break;
         case 6:
-          // restart loop for test
-          this.init();
+          this.init(); // loop for testing
           break;
       }
     },
@@ -554,71 +605,34 @@
       this.t += dt;
       this.stepT += dt;
 
-      // after title card finishes, auto start scene if not started
       if(!TitleCard.active && this.step===0){
-        this.advance(true); // step 1
+        this.advance(true); // start
       }
+      if(this.step===1 && this.stepT>0.85) this.advance(true);
 
-      // auto-advance the "…" beat
-      if(this.step===1 && this.stepT>0.9) this.advance(true);
+      // doctor entrance
+      if(this.step>=4) this.doctorPhase = clamp(this.doctorPhase + dt*1.25, 0, 1);
+      else this.doctorPhase = clamp(this.doctorPhase - dt*2.0, 0, 1);
 
-      // doctor entrance ramps in from step 4 onward
-      if(this.step>=4) this.doctorPhase = clamp(this.doctorPhase + dt*1.1, 0, 1);
-      else this.doctorPhase = clamp(this.doctorPhase - dt*1.8, 0, 1);
-
-      // sit-up eases back down after flash
-      if(this.step!==3) this.sitUp = lerp(this.sitUp, 0, clamp(dt*2.8,0,1));
+      // sit-up easing
+      if(this.step!==3) this.sitUp = lerp(this.sitUp, 0, clamp(dt*3.2,0,1));
       else {
-        // during flash beat, hold a moment then allow user to advance manually
-        if(this.stepT>0.55) {
-          // small hint by enabling the next advance via input only
-          this.sitUp = lerp(this.sitUp, 0.35, clamp(dt*2.0,0,1));
-        }
+        // after the flash beat settles, ease down a little
+        if(this.stepT>0.5) this.sitUp = lerp(this.sitUp, 0.4, clamp(dt*2.0,0,1));
       }
-    },
-    draw(g){
-      // Base room
-      drawHospitalRoom(g, this.t);
-
-      // Parallax dust motes in moonlight (tiny points drifting)
-      g.save();
-      g.globalAlpha = 0.10;
-      g.fillStyle = "rgba(210,230,255,1)";
-      for(let i=0;i<26;i++){
-        const px = 44 + (i*9 + (this.t*6)%80);
-        const py = 30 + ((i*13 + (this.t*10))%120);
-        g.fillRect((px|0), (py|0), 1, 1);
-      }
-      g.restore();
-
-      // Bill
-      drawBill(g, this.t, this.sitUp);
-
-      // Doctor (if entering)
-      if(this.doctorPhase>0.01) drawDoctor(g, this.doctorPhase);
-
-      // Dialogue
-      Dialogue.draw(g);
-
-      // Flash, fade, overlays
-      drawFlash(g);
-      drawFade(g);
-      drawCinematicOverlays(g, this.t);
     }
   };
 
-  // --- Input ---
-  function advanceInput(){
-    scene.advance(false);
-  }
+  // ---- Input ----
   window.addEventListener("keydown", (e)=>{
     const k = e.key.toLowerCase();
-    if(k===" " || k==="enter" || k==="z"){ e.preventDefault(); advanceInput(); }
+    if(k===" " || k==="enter" || k==="z"){ e.preventDefault(); scene.advance(false); }
     if(k==="r"){ e.preventDefault(); scene.init(); }
-    if(k==="f"){ e.preventDefault(); triggerWhiteFlash(); }
+    if(k==="d"){ e.preventDefault(); enableDrift = !enableDrift; }
+    if(k==="g"){ e.preventDefault(); enableGrain = !enableGrain; }
   });
 
-  // --- Main loop ---
+  // ---- Main loop ----
   let last = performance.now();
   function loop(now){
     const dt = Math.min(0.033, (now-last)/1000);
@@ -633,30 +647,45 @@
     scene.update(dt);
     updateCam(dt, scene.t);
 
-    // render
-    ctx.save();
+    // clear
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,W,H);
 
-    // camera + shake
-    const sh = getShakeOffset(dt);
-    ctx.translate((cam.x+sh.x)|0, (cam.y+sh.y)|0);
-
-    // if title card is active, render it alone
+    // title card
     if(TitleCard.active){
-      ctx.setTransform(1,0,0,1,0,0);
       TitleCard.draw(ctx);
-      // overlays even on title card
-      drawCinematicOverlays(ctx, scene.t);
-    } else {
-      scene.draw(ctx);
+      drawOverlays(ctx, scene.t);
+      requestAnimationFrame(loop);
+      return;
     }
 
-    ctx.restore();
+    // camera + shake (pixel snapped)
+    const sh = getShakeOffset(dt);
+    const tx = px(cam.x + sh.x);
+    const ty = px(cam.y + sh.y);
+    ctx.setTransform(1,0,0,1,tx,ty);
+
+    // draw scene
+    drawHospitalRoom(ctx, scene.t);
+    drawBill(ctx, scene.t, scene.sitUp);
+    if(scene.doctorPhase>0.01) drawDoctor(ctx, scene.doctorPhase);
+
+    // dialogue + effects
+    ctx.setTransform(1,0,0,1,0,0);
+    Dialogue.draw(ctx);
+    drawFlash(ctx);
+    drawFade(ctx);
+    drawOverlays(ctx, scene.t);
+
     requestAnimationFrame(loop);
   }
 
   // start
   scene.init();
   requestAnimationFrame(loop);
+
+  // expose debug
+  window.__cutscene = { triggerFlash, fitCanvasIntegerScale };
 })();
 </script>
 </body>
