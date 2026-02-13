@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AA Cutscene Test (SNES-ish, No Sprites)</title>
+  <style>
+    html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    .wrap{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:10px;box-sizing:border-box;}
+    canvas{
+      width:min(96vw, 900px);
+      height:auto;
+      image-rendering:pixelated;
+      image-rendering:crisp-edges;
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:10px;
+      box-shadow:0 12px 40px rgba(0,0,0,.55);
+      background:#000;
+    }
+    .hint{opacity:.8;font-size:14px;text-align:center;max-width:900px;line-height:1.35}
+    .kbd{display:inline-block;border:1px solid rgba(255,255,255,.35);border-bottom-width:3px;padding:.12rem .4rem;border-radius:.4rem;margin:0 .15rem;background:rgba(255,255,255,.06)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <!-- Internal SNES-ish resolution (scale up via CSS; pixelated rendering) -->
+  <canvas id="c" width="256" height="224"></canvas>
+  <div class="hint">
+    <span class="kbd">Space</span>/<span class="kbd">Enter</span>/<span class="kbd">Z</span> = advance & skip typing •
+    <span class="kbd">R</span> = restart scene
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d", { alpha: false });
+  ctx.imageSmoothingEnabled = false;
+
+  // --- Utilities ---
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a,b,t) => a + (b-a)*t;
+
+  // Tiny pixel font (built-in monospace but rendered at low res = SNES-ish enough)
+  function drawPixelText(g, text, x, y, opts = {}) {
+    const size = opts.size ?? 8;
+    g.font = `${size}px monospace`;
+    g.textBaseline = "top";
+    g.fillStyle = opts.color ?? "#fff";
+    g.fillText(text, x, y);
+  }
+
+  function wrapText(g, text, maxWidth) {
+    // rough wrap based on monospace char widths at current font
+    const words = text.split(" ");
+    const lines = [];
+    let line = "";
+    for (const w of words) {
+      const test = line ? (line + " " + w) : w;
+      if (g.measureText(test).width <= maxWidth) {
+        line = test;
+      } else {
+        if (line) lines.push(line);
+        line = w;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  // Simple screen shake
+  let shakeT = 0;
+  let shakeMag = 0;
+  function addShake(mag, seconds) {
+    shakeMag = Math.max(shakeMag, mag);
+    shakeT = Math.max(shakeT, seconds);
+  }
+  function getShakeOffset(dt) {
+    if (shakeT <= 0) return {x:0,y:0};
+    shakeT -= dt;
+    const t = shakeT;
+    const mag = shakeMag * (t / Math.max(t, 0.0001));
+    return {
+      x: (Math.random() * 2 - 1) * mag,
+      y: (Math.random() * 2 - 1) * mag
+    };
+  }
+
+  // CRT-ish overlay (very light scanlines + vignette)
+  function drawCRTEffect(g) {
+    g.save();
+    // scanlines
+    g.globalAlpha = 0.08;
+    g.fillStyle = "#000";
+    for (let y = 0; y < canvas.height; y += 2) {
+      g.fillRect(0, y, canvas.width, 1);
+    }
+    // vignette
+    const grd = g.createRadialGradient(128,112,40,128,112,170);
+    grd.addColorStop(0,"rgba(0,0,0,0)");
+    grd.addColorStop(1,"rgba(0,0,0,0.45)");
+    g.globalAlpha = 1;
+    g.fillStyle = grd;
+    g.fillRect(0,0,canvas.width,canvas.height);
+    g.restore();
+  }
+
+  // --- Dialogue system ---
+  const Dialogue = {
+    active: false,
+    fullText: "",
+    shown: "",
+    speed: 45, // chars per second
+    done: false,
+    boxAlpha: 0,
+    who: "",
+    promptBlink: 0,
+    set(text, who="") {
+      this.active = true;
+      this.fullText = text;
+      this.shown = "";
+      this.done = false;
+      this.who = who;
+      this.promptBlink = 0;
+    },
+    skip() {
+      if (!this.active) return;
+      this.shown = this.fullText;
+      this.done = true;
+    },
+    update(dt) {
+      if (!this.active) return;
+      this.boxAlpha = lerp(this.boxAlpha, 1, clamp(dt*8,0,1));
+      if (!this.done) {
+        const targetLen = Math.min(this.fullText.length, Math.floor(this.shown.length + this.speed * dt));
+        this.shown = this.fullText.slice(0, targetLen);
+        if (this.shown.length >= this.fullText.length) this.done = true;
+      } else {
+        this.promptBlink += dt;
+      }
+    },
+    draw(g) {
+      if (!this.active) return;
+      const pad = 10;
+      const boxH = 64;
+      const y = canvas.height - boxH - 10;
+      const x = 10;
+      const w = canvas.width - 20;
+      const h = boxH;
+
+      g.save();
+      g.globalAlpha = 0.92 * this.boxAlpha;
+
+      // box
+      g.fillStyle = "rgba(0,0,0,0.75)";
+      g.fillRect(x, y, w, h);
+      // border
+      g.globalAlpha = 0.9 * this.boxAlpha;
+      g.strokeStyle = "rgba(255,255,255,0.35)";
+      g.lineWidth = 1;
+      g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+
+      // speaker
+      g.globalAlpha = 1 * this.boxAlpha;
+      drawPixelText(g, this.who ? `${this.who}:` : "", x + pad, y + 6, { size: 8, color: "rgba(255,255,255,0.9)" });
+
+      // text
+      g.font = `8px monospace`;
+      g.textBaseline = "top";
+      const textX = x + pad;
+      const textY = y + 18;
+      const maxWidth = w - pad*2;
+      const lines = wrapText(g, this.shown, maxWidth);
+      const maxLines = 5;
+      for (let i = 0; i < Math.min(lines.length, maxLines); i++) {
+        drawPixelText(g, lines[i], textX, textY + i*10, { size: 8, color:"#fff" });
+      }
+
+      // prompt
+      if (this.done) {
+        const blink = (Math.sin(this.promptBlink * 6) + 1) / 2; // 0..1
+        g.globalAlpha = 0.35 + 0.55*blink;
+        drawPixelText(g, "▶", x + w - 16, y + h - 16, { size: 10, color:"#fff" });
+      }
+
+      g.restore();
+    }
+  };
+
+  // --- Scene helpers (no sprites) ---
+  function drawHospitalRoom(g, t) {
+    // background
+    g.fillStyle = "#05070c";
+    g.fillRect(0,0,canvas.width,canvas.height);
+
+    // window glow
+    const win = g.createLinearGradient(0,0,0,canvas.height);
+    win.addColorStop(0,"rgba(150,190,255,0.18)");
+    win.addColorStop(1,"rgba(10,12,18,0)");
+    g.fillStyle = win;
+    g.fillRect(0,0,canvas.width,canvas.height);
+
+    // floor
+    g.fillStyle = "rgba(0,0,0,0.35)";
+    g.fillRect(0, 150, canvas.width, 74);
+
+    // moonlight stripes
+    g.fillStyle = "rgba(170,210,255,0.08)";
+    for (let i=0;i<6;i++){
+      const x = 30 + i*28;
+      g.fillRect(x, 0, 10, 224);
+    }
+
+    // bed (simple rectangles)
+    g.fillStyle = "rgba(255,255,255,0.09)";
+    g.fillRect(46, 110, 140, 36);
+    g.fillStyle = "rgba(255,255,255,0.06)";
+    g.fillRect(50, 114, 132, 28);
+
+    // pillow
+    g.fillStyle = "rgba(255,255,255,0.10)";
+    g.fillRect(58, 112, 40, 14);
+
+    // Bill silhouette on bed (head+torso)
+    g.fillStyle = "rgba(0,0,0,0.75)";
+    g.fillRect(82, 120, 70, 18); // torso
+    g.beginPath();
+    g.arc(76, 126, 8, 0, Math.PI*2);
+    g.fill();
+
+    // little breathing motion
+    const bob = Math.sin(t*2) * 1;
+    g.fillStyle = "rgba(255,255,255,0.06)";
+    g.fillRect(82, 120 + bob, 70, 2);
+
+    // label
+    g.fillStyle = "rgba(255,255,255,0.35)";
+    drawPixelText(g, "TOWNES HOSPITAL", 10, 10, { size: 8, color:"rgba(255,255,255,0.55)" });
+  }
+
+  function drawDoctorEntrance(g, phase) {
+    // door frame on right
+    const doorX = 200;
+    g.fillStyle = "rgba(255,255,255,0.06)";
+    g.fillRect(doorX, 70, 46, 92);
+    g.fillStyle = "rgba(0,0,0,0.55)";
+    g.fillRect(doorX+2, 72, 42, 88);
+
+    // doctor silhouette sliding in
+    const x = lerp(270, 210, clamp(phase,0,1)); // from offscreen to inside
+    const y = 120;
+
+    g.fillStyle = "rgba(0,0,0,0.78)";
+    // body
+    g.fillRect(x, y, 18, 28);
+    // head
+    g.beginPath();
+    g.arc(x+9, y-6, 7, 0, Math.PI*2);
+    g.fill();
+    // arm
+    g.fillRect(x-6, y+8, 8, 4);
+  }
+
+  // White flash overlay
+  let flashAlpha = 0;
+  function triggerWhiteFlash() {
+    flashAlpha = 1;
+    addShake(2.5, 0.25);
+  }
+  function updateFlash(dt) {
+    if (flashAlpha <= 0) return;
+    // quick pop then fade
+    flashAlpha = Math.max(0, flashAlpha - dt*2.6);
+  }
+  function drawFlash(g) {
+    if (flashAlpha <= 0) return;
+    g.save();
+    g.globalAlpha = flashAlpha;
+    g.fillStyle = "#fff";
+    g.fillRect(0,0,canvas.width,canvas.height);
+    g.restore();
+  }
+
+  // Fade transitions
+  let fade = 0;     // 0 visible, 1 black
+  let fadeDir = 0;  // -1 in, +1 out
+  function startFadeOut() { fadeDir = +1; }
+  function startFadeIn()  { fadeDir = -1; }
+  function updateFade(dt) {
+    if (fadeDir === 0) return;
+    fade = clamp(fade + fadeDir * dt*1.8, 0, 1);
+    if (fade === 0 || fade === 1) fadeDir = 0;
+  }
+  function drawFade(g) {
+    if (fade <= 0) return;
+    g.save();
+    g.globalAlpha = fade;
+    g.fillStyle = "#000";
+    g.fillRect(0,0,canvas.width,canvas.height);
+    g.restore();
+  }
+
+  // --- Scene script (your test cutscene) ---
+  const scene = {
+    t: 0,
+    step: 0,
+    stepT: 0,
+    doctorPhase: 0,
+    init() {
+      this.t = 0;
+      this.step = 0;
+      this.stepT = 0;
+      this.doctorPhase = 0;
+      fade = 1; fadeDir = 0; startFadeIn();
+      flashAlpha = 0;
+      Dialogue.active = false;
+      this.advance(true);
+    },
+    advance(force=false) {
+      // Called when user presses advance or when automatic beat completes.
+      // If text is still typing, just skip it.
+      if (!force && Dialogue.active && !Dialogue.done) {
+        Dialogue.skip();
+        return;
+      }
+
+      // If dialogue is done, go next step
+      this.step++;
+      this.stepT = 0;
+
+      switch(this.step) {
+        case 1:
+          Dialogue.set("…", "");
+          break;
+        case 2:
+          Dialogue.set("What if I get these drunks helping one another?", "Bill");
+          break;
+        case 3:
+          // trigger flash moment
+          Dialogue.active = false;
+          triggerWhiteFlash();
+          break;
+        case 4:
+          // doctor enters + line
+          Dialogue.set("Whatever you figured out… you might want to keep it.", "Doctor");
+          break;
+        case 5:
+          Dialogue.set("Press START to surrender.", "");
+          break;
+        case 6:
+          // loop back for now
+          this.init();
+          break;
+        default:
+          break;
+      }
+    },
+    update(dt) {
+      this.t += dt;
+      this.stepT += dt;
+
+      // Automatic little timing beats
+      if (this.step === 1 && this.stepT > 0.9) this.advance(true);
+
+      // Doctor entrance phase ramps in during steps >= 4
+      if (this.step >= 4) {
+        this.doctorPhase = clamp(this.doctorPhase + dt*1.2, 0, 1);
+      } else {
+        this.doctorPhase = clamp(this.doctorPhase - dt*2.0, 0, 1);
+      }
+    },
+    draw(g) {
+      // Draw room
+      drawHospitalRoom(g, this.t);
+
+      // Doctor appears (if phase > 0)
+      if (this.doctorPhase > 0.02) drawDoctorEntrance(g, this.doctorPhase);
+
+      // Dialogue
+      Dialogue.draw(g);
+
+      // Flash + fade + CRT overlay
+      drawFlash(g);
+      drawFade(g);
+      drawCRTEffect(g);
+    }
+  };
+
+  // Input
+  const keys = new Set();
+  window.addEventListener("keydown", (e) => {
+    const k = e.key.toLowerCase();
+    keys.add(k);
+    if (k === " " || k === "enter" || k === "z") {
+      e.preventDefault();
+      scene.advance(false);
+    }
+    if (k === "r") {
+      e.preventDefault();
+      scene.init();
+    }
+  });
+  window.addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()));
+
+  // Main loop
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.033, (now - last) / 1000);
+    last = now;
+
+    // Update systems
+    updateFlash(dt);
+    updateFade(dt);
+    Dialogue.update(dt);
+    scene.update(dt);
+
+    // Screen shake transform
+    const shake = getShakeOffset(dt);
+    ctx.save();
+    ctx.translate(shake.x, shake.y);
+
+    // Render
+    scene.draw(ctx);
+
+    ctx.restore();
+
+    requestAnimationFrame(loop);
+  }
+
+  // Start
+  scene.init();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
