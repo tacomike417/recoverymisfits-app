@@ -3,689 +3,531 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AA Cutscene Test — Cinematic + Sharp (No Sprites)</title>
+  <title>Trudge Brothers — Opening Scene</title>
   <style>
-    :root{
-      --bg:#000;
-      --ink:#fff;
-    }
-    html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
-    .wrap{
-      height:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      gap:10px;
-      padding:12px;
-      box-sizing:border-box;
-    }
-    /* IMPORTANT: no "responsive width" here. We set exact integer-scaled size in JS for perfect crisp pixels. */
+    :root { color-scheme: dark; }
+    html,body{ margin:0; height:100%; background:#0b1020; }
     canvas{
       display:block;
-      width:auto;
+      margin:0 auto;
+      width:min(100vw, 960px);
       height:auto;
-      background:#000;
-      image-rendering:pixelated;
-      image-rendering:crisp-edges;
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:14px;
-      box-shadow:0 18px 70px rgba(0,0,0,.70);
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      background:#0b1020;
+      touch-action: manipulation;
     }
     .hint{
-      opacity:.82;
-      font-size:13px;
-      text-align:center;
-      max-width:980px;
-      line-height:1.35;
-      user-select:none;
+      position:fixed; left:0; right:0; bottom:10px;
+      text-align:center; font: 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:rgba(255,255,255,.75);
+      pointer-events:none;
+      text-shadow:0 2px 10px rgba(0,0,0,.6);
     }
-    .kbd{
-      display:inline-block;
-      border:1px solid rgba(255,255,255,.35);
-      border-bottom-width:3px;
-      padding:.10rem .38rem;
-      border-radius:.45rem;
-      margin:0 .15rem;
-      background:rgba(255,255,255,.06)
-    }
-    .small{opacity:.75;font-size:12px}
   </style>
 </head>
 <body>
-<div class="wrap">
-  <!-- Internal render resolution (retro). JS forces exact integer scale on screen for sharpness. -->
-  <canvas id="c" width="320" height="240"></canvas>
-  <div class="hint">
-    <span class="kbd">Space</span>/<span class="kbd">Enter</span>/<span class="kbd">Z</span> advance & skip typing •
-    <span class="kbd">R</span> restart •
-    <span class="kbd">D</span> toggle camera drift •
-    <span class="kbd">G</span> toggle grain/scanlines
-    <div class="small">If it looks blurry: your browser is scaling weird — this file forces integer scaling (SNES-sharp).</div>
-  </div>
-</div>
+<canvas id="c" width="512" height="288"></canvas>
+<div class="hint">Click / Tap once to enable audio • Press Space/Enter to advance • M to mute</div>
 
 <script>
 (() => {
+  // --- Canvas / scaling ---
   const canvas = document.getElementById("c");
-  const ctx = canvas.getContext("2d", { alpha:false, desynchronized:true });
+  const ctx = canvas.getContext("2d", { alpha: false });
   ctx.imageSmoothingEnabled = false;
 
-  const W = canvas.width, H = canvas.height;
-
-  // ---- Perfect integer scaling (THIS is the "SNES sharp" key) ----
-  function fitCanvasIntegerScale() {
-    const baseW = canvas.width, baseH = canvas.height;
-
-    const maxW = Math.floor(window.innerWidth * 0.96);
-    const maxH = Math.floor(window.innerHeight * 0.78);
-
-    let scale = Math.min(
-      Math.floor(maxW / baseW),
-      Math.floor(maxH / baseH)
-    );
-    if (!isFinite(scale) || scale < 1) scale = 1;
-
-    // exact integer pixels -> crisp
-    canvas.style.width  = (baseW * scale) + "px";
-    canvas.style.height = (baseH * scale) + "px";
+  // --- Tiny "Zelda-like" chiptune using WebAudio (no files needed) ---
+  let AC = null, master = null, musicOn = true, audioEnabled = false;
+  function initAudio(){
+    if (audioEnabled) return;
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    master = AC.createGain();
+    master.gain.value = 0.18;
+    master.connect(AC.destination);
+    audioEnabled = true;
+    startMusic();
   }
-  window.addEventListener("resize", fitCanvasIntegerScale);
-  fitCanvasIntegerScale();
 
-  // ---- Helpers ----
-  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-  const lerp  = (a,b,t)=>a+(b-a)*t;
-  const easeOutC = t => 1 - Math.pow(1-t, 3);
-  const easeInOut = t => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
-
-  function px(n){ return n|0; } // snap to pixel grid
-
-  // ---- Toggleable effects ----
-  let enableDrift = false;   // default OFF for tight SNES feel
-  let enableGrain = true;
-
-  // ---- Camera + shake (pixel-snapped) ----
-  const cam = { x:0, y:0, tx:0, ty:0 };
-  function setCamTarget(x,y){ cam.tx=x; cam.ty=y; }
-
-  let shakeT=0, shakeMag=0;
-  function addShake(mag, seconds){
-    shakeMag = Math.max(shakeMag, mag);
-    shakeT = Math.max(shakeT, seconds);
+  function beep(freq, t, dur, type="square", gain=0.08){
+    if (!audioEnabled || !musicOn) return;
+    const o = AC.createOscillator();
+    const g = AC.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + dur + 0.02);
   }
-  function getShakeOffset(dt){
-    if (shakeT<=0) return {x:0,y:0};
-    shakeT -= dt;
-    const k = clamp(shakeT/0.35,0,1);
-    const mag = shakeMag * k;
-    return { x: (Math.random()*2-1)*mag, y:(Math.random()*2-1)*mag };
-  }
-  function updateCam(dt, t){
-    let dx=0, dy=0;
-    if(enableDrift){
-      dx = Math.sin(t*0.22)*1.2;
-      dy = Math.sin(t*0.17)*0.9;
+
+  function startMusic(){
+    if (!audioEnabled) return;
+    const base = 220; // A3-ish vibe
+    // Simple looping arpeggio/pad combo
+    const pattern = [0, 7, 12, 7, 0, 7, 14, 7]; // A, E, A, E, A, E, B, E
+    const scale = [0,2,4,5,7,9,11,12]; // major-ish
+    let step = 0;
+    const bpm = 92;
+    const spb = 60 / bpm;
+    function tick(){
+      if (!audioEnabled || !musicOn) return;
+      const t = AC.currentTime + 0.02;
+      const p = pattern[step % pattern.length];
+      const note = base * Math.pow(2, p/12);
+      // lead arpeggio
+      beep(note, t, spb*0.45, "square", 0.06);
+      // soft "pad" under it
+      beep(note/2, t, spb*0.9, "triangle", 0.03);
+      // occasional sparkle
+      if (step % 8 === 0) beep(note*2, t, spb*0.2, "sine", 0.02);
+      step++;
+      setTimeout(tick, spb*1000);
     }
-    cam.x = lerp(cam.x, cam.tx + dx, clamp(dt*6,0,1));
-    cam.y = lerp(cam.y, cam.ty + dy, clamp(dt*6,0,1));
+    tick();
   }
 
-  // ---- Pixel text ----
-  function setFont(g, size=10){
-    g.font = `${size}px monospace`;
-    g.textBaseline = "top";
-  }
-  function drawText(g, s, x, y, size=10, color="#fff", alpha=1){
-    g.save();
-    g.globalAlpha = alpha;
-    setFont(g,size);
-    g.fillStyle = color;
-    g.fillText(s, px(x), px(y));
-    g.restore();
-  }
-  function wrapText(g, text, maxWidth){
-    const words = text.split(" ");
-    const lines = [];
-    let line = "";
-    for (const w of words){
-      const test = line ? (line+" "+w) : w;
-      if (g.measureText(test).width <= maxWidth) line = test;
-      else { if(line) lines.push(line); line = w; }
-    }
-    if (line) lines.push(line);
-    return lines;
-  }
-
-  // ---- Cinematic overlays (grain/scanlines/vignette) ----
-  function drawOverlays(g, t){
-    if(!enableGrain) return;
-    g.save();
-
-    // scanlines
-    g.globalAlpha = 0.06;
-    g.fillStyle = "#000";
-    for (let y=0;y<H;y+=2) g.fillRect(0,y,W,1);
-
-    // film grain (random pixels)
-    g.globalAlpha = 0.06;
-    for (let i=0;i<140;i++){
-      const x = (Math.random()*W)|0;
-      const y = (Math.random()*H)|0;
-      g.fillRect(x,y,1,1);
-    }
-
-    // vignette
-    g.globalAlpha = 1;
-    const v = g.createRadialGradient(W/2,H/2,50,W/2,H/2,190);
-    v.addColorStop(0,"rgba(0,0,0,0)");
-    v.addColorStop(1,"rgba(0,0,0,0.60)");
-    g.fillStyle = v;
-    g.fillRect(0,0,W,H);
-
-    // subtle light haze near window
-    g.globalAlpha = 0.07 + 0.02*Math.sin(t*0.7);
-    const haze = g.createRadialGradient(74,52,10,74,52,120);
-    haze.addColorStop(0,"rgba(190,220,255,0.35)");
-    haze.addColorStop(1,"rgba(190,220,255,0)");
-    g.fillStyle = haze;
-    g.fillRect(0,0,W,H);
-
-    g.restore();
-  }
-
-  // ---- White flash w/ pseudo-bloom ----
-  const flash = { a:0, hold:0 };
-  function triggerFlash(){
-    flash.a = 1;
-    flash.hold = 0.14;
-    addShake(3.8, 0.38);
-  }
-  function updateFlash(dt){
-    if(flash.a<=0) return;
-    if(flash.hold>0){ flash.hold -= dt; return; }
-    flash.a = Math.max(0, flash.a - dt*1.1);
-  }
-  function drawFlash(g){
-    if(flash.a<=0) return;
-    g.save();
-    g.globalAlpha = flash.a;
-    g.fillStyle="#fff";
-    g.fillRect(0,0,W,H);
-
-    // bloom layers (bigger rects, lower alpha)
-    g.globalAlpha = flash.a*0.26;
-    g.fillRect(-3,-3,W+6,H+6);
-    g.globalAlpha = flash.a*0.12;
-    g.fillRect(-10,-10,W+20,H+20);
-    g.restore();
-  }
-
-  // ---- Fade ----
-  let fade=1, fadeDir=0; // 1 black, 0 visible
-  function fadeIn(){ fadeDir=-1; }
-  function fadeOut(){ fadeDir=+1; }
-  function updateFade(dt){
-    if(!fadeDir) return;
-    fade = clamp(fade + fadeDir*dt*1.2, 0, 1);
-    if(fade===0 || fade===1) fadeDir=0;
-  }
-  function drawFade(g){
-    if(fade<=0) return;
-    g.save();
-    g.globalAlpha = fade;
-    g.fillStyle="#000";
-    g.fillRect(0,0,W,H);
-    g.restore();
-  }
-
-  // ---- Dialogue box (polished) ----
-  const Dialogue = {
-    active:false, full:"", shown:"", who:"", done:false,
-    speed: 60, alpha:0, blink:0,
-    set(text, who=""){
-      this.active=true; this.full=text; this.shown=""; this.who=who;
-      this.done=false; this.alpha=0; this.blink=0;
-    },
-    skip(){ if(!this.active) return; this.shown=this.full; this.done=true; },
-    clear(){ this.active=false; },
-    update(dt){
-      if(!this.active) return;
-      this.alpha = lerp(this.alpha, 1, clamp(dt*12,0,1));
-      if(!this.done){
-        const nextLen = Math.min(this.full.length, Math.floor(this.shown.length + this.speed*dt));
-        this.shown = this.full.slice(0,nextLen);
-        if(this.shown.length>=this.full.length) this.done=true;
-      } else this.blink += dt;
-    },
-    draw(g){
-      if(!this.active) return;
-      const pad=12, boxH=78;
-      const x=12, y=H-boxH-12, w=W-24, h=boxH;
-
-      g.save();
-      g.globalAlpha = 0.95*this.alpha;
-
-      // shadow
-      g.fillStyle="rgba(0,0,0,0.55)";
-      g.fillRect(px(x+2),px(y+3),px(w),px(h));
-
-      // panel gradient
-      const grad = g.createLinearGradient(0,y,0,y+h);
-      grad.addColorStop(0,"rgba(12,14,20,0.92)");
-      grad.addColorStop(1,"rgba(0,0,0,0.78)");
-      g.fillStyle=grad;
-      g.fillRect(px(x),px(y),px(w),px(h));
-
-      // border
-      g.strokeStyle="rgba(255,255,255,0.24)";
-      g.strokeRect(px(x)+0.5,px(y)+0.5,px(w)-1,px(h)-1);
-
-      // corner ticks
-      g.fillStyle="rgba(255,255,255,0.14)";
-      g.fillRect(px(x),px(y),8,2); g.fillRect(px(x),px(y),2,8);
-      g.fillRect(px(x+w-8),px(y),8,2); g.fillRect(px(x+w-2),px(y),2,8);
-
-      // nameplate
-      if(this.who){
-        const plateW = Math.min(120, 14 + this.who.length*7);
-        g.fillStyle="rgba(255,255,255,0.09)";
-        g.fillRect(px(x+pad),px(y+8),plateW,12);
-        drawText(g, this.who.toUpperCase(), x+pad+4, y+10, 10, "rgba(255,255,255,0.92)", 1);
-      }
-
-      // text
-      setFont(g, 11);
-      const textX = x+pad;
-      const textY = y+26;
-      const maxW = w-pad*2;
-      const lines = wrapText(g, this.shown, maxW);
-      for(let i=0;i<Math.min(lines.length,4);i++){
-        drawText(g, lines[i], textX, textY + i*14, 11, "#fff", 1);
-      }
-
-      // prompt
-      if(this.done){
-        const b = (Math.sin(this.blink*6)+1)/2;
-        drawText(g, "▶", x+w-20, y+h-20, 14, "#fff", 0.35+0.55*b);
-      }
-      g.restore();
-    }
-  };
-
-  // ---- Title card (film-like) ----
-  const TitleCard = {
-    active:false, t:0,
-    text1:"DECEMBER 1934",
-    text2:"TOWNES HOSPITAL — NEW YORK CITY",
-    show(){ this.active=true; this.t=0; },
-    update(dt){ if(this.active) this.t += dt; },
-    draw(g){
-      if(!this.active) return;
-      const t=this.t;
-
-      // background gradient
-      const bg = g.createLinearGradient(0,0,0,H);
-      bg.addColorStop(0,"#020205");
-      bg.addColorStop(1,"#000000");
-      g.fillStyle=bg;
-      g.fillRect(0,0,W,H);
-
-      // fade
-      let a=1;
-      if(t<0.7) a = easeOutC(t/0.7);
-      else if(t>3.4) a = clamp(1-(t-3.4)/0.7,0,1);
-
-      // slight letterbox bars
-      g.save();
-      g.globalAlpha = 0.85*a;
-      g.fillStyle="#000";
-      g.fillRect(0,0,W,18);
-      g.fillRect(0,H-18,W,18);
-
-      // text
-      drawText(g, this.text1, 28, 102, 14, "rgba(255,255,255,0.92)", a);
-      drawText(g, this.text2, 28, 124, 11, "rgba(255,255,255,0.70)", a);
-
-      // tiny scratch line
-      g.globalAlpha = 0.08*a;
-      g.fillStyle="#fff";
-      g.fillRect(208, 34, 1, 160);
-      g.restore();
-
-      if(t>4.1) this.active=false;
-    }
-  };
-
-  // ---- Scene drawing (no sprites, but more "magic") ----
-  function drawHospitalRoom(g, t){
-    // Wall gradient
-    const wall = g.createLinearGradient(0,0,0,H);
-    wall.addColorStop(0, "#070b15");
-    wall.addColorStop(1, "#010105");
-    g.fillStyle = wall;
-    g.fillRect(0,0,W,H);
-
-    // Window (cool)
-    const winX=22, winY=22, winW=86, winH=64;
-    g.fillStyle="rgba(185,215,255,0.10)";
-    g.fillRect(winX-2,winY-2,winW+4,winH+4);
-    g.fillStyle="rgba(0,0,0,0.55)";
-    g.fillRect(winX,winY,winW,winH);
-
-    // crossbars
-    g.fillStyle="rgba(210,230,255,0.06)";
-    g.fillRect(winX+winW/2-1, winY, 2, winH);
-    g.fillRect(winX, winY+winH/2-1, winW, 2);
-
-    // Moonbeam polygon (slowly shifts)
-    const beamShift = Math.sin(t*0.22)*6;
-    const beam = g.createLinearGradient(0,0,W,0);
-    beam.addColorStop(0.0,"rgba(190,220,255,0)");
-    beam.addColorStop(0.25,"rgba(190,220,255,0.07)");
-    beam.addColorStop(0.55,"rgba(190,220,255,0.03)");
-    beam.addColorStop(1.0,"rgba(190,220,255,0)");
-    g.fillStyle = beam;
-    g.save();
-    g.translate(beamShift, 0);
-    g.beginPath();
-    g.moveTo(82, 24);
-    g.lineTo(240, 132);
-    g.lineTo(190, 168);
-    g.lineTo(60, 70);
-    g.closePath();
-    g.fill();
-    g.restore();
-
-    // Floor
-    const floor = g.createLinearGradient(0,150,0,H);
-    floor.addColorStop(0,"rgba(0,0,0,0.22)");
-    floor.addColorStop(1,"rgba(0,0,0,0.60)");
-    g.fillStyle = floor;
-    g.fillRect(0,150,W,90);
-
-    // Bed shadow
-    g.fillStyle="rgba(0,0,0,0.62)";
-    g.fillRect(74, 162, 190, 18);
-
-    // Bed frame
-    const bed = g.createLinearGradient(0,116,0,170);
-    bed.addColorStop(0,"rgba(255,255,255,0.11)");
-    bed.addColorStop(1,"rgba(255,255,255,0.04)");
-    g.fillStyle = bed;
-    g.fillRect(66, 116, 198, 56);
-
-    // Mattress
-    g.fillStyle="rgba(0,0,0,0.35)";
-    g.fillRect(72, 122, 186, 44);
-
-    // Sheet highlight
-    g.fillStyle="rgba(210,230,255,0.07)";
-    g.fillRect(72, 130, 186, 2);
-
-    // Pillow
-    g.fillStyle="rgba(255,255,255,0.07)";
-    g.fillRect(82, 122, 58, 16);
-    g.fillStyle="rgba(0,0,0,0.28)";
-    g.fillRect(84, 124, 54, 12);
-
-    // Cabinet
-    g.fillStyle="rgba(255,255,255,0.05)";
-    g.fillRect(264, 140, 46, 36);
-    g.fillStyle="rgba(0,0,0,0.38)";
-    g.fillRect(266, 142, 42, 32);
-    g.fillStyle="rgba(255,255,255,0.06)";
-    g.fillRect(266, 142, 42, 1);
-
-    // Dust motes in beam (tiny floating pixels)
-    g.save();
-    g.globalAlpha = 0.12;
-    g.fillStyle = "rgba(210,230,255,1)";
-    for(let i=0;i<34;i++){
-      const px1 = 70 + ((i*11 + (t*12)) % 190);
-      const py1 = 34 + ((i*17 + (t*9)) % 140);
-      g.fillRect(px(px1), px(py1), 1, 1);
-    }
-    g.restore();
-
-    // Small location label
-    drawText(g, "TOWNES HOSPITAL", 12, 12, 10, "rgba(255,255,255,0.55)", 1);
-  }
-
-  function drawBill(g, t, sitUp01){
-    const s = clamp(sitUp01,0,1);
-    const breath = Math.sin(t*1.6)*0.8;
-
-    const torsoRise = 14*s;
-    const headRise  = 18*s;
-    const lean      = 8*s;
-
-    // Blanket contour
-    g.save();
-    g.fillStyle="rgba(0,0,0,0.64)";
-    g.beginPath();
-    g.moveTo(104, 142);
-    g.quadraticCurveTo(160, 120, 214, 144);
-    g.quadraticCurveTo(228, 158, 216, 164);
-    g.quadraticCurveTo(160, 176, 112, 162);
-    g.quadraticCurveTo(98, 154, 104, 142);
-    g.closePath();
-    g.fill();
-
-    // Moonlight edge highlight
-    g.strokeStyle="rgba(210,230,255,0.07)";
-    g.beginPath();
-    g.moveTo(112, 144);
-    g.quadraticCurveTo(160, 126, 212, 146);
-    g.stroke();
-
-    // Torso
-    g.fillStyle="rgba(0,0,0,0.82)";
-    g.fillRect(132, 146 - torsoRise + breath, 54, 14);
-
-    // Arm
-    g.fillRect(146, 154 - torsoRise, 22, 4);
-
-    // Head
-    g.beginPath();
-    g.arc(122 + lean, 152 - headRise, 9, 0, Math.PI*2);
-    g.fill();
-
-    // Hairline hint
-    g.strokeStyle="rgba(255,255,255,0.05)";
-    g.beginPath();
-    g.arc(121 + lean, 150 - headRise, 8, Math.PI*1.05, Math.PI*1.75);
-    g.stroke();
-
-    g.restore();
-  }
-
-  function drawDoctor(g, phase){
-    const p = clamp(phase,0,1);
-    const x = lerp(380, 264, easeOutC(p));
-    const y = 144;
-
-    // Door frame
-    const doorX=252, doorY=76, doorW=56, doorH=106;
-    ctx.fillStyle="rgba(255,255,255,0.04)";
-    ctx.fillRect(doorX-2,doorY-2,doorW+4,doorH+4);
-    ctx.fillStyle="rgba(0,0,0,0.62)";
-    ctx.fillRect(doorX,doorY,doorW,doorH);
-
-    // Light leak
-    ctx.fillStyle="rgba(200,225,255,0.05)";
-    ctx.fillRect(doorX,doorY,2,doorH);
-
-    // Shadow under feet
-    ctx.fillStyle="rgba(0,0,0,0.55)";
-    ctx.fillRect(px(x-8), px(y+26), 34, 10);
-
-    // Coat silhouette
-    ctx.fillStyle="rgba(0,0,0,0.84)";
-    ctx.fillRect(px(x), px(y), 20, 34);
-
-    // Coat flare
-    ctx.beginPath();
-    ctx.moveTo(px(x), px(y+34));
-    ctx.lineTo(px(x-4), px(y+44));
-    ctx.lineTo(px(x+26), px(y+44));
-    ctx.lineTo(px(x+20), px(y+34));
-    ctx.closePath();
-    ctx.fill();
-
-    // Head
-    ctx.beginPath();
-    ctx.arc(px(x+10), px(y-8), 8, 0, Math.PI*2);
-    ctx.fill();
-
-    // Arm
-    ctx.fillRect(px(x-7), px(y+12), 11, 4);
-
-    // Stethoscope hint
-    ctx.strokeStyle="rgba(255,255,255,0.06)";
-    ctx.beginPath();
-    ctx.moveTo(px(x+7), px(y+10));
-    ctx.quadraticCurveTo(px(x+11), px(y+16), px(x+15), px(y+22));
-    ctx.stroke();
-  }
-
-  // ---- Scene logic ----
-  const scene = {
-    t:0, step:0, stepT:0,
-    doctorPhase:0,
-    sitUp:0,
-    init(){
-      this.t=0; this.step=0; this.stepT=0;
-      this.doctorPhase=0; this.sitUp=0;
-      Dialogue.clear();
-      TitleCard.show();
-      fade=1; fadeDir=0; fadeIn();
-      setCamTarget(0,0);
-    },
-    advance(force=false){
-      if(!force && Dialogue.active && !Dialogue.done){
-        Dialogue.skip();
-        return;
-      }
-      if(TitleCard.active && !force){
-        TitleCard.active=false;
-        return;
-      }
-      this.step++;
-      this.stepT=0;
-
-      switch(this.step){
-        case 1:
-          setCamTarget(0,0);
-          Dialogue.set("…", "");
-          break;
-        case 2:
-          setCamTarget(-1, 0);
-          Dialogue.set("What if I get these drunks helping one another?", "Bill");
-          break;
-        case 3:
-          Dialogue.clear();
-          triggerFlash();
-          this.sitUp = 1;
-          break;
-        case 4:
-          setCamTarget(1, 0);
-          Dialogue.set("Whatever you figured out… you might want to keep it.", "Doctor");
-          break;
-        case 5:
-          setCamTarget(0, 0);
-          Dialogue.set("Press START to surrender.", "");
-          break;
-        case 6:
-          this.init(); // loop for testing
-          break;
-      }
-    },
-    update(dt){
-      this.t += dt;
-      this.stepT += dt;
-
-      if(!TitleCard.active && this.step===0){
-        this.advance(true); // start
-      }
-      if(this.step===1 && this.stepT>0.85) this.advance(true);
-
-      // doctor entrance
-      if(this.step>=4) this.doctorPhase = clamp(this.doctorPhase + dt*1.25, 0, 1);
-      else this.doctorPhase = clamp(this.doctorPhase - dt*2.0, 0, 1);
-
-      // sit-up easing
-      if(this.step!==3) this.sitUp = lerp(this.sitUp, 0, clamp(dt*3.2,0,1));
-      else {
-        // after the flash beat settles, ease down a little
-        if(this.stepT>0.5) this.sitUp = lerp(this.sitUp, 0.4, clamp(dt*2.0,0,1));
-      }
-    }
-  };
-
-  // ---- Input ----
-  window.addEventListener("keydown", (e)=>{
-    const k = e.key.toLowerCase();
-    if(k===" " || k==="enter" || k==="z"){ e.preventDefault(); scene.advance(false); }
-    if(k==="r"){ e.preventDefault(); scene.init(); }
-    if(k==="d"){ e.preventDefault(); enableDrift = !enableDrift; }
-    if(k==="g"){ e.preventDefault(); enableGrain = !enableGrain; }
+  // --- Input ---
+  const keys = new Set();
+  window.addEventListener("keydown", (e) => {
+    keys.add(e.code);
+    if (["Space","Enter","KeyM"].includes(e.code)) e.preventDefault();
+    if (e.code === "KeyM") musicOn = !musicOn;
+    if (e.code === "Space" || e.code === "Enter") advance();
   });
+  window.addEventListener("keyup", (e)=> keys.delete(e.code));
+  window.addEventListener("pointerdown", () => initAudio(), { passive:true });
+  window.addEventListener("click", () => initAudio(), { passive:true });
+  window.addEventListener("touchstart", () => initAudio(), { passive:true });
+  canvas.addEventListener("pointerdown", () => { initAudio(); advance(); }, { passive:true });
 
-  // ---- Main loop ----
-  let last = performance.now();
-  function loop(now){
-    const dt = Math.min(0.033, (now-last)/1000);
-    last = now;
+  // --- Helpers ---
+  const W = canvas.width, H = canvas.height;
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp = (a,b,t)=>a+(b-a)*t;
 
-    // updates
-    TitleCard.update(dt);
-    Dialogue.update(dt);
-    updateFlash(dt);
-    updateFade(dt);
+  // --- Scene state machine ---
+  const scene = {
+    idx: 0, // step in script
+    timer: 0,
+    flash: 0,        // 0..1
+    shake: 0,        // px intensity
+    invert: 0,       // 0..1
+    title: false,
+    fadeToTitle: 0,  // 0..1
+    blink: 0,
+    rain: [],
+    noiseSeed: 12345,
+    bill: { x: 160, y: 160, pose: "sleep" }, // pose: sleep, sit, kneel, stunned
+    msg: "",
+    msg2: "",
+    typing: { text:"", at:0, speed: 30, done:false },
+    allowAdvance: false
+  };
 
-    scene.update(dt);
-    updateCam(dt, scene.t);
+  function setMessage(a, b=""){
+    scene.msg = a;
+    scene.msg2 = b;
+    const full = b ? (a + "\n" + b) : a;
+    scene.typing.text = full;
+    scene.typing.at = 0;
+    scene.typing.done = false;
+    scene.allowAdvance = false;
+    scene.timer = 0;
+  }
 
-    // clear
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.clearRect(0,0,W,H);
+  function typeUpdate(dt){
+    if (scene.typing.done) return;
+    scene.typing.at += dt * scene.typing.speed;
+    if (scene.typing.at >= scene.typing.text.length){
+      scene.typing.at = scene.typing.text.length;
+      scene.typing.done = true;
+      // small delay before allowing advance
+      if (scene.timer > 0.25) scene.allowAdvance = true;
+    }
+  }
 
-    // title card
-    if(TitleCard.active){
-      TitleCard.draw(ctx);
-      drawOverlays(ctx, scene.t);
-      requestAnimationFrame(loop);
+  function currentTyped(){
+    return scene.typing.text.slice(0, Math.floor(scene.typing.at));
+  }
+
+  // --- Script beats ---
+  // subtle humor = "Again." + a couple tiny winks without clowning it
+  const beats = [
+    () => { // 0
+      scene.title = false;
+      scene.bill.pose = "sleep";
+      scene.fadeToTitle = 0;
+      setMessage("Townes Hospital…", "Again.");
+    },
+    () => { // 1
+      scene.bill.pose = "sit";
+      setMessage("Bill wakes up, blinking at the ceiling.", "“Not this place again…”");
+    },
+    () => { // 2
+      scene.bill.pose = "kneel";
+      setMessage("He whispers, then it comes out loud:", "“If there is a God— show Himself to me!”");
+    },
+    () => { // 3 flash/shake
+      scene.bill.pose = "kneel";
+      scene.flash = 1;
+      scene.shake = 10;
+      scene.invert = 1;
+      setMessage(""); // no text during the hit
+      // a quick "holy moment" sound flourish
+      if (audioEnabled){
+        const t = AC.currentTime + 0.02;
+        beep(440, t, 0.10, "sine", 0.03);
+        beep(660, t+0.06, 0.12, "sine", 0.03);
+        beep(880, t+0.12, 0.16, "sine", 0.03);
+      }
+    },
+    () => { // 4 aftermath
+      scene.bill.pose = "stunned";
+      setMessage("Everything goes quiet.", "Bill sits up like he just got unplugged and rebooted.");
+    },
+    () => { // 5 idea
+      scene.bill.pose = "sit";
+      setMessage("He says it out loud— like it’s brand new:", "“What if I can get these drunks helping each other?”");
+    },
+    () => { // 6 fade to title
+      scene.bill.pose = "sit";
+      scene.fadeToTitle = 0;
+      setMessage(""); // title takes over
+    },
+  ];
+
+  function start(){
+    // rain particles
+    scene.rain = Array.from({length: 70}, () => ({
+      x: Math.random()*W,
+      y: Math.random()*H,
+      v: 90 + Math.random()*120,
+      l: 6 + Math.random()*10
+    }));
+    beats[0]();
+  }
+
+  function advance(){
+    // during typing, first press completes typing
+    if (!scene.typing.done && scene.typing.text.length){
+      scene.typing.at = scene.typing.text.length;
+      scene.typing.done = true;
+      scene.allowAdvance = true;
+      return;
+    }
+    if (!scene.allowAdvance && scene.idx !== 3 && scene.idx !== 6) return;
+
+    // special: flash beat auto-resolves
+    if (scene.idx === 3){
+      // ignore manual advance during flash
       return;
     }
 
-    // camera + shake (pixel snapped)
-    const sh = getShakeOffset(dt);
-    const tx = px(cam.x + sh.x);
-    const ty = px(cam.y + sh.y);
-    ctx.setTransform(1,0,0,1,tx,ty);
-
-    // draw scene
-    drawHospitalRoom(ctx, scene.t);
-    drawBill(ctx, scene.t, scene.sitUp);
-    if(scene.doctorPhase>0.01) drawDoctor(ctx, scene.doctorPhase);
-
-    // dialogue + effects
-    ctx.setTransform(1,0,0,1,0,0);
-    Dialogue.draw(ctx);
-    drawFlash(ctx);
-    drawFade(ctx);
-    drawOverlays(ctx, scene.t);
-
-    requestAnimationFrame(loop);
+    scene.idx++;
+    if (scene.idx >= beats.length){
+      // lock at title
+      scene.idx = beats.length - 1;
+      scene.title = true;
+      return;
+    }
+    beats[scene.idx]();
   }
 
-  // start
-  scene.init();
-  requestAnimationFrame(loop);
+  // --- Drawing primitives: "SNES-ish" chunky pixel art via rectangles ---
+  function fillRect(x,y,w,h, color){
+    ctx.fillStyle = color;
+    ctx.fillRect(x|0, y|0, w|0, h|0);
+  }
 
-  // expose debug
-  window.__cutscene = { triggerFlash, fitCanvasIntegerScale };
+  function drawPixelText(text, x, y, scale=1, maxWidth=W-20){
+    // tiny built-in 3x5-ish font using canvas fillText (kept simple)
+    // We still render it with crisp scaling by drawing at native res.
+    ctx.font = `${8*scale}px monospace`;
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    const lines = (text || "").split("\n");
+    for (let i=0;i<lines.length;i++){
+      const line = lines[i];
+      ctx.fillText(line, x, y + i*(10*scale));
+    }
+  }
+
+  function drawTextBox(text){
+    const boxH = 72;
+    const pad = 10;
+    // box
+    fillRect(12, H - boxH - 12, W - 24, boxH, "rgba(0,0,0,0.72)");
+    // border
+    ctx.strokeStyle = "rgba(255,255,255,0.45)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(12.5, H - boxH - 11.5, W - 25, boxH - 1);
+
+    // text
+    drawPixelText(text, 20, H - boxH, 1.2);
+    // prompt
+    if (scene.typing.done){
+      const prompt = "▶";
+      ctx.globalAlpha = 0.75 + 0.25*Math.sin(scene.blink);
+      drawPixelText(prompt, W - 26, H - 26, 1.2);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawHospitalRoom(){
+    // back wall gradient-ish
+    fillRect(0,0,W,H, "#0b1020");
+    fillRect(0,0,W,H, "rgba(18,30,60,0.35)");
+    // window
+    fillRect(340, 40, 120, 80, "rgba(20,30,60,0.8)");
+    // window frame
+    ctx.strokeStyle = "rgba(255,255,255,0.22)";
+    ctx.strokeRect(340.5,40.5,120,80);
+    ctx.strokeRect(399.5,40.5,1,80);
+    ctx.strokeRect(340.5,79.5,120,1);
+
+    // rain outside
+    ctx.fillStyle = "rgba(190,210,255,0.22)";
+    for (const r of scene.rain){
+      ctx.fillRect(r.x|0, r.y|0, 1, r.l|0);
+    }
+
+    // bed
+    fillRect(90, 140, 210, 70, "rgba(80,100,150,0.35)");
+    fillRect(95, 145, 200, 60, "rgba(220,230,255,0.08)");
+    // pillow
+    fillRect(105, 150, 40, 18, "rgba(240,245,255,0.18)");
+    // bedside table
+    fillRect(310, 160, 40, 35, "rgba(120,90,60,0.25)");
+    // monitor beep box
+    fillRect(320, 130, 30, 18, "rgba(0,0,0,0.55)");
+    fillRect(323, 133, 24, 12, "rgba(20,255,130,0.08)");
+    // little cross on wall (churchy wink? keep subtle)
+    fillRect(60, 55, 4, 18, "rgba(255,255,255,0.20)");
+    fillRect(54, 62, 16, 4, "rgba(255,255,255,0.20)");
+  }
+
+  function drawBill(){
+    // Simple sprite: head/body/arms, different poses
+    const x = scene.bill.x, y = scene.bill.y;
+    const skin = "rgba(255,220,180,0.7)";
+    const suit = "rgba(30,30,40,0.75)";
+    const outline = "rgba(0,0,0,0.45)";
+
+    function px(x0,y0,w,h,c){ fillRect(x+x0, y+y0, w,h,c); }
+
+    // shadow
+    fillRect(x+18, y+52, 22, 4, "rgba(0,0,0,0.25)");
+
+    if (scene.bill.pose === "sleep"){
+      // lying down
+      px(18, 28, 28, 16, suit);
+      px(44, 30, 12, 14, suit);
+      px(10, 30, 10, 10, suit);
+
+      px(44, 24, 12, 10, skin); // head
+      px(46, 26, 2, 2, "rgba(0,0,0,0.35)"); // eye
+      px(49, 28, 3, 1, "rgba(0,0,0,0.25)");
+
+    } else {
+      // standing-ish torso
+      px(26, 26, 16, 22, suit);
+      px(26, 48, 16, 10, "rgba(60,60,80,0.75)");
+      px(28, 18, 12, 10, skin); // head
+      px(30, 21, 2, 2, "rgba(0,0,0,0.4)");
+      px(35, 21, 2, 2, "rgba(0,0,0,0.4)");
+
+      // mouth: changes with pose
+      if (scene.bill.pose === "sit"){
+        px(33, 25, 3, 1, "rgba(0,0,0,0.25)");
+      } else if (scene.bill.pose === "kneel"){
+        px(33, 25, 4, 1, "rgba(0,0,0,0.35)");
+      } else if (scene.bill.pose === "stunned"){
+        px(34, 25, 2, 2, "rgba(0,0,0,0.30)");
+      }
+
+      // arms / pose changes
+      if (scene.bill.pose === "sit"){
+        px(22, 30, 4, 14, suit);
+        px(42, 30, 4, 14, suit);
+        // legs tucked
+        px(26, 58, 6, 10, suit);
+        px(36, 58, 6, 10, suit);
+      } else if (scene.bill.pose === "kneel"){
+        // arms up / praying
+        px(20, 28, 6, 10, suit);
+        px(42, 28, 6, 10, suit);
+        px(23, 24, 4, 6, suit);
+        px(41, 24, 4, 6, suit);
+        // kneeling legs
+        px(26, 56, 8, 12, suit);
+        px(34, 58, 10, 10, suit);
+      } else if (scene.bill.pose === "stunned"){
+        // arms droop
+        px(22, 34, 4, 12, suit);
+        px(42, 34, 4, 12, suit);
+        // legs
+        px(27, 58, 6, 12, suit);
+        px(36, 58, 6, 12, suit);
+      }
+
+      // outline bits
+      ctx.strokeStyle = outline;
+      ctx.strokeRect(x+26.5, y+26.5, 16, 22);
+      ctx.strokeRect(x+28.5, y+18.5, 12, 10);
+    }
+  }
+
+  function drawTitle(){
+    // background: warm hopeful dawn gradient blocks
+    fillRect(0,0,W,H, "#1a1230");
+    fillRect(0,0,W,H, "rgba(255,160,80,0.08)");
+    // big stripes
+    for (let i=0;i<10;i++){
+      fillRect(0, i*30, W, 12, `rgba(255,255,255,${0.03 + (i%2)*0.02})`);
+    }
+
+    // "church basement doors" silhouette
+    fillRect(190, 120, 132, 110, "rgba(0,0,0,0.35)");
+    fillRect(200, 130, 52, 90, "rgba(0,0,0,0.45)");
+    fillRect(260, 130, 52, 90, "rgba(0,0,0,0.45)");
+    // little light crack
+    fillRect(255, 132, 2, 86, "rgba(255,255,255,0.10)");
+
+    // Title text
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    ctx.font = "28px monospace";
+    ctx.fillText("TRUDGE BROTHERS", 64, 84);
+
+    ctx.font = "14px monospace";
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fillText("Start to Surrender", 150, 108);
+
+    // Blinking prompt
+    scene.blink += 0.08;
+    const a = 0.55 + 0.45*Math.sin(scene.blink);
+    ctx.globalAlpha = a;
+    ctx.font = "16px monospace";
+    ctx.fillText("PRESS START", 186, 256);
+    ctx.globalAlpha = 1;
+  }
+
+  function applyFlashAndInvert(){
+    if (scene.invert > 0.001){
+      // invert approximation: draw current frame to temp via getImageData (small canvas, fine)
+      const img = ctx.getImageData(0,0,W,H);
+      const d = img.data;
+      const inv = scene.invert;
+      for (let i=0;i<d.length;i+=4){
+        d[i]   = lerp(d[i],   255 - d[i],   inv);
+        d[i+1] = lerp(d[i+1], 255 - d[i+1], inv);
+        d[i+2] = lerp(d[i+2], 255 - d[i+2], inv);
+      }
+      ctx.putImageData(img,0,0);
+    }
+    if (scene.flash > 0.001){
+      ctx.globalAlpha = scene.flash;
+      fillRect(0,0,W,H, "#ffffff");
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // --- Main loop ---
+  let last = performance.now();
+  function frame(now){
+    const dt = Math.min(0.05, (now-last)/1000);
+    last = now;
+
+    // update rain
+    for (const r of scene.rain){
+      r.y += r.v * dt;
+      r.x -= 12 * dt;
+      if (r.y > 120){ // keep rain mainly in window area
+        r.y = 40 - Math.random()*20;
+        r.x = 340 + Math.random()*120;
+      }
+    }
+
+    // handle beat timing
+    scene.timer += dt;
+    scene.blink += dt * 6;
+
+    // flash beat auto decay + auto advance
+    if (scene.idx === 3){
+      scene.flash = clamp(scene.flash - dt*1.8, 0, 1);
+      scene.invert = clamp(scene.invert - dt*1.2, 0, 1);
+      scene.shake = clamp(scene.shake - dt*18, 0, 12);
+      // after ~0.9s, move to aftermath
+      if (scene.timer > 0.9){
+        scene.idx++;
+        beats[scene.idx]();
+      }
+    }
+
+    // allow advance after some delay when typing done
+    if (scene.typing.done && scene.timer > 0.35 && scene.idx !== 6) scene.allowAdvance = true;
+
+    // typewriter
+    typeUpdate(dt);
+
+    // fade to title
+    if (scene.idx === 6){
+      scene.fadeToTitle = clamp(scene.fadeToTitle + dt*0.9, 0, 1);
+      if (scene.fadeToTitle > 0.6) scene.title = true;
+    }
+
+    // --- Draw ---
+    ctx.save();
+
+    // camera shake
+    const sx = (Math.random()*2-1) * scene.shake;
+    const sy = (Math.random()*2-1) * scene.shake;
+    ctx.translate(sx|0, sy|0);
+
+    if (!scene.title){
+      drawHospitalRoom();
+      drawBill();
+
+      // typed text box
+      const typed = currentTyped();
+      if (typed && scene.idx !== 3) drawTextBox(typed);
+
+      // subtle "beep" indicator
+      if (scene.idx <= 2){
+        const pulse = 0.5 + 0.5*Math.sin(now*0.006);
+        ctx.globalAlpha = 0.15 + 0.15*pulse;
+        fillRect(325, 135, 20, 8, "rgba(20,255,130,1)");
+        ctx.globalAlpha = 1;
+      }
+    } else {
+      drawTitle();
+    }
+
+    ctx.restore();
+
+    // apply global effects AFTER drawing
+    if (!scene.title){
+      applyFlashAndInvert();
+      // fade to title overlay
+      if (scene.idx === 6){
+        ctx.globalAlpha = scene.fadeToTitle;
+        fillRect(0,0,W,H, "#000000");
+        ctx.globalAlpha = 1;
+        if (scene.fadeToTitle > 0.75){
+          // draw title on top once fade is mostly complete
+          drawTitle();
+        }
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  start();
+  requestAnimationFrame(frame);
+
+  // Optional: helpful console notes
+  console.log("Trudge Brothers intro loaded. Click/tap to enable audio. Space/Enter advances. M mutes.");
 })();
 </script>
 </body>
