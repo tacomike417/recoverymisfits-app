@@ -3,7 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Trudge Brothers — SNES Intro (WOW pass)</title>
+  <title>Trudge Brothers — SNES Intro (Option A, no sprites)</title>
+
+  <!-- GAME FONT (Press Start 2P) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
   <style>
     :root { color-scheme: dark; }
     html,body{ margin:0; height:100%; background:#050816; }
@@ -19,7 +25,8 @@
     }
     .hint{
       position:fixed; left:0; right:0; bottom:10px;
-      text-align:center; font: 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      text-align:center;
+      font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
       color:rgba(255,255,255,.75);
       pointer-events:none;
       text-shadow:0 2px 10px rgba(0,0,0,.6);
@@ -32,14 +39,25 @@
 
 <script>
 (() => {
-  // ===== Canvas =====
+  // =========================
+  // Canvas
+  // =========================
   const canvas = document.getElementById("c");
   const ctx = canvas.getContext("2d", { alpha:false });
   ctx.imageSmoothingEnabled = false;
 
   const W = canvas.width, H = canvas.height;
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
 
-  // ===== Audio (Zelda-ish lo-fi chiptune, no files) =====
+  function fillRect(x,y,w,h,c){
+    ctx.fillStyle=c;
+    ctx.fillRect(x|0,y|0,w|0,h|0);
+  }
+
+  // =========================
+  // Audio (SNES-ish vibe, no files)
+  // =========================
   let AC=null, master=null, musicOn=true, audioEnabled=false;
   let delay=null, delayGain=null, musicTimer=null;
 
@@ -50,11 +68,10 @@
     master = AC.createGain();
     master.gain.value = 0.18;
 
-    // tiny "room" delay to feel game-y
-    delay = AC.createDelay(0.25);
-    delay.delayTime.value = 0.13;
+    delay = AC.createDelay(0.35);
+    delay.delayTime.value = 0.14;
     delayGain = AC.createGain();
-    delayGain.gain.value = 0.25;
+    delayGain.gain.value = 0.22;
 
     master.connect(AC.destination);
     master.connect(delay);
@@ -74,29 +91,26 @@
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(gain, t + 0.01);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g);
-    g.connect(master);
-    o.start(t);
-    o.stop(t + dur + 0.02);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + dur + 0.02);
   }
 
   function chord(base, t, dur){
-    // triad-ish (major-ish) — very subtle
-    tone(base, t, dur, "triangle", 0.035);
-    tone(base*Math.pow(2, 4/12), t, dur, "triangle", 0.028);
-    tone(base*Math.pow(2, 7/12), t, dur, "triangle", 0.026);
+    tone(base, t, dur, "triangle", 0.030);
+    tone(base*Math.pow(2, 4/12), t, dur, "triangle", 0.022);
+    tone(base*Math.pow(2, 7/12), t, dur, "triangle", 0.020);
   }
 
   function startMusic(){
     if (!audioEnabled) return;
     if (musicTimer) clearTimeout(musicTimer);
 
-    const bpm = 92;
+    const bpm = 96;
     const spb = 60/bpm;
 
-    // progression-ish roots: A, F, G, E (Zelda-ish vibe)
-    const roots = [220, 174.61, 196, 164.81]; // A3, F3, G3, E3
-    const arp = [0, 7, 12, 7, 0, 7, 14, 7];  // degrees in semitones
+    // Slightly "Super Contra briefing room" energy: minor-ish feel
+    const roots = [220, 196, 174.61, 164.81]; // A, G, F, E
+    const arp = [0, 7, 10, 7, 0, 7, 12, 7]; // add minor 7-ish color
     let step = 0;
 
     const tick = () => {
@@ -106,15 +120,16 @@
       const bar = Math.floor(step / 8) % roots.length;
       const root = roots[bar];
 
-      // pad
+      // pad stab
       if (step % 8 === 0) chord(root/2, t, spb*1.6);
 
-      // arpeggio
+      // arpeggio lead
       const p = arp[step % arp.length];
       const note = root * Math.pow(2, p/12);
-      tone(note, t, spb*0.45, "square", 0.05);
-      // sparkle
-      if (step % 8 === 0) tone(note*2, t+0.06, spb*0.18, "sine", 0.02);
+      tone(note, t, spb*0.44, "square", 0.050);
+
+      // little hi sparkle
+      if (step % 8 === 0) tone(note*2, t+0.06, spb*0.16, "sine", 0.018);
 
       step++;
       musicTimer = setTimeout(tick, spb*1000);
@@ -125,88 +140,67 @@
   function sfxFlashHit(){
     if (!audioEnabled || !musicOn) return;
     const t = AC.currentTime + 0.02;
-    // little "holy" gliss
-    tone(440, t, 0.08, "sine", 0.03);
-    tone(660, t+0.05, 0.10, "sine", 0.03);
-    tone(880, t+0.11, 0.14, "sine", 0.03);
-    // tiny thump
-    tone(110, t, 0.10, "triangle", 0.025);
+    // "holy shock" + thump
+    tone(110, t, 0.12, "triangle", 0.028);
+    tone(440, t, 0.09, "sine", 0.028);
+    tone(660, t+0.05, 0.10, "sine", 0.028);
+    tone(880, t+0.11, 0.14, "sine", 0.028);
   }
 
-  // ===== Input =====
-  const keys = new Set();
+  // =========================
+  // Input
+  // =========================
+  window.addEventListener("pointerdown", () => initAudio(), {passive:true});
+  window.addEventListener("click", () => initAudio(), {passive:true});
+  window.addEventListener("touchstart", () => initAudio(), {passive:true});
+
   window.addEventListener("keydown", (e)=>{
-    keys.add(e.code);
     if (["Space","Enter","KeyM"].includes(e.code)) e.preventDefault();
     if (e.code === "KeyM") musicOn = !musicOn;
     if (e.code === "Space" || e.code === "Enter") advance();
   });
-  window.addEventListener("keyup",(e)=>keys.delete(e.code));
-  window.addEventListener("pointerdown", () => initAudio(), {passive:true});
-  window.addEventListener("click", () => initAudio(), {passive:true});
-  window.addEventListener("touchstart", () => initAudio(), {passive:true});
+
   canvas.addEventListener("pointerdown", () => { initAudio(); advance(); }, {passive:true});
 
-  // ===== Helpers =====
-  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const lerp=(a,b,t)=>a+(b-a)*t;
-
-  function fillRect(x,y,w,h,c){
-    ctx.fillStyle=c;
-    ctx.fillRect(x|0,y|0,w|0,h|0);
-  }
-
-  // Pixel-font-ish (monospace but scaled crisp)
-  function pxText(text, x, y, size=12, color="rgba(255,255,255,0.95)"){
-    ctx.fillStyle = color;
-    ctx.font = `${size}px monospace`;
-    ctx.fillText(text, x, y);
-  }
-
-  function drawOutlinedText(text, x, y, size, fill="rgba(255,255,255,0.95)", outline="rgba(0,0,0,0.75)"){
-    ctx.font = `${size}px monospace`;
-    ctx.fillStyle = outline;
-    ctx.fillText(text, x-2, y);
-    ctx.fillText(text, x+2, y);
-    ctx.fillText(text, x, y-2);
-    ctx.fillText(text, x, y+2);
-    ctx.fillStyle = fill;
-    ctx.fillText(text, x, y);
-  }
-
-  // ===== Scene state =====
+  // =========================
+  // Scene State
+  // =========================
   const scene = {
     idx: 0,
     timer: 0,
     allowAdvance: false,
-    flash: 0,        // 0..1
-    invert: 0,       // 0..1
-    shake: 0,        // px
-    fadeToTitle: 0,  // 0..1
+
+    // FX
+    shake: 0,
+    flash: 0,
+    invert: 0,
+    warp: 0,         // extra "impact"
+    fadeToTitle: 0,
     title: false,
 
     // typing
     typing: { text:"", at:0, speed: 34, done:false },
-
-    // visuals
     blink: 0,
+
+    // world particles
     rain: [],
     dust: [],
-    stars: [],
-    bill: { x: 140, y: 150, pose: "sleep" },
+    sparks: [],
+    scanBarY: 0,
 
-    // title animation
-    titleWobble: 0,
-    titlePulse: 0,
+    // camera drift (adds “real game” feel)
+    cam: { x:0, y:0, t:0 },
+
+    // Bill pose
+    bill: { x: 130, y: 140, pose: "sleep" },
+
+    // title anim
+    titleIn: 0,      // 0..1
+    titleSlam: 0,    // shake on logo
   };
 
-  function setMessage(lines, speaker=""){
-    // lines: array of strings (max 2-3)
-    const t = (speaker ? speaker + ": " : "") + (lines[0] || "");
-    const t2 = lines[1] ? lines[1] : "";
-    const t3 = lines[2] ? lines[2] : "";
-    const full = [t, t2, t3].filter(Boolean).join("\n");
-
+  function setMessage(lines){
+    const full = (lines || []).filter(Boolean).join("\n");
     scene.typing.text = full;
     scene.typing.at = 0;
     scene.typing.done = false;
@@ -228,54 +222,59 @@
     if (scene.typing.done && scene.timer > 0.30) scene.allowAdvance = true;
   }
 
-  // ===== Script beats =====
+  // =========================
+  // Script beats (same story, better presentation)
+  // =========================
   const beats = [
     () => { // 0
       scene.title = false;
       scene.fadeToTitle = 0;
+      scene.titleIn = 0;
       scene.bill.pose = "sleep";
-      setMessage(["Townes Hospital…", "Again."], "");
+      setMessage(["TOWNES HOSPITAL…", "AGAIN."]);
     },
     () => { // 1
       scene.bill.pose = "sit";
-      setMessage(["Bill wakes up, blinking at the ceiling.", "“Not this place again…”"], "");
+      setMessage(["BILL WAKES UP STARING AT THE CEILING.", "“NOT THIS PLACE AGAIN…”"]);
     },
     () => { // 2
       scene.bill.pose = "kneel";
-      setMessage(["He whispers… then it comes out loud:", "“If there is a God— show Himself to me!”"], "");
+      setMessage(["HE WHISPERS… THEN IT COMES OUT LOUD:", "“IF THERE IS A GOD— SHOW HIMSELF TO ME!”"]);
     },
     () => { // 3 FLASH HIT
       scene.bill.pose = "kneel";
       scene.flash = 1;
       scene.invert = 1;
-      scene.shake = 12;
-      setMessage([""], "");
+      scene.shake = 14;
+      scene.warp = 1;
+      setMessage([""]);
+      spawnSparks(120, W/2, H/2, 140);
       sfxFlashHit();
     },
     () => { // 4
       scene.bill.pose = "stunned";
-      setMessage(["Everything goes quiet.", "Bill sits up like he got unplugged and rebooted."], "");
+      setMessage(["EVERYTHING GOES QUIET.", "BILL SITS UP LIKE HE GOT UNPLUGGED AND REBOOTED."]);
     },
     () => { // 5
       scene.bill.pose = "sit";
-      setMessage(["He says it out loud— like it’s brand new:", "“What if I can get these drunks helping each other?”"], "");
+      setMessage(["HE SAYS IT OUT LOUD— LIKE IT’S BRAND NEW:", "“WHAT IF I CAN GET THESE DRUNKS HELPING EACH OTHER?”"]);
     },
-    () => { // 6
+    () => { // 6 fade to title
       scene.bill.pose = "sit";
       scene.fadeToTitle = 0;
-      setMessage([""], "");
+      setMessage([""]);
     }
   ];
 
   function advance(){
-    // First press while typing completes text
+    // complete typing on first press
     if (!scene.typing.done && scene.typing.text.length){
       scene.typing.at = scene.typing.text.length;
       scene.typing.done = true;
       scene.allowAdvance = true;
       return;
     }
-    // Don't advance during flash beat
+    // lock during flash beat
     if (scene.idx === 3) return;
     if (!scene.allowAdvance && scene.idx !== 6) return;
 
@@ -288,194 +287,355 @@
     beats[scene.idx]();
   }
 
-  // ===== World building particles =====
+  // =========================
+  // Particles / ambience
+  // =========================
   function seedParticles(){
-    // window rain
-    scene.rain = Array.from({length: 90}, () => ({
-      x: 340 + Math.random()*120,
-      y: 40 + Math.random()*80,
-      v: 120 + Math.random()*180,
-      l: 6 + Math.random()*14
+    // rain in window
+    scene.rain = Array.from({length: 110}, () => ({
+      x: 330 + Math.random()*140,
+      y: 36 + Math.random()*90,
+      v: 130 + Math.random()*220,
+      l: 8 + Math.random()*16
     }));
-    // dust motes in room (floating specks in the window light)
-    scene.dust = Array.from({length: 40}, () => ({
-      x: 260 + Math.random()*220,
+    // dust motes in light cone
+    scene.dust = Array.from({length: 55}, () => ({
+      x: 250 + Math.random()*250,
       y: 80 + Math.random()*150,
-      vx: -2 + Math.random()*4,
-      vy: -4 + Math.random()*8,
+      vx: -6 + Math.random()*12,
+      vy: -10 + Math.random()*20,
       s: 1 + Math.random()*2,
-      a: 0.10 + Math.random()*0.15
-    }));
-    // title stars
-    scene.stars = Array.from({length: 60}, () => ({
-      x: Math.random()*W,
-      y: Math.random()*H,
-      z: 0.3 + Math.random()*0.9,
-      tw: Math.random()*6.28
+      a: 0.08 + Math.random()*0.18
     }));
   }
 
-  // ===== Drawing: Hospital room with depth =====
-  function drawHospitalRoom(now){
-    // back wall
-    fillRect(0,0,W,H, "#070b1d");
-    // subtle gradient bands (fake SNES)
-    for (let i=0;i<12;i++){
-      const a = 0.035 + (i%2)*0.01;
-      fillRect(0, i*24, W, 12, `rgba(255,255,255,${a})`);
+  function spawnSparks(n, x, y, speed=160){
+    for (let i=0;i<n;i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = (speed*0.35) + Math.random()*speed;
+      scene.sparks.push({
+        x, y,
+        vx: Math.cos(a)*sp,
+        vy: Math.sin(a)*sp,
+        life: 0.35 + Math.random()*0.45
+      });
+    }
+  }
+
+  function updateParticles(dt){
+    for (const r of scene.rain){
+      r.y += r.v * dt;
+      r.x -= 24 * dt;
+      if (r.y > 130){
+        r.y = 36 - Math.random()*18;
+        r.x = 330 + Math.random()*140;
+      }
+    }
+    for (const d of scene.dust){
+      d.x += d.vx * dt;
+      d.y += d.vy * dt;
+      if (d.x < 240) d.x = 505;
+      if (d.x > 510) d.x = 250;
+      if (d.y < 70) d.y = 230;
+      if (d.y > 240) d.y = 80;
+    }
+    for (let i=scene.sparks.length-1;i>=0;i--){
+      const s = scene.sparks[i];
+      s.life -= dt;
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+      s.vx *= (1 - dt*3.2);
+      s.vy *= (1 - dt*3.2);
+      if (s.life <= 0) scene.sparks.splice(i,1);
+    }
+  }
+
+  // =========================
+  // SNES-ish drawing utilities
+  // =========================
+  function setFont(px){
+    ctx.font = `${px}px "Press Start 2P", monospace`;
+  }
+
+  function drawTextShadow(text, x, y, px, color="rgba(255,255,255,0.95)", shadow="rgba(0,0,0,0.75)"){
+    setFont(px);
+    ctx.fillStyle = shadow;
+    ctx.fillText(text, x+2, y+2);
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+  }
+
+  function rgbSplitText(text, x, y, px, strength=1){
+    setFont(px);
+    ctx.globalAlpha = 0.80;
+    ctx.fillStyle = "rgba(255,70,70,1)"; ctx.fillText(text, x-1*strength, y);
+    ctx.fillStyle = "rgba(70,255,190,1)"; ctx.fillText(text, x+1*strength, y);
+    ctx.fillStyle = "rgba(90,160,255,1)"; ctx.fillText(text, x, y-1*strength);
+    ctx.globalAlpha = 1;
+  }
+
+  // =========================
+  // Background: Hospital (SNES “Super Contra-ish” mood)
+  // =========================
+  function drawHospital(now){
+    // Base: deep blue-gray
+    fillRect(0,0,W,H,"#060916");
+
+    // Industrial wall paneling (gives that SNES action-game vibe)
+    for (let y=0; y<170; y+=26){
+      const a = 0.08 + (y/170)*0.06;
+      fillRect(0, y, W, 12, `rgba(255,255,255,${a})`);
+      fillRect(0, y+12, W, 2, "rgba(0,0,0,0.25)");
     }
 
-    // floor perspective stripes (Mode-7-ish cheat)
-    for (let y=190; y<H; y++){
-      const t = (y-190)/(H-190);
-      const w = lerp(W*0.30, W*1.02, t);
+    // Overhead pipes + vents (simple geometry, but reads "SNES")
+    fillRect(0, 22, W, 6, "rgba(0,0,0,0.35)");
+    fillRect(0, 28, W, 2, "rgba(255,255,255,0.06)");
+    for (let i=0;i<6;i++){
+      const x = 26 + i*82;
+      fillRect(x, 36, 56, 14, "rgba(0,0,0,0.25)");
+      fillRect(x+4, 40, 48, 6, "rgba(255,255,255,0.06)");
+      fillRect(x+6, 41, 8, 4, "rgba(255,255,255,0.03)");
+      fillRect(x+18, 41, 8, 4, "rgba(255,255,255,0.03)");
+      fillRect(x+30, 41, 8, 4, "rgba(255,255,255,0.03)");
+    }
+
+    // Floor: perspective + subtle motion (Mode 7 cheat)
+    fillRect(0, 175, W, H-175, "rgba(0,0,0,0.30)");
+    for (let y=175; y<H; y++){
+      const t = (y-175)/(H-175);
+      const w = lerp(W*0.25, W*1.10, t);
       const x = (W - w)/2;
-      const a = 0.03 + t*0.09;
-      if (((y + ((now/55)|0)) % 9) === 0) fillRect(x, y, w, 1, `rgba(255,255,255,${a})`);
+      const row = (y + ((now/42)|0)) % 12;
+      if (row === 0){
+        fillRect(x, y, w, 1, `rgba(255,255,255,${0.06 + t*0.12})`);
+      }
+      // grime lines
+      if (row === 6){
+        fillRect(x, y, w, 1, `rgba(0,0,0,${0.10 + t*0.20})`);
+      }
     }
-    // floor darker base
-    fillRect(0, 186, W, H-186, "rgba(0,0,0,0.28)");
 
-    // window frame
-    fillRect(332, 34, 136, 96, "rgba(0,0,0,0.40)");
-    fillRect(340, 40, 120, 80, "rgba(18,26,60,0.95)");
+    // Window
+    fillRect(326, 40, 152, 104, "rgba(0,0,0,0.45)");
+    fillRect(338, 52, 128, 80, "rgba(18,24,60,0.98)");
 
-    // rain in window (parallax)
-    ctx.fillStyle = "rgba(200,220,255,0.22)";
-    for (const r of scene.rain) ctx.fillRect(r.x|0, r.y|0, 1, r.l|0);
+    // Rain
+    ctx.fillStyle = "rgba(210,230,255,0.22)";
+    for (const r of scene.rain){
+      ctx.fillRect(r.x|0, r.y|0, 1, r.l|0);
+    }
 
-    // window highlights
-    ctx.strokeStyle = "rgba(255,255,255,0.25)";
+    // Window frame highlights
+    ctx.strokeStyle = "rgba(255,255,255,0.28)";
     ctx.lineWidth = 1;
-    ctx.strokeRect(339.5,39.5,121,81);
-    ctx.strokeRect(399.5,40.5,1,80);
-    ctx.strokeRect(340.5,79.5,120,1);
+    ctx.strokeRect(337.5,51.5,129,81);
+    ctx.strokeRect(401.5,52.5,1,80);
+    ctx.strokeRect(338.5,91.5,128,1);
 
-    // window light cone
-    const g = ctx.createRadialGradient(410, 80, 20, 320, 110, 200);
-    g.addColorStop(0, "rgba(160,190,255,0.20)");
-    g.addColorStop(1, "rgba(160,190,255,0)");
+    // Window light cone + dust
+    const g = ctx.createRadialGradient(420, 92, 18, 310, 130, 220);
+    g.addColorStop(0, "rgba(150,190,255,0.22)");
+    g.addColorStop(1, "rgba(150,190,255,0)");
     ctx.fillStyle = g;
-    ctx.fillRect(230, 40, 282, 190);
+    ctx.fillRect(200, 50, 312, 200);
 
-    // dust motes in light
     for (const d of scene.dust){
       ctx.globalAlpha = d.a;
       fillRect(d.x, d.y, d.s, d.s, "rgba(255,255,255,1)");
     }
     ctx.globalAlpha = 1;
 
-    // bed + shadows (depth)
-    fillRect(80, 146, 240, 78, "rgba(0,0,0,0.35)");    // shadow base
-    fillRect(90, 140, 220, 76, "rgba(70,100,170,0.32)");
-    fillRect(96, 146, 208, 64, "rgba(255,255,255,0.06)");
-    // pillow
-    fillRect(108, 150, 56, 20, "rgba(250,250,255,0.16)");
-    fillRect(110, 152, 52, 16, "rgba(255,255,255,0.08)");
+    // Bed + props (more layered/shaded)
+    fillRect(70, 148, 260, 84, "rgba(0,0,0,0.38)");      // deep shadow
+    fillRect(82, 142, 240, 82, "rgba(70,100,175,0.34)"); // bed frame
+    fillRect(90, 150, 224, 66, "rgba(255,255,255,0.06)");// sheet shine
+    fillRect(106, 154, 64, 24, "rgba(250,250,255,0.16)");// pillow
+    fillRect(110, 158, 56, 16, "rgba(255,255,255,0.08)");
 
-    // bedside table + monitor
-    fillRect(318, 162, 40, 38, "rgba(120,90,60,0.22)");
-    fillRect(324, 136, 30, 18, "rgba(0,0,0,0.60)");
-    fillRect(327, 139, 24, 12, "rgba(20,255,130,0.06)");
+    // IV stand silhouette (adds “hospital” instantly)
+    fillRect(54, 108, 3, 80, "rgba(0,0,0,0.45)");
+    fillRect(46, 108, 20, 3, "rgba(0,0,0,0.45)");
+    fillRect(50, 92, 12, 16, "rgba(0,0,0,0.35)");
 
-    // tiny wall cross (subtle)
-    fillRect(62, 54, 4, 18, "rgba(255,255,255,0.18)");
-    fillRect(56, 61, 16, 4, "rgba(255,255,255,0.18)");
+    // Bedside table + monitor
+    fillRect(330, 168, 44, 42, "rgba(120,90,60,0.22)");
+    fillRect(338, 140, 34, 20, "rgba(0,0,0,0.62)");
+    fillRect(342, 144, 26, 12, "rgba(20,255,130,0.06)");
 
-    // room vignette base (pre postFX)
-    const vg = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, 260);
+    // Subtle vignette base
+    const vg = ctx.createRadialGradient(W/2, H/2, 60, W/2, H/2, 290);
     vg.addColorStop(0, "rgba(0,0,0,0)");
-    vg.addColorStop(1, "rgba(0,0,0,0.25)");
+    vg.addColorStop(1, "rgba(0,0,0,0.22)");
     ctx.fillStyle = vg;
     ctx.fillRect(0,0,W,H);
   }
 
-  // ===== Bill sprite (still simple but “real game” shaded) =====
-  function drawBill(){
-    const x=scene.bill.x, y=scene.bill.y;
-
-    const skin1="rgba(255,220,185,0.80)";
-    const skin2="rgba(220,170,140,0.60)";
-    const suit1="rgba(30,32,48,0.82)";
-    const suit2="rgba(55,58,90,0.55)";
-    const outline="rgba(0,0,0,0.55)";
-
-    const px=(dx,dy,w,h,c)=>fillRect(x+dx,y+dy,w,h,c);
-
-    // soft shadow
-    fillRect(x+22, y+66, 30, 5, "rgba(0,0,0,0.28)");
-
-    if (scene.bill.pose==="sleep"){
-      // lying body
-      px(18, 34, 36, 18, suit1);
-      px(18, 50, 36, 10, suit2);
-      // head
-      px(52, 36, 14, 12, skin1);
-      px(52, 36, 14, 4, skin2);
-      px(56, 41, 2, 2, "rgba(0,0,0,0.35)");
-      // arm
-      px(14, 40, 10, 10, suit1);
-
-      ctx.strokeStyle=outline;
-      ctx.strokeRect(x+18.5,y+34.5,36,18);
-      ctx.strokeRect(x+52.5,y+36.5,14,12);
-      return;
+  // =========================
+  // Bill sprite (Option A): pixel-map stamp (SNES-ish)
+  // =========================
+  function drawPixelSprite(map, x, y, px=3, palette={}){
+    for (let row=0; row<map.length; row++){
+      const line = map[row];
+      for (let col=0; col<line.length; col++){
+        const ch = line[col];
+        if (ch === " ") continue;
+        const c = palette[ch];
+        if (!c) continue;
+        ctx.fillStyle = c;
+        ctx.fillRect((x + col*px)|0, (y + row*px)|0, px, px);
+      }
     }
-
-    // head
-    px(30, 20, 14, 12, skin1);
-    px(30, 20, 14, 4, skin2);
-    px(33, 24, 2, 2, "rgba(0,0,0,0.40)");
-    px(39, 24, 2, 2, "rgba(0,0,0,0.40)");
-
-    // torso
-    px(28, 32, 18, 22, suit1);
-    px(28, 46, 18, 8, suit2);
-
-    // mouth pose
-    if (scene.bill.pose==="sit") px(36, 29, 4, 1, "rgba(0,0,0,0.22)");
-    if (scene.bill.pose==="kneel") px(35, 29, 5, 1, "rgba(0,0,0,0.32)");
-    if (scene.bill.pose==="stunned") px(37, 28, 2, 2, "rgba(0,0,0,0.30)");
-
-    // arms + legs by pose
-    if (scene.bill.pose==="sit"){
-      px(24, 36, 4, 14, suit1);
-      px(46, 36, 4, 14, suit1);
-      px(30, 56, 6, 12, suit1);
-      px(38, 56, 6, 12, suit1);
-    } else if (scene.bill.pose==="kneel"){
-      px(22, 34, 6, 10, suit1);
-      px(46, 34, 6, 10, suit1);
-      px(25, 28, 4, 8, suit2);
-      px(47, 28, 4, 8, suit2);
-      px(30, 56, 8, 12, suit1);
-      px(38, 58, 12, 10, suit1);
-    } else if (scene.bill.pose==="stunned"){
-      px(24, 40, 4, 12, suit1);
-      px(46, 40, 4, 12, suit1);
-      px(31, 56, 6, 12, suit1);
-      px(39, 56, 6, 12, suit1);
-      // little sweat pixel (Misfits wink)
-      px(45, 22, 2, 2, "rgba(150,220,255,0.35)");
-    }
-
-    // outline
-    ctx.strokeStyle=outline;
-    ctx.strokeRect(x+30.5,y+20.5,14,12);
-    ctx.strokeRect(x+28.5,y+32.5,18,22);
   }
 
-  // ===== SNES-style dialogue box (9-slice-ish + nameplate) =====
-  function drawDialogueBox(text, speaker=""){
-    const boxX=14, boxY=H-88, boxW=W-28, boxH=74;
+  function drawBill(){
+    // Legend:
+    // K outline, S suit mid, s suit shadow, H suit highlight
+    // F face mid, f face shadow, N hair
+    // W shirt, T tie, . sparkle
+    const pal = {
+      "K":"rgba(0,0,0,0.78)",
+      "S":"rgba(34,36,54,0.95)",
+      "s":"rgba(18,20,34,0.95)",
+      "H":"rgba(85,90,135,0.55)",
+      "W":"rgba(235,238,255,0.35)",
+      "T":"rgba(150,55,65,0.55)",
+      "F":"rgba(255,219,185,0.92)",
+      "f":"rgba(210,160,130,0.70)",
+      "N":"rgba(22,20,22,0.90)",
+      ".":"rgba(255,255,255,0.14)",
+    };
+
+    // “alive” idle motion
+    const bob = Math.sin(performance.now()*0.004) * 1.4;
+    const pose = scene.bill.pose;
+
+    const sit = [
+"            KKKKK           ",
+"          KNNNNNNK          ",
+"         KNNNNNNNNK         ",
+"        KNNNFFfFNNNK        ",
+"        KNNFF  FFNNK        ",
+"        KNNF K  FNNK        ",
+"         KFF  fFFK          ",
+"          KFFFFFK           ",
+"          KSSWTTK           ",
+"         KSSWWTTTK          ",
+"        KSSSWHHSSSK         ",
+"        KSSsSHHsSSK         ",
+"        KSSsSSSSsSK         ",
+"         KSSSSSSSK          ",
+"          KSSSSSK           ",
+"        KKKSSSSKKK          ",
+"       KSSSSSSSSSSK         ",
+"      KSSsSSSSSSsSSK        ",
+"      KSSSSK  KSSSSK        ",
+"      KSSSK    KSSSK        ",
+"       KKK      KKK         ",
+    ];
+
+    const kneel = [
+"            KKKKK           ",
+"          KNNNNNNK          ",
+"         KNNNNNNNNK         ",
+"        KNNNFFfFNNNK        ",
+"        KNNFF  FFNNK        ",
+"        KNNF K  FNNK        ",
+"         KFF  fFFK          ",
+"          KFFFFFK           ",
+"          KSSWTTK           ",
+"        KSSSWWTTTK          ",
+"       KSSSSWHHSSSK         ",
+"      KSSsSHHsSSsSK         ",
+"      KSSsSSSSSSsSK         ",
+"        KSSSSSSSK           ",
+"        KSSSSSSSK           ",
+"      KKKSSSSSSKKK          ",
+"     KSSSSSSSSSSSSK         ",
+"     KSSsSSK KSSsSSK        ",
+"      KSSK    KSSK          ",
+"      KKK      KKK          ",
+"                             ",
+    ];
+
+    const stunned = [
+"            KKKKK           ",
+"          KNNNNNNK          ",
+"         KNNNNNNNNK         ",
+"        KNNNFFfFNNNK        ",
+"        KNNFF  FFNNK        ",
+"        KNNF K  FNNK        ",
+"         KFF  fFFK     .    ",
+"          KFFFFFK    .      ",
+"          KSSWTTK           ",
+"         KSSWWTTTK          ",
+"        KSSSWHHSSSK         ",
+"        KSSsSHHsSSK         ",
+"        KSSsSSSSsSK         ",
+"         KSSSSSSSK          ",
+"          KSSSSSK           ",
+"        KKKSSSSKKK          ",
+"       KSSSSSSSSSSK         ",
+"       KSSsSSSSsSSK         ",
+"        KSSK  KSSK          ",
+"         KKK  KKK           ",
+"                             ",
+    ];
+
+    const sleep = [
+"                             ",
+"                             ",
+"         KKKKKKKKKKK         ",
+"       KKSSSSSSSSSSKK        ",
+"     KKSSSSSSSSSSSSSSKK      ",
+"    KSSSSSSSSSSSSSSSSSSK     ",
+"    KSSSSSSSSSSSSSSSSSSK     ",
+"     KSSSSSSSSSSSSSSSSK      ",
+"      KSSSSSSSSSSSSSSK       ",
+"       KSSSSSSSSSSSSK        ",
+"        KSSSSSSSSSSK         ",
+"         KSSSSSSSSK          ",
+"   KKKKKKKSSSSSSSSKKKKKKK    ",
+"  KNNNNNNKFFfF  KNNNNNNNK    ",
+"  KNNNNNNKFF    KNNNNNNNK    ",
+"   KNNNNNKF K   KNNNNNNK     ",
+"     KKKK KFFFFFK KKKK       ",
+"           KKKK              ",
+"                             ",
+"                             ",
+    ];
+
+    let map = sit;
+    if (pose === "kneel") map = kneel;
+    if (pose === "stunned") map = stunned;
+    if (pose === "sleep") map = sleep;
+
+    const px = 3;
+    const drawX = (scene.bill.x)|0;
+    const drawY = ((scene.bill.y + bob) |0);
+
+    // shadow
+    ctx.globalAlpha = 0.28;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(drawX + 18, drawY + map.length*px - 6, 44, 6);
+    ctx.globalAlpha = 1;
+
+    drawPixelSprite(map, drawX, drawY, px, pal);
+  }
+
+  // =========================
+  // Dialogue UI (SNES)
+  // =========================
+  function drawDialogueBox(text){
+    if (!text) return;
+    const boxX=14, boxY=H-90, boxW=W-28, boxH=76;
 
     // shadow
     fillRect(boxX+2, boxY+2, boxW, boxH, "rgba(0,0,0,0.35)");
 
-    // outer
-    fillRect(boxX, boxY, boxW, boxH, "rgba(8,10,18,0.82)");
-    // inner panel
-    fillRect(boxX+4, boxY+4, boxW-8, boxH-8, "rgba(20,26,44,0.65)");
+    // outer + inner
+    fillRect(boxX, boxY, boxW, boxH, "rgba(6,8,14,0.86)");
+    fillRect(boxX+4, boxY+4, boxW-8, boxH-8, "rgba(20,26,44,0.68)");
 
     // border
     ctx.strokeStyle = "rgba(255,255,255,0.35)";
@@ -484,137 +644,143 @@
     ctx.strokeStyle = "rgba(0,0,0,0.55)";
     ctx.strokeRect(boxX+4.5, boxY+4.5, boxW-9, boxH-9);
 
-    // nameplate (optional)
-    if (speaker){
-      const nx=boxX+10, ny=boxY-14, nw=70, nh=16;
-      fillRect(nx+2, ny+2, nw, nh, "rgba(0,0,0,0.35)");
-      fillRect(nx, ny, nw, nh, "rgba(8,10,18,0.85)");
-      ctx.strokeStyle="rgba(255,255,255,0.35)";
-      ctx.strokeRect(nx+0.5, ny+0.5, nw-1, nh-1);
-      pxText(speaker, nx+8, ny+12, 12, "rgba(255,255,255,0.92)");
-    }
-
-    // typed lines
+    // text
     const lines = text.split("\n").slice(0,3);
     for (let i=0;i<lines.length;i++){
-      pxText(lines[i], boxX+16, boxY+26 + i*16, 14, "rgba(255,255,255,0.92)");
+      drawTextShadow(lines[i], boxX+16, boxY+30 + i*18, 10, "rgba(255,255,255,0.92)");
     }
 
     // prompt
     if (scene.typing.done){
       const a = 0.60 + 0.40*Math.sin(scene.blink);
       ctx.globalAlpha = a;
-      pxText("▶", boxX+boxW-24, boxY+boxH-18, 16, "rgba(255,255,255,0.90)");
+      drawTextShadow("▶", boxX+boxW-28, boxY+boxH-18, 12, "rgba(255,255,255,0.92)");
       ctx.globalAlpha = 1;
     }
   }
 
-  // ===== Title screen (particles + logo) =====
+  // =========================
+  // Title Screen (cooler SNES logo + RGB split)
+  // =========================
   function drawTitle(now){
-    // dawn gradient
-    fillRect(0,0,W,H,"#0a0b18");
+    // background
+    fillRect(0,0,W,H,"#060616");
     for (let i=0;i<10;i++){
-      const a = 0.02 + i*0.008;
-      fillRect(0, i*28, W, 12, `rgba(255,170,90,${a})`);
+      fillRect(0, i*28, W, 12, `rgba(255,170,90,${0.02 + i*0.008})`);
     }
 
-    // starfield
-    for (const s of scene.stars){
-      const tw = 0.55 + 0.45*Math.sin(now*0.002 + s.tw);
-      const a = 0.05 + tw*0.25*s.z;
-      ctx.globalAlpha = a;
-      fillRect(s.x, s.y, 1, 1, "rgba(255,255,255,1)");
-      if (tw > 0.85) fillRect(s.x-1, s.y, 3, 1, "rgba(255,255,255,1)");
+    // subtle moving fog bands (cheap “SNES cinematic”)
+    for (let i=0;i<6;i++){
+      const y = 130 + i*18 + Math.sin(now*0.001 + i)*4;
+      fillRect(0, y, W, 6, "rgba(255,255,255,0.03)");
     }
-    ctx.globalAlpha = 1;
 
-    // church basement doors silhouette
-    fillRect(186, 118, 140, 118, "rgba(0,0,0,0.35)");
-    fillRect(198, 130, 56, 94, "rgba(0,0,0,0.50)");
-    fillRect(258, 130, 56, 94, "rgba(0,0,0,0.50)");
-    fillRect(255, 132, 2, 90, "rgba(255,255,255,0.12)");
+    // "church basement doors" silhouette + glow
+    fillRect(182, 116, 148, 122, "rgba(0,0,0,0.35)");
+    fillRect(196, 130, 58, 96, "rgba(0,0,0,0.55)");
+    fillRect(258, 130, 58, 96, "rgba(0,0,0,0.55)");
+    fillRect(255, 132, 2, 92, "rgba(255,255,255,0.14)");
 
-    // floor glow
-    const g = ctx.createRadialGradient(W/2, 230, 10, W/2, 230, 220);
-    g.addColorStop(0, "rgba(255,220,160,0.18)");
+    const g = ctx.createRadialGradient(W/2, 230, 20, W/2, 230, 210);
+    g.addColorStop(0, "rgba(255,220,160,0.20)");
     g.addColorStop(1, "rgba(255,220,160,0)");
     ctx.fillStyle = g;
     ctx.fillRect(0,150,W,138);
 
-    // Title wobble + punch shadow
-    scene.titleWobble += 0.035;
-    const wob = Math.sin(scene.titleWobble)*2;
+    // Title animation: slam in from above with overshoot
+    scene.titleIn = clamp(scene.titleIn + 0.020, 0, 1);
+    const easeOut = 1 - Math.pow(1 - scene.titleIn, 3);
+    const yBase = lerp(-30, 90, easeOut);
+    const overshoot = Math.sin(scene.titleIn*Math.PI) * 6;
 
-    drawOutlinedText("TRUDGE BROTHERS", 64, 84 + wob, 28,
-      "rgba(255,255,255,0.96)",
-      "rgba(0,0,0,0.80)"
-    );
+    // Mega logo: “TRUDGE BROTHERS” with RGB split + shadow for SNES energy
+    const tx = 46;
+    const ty = (yBase + overshoot) |0;
+
+    // big dark drop shadow
+    ctx.globalAlpha = 0.75;
+    setFont(18);
+    ctx.fillStyle = "rgba(0,0,0,0.90)";
+    ctx.fillText("TRUDGE BROTHERS", tx+4, ty+10);
+    ctx.globalAlpha = 1;
+
+    // RGB split main title
+    rgbSplitText("TRUDGE BROTHERS", tx, ty+8, 18, 2);
+
+    // crisp white top layer
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    ctx.fillText("TRUDGE BROTHERS", tx, ty+8);
 
     // subtitle
-    drawOutlinedText("Start to Surrender", 150, 108, 14,
-      "rgba(255,255,255,0.88)",
-      "rgba(0,0,0,0.70)"
-    );
+    drawTextShadow("START TO SURRENDER", 92, 130, 10, "rgba(255,255,255,0.86)");
 
-    // PRESS START
-    scene.titlePulse += 0.05;
-    const a = 0.55 + 0.45*Math.sin(scene.titlePulse);
+    // PRESS START blink
+    const a = 0.55 + 0.45*Math.sin(now*0.008);
     ctx.globalAlpha = a;
-    drawOutlinedText("PRESS START", 186, 256, 16,
-      "rgba(255,255,255,0.95)",
-      "rgba(0,0,0,0.80)"
-    );
+    drawTextShadow("PRESS START", 162, 254, 10, "rgba(255,255,255,0.92)");
     ctx.globalAlpha = 1;
   }
 
-  // ===== Big “console” finishing filter (FAST version) =====
-  // We avoid heavy full-screen getImageData each frame by doing:
-  // 1) scanlines + vignette as simple overlays
-  // 2) very light grain via tiny random rectangles
+  // =========================
+  // Post FX (CRT polish, no heavy pixel ops)
+  // =========================
+  function ditherOverlay(alpha=0.06){
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = "#000";
+    for (let y=0;y<H;y+=2){
+      for (let x=(y%4===0?0:2); x<W; x+=4){
+        ctx.fillRect(x,y,1,1);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
   function postFX(now){
     // scanlines
-    ctx.globalAlpha = 0.08;
+    ctx.globalAlpha = 0.09;
     ctx.fillStyle = "#000";
     for (let y=0; y<H; y+=2) ctx.fillRect(0, y, W, 1);
     ctx.globalAlpha = 1;
 
     // vignette
-    const vg = ctx.createRadialGradient(W/2, H/2, 60, W/2, H/2, 280);
+    const vg = ctx.createRadialGradient(W/2, H/2, 70, W/2, H/2, 290);
     vg.addColorStop(0, "rgba(0,0,0,0)");
-    vg.addColorStop(1, "rgba(0,0,0,0.34)");
+    vg.addColorStop(1, "rgba(0,0,0,0.36)");
     ctx.fillStyle = vg;
     ctx.fillRect(0,0,W,H);
 
-    // micro grain (few pixels)
+    // micro grain
     ctx.globalAlpha = 0.08;
     for (let i=0;i<55;i++){
       const x = (Math.random()*W)|0;
       const y = (Math.random()*H)|0;
-      ctx.fillStyle = Math.random() > 0.5 ? "rgba(255,255,255,1)" : "rgba(0,0,0,1)";
+      ctx.fillStyle = Math.random()>0.5 ? "rgba(255,255,255,1)" : "rgba(0,0,0,1)";
       ctx.fillRect(x,y,1,1);
     }
     ctx.globalAlpha = 1;
 
-    // CRT-ish subtle horizontal bloom bar
-    const bar = ((now/10)|0) % H;
+    // moving bright scan bar (subtle “capture” vibe)
+    scene.scanBarY = (scene.scanBarY + 40*0.016) % H;
+    const barY = ((now/12)|0) % H;
     ctx.globalAlpha = 0.05;
     ctx.fillStyle = "rgba(255,255,255,1)";
-    ctx.fillRect(0, bar, W, 2);
+    ctx.fillRect(0, barY, W, 2);
     ctx.globalAlpha = 1;
+
+    // dither (SNES grit)
+    ditherOverlay(0.05);
   }
 
-  // ===== Flash / invert / shake effects =====
-  function applyFlashAndInvert(now){
-    // Invert cheat: draw a translucent white-blue overlay + dark overlay alternating
-    if (scene.invert > 0.001){
-      ctx.globalAlpha = 0.35 * scene.invert;
-      fillRect(0,0,W,H,"rgba(220,240,255,1)");
-      ctx.globalAlpha = 0.20 * scene.invert;
-      fillRect(0,0,W,H,"rgba(0,0,0,1)");
+  // Flash / impact overlays
+  function applyFlashImpact(now){
+    // warp is faked by stronger vignette + rgb split overlay during impact
+    if (scene.warp > 0.001){
+      ctx.globalAlpha = 0.10 * scene.warp;
+      fillRect(0,0,W,H,"rgba(120,160,255,1)");
       ctx.globalAlpha = 1;
     }
 
-    // Strobe flash (double hit)
+    // strobe flash (two hits)
     if (scene.idx === 3){
       const t = scene.timer;
       let strobe = 0;
@@ -624,10 +790,9 @@
       else strobe = scene.flash;
 
       ctx.globalAlpha = strobe;
-      fillRect(0,0,W,H,"#ffffff");
+      fillRect(0,0,W,H,"#fff");
       ctx.globalAlpha = 1;
 
-      // radial burst
       const burst = ctx.createRadialGradient(W/2, H/2, 20, W/2, H/2, 240);
       burst.addColorStop(0, `rgba(255,255,255,${0.55*strobe})`);
       burst.addColorStop(1, "rgba(255,255,255,0)");
@@ -635,39 +800,25 @@
       ctx.fillRect(0,0,W,H);
     } else if (scene.flash > 0.001){
       ctx.globalAlpha = scene.flash;
-      fillRect(0,0,W,H,"#ffffff");
+      fillRect(0,0,W,H,"#fff");
       ctx.globalAlpha = 1;
     }
   }
 
-  // ===== Update loop =====
-  let last = performance.now();
-
-  function updateParticles(dt){
-    // rain
-    for (const r of scene.rain){
-      r.y += r.v * dt;
-      r.x -= 18 * dt;
-      if (r.y > 120){
-        r.y = 40 - Math.random()*16;
-        r.x = 340 + Math.random()*120;
-      }
+  function drawSparks(){
+    for (const s of scene.sparks){
+      const a = clamp(s.life / 0.8, 0, 1);
+      ctx.globalAlpha = a;
+      fillRect(s.x, s.y, 2, 2, "rgba(255,255,255,0.95)");
+      if (Math.random() > 0.6) fillRect(s.x+2, s.y, 1, 1, "rgba(180,220,255,0.65)");
     }
-    // dust
-    for (const d of scene.dust){
-      d.x += d.vx * dt;
-      d.y += d.vy * dt;
-      if (d.x < 240) d.x = 470;
-      if (d.x > 500) d.x = 250;
-      if (d.y < 70) d.y = 220;
-      if (d.y > 240) d.y = 80;
-    }
-    // title stars drift
-    for (const s of scene.stars){
-      s.y += 2.0 * s.z * dt;
-      if (s.y > H) s.y = 0;
-    }
+    ctx.globalAlpha = 1;
   }
+
+  // =========================
+  // Main loop
+  // =========================
+  let last = performance.now();
 
   function frame(now){
     const dt = Math.min(0.05, (now-last)/1000);
@@ -676,55 +827,56 @@
     scene.timer += dt;
     scene.blink += dt*8;
 
-    updateParticles(dt);
+    // ambient camera drift (subtle)
+    scene.cam.t += dt;
+    scene.cam.x = Math.sin(scene.cam.t*0.6)*0.8;
+    scene.cam.y = Math.sin(scene.cam.t*0.45)*0.6;
 
-    // typing
+    updateParticles(dt);
     updateTyping(dt);
 
-    // beat behaviors
+    // beat behavior
     if (scene.idx === 3){
-      scene.flash = clamp(scene.flash - dt*2.6, 0, 1);
-      scene.invert = clamp(scene.invert - dt*1.6, 0, 1);
-      scene.shake = clamp(scene.shake - dt*22, 0, 14);
-      // auto advance after the hit
+      scene.flash = clamp(scene.flash - dt*2.7, 0, 1);
+      scene.invert = clamp(scene.invert - dt*1.8, 0, 1);
+      scene.shake = clamp(scene.shake - dt*24, 0, 16);
+      scene.warp  = clamp(scene.warp  - dt*2.4, 0, 1);
       if (scene.timer > 0.95){
         scene.idx++;
         beats[scene.idx]();
       }
     } else {
-      // allow advance shortly after text finishes
       if (scene.typing.done && scene.timer > 0.35 && scene.idx !== 6) scene.allowAdvance = true;
     }
 
-    // fade to title beat
     if (scene.idx === 6){
       scene.fadeToTitle = clamp(scene.fadeToTitle + dt*0.9, 0, 1);
       if (scene.fadeToTitle > 0.55) scene.title = true;
     }
 
-    // ===== Draw =====
+    // =========================
+    // Draw
+    // =========================
     ctx.save();
 
-    // camera shake
-    const sx = (Math.random()*2-1) * scene.shake;
-    const sy = (Math.random()*2-1) * scene.shake;
+    // camera + shake
+    const sx = scene.cam.x + (Math.random()*2-1)*scene.shake;
+    const sy = scene.cam.y + (Math.random()*2-1)*scene.shake;
     ctx.translate(sx|0, sy|0);
 
     if (!scene.title){
-      drawHospitalRoom(now);
+      drawHospital(now);
       drawBill();
+      drawSparks();
 
       const t = typedText();
-      if (t && scene.idx !== 3){
-        // show speaker only for certain beats if you want
-        drawDialogueBox(t, "");
-      }
+      if (t && scene.idx !== 3) drawDialogueBox(t);
 
       // monitor pulse
       if (scene.idx <= 2){
         const pulse = 0.5 + 0.5*Math.sin(now*0.006);
         ctx.globalAlpha = 0.10 + 0.18*pulse;
-        fillRect(329, 141, 16, 6, "rgba(20,255,130,1)");
+        fillRect(346, 148, 18, 7, "rgba(20,255,130,1)");
         ctx.globalAlpha = 1;
       }
     } else {
@@ -735,16 +887,14 @@
 
     // global effects
     if (!scene.title){
-      applyFlashAndInvert(now);
+      applyFlashImpact(now);
 
-      // fade to title overlay
+      // fade to title
       if (scene.idx === 6){
         ctx.globalAlpha = scene.fadeToTitle;
-        fillRect(0,0,W,H,"#000000");
+        fillRect(0,0,W,H,"#000");
         ctx.globalAlpha = 1;
-        if (scene.fadeToTitle > 0.75){
-          drawTitle(now);
-        }
+        if (scene.fadeToTitle > 0.75) drawTitle(now);
       }
     }
 
@@ -754,14 +904,17 @@
     requestAnimationFrame(frame);
   }
 
-  // ===== Start =====
+  // =========================
+  // Start
+  // =========================
   function start(){
     seedParticles();
     beats[0]();
     requestAnimationFrame(frame);
-    console.log("Trudge Brothers WOW intro loaded. Click/tap for audio. Space/Enter advances. M toggles mute.");
+    console.log("Trudge Brothers SNES Intro loaded. Click/tap for audio. Space/Enter advances. M toggles mute.");
   }
   start();
+
 })();
 </script>
 </body>
