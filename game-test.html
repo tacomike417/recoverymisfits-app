@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Trudge Brothers — SNES Intro (Option A, no sprites)</title>
+  <title>Trudge Brothers — SNES Intro (Autoplay Cutscene)</title>
 
-  <!-- GAME FONT (Press Start 2P) -->
+  <!-- Game font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -23,19 +23,36 @@
       background:#050816;
       touch-action: manipulation;
     }
-    .hint{
-      position:fixed; left:0; right:0; bottom:10px;
-      text-align:center;
-      font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      color:rgba(255,255,255,.75);
+    .ui{
+      position:fixed;
+      left:0; right:0; bottom:10px;
+      display:flex;
+      justify-content:center;
       pointer-events:none;
+      font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:rgba(255,255,255,.65);
       text-shadow:0 2px 10px rgba(0,0,0,.6);
     }
+    .replay{
+      position:fixed;
+      right:14px; bottom:14px;
+      pointer-events:auto;
+      border:1px solid rgba(255,255,255,.25);
+      background: rgba(0,0,0,.55);
+      color: rgba(255,255,255,.9);
+      padding:10px 12px;
+      border-radius:10px;
+      font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      cursor:pointer;
+      backdrop-filter: blur(6px);
+    }
+    .replay:active{ transform: translateY(1px); }
   </style>
 </head>
 <body>
 <canvas id="c" width="512" height="288"></canvas>
-<div class="hint">Click/Tap once to enable audio • Space/Enter to advance • M = mute</div>
+<div class="ui">Autoplay cutscene • Click “Replay Scene” once if you want audio</div>
+<button class="replay" id="replayBtn">Replay Scene</button>
 
 <script>
 (() => {
@@ -45,10 +62,12 @@
   const canvas = document.getElementById("c");
   const ctx = canvas.getContext("2d", { alpha:false });
   ctx.imageSmoothingEnabled = false;
-
   const W = canvas.width, H = canvas.height;
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const lerp=(a,b,t)=>a+(b-a)*t;
+  const easeInOut = (t)=> t<0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
+  const easeOut = (t)=> 1 - Math.pow(1-t,3);
+  const easeIn = (t)=> t*t*t;
 
   function fillRect(x,y,w,h,c){
     ctx.fillStyle=c;
@@ -56,7 +75,7 @@
   }
 
   // =========================
-  // Audio (SNES-ish vibe, no files)
+  // Audio (plays after user interacts — browser rules)
   // =========================
   let AC=null, master=null, musicOn=true, audioEnabled=false;
   let delay=null, delayGain=null, musicTimer=null;
@@ -64,7 +83,6 @@
   function initAudio(){
     if (audioEnabled) return;
     AC = new (window.AudioContext || window.webkitAudioContext)();
-
     master = AC.createGain();
     master.gain.value = 0.18;
 
@@ -97,7 +115,7 @@
 
   function chord(base, t, dur){
     tone(base, t, dur, "triangle", 0.030);
-    tone(base*Math.pow(2, 4/12), t, dur, "triangle", 0.022);
+    tone(base*Math.pow(2, 3/12), t, dur, "triangle", 0.022);
     tone(base*Math.pow(2, 7/12), t, dur, "triangle", 0.020);
   }
 
@@ -108,27 +126,23 @@
     const bpm = 96;
     const spb = 60/bpm;
 
-    // Slightly "Super Contra briefing room" energy: minor-ish feel
+    // moody "action briefing room" loop
     const roots = [220, 196, 174.61, 164.81]; // A, G, F, E
-    const arp = [0, 7, 10, 7, 0, 7, 12, 7]; // add minor 7-ish color
+    const arp = [0, 7, 10, 7, 0, 7, 12, 7];
     let step = 0;
 
     const tick = () => {
       if (!audioEnabled || !musicOn) return;
-
       const t = AC.currentTime + 0.02;
       const bar = Math.floor(step / 8) % roots.length;
       const root = roots[bar];
 
-      // pad stab
-      if (step % 8 === 0) chord(root/2, t, spb*1.6);
+      if (step % 8 === 0) chord(root/2, t, spb*1.7);
 
-      // arpeggio lead
       const p = arp[step % arp.length];
       const note = root * Math.pow(2, p/12);
-      tone(note, t, spb*0.44, "square", 0.050);
+      tone(note, t, spb*0.42, "square", 0.050);
 
-      // little hi sparkle
       if (step % 8 === 0) tone(note*2, t+0.06, spb*0.16, "sine", 0.018);
 
       step++;
@@ -140,222 +154,17 @@
   function sfxFlashHit(){
     if (!audioEnabled || !musicOn) return;
     const t = AC.currentTime + 0.02;
-    // "holy shock" + thump
-    tone(110, t, 0.12, "triangle", 0.028);
-    tone(440, t, 0.09, "sine", 0.028);
-    tone(660, t+0.05, 0.10, "sine", 0.028);
-    tone(880, t+0.11, 0.14, "sine", 0.028);
+    tone(110, t, 0.20, "triangle", 0.030);
+    tone(220, t+0.02, 0.22, "triangle", 0.020);
+    tone(440, t, 0.12, "sine", 0.028);
+    tone(660, t+0.06, 0.14, "sine", 0.028);
+    tone(880, t+0.14, 0.20, "sine", 0.028);
   }
 
   // =========================
-  // Input
+  // Font helpers
   // =========================
-  window.addEventListener("pointerdown", () => initAudio(), {passive:true});
-  window.addEventListener("click", () => initAudio(), {passive:true});
-  window.addEventListener("touchstart", () => initAudio(), {passive:true});
-
-  window.addEventListener("keydown", (e)=>{
-    if (["Space","Enter","KeyM"].includes(e.code)) e.preventDefault();
-    if (e.code === "KeyM") musicOn = !musicOn;
-    if (e.code === "Space" || e.code === "Enter") advance();
-  });
-
-  canvas.addEventListener("pointerdown", () => { initAudio(); advance(); }, {passive:true});
-
-  // =========================
-  // Scene State
-  // =========================
-  const scene = {
-    idx: 0,
-    timer: 0,
-    allowAdvance: false,
-
-    // FX
-    shake: 0,
-    flash: 0,
-    invert: 0,
-    warp: 0,         // extra "impact"
-    fadeToTitle: 0,
-    title: false,
-
-    // typing
-    typing: { text:"", at:0, speed: 34, done:false },
-    blink: 0,
-
-    // world particles
-    rain: [],
-    dust: [],
-    sparks: [],
-    scanBarY: 0,
-
-    // camera drift (adds “real game” feel)
-    cam: { x:0, y:0, t:0 },
-
-    // Bill pose
-    bill: { x: 130, y: 140, pose: "sleep" },
-
-    // title anim
-    titleIn: 0,      // 0..1
-    titleSlam: 0,    // shake on logo
-  };
-
-  function setMessage(lines){
-    const full = (lines || []).filter(Boolean).join("\n");
-    scene.typing.text = full;
-    scene.typing.at = 0;
-    scene.typing.done = false;
-    scene.allowAdvance = false;
-    scene.timer = 0;
-  }
-
-  function typedText(){
-    return scene.typing.text.slice(0, Math.floor(scene.typing.at));
-  }
-
-  function updateTyping(dt){
-    if (scene.typing.done) return;
-    scene.typing.at += dt * scene.typing.speed;
-    if (scene.typing.at >= scene.typing.text.length){
-      scene.typing.at = scene.typing.text.length;
-      scene.typing.done = true;
-    }
-    if (scene.typing.done && scene.timer > 0.30) scene.allowAdvance = true;
-  }
-
-  // =========================
-  // Script beats (same story, better presentation)
-  // =========================
-  const beats = [
-    () => { // 0
-      scene.title = false;
-      scene.fadeToTitle = 0;
-      scene.titleIn = 0;
-      scene.bill.pose = "sleep";
-      setMessage(["TOWNES HOSPITAL…", "AGAIN."]);
-    },
-    () => { // 1
-      scene.bill.pose = "sit";
-      setMessage(["BILL WAKES UP STARING AT THE CEILING.", "“NOT THIS PLACE AGAIN…”"]);
-    },
-    () => { // 2
-      scene.bill.pose = "kneel";
-      setMessage(["HE WHISPERS… THEN IT COMES OUT LOUD:", "“IF THERE IS A GOD— SHOW HIMSELF TO ME!”"]);
-    },
-    () => { // 3 FLASH HIT
-      scene.bill.pose = "kneel";
-      scene.flash = 1;
-      scene.invert = 1;
-      scene.shake = 14;
-      scene.warp = 1;
-      setMessage([""]);
-      spawnSparks(120, W/2, H/2, 140);
-      sfxFlashHit();
-    },
-    () => { // 4
-      scene.bill.pose = "stunned";
-      setMessage(["EVERYTHING GOES QUIET.", "BILL SITS UP LIKE HE GOT UNPLUGGED AND REBOOTED."]);
-    },
-    () => { // 5
-      scene.bill.pose = "sit";
-      setMessage(["HE SAYS IT OUT LOUD— LIKE IT’S BRAND NEW:", "“WHAT IF I CAN GET THESE DRUNKS HELPING EACH OTHER?”"]);
-    },
-    () => { // 6 fade to title
-      scene.bill.pose = "sit";
-      scene.fadeToTitle = 0;
-      setMessage([""]);
-    }
-  ];
-
-  function advance(){
-    // complete typing on first press
-    if (!scene.typing.done && scene.typing.text.length){
-      scene.typing.at = scene.typing.text.length;
-      scene.typing.done = true;
-      scene.allowAdvance = true;
-      return;
-    }
-    // lock during flash beat
-    if (scene.idx === 3) return;
-    if (!scene.allowAdvance && scene.idx !== 6) return;
-
-    scene.idx++;
-    if (scene.idx >= beats.length){
-      scene.idx = beats.length - 1;
-      scene.title = true;
-      return;
-    }
-    beats[scene.idx]();
-  }
-
-  // =========================
-  // Particles / ambience
-  // =========================
-  function seedParticles(){
-    // rain in window
-    scene.rain = Array.from({length: 110}, () => ({
-      x: 330 + Math.random()*140,
-      y: 36 + Math.random()*90,
-      v: 130 + Math.random()*220,
-      l: 8 + Math.random()*16
-    }));
-    // dust motes in light cone
-    scene.dust = Array.from({length: 55}, () => ({
-      x: 250 + Math.random()*250,
-      y: 80 + Math.random()*150,
-      vx: -6 + Math.random()*12,
-      vy: -10 + Math.random()*20,
-      s: 1 + Math.random()*2,
-      a: 0.08 + Math.random()*0.18
-    }));
-  }
-
-  function spawnSparks(n, x, y, speed=160){
-    for (let i=0;i<n;i++){
-      const a = Math.random()*Math.PI*2;
-      const sp = (speed*0.35) + Math.random()*speed;
-      scene.sparks.push({
-        x, y,
-        vx: Math.cos(a)*sp,
-        vy: Math.sin(a)*sp,
-        life: 0.35 + Math.random()*0.45
-      });
-    }
-  }
-
-  function updateParticles(dt){
-    for (const r of scene.rain){
-      r.y += r.v * dt;
-      r.x -= 24 * dt;
-      if (r.y > 130){
-        r.y = 36 - Math.random()*18;
-        r.x = 330 + Math.random()*140;
-      }
-    }
-    for (const d of scene.dust){
-      d.x += d.vx * dt;
-      d.y += d.vy * dt;
-      if (d.x < 240) d.x = 505;
-      if (d.x > 510) d.x = 250;
-      if (d.y < 70) d.y = 230;
-      if (d.y > 240) d.y = 80;
-    }
-    for (let i=scene.sparks.length-1;i>=0;i--){
-      const s = scene.sparks[i];
-      s.life -= dt;
-      s.x += s.vx * dt;
-      s.y += s.vy * dt;
-      s.vx *= (1 - dt*3.2);
-      s.vy *= (1 - dt*3.2);
-      if (s.life <= 0) scene.sparks.splice(i,1);
-    }
-  }
-
-  // =========================
-  // SNES-ish drawing utilities
-  // =========================
-  function setFont(px){
-    ctx.font = `${px}px "Press Start 2P", monospace`;
-  }
+  function setFont(px){ ctx.font = `${px}px "Press Start 2P", monospace`; }
 
   function drawTextShadow(text, x, y, px, color="rgba(255,255,255,0.95)", shadow="rgba(0,0,0,0.75)"){
     setFont(px);
@@ -365,7 +174,7 @@
     ctx.fillText(text, x, y);
   }
 
-  function rgbSplitText(text, x, y, px, strength=1){
+  function rgbSplitText(text, x, y, px, strength=2){
     setFont(px);
     ctx.globalAlpha = 0.80;
     ctx.fillStyle = "rgba(255,70,70,1)"; ctx.fillText(text, x-1*strength, y);
@@ -374,23 +183,150 @@
     ctx.globalAlpha = 1;
   }
 
+  function wrapLines(text, maxWidth, fontPx){
+    setFont(fontPx);
+    const words = (text || "").split(/\s+/).filter(Boolean);
+    const lines = [];
+    let line = "";
+
+    for (const w of words){
+      const test = line ? (line + " " + w) : w;
+      if (ctx.measureText(test).width <= maxWidth){
+        line = test;
+      } else {
+        if (line) lines.push(line);
+        line = w;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
   // =========================
-  // Background: Hospital (SNES “Super Contra-ish” mood)
+  // Scene / Timeline (autoplay)
   // =========================
-  function drawHospital(now){
-    // Base: deep blue-gray
+  const scene = {
+    t: 0,               // seconds into cutscene
+    total: 20.0,        // overall length
+    shake: 0,
+    flash: 0,
+    warp: 0,
+    fadeToTitle: 0,
+    titleAlpha: 0,
+    titleIn: 0,
+
+    // camera drift
+    camT: 0, camX: 0, camY: 0,
+
+    // particles
+    rain: [],
+    dust: [],
+    sparks: [],
+
+    // Bill: position and animation state
+    bill: {
+      x: 118, y: 148,           // pixel-sprite anchor
+      pose: "lie",              // lie, stand, walk1, walk2, kneel
+    },
+
+    // Dialogue
+    dialog: {
+      on: false,
+      text: "",
+    }
+  };
+
+  // timings (seconds)
+  const T0 = 0.0;   // start
+  const T1 = 3.0;   // "Townes Hospital AGAIN." display
+  const T2 = 7.2;   // Bill moves to kneel by this
+  const TPRAY_START = 5.0;
+  const TPRAY_END   = 7.2;     // prayer line shown
+  const TFLASH_START = 7.2;
+  const TFLASH_END   = 12.2;   // 5 seconds FLASH/SHOCK
+  const TAFTER_START = 12.2;
+  const TAFTER_END   = 15.6;
+  const TTITLE_START = 15.6;
+  const TTITLE_END   = 20.0;
+
+  // =========================
+  // Particles
+  // =========================
+  function seedParticles(){
+    scene.rain = Array.from({length: 120}, () => ({
+      x: 330 + Math.random()*140,
+      y: 36 + Math.random()*90,
+      v: 130 + Math.random()*230,
+      l: 8 + Math.random()*18
+    }));
+    scene.dust = Array.from({length: 65}, () => ({
+      x: 245 + Math.random()*260,
+      y: 80 + Math.random()*150,
+      vx: -8 + Math.random()*16,
+      vy: -12 + Math.random()*24,
+      s: 1 + Math.random()*2,
+      a: 0.07 + Math.random()*0.18
+    }));
+  }
+
+  function spawnSparks(n, x, y, speed=180){
+    for (let i=0;i<n;i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = (speed*0.30) + Math.random()*speed;
+      scene.sparks.push({
+        x, y,
+        vx: Math.cos(a)*sp,
+        vy: Math.sin(a)*sp,
+        life: 0.6 + Math.random()*0.9
+      });
+    }
+  }
+
+  function updateParticles(dt){
+    for (const r of scene.rain){
+      r.y += r.v * dt;
+      r.x -= 26 * dt;
+      if (r.y > 130){
+        r.y = 36 - Math.random()*18;
+        r.x = 330 + Math.random()*140;
+      }
+    }
+    for (const d of scene.dust){
+      d.x += d.vx * dt;
+      d.y += d.vy * dt;
+      if (d.x < 240) d.x = 510;
+      if (d.x > 512) d.x = 250;
+      if (d.y < 70) d.y = 232;
+      if (d.y > 242) d.y = 82;
+    }
+    for (let i=scene.sparks.length-1;i>=0;i--){
+      const s = scene.sparks[i];
+      s.life -= dt;
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+      s.vx *= (1 - dt*2.4);
+      s.vy *= (1 - dt*2.4);
+      if (s.life <= 0) scene.sparks.splice(i,1);
+    }
+  }
+
+  // =========================
+  // Background: “SNES hospital / action game vibe”
+  // =========================
+  function drawHospitalBG(now){
+    // base
     fillRect(0,0,W,H,"#060916");
 
-    // Industrial wall paneling (gives that SNES action-game vibe)
+    // industrial wall paneling
     for (let y=0; y<170; y+=26){
       const a = 0.08 + (y/170)*0.06;
       fillRect(0, y, W, 12, `rgba(255,255,255,${a})`);
       fillRect(0, y+12, W, 2, "rgba(0,0,0,0.25)");
     }
 
-    // Overhead pipes + vents (simple geometry, but reads "SNES")
-    fillRect(0, 22, W, 6, "rgba(0,0,0,0.35)");
-    fillRect(0, 28, W, 2, "rgba(255,255,255,0.06)");
+    // overhead pipe + vents
+    fillRect(0, 20, W, 7, "rgba(0,0,0,0.36)");
+    fillRect(0, 27, W, 2, "rgba(255,255,255,0.06)");
     for (let i=0;i<6;i++){
       const x = 26 + i*82;
       fillRect(x, 36, 56, 14, "rgba(0,0,0,0.25)");
@@ -400,8 +336,9 @@
       fillRect(x+30, 41, 8, 4, "rgba(255,255,255,0.03)");
     }
 
-    // Floor: perspective + subtle motion (Mode 7 cheat)
-    fillRect(0, 175, W, H-175, "rgba(0,0,0,0.30)");
+    // floor base
+    fillRect(0, 175, W, H-175, "rgba(0,0,0,0.32)");
+    // perspective scan rows
     for (let y=175; y<H; y++){
       const t = (y-175)/(H-175);
       const w = lerp(W*0.25, W*1.10, t);
@@ -410,30 +347,25 @@
       if (row === 0){
         fillRect(x, y, w, 1, `rgba(255,255,255,${0.06 + t*0.12})`);
       }
-      // grime lines
       if (row === 6){
-        fillRect(x, y, w, 1, `rgba(0,0,0,${0.10 + t*0.20})`);
+        fillRect(x, y, w, 1, `rgba(0,0,0,${0.10 + t*0.22})`);
       }
     }
 
-    // Window
+    // window
     fillRect(326, 40, 152, 104, "rgba(0,0,0,0.45)");
     fillRect(338, 52, 128, 80, "rgba(18,24,60,0.98)");
-
-    // Rain
+    // rain
     ctx.fillStyle = "rgba(210,230,255,0.22)";
-    for (const r of scene.rain){
-      ctx.fillRect(r.x|0, r.y|0, 1, r.l|0);
-    }
-
-    // Window frame highlights
+    for (const r of scene.rain) ctx.fillRect(r.x|0, r.y|0, 1, r.l|0);
+    // window frame
     ctx.strokeStyle = "rgba(255,255,255,0.28)";
     ctx.lineWidth = 1;
     ctx.strokeRect(337.5,51.5,129,81);
     ctx.strokeRect(401.5,52.5,1,80);
     ctx.strokeRect(338.5,91.5,128,1);
 
-    // Window light cone + dust
+    // window light cone + dust
     const g = ctx.createRadialGradient(420, 92, 18, 310, 130, 220);
     g.addColorStop(0, "rgba(150,190,255,0.22)");
     g.addColorStop(1, "rgba(150,190,255,0)");
@@ -446,35 +378,35 @@
     }
     ctx.globalAlpha = 1;
 
-    // Bed + props (more layered/shaded)
-    fillRect(70, 148, 260, 84, "rgba(0,0,0,0.38)");      // deep shadow
-    fillRect(82, 142, 240, 82, "rgba(70,100,175,0.34)"); // bed frame
-    fillRect(90, 150, 224, 66, "rgba(255,255,255,0.06)");// sheet shine
-    fillRect(106, 154, 64, 24, "rgba(250,250,255,0.16)");// pillow
+    // bed + props (layered)
+    fillRect(70, 148, 260, 84, "rgba(0,0,0,0.38)");
+    fillRect(82, 142, 240, 82, "rgba(70,100,175,0.34)");
+    fillRect(90, 150, 224, 66, "rgba(255,255,255,0.06)");
+    fillRect(106, 154, 64, 24, "rgba(250,250,255,0.16)");
     fillRect(110, 158, 56, 16, "rgba(255,255,255,0.08)");
 
-    // IV stand silhouette (adds “hospital” instantly)
+    // IV stand
     fillRect(54, 108, 3, 80, "rgba(0,0,0,0.45)");
     fillRect(46, 108, 20, 3, "rgba(0,0,0,0.45)");
     fillRect(50, 92, 12, 16, "rgba(0,0,0,0.35)");
 
-    // Bedside table + monitor
+    // bedside + monitor
     fillRect(330, 168, 44, 42, "rgba(120,90,60,0.22)");
     fillRect(338, 140, 34, 20, "rgba(0,0,0,0.62)");
     fillRect(342, 144, 26, 12, "rgba(20,255,130,0.06)");
 
-    // Subtle vignette base
-    const vg = ctx.createRadialGradient(W/2, H/2, 60, W/2, H/2, 290);
+    // base vignette
+    const vg = ctx.createRadialGradient(W/2, H/2, 70, W/2, H/2, 290);
     vg.addColorStop(0, "rgba(0,0,0,0)");
-    vg.addColorStop(1, "rgba(0,0,0,0.22)");
+    vg.addColorStop(1, "rgba(0,0,0,0.24)");
     ctx.fillStyle = vg;
     ctx.fillRect(0,0,W,H);
   }
 
   // =========================
-  // Bill sprite (Option A): pixel-map stamp (SNES-ish)
+  // Bill (Option A, no external sprites) — more detailed + poses + walk
   // =========================
-  function drawPixelSprite(map, x, y, px=3, palette={}){
+  function drawPixelSprite(map, x, y, px=2, palette={}){
     for (let row=0; row<map.length; row++){
       const line = map[row];
       for (let col=0; col<line.length; col++){
@@ -488,101 +420,25 @@
     }
   }
 
-  function drawBill(){
-    // Legend:
-    // K outline, S suit mid, s suit shadow, H suit highlight
-    // F face mid, f face shadow, N hair
-    // W shirt, T tie, . sparkle
-    const pal = {
-      "K":"rgba(0,0,0,0.78)",
-      "S":"rgba(34,36,54,0.95)",
-      "s":"rgba(18,20,34,0.95)",
-      "H":"rgba(85,90,135,0.55)",
-      "W":"rgba(235,238,255,0.35)",
-      "T":"rgba(150,55,65,0.55)",
-      "F":"rgba(255,219,185,0.92)",
-      "f":"rgba(210,160,130,0.70)",
-      "N":"rgba(22,20,22,0.90)",
-      ".":"rgba(255,255,255,0.14)",
-    };
+  const BILL_PAL = {
+    "K":"rgba(0,0,0,0.80)",          // outline
+    "N":"rgba(20,18,20,0.95)",       // hair
+    "F":"rgba(255,219,185,0.95)",    // face
+    "f":"rgba(200,150,120,0.80)",    // face shadow
+    "E":"rgba(255,255,255,0.30)",    // eye white
+    "e":"rgba(0,0,0,0.50)",          // pupil
+    "S":"rgba(34,36,54,0.96)",       // suit
+    "s":"rgba(18,20,34,0.96)",       // suit shadow
+    "H":"rgba(88,92,140,0.55)",      // suit highlight
+    "W":"rgba(235,238,255,0.40)",    // shirt
+    "T":"rgba(160,55,70,0.60)",      // tie
+    "P":"rgba(255,255,255,0.12)",    // highlight pixels
+    ".":"rgba(150,220,255,0.18)"     // sweat/sparkle
+  };
 
-    // “alive” idle motion
-    const bob = Math.sin(performance.now()*0.004) * 1.4;
-    const pose = scene.bill.pose;
-
-    const sit = [
-"            KKKKK           ",
-"          KNNNNNNK          ",
-"         KNNNNNNNNK         ",
-"        KNNNFFfFNNNK        ",
-"        KNNFF  FFNNK        ",
-"        KNNF K  FNNK        ",
-"         KFF  fFFK          ",
-"          KFFFFFK           ",
-"          KSSWTTK           ",
-"         KSSWWTTTK          ",
-"        KSSSWHHSSSK         ",
-"        KSSsSHHsSSK         ",
-"        KSSsSSSSsSK         ",
-"         KSSSSSSSK          ",
-"          KSSSSSK           ",
-"        KKKSSSSKKK          ",
-"       KSSSSSSSSSSK         ",
-"      KSSsSSSSSSsSSK        ",
-"      KSSSSK  KSSSSK        ",
-"      KSSSK    KSSSK        ",
-"       KKK      KKK         ",
-    ];
-
-    const kneel = [
-"            KKKKK           ",
-"          KNNNNNNK          ",
-"         KNNNNNNNNK         ",
-"        KNNNFFfFNNNK        ",
-"        KNNFF  FFNNK        ",
-"        KNNF K  FNNK        ",
-"         KFF  fFFK          ",
-"          KFFFFFK           ",
-"          KSSWTTK           ",
-"        KSSSWWTTTK          ",
-"       KSSSSWHHSSSK         ",
-"      KSSsSHHsSSsSK         ",
-"      KSSsSSSSSSsSK         ",
-"        KSSSSSSSK           ",
-"        KSSSSSSSK           ",
-"      KKKSSSSSSKKK          ",
-"     KSSSSSSSSSSSSK         ",
-"     KSSsSSK KSSsSSK        ",
-"      KSSK    KSSK          ",
-"      KKK      KKK          ",
-"                             ",
-    ];
-
-    const stunned = [
-"            KKKKK           ",
-"          KNNNNNNK          ",
-"         KNNNNNNNNK         ",
-"        KNNNFFfFNNNK        ",
-"        KNNFF  FFNNK        ",
-"        KNNF K  FNNK        ",
-"         KFF  fFFK     .    ",
-"          KFFFFFK    .      ",
-"          KSSWTTK           ",
-"         KSSWWTTTK          ",
-"        KSSSWHHSSSK         ",
-"        KSSsSHHsSSK         ",
-"        KSSsSSSSsSK         ",
-"         KSSSSSSSK          ",
-"          KSSSSSK           ",
-"        KKKSSSSKKK          ",
-"       KSSSSSSSSSSK         ",
-"       KSSsSSSSsSSK         ",
-"        KSSK  KSSK          ",
-"         KKK  KKK           ",
-"                             ",
-    ];
-
-    const sleep = [
+  // These maps are “big enough to read” at px=2, with shading.
+  // They’re still code-only — no PNGs.
+  const BILL_LIE = [
 "                             ",
 "                             ",
 "         KKKKKKKKKKK         ",
@@ -596,46 +452,151 @@
 "        KSSSSSSSSSSK         ",
 "         KSSSSSSSSK          ",
 "   KKKKKKKSSSSSSSSKKKKKKK    ",
-"  KNNNNNNKFFfF  KNNNNNNNK    ",
-"  KNNNNNNKFF    KNNNNNNNK    ",
-"   KNNNNNKF K   KNNNNNNK     ",
+"  KNNNNNNKFFfFEE KNNNNNNNK   ",
+"  KNNNNNNKFF e  KNNNNNNNK    ",
+"   KNNNNNKF f   KNNNNNNK     ",
 "     KKKK KFFFFFK KKKK       ",
 "           KKKK              ",
+"         KKK  KKK            ",
+"        KssK  KssK           ",
+"                             "
+  ];
+
+  const BILL_STAND = [
+"            KKKKK            ",
+"          KNNNNNNK           ",
+"         KNNNNNNNNK          ",
+"        KNNNFFfFNNNK         ",
+"        KNNFFEEFFNNK         ",
+"        KNNF e  FNNK         ",
+"         KFF  fFFK           ",
+"          KFFFFFK            ",
+"        KKKSSWTTKKK          ",
+"       KSSSWWTTTSSSK         ",
+"      KSSSSWHHSSSSSSK        ",
+"      KSSsSHHsSSsSSSK        ",
+"      KSSsSSSSSSsSSSK        ",
+"       KSSSSSSSSSSSK         ",
+"        KSSSSSSSSSK          ",
+"        KSSS K SSSK          ",
+"       KSSK   KSSSK          ",
+"       KssK   KssSK          ",
+"        KKK   KKKK           ",
 "                             ",
+"                             "
+  ];
+
+  const BILL_KNEEL = [
+"            KKKKK            ",
+"          KNNNNNNK           ",
+"         KNNNNNNNNK          ",
+"        KNNNFFfFNNNK         ",
+"        KNNFFEEFFNNK         ",
+"        KNNF e  FNNK         ",
+"         KFF  fFFK           ",
+"          KFFFFFK            ",
+"        KKKSSWTTKKK          ",
+"      KSSSWWTTTSSSSK         ",
+"     KSSSSWHHSSSSSSSK        ",
+"    KSSsSHHsSSsSSsSSSK       ",
+"    KSSsSSSSSSSSsSSSSK       ",
+"      KSSSSSSSSSSSSK         ",
+"      KSSSSSSSSSSSK          ",
+"    KKKSSSSSSSSSSKKK         ",
+"   KSSSSSSK  KSSSSSSK        ",
+"   KSSsSSK    KSSsSSK        ",
+"    KSSK       KSSK          ",
+"    KKK         KKK          ",
+"                             "
+  ];
+
+  // simple 2-frame walk cycle (same body, different legs)
+  const BILL_WALK1 = [
+"            KKKKK            ",
+"          KNNNNNNK           ",
+"         KNNNNNNNNK          ",
+"        KNNNFFfFNNNK         ",
+"        KNNFFEEFFNNK         ",
+"        KNNF e  FNNK         ",
+"         KFF  fFFK           ",
+"          KFFFFFK            ",
+"        KKKSSWTTKKK          ",
+"       KSSSWWTTTSSSK         ",
+"      KSSSSWHHSSSSSSK        ",
+"      KSSsSHHsSSsSSSK        ",
+"      KSSsSSSSSSsSSSK        ",
+"       KSSSSSSSSSSSK         ",
+"        KSSSSSSSSSK          ",
+"        KSSS K SSSK          ",
+"       KSSK   KSSSK          ",
+"       KssK    KSSK          ",
+"        KKK     KKK          ",
 "                             ",
-    ];
+"                             "
+  ];
 
-    let map = sit;
-    if (pose === "kneel") map = kneel;
-    if (pose === "stunned") map = stunned;
-    if (pose === "sleep") map = sleep;
+  const BILL_WALK2 = [
+"            KKKKK            ",
+"          KNNNNNNK           ",
+"         KNNNNNNNNK          ",
+"        KNNNFFfFNNNK         ",
+"        KNNFFEEFFNNK         ",
+"        KNNF e  FNNK         ",
+"         KFF  fFFK           ",
+"          KFFFFFK            ",
+"        KKKSSWTTKKK          ",
+"       KSSSWWTTTSSSK         ",
+"      KSSSSWHHSSSSSSK        ",
+"      KSSsSHHsSSsSSSK        ",
+"      KSSsSSSSSSsSSSK        ",
+"       KSSSSSSSSSSSK         ",
+"        KSSSSSSSSSK          ",
+"        KSSS K SSSK          ",
+"       KSSK    KSSK          ",
+"       KSSK   KssSK          ",
+"       KKK     KKK           ",
+"                             ",
+"                             "
+  ];
 
-    const px = 3;
-    const drawX = (scene.bill.x)|0;
-    const drawY = ((scene.bill.y + bob) |0);
+  function drawBill(now){
+    // scale: px=2 gives more SNES than px=3 here (more resolution)
+    const px = 2;
 
-    // shadow
-    ctx.globalAlpha = 0.28;
+    // small breathing/idle motion
+    const bob = Math.sin(now*0.004) * (scene.bill.pose === "lie" ? 0.7 : 0.9);
+
+    let map = BILL_STAND;
+    if (scene.bill.pose === "lie") map = BILL_LIE;
+    if (scene.bill.pose === "kneel") map = BILL_KNEEL;
+    if (scene.bill.pose === "walk1") map = BILL_WALK1;
+    if (scene.bill.pose === "walk2") map = BILL_WALK2;
+
+    const x = (scene.bill.x)|0;
+    const y = ((scene.bill.y + bob)|0);
+
+    // stronger shadow reads more “real game”
+    ctx.globalAlpha = 0.30;
     ctx.fillStyle = "#000";
-    ctx.fillRect(drawX + 18, drawY + map.length*px - 6, 44, 6);
+    ctx.fillRect(x + 18, y + map.length*px - 6, 56, 6);
     ctx.globalAlpha = 1;
 
-    drawPixelSprite(map, drawX, drawY, px, pal);
+    drawPixelSprite(map, x, y, px, BILL_PAL);
   }
 
   // =========================
-  // Dialogue UI (SNES)
+  // Dialogue box with WRAPPING
   // =========================
-  function drawDialogueBox(text){
+  function drawDialogue(text){
     if (!text) return;
+
     const boxX=14, boxY=H-90, boxW=W-28, boxH=76;
 
     // shadow
-    fillRect(boxX+2, boxY+2, boxW, boxH, "rgba(0,0,0,0.35)");
-
-    // outer + inner
-    fillRect(boxX, boxY, boxW, boxH, "rgba(6,8,14,0.86)");
-    fillRect(boxX+4, boxY+4, boxW-8, boxH-8, "rgba(20,26,44,0.68)");
+    fillRect(boxX+2, boxY+2, boxW, boxH, "rgba(0,0,0,0.36)");
+    // panels
+    fillRect(boxX, boxY, boxW, boxH, "rgba(6,8,14,0.88)");
+    fillRect(boxX+4, boxY+4, boxW-8, boxH-8, "rgba(20,26,44,0.70)");
 
     // border
     ctx.strokeStyle = "rgba(255,255,255,0.35)";
@@ -644,87 +605,87 @@
     ctx.strokeStyle = "rgba(0,0,0,0.55)";
     ctx.strokeRect(boxX+4.5, boxY+4.5, boxW-9, boxH-9);
 
-    // text
-    const lines = text.split("\n").slice(0,3);
-    for (let i=0;i<lines.length;i++){
-      drawTextShadow(lines[i], boxX+16, boxY+30 + i*18, 10, "rgba(255,255,255,0.92)");
-    }
+    // WRAP inside
+    const paddingX = 16;
+    const paddingY = 26;
+    const fontPx = 10;
+    const lineH = 18;
+    const maxW = boxW - paddingX*2;
 
-    // prompt
-    if (scene.typing.done){
-      const a = 0.60 + 0.40*Math.sin(scene.blink);
-      ctx.globalAlpha = a;
-      drawTextShadow("▶", boxX+boxW-28, boxY+boxH-18, 12, "rgba(255,255,255,0.92)");
-      ctx.globalAlpha = 1;
+    const lines = wrapLines(text, maxW, fontPx).slice(0,3); // cap to 3 lines SNES-style
+    for (let i=0;i<lines.length;i++){
+      drawTextShadow(lines[i], boxX+paddingX, boxY+paddingY + i*lineH, fontPx, "rgba(255,255,255,0.92)");
     }
   }
 
   // =========================
-  // Title Screen (cooler SNES logo + RGB split)
+  // Title screen (centered, powerful)
   // =========================
-  function drawTitle(now){
+  function drawTitle(now, alpha){
+    ctx.globalAlpha = alpha;
+
     // background
-    fillRect(0,0,W,H,"#060616");
+    fillRect(0,0,W,H,"#050515");
     for (let i=0;i<10;i++){
       fillRect(0, i*28, W, 12, `rgba(255,170,90,${0.02 + i*0.008})`);
     }
 
-    // subtle moving fog bands (cheap “SNES cinematic”)
+    // fog bands
     for (let i=0;i<6;i++){
-      const y = 130 + i*18 + Math.sin(now*0.001 + i)*4;
+      const y = 132 + i*18 + Math.sin(now*0.001 + i)*4;
       fillRect(0, y, W, 6, "rgba(255,255,255,0.03)");
     }
 
-    // "church basement doors" silhouette + glow
+    // doors silhouette
     fillRect(182, 116, 148, 122, "rgba(0,0,0,0.35)");
-    fillRect(196, 130, 58, 96, "rgba(0,0,0,0.55)");
-    fillRect(258, 130, 58, 96, "rgba(0,0,0,0.55)");
+    fillRect(196, 130, 58, 96, "rgba(0,0,0,0.58)");
+    fillRect(258, 130, 58, 96, "rgba(0,0,0,0.58)");
     fillRect(255, 132, 2, 92, "rgba(255,255,255,0.14)");
 
+    // glow
     const g = ctx.createRadialGradient(W/2, 230, 20, W/2, 230, 210);
-    g.addColorStop(0, "rgba(255,220,160,0.20)");
+    g.addColorStop(0, "rgba(255,220,160,0.22)");
     g.addColorStop(1, "rgba(255,220,160,0)");
     ctx.fillStyle = g;
     ctx.fillRect(0,150,W,138);
 
-    // Title animation: slam in from above with overshoot
-    scene.titleIn = clamp(scene.titleIn + 0.020, 0, 1);
-    const easeOut = 1 - Math.pow(1 - scene.titleIn, 3);
-    const yBase = lerp(-30, 90, easeOut);
-    const overshoot = Math.sin(scene.titleIn*Math.PI) * 6;
+    // Title slam animation (centered)
+    const inT = scene.titleIn; // 0..1
+    const e = easeOut(inT);
+    const yDrop = lerp(-40, 98, e);
+    const overshoot = Math.sin(inT*Math.PI) * 8;
 
-    // Mega logo: “TRUDGE BROTHERS” with RGB split + shadow for SNES energy
-    const tx = 46;
-    const ty = (yBase + overshoot) |0;
+    const title = "TRUDGE BROTHERS";
+    const sub = "START TO SURRENDER";
 
-    // big dark drop shadow
-    ctx.globalAlpha = 0.75;
     setFont(18);
+    const titleW = ctx.measureText(title).width;
+    const tx = (W - titleW)/2;
+
+    // heavy shadow
+    ctx.globalAlpha = alpha * 0.80;
     ctx.fillStyle = "rgba(0,0,0,0.90)";
-    ctx.fillText("TRUDGE BROTHERS", tx+4, ty+10);
-    ctx.globalAlpha = 1;
+    ctx.fillText(title, tx+5, yDrop + overshoot + 10);
+    ctx.globalAlpha = alpha;
 
-    // RGB split main title
-    rgbSplitText("TRUDGE BROTHERS", tx, ty+8, 18, 2);
+    // RGB split + white layer
+    rgbSplitText(title, tx, yDrop + overshoot + 8, 18, 2);
+    ctx.fillStyle = "rgba(255,255,255,0.96)";
+    ctx.fillText(title, tx, yDrop + overshoot + 8);
 
-    // crisp white top layer
-    ctx.fillStyle = "rgba(255,255,255,0.95)";
-    ctx.fillText("TRUDGE BROTHERS", tx, ty+8);
+    // subtitle centered
+    setFont(10);
+    const subW = ctx.measureText(sub).width;
+    drawTextShadow(sub, (W-subW)/2, 140, 10, "rgba(255,255,255,0.86)");
 
-    // subtitle
-    drawTextShadow("START TO SURRENDER", 92, 130, 10, "rgba(255,255,255,0.86)");
-
-    // PRESS START blink
-    const a = 0.55 + 0.45*Math.sin(now*0.008);
-    ctx.globalAlpha = a;
-    drawTextShadow("PRESS START", 162, 254, 10, "rgba(255,255,255,0.92)");
+    // No press start / no play prompts — just the title hit
     ctx.globalAlpha = 1;
   }
 
   // =========================
-  // Post FX (CRT polish, no heavy pixel ops)
+  // FX polish (CRT-ish)
   // =========================
-  function ditherOverlay(alpha=0.06){
+  function ditherOverlay(alpha=0.05){
     ctx.globalAlpha = alpha;
     ctx.fillStyle = "#000";
     for (let y=0;y<H;y+=2){
@@ -743,13 +704,13 @@
     ctx.globalAlpha = 1;
 
     // vignette
-    const vg = ctx.createRadialGradient(W/2, H/2, 70, W/2, H/2, 290);
+    const vg = ctx.createRadialGradient(W/2, H/2, 70, W/2, H/2, 300);
     vg.addColorStop(0, "rgba(0,0,0,0)");
-    vg.addColorStop(1, "rgba(0,0,0,0.36)");
+    vg.addColorStop(1, "rgba(0,0,0,0.38)");
     ctx.fillStyle = vg;
     ctx.fillRect(0,0,W,H);
 
-    // micro grain
+    // grain
     ctx.globalAlpha = 0.08;
     for (let i=0;i<55;i++){
       const x = (Math.random()*W)|0;
@@ -759,55 +720,19 @@
     }
     ctx.globalAlpha = 1;
 
-    // moving bright scan bar (subtle “capture” vibe)
-    scene.scanBarY = (scene.scanBarY + 40*0.016) % H;
+    // subtle scan bar
     const barY = ((now/12)|0) % H;
     ctx.globalAlpha = 0.05;
     ctx.fillStyle = "rgba(255,255,255,1)";
     ctx.fillRect(0, barY, W, 2);
     ctx.globalAlpha = 1;
 
-    // dither (SNES grit)
     ditherOverlay(0.05);
-  }
-
-  // Flash / impact overlays
-  function applyFlashImpact(now){
-    // warp is faked by stronger vignette + rgb split overlay during impact
-    if (scene.warp > 0.001){
-      ctx.globalAlpha = 0.10 * scene.warp;
-      fillRect(0,0,W,H,"rgba(120,160,255,1)");
-      ctx.globalAlpha = 1;
-    }
-
-    // strobe flash (two hits)
-    if (scene.idx === 3){
-      const t = scene.timer;
-      let strobe = 0;
-      if (t < 0.07) strobe = 1;
-      else if (t < 0.12) strobe = 0.18;
-      else if (t < 0.18) strobe = 0.92;
-      else strobe = scene.flash;
-
-      ctx.globalAlpha = strobe;
-      fillRect(0,0,W,H,"#fff");
-      ctx.globalAlpha = 1;
-
-      const burst = ctx.createRadialGradient(W/2, H/2, 20, W/2, H/2, 240);
-      burst.addColorStop(0, `rgba(255,255,255,${0.55*strobe})`);
-      burst.addColorStop(1, "rgba(255,255,255,0)");
-      ctx.fillStyle = burst;
-      ctx.fillRect(0,0,W,H);
-    } else if (scene.flash > 0.001){
-      ctx.globalAlpha = scene.flash;
-      fillRect(0,0,W,H,"#fff");
-      ctx.globalAlpha = 1;
-    }
   }
 
   function drawSparks(){
     for (const s of scene.sparks){
-      const a = clamp(s.life / 0.8, 0, 1);
+      const a = clamp(s.life / 1.2, 0, 1);
       ctx.globalAlpha = a;
       fillRect(s.x, s.y, 2, 2, "rgba(255,255,255,0.95)");
       if (Math.random() > 0.6) fillRect(s.x+2, s.y, 1, 1, "rgba(180,220,255,0.65)");
@@ -815,86 +740,225 @@
     ctx.globalAlpha = 1;
   }
 
+  function applyFlashAndShake(now){
+    // sustained 5s “feel it” event
+    // We do: ramp-in -> heavy mid -> ramp-out with strobe + rumble
+    const t = scene.t;
+
+    if (t >= TFLASH_START && t <= TFLASH_END){
+      const u = (t - TFLASH_START) / (TFLASH_END - TFLASH_START); // 0..1
+      const rampIn = clamp(u/0.15, 0, 1);
+      const rampOut = clamp((1-u)/0.18, 0, 1);
+      const intensity = Math.min(rampIn, rampOut); // bell-ish
+
+      // shake
+      scene.shake = 10 + 10*intensity;
+
+      // flash: periodic strobe + occasional hard hits
+      const strobe = 0.20 + 0.25*Math.sin(now*0.018) + 0.18*Math.sin(now*0.065);
+      const bigHit = (Math.sin(now*0.010) > 0.92) ? 0.65 : 0.0;
+      scene.flash = clamp(strobe*intensity + bigHit*intensity, 0, 1);
+
+      // warp tint
+      scene.warp = clamp(0.25 + 0.75*intensity, 0, 1);
+
+      // overlay flashes
+      ctx.globalAlpha = scene.flash;
+      fillRect(0,0,W,H,"#fff");
+      ctx.globalAlpha = 1;
+
+      // radial bloom
+      const burst = ctx.createRadialGradient(W/2, H/2, 25, W/2, H/2, 250);
+      burst.addColorStop(0, `rgba(255,255,255,${0.35*scene.flash})`);
+      burst.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = burst;
+      ctx.fillRect(0,0,W,H);
+
+      // blue-white wash (snes “holy shock”)
+      ctx.globalAlpha = 0.10 * scene.warp;
+      fillRect(0,0,W,H,"rgba(140,180,255,1)");
+      ctx.globalAlpha = 1;
+    } else {
+      scene.shake = 0;
+      scene.flash = 0;
+      scene.warp = 0;
+    }
+  }
+
+  // =========================
+  // Timeline logic: Bill movement + dialog
+  // =========================
+  function updateTimeline(now){
+    const t = scene.t;
+
+    // Camera drift
+    scene.camT += 0.016;
+    scene.camX = Math.sin(scene.camT*0.55)*0.8;
+    scene.camY = Math.sin(scene.camT*0.42)*0.6;
+
+    // Stage 1: title card + miserable lie
+    if (t < T1){
+      scene.dialog.on = true;
+      scene.dialog.text = "TOWNES HOSPITAL… AGAIN.";
+      scene.bill.pose = "lie";
+      scene.bill.x = 110;
+      scene.bill.y = 146;
+      return;
+    }
+
+    // Stage 2: prayer line, while Bill gets up + walks + kneels
+    if (t >= TPRAY_START && t < TPRAY_END){
+      scene.dialog.on = true;
+      scene.dialog.text = "IF THERE IS A GOD— SHOW HIMSELF TO ME!";
+
+      // movement window: from lying on bed to kneeling on side
+      // 5.0 -> 5.5 stand; 5.5 -> 6.6 walk; 6.6 -> 7.2 kneel
+      if (t < 5.5){
+        const u = (t-TPRAY_START)/(5.5-TPRAY_START);
+        scene.bill.pose = (u < 0.5) ? "lie" : "stand";
+        scene.bill.x = lerp(110, 132, easeInOut(u));
+        scene.bill.y = lerp(146, 132, easeInOut(u));
+      } else if (t < 6.6){
+        const u = (t-5.5)/(6.6-5.5);
+        const walkFrame = ((Math.floor((t-5.5)*10)) % 2) ? "walk1" : "walk2";
+        scene.bill.pose = walkFrame;
+        scene.bill.x = lerp(132, 170, easeInOut(u));
+        scene.bill.y = lerp(132, 132, easeInOut(u));
+      } else {
+        const u = (t-6.6)/(TPRAY_END-6.6);
+        scene.bill.pose = "kneel";
+        scene.bill.x = lerp(170, 186, easeInOut(u));
+        scene.bill.y = lerp(132, 140, easeInOut(u));
+      }
+      return;
+    }
+
+    // Between T1 and TPRAY_START (quiet beat: miserable on bed, no extra line)
+    if (t >= T1 && t < TPRAY_START){
+      scene.dialog.on = false;
+      scene.bill.pose = "lie";
+      scene.bill.x = 110;
+      scene.bill.y = 146;
+      return;
+    }
+
+    // Flash event: no dialog, Bill kneeling fixed
+    if (t >= TFLASH_START && t <= TFLASH_END){
+      scene.dialog.on = false;
+      scene.bill.pose = "kneel";
+      scene.bill.x = 186;
+      scene.bill.y = 140;
+      return;
+    }
+
+    // Aftermath line
+    if (t >= TAFTER_START && t < TAFTER_END){
+      scene.dialog.on = true;
+      scene.dialog.text = "WHAT IF I CAN GET THESE DRUNKS HELPING EACH OTHER?";
+      scene.bill.pose = "stand";
+      // he rises a little in aftermath (subtle)
+      const u = (t-TAFTER_START)/(TAFTER_END-TAFTER_START);
+      scene.bill.x = 184;
+      scene.bill.y = lerp(140, 132, easeInOut(u));
+      return;
+    }
+
+    // Title
+    if (t >= TTITLE_START){
+      scene.dialog.on = false;
+      // fade to title and slam it
+      const u = clamp((t - TTITLE_START) / (TTITLE_END - TTITLE_START), 0, 1);
+      scene.fadeToTitle = u;
+      scene.titleAlpha = easeOut(u);
+      scene.titleIn = clamp(u/0.55, 0, 1);
+      return;
+    }
+  }
+
+  // =========================
+  // Replay / controls (only replay button)
+  // =========================
+  const replayBtn = document.getElementById("replayBtn");
+  replayBtn.addEventListener("click", () => {
+    initAudio();          // unlock audio on replay
+    resetScene();
+  });
+
+  function resetScene(){
+    scene.t = 0;
+    scene.fadeToTitle = 0;
+    scene.titleAlpha = 0;
+    scene.titleIn = 0;
+    scene.shake = 0;
+    scene.flash = 0;
+    scene.warp = 0;
+    scene.sparks.length = 0;
+    // small spark burst on start? no — keep clean
+  }
+
   // =========================
   // Main loop
   // =========================
   let last = performance.now();
+  let flashSfxFired = false;
 
   function frame(now){
     const dt = Math.min(0.05, (now-last)/1000);
     last = now;
 
-    scene.timer += dt;
-    scene.blink += dt*8;
+    // time forward (autoplay)
+    scene.t = Math.min(scene.total, scene.t + dt);
 
-    // ambient camera drift (subtle)
-    scene.cam.t += dt;
-    scene.cam.x = Math.sin(scene.cam.t*0.6)*0.8;
-    scene.cam.y = Math.sin(scene.cam.t*0.45)*0.6;
-
+    // particles
     updateParticles(dt);
-    updateTyping(dt);
 
-    // beat behavior
-    if (scene.idx === 3){
-      scene.flash = clamp(scene.flash - dt*2.7, 0, 1);
-      scene.invert = clamp(scene.invert - dt*1.8, 0, 1);
-      scene.shake = clamp(scene.shake - dt*24, 0, 16);
-      scene.warp  = clamp(scene.warp  - dt*2.4, 0, 1);
-      if (scene.timer > 0.95){
-        scene.idx++;
-        beats[scene.idx]();
-      }
-    } else {
-      if (scene.typing.done && scene.timer > 0.35 && scene.idx !== 6) scene.allowAdvance = true;
-    }
+    // timeline logic
+    updateTimeline(now);
 
-    if (scene.idx === 6){
-      scene.fadeToTitle = clamp(scene.fadeToTitle + dt*0.9, 0, 1);
-      if (scene.fadeToTitle > 0.55) scene.title = true;
+    // trigger one big spark burst & sound at flash start
+    if (!flashSfxFired && scene.t >= TFLASH_START){
+      flashSfxFired = true;
+      spawnSparks(220, W/2, H/2, 220);
+      sfxFlashHit();
     }
+    if (scene.t < TFLASH_START) flashSfxFired = false;
 
     // =========================
     // Draw
     // =========================
     ctx.save();
 
-    // camera + shake
-    const sx = scene.cam.x + (Math.random()*2-1)*scene.shake;
-    const sy = scene.cam.y + (Math.random()*2-1)*scene.shake;
+    // camera drift + shake
+    const sx = scene.camX + (Math.random()*2-1)*scene.shake;
+    const sy = scene.camY + (Math.random()*2-1)*scene.shake;
     ctx.translate(sx|0, sy|0);
 
-    if (!scene.title){
-      drawHospital(now);
-      drawBill();
-      drawSparks();
+    // Background always present during cutscene
+    drawHospitalBG(now);
 
-      const t = typedText();
-      if (t && scene.idx !== 3) drawDialogueBox(t);
+    // Bill
+    drawBill(now);
 
-      // monitor pulse
-      if (scene.idx <= 2){
-        const pulse = 0.5 + 0.5*Math.sin(now*0.006);
-        ctx.globalAlpha = 0.10 + 0.18*pulse;
-        fillRect(346, 148, 18, 7, "rgba(20,255,130,1)");
-        ctx.globalAlpha = 1;
-      }
-    } else {
-      drawTitle(now);
-    }
+    // Sparks during flash
+    drawSparks();
+
+    // Dialogue (wrapped)
+    if (scene.dialog.on) drawDialogue(scene.dialog.text);
 
     ctx.restore();
 
-    // global effects
-    if (!scene.title){
-      applyFlashImpact(now);
+    // flash + shake overlays (5s)
+    applyFlashAndShake(now);
 
-      // fade to title
-      if (scene.idx === 6){
-        ctx.globalAlpha = scene.fadeToTitle;
-        fillRect(0,0,W,H,"#000");
-        ctx.globalAlpha = 1;
-        if (scene.fadeToTitle > 0.75) drawTitle(now);
+    // fade to title overlay + title draw
+    if (scene.t >= TTITLE_START){
+      // fade to black then show title
+      ctx.globalAlpha = clamp(scene.fadeToTitle, 0, 1);
+      fillRect(0,0,W,H,"#000");
+      ctx.globalAlpha = 1;
+
+      if (scene.fadeToTitle > 0.55){
+        drawTitle(now, scene.titleAlpha);
       }
     }
 
@@ -907,14 +971,14 @@
   // =========================
   // Start
   // =========================
-  function start(){
-    seedParticles();
-    beats[0]();
-    requestAnimationFrame(frame);
-    console.log("Trudge Brothers SNES Intro loaded. Click/tap for audio. Space/Enter advances. M toggles mute.");
-  }
-  start();
+  seedParticles();
+  resetScene();
+  requestAnimationFrame(frame);
 
+  // Optional: allow mute toggle with M (doesn't add UI buttons)
+  window.addEventListener("keydown",(e)=>{
+    if (e.code === "KeyM") musicOn = !musicOn;
+  });
 })();
 </script>
 </body>
