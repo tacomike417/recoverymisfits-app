@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits — Audiobook</title>
+  <title>Recovery Misfits — Audio</title>
   <meta name="theme-color" content="#ffffff" />
   <link rel="icon" href="./icon-192.png">
 
@@ -27,40 +27,87 @@
     }
     .brand{font-weight:900;font-size:16px;}
     .sub{font-size:13px;color:var(--muted);margin-top:2px}
+
     main{max-width:860px;margin:0 auto;padding:14px;}
+
     .card{
       border:1px solid var(--border);
       border-radius:14px;
       padding:12px;
       margin:12px 0;
       box-shadow: 0 2px 10px rgba(0,0,0,.04);
+      background:#fff;
     }
-    .toprow{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-    }
+
     .btn{
       appearance:none; border:1px solid var(--border);
       background:#fff; color:#111;
       padding:10px 12px; border-radius:12px;
       font-weight:700; cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
     }
     .btn:active{transform:scale(.99)}
     .btn.primary{
       border-color: rgba(0,0,0,.25);
       box-shadow: 0 2px 10px rgba(0,0,0,.06);
     }
+
+    /* Top pills: Gorilla | Playlists */
+    .pills{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+    }
+    .pill{
+      border:1px solid var(--border);
+      background:#fff;
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .pill.active{
+      border-color: rgba(0,0,0,.25);
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+
     .hint{font-size:13px;color:var(--muted);margin-top:8px}
     .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none;}
+
+    .toprow{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+
+    .playerBox{display:flex; flex-direction:column; gap:8px;}
+    .now{font-size:13px;color:var(--muted)}
+    audio{width:100%}
+
     .list{margin-top:12px}
     .row{
       display:flex; gap:10px; align-items:center; justify-content:space-between;
       padding:10px 0; border-top:1px solid rgba(0,0,0,.08);
     }
     .row:first-child{border-top:none}
-    .titleWrap{min-width:220px; flex:1;}
-    .title{
-      font-weight:800; font-size:14px; margin:0;
+
+    .rowCard{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px;
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:12px;
+      background:#fff;
     }
+
+    .titleWrap{min-width:220px; flex:1;}
+    .title{font-weight:900; font-size:14px; margin:0;}
+    .subtitle{font-size:12px; color:var(--muted); margin-top:3px;}
+
     .current{
       outline:2px solid rgba(0,0,0,.15);
       border-radius:12px;
@@ -68,16 +115,32 @@
       margin:8px 0;
       background: rgba(0,0,0,.02);
     }
+
     .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
     .mini{
       padding:8px 10px; border-radius:12px;
       font-weight:800; font-size:13px;
     }
-    .playerBox{
-      display:flex; flex-direction:column; gap:8px;
+
+    /* Shared YouTube player */
+    .videoWrap{
+      position:relative;
+      padding-top:56.25%;
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.02);
     }
-    .now{font-size:13px;color:var(--muted)}
-    audio{width:100%}
+    .videoWrap iframe{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+    }
+    .smallMuted{font-size:13px;color:var(--muted);margin-top:8px}
+    .divider{height:1px;background:rgba(0,0,0,.08);margin:12px 0;}
+
     .toast{
       position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
       background:#111; color:#fff; padding:10px 12px; border-radius:12px;
@@ -86,6 +149,7 @@
       max-width:92vw;
     }
     .toast.show{opacity:0.92}
+
     @media (max-width:520px){
       .titleWrap{min-width:180px}
     }
@@ -94,34 +158,221 @@
 
 <body>
   <header>
-    <div class="brand">Recovery Misfits — Audiobook</div>
-    <div class="sub">Alcoholism: The 500 Pound Gorilla</div>
+    <div class="brand">Recovery Misfits — Audio</div>
+    <div class="sub" id="subTitle">Alcoholism: The 500 Pound Gorilla</div>
   </header>
 
   <main>
+    <!-- Mode pills -->
     <section class="card">
-      <div class="toprow">
-        <button id="playAllBtn" class="btn primary">▶ Play All</button>
-        <button id="clearResumeBtn" class="btn">Reset Resume</button>
+      <div class="pills">
+        <button class="pill active" id="pillGorilla" type="button">Gorilla</button>
+        <button class="pill" id="pillPlaylists" type="button">Playlists</button>
       </div>
-      <div class="hint">Pass it on if it helps.</div>
-      <div id="resumeLine" class="resumeLine"></div>
+      <div class="hint" id="modeHint">Pass it on if it helps.</div>
     </section>
 
-    <section class="card playerBox">
-      <div class="now" id="nowPlaying">Not playing</div>
-      <audio id="player" controls preload="metadata"></audio>
-    </section>
+    <!-- =======================
+         PANEL: GORILLA (Bunny)
+         ======================= -->
+    <div id="panelGorilla">
+      <section class="card">
+        <div class="toprow">
+          <button id="playAllBtn" class="btn primary" type="button">▶ Play All</button>
+          <button id="clearResumeBtn" class="btn" type="button">Reset Resume</button>
+        </div>
+        <div class="hint">Pass it on if it helps.</div>
+        <div id="resumeLine" class="resumeLine"></div>
+      </section>
 
-    <section class="card">
-      <div style="font-weight:900;margin-bottom:8px;">Chapters</div>
-      <div id="chapterList" class="list"></div>
-    </section>
+      <section class="card playerBox">
+        <div class="now" id="nowPlaying">Not playing</div>
+        <audio id="player" controls preload="metadata"></audio>
+      </section>
+
+      <section class="card">
+        <div style="font-weight:900;margin-bottom:8px;">Chapters</div>
+        <div id="chapterList" class="list"></div>
+      </section>
+    </div>
+
+    <!-- =======================
+         PANEL: PLAYLISTS (YouTube)
+         ======================= -->
+    <div id="panelPlaylists" style="display:none;">
+      <section class="card">
+        <div style="font-weight:900;margin-bottom:8px;">Playlists</div>
+
+        <div id="plList" class="list" style="margin-top:0;">
+          <!-- rows injected by JS -->
+        </div>
+
+        <div id="ytArea" style="display:none; margin-top:12px;">
+          <div class="divider"></div>
+
+          <div class="rowCard" style="align-items:flex-start;">
+            <div class="titleWrap" style="min-width:0;">
+              <div class="title" id="ytTitle">Playlist</div>
+              <div class="subtitle" id="ytSub">Loads inside the app.</div>
+            </div>
+            <div class="actions" style="justify-content:flex-end;">
+              <button class="btn mini primary" id="ytLoadBtn" type="button">▶ Load</button>
+              <button class="btn mini" id="ytUnloadBtn" type="button">Unload</button>
+            </div>
+          </div>
+
+          <div class="smallMuted" style="margin-top:10px;">
+            If YouTube glitches on Chromebook/PWA: hit <b>Unload</b>, then <b>Load</b>.
+          </div>
+
+          <div id="ytBox" class="videoWrap" style="display:none; margin-top:12px;">
+            <iframe
+              id="ytFrame"
+              title="YouTube Playlist"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+              referrerpolicy="origin-when-cross-origin"
+            ></iframe>
+          </div>
+
+          <div class="smallMuted">Source: YouTube playlist (not hosted by this app).</div>
+        </div>
+      </section>
+    </div>
 
     <div id="toast" class="toast"></div>
   </main>
 
   <script>
+    // ==========================
+    // Toast
+    // ==========================
+    const toastEl = document.getElementById("toast");
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      setTimeout(()=>toastEl.classList.remove("show"), 1400);
+    }
+
+    // ==========================
+    // Mode switching: Gorilla | Playlists
+    // ==========================
+    const pillGorilla = document.getElementById("pillGorilla");
+    const pillPlaylists = document.getElementById("pillPlaylists");
+    const panelGorilla = document.getElementById("panelGorilla");
+    const panelPlaylists = document.getElementById("panelPlaylists");
+    const subTitle = document.getElementById("subTitle");
+    const modeHint = document.getElementById("modeHint");
+
+    function stopYT(){
+      ytFrame.src = "";
+      ytBox.style.display = "none";
+      ytArea.style.display = "none";
+      ytLoadBtn.textContent = "▶ Load";
+    }
+
+    function setMode(which){
+      const isG = which === "gorilla";
+      pillGorilla.classList.toggle("active", isG);
+      pillPlaylists.classList.toggle("active", !isG);
+      panelGorilla.style.display = isG ? "block" : "none";
+      panelPlaylists.style.display = isG ? "none" : "block";
+      subTitle.textContent = isG ? "Alcoholism: The 500 Pound Gorilla" : "Recovery audio playlists";
+      modeHint.textContent = isG ? "Pass it on if it helps." : "Tap a playlist to load it inside the app.";
+      if(isG) stopYT();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    pillGorilla.addEventListener("click", ()=>setMode("gorilla"));
+    pillPlaylists.addEventListener("click", ()=>setMode("playlists"));
+
+    // ==========================
+    // Playlists (single shared player)
+    // ==========================
+    const PLAYLISTS = [
+      { id: "PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E", title: "Joe & Charlie", sub: "Big Book Study" },
+      { id: "PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf", title: "Father Martin", sub: "Chalk Talks" },
+      { id: "PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA", title: "Chuck C", sub: "A New Pair of Glasses" },
+      { id: "PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE", title: "Allen McGinnis", sub: "Building a House of Sobriety" },
+    ];
+
+    const plList = document.getElementById("plList");
+    const ytArea = document.getElementById("ytArea");
+    const ytTitle = document.getElementById("ytTitle");
+    const ytSub = document.getElementById("ytSub");
+    const ytLoadBtn = document.getElementById("ytLoadBtn");
+    const ytUnloadBtn = document.getElementById("ytUnloadBtn");
+    const ytBox = document.getElementById("ytBox");
+    const ytFrame = document.getElementById("ytFrame");
+
+    let activePL = null; // {id,title,sub}
+
+    function selectPlaylist(pl){
+      activePL = pl;
+      ytTitle.textContent = pl.title;
+      ytSub.textContent = pl.sub + " (in-app)";
+      ytArea.style.display = "block";
+      stopYT(); // keep it light; user taps Load to actually load
+      toast("Selected: " + pl.title);
+      ytArea.scrollIntoView({ behavior:"smooth", block:"start" });
+    }
+
+    function buildPlaylistList(){
+      plList.innerHTML = "";
+      PLAYLISTS.forEach((pl)=>{
+        const row = document.createElement("div");
+        row.className = "rowCard";
+
+        const left = document.createElement("div");
+        left.className = "titleWrap";
+        left.style.minWidth = "0";
+
+        const t = document.createElement("div");
+        t.className = "title";
+        t.textContent = pl.title;
+
+        const s = document.createElement("div");
+        s.className = "subtitle";
+        s.textContent = pl.sub;
+
+        left.appendChild(t);
+        left.appendChild(s);
+
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.type = "button";
+        btn.textContent = "Open";
+        btn.addEventListener("click", ()=>selectPlaylist(pl));
+
+        row.appendChild(left);
+        row.appendChild(btn);
+        plList.appendChild(row);
+      });
+    }
+
+    ytLoadBtn.addEventListener("click", ()=>{
+      if(!activePL){
+        toast("Pick a playlist first");
+        return;
+      }
+      ytBox.style.display = "block";
+      ytLoadBtn.textContent = "Reload";
+      ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${activePL.id}`;
+      toast("Loaded: " + activePL.title);
+      ytBox.scrollIntoView({ behavior:"smooth", block:"start" });
+    });
+
+    ytUnloadBtn.addEventListener("click", ()=>{
+      stopYT();
+      toast("Unloaded");
+    });
+
+    buildPlaylistList();
+
+    // ==========================
+    // Gorilla audiobook (your original code)
+    // ==========================
+
     // === Source of truth: Bunny URLs (use filenames exactly) ===
     const TRACKS = [
       { n: 1,  title: "1. So Here You Are", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/1.%20So%20Here%20You%20Are.mp3" },
@@ -146,7 +397,6 @@
 
     // === State + persistence (resume where they left off) ===
     const LS_KEY = "rm_audio_resume_v1"; // { idx, t, mode }
-    // idx: TRACKS index (0-based), t: seconds, mode: "all" or "single"
 
     const player = document.getElementById("player");
     const nowPlaying = document.getElementById("nowPlaying");
@@ -154,17 +404,10 @@
     const playAllBtn = document.getElementById("playAllBtn");
     const clearResumeBtn = document.getElementById("clearResumeBtn");
     const resumeLine = document.getElementById("resumeLine");
-    const toastEl = document.getElementById("toast");
 
     let currentIdx = 0;
     let playMode = "single"; // "all" or "single"
     let isSeekingResume = false;
-
-    function toast(msg){
-      toastEl.textContent = msg;
-      toastEl.classList.add("show");
-      setTimeout(()=>toastEl.classList.remove("show"), 1400);
-    }
 
     function loadResume(){
       try{
@@ -181,7 +424,6 @@
     }
 
     function saveResume(){
-      // Save lightly, only if we have a real track loaded
       const t = player.currentTime || 0;
       const obj = { idx: currentIdx, t: Math.floor(t), mode: playMode };
       try{ localStorage.setItem(LS_KEY, JSON.stringify(obj)); }catch(e){}
@@ -216,7 +458,6 @@
     function setNowPlaying(idx){
       const tr = TRACKS[idx];
       nowPlaying.textContent = `Now Playing: ${tr.title}`;
-      // Highlight current row
       document.querySelectorAll("[data-track-row]").forEach(el=>{
         el.classList.toggle("current", Number(el.dataset.idx) === idx);
       });
@@ -230,7 +471,6 @@
 
       isSeekingResume = resumeTime > 0;
 
-      // Some browsers won't let us set currentTime until metadata loads
       const onMeta = () => {
         player.removeEventListener("loadedmetadata", onMeta);
         if(isSeekingResume){
@@ -240,12 +480,11 @@
           isSeekingResume = false;
         }
         if(autoplay){
-          player.play().catch(()=>{ /* user gesture needed */ });
+          player.play().catch(()=>{});
         }
       };
       player.addEventListener("loadedmetadata", onMeta);
 
-      // Persist immediate selection (time will update as it plays)
       saveResume();
     }
 
@@ -253,7 +492,6 @@
       playMode = "all";
       const r = loadResume();
       if(r && typeof r.idx === "number"){
-        // Resume where they left off
         setTrack(r.idx, {autoplay:true, resumeTime:r.t || 0});
         toast("Play All (resuming)");
       } else {
@@ -271,10 +509,9 @@
 
     function downloadTrack(idx){
       const tr = TRACKS[idx];
-      // Simple direct download. Browser handles it.
       const a = document.createElement("a");
       a.href = tr.url;
-      a.download = ""; // let browser infer filename
+      a.download = "";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -289,23 +526,18 @@
         url: tr.url
       };
 
-      // Try native share first
       if(navigator.share){
         try{
           await navigator.share(shareData);
           toast("Shared");
           return;
-        }catch(e){
-          // user canceled or share failed; fall through
-        }
+        }catch(e){}
       }
 
-      // Fallback: copy to clipboard
       try{
         await navigator.clipboard.writeText(tr.url);
         toast("Link copied");
       }catch(e){
-        // Last fallback: prompt
         window.prompt("Copy this link:", tr.url);
       }
     }
@@ -330,16 +562,19 @@
 
         const playBtn = document.createElement("button");
         playBtn.className = "btn mini";
+        playBtn.type = "button";
         playBtn.textContent = "Play";
         playBtn.addEventListener("click", ()=>playSingle(idx));
 
         const dlBtn = document.createElement("button");
         dlBtn.className = "btn mini";
+        dlBtn.type = "button";
         dlBtn.textContent = "Download";
         dlBtn.addEventListener("click", ()=>downloadTrack(idx));
 
         const shareBtn = document.createElement("button");
         shareBtn.className = "btn mini";
+        shareBtn.type = "button";
         shareBtn.textContent = "Share";
         shareBtn.addEventListener("click", ()=>shareTrack(idx));
 
@@ -369,7 +604,6 @@
     let lastSavedAt = 0;
     player.addEventListener("timeupdate", ()=>{
       const t = player.currentTime || 0;
-      // Save every ~10 seconds to avoid hammering localStorage
       if(t - lastSavedAt >= 10){
         lastSavedAt = t;
         saveResume();
@@ -391,13 +625,12 @@
     buildList();
     renderResumeLine();
 
-    // If they come in and already have resume, highlight it (but don't autoplay)
+    // Highlight resume track on load (no autoplay)
     const r0 = loadResume();
     if(r0){
       currentIdx = r0.idx;
       playMode = r0.mode || "single";
       setTrack(r0.idx, {autoplay:false, resumeTime:0});
-      // Do NOT seek on load; only seek when they hit Play All.
       player.currentTime = 0;
       nowPlaying.textContent = "Ready: " + TRACKS[r0.idx].title;
       setNowPlaying(r0.idx);
