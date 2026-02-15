@@ -27,7 +27,6 @@
     }
     .brand{font-weight:900;font-size:16px;}
     .sub{font-size:13px;color:var(--muted);margin-top:2px}
-
     main{max-width:860px;margin:0 auto;padding:14px;}
 
     .card{
@@ -40,59 +39,40 @@
     }
 
     .btn{
-      appearance:none; border:1px solid var(--border);
-      background:#fff; color:#111;
-      padding:10px 12px; border-radius:12px;
-      font-weight:700; cursor:pointer;
+      appearance:none;
+      border:1px solid var(--border);
+      background:#fff;
+      color:#111;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:800;
+      cursor:pointer;
       text-decoration:none;
       display:inline-flex;
       align-items:center;
       justify-content:center;
       gap:8px;
+      white-space:nowrap;
     }
     .btn:active{transform:scale(.99)}
     .btn.primary{
       border-color: rgba(0,0,0,.25);
       box-shadow: 0 2px 10px rgba(0,0,0,.06);
     }
-
-    /* Top pills: Gorilla | Playlists */
-    .pills{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:center;
-    }
-    .pill{
-      border:1px solid var(--border);
-      background:#fff;
-      padding:10px 14px;
-      border-radius:999px;
+    .btn.mini{
+      padding:8px 10px;
+      font-size:13px;
       font-weight:900;
-      cursor:pointer;
-    }
-    .pill.active{
-      border-color: rgba(0,0,0,.25);
-      box-shadow: 0 2px 10px rgba(0,0,0,.06);
     }
 
     .hint{font-size:13px;color:var(--muted);margin-top:8px}
-    .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none;}
 
-    .toprow{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
-
-    .playerBox{display:flex; flex-direction:column; gap:8px;}
-    .now{font-size:13px;color:var(--muted)}
-    audio{width:100%}
-
-    .list{margin-top:12px}
-    .row{
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-      padding:10px 0; border-top:1px solid rgba(0,0,0,.08);
+    /* Library rows */
+    .library{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
     }
-    .row:first-child{border-top:none}
-
     .rowCard{
       display:flex;
       align-items:center;
@@ -103,11 +83,35 @@
       border-radius:12px;
       background:#fff;
     }
-
-    .titleWrap{min-width:220px; flex:1;}
+    .titleWrap{min-width:0; flex:1;}
     .title{font-weight:900; font-size:14px; margin:0;}
     .subtitle{font-size:12px; color:var(--muted); margin-top:3px;}
 
+    /* Player areas */
+    .playerAreaTitle{
+      font-weight:900;
+      margin-bottom:8px;
+    }
+    .now{font-size:13px;color:var(--muted)}
+    audio{width:100%}
+
+    .playerBox{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    /* Chapters list (Gorilla) */
+    .list{margin-top:12px}
+    .row{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding:10px 0; border-top:1px solid rgba(0,0,0,.08);
+    }
+    .row:first-child{border-top:none}
+    .chapterTitle{
+      font-weight:800; font-size:14px; margin:0;
+    }
+    .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
     .current{
       outline:2px solid rgba(0,0,0,.15);
       border-radius:12px;
@@ -115,14 +119,9 @@
       margin:8px 0;
       background: rgba(0,0,0,.02);
     }
+    .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none;}
 
-    .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
-    .mini{
-      padding:8px 10px; border-radius:12px;
-      font-weight:800; font-size:13px;
-    }
-
-    /* Shared YouTube player */
+    /* YouTube embed */
     .videoWrap{
       position:relative;
       padding-top:56.25%;
@@ -138,8 +137,18 @@
       height:100%;
       border:0;
     }
-    .smallMuted{font-size:13px;color:var(--muted);margin-top:8px}
-    .divider{height:1px;background:rgba(0,0,0,.08);margin:12px 0;}
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .toolbarLeft{
+      min-width:0;
+      flex:1;
+    }
 
     .toast{
       position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
@@ -151,7 +160,7 @@
     .toast.show{opacity:0.92}
 
     @media (max-width:520px){
-      .titleWrap{min-width:180px}
+      .actions{justify-content:flex-start;}
     }
   </style>
 </head>
@@ -159,86 +168,65 @@
 <body>
   <header>
     <div class="brand">Recovery Misfits — Audio</div>
-    <div class="sub" id="subTitle">Alcoholism: The 500 Pound Gorilla</div>
+    <div class="sub" id="subTitle">Audio Library</div>
   </header>
 
   <main>
-    <!-- Mode pills -->
+
+    <!-- Audio Library (everything equal footing) -->
     <section class="card">
-      <div class="pills">
-        <button class="pill active" id="pillGorilla" type="button">Gorilla</button>
-        <button class="pill" id="pillPlaylists" type="button">Playlists</button>
-      </div>
-      <div class="hint" id="modeHint">Pass it on if it helps.</div>
+      <div style="font-weight:900;margin-bottom:8px;">Audio Library</div>
+      <div class="hint">Play means play. Tap one and it loads right here.</div>
+
+      <div class="library" style="margin-top:12px;" id="library"></div>
     </section>
 
-    <!-- =======================
-         PANEL: GORILLA (Bunny)
-         ======================= -->
-    <div id="panelGorilla">
-      <section class="card">
-        <div class="toprow">
+    <!-- Shared Player Area -->
+    <section class="card" id="playerArea" style="display:none;">
+      <div class="toolbar">
+        <div class="toolbarLeft">
+          <div class="playerAreaTitle" id="playerAreaTitle">Now Playing</div>
+          <div class="now" id="playerAreaSub">Ready</div>
+        </div>
+        <div class="actions">
+          <button class="btn mini" id="stopBtn" type="button">Stop</button>
+          <button class="btn mini" id="unloadBtn" type="button">Unload</button>
+        </div>
+      </div>
+
+      <!-- Gorilla player -->
+      <div id="gorillaArea" style="display:none; margin-top:12px;">
+        <div class="toprow" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <button id="playAllBtn" class="btn primary" type="button">▶ Play All</button>
           <button id="clearResumeBtn" class="btn" type="button">Reset Resume</button>
         </div>
-        <div class="hint">Pass it on if it helps.</div>
         <div id="resumeLine" class="resumeLine"></div>
-      </section>
 
-      <section class="card playerBox">
-        <div class="now" id="nowPlaying">Not playing</div>
-        <audio id="player" controls preload="metadata"></audio>
-      </section>
+        <div class="playerBox" style="margin-top:12px;">
+          <div class="now" id="nowPlaying">Not playing</div>
+          <audio id="player" controls preload="metadata"></audio>
+        </div>
 
-      <section class="card">
-        <div style="font-weight:900;margin-bottom:8px;">Chapters</div>
+        <div style="font-weight:900;margin-top:14px;">Chapters</div>
         <div id="chapterList" class="list"></div>
-      </section>
-    </div>
+      </div>
 
-    <!-- =======================
-         PANEL: PLAYLISTS (YouTube)
-         ======================= -->
-    <div id="panelPlaylists" style="display:none;">
-      <section class="card">
-        <div style="font-weight:900;margin-bottom:8px;">Playlists</div>
-
-        <div id="plList" class="list" style="margin-top:0;">
-          <!-- rows injected by JS -->
+      <!-- YouTube player -->
+      <div id="ytArea" style="display:none; margin-top:12px;">
+        <div class="videoWrap" id="ytBox">
+          <iframe
+            id="ytFrame"
+            title="YouTube"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            referrerpolicy="origin-when-cross-origin"
+          ></iframe>
         </div>
-
-        <div id="ytArea" style="display:none; margin-top:12px;">
-          <div class="divider"></div>
-
-          <div class="rowCard" style="align-items:flex-start;">
-            <div class="titleWrap" style="min-width:0;">
-              <div class="title" id="ytTitle">Playlist</div>
-              <div class="subtitle" id="ytSub">Loads inside the app.</div>
-            </div>
-            <div class="actions" style="justify-content:flex-end;">
-              <button class="btn mini primary" id="ytLoadBtn" type="button">▶ Load</button>
-              <button class="btn mini" id="ytUnloadBtn" type="button">Unload</button>
-            </div>
-          </div>
-
-          <div class="smallMuted" style="margin-top:10px;">
-            If YouTube glitches on Chromebook/PWA: hit <b>Unload</b>, then <b>Load</b>.
-          </div>
-
-          <div id="ytBox" class="videoWrap" style="display:none; margin-top:12px;">
-            <iframe
-              id="ytFrame"
-              title="YouTube Playlist"
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowfullscreen
-              referrerpolicy="origin-when-cross-origin"
-            ></iframe>
-          </div>
-
-          <div class="smallMuted">Source: YouTube playlist (not hosted by this app).</div>
+        <div class="hint" style="margin-top:10px;">
+          If YouTube glitches: hit <b>Unload</b>, then press Play again.
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
 
     <div id="toast" class="toast"></div>
   </main>
@@ -255,122 +243,107 @@
     }
 
     // ==========================
-    // Mode switching: Gorilla | Playlists
+    // Library items (equal footing)
     // ==========================
-    const pillGorilla = document.getElementById("pillGorilla");
-    const pillPlaylists = document.getElementById("pillPlaylists");
-    const panelGorilla = document.getElementById("panelGorilla");
-    const panelPlaylists = document.getElementById("panelPlaylists");
-    const subTitle = document.getElementById("subTitle");
-    const modeHint = document.getElementById("modeHint");
+    // Types:
+    // - "gorilla" => Bunny MP3 + chapters
+    // - "yt_playlist" => YouTube playlist embed
+    // - "yt_video" => YouTube single video embed (with start seconds)
+    const LIBRARY = [
+      { type:"gorilla", key:"gorilla", title:"Alcoholism: The 500 Pound Gorilla", sub:"Audiobook (Bunny stream)" },
 
-    function stopYT(){
-      ytFrame.src = "";
-      ytBox.style.display = "none";
-      ytArea.style.display = "none";
-      ytLoadBtn.textContent = "▶ Load";
-    }
+      { type:"yt_playlist", key:"joe",    title:"Joe & Charlie",        sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E" },
+      { type:"yt_playlist", key:"martin", title:"Father Martin",        sub:"Chalk Talks",    id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf" },
+      { type:"yt_playlist", key:"chuck",  title:"Chuck C",              sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA" },
+      { type:"yt_playlist", key:"allen",  title:"Allen McGinnis",        sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE" },
 
-    function setMode(which){
-      const isG = which === "gorilla";
-      pillGorilla.classList.toggle("active", isG);
-      pillPlaylists.classList.toggle("active", !isG);
-      panelGorilla.style.display = isG ? "block" : "none";
-      panelPlaylists.style.display = isG ? "none" : "block";
-      subTitle.textContent = isG ? "Alcoholism: The 500 Pound Gorilla" : "Recovery audio playlists";
-      modeHint.textContent = isG ? "Pass it on if it helps." : "Tap a playlist to load it inside the app.";
-      if(isG) stopYT();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    pillGorilla.addEventListener("click", ()=>setMode("gorilla"));
-    pillPlaylists.addEventListener("click", ()=>setMode("playlists"));
-
-    // ==========================
-    // Playlists (single shared player)
-    // ==========================
-    const PLAYLISTS = [
-      { id: "PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E", title: "Joe & Charlie", sub: "Big Book Study" },
-      { id: "PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf", title: "Father Martin", sub: "Chalk Talks" },
-      { id: "PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA", title: "Chuck C", sub: "A New Pair of Glasses" },
-      { id: "PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE", title: "Allen McGinnis", sub: "Building a House of Sobriety" },
+      // Single video (your last link): vYvZTH746yg&t=10s
+      { type:"yt_video", key:"bonus", title:"Bonus Talk", sub:"Single video", id:"vYvZTH746yg", start:10 },
     ];
 
-    const plList = document.getElementById("plList");
-    const ytArea = document.getElementById("ytArea");
-    const ytTitle = document.getElementById("ytTitle");
-    const ytSub = document.getElementById("ytSub");
-    const ytLoadBtn = document.getElementById("ytLoadBtn");
-    const ytUnloadBtn = document.getElementById("ytUnloadBtn");
-    const ytBox = document.getElementById("ytBox");
-    const ytFrame = document.getElementById("ytFrame");
-
-    let activePL = null; // {id,title,sub}
-
-    function selectPlaylist(pl){
-      activePL = pl;
-      ytTitle.textContent = pl.title;
-      ytSub.textContent = pl.sub + " (in-app)";
-      ytArea.style.display = "block";
-      stopYT(); // keep it light; user taps Load to actually load
-      toast("Selected: " + pl.title);
-      ytArea.scrollIntoView({ behavior:"smooth", block:"start" });
-    }
-
-    function buildPlaylistList(){
-      plList.innerHTML = "";
-      PLAYLISTS.forEach((pl)=>{
-        const row = document.createElement("div");
-        row.className = "rowCard";
-
-        const left = document.createElement("div");
-        left.className = "titleWrap";
-        left.style.minWidth = "0";
-
-        const t = document.createElement("div");
-        t.className = "title";
-        t.textContent = pl.title;
-
-        const s = document.createElement("div");
-        s.className = "subtitle";
-        s.textContent = pl.sub;
-
-        left.appendChild(t);
-        left.appendChild(s);
-
-        const btn = document.createElement("button");
-        btn.className = "btn";
-        btn.type = "button";
-        btn.textContent = "Open";
-        btn.addEventListener("click", ()=>selectPlaylist(pl));
-
-        row.appendChild(left);
-        row.appendChild(btn);
-        plList.appendChild(row);
-      });
-    }
-
-    ytLoadBtn.addEventListener("click", ()=>{
-      if(!activePL){
-        toast("Pick a playlist first");
-        return;
-      }
-      ytBox.style.display = "block";
-      ytLoadBtn.textContent = "Reload";
-      ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${activePL.id}`;
-      toast("Loaded: " + activePL.title);
-      ytBox.scrollIntoView({ behavior:"smooth", block:"start" });
-    });
-
-    ytUnloadBtn.addEventListener("click", ()=>{
-      stopYT();
-      toast("Unloaded");
-    });
-
-    buildPlaylistList();
+    const libraryEl = document.getElementById("library");
 
     // ==========================
-    // Gorilla audiobook (your original code)
+    // Shared Player Area elements
+    // ==========================
+    const playerArea = document.getElementById("playerArea");
+    const playerAreaTitle = document.getElementById("playerAreaTitle");
+    const playerAreaSub = document.getElementById("playerAreaSub");
+    const stopBtn = document.getElementById("stopBtn");
+    const unloadBtn = document.getElementById("unloadBtn");
+
+    const gorillaArea = document.getElementById("gorillaArea");
+    const ytArea = document.getElementById("ytArea");
+    const ytFrame = document.getElementById("ytFrame");
+
+    // Gorilla audio elements
+    const player = document.getElementById("player");
+    const nowPlaying = document.getElementById("nowPlaying");
+    const chapterList = document.getElementById("chapterList");
+    const playAllBtn = document.getElementById("playAllBtn");
+    const clearResumeBtn = document.getElementById("clearResumeBtn");
+    const resumeLine = document.getElementById("resumeLine");
+
+    // ==========================
+    // Utility: show player area + scroll
+    // ==========================
+    function showPlayerArea(){
+      playerArea.style.display = "block";
+      playerArea.scrollIntoView({ behavior:"smooth", block:"start" });
+    }
+
+    function stopEverything(){
+      // Stop Gorilla audio
+      try{ player.pause(); }catch(e){}
+      // Stop YouTube
+      ytFrame.src = "";
+      toast("Stopped");
+    }
+
+    function unloadEverything(){
+      // Stop and hide player types
+      stopEverything();
+      gorillaArea.style.display = "none";
+      ytArea.style.display = "none";
+      playerAreaSub.textContent = "Ready";
+      toast("Unloaded");
+    }
+
+    stopBtn.addEventListener("click", stopEverything);
+    unloadBtn.addEventListener("click", unloadEverything);
+
+    // ==========================
+    // YouTube helpers
+    // ==========================
+    function playYouTubePlaylist(title, sub, listId){
+      unloadEverything(); // clears old YT + audio and hides areas
+      playerAreaTitle.textContent = title;
+      playerAreaSub.textContent = sub;
+      ytArea.style.display = "block";
+
+      // Load playlist immediately (Play means play)
+      ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(listId)}`;
+
+      showPlayerArea();
+      toast("Playing: " + title);
+    }
+
+    function playYouTubeVideo(title, sub, videoId, startSeconds=0){
+      unloadEverything();
+      playerAreaTitle.textContent = title;
+      playerAreaSub.textContent = sub;
+      ytArea.style.display = "block";
+
+      const start = Math.max(0, Number(startSeconds||0));
+      const qs = start ? `?start=${start}` : "";
+      ytFrame.src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}${qs}`;
+
+      showPlayerArea();
+      toast("Playing: " + title);
+    }
+
+    // ==========================
+    // Gorilla audiobook (your original code, integrated)
     // ==========================
 
     // === Source of truth: Bunny URLs (use filenames exactly) ===
@@ -397,13 +370,6 @@
 
     // === State + persistence (resume where they left off) ===
     const LS_KEY = "rm_audio_resume_v1"; // { idx, t, mode }
-
-    const player = document.getElementById("player");
-    const nowPlaying = document.getElementById("nowPlaying");
-    const chapterList = document.getElementById("chapterList");
-    const playAllBtn = document.getElementById("playAllBtn");
-    const clearResumeBtn = document.getElementById("clearResumeBtn");
-    const resumeLine = document.getElementById("resumeLine");
 
     let currentIdx = 0;
     let playMode = "single"; // "all" or "single"
@@ -542,7 +508,7 @@
       }
     }
 
-    function buildList(){
+    function buildChapters(){
       chapterList.innerHTML = "";
       TRACKS.forEach((tr, idx)=>{
         const row = document.createElement("div");
@@ -553,7 +519,7 @@
         const left = document.createElement("div");
         left.className = "titleWrap";
         const title = document.createElement("div");
-        title.className = "title";
+        title.className = "chapterTitle";
         title.textContent = tr.title;
         left.appendChild(title);
 
@@ -617,26 +583,92 @@
       if(document.visibilityState === "hidden") saveResume();
     });
 
-    // Buttons
     playAllBtn.addEventListener("click", playAll);
     clearResumeBtn.addEventListener("click", clearResume);
 
+    function showGorilla(){
+      // Stop YouTube and show Gorilla UI
+      ytFrame.src = "";
+      ytArea.style.display = "none";
+
+      gorillaArea.style.display = "block";
+      playerAreaTitle.textContent = "Alcoholism: The 500 Pound Gorilla";
+      playerAreaSub.textContent = "Audiobook (Bunny stream)";
+
+      showPlayerArea();
+    }
+
+    // ==========================
+    // Build Library UI
+    // ==========================
+    function buildLibrary(){
+      libraryEl.innerHTML = "";
+      LIBRARY.forEach((item)=>{
+        const row = document.createElement("div");
+        row.className = "rowCard";
+
+        const left = document.createElement("div");
+        left.className = "titleWrap";
+
+        const t = document.createElement("div");
+        t.className = "title";
+        t.textContent = item.title;
+
+        const s = document.createElement("div");
+        s.className = "subtitle";
+        s.textContent = item.sub;
+
+        left.appendChild(t);
+        left.appendChild(s);
+
+        const playBtn = document.createElement("button");
+        playBtn.className = "btn primary";
+        playBtn.type = "button";
+        playBtn.textContent = "▶ Play";
+
+        playBtn.addEventListener("click", ()=>{
+          if(item.type === "gorilla"){
+            unloadEverything();
+            showGorilla();
+            // Don’t force autoplay on open; user can hit Play All or a chapter.
+            toast("Opened Gorilla");
+            return;
+          }
+
+          if(item.type === "yt_playlist"){
+            playYouTubePlaylist(item.title, item.sub, item.id);
+            return;
+          }
+
+          if(item.type === "yt_video"){
+            playYouTubeVideo(item.title, item.sub, item.id, item.start || 0);
+            return;
+          }
+        });
+
+        row.appendChild(left);
+        row.appendChild(playBtn);
+        libraryEl.appendChild(row);
+      });
+    }
+
     // Init
-    buildList();
+    buildLibrary();
+    buildChapters();
     renderResumeLine();
 
-    // Highlight resume track on load (no autoplay)
+    // Prep Gorilla state (no autoplay)
     const r0 = loadResume();
     if(r0){
       currentIdx = r0.idx;
       playMode = r0.mode || "single";
       setTrack(r0.idx, {autoplay:false, resumeTime:0});
-      player.currentTime = 0;
+      try{ player.currentTime = 0; }catch(e){}
       nowPlaying.textContent = "Ready: " + TRACKS[r0.idx].title;
       setNowPlaying(r0.idx);
     } else {
       setTrack(0, {autoplay:false, resumeTime:0});
-      player.currentTime = 0;
+      try{ player.currentTime = 0; }catch(e){}
       nowPlaying.textContent = "Ready: " + TRACKS[0].title;
       setNowPlaying(0);
     }
