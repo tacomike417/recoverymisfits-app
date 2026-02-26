@@ -49,7 +49,7 @@
     #rm-install-title{font-weight:1000;font-size:13px;}
     #rm-install-sub{font-weight:800;font-size:12px;color:#666;}
 
-    /* ✅ new install CTA row (label + button) */
+    /* ✅ install CTA row */
     #rm-install-cta{
       display:flex;
       align-items:center;
@@ -95,9 +95,15 @@
       width:18px;height:18px;
     }
 
-    .frameWrap{height:200px;}
-    iframe{width:100%;height:100%;border:0;}
+    /* ✅ main content container that replaces iframe */
+    .frameWrap{
+      padding:12px 12px calc(18px + env(safe-area-inset-bottom) + 72px);
+      max-width:980px;
+      margin:0 auto;
+      box-sizing:border-box;
+    }
 
+    /* Bottom tabs */
     .bottomBar{
       position:fixed;
       left:0;right:0;bottom:0;
@@ -110,52 +116,65 @@
       max-width:980px;
       margin:0 auto;
       display:grid;
-      grid-template-columns:1fr 1fr auto;
+      grid-template-columns:repeat(4, 1fr);
       gap:10px;
       align-items:stretch;
     }
-    .pill{
+    .tabBtn{
       border:1px solid rgba(0,0,0,.18);
       border-radius:16px;
-      padding:10px 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      cursor:pointer;
-      user-select:none;
-    }
-    .label{font-size:12px;font-weight:900;opacity:.7;}
-    .value{font-size:14px;font-weight:1000;}
-    .hint{font-size:12px;font-weight:900;color:#666;}
-
-    .menuBtn{
-      width:44px;
-      border:1px solid rgba(0,0,0,.18);
-      border-radius:16px;
+      padding:10px 8px;
       background:#fff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:18px;
       font-weight:1000;
       cursor:pointer;
       user-select:none;
+      min-height:44px;
+      font-size:12px;
     }
-    .menuBtn:active{transform:scale(.98);}
+    .tabBtn:active{transform:scale(.99);}
+    .tabBtn.active{
+      background:#111;
+      color:#fff;
+      border-color:rgba(0,0,0,.18);
+    }
 
-    #rm-whisper{
-      display:flex;
+    /* Panels */
+    .tabPanel{ display:none; }
+    .tabPanel.active{ display:block; }
+
+    .panelTitle{
+      font-weight:1000;
+      font-size:14px;
+      margin:4px 0 12px;
+      opacity:.85;
+    }
+
+    .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+
+    /* ✅ normalize button sizing across <button> and <a> */
+    .btn{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.18);
+      background:#fff;
+      font-weight:900;
+      cursor:pointer;
+      text-decoration:none;
+      color:#111;
+      display:inline-flex;
       align-items:center;
-      gap:6px;
-      margin-top:6px;
-      user-select:none;
-      opacity:0;
-      transition:opacity .8s ease;
+      justify-content:center;
+      gap:8px;
+      box-sizing:border-box;
+      min-height:44px;
+      line-height:1.1;
+      width:100%;
     }
-    #rm-whisper.show{opacity:1;}
-    .whisper-dot{width:6px;height:6px;border-radius:50%;background:#bbb;flex-shrink:0;}
-    .whisper-text{font-size:12px;font-weight:900;color:#777;letter-spacing:.2px;}
+    .btn.primary{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
 
+    .muted{color:#666;font-weight:800;line-height:1.25;}
+
+    /* Sheets / modals */
     .backdrop{
       position:fixed;
       inset:0;
@@ -203,29 +222,7 @@
       font-family:inherit;
     }
 
-    .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
-
-    /* ✅ normalize button sizing across <button> and <a> */
-    .btn{
-      padding:9px 12px;
-      border-radius:999px;
-      border:1px solid rgba(0,0,0,.18);
-      background:#fff;
-      font-weight:900;
-      cursor:pointer;
-      text-decoration:none;
-      color:#111;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      box-sizing:border-box;
-      min-height:44px;      /* <- keeps Trudge the Road same height as others */
-      line-height:1.1;
-    }
-    .btn.primary{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
     .big{font-size:22px;font-weight:1000;margin-top:10px;}
-    .muted{color:#666;font-weight:800;line-height:1.25;}
 
     /* Gratitude */
     .qLabel{margin-top:12px;font-weight:1000;letter-spacing:.2px;}
@@ -290,33 +287,7 @@
       text-decoration:underline; text-underline-offset:3px;
     }
 
-    .toolBtnRow .btn{
-      width:100%;
-    }
-
-    .passItOn{
-      font-weight:1000;
-      color:#666;
-      align-self:center;
-      white-space:nowrap;
-    }
-
-    .shareRow{
-      display:grid;
-      grid-template-columns: 1fr auto auto;
-      gap:10px;
-      align-items:center;
-      margin-top:10px;
-    }
-    @media (max-width:420px){
-      .shareRow{
-        grid-template-columns: 1fr;
-      }
-      .passItOn{white-space:normal;}
-      .shareRow .btn{width:100%;}
-    }
-
-    /* ✅ Prayer modal content */
+    /* Prayer modal content */
     .prayerBox{
       margin-top:10px;
       border:1px solid rgba(0,0,0,.12);
@@ -327,7 +298,7 @@
       line-height:1.45;
     }
 
-    /* Burn release animation (paper -> trash -> sunlight) */
+    /* Burn release animation */
     #burnDoneSheet .doneWrap{
       margin-top:12px;
       border:1px solid rgba(0,0,0,.12);
@@ -335,7 +306,6 @@
       padding:14px;
       background:#fff;
     }
-
     .burnAnimStage{
       position:relative;
       height:120px;
@@ -344,7 +314,6 @@
       background:#fff;
       overflow:hidden;
     }
-
     .burnGlow{
       position:absolute;
       inset:-30%;
@@ -352,7 +321,6 @@
       opacity:0;
       transform:scale(.9);
     }
-
     .burnTrash{
       position:absolute;
       right:18px;
@@ -389,7 +357,6 @@
       border-right:2px solid rgba(0,0,0,.18);
       opacity:.9;
     }
-
     .burnPaper{
       position:absolute;
       left:18px;
@@ -403,7 +370,6 @@
       transform:translateX(0) translateY(0) rotate(0deg) scale(1);
       opacity:1;
     }
-
     .burnMsg{
       margin-top:12px;
       font-weight:1000;
@@ -411,7 +377,6 @@
       opacity:0;
       transition:opacity .25s ease;
     }
-
     .burnDoneBtnRow{
       margin-top:12px;
       display:flex;
@@ -419,18 +384,9 @@
       flex-wrap:wrap;
     }
     .burnDoneBtnRow .btn{ width:100%; }
-
-    .burnAnimStage.run .burnPaper{
-      animation: paperSlide .55s ease-out forwards;
-    }
-    .burnAnimStage.run .burnGlow{
-      animation: glowUp .60s ease-out forwards;
-      animation-delay:.55s;
-    }
-    .burnAnimStage.run .burnTrash{
-      animation: trashNod .22s ease-out forwards;
-      animation-delay:.55s;
-    }
+    .burnAnimStage.run .burnPaper{ animation: paperSlide .55s ease-out forwards; }
+    .burnAnimStage.run .burnGlow{ animation: glowUp .60s ease-out forwards; animation-delay:.55s; }
+    .burnAnimStage.run .burnTrash{ animation: trashNod .22s ease-out forwards; animation-delay:.55s; }
 
     @keyframes paperSlide{
       0%{ transform:translateX(0) translateY(0) rotate(0deg) scale(1); opacity:1; }
@@ -446,6 +402,25 @@
       50%{ transform:translateY(2px); }
       100%{ transform:translateY(0); }
     }
+
+    /* Share row (kept, optional) */
+    .shareRow{
+      display:grid;
+      grid-template-columns: 1fr auto auto;
+      gap:10px;
+      align-items:center;
+      margin-top:12px;
+    }
+    .passItOn{
+      font-weight:1000;
+      color:#666;
+      align-self:center;
+      white-space:nowrap;
+    }
+    @media (max-width:420px){
+      .shareRow{ grid-template-columns: 1fr; }
+      .passItOn{ white-space:normal; }
+    }
   </style>
 </head>
 
@@ -460,7 +435,6 @@
       <div id="rm-install-sub"></div>
     </div>
     <div>
-      <!-- ✅ NEW: label just left of the install button -->
       <div id="rm-install-cta">
         <span id="rm-install-free">Free recovery tools.</span>
         <button id="rm-install-btn" type="button">Install</button>
@@ -470,37 +444,66 @@
   </div>
 </div>
 
+<!-- ✅ Main content: 4 panels -->
 <div class="frameWrap" id="frameWrap">
-  <iframe src="https://recoverymisfits.blogspot.com/"></iframe>
+
+  <div class="tabPanel active" id="toolsPanel">
+    <div class="panelTitle">Tools</div>
+    <div class="row">
+      <button class="btn primary" id="gratBtn" type="button">🙏 Gratitude Inventory</button>
+      <button class="btn primary" id="burnBtn" type="button">🔥 Burn Pad</button>
+      <button class="btn" id="sobPill" type="button">📅 Sobriety Date / Days</button>
+      <button class="btn" id="streakPill" type="button">🔥 Daily Check-In</button>
+    </div>
+
+    <div class="shareRow">
+      <div class="passItOn">Pass it on: share this app</div>
+      <button class="btn" id="shareTextBtn" type="button">By Text</button>
+      <button class="btn" id="shareFbBtn" type="button">Facebook</button>
+    </div>
+  </div>
+
+  <div class="tabPanel" id="literaturePanel">
+    <div class="panelTitle">Literature</div>
+    <div class="row">
+      <!-- If your daily reading is still on Blogger, this keeps it simple -->
+      <a class="btn" href="https://recoverymisfits.blogspot.com/" target="_blank" rel="noopener">📖 Another Day Sober</a>
+
+      <!-- “On Awakening” placeholder: uses your existing prayer sheet for now -->
+      <button class="btn" id="onAwakeningBtn" type="button">☀️ On Awakening</button>
+
+      <a class="btn" href="https://www.aa.org/daily-reflections" target="_blank" rel="noopener">📅 Daily Reflections</a>
+      <a class="btn" href="https://www.hazeldenbettyford.org/thought-for-the-day" target="_blank" rel="noopener">🕰 24 Hours a Day</a>
+
+      <!-- placeholder until you decide where As Bill Sees It lives -->
+      <button class="btn" id="asBillBtn" type="button">💬 As Bill Sees It</button>
+    </div>
+  </div>
+
+  <div class="tabPanel" id="audioPanel">
+    <div class="panelTitle">Audio</div>
+    <div class="row">
+      <a class="btn primary" href="audio.html">🎧 Open Audio</a>
+    </div>
+  </div>
+
+  <div class="tabPanel" id="funPanel">
+    <div class="panelTitle">Fun</div>
+    <div class="row">
+      <a class="btn primary" href="game.html">🚀 Trudge the Road</a>
+      <button class="btn" type="button" disabled style="opacity:.65;cursor:not-allowed;">🕹 Trudge Brothers — Coming Soon</button>
+    </div>
+  </div>
+
 </div>
 
+<!-- Bottom Nav Tabs -->
 <div class="bottomBar">
   <div class="bottomInner">
-
-    <div class="pill" id="sobPill">
-      <div>
-        <div class="label">SOBRIETY</div>
-        <div class="value" id="sobValue">Tap to set</div>
-      </div>
-      <div class="hint" id="sobHint">Tap to set</div>
-    </div>
-
-    <div>
-      <div class="pill" id="streakPill">
-        <div>
-          <div class="label">DAILY CHECK-IN</div>
-          <div class="value" id="streakValue">—</div>
-        </div>
-        <div class="hint">Today</div>
-      </div>
-
-      <div id="rm-whisper" aria-hidden="true">
-        <span class="whisper-dot" aria-hidden="true"></span>
-        <span class="whisper-text"></span>
-      </div>
-    </div>
-
-    <button class="menuBtn" id="menuBtn" type="button" aria-label="Menu">☰</button>
+    <button class="tabBtn active" data-tab="tools" type="button">Tools</button>
+    <button class="tabBtn" data-tab="literature" type="button">Literature</button>
+    <button class="tabBtn" data-tab="audio" type="button">Audio</button>
+    <button class="tabBtn" data-tab="fun" type="button">Fun</button>
   </div>
 </div>
 
@@ -509,7 +512,7 @@
 <div class="sheet" id="sheet">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
     <h3 style="margin:0;">Sobriety</h3>
-    <button class="btn" id="closeSheet" type="button">Close</button>
+    <button class="btn" id="closeSheet" type="button" style="width:auto;">Close</button>
   </div>
   <div class="muted" style="margin-top:6px;">Set your sobriety date once. Stored on this device.</div>
   <input type="date" id="sobDate">
@@ -520,45 +523,12 @@
   <div class="big" id="sobOut"></div>
 </div>
 
-<!-- MENU SHEET -->
-<div class="backdrop" id="menuBackdrop"></div>
-<div class="sheet" id="menuSheet">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-    <h3 style="margin:0;">Quick Tools</h3>
-    <button class="btn" id="closeMenu" type="button">Close</button>
-  </div>
-
-  <div class="muted" style="margin-top:6px;">Stuff you might want. Nothing loud.</div>
-
-    <div class="row toolBtnRow" style="margin-top:12px;">
-    <a class="btn primary" href="game.html" id="playGameBtn" aria-label="Play Trudge the Road">🎮 Trudge the Road</a>
-  </div>
-
-  <div class="row toolBtnRow" style="margin-top:10px;">
-    <a class="btn primary" href="audio.html" id="audioBooksBtn" aria-label="Open Audiobooks">🎧 Audio</a>
-  </div>
-
-  <div class="row toolBtnRow" style="margin-top:10px;">
-    <button class="btn primary" id="gratBtn" type="button">⭐ Gratitude Inventory</button>
-  </div>
-    <div class="row toolBtnRow" style="margin-top:10px;">
-    <button class="btn primary" id="burnBtn" type="button">🔥 Burn Pad</button>
-  </div>
-
-
-  <div class="shareRow">
-    <div class="passItOn">Pass it on: share this app</div>
-    <button class="btn" id="shareTextBtn" type="button">By Text</button>
-    <button class="btn" id="shareFbBtn" type="button">Facebook</button>
-  </div>
-</div>
-
 <!-- GRATITUDE SHEET -->
 <div class="backdrop" id="gratBackdrop"></div>
 <div class="sheet" id="gratSheet">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
     <h3 style="margin:0;">Gratitude Inventory</h3>
-    <button class="btn" id="closeGrat" type="button">Close</button>
+    <button class="btn" id="closeGrat" type="button" style="width:auto;">Close</button>
   </div>
 
   <div class="tinyMeta">
@@ -597,10 +567,9 @@
 <!-- BURN PAD SHEET -->
 <div class="backdrop" id="burnBackdrop"></div>
 <div class="sheet" id="burnSheet">
-
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
     <h3 style="margin:0;">Burn Pad</h3>
-    <button class="btn" id="closeBurn" type="button">Close</button>
+    <button class="btn" id="closeBurn" type="button" style="width:auto;">Close</button>
   </div>
 
   <div class="stepWrap active" id="burnStep1">
@@ -688,7 +657,6 @@
       <button class="btn" id="burnClear2" type="button">Clear</button>
     </div>
   </div>
-
 </div>
 
 <!-- BURN RELEASE DONE SHEET -->
@@ -696,7 +664,7 @@
 <div class="sheet" id="burnDoneSheet">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
     <h3 style="margin:0;">Burn Pad</h3>
-    <button class="btn" id="closeBurnDoneX" type="button">Close</button>
+    <button class="btn" id="closeBurnDoneX" type="button" style="width:auto;">Close</button>
   </div>
 
   <div class="doneWrap">
@@ -721,7 +689,7 @@
 <div class="sheet" id="prayerSheet" role="dialog" aria-modal="true" aria-labelledby="prayerTitle">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
     <h3 id="prayerTitle" style="margin:0;">Sick Man’s Prayer</h3>
-    <button class="btn" id="closePrayerX" type="button">Close</button>
+    <button class="btn" id="closePrayerX" type="button" style="width:auto;">Close</button>
   </div>
 
   <div class="prayerBox" style="margin-top:12px;">
@@ -740,7 +708,7 @@
 <div class="sheet" id="iosSheet">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
     <h3 style="margin:0;">Add to Home Screen</h3>
-    <button class="btn" id="closeIOS" type="button">Close</button>
+    <button class="btn" id="closeIOS" type="button" style="width:auto;">Close</button>
   </div>
 
   <div style="margin-top:12px;font-weight:900;line-height:1.45;">
@@ -766,26 +734,44 @@
 </div>
 
 <script>
+  // =========================
+  // Service Worker
+  // =========================
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
-  const frameWrap = document.getElementById("frameWrap");
-  function setFrameHeight(){
-    const headerH = document.querySelector("header").offsetHeight || 48;
-    const installBarEl = document.getElementById("rm-install-bar");
-    const installH = (installBarEl && getComputedStyle(installBarEl).display !== "none") ? installBarEl.offsetHeight : 0;
-    const bottomH = document.querySelector(".bottomBar").offsetHeight || 70;
-    const total = window.innerHeight - headerH - installH - bottomH;
-    frameWrap.style.height = Math.max(220, total) + "px";
-  }
-  window.addEventListener("resize", setFrameHeight);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
+  // =========================
+  // Tabs
+  // =========================
+  const tabButtons = document.querySelectorAll(".tabBtn");
+  const panels = {
+    tools: document.getElementById("toolsPanel"),
+    literature: document.getElementById("literaturePanel"),
+    audio: document.getElementById("audioPanel"),
+    fun: document.getElementById("funPanel"),
+  };
+
+  function setActiveTab(name){
+    tabButtons.forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+    Object.entries(panels).forEach(([k,el]) => el.classList.toggle("active", k===name));
+    // keep scroll feeling clean
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
+  });
+
+  // =========================
+  // Install Bar
+  // =========================
   function isStandalone(){
     const mql = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
     const iosStandalone = window.navigator.standalone === true;
     return !!(mql || iosStandalone);
   }
 
-  /* Install Bar */
   const installBar = document.getElementById("rm-install-bar");
   const installBtn = document.getElementById("rm-install-btn");
   const installClose = document.getElementById("rm-install-close");
@@ -800,11 +786,9 @@
     if (isStandalone()) return;
     installSub.textContent = msg || "";
     installBar.style.display = "block";
-    setFrameHeight();
   }
   function hideInstallBar(){
     installBar.style.display = "none";
-    setFrameHeight();
   }
 
   if (!isStandalone()) {
@@ -851,19 +835,9 @@
   window.addEventListener("appinstalled", () => hideInstallBar());
   if (isStandalone()) hideInstallBar();
 
-  /* Menu */
-  const menuBackdrop = document.getElementById("menuBackdrop");
-  const menuSheet = document.getElementById("menuSheet");
-  const menuBtn = document.getElementById("menuBtn");
-
-  function openMenu(){ menuBackdrop.style.display="block"; menuSheet.classList.add("open"); }
-  function closeMenu(){ menuSheet.classList.remove("open"); menuBackdrop.style.display="none"; }
-
-  menuBtn.onclick = openMenu;
-  menuBackdrop.onclick = closeMenu;
-  document.getElementById("closeMenu").onclick = closeMenu;
-
-  /* Share */
+  // =========================
+  // Share
+  // =========================
   const SHARE_URL = "https://recoverymisfits.blogspot.com/";
   const SHARE_TEXT = "This has been helping me lately. No hype, just solid. " + SHARE_URL;
 
@@ -875,14 +849,14 @@
     window.open(fb, "_blank", "noopener,noreferrer");
   };
 
-  /* Sobriety + check-in */
+  // =========================
+  // Sobriety + check-in
+  // =========================
   const LS_DATE   = "rm_sob_date";
   const LS_MODE   = "rm_sob_mode";
   const LS_STREAK = "rm_streak";
   const LS_LAST   = "rm_last";
 
-  const sobValue = document.getElementById("sobValue");
-  const sobHint  = document.getElementById("sobHint");
   const sobDate  = document.getElementById("sobDate");
   const sobOut   = document.getElementById("sobOut");
 
@@ -911,8 +885,6 @@
     const v = localStorage.getItem(LS_DATE);
     const mode = getMode();
     if(!v){
-      sobValue.textContent="Tap to set";
-      sobHint.textContent="Tap to set";
       sobOut.textContent="";
       return;
     }
@@ -920,14 +892,7 @@
     const d1 = new Date();
     const days = Math.max(0, Math.floor((d1-d0)/(1000*60*60*24)));
 
-    if (mode === "date") {
-      sobValue.textContent = v;
-      sobHint.textContent  = "Tap: show days";
-    } else {
-      sobValue.textContent = days + " days";
-      sobHint.textContent  = "Tap: show date";
-    }
-    sobOut.textContent = days + " days sober";
+    sobOut.textContent = (mode === "date") ? (v + " (" + days + " days)") : (days + " days sober");
   }
 
   document.getElementById("sobPill").onclick = () => {
@@ -936,7 +901,9 @@
     const mode = getMode();
     localStorage.setItem(LS_MODE, mode === "date" ? "days" : "date");
     renderSob();
+    openSheet();
   };
+
   document.getElementById("streakPill").onclick = () => openSheet();
 
   document.getElementById("saveSob").onclick = () => {
@@ -963,45 +930,11 @@
       localStorage.setItem(LS_LAST, today);
       localStorage.setItem(LS_STREAK, String(streak));
     }
-    document.getElementById("streakValue").textContent = streak + "🔥";
   }
 
-  /* Whisper */
-  const WHISPER_KEY_DATE = "rm_whisper_date";
-  const WHISPER_KEY_TEXT = "rm_whisper_text";
-  const WHISPERS = [
-    "A few people re-read this lately","This one’s getting re-read","This one’s making the rounds",
-    "This hit somebody else too","You weren’t the only one here","Others paused on this one",
-    "This one drew a second look","This one slowed someone down","This one didn’t go unnoticed",
-    "More than one set of eyes here","Someone else needed this too","This one met a few people where they were",
-    "You’re in quiet company here","This one landed for somebody","A few folks stayed with this one",
-    "This one found its way around","Others sat with this for a bit","You weren’t alone with this thought",
-    "This one didn’t just pass by","Not the only one to read this","Shared moment today",
-    "Quietly revisited today","This one stayed today","Others were here today"
-  ];
-  function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-  function getTodayISO(){ return new Date().toISOString().slice(0,10); }
-
-  function renderWhisper(){
-    const wrap = document.getElementById("rm-whisper");
-    const textEl = document.querySelector(".whisper-text");
-    if(!wrap || !textEl) return;
-
-    const today = getTodayISO();
-    const savedDate = localStorage.getItem(WHISPER_KEY_DATE);
-    const savedText = localStorage.getItem(WHISPER_KEY_TEXT);
-
-    let text = savedText;
-    if(savedDate !== today || !savedText){
-      text = pickRandom(WHISPERS);
-      localStorage.setItem(WHISPER_KEY_DATE, today);
-      localStorage.setItem(WHISPER_KEY_TEXT, text);
-    }
-    textEl.textContent = text;
-    setTimeout(() => wrap.classList.add("show"), 900);
-  }
-
-  /* star burst */
+  // =========================
+  // Star burst
+  // =========================
   function burstStars(onButtonEl){
     const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
     if(!wrap) return;
@@ -1020,7 +953,9 @@
     }
   }
 
-  /* Gratitude */
+  // =========================
+  // Gratitude
+  // =========================
   const GRAT_INDEX_KEY = "rm_grat_index";
   const gratBackdrop = document.getElementById("gratBackdrop");
   const gratSheet = document.getElementById("gratSheet");
@@ -1039,6 +974,8 @@
   const archiveCaret = document.getElementById("archiveCaret");
 
   let currentGratDate = null;
+
+  function getTodayISO(){ return new Date().toISOString().slice(0,10); }
 
   function gratKey(dateISO){ return "rm_grat_" + dateISO; }
   function readIndex(){
@@ -1088,7 +1025,7 @@
   gratBackdrop.onclick = closeGrat;
   document.getElementById("closeGrat").onclick = closeGrat;
 
-  document.getElementById("gratBtn").onclick = () => { closeMenu(); openGrat(getTodayISO()); };
+  document.getElementById("gratBtn").onclick = () => openGrat(getTodayISO());
 
   archiveToggle.onclick = () => {
     const isOpen = archiveList.classList.toggle("open");
@@ -1152,7 +1089,9 @@
     gratHappy.value=""; gratPeace.value=""; gratUseful.value=""; gratJournal.value="";
   };
 
-  /* Burn Pad (no save) */
+  // =========================
+  // Burn Pad
+  // =========================
   const burnBackdrop = document.getElementById("burnBackdrop");
   const burnSheet = document.getElementById("burnSheet");
 
@@ -1216,7 +1155,7 @@
 
   burnBackdrop.onclick = closeBurn;
   document.getElementById("closeBurn").onclick = closeBurn;
-  document.getElementById("burnBtn").onclick = () => { closeMenu(); openBurn(); };
+  document.getElementById("burnBtn").onclick = () => openBurn();
 
   document.getElementById("burnNext").onclick = () => { showBurnStep(2); setTimeout(() => burnMistake.focus({preventScroll:true}), 80); };
   document.getElementById("burnBack").onclick = () => { showBurnStep(1); setTimeout(() => burnName.focus({preventScroll:true}), 80); };
@@ -1276,7 +1215,9 @@
     }
   });
 
-  /* Burn Done (paper -> trash -> sunlight) */
+  // =========================
+  // Burn Done
+  // =========================
   const burnDoneBackdrop = document.getElementById("burnDoneBackdrop");
   const burnDoneSheet = document.getElementById("burnDoneSheet");
   const burnAnimStage = document.getElementById("burnAnimStage");
@@ -1306,7 +1247,9 @@
   burnDoneBackdrop.onclick = closeBurnDone;
   document.getElementById("closeBurnDoneX").onclick = closeBurnDone;
 
-  /* ✅ Sick Man’s Prayer modal (still available) */
+  // =========================
+  // Prayer modal
+  // =========================
   const prayerBackdrop = document.getElementById("prayerBackdrop");
   const prayerSheet = document.getElementById("prayerSheet");
   const prayerDone = document.getElementById("prayerDone");
@@ -1325,24 +1268,30 @@
   closePrayerX.onclick = closePrayer;
   prayerDone.onclick = closePrayer;
 
+  // Hook literature buttons
+  document.getElementById("onAwakeningBtn").onclick = openPrayer;
+  document.getElementById("asBillBtn").onclick = () => {
+    alert("As Bill Sees It: add link/page when you’re ready.");
+  };
+
+  // Release action
   burnReleaseBtn.onclick = () => {
-    /* If not ready: PAUSE (do not clear), just close */
     if (burnNotReady.checked){
       closeBurn();
       return;
     }
-
-    /* Release: close burn, show animation, clear only after closing done */
     closeBurn();
     openBurnDone();
   };
 
   burnDoneCloseBtn.onclick = () => {
-    clearBurnAll();     /* clears all burn fields + chips + toggles */
-    closeBurnDone();    /* ends this portion of the app */
+    clearBurnAll();
+    closeBurnDone();
   };
 
-  /* Init */
+  // =========================
+  // Init
+  // =========================
   (function init(){
     const v = localStorage.getItem(LS_DATE);
     if (v) sobDate.value = v;
@@ -1350,8 +1299,7 @@
 
     updateStreak();
     renderSob();
-    renderWhisper();
-    setFrameHeight();
+    setActiveTab("tools");
   })();
 </script>
 
