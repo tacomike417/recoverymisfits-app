@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits (Test Hub)</title>
+  <title>Recovery Misfits</title>
 
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#000000" />
@@ -54,7 +54,64 @@
       padding:16px;
       margin:12px 0;
       box-shadow:var(--shadow);
+      background:#fff;
     }
+
+    .todayTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .kicker{
+      font-size:12px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#666;
+      margin:0 0 8px 0;
+    }
+
+    .readingTitle{
+      font-size:18px;
+      font-weight:900;
+      margin:0 0 6px 0;
+    }
+
+    .readingMeta{
+      font-size:12px;
+      color:#666;
+      margin:0 0 10px 0;
+    }
+
+    .readingBody{
+      margin:0;
+      line-height:1.5;
+      font-size:14px;
+      white-space:pre-wrap;
+    }
+
+    .btnRow{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      display:inline-block;
+      text-decoration:none;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:10px 12px;
+      font-size:13px;
+      color:#111;
+      background:#fff;
+      box-shadow:var(--shadow);
+    }
+
+    .btn:active{ transform:scale(.99); }
 
     .grid{
       display:grid;
@@ -76,6 +133,7 @@
       padding:14px;
       box-shadow:var(--shadow);
       transition:.08s;
+      background:#fff;
     }
 
     .tile:active{ transform:scale(.99); }
@@ -120,13 +178,32 @@
 <body>
   <header>
     <div class="brand">Recovery Misfits</div>
-    <div class="sub">index2 test hub</div>
+    <div class="sub" id="todayStamp">Loading today…</div>
   </header>
 
   <main>
-    <div class="card">
-      <h2>Welcome back.</h2>
-      <p>This is the modular test hub. Each feature will live on its own page.</p>
+    <!-- ✅ TODAY'S READING -->
+    <section class="card" id="todayCard" aria-live="polite">
+      <div class="todayTop">
+        <div>
+          <p class="kicker">Today’s Reading</p>
+          <h1 class="readingTitle" id="readingTitle">Loading…</h1>
+          <p class="readingMeta" id="readingMeta"></p>
+        </div>
+      </div>
+
+      <p class="readingBody" id="readingBody">Give me a second…</p>
+
+      <div class="btnRow">
+        <a class="btn" href="./readings.html">Open Readings</a>
+        <a class="btn" href="./tools.html">Go to Tools</a>
+      </div>
+    </section>
+
+    <!-- HUB / QUICK LINKS (still useful under the reading) -->
+    <section class="card">
+      <h2 style="margin:0 0 6px 0;">Quick Links</h2>
+      <p style="margin:0;color:#666;">Everything else lives on its own page now.</p>
 
       <div class="grid">
         <a class="tile" href="./tools.html">
@@ -136,7 +213,7 @@
 
         <a class="tile" href="./readings.html">
           <strong>Daily Readings</strong><br>
-          One day at a time.
+          Browse any day.
         </a>
 
         <a class="tile" href="./audio.html">
@@ -146,13 +223,13 @@
 
         <a class="tile" href="./fun.html">
           <strong>Fun</strong><br>
-          Games, experiments, and misfit stuff.
+          Games, experiments, misfit stuff.
         </a>
       </div>
-    </div>
+    </section>
   </main>
 
-  <!-- 🔥 Bottom Navigation -->
+  <!-- Bottom Navigation -->
   <nav id="bottomBar">
     <a class="navItem" data-page="home" href="./index2.html">
       <span class="ico">🏠</span>
@@ -177,7 +254,7 @@
   </nav>
 
   <script>
-    // Highlight active tab
+    // Active tab highlight
     (function(){
       const path = location.pathname.split("/").pop().toLowerCase();
       const map = {
@@ -192,6 +269,93 @@
         if(a.dataset.page === active) a.classList.add("active");
       });
     })();
+
+    // Get YYYY-MM-DD in America/New_York (matches your timezone)
+    function nyDateKey(){
+      const fmt = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      });
+      return fmt.format(new Date()); // "YYYY-MM-DD"
+    }
+
+    function prettyNyDate(){
+      const fmt = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/New_York",
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+      return fmt.format(new Date());
+    }
+
+    function setReadingUI({ title, body, source }){
+      document.getElementById("readingTitle").textContent = title || "Today";
+      document.getElementById("readingBody").textContent = body || "";
+      document.getElementById("readingMeta").textContent = source ? source : "";
+    }
+
+    async function loadTodaysReading(){
+      const key = nyDateKey();
+      const pretty = prettyNyDate();
+      document.getElementById("todayStamp").textContent = pretty;
+
+      // 1) Try localStorage cache first (fast + offline-friendly)
+      const cacheKey = "rm_reading_" + key;
+      try{
+        const cached = localStorage.getItem(cacheKey);
+        if(cached){
+          const parsed = JSON.parse(cached);
+          setReadingUI(parsed);
+          return; // stop here unless you want always-refresh behavior
+        }
+      }catch(e){ /* ignore */ }
+
+      // 2) Try fetching readings.json
+      // Expected format example:
+      // {
+      //   "2026-02-26": { "title":"Thinking Too Small", "body":"...", "source":"Recovery Misfits" },
+      //   "2026-02-27": { ... }
+      // }
+      try{
+        const res = await fetch("./readings.json?v=" + encodeURIComponent(key), { cache: "no-store" });
+        if(!res.ok) throw new Error("readings.json not found");
+        const data = await res.json();
+        const todays = data[key];
+
+        if(todays && (todays.title || todays.body)){
+          const payload = {
+            title: todays.title || "Today",
+            body: todays.body || "",
+            source: todays.source || "Recovery Misfits"
+          };
+          setReadingUI(payload);
+          try{ localStorage.setItem(cacheKey, JSON.stringify(payload)); }catch(e){}
+          return;
+        }
+
+        // If file exists but date missing:
+        setReadingUI({
+          title: "Today’s reading isn’t loaded yet",
+          body: "The readings.json file is there, but it doesn’t have an entry for " + key + ".\n\nYou can still open Readings and browse.",
+          source: "Tip: add today’s date key to readings.json"
+        });
+        return;
+
+      }catch(err){
+        // 3) Fallback if readings.json doesn’t exist yet
+        setReadingUI({
+          title: "Today’s Reading (coming online)",
+          body: "We’re wired to show the daily reading here.\n\nNext step: create a readings.json file and we’ll load today automatically.\n\nFor now, tap “Open Readings.”",
+          source: "Recovery Misfits"
+        });
+      }
+    }
+
+    loadTodaysReading();
   </script>
 </body>
 </html>
