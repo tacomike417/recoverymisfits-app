@@ -14,7 +14,7 @@
       margin:0;
       font-family:Roboto,Arial,sans-serif;
       background:#fff;
-      padding-bottom:70px; /* space for bottom bar */
+      padding-bottom:110px; /* space for sobriety + nav */
     }
 
     header{
@@ -31,7 +31,7 @@
     /* iframe fills screen */
     .frameWrap{
       width:100%;
-      height:calc(100vh - 56px - 70px);
+      height:calc(100vh - 56px - 110px);
     }
 
     iframe{
@@ -40,7 +40,32 @@
       border:none;
     }
 
-    /* 🔥 Bottom Bar */
+    /* Sobriety section */
+    .sobrietyBar{
+      position:fixed;
+      bottom:64px; /* sits above nav */
+      left:0;
+      right:0;
+      background:#fff;
+      border-top:1px solid rgba(0,0,0,.08);
+      text-align:center;
+      padding:10px 12px;
+      z-index:9400;
+      font-size:14px;
+    }
+
+    .sobrietyBar strong{
+      display:block;
+      font-size:15px;
+      margin-bottom:2px;
+    }
+
+    .sobrietyBar span{
+      color:#666;
+      font-size:12px;
+    }
+
+    /* Bottom Bar */
     nav#bottomBar{
       position:fixed;
       bottom:0;
@@ -86,6 +111,12 @@
     <iframe src="https://recoverymisfits.blogspot.com/"></iframe>
   </div>
 
+  <!-- Sobriety Date Display -->
+  <div class="sobrietyBar" id="sobrietyBar">
+    <strong id="sobrietyDays">—</strong>
+    <span id="sobrietyDate">Tap to set sobriety date</span>
+  </div>
+
   <!-- Bottom Navigation -->
   <nav id="bottomBar">
     <a class="navItem active" href="./index2.html">
@@ -109,6 +140,43 @@
       Fun
     </a>
   </nav>
+
+  <script>
+    const bar = document.getElementById("sobrietyBar");
+    const daysEl = document.getElementById("sobrietyDays");
+    const dateEl = document.getElementById("sobrietyDate");
+
+    function calculateDays(startDate){
+      const start = new Date(startDate);
+      const now = new Date();
+      const diff = now - start;
+      return Math.floor(diff / (1000 * 60 * 60 * 24));
+    }
+
+    function loadSobriety(){
+      const saved = localStorage.getItem("sobrietyDate");
+      if(!saved){
+        daysEl.textContent = "Set your sobriety date";
+        dateEl.textContent = "Tap here to enter";
+        return;
+      }
+
+      const days = calculateDays(saved);
+      const pretty = new Date(saved).toLocaleDateString();
+
+      daysEl.textContent = days + " days sober";
+      dateEl.textContent = "Since " + pretty;
+    }
+
+    bar.addEventListener("click", () => {
+      const input = prompt("Enter your sobriety date (YYYY-MM-DD):");
+      if(!input) return;
+      localStorage.setItem("sobrietyDate", input);
+      loadSobriety();
+    });
+
+    loadSobriety();
+  </script>
 
 </body>
 </html>
