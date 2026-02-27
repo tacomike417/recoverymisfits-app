@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Recovery Misfits — Tools</title>
 
-  <!-- ✅ PWA bits (fixes “no manifest detected” on this page) -->
+  <!-- ✅ PWA bits -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#ffffff" />
   <link rel="icon" href="./icon-192.png">
@@ -39,13 +39,13 @@
     main{
       max-width:720px;
       margin:0 auto;
-      padding:20px 16px 80px;
+      padding:20px 16px 128px; /* ⬅️ extra for bottom bar + counter row */
     }
 
     h1{ margin:0 0 6px 0; font-size:18px; }
     .hint{ margin:0 0 16px 0; color:var(--muted); font-size:13px; }
 
-    /* TOOL BUTTONS (black) */
+    /* TOOL BUTTONS */
     .tools-buttons{ display:grid; gap:14px; }
 
     .rm-btn{
@@ -65,6 +65,9 @@
       cursor:pointer;
       text-align:left;
       font:inherit;
+
+      /* ✅ makes ALL buttons feel identical */
+      min-height:86px;
     }
     .rm-btn:hover{
       background:#000;
@@ -241,7 +244,7 @@
       line-height:1.45;
     }
 
-    /* Burn release animation (paper -> trash -> sunlight) */
+    /* Burn release animation */
     #burnDoneSheet .doneWrap{
       margin-top:12px;
       border:1px solid rgba(0,0,0,.12);
@@ -304,7 +307,6 @@
       opacity:.9;
     }
 
-    /* Make the paper more obvious */
     .burnPaper{
       position:absolute;
       left:16px;
@@ -335,9 +337,7 @@
     }
     .burnDoneBtnRow .btn{ width:100%; }
 
-    .burnAnimStage.run .burnPaper{
-      animation: paperSlide .60s ease-out forwards;
-    }
+    .burnAnimStage.run .burnPaper{ animation: paperSlide .60s ease-out forwards; }
     .burnAnimStage.run .burnGlow{
       animation: glowUp .65s ease-out forwards;
       animation-delay:.58s;
@@ -362,14 +362,99 @@
       100%{ transform:translateY(0); }
     }
 
-    /* ✅ Flash the doneWrap when paper hits the trash */
-    #burnDoneSheet .doneWrap.flash{
-      animation: rmFlash .45s ease-out 1;
-    }
+    #burnDoneSheet .doneWrap.flash{ animation: rmFlash .45s ease-out 1; }
     @keyframes rmFlash{
       0%{ box-shadow: 0 0 0 rgba(0,0,0,0); }
       35%{ box-shadow: 0 0 0 4px rgba(255,210,110,.60); }
       100%{ box-shadow: 0 0 0 rgba(0,0,0,0); }
+    }
+
+    /* ✅ Bottom Nav (with Counter) */
+    .rm-bottom{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      background:#fff;
+      border-top:1px solid rgba(0,0,0,.10);
+      z-index:9999;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .rm-bottom-inner{
+      max-width:720px;
+      margin:0 auto;
+      padding:10px 10px 8px;
+    }
+    .rm-nav{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .rm-nav a{
+      flex:1;
+      text-align:center;
+      padding:10px 8px;
+      border-radius:14px;
+      border:1px solid rgba(0,0,0,.10);
+      color:#111;
+      text-decoration:none;
+      font-weight:1000;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      align-items:center;
+      justify-content:center;
+      min-height:52px;
+      background:#fff;
+    }
+    .rm-nav a.active{
+      background:#111;
+      color:#fff;
+      border-color:#111;
+    }
+    .rm-ico{ font-size:18px; line-height:1; }
+    .rm-lbl{ font-size:11px; opacity:.85; }
+
+    .rm-counter{
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(0,0,0,.12);
+      background:#fff;
+    }
+    .rm-counter-left{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      min-width:0;
+    }
+    .rm-counter-big{
+      font-weight:1000;
+      font-size:16px;
+      line-height:1.1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .rm-counter-sub{
+      font-size:12px;
+      color:rgba(0,0,0,.62);
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .rm-counter-btn{
+      border:1px solid rgba(0,0,0,.14);
+      border-radius:999px;
+      padding:8px 12px;
+      background:#111;
+      color:#fff;
+      font-weight:1000;
+      cursor:pointer;
+      min-height:40px;
     }
   </style>
 </head>
@@ -384,7 +469,6 @@
     <p class="hint">Simple stuff we can actually use.</p>
 
     <div class="tools-buttons">
-      <!-- 🔥 Burn Pad (opens sheet) -->
       <button class="rm-btn" id="toolBurn" type="button" aria-label="Open Burn Pad">
         <span class="rm-btn-emoji">🔥</span>
         <span class="rm-btn-text">
@@ -394,7 +478,6 @@
         <span class="rm-btn-arrow">›</span>
       </button>
 
-      <!-- 🙏 Gratitude (opens sheet) -->
       <button class="rm-btn" id="toolGrat" type="button" aria-label="Open Gratitude Inventory">
         <span class="rm-btn-emoji">🙏</span>
         <span class="rm-btn-text">
@@ -404,7 +487,6 @@
         <span class="rm-btn-arrow">›</span>
       </button>
 
-      <!-- 📍 Meeting Guide (external) -->
       <a class="rm-btn"
          href="https://www.aa.org/meeting-guide-app"
          target="_blank"
@@ -419,6 +501,34 @@
       </a>
     </div>
   </main>
+
+  <!-- ✅ Bottom bar (shared across pages) -->
+  <nav class="rm-bottom" aria-label="Recovery Misfits Navigation">
+    <div class="rm-bottom-inner">
+      <div class="rm-nav">
+        <a href="./index.html">
+          <div class="rm-ico">🏠</div>
+          <div class="rm-lbl">Home</div>
+        </a>
+        <a href="./tools.html" class="active">
+          <div class="rm-ico">🧰</div>
+          <div class="rm-lbl">Tools</div>
+        </a>
+        <a href="./audio.html">
+          <div class="rm-ico">🎧</div>
+          <div class="rm-lbl">Audio</div>
+        </a>
+      </div>
+
+      <div class="rm-counter" role="button" tabindex="0" id="rmCounterChip" aria-label="Sobriety counter. Click to set sobriety date.">
+        <div class="rm-counter-left">
+          <div class="rm-counter-big" id="rmCounterBig">Set your sobriety date</div>
+          <div class="rm-counter-sub" id="rmCounterSub">Tap to enter: 09152018, 09-15-2018, 9/15/18…</div>
+        </div>
+        <button class="rm-counter-btn" id="rmCounterEdit" type="button">Edit</button>
+      </div>
+    </div>
+  </nav>
 
   <!-- GRATITUDE SHEET -->
   <div class="backdrop" id="gratBackdrop"></div>
@@ -593,6 +703,94 @@
     }
 
     function getTodayISO(){ return new Date().toISOString().slice(0,10); }
+
+    /* ✅ Sobriety counter storage key (shared across pages) */
+    const SOBER_KEY = "rm_sobriety_date";
+
+    function parseSobrietyDate(input){
+      if(!input) return null;
+      input = String(input).trim();
+      if(!input) return null;
+
+      // Allow "09152018" (MMDDYYYY)
+      if(/^\d{8}$/.test(input)){
+        const mm = input.slice(0,2);
+        const dd = input.slice(2,4);
+        const yyyy = input.slice(4,8);
+        const d = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+        return isNaN(d) ? null : d;
+      }
+
+      // normalize separators
+      const cleaned = input.replace(/\//g, "-");
+
+      // Try native parse for formats like "2018-09-15", "Sep 15 2018"
+      const d1 = new Date(cleaned);
+      if(!isNaN(d1)) return d1;
+
+      // Try MM-DD-YYYY with optional leading zeros, also MM-DD-YY
+      const m = cleaned.match(/^(\d{1,2})-(\d{1,2})-(\d{2}|\d{4})$/);
+      if(m){
+        const mm = String(m[1]).padStart(2,"0");
+        const dd = String(m[2]).padStart(2,"0");
+        let yyyy = m[3];
+        if(yyyy.length === 2){
+          const yy = parseInt(yyyy,10);
+          yyyy = String(yy >= 70 ? 1900 + yy : 2000 + yy);
+        }
+        const d2 = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+        return isNaN(d2) ? null : d2;
+      }
+
+      return null;
+    }
+
+    function daysSoberFrom(dateObj){
+      const start = new Date(dateObj);
+      start.setHours(0,0,0,0);
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      const diff = now - start;
+      return Math.max(0, Math.floor(diff / 86400000));
+    }
+
+    function renderSobriety(){
+      const big = document.getElementById("rmCounterBig");
+      const sub = document.getElementById("rmCounterSub");
+
+      const raw = localStorage.getItem(SOBER_KEY);
+      const d = parseSobrietyDate(raw);
+
+      if(!d){
+        big.textContent = "Set your sobriety date";
+        sub.textContent = "Tap to enter: 09152018, 09-15-2018, 9/15/18…";
+        return;
+      }
+
+      const days = daysSoberFrom(d);
+      // show the stored value in a friendly way
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+
+      big.textContent = `${days.toLocaleString()} days sober`;
+      sub.textContent = `Since ${mm}-${dd}-${yyyy} (tap to edit)`;
+    }
+
+    function promptSobrietyDate(){
+      const current = localStorage.getItem(SOBER_KEY) || "";
+      const next = prompt("Sobriety date (examples: 09152018 or 09-15-2018 or 9/15/18):", current);
+      if(next === null) return; // cancelled
+
+      const d = parseSobrietyDate(next);
+      if(!d){
+        alert("Couldn’t read that date. Try 09152018 or 09-15-2018.");
+        return;
+      }
+      // store original input trimmed (keeps it simple)
+      localStorage.setItem(SOBER_KEY, String(next).trim());
+      renderSobriety();
+    }
 
     /* Star burst */
     function burstStars(onButtonEl){
@@ -793,11 +991,10 @@
       requestAnimationFrame(() => {
         burnAnimStage.classList.add("run");
 
-        // ✅ flash right when the paper “lands”/disappears
         setTimeout(() => {
           if (!doneWrap) return;
           doneWrap.classList.remove("flash");
-          void doneWrap.offsetWidth; // retrigger
+          void doneWrap.offsetWidth;
           doneWrap.classList.add("flash");
         }, 620);
 
@@ -811,7 +1008,7 @@
       burnDoneBackdrop.style.display="none";
     }
 
-    /* Wire up buttons */
+    /* Wire up tool buttons */
     document.getElementById("toolGrat").onclick = () => openGrat(getTodayISO());
     document.getElementById("toolBurn").onclick = () => openBurn();
 
@@ -925,6 +1122,27 @@
     };
     burnDoneBackdrop.onclick = closeBurnDone;
     document.getElementById("closeBurnDoneX").onclick = closeBurnDone;
+
+    /* ✅ Counter events */
+    const rmCounterChip = document.getElementById("rmCounterChip");
+    const rmCounterEdit = document.getElementById("rmCounterEdit");
+    rmCounterChip.addEventListener("click", (e) => {
+      if(e.target === rmCounterEdit) return;
+      promptSobrietyDate();
+    });
+    rmCounterChip.addEventListener("keydown", (e) => {
+      if(e.key === "Enter" || e.key === " "){
+        e.preventDefault();
+        promptSobrietyDate();
+      }
+    });
+    rmCounterEdit.addEventListener("click", (e) => {
+      e.stopPropagation();
+      promptSobrietyDate();
+    });
+
+    // initial render
+    renderSobriety();
   </script>
 </body>
 </html>
