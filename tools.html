@@ -9,275 +9,205 @@
     :root{
       --bg:#ffffff;
       --text:#111;
-      --muted:rgba(0,0,0,.6);
-      --line:rgba(0,0,0,.12);
-      --paper:#f7f3ea;
-      --paperEdge:rgba(0,0,0,.18);
-      --navH:64px;
-      --sobH:48px;
+      --muted:rgba(0,0,0,.65);
+      --border:rgba(0,0,0,.18);
+      --shadow:rgba(0,0,0,.18);
+      --paper:#fbfaf6;
+      --paper2:#f7f2e6;
     }
 
-    *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family:Roboto,Arial,sans-serif;
+      font-family: Roboto, Arial, sans-serif;
       background:var(--bg);
       color:var(--text);
-      padding-bottom:calc(var(--navH) + var(--sobH));
     }
 
     header{
       position:sticky;
       top:0;
+      z-index:20;
       background:#fff;
-      border-bottom:1px solid var(--line);
-      padding:12px;
+      border-bottom:1px solid rgba(0,0,0,.10);
+      padding:12px 14px;
       text-align:center;
+    }
+    .brand{
       font-weight:900;
-      z-index:9000;
+      font-size:16px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      margin-top:4px;
+      font-size:12.5px;
+      color:var(--muted);
     }
 
     main{
       max-width:820px;
       margin:0 auto;
-      padding:16px;
+      padding:18px 14px 90px;
     }
 
     .panel{
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:#fff;
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:18px;
       padding:16px;
-      margin:12px 0;
-      box-shadow:0 6px 18px rgba(0,0,0,.06);
+      background:#fff;
+      box-shadow:0 6px 18px rgba(0,0,0,.05);
     }
 
-    .panel h2{
-      margin:0 0 6px 0;
+    h1{
       font-size:18px;
-      font-weight:900;
+      margin:0 0 4px 0;
     }
-    .panel p{
-      margin:0;
+    .hint{
+      margin:0 0 14px 0;
       color:var(--muted);
       font-size:13px;
-      line-height:1.4;
     }
 
-    /* ===== INDEX CARDS ===== */
-    .toolGrid{
+    .tools-buttons{
       display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:14px;
-      margin-top:14px;
-    }
-    @media (max-width:560px){
-      .toolGrid{ grid-template-columns:1fr; }
+      grid-template-columns: 1fr;
+      gap:12px;
     }
 
-    .toolCard{
-      position:relative;
-      display:block;
-      text-decoration:none;
-      color:#111;
-      border-radius:18px;
-      padding:18px;
-      background:var(--paper);
-      border:1px solid var(--paperEdge);
-      box-shadow:0 10px 24px rgba(0,0,0,.08);
-      overflow:hidden;
+    @media (min-width: 720px){
+      .tools-buttons{
+        grid-template-columns: 1fr 1fr;
+      }
+      .tools-buttons .rm-btn:nth-child(3){
+        grid-column: 1 / -1;
+      }
     }
 
-    .toolCard::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:repeating-linear-gradient(
-        to bottom,
-        rgba(0,0,0,0) 0px,
-        rgba(0,0,0,0) 26px,
-        rgba(0,0,0,.05) 27px
-      );
-      opacity:.25;
-      pointer-events:none;
-    }
-
-    .pin{
-      position:absolute;
-      top:10px;
-      left:50%;
-      transform:translateX(-50%);
-      width:14px;
-      height:14px;
-      border-radius:50%;
-      background:rgba(0,0,0,.25);
-      box-shadow:
-        0 2px 0 rgba(255,255,255,.25) inset,
-        0 6px 14px rgba(0,0,0,.18);
-    }
-    .pin.pin2{ background:rgba(176,120,46,.6); }
-
-    .toolTop{
+    .rm-btn{
       display:flex;
       align-items:center;
       gap:12px;
-      margin-top:6px;
+      padding:14px 14px;
+      border-radius:16px;
+      text-decoration:none;
+      background:var(--paper);
+      color:var(--text);
+      border:1px solid var(--border);
+      box-shadow:0 2px 0 var(--shadow);
+      transition: transform .08s ease, box-shadow .08s ease, background .12s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .rm-btn:hover{
+      background:#fffdf7;
+      transform: translateY(-1px);
+      box-shadow:0 3px 0 var(--shadow);
+    }
+    .rm-btn:active{
+      transform: translateY(1px);
+      box-shadow:0 1px 0 var(--shadow);
     }
 
-    .toolEmoji{ font-size:28px; line-height:28px; }
-    .toolTitle{
-      margin:0;
-      font-size:22px;
-      font-weight:900;
-    }
-
-    .toolSub{
-      margin:10px 0 0 0;
-      font-size:15px;
-      font-weight:700;
-      color:rgba(0,0,0,.75);
-      line-height:1.25;
-    }
-
-    .toolCard:active{ transform:scale(.99); }
-
-    /* ===== SOBRIETY BAR ===== */
-    .sobrietyBar{
-      position:fixed;
-      bottom:var(--navH);
-      left:0;
-      right:0;
-      height:var(--sobH);
-      background:#fff;
-      border-top:1px solid rgba(0,0,0,.08);
+    .rm-btn-emoji{
+      width:42px;
+      height:42px;
       display:flex;
-      flex-direction:column;
       align-items:center;
       justify-content:center;
-      z-index:9400;
-      text-align:center;
+      border-radius:14px;
+      background: rgba(0,0,0,.06);
+      font-size:20px;
+      flex: 0 0 42px;
     }
-    .sobDays{ font-weight:900; font-size:16px; line-height:18px; }
-    .sobSince{ font-size:12px; color:var(--muted); line-height:16px; }
 
-    /* ===== BOTTOM NAV (simple emoji for now) ===== */
-    #bottomBar{
-      position:fixed;
-      bottom:0;
-      left:0;
-      right:0;
-      height:var(--navH);
-      background:#000;
-      border-top:1px solid #222;
+    .rm-btn-text{
       display:flex;
-      justify-content:space-around;
-      align-items:center;
-      z-index:9500;
-    }
-    .navItem{
+      flex-direction:column;
+      gap:2px;
+      min-width:0;
       flex:1;
-      text-align:center;
-      text-decoration:none;
-      color:#bbb;
-      font-size:11px;
-      padding:8px 4px;
     }
-    .navItem .ico{
-      display:block;
-      font-size:18px;
-      margin-bottom:3px;
+
+    .rm-btn-title{
+      font-weight:900;
+      font-size:15px;
+      line-height:1.1;
     }
-    .navItem.active{
-      color:#fff;
-      font-weight:700;
+
+    .rm-btn-sub{
+      font-size:12.5px;
+      color:var(--muted);
+      line-height:1.2;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .rm-btn-arrow{
+      font-size:22px;
+      opacity:.35;
+      line-height:1;
+      margin-left:4px;
+    }
+
+    .rm-btn-accent{
+      background:var(--paper2);
+    }
+    .rm-btn-accent:hover{
+      background:#fbf5ea;
+    }
+
+    /* Optional: simple bottom nav placeholder spacing (if your app has a bottom bar elsewhere) */
+    .spacer{
+      height:18px;
     }
   </style>
 </head>
 
 <body>
-  <header>Tools</header>
+  <header>
+    <div class="brand">Recovery Misfits</div>
+    <div class="sub">Tools</div>
+  </header>
 
   <main>
     <section class="panel">
-      <h2>Tools</h2>
-      <p>Simple stuff we can actually use.</p>
+      <h1>Tools</h1>
+      <p class="hint">Simple stuff we can actually use.</p>
 
-      <div class="toolGrid">
-        <a class="toolCard" href="./burnpad.html" aria-label="Open Burn Pad">
-          <div class="pin"></div>
-          <div class="toolTop">
-            <div class="toolEmoji">📝</div>
-            <h3 class="toolTitle">Burn Pad</h3>
-          </div>
-          <p class="toolSub">Get it out. Let it go.</p>
+      <div class="tools-buttons">
+        <a class="rm-btn" href="./burnpad.html" aria-label="Open Burn Pad">
+          <span class="rm-btn-emoji">📝</span>
+          <span class="rm-btn-text">
+            <span class="rm-btn-title">Burn Pad</span>
+            <span class="rm-btn-sub">Get it out. Let it go.</span>
+          </span>
+          <span class="rm-btn-arrow">›</span>
         </a>
 
-        <a class="toolCard" href="./gratitude.html" aria-label="Open Gratitude">
-          <div class="pin pin2"></div>
-          <div class="toolTop">
-            <div class="toolEmoji">🙏</div>
-            <h3 class="toolTitle">Gratitude</h3>
-          </div>
-          <p class="toolSub">Find one thing that didn’t suck today.</p>
+        <a class="rm-btn" href="./gratitude.html" aria-label="Open Gratitude">
+          <span class="rm-btn-emoji">🙏</span>
+          <span class="rm-btn-text">
+            <span class="rm-btn-title">Gratitude</span>
+            <span class="rm-btn-sub">Find one thing that didn’t suck today.</span>
+          </span>
+          <span class="rm-btn-arrow">›</span>
+        </a>
+
+        <a class="rm-btn rm-btn-accent"
+           href="https://www.aa.org/meeting-guide-app"
+           target="_blank"
+           rel="noopener noreferrer"
+           aria-label="Open AA Meeting Guide App info in a new tab">
+          <span class="rm-btn-emoji">📍</span>
+          <span class="rm-btn-text">
+            <span class="rm-btn-title">Meeting Guide App</span>
+            <span class="rm-btn-sub">Official AA meeting finder (opens AA.org)</span>
+          </span>
+          <span class="rm-btn-arrow">›</span>
         </a>
       </div>
+
+      <div class="spacer"></div>
     </section>
   </main>
-
-  <!-- Sobriety Bar -->
-  <div class="sobrietyBar" id="sobrietyBar" role="button" tabindex="0">
-    <div class="sobDays" id="sobDays">Set your sobriety date</div>
-    <div class="sobSince" id="sobSince">Tap to enter</div>
-  </div>
-
-  <!-- Bottom Nav -->
-  <nav id="bottomBar">
-    <a class="navItem" href="./index2.html"><span class="ico">🏠</span>Home</a>
-    <a class="navItem active" href="./tools.html"><span class="ico">🔧</span>Tools</a>
-    <a class="navItem" href="./readings.html"><span class="ico">📖</span>Readings</a>
-    <a class="navItem" href="./audio.html"><span class="ico">🎧</span>Audio</a>
-    <a class="navItem" href="./fun.html"><span class="ico">🎮</span>Fun</a>
-  </nav>
-
-  <script>
-    const bar = document.getElementById("sobrietyBar");
-    const daysEl = document.getElementById("sobDays");
-    const sinceEl = document.getElementById("sobSince");
-
-    function daysBetween(date){
-      const start = new Date(date + "T00:00:00");
-      const now = new Date();
-      return Math.floor((now - start) / (1000*60*60*24));
-    }
-
-    function pretty(iso){
-      const d = new Date(iso + "T00:00:00");
-      return d.toLocaleDateString(undefined, { year:"numeric", month:"short", day:"numeric" });
-    }
-
-    function render(){
-      const saved = localStorage.getItem("sobrietyDate");
-      if(!saved){
-        daysEl.textContent = "Set your sobriety date";
-        sinceEl.textContent = "Tap to enter";
-        return;
-      }
-      daysEl.textContent = daysBetween(saved).toLocaleString() + " days sober";
-      sinceEl.textContent = "Since " + pretty(saved);
-    }
-
-    function setDate(){
-      const d = prompt("Enter sobriety date (YYYY-MM-DD):");
-      if(d) localStorage.setItem("sobrietyDate", d.trim());
-      render();
-    }
-
-    bar.addEventListener("click", setDate);
-    bar.addEventListener("keydown", (e) => {
-      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); setDate(); }
-    });
-
-    render();
-  </script>
 </body>
 </html>
