@@ -92,6 +92,8 @@
       border-radius:12px;
       background:#fff;
       transition: background .12s ease, border-color .12s ease, box-shadow .12s ease;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
     }
     .titleWrap{min-width:0; flex:1;}
     .title{font-weight:1000; font-size:14px; margin:0;}
@@ -103,6 +105,14 @@
       background:#e8f3ec;
       box-shadow: 0 2px 14px rgba(0,0,0,.06);
     }
+    /* ✅ make the WHOLE container feel selected (including the button + text) */
+    .rowCard.selected .btn{
+      background:#e8f3ec;
+      border-color:#b7d3c2;
+      box-shadow:none;
+    }
+    .rowCard.selected .title{ color:#111; }
+    .rowCard.selected .subtitle{ color:rgba(0,0,0,.62); }
 
     /* Player areas */
     .playerAreaTitle{
@@ -700,16 +710,13 @@
         playBtn.type = "button";
         playBtn.textContent = "▶ Play";
 
-        playBtn.addEventListener("click", ()=>{
-          // Set selected row highlight (full green)
+        const runSelectionAndPlay = ()=>{
+          // ✅ Set selected row highlight (full green, including button)
           selectLibraryRow(item.key);
 
           if(item.type === "gorilla"){
-            // stop YT only, keep Gorilla ready
             ytFrame.src = "";
             ytArea.style.display = "none";
-
-            // keep resume + chapters
             showGorilla();
             toast("Opened");
             return;
@@ -719,6 +726,19 @@
             playYouTubePlaylist(item.title, item.sub, item.id);
             return;
           }
+        };
+
+        // ✅ Tap anywhere on the row to select + play
+        row.addEventListener("click", (e)=>{
+          // If click originated from a button, let button handler run (no double-fire)
+          if(e.target && e.target.closest && e.target.closest("button")) return;
+          runSelectionAndPlay();
+        });
+
+        // Button still works too
+        playBtn.addEventListener("click", (e)=>{
+          e.stopPropagation();
+          runSelectionAndPlay();
         });
 
         row.appendChild(left);
