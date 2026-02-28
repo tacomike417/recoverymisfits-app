@@ -17,7 +17,7 @@
       padding-bottom:110px; /* space for sobriety + nav */
     }
 
-    /* ===== TOP BAR ===== */
+    /* ===== TOP BAR (v2) ===== */
     .rm-topbar{
       position:sticky;
       top:0;
@@ -26,37 +26,47 @@
       border-bottom:1px solid rgba(0,0,0,.12);
     }
 
-    .rm-topbar__inner{
-      display:flex;
+    /* Row 1: title centered, actions right */
+    .rm-topbar__row1{
+      display:grid;
+      grid-template-columns: 1fr auto 1fr; /* left spacer, title, actions */
       align-items:center;
-      justify-content:space-between;
-      padding:10px 12px;
+      padding:10px 12px 6px;
       gap:12px;
     }
 
-    .rm-brand{
-      display:flex;
-      flex-direction:column;
-      line-height:1.1;
-      text-align:left;
+    .rm-topbar__left{
+      /* reserved for future (back/menu). stays empty for now */
+      min-height: 1px;
     }
 
-    .rm-brand__title{
+    .rm-title{
+      text-align:center;
       font-weight:900;
       font-size:16px;
       letter-spacing:.2px;
-    }
-
-    .rm-brand__sub{
-      font-size:12px;
-      opacity:.75;
-      margin-top:4px;
+      line-height:1.2;
+      justify-self:center;
+      white-space:nowrap;
     }
 
     .rm-topbar__actions{
+      justify-self:end;
       display:flex;
       gap:8px;
       align-items:center;
+    }
+
+    /* Row 2: status centered */
+    .rm-topbar__row2{
+      padding:0 12px 10px;
+      text-align:center;
+    }
+
+    .rm-mode{
+      font-size:12px;
+      opacity:.75;
+      line-height:1.2;
     }
 
     .rm-btn{
@@ -69,6 +79,7 @@
       font-weight:700;
       font-size:13px;
       cursor:pointer;
+      white-space:nowrap;
     }
 
     .rm-btn:active{ transform: translateY(1px); }
@@ -80,7 +91,7 @@
     /* iframe fills screen */
     .frameWrap{
       width:100%;
-      height:calc(100vh - 60px - 110px);
+      height:calc(100vh - 74px - 110px); /* topbar (2-row) + sobriety/nav */
     }
 
     iframe{
@@ -155,20 +166,23 @@
 
   <!-- ===== TOP BAR ===== -->
   <header class="rm-topbar" role="banner">
-    <div class="rm-topbar__inner">
-      <div class="rm-brand">
-        <div class="rm-brand__title">Recovery Misfits v2</div>
-        <div class="rm-brand__sub" id="rm-mode">Browser Mode</div>
-      </div>
+    <div class="rm-topbar__row1">
+      <div class="rm-topbar__left" aria-hidden="true"></div>
+
+      <div class="rm-title">Recovery Misfits v2</div>
 
       <div class="rm-topbar__actions">
         <button id="rm-install-btn" class="rm-btn rm-btn--primary" style="display:none;">
-          Install
+          Install App • Always Free
         </button>
         <button id="rm-howto-btn" class="rm-btn" style="display:none;">
           How to install
         </button>
       </div>
+    </div>
+
+    <div class="rm-topbar__row2">
+      <div class="rm-mode" id="rm-mode">Browser Mode</div>
     </div>
   </header>
 
