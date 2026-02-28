@@ -1,137 +1,157 @@
-// topbar.js — Recovery Misfits shared top bar (black) + install support
-(() => {
+(function () {
   const mount = document.getElementById("rm-topbar");
   if (!mount) return;
 
-  const STYLE_ID = "rm-topbar-style";
-
-  function isStandalone() {
-    return (
-      window.matchMedia("(display-mode: standalone)").matches ||
-      window.navigator.standalone === true
-    );
-  }
-
-  function isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent);
-  }
-
-  // Inject styles once
-  if (!document.getElementById(STYLE_ID)) {
-    const s = document.createElement("style");
-    s.id = STYLE_ID;
-    s.textContent = `
-      .rm-topbar{
-        position:sticky;
-        top:0;
-        z-index:9000;
-        background:#000;
-        color:#fff;
-        border-bottom:1px solid #111;
+  /* -------------------------
+     Inject styles once
+  ------------------------- */
+  if (!document.getElementById("rm-topbar-styles")) {
+    const style = document.createElement("style");
+    style.id = "rm-topbar-styles";
+    style.textContent = `
+      #rm-topbar{
+        position: sticky;
+        top: 0;
+        z-index: 9000;
+        background:#fff;
+        border-bottom:1px solid rgba(0,0,0,.12);
         font-family:Roboto,Arial,sans-serif;
       }
 
-      .rm-topbar__row{
-        display:grid;
-        grid-template-columns: 1fr auto 1fr;
-        align-items:center;
+      .rm-topbar-inner{
+        max-width:980px;
+        margin:0 auto;
         padding:10px 12px;
-      }
-
-      .rm-title{
-        text-align:center;
-        font-weight:900;
-        font-size:16px;
-        letter-spacing:.03em;
-        color:#fff;
-      }
-
-      .rm-topbar__actions{
-        justify-self:end;
         display:flex;
-        gap:8px;
         align-items:center;
+        justify-content:space-between;
+        gap:10px;
       }
 
-      .rm-btn{
-        border:1px solid #444;
+      .rm-brand{
+        font-weight:1000;
+        font-size:16px;
+        letter-spacing:.2px;
+      }
+
+      .rm-install-btn{
+        padding:8px 12px;
+        border-radius:999px;
+        border:1px solid rgba(0,0,0,.18);
         background:#111;
         color:#fff;
-        padding:7px 10px;
-        border-radius:10px;
-        font-weight:700;
-        font-size:12px;
+        font-weight:900;
         cursor:pointer;
-        line-height:1;
-        white-space:nowrap;
+        font-size:12px;
       }
 
-      .rm-btn--primary{
-        background:#fff;
-        color:#000;
-        border-color:#fff;
+      .rm-install-btn:disabled{
+        opacity:.5;
+        cursor:default;
       }
 
-      @media (max-width: 360px){
-        .rm-btn{ font-size:11px; padding:6px 8px; }
+      .rm-update-dot{
+        width:8px;
+        height:8px;
+        border-radius:50%;
+        background:#ff3b30;
+        display:inline-block;
+        margin-left:6px;
+        vertical-align:middle;
+      }
+
+      .rm-ios-note{
+        font-size:12px;
+        color:#666;
+        font-weight:800;
       }
     `;
-    document.head.appendChild(s);
+    document.head.appendChild(style);
   }
 
-  // Build UI
-  const header = document.createElement("header");
-  header.className = "rm-topbar";
-  header.innerHTML = `
-    <div class="rm-topbar__row">
-      <div></div>
-      <div class="rm-title">Recovery Misfits</div>
-      <div class="rm-topbar__actions">
-        <button id="rm-install-btn" class="rm-btn rm-btn--primary" style="display:none;">
-          Install
-        </button>
-        <button id="rm-howto-btn" class="rm-btn" style="display:none;">
-          Install Help
-        </button>
+  /* -------------------------
+     Build top bar
+  ------------------------- */
+  mount.innerHTML = `
+    <div class="rm-topbar-inner">
+      <div class="rm-brand" id="rm-brand">
+        Recovery Misfits
       </div>
+      <div id="rm-install-wrap"></div>
     </div>
   `;
 
-  mount.replaceChildren(header);
+  const installWrap = document.getElementById("rm-install-wrap");
 
-  const installBtn = document.getElementById("rm-install-btn");
-  const howtoBtn = document.getElementById("rm-howto-btn");
+  /* -------------------------
+     Detect platform
+  ------------------------- */
+  const ua = navigator.userAgent || "";
+  const isIOS = /iphone|ipad|ipod/i.test(ua);
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
 
   let deferredPrompt = null;
 
-  // Android/Chrome install prompt
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (!isStandalone()) installBtn.style.display = "inline-flex";
-  });
+  /* -------------------------
+     Update marker indicator
+  ------------------------- */
+  const marker = document.getElementById("rm-update-marker");
+  const brand = document.getElementById("rm-brand");
 
-  installBtn.addEventListener("click", async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    installBtn.style.display = "none";
-  });
+  if (marker) {
+    const updateId = marker.getAttribute("data-update-id");
+    const lastSeen = localStorage.getItem("lastSeenUpdateId");
 
-  // iPhone or fallback instructions
-  setTimeout(() => {
-    if (!deferredPrompt && !isStandalone()) {
-      howtoBtn.style.display = "inline-flex";
-      howtoBtn.textContent = isIOS() ? "Install (iPhone)" : "Install Help";
+    if (updateId && lastSeen !== updateId) {
+      const dot = document.createElement("span");
+      dot.className = "rm-update-dot";
+      brand.appendChild(dot);
     }
-  }, 1200);
+  }
 
-  howtoBtn.addEventListener("click", () => {
-    alert(
-      isIOS()
-        ? "On iPhone: tap Share → Add to Home Screen."
-        : "Use your browser's install option."
-    );
+  /* -------------------------
+     Install logic
+  ------------------------- */
+
+  function showIOSInstructions() {
+    installWrap.innerHTML = `
+      <div class="rm-ios-note">Add to Home Screen in Safari</div>
+    `;
+  }
+
+  function showInstallButton() {
+    installWrap.innerHTML = `
+      <button class="rm-install-btn" id="rm-install-btn">Install</button>
+    `;
+    document
+      .getElementById("rm-install-btn")
+      .addEventListener("click", async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installWrap.innerHTML = "";
+      });
+  }
+
+  if (!isStandalone) {
+    if (isIOS) {
+      showIOSInstructions();
+    } else {
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        showInstallButton();
+      });
+    }
+  }
+
+  /* -------------------------
+     Hide install if already installed
+  ------------------------- */
+  window.addEventListener("appinstalled", () => {
+    installWrap.innerHTML = "";
   });
 })();
