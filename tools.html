@@ -6,676 +6,1386 @@
   <title>Recovery Misfits — Tools</title>
 
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#ffffff" />
   <link rel="icon" href="./icon-192.png">
 
-  <!-- iPhone PWA support -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-
   <style>
-    :root{
-      --ink:#111;
-      --muted:#444;
-      --line:rgba(0,0,0,.12);
-      --soft:rgba(0,0,0,.04);
-      --soft2:rgba(0,0,0,.06);
-      --radius:16px;
-    }
-
     body{
-      margin:0;
       font-family:Roboto,Arial,sans-serif;
-      background:#fff;
-      color:var(--ink);
-      padding-bottom:120px; /* room for sober bar + nav */
-    }
-
-    .page{
-      max-width:920px;
-      margin:0 auto;
-      padding:14px 12px 0;
-    }
-
-    .header{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:12px;
-      padding:10px 4px 12px;
-    }
-    .title{
       margin:0;
-      font-size:18px;
-      font-weight:900;
-      letter-spacing:.2px;
-    }
-    .subtitle{
-      margin:4px 0 0;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.35;
-    }
-
-    .tabs{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      padding:0 4px 10px;
-    }
-    .tab{
-      border:1px solid var(--line);
       background:#fff;
-      padding:9px 12px;
-      border-radius:999px;
-      font-size:13px;
-      cursor:pointer;
-      user-select:none;
-    }
-    .tab[aria-selected="true"]{
-      background:var(--ink);
-      color:#fff;
-      border-color:var(--ink);
+      color:#111;
+      padding-bottom:120px; /* room for bottomBar */
     }
 
-    .card{
-      border:1px solid var(--line);
-      border-radius:var(--radius);
+    header{
+      position:sticky;
+      top:0;
+      z-index:9000;
       background:#fff;
-      box-shadow:0 1px 0 rgba(0,0,0,.03);
-      padding:14px;
-      margin:10px 4px 14px;
+      border-bottom:1px solid rgba(0,0,0,.12);
+      padding:12px;
+      text-align:center;
     }
+    .brand{font-weight:900;font-size:16px;}
 
-    .card h2{
-      margin:0 0 6px;
-      font-size:16px;
-      font-weight:900;
+    #rm-install-bar{
+      display:none;
+      position:sticky;
+      top:48px;
+      z-index:9500;
+      background:#fff;
+      border-bottom:1px solid rgba(0,0,0,.12);
     }
-    .card p{
-      margin:0 0 10px;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.35;
-    }
-
-    .row{
+    #rm-install-inner{
+      max-width:980px;
+      margin:0 auto;
+      padding:10px 12px;
       display:flex;
+      align-items:center;
+      justify-content:space-between;
       gap:10px;
       flex-wrap:wrap;
+    }
+    #rm-install-title{font-weight:1000;font-size:13px;}
+    #rm-install-sub{font-weight:800;font-size:12px;color:#666;}
+
+    #rm-install-cta{
+      display:flex;
       align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    #rm-install-free{
+      font-size:12px;
+      font-weight:1000;
+      color:#666;
+      white-space:nowrap;
     }
 
-    .btn{
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:12px;
-      padding:10px 12px;
-      font-size:13px;
-      cursor:pointer;
-    }
-    .btn:active{ transform:translateY(1px); }
-    .btnPrimary{
-      background:var(--ink);
+    #rm-install-btn{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.18);
+      background:#111;
       color:#fff;
-      border-color:var(--ink);
-    }
-    .btnDanger{
-      border-color:rgba(180,0,0,.25);
-      background:rgba(180,0,0,.06);
-      color:#7a0000;
-    }
-
-    textarea, input{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      font-size:14px;
+      font-weight:900;
+      cursor:pointer;
+      min-height:44px;
       box-sizing:border-box;
-      outline:none;
-      background:#fff;
     }
-    textarea{
-      min-height:110px;
-      resize:vertical;
-      line-height:1.35;
+    #rm-install-close{
+      background:none;
+      border:none;
+      font-size:18px;
+      cursor:pointer;
+      opacity:.6;
     }
 
-    .split{
+    .iosShareIcon{
+      display:inline-flex;
+      vertical-align:middle;
+      margin-left:6px;
+      border:1px solid rgba(0,0,0,.18);
+      border-radius:8px;
+      padding:2px 8px;
+      color:#007AFF;
+    }
+    .iosShareIcon svg{ width:18px;height:18px; }
+
+    /* Main tools page */
+    .page{
+      max-width:980px;
+      margin:0 auto;
+      padding:14px 12px;
+    }
+    .pageTitle{
+      font-weight:1000;
+      font-size:18px;
+      margin:10px 0 4px;
+    }
+    .pageSub{
+      font-weight:800;
+      color:#666;
+      margin:0 0 12px;
+      line-height:1.25;
+      font-size:13px;
+    }
+
+    .toolGrid{
       display:grid;
       grid-template-columns:1fr;
-      gap:12px;
-    }
-    @media (min-width:860px){
-      .split{ grid-template-columns:1.25fr .75fr; }
-    }
-
-    .box{
-      border:1px solid var(--line);
-      background:var(--soft);
-      border-radius:14px;
-      padding:12px;
-    }
-
-    .small{
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.35;
-    }
-
-    .list{
-      display:flex;
-      flex-direction:column;
       gap:10px;
       margin-top:10px;
     }
-
-    .item{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:10px 10px 10px;
+    @media (min-width:720px){
+      .toolGrid{ grid-template-columns:1fr 1fr 1fr; }
+    }
+    .toolCard{
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:16px;
+      padding:14px;
       background:#fff;
-    }
-    .itemTop{
       display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .itemTime{
-      font-size:11px;
-      color:#666;
-      white-space:nowrap;
-      margin-top:2px;
-    }
-    .itemText{
-      margin:8px 0 0;
-      font-size:13px;
-      color:#222;
-      white-space:pre-wrap;
-      line-height:1.35;
-    }
-    .itemBtns{
-      display:flex;
+      flex-direction:column;
       gap:8px;
     }
-    .miniBtn{
-      border:1px solid var(--line);
+    .toolCardTitle{
+      font-weight:1000;
+      font-size:15px;
+      margin:0;
+    }
+    .toolCardDesc{
+      font-weight:800;
+      color:#666;
+      line-height:1.25;
+      font-size:13px;
+      margin:0;
+    }
+
+    /* Bottom bar / sheets / buttons (same as your index.html) */
+    .bottomBar{
+      position:fixed;
+      left:0;right:0;bottom:0;
       background:#fff;
-      border-radius:10px;
-      padding:7px 9px;
-      font-size:12px;
-      cursor:pointer;
+      border-top:1px solid rgba(0,0,0,.12);
+      padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+      z-index:9999;
     }
-
-    .flash{
-      animation:rmFlash .7s ease 1;
+    .bottomInner{
+      max-width:980px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:1fr 1fr auto;
+      gap:10px;
+      align-items:stretch;
     }
-    @keyframes rmFlash{
-      0%{ box-shadow:0 0 0 rgba(0,0,0,0); }
-      35%{ box-shadow:0 0 0 4px rgba(0,0,0,.12); }
-      100%{ box-shadow:0 0 0 rgba(0,0,0,0); }
-    }
-
-    .hide{ display:none !important; }
-
-    .meetGuide{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      padding:14px;
+    .pill{
+      border:1px solid rgba(0,0,0,.18);
       border-radius:16px;
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.00));
-      text-decoration:none;
-      color:var(--ink);
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      cursor:pointer;
+      user-select:none;
     }
-    .meetGuide strong{ font-weight:900; }
-    .meetGuide span{ color:var(--muted); font-size:13px; line-height:1.3; }
-    .arrow{ font-size:18px; opacity:.7; }
+    .label{font-size:12px;font-weight:900;opacity:.7;}
+    .value{font-size:14px;font-weight:1000;}
+    .hint{font-size:12px;font-weight:900;color:#666;}
+
+    .menuBtn{
+      width:44px;
+      border:1px solid rgba(0,0,0,.18);
+      border-radius:16px;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      font-weight:1000;
+      cursor:pointer;
+      user-select:none;
+    }
+    .menuBtn:active{transform:scale(.98);}
+
+    #rm-whisper{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      margin-top:6px;
+      user-select:none;
+      opacity:0;
+      transition:opacity .8s ease;
+    }
+    #rm-whisper.show{opacity:1;}
+    .whisper-dot{width:6px;height:6px;border-radius:50%;background:#bbb;flex-shrink:0;}
+    .whisper-text{font-size:12px;font-weight:900;color:#777;letter-spacing:.2px;}
+
+    .backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.35);
+      display:none;
+      z-index:10000;
+    }
+    .sheet{
+      position:fixed;
+      left:0;right:0;bottom:0;
+      background:#fff;
+      border-radius:18px 18px 0 0;
+      padding:14px;
+      transform:translateY(110%);
+      transition:transform .2s ease;
+      z-index:10001;
+      max-height: calc(92vh - env(safe-area-inset-bottom));
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sheet.open{transform:translateY(0);}
+
+    input{
+      width:100%;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,.18);
+      margin-top:8px;
+      font-weight:800;
+      box-sizing:border-box;
+      font-size:16px;
+    }
+    textarea{
+      width:100%;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,.18);
+      margin-top:8px;
+      font-weight:800;
+      box-sizing:border-box;
+      font-size:16px;
+      line-height:1.35;
+      resize:vertical;
+      min-height:88px;
+      font-family:inherit;
+    }
+
+    .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+
+    .btn{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.18);
+      background:#fff;
+      font-weight:900;
+      cursor:pointer;
+      text-decoration:none;
+      color:#111;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      box-sizing:border-box;
+      min-height:44px;
+      line-height:1.1;
+    }
+    .btn.primary{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
+    .big{font-size:22px;font-weight:1000;margin-top:10px;}
+    .muted{color:#666;font-weight:800;line-height:1.25;}
+
+    /* Gratitude */
+    .qLabel{margin-top:12px;font-weight:1000;letter-spacing:.2px;}
+    .tinyMeta{
+      display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;
+      font-weight:900;color:#666;font-size:12px;
+    }
+    .divider{height:1px;background:rgba(0,0,0,.10);margin:12px 0;}
+
+    .archiveHeader{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      cursor:pointer;user-select:none;
+      padding:10px 12px;border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;margin-top:12px;
+    }
+    .archiveList{
+      display:none;margin-top:8px;border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;overflow:hidden;max-height:220px;overflow:auto;
+    }
+    .archiveList.open{display:block;}
+    .archiveItem{
+      padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.08);
+      cursor:pointer;font-weight:900;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;
+    }
+    .archiveItem:last-child{border-bottom:none;}
+    .archiveItem:active{background:#f5f5f5;}
+    .chip{
+      font-size:12px;font-weight:1000;border:1px solid rgba(0,0,0,.14);
+      border-radius:999px;padding:3px 8px;color:#444;
+    }
+
+    /* star burst */
+    .burstWrap{position:relative; display:inline-flex;}
+    .star{
+      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+      pointer-events:none;will-change:transform,opacity;font-size:16px;opacity:0;
+      animation:starFly .85s ease-out forwards;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,.10));
+    }
+    @keyframes starFly{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.9);}
+      10%{opacity:1;}
+      100%{opacity:0;transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15);}
+    }
+
+    /* Burn pad */
+    .stepWrap{display:none;}
+    .stepWrap.active{display:block;}
+
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+    .chipBtn{
+      border:1px solid rgba(0,0,0,.18);
+      border-radius:999px;padding:7px 10px;background:#fff;
+      font-weight:1000;cursor:pointer;user-select:none;font-size:13px;
+    }
+    .chipBtn.active{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
+    .burnHeaderLine{margin-top:6px;font-weight:900;color:#666;line-height:1.25;}
+
+    .tinyLink{
+      background:none;border:none;padding:0;margin:0;
+      color:#111; font-weight:1000; cursor:pointer;
+      text-decoration:underline; text-underline-offset:3px;
+    }
+
+    .toolBtnRow .btn{ width:100%; }
+
+    .passItOn{
+      font-weight:1000;
+      color:#666;
+      align-self:center;
+      white-space:nowrap;
+    }
+
+    .shareRow{
+      display:grid;
+      grid-template-columns: 1fr auto auto;
+      gap:10px;
+      align-items:center;
+      margin-top:10px;
+    }
+    @media (max-width:420px){
+      .shareRow{ grid-template-columns: 1fr; }
+      .passItOn{white-space:normal;}
+      .shareRow .btn{width:100%;}
+    }
+
+    .prayerBox{
+      margin-top:10px;
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      font-weight:900;
+      line-height:1.45;
+    }
+
+    /* Burn release animation */
+    #burnDoneSheet .doneWrap{
+      margin-top:12px;
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:16px;
+      padding:14px;
+      background:#fff;
+    }
+
+    .burnAnimStage{
+      position:relative;
+      height:120px;
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;
+      background:#fff;
+      overflow:hidden;
+    }
+
+    .burnGlow{
+      position:absolute;
+      inset:-30%;
+      background: radial-gradient(circle at 70% 30%, rgba(255, 210, 110, .65), rgba(255,210,110,0) 55%);
+      opacity:0;
+      transform:scale(.9);
+    }
+
+    .burnTrash{
+      position:absolute;
+      right:18px;
+      bottom:16px;
+      width:40px;
+      height:46px;
+      border:2px solid rgba(0,0,0,.55);
+      border-top-left-radius:8px;
+      border-top-right-radius:8px;
+      border-bottom-left-radius:10px;
+      border-bottom-right-radius:10px;
+      background:rgba(255,255,255,.6);
+    }
+    .burnTrash:before{
+      content:"";
+      position:absolute;
+      left:-4px;
+      right:-4px;
+      top:-10px;
+      height:10px;
+      border:2px solid rgba(0,0,0,.55);
+      border-bottom:none;
+      border-top-left-radius:10px;
+      border-top-right-radius:10px;
+      background:#fff;
+      opacity:.95;
+    }
+    .burnTrash:after{
+      content:"";
+      position:absolute;
+      left:9px; right:9px;
+      top:8px; bottom:8px;
+      border-left:2px solid rgba(0,0,0,.18);
+      border-right:2px solid rgba(0,0,0,.18);
+      opacity:.9;
+    }
+
+    .burnPaper{
+      position:absolute;
+      left:18px;
+      bottom:22px;
+      width:42px;
+      height:52px;
+      border:2px solid rgba(0,0,0,.22);
+      border-radius:8px;
+      background:#fff;
+      box-shadow:0 2px 6px rgba(0,0,0,.08);
+      transform:translateX(0) translateY(0) rotate(0deg) scale(1);
+      opacity:1;
+    }
+
+    .burnMsg{
+      margin-top:12px;
+      font-weight:1000;
+      line-height:1.3;
+      opacity:0;
+      transition:opacity .25s ease;
+    }
+
+    .burnDoneBtnRow{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .burnDoneBtnRow .btn{ width:100%; }
+
+    .burnAnimStage.run .burnPaper{ animation: paperSlide .55s ease-out forwards; }
+    .burnAnimStage.run .burnGlow{
+      animation: glowUp .60s ease-out forwards;
+      animation-delay:.55s;
+    }
+    .burnAnimStage.run .burnTrash{
+      animation: trashNod .22s ease-out forwards;
+      animation-delay:.55s;
+    }
+
+    @keyframes paperSlide{
+      0%{ transform:translateX(0) translateY(0) rotate(0deg) scale(1); opacity:1; }
+      70%{ transform:translateX(160px) translateY(-8px) rotate(8deg) scale(.95); opacity:1; }
+      100%{ transform:translateX(186px) translateY(18px) rotate(12deg) scale(.85); opacity:0; }
+    }
+    @keyframes glowUp{
+      0%{ opacity:0; transform:scale(.9); }
+      100%{ opacity:1; transform:scale(1.05); }
+    }
+    @keyframes trashNod{
+      0%{ transform:translateY(0); }
+      50%{ transform:translateY(2px); }
+      100%{ transform:translateY(0); }
+    }
   </style>
 </head>
 
 <body>
 
-  <!-- Shared TOP BAR -->
-  <div id="rm-topbar"></div>
-  <script src="./topbar.js" defer></script>
+<header><div class="brand">Recovery Misfits</div></header>
 
-  <main class="page">
+<div id="rm-install-bar">
+  <div id="rm-install-inner">
+    <div>
+      <div id="rm-install-title">Install the app</div>
+      <div id="rm-install-sub"></div>
+    </div>
+    <div>
+      <div id="rm-install-cta">
+        <span id="rm-install-free">Free recovery tools.</span>
+        <button id="rm-install-btn" type="button">Install</button>
+      </div>
+      <button id="rm-install-close" type="button" aria-label="Close">✕</button>
+    </div>
+  </div>
+</div>
 
-    <div class="header">
+<main class="page">
+  <div class="pageTitle">Tools</div>
+  <div class="pageSub">Burn Pad. Gratitude Inventory. Meeting Guide. That’s it.</div>
+
+  <div class="toolGrid">
+    <div class="toolCard">
+      <div class="toolCardTitle">🔥 Burn Pad</div>
+      <p class="toolCardDesc">Get it out, inspect it, then release it.</p>
+      <button class="btn primary" id="openBurnFromPage" type="button">Open Burn Pad</button>
+    </div>
+
+    <div class="toolCard">
+      <div class="toolCardTitle">⭐ Gratitude Inventory</div>
+      <p class="toolCardDesc">Happy. Peace. Useful. Journal. Save to archive.</p>
+      <button class="btn primary" id="openGratFromPage" type="button">Open Gratitude</button>
+    </div>
+
+    <div class="toolCard">
+      <div class="toolCardTitle">📍 Meeting Guide</div>
+      <p class="toolCardDesc">Find meetings anywhere (official AA Meeting Guide).</p>
+      <a class="btn primary" href="https://www.aa.org/meeting-guide-app" target="_blank" rel="noopener">Open Meeting Guide</a>
+    </div>
+  </div>
+</main>
+
+<div class="bottomBar">
+  <div class="bottomInner">
+
+    <div class="pill" id="sobPill">
       <div>
-        <h1 class="title">Tools</h1>
-        <div class="subtitle">Three tools. No fluff. Use what works.</div>
+        <div class="label">SOBRIETY</div>
+        <div class="value" id="sobValue">Tap to set</div>
+      </div>
+      <div class="hint" id="sobHint">Tap to set</div>
+    </div>
+
+    <div>
+      <div class="pill" id="streakPill">
+        <div>
+          <div class="label">DAILY CHECK-IN</div>
+          <div class="value" id="streakValue">—</div>
+        </div>
+        <div class="hint">Today</div>
+      </div>
+
+      <div id="rm-whisper" aria-hidden="true">
+        <span class="whisper-dot" aria-hidden="true"></span>
+        <span class="whisper-text"></span>
       </div>
     </div>
 
-    <div class="tabs" role="tablist" aria-label="Tools tabs">
-      <button class="tab" id="tab-burn" role="tab" aria-selected="true" aria-controls="panel-burn">Burn Pad</button>
-      <button class="tab" id="tab-grat" role="tab" aria-selected="false" aria-controls="panel-grat">Gratitude</button>
-      <button class="tab" id="tab-meet" role="tab" aria-selected="false" aria-controls="panel-meet">Meeting Guide</button>
+    <button class="menuBtn" id="menuBtn" type="button" aria-label="Menu">☰</button>
+  </div>
+</div>
+
+<!-- SOBRIETY SHEET -->
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Sobriety</h3>
+    <button class="btn" id="closeSheet" type="button">Close</button>
+  </div>
+  <div class="muted" style="margin-top:6px;">Set your sobriety date once. Stored on this device.</div>
+  <input type="date" id="sobDate">
+  <div class="row">
+    <button class="btn primary" id="saveSob" type="button">Save</button>
+    <button class="btn" id="clearSob" type="button">Clear</button>
+  </div>
+  <div class="big" id="sobOut"></div>
+</div>
+
+<!-- MENU SHEET (Tools-only) -->
+<div class="backdrop" id="menuBackdrop"></div>
+<div class="sheet" id="menuSheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Quick Tools</h3>
+    <button class="btn" id="closeMenu" type="button">Close</button>
+  </div>
+
+  <div class="muted" style="margin-top:6px;">Just the essentials.</div>
+
+  <div class="row toolBtnRow" style="margin-top:12px;">
+    <button class="btn primary" id="gratBtn" type="button">⭐ Gratitude Inventory</button>
+  </div>
+
+  <div class="row toolBtnRow" style="margin-top:10px;">
+    <button class="btn primary" id="burnBtn" type="button">🔥 Burn Pad</button>
+  </div>
+
+  <div class="row toolBtnRow" style="margin-top:10px;">
+    <a class="btn primary" href="https://www.aa.org/meeting-guide-app" target="_blank" rel="noopener">📍 Meeting Guide</a>
+  </div>
+</div>
+
+<!-- GRATITUDE SHEET -->
+<div class="backdrop" id="gratBackdrop"></div>
+<div class="sheet" id="gratSheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Gratitude Inventory</h3>
+    <button class="btn" id="closeGrat" type="button">Close</button>
+  </div>
+
+  <div class="tinyMeta">
+    <span id="gratViewing">Viewing: —</span>
+    <span class="chip" id="gratStatus" style="display:none;">Saved</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="qLabel">Where have I been happy today?</div>
+  <textarea id="gratHappy"></textarea>
+
+  <div class="qLabel">Where have I been at peace today?</div>
+  <textarea id="gratPeace"></textarea>
+
+  <div class="qLabel">Where have I been useful to other people today?</div>
+  <textarea id="gratUseful"></textarea>
+
+  <div class="qLabel">Gratitude Journal</div>
+  <textarea id="gratJournal" placeholder="God shots, good moments, things you noticed happening for you…"></textarea>
+
+  <div class="row" style="margin-top:12px;">
+    <span class="burstWrap">
+      <button class="btn primary" id="gratSave" type="button">Save</button>
+    </span>
+    <button class="btn" id="gratClear" type="button">Clear</button>
+  </div>
+
+  <div class="archiveHeader" id="archiveToggle" role="button" aria-expanded="false">
+    <div style="font-weight:1000;">Archive <span id="archiveCount" class="chip">0</span></div>
+    <div style="font-weight:1000;" id="archiveCaret">▾</div>
+  </div>
+  <div class="archiveList" id="archiveList"></div>
+</div>
+
+<!-- BURN PAD SHEET -->
+<div class="backdrop" id="burnBackdrop"></div>
+<div class="sheet" id="burnSheet">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Burn Pad</h3>
+    <button class="btn" id="closeBurn" type="button">Close</button>
+  </div>
+
+  <div class="stepWrap active" id="burnStep1">
+    <div class="burnHeaderLine">Write out the text that won’t be sent</div>
+
+    <div class="qLabel">Name</div>
+    <input id="burnName" type="text" placeholder="Who is this about? (optional)">
+
+    <textarea id="burnDraft"
+      placeholder="This isn’t for replaying the struggle. It’s for getting it out and moving on."
+      style="min-height:160px;"></textarea>
+
+    <div class="row" style="margin-top:12px;">
+      <button class="btn primary" id="burnNext" type="button">Next</button>
+      <button class="btn" id="burnClear1" type="button">Clear</button>
+    </div>
+  </div>
+
+  <div class="stepWrap" id="burnStep2">
+    <div class="muted" style="margin-top:6px;">
+      Strong reactions usually mean something important got touched.
     </div>
 
-    <!-- ===================== BURN PAD ===================== -->
-    <section class="card" id="panel-burn" role="tabpanel" aria-labelledby="tab-burn">
-      <h2>Burn Pad</h2>
-      <p>Write it straight. Don’t polish it. Then let it go.</p>
+    <div style="margin-top:10px;">
+      <button class="tinyLink" id="burnToggleSimple" type="button">Show fewer questions</button>
+    </div>
 
-      <div class="split">
+    <div class="qLabel">Right now I’m:</div>
+    <div class="chips" id="burnStateChips">
+      <button class="chipBtn" type="button" data-v="angry">Angry</button>
+      <button class="chipBtn" type="button" data-v="scared">Scared</button>
+      <button class="chipBtn" type="button" data-v="hurt">Hurt</button>
+      <button class="chipBtn" type="button" data-v="embarrassed">Embarrassed</button>
+      <button class="chipBtn" type="button" data-v="tired">Tired</button>
+    </div>
 
-        <div>
-          <label class="small" for="bp-text"><strong>What’s eating you?</strong></label>
-          <textarea id="bp-text" placeholder="Name it. Who/what am I mad at? What story am I telling? What fear is under it?"></textarea>
+    <div class="divider"></div>
 
-          <div style="height:10px;"></div>
+    <div class="qLabel">Where was my mistake?</div>
+    <textarea id="burnMistake" placeholder="Self-seeking… lied… held onto anger too long… passive aggressive… withheld a loving attitude…"></textarea>
 
-          <div class="row">
-            <button class="btn btnPrimary" id="bp-letgo">Let it go</button>
-            <button class="btn" id="bp-save">Save to history</button>
-            <button class="btn" id="bp-copy">Copy</button>
-            <button class="btn btnDanger" id="bp-clear">Clear</button>
-          </div>
+    <div class="qLabel">Where did I make it worse?</div>
+    <textarea id="burnFlames"></textarea>
 
-          <div style="height:10px;"></div>
+    <div class="qLabel">What was I trying to control, change, or force?</div>
+    <textarea id="burnControl"></textarea>
 
-          <div class="box" id="bp-prayerBox">
-            <div class="small"><strong>Sick Man’s Prayer</strong></div>
-            <div class="small" style="margin-top:6px;">
-              God, save me from being angry. Thy will be done.<br>
-              This is a sick person. How can I be helpful to them?<br>
-              Save me from being hurt or frightened.
-            </div>
-            <div class="row" style="margin-top:10px;">
-              <button class="btn" id="bp-copy-prayer">Copy prayer</button>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <div class="small"><strong>Burn Pad History</strong></div>
-          <div class="small" style="margin-top:4px;">Stored on this device (local). No cloud.</div>
-
-          <div class="list" id="bp-list"></div>
-
-          <div class="row" style="margin-top:10px;">
-            <button class="btn btnDanger" id="bp-clear-history">Clear history</button>
-          </div>
-        </div>
-
+    <div id="burnAdvanced">
+      <div class="qLabel">What’s actually threatened here?</div>
+      <div class="chips" id="burnThreatChips">
+        <button class="chipBtn" type="button" data-v="ego">Ego</button>
+        <button class="chipBtn" type="button" data-v="fear">Fear</button>
+        <button class="chipBtn" type="button" data-v="comfort">Comfort</button>
+        <button class="chipBtn" type="button" data-v="image">Image</button>
+        <button class="chipBtn" type="button" data-v="security">Security</button>
       </div>
-    </section>
 
-    <!-- ===================== GRATITUDE ===================== -->
-    <section class="card hide" id="panel-grat" role="tabpanel" aria-labelledby="tab-grat">
-      <h2>Gratitude Inventory</h2>
-      <p>Quick categories. Real answers. This is how we remember who we are.</p>
+      <div class="qLabel">What’s the next right move — if any?</div>
+      <textarea id="burnNextMove" placeholder="Sometimes the move is to do nothing and let things cool."></textarea>
 
-      <div class="split">
-        <div>
-          <div class="box">
-            <div class="small"><strong>Today’s entries</strong> (save when you’re done)</div>
-            <div style="height:10px;"></div>
+      <div class="qLabel">Who could help me see this more clearly?</div>
+      <textarea id="burnWho"></textarea>
+    </div>
 
-            <label class="small" for="g-growth"><strong>Growth</strong> (what’s improving, even a little)</label>
-            <textarea id="g-growth" placeholder="Example: I paused before snapping. I made a call. I showed up."></textarea>
+    <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:900;color:#444;user-select:none;">
+      <input id="burnNotReady" type="checkbox" style="width:auto;margin:0;transform:scale(1.1);">
+      I’m not ready to let this go yet.
+    </label>
+    <div class="muted" id="burnNotReadyHint" style="margin-top:6px;display:none;">
+      That’s honest. You can still pause it and come back when you’re ready.
+    </div>
 
-            <div style="height:10px;"></div>
+    <div class="muted" style="margin-top:12px;">
+      Probably not a bad idea to talk this through with someone in recovery.
+    </div>
+    <div class="muted" style="margin-top:10px;">
+      Feelings usually shift if we give them a little time.
+    </div>
 
-            <label class="small" for="g-inspire"><strong>Inspiration</strong> (what gave you hope)</label>
-            <textarea id="g-inspire" placeholder="Example: Something I heard, saw, read, or felt."></textarea>
+    <div class="row" style="margin-top:12px;">
+      <span class="burstWrap">
+        <button class="btn primary" id="burnRelease" type="button">Release it</button>
+      </span>
+      <button class="btn" id="burnBack" type="button">Back</button>
+      <button class="btn" id="burnClear2" type="button">Clear</button>
+    </div>
+  </div>
 
-            <div style="height:10px;"></div>
+</div>
 
-            <label class="small" for="g-people"><strong>Friends / Family</strong> (who matters, who showed up)</label>
-            <textarea id="g-people" placeholder="Example: A text. A laugh. A moment of peace with someone."></textarea>
+<!-- BURN RELEASE DONE SHEET -->
+<div class="backdrop" id="burnDoneBackdrop"></div>
+<div class="sheet" id="burnDoneSheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Burn Pad</h3>
+    <button class="btn" id="closeBurnDoneX" type="button">Close</button>
+  </div>
 
-            <div style="height:10px;"></div>
+  <div class="doneWrap">
+    <div class="burnAnimStage" id="burnAnimStage" aria-hidden="true">
+      <div class="burnGlow" id="burnGlow"></div>
+      <div class="burnTrash" aria-hidden="true"></div>
+      <div class="burnPaper" id="burnPaper" aria-hidden="true"></div>
+    </div>
 
-            <label class="small" for="g-tranq"><strong>Tranquility</strong> (where you felt calm)</label>
-            <textarea id="g-tranq" placeholder="Example: Coffee. A walk. Quiet. A breath."></textarea>
+    <div class="burnMsg" id="burnDoneMsg">
+      Released. Not yours to carry today.
+    </div>
 
-            <div style="height:10px;"></div>
+    <div class="burnDoneBtnRow">
+      <button class="btn primary" id="burnDoneClose" type="button">Close Burn Pad</button>
+    </div>
+  </div>
+</div>
 
-            <label class="small" for="g-signs"><strong>Signs</strong> (little nudges from the last day or two)</label>
-            <textarea id="g-signs" placeholder="Example: Coincidence, timing, help showing up, a reminder I’m not alone."></textarea>
+<!-- ✅ SICK MAN'S PRAYER MODAL -->
+<div class="backdrop" id="prayerBackdrop"></div>
+<div class="sheet" id="prayerSheet" role="dialog" aria-modal="true" aria-labelledby="prayerTitle">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 id="prayerTitle" style="margin:0;">Sick Man’s Prayer</h3>
+    <button class="btn" id="closePrayerX" type="button">Close</button>
+  </div>
 
-            <div class="row" style="margin-top:10px;">
-              <button class="btn btnPrimary" id="g-save">Save</button>
-              <button class="btn" id="g-copy">Copy</button>
-              <button class="btn btnDanger" id="g-clear">Clear</button>
-            </div>
-          </div>
-        </div>
+  <div class="prayerBox" style="margin-top:12px;">
+    This is a sick man. How can I be helpful to him?<br>
+    God save me from being angry.<br>
+    Thy will be done.
+  </div>
 
-        <div>
-          <div class="small"><strong>Saved Gratitude</strong></div>
-          <div class="small" style="margin-top:4px;">Stored on this device (local). No cloud.</div>
+  <div class="row" style="margin-top:14px;">
+    <button class="btn primary" id="prayerDone" type="button">Let it go</button>
+  </div>
+</div>
 
-          <div class="list" id="g-list"></div>
+<!-- iOS INSTALL SHEET -->
+<div class="backdrop" id="iosBackdrop"></div>
+<div class="sheet" id="iosSheet">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <h3 style="margin:0;">Add to Home Screen</h3>
+    <button class="btn" id="closeIOS" type="button">Close</button>
+  </div>
 
-          <div class="row" style="margin-top:10px;">
-            <button class="btn btnDanger" id="g-clear-history">Clear history</button>
-          </div>
-        </div>
-      </div>
-    </section>
+  <div style="margin-top:12px;font-weight:900;line-height:1.45;">
+    <div style="margin-bottom:12px;">
+      <b>1)</b> Tap the iPhone <b>Share</b> button
+      <span style="margin-left:6px;border:1px solid rgba(0,0,0,.18);border-radius:8px;padding:2px 8px;font-weight:1000;">
+        <span class="iosShareIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="5" y="9" width="14" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </span>
+      </span>
+    </div>
+    <div style="margin-bottom:12px;">
+      <b>2)</b> Scroll and tap <b>Add to Home Screen</b>
+    </div>
+    <div><b>3)</b> Tap <b>Add</b></div>
+  </div>
 
-    <!-- ===================== MEETING GUIDE ===================== -->
-    <section class="card hide" id="panel-meet" role="tabpanel" aria-labelledby="tab-meet">
-      <h2>Meeting Guide</h2>
-      <p>Find a meeting anywhere. Because isolation is a liar with good PR.</p>
+  <div class="muted" style="margin-top:12px;">Tip: this works best in Safari (some in-app browsers block it).</div>
+</div>
 
-      <a class="meetGuide" href="https://www.aa.org/meeting-guide-app" target="_blank" rel="noopener">
-        <div>
-          <div><strong>Open Meeting Guide</strong></div>
-          <span>Official AA meeting finder app info</span>
-        </div>
-        <div class="arrow">›</div>
-      </a>
+<script>
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
-      <div style="height:12px;"></div>
+  // Tools page doesn't have an iframe, but install bar expects this to exist in index.html.
+  // Keep it as a harmless no-op so nothing crashes.
+  function setFrameHeight(){}
 
-      <div class="box">
-        <div class="small">
-          Tip: If you want this to jump straight into the app on phones, we can add a smart link later (iOS/Android),
-          but this version is the “always works” link.
-        </div>
-      </div>
-    </section>
+  function isStandalone(){
+    const mql = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
+    const iosStandalone = window.navigator.standalone === true;
+    return !!(mql || iosStandalone);
+  }
 
-  </main>
+  /* Install Bar */
+  const installBar = document.getElementById("rm-install-bar");
+  const installBtn = document.getElementById("rm-install-btn");
+  const installClose = document.getElementById("rm-install-close");
+  const installSub = document.getElementById("rm-install-sub");
 
-  <!-- Shared SOBER BAR + NAV -->
-  <div id="rm-bottom-nav"></div>
-  <script src="./nav.js" defer></script>
+  const ua = navigator.userAgent || "";
+  const isIOS = /iphone|ipad|ipod/i.test(ua);
+  const isInAppBrowserIOS = isIOS && /(fbav|fban|instagram|line\/|wv)/i.test(ua);
+  let deferredPrompt = null;
 
-  <script>
-    // ---------------------------
-    // Tabs
-    // ---------------------------
-    const tabs = [
-      { btn: document.getElementById("tab-burn"), panel: document.getElementById("panel-burn"), key:"burn" },
-      { btn: document.getElementById("tab-grat"), panel: document.getElementById("panel-grat"), key:"grat" },
-      { btn: document.getElementById("tab-meet"), panel: document.getElementById("panel-meet"), key:"meet" },
-    ];
+  function showInstallBar(msg){
+    if (isStandalone()) return;
+    installSub.textContent = msg || "";
+    installBar.style.display = "block";
+    setFrameHeight();
+  }
+  function hideInstallBar(){
+    installBar.style.display = "none";
+    setFrameHeight();
+  }
 
-    function selectTab(key){
-      tabs.forEach(t => {
-        const on = (t.key === key);
-        t.btn.setAttribute("aria-selected", on ? "true" : "false");
-        t.panel.classList.toggle("hide", !on);
-      });
-      localStorage.setItem("rm_tools_tab", key);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  if (!isStandalone()) {
+    if (isIOS) {
+      showInstallBar(isInAppBrowserIOS ? "Open in Safari to install." : "Tap Install for iPhone steps.");
+      installBtn.textContent = "Add to Home Screen";
+    } else {
+      showInstallBar("Android: tap Install (or Chrome menu ⋮ → Install app).");
+      installBtn.textContent = "Install";
+      installBtn.disabled = true;
     }
+  }
 
-    tabs.forEach(t => t.btn.addEventListener("click", () => selectTab(t.key)));
-    selectTab(localStorage.getItem("rm_tools_tab") || "burn");
+  const iosBackdrop = document.getElementById("iosBackdrop");
+  const iosSheet = document.getElementById("iosSheet");
+  function openIOS(){ iosBackdrop.style.display="block"; iosSheet.classList.add("open"); }
+  function closeIOS(){ iosSheet.classList.remove("open"); iosBackdrop.style.display="none"; }
+  iosBackdrop.onclick = closeIOS;
+  document.getElementById("closeIOS").onclick = closeIOS;
 
-    // ---------------------------
-    // Helpers
-    // ---------------------------
-    function nowStamp(){
-      const d = new Date();
-      return d.toLocaleString([], { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
-    }
+  if (isIOS) {
+    installBtn.onclick = (e) => { e.preventDefault(); openIOS(); };
+  } else {
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.disabled = false;
+      showInstallBar("Android: tap Install now.");
+    });
 
-    async function copyText(text){
-      try{
-        await navigator.clipboard.writeText(text);
-        alert("Copied.");
-      }catch(e){
-        // fallback
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        ta.remove();
-        alert("Copied.");
-      }
-    }
-
-    function flash(el){
-      el.classList.remove("flash");
-      void el.offsetWidth;
-      el.classList.add("flash");
-    }
-
-    // ---------------------------
-    // Burn Pad (local storage)
-    // ---------------------------
-    const BP_KEY = "rm_burnpad_history_v1";
-
-    const bpText = document.getElementById("bp-text");
-    const bpList = document.getElementById("bp-list");
-
-    function bpLoad(){
-      try{ return JSON.parse(localStorage.getItem(BP_KEY) || "[]"); }
-      catch(e){ return []; }
-    }
-    function bpSaveArr(arr){
-      localStorage.setItem(BP_KEY, JSON.stringify(arr));
-    }
-
-    function bpRender(){
-      const items = bpLoad();
-      bpList.innerHTML = "";
-      if (!items.length){
-        bpList.innerHTML = `<div class="small">No entries yet. That can change in 30 seconds.</div>`;
+    installBtn.onclick = async (e) => {
+      e.preventDefault();
+      if (!deferredPrompt) {
+        showInstallBar("Try: Chrome menu (⋮) → Install app.");
         return;
       }
-      items.slice().reverse().forEach((it, idxFromEnd) => {
-        const idx = items.length - 1 - idxFromEnd;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    };
+  }
 
-        const wrap = document.createElement("div");
-        wrap.className = "item";
+  installClose.onclick = (e) => { e.preventDefault(); hideInstallBar(); };
+  window.addEventListener("appinstalled", () => hideInstallBar());
+  if (isStandalone()) hideInstallBar();
 
-        wrap.innerHTML = `
-          <div class="itemTop">
-            <div class="itemTime">${it.time || ""}</div>
-            <div class="itemBtns">
-              <button class="miniBtn" data-act="copy" data-idx="${idx}">Copy</button>
-              <button class="miniBtn" data-act="del" data-idx="${idx}">Delete</button>
-            </div>
-          </div>
-          <div class="itemText"></div>
-        `;
+  /* Menu */
+  const menuBackdrop = document.getElementById("menuBackdrop");
+  const menuSheet = document.getElementById("menuSheet");
+  const menuBtn = document.getElementById("menuBtn");
 
-        wrap.querySelector(".itemText").textContent = it.text || "";
-        bpList.appendChild(wrap);
-      });
+  function openMenu(){ menuBackdrop.style.display="block"; menuSheet.classList.add("open"); }
+  function closeMenu(){ menuSheet.classList.remove("open"); menuBackdrop.style.display="none"; }
+
+  menuBtn.onclick = openMenu;
+  menuBackdrop.onclick = closeMenu;
+  document.getElementById("closeMenu").onclick = closeMenu;
+
+  /* Sobriety + check-in */
+  const LS_DATE   = "rm_sob_date";
+  const LS_MODE   = "rm_sob_mode";
+  const LS_STREAK = "rm_streak";
+  const LS_LAST   = "rm_last";
+
+  const sobValue = document.getElementById("sobValue");
+  const sobHint  = document.getElementById("sobHint");
+  const sobDate  = document.getElementById("sobDate");
+  const sobOut   = document.getElementById("sobOut");
+
+  const sheet = document.getElementById("sheet");
+  const backdrop = document.getElementById("backdrop");
+
+  function openSheet(){
+    backdrop.style.display="block";
+    sheet.classList.add("open");
+    setTimeout(() => {
+      sobDate.focus({ preventScroll: true });
+      if (sobDate.showPicker) sobDate.showPicker();
+    }, 150);
+  }
+  function closeSheet(){ sheet.classList.remove("open"); backdrop.style.display="none"; }
+  backdrop.onclick = closeSheet;
+  document.getElementById("closeSheet").onclick = closeSheet;
+
+  function getMode(){
+    let mode = localStorage.getItem(LS_MODE);
+    if (!mode) { mode = "days"; localStorage.setItem(LS_MODE, mode); }
+    return mode;
+  }
+
+  function renderSob(){
+    const v = localStorage.getItem(LS_DATE);
+    const mode = getMode();
+    if(!v){
+      sobValue.textContent="Tap to set";
+      sobHint.textContent="Tap to set";
+      sobOut.textContent="";
+      return;
+    }
+    const d0 = new Date(v + "T00:00:00");
+    const d1 = new Date();
+    const days = Math.max(0, Math.floor((d1-d0)/(1000*60*60*24)));
+
+    if (mode === "date") {
+      sobValue.textContent = v;
+      sobHint.textContent  = "Tap: show days";
+    } else {
+      sobValue.textContent = days + " days";
+      sobHint.textContent  = "Tap: show date";
+    }
+    sobOut.textContent = days + " days sober";
+  }
+
+  document.getElementById("sobPill").onclick = () => {
+    const v = localStorage.getItem(LS_DATE);
+    if(!v){ openSheet(); return; }
+    const mode = getMode();
+    localStorage.setItem(LS_MODE, mode === "date" ? "days" : "date");
+    renderSob();
+  };
+  document.getElementById("streakPill").onclick = () => openSheet();
+
+  document.getElementById("saveSob").onclick = () => {
+    if(sobDate.value){
+      localStorage.setItem(LS_DATE, sobDate.value);
+      renderSob();
+      closeSheet();
+    }
+  };
+  document.getElementById("clearSob").onclick = () => {
+    localStorage.removeItem(LS_DATE);
+    renderSob();
+    closeSheet();
+  };
+
+  function updateStreak(){
+    const today = new Date().toISOString().slice(0,10);
+    const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+    const last = localStorage.getItem(LS_LAST);
+    let streak = Number(localStorage.getItem(LS_STREAK) || 0);
+
+    if(last !== today){
+      streak = (last === yesterday) ? streak + 1 : 1;
+      localStorage.setItem(LS_LAST, today);
+      localStorage.setItem(LS_STREAK, String(streak));
+    }
+    document.getElementById("streakValue").textContent = streak + "🔥";
+  }
+
+  /* Whisper */
+  const WHISPER_KEY_DATE = "rm_whisper_date";
+  const WHISPER_KEY_TEXT = "rm_whisper_text";
+  const WHISPERS = [
+    "A few people re-read this lately","This one’s getting re-read","This one’s making the rounds",
+    "This hit somebody else too","You weren’t the only one here","Others paused on this one",
+    "This one drew a second look","This one slowed someone down","This one didn’t go unnoticed",
+    "More than one set of eyes here","Someone else needed this too","This one met a few people where they were",
+    "You’re in quiet company here","This one landed for somebody","A few folks stayed with this one",
+    "This one found its way around","Others sat with this for a bit","You weren’t alone with this thought",
+    "This one didn’t just pass by","Not the only one to read this","Shared moment today",
+    "Quietly revisited today","This one stayed today","Others were here today"
+  ];
+  function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function getTodayISO(){ return new Date().toISOString().slice(0,10); }
+
+  function renderWhisper(){
+    const wrap = document.getElementById("rm-whisper");
+    const textEl = document.querySelector(".whisper-text");
+    if(!wrap || !textEl) return;
+
+    const today = getTodayISO();
+    const savedDate = localStorage.getItem(WHISPER_KEY_DATE);
+    const savedText = localStorage.getItem(WHISPER_KEY_TEXT);
+
+    let text = savedText;
+    if(savedDate !== today || !savedText){
+      text = pickRandom(WHISPERS);
+      localStorage.setItem(WHISPER_KEY_DATE, today);
+      localStorage.setItem(WHISPER_KEY_TEXT, text);
+    }
+    textEl.textContent = text;
+    setTimeout(() => wrap.classList.add("show"), 900);
+  }
+
+  /* star burst */
+  function burstStars(onButtonEl){
+    const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
+    if(!wrap) return;
+    const emojis = ["⭐","✨","🌟"];
+    const count = 14;
+    for(let i=0;i<count;i++){
+      const s = document.createElement("span");
+      s.className="star";
+      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      s.style.setProperty("--dx", (Math.random()*90 - 45).toFixed(0) + "px");
+      s.style.setProperty("--dy", (Math.random()*-80 - 20).toFixed(0) + "px");
+      s.style.setProperty("--rot", (Math.random()*220 - 110).toFixed(0) + "deg");
+      s.style.animationDelay = (Math.random()*0.08).toFixed(2)+"s";
+      wrap.appendChild(s);
+      setTimeout(() => s.remove(), 950);
+    }
+  }
+
+  /* Gratitude (unchanged) */
+  const GRAT_INDEX_KEY = "rm_grat_index";
+  const gratBackdrop = document.getElementById("gratBackdrop");
+  const gratSheet = document.getElementById("gratSheet");
+
+  const gratViewing = document.getElementById("gratViewing");
+  const gratStatus = document.getElementById("gratStatus");
+
+  const gratHappy = document.getElementById("gratHappy");
+  const gratPeace = document.getElementById("gratPeace");
+  const gratUseful = document.getElementById("gratUseful");
+  const gratJournal = document.getElementById("gratJournal");
+
+  const archiveToggle = document.getElementById("archiveToggle");
+  const archiveList = document.getElementById("archiveList");
+  const archiveCount = document.getElementById("archiveCount");
+  const archiveCaret = document.getElementById("archiveCaret");
+
+  let currentGratDate = null;
+
+  function gratKey(dateISO){ return "rm_grat_" + dateISO; }
+  function readIndex(){
+    try{
+      const raw = localStorage.getItem(GRAT_INDEX_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){ return []; }
+  }
+  function writeIndex(arr){ localStorage.setItem(GRAT_INDEX_KEY, JSON.stringify(arr)); }
+
+  function saveEntry(dateISO, data){
+    localStorage.setItem(gratKey(dateISO), JSON.stringify(data));
+    let idx = readIndex();
+    if(!idx.includes(dateISO)){ idx.unshift(dateISO); writeIndex(idx); }
+    else { idx = [dateISO].concat(idx.filter(d => d !== dateISO)); writeIndex(idx); }
+  }
+
+  function loadEntry(dateISO){
+    const raw = localStorage.getItem(gratKey(dateISO));
+    if(!raw) return null;
+    try{ return JSON.parse(raw); }catch(e){ return null; }
+  }
+
+  function setStatusSaved(){
+    gratStatus.style.display="inline-flex";
+    gratStatus.textContent="Saved";
+    setTimeout(() => gratStatus.style.display = "none", 1000);
+  }
+
+  function openGrat(dateISO){
+    currentGratDate = dateISO || getTodayISO();
+    gratViewing.textContent = "Viewing: " + currentGratDate;
+
+    const entry = loadEntry(currentGratDate);
+    gratHappy.value = entry?.happy || "";
+    gratPeace.value = entry?.peace || "";
+    gratUseful.value = entry?.useful || "";
+    gratJournal.value = entry?.journal || "";
+
+    gratBackdrop.style.display="block";
+    gratSheet.classList.add("open");
+    renderArchive();
+  }
+  function closeGrat(){ gratSheet.classList.remove("open"); gratBackdrop.style.display="none"; }
+
+  gratBackdrop.onclick = closeGrat;
+  document.getElementById("closeGrat").onclick = closeGrat;
+
+  document.getElementById("gratBtn").onclick = () => { closeMenu(); openGrat(getTodayISO()); };
+
+  archiveToggle.onclick = () => {
+    const isOpen = archiveList.classList.toggle("open");
+    archiveToggle.setAttribute("aria-expanded", String(isOpen));
+    archiveCaret.textContent = isOpen ? "▴" : "▾";
+  };
+
+  function renderArchive(){
+    const idx = readIndex();
+    archiveCount.textContent = String(idx.length);
+    archiveList.innerHTML = "";
+
+    if(idx.length === 0){
+      const empty = document.createElement("div");
+      empty.className="archiveItem";
+      empty.style.cursor="default";
+      empty.innerHTML = `<span style="opacity:.7;font-weight:900;">No saved entries yet</span><span class="chip">—</span>`;
+      archiveList.appendChild(empty);
+      return;
     }
 
-    document.getElementById("bp-save").addEventListener("click", () => {
-      const text = (bpText.value || "").trim();
-      if (!text){ alert("Write something first."); return; }
-      const items = bpLoad();
-      items.push({ time: nowStamp(), text });
-      bpSaveArr(items);
-      bpRender();
-      flash(bpList);
+    idx.forEach(dateISO => {
+      const row = document.createElement("div");
+      row.className="archiveItem";
+      const isToday = (dateISO === getTodayISO());
+      row.innerHTML = `<span>${dateISO}</span><span class="chip">${isToday ? "today" : "open"}</span>`;
+      row.onclick = () => {
+        currentGratDate = dateISO;
+        gratViewing.textContent = "Viewing: " + currentGratDate;
+        const entry = loadEntry(currentGratDate);
+        gratHappy.value = entry?.happy || "";
+        gratPeace.value = entry?.peace || "";
+        gratUseful.value = entry?.useful || "";
+        gratJournal.value = entry?.journal || "";
+      };
+      archiveList.appendChild(row);
     });
+  }
 
-    document.getElementById("bp-letgo").addEventListener("click", () => {
-      const text = (bpText.value || "").trim();
-      if (!text){
-        // still flash prayer box as a gentle nudge
-        flash(document.getElementById("bp-prayerBox"));
-        return;
-      }
-      // save then clear (so "let it go" is still trackable if you want it)
-      const items = bpLoad();
-      items.push({ time: nowStamp(), text: "LET IT GO:\n" + text });
-      bpSaveArr(items);
-      bpText.value = "";
-      bpRender();
-      flash(document.getElementById("bp-prayerBox"));
-      flash(bpList);
-    });
-
-    document.getElementById("bp-copy").addEventListener("click", () => {
-      const text = (bpText.value || "").trim();
-      if (!text){ alert("Nothing to copy yet."); return; }
-      copyText(text);
-    });
-
-    document.getElementById("bp-clear").addEventListener("click", () => {
-      bpText.value = "";
-    });
-
-    document.getElementById("bp-copy-prayer").addEventListener("click", () => {
-      const prayer =
-`God, save me from being angry. Thy will be done.
-This is a sick person. How can I be helpful to them?
-Save me from being hurt or frightened.`;
-      copyText(prayer);
-    });
-
-    document.getElementById("bp-clear-history").addEventListener("click", () => {
-      if (!confirm("Clear Burn Pad history on this device?")) return;
-      localStorage.removeItem(BP_KEY);
-      bpRender();
-    });
-
-    bpList.addEventListener("click", (e) => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
-      const act = btn.getAttribute("data-act");
-      const idx = parseInt(btn.getAttribute("data-idx"), 10);
-      const items = bpLoad();
-      if (Number.isNaN(idx) || idx < 0 || idx >= items.length) return;
-
-      if (act === "copy"){
-        copyText(items[idx].text || "");
-      } else if (act === "del"){
-        items.splice(idx, 1);
-        bpSaveArr(items);
-        bpRender();
-      }
-    });
-
-    bpRender();
-
-    // ---------------------------
-    // Gratitude (local storage)
-    // ---------------------------
-    const G_KEY = "rm_gratitude_history_v1";
-
-    const gGrowth = document.getElementById("g-growth");
-    const gInspire = document.getElementById("g-inspire");
-    const gPeople = document.getElementById("g-people");
-    const gTranq  = document.getElementById("g-tranq");
-    const gSigns  = document.getElementById("g-signs");
-    const gList   = document.getElementById("g-list");
-
-    function gLoad(){
-      try{ return JSON.parse(localStorage.getItem(G_KEY) || "[]"); }
-      catch(e){ return []; }
+  document.getElementById("gratSave").onclick = () => {
+    const dateISO = currentGratDate || getTodayISO();
+    const payload = {
+      date: dateISO,
+      happy: gratHappy.value.trim(),
+      peace: gratPeace.value.trim(),
+      useful: gratUseful.value.trim(),
+      journal: gratJournal.value.trim()
+    };
+    try{
+      saveEntry(dateISO, payload);
+      setStatusSaved();
+      burstStars(document.getElementById("gratSave"));
+      renderArchive();
+    }catch(e){
+      gratStatus.style.display="inline-flex";
+      gratStatus.textContent="Couldn’t save";
+      setTimeout(() => gratStatus.style.display="none", 1400);
     }
-    function gSaveArr(arr){
-      localStorage.setItem(G_KEY, JSON.stringify(arr));
+  };
+  document.getElementById("gratClear").onclick = () => {
+    gratHappy.value=""; gratPeace.value=""; gratUseful.value=""; gratJournal.value="";
+  };
+
+  /* Burn Pad (unchanged) */
+  const burnBackdrop = document.getElementById("burnBackdrop");
+  const burnSheet = document.getElementById("burnSheet");
+
+  const burnStep1 = document.getElementById("burnStep1");
+  const burnStep2 = document.getElementById("burnStep2");
+
+  const burnName = document.getElementById("burnName");
+  const burnDraft = document.getElementById("burnDraft");
+  const burnMistake = document.getElementById("burnMistake");
+  const burnFlames = document.getElementById("burnFlames");
+  const burnControl = document.getElementById("burnControl");
+  const burnNextMove = document.getElementById("burnNextMove");
+  const burnWho = document.getElementById("burnWho");
+
+  const burnThreatChips = document.getElementById("burnThreatChips");
+  let burnThreat = "";
+
+  const burnStateChips = document.getElementById("burnStateChips");
+  let burnState = "";
+
+  const burnAdvanced = document.getElementById("burnAdvanced");
+  const burnToggleSimple = document.getElementById("burnToggleSimple");
+  let burnSimple = false;
+
+  const burnNotReady = document.getElementById("burnNotReady");
+  const burnNotReadyHint = document.getElementById("burnNotReadyHint");
+  const burnReleaseBtn = document.getElementById("burnRelease");
+
+  function showBurnStep(n){
+    if(n===1){ burnStep1.classList.add("active"); burnStep2.classList.remove("active"); }
+    else { burnStep1.classList.remove("active"); burnStep2.classList.add("active"); }
+  }
+  function openBurn(){
+    burnBackdrop.style.display="block";
+    burnSheet.classList.add("open");
+    showBurnStep(1);
+    setTimeout(() => burnName.focus({preventScroll:true}), 120);
+  }
+  function closeBurn(){ burnSheet.classList.remove("open"); burnBackdrop.style.display="none"; }
+
+  function resetNotReadyUI(){
+    burnNotReady.checked = false;
+    burnNotReadyHint.style.display = "none";
+    burnReleaseBtn.textContent = "Release it";
+  }
+  function resetSimpleUI(){
+    burnSimple = false;
+    if(burnAdvanced) burnAdvanced.style.display = "";
+    if(burnToggleSimple) burnToggleSimple.textContent = "Show fewer questions";
+  }
+  function clearBurnAll(){
+    burnName.value = "";
+    burnDraft.value=""; burnMistake.value=""; burnFlames.value=""; burnControl.value="";
+    if(burnNextMove) burnNextMove.value=""; if(burnWho) burnWho.value="";
+    burnThreat=""; burnState="";
+    if(burnThreatChips) burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    if(burnStateChips) burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    resetNotReadyUI();
+    resetSimpleUI();
+  }
+
+  burnBackdrop.onclick = closeBurn;
+  document.getElementById("closeBurn").onclick = closeBurn;
+  document.getElementById("burnBtn").onclick = () => { closeMenu(); openBurn(); };
+
+  document.getElementById("burnNext").onclick = () => { showBurnStep(2); setTimeout(() => burnMistake.focus({preventScroll:true}), 80); };
+  document.getElementById("burnBack").onclick = () => { showBurnStep(1); setTimeout(() => burnName.focus({preventScroll:true}), 80); };
+
+  document.getElementById("burnClear1").onclick = () => { burnName.value=""; burnDraft.value=""; };
+  document.getElementById("burnClear2").onclick = () => {
+    burnMistake.value=""; burnFlames.value=""; burnControl.value="";
+    if(burnNextMove) burnNextMove.value=""; if(burnWho) burnWho.value="";
+    burnThreat=""; burnState="";
+    if(burnThreatChips) burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    if(burnStateChips) burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    resetNotReadyUI();
+    resetSimpleUI();
+  };
+
+  if(burnThreatChips){
+    burnThreatChips.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chipBtn");
+      if(!btn) return;
+      const v = btn.getAttribute("data-v") || "";
+      const isActive = btn.classList.contains("active");
+
+      burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+      if(!isActive){ btn.classList.add("active"); burnThreat = v; }
+      else { burnThreat = ""; }
+    });
+  }
+
+  if(burnStateChips){
+    burnStateChips.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chipBtn");
+      if(!btn) return;
+      const v = btn.getAttribute("data-v") || "";
+      const isActive = btn.classList.contains("active");
+
+      burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+      if(!isActive){ btn.classList.add("active"); burnState = v; }
+      else { burnState = ""; }
+    });
+  }
+
+  if(burnToggleSimple){
+    burnToggleSimple.onclick = () => {
+      burnSimple = !burnSimple;
+      if(burnAdvanced) burnAdvanced.style.display = burnSimple ? "none" : "";
+      burnToggleSimple.textContent = burnSimple ? "Show all questions" : "Show fewer questions";
+    };
+  }
+
+  burnNotReady.addEventListener("change", () => {
+    if(burnNotReady.checked){
+      burnReleaseBtn.textContent="Pause it";
+      burnNotReadyHint.style.display="block";
+    } else {
+      burnReleaseBtn.textContent="Release it";
+      burnNotReadyHint.style.display="none";
     }
+  });
 
-    function gCurrentText(){
-      const parts = [
-        ["Growth", (gGrowth.value||"").trim()],
-        ["Inspiration", (gInspire.value||"").trim()],
-        ["Friends/Family", (gPeople.value||"").trim()],
-        ["Tranquility", (gTranq.value||"").trim()],
-        ["Signs", (gSigns.value||"").trim()],
-      ].filter(([_,v]) => v);
+  /* Burn Done */
+  const burnDoneBackdrop = document.getElementById("burnDoneBackdrop");
+  const burnDoneSheet = document.getElementById("burnDoneSheet");
+  const burnAnimStage = document.getElementById("burnAnimStage");
+  const burnDoneMsg = document.getElementById("burnDoneMsg");
+  const burnDoneCloseBtn = document.getElementById("burnDoneClose");
 
-      if (!parts.length) return "";
+  function openBurnDone(){
+    burnDoneBackdrop.style.display="block";
+    burnDoneSheet.classList.add("open");
 
-      let out = `Gratitude — ${nowStamp()}\n\n`;
-      parts.forEach(([k,v]) => { out += `${k}:\n${v}\n\n`; });
-      return out.trim();
+    burnDoneMsg.style.opacity = "0";
+    burnAnimStage.classList.remove("run");
+
+    requestAnimationFrame(() => {
+      burnAnimStage.classList.add("run");
+      setTimeout(() => { burnDoneMsg.style.opacity = "1"; }, 850);
+    });
+
+    setTimeout(() => burnDoneCloseBtn.focus({preventScroll:true}), 180);
+  }
+
+  function closeBurnDone(){
+    burnDoneSheet.classList.remove("open");
+    burnDoneBackdrop.style.display="none";
+  }
+
+  burnDoneBackdrop.onclick = closeBurnDone;
+  document.getElementById("closeBurnDoneX").onclick = closeBurnDone;
+
+  /* Sick Man’s Prayer modal */
+  const prayerBackdrop = document.getElementById("prayerBackdrop");
+  const prayerSheet = document.getElementById("prayerSheet");
+  const prayerDone = document.getElementById("prayerDone");
+  const closePrayerX = document.getElementById("closePrayerX");
+
+  function openPrayer(){
+    prayerBackdrop.style.display="block";
+    prayerSheet.classList.add("open");
+    setTimeout(() => prayerDone.focus({preventScroll:true}), 120);
+  }
+  function closePrayer(){
+    prayerSheet.classList.remove("open");
+    prayerBackdrop.style.display="none";
+  }
+  prayerBackdrop.onclick = closePrayer;
+  closePrayerX.onclick = closePrayer;
+  prayerDone.onclick = closePrayer;
+
+  burnReleaseBtn.onclick = () => {
+    if (burnNotReady.checked){
+      closeBurn();
+      return;
     }
+    closeBurn();
+    openBurnDone();
+  };
 
-    function gRender(){
-      const items = gLoad();
-      gList.innerHTML = "";
-      if (!items.length){
-        gList.innerHTML = `<div class="small">Nothing saved yet. Keep it simple and hit save.</div>`;
-        return;
-      }
-      items.slice().reverse().forEach((it, idxFromEnd) => {
-        const idx = items.length - 1 - idxFromEnd;
+  burnDoneCloseBtn.onclick = () => {
+    clearBurnAll();
+    closeBurnDone();
+  };
 
-        const wrap = document.createElement("div");
-        wrap.className = "item";
+  // Page buttons
+  document.getElementById("openBurnFromPage").onclick = () => openBurn();
+  document.getElementById("openGratFromPage").onclick = () => openGrat(getTodayISO());
 
-        wrap.innerHTML = `
-          <div class="itemTop">
-            <div class="itemTime">${it.time || ""}</div>
-            <div class="itemBtns">
-              <button class="miniBtn" data-act="copy" data-idx="${idx}">Copy</button>
-              <button class="miniBtn" data-act="del" data-idx="${idx}">Delete</button>
-            </div>
-          </div>
-          <div class="itemText"></div>
-        `;
+  /* Init + hash tools */
+  (function init(){
+    const v = localStorage.getItem(LS_DATE);
+    if (v) sobDate.value = v;
+    sobDate.max = new Date().toISOString().slice(0,10);
 
-        wrap.querySelector(".itemText").textContent = it.text || "";
-        gList.appendChild(wrap);
-      });
-    }
+    updateStreak();
+    renderSob();
+    renderWhisper();
 
-    document.getElementById("g-save").addEventListener("click", () => {
-      const text = gCurrentText();
-      if (!text){ alert("Write at least one section first."); return; }
-      const items = gLoad();
-      items.push({ time: nowStamp(), text });
-      gSaveArr(items);
-      gRender();
-      flash(gList);
-    });
-
-    document.getElementById("g-copy").addEventListener("click", () => {
-      const text = gCurrentText();
-      if (!text){ alert("Nothing to copy yet."); return; }
-      copyText(text);
-    });
-
-    document.getElementById("g-clear").addEventListener("click", () => {
-      gGrowth.value = "";
-      gInspire.value = "";
-      gPeople.value = "";
-      gTranq.value = "";
-      gSigns.value = "";
-    });
-
-    document.getElementById("g-clear-history").addEventListener("click", () => {
-      if (!confirm("Clear Gratitude history on this device?")) return;
-      localStorage.removeItem(G_KEY);
-      gRender();
-    });
-
-    gList.addEventListener("click", (e) => {
-      const btn = e.target.closest("button");
-      if (!btn) return;
-      const act = btn.getAttribute("data-act");
-      const idx = parseInt(btn.getAttribute("data-idx"), 10);
-      const items = gLoad();
-      if (Number.isNaN(idx) || idx < 0 || idx >= items.length) return;
-
-      if (act === "copy"){
-        copyText(items[idx].text || "");
-      } else if (act === "del"){
-        items.splice(idx, 1);
-        gSaveArr(items);
-        gRender();
-      }
-    });
-
-    gRender();
-  </script>
+    if (location.hash === "#burn") setTimeout(() => openBurn(), 100);
+    if (location.hash === "#grat") setTimeout(() => openGrat(getTodayISO()), 100);
+  })();
+</script>
 
 </body>
 </html>
