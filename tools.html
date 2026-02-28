@@ -16,173 +16,666 @@
   <link rel="apple-touch-icon" href="./icon-192.png">
 
   <style>
+    :root{
+      --ink:#111;
+      --muted:#444;
+      --line:rgba(0,0,0,.12);
+      --soft:rgba(0,0,0,.04);
+      --soft2:rgba(0,0,0,.06);
+      --radius:16px;
+    }
+
     body{
       margin:0;
       font-family:Roboto,Arial,sans-serif;
       background:#fff;
-      padding-bottom:120px; /* sober bar + nav */
+      color:var(--ink);
+      padding-bottom:120px; /* room for sober bar + nav */
     }
 
-    /* Keep content from hiding behind top/bottom bars */
     .page{
+      max-width:920px;
+      margin:0 auto;
       padding:14px 12px 0;
     }
 
+    .header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 4px 12px;
+    }
     .title{
-      margin:10px 4px 4px;
+      margin:0;
       font-size:18px;
       font-weight:900;
       letter-spacing:.2px;
     }
-
-    .sub{
-      margin:0 4px 14px;
-      color:#444;
+    .subtitle{
+      margin:4px 0 0;
+      color:var(--muted);
       font-size:13px;
       line-height:1.35;
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
-      max-width:820px;
-      margin:0 auto;
+    .tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      padding:0 4px 10px;
+    }
+    .tab{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:9px 12px;
+      border-radius:999px;
+      font-size:13px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab[aria-selected="true"]{
+      background:var(--ink);
+      color:#fff;
+      border-color:var(--ink);
     }
 
-    @media (min-width:720px){
-      .grid{ grid-template-columns:1fr 1fr; }
-    }
-
-    .cardLink{
-      display:block;
-      text-decoration:none;
-      color:#111;
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:14px;
-      padding:14px 14px 12px;
+    .card{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
       background:#fff;
       box-shadow:0 1px 0 rgba(0,0,0,.03);
-      transition:transform .06s ease, box-shadow .06s ease;
-    }
-    .cardLink:active{
-      transform:translateY(1px);
-      box-shadow:0 0 0 rgba(0,0,0,0);
+      padding:14px;
+      margin:10px 4px 14px;
     }
 
-    .cardTop{
+    .card h2{
+      margin:0 0 6px;
+      font-size:16px;
+      font-weight:900;
+    }
+    .card p{
+      margin:0 0 10px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .btn{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .btn:active{ transform:translateY(1px); }
+    .btnPrimary{
+      background:var(--ink);
+      color:#fff;
+      border-color:var(--ink);
+    }
+    .btnDanger{
+      border-color:rgba(180,0,0,.25);
+      background:rgba(180,0,0,.06);
+      color:#7a0000;
+    }
+
+    textarea, input{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px;
+      font-size:14px;
+      box-sizing:border-box;
+      outline:none;
+      background:#fff;
+    }
+    textarea{
+      min-height:110px;
+      resize:vertical;
+      line-height:1.35;
+    }
+
+    .split{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    @media (min-width:860px){
+      .split{ grid-template-columns:1.25fr .75fr; }
+    }
+
+    .box{
+      border:1px solid var(--line);
+      background:var(--soft);
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .small{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .item{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 10px 10px;
+      background:#fff;
+    }
+    .itemTop{
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
       gap:10px;
     }
-
-    .cardTitle{
-      font-weight:900;
-      font-size:15px;
-      margin:0;
-    }
-
-    .badge{
-      font-size:12px;
-      border:1px solid rgba(0,0,0,.14);
-      border-radius:999px;
-      padding:4px 8px;
-      color:#222;
+    .itemTime{
+      font-size:11px;
+      color:#666;
       white-space:nowrap;
+      margin-top:2px;
     }
-
-    .cardDesc{
+    .itemText{
       margin:8px 0 0;
       font-size:13px;
-      color:#444;
+      color:#222;
+      white-space:pre-wrap;
       line-height:1.35;
     }
-
-    .hint{
-      margin:14px auto 0;
-      max-width:820px;
-      font-size:12px;
-      color:#555;
-      padding:10px 12px;
-      border-radius:12px;
-      background:rgba(0,0,0,.03);
-      border:1px solid rgba(0,0,0,.08);
+    .itemBtns{
+      display:flex;
+      gap:8px;
     }
+    .miniBtn{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:10px;
+      padding:7px 9px;
+      font-size:12px;
+      cursor:pointer;
+    }
+
+    .flash{
+      animation:rmFlash .7s ease 1;
+    }
+    @keyframes rmFlash{
+      0%{ box-shadow:0 0 0 rgba(0,0,0,0); }
+      35%{ box-shadow:0 0 0 4px rgba(0,0,0,.12); }
+      100%{ box-shadow:0 0 0 rgba(0,0,0,0); }
+    }
+
+    .hide{ display:none !important; }
+
+    .meetGuide{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.00));
+      text-decoration:none;
+      color:var(--ink);
+    }
+    .meetGuide strong{ font-weight:900; }
+    .meetGuide span{ color:var(--muted); font-size:13px; line-height:1.3; }
+    .arrow{ font-size:18px; opacity:.7; }
   </style>
 </head>
 
 <body>
 
-  <!-- Shared TOP BAR (injected by topbar.js) -->
+  <!-- Shared TOP BAR -->
   <div id="rm-topbar"></div>
   <script src="./topbar.js" defer></script>
 
   <main class="page">
-    <div class="grid">
-      <div style="grid-column:1/-1;">
-        <div class="title">Tools</div>
-        <div class="sub">Stuff we actually use when our brain is acting like a drunk raccoon.</div>
-      </div>
 
-      <!-- Update these hrefs to whatever your real filenames are -->
-      <a class="cardLink" href="./burnpad.html">
-        <div class="cardTop">
-          <h2 class="cardTitle">Burn Pad</h2>
-          <span class="badge">resentment → release</span>
-        </div>
-        <p class="cardDesc">Dump the noise, run the prayer, hit “let it go,” keep moving.</p>
-      </a>
-
-      <a class="cardLink" href="./gratitude.html">
-        <div class="cardTop">
-          <h2 class="cardTitle">Gratitude Inventory</h2>
-          <span class="badge">reset button</span>
-        </div>
-        <p class="cardDesc">Short list. Honest list. The kind that changes your whole day.</p>
-      </a>
-
-      <a class="cardLink" href="./reading.html">
-        <div class="cardTop">
-          <h2 class="cardTitle">Daily Reading</h2>
-          <span class="badge">back to center</span>
-        </div>
-        <p class="cardDesc">A quick re-aim before you start steering with feelings.</p>
-      </a>
-
-      <a class="cardLink" href="./audio.html">
-        <div class="cardTop">
-          <h2 class="cardTitle">Audio</h2>
-          <span class="badge">listen</span>
-        </div>
-        <p class="cardDesc">When reading feels like too much — hit play and breathe.</p>
-      </a>
-
-      <a class="cardLink" href="./games.html">
-        <div class="cardTop">
-          <h2 class="cardTitle">Games</h2>
-          <span class="badge">8-bit therapy</span>
-        </div>
-        <p class="cardDesc">Tiny dopamine that doesn’t come with a hangover.</p>
-      </a>
-
-      <a class="cardLink" href="./tools.html">
-        <div class="cardTop">
-          <h2 class="cardTitle">More Tools</h2>
-          <span class="badge">coming soon</span>
-        </div>
-        <p class="cardDesc">Add anything you want here later (inventory, prayers, notes, etc.).</p>
-      </a>
-
-      <div class="hint" style="grid-column:1/-1;">
-        If a button 404s, it’s just the filename — rename the href to match your actual page.
+    <div class="header">
+      <div>
+        <h1 class="title">Tools</h1>
+        <div class="subtitle">Three tools. No fluff. Use what works.</div>
       </div>
     </div>
+
+    <div class="tabs" role="tablist" aria-label="Tools tabs">
+      <button class="tab" id="tab-burn" role="tab" aria-selected="true" aria-controls="panel-burn">Burn Pad</button>
+      <button class="tab" id="tab-grat" role="tab" aria-selected="false" aria-controls="panel-grat">Gratitude</button>
+      <button class="tab" id="tab-meet" role="tab" aria-selected="false" aria-controls="panel-meet">Meeting Guide</button>
+    </div>
+
+    <!-- ===================== BURN PAD ===================== -->
+    <section class="card" id="panel-burn" role="tabpanel" aria-labelledby="tab-burn">
+      <h2>Burn Pad</h2>
+      <p>Write it straight. Don’t polish it. Then let it go.</p>
+
+      <div class="split">
+
+        <div>
+          <label class="small" for="bp-text"><strong>What’s eating you?</strong></label>
+          <textarea id="bp-text" placeholder="Name it. Who/what am I mad at? What story am I telling? What fear is under it?"></textarea>
+
+          <div style="height:10px;"></div>
+
+          <div class="row">
+            <button class="btn btnPrimary" id="bp-letgo">Let it go</button>
+            <button class="btn" id="bp-save">Save to history</button>
+            <button class="btn" id="bp-copy">Copy</button>
+            <button class="btn btnDanger" id="bp-clear">Clear</button>
+          </div>
+
+          <div style="height:10px;"></div>
+
+          <div class="box" id="bp-prayerBox">
+            <div class="small"><strong>Sick Man’s Prayer</strong></div>
+            <div class="small" style="margin-top:6px;">
+              God, save me from being angry. Thy will be done.<br>
+              This is a sick person. How can I be helpful to them?<br>
+              Save me from being hurt or frightened.
+            </div>
+            <div class="row" style="margin-top:10px;">
+              <button class="btn" id="bp-copy-prayer">Copy prayer</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="small"><strong>Burn Pad History</strong></div>
+          <div class="small" style="margin-top:4px;">Stored on this device (local). No cloud.</div>
+
+          <div class="list" id="bp-list"></div>
+
+          <div class="row" style="margin-top:10px;">
+            <button class="btn btnDanger" id="bp-clear-history">Clear history</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================== GRATITUDE ===================== -->
+    <section class="card hide" id="panel-grat" role="tabpanel" aria-labelledby="tab-grat">
+      <h2>Gratitude Inventory</h2>
+      <p>Quick categories. Real answers. This is how we remember who we are.</p>
+
+      <div class="split">
+        <div>
+          <div class="box">
+            <div class="small"><strong>Today’s entries</strong> (save when you’re done)</div>
+            <div style="height:10px;"></div>
+
+            <label class="small" for="g-growth"><strong>Growth</strong> (what’s improving, even a little)</label>
+            <textarea id="g-growth" placeholder="Example: I paused before snapping. I made a call. I showed up."></textarea>
+
+            <div style="height:10px;"></div>
+
+            <label class="small" for="g-inspire"><strong>Inspiration</strong> (what gave you hope)</label>
+            <textarea id="g-inspire" placeholder="Example: Something I heard, saw, read, or felt."></textarea>
+
+            <div style="height:10px;"></div>
+
+            <label class="small" for="g-people"><strong>Friends / Family</strong> (who matters, who showed up)</label>
+            <textarea id="g-people" placeholder="Example: A text. A laugh. A moment of peace with someone."></textarea>
+
+            <div style="height:10px;"></div>
+
+            <label class="small" for="g-tranq"><strong>Tranquility</strong> (where you felt calm)</label>
+            <textarea id="g-tranq" placeholder="Example: Coffee. A walk. Quiet. A breath."></textarea>
+
+            <div style="height:10px;"></div>
+
+            <label class="small" for="g-signs"><strong>Signs</strong> (little nudges from the last day or two)</label>
+            <textarea id="g-signs" placeholder="Example: Coincidence, timing, help showing up, a reminder I’m not alone."></textarea>
+
+            <div class="row" style="margin-top:10px;">
+              <button class="btn btnPrimary" id="g-save">Save</button>
+              <button class="btn" id="g-copy">Copy</button>
+              <button class="btn btnDanger" id="g-clear">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="small"><strong>Saved Gratitude</strong></div>
+          <div class="small" style="margin-top:4px;">Stored on this device (local). No cloud.</div>
+
+          <div class="list" id="g-list"></div>
+
+          <div class="row" style="margin-top:10px;">
+            <button class="btn btnDanger" id="g-clear-history">Clear history</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MEETING GUIDE ===================== -->
+    <section class="card hide" id="panel-meet" role="tabpanel" aria-labelledby="tab-meet">
+      <h2>Meeting Guide</h2>
+      <p>Find a meeting anywhere. Because isolation is a liar with good PR.</p>
+
+      <a class="meetGuide" href="https://www.aa.org/meeting-guide-app" target="_blank" rel="noopener">
+        <div>
+          <div><strong>Open Meeting Guide</strong></div>
+          <span>Official AA meeting finder app info</span>
+        </div>
+        <div class="arrow">›</div>
+      </a>
+
+      <div style="height:12px;"></div>
+
+      <div class="box">
+        <div class="small">
+          Tip: If you want this to jump straight into the app on phones, we can add a smart link later (iOS/Android),
+          but this version is the “always works” link.
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <!-- Shared SOBER BAR + NAV (injected by nav.js) -->
+  <!-- Shared SOBER BAR + NAV -->
   <div id="rm-bottom-nav"></div>
   <script src="./nav.js" defer></script>
+
+  <script>
+    // ---------------------------
+    // Tabs
+    // ---------------------------
+    const tabs = [
+      { btn: document.getElementById("tab-burn"), panel: document.getElementById("panel-burn"), key:"burn" },
+      { btn: document.getElementById("tab-grat"), panel: document.getElementById("panel-grat"), key:"grat" },
+      { btn: document.getElementById("tab-meet"), panel: document.getElementById("panel-meet"), key:"meet" },
+    ];
+
+    function selectTab(key){
+      tabs.forEach(t => {
+        const on = (t.key === key);
+        t.btn.setAttribute("aria-selected", on ? "true" : "false");
+        t.panel.classList.toggle("hide", !on);
+      });
+      localStorage.setItem("rm_tools_tab", key);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    tabs.forEach(t => t.btn.addEventListener("click", () => selectTab(t.key)));
+    selectTab(localStorage.getItem("rm_tools_tab") || "burn");
+
+    // ---------------------------
+    // Helpers
+    // ---------------------------
+    function nowStamp(){
+      const d = new Date();
+      return d.toLocaleString([], { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+    }
+
+    async function copyText(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        alert("Copied.");
+      }catch(e){
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        alert("Copied.");
+      }
+    }
+
+    function flash(el){
+      el.classList.remove("flash");
+      void el.offsetWidth;
+      el.classList.add("flash");
+    }
+
+    // ---------------------------
+    // Burn Pad (local storage)
+    // ---------------------------
+    const BP_KEY = "rm_burnpad_history_v1";
+
+    const bpText = document.getElementById("bp-text");
+    const bpList = document.getElementById("bp-list");
+
+    function bpLoad(){
+      try{ return JSON.parse(localStorage.getItem(BP_KEY) || "[]"); }
+      catch(e){ return []; }
+    }
+    function bpSaveArr(arr){
+      localStorage.setItem(BP_KEY, JSON.stringify(arr));
+    }
+
+    function bpRender(){
+      const items = bpLoad();
+      bpList.innerHTML = "";
+      if (!items.length){
+        bpList.innerHTML = `<div class="small">No entries yet. That can change in 30 seconds.</div>`;
+        return;
+      }
+      items.slice().reverse().forEach((it, idxFromEnd) => {
+        const idx = items.length - 1 - idxFromEnd;
+
+        const wrap = document.createElement("div");
+        wrap.className = "item";
+
+        wrap.innerHTML = `
+          <div class="itemTop">
+            <div class="itemTime">${it.time || ""}</div>
+            <div class="itemBtns">
+              <button class="miniBtn" data-act="copy" data-idx="${idx}">Copy</button>
+              <button class="miniBtn" data-act="del" data-idx="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="itemText"></div>
+        `;
+
+        wrap.querySelector(".itemText").textContent = it.text || "";
+        bpList.appendChild(wrap);
+      });
+    }
+
+    document.getElementById("bp-save").addEventListener("click", () => {
+      const text = (bpText.value || "").trim();
+      if (!text){ alert("Write something first."); return; }
+      const items = bpLoad();
+      items.push({ time: nowStamp(), text });
+      bpSaveArr(items);
+      bpRender();
+      flash(bpList);
+    });
+
+    document.getElementById("bp-letgo").addEventListener("click", () => {
+      const text = (bpText.value || "").trim();
+      if (!text){
+        // still flash prayer box as a gentle nudge
+        flash(document.getElementById("bp-prayerBox"));
+        return;
+      }
+      // save then clear (so "let it go" is still trackable if you want it)
+      const items = bpLoad();
+      items.push({ time: nowStamp(), text: "LET IT GO:\n" + text });
+      bpSaveArr(items);
+      bpText.value = "";
+      bpRender();
+      flash(document.getElementById("bp-prayerBox"));
+      flash(bpList);
+    });
+
+    document.getElementById("bp-copy").addEventListener("click", () => {
+      const text = (bpText.value || "").trim();
+      if (!text){ alert("Nothing to copy yet."); return; }
+      copyText(text);
+    });
+
+    document.getElementById("bp-clear").addEventListener("click", () => {
+      bpText.value = "";
+    });
+
+    document.getElementById("bp-copy-prayer").addEventListener("click", () => {
+      const prayer =
+`God, save me from being angry. Thy will be done.
+This is a sick person. How can I be helpful to them?
+Save me from being hurt or frightened.`;
+      copyText(prayer);
+    });
+
+    document.getElementById("bp-clear-history").addEventListener("click", () => {
+      if (!confirm("Clear Burn Pad history on this device?")) return;
+      localStorage.removeItem(BP_KEY);
+      bpRender();
+    });
+
+    bpList.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      const act = btn.getAttribute("data-act");
+      const idx = parseInt(btn.getAttribute("data-idx"), 10);
+      const items = bpLoad();
+      if (Number.isNaN(idx) || idx < 0 || idx >= items.length) return;
+
+      if (act === "copy"){
+        copyText(items[idx].text || "");
+      } else if (act === "del"){
+        items.splice(idx, 1);
+        bpSaveArr(items);
+        bpRender();
+      }
+    });
+
+    bpRender();
+
+    // ---------------------------
+    // Gratitude (local storage)
+    // ---------------------------
+    const G_KEY = "rm_gratitude_history_v1";
+
+    const gGrowth = document.getElementById("g-growth");
+    const gInspire = document.getElementById("g-inspire");
+    const gPeople = document.getElementById("g-people");
+    const gTranq  = document.getElementById("g-tranq");
+    const gSigns  = document.getElementById("g-signs");
+    const gList   = document.getElementById("g-list");
+
+    function gLoad(){
+      try{ return JSON.parse(localStorage.getItem(G_KEY) || "[]"); }
+      catch(e){ return []; }
+    }
+    function gSaveArr(arr){
+      localStorage.setItem(G_KEY, JSON.stringify(arr));
+    }
+
+    function gCurrentText(){
+      const parts = [
+        ["Growth", (gGrowth.value||"").trim()],
+        ["Inspiration", (gInspire.value||"").trim()],
+        ["Friends/Family", (gPeople.value||"").trim()],
+        ["Tranquility", (gTranq.value||"").trim()],
+        ["Signs", (gSigns.value||"").trim()],
+      ].filter(([_,v]) => v);
+
+      if (!parts.length) return "";
+
+      let out = `Gratitude — ${nowStamp()}\n\n`;
+      parts.forEach(([k,v]) => { out += `${k}:\n${v}\n\n`; });
+      return out.trim();
+    }
+
+    function gRender(){
+      const items = gLoad();
+      gList.innerHTML = "";
+      if (!items.length){
+        gList.innerHTML = `<div class="small">Nothing saved yet. Keep it simple and hit save.</div>`;
+        return;
+      }
+      items.slice().reverse().forEach((it, idxFromEnd) => {
+        const idx = items.length - 1 - idxFromEnd;
+
+        const wrap = document.createElement("div");
+        wrap.className = "item";
+
+        wrap.innerHTML = `
+          <div class="itemTop">
+            <div class="itemTime">${it.time || ""}</div>
+            <div class="itemBtns">
+              <button class="miniBtn" data-act="copy" data-idx="${idx}">Copy</button>
+              <button class="miniBtn" data-act="del" data-idx="${idx}">Delete</button>
+            </div>
+          </div>
+          <div class="itemText"></div>
+        `;
+
+        wrap.querySelector(".itemText").textContent = it.text || "";
+        gList.appendChild(wrap);
+      });
+    }
+
+    document.getElementById("g-save").addEventListener("click", () => {
+      const text = gCurrentText();
+      if (!text){ alert("Write at least one section first."); return; }
+      const items = gLoad();
+      items.push({ time: nowStamp(), text });
+      gSaveArr(items);
+      gRender();
+      flash(gList);
+    });
+
+    document.getElementById("g-copy").addEventListener("click", () => {
+      const text = gCurrentText();
+      if (!text){ alert("Nothing to copy yet."); return; }
+      copyText(text);
+    });
+
+    document.getElementById("g-clear").addEventListener("click", () => {
+      gGrowth.value = "";
+      gInspire.value = "";
+      gPeople.value = "";
+      gTranq.value = "";
+      gSigns.value = "";
+    });
+
+    document.getElementById("g-clear-history").addEventListener("click", () => {
+      if (!confirm("Clear Gratitude history on this device?")) return;
+      localStorage.removeItem(G_KEY);
+      gRender();
+    });
+
+    gList.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      const act = btn.getAttribute("data-act");
+      const idx = parseInt(btn.getAttribute("data-idx"), 10);
+      const items = gLoad();
+      if (Number.isNaN(idx) || idx < 0 || idx >= items.length) return;
+
+      if (act === "copy"){
+        copyText(items[idx].text || "");
+      } else if (act === "del"){
+        items.splice(idx, 1);
+        gSaveArr(items);
+        gRender();
+      }
+    });
+
+    gRender();
+  </script>
 
 </body>
 </html>
