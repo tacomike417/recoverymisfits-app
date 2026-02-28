@@ -1,4 +1,4 @@
-// topbar.js — Recovery Misfits shared top bar + install detection (v2)
+// topbar.js — Recovery Misfits shared top bar (black) + install support
 (() => {
   const mount = document.getElementById("rm-topbar");
   if (!mount) return;
@@ -25,23 +25,25 @@
         position:sticky;
         top:0;
         z-index:9000;
-        background:#fff;
-        border-bottom:1px solid rgba(0,0,0,.12);
+        background:#000;
+        color:#fff;
+        border-bottom:1px solid #111;
         font-family:Roboto,Arial,sans-serif;
       }
 
-      .rm-topbar__row1{
+      .rm-topbar__row{
         display:grid;
         grid-template-columns: 1fr auto 1fr;
         align-items:center;
-        padding:10px 12px 6px;
+        padding:10px 12px;
       }
 
       .rm-title{
         text-align:center;
         font-weight:900;
         font-size:16px;
-        letter-spacing:.01em;
+        letter-spacing:.03em;
+        color:#fff;
       }
 
       .rm-topbar__actions{
@@ -51,37 +53,27 @@
         align-items:center;
       }
 
-      .rm-topbar__row2{
-        text-align:center;
-        padding-bottom:10px;
-      }
-
-      .rm-mode{
-        font-size:12px;
-        opacity:.75;
-      }
-
       .rm-btn{
-        border:1px solid rgba(0,0,0,.18);
-        background:#fff;
-        color:#111;
-        padding:8px 10px;
+        border:1px solid #444;
+        background:#111;
+        color:#fff;
+        padding:7px 10px;
         border-radius:10px;
         font-weight:700;
-        font-size:13px;
+        font-size:12px;
         cursor:pointer;
         line-height:1;
         white-space:nowrap;
       }
 
       .rm-btn--primary{
-        background:#000;
-        color:#fff;
-        border-color:#000;
+        background:#fff;
+        color:#000;
+        border-color:#fff;
       }
 
       @media (max-width: 360px){
-        .rm-btn{ font-size:12px; padding:7px 8px; }
+        .rm-btn{ font-size:11px; padding:6px 8px; }
       }
     `;
     document.head.appendChild(s);
@@ -91,45 +83,28 @@
   const header = document.createElement("header");
   header.className = "rm-topbar";
   header.innerHTML = `
-    <div class="rm-topbar__row1">
+    <div class="rm-topbar__row">
       <div></div>
-      <div class="rm-title">Recovery Misfits v2</div>
+      <div class="rm-title">Recovery Misfits</div>
       <div class="rm-topbar__actions">
         <button id="rm-install-btn" class="rm-btn rm-btn--primary" style="display:none;">
-          Install App • Always Free
+          Install
         </button>
         <button id="rm-howto-btn" class="rm-btn" style="display:none;">
-          How to install
+          Install Help
         </button>
       </div>
-    </div>
-
-    <div class="rm-topbar__row2">
-      <div class="rm-mode" id="rm-mode">Browser Mode</div>
     </div>
   `;
 
   mount.replaceChildren(header);
 
-  // Wire install detection
-  const modeEl = document.getElementById("rm-mode");
   const installBtn = document.getElementById("rm-install-btn");
   const howtoBtn = document.getElementById("rm-howto-btn");
 
   let deferredPrompt = null;
 
-  function setModeText() {
-    if (isStandalone()) {
-      modeEl.textContent = "Installed (App Mode)";
-      installBtn.style.display = "none";
-      howtoBtn.style.display = "none";
-    } else {
-      modeEl.textContent = "Browser Mode";
-    }
-  }
-
-  setModeText();
-
+  // Android/Chrome install prompt
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -144,10 +119,11 @@
     installBtn.style.display = "none";
   });
 
+  // iPhone or fallback instructions
   setTimeout(() => {
     if (!deferredPrompt && !isStandalone()) {
       howtoBtn.style.display = "inline-flex";
-      howtoBtn.textContent = isIOS() ? "Install (iPhone)" : "How to install";
+      howtoBtn.textContent = isIOS() ? "Install (iPhone)" : "Install Help";
     }
   }, 1200);
 
@@ -155,10 +131,7 @@
     alert(
       isIOS()
         ? "On iPhone: tap Share → Add to Home Screen."
-        : "Use the install icon in your browser."
+        : "Use your browser's install option."
     );
   });
-
-  window.addEventListener("visibilitychange", setModeText);
-  window.addEventListener("focus", setModeText);
 })();
