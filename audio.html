@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits — Audio Library</title>
+  <title>Recovery Misfits — Audio</title>
 
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#000000" />
@@ -24,7 +24,7 @@
       background:#fff;
       color:#111;
       line-height:1.35;
-      padding-bottom:120px;
+      padding-bottom:120px; /* room for nav.js bottom bar */
     }
 
     main{max-width:860px;margin:0 auto;padding:14px;}
@@ -55,16 +55,33 @@
       border-radius:12px;
       font-weight:800;
       cursor:pointer;
+      text-decoration:none;
       display:inline-flex;
       align-items:center;
       justify-content:center;
+      gap:8px;
+      white-space:nowrap;
       min-height:44px;
+      box-sizing:border-box;
     }
     .btn:active{transform:scale(.99)}
-    .btn.primary{ border-color: rgba(0,0,0,.25); }
-    .btn.mini{ padding:8px 10px; font-size:13px; min-height:40px; }
+    .btn.primary{
+      border-color: rgba(0,0,0,.25);
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+    .btn.mini{
+      padding:8px 10px;
+      font-size:13px;
+      font-weight:900;
+      min-height:40px;
+    }
 
-    .library{ display:flex; flex-direction:column; gap:10px; }
+    /* Library rows */
+    .library{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
     .rowCard{
       display:flex;
       align-items:center;
@@ -75,13 +92,46 @@
       border-radius:12px;
       background:#fff;
     }
-    .title{font-weight:1000;font-size:14px;margin:0;}
-    .subtitle{font-size:12px;color:var(--muted);font-weight:900;margin-top:3px;}
+    .titleWrap{min-width:0; flex:1;}
+    .title{font-weight:1000; font-size:14px; margin:0;}
+    .subtitle{font-size:12px; color:var(--muted); margin-top:3px; font-weight:900;}
 
-    .row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid rgba(0,0,0,.08);}
-    .chapterTitle{font-weight:900;font-size:14px;display:flex;align-items:center;gap:8px;}
-    .actions{display:flex;gap:8px;flex-wrap:wrap;}
+    /* Player areas */
+    .playerAreaTitle{
+      font-weight:1000;
+      margin-bottom:8px;
+    }
+    .now{font-size:13px;color:var(--muted);font-weight:900}
+    audio{width:100%}
 
+    .playerBox{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    /* Chapters list */
+    .list{margin-top:12px}
+    .row{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding:10px 0; border-top:1px solid rgba(0,0,0,.08);
+    }
+    .row:first-child{border-top:none}
+    .chapterTitle{
+      font-weight:900; font-size:14px; margin:0;
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    }
+    .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+    .current{
+      outline:2px solid rgba(0,0,0,.15);
+      border-radius:12px;
+      padding:10px;
+      margin:8px 0;
+      background: rgba(0,0,0,.02);
+    }
+    .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none; font-weight:900;}
+
+    /* ===== SAGE GREEN "PLAYING" ROW ===== */
     .playingRow{
       outline:2px solid #b7d3c2;
       border-radius:12px;
@@ -90,126 +140,639 @@
       background:#e8f3ec;
       box-shadow: 0 2px 14px rgba(0,0,0,.06);
     }
-
     .nowTag{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
       font-size:11px;
       font-weight:1000;
       padding:4px 8px;
       border-radius:999px;
       border:1px solid #b7d3c2;
       background:#e8f3ec;
+      white-space:nowrap;
     }
 
-    audio{width:100%}
+    /* ===== MP3 "OBVIOUS PLAYING" UI ===== */
+    .playBadge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.18);
+      background:rgba(0,0,0,.03);
+      font-weight:1000;
+      font-size:12px;
+      letter-spacing:.2px;
+    }
+    .playBadge .state{
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.18);
+      background:#fff;
+    }
+    .playBadge.playing{
+      border-color:#b7d3c2;
+      background:#e8f3ec;
+      box-shadow: 0 2px 14px rgba(0,0,0,.08);
+    }
+
+    .eq{
+      display:inline-flex;
+      align-items:flex-end;
+      gap:3px;
+      height:14px;
+      width:34px;
+    }
+    .eq span{
+      width:4px;
+      height:6px;
+      border-radius:3px;
+      background:rgba(0,0,0,.45);
+      opacity:.9;
+      transform-origin: bottom;
+    }
+    .playing .eq span{ animation: eqBounce .55s ease-in-out infinite; }
+    .playing .eq span:nth-child(2){ animation-delay:.08s; }
+    .playing .eq span:nth-child(3){ animation-delay:.16s; }
+    .playing .eq span:nth-child(4){ animation-delay:.24s; }
+    @keyframes eqBounce{
+      0%,100% { transform: scaleY(.4); opacity:.7; }
+      50%     { transform: scaleY(1.3); opacity:1; }
+    }
+
+    /* YouTube embed */
+    .videoWrap{
+      position:relative;
+      padding-top:56.25%;
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.02);
+    }
+    .videoWrap iframe{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .toolbarLeft{
+      min-width:0;
+      flex:1;
+    }
+
+    .toast{
+      position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
+      background:#111; color:#fff; padding:10px 12px; border-radius:12px;
+      font-size:13px; opacity:0; pointer-events:none;
+      transition:opacity .18s ease;
+      max-width:92vw;
+      z-index:12000;
+    }
+    .toast.show{opacity:0.92}
+
+    @media (max-width:520px){
+      .actions{justify-content:flex-start;}
+    }
   </style>
 </head>
 
 <body>
 
-<div id="rm-topbar"></div>
-<script src="./topbar.js" defer></script>
+  <!-- Shared TOP BAR (injected by topbar.js) -->
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
 
-<main>
-  <div class="pageTitle">Audio Library</div>
+  <main>
+    <div class="pageTitle">Audio Library</div>
 
-  <section class="card">
-    <div class="library" id="library"></div>
-  </section>
+    <!-- Audio Library -->
+    <section class="card">
+      <div class="library" id="library"></div>
+    </section>
 
-  <section class="card" id="playerArea" style="display:none;">
-    <div style="font-weight:1000;margin-bottom:6px;" id="playerAreaTitle">Now Playing</div>
-    <div style="font-size:13px;color:rgba(0,0,0,.65);font-weight:900;margin-bottom:10px;" id="playerAreaSub">Ready</div>
+    <!-- Shared Player Area -->
+    <section class="card" id="playerArea" style="display:none;">
+      <div class="toolbar">
+        <div class="toolbarLeft">
+          <div class="playerAreaTitle" id="playerAreaTitle">Now Playing</div>
+          <div class="now" id="playerAreaSub">Ready</div>
+        </div>
+        <div class="actions">
+          <button class="btn mini" id="stopBtn" type="button">Stop</button>
+          <button class="btn mini" id="unloadBtn" type="button">Unload</button>
+        </div>
+      </div>
 
-    <audio id="player" controls preload="metadata"></audio>
+      <!-- Gorilla player -->
+      <div id="gorillaArea" style="display:none; margin-top:12px;">
+        <div class="toprow" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button id="playAllBtn" class="btn primary" type="button">▶ Play All</button>
+          <button id="clearResumeBtn" class="btn" type="button">Reset Resume</button>
+        </div>
+        <div id="resumeLine" class="resumeLine"></div>
 
-    <div style="font-weight:1000;margin-top:14px;">Chapters</div>
-    <div id="chapterList"></div>
-  </section>
-</main>
+        <div class="playerBox" style="margin-top:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <div class="now" id="nowPlaying">Not playing</div>
 
-<div id="rm-bottom-nav"></div>
-<script src="./nav.js" defer></script>
+            <div id="mp3Badge" class="playBadge">
+              <div class="eq" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+              </div>
+              <span class="state" id="mp3State">READY</span>
+            </div>
+          </div>
 
-<script>
-const LIBRARY = [
-  { type:"gorilla", title:"Alcoholism: The 500 Pound Gorilla", sub:"Audiobook" },
-  { type:"yt_playlist", title:"Joe & Charlie", sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E" },
-  { type:"yt_playlist", title:"Father Martin", sub:"Chalk Talks", id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf" },
-  { type:"yt_playlist", title:"Chuck C", sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA" },
-  { type:"yt_playlist", title:"Allen McGinnis", sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE" }
-];
+          <audio id="player" controls preload="metadata"></audio>
+        </div>
 
-const libraryEl = document.getElementById("library");
-const playerArea = document.getElementById("playerArea");
-const player = document.getElementById("player");
-const chapterList = document.getElementById("chapterList");
+        <div style="font-weight:1000;margin-top:14px;">Chapters</div>
+        <div id="chapterList" class="list"></div>
+      </div>
 
-function showPlayer(){ playerArea.style.display="block"; }
+      <!-- YouTube player -->
+      <div id="ytArea" style="display:none; margin-top:12px;">
+        <div class="videoWrap" id="ytBox">
+          <iframe
+            id="ytFrame"
+            title="YouTube"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            referrerpolicy="origin-when-cross-origin"
+          ></iframe>
+        </div>
+        <div class="now" style="margin-top:10px;">
+          If YouTube glitches: hit <b>Unload</b>, then press Play again.
+        </div>
+      </div>
+    </section>
 
-const TRACKS = [
-  { title:"1. So Here You Are", url:"https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/1.%20So%20Here%20You%20Are.mp3" },
-  { title:"2. The Rat Trap", url:"https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/2.%20The%20Rat%20Trap.mp3" },
-  { title:"3. My Off Switch is Broke", url:"https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/3.%20My%20Off%20Switch%20is%20Broke.mp3" }
-];
+    <div id="toast" class="toast"></div>
+  </main>
 
-function buildChapters(){
-  chapterList.innerHTML="";
-  TRACKS.forEach((tr,idx)=>{
-    const row=document.createElement("div");
-    row.className="row";
-    row.dataset.idx=idx;
+  <!-- Shared BOTTOM NAV (injected by nav.js) -->
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
 
-    const title=document.createElement("div");
-    title.className="chapterTitle";
-    title.textContent=tr.title;
+  <script>
+    // ==========================
+    // Toast
+    // ==========================
+    const toastEl = document.getElementById("toast");
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      setTimeout(()=>toastEl.classList.remove("show"), 1400);
+    }
 
-    const btn=document.createElement("button");
-    btn.className="btn mini";
-    btn.textContent="Play";
-    btn.onclick=()=>{
-      player.src=tr.url;
-      player.play();
-      document.querySelectorAll(".row").forEach(r=>r.classList.remove("playingRow"));
-      row.classList.add("playingRow");
+    // ==========================
+    // Library
+    // ==========================
+    const LIBRARY = [
+      { type:"gorilla", key:"gorilla", title:"Alcoholism: The 500 Pound Gorilla", sub:"Audiobook" },
 
-      const tag=document.createElement("span");
-      tag.className="nowTag";
-      tag.textContent="NOW PLAYING";
-      title.appendChild(tag);
-    };
+      { type:"yt_playlist", key:"joe",    title:"Joe & Charlie",  sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E" },
+      { type:"yt_playlist", key:"martin", title:"Father Martin",  sub:"Chalk Talks",    id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf" },
+      { type:"yt_playlist", key:"chuck",  title:"Chuck C",        sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA" },
+      { type:"yt_playlist", key:"allen",  title:"Allen McGinnis", sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE" }
+    ];
 
-    row.appendChild(title);
-    row.appendChild(btn);
-    chapterList.appendChild(row);
-  });
-}
+    const libraryEl = document.getElementById("library");
 
-function buildLibrary(){
-  LIBRARY.forEach(item=>{
-    const row=document.createElement("div");
-    row.className="rowCard";
+    // ==========================
+    // Shared Player Area elements
+    // ==========================
+    const playerArea = document.getElementById("playerArea");
+    const playerAreaTitle = document.getElementById("playerAreaTitle");
+    const playerAreaSub = document.getElementById("playerAreaSub");
+    const stopBtn = document.getElementById("stopBtn");
+    const unloadBtn = document.getElementById("unloadBtn");
 
-    const left=document.createElement("div");
-    const t=document.createElement("div"); t.className="title"; t.textContent=item.title;
-    const s=document.createElement("div"); s.className="subtitle"; s.textContent=item.sub;
-    left.appendChild(t); left.appendChild(s);
+    const gorillaArea = document.getElementById("gorillaArea");
+    const ytArea = document.getElementById("ytArea");
+    const ytFrame = document.getElementById("ytFrame");
 
-    const btn=document.createElement("button");
-    btn.className="btn primary";
-    btn.textContent="▶ Play";
-    btn.onclick=()=>{
-      if(item.type==="gorilla"){ showPlayer(); buildChapters(); }
-      else window.open(`https://youtube.com/playlist?list=${item.id}`,"_blank");
-    };
+    // Gorilla audio elements
+    const player = document.getElementById("player");
+    const nowPlaying = document.getElementById("nowPlaying");
+    const chapterList = document.getElementById("chapterList");
+    const playAllBtn = document.getElementById("playAllBtn");
+    const clearResumeBtn = document.getElementById("clearResumeBtn");
+    const resumeLine = document.getElementById("resumeLine");
 
-    row.appendChild(left);
-    row.appendChild(btn);
-    libraryEl.appendChild(row);
-  });
-}
+    // MP3 badge
+    const mp3Badge = document.getElementById("mp3Badge");
+    const mp3State = document.getElementById("mp3State");
+    function setMp3UiState(state){
+      mp3State.textContent = state;
+      mp3Badge.classList.toggle("playing", state === "PLAYING");
+    }
 
-buildLibrary();
-</script>
+    function showPlayerArea(){
+      playerArea.style.display = "block";
+      playerArea.scrollIntoView({ behavior:"smooth", block:"start" });
+    }
+
+    function clearRowStates(){
+      document.querySelectorAll("[data-track-row]").forEach(el=>{
+        el.classList.remove("playingRow");
+        el.classList.remove("current");
+        // remove tag if present
+        const tag = el.querySelector(".nowTag");
+        if(tag) tag.remove();
+      });
+    }
+
+    function stopEverything(){
+      try{ player.pause(); player.currentTime = 0; }catch(e){}
+      setMp3UiState("READY");
+      ytFrame.src = "";
+      clearRowStates();
+      toast("Stopped");
+    }
+
+    function unloadEverything(){
+      stopEverything();
+      gorillaArea.style.display = "none";
+      ytArea.style.display = "none";
+      playerAreaSub.textContent = "Ready";
+      toast("Unloaded");
+    }
+
+    stopBtn.addEventListener("click", stopEverything);
+    unloadBtn.addEventListener("click", unloadEverything);
+
+    // ==========================
+    // YouTube helpers (embedded)
+    // ==========================
+    function playYouTubePlaylist(title, sub, listId){
+      unloadEverything();
+      playerAreaTitle.textContent = title;
+      playerAreaSub.textContent = sub;
+      ytArea.style.display = "block";
+      ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(listId)}`;
+      showPlayerArea();
+      toast("Playing: " + title);
+    }
+
+    // ==========================
+    // Gorilla audiobook tracks
+    // ==========================
+    const TRACKS = [
+      { n: 1,  title: "1. So Here You Are", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/1.%20So%20Here%20You%20Are.mp3" },
+      { n: 2,  title: "2. The Rat Trap", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/2.%20The%20Rat%20Trap.mp3" },
+      { n: 3,  title: "3. My Off Switch is Broke", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/3.%20My%20Off%20Switch%20is%20Broke.mp3" },
+      { n: 4,  title: "4. The Screw It Button", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/4.%20The%20Screw%20It%20Button.mp3" },
+      { n: 5,  title: "5. The Disease Concept", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/5.%20The%20Disease%20Concept.mp3" },
+      { n: 6,  title: "6. The 500 Pound Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/6.%20The%20500%20Pound%20Gorilla%20.mp3" },
+      { n: 7,  title: "7. The Edge", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/7.%20The%20Edge.mp3" },
+      { n: 8,  title: "8. The Ultimate Sacrifice", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/8.%20The%20Ultimate%20Sacrifice.mp3" },
+      { n: 9,  title: "9. Fork in the Road", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/9.%20Fork%20in%20the%20Road.mp3" },
+      { n: 10, title: "10. No More Deals with the Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/10.%20No%20More%20Deals%20with%20the%20Gorilla.mp3" },
+      { n: 11, title: "11. The Excuse Machine", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/11.%20The%20Excuse%20Machine.mp3" },
+      { n: 12, title: "12. Debate Club is Over", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/12.%20Debate%20Club%20is%20Over.mp3" },
+      { n: 13, title: "13. Connection Is the Opposite of Addiction", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/13.%20Connection%20Is%20the%20Opposite%20of%20Addiction.mp3" },
+      { n: 14, title: "14. Change or Die", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/14.%20Change%20or%20Die.mp3" },
+      { n: 15, title: "15. Spirituality", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/15.%20Spirituality.mp3" },
+      { n: 16, title: "16. Credits", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/16.%20Credits.mp3" },
+      { n: 17, title: "17. With Gratitude", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/17.%20With%20Gratitude.mp3" }
+    ];
+
+    const LS_KEY = "rm_audio_resume_v1"; // { idx, t, mode }
+    let currentIdx = 0;
+    let playMode = "single"; // "all" or "single"
+    let isSeekingResume = false;
+
+    function loadResume(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return null;
+        const obj = JSON.parse(raw);
+        if(typeof obj?.idx !== "number" || typeof obj?.t !== "number") return null;
+        if(obj.idx < 0 || obj.idx >= TRACKS.length) return null;
+        if(obj.t < 0) obj.t = 0;
+        return obj;
+      }catch(e){
+        return null;
+      }
+    }
+
+    function saveResume(){
+      const t = player.currentTime || 0;
+      const obj = { idx: currentIdx, t: Math.floor(t), mode: playMode };
+      try{ localStorage.setItem(LS_KEY, JSON.stringify(obj)); }catch(e){}
+      renderResumeLine();
+    }
+
+    function clearResume(){
+      try{ localStorage.removeItem(LS_KEY); }catch(e){}
+      renderResumeLine();
+      toast("Resume cleared");
+    }
+
+    function fmtTime(sec){
+      sec = Math.max(0, Math.floor(sec));
+      const m = Math.floor(sec/60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2,"0")}`;
+    }
+
+    function renderResumeLine(){
+      const r = loadResume();
+      if(!r){
+        resumeLine.style.display = "none";
+        resumeLine.textContent = "";
+        return;
+      }
+      const tr = TRACKS[r.idx];
+      resumeLine.style.display = "block";
+      resumeLine.textContent = `Resuming: ${tr.title} (${fmtTime(r.t)})`;
+    }
+
+    function applyPlayingRow(idx){
+      // remove existing playing highlights and tags
+      document.querySelectorAll("[data-track-row]").forEach(el=>{
+        el.classList.remove("playingRow");
+        const tag = el.querySelector(".nowTag");
+        if(tag) tag.remove();
+      });
+
+      const rowEl = document.querySelector(`[data-track-row][data-idx="${idx}"]`);
+      if(!rowEl) return;
+
+      rowEl.classList.add("playingRow");
+
+      // Add NOW PLAYING tag on the playing row only
+      const titleEl = rowEl.querySelector(".chapterTitle");
+      if(titleEl){
+        const tag = document.createElement("span");
+        tag.className = "nowTag";
+        tag.textContent = "NOW PLAYING";
+        titleEl.appendChild(tag);
+      }
+    }
+
+    function setNowPlayingText(idx){
+      const tr = TRACKS[idx];
+      nowPlaying.textContent = `Now Playing: ${tr.title}`;
+    }
+
+    function setTrack(idx, {autoplay=true, resumeTime=0} = {}){
+      currentIdx = idx;
+      const tr = TRACKS[idx];
+      player.src = tr.url;
+      setNowPlayingText(idx);
+
+      isSeekingResume = resumeTime > 0;
+
+      const onMeta = () => {
+        player.removeEventListener("loadedmetadata", onMeta);
+        if(isSeekingResume){
+          try{
+            player.currentTime = Math.min(resumeTime, (player.duration || resumeTime));
+          }catch(e){}
+          isSeekingResume = false;
+        }
+        if(autoplay){
+          player.play().catch(()=>{});
+        }
+      };
+      player.addEventListener("loadedmetadata", onMeta);
+
+      saveResume();
+    }
+
+    function playAll(){
+      playMode = "all";
+      const r = loadResume();
+      if(r && typeof r.idx === "number"){
+        setTrack(r.idx, {autoplay:true, resumeTime:r.t || 0});
+        toast("Play All (resuming)");
+      } else {
+        setTrack(0, {autoplay:true, resumeTime:0});
+        toast("Play All");
+      }
+      saveResume();
+    }
+
+    function playSingle(idx){
+      playMode = "single";
+      setTrack(idx, {autoplay:true, resumeTime:0});
+      saveResume();
+    }
+
+    function downloadTrack(idx){
+      const tr = TRACKS[idx];
+      const a = document.createElement("a");
+      a.href = tr.url;
+      a.download = "";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast("Downloading…");
+    }
+
+    async function shareTrack(idx){
+      const tr = TRACKS[idx];
+      const shareData = {
+        title: "Alcoholism: The 500 Pound Gorilla (Audio)",
+        text: tr.title + " — Pass it on if it helps.",
+        url: tr.url
+      };
+
+      if(navigator.share){
+        try{
+          await navigator.share(shareData);
+          toast("Shared");
+          return;
+        }catch(e){}
+      }
+
+      try{
+        await navigator.clipboard.writeText(tr.url);
+        toast("Link copied");
+      }catch(e){
+        window.prompt("Copy this link:", tr.url);
+      }
+    }
+
+    function buildChapters(){
+      chapterList.innerHTML = "";
+      TRACKS.forEach((tr, idx)=>{
+        const row = document.createElement("div");
+        row.className = "row";
+        row.dataset.trackRow = "1";
+        row.dataset.idx = String(idx);
+
+        const left = document.createElement("div");
+        left.className = "titleWrap";
+
+        const title = document.createElement("div");
+        title.className = "chapterTitle";
+        title.textContent = tr.title;
+        left.appendChild(title);
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const playBtn = document.createElement("button");
+        playBtn.className = "btn mini";
+        playBtn.type = "button";
+        playBtn.textContent = "Play";
+        playBtn.addEventListener("click", ()=>playSingle(idx));
+
+        const dlBtn = document.createElement("button");
+        dlBtn.className = "btn mini";
+        dlBtn.type = "button";
+        dlBtn.textContent = "Download";
+        dlBtn.addEventListener("click", ()=>downloadTrack(idx));
+
+        const shareBtn = document.createElement("button");
+        shareBtn.className = "btn mini";
+        shareBtn.type = "button";
+        shareBtn.textContent = "Share";
+        shareBtn.addEventListener("click", ()=>shareTrack(idx));
+
+        actions.appendChild(playBtn);
+        actions.appendChild(dlBtn);
+        actions.appendChild(shareBtn);
+
+        row.appendChild(left);
+        row.appendChild(actions);
+        chapterList.appendChild(row);
+      });
+    }
+
+    player.addEventListener("play", ()=>{
+      setMp3UiState("PLAYING");
+      applyPlayingRow(currentIdx);
+    });
+
+    player.addEventListener("pause", ()=>{
+      if(!player.ended) setMp3UiState("PAUSED");
+      saveResume();
+    });
+
+    player.addEventListener("ended", ()=>{
+      setMp3UiState("PAUSED");
+
+      if(playMode !== "all") return;
+      const next = currentIdx + 1;
+      if(next >= TRACKS.length){
+        toast("Finished");
+        return;
+      }
+      setTrack(next, {autoplay:true, resumeTime:0});
+      saveResume();
+    });
+
+    let lastSavedAt = 0;
+    player.addEventListener("timeupdate", ()=>{
+      const t = player.currentTime || 0;
+      if(t - lastSavedAt >= 10){
+        lastSavedAt = t;
+        saveResume();
+      }
+    });
+
+    window.addEventListener("beforeunload", saveResume);
+    document.addEventListener("visibilitychange", ()=>{
+      if(document.visibilityState === "hidden") saveResume();
+    });
+
+    playAllBtn.addEventListener("click", playAll);
+    clearResumeBtn.addEventListener("click", clearResume);
+
+    function showGorilla(){
+      ytFrame.src = "";
+      ytArea.style.display = "none";
+
+      gorillaArea.style.display = "block";
+      playerAreaTitle.textContent = "Alcoholism: The 500 Pound Gorilla";
+      playerAreaSub.textContent = "Audiobook";
+
+      setMp3UiState(player && !player.paused ? "PLAYING" : "READY");
+      showPlayerArea();
+    }
+
+    // ==========================
+    // Build Library UI
+    // ==========================
+    function buildLibrary(){
+      libraryEl.innerHTML = "";
+      LIBRARY.forEach((item)=>{
+        const row = document.createElement("div");
+        row.className = "rowCard";
+
+        const left = document.createElement("div");
+        left.className = "titleWrap";
+
+        const t = document.createElement("div");
+        t.className = "title";
+        t.textContent = item.title;
+
+        const s = document.createElement("div");
+        s.className = "subtitle";
+        s.textContent = item.sub;
+
+        left.appendChild(t);
+        left.appendChild(s);
+
+        const playBtn = document.createElement("button");
+        playBtn.className = "btn primary";
+        playBtn.type = "button";
+        playBtn.textContent = "▶ Play";
+
+        playBtn.addEventListener("click", ()=>{
+          if(item.type === "gorilla"){
+            unloadEverything();
+            showGorilla();
+            toast("Opened");
+            return;
+          }
+
+          if(item.type === "yt_playlist"){
+            playYouTubePlaylist(item.title, item.sub, item.id);
+            return;
+          }
+        });
+
+        row.appendChild(left);
+        row.appendChild(playBtn);
+        libraryEl.appendChild(row);
+      });
+    }
+
+    // Init
+    buildLibrary();
+    buildChapters();
+    renderResumeLine();
+    setMp3UiState("READY");
+
+    const r0 = loadResume();
+    if(r0){
+      currentIdx = r0.idx;
+      playMode = r0.mode || "single";
+      setTrack(r0.idx, {autoplay:false, resumeTime:0});
+      try{ player.currentTime = 0; }catch(e){}
+      nowPlaying.textContent = "Ready: " + TRACKS[r0.idx].title;
+    } else {
+      setTrack(0, {autoplay:false, resumeTime:0});
+      try{ player.currentTime = 0; }catch(e){}
+      nowPlaying.textContent = "Ready: " + TRACKS[0].title;
+    }
+  </script>
 
 </body>
 </html>
