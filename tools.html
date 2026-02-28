@@ -51,7 +51,7 @@
       margin:10px 4px 14px;
     }
     @media (min-width:720px){
-      .toolGrid{ grid-template-columns:1fr 1fr 1fr; }
+      .toolGrid{ grid-template-columns:1fr 1fr; }
     }
     .toolCard{
       border:1px solid rgba(0,0,0,.12);
@@ -349,7 +349,7 @@
 
   <main class="page">
     <div class="pageTitle">Tools</div>
-    <div class="pageSub">Burn Pad. Gratitude Inventory. Meeting Guide. That’s it.</div>
+    <div class="pageSub">Burn Pad and Gratitude Inventory. Quiet, simple, useful.</div>
 
     <div class="toolGrid">
       <div class="toolCard">
@@ -362,12 +362,6 @@
         <div class="toolCardTitle">⭐ Gratitude Inventory</div>
         <p class="toolCardDesc">Happy. Peace. Useful. Journal. Save to archive.</p>
         <button class="btn primary" id="openGratFromPage" type="button">Open Gratitude</button>
-      </div>
-
-      <div class="toolCard">
-        <div class="toolCardTitle">📍 Meeting Guide</div>
-        <p class="toolCardDesc">Find meetings anywhere (official AA Meeting Guide).</p>
-        <a class="btn primary" href="https://www.aa.org/meeting-guide-app" target="_blank" rel="noopener">Open Meeting Guide</a>
       </div>
     </div>
   </main>
@@ -539,7 +533,7 @@
     </div>
   </div>
 
-  <!-- SICK MAN'S PRAYER MODAL (kept available) -->
+  <!-- SICK MAN'S PRAYER MODAL -->
   <div class="backdrop" id="prayerBackdrop"></div>
   <div class="sheet" id="prayerSheet" role="dialog" aria-modal="true" aria-labelledby="prayerTitle">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -559,13 +553,9 @@
   </div>
 
   <script>
-    // Service worker (safe on any page)
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
-
-    /* -------- helpers -------- */
     function getTodayISO(){ return new Date().toISOString().slice(0,10); }
 
-    /* star burst */
     function burstStars(onButtonEl){
       const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
       if(!wrap) return;
@@ -584,7 +574,7 @@
       }
     }
 
-    /* -------- Gratitude (same keys + behavior) -------- */
+    /* Gratitude */
     const GRAT_INDEX_KEY = "rm_grat_index";
     const gratBackdrop = document.getElementById("gratBackdrop");
     const gratSheet = document.getElementById("gratSheet");
@@ -714,7 +704,7 @@
       gratHappy.value=""; gratPeace.value=""; gratUseful.value=""; gratJournal.value="";
     };
 
-    /* -------- Burn Pad (same behavior) -------- */
+    /* Burn Pad */
     const burnBackdrop = document.getElementById("burnBackdrop");
     const burnSheet = document.getElementById("burnSheet");
 
@@ -904,7 +894,7 @@
     document.getElementById("openBurnFromPage").onclick = () => openBurn();
     document.getElementById("openGratFromPage").onclick = () => openGrat(getTodayISO());
 
-    // Hash open support (optional)
+    // Hash open support
     (function init(){
       if (location.hash === "#burn") setTimeout(() => openBurn(), 100);
       if (location.hash === "#grat") setTimeout(() => openGrat(getTodayISO()), 100);
