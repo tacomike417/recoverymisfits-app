@@ -35,10 +35,7 @@
       gap:12px;
     }
 
-    .rm-topbar__left{
-      /* reserved for future (back/menu). stays empty for now */
-      min-height: 1px;
-    }
+    .rm-topbar__left{ min-height: 1px; }
 
     .rm-title{
       text-align:center;
@@ -55,6 +52,8 @@
       display:flex;
       gap:8px;
       align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
 
     /* Row 2: status centered */
@@ -86,6 +85,12 @@
 
     .rm-btn--primary{
       border-color: rgba(0,0,0,.25);
+    }
+
+    /* Subtle "Updates" pill (only shows when there's something new) */
+    .rm-btn--updates{
+      border-color: rgba(0,0,0,.18);
+      font-weight:800;
     }
 
     /* iframe fills screen */
@@ -172,9 +177,15 @@
       <div class="rm-title">Recovery Misfits v2</div>
 
       <div class="rm-topbar__actions">
+        <!-- NEW: Updates pill (hidden unless there is a new update) -->
+        <button id="rm-updates-btn" class="rm-btn rm-btn--updates" style="display:none;">
+          🆕 Updates
+        </button>
+
         <button id="rm-install-btn" class="rm-btn rm-btn--primary" style="display:none;">
           Install App • Always Free
         </button>
+
         <button id="rm-howto-btn" class="rm-btn" style="display:none;">
           How to install
         </button>
@@ -333,6 +344,55 @@
       window.addEventListener('appinstalled', () => {
         setModeText();
       });
+    })();
+  </script>
+
+  <!-- ===== TOP BAR UPDATES PILL (pulls from updates.html) ===== -->
+  <script>
+    (function(){
+      const updatesBtn = document.getElementById('rm-updates-btn');
+
+      const UPDATES_PAGE = './updates.html';
+      const SEEN_KEY = 'lastSeenUpdateId';
+
+      function extractMarker(html){
+        // Looks for: data-update-id="..." data-update-title="..."
+        const idMatch = html.match(/data-update-id="([^"]+)"/);
+        const titleMatch = html.match(/data-update-title="([^"]+)"/);
+
+        return {
+          id: idMatch ? idMatch[1] : null,
+          title: titleMatch ? titleMatch[1] : null
+        };
+      }
+
+      async function checkForNewUpdate(){
+        try{
+          const res = await fetch(UPDATES_PAGE, { cache: 'no-store' });
+          if(!res.ok) return;
+
+          const html = await res.text();
+          const marker = extractMarker(html);
+
+          if(!marker.id) return;
+
+          const seen = localStorage.getItem(SEEN_KEY);
+
+          // If not seen, show pill (and optionally personalize the label)
+          if(seen !== marker.id){
+            updatesBtn.style.display = 'inline-flex';
+            // Keep it short in the bar; title stays on the updates page itself
+            // If you want the title in the button later, we can do that.
+            updatesBtn.onclick = () => window.location.href = UPDATES_PAGE;
+          } else {
+            updatesBtn.style.display = 'none';
+          }
+        } catch (e){
+          // If fetch fails (offline), just stay quiet.
+        }
+      }
+
+      checkForNewUpdate();
     })();
   </script>
 
