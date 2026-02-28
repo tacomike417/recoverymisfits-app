@@ -4,30 +4,46 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Recovery Misfits — Audio</title>
-  <meta name="theme-color" content="#ffffff" />
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000" />
   <link rel="icon" href="./icon-192.png">
+
+  <!-- iPhone PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
 
   <style>
     :root { --border: rgba(0,0,0,.12); --muted: rgba(0,0,0,.65); }
+
     body{
       font-family:Roboto,Arial,sans-serif;
       margin:0;
       background:#fff;
       color:#111;
       line-height:1.35;
+      padding-bottom:120px; /* room for nav.js bottom bar */
     }
-    header{
-      position:sticky;
-      top:0;
-      z-index:9000;
-      background:#fff;
-      border-bottom:1px solid var(--border);
-      padding:12px;
+
+    main{max-width:860px;margin:0 auto;padding:14px;}
+
+    .pageTitle{
+      font-weight:1000;
+      font-size:18px;
+      margin:10px 4px 4px;
+      letter-spacing:.2px;
       text-align:center;
     }
-    .brand{font-weight:900;font-size:16px;}
-    .sub{font-size:13px;color:var(--muted);margin-top:2px}
-    main{max-width:860px;margin:0 auto;padding:14px;}
+    .pageSub{
+      font-size:13px;
+      color:var(--muted);
+      margin:0 4px 12px;
+      text-align:center;
+      font-weight:800;
+      line-height:1.25;
+    }
 
     .card{
       border:1px solid var(--border);
@@ -53,6 +69,8 @@
       justify-content:center;
       gap:8px;
       white-space:nowrap;
+      min-height:44px;
+      box-sizing:border-box;
     }
     .btn:active{transform:scale(.99)}
     .btn.primary{
@@ -63,9 +81,10 @@
       padding:8px 10px;
       font-size:13px;
       font-weight:900;
+      min-height:40px;
     }
 
-    .hint{font-size:13px;color:var(--muted);margin-top:8px}
+    .hint{font-size:13px;color:var(--muted);margin-top:8px;font-weight:800}
 
     /* Library rows */
     .library{
@@ -84,15 +103,15 @@
       background:#fff;
     }
     .titleWrap{min-width:0; flex:1;}
-    .title{font-weight:900; font-size:14px; margin:0;}
-    .subtitle{font-size:12px; color:var(--muted); margin-top:3px;}
+    .title{font-weight:1000; font-size:14px; margin:0;}
+    .subtitle{font-size:12px; color:var(--muted); margin-top:3px; font-weight:900;}
 
     /* Player areas */
     .playerAreaTitle{
-      font-weight:900;
+      font-weight:1000;
       margin-bottom:8px;
     }
-    .now{font-size:13px;color:var(--muted)}
+    .now{font-size:13px;color:var(--muted);font-weight:900}
     audio{width:100%}
 
     .playerBox{
@@ -109,7 +128,7 @@
     }
     .row:first-child{border-top:none}
     .chapterTitle{
-      font-weight:800; font-size:14px; margin:0;
+      font-weight:900; font-size:14px; margin:0;
     }
     .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
     .current{
@@ -119,7 +138,7 @@
       margin:8px 0;
       background: rgba(0,0,0,.02);
     }
-    .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none;}
+    .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none; font-weight:900;}
 
     /* YouTube embed */
     .videoWrap{
@@ -156,6 +175,7 @@
       font-size:13px; opacity:0; pointer-events:none;
       transition:opacity .18s ease;
       max-width:92vw;
+      z-index:12000; /* above nav */
     }
     .toast.show{opacity:0.92}
 
@@ -166,16 +186,18 @@
 </head>
 
 <body>
-  <header>
-    <div class="brand">Recovery Misfits — Audio</div>
-    <div class="sub" id="subTitle">Audio Library</div>
-  </header>
+
+  <!-- Shared TOP BAR (injected by topbar.js) -->
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
 
   <main>
+    <div class="pageTitle">Audio</div>
+    <div class="pageSub" id="subTitle">Audio Library</div>
 
-    <!-- Audio Library (everything equal footing) -->
+    <!-- Audio Library -->
     <section class="card">
-      <div style="font-weight:900;margin-bottom:8px;">Audio Library</div>
+      <div style="font-weight:1000;margin-bottom:8px;">Audio Library</div>
       <div class="hint">Play means play. Tap one and it loads right here.</div>
 
       <div class="library" style="margin-top:12px;" id="library"></div>
@@ -207,7 +229,7 @@
           <audio id="player" controls preload="metadata"></audio>
         </div>
 
-        <div style="font-weight:900;margin-top:14px;">Chapters</div>
+        <div style="font-weight:1000;margin-top:14px;">Chapters</div>
         <div id="chapterList" class="list"></div>
       </div>
 
@@ -230,6 +252,10 @@
 
     <div id="toast" class="toast"></div>
   </main>
+
+  <!-- Shared BOTTOM NAV (injected by nav.js) -->
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
 
   <script>
     // ==========================
@@ -255,9 +281,9 @@
       { type:"yt_playlist", key:"joe",    title:"Joe & Charlie",        sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E" },
       { type:"yt_playlist", key:"martin", title:"Father Martin",        sub:"Chalk Talks",    id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf" },
       { type:"yt_playlist", key:"chuck",  title:"Chuck C",              sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA" },
-      { type:"yt_playlist", key:"allen",  title:"Allen McGinnis",        sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE" },
+      { type:"yt_playlist", key:"allen",  title:"Allen McGinnis",       sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE" },
 
-      // Single video (your last link): vYvZTH746yg&t=10s
+      // Single video: vYvZTH746yg&t=10s
       { type:"yt_video", key:"bonus", title:"Bonus Talk - Dr. Labor", sub:"Single video", id:"vYvZTH746yg", start:10 },
     ];
 
@@ -293,15 +319,12 @@
     }
 
     function stopEverything(){
-      // Stop Gorilla audio
       try{ player.pause(); }catch(e){}
-      // Stop YouTube
       ytFrame.src = "";
       toast("Stopped");
     }
 
     function unloadEverything(){
-      // Stop and hide player types
       stopEverything();
       gorillaArea.style.display = "none";
       ytArea.style.display = "none";
@@ -316,14 +339,11 @@
     // YouTube helpers
     // ==========================
     function playYouTubePlaylist(title, sub, listId){
-      unloadEverything(); // clears old YT + audio and hides areas
+      unloadEverything();
       playerAreaTitle.textContent = title;
       playerAreaSub.textContent = sub;
       ytArea.style.display = "block";
-
-      // Load playlist immediately (Play means play)
       ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(listId)}`;
-
       showPlayerArea();
       toast("Playing: " + title);
     }
@@ -343,18 +363,15 @@
     }
 
     // ==========================
-    // Gorilla audiobook (your original code, integrated)
+    // Gorilla audiobook
     // ==========================
-
-    // === Source of truth: Bunny URLs (use filenames exactly) ===
     const TRACKS = [
       { n: 1,  title: "1. So Here You Are", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/1.%20So%20Here%20You%20Are.mp3" },
       { n: 2,  title: "2. The Rat Trap", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/2.%20The%20Rat%20Trap.mp3" },
       { n: 3,  title: "3. My Off Switch is Broke", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/3.%20My%20Off%20Switch%20is%20Broke.mp3" },
       { n: 4,  title: "4. The Screw It Button", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/4.%20The%20Screw%20It%20Button.mp3" },
       { n: 5,  title: "5. The Disease Concept", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/5.%20The%20Disease%20Concept.mp3" },
-      // Note: URL includes trailing space before .mp3 in the actual filename. Keep it EXACT so it works.
-      { n: 6,  title: "6. The 500 Pound Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/6.%20The%20500%20Pound%20Gorilla%20.mp3" },
+      { n: 6,  title: "6. The 500 Pound Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/6.%20The%20500%20Pound%20Gorilla%20.mp3" }, /* trailing space in filename */
       { n: 7,  title: "7. The Edge", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/7.%20The%20Edge.mp3" },
       { n: 8,  title: "8. The Ultimate Sacrifice", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/8.%20The%20Ultimate%20Sacrifice.mp3" },
       { n: 9,  title: "9. Fork in the Road", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/9.%20Fork%20in%20the%20Road.mp3" },
@@ -368,9 +385,7 @@
       { n: 17, title: "17. With Gratitude", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/17.%20With%20Gratitude.mp3" },
     ];
 
-    // === State + persistence (resume where they left off) ===
     const LS_KEY = "rm_audio_resume_v1"; // { idx, t, mode }
-
     let currentIdx = 0;
     let playMode = "single"; // "all" or "single"
     let isSeekingResume = false;
@@ -554,7 +569,6 @@
       });
     }
 
-    // Auto-advance when in Play All mode
     player.addEventListener("ended", ()=>{
       if(playMode !== "all") return;
       const next = currentIdx + 1;
@@ -566,7 +580,6 @@
       saveResume();
     });
 
-    // Save progress periodically + on pause
     let lastSavedAt = 0;
     player.addEventListener("timeupdate", ()=>{
       const t = player.currentTime || 0;
@@ -577,7 +590,6 @@
     });
     player.addEventListener("pause", saveResume);
 
-    // Save on exit
     window.addEventListener("beforeunload", saveResume);
     document.addEventListener("visibilitychange", ()=>{
       if(document.visibilityState === "hidden") saveResume();
@@ -587,7 +599,6 @@
     clearResumeBtn.addEventListener("click", clearResume);
 
     function showGorilla(){
-      // Stop YouTube and show Gorilla UI
       ytFrame.src = "";
       ytArea.style.display = "none";
 
@@ -630,7 +641,6 @@
           if(item.type === "gorilla"){
             unloadEverything();
             showGorilla();
-            // Don’t force autoplay on open; user can hit Play All or a chapter.
             toast("Opened Gorilla");
             return;
           }
@@ -657,7 +667,6 @@
     buildChapters();
     renderResumeLine();
 
-    // Prep Gorilla state (no autoplay)
     const r0 = loadResume();
     if(r0){
       currentIdx = r0.idx;
@@ -673,5 +682,6 @@
       setNowPlaying(0);
     }
   </script>
+
 </body>
 </html>
