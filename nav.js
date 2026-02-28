@@ -4,7 +4,7 @@
   if (!mount) return;
 
   /* =========================
-     SVG ICONS (inline, no files needed)
+     SVG ICONS (inline)
      ========================= */
   const ICONS = {
     home: `
@@ -45,8 +45,9 @@
     `,
     updates: `
       <svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true">
-        <path d="M12 2l2.2 6.6H21l-5.4 3.9L17.8 19 12 14.9 6.2 19l2.2-6.5L3 8.6h6.8L12 2z"
-          fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/>
+        <path d="M2 10h4v12H2z" fill="currentColor"/>
+        <path d="M22 10a2 2 0 0 0-2-2h-6l1-5v-1a2 2 0 0 0-2-2l-1 1-5 8v11h11a2 2 0 0 0 2-2l1-7v-1z"
+          fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/>
       </svg>
     `
   };
@@ -84,6 +85,7 @@
         align-items:center;
         z-index:9500;
       }
+
       .navItem{
         flex:1;
         text-align:center;
@@ -91,15 +93,24 @@
         font-size:11px;
         padding:8px 4px;
         color:#bbb;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
       }
+
       .navItem .ico{
-        display:block;
-        margin:0 auto 3px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        margin-bottom:3px;
       }
+
       .navItem.active{
         color:#fff;
         font-weight:700;
       }
+
       .rm-ico{
         width:20px;
         height:20px;
