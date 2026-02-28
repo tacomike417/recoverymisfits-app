@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits</title>
+  <title>Recovery Misfits v2</title>
 
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#000000" />
@@ -17,21 +17,70 @@
       padding-bottom:110px; /* space for sobriety + nav */
     }
 
-    header{
+    /* ===== TOP BAR ===== */
+    .rm-topbar{
       position:sticky;
       top:0;
+      z-index:9000;
       background:#fff;
       border-bottom:1px solid rgba(0,0,0,.12);
-      padding:12px;
-      text-align:center;
-      z-index:9000;
+    }
+
+    .rm-topbar__inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 12px;
+      gap:12px;
+    }
+
+    .rm-brand{
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+      text-align:left;
+    }
+
+    .rm-brand__title{
       font-weight:900;
+      font-size:16px;
+      letter-spacing:.2px;
+    }
+
+    .rm-brand__sub{
+      font-size:12px;
+      opacity:.75;
+      margin-top:4px;
+    }
+
+    .rm-topbar__actions{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    .rm-btn{
+      appearance:none;
+      border:1px solid rgba(0,0,0,.18);
+      background:#fff;
+      color:#111;
+      padding:8px 10px;
+      border-radius:10px;
+      font-weight:700;
+      font-size:13px;
+      cursor:pointer;
+    }
+
+    .rm-btn:active{ transform: translateY(1px); }
+
+    .rm-btn--primary{
+      border-color: rgba(0,0,0,.25);
     }
 
     /* iframe fills screen */
     .frameWrap{
       width:100%;
-      height:calc(100vh - 56px - 110px);
+      height:calc(100vh - 60px - 110px);
     }
 
     iframe{
@@ -40,10 +89,10 @@
       border:none;
     }
 
-    /* Sobriety section */
+    /* ===== SOBRIETY BAR ===== */
     .sobrietyBar{
       position:fixed;
-      bottom:64px; /* sits above nav */
+      bottom:64px;
       left:0;
       right:0;
       background:#fff;
@@ -65,7 +114,7 @@
       font-size:12px;
     }
 
-    /* Bottom Bar */
+    /* ===== BOTTOM NAV ===== */
     nav#bottomBar{
       position:fixed;
       bottom:0;
@@ -104,20 +153,37 @@
 
 <body>
 
-  <header>Recovery Misfits</header>
+  <!-- ===== TOP BAR ===== -->
+  <header class="rm-topbar" role="banner">
+    <div class="rm-topbar__inner">
+      <div class="rm-brand">
+        <div class="rm-brand__title">Recovery Misfits v2</div>
+        <div class="rm-brand__sub" id="rm-mode">Browser Mode</div>
+      </div>
 
-  <!-- Blogger Reading -->
+      <div class="rm-topbar__actions">
+        <button id="rm-install-btn" class="rm-btn rm-btn--primary" style="display:none;">
+          Install
+        </button>
+        <button id="rm-howto-btn" class="rm-btn" style="display:none;">
+          How to install
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== BLOGGER HOME FEED ===== -->
   <div class="frameWrap">
     <iframe src="https://recoverymisfits.blogspot.com/"></iframe>
   </div>
 
-  <!-- Sobriety Date Display -->
+  <!-- ===== SOBRIETY BAR ===== -->
   <div class="sobrietyBar" id="sobrietyBar">
     <strong id="sobrietyDays">—</strong>
     <span id="sobrietyDate">Tap to set sobriety date</span>
   </div>
 
-  <!-- Bottom Navigation -->
+  <!-- ===== BOTTOM NAV ===== -->
   <nav id="bottomBar">
     <a class="navItem active" href="./index2.html">
       <span class="ico">🏠</span>
@@ -141,6 +207,7 @@
     </a>
   </nav>
 
+  <!-- ===== SOBRIETY SCRIPT ===== -->
   <script>
     const bar = document.getElementById("sobrietyBar");
     const daysEl = document.getElementById("sobrietyDays");
@@ -176,6 +243,83 @@
     });
 
     loadSobriety();
+  </script>
+
+  <!-- ===== INSTALL DETECTION SCRIPT ===== -->
+  <script>
+    (function(){
+      const modeEl = document.getElementById('rm-mode');
+      const installBtn = document.getElementById('rm-install-btn');
+      const howtoBtn = document.getElementById('rm-howto-btn');
+
+      let deferredPrompt = null;
+
+      function isStandalone(){
+        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+          || (window.navigator && window.navigator.standalone === true);
+      }
+
+      function isIOS(){
+        const ua = navigator.userAgent || '';
+        return /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      }
+
+      function setModeText(){
+        if (isStandalone()){
+          modeEl.textContent = 'Installed (App Mode)';
+          installBtn.style.display = 'none';
+          howtoBtn.style.display = 'none';
+        } else {
+          modeEl.textContent = 'Browser Mode';
+        }
+      }
+
+      setModeText();
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        if (!isStandalone()){
+          installBtn.style.display = 'inline-flex';
+          howtoBtn.style.display = 'none';
+        }
+      });
+
+      installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+
+        installBtn.disabled = true;
+        try{
+          deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+        } finally {
+          deferredPrompt = null;
+          installBtn.style.display = 'none';
+          installBtn.disabled = false;
+          setModeText();
+        }
+      });
+
+      setTimeout(() => {
+        if (!deferredPrompt && !isStandalone()){
+          howtoBtn.style.display = 'inline-flex';
+          howtoBtn.textContent = isIOS() ? 'Install (iPhone)' : 'How to install';
+        }
+      }, 1200);
+
+      howtoBtn.addEventListener('click', () => {
+        alert(
+          isIOS()
+            ? "On iPhone: tap the Share button, then 'Add to Home Screen'."
+            : "In Chrome: use the install icon in the address bar or menu → 'Install app'."
+        );
+      });
+
+      window.addEventListener('appinstalled', () => {
+        setModeText();
+      });
+    })();
   </script>
 
 </body>
