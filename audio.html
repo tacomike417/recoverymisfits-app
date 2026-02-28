@@ -132,6 +132,8 @@
       display:flex; align-items:center; gap:8px; flex-wrap:wrap;
     }
     .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+
+    /* Default selected row */
     .current{
       outline:2px solid rgba(0,0,0,.24);
       border-radius:12px;
@@ -139,6 +141,17 @@
       margin:8px 0;
       background: rgba(0,0,0,.04);
     }
+
+    /* Playing row: sage green + thicker border */
+    .playingRow{
+      outline:2px solid rgba(183,211,194,.95);      /* #b7d3c2 */
+      border-radius:12px;
+      padding:10px;
+      margin:8px 0;
+      background:#e8f3ec;                           /* sage */
+      box-shadow: 0 2px 14px rgba(0,0,0,.06);
+    }
+
     .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none; font-weight:900;}
 
     /* ===== MP3 "OBVIOUS PLAYING" UI ===== */
@@ -161,8 +174,8 @@
       background:#fff;
     }
     .playBadge.playing{
-      border-color: rgba(0,0,0,.28);
-      background: rgba(0,0,0,.06);
+      border-color: rgba(183,211,194,.95); /* matches sage */
+      background:#e8f3ec;
       box-shadow: 0 2px 14px rgba(0,0,0,.08);
     }
 
@@ -200,10 +213,11 @@
       border-radius:999px;
       border:1px solid rgba(0,0,0,.18);
       background:#fff;
+      white-space:nowrap;
     }
     .playingRow .nowTag{
-      border-color: rgba(0,0,0,.28);
-      background: rgba(0,0,0,.08);
+      border-color: rgba(183,211,194,.95);
+      background:#e8f3ec;
     }
 
     /* YouTube embed */
@@ -345,7 +359,7 @@
     // Library items (equal footing)
     // ==========================
     // Types:
-    // - "gorilla" => Bunny MP3 + chapters
+    // - "gorilla" => MP3 + chapters
     // - "yt_playlist" => YouTube playlist embed
     // - "yt_video" => YouTube single video embed (with start seconds)
     const LIBRARY = [
@@ -356,7 +370,6 @@
       { type:"yt_playlist", key:"chuck",  title:"Chuck C",              sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA" },
       { type:"yt_playlist", key:"allen",  title:"Allen McGinnis",       sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE" },
 
-      // Single video: vYvZTH746yg&t=10s
       { type:"yt_video", key:"bonus", title:"Bonus Talk - Dr. Labor", sub:"Single video", id:"vYvZTH746yg", start:10 },
     ];
 
@@ -400,6 +413,12 @@
       playerArea.scrollIntoView({ behavior:"smooth", block:"start" });
     }
 
+    function clearPlayingRow(){
+      document.querySelectorAll("[data-track-row]").forEach(el=>{
+        el.classList.remove("playingRow");
+      });
+    }
+
     function stopEverything(){
       // Stop MP3 and reset to 0
       try{
@@ -407,12 +426,10 @@
         player.currentTime = 0;
       }catch(e){}
       setMp3UiState("READY");
+      clearPlayingRow();
 
       // Stop YouTube
       ytFrame.src = "";
-
-      // Remove playingRow highlight
-      document.querySelectorAll("[data-track-row]").forEach(el=>el.classList.remove("playingRow"));
 
       toast("Stopped");
     }
@@ -464,10 +481,10 @@
       { n: 3,  title: "3. My Off Switch is Broke", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/3.%20My%20Off%20Switch%20is%20Broke.mp3" },
       { n: 4,  title: "4. The Screw It Button", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/4.%20The%20Screw%20It%20Button.mp3" },
       { n: 5,  title: "5. The Disease Concept", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/5.%20The%20Disease%20Concept.mp3" },
-      { n: 6,  title: "6. The 500 Pound Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/6.%20The%20500%20Pound%20Gorilla%20.mp3" }, /* trailing space in filename */
+      { n: 6,  title: "6. The 500 Pound Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/6.%20The%20500%20Pound%20Gorilla%20.mp3" },
       { n: 7,  title: "7. The Edge", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/7.%20The%20Edge.mp3" },
       { n: 8,  title: "8. The Ultimate Sacrifice", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/8.%20The%20Ultimate%20Sacrifice.mp3" },
-      { n: 9,  title: "9. Fork in the Road", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/9.%20Fork%20in%20the%20Road.mp3" },
+      { n: 9,  title: "9. Fork in the Road", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/9.%20Fork%20in the Road.mp3".replace(" ","%20") }, /* safety */
       { n: 10, title: "10. No More Deals with the Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/10.%20No%20More%20Deals%20with%20the%20Gorilla.mp3" },
       { n: 11, title: "11. The Excuse Machine", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/11.%20The%20Excuse%20Machine.mp3" },
       { n: 12, title: "12. Debate Club is Over", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/12.%20Debate%20Club%20is%20Over.mp3" },
@@ -536,8 +553,11 @@
       document.querySelectorAll("[data-track-row]").forEach(el=>{
         const isCurrent = Number(el.dataset.idx) === idx;
 
+        // current is a "selected" style when not actively playing
         el.classList.toggle("current", isCurrent);
-        el.classList.remove("playingRow");
+
+        // remove playing state; it gets re-applied on play()
+        if(el.classList.contains("playingRow")) el.classList.remove("playingRow");
 
         const titleEl = el.querySelector(".chapterTitle");
         if(titleEl){
@@ -546,7 +566,7 @@
           if(isCurrent){
             const tag = document.createElement("span");
             tag.className = "nowTag";
-            tag.textContent = "NOW";
+            tag.textContent = "NOW PLAYING";
             titleEl.appendChild(tag);
           }
         }
@@ -681,9 +701,13 @@
     player.addEventListener("play", ()=>{
       setMp3UiState("PLAYING");
 
-      // Mark the current chapter row as actively playing
+      // Strong visual: sage green row + thicker border
+      clearPlayingRow();
       const row = document.querySelector(`[data-track-row][data-idx="${currentIdx}"]`);
-      if(row) row.classList.add("playingRow");
+      if(row){
+        row.classList.add("playingRow");
+        row.classList.remove("current");
+      }
     });
 
     player.addEventListener("pause", ()=>{
@@ -790,10 +814,9 @@
     buildLibrary();
     buildChapters();
     renderResumeLine();
-
-    const r0 = loadResume();
     setMp3UiState("READY");
 
+    const r0 = loadResume();
     if(r0){
       currentIdx = r0.idx;
       playMode = r0.mode || "single";
