@@ -9,6 +9,12 @@
   <meta name="theme-color" content="#000000" />
   <link rel="icon" href="./icon-192.png">
 
+  <!-- iPhone/iPad PWA helpers -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
   <style>
     body{
       margin:0;
@@ -83,11 +89,16 @@
 
     .rm-btn:active{ transform: translateY(1px); }
 
+    /* ✅ Primary button now matches app (black) */
     .rm-btn--primary{
-      border-color: rgba(0,0,0,.25);
+      background:#000;
+      color:#fff;
+      border-color:#000;
+    }
+    .rm-btn--primary:active{
+      opacity:.9;
     }
 
-    /* Subtle "Updates" pill (only shows when there's something new) */
     .rm-btn--updates{
       border-color: rgba(0,0,0,.18);
       font-weight:800;
@@ -177,7 +188,7 @@
       <div class="rm-title">Recovery Misfits v2</div>
 
       <div class="rm-topbar__actions">
-        <!-- NEW: Updates pill (hidden unless there is a new update) -->
+        <!-- Updates pill (optional; shows only if your updates check is wired) -->
         <button id="rm-updates-btn" class="rm-btn rm-btn--updates" style="display:none;">
           🆕 Updates
         </button>
@@ -301,6 +312,7 @@
 
       setModeText();
 
+      // Chrome/Edge/Android install prompt
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
@@ -326,6 +338,7 @@
         }
       });
 
+      // iPhone/iPad (no beforeinstallprompt) + general fallback
       setTimeout(() => {
         if (!deferredPrompt && !isStandalone()){
           howtoBtn.style.display = 'inline-flex';
@@ -347,23 +360,19 @@
     })();
   </script>
 
-  <!-- ===== TOP BAR UPDATES PILL (pulls from updates.html) ===== -->
+  <!-- ===== TOP BAR UPDATES PILL (optional; uses updates.html marker) ===== -->
   <script>
     (function(){
       const updatesBtn = document.getElementById('rm-updates-btn');
+      if(!updatesBtn) return;
 
       const UPDATES_PAGE = './updates.html';
       const SEEN_KEY = 'lastSeenUpdateId';
 
       function extractMarker(html){
-        // Looks for: data-update-id="..." data-update-title="..."
         const idMatch = html.match(/data-update-id="([^"]+)"/);
         const titleMatch = html.match(/data-update-title="([^"]+)"/);
-
-        return {
-          id: idMatch ? idMatch[1] : null,
-          title: titleMatch ? titleMatch[1] : null
-        };
+        return { id: idMatch ? idMatch[1] : null, title: titleMatch ? titleMatch[1] : null };
       }
 
       async function checkForNewUpdate(){
@@ -373,22 +382,17 @@
 
           const html = await res.text();
           const marker = extractMarker(html);
-
           if(!marker.id) return;
 
           const seen = localStorage.getItem(SEEN_KEY);
-
-          // If not seen, show pill (and optionally personalize the label)
           if(seen !== marker.id){
             updatesBtn.style.display = 'inline-flex';
-            // Keep it short in the bar; title stays on the updates page itself
-            // If you want the title in the button later, we can do that.
             updatesBtn.onclick = () => window.location.href = UPDATES_PAGE;
           } else {
             updatesBtn.style.display = 'none';
           }
-        } catch (e){
-          // If fetch fails (offline), just stay quiet.
+        } catch(e){
+          // stay quiet if offline / blocked
         }
       }
 
