@@ -5,7 +5,6 @@
 
   const STYLE_ID = "rm-topbar-style";
 
-  // ---------- Helpers ----------
   function isStandalone() {
     return (
       window.matchMedia("(display-mode: standalone)").matches ||
@@ -17,7 +16,7 @@
     return /iPad|iPhone|iPod/.test(navigator.userAgent);
   }
 
-  // ---------- Inject styles once ----------
+  // Inject styles once
   if (!document.getElementById(STYLE_ID)) {
     const s = document.createElement("style");
     s.id = STYLE_ID;
@@ -88,7 +87,7 @@
     document.head.appendChild(s);
   }
 
-  // ---------- Build UI ----------
+  // Build UI
   const header = document.createElement("header");
   header.className = "rm-topbar";
   header.innerHTML = `
@@ -112,7 +111,7 @@
 
   mount.replaceChildren(header);
 
-  // ---------- Wire install detection ----------
+  // Wire install detection
   const modeEl = document.getElementById("rm-mode");
   const installBtn = document.getElementById("rm-install-btn");
   const howtoBtn = document.getElementById("rm-howto-btn");
@@ -131,7 +130,6 @@
 
   setModeText();
 
-  // Android/Chrome install
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -146,7 +144,6 @@
     installBtn.style.display = "none";
   });
 
-  // iPhone or fallback
   setTimeout(() => {
     if (!deferredPrompt && !isStandalone()) {
       howtoBtn.style.display = "inline-flex";
@@ -162,7 +159,6 @@
     );
   });
 
-  // In case display-mode changes after install
   window.addEventListener("visibilitychange", setModeText);
   window.addEventListener("focus", setModeText);
 })();
