@@ -19,7 +19,12 @@
     :root{
       --border: rgba(0,0,0,.12);
       --muted: rgba(0,0,0,.65);
-      --bb: #0a3d91; /* darker Big Book blue */
+
+      /* Big Book */
+      --bb: #082f6b;           /* darker blue buttons */
+      --bbTint: rgba(8,47,107,.06);  /* subtle blue background */
+      --bbBorder: rgba(8,47,107,.22);
+      --bbSpine: rgba(8,47,107,.55);
     }
 
     body{
@@ -109,6 +114,7 @@
     .btn.primary{
       background:#111;
       color:#fff;
+      border-color:rgba(0,0,0,.18);
     }
 
     .btn.small{
@@ -117,6 +123,7 @@
       font-size:12px;
     }
 
+    /* Big Book buttons */
     .btn.bb{
       background:var(--bb);
       color:#fff;
@@ -124,6 +131,39 @@
     }
 
     .groupGap{ margin-top:10px; }
+
+    /* Big Book card treatment */
+    .bigbookCard{
+      position:relative;
+      background: var(--bbTint);
+      border-color: var(--bbBorder);
+      overflow:hidden;
+    }
+    .bigbookCard::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:8px;
+      background: var(--bbSpine);
+      opacity:.9;
+    }
+    .bigbookInner{
+      padding-left:10px; /* room for spine */
+    }
+    .bigbookTitle{
+      font-size:16px;
+      letter-spacing:.2px;
+    }
+
+    /* Tighten big book button layout a bit */
+    .bbRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
   </style>
 </head>
 
@@ -144,7 +184,7 @@
         <h3 class="cardTitle">🙏 On Awakening</h3>
         <div class="row">
           <a class="btn primary" href="https://recoverythought.livejournal.com/1071797.html" target="_blank" rel="noopener noreferrer">
-            Open
+            Open Today
           </a>
         </div>
       </section>
@@ -178,32 +218,33 @@
       </section>
 
       <!-- Big Book -->
-      <section class="card" style="grid-column: 1 / -1;">
-        <h3 class="cardTitle">📘 Big Book</h3>
+      <section class="card bigbookCard" style="grid-column: 1 / -1;">
+        <div class="bigbookInner">
+          <h3 class="cardTitle bigbookTitle">📘 Big Book</h3>
 
-        <!-- Front matter -->
-        <div class="row">
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_preface.pdf" target="_blank">Preface</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_forewordfirstedition.pdf" target="_blank">Foreword — First Edition</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_forewordfourthedition.pdf" target="_blank">Foreword — Fourth Edition</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_foreworddoctorsopinion.pdf" target="_blank">The Doctor’s Opinion</a>
+          <!-- Front matter -->
+          <div class="bbRow">
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_preface.pdf" target="_blank" rel="noopener noreferrer">Preface</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_forewordfirstedition.pdf" target="_blank" rel="noopener noreferrer">Foreword — First Edition</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_forewordfourthedition.pdf" target="_blank" rel="noopener noreferrer">Foreword — Fourth Edition</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_foreworddoctorsopinion.pdf" target="_blank" rel="noopener noreferrer">The Doctor’s Opinion</a>
+          </div>
+
+          <!-- Chapters -->
+          <div class="bbRow groupGap">
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt1.pdf" target="_blank" rel="noopener noreferrer">Ch 1 — Bill’s Story</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt2.pdf" target="_blank" rel="noopener noreferrer">Ch 2 — There Is a Solution</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt3.pdf" target="_blank" rel="noopener noreferrer">Ch 3 — More About Alcoholism</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt4.pdf" target="_blank" rel="noopener noreferrer">Ch 4 — We Agnostics</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt5.pdf" target="_blank" rel="noopener noreferrer">Ch 5 — How It Works</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt6.pdf" target="_blank" rel="noopener noreferrer">Ch 6 — Into Action</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt7.pdf" target="_blank" rel="noopener noreferrer">Ch 7 — Working With Others</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt8.pdf" target="_blank" rel="noopener noreferrer">Ch 8 — To Wives</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt9.pdf" target="_blank" rel="noopener noreferrer">Ch 9 — The Family Afterward</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt10.pdf" target="_blank" rel="noopener noreferrer">Ch 10 — To Employers</a>
+            <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt11.pdf" target="_blank" rel="noopener noreferrer">Ch 11 — A Vision For You</a>
+          </div>
         </div>
-
-        <!-- Chapters -->
-        <div class="row groupGap">
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt1.pdf" target="_blank">Ch 1 — Bill’s Story</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt2.pdf" target="_blank">Ch 2 — There Is a Solution</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt3.pdf" target="_blank">Ch 3 — More About Alcoholism</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt4.pdf" target="_blank">Ch 4 — We Agnostics</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt5.pdf" target="_blank">Ch 5 — How It Works</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt6.pdf" target="_blank">Ch 6 — Into Action</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt7.pdf" target="_blank">Ch 7 — Working With Others</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt8.pdf" target="_blank">Ch 8 — To Wives</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt9.pdf" target="_blank">Ch 9 — The Family Afterward</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt10.pdf" target="_blank">Ch 10 — To Employers</a>
-          <a class="btn small bb" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt11.pdf" target="_blank">Ch 11 — A Vision For You</a>
-        </div>
-
       </section>
 
     </div>
