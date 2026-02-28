@@ -5,29 +5,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Updates — Recovery Misfits v2</title>
 
-  
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#000000" />
   <link rel="icon" href="./icon-192.png">
+
+  <!-- iPhone PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
 
   <style>
     body{
       margin:0;
       font-family:Roboto,Arial,sans-serif;
       background:#fff;
-      padding-bottom:110px;
       color:#111;
-    }
-
-    header{
-      position:sticky;
-      top:0;
-      z-index:9000;
-      background:#fff;
-      border-bottom:1px solid rgba(0,0,0,.12);
-      padding:12px;
-      text-align:center;
-      font-weight:900;
+      padding-bottom:120px; /* room for nav.js bottom bar */
     }
 
     .wrap{
@@ -36,11 +30,30 @@
       padding:16px 14px 28px;
     }
 
+    .title{
+      font-weight:1000;
+      font-size:18px;
+      margin:10px 4px 4px;
+      letter-spacing:.2px;
+      text-align:center;
+    }
+
     .sub{
       margin:6px 0 16px;
       color:#666;
       font-size:13px;
       text-align:center;
+      font-weight:800;
+      line-height:1.25;
+    }
+
+    .sectionLabel{
+      margin:18px 4px 8px;
+      font-weight:1000;
+      font-size:12px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#666;
     }
 
     .card{
@@ -49,59 +62,30 @@
       padding:14px;
       margin:12px 0;
       background:#fff;
+      box-shadow:0 1px 0 rgba(0,0,0,.03);
     }
 
     .card h3{
       margin:0 0 6px;
       font-size:15px;
+      font-weight:1000;
     }
 
     .meta{
       font-size:12px;
       color:#666;
       margin-bottom:8px;
+      font-weight:900;
     }
 
     .card ul{
       margin:0;
       padding-left:18px;
       color:#222;
+      font-weight:850;
+      line-height:1.35;
     }
-
-    /* ===== BOTTOM NAV (same style as app) ===== */
-    nav#bottomBar{
-      position:fixed;
-      bottom:0;
-      left:0;
-      right:0;
-      height:64px;
-      background:#000;
-      border-top:1px solid #222;
-      display:flex;
-      justify-content:space-around;
-      align-items:center;
-      z-index:9500;
-    }
-
-    .navItem{
-      flex:1;
-      text-align:center;
-      text-decoration:none;
-      font-size:11px;
-      padding:8px 4px;
-      color:#bbb;
-    }
-
-    .navItem .ico{
-      display:block;
-      font-size:18px;
-      margin-bottom:3px;
-    }
-
-    .navItem.active{
-      color:#fff;
-      font-weight:700;
-    }
+    .card li{ margin:6px 0; }
   </style>
 </head>
 
@@ -116,19 +100,73 @@
        data-update-title="02-27-2026 — Welcome to Recovery Misfits Version 2"
        style="display:none;"></div>
 
-  <header>Updates</header>
+  <!-- Shared TOP BAR (injected by topbar.js) -->
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
 
   <div class="wrap">
+    <div class="title">Updates</div>
     <div class="sub">No spam. Just changes and new stuff.</div>
+
+    <div class="sectionLabel">Newest</div>
 
     <!-- ===== NEWEST UPDATE (ADD NEW ONES AT TOP) ===== -->
     <div class="card">
       <h3>02-27-2026 — Welcome to Recovery Misfits Version 2</h3>
       <div class="meta">A fresh start</div>
       <ul>
-        <li>New top bar with install support</li>
-        <li>Cleaner layout for tools, audio, and games</li>
+        <li>New top bar with install support (shared across pages)</li>
+        <li>New bottom nav + sobriety bar (shared across pages)</li>
         <li>Updates tab added so you can see what’s new</li>
+      </ul>
+    </div>
+
+    <div class="sectionLabel">Earlier milestones</div>
+
+    <div class="card">
+      <h3>02-26-2026 — Tools got organized</h3>
+      <div class="meta">Burn Pad + Gratitude Inventory started living as “real tools”</div>
+      <ul>
+        <li>Tools page structure tightened up</li>
+        <li>Burn Pad + Gratitude Inventory got iterated (UI + behavior)</li>
+        <li>Started moving away from copy/paste nav on every page</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>02-25-2026 — “Trudge the Road” game work began showing up</h3>
+      <div class="meta">Prototype / polish phase</div>
+      <ul>
+        <li>Game page work + “SNES intro” polish</li>
+        <li>Early “Fun / Games” direction started taking shape</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>02-26-2026 — Audio got added into the mix</h3>
+      <div class="meta">Audio page started becoming a real section</div>
+      <ul>
+        <li>Audio page/route introduced and linked from the app</li>
+        <li>Structure started leaning toward “pages + shared bars”</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>02-18-2026 — PWA usage + real-world testing</h3>
+      <div class="meta">“Is this being used?” phase (aka: it’s alive)</div>
+      <ul>
+        <li>Started thinking about tracking usage/installs</li>
+        <li>More testing like an actual product, not just a prototype</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>02-16-2026 — Version 1 was already in motion</h3>
+      <div class="meta">Earliest confirmed build work from what I can see</div>
+      <ul>
+        <li>Full <code>index.html</code> was being edited and pasted around</li>
+        <li>Burn Pad behavior + app UI were being refined</li>
+        <li>Foundation phase: “make it work before we make it pretty”</li>
       </ul>
     </div>
 
@@ -136,27 +174,9 @@
 
   </div>
 
-  <!-- ===== BOTTOM NAV ===== -->
-  <nav id="bottomBar">
-    <a class="navItem" href="./index2.html">
-      <span class="ico">🏠</span>Home
-    </a>
-    <a class="navItem" href="./tools.html">
-      <span class="ico">🔧</span>Tools
-    </a>
-    <a class="navItem" href="./readings.html">
-      <span class="ico">📖</span>Readings
-    </a>
-    <a class="navItem" href="./audio.html">
-      <span class="ico">🎧</span>Audio
-    </a>
-    <a class="navItem" href="./fun.html">
-      <span class="ico">🎮</span>Fun
-    </a>
-    <a class="navItem active" href="./updates.html">
-      <span class="ico">🆕</span>Updates
-    </a>
-  </nav>
+  <!-- Shared BOTTOM NAV (injected by nav.js) -->
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
 
   <!-- ======================================================
        ✔ MARK UPDATE AS SEEN AFTER ONE VISIT
