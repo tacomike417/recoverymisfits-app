@@ -46,6 +46,20 @@
       background:#fff;
     }
 
+    /* ✅ Make the active PLAYER card sage green */
+    .card.mediaSelected{
+      border-color:#b7d3c2 !important;
+      background:#e8f3ec !important;
+      box-shadow: 0 2px 14px rgba(0,0,0,.06);
+    }
+    .card.mediaSelected .videoWrap{
+      border-color:#b7d3c2;
+      box-shadow:none;
+    }
+    .card.mediaSelected .btn{
+      border-color:#b7d3c2;
+    }
+
     .btn{
       appearance:none;
       border:1px solid var(--border);
@@ -99,20 +113,17 @@
     .title{font-weight:1000; font-size:14px; margin:0;}
     .subtitle{font-size:12px; color:var(--muted); margin-top:3px; font-weight:900;}
 
-    /* Selected library item (entire row green) */
+    /* Selected library item (subtle cue) */
     .rowCard.selected{
       border-color:#b7d3c2;
       background:#e8f3ec;
       box-shadow: 0 2px 14px rgba(0,0,0,.06);
     }
-    /* ✅ make the WHOLE container feel selected (including the button + text) */
     .rowCard.selected .btn{
       background:#e8f3ec;
       border-color:#b7d3c2;
       box-shadow:none;
     }
-    .rowCard.selected .title{ color:#111; }
-    .rowCard.selected .subtitle{ color:rgba(0,0,0,.62); }
 
     /* Player areas */
     .playerAreaTitle{
@@ -277,8 +288,9 @@
     <section class="card" id="playerArea" style="display:none;">
       <div class="toolbar">
         <div class="toolbarLeft">
-          <div class="playerAreaTitle" id="playerAreaTitle">Now Playing</div>
-          <div class="now" id="playerAreaSub">Ready</div>
+          <!-- kept but we blank it once selected to avoid redundancy -->
+          <div class="playerAreaTitle" id="playerAreaTitle"></div>
+          <div class="now" id="playerAreaSub"></div>
         </div>
         <div class="actions">
           <button class="btn mini" id="stopBtn" type="button">Stop</button>
@@ -286,6 +298,7 @@
         </div>
       </div>
 
+      <!-- MP3 area (used for BOTH audiobooks) -->
       <div id="gorillaArea" style="display:none; margin-top:12px;">
         <div class="toprow" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <button id="playAllBtn" class="btn primary" type="button">▶ Play All</button>
@@ -342,17 +355,6 @@
       setTimeout(()=>toastEl.classList.remove("show"), 1400);
     }
 
-    // Library items (all equal)
-    const LIBRARY = [
-      { type:"gorilla", key:"gorilla", title:"Alcoholism: The 500 Pound Gorilla", sub:"Audiobook" },
-      { type:"yt_playlist", key:"joe",    title:"Joe & Charlie",  sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E" },
-      { type:"yt_playlist", key:"martin", title:"Father Martin",  sub:"Chalk Talks",    id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf" },
-      { type:"yt_playlist", key:"chuck",  title:"Chuck C",        sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA" },
-      { type:"yt_playlist", key:"allen",  title:"Allen McGinnis", sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE" }
-    ];
-
-    const libraryEl = document.getElementById("library");
-
     // Player area
     const playerArea = document.getElementById("playerArea");
     const playerAreaTitle = document.getElementById("playerAreaTitle");
@@ -360,11 +362,11 @@
     const stopBtn = document.getElementById("stopBtn");
     const unloadBtn = document.getElementById("unloadBtn");
 
-    const gorillaArea = document.getElementById("gorillaArea");
+    const mp3Area = document.getElementById("gorillaArea"); // (name kept, now used for all MP3 books)
     const ytArea = document.getElementById("ytArea");
     const ytFrame = document.getElementById("ytFrame");
 
-    // Gorilla audio
+    // MP3 player
     const player = document.getElementById("player");
     const nowPlaying = document.getElementById("nowPlaying");
     const chapterList = document.getElementById("chapterList");
@@ -385,7 +387,12 @@
       playerArea.scrollIntoView({ behavior:"smooth", block:"start" });
     }
 
-    // Highlight selected library row (full green)
+    // ✅ turn PLAYER card green when something is selected
+    function setPlayerSelected(isOn){
+      playerArea.classList.toggle("mediaSelected", !!isOn);
+    }
+
+    // Highlight selected library row (subtle cue)
     function selectLibraryRow(key){
       document.querySelectorAll("[data-lib-row]").forEach(el=>{
         el.classList.toggle("selected", el.dataset.key === key);
@@ -400,69 +407,81 @@
       });
     }
 
-    function stopEverything(){
-      try{ player.pause(); player.currentTime = 0; }catch(e){}
-      setMp3UiState("READY");
-      ytFrame.src = "";
-      clearChapterPlaying();
-      toast("Stopped");
+    // ===== BOOKS (MP3) =====
+    const BOOKS = {
+      gorilla: {
+        title: "Alcoholism: The 500 Pound Gorilla",
+        sub: "Audiobook",
+        lsKey: "rm_audio_resume_gorilla_v1",
+        tracks: [
+          { n: 1,  title: "1. So Here You Are", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/1.%20So%20Here%20You%20Are.mp3" },
+          { n: 2,  title: "2. The Rat Trap", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/2.%20The%20Rat%20Trap.mp3" },
+          { n: 3,  title: "3. My Off Switch is Broke", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/3.%20My%20Off%20Switch%20is%20Broke.mp3" },
+          { n: 4,  title: "4. The Screw It Button", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/4.%20The%20Screw%20It%20Button.mp3" },
+          { n: 5,  title: "5. The Disease Concept", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/5.%20The%20Disease%20Concept.mp3" },
+          { n: 6,  title: "6. The 500 Pound Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/6.%20The%20500%20Pound%20Gorilla%20.mp3" },
+          { n: 7,  title: "7. The Edge", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/7.%20The%20Edge.mp3" },
+          { n: 8,  title: "8. The Ultimate Sacrifice", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/8.%20The%20Ultimate%20Sacrifice.mp3" },
+          { n: 9,  title: "9. Fork in the Road", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/9.%20Fork%20in%20the%20Road.mp3" },
+          { n: 10, title: "10. No More Deals with the Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/10.%20No%20More%20Deals%20with%20the%20Gorilla.mp3" },
+          { n: 11, title: "11. The Excuse Machine", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/11.%20The%20Excuse%20Machine.mp3" },
+          { n: 12, title: "12. Debate Club is Over", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/12.%20Debate%20Club%20is%20Over.mp3" },
+          { n: 13, title: "13. Connection Is the Opposite of Addiction", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/13.%20Connection%20Is%20the%20Opposite%20of%20Addiction.mp3" },
+          { n: 14, title: "14. Change or Die", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/14.%20Change%20or%20Die.mp3" },
+          { n: 15, title: "15. Spirituality", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/15.%20Spirituality.mp3" },
+          { n: 16, title: "16. Credits", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/16.%20Credits.mp3" },
+          { n: 17, title: "17. With Gratitude", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/17.%20With%20Gratitude.mp3" }
+        ]
+      },
+
+      sweatpants: {
+        title: "Playing God in Sweatpants",
+        sub: "Coffee & Cleanup (Audio)",
+        lsKey: "rm_audio_resume_sweatpants_v1",
+        tracks: [
+          { n: 1,  title: "Introduction", url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Introduction.mp3" },
+          { n: 2,  title: "Preface",      url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Preface.mp3" },
+          { n: 3,  title: "Rule 1",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%201.mp3" },
+          { n: 4,  title: "Rule 2",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%202.mp3" },
+          { n: 5,  title: "Rule 3",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%203.mp3" },
+          { n: 6,  title: "Rule 4",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%204.mp3" },
+          { n: 7,  title: "Rule 5",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%205.mp3" },
+          { n: 8,  title: "Rule 6",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%206.mp3" },
+          { n: 9,  title: "Rule 7",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%207.mp3" },
+          { n: 10, title: "Rule 8",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%208.mp3" },
+          { n: 11, title: "Rule 9",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%209.mp3" },
+          { n: 12, title: "Rule 10",      url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%2010.mp3" },
+          { n: 13, title: "That’s It",    url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Thats%20it.mp3" }
+        ]
+      }
+    };
+
+    let activeBookKey = "gorilla";
+    let TRACKS = BOOKS[activeBookKey].tracks;
+
+    function getLSKey(){
+      return BOOKS[activeBookKey].lsKey;
     }
 
-    function unloadEverything(){
-      stopEverything();
-      gorillaArea.style.display = "none";
-      ytArea.style.display = "none";
-      playerAreaSub.textContent = "Ready";
-      toast("Unloaded");
-    }
-
-    stopBtn.addEventListener("click", stopEverything);
-    unloadBtn.addEventListener("click", unloadEverything);
-
-    // YouTube embedded
-    function playYouTubePlaylist(title, sub, listId){
-      stopEverything();              // keeps selection highlight, but stops MP3 + clears chapter highlight
-      gorillaArea.style.display = "none";
-
-      playerAreaTitle.textContent = title;
-      playerAreaSub.textContent = sub;
-
-      ytArea.style.display = "block";
-      ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(listId)}`;
-
-      showPlayerArea();
-      toast("Playing: " + title);
-    }
-
-    // Gorilla tracks
-    const TRACKS = [
-      { n: 1,  title: "1. So Here You Are", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/1.%20So%20Here%20You%20Are.mp3" },
-      { n: 2,  title: "2. The Rat Trap", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/2.%20The%20Rat%20Trap.mp3" },
-      { n: 3,  title: "3. My Off Switch is Broke", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/3.%20My%20Off%20Switch%20is%20Broke.mp3" },
-      { n: 4,  title: "4. The Screw It Button", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/4.%20The%20Screw%20It%20Button.mp3" },
-      { n: 5,  title: "5. The Disease Concept", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/5.%20The%20Disease%20Concept.mp3" },
-      { n: 6,  title: "6. The 500 Pound Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/6.%20The%20500%20Pound%20Gorilla%20.mp3" },
-      { n: 7,  title: "7. The Edge", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/7.%20The%20Edge.mp3" },
-      { n: 8,  title: "8. The Ultimate Sacrifice", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/8.%20The%20Ultimate%20Sacrifice.mp3" },
-      { n: 9,  title: "9. Fork in the Road", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/9.%20Fork%20in%20the%20Road.mp3" },
-      { n: 10, title: "10. No More Deals with the Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/10.%20No%20More%20Deals%20with%20the%20Gorilla.mp3" },
-      { n: 11, title: "11. The Excuse Machine", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/11.%20The%20Excuse%20Machine.mp3" },
-      { n: 12, title: "12. Debate Club is Over", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/12.%20Debate%20Club%20is%20Over.mp3" },
-      { n: 13, title: "13. Connection Is the Opposite of Addiction", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/13.%20Connection%20Is%20the%20Opposite%20of%20Addiction.mp3" },
-      { n: 14, title: "14. Change or Die", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/14.%20Change%20or%20Die.mp3" },
-      { n: 15, title: "15. Spirituality", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/15.%20Spirituality.mp3" },
-      { n: 16, title: "16. Credits", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/16.%20Credits.mp3" },
-      { n: 17, title: "17. With Gratitude", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/17.%20With%20Gratitude.mp3" }
+    // Library items (all equal)
+    const LIBRARY = [
+      { type:"mp3_book", key:"gorilla",    title: BOOKS.gorilla.title,    sub: BOOKS.gorilla.sub },
+      { type:"mp3_book", key:"sweatpants", title: BOOKS.sweatpants.title, sub: BOOKS.sweatpants.sub },
+      { type:"yt_playlist", key:"joe",    title:"Joe & Charlie",  sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E" },
+      { type:"yt_playlist", key:"martin", title:"Father Martin",  sub:"Chalk Talks",    id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf" },
+      { type:"yt_playlist", key:"chuck",  title:"Chuck C",        sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA" },
+      { type:"yt_playlist", key:"allen",  title:"Allen McGinnis", sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE" }
     ];
 
-    const LS_KEY = "rm_audio_resume_v1";
+    const libraryEl = document.getElementById("library");
+
     let currentIdx = 0;
     let playMode = "single";
     let isSeekingResume = false;
 
     function loadResume(){
       try{
-        const raw = localStorage.getItem(LS_KEY);
+        const raw = localStorage.getItem(getLSKey());
         if(!raw) return null;
         const obj = JSON.parse(raw);
         if(typeof obj?.idx !== "number" || typeof obj?.t !== "number") return null;
@@ -475,12 +494,12 @@
     function saveResume(){
       const t = player.currentTime || 0;
       const obj = { idx: currentIdx, t: Math.floor(t), mode: playMode };
-      try{ localStorage.setItem(LS_KEY, JSON.stringify(obj)); }catch(e){}
+      try{ localStorage.setItem(getLSKey(), JSON.stringify(obj)); }catch(e){}
       renderResumeLine();
     }
 
     function clearResume(){
-      try{ localStorage.removeItem(LS_KEY); }catch(e){}
+      try{ localStorage.removeItem(getLSKey()); }catch(e){}
       renderResumeLine();
       toast("Resume cleared");
     }
@@ -578,7 +597,7 @@
     async function shareTrack(idx){
       const tr = TRACKS[idx];
       const shareData = {
-        title: "Alcoholism: The 500 Pound Gorilla (Audio)",
+        title: BOOKS[activeBookKey].title + " (Audio)",
         text: tr.title + " — Pass it on if it helps.",
         url: tr.url
       };
@@ -637,6 +656,85 @@
       });
     }
 
+    function stopEverything(){
+      try{ player.pause(); player.currentTime = 0; }catch(e){}
+      setMp3UiState("READY");
+      ytFrame.src = "";
+      clearChapterPlaying();
+      toast("Stopped");
+    }
+
+    function unloadEverything(){
+      stopEverything();
+      mp3Area.style.display = "none";
+      ytArea.style.display = "none";
+      playerAreaSub.textContent = "Ready";
+      playerAreaTitle.textContent = "";
+      playerAreaSub.textContent = "";
+
+      // ✅ remove green when nothing is loaded
+      setPlayerSelected(false);
+
+      toast("Unloaded");
+    }
+
+    stopBtn.addEventListener("click", stopEverything);
+    unloadBtn.addEventListener("click", unloadEverything);
+
+    // YouTube embedded
+    function playYouTubePlaylist(title, sub, listId){
+      stopEverything();
+      mp3Area.style.display = "none";
+
+      setPlayerSelected(true);
+      playerAreaTitle.textContent = "";
+      playerAreaSub.textContent = "";
+
+      ytArea.style.display = "block";
+      ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(listId)}`;
+
+      showPlayerArea();
+      toast("Playing: " + title);
+    }
+
+    function showMp3Book(bookKey){
+      // stop YT, keep MP3 ready
+      ytFrame.src = "";
+      ytArea.style.display = "none";
+
+      setPlayerSelected(true);
+      mp3Area.style.display = "block";
+      playerAreaTitle.textContent = "";
+      playerAreaSub.textContent = "";
+
+      // switch active book + rebuild chapters
+      activeBookKey = bookKey;
+      TRACKS = BOOKS[activeBookKey].tracks;
+
+      clearChapterPlaying();
+      buildChapters();
+      renderResumeLine();
+
+      // load resume if it exists for THIS book
+      const r = loadResume();
+      if(r){
+        currentIdx = r.idx;
+        playMode = r.mode || "single";
+        setTrack(r.idx, {autoplay:false, resumeTime:0});
+        try{ player.currentTime = 0; }catch(e){}
+        nowPlaying.textContent = "Ready: " + TRACKS[r.idx].title;
+      } else {
+        currentIdx = 0;
+        playMode = "single";
+        setTrack(0, {autoplay:false, resumeTime:0});
+        try{ player.currentTime = 0; }catch(e){}
+        nowPlaying.textContent = "Ready: " + TRACKS[0].title;
+      }
+
+      setMp3UiState(player && !player.paused ? "PLAYING" : "READY");
+      showPlayerArea();
+    }
+
     player.addEventListener("play", ()=>{
       setMp3UiState("PLAYING");
       applyPlayingRow(currentIdx);
@@ -670,18 +768,6 @@
     playAllBtn.addEventListener("click", playAll);
     clearResumeBtn.addEventListener("click", clearResume);
 
-    function showGorilla(){
-      ytFrame.src = "";
-      ytArea.style.display = "none";
-
-      gorillaArea.style.display = "block";
-      playerAreaTitle.textContent = "Alcoholism: The 500 Pound Gorilla";
-      playerAreaSub.textContent = "Audiobook";
-
-      setMp3UiState(player && !player.paused ? "PLAYING" : "READY");
-      showPlayerArea();
-    }
-
     // Build Library UI
     function buildLibrary(){
       libraryEl.innerHTML = "";
@@ -711,13 +797,11 @@
         playBtn.textContent = "▶ Play";
 
         const runSelectionAndPlay = ()=>{
-          // ✅ Set selected row highlight (full green, including button)
           selectLibraryRow(item.key);
 
-          if(item.type === "gorilla"){
-            ytFrame.src = "";
-            ytArea.style.display = "none";
-            showGorilla();
+          if(item.type === "mp3_book"){
+            stopEverything(); // stops any current mp3 + clears playing row
+            showMp3Book(item.key);
             toast("Opened");
             return;
           }
@@ -728,14 +812,11 @@
           }
         };
 
-        // ✅ Tap anywhere on the row to select + play
         row.addEventListener("click", (e)=>{
-          // If click originated from a button, let button handler run (no double-fire)
           if(e.target && e.target.closest && e.target.closest("button")) return;
           runSelectionAndPlay();
         });
 
-        // Button still works too
         playBtn.addEventListener("click", (e)=>{
           e.stopPropagation();
           runSelectionAndPlay();
@@ -749,22 +830,13 @@
 
     // Init
     buildLibrary();
-    buildChapters();
-    renderResumeLine();
-    setMp3UiState("READY");
 
-    const r0 = loadResume();
-    if(r0){
-      currentIdx = r0.idx;
-      playMode = r0.mode || "single";
-      setTrack(r0.idx, {autoplay:false, resumeTime:0});
-      try{ player.currentTime = 0; }catch(e){}
-      nowPlaying.textContent = "Ready: " + TRACKS[r0.idx].title;
-    } else {
-      setTrack(0, {autoplay:false, resumeTime:0});
-      try{ player.currentTime = 0; }catch(e){}
-      nowPlaying.textContent = "Ready: " + TRACKS[0].title;
-    }
+    // default select gorilla in the list (subtle)
+    selectLibraryRow("gorilla");
+
+    // start with no media selected (player hidden until user taps)
+    setPlayerSelected(false);
+    setMp3UiState("READY");
   </script>
 
 </body>
