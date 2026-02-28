@@ -24,7 +24,7 @@
       background:#fff;
       color:#111;
       line-height:1.35;
-      padding-bottom:120px; /* room for nav.js bottom bar */
+      padding-bottom:120px;
     }
 
     main{max-width:860px;margin:0 auto;padding:14px;}
@@ -91,10 +91,18 @@
       border:1px solid rgba(0,0,0,.12);
       border-radius:12px;
       background:#fff;
+      transition: background .12s ease, border-color .12s ease, box-shadow .12s ease;
     }
     .titleWrap{min-width:0; flex:1;}
     .title{font-weight:1000; font-size:14px; margin:0;}
     .subtitle{font-size:12px; color:var(--muted); margin-top:3px; font-weight:900;}
+
+    /* Selected library item (entire row green) */
+    .rowCard.selected{
+      border-color:#b7d3c2;
+      background:#e8f3ec;
+      box-shadow: 0 2px 14px rgba(0,0,0,.06);
+    }
 
     /* Player areas */
     .playerAreaTitle{
@@ -131,7 +139,7 @@
     }
     .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none; font-weight:900;}
 
-    /* ===== SAGE GREEN "PLAYING" ROW ===== */
+    /* ===== SAGE GREEN "PLAYING" CHAPTER ROW ===== */
     .playingRow{
       outline:2px solid #b7d3c2;
       border-radius:12px;
@@ -226,10 +234,7 @@
       align-items:center;
       justify-content:space-between;
     }
-    .toolbarLeft{
-      min-width:0;
-      flex:1;
-    }
+    .toolbarLeft{ min-width:0; flex:1; }
 
     .toast{
       position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
@@ -249,19 +254,16 @@
 
 <body>
 
-  <!-- Shared TOP BAR (injected by topbar.js) -->
   <div id="rm-topbar"></div>
   <script src="./topbar.js" defer></script>
 
   <main>
     <div class="pageTitle">Audio Library</div>
 
-    <!-- Audio Library -->
     <section class="card">
       <div class="library" id="library"></div>
     </section>
 
-    <!-- Shared Player Area -->
     <section class="card" id="playerArea" style="display:none;">
       <div class="toolbar">
         <div class="toolbarLeft">
@@ -274,7 +276,6 @@
         </div>
       </div>
 
-      <!-- Gorilla player -->
       <div id="gorillaArea" style="display:none; margin-top:12px;">
         <div class="toprow" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <button id="playAllBtn" class="btn primary" type="button">▶ Play All</button>
@@ -301,7 +302,6 @@
         <div id="chapterList" class="list"></div>
       </div>
 
-      <!-- YouTube player -->
       <div id="ytArea" style="display:none; margin-top:12px;">
         <div class="videoWrap" id="ytBox">
           <iframe
@@ -321,14 +321,10 @@
     <div id="toast" class="toast"></div>
   </main>
 
-  <!-- Shared BOTTOM NAV (injected by nav.js) -->
   <div id="rm-bottom-nav"></div>
   <script src="./nav.js" defer></script>
 
   <script>
-    // ==========================
-    // Toast
-    // ==========================
     const toastEl = document.getElementById("toast");
     function toast(msg){
       toastEl.textContent = msg;
@@ -336,12 +332,9 @@
       setTimeout(()=>toastEl.classList.remove("show"), 1400);
     }
 
-    // ==========================
-    // Library
-    // ==========================
+    // Library items (all equal)
     const LIBRARY = [
       { type:"gorilla", key:"gorilla", title:"Alcoholism: The 500 Pound Gorilla", sub:"Audiobook" },
-
       { type:"yt_playlist", key:"joe",    title:"Joe & Charlie",  sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E" },
       { type:"yt_playlist", key:"martin", title:"Father Martin",  sub:"Chalk Talks",    id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf" },
       { type:"yt_playlist", key:"chuck",  title:"Chuck C",        sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA" },
@@ -350,9 +343,7 @@
 
     const libraryEl = document.getElementById("library");
 
-    // ==========================
-    // Shared Player Area elements
-    // ==========================
+    // Player area
     const playerArea = document.getElementById("playerArea");
     const playerAreaTitle = document.getElementById("playerAreaTitle");
     const playerAreaSub = document.getElementById("playerAreaSub");
@@ -363,7 +354,7 @@
     const ytArea = document.getElementById("ytArea");
     const ytFrame = document.getElementById("ytFrame");
 
-    // Gorilla audio elements
+    // Gorilla audio
     const player = document.getElementById("player");
     const nowPlaying = document.getElementById("nowPlaying");
     const chapterList = document.getElementById("chapterList");
@@ -384,11 +375,16 @@
       playerArea.scrollIntoView({ behavior:"smooth", block:"start" });
     }
 
-    function clearRowStates(){
+    // Highlight selected library row (full green)
+    function selectLibraryRow(key){
+      document.querySelectorAll("[data-lib-row]").forEach(el=>{
+        el.classList.toggle("selected", el.dataset.key === key);
+      });
+    }
+
+    function clearChapterPlaying(){
       document.querySelectorAll("[data-track-row]").forEach(el=>{
         el.classList.remove("playingRow");
-        el.classList.remove("current");
-        // remove tag if present
         const tag = el.querySelector(".nowTag");
         if(tag) tag.remove();
       });
@@ -398,7 +394,7 @@
       try{ player.pause(); player.currentTime = 0; }catch(e){}
       setMp3UiState("READY");
       ytFrame.src = "";
-      clearRowStates();
+      clearChapterPlaying();
       toast("Stopped");
     }
 
@@ -413,22 +409,22 @@
     stopBtn.addEventListener("click", stopEverything);
     unloadBtn.addEventListener("click", unloadEverything);
 
-    // ==========================
-    // YouTube helpers (embedded)
-    // ==========================
+    // YouTube embedded
     function playYouTubePlaylist(title, sub, listId){
-      unloadEverything();
+      stopEverything();              // keeps selection highlight, but stops MP3 + clears chapter highlight
+      gorillaArea.style.display = "none";
+
       playerAreaTitle.textContent = title;
       playerAreaSub.textContent = sub;
+
       ytArea.style.display = "block";
       ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(listId)}`;
+
       showPlayerArea();
       toast("Playing: " + title);
     }
 
-    // ==========================
-    // Gorilla audiobook tracks
-    // ==========================
+    // Gorilla tracks
     const TRACKS = [
       { n: 1,  title: "1. So Here You Are", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/1.%20So%20Here%20You%20Are.mp3" },
       { n: 2,  title: "2. The Rat Trap", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/2.%20The%20Rat%20Trap.mp3" },
@@ -449,9 +445,9 @@
       { n: 17, title: "17. With Gratitude", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/17.%20With%20Gratitude.mp3" }
     ];
 
-    const LS_KEY = "rm_audio_resume_v1"; // { idx, t, mode }
+    const LS_KEY = "rm_audio_resume_v1";
     let currentIdx = 0;
-    let playMode = "single"; // "all" or "single"
+    let playMode = "single";
     let isSeekingResume = false;
 
     function loadResume(){
@@ -463,9 +459,7 @@
         if(obj.idx < 0 || obj.idx >= TRACKS.length) return null;
         if(obj.t < 0) obj.t = 0;
         return obj;
-      }catch(e){
-        return null;
-      }
+      }catch(e){ return null; }
     }
 
     function saveResume(){
@@ -501,19 +495,11 @@
     }
 
     function applyPlayingRow(idx){
-      // remove existing playing highlights and tags
-      document.querySelectorAll("[data-track-row]").forEach(el=>{
-        el.classList.remove("playingRow");
-        const tag = el.querySelector(".nowTag");
-        if(tag) tag.remove();
-      });
-
+      clearChapterPlaying();
       const rowEl = document.querySelector(`[data-track-row][data-idx="${idx}"]`);
       if(!rowEl) return;
-
       rowEl.classList.add("playingRow");
 
-      // Add NOW PLAYING tag on the playing row only
       const titleEl = rowEl.querySelector(".chapterTitle");
       if(titleEl){
         const tag = document.createElement("span");
@@ -539,14 +525,10 @@
       const onMeta = () => {
         player.removeEventListener("loadedmetadata", onMeta);
         if(isSeekingResume){
-          try{
-            player.currentTime = Math.min(resumeTime, (player.duration || resumeTime));
-          }catch(e){}
+          try{ player.currentTime = Math.min(resumeTime, (player.duration || resumeTime)); }catch(e){}
           isSeekingResume = false;
         }
-        if(autoplay){
-          player.play().catch(()=>{});
-        }
+        if(autoplay) player.play().catch(()=>{});
       };
       player.addEventListener("loadedmetadata", onMeta);
 
@@ -592,19 +574,10 @@
       };
 
       if(navigator.share){
-        try{
-          await navigator.share(shareData);
-          toast("Shared");
-          return;
-        }catch(e){}
+        try{ await navigator.share(shareData); toast("Shared"); return; }catch(e){}
       }
-
-      try{
-        await navigator.clipboard.writeText(tr.url);
-        toast("Link copied");
-      }catch(e){
-        window.prompt("Copy this link:", tr.url);
-      }
+      try{ await navigator.clipboard.writeText(tr.url); toast("Link copied"); }
+      catch(e){ window.prompt("Copy this link:", tr.url); }
     }
 
     function buildChapters(){
@@ -666,13 +639,9 @@
 
     player.addEventListener("ended", ()=>{
       setMp3UiState("PAUSED");
-
       if(playMode !== "all") return;
       const next = currentIdx + 1;
-      if(next >= TRACKS.length){
-        toast("Finished");
-        return;
-      }
+      if(next >= TRACKS.length){ toast("Finished"); return; }
       setTrack(next, {autoplay:true, resumeTime:0});
       saveResume();
     });
@@ -680,10 +649,7 @@
     let lastSavedAt = 0;
     player.addEventListener("timeupdate", ()=>{
       const t = player.currentTime || 0;
-      if(t - lastSavedAt >= 10){
-        lastSavedAt = t;
-        saveResume();
-      }
+      if(t - lastSavedAt >= 10){ lastSavedAt = t; saveResume(); }
     });
 
     window.addEventListener("beforeunload", saveResume);
@@ -706,14 +672,14 @@
       showPlayerArea();
     }
 
-    // ==========================
     // Build Library UI
-    // ==========================
     function buildLibrary(){
       libraryEl.innerHTML = "";
       LIBRARY.forEach((item)=>{
         const row = document.createElement("div");
         row.className = "rowCard";
+        row.dataset.libRow = "1";
+        row.dataset.key = item.key;
 
         const left = document.createElement("div");
         left.className = "titleWrap";
@@ -735,8 +701,15 @@
         playBtn.textContent = "▶ Play";
 
         playBtn.addEventListener("click", ()=>{
+          // Set selected row highlight (full green)
+          selectLibraryRow(item.key);
+
           if(item.type === "gorilla"){
-            unloadEverything();
+            // stop YT only, keep Gorilla ready
+            ytFrame.src = "";
+            ytArea.style.display = "none";
+
+            // keep resume + chapters
             showGorilla();
             toast("Opened");
             return;
