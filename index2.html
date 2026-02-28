@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#000000" />
   <link rel="icon" href="./icon-192.png">
 
-  <!-- iPhone/iPad PWA helpers -->
+  <!-- iPhone PWA support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
@@ -23,7 +23,7 @@
       padding-bottom:110px; /* space for sobriety + nav */
     }
 
-    /* ===== TOP BAR (v2) ===== */
+    /* ===== TOP BAR ===== */
     .rm-topbar{
       position:sticky;
       top:0;
@@ -32,50 +32,36 @@
       border-bottom:1px solid rgba(0,0,0,.12);
     }
 
-    /* Row 1: title centered, actions right */
     .rm-topbar__row1{
       display:grid;
-      grid-template-columns: 1fr auto 1fr; /* left spacer, title, actions */
+      grid-template-columns: 1fr auto 1fr;
       align-items:center;
       padding:10px 12px 6px;
-      gap:12px;
     }
-
-    .rm-topbar__left{ min-height: 1px; }
 
     .rm-title{
       text-align:center;
       font-weight:900;
       font-size:16px;
-      letter-spacing:.2px;
-      line-height:1.2;
-      justify-self:center;
-      white-space:nowrap;
     }
 
     .rm-topbar__actions{
       justify-self:end;
       display:flex;
       gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
-      justify-content:flex-end;
     }
 
-    /* Row 2: status centered */
     .rm-topbar__row2{
-      padding:0 12px 10px;
       text-align:center;
+      padding-bottom:10px;
     }
 
     .rm-mode{
       font-size:12px;
       opacity:.75;
-      line-height:1.2;
     }
 
     .rm-btn{
-      appearance:none;
       border:1px solid rgba(0,0,0,.18);
       background:#fff;
       color:#111;
@@ -84,30 +70,19 @@
       font-weight:700;
       font-size:13px;
       cursor:pointer;
-      white-space:nowrap;
     }
 
-    .rm-btn:active{ transform: translateY(1px); }
-
-    /* ✅ Primary button now matches app (black) */
+    /* Black install button */
     .rm-btn--primary{
       background:#000;
       color:#fff;
       border-color:#000;
     }
-    .rm-btn--primary:active{
-      opacity:.9;
-    }
 
-    .rm-btn--updates{
-      border-color: rgba(0,0,0,.18);
-      font-weight:800;
-    }
-
-    /* iframe fills screen */
+    /* ===== IFRAME ===== */
     .frameWrap{
       width:100%;
-      height:calc(100vh - 74px - 110px); /* topbar (2-row) + sobriety/nav */
+      height:calc(100vh - 74px - 110px);
     }
 
     iframe{
@@ -133,47 +108,11 @@
     .sobrietyBar strong{
       display:block;
       font-size:15px;
-      margin-bottom:2px;
     }
 
     .sobrietyBar span{
       color:#666;
       font-size:12px;
-    }
-
-    /* ===== BOTTOM NAV ===== */
-    nav#bottomBar{
-      position:fixed;
-      bottom:0;
-      left:0;
-      right:0;
-      height:64px;
-      background:#000;
-      border-top:1px solid #222;
-      display:flex;
-      justify-content:space-around;
-      align-items:center;
-      z-index:9500;
-    }
-
-    .navItem{
-      flex:1;
-      text-align:center;
-      text-decoration:none;
-      font-size:11px;
-      padding:8px 4px;
-      color:#bbb;
-    }
-
-    .navItem .ico{
-      display:block;
-      font-size:18px;
-      margin-bottom:3px;
-    }
-
-    .navItem.active{
-      color:#fff;
-      font-weight:700;
     }
   </style>
 </head>
@@ -181,22 +120,16 @@
 <body>
 
   <!-- ===== TOP BAR ===== -->
-  <header class="rm-topbar" role="banner">
+  <header class="rm-topbar">
     <div class="rm-topbar__row1">
-      <div class="rm-topbar__left" aria-hidden="true"></div>
+      <div></div>
 
       <div class="rm-title">Recovery Misfits v2</div>
 
       <div class="rm-topbar__actions">
-        <!-- Updates pill (optional; shows only if your updates check is wired) -->
-        <button id="rm-updates-btn" class="rm-btn rm-btn--updates" style="display:none;">
-          🆕 Updates
-        </button>
-
         <button id="rm-install-btn" class="rm-btn rm-btn--primary" style="display:none;">
           Install App • Always Free
         </button>
-
         <button id="rm-howto-btn" class="rm-btn" style="display:none;">
           How to install
         </button>
@@ -208,7 +141,7 @@
     </div>
   </header>
 
-  <!-- ===== BLOGGER HOME FEED ===== -->
+  <!-- ===== BLOGGER FEED ===== -->
   <div class="frameWrap">
     <iframe src="https://recoverymisfits.blogspot.com/"></iframe>
   </div>
@@ -219,29 +152,9 @@
     <span id="sobrietyDate">Tap to set sobriety date</span>
   </div>
 
-  <!-- ===== BOTTOM NAV ===== -->
-  <nav id="bottomBar">
-    <a class="navItem active" href="./index2.html">
-      <span class="ico">🏠</span>
-      Home
-    </a>
-    <a class="navItem" href="./tools.html">
-      <span class="ico">🔧</span>
-      Tools
-    </a>
-    <a class="navItem" href="./readings.html">
-      <span class="ico">📖</span>
-      Readings
-    </a>
-    <a class="navItem" href="./audio.html">
-      <span class="ico">🎧</span>
-      Audio
-    </a>
-    <a class="navItem" href="./fun.html">
-      <span class="ico">🎮</span>
-      Fun
-    </a>
-  </nav>
+  <!-- ===== SHARED NAV (injected by nav.js) ===== -->
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js"></script>
 
   <!-- ===== SOBRIETY SCRIPT ===== -->
   <script>
@@ -281,7 +194,7 @@
     loadSobriety();
   </script>
 
-  <!-- ===== INSTALL DETECTION SCRIPT ===== -->
+  <!-- ===== INSTALL DETECTION ===== -->
   <script>
     (function(){
       const modeEl = document.getElementById('rm-mode');
@@ -291,13 +204,12 @@
       let deferredPrompt = null;
 
       function isStandalone(){
-        return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
-          || (window.navigator && window.navigator.standalone === true);
+        return window.matchMedia('(display-mode: standalone)').matches
+          || window.navigator.standalone === true;
       }
 
       function isIOS(){
-        const ua = navigator.userAgent || '';
-        return /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+        return /iPad|iPhone|iPod/.test(navigator.userAgent);
       }
 
       function setModeText(){
@@ -312,33 +224,20 @@
 
       setModeText();
 
-      // Chrome/Edge/Android install prompt
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-
-        if (!isStandalone()){
-          installBtn.style.display = 'inline-flex';
-          howtoBtn.style.display = 'none';
-        }
+        installBtn.style.display = 'inline-flex';
       });
 
       installBtn.addEventListener('click', async () => {
         if (!deferredPrompt) return;
-
-        installBtn.disabled = true;
-        try{
-          deferredPrompt.prompt();
-          await deferredPrompt.userChoice;
-        } finally {
-          deferredPrompt = null;
-          installBtn.style.display = 'none';
-          installBtn.disabled = false;
-          setModeText();
-        }
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
       });
 
-      // iPhone/iPad (no beforeinstallprompt) + general fallback
+      // iPhone fallback
       setTimeout(() => {
         if (!deferredPrompt && !isStandalone()){
           howtoBtn.style.display = 'inline-flex';
@@ -346,57 +245,13 @@
         }
       }, 1200);
 
-      howtoBtn.addEventListener('click', () => {
+      howtoBtn.onclick = () => {
         alert(
           isIOS()
-            ? "On iPhone: tap the Share button, then 'Add to Home Screen'."
-            : "In Chrome: use the install icon in the address bar or menu → 'Install app'."
+            ? "On iPhone: tap Share → Add to Home Screen."
+            : "Use the install icon in your browser."
         );
-      });
-
-      window.addEventListener('appinstalled', () => {
-        setModeText();
-      });
-    })();
-  </script>
-
-  <!-- ===== TOP BAR UPDATES PILL (optional; uses updates.html marker) ===== -->
-  <script>
-    (function(){
-      const updatesBtn = document.getElementById('rm-updates-btn');
-      if(!updatesBtn) return;
-
-      const UPDATES_PAGE = './updates.html';
-      const SEEN_KEY = 'lastSeenUpdateId';
-
-      function extractMarker(html){
-        const idMatch = html.match(/data-update-id="([^"]+)"/);
-        const titleMatch = html.match(/data-update-title="([^"]+)"/);
-        return { id: idMatch ? idMatch[1] : null, title: titleMatch ? titleMatch[1] : null };
-      }
-
-      async function checkForNewUpdate(){
-        try{
-          const res = await fetch(UPDATES_PAGE, { cache: 'no-store' });
-          if(!res.ok) return;
-
-          const html = await res.text();
-          const marker = extractMarker(html);
-          if(!marker.id) return;
-
-          const seen = localStorage.getItem(SEEN_KEY);
-          if(seen !== marker.id){
-            updatesBtn.style.display = 'inline-flex';
-            updatesBtn.onclick = () => window.location.href = UPDATES_PAGE;
-          } else {
-            updatesBtn.style.display = 'none';
-          }
-        } catch(e){
-          // stay quiet if offline / blocked
-        }
-      }
-
-      checkForNewUpdate();
+      };
     })();
   </script>
 
