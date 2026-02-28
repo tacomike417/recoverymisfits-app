@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fun — Recovery Misfits</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="./icon-192.png">
+
+  <!-- iPhone PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <style>
+    :root{
+      --border: rgba(0,0,0,.12);
+      --muted: rgba(0,0,0,.65);
+      --shadow: 0 1px 0 rgba(0,0,0,.03);
+      --sage: #86A98D;          /* comfortable sage */
+      --sage-dark: #6F9277;
+      --ink: #111;
+    }
+
+    body{
+      margin:0;
+      font-family:Roboto,Arial,sans-serif;
+      background:#fff;
+      color:var(--ink);
+      padding-bottom:120px; /* room for nav.js bottom bar */
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:16px 14px 28px;
+    }
+
+    .title{
+      font-weight:1000;
+      font-size:18px;
+      margin:10px 4px 4px;
+      letter-spacing:.2px;
+      text-align:center;
+    }
+
+    .sub{
+      margin:6px 0 16px;
+      color:#666;
+      font-size:13px;
+      text-align:center;
+      font-weight:800;
+      line-height:1.25;
+    }
+
+    .sectionLabel{
+      margin:18px 4px 8px;
+      font-weight:1000;
+      font-size:12px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#666;
+    }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      margin:12px 0;
+      background:#fff;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    /* Fun card header row */
+    .row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+    }
+
+    .card h3{
+      margin:0;
+      font-size:15px;
+      font-weight:1000;
+      line-height:1.2;
+    }
+
+    .meta{
+      font-size:12px;
+      color:#666;
+      margin:6px 0 0;
+      font-weight:900;
+      line-height:1.35;
+    }
+
+    .badge{
+      font-size:11px;
+      font-weight:1000;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.16);
+      background:rgba(0,0,0,.04);
+      color:#222;
+      white-space:nowrap;
+      flex:0 0 auto;
+    }
+
+    .badge.play{
+      border-color: rgba(111,146,119,.45);
+      background: rgba(134,169,141,.16);
+      color:#1b3a25;
+    }
+
+    .badge.soon{
+      border-color: rgba(0,0,0,.14);
+      background: rgba(0,0,0,.05);
+      color:#333;
+    }
+
+    /* Cover image */
+    .cover{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,.10);
+      background:#f6f6f6;
+      display:block;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+    }
+
+    /* Buttons */
+    .btnRow{
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:2px solid rgba(0,0,0,.18);
+      background:#fff;
+      color:#111;
+      font-weight:1000;
+      text-decoration:none;
+      box-shadow: 0 1px 0 rgba(0,0,0,.03);
+      transition: transform .08s ease, box-shadow .08s ease, border-color .08s ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      min-width: 220px;
+    }
+
+    .btn:active{
+      transform: translateY(1px);
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+
+    .btn.play{
+      background: linear-gradient(180deg, rgba(134,169,141,.35), rgba(134,169,141,.22));
+      border-color: rgba(111,146,119,.65);
+    }
+
+    .btn.play:hover{
+      border-color: rgba(111,146,119,.95);
+    }
+
+    .btn.soon{
+      background: rgba(0,0,0,.04);
+      border-style:dashed;
+      color: rgba(0,0,0,.55);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .icon{
+      width:18px;
+      height:18px;
+      display:inline-block;
+      flex:0 0 auto;
+    }
+
+    /* subtle “arcade” divider */
+    .divider{
+      margin:14px 0 0;
+      border-top:1px solid rgba(0,0,0,.08);
+      padding-top:12px;
+      color: var(--muted);
+      font-size:12px;
+      font-weight:850;
+      line-height:1.35;
+    }
+
+    /* mini pixel-ish hint */
+    .hint{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:10px;
+      background: rgba(0,0,0,.04);
+      border:1px solid rgba(0,0,0,.10);
+      font-weight:900;
+      margin-top:10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Shared TOP BAR (injected by topbar.js) -->
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
+
+  <div class="wrap">
+    <div class="title">Fun</div>
+    <div class="sub">Because sobriety doesn’t have to feel like homework.</div>
+
+    <div class="sectionLabel">Games</div>
+
+    <!-- ===== TRUDGE THE ROAD ===== -->
+    <div class="card">
+      <div class="row">
+        <div>
+          <h3>Trudge the Road</h3>
+          <div class="meta">Bill on a Rule 62 rocket… through all 12 Steps. In space. Obviously.</div>
+        </div>
+        <div class="badge play">Play now</div>
+      </div>
+
+      <!-- cover image you provided -->
+      <img
+        class="cover"
+        src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgMMTxDVFP87ONlwYSoVH_KkbK7bftp1WwfYXMcNOQnZhbiXbtVsAksAcCLgoWygJSvwkjK2feKvjv-13pCrxyxw_DTiHq48wLyw3Pu9KKAoz2rBt0NnZbBq4vea6p-2J6mx_bq9i9WJKPLgbGBO5BXLGjxq_dKsirk4Ve9Rg0YPLl-0E_570yDzkDyXyGh/w329-h494/ChatGPT%20Image%20Feb%202,%202026,%2007_31_45%20AM.png"
+        alt="Trudge the Road cover"
+        loading="lazy"
+      />
+
+      <div class="btnRow">
+        <a class="btn play" href="https://tacomike417.github.io/recoverymisfits-app/game.html" rel="noopener">
+          <!-- simple play triangle -->
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M8 5v14l12-7z"></path>
+          </svg>
+          Play Trudge the Road
+        </a>
+      </div>
+
+      <div class="divider">
+        <span class="hint">Tip:</span> Tap to start. Drag Bill. Don’t overthink it (he will).
+      </div>
+    </div>
+
+    <!-- ===== TRUDGE BROTHERS ===== -->
+    <div class="card">
+      <div class="row">
+        <div>
+          <h3>Trudge Brothers</h3>
+          <div class="meta">Retro co-op chaos (with spiritual consequences). Not ready yet.</div>
+        </div>
+        <div class="badge soon">Coming soon</div>
+      </div>
+
+      <div class="btnRow">
+        <span class="btn soon">
+          <!-- wrench / tools-ish -->
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M22.7 19.3l-6.1-6.1a7 7 0 0 1-8.4-8.4l3.2 3.2 2.1-2.1-3.2-3.2A7 7 0 0 1 21 10.4l-6.1 6.1 6.1 6.1-?"></path>
+          </svg>
+          Trudge Brothers — Coming Soon!
+        </span>
+      </div>
+
+      <div class="divider">
+        <span class="hint">Status:</span> building the next level of ridiculous.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Shared BOTTOM NAV (injected by nav.js) -->
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
+
+</body>
+</html>
