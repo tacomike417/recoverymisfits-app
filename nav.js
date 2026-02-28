@@ -1,4 +1,4 @@
-// nav.js — Recovery Misfits v2 shared bottom nav + sobriety counter (MM-DD-YYYY prompt)
+// nav.js — Recovery Misfits v2 shared bottom nav + sobriety bar (MM-DD-YYYY prompt)
 (() => {
   const mount = document.getElementById("rm-bottom-nav");
   if (!mount) return;
@@ -6,9 +6,7 @@
   /* =========================
      Sobriety Counter (storage)
      ========================= */
-  const SOBER_KEY = "rm_sober_date";           // stored as YYYY-MM-DD
-  const SOBER_MODE_KEY = "rm_sober_inclusive"; // "1" or "0"
-  const DEFAULT_INCLUSIVE = true;
+  const SOBER_KEY = "rm_sober_date"; // stored as YYYY-MM-DD
 
   function pad2(n) { return String(n).padStart(2, "0"); }
 
@@ -35,17 +33,6 @@
     if (!s || !e) return null;
     const msPerDay = 24 * 60 * 60 * 1000;
     return Math.floor((e.getTime() - s.getTime()) / msPerDay);
-  }
-
-  function getInclusiveSetting() {
-    const raw = localStorage.getItem(SOBER_MODE_KEY);
-    if (raw === "0") return false;
-    if (raw === "1") return true;
-    return DEFAULT_INCLUSIVE;
-  }
-
-  function setInclusiveSetting(val) {
-    localStorage.setItem(SOBER_MODE_KEY, val ? "1" : "0");
   }
 
   function getSoberDateYMD() {
@@ -104,9 +91,8 @@
     const diff = daysBetweenLocal(start, today);
     if (diff === null) return null;
 
-    const inclusive = getInclusiveSetting();
-    const days = inclusive ? diff + 1 : diff;
-    return Math.max(0, days);
+    // Always inclusive (Day 1 on the start date), no toggle shown
+    return Math.max(0, diff + 1);
   }
 
   /* =========================
@@ -155,12 +141,6 @@
         <path d="M22 10a2 2 0 0 0-2-2h-6l1-5v-1a2 2 0 0 0-2-2l-1 1-5 8v11h11a2 2 0 0 0 2-2l1-7v-1z"
           fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/>
       </svg>
-    `,
-    flame: `
-      <svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true">
-        <path d="M12 2s3 4 3 7-2 4-2 6 2 3 2 5a3 3 0 0 1-6 0c0-2 2-3 2-5s-2-3-2-6 3-7 3-7z"
-          fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/>
-      </svg>
     `
   };
 
@@ -184,6 +164,37 @@
     const style = document.createElement("style");
     style.id = styleId;
     style.textContent = `
+      /* White bar above nav */
+      #rmSoberBar{
+        position:fixed;
+        left:0;
+        right:0;
+        bottom:64px;
+        height:38px;
+        background:#fff;
+        border-top:1px solid rgba(0,0,0,.12);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        z-index:9499;
+        font-family: Roboto, Arial, sans-serif;
+        cursor:pointer;
+        user-select:none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #rmSoberBar .rmSoberText{
+        color:#111;
+        font-size:13px;
+        font-weight:800;
+        letter-spacing:.02em;
+      }
+      #rmSoberBar .rmSoberSub{
+        margin-left:8px;
+        font-size:12px;
+        font-weight:700;
+        color:#666;
+      }
+
       nav#bottomBar{
         position:fixed;
         bottom:0;
@@ -231,55 +242,7 @@
         display:block;
       }
 
-      /* ===== Sobriety counter pill (center) ===== */
-      .rmCounterWrap{
-        flex:1.25;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        padding:0 6px;
-      }
-
-      .rmCounter{
-        width:100%;
-        max-width:150px;
-        height:44px;
-        border-radius:14px;
-        border:1px solid #2a2a2a;
-        background:linear-gradient(180deg, #111, #070707);
-        color:#fff;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        gap:8px;
-        cursor:pointer;
-        user-select:none;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      .rmCounter:active{ transform:translateY(1px); }
-
-      .rmCounterText{
-        display:flex;
-        flex-direction:column;
-        align-items:flex-start;
-        line-height:1.05;
-      }
-
-      .rmCounterTop{
-        font-size:10px;
-        letter-spacing:.12em;
-        text-transform:uppercase;
-        color:#bdbdbd;
-      }
-
-      .rmCounterDays{
-        font-size:14px;
-        font-weight:900;
-        letter-spacing:.02em;
-      }
-
-      /* ===== Modal ===== */
+      /* Modal */
       .rmModalBackdrop{
         position:fixed;
         inset:0;
@@ -326,7 +289,7 @@
         border-radius:12px;
         padding:10px 12px;
         font-size:14px;
-        width:220px;
+        width:240px;
       }
 
       .rmBtn{
@@ -343,15 +306,6 @@
       .rmBtn.rmDanger{
         background:#160909;
         border-color:#3a1a1a;
-      }
-
-      .rmToggle{
-        display:flex;
-        align-items:center;
-        gap:8px;
-        font-size:12px;
-        color:#bdbdbd;
-        margin-top:10px;
       }
 
       .rmHelp{
@@ -373,8 +327,150 @@
   const cur = currentFile();
 
   /* =========================
-     Build nav (with center counter)
+     Build UI: sober bar + nav
      ========================= */
+  const wrapper = document.createElement("div");
+
+  // White sober bar
+  const soberBar = document.createElement("div");
+  soberBar.id = "rmSoberBar";
+  soberBar.setAttribute("role", "button");
+  soberBar.setAttribute("tabindex", "0");
+  soberBar.innerHTML = `
+    <span class="rmSoberText" id="rmSoberBarText">Sober: Set your date</span>
+    <span class="rmSoberSub" id="rmSoberBarSub"></span>
+  `;
+
+  function refreshSoberBar() {
+    const main = soberBar.querySelector("#rmSoberBarText");
+    const sub = soberBar.querySelector("#rmSoberBarSub");
+    const days = computeSoberDays();
+    const ymd = getSoberDateYMD();
+
+    if (!main || !sub) return;
+
+    if (!ymd || days === null) {
+      main.textContent = "Sober: Set your date";
+      sub.textContent = "";
+      return;
+    }
+
+    main.textContent = `Sober: ${days} ${days === 1 ? "Day" : "Days"}`;
+    sub.textContent = `Since ${ymdToDisplayMDY(ymd)}`;
+  }
+
+  function openModal() {
+    const backdrop = document.createElement("div");
+    backdrop.className = "rmModalBackdrop";
+
+    const modal = document.createElement("div");
+    modal.className = "rmModal";
+
+    const existingYMD = getSoberDateYMD();
+
+    modal.innerHTML = `
+      <h3>Set Sober Date</h3>
+      <p>This stays on your device (saved in local storage).</p>
+
+      <div class="rmRow">
+        <input
+          id="rmSoberDateInput"
+          type="text"
+          inputmode="numeric"
+          placeholder="Sobriety date (MM-DD-YYYY)"
+          value="${ymdToDisplayMDY(existingYMD)}"
+          aria-label="Enter sobriety date as MM-DD-YYYY"
+        />
+        <button class="rmBtn" id="rmSaveSoberDate">Save</button>
+        <button class="rmBtn rmDanger" id="rmClearSoberDate">Clear</button>
+        <button class="rmBtn" id="rmCloseSoberModal">Close</button>
+      </div>
+
+      <div class="rmHelp">Tip: you can also type MMDDYYYY (example: 02272026)</div>
+    `;
+
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+
+    const input = modal.querySelector("#rmSoberDateInput");
+    const saveBtn = modal.querySelector("#rmSaveSoberDate");
+    const clearBtn = modal.querySelector("#rmClearSoberDate");
+    const closeBtn = modal.querySelector("#rmCloseSoberModal");
+
+    function markInvalid() {
+      if (!input) return;
+      input.style.borderColor = "#6a2a2a";
+      input.style.outline = "none";
+    }
+
+    function markValid() {
+      if (!input) return;
+      input.style.borderColor = "#2a2a2a";
+    }
+
+    function close() {
+      backdrop.remove();
+      refreshSoberBar();
+    }
+
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) close();
+    });
+
+    closeBtn.addEventListener("click", close);
+
+    input?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        saveBtn.click();
+      }
+    });
+
+    input?.addEventListener("input", () => {
+      const v = input.value.trim();
+      if (!v) { markValid(); return; }
+      if (normalizeSoberInput(v)) markValid();
+    });
+
+    saveBtn.addEventListener("click", () => {
+      const val = (input?.value || "").trim();
+      const normalized = normalizeSoberInput(val);
+
+      if (!normalized) {
+        markInvalid();
+        input?.focus();
+        return;
+      }
+
+      const diff = daysBetweenLocal(normalized, todayLocalYMD());
+      if (diff === null || diff < 0) {
+        markInvalid();
+        input?.focus();
+        return;
+      }
+
+      localStorage.setItem(SOBER_KEY, normalized);
+
+      if (input) input.value = ymdToDisplayMDY(normalized);
+
+      close();
+    });
+
+    clearBtn.addEventListener("click", () => {
+      localStorage.removeItem(SOBER_KEY);
+      close();
+    });
+  }
+
+  soberBar.addEventListener("click", openModal);
+  soberBar.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openModal();
+    }
+  });
+
+  // Bottom nav
   const nav = document.createElement("nav");
   nav.id = "bottomBar";
 
@@ -390,177 +486,14 @@
     return a;
   }
 
-  // Put counter in the middle
-  const midIndex = Math.floor(items.length / 2);
+  items.forEach((it) => nav.appendChild(buildLinkItem(it)));
 
-  items.forEach((it, idx) => {
-    if (idx === midIndex) {
-      const wrap = document.createElement("div");
-      wrap.className = "rmCounterWrap";
+  wrapper.appendChild(soberBar);
+  wrapper.appendChild(nav);
 
-      const btn = document.createElement("div");
-      btn.className = "rmCounter";
-      btn.setAttribute("role", "button");
-      btn.setAttribute("tabindex", "0");
-      btn.setAttribute("aria-label", "Sobriety counter. Tap to set sober date.");
+  mount.replaceChildren(wrapper);
 
-      btn.innerHTML = `
-        <span class="ico">${ICONS.flame}</span>
-        <span class="rmCounterText">
-          <span class="rmCounterTop">Sober</span>
-          <span class="rmCounterDays" id="rmSoberDays">Set Date</span>
-        </span>
-      `;
-
-      function refreshCounterText() {
-        const el = btn.querySelector("#rmSoberDays");
-        if (!el) return;
-        const days = computeSoberDays();
-        if (days === null) {
-          el.textContent = "Set Date";
-          return;
-        }
-        el.textContent = `${days} ${days === 1 ? "Day" : "Days"}`;
-      }
-
-      function openModal() {
-        const backdrop = document.createElement("div");
-        backdrop.className = "rmModalBackdrop";
-
-        const modal = document.createElement("div");
-        modal.className = "rmModal";
-
-        const existingYMD = getSoberDateYMD();
-        const inclusive = getInclusiveSetting();
-
-        modal.innerHTML = `
-          <h3>Set Sober Date</h3>
-          <p>This stays on your device (saved in local storage).</p>
-
-          <div class="rmRow">
-            <input
-              id="rmSoberDateInput"
-              type="text"
-              inputmode="numeric"
-              placeholder="Sobriety date (MM-DD-YYYY)"
-              value="${ymdToDisplayMDY(existingYMD)}"
-              aria-label="Enter sobriety date as MM-DD-YYYY"
-            />
-            <button class="rmBtn" id="rmSaveSoberDate">Save</button>
-            <button class="rmBtn rmDanger" id="rmClearSoberDate">Clear</button>
-            <button class="rmBtn" id="rmCloseSoberModal">Close</button>
-          </div>
-
-          <div class="rmHelp">Tip: you can also type MMDDYYYY (example: 02272026)</div>
-
-          <label class="rmToggle">
-            <input id="rmInclusiveToggle" type="checkbox" ${inclusive ? "checked" : ""} />
-            Count start date as “Day 1”
-          </label>
-        `;
-
-        backdrop.appendChild(modal);
-        document.body.appendChild(backdrop);
-
-        const input = modal.querySelector("#rmSoberDateInput");
-        const saveBtn = modal.querySelector("#rmSaveSoberDate");
-        const clearBtn = modal.querySelector("#rmClearSoberDate");
-        const closeBtn = modal.querySelector("#rmCloseSoberModal");
-        const incToggle = modal.querySelector("#rmInclusiveToggle");
-
-        function markInvalid() {
-          if (!input) return;
-          input.style.borderColor = "#6a2a2a";
-          input.style.outline = "none";
-        }
-
-        function markValid() {
-          if (!input) return;
-          input.style.borderColor = "#2a2a2a";
-        }
-
-        function close() {
-          backdrop.remove();
-          refreshCounterText();
-        }
-
-        // click outside closes
-        backdrop.addEventListener("click", (e) => {
-          if (e.target === backdrop) close();
-        });
-
-        closeBtn.addEventListener("click", close);
-
-        // Press Enter to save
-        input?.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            saveBtn.click();
-          }
-        });
-
-        // Live validate (subtle)
-        input?.addEventListener("input", () => {
-          const v = input.value.trim();
-          if (!v) { markValid(); return; }
-          const ok = !!normalizeSoberInput(v);
-          if (ok) markValid();
-        });
-
-        saveBtn.addEventListener("click", () => {
-          const val = (input?.value || "").trim();
-          const normalized = normalizeSoberInput(val);
-
-          if (!normalized) {
-            markInvalid();
-            input?.focus();
-            return;
-          }
-
-          // Prevent future dates
-          const diff = daysBetweenLocal(normalized, todayLocalYMD());
-          if (diff === null || diff < 0) {
-            markInvalid();
-            input?.focus();
-            return;
-          }
-
-          localStorage.setItem(SOBER_KEY, normalized);
-
-          // rewrite field to MM-DD-YYYY (nice feedback)
-          if (input) input.value = ymdToDisplayMDY(normalized);
-
-          close();
-        });
-
-        clearBtn.addEventListener("click", () => {
-          localStorage.removeItem(SOBER_KEY);
-          close();
-        });
-
-        incToggle.addEventListener("change", () => {
-          setInclusiveSetting(!!incToggle.checked);
-          refreshCounterText();
-        });
-      }
-
-      btn.addEventListener("click", openModal);
-      btn.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openModal();
-        }
-      });
-
-      refreshCounterText();
-      setInterval(refreshCounterText, 60 * 1000);
-
-      wrap.appendChild(btn);
-      nav.appendChild(wrap);
-    }
-
-    nav.appendChild(buildLinkItem(it));
-  });
-
-  mount.replaceChildren(nav);
+  // initial + periodic refresh
+  refreshSoberBar();
+  setInterval(refreshSoberBar, 60 * 1000);
 })();
