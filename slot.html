@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spiritual Slot Machine — Recovery Misfits</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="icon" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <style>
+    :root{
+      --border: rgba(0,0,0,.14);
+      --muted: rgba(0,0,0,.65);
+      --bg:#fff;
+      --text:#111;
+      --btn:#111;
+      --btnText:#fff;
+      --card:#fff;
+      --jackpot:#111;
+      --soft:#f5f5f5;
+    }
+    body{
+      margin:0;
+      font-family: Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      background:#fff;
+      border-bottom:1px solid var(--border);
+      padding:12px;
+      text-align:center;
+    }
+    .brand{ font-weight:900; letter-spacing:.4px; }
+    .sub{ font-size:13px; color:var(--muted); margin-top:4px; }
+
+    main{ padding:16px 14px 90px; max-width:720px; margin:0 auto; }
+
+    .panel{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:var(--card);
+      padding:16px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+
+    .row{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      appearance:none;
+      border:none;
+      background:var(--btn);
+      color:var(--btnText);
+      padding:12px 14px;
+      border-radius:12px;
+      font-weight:800;
+      letter-spacing:.3px;
+      cursor:pointer;
+    }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .btn.secondary{
+      background:#fff;
+      color:#111;
+      border:1px solid var(--border);
+    }
+
+    .meta{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .result{
+      margin-top:14px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      background:var(--soft);
+      min-height:110px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      font-weight:800;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border);
+    }
+
+    .quote{
+      margin-top:12px;
+      font-size:20px;
+      font-weight:900;
+      letter-spacing:-.2px;
+      line-height:1.15;
+    }
+    .source{
+      margin-top:8px;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .jackpotBanner{
+      position:absolute;
+      right:-40px;
+      top:16px;
+      transform: rotate(12deg);
+      background:var(--jackpot);
+      color:#fff;
+      padding:8px 12px;
+      border-radius:10px;
+      font-weight:900;
+      letter-spacing:.6px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.18);
+      display:none;
+    }
+    .jackpotOn .jackpotBanner{ display:block; }
+    .jackpotOn{
+      background: #111;
+      color:#fff;
+      border-color: rgba(255,255,255,.22);
+    }
+    .jackpotOn .tag{ background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.22); color:#fff; }
+    .jackpotOn .source{ color: rgba(255,255,255,.75); }
+    .jackpotOn .quote{ color:#fff; }
+
+    .pulse{
+      animation: pulse 900ms ease-in-out 1;
+    }
+    @keyframes pulse{
+      0%{ transform: scale(1); }
+      35%{ transform: scale(1.02); }
+      100%{ transform: scale(1); }
+    }
+
+    .favorites{
+      margin-top:16px;
+      border-top:1px solid var(--border);
+      padding-top:14px;
+    }
+    .favRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      padding:10px 0;
+      border-bottom:1px dashed var(--border);
+    }
+    .favText{
+      font-size:14px;
+      line-height:1.3;
+    }
+    .mini{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:4px;
+    }
+
+    .tinyBtn{
+      appearance:none;
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:10px;
+      padding:8px 10px;
+      cursor:pointer;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:86px;
+      transform:translateX(-50%);
+      background:#111;
+      color:#fff;
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:13px;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity 180ms ease;
+      z-index:9999;
+    }
+    .toast.show{ opacity:1; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">🎰 Spiritual Slot Machine</div>
+  <div class="sub">Spin for perspective. (Rule 62 is the jackpot.)</div>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="row">
+      <button id="spinBtn" class="btn">SPIN</button>
+      <button id="saveBtn" class="btn secondary" disabled>SAVE</button>
+      <button id="shareBtn" class="btn secondary" disabled>SHARE</button>
+      <div class="meta"><span id="spinCount">Spins: 0</span></div>
+    </div>
+
+    <div id="resultBox" class="result">
+      <div class="jackpotBanner">⭐ RULE 62 HIT</div>
+      <div class="tag" id="tag">Ready</div>
+      <div class="quote" id="quote">Pull the lever.</div>
+      <div class="source" id="source">The machine is warm.</div>
+    </div>
+
+    <div class="favorites">
+      <div class="row" style="margin-bottom:8px;">
+        <div style="font-weight:900;">Favorites</div>
+        <button id="clearFavBtn" class="tinyBtn">Clear</button>
+      </div>
+      <div id="favList" class="meta">No favorites yet.</div>
+    </div>
+  </div>
+</main>
+
+<div id="toast" class="toast">Saved.</div>
+
+<script>
+/* -----------------------------
+   Quote Pool (starter set)
+   Expand this over time.
+-------------------------------- */
+
+const slotQuotes = [
+  // OLD-TIMER (weight high)
+  { text:"You’re not that important.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"Feelings aren’t facts.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"Don’t believe everything you think.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"You can be right, or you can be sober.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"Nobody handed you the clipboard.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"Stay in your lane.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"Keep your side of the street clean.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"Quit managing the universe.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"You don’t have to attend every argument.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"Pause before you react.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+
+  // BIG BOOK (weight medium)
+  { text:"Love and tolerance is our code.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
+  { text:"Pause when agitated or doubtful.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
+  { text:"We let go absolutely.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
+  { text:"Nothing pays off like restraint.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
+  { text:"We are not saints.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
+
+  // ACCEPTANCE (weight medium-low)
+  { text:"You don’t have to solve today.", category:"acceptance", label:"🕊️ Acceptance", weight:2 },
+  { text:"Stay sober. That’s enough.", category:"acceptance", label:"🕊️ Acceptance", weight:2 },
+  { text:"Breathe. Then decide.", category:"acceptance", label:"🕊️ Acceptance", weight:2 },
+
+  // MISFITS HUMOR (weight low)
+  { text:"Put the cape down.", category:"misfits", label:"😏 Misfits", weight:1 },
+  { text:"Nobody elected you mayor of everything.", category:"misfits", label:"😏 Misfits", weight:1 },
+  { text:"Step away from the drama buffet.", category:"misfits", label:"😏 Misfits", weight:1 },
+
+  // RULE 62 JACKPOT (weight rare)
+  { text:"Don’t take yourself so damn seriously.", category:"rule62", label:"⭐ Rule 62 Jackpot", weight:1 },
+  { text:"Relax. Nobody is watching you.", category:"rule62", label:"⭐ Rule 62 Jackpot", weight:1 },
+];
+
+/* -----------------------------
+   Weighted picker
+-------------------------------- */
+function buildWeightedPool(quotes){
+  const pool = [];
+  quotes.forEach(q=>{
+    for(let i=0;i<(q.weight||1);i++) pool.push(q);
+  });
+  return pool;
+}
+const weightedPool = buildWeightedPool(slotQuotes);
+
+/* -----------------------------
+   State + storage
+-------------------------------- */
+const LS_SPINS = "rm_slot_spins";
+const LS_FAVS  = "rm_slot_favs";
+
+let spins = parseInt(localStorage.getItem(LS_SPINS) || "0", 10);
+let favorites = JSON.parse(localStorage.getItem(LS_FAVS) || "[]");
+
+let lastResult = null;
+
+/* -----------------------------
+   UI refs
+-------------------------------- */
+const spinBtn = document.getElementById("spinBtn");
+const saveBtn = document.getElementById("saveBtn");
+const shareBtn= document.getElementById("shareBtn");
+const clearFavBtn = document.getElementById("clearFavBtn");
+
+const resultBox = document.getElementById("resultBox");
+const tagEl = document.getElementById("tag");
+const quoteEl = document.getElementById("quote");
+const sourceEl = document.getElementById("source");
+const spinCountEl = document.getElementById("spinCount");
+const favList = document.getElementById("favList");
+const toast = document.getElementById("toast");
+
+/* -----------------------------
+   Helpers
+-------------------------------- */
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"), 900);
+}
+
+function renderFavorites(){
+  if(!favorites.length){
+    favList.className = "meta";
+    favList.textContent = "No favorites yet.";
+    return;
+  }
+  favList.className = "";
+  favList.innerHTML = favorites.map((f, idx)=>`
+    <div class="favRow">
+      <div class="favText">
+        “${escapeHtml(f.text)}”
+        <div class="mini">${escapeHtml(f.label || f.category)}</div>
+      </div>
+      <button class="tinyBtn" onclick="removeFavorite(${idx})">Remove</button>
+    </div>
+  `).join("");
+}
+
+function escapeHtml(str){
+  return (str||"").replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+window.removeFavorite = function(idx){
+  favorites.splice(idx,1);
+  localStorage.setItem(LS_FAVS, JSON.stringify(favorites));
+  renderFavorites();
+};
+
+function setResult(res){
+  lastResult = res;
+  tagEl.textContent = res.label || res.category;
+  quoteEl.textContent = `“${res.text}”`;
+  sourceEl.textContent = (res.category === "bigbook") ? "— Alcoholics Anonymous" :
+                         (res.category === "rule62") ? "— Rule 62" :
+                         "— Old-timer energy";
+
+  // Jackpot styling
+  resultBox.classList.remove("jackpotOn","pulse");
+  if(res.category === "rule62"){
+    resultBox.classList.add("jackpotOn");
+  }
+  // small punchy animation every spin
+  void resultBox.offsetWidth;
+  resultBox.classList.add("pulse");
+
+  saveBtn.disabled = false;
+  shareBtn.disabled = !navigator.share; // enable only if supported
+}
+
+function spin(){
+  // tiny “spinning” feel without full reels yet
+  spinBtn.disabled = true;
+  saveBtn.disabled = true;
+  shareBtn.disabled = true;
+
+  resultBox.classList.remove("jackpotOn","pulse");
+  tagEl.textContent = "Spinning…";
+  quoteEl.textContent = "…";
+  sourceEl.textContent = "";
+
+  const ticks = 10;
+  let t = 0;
+  const tickTimer = setInterval(()=>{
+    const temp = weightedPool[Math.floor(Math.random()*weightedPool.length)];
+    quoteEl.textContent = `“${temp.text}”`;
+    t++;
+    if(t >= ticks){
+      clearInterval(tickTimer);
+      const result = weightedPool[Math.floor(Math.random()*weightedPool.length)];
+      setResult(result);
+
+      spins++;
+      localStorage.setItem(LS_SPINS, String(spins));
+      spinCountEl.textContent = `Spins: ${spins}`;
+
+      spinBtn.disabled = false;
+    }
+  }, 70);
+}
+
+/* -----------------------------
+   Actions
+-------------------------------- */
+spinBtn.addEventListener("click", spin);
+
+saveBtn.addEventListener("click", ()=>{
+  if(!lastResult) return;
+  const exists = favorites.some(f=>f.text === lastResult.text);
+  if(exists){ showToast("Already saved."); return; }
+  favorites.unshift({ text:lastResult.text, category:lastResult.category, label:lastResult.label });
+  localStorage.setItem(LS_FAVS, JSON.stringify(favorites));
+  renderFavorites();
+  showToast("Saved.");
+});
+
+shareBtn.addEventListener("click", async ()=>{
+  if(!lastResult || !navigator.share) return;
+  try{
+    await navigator.share({
+      title: "Spiritual Slot Machine — Recovery Misfits",
+      text: `Spiritual Slot Machine hit:\n\n“${lastResult.text}”\n\n— Recovery Misfits`,
+    });
+  }catch(e){
+    // user canceled share, ignore
+  }
+});
+
+clearFavBtn.addEventListener("click", ()=>{
+  favorites = [];
+  localStorage.setItem(LS_FAVS, "[]");
+  renderFavorites();
+  showToast("Cleared.");
+});
+
+/* -----------------------------
+   Init
+-------------------------------- */
+spinCountEl.textContent = `Spins: ${spins}`;
+renderFavorites();
+</script>
+
+</body>
+</html>
