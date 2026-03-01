@@ -5,484 +5,167 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Spiritual Slot Machine — Recovery Misfits</title>
 
-  <!-- ✅ PWA bits -->
+  <!-- PWA -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1b0033" />
   <link rel="icon" href="./icon-192.png">
-  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <!-- iPhone PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
 
   <style>
-    :root{
-      --border: rgba(255,255,255,.12);
-      --muted: rgba(255,255,255,.75);
-
-      /* ✅ Royal purple bg */
-      --bg1:#1b0033;
-      --bg2:#2a0052;
-
-      --text:#f2f2f2;
-
-      /* ✅ Gold machine */
-      --gold1:#d8b24a;
-      --gold2:#b8891e;
-      --gold3:#7a520c;
-
-      --btnText:#fff;
-
-      --paper:#f3efe6;
-      --paperInk:#1a1a1a;
-
-      /* Category accent colors */
-      --accent-blue:#2c7dff;     /* big book */
-      --accent-yellow:#ffd54a;   /* old timer */
-      --accent-white:#ffffff;    /* rule 62 */
-
-      /* ✅ Spin button green */
-      --spinGreen1:#20c35a;
-      --spinGreen2:#0a8f3b;
-      --spinGreen3:#066a2b;
-    }
-
     body{
       margin:0;
-      font-family: Roboto, Arial, sans-serif;
-      background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.06), transparent 35%),
-                  radial-gradient(circle at 85% 25%, rgba(255,255,255,.05), transparent 40%),
-                  linear-gradient(160deg, var(--bg1), var(--bg2));
-      color: var(--text);
-      min-height: 100vh;
+      font-family:Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255,255,255,.06), transparent 35%),
+        linear-gradient(160deg,#1b0033,#2a0052);
+      color:#fff;
+      padding-bottom:120px; /* room for bottom nav */
     }
 
-    #topNavMount{ position:sticky; top:0; z-index:10000; }
-    #bottomNavMount{ position:fixed; left:0; right:0; bottom:0; z-index:10000; }
-
-    main{
-      padding: 14px 14px 110px;
-      max-width: 820px;
-      margin: 0 auto;
+    .wrap{
+      max-width:820px;
+      margin:0 auto;
+      padding:16px 14px 28px;
     }
 
     .panel{
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,.14);
+      border-radius:22px;
       background:
         linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.45)),
-        linear-gradient(135deg, var(--gold1), var(--gold2) 55%, var(--gold3));
-      box-shadow:
-        0 18px 48px rgba(0,0,0,.55),
-        inset 0 1px 0 rgba(255,255,255,.18),
-        inset 0 -10px 22px rgba(0,0,0,.28);
-      padding: 16px;
-      position: relative;
-      overflow: hidden;
-      color: #fff;
+        linear-gradient(135deg,#d8b24a,#b8891e 55%,#7a520c);
+      padding:16px;
+      box-shadow:0 18px 48px rgba(0,0,0,.55);
     }
 
-    .panel:before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        radial-gradient(circle at 20% 10%, rgba(255,255,255,.18), transparent 42%),
-        radial-gradient(circle at 80% 30%, rgba(255,255,255,.12), transparent 48%),
-        repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 2px, transparent 2px 8px);
-      opacity:.28;
-      pointer-events:none;
-    }
-
-    .headerBlock{
-      position: relative;
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .title{
-      font-weight: 1000;
-      letter-spacing: .6px;
-      font-size: 18px;
-      text-shadow: 0 0 14px rgba(0,0,0,.35);
+    .slotHeader{
+      width:100%;
+      max-width:460px;
+      display:block;
+      margin:0 auto 6px;
     }
 
     .sub{
-      font-size: 12px;
-      color: rgba(255,255,255,.85);
-      margin-top: 4px;
-      text-shadow: 0 0 14px rgba(0,0,0,.25);
-    }
-
-    .meta{
-      font-size: 12px;
-      color: rgba(255,255,255,.85);
-      white-space: nowrap;
-      text-shadow: 0 0 14px rgba(0,0,0,.25);
+      font-size:12px;
+      text-align:center;
+      opacity:.85;
+      margin-bottom:12px;
+      font-weight:800;
     }
 
     .row{
-      position: relative;
       display:flex;
-      gap: 10px;
-      align-items:center;
-      justify-content:space-between;
+      gap:10px;
       flex-wrap:wrap;
+      justify-content:center;
+      margin-bottom:12px;
     }
 
-    /* default buttons = black */
     .btn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.16);
-      background: linear-gradient(#111,#000);
-      color: var(--btnText);
-      padding: 12px 14px;
-      border-radius: 14px;
-      font-weight: 1000;
-      letter-spacing: .3px;
+      border:none;
+      padding:12px 14px;
+      border-radius:14px;
+      font-weight:900;
       cursor:pointer;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.10),
-        0 10px 22px rgba(0,0,0,.35);
-      user-select:none;
-    }
-    .btn:hover{ background: linear-gradient(#1a1a1a,#000); }
-    .btn:disabled{ opacity:.55; cursor:not-allowed; }
-
-    /* ✅ SPIN = big green beast */
-    #spinBtn.btn{
-      background: linear-gradient(var(--spinGreen1), var(--spinGreen2));
-      border: 1px solid rgba(255,255,255,.22);
-      padding: 16px 22px;
-      border-radius: 16px;
-      font-size: 16px;
-      letter-spacing: .6px;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.22),
-        0 14px 26px rgba(0,0,0,.38);
-      min-width: 140px;
-    }
-    #spinBtn.btn:hover{
-      background: linear-gradient(#2ae06a, var(--spinGreen3));
-      transform: translateY(-1px);
-    }
-    #spinBtn.btn:active{
-      transform: translateY(0px) scale(.99);
+      background:#111;
+      color:#fff;
     }
 
-    .btn.secondary{
-      background: rgba(0,0,0,.35);
-      border: 1px solid rgba(255,255,255,.16);
-      color: #fff;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    /* BIG GREEN SPIN */
+    #spinBtn{
+      background:linear-gradient(#20c35a,#0a8f3b);
+      padding:16px 22px;
+      font-size:16px;
+      min-width:150px;
+      box-shadow:0 12px 24px rgba(0,0,0,.4);
     }
+    #spinBtn:hover{ background:linear-gradient(#2ae06a,#066a2b); }
 
     .result{
-      position: relative;
-      margin-top: 14px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: linear-gradient(#0b0b0b, #141414);
-      box-shadow:
-        inset 0 0 18px rgba(0,0,0,.85),
-        0 12px 30px rgba(0,0,0,.45);
-      padding: 14px;
-      min-height: 150px;
-      overflow:hidden;
+      border-radius:18px;
+      background:#0b0b0b;
+      padding:14px;
+      min-height:150px;
+      position:relative;
     }
 
-    .result:before{
-      content:"";
-      position:absolute;
-      inset:-30%;
-      background: radial-gradient(circle at center, rgba(255,255,255,.10), transparent 55%);
-      opacity:.50;
-      pointer-events:none;
-    }
-
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      gap: 8px;
-      font-size: 12px;
-      font-weight: 1000;
-      padding: 7px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.14);
-      color: #fff;
-      position: relative;
-      z-index: 2;
-    }
+    .tag{ font-size:12px; font-weight:900; margin-bottom:8px; }
 
     .receipt{
-      margin-top: 12px;
-      border-radius: 14px;
-      background: linear-gradient(#f6f2ea, #efe8dd);
-      border: 1px solid rgba(0,0,0,.10);
-      padding: 12px 12px 10px;
-      color: var(--paperInk);
-      position: relative;
-      z-index: 2;
-      box-shadow: 0 10px 22px rgba(0,0,0,.25);
-    }
-
-    .receipt:after{
-      content:"";
-      position:absolute;
-      left:0; right:0; bottom:-8px;
-      height: 12px;
-      background: radial-gradient(circle at 8px 6px, transparent 6px, rgba(0,0,0,.0) 7px);
-      background-size: 16px 12px;
-      opacity:.20;
-      pointer-events:none;
+      background:#f3efe6;
+      color:#111;
+      border-radius:14px;
+      padding:12px;
     }
 
     .quote{
-      font-family: "Courier New", monospace;
-      font-size: 18px;
-      font-weight: 1000;
-      letter-spacing: .3px;
-      line-height: 1.2;
+      font-family:"Courier New",monospace;
+      font-size:18px;
+      font-weight:900;
       margin:0;
     }
 
     .source{
-      margin-top: 8px;
-      font-size: 12px;
-      opacity:.75;
+      font-size:12px;
+      opacity:.7;
+      margin-top:6px;
     }
 
-    .printing{
-      overflow:hidden;
-      white-space:nowrap;
-      border-right: 2px solid rgba(0,0,0,.25);
-      animation: typing 900ms steps(42,end);
-    }
-    @keyframes typing{
-      from{ width:0; }
-      to{ width:100%; }
+    /* category glow */
+    .result.bigbook{ box-shadow:0 0 20px rgba(44,125,255,.6); }
+    .result.oldtimer{ box-shadow:0 0 20px rgba(255,213,74,.6); }
+    .result.jackpotOn{ animation: glow 1s infinite alternate; }
+
+    @keyframes glow{
+      from{ box-shadow:0 0 12px rgba(255,255,255,.5); }
+      to{ box-shadow:0 0 26px rgba(255,255,255,.9); }
     }
 
-    .jackpotBanner{
-      position:absolute;
-      right:-42px;
-      top: 14px;
-      transform: rotate(10deg);
-      background:#fff;
-      color:#111;
-      padding: 8px 12px;
-      border-radius: 12px;
-      font-weight: 1000;
-      letter-spacing: .8px;
-      box-shadow: 0 12px 24px rgba(0,0,0,.35);
-      display:none;
-      z-index: 3;
-    }
-
-    .shake{ animation: shake 0.22s linear; }
-    @keyframes shake{
-      0% { transform: translate(0,0); }
-      25% { transform: translate(2px,-1px); }
-      50% { transform: translate(-2px,1px); }
-      75% { transform: translate(2px,1px); }
-      100% { transform: translate(0,0); }
-    }
-
-    .pulse{ animation: pulse 700ms ease-in-out 1; }
-    @keyframes pulse{
-      0%{ transform: scale(1); }
-      35%{ transform: scale(1.015); }
-      100%{ transform: scale(1); }
-    }
-
-    .result.bigbook{
-      border-color: rgba(44,125,255,.55);
-      box-shadow:
-        inset 0 0 18px rgba(44,125,255,.18),
-        0 0 22px rgba(44,125,255,.14),
-        0 12px 30px rgba(0,0,0,.45);
-    }
-    .result.oldtimer{
-      border-color: rgba(255,213,74,.55);
-      box-shadow:
-        inset 0 0 18px rgba(255,213,74,.18),
-        0 0 22px rgba(255,213,74,.14),
-        0 12px 30px rgba(0,0,0,.45);
-    }
-
-    .result.jackpotOn .jackpotBanner{ display:block; }
-    .result.jackpotOn{
-      border-color: rgba(255,255,255,.70);
-      box-shadow:
-        inset 0 0 22px rgba(255,255,255,.18),
-        0 0 28px rgba(255,255,255,.18),
-        0 12px 30px rgba(0,0,0,.45);
-      animation: glowPulse 1.05s ease-in-out infinite alternate;
-    }
-    @keyframes glowPulse{
-      from{
-        box-shadow:
-          inset 0 0 16px rgba(255,255,255,.12),
-          0 0 18px rgba(255,255,255,.14),
-          0 12px 30px rgba(0,0,0,.45);
-      }
-      to{
-        box-shadow:
-          inset 0 0 28px rgba(255,255,255,.20),
-          0 0 34px rgba(255,255,255,.22),
-          0 12px 30px rgba(0,0,0,.45);
-      }
-    }
-
-    .fxLayer{
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      z-index: 4;
-      overflow:hidden;
-    }
-    .particle{
-      position:absolute;
-      left: 50%;
-      top: 30%;
-      transform: translate(-50%,-50%);
-      will-change: transform, opacity;
-      opacity: 0;
-      filter: drop-shadow(0 10px 14px rgba(0,0,0,.35));
-    }
-    .coin{
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 30%, #fff3b0, #f6c84b 45%, #b77912 100%);
-      border: 1px solid rgba(255,255,255,.30);
-    }
-    .star{
-      font-size: 16px;
-      line-height: 1;
-      color: #fff8d7;
-      text-shadow: 0 0 10px rgba(255,255,255,.25);
-    }
-    @keyframes popFly{
-      0%   { opacity:0; transform: translate(-50%,-50%) scale(.8) rotate(0deg); }
-      10%  { opacity:1; }
-      100% { opacity:0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.05) rotate(var(--rot)); }
-    }
-
-    .favorites{
-      margin-top: 16px;
-      border-top: 1px solid rgba(255,255,255,.18);
-      padding-top: 14px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .favHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .favTitle{
-      font-weight: 1000;
-      letter-spacing: .4px;
-      color:#fff;
-      text-shadow: 0 0 12px rgba(0,0,0,.25);
-    }
-
-    .tinyBtn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.30);
-      color:#fff;
-      border-radius: 12px;
-      padding: 8px 10px;
-      cursor:pointer;
-      font-weight: 1000;
-      white-space:nowrap;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-    }
-
-    .favRow{
-      display:flex;
-      justify-content:space-between;
-      gap: 10px;
-      align-items:flex-start;
-      padding: 10px 0;
-      border-bottom: 1px dashed rgba(255,255,255,.18);
-    }
-
-    .favText{
-      font-size: 13px;
-      line-height: 1.35;
-      color: #fff;
-      text-shadow: 0 0 12px rgba(0,0,0,.18);
-    }
-
-    .mini{
-      font-size: 12px;
-      color: rgba(255,255,255,.78);
-      margin-top: 4px;
-    }
+    .favorites{ margin-top:16px; }
+    .favRow{ border-bottom:1px dashed rgba(255,255,255,.2); padding:8px 0; }
 
     .toast{
       position:fixed;
+      bottom:90px;
       left:50%;
-      bottom: 96px;
       transform:translateX(-50%);
       background:#fff;
       color:#111;
       padding:10px 12px;
-      border-radius: 14px;
-      font-size: 13px;
+      border-radius:14px;
       opacity:0;
-      pointer-events:none;
-      transition: opacity 180ms ease;
-      z-index: 20000;
-      box-shadow: 0 12px 28px rgba(0,0,0,.45);
-      font-weight: 900;
+      transition:.2s;
+      font-weight:900;
+      z-index:2000;
     }
     .toast.show{ opacity:1; }
-
-    @media (prefers-reduced-motion: reduce){
-      .printing, .shake, .pulse, .result.jackpotOn{ animation: none !important; }
-      .particle{ display:none !important; }
-      #spinBtn.btn:hover{ transform:none; }
-    }
   </style>
 </head>
 
 <body>
 
-  <div id="topNavMount"></div>
+  <!-- 🔝 Shared TOP BAR -->
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
 
-  <main>
+  <div class="wrap">
     <div class="panel">
-      <div class="headerBlock">
-        <div>
-          <div class="title">🎰 Spiritual Slot Machine</div>
-          <div class="sub">Spin for perspective. Rule 62 is the jackpot.</div>
-        </div>
-        <div class="meta" id="spinCount">Spins: 0</div>
-      </div>
+
+      <img src="./slot-header.png" alt="Spiritual Slot Machine" class="slotHeader">
+      <div class="sub">Spin for perspective. Rule 62 is the jackpot.</div>
 
       <div class="row">
         <button id="spinBtn" class="btn">SPIN</button>
-        <button id="saveBtn" class="btn secondary" disabled>SAVE</button>
-        <button id="shareBtn" class="btn secondary" disabled>SHARE</button>
+        <button id="saveBtn" class="btn" disabled>SAVE</button>
+        <button id="shareBtn" class="btn" disabled>SHARE</button>
       </div>
 
       <div id="resultBox" class="result">
-        <div class="jackpotBanner">⭐ RULE 62 HIT</div>
-        <div id="fxLayer" class="fxLayer" aria-hidden="true"></div>
-
         <div class="tag" id="tag">Ready</div>
-
         <div class="receipt">
           <p class="quote" id="quote">Pull the lever.</p>
           <div class="source" id="source">The machine is warm.</div>
@@ -490,360 +173,113 @@
       </div>
 
       <div class="favorites">
-        <div class="favHeader">
-          <div class="favTitle">Favorites</div>
-          <button id="clearFavBtn" class="tinyBtn">Clear</button>
-        </div>
-        <div id="favList" class="mini">No favorites yet.</div>
+        <strong>Favorites</strong>
+        <div id="favList">No favorites yet.</div>
       </div>
+
     </div>
-  </main>
+  </div>
 
   <div id="toast" class="toast">Saved.</div>
 
-  <div id="bottomNavMount"></div>
+  <!-- 🔻 Shared BOTTOM NAV -->
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
 
-<script>
-/* -----------------------------
-   Quote Pool (keep in this file)
--------------------------------- */
+  <!-- Quote DB -->
+  <script src="./slot-quotes.js"></script>
 
-const slotQuotes = [
-  // OLD-TIMER (weight high) — expanded set
-  { text:"You’re not that important.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Feelings aren’t facts.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Don’t believe everything you think.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You can be right, or you can be sober.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Nobody handed you the clipboard.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Quit managing the universe.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Drop the rope.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Stop arguing with reality.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Your reaction is the problem.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  <script>
+  const slotQuotes = window.SLOT_QUOTES || [];
 
-  /* ✅ 50+ MORE OLD-TIMER QUOTES (short, punchy, meeting-room energy) */
-  { text:"First thought wrong.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Easy does it… but do it.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Keep your mouth shut and your ears open.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Get off the cross—we need the wood.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"If you’re pointing fingers, you’re missing the lesson.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"It’s not your job to fix people.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Don’t confuse calm with boring.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"We don’t do this alone.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You’re not unique—you’re alcoholic.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Keep it simple, genius.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You want peace or you want drama?", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Quit rehearsing disasters.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Your best thinking got you here.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You can’t save your ass and your face at the same time.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"If you spot it, you got it.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Resentment is drinking poison and waiting on them to die.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Do the next right thing.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"The problem is not the problem—your attitude is the problem.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Stop playing lawyer with your life.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Your feelings will lie to you.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Don’t quit before the miracle.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Stop taking the temperature of the room.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"If you don’t want what you have, do something different.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"This ain’t a debating society.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"If you’re late, you’re in your ego.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Put your pride in your pocket.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"What other people think of you is none of your business.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You’re not responsible for their feelings.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You are not the director.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You can’t think your way into right action—you act your way into right thinking.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"If you want what we have, do what we do.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Your comfort is not your Higher Power.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Stop renting space in your head.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Call your sponsor—don’t call your dealer.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Don’t confuse your opinion with a spiritual principle.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"If you’re upset, you’re in self.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Be where your feet are.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Listen like your life depends on it.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You can’t heal what you won’t reveal.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"If you keep doing what you did, you’ll keep getting what you got.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Some days the spiritual program is: don’t be a jerk.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Humble up.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You can’t control people, places, or things—good luck trying.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"If you’re carrying it, you’re not turning it over.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You’re not stuck—you’re comfortable.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Don’t make a permanent decision on a temporary feeling.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You don’t need to understand it. You need to do it.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Stop negotiating with your disease.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Your ego isn’t your amigo.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"The more you talk, the less you hear.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Pain is mandatory. Suffering is optional.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Let go or be dragged.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You don’t have to like it—you just have to accept it.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"If you’re looking for the problem, check the mirror.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Keep coming back—your worst day sober beats your best day drunk.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"We’re not here to be impressed. We’re here to be free.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"If you can’t be nice, be quiet.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"God’s not late. You are.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Your job is the footwork.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Stop trying to outsmart a spiritual program.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-
-  // BIG BOOK (weight medium)
-  { text:"Half measures availed us nothing.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
-  { text:"Love and tolerance is our code.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
-  { text:"Pause when agitated or doubtful.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
-  { text:"Nothing pays off like restraint.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
-  { text:"We are not saints.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
-
-  // ACCEPTANCE
-  { text:"You don’t have to solve today.", category:"acceptance", label:"🕊️ Acceptance", weight:2 },
-  { text:"Stay sober. That’s enough.", category:"acceptance", label:"🕊️ Acceptance", weight:2 },
-  { text:"Breathe. Then decide.", category:"acceptance", label:"🕊️ Acceptance", weight:2 },
-
-  // MISFITS HUMOR
-  { text:"Put the cape down.", category:"misfits", label:"😏 Misfits", weight:1 },
-  { text:"Nobody elected you mayor of everything.", category:"misfits", label:"😏 Misfits", weight:1 },
-
-  // RULE 62 JACKPOT (rare)
-  { text:"Don’t take yourself so damn seriously.", category:"rule62", label:"⭐ Rule 62 Jackpot", weight:1 },
-  { text:"Relax. Nobody is watching you.", category:"rule62", label:"⭐ Rule 62 Jackpot", weight:1 },
-];
-
-/* -----------------------------
-   Weighted picker
--------------------------------- */
-function buildWeightedPool(quotes){
-  const pool = [];
-  quotes.forEach(q=>{
-    for(let i=0;i<(q.weight||1);i++) pool.push(q);
-  });
-  return pool;
-}
-const weightedPool = buildWeightedPool(slotQuotes);
-
-/* -----------------------------
-   State + storage
--------------------------------- */
-const LS_SPINS = "rm_slot_spins";
-const LS_FAVS  = "rm_slot_favs";
-
-let spins = parseInt(localStorage.getItem(LS_SPINS) || "0", 10);
-let favorites = JSON.parse(localStorage.getItem(LS_FAVS) || "[]");
-
-let lastResult = null;
-
-/* -----------------------------
-   UI refs
--------------------------------- */
-const spinBtn = document.getElementById("spinBtn");
-const saveBtn = document.getElementById("saveBtn");
-const shareBtn= document.getElementById("shareBtn");
-const clearFavBtn = document.getElementById("clearFavBtn");
-
-const resultBox = document.getElementById("resultBox");
-const fxLayer = document.getElementById("fxLayer");
-
-const tagEl = document.getElementById("tag");
-const quoteEl = document.getElementById("quote");
-const sourceEl = document.getElementById("source");
-const spinCountEl = document.getElementById("spinCount");
-const favList = document.getElementById("favList");
-const toast = document.getElementById("toast");
-
-/* -----------------------------
-   Helpers
--------------------------------- */
-function showToast(msg){
-  toast.textContent = msg;
-  toast.classList.add("show");
-  setTimeout(()=>toast.classList.remove("show"), 900);
-}
-
-function escapeHtml(str){
-  return (str||"").replace(/[&<>"']/g, m => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[m]));
-}
-
-function renderFavorites(){
-  if(!favorites.length){
-    favList.className = "mini";
-    favList.textContent = "No favorites yet.";
-    return;
-  }
-  favList.className = "";
-  favList.innerHTML = favorites.map((f, idx)=>`
-    <div class="favRow">
-      <div class="favText">
-        “${escapeHtml(f.text)}”
-        <div class="mini">${escapeHtml(f.label || f.category)}</div>
-      </div>
-      <button class="tinyBtn" onclick="removeFavorite(${idx})">Remove</button>
-    </div>
-  `).join("");
-}
-
-window.removeFavorite = function(idx){
-  favorites.splice(idx,1);
-  localStorage.setItem(LS_FAVS, JSON.stringify(favorites));
-  renderFavorites();
-};
-
-function clearFx(){ fxLayer.innerHTML = ""; }
-
-function spawnParticles(kind, count){
-  const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(reducedMotion) return;
-
-  for(let i=0;i<count;i++){
-    const el = document.createElement("div");
-    el.className = `particle ${kind === "coin" ? "coin" : "star"}`;
-
-    const dx = (Math.random()*520 - 260).toFixed(1) + "px";
-    const dy = (Math.random()*-420 - 120).toFixed(1) + "px";
-    const rot = (Math.random()*720 - 360).toFixed(1) + "deg";
-    const dur = (Math.random()*420 + 820).toFixed(0) + "ms";
-    const delay = (Math.random()*120).toFixed(0) + "ms";
-
-    el.style.setProperty("--dx", dx);
-    el.style.setProperty("--dy", dy);
-    el.style.setProperty("--rot", rot);
-    el.style.animation = `popFly ${dur} ease-out ${delay} 1`;
-
-    if(kind === "star") el.textContent = (Math.random() < 0.5) ? "★" : "✦";
-
-    fxLayer.appendChild(el);
-
-    const cleanupAt = parseInt(dur,10) + parseInt(delay,10) + 60;
-    setTimeout(()=>{ el.remove(); }, cleanupAt);
-  }
-}
-
-function buzz(pattern){
-  try{ if("vibrate" in navigator) navigator.vibrate(pattern); }catch(e){}
-}
-
-function applyCategoryState(category){
-  resultBox.classList.remove("bigbook","oldtimer","jackpotOn");
-  if(category === "bigbook"){ resultBox.classList.add("bigbook"); return; }
-  if(category === "oldtimer"){ resultBox.classList.add("oldtimer"); return; }
-  if(category === "rule62"){ resultBox.classList.add("jackpotOn"); return; }
-}
-
-function setResult(res){
-  lastResult = res;
-
-  tagEl.textContent = res.label || res.category;
-  quoteEl.textContent = `“${res.text}”`;
-
-  sourceEl.textContent =
-    (res.category === "bigbook") ? "— Alcoholics Anonymous" :
-    (res.category === "rule62") ? "— Rule 62" :
-    (res.category === "misfits") ? "— Recovery Misfits" :
-    (res.category === "acceptance") ? "— Acceptance" :
-    "— Old-timer energy";
-
-  resultBox.classList.remove("pulse","shake");
-  quoteEl.classList.remove("printing");
-  void resultBox.offsetWidth;
-
-  applyCategoryState(res.category);
-
-  resultBox.classList.add("pulse");
-  void quoteEl.offsetWidth;
-  quoteEl.classList.add("printing");
-
-  clearFx();
-
-  if(res.category === "bigbook") buzz(25);
-  if(res.category === "oldtimer") buzz(18);
-
-  if(res.category === "rule62"){
-    resultBox.classList.add("shake");
-    buzz([0, 70, 40, 120, 40, 170]);
-    spawnParticles("coin", 26);
-    spawnParticles("star", 18);
-    setTimeout(()=>{
-      spawnParticles("coin", 18);
-      spawnParticles("star", 12);
-    }, 160);
-    setTimeout(()=>{
-      resultBox.classList.add("shake");
-      void resultBox.offsetWidth;
-    }, 220);
-  }
-
-  saveBtn.disabled = false;
-  shareBtn.disabled = !navigator.share;
-}
-
-function spin(){
-  spinBtn.disabled = true;
-  saveBtn.disabled = true;
-  shareBtn.disabled = true;
-
-  resultBox.classList.remove("bigbook","oldtimer","jackpotOn","pulse","shake");
-  clearFx();
-
-  tagEl.textContent = "Spinning…";
-  quoteEl.textContent = "…";
-  sourceEl.textContent = "";
-
-  const ticks = 12;
-  let t = 0;
-  const tickTimer = setInterval(()=>{
-    const temp = weightedPool[Math.floor(Math.random()*weightedPool.length)];
-    quoteEl.textContent = `“${temp.text}”`;
-    t++;
-    if(t >= ticks){
-      clearInterval(tickTimer);
-      const result = weightedPool[Math.floor(Math.random()*weightedPool.length)];
-      setResult(result);
-
-      spins++;
-      localStorage.setItem(LS_SPINS, String(spins));
-      spinCountEl.textContent = `Spins: ${spins}`;
-
-      spinBtn.disabled = false;
-    }
-  }, 65);
-}
-
-/* -----------------------------
-   Actions
--------------------------------- */
-spinBtn.addEventListener("click", spin);
-
-saveBtn.addEventListener("click", ()=>{
-  if(!lastResult) return;
-  const exists = favorites.some(f=>f.text === lastResult.text);
-  if(exists){ showToast("Already saved."); return; }
-  favorites.unshift({ text:lastResult.text, category:lastResult.category, label:lastResult.label });
-  localStorage.setItem(LS_FAVS, JSON.stringify(favorites));
-  renderFavorites();
-  showToast("Saved.");
-});
-
-shareBtn.addEventListener("click", async ()=>{
-  if(!lastResult || !navigator.share) return;
-  try{
-    await navigator.share({
-      title: "Spiritual Slot Machine — Recovery Misfits",
-      text: `Spiritual Slot Machine hit:\n\n“${lastResult.text}”\n\n— Recovery Misfits`,
+  function buildWeightedPool(quotes){
+    const pool=[];
+    quotes.forEach(q=>{
+      for(let i=0;i<(q.weight||1);i++) pool.push(q);
     });
-  }catch(e){}
-});
+    return pool;
+  }
+  const weightedPool=buildWeightedPool(slotQuotes);
 
-clearFavBtn.addEventListener("click", ()=>{
-  favorites = [];
-  localStorage.setItem(LS_FAVS, "[]");
+  let lastResult=null;
+  let favorites=JSON.parse(localStorage.getItem("rm_slot_favs")||"[]");
+
+  const spinBtn=document.getElementById("spinBtn");
+  const saveBtn=document.getElementById("saveBtn");
+  const shareBtn=document.getElementById("shareBtn");
+  const resultBox=document.getElementById("resultBox");
+  const quoteEl=document.getElementById("quote");
+  const sourceEl=document.getElementById("source");
+  const tagEl=document.getElementById("tag");
+  const favList=document.getElementById("favList");
+  const toast=document.getElementById("toast");
+
+  function showToast(msg){
+    toast.textContent=msg;
+    toast.classList.add("show");
+    setTimeout(()=>toast.classList.remove("show"),900);
+  }
+
+  function renderFavorites(){
+    if(!favorites.length){
+      favList.textContent="No favorites yet.";
+      return;
+    }
+    favList.innerHTML=favorites.map((f,i)=>`
+      <div class="favRow">
+        “${f.text}”
+        <button onclick="removeFavorite(${i})">Remove</button>
+      </div>`).join("");
+  }
+
+  window.removeFavorite=function(i){
+    favorites.splice(i,1);
+    localStorage.setItem("rm_slot_favs",JSON.stringify(favorites));
+    renderFavorites();
+  };
+
+  function setResult(res){
+    lastResult=res;
+
+    tagEl.textContent=res.label;
+    quoteEl.textContent=`“${res.text}”`;
+    sourceEl.textContent=res.category;
+
+    resultBox.classList.remove("bigbook","oldtimer","jackpotOn");
+
+    if(res.category==="bigbook") resultBox.classList.add("bigbook");
+    if(res.category==="oldtimer") resultBox.classList.add("oldtimer");
+    if(res.category==="rule62") resultBox.classList.add("jackpotOn");
+
+    saveBtn.disabled=false;
+    shareBtn.disabled=!navigator.share;
+  }
+
+  function spin(){
+    const result=weightedPool[Math.floor(Math.random()*weightedPool.length)];
+    setResult(result);
+  }
+
+  spinBtn.onclick=spin;
+
+  saveBtn.onclick=()=>{
+    if(!lastResult) return;
+    favorites.unshift(lastResult);
+    localStorage.setItem("rm_slot_favs",JSON.stringify(favorites));
+    renderFavorites();
+    showToast("Saved.");
+  };
+
+  shareBtn.onclick=async()=>{
+    if(!navigator.share||!lastResult) return;
+    await navigator.share({
+      title:"Spiritual Slot Machine",
+      text:`“${lastResult.text}” — Recovery Misfits`
+    });
+  };
+
   renderFavorites();
-  showToast("Cleared.");
-});
-
-/* -----------------------------
-   Init
--------------------------------- */
-spinCountEl.textContent = `Spins: ${spins}`;
-renderFavorites();
-</script>
-
-<script src="./top-nav.js"></script>
-<script src="./nav.js"></script>
+  </script>
 
 </body>
 </html>
