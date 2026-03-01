@@ -7,7 +7,7 @@
 
   <!-- ✅ PWA bits -->
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#1b0033" />
   <link rel="icon" href="./icon-192.png">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,24 +16,42 @@
 
   <style>
     :root{
-      --border: rgba(255,255,255,.10);
-      --muted: rgba(255,255,255,.70);
-      --bg:#0b0b0b;
+      --border: rgba(255,255,255,.12);
+      --muted: rgba(255,255,255,.75);
+
+      /* ✅ Royal purple bg */
+      --bg1:#1b0033;
+      --bg2:#2a0052;
+
       --text:#f2f2f2;
-      --panel1:#1b1b1b;
-      --panel2:#111;
-      --soft:#141414;
+
+      /* ✅ Gold machine */
+      --gold1:#d8b24a;
+      --gold2:#b8891e;
+      --gold3:#7a520c;
+
+      --panelInk:#120a1a;
+
+      /* ✅ Buttons black */
       --btnText:#fff;
-      --ink:#111;
+
       --paper:#f3efe6;
       --paperInk:#1a1a1a;
+
+      /* Category accent colors */
+      --accent-blue:#2c7dff;     /* big book */
+      --accent-yellow:#ffd54a;   /* old timer */
+      --accent-white:#ffffff;    /* rule 62 */
     }
 
     body{
       margin:0;
       font-family: Roboto, Arial, sans-serif;
-      background: var(--bg);
+      background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.06), transparent 35%),
+                  radial-gradient(circle at 85% 25%, rgba(255,255,255,.05), transparent 40%),
+                  linear-gradient(160deg, var(--bg1), var(--bg2));
       color: var(--text);
+      min-height: 100vh;
     }
 
     /* top nav + bottom nav containers (nav injected by your JS) */
@@ -46,29 +64,33 @@
       margin: 0 auto;
     }
 
-    /* Cabinet panel */
+    /* Cabinet panel (GOLD MACHINE) */
     .panel{
       border-radius: 22px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: linear-gradient(var(--panel1), var(--panel2));
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.45)),
+        linear-gradient(135deg, var(--gold1), var(--gold2) 55%, var(--gold3));
       box-shadow:
-        0 16px 40px rgba(0,0,0,.55),
-        inset 0 1px 0 rgba(255,255,255,.06);
+        0 18px 48px rgba(0,0,0,.55),
+        inset 0 1px 0 rgba(255,255,255,.18),
+        inset 0 -10px 22px rgba(0,0,0,.28);
       padding: 16px;
       position: relative;
       overflow: hidden;
+      color: #fff;
     }
 
-    /* subtle texture (no external images) */
+    /* subtle "engraving" texture */
     .panel:before{
       content:"";
       position:absolute;
       inset:0;
       background:
-        radial-gradient(circle at 20% 10%, rgba(255,255,255,.06), transparent 40%),
-        radial-gradient(circle at 80% 30%, rgba(255,255,255,.04), transparent 45%),
-        linear-gradient(transparent, rgba(255,255,255,.03));
-      opacity:.55;
+        radial-gradient(circle at 20% 10%, rgba(255,255,255,.18), transparent 42%),
+        radial-gradient(circle at 80% 30%, rgba(255,255,255,.12), transparent 48%),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 2px, transparent 2px 8px);
+      opacity:.28;
       pointer-events:none;
     }
 
@@ -85,19 +107,21 @@
       font-weight: 1000;
       letter-spacing: .6px;
       font-size: 18px;
-      text-shadow: 0 0 14px rgba(255,255,255,.10);
+      text-shadow: 0 0 14px rgba(0,0,0,.35);
     }
 
     .sub{
       font-size: 12px;
-      color: var(--muted);
+      color: rgba(255,255,255,.85);
       margin-top: 4px;
+      text-shadow: 0 0 14px rgba(0,0,0,.25);
     }
 
     .meta{
       font-size: 12px;
-      color: var(--muted);
+      color: rgba(255,255,255,.85);
       white-space: nowrap;
+      text-shadow: 0 0 14px rgba(0,0,0,.25);
     }
 
     .row{
@@ -109,34 +133,30 @@
       flex-wrap:wrap;
     }
 
+    /* ✅ Buttons BLACK */
     .btn{
       appearance:none;
-      border: 1px solid rgba(255,255,255,.10);
-      background: linear-gradient(#2b2b2b,#111);
+      border: 1px solid rgba(255,255,255,.16);
+      background: linear-gradient(#111,#000);
       color: var(--btnText);
       padding: 12px 14px;
       border-radius: 14px;
-      font-weight: 900;
+      font-weight: 1000;
       letter-spacing: .3px;
       cursor:pointer;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.10),
+        0 10px 22px rgba(0,0,0,.35);
       user-select:none;
     }
-
-    .btn:hover{
-      background: linear-gradient(#343434,#111);
-    }
-
-    .btn:disabled{
-      opacity:.55;
-      cursor:not-allowed;
-    }
+    .btn:hover{ background: linear-gradient(#1a1a1a,#000); }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
 
     .btn.secondary{
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
-      color: #eaeaea;
-      box-shadow:none;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.16);
+      color: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
 
     /* Result window (screen) */
@@ -144,11 +164,11 @@
       position: relative;
       margin-top: 14px;
       border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: linear-gradient(#0f0f0f, #171717);
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(#0b0b0b, #141414);
       box-shadow:
-        inset 0 0 16px rgba(0,0,0,.85),
-        0 10px 26px rgba(0,0,0,.45);
+        inset 0 0 18px rgba(0,0,0,.85),
+        0 12px 30px rgba(0,0,0,.45);
       padding: 14px;
       min-height: 150px;
       overflow:hidden;
@@ -159,8 +179,8 @@
       content:"";
       position:absolute;
       inset:-30%;
-      background: radial-gradient(circle at center, rgba(255,255,255,.06), transparent 55%);
-      opacity:.55;
+      background: radial-gradient(circle at center, rgba(255,255,255,.10), transparent 55%);
+      opacity:.50;
       pointer-events:none;
     }
 
@@ -169,11 +189,11 @@
       align-items:center;
       gap: 8px;
       font-size: 12px;
-      font-weight: 900;
+      font-weight: 1000;
       padding: 7px 10px;
       border-radius: 999px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
       color: #fff;
       position: relative;
       z-index: 2;
@@ -197,9 +217,7 @@
       position:absolute;
       left:0; right:0; bottom:-8px;
       height: 12px;
-      background:
-        radial-gradient(circle at 8px 6px, transparent 6px, rgba(0,0,0,.0) 7px),
-        linear-gradient(transparent, transparent);
+      background: radial-gradient(circle at 8px 6px, transparent 6px, rgba(0,0,0,.0) 7px);
       background-size: 16px 12px;
       opacity:.20;
       pointer-events:none;
@@ -208,7 +226,7 @@
     .quote{
       font-family: "Courier New", monospace;
       font-size: 18px;
-      font-weight: 900;
+      font-weight: 1000;
       letter-spacing: .3px;
       line-height: 1.2;
       margin:0;
@@ -238,7 +256,7 @@
       right:-42px;
       top: 14px;
       transform: rotate(10deg);
-      background:#f2f2f2;
+      background:#fff;
       color:#111;
       padding: 8px 12px;
       border-radius: 12px;
@@ -249,35 +267,8 @@
       z-index: 3;
     }
 
-    /* Jackpot state */
-    .jackpotOn .jackpotBanner{ display:block; }
-    .jackpotOn{
-      border-color: rgba(255,255,255,.22);
-      box-shadow:
-        inset 0 0 18px rgba(255,255,255,.08),
-        0 0 26px rgba(255,255,255,.10),
-        0 12px 28px rgba(0,0,0,.50);
-      animation: glowPulse 1.15s ease-in-out infinite alternate;
-    }
-    @keyframes glowPulse{
-      from{
-        box-shadow:
-          inset 0 0 14px rgba(255,255,255,.06),
-          0 0 16px rgba(255,255,255,.08),
-          0 12px 28px rgba(0,0,0,.50);
-      }
-      to{
-        box-shadow:
-          inset 0 0 22px rgba(255,255,255,.10),
-          0 0 26px rgba(255,255,255,.12),
-          0 12px 28px rgba(0,0,0,.50);
-      }
-    }
-
     /* cabinet shake (subtle) */
-    .shake{
-      animation: shake 0.22s linear;
-    }
+    .shake{ animation: shake 0.22s linear; }
     @keyframes shake{
       0% { transform: translate(0,0); }
       25% { transform: translate(2px,-1px); }
@@ -287,18 +278,93 @@
     }
 
     /* tiny pulse each spin */
-    .pulse{
-      animation: pulse 700ms ease-in-out 1;
-    }
+    .pulse{ animation: pulse 700ms ease-in-out 1; }
     @keyframes pulse{
       0%{ transform: scale(1); }
       35%{ transform: scale(1.015); }
       100%{ transform: scale(1); }
     }
 
+    /* ✅ CATEGORY COLOR STATES (result area reacts) */
+    .result.bigbook{
+      border-color: rgba(44,125,255,.55);
+      box-shadow:
+        inset 0 0 18px rgba(44,125,255,.18),
+        0 0 22px rgba(44,125,255,.14),
+        0 12px 30px rgba(0,0,0,.45);
+    }
+    .result.oldtimer{
+      border-color: rgba(255,213,74,.55);
+      box-shadow:
+        inset 0 0 18px rgba(255,213,74,.18),
+        0 0 22px rgba(255,213,74,.14),
+        0 12px 30px rgba(0,0,0,.45);
+    }
+
+    /* ✅ RULE 62 BONKERS MODE */
+    .result.jackpotOn .jackpotBanner{ display:block; }
+    .result.jackpotOn{
+      border-color: rgba(255,255,255,.70);
+      box-shadow:
+        inset 0 0 22px rgba(255,255,255,.18),
+        0 0 28px rgba(255,255,255,.18),
+        0 12px 30px rgba(0,0,0,.45);
+      animation: glowPulse 1.05s ease-in-out infinite alternate;
+    }
+    @keyframes glowPulse{
+      from{
+        box-shadow:
+          inset 0 0 16px rgba(255,255,255,.12),
+          0 0 18px rgba(255,255,255,.14),
+          0 12px 30px rgba(0,0,0,.45);
+      }
+      to{
+        box-shadow:
+          inset 0 0 28px rgba(255,255,255,.20),
+          0 0 34px rgba(255,255,255,.22),
+          0 12px 30px rgba(0,0,0,.45);
+      }
+    }
+
+    /* ✅ Particle FX layer (coins + stars) */
+    .fxLayer{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index: 4;
+      overflow:hidden;
+    }
+    .particle{
+      position:absolute;
+      left: 50%;
+      top: 30%;
+      transform: translate(-50%,-50%);
+      will-change: transform, opacity;
+      opacity: 0;
+      filter: drop-shadow(0 10px 14px rgba(0,0,0,.35));
+    }
+    .coin{
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #fff3b0, #f6c84b 45%, #b77912 100%);
+      border: 1px solid rgba(255,255,255,.30);
+    }
+    .star{
+      font-size: 16px;
+      line-height: 1;
+      color: #fff8d7;
+      text-shadow: 0 0 10px rgba(255,255,255,.25);
+    }
+    @keyframes popFly{
+      0%   { opacity:0; transform: translate(-50%,-50%) scale(.8) rotate(0deg); }
+      10%  { opacity:1; }
+      100% { opacity:0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.05) rotate(var(--rot)); }
+    }
+
     .favorites{
       margin-top: 16px;
-      border-top: 1px solid rgba(255,255,255,.10);
+      border-top: 1px solid rgba(255,255,255,.18);
       padding-top: 14px;
       position: relative;
       z-index: 2;
@@ -315,18 +381,21 @@
     .favTitle{
       font-weight: 1000;
       letter-spacing: .4px;
+      color:#fff;
+      text-shadow: 0 0 12px rgba(0,0,0,.25);
     }
 
     .tinyBtn{
       appearance:none;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color:#eaeaea;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.30);
+      color:#fff;
       border-radius: 12px;
       padding: 8px 10px;
       cursor:pointer;
-      font-weight: 900;
+      font-weight: 1000;
       white-space:nowrap;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
 
     .favRow{
@@ -335,18 +404,19 @@
       gap: 10px;
       align-items:flex-start;
       padding: 10px 0;
-      border-bottom: 1px dashed rgba(255,255,255,.12);
+      border-bottom: 1px dashed rgba(255,255,255,.18);
     }
 
     .favText{
       font-size: 13px;
       line-height: 1.35;
-      color: #f2f2f2;
+      color: #fff;
+      text-shadow: 0 0 12px rgba(0,0,0,.18);
     }
 
     .mini{
       font-size: 12px;
-      color: rgba(255,255,255,.65);
+      color: rgba(255,255,255,.78);
       margin-top: 4px;
     }
 
@@ -355,7 +425,7 @@
       left:50%;
       bottom: 96px; /* above bottom nav */
       transform:translateX(-50%);
-      background:#f2f2f2;
+      background:#fff;
       color:#111;
       padding:10px 12px;
       border-radius: 14px;
@@ -365,9 +435,15 @@
       transition: opacity 180ms ease;
       z-index: 20000;
       box-shadow: 0 12px 28px rgba(0,0,0,.45);
-      font-weight: 800;
+      font-weight: 900;
     }
     .toast.show{ opacity:1; }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .printing, .shake, .pulse, .result.jackpotOn{ animation: none !important; }
+      .particle{ display:none !important; }
+    }
   </style>
 </head>
 
@@ -394,6 +470,9 @@
 
       <div id="resultBox" class="result">
         <div class="jackpotBanner">⭐ RULE 62 HIT</div>
+
+        <!-- ✅ FX layer for coins/stars -->
+        <div id="fxLayer" class="fxLayer" aria-hidden="true"></div>
 
         <div class="tag" id="tag">Ready</div>
 
@@ -424,7 +503,7 @@
 -------------------------------- */
 
 const slotQuotes = [
-  // OLD-TIMER (weight high) — sample set; keep your big pool here
+  // OLD-TIMER (weight high)
   { text:"You’re not that important.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
   { text:"Feelings aren’t facts.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
   { text:"Don’t believe everything you think.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
@@ -442,12 +521,12 @@ const slotQuotes = [
   { text:"Nothing pays off like restraint.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
   { text:"We are not saints.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
 
-  // ACCEPTANCE (weight medium-low)
+  // ACCEPTANCE
   { text:"You don’t have to solve today.", category:"acceptance", label:"🕊️ Acceptance", weight:2 },
   { text:"Stay sober. That’s enough.", category:"acceptance", label:"🕊️ Acceptance", weight:2 },
   { text:"Breathe. Then decide.", category:"acceptance", label:"🕊️ Acceptance", weight:2 },
 
-  // MISFITS HUMOR (weight low)
+  // MISFITS HUMOR
   { text:"Put the cape down.", category:"misfits", label:"😏 Misfits", weight:1 },
   { text:"Nobody elected you mayor of everything.", category:"misfits", label:"😏 Misfits", weight:1 },
 
@@ -488,6 +567,8 @@ const shareBtn= document.getElementById("shareBtn");
 const clearFavBtn = document.getElementById("clearFavBtn");
 
 const resultBox = document.getElementById("resultBox");
+const fxLayer = document.getElementById("fxLayer");
+
 const tagEl = document.getElementById("tag");
 const quoteEl = document.getElementById("quote");
 const sourceEl = document.getElementById("source");
@@ -534,6 +615,70 @@ window.removeFavorite = function(idx){
   renderFavorites();
 };
 
+function clearFx(){
+  fxLayer.innerHTML = "";
+}
+
+function spawnParticles(kind, count){
+  // kind: "coin" | "star"
+  const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reducedMotion) return;
+
+  for(let i=0;i<count;i++){
+    const el = document.createElement("div");
+    el.className = `particle ${kind === "coin" ? "coin" : "star"}`;
+
+    // random trajectory
+    const dx = (Math.random()*520 - 260).toFixed(1) + "px";
+    const dy = (Math.random()*-420 - 120).toFixed(1) + "px"; // fly upward
+    const rot = (Math.random()*720 - 360).toFixed(1) + "deg";
+    const dur = (Math.random()*420 + 820).toFixed(0) + "ms";
+    const delay = (Math.random()*120).toFixed(0) + "ms";
+
+    el.style.setProperty("--dx", dx);
+    el.style.setProperty("--dy", dy);
+    el.style.setProperty("--rot", rot);
+    el.style.animation = `popFly ${dur} ease-out ${delay} 1`;
+
+    if(kind === "star"){
+      el.textContent = (Math.random() < 0.5) ? "★" : "✦";
+    }
+
+    fxLayer.appendChild(el);
+
+    // cleanup after animation
+    const cleanupAt = parseInt(dur,10) + parseInt(delay,10) + 60;
+    setTimeout(()=>{ el.remove(); }, cleanupAt);
+  }
+}
+
+function buzz(pattern){
+  try{
+    if("vibrate" in navigator) navigator.vibrate(pattern);
+  }catch(e){}
+}
+
+function applyCategoryState(category){
+  // clear category classes
+  resultBox.classList.remove("bigbook","oldtimer","jackpotOn");
+
+  // big book = blue
+  if(category === "bigbook"){
+    resultBox.classList.add("bigbook");
+    return;
+  }
+  // old timer = yellow
+  if(category === "oldtimer"){
+    resultBox.classList.add("oldtimer");
+    return;
+  }
+  // rule 62 = BONKERS
+  if(category === "rule62"){
+    resultBox.classList.add("jackpotOn");
+    return;
+  }
+}
+
 function setResult(res){
   lastResult = res;
 
@@ -548,16 +693,14 @@ function setResult(res){
     "— Old-timer energy";
 
   // reset animations
-  resultBox.classList.remove("jackpotOn","pulse","shake");
+  resultBox.classList.remove("pulse","shake");
   quoteEl.classList.remove("printing");
 
   // force reflow for re-triggering animations
   void resultBox.offsetWidth;
 
-  // jackpot behavior
-  if(res.category === "rule62"){
-    resultBox.classList.add("jackpotOn","shake");
-  }
+  // apply category visuals
+  applyCategoryState(res.category);
 
   // punchy pulse every spin
   resultBox.classList.add("pulse");
@@ -565,6 +708,39 @@ function setResult(res){
   // receipt print effect
   void quoteEl.offsetWidth;
   quoteEl.classList.add("printing");
+
+  // 🔥 Special behaviors
+  clearFx();
+
+  if(res.category === "bigbook"){
+    // subtle buzz, blue already handled
+    buzz(25);
+  }
+
+  if(res.category === "oldtimer"){
+    // tiny buzz
+    buzz(18);
+  }
+
+  if(res.category === "rule62"){
+    // screen shake + heavy buzz + coins + stars
+    resultBox.classList.add("shake");
+    buzz([0, 70, 40, 120, 40, 170]);
+    spawnParticles("coin", 26);
+    spawnParticles("star", 18);
+
+    // do a second burst a beat later
+    setTimeout(()=>{
+      spawnParticles("coin", 18);
+      spawnParticles("star", 12);
+    }, 160);
+
+    // and one more tiny shake
+    setTimeout(()=>{
+      resultBox.classList.add("shake");
+      void resultBox.offsetWidth;
+    }, 220);
+  }
 
   saveBtn.disabled = false;
   shareBtn.disabled = !navigator.share;
@@ -575,7 +751,10 @@ function spin(){
   saveBtn.disabled = true;
   shareBtn.disabled = true;
 
-  resultBox.classList.remove("jackpotOn","pulse","shake");
+  // clear states
+  resultBox.classList.remove("bigbook","oldtimer","jackpotOn","pulse","shake");
+  clearFx();
+
   tagEl.textContent = "Spinning…";
   quoteEl.textContent = "…";
   sourceEl.textContent = "";
@@ -643,12 +822,9 @@ renderFavorites();
 
 /* -----------------------------
    ✅ NAV INJECTION (your shared files)
-   - top-nav.js should inject the top bar into #topNavMount
-   - nav.js should inject the bottom nav into #bottomNavMount
 -------------------------------- */
 </script>
 
-<!-- If you already have these shared scripts in your app, this will hook right in -->
 <script src="./top-nav.js"></script>
 <script src="./nav.js"></script>
 
