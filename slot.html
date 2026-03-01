@@ -5,54 +5,105 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Spiritual Slot Machine — Recovery Misfits</title>
 
+  <!-- ✅ PWA bits -->
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#000000" />
   <link rel="icon" href="./icon-192.png">
   <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
 
   <style>
     :root{
-      --border: rgba(0,0,0,.14);
-      --muted: rgba(0,0,0,.65);
-      --bg:#fff;
-      --text:#111;
-      --btn:#111;
+      --border: rgba(255,255,255,.10);
+      --muted: rgba(255,255,255,.70);
+      --bg:#0b0b0b;
+      --text:#f2f2f2;
+      --panel1:#1b1b1b;
+      --panel2:#111;
+      --soft:#141414;
       --btnText:#fff;
-      --card:#fff;
-      --jackpot:#111;
-      --soft:#f5f5f5;
+      --ink:#111;
+      --paper:#f3efe6;
+      --paperInk:#1a1a1a;
     }
+
     body{
       margin:0;
       font-family: Roboto, Arial, sans-serif;
-      background:var(--bg);
-      color:var(--text);
+      background: var(--bg);
+      color: var(--text);
     }
-    header{
-      position:sticky;
-      top:0;
-      z-index:10;
-      background:#fff;
-      border-bottom:1px solid var(--border);
-      padding:12px;
-      text-align:center;
+
+    /* top nav + bottom nav containers (nav injected by your JS) */
+    #topNavMount{ position:sticky; top:0; z-index:10000; }
+    #bottomNavMount{ position:fixed; left:0; right:0; bottom:0; z-index:10000; }
+
+    main{
+      padding: 14px 14px 110px; /* leave room for bottom nav */
+      max-width: 820px;
+      margin: 0 auto;
     }
-    .brand{ font-weight:900; letter-spacing:.4px; }
-    .sub{ font-size:13px; color:var(--muted); margin-top:4px; }
 
-    main{ padding:16px 14px 90px; max-width:720px; margin:0 auto; }
-
+    /* Cabinet panel */
     .panel{
-      border:1px solid var(--border);
-      border-radius:16px;
-      background:var(--card);
-      padding:16px;
-      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(var(--panel1), var(--panel2));
+      box-shadow:
+        0 16px 40px rgba(0,0,0,.55),
+        inset 0 1px 0 rgba(255,255,255,.06);
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* subtle texture (no external images) */
+    .panel:before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255,255,255,.06), transparent 40%),
+        radial-gradient(circle at 80% 30%, rgba(255,255,255,.04), transparent 45%),
+        linear-gradient(transparent, rgba(255,255,255,.03));
+      opacity:.55;
+      pointer-events:none;
+    }
+
+    .headerBlock{
+      position: relative;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .title{
+      font-weight: 1000;
+      letter-spacing: .6px;
+      font-size: 18px;
+      text-shadow: 0 0 14px rgba(255,255,255,.10);
+    }
+
+    .sub{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .meta{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
     }
 
     .row{
+      position: relative;
       display:flex;
-      gap:12px;
+      gap: 10px;
       align-items:center;
       justify-content:space-between;
       flex-wrap:wrap;
@@ -60,206 +111,334 @@
 
     .btn{
       appearance:none;
-      border:none;
-      background:var(--btn);
-      color:var(--btnText);
-      padding:12px 14px;
-      border-radius:12px;
-      font-weight:800;
-      letter-spacing:.3px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(#2b2b2b,#111);
+      color: var(--btnText);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 900;
+      letter-spacing: .3px;
       cursor:pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      user-select:none;
     }
-    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+    .btn:hover{
+      background: linear-gradient(#343434,#111);
+    }
+
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
     .btn.secondary{
-      background:#fff;
-      color:#111;
-      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      color: #eaeaea;
+      box-shadow:none;
     }
 
-    .meta{
-      font-size:13px;
-      color:var(--muted);
-    }
-
+    /* Result window (screen) */
     .result{
-      margin-top:14px;
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:14px;
-      background:var(--soft);
-      min-height:110px;
-      position:relative;
+      position: relative;
+      margin-top: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(#0f0f0f, #171717);
+      box-shadow:
+        inset 0 0 16px rgba(0,0,0,.85),
+        0 10px 26px rgba(0,0,0,.45);
+      padding: 14px;
+      min-height: 150px;
       overflow:hidden;
+    }
+
+    /* Screen vignette */
+    .result:before{
+      content:"";
+      position:absolute;
+      inset:-30%;
+      background: radial-gradient(circle at center, rgba(255,255,255,.06), transparent 55%);
+      opacity:.55;
+      pointer-events:none;
     }
 
     .tag{
       display:inline-flex;
       align-items:center;
-      gap:8px;
-      font-size:12px;
-      font-weight:800;
-      padding:6px 10px;
-      border-radius:999px;
-      background:#fff;
-      border:1px solid var(--border);
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      color: #fff;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Receipt look for the quote */
+    .receipt{
+      margin-top: 12px;
+      border-radius: 14px;
+      background: linear-gradient(#f6f2ea, #efe8dd);
+      border: 1px solid rgba(0,0,0,.10);
+      padding: 12px 12px 10px;
+      color: var(--paperInk);
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 10px 22px rgba(0,0,0,.25);
+    }
+
+    .receipt:after{
+      content:"";
+      position:absolute;
+      left:0; right:0; bottom:-8px;
+      height: 12px;
+      background:
+        radial-gradient(circle at 8px 6px, transparent 6px, rgba(0,0,0,.0) 7px),
+        linear-gradient(transparent, transparent);
+      background-size: 16px 12px;
+      opacity:.20;
+      pointer-events:none;
     }
 
     .quote{
-      margin-top:12px;
-      font-size:20px;
-      font-weight:900;
-      letter-spacing:-.2px;
-      line-height:1.15;
-    }
-    .source{
-      margin-top:8px;
-      font-size:13px;
-      color:var(--muted);
+      font-family: "Courier New", monospace;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .3px;
+      line-height: 1.2;
+      margin:0;
     }
 
+    .source{
+      margin-top: 8px;
+      font-size: 12px;
+      opacity:.75;
+    }
+
+    /* Typing/printing effect */
+    .printing{
+      overflow:hidden;
+      white-space:nowrap;
+      border-right: 2px solid rgba(0,0,0,.25);
+      animation: typing 900ms steps(42,end);
+    }
+    @keyframes typing{
+      from{ width:0; }
+      to{ width:100%; }
+    }
+
+    /* Jackpot banner */
     .jackpotBanner{
       position:absolute;
-      right:-40px;
-      top:16px;
-      transform: rotate(12deg);
-      background:var(--jackpot);
-      color:#fff;
-      padding:8px 12px;
-      border-radius:10px;
-      font-weight:900;
-      letter-spacing:.6px;
-      box-shadow: 0 10px 20px rgba(0,0,0,.18);
+      right:-42px;
+      top: 14px;
+      transform: rotate(10deg);
+      background:#f2f2f2;
+      color:#111;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 1000;
+      letter-spacing: .8px;
+      box-shadow: 0 12px 24px rgba(0,0,0,.35);
       display:none;
+      z-index: 3;
     }
+
+    /* Jackpot state */
     .jackpotOn .jackpotBanner{ display:block; }
     .jackpotOn{
-      background: #111;
-      color:#fff;
       border-color: rgba(255,255,255,.22);
+      box-shadow:
+        inset 0 0 18px rgba(255,255,255,.08),
+        0 0 26px rgba(255,255,255,.10),
+        0 12px 28px rgba(0,0,0,.50);
+      animation: glowPulse 1.15s ease-in-out infinite alternate;
     }
-    .jackpotOn .tag{ background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.22); color:#fff; }
-    .jackpotOn .source{ color: rgba(255,255,255,.75); }
-    .jackpotOn .quote{ color:#fff; }
+    @keyframes glowPulse{
+      from{
+        box-shadow:
+          inset 0 0 14px rgba(255,255,255,.06),
+          0 0 16px rgba(255,255,255,.08),
+          0 12px 28px rgba(0,0,0,.50);
+      }
+      to{
+        box-shadow:
+          inset 0 0 22px rgba(255,255,255,.10),
+          0 0 26px rgba(255,255,255,.12),
+          0 12px 28px rgba(0,0,0,.50);
+      }
+    }
 
+    /* cabinet shake (subtle) */
+    .shake{
+      animation: shake 0.22s linear;
+    }
+    @keyframes shake{
+      0% { transform: translate(0,0); }
+      25% { transform: translate(2px,-1px); }
+      50% { transform: translate(-2px,1px); }
+      75% { transform: translate(2px,1px); }
+      100% { transform: translate(0,0); }
+    }
+
+    /* tiny pulse each spin */
     .pulse{
-      animation: pulse 900ms ease-in-out 1;
+      animation: pulse 700ms ease-in-out 1;
     }
     @keyframes pulse{
       0%{ transform: scale(1); }
-      35%{ transform: scale(1.02); }
+      35%{ transform: scale(1.015); }
       100%{ transform: scale(1); }
     }
 
     .favorites{
-      margin-top:16px;
-      border-top:1px solid var(--border);
-      padding-top:14px;
+      margin-top: 16px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      padding-top: 14px;
+      position: relative;
+      z-index: 2;
     }
-    .favRow{
+
+    .favHeader{
       display:flex;
+      align-items:center;
       justify-content:space-between;
-      gap:10px;
-      align-items:flex-start;
-      padding:10px 0;
-      border-bottom:1px dashed var(--border);
+      gap: 10px;
+      margin-bottom: 8px;
     }
-    .favText{
-      font-size:14px;
-      line-height:1.3;
-    }
-    .mini{
-      font-size:12px;
-      color:var(--muted);
-      margin-top:4px;
+
+    .favTitle{
+      font-weight: 1000;
+      letter-spacing: .4px;
     }
 
     .tinyBtn{
       appearance:none;
-      border:1px solid var(--border);
-      background:#fff;
-      border-radius:10px;
-      padding:8px 10px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color:#eaeaea;
+      border-radius: 12px;
+      padding: 8px 10px;
       cursor:pointer;
-      font-weight:800;
+      font-weight: 900;
       white-space:nowrap;
+    }
+
+    .favRow{
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      align-items:flex-start;
+      padding: 10px 0;
+      border-bottom: 1px dashed rgba(255,255,255,.12);
+    }
+
+    .favText{
+      font-size: 13px;
+      line-height: 1.35;
+      color: #f2f2f2;
+    }
+
+    .mini{
+      font-size: 12px;
+      color: rgba(255,255,255,.65);
+      margin-top: 4px;
     }
 
     .toast{
       position:fixed;
       left:50%;
-      bottom:86px;
+      bottom: 96px; /* above bottom nav */
       transform:translateX(-50%);
-      background:#111;
-      color:#fff;
+      background:#f2f2f2;
+      color:#111;
       padding:10px 12px;
-      border-radius:12px;
-      font-size:13px;
+      border-radius: 14px;
+      font-size: 13px;
       opacity:0;
       pointer-events:none;
       transition: opacity 180ms ease;
-      z-index:9999;
+      z-index: 20000;
+      box-shadow: 0 12px 28px rgba(0,0,0,.45);
+      font-weight: 800;
     }
     .toast.show{ opacity:1; }
   </style>
 </head>
+
 <body>
 
-<header>
-  <div class="brand">🎰 Spiritual Slot Machine</div>
-  <div class="sub">Spin for perspective. (Rule 62 is the jackpot.)</div>
-</header>
+  <!-- ✅ Top nav injected here -->
+  <div id="topNavMount"></div>
 
-<main>
-  <div class="panel">
-    <div class="row">
-      <button id="spinBtn" class="btn">SPIN</button>
-      <button id="saveBtn" class="btn secondary" disabled>SAVE</button>
-      <button id="shareBtn" class="btn secondary" disabled>SHARE</button>
-      <div class="meta"><span id="spinCount">Spins: 0</span></div>
-    </div>
-
-    <div id="resultBox" class="result">
-      <div class="jackpotBanner">⭐ RULE 62 HIT</div>
-      <div class="tag" id="tag">Ready</div>
-      <div class="quote" id="quote">Pull the lever.</div>
-      <div class="source" id="source">The machine is warm.</div>
-    </div>
-
-    <div class="favorites">
-      <div class="row" style="margin-bottom:8px;">
-        <div style="font-weight:900;">Favorites</div>
-        <button id="clearFavBtn" class="tinyBtn">Clear</button>
+  <main>
+    <div class="panel">
+      <div class="headerBlock">
+        <div>
+          <div class="title">🎰 Spiritual Slot Machine</div>
+          <div class="sub">Spin for perspective. Rule 62 is the jackpot.</div>
+        </div>
+        <div class="meta" id="spinCount">Spins: 0</div>
       </div>
-      <div id="favList" class="meta">No favorites yet.</div>
-    </div>
-  </div>
-</main>
 
-<div id="toast" class="toast">Saved.</div>
+      <div class="row">
+        <button id="spinBtn" class="btn">SPIN</button>
+        <button id="saveBtn" class="btn secondary" disabled>SAVE</button>
+        <button id="shareBtn" class="btn secondary" disabled>SHARE</button>
+      </div>
+
+      <div id="resultBox" class="result">
+        <div class="jackpotBanner">⭐ RULE 62 HIT</div>
+
+        <div class="tag" id="tag">Ready</div>
+
+        <div class="receipt">
+          <p class="quote" id="quote">Pull the lever.</p>
+          <div class="source" id="source">The machine is warm.</div>
+        </div>
+      </div>
+
+      <div class="favorites">
+        <div class="favHeader">
+          <div class="favTitle">Favorites</div>
+          <button id="clearFavBtn" class="tinyBtn">Clear</button>
+        </div>
+        <div id="favList" class="mini">No favorites yet.</div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast">Saved.</div>
+
+  <!-- ✅ Bottom nav injected here -->
+  <div id="bottomNavMount"></div>
 
 <script>
 /* -----------------------------
-   Quote Pool (starter set)
-   Expand this over time.
+   Quote Pool (keep in this file)
 -------------------------------- */
 
 const slotQuotes = [
-  // OLD-TIMER (weight high)
+  // OLD-TIMER (weight high) — sample set; keep your big pool here
   { text:"You’re not that important.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
   { text:"Feelings aren’t facts.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
   { text:"Don’t believe everything you think.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
   { text:"You can be right, or you can be sober.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
   { text:"Nobody handed you the clipboard.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Stay in your lane.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Keep your side of the street clean.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
   { text:"Quit managing the universe.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"You don’t have to attend every argument.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
-  { text:"Pause before you react.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"Drop the rope.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"Stop arguing with reality.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
+  { text:"Your reaction is the problem.", category:"oldtimer", label:"🧓 Old-timer Wisdom", weight:5 },
 
   // BIG BOOK (weight medium)
+  { text:"Half measures availed us nothing.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
   { text:"Love and tolerance is our code.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
   { text:"Pause when agitated or doubtful.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
-  { text:"We let go absolutely.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
   { text:"Nothing pays off like restraint.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
   { text:"We are not saints.", category:"bigbook", label:"📖 Big Book Hit", weight:3 },
 
@@ -271,9 +450,8 @@ const slotQuotes = [
   // MISFITS HUMOR (weight low)
   { text:"Put the cape down.", category:"misfits", label:"😏 Misfits", weight:1 },
   { text:"Nobody elected you mayor of everything.", category:"misfits", label:"😏 Misfits", weight:1 },
-  { text:"Step away from the drama buffet.", category:"misfits", label:"😏 Misfits", weight:1 },
 
-  // RULE 62 JACKPOT (weight rare)
+  // RULE 62 JACKPOT (rare)
   { text:"Don’t take yourself so damn seriously.", category:"rule62", label:"⭐ Rule 62 Jackpot", weight:1 },
   { text:"Relax. Nobody is watching you.", category:"rule62", label:"⭐ Rule 62 Jackpot", weight:1 },
 ];
@@ -326,9 +504,15 @@ function showToast(msg){
   setTimeout(()=>toast.classList.remove("show"), 900);
 }
 
+function escapeHtml(str){
+  return (str||"").replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
 function renderFavorites(){
   if(!favorites.length){
-    favList.className = "meta";
+    favList.className = "mini";
     favList.textContent = "No favorites yet.";
     return;
   }
@@ -344,12 +528,6 @@ function renderFavorites(){
   `).join("");
 }
 
-function escapeHtml(str){
-  return (str||"").replace(/[&<>"']/g, m => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[m]));
-}
-
 window.removeFavorite = function(idx){
   favorites.splice(idx,1);
   localStorage.setItem(LS_FAVS, JSON.stringify(favorites));
@@ -358,37 +536,52 @@ window.removeFavorite = function(idx){
 
 function setResult(res){
   lastResult = res;
+
   tagEl.textContent = res.label || res.category;
   quoteEl.textContent = `“${res.text}”`;
-  sourceEl.textContent = (res.category === "bigbook") ? "— Alcoholics Anonymous" :
-                         (res.category === "rule62") ? "— Rule 62" :
-                         "— Old-timer energy";
 
-  // Jackpot styling
-  resultBox.classList.remove("jackpotOn","pulse");
-  if(res.category === "rule62"){
-    resultBox.classList.add("jackpotOn");
-  }
-  // small punchy animation every spin
+  sourceEl.textContent =
+    (res.category === "bigbook") ? "— Alcoholics Anonymous" :
+    (res.category === "rule62") ? "— Rule 62" :
+    (res.category === "misfits") ? "— Recovery Misfits" :
+    (res.category === "acceptance") ? "— Acceptance" :
+    "— Old-timer energy";
+
+  // reset animations
+  resultBox.classList.remove("jackpotOn","pulse","shake");
+  quoteEl.classList.remove("printing");
+
+  // force reflow for re-triggering animations
   void resultBox.offsetWidth;
+
+  // jackpot behavior
+  if(res.category === "rule62"){
+    resultBox.classList.add("jackpotOn","shake");
+  }
+
+  // punchy pulse every spin
   resultBox.classList.add("pulse");
 
+  // receipt print effect
+  void quoteEl.offsetWidth;
+  quoteEl.classList.add("printing");
+
   saveBtn.disabled = false;
-  shareBtn.disabled = !navigator.share; // enable only if supported
+  shareBtn.disabled = !navigator.share;
 }
 
 function spin(){
-  // tiny “spinning” feel without full reels yet
   spinBtn.disabled = true;
   saveBtn.disabled = true;
   shareBtn.disabled = true;
 
-  resultBox.classList.remove("jackpotOn","pulse");
+  resultBox.classList.remove("jackpotOn","pulse","shake");
   tagEl.textContent = "Spinning…";
   quoteEl.textContent = "…";
   sourceEl.textContent = "";
 
-  const ticks = 10;
+  // quick “tick” preview
+  const ticks = 12;
   let t = 0;
   const tickTimer = setInterval(()=>{
     const temp = weightedPool[Math.floor(Math.random()*weightedPool.length)];
@@ -405,7 +598,7 @@ function spin(){
 
       spinBtn.disabled = false;
     }
-  }, 70);
+  }, 65);
 }
 
 /* -----------------------------
@@ -447,7 +640,17 @@ clearFavBtn.addEventListener("click", ()=>{
 -------------------------------- */
 spinCountEl.textContent = `Spins: ${spins}`;
 renderFavorites();
+
+/* -----------------------------
+   ✅ NAV INJECTION (your shared files)
+   - top-nav.js should inject the top bar into #topNavMount
+   - nav.js should inject the bottom nav into #bottomNavMount
+-------------------------------- */
 </script>
+
+<!-- If you already have these shared scripts in your app, this will hook right in -->
+<script src="./top-nav.js"></script>
+<script src="./nav.js"></script>
 
 </body>
 </html>
