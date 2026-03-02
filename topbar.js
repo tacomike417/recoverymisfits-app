@@ -23,7 +23,7 @@
         margin:0 auto;
         padding:10px 12px;
         display:grid;
-        grid-template-columns: 1fr auto 1fr; /* left / centered brand / right */
+        grid-template-columns: 1fr auto 1fr;
         align-items:center;
         gap:10px;
       }
@@ -31,7 +31,6 @@
       .rm-left{
         display:flex;
         align-items:center;
-        gap:10px;
         justify-content:flex-start;
         min-height:36px;
       }
@@ -67,6 +66,11 @@
         letter-spacing:.1px;
       }
 
+      .rm-brand-sub.small{
+        font-size:11px;
+        color:#888;
+      }
+
       .rm-install-btn{
         padding:8px 12px;
         border-radius:999px;
@@ -79,17 +83,13 @@
         white-space:nowrap;
       }
 
-      .rm-install-btn:disabled{
-        opacity:.5;
-        cursor:default;
-      }
-
       .rm-ios-note{
         font-size:12px;
         color:#111;
         font-weight:900;
         line-height:1.15;
       }
+
       .rm-ios-note span{
         display:block;
         color:#666;
@@ -106,7 +106,10 @@
         vertical-align:middle;
       }
 
-      /* Banner that drops under the top bar */
+      /* -------------------------
+         UPDATE BANNER
+      ------------------------- */
+
       .rm-update-banner{
         max-width:980px;
         margin:0 auto;
@@ -114,74 +117,73 @@
       }
 
       .rm-update-banner-inner{
-        border:1px solid rgba(0,0,0,.12);
+        border:1px solid #f0d98c;
         border-radius:14px;
-        background:#fff;
-        box-shadow:0 1px 0 rgba(0,0,0,.03);
-        padding:12px 12px;
+        background:#fff8cc; /* light yellow */
+        padding:10px 12px;
         display:flex;
-        align-items:flex-start;
+        align-items:center;
         justify-content:space-between;
-        gap:10px;
+        gap:12px;
       }
 
       .rm-banner-text{
-        font-weight:950;
-        color:#111;
-        line-height:1.25;
-        font-size:13px;
+        font-size:12px;
+        color:#333;
+        font-weight:900;
+        line-height:1.3;
       }
 
       .rm-banner-text small{
         display:block;
-        margin-top:4px;
-        font-size:12px;
+        font-size:10px;
         color:#666;
         font-weight:900;
+        letter-spacing:.05em;
+        text-transform:uppercase;
       }
 
       .rm-banner-close{
-        border:1px solid rgba(0,0,0,.18);
+        border:1px solid rgba(0,0,0,.2);
         background:#111;
         color:#fff;
-        width:30px;
-        height:30px;
-        border-radius:10px;
-        cursor:pointer;
+        border-radius:8px;
+        padding:6px 10px;
+        font-size:11px;
         font-weight:1000;
-        line-height:28px;
-        text-align:center;
-        flex:0 0 auto;
+        cursor:pointer;
       }
     `;
     document.head.appendChild(style);
   }
 
   /* -------------------------
-     Build top bar shell
+     Build top bar
   ------------------------- */
   mount.innerHTML = `
     <div class="rm-topbar-inner">
       <div class="rm-left" id="rm-left"></div>
 
-      <div class="rm-brand" id="rm-brand">
+      <div class="rm-brand">
         <div class="rm-brand-title" id="rm-brand-title">Recovery Misfits v2</div>
         <div class="rm-brand-sub">Free recovery tools</div>
+        <div class="rm-brand-sub small">No account. No tracking. 100% free.</div>
       </div>
 
-      <div class="rm-right" id="rm-right"></div>
+      <div class="rm-right"></div>
     </div>
 
     <div class="rm-update-banner" id="rm-update-banner" style="display:none;">
       <div class="rm-update-banner-inner">
-        <div class="rm-banner-text" id="rm-banner-text"></div>
-        <button class="rm-banner-close" id="rm-banner-close" aria-label="Close">×</button>
+        <div class="rm-banner-text" id="rm-banner-text">
+          <small>update:</small>
+        </div>
+        <button class="rm-banner-close" id="rm-banner-close">Close</button>
       </div>
     </div>
   `;
 
   const left = document.getElementById("rm-left");
-  const right = document.getElementById("rm-right");
   const bannerWrap = document.getElementById("rm-update-banner");
   const bannerText = document.getElementById("rm-banner-text");
   const bannerClose = document.getElementById("rm-banner-close");
@@ -206,7 +208,6 @@
      Install UI
   ------------------------- */
   function showIOSInstructions() {
-    // iOS doesn’t support beforeinstallprompt. This is the “easy” version.
     left.innerHTML = `
       <div class="rm-ios-note">
         Install on iPhone:
@@ -245,7 +246,7 @@
   });
 
   /* -------------------------
-     Pull latest update from updates.html and show banner
+     Load latest update from updates.html
   ------------------------- */
   async function loadLatestUpdate() {
     try {
@@ -267,25 +268,17 @@
   }
 
   /* -------------------------
-     Update dot + banner (static for now)
+     Show banner + update dot
   ------------------------- */
   (async function initUpdatesUI() {
     const update = await loadLatestUpdate();
     if (!update || !update.id) return;
 
-    // Show banner (static; user closes it)
-    const bannerLine = update.banner || "New update available.";
-    const titleLine = update.title || "";
-    bannerText.innerHTML = "";
-    bannerText.appendChild(document.createTextNode(bannerLine));
-    if (titleLine) {
-      const sm = document.createElement("small");
-      sm.textContent = titleLine;
-      bannerText.appendChild(sm);
-    }
+    // Banner text
+    bannerText.innerHTML = "<small>update:</small> " + (update.banner || update.title);
     bannerWrap.style.display = "block";
 
-    // Show update dot if unseen
+    // Update dot
     const lastSeen = localStorage.getItem("lastSeenUpdateId") || "";
     if (lastSeen !== update.id) {
       const dot = document.createElement("span");
@@ -293,10 +286,9 @@
       brandTitle.appendChild(dot);
     }
 
-    // Optional: clicking the banner takes you to Updates
+    // Click banner → go to updates
     bannerWrap.addEventListener("click", (e) => {
-      // Don’t navigate when they hit the close button
-      if (e.target && e.target.id === "rm-banner-close") return;
+      if (e.target.id === "rm-banner-close") return;
       window.location.href = "./updates.html";
     });
   })();
