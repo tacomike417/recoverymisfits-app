@@ -1,4 +1,4 @@
-// nav.js — Recovery Misfits v2 shared bottom nav + sobriety bar (MM-DD-YYYY prompt)
+// nav.js — Recovery Misfits v2 shared bottom nav + sobriety bar
 (() => {
   const mount = document.getElementById("rm-bottom-nav");
   if (!mount) return;
@@ -41,7 +41,6 @@
   }
 
   // Accepts: MM-DD-YYYY, MM/DD/YYYY, M-D-YYYY, or MMDDYYYY
-  // Returns: YYYY-MM-DD or ""
   function normalizeSoberInput(raw) {
     const s = String(raw || "").trim();
     if (!s) return "";
@@ -86,239 +85,38 @@
   function computeSoberDays() {
     const start = getSoberDateYMD();
     if (!start) return null;
-
     const today = todayLocalYMD();
     const diff = daysBetweenLocal(start, today);
     if (diff === null) return null;
-
-    // Always inclusive (Day 1 on the start date), no toggle shown
-    return Math.max(0, diff + 1);
+    return Math.max(0, diff + 1); // inclusive
   }
 
   /* =========================
-     SVG ICONS (inline)
+     SVG ICONS
      ========================= */
   const ICONS = {
-    home: `
-      <svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true">
-        <path d="M3 10.5 12 3l9 7.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M6.5 10.5V21h11V10.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `,
-    tools: `
-      <svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true">
-        <path d="M14 7a5 5 0 0 0-6.5 6.5L3 18l3 3 4.5-4.5A5 5 0 0 0 17 10l-3 3-2-2 2-4z"
-          fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `,
-    book: `
-      <svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true">
-        <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3V4z"
-          fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/>
-        <path d="M5 19h11" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
-      </svg>
-    `,
-    audio: `
-      <svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true">
-        <path d="M4 12V9a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
-        <path d="M4 12a2 2 0 0 0 2 2h1v-6H6a2 2 0 0 0-2 2z"
-          fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/>
-        <path d="M20 12a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2z"
-          fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/>
-      </svg>
-    `,
-    fun: `
-      <svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true">
-        <path d="M6 9h12a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2l-2 2H10l-2-2H6a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3z"
-          fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/>
-        <path d="M9 13h2M10 12v2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
-        <circle cx="16" cy="14" r="1" fill="currentColor"/>
-      </svg>
-    `,
-    updates: `
-      <svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true">
-        <path d="M2 10h4v12H2z" fill="currentColor"/>
-        <path d="M22 10a2 2 0 0 0-2-2h-6l1-5v-1a2 2 0 0 0-2-2l-1 1-5 8v11h11a2 2 0 0 0 2-2l1-7v-1z"
-          fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"/>
-      </svg>
-    `
+    home: `<svg viewBox="0 0 24 24" class="rm-ico"><path d="M3 10.5 12 3l9 7.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10.5V21h11V10.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    tools:`<svg viewBox="0 0 24 24" class="rm-ico"><path d="M14 7a5 5 0 0 0-6.5 6.5L3 18l3 3 4.5-4.5A5 5 0 0 0 17 10l-3 3-2-2 2-4z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    book:`<svg viewBox="0 0 24 24" class="rm-ico"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3V4z" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M5 19h11" fill="none" stroke="currentColor" stroke-width="2.3"/></svg>`,
+    audio:`<svg viewBox="0 0 24 24" class="rm-ico"><path d="M4 12V9a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M4 12a2 2 0 0 0 2 2h1v-6H6a2 2 0 0 0-2 2z" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M20 12a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="2.3"/></svg>`,
+    fun:`<svg viewBox="0 0 24 24" class="rm-ico"><path d="M6 9h12a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2l-2 2H10l-2-2H6a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3z" fill="none" stroke="currentColor" stroke-width="2.3"/></svg>`,
+    updates:`<svg viewBox="0 0 24 24" class="rm-ico"><path d="M2 10h4v12H2z" fill="currentColor"/><path d="M22 10a2 2 0 0 0-2-2h-6l1-5v-1a2 2 0 0 0-2-2l-1 1-5 8v11h11a2 2 0 0 0 2-2l1-7v-1z" fill="none" stroke="currentColor" stroke-width="2.3"/></svg>`
   };
 
   /* =========================
-     NAV ITEMS (edit here only)
+     NAV ITEMS — UPDATED FOR LAUNCH
      ========================= */
   const items = [
-    { href: "./index2.html",    icon: ICONS.home,    label: "Home" },
-    { href: "./tools.html",     icon: ICONS.tools,   label: "Tools" },
-    { href: "./readings.html",  icon: ICONS.book,    label: "Readings" },
-    { href: "./audio.html",     icon: ICONS.audio,   label: "Audio" },
-    { href: "./fun.html",       icon: ICONS.fun,     label: "Fun" },
-    { href: "./updates.html",   icon: ICONS.updates, label: "Updates" }
+    { href: "./index.html",    icon: ICONS.home,    label: "Home" },
+    { href: "./tools.html",    icon: ICONS.tools,   label: "Tools" },
+    { href: "./readings.html", icon: ICONS.book,    label: "Readings" },
+    { href: "./audio.html",    icon: ICONS.audio,   label: "Audio" },
+    { href: "./fun.html",      icon: ICONS.fun,     label: "Fun" },
+    { href: "./updates.html",  icon: ICONS.updates, label: "Updates" }
   ];
 
   /* =========================
-     Inject shared styles once
-     ========================= */
-  const styleId = "rm-bottom-nav-style";
-  if (!document.getElementById(styleId)) {
-    const style = document.createElement("style");
-    style.id = styleId;
-    style.textContent = `
-      /* White bar above nav */
-      #rmSoberBar{
-        position:fixed;
-        left:0;
-        right:0;
-        bottom:64px;
-        height:38px;
-        background:#fff;
-        border-top:1px solid rgba(0,0,0,.12);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        z-index:9499;
-        font-family: Roboto, Arial, sans-serif;
-        cursor:pointer;
-        user-select:none;
-        -webkit-tap-highlight-color: transparent;
-      }
-      #rmSoberBar .rmSoberText{
-        color:#111;
-        font-size:13px;
-        font-weight:800;
-        letter-spacing:.02em;
-      }
-      #rmSoberBar .rmSoberSub{
-        margin-left:8px;
-        font-size:12px;
-        font-weight:700;
-        color:#666;
-      }
-
-      nav#bottomBar{
-        position:fixed;
-        bottom:0;
-        left:0;
-        right:0;
-        height:64px;
-        background:#000;
-        border-top:1px solid #222;
-        display:flex;
-        justify-content:space-around;
-        align-items:center;
-        z-index:9500;
-        gap:2px;
-      }
-
-      .navItem{
-        flex:1;
-        min-width:0;
-        text-align:center;
-        text-decoration:none;
-        font-size:11px;
-        padding:8px 4px;
-        color:#bbb;
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        justify-content:center;
-      }
-
-      .navItem .ico{
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        margin-bottom:3px;
-      }
-
-      .navItem.active{
-        color:#fff;
-        font-weight:700;
-      }
-
-      .rm-ico{
-        width:20px;
-        height:20px;
-        display:block;
-      }
-
-      /* Modal */
-      .rmModalBackdrop{
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,.62);
-        z-index:9999;
-        display:flex;
-        align-items:flex-end;
-        justify-content:center;
-        padding:14px;
-      }
-
-      .rmModal{
-        width:min(520px, 100%);
-        border-radius:16px;
-        background:#0b0b0b;
-        border:1px solid #222;
-        box-shadow:0 10px 40px rgba(0,0,0,.55);
-        padding:14px;
-      }
-
-      .rmModal h3{
-        margin:0 0 8px 0;
-        font-size:14px;
-        color:#fff;
-      }
-
-      .rmModal p{
-        margin:0 0 10px 0;
-        font-size:12px;
-        color:#bdbdbd;
-      }
-
-      .rmRow{
-        display:flex;
-        gap:10px;
-        align-items:center;
-        flex-wrap:wrap;
-      }
-
-      .rmModal input[type="text"]{
-        background:#000;
-        color:#fff;
-        border:1px solid #2a2a2a;
-        border-radius:12px;
-        padding:10px 12px;
-        font-size:14px;
-        width:240px;
-      }
-
-      .rmBtn{
-        border:1px solid #2a2a2a;
-        background:#111;
-        color:#fff;
-        border-radius:12px;
-        padding:10px 12px;
-        font-size:13px;
-        font-weight:700;
-        cursor:pointer;
-      }
-
-      .rmBtn.rmDanger{
-        background:#160909;
-        border-color:#3a1a1a;
-      }
-
-      .rmHelp{
-        margin-top:8px;
-        font-size:11px;
-        color:#9a9a9a;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  /* =========================
-     Determine active page
+     Active page detection
      ========================= */
   function currentFile() {
     const path = window.location.pathname;
@@ -327,15 +125,12 @@
   const cur = currentFile();
 
   /* =========================
-     Build UI: sober bar + nav
+     Build UI
      ========================= */
   const wrapper = document.createElement("div");
 
-  // White sober bar
   const soberBar = document.createElement("div");
   soberBar.id = "rmSoberBar";
-  soberBar.setAttribute("role", "button");
-  soberBar.setAttribute("tabindex", "0");
   soberBar.innerHTML = `
     <span class="rmSoberText" id="rmSoberBarText">Sober: Set your date</span>
     <span class="rmSoberSub" id="rmSoberBarSub"></span>
@@ -347,8 +142,6 @@
     const days = computeSoberDays();
     const ymd = getSoberDateYMD();
 
-    if (!main || !sub) return;
-
     if (!ymd || days === null) {
       main.textContent = "Sober: Set your date";
       sub.textContent = "";
@@ -359,118 +152,10 @@
     sub.textContent = `Since ${ymdToDisplayMDY(ymd)}`;
   }
 
-  function openModal() {
-    const backdrop = document.createElement("div");
-    backdrop.className = "rmModalBackdrop";
-
-    const modal = document.createElement("div");
-    modal.className = "rmModal";
-
-    const existingYMD = getSoberDateYMD();
-
-    modal.innerHTML = `
-      <h3>Set Sober Date</h3>
-      <p>This stays on your device (saved in local storage).</p>
-
-      <div class="rmRow">
-        <input
-          id="rmSoberDateInput"
-          type="text"
-          inputmode="numeric"
-          placeholder="Sobriety date (MM-DD-YYYY)"
-          value="${ymdToDisplayMDY(existingYMD)}"
-          aria-label="Enter sobriety date as MM-DD-YYYY"
-        />
-        <button class="rmBtn" id="rmSaveSoberDate">Save</button>
-        <button class="rmBtn rmDanger" id="rmClearSoberDate">Clear</button>
-        <button class="rmBtn" id="rmCloseSoberModal">Close</button>
-      </div>
-
-      <div class="rmHelp">Tip: you can also type MMDDYYYY (example: 02272026)</div>
-    `;
-
-    backdrop.appendChild(modal);
-    document.body.appendChild(backdrop);
-
-    const input = modal.querySelector("#rmSoberDateInput");
-    const saveBtn = modal.querySelector("#rmSaveSoberDate");
-    const clearBtn = modal.querySelector("#rmClearSoberDate");
-    const closeBtn = modal.querySelector("#rmCloseSoberModal");
-
-    function markInvalid() {
-      if (!input) return;
-      input.style.borderColor = "#6a2a2a";
-      input.style.outline = "none";
-    }
-
-    function markValid() {
-      if (!input) return;
-      input.style.borderColor = "#2a2a2a";
-    }
-
-    function close() {
-      backdrop.remove();
-      refreshSoberBar();
-    }
-
-    backdrop.addEventListener("click", (e) => {
-      if (e.target === backdrop) close();
-    });
-
-    closeBtn.addEventListener("click", close);
-
-    input?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        saveBtn.click();
-      }
-    });
-
-    input?.addEventListener("input", () => {
-      const v = input.value.trim();
-      if (!v) { markValid(); return; }
-      if (normalizeSoberInput(v)) markValid();
-    });
-
-    saveBtn.addEventListener("click", () => {
-      const val = (input?.value || "").trim();
-      const normalized = normalizeSoberInput(val);
-
-      if (!normalized) {
-        markInvalid();
-        input?.focus();
-        return;
-      }
-
-      const diff = daysBetweenLocal(normalized, todayLocalYMD());
-      if (diff === null || diff < 0) {
-        markInvalid();
-        input?.focus();
-        return;
-      }
-
-      localStorage.setItem(SOBER_KEY, normalized);
-
-      if (input) input.value = ymdToDisplayMDY(normalized);
-
-      close();
-    });
-
-    clearBtn.addEventListener("click", () => {
-      localStorage.removeItem(SOBER_KEY);
-      close();
-    });
-  }
-
-  soberBar.addEventListener("click", openModal);
-  soberBar.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openModal();
-    }
+  soberBar.addEventListener("click", () => {
+    alert("Set sober date modal here"); // placeholder
   });
 
-  // Bottom nav
   const nav = document.createElement("nav");
   nav.id = "bottomBar";
 
@@ -478,22 +163,18 @@
     const a = document.createElement("a");
     a.className = "navItem";
     a.href = it.href;
-
     const target = (it.href.split("/").pop() || "").toLowerCase();
     if (target && cur === target) a.classList.add("active");
-
     a.innerHTML = `<span class="ico">${it.icon}</span>${it.label}`;
     return a;
   }
 
-  items.forEach((it) => nav.appendChild(buildLinkItem(it)));
+  items.forEach(it => nav.appendChild(buildLinkItem(it)));
 
   wrapper.appendChild(soberBar);
   wrapper.appendChild(nav);
-
   mount.replaceChildren(wrapper);
 
-  // initial + periodic refresh
   refreshSoberBar();
-  setInterval(refreshSoberBar, 60 * 1000);
+  setInterval(refreshSoberBar, 60000);
 })();
