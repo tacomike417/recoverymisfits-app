@@ -3,6 +3,31 @@
   if (!mount) return;
 
   /* -------------------------
+     Google Analytics (GA4)
+  ------------------------- */
+  const GA_ID = "G-CYJ3W1HQ10";
+
+  function loadGAOnce() {
+    if (window.__rm_ga_loaded) return;
+    window.__rm_ga_loaded = true;
+
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+    document.head.appendChild(s);
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () {
+      window.dataLayer.push(arguments);
+    };
+
+    window.gtag("js", new Date());
+    window.gtag("config", GA_ID);
+  }
+
+  loadGAOnce();
+
+  /* -------------------------
      Inject styles once
   ------------------------- */
   if (!document.getElementById("rm-topbar-styles")) {
@@ -106,10 +131,6 @@
         vertical-align:middle;
       }
 
-      /* -------------------------
-         UPDATE BANNER
-      ------------------------- */
-
       .rm-update-banner{
         max-width:980px;
         margin:0 auto;
@@ -119,7 +140,7 @@
       .rm-update-banner-inner{
         border:1px solid #f0d98c;
         border-radius:14px;
-        background:#fff8cc; /* light yellow */
+        background:#fff8cc;
         padding:10px 12px;
         display:flex;
         align-items:center;
@@ -167,7 +188,7 @@
       <div class="rm-brand">
         <div class="rm-brand-title" id="rm-brand-title">Recovery Misfits v2</div>
         <div class="rm-brand-sub">Free recovery tools</div>
-        <div class="rm-brand-sub small">No account. No tracking. 100% free.</div>
+        <div class="rm-brand-sub small">No account. No spam. 100% free.</div>
       </div>
 
       <div class="rm-right"></div>
@@ -190,7 +211,7 @@
   const brandTitle = document.getElementById("rm-brand-title");
 
   /* -------------------------
-     Detect platform
+     Platform detection
   ------------------------- */
   const ua = navigator.userAgent || "";
   const isIOS = /iphone|ipad|ipod/i.test(ua);
@@ -200,9 +221,6 @@
 
   let deferredPrompt = null;
 
-  /* -------------------------
-     Install UI
-  ------------------------- */
   function showIOSInstructions() {
     left.innerHTML = `
       <div class="rm-ios-note">
@@ -239,10 +257,11 @@
 
   window.addEventListener("appinstalled", () => {
     left.innerHTML = "";
+    if (window.gtag) window.gtag("event", "pwa_installed");
   });
 
   /* -------------------------
-     Load latest update from updates.html
+     Update loader
   ------------------------- */
   async function loadLatestUpdate() {
     try {
@@ -258,45 +277,25 @@
         title: marker.getAttribute("data-update-title") || "",
         banner: marker.getAttribute("data-update-banner") || ""
       };
-    } catch (err) {
+    } catch {
       return null;
     }
   }
 
-  /* -------------------------
-     Show banner + update dot
-  ------------------------- */
   (async function initUpdatesUI() {
     const update = await loadLatestUpdate();
     if (!update || !update.id) return;
 
-    // If user already dismissed this specific update banner, don't show it again
     const dismissedKey = "rm_dismissed_update_banner_id";
     const dismissedId = localStorage.getItem(dismissedKey) || "";
-    if (dismissedId === update.id) {
-      // still optionally show dot if update is "unseen"
-      const lastSeen = localStorage.getItem("lastSeenUpdateId") || "";
-      if (lastSeen !== update.id) {
-        const dot = document.createElement("span");
-        dot.className = "rm-update-dot";
-        brandTitle.appendChild(dot);
-      }
-      return;
-    }
 
-    // Banner text
-    bannerText.innerHTML = "<small>update:</small> " + (update.banner || update.title);
+    if (dismissedId === update.id) return;
+
+    bannerText.innerHTML =
+      "<small>update:</small> " + (update.banner || update.title);
+
     bannerWrap.style.display = "block";
 
-    // Update dot
-    const lastSeen = localStorage.getItem("lastSeenUpdateId") || "";
-    if (lastSeen !== update.id) {
-      const dot = document.createElement("span");
-      dot.className = "rm-update-dot";
-      brandTitle.appendChild(dot);
-    }
-
-    // Close button: hide + remember dismissal for this update id
     bannerClose.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -304,7 +303,6 @@
       localStorage.setItem(dismissedKey, update.id);
     });
 
-    // Click banner → go to updates
     bannerWrap.addEventListener("click", (e) => {
       if (e.target && e.target.id === "rm-banner-close") return;
       window.location.href = "./updates.html";
