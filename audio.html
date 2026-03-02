@@ -90,12 +90,35 @@
       min-height:40px;
     }
 
-    /* Library rows */
+    /* ===== Library sections ===== */
+    .sectionHeader{
+      margin:6px 2px 10px;
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .sectionHeaderTitle{
+      font-size:12px;
+      font-weight:1000;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:#666;
+    }
+    .sectionHeaderSub{
+      font-size:12px;
+      font-weight:900;
+      color:#888;
+      white-space:nowrap;
+    }
+
     .library{
       display:flex;
       flex-direction:column;
       gap:10px;
     }
+
+    /* Base row */
     .rowCard{
       display:flex;
       align-items:center;
@@ -109,11 +132,13 @@
       cursor:pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    .titleWrap{min-width:0; flex:1;}
+
+    .titleWrap{min-width:0; flex:1; display:flex; gap:12px; align-items:center;}
+    .titleCol{min-width:0; flex:1;}
     .title{font-weight:1000; font-size:14px; margin:0;}
     .subtitle{font-size:12px; color:var(--muted); margin-top:3px; font-weight:900;}
 
-    /* Selected library item (subtle cue) */
+    /* Selected library item */
     .rowCard.selected{
       border-color:#b7d3c2;
       background:#e8f3ec;
@@ -123,6 +148,54 @@
       background:#e8f3ec;
       border-color:#b7d3c2;
       box-shadow:none;
+    }
+
+    /* ===== “Audiobook shelf” styling (clean, not cheesy) ===== */
+    .rowCard.audiobook{
+      border-color: rgba(0,0,0,.14);
+      box-shadow: 0 2px 14px rgba(0,0,0,.05);
+    }
+    .cover{
+      width:44px;
+      height:54px;
+      border-radius:10px;
+      border:1px solid rgba(0,0,0,.18);
+      background: linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.02));
+      position:relative;
+      flex:0 0 auto;
+      overflow:hidden;
+    }
+    .cover:after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.9), rgba(255,255,255,0) 55%);
+      opacity:.55;
+    }
+    .badgeRow{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:6px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:10px;
+      font-weight:1000;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.16);
+      background: rgba(0,0,0,.03);
+      color:#333;
+      white-space:nowrap;
+    }
+    .pill.video{
+      background: rgba(0,0,0,.02);
+      color:#444;
     }
 
     /* Player areas */
@@ -151,13 +224,6 @@
       display:flex; align-items:center; gap:8px; flex-wrap:wrap;
     }
     .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
-    .current{
-      outline:2px solid rgba(0,0,0,.15);
-      border-radius:12px;
-      padding:10px;
-      margin:8px 0;
-      background: rgba(0,0,0,.02);
-    }
     .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none; font-weight:900;}
 
     /* ===== SAGE GREEN "PLAYING" CHAPTER ROW ===== */
@@ -282,13 +348,12 @@
     <div class="pageTitle">Audio Library</div>
 
     <section class="card">
-      <div class="library" id="library"></div>
+      <div id="library"></div>
     </section>
 
     <section class="card" id="playerArea" style="display:none;">
       <div class="toolbar">
         <div class="toolbarLeft">
-          <!-- kept but we blank it once selected to avoid redundancy -->
           <div class="playerAreaTitle" id="playerAreaTitle"></div>
           <div class="now" id="playerAreaSub"></div>
         </div>
@@ -362,7 +427,7 @@
     const stopBtn = document.getElementById("stopBtn");
     const unloadBtn = document.getElementById("unloadBtn");
 
-    const mp3Area = document.getElementById("gorillaArea"); // (name kept, now used for all MP3 books)
+    const mp3Area = document.getElementById("gorillaArea"); // name kept, used for all MP3 books
     const ytArea = document.getElementById("ytArea");
     const ytFrame = document.getElementById("ytFrame");
 
@@ -387,12 +452,12 @@
       playerArea.scrollIntoView({ behavior:"smooth", block:"start" });
     }
 
-    // ✅ turn PLAYER card green when something is selected
+    // turn PLAYER card green when something is selected
     function setPlayerSelected(isOn){
       playerArea.classList.toggle("mediaSelected", !!isOn);
     }
 
-    // Highlight selected library row (subtle cue)
+    // Highlight selected library row
     function selectLibraryRow(key){
       document.querySelectorAll("[data-lib-row]").forEach(el=>{
         el.classList.toggle("selected", el.dataset.key === key);
@@ -463,17 +528,18 @@
       return BOOKS[activeBookKey].lsKey;
     }
 
-    // Library items (all equal)
+    // Library items
     const LIBRARY = [
       { type:"mp3_book", key:"gorilla",    title: BOOKS.gorilla.title,    sub: BOOKS.gorilla.sub },
       { type:"mp3_book", key:"sweatpants", title: BOOKS.sweatpants.title, sub: BOOKS.sweatpants.sub },
+
       { type:"yt_playlist", key:"joe",    title:"Joe & Charlie",  sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E" },
       { type:"yt_playlist", key:"martin", title:"Father Martin",  sub:"Chalk Talks",    id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf" },
       { type:"yt_playlist", key:"chuck",  title:"Chuck C",        sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA" },
       { type:"yt_playlist", key:"allen",  title:"Allen McGinnis", sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE" }
     ];
 
-    const libraryEl = document.getElementById("library");
+    const libraryHost = document.getElementById("library");
 
     let currentIdx = 0;
     let playMode = "single";
@@ -619,6 +685,7 @@
 
         const left = document.createElement("div");
         left.className = "titleWrap";
+        left.style.alignItems = "flex-start";
 
         const title = document.createElement("div");
         title.className = "chapterTitle";
@@ -668,11 +735,10 @@
       stopEverything();
       mp3Area.style.display = "none";
       ytArea.style.display = "none";
-      playerAreaSub.textContent = "Ready";
       playerAreaTitle.textContent = "";
       playerAreaSub.textContent = "";
 
-      // ✅ remove green when nothing is loaded
+      // remove green when nothing is loaded
       setPlayerSelected(false);
 
       toast("Unloaded");
@@ -681,7 +747,6 @@
     stopBtn.addEventListener("click", stopEverything);
     unloadBtn.addEventListener("click", unloadEverything);
 
-    // YouTube embedded
     function playYouTubePlaylist(title, sub, listId){
       stopEverything();
       mp3Area.style.display = "none";
@@ -698,7 +763,6 @@
     }
 
     function showMp3Book(bookKey){
-      // stop YT, keep MP3 ready
       ytFrame.src = "";
       ytArea.style.display = "none";
 
@@ -707,7 +771,6 @@
       playerAreaTitle.textContent = "";
       playerAreaSub.textContent = "";
 
-      // switch active book + rebuild chapters
       activeBookKey = bookKey;
       TRACKS = BOOKS[activeBookKey].tracks;
 
@@ -715,7 +778,6 @@
       buildChapters();
       renderResumeLine();
 
-      // load resume if it exists for THIS book
       const r = loadResume();
       if(r){
         currentIdx = r.idx;
@@ -768,10 +830,34 @@
     playAllBtn.addEventListener("click", playAll);
     clearResumeBtn.addEventListener("click", clearResume);
 
-    // Build Library UI
+    // ===== Build Library (grouped: Audiobooks / Videos) =====
+    function buildSection(title, sub){
+      const wrap = document.createElement("div");
+      const head = document.createElement("div");
+      head.className = "sectionHeader";
+      head.innerHTML = `
+        <div class="sectionHeaderTitle">${title}</div>
+        <div class="sectionHeaderSub">${sub}</div>
+      `;
+      wrap.appendChild(head);
+
+      const list = document.createElement("div");
+      list.className = "library";
+      wrap.appendChild(list);
+
+      return { wrap, list };
+    }
+
     function buildLibrary(){
-      libraryEl.innerHTML = "";
-      LIBRARY.forEach((item)=>{
+      libraryHost.innerHTML = "";
+
+      const books = LIBRARY.filter(x => x.type === "mp3_book");
+      const vids  = LIBRARY.filter(x => x.type === "yt_playlist");
+
+      const booksSection = buildSection("Audiobooks", `${books.length} title${books.length===1?"":"s"}`);
+      const vidsSection  = buildSection("Video playlists", `${vids.length} playlist${vids.length===1?"":"s"}`);
+
+      function addRow(item, listEl){
         const row = document.createElement("div");
         row.className = "rowCard";
         row.dataset.libRow = "1";
@@ -779,6 +865,17 @@
 
         const left = document.createElement("div");
         left.className = "titleWrap";
+
+        // Audiobook cover
+        if(item.type === "mp3_book"){
+          row.classList.add("audiobook");
+          const cover = document.createElement("div");
+          cover.className = "cover";
+          left.appendChild(cover);
+        }
+
+        const col = document.createElement("div");
+        col.className = "titleCol";
 
         const t = document.createElement("div");
         t.className = "title";
@@ -788,19 +885,29 @@
         s.className = "subtitle";
         s.textContent = item.sub;
 
-        left.appendChild(t);
-        left.appendChild(s);
+        const badges = document.createElement("div");
+        badges.className = "badgeRow";
+        const pill = document.createElement("span");
+        pill.className = "pill " + (item.type === "yt_playlist" ? "video" : "");
+        pill.textContent = item.type === "yt_playlist" ? "VIDEO" : "AUDIOBOOK";
+        badges.appendChild(pill);
+
+        col.appendChild(t);
+        col.appendChild(s);
+        col.appendChild(badges);
+
+        left.appendChild(col);
 
         const playBtn = document.createElement("button");
         playBtn.className = "btn primary";
         playBtn.type = "button";
-        playBtn.textContent = "▶ Play";
+        playBtn.textContent = item.type === "yt_playlist" ? "▶ Watch" : "▶ Listen";
 
         const runSelectionAndPlay = ()=>{
           selectLibraryRow(item.key);
 
           if(item.type === "mp3_book"){
-            stopEverything(); // stops any current mp3 + clears playing row
+            stopEverything();
             showMp3Book(item.key);
             toast("Opened");
             return;
@@ -824,15 +931,21 @@
 
         row.appendChild(left);
         row.appendChild(playBtn);
-        libraryEl.appendChild(row);
-      });
+        listEl.appendChild(row);
+      }
+
+      books.forEach(item => addRow(item, booksSection.list));
+      vids.forEach(item => addRow(item, vidsSection.list));
+
+      libraryHost.appendChild(booksSection.wrap);
+      libraryHost.appendChild(vidsSection.wrap);
     }
 
     // Init
     buildLibrary();
 
-    // default select gorilla in the list (subtle)
-    selectLibraryRow("gorilla");
+    // ✅ IMPORTANT: do NOT preselect Gorilla (no green on load)
+    selectLibraryRow("");
 
     // start with no media selected (player hidden until user taps)
     setPlayerSelected(false);
