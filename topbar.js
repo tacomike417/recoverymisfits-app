@@ -189,10 +189,6 @@
   const bannerClose = document.getElementById("rm-banner-close");
   const brandTitle = document.getElementById("rm-brand-title");
 
-  bannerClose.addEventListener("click", () => {
-    bannerWrap.style.display = "none";
-  });
-
   /* -------------------------
      Detect platform
   ------------------------- */
@@ -274,6 +270,20 @@
     const update = await loadLatestUpdate();
     if (!update || !update.id) return;
 
+    // If user already dismissed this specific update banner, don't show it again
+    const dismissedKey = "rm_dismissed_update_banner_id";
+    const dismissedId = localStorage.getItem(dismissedKey) || "";
+    if (dismissedId === update.id) {
+      // still optionally show dot if update is "unseen"
+      const lastSeen = localStorage.getItem("lastSeenUpdateId") || "";
+      if (lastSeen !== update.id) {
+        const dot = document.createElement("span");
+        dot.className = "rm-update-dot";
+        brandTitle.appendChild(dot);
+      }
+      return;
+    }
+
     // Banner text
     bannerText.innerHTML = "<small>update:</small> " + (update.banner || update.title);
     bannerWrap.style.display = "block";
@@ -286,9 +296,17 @@
       brandTitle.appendChild(dot);
     }
 
+    // Close button: hide + remember dismissal for this update id
+    bannerClose.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      bannerWrap.style.display = "none";
+      localStorage.setItem(dismissedKey, update.id);
+    });
+
     // Click banner → go to updates
     bannerWrap.addEventListener("click", (e) => {
-      if (e.target.id === "rm-banner-close") return;
+      if (e.target && e.target.id === "rm-banner-close") return;
       window.location.href = "./updates.html";
     });
   })();
