@@ -17,7 +17,7 @@
 
   <style>
     :root{
-      --bg:#fff;
+      --bg:#ffffff;
       --card:#ffffff;
       --brain:#f5dfe7;
       --brain-2:#f9e8ee;
@@ -27,14 +27,14 @@
       --soft:#faf7f4;
       --accent:#111111;
       --pill:#ffffff;
-      --done:#dff3e3;
-      --hold:#ece9e6;
       --next:#fff2c8;
-      --want:#f4efe3;
-      --need:#f7f3ff;
+      --later:#ece9e6;
+      --done:#dff3e3;
+      --good:#eef8ef;
+      --shadow:0 1px 0 rgba(0,0,0,.03);
     }
 
-    *{box-sizing:border-box}
+    *{ box-sizing:border-box; }
 
     body{
       margin:0;
@@ -83,7 +83,7 @@
       padding:14px;
       margin:12px 0;
       background:#fff;
-      box-shadow:0 1px 0 rgba(0,0,0,.03);
+      box-shadow:var(--shadow);
     }
 
     .card.work{
@@ -108,6 +108,13 @@
       font-size:13px;
       font-weight:850;
       line-height:1.3;
+    }
+
+    .helper{
+      margin:8px 0 0;
+      color:#666;
+      font-size:12px;
+      font-weight:900;
     }
 
     .addRow{
@@ -150,12 +157,61 @@
       appearance:none;
     }
 
-    .btn.clear{
+    .btn.secondary{
+      background:#fff;
+      color:#111;
+      border:1px solid rgba(0,0,0,.12);
+    }
+
+    .btn.full{
       width:100%;
       margin-top:14px;
     }
 
-    .list{
+    .toastWrap{
+      position:absolute;
+      left:14px;
+      right:14px;
+      top:-12px;
+      display:flex;
+      justify-content:center;
+      pointer-events:none;
+      z-index:10;
+    }
+
+    .toast{
+      background:var(--brain);
+      color:var(--muted);
+      padding:8px 14px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:1000;
+      border:1px solid rgba(0,0,0,.06);
+      box-shadow:0 6px 16px rgba(0,0,0,.08);
+      opacity:0;
+      transform:translateY(-6px);
+      transition:opacity .2s ease, transform .2s ease;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    .bucket{
+      margin-top:14px;
+    }
+
+    .bucketHead{
+      margin:0 0 8px;
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:#666;
+      font-weight:1000;
+    }
+
+    .bucketList{
       display:grid;
       gap:10px;
     }
@@ -180,9 +236,9 @@
     }
 
     .item.status-next{ background:var(--next); }
-    .item.status-completed_full{ background:var(--done); }
-    .item.status-completed_good{ background:#eef8ef; }
-    .item.status-on_hold{ background:var(--hold); }
+    .item.status-later{ background:var(--later); }
+    .item.status-done{ background:var(--done); }
+    .item.status-good{ background:var(--good); }
 
     .itemTop{
       display:grid;
@@ -213,35 +269,6 @@
       flex:0 0 auto;
     }
 
-    .sortRow{
-      display:flex;
-      gap:8px;
-      margin:0 0 10px;
-    }
-
-    .sortBtn{
-      border:1px solid rgba(0,0,0,.10);
-      background:#fff;
-      color:#111;
-      border-radius:999px;
-      padding:8px 10px;
-      font-size:12px;
-      font-weight:1000;
-      cursor:pointer;
-      line-height:1;
-      white-space:nowrap;
-    }
-
-    .sortBtn:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-    }
-
-    .controls{
-      display:grid;
-      gap:9px;
-    }
-
     .rowLabel{
       display:block;
       font-size:11px;
@@ -252,7 +279,6 @@
       font-weight:1000;
     }
 
-    .needWantRow,
     .statusRow{
       display:flex;
       flex-wrap:wrap;
@@ -260,7 +286,6 @@
       align-items:center;
     }
 
-    .chip,
     .statusBtn{
       border:1px solid rgba(0,0,0,.09);
       background:#fff;
@@ -272,16 +297,6 @@
       cursor:pointer;
       line-height:1.1;
       white-space:nowrap;
-    }
-
-    .chip.active.need{
-      background:var(--need);
-      border-color:#d4c9ef;
-    }
-
-    .chip.active.want{
-      background:var(--want);
-      border-color:#d9ccb0;
     }
 
     .statusBtn.active{
@@ -310,14 +325,6 @@
       font-size:13px;
       font-weight:850;
       line-height:1.3;
-    }
-
-    .afterConnect{
-      margin-top:10px;
-      text-align:center;
-      color:#666;
-      font-size:13px;
-      font-weight:1000;
     }
 
     .resultBox{
@@ -366,36 +373,6 @@
       display:block;
     }
 
-    .toastWrap{
-      position:absolute;
-      left:14px;
-      right:14px;
-      top:-12px;
-      display:flex;
-      justify-content:center;
-      pointer-events:none;
-      z-index:10;
-    }
-
-    .toast{
-      background:var(--brain);
-      color:var(--muted);
-      padding:8px 14px;
-      border-radius:999px;
-      font-size:13px;
-      font-weight:1000;
-      border:1px solid rgba(0,0,0,.06);
-      box-shadow:0 6px 16px rgba(0,0,0,.08);
-      opacity:0;
-      transform:translateY(-6px);
-      transition:opacity .2s ease, transform .2s ease;
-    }
-
-    .toast.show{
-      opacity:1;
-      transform:translateY(0);
-    }
-
     @keyframes settleIn{
       from{
         opacity:0;
@@ -430,11 +407,11 @@
 
     <section class="card input-card">
       <div class="toastWrap">
-        <div id="toast" class="toast">Added</div>
+        <div id="toast" class="toast">Thought captured</div>
       </div>
 
       <h2 class="sectionTitle">🧠 Brain Dump</h2>
-      <p class="sectionCopy">Let’s figure out what actually needs your attention.</p>
+      <p class="sectionCopy">What’s one thing on your mind?</p>
 
       <div class="addRow">
         <input
@@ -442,27 +419,45 @@
           class="input"
           type="text"
           maxlength="140"
-          placeholder="Fix car, pay bill, call mom, meet sponsor, make time for fun too..."
+          placeholder="Pay bill, call mom, go to meeting, make time for fun too..."
         />
-        <button id="addBtn" class="btn" type="button">Add Item</button>
+        <button id="addBtn" class="btn" type="button">Add It</button>
       </div>
+
+      <div class="helper">Add them one at a time.</div>
     </section>
 
     <section class="card work">
       <h2 class="sectionTitle">⏸️ Alright… let’s slow down a second. Let’s sort this out.</h2>
-      <p class="sectionCopy">Use the arrows to move things up or down. Then decide what really needs attention and what happens with each one.</p>
+      <p class="sectionCopy">Tap the button that fits best. The app will sort it for you.</p>
 
-      <div id="list" class="list"></div>
-      <div id="emptyState" class="empty">Nothing here yet. Add a few things and start sorting.</div>
+      <div class="bucket">
+        <div class="bucketHead">All Thoughts</div>
+        <div id="allList" class="bucketList"></div>
+        <div id="emptyState" class="empty">Nothing here yet. Add one thing and start there.</div>
+      </div>
+
+      <div class="bucket">
+        <div class="bucketHead">Do Next</div>
+        <div id="nextList" class="bucketList"></div>
+      </div>
+
+      <div class="bucket">
+        <div class="bucketHead">Not Today</div>
+        <div id="laterList" class="bucketList"></div>
+      </div>
+
+      <div class="bucket">
+        <div class="bucketHead">Done / Good Enough</div>
+        <div id="doneList" class="bucketList"></div>
+      </div>
 
       <div class="connect">
         <h3 class="connectTitle">📞 Sometimes the next right thing is calling someone.</h3>
         <p class="connectCopy">Is there someone you could reach out to right now who might help you feel a little better?</p>
       </div>
 
-      <div class="afterConnect">Progress over perfection.</div>
-
-      <button id="clearHeadBtn" class="btn clear" type="button">🧹 Clear My Head</button>
+      <button id="clearHeadBtn" class="btn secondary full" type="button">Okay, I’m Good for Now</button>
 
       <div id="resultBox" class="resultBox">
         <h3 class="resultTitle">🧠 What’s Left</h3>
@@ -482,11 +477,14 @@
 
   <script>
     (() => {
-      const STORAGE_KEY = "rm_brain_dumper_items_v6";
+      const STORAGE_KEY = "rm_brain_dumper_items_v8";
 
       const itemInput = document.getElementById("itemInput");
       const addBtn = document.getElementById("addBtn");
-      const listEl = document.getElementById("list");
+      const allList = document.getElementById("allList");
+      const nextList = document.getElementById("nextList");
+      const laterList = document.getElementById("laterList");
+      const doneList = document.getElementById("doneList");
       const emptyState = document.getElementById("emptyState");
       const toast = document.getElementById("toast");
       const clearHeadBtn = document.getElementById("clearHeadBtn");
@@ -516,7 +514,7 @@
         return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
       }
 
-      function showToast(message = "Added") {
+      function showToast(message = "Thought captured") {
         toast.textContent = message;
         toast.classList.add("show");
         clearTimeout(toastTimer);
@@ -533,7 +531,6 @@
         items.unshift({
           id,
           text,
-          category: "",
           status: ""
         });
 
@@ -541,20 +538,12 @@
         itemInput.value = "";
         saveItems();
         render();
-        showToast("Added");
+        showToast("Thought captured");
         itemInput.focus();
       }
 
       function deleteItem(id) {
         items = items.filter(item => item.id !== id);
-        saveItems();
-        render();
-      }
-
-      function setCategory(id, category) {
-        items = items.map(item =>
-          item.id === id ? { ...item, category } : item
-        );
         saveItems();
         render();
       }
@@ -567,35 +556,12 @@
         render();
       }
 
-      function moveItem(id, direction) {
-        const index = items.findIndex(item => item.id === id);
-        if (index === -1) return;
-
-        const newIndex = index + direction;
-        if (newIndex < 0 || newIndex >= items.length) return;
-
-        const updated = [...items];
-        const [moved] = updated.splice(index, 1);
-        updated.splice(newIndex, 0, moved);
-        items = updated;
-
-        saveItems();
-        render();
-      }
-
-      function clearMyHead() {
-        items = items.filter(item =>
-          item.status !== "completed_full" &&
-          item.status !== "completed_good"
-        );
-
-        saveItems();
+      function finishForNow() {
         renderResults();
-        render();
       }
 
       function renderResults() {
-        const remaining = items.filter(item => item.text && item.text.trim());
+        const remaining = items.filter(item => item.status !== "done" && item.status !== "good");
 
         if (!remaining.length) {
           resultList.innerHTML = "<li>Your list is clear for now.</li>";
@@ -607,6 +573,7 @@
 
         resultBox.classList.add("show");
         ending.classList.add("show");
+        resultBox.scrollIntoView({ behavior: "smooth", block: "start" });
       }
 
       function escapeHtml(str) {
@@ -618,47 +585,54 @@
           .replaceAll("'", "&#39;");
       }
 
+      function itemHtml(item, isNew = false) {
+        const safeText = escapeHtml(item.text);
+        const newClass = isNew ? "new" : "";
+        return `
+          <article class="item ${newClass} ${item.status ? `status-${item.status}` : ""}">
+            <div class="itemTop">
+              <div class="itemText">${safeText}</div>
+              <button class="deleteBtn" data-action="delete" data-id="${item.id}" aria-label="Delete item" type="button">✕</button>
+            </div>
+
+            <div>
+              <span class="rowLabel">What now?</span>
+              <div class="statusRow">
+                <button class="statusBtn ${item.status === "next" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="next" type="button">Do Next</button>
+                <button class="statusBtn ${item.status === "later" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="later" type="button">Not Today</button>
+                <button class="statusBtn ${item.status === "done" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="done" type="button">I Did It</button>
+                <button class="statusBtn ${item.status === "good" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="good" type="button">Good Enough</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
       function render() {
+        const unassigned = items.filter(item => !item.status);
+        const next = items.filter(item => item.status === "next");
+        const later = items.filter(item => item.status === "later");
+        const done = items.filter(item => item.status === "done" || item.status === "good");
+
         emptyState.style.display = items.length ? "none" : "block";
 
-        listEl.innerHTML = items.map((item, index) => {
-          const safeText = escapeHtml(item.text);
-          const isNew = item.id === lastAddedId ? "new" : "";
+        allList.innerHTML = unassigned.map(item => itemHtml(item, item.id === lastAddedId)).join("");
+        nextList.innerHTML = next.map(item => itemHtml(item, false)).join("");
+        laterList.innerHTML = later.map(item => itemHtml(item, false)).join("");
+        doneList.innerHTML = done.map(item => itemHtml(item, false)).join("");
 
-          return `
-            <article class="item ${isNew} ${item.status ? `status-${item.status}` : ""}" data-id="${item.id}">
-              <div class="itemTop">
-                <div class="itemText">${safeText}</div>
-                <button class="deleteBtn" data-action="delete" data-id="${item.id}" aria-label="Delete item" type="button">✕</button>
-              </div>
-
-              <div class="sortRow">
-                <button class="sortBtn" data-action="move-up" data-id="${item.id}" type="button" ${index === 0 ? "disabled" : ""}>↑ Up</button>
-                <button class="sortBtn" data-action="move-down" data-id="${item.id}" type="button" ${index === items.length - 1 ? "disabled" : ""}>↓ Down</button>
-              </div>
-
-              <div class="controls">
-                <div>
-                  <span class="rowLabel">Need or Want</span>
-                  <div class="needWantRow">
-                    <button class="chip ${item.category === "need" ? "active need" : ""}" data-action="category" data-id="${item.id}" data-value="need" type="button">Need</button>
-                    <button class="chip ${item.category === "want" ? "active want" : ""}" data-action="category" data-id="${item.id}" data-value="want" type="button">Want</button>
-                  </div>
-                </div>
-
-                <div>
-                  <span class="rowLabel">What happens with this one?</span>
-                  <div class="statusRow">
-                    <button class="statusBtn ${item.status === "next" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="next" type="button">Do Next</button>
-                    <button class="statusBtn ${item.status === "completed_full" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_full" type="button">I Did It</button>
-                    <button class="statusBtn ${item.status === "completed_good" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_good" type="button">Good Enough</button>
-                    <button class="statusBtn ${item.status === "on_hold" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="on_hold" type="button">Hold for Now</button>
-                  </div>
-                </div>
-              </div>
-            </article>
-          `;
-        }).join("");
+        if (!unassigned.length) {
+          allList.innerHTML = '<div class="empty">No loose thoughts right now.</div>';
+        }
+        if (!next.length) {
+          nextList.innerHTML = '<div class="empty">Nothing marked do next yet.</div>';
+        }
+        if (!later.length) {
+          laterList.innerHTML = '<div class="empty">Nothing parked for later.</div>';
+        }
+        if (!done.length) {
+          doneList.innerHTML = '<div class="empty">Nothing finished yet.</div>';
+        }
 
         if (lastAddedId) {
           setTimeout(() => {
@@ -679,9 +653,9 @@
         }
       });
 
-      clearHeadBtn.addEventListener("click", clearMyHead);
+      clearHeadBtn.addEventListener("click", finishForNow);
 
-      listEl.addEventListener("click", (e) => {
+      document.addEventListener("click", (e) => {
         const btn = e.target.closest("button");
         if (!btn) return;
 
@@ -689,10 +663,7 @@
         if (!action || !id) return;
 
         if (action === "delete") deleteItem(id);
-        if (action === "category") setCategory(id, value);
         if (action === "status") setStatus(id, value);
-        if (action === "move-up") moveItem(id, -1);
-        if (action === "move-down") moveItem(id, 1);
       });
 
       render();
