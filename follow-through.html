@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>🧠 Brain Dumper</title>
+  <title>🧠 The Brain Dumper — Get Unstuck</title>
   <style>
     :root{
       --bg-top:#1e293b;
@@ -18,11 +18,13 @@
       --green-2:#86efac;
       --blue-1:#7dd3fc;
       --blue-2:#38bdf8;
+      --yellow-1:#fde68a;
+      --yellow-2:#fbbf24;
       --shadow:0 18px 45px rgba(0,0,0,.28);
       --radius:28px;
     }
 
-    *{box-sizing:border-box;}
+    *{ box-sizing:border-box; }
 
     html,body{
       margin:0;
@@ -36,19 +38,17 @@
         linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
     }
 
-    body{
-      overflow-x:hidden;
-    }
+    body{ overflow-x:hidden; }
 
     .page{
-      max-width:760px;
+      max-width:780px;
       margin:0 auto;
-      padding:20px 14px 120px;
+      padding:18px 14px 120px;
     }
 
     .hero{
       text-align:center;
-      padding:16px 8px 10px;
+      padding:14px 8px 10px;
     }
 
     .brain{
@@ -71,13 +71,27 @@
       letter-spacing:-0.02em;
     }
 
+    .subtitle{
+      margin-top:5px;
+      color:#dcfce7;
+      font-size:18px;
+      font-weight:800;
+    }
+
+    .tiny-detail{
+      margin-top:8px;
+      color:#dbeafe;
+      font-size:16px;
+      font-weight:700;
+    }
+
     .lead{
       margin:14px auto 0;
-      max-width:560px;
+      max-width:620px;
       background:rgba(255,255,255,.08);
       border:1px solid rgba(255,255,255,.12);
       border-radius:22px;
-      padding:16px 16px 15px;
+      padding:16px;
       box-shadow:var(--shadow);
     }
 
@@ -106,11 +120,85 @@
       padding:16px;
     }
 
-    .prompt{
+    .section-title{
       margin:0 0 12px;
       font-size:20px;
       font-weight:900;
       line-height:1.25;
+    }
+
+    .section-sub{
+      margin:-4px 0 14px;
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.4;
+    }
+
+    .choice-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .choice{
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:16px;
+      text-align:left;
+      color:var(--text);
+      cursor:pointer;
+      transition:transform .12s ease, border-color .12s ease, background .12s ease;
+      min-height:140px;
+    }
+
+    .choice:hover{
+      transform:translateY(-1px);
+      border-color:rgba(125,211,252,.36);
+      background:rgba(255,255,255,.13);
+    }
+
+    .choice:active{ transform:scale(.99); }
+
+    .choice .icon{
+      font-size:28px;
+      margin-bottom:10px;
+      display:block;
+    }
+
+    .choice .title{
+      font-size:20px;
+      font-weight:900;
+      margin-bottom:6px;
+      line-height:1.2;
+    }
+
+    .choice .desc{
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.4;
+    }
+
+    .hidden{ display:none !important; }
+
+    .mode-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+
+    .back-btn{
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+      border-radius:16px;
+      padding:11px 14px;
+      font-size:15px;
+      font-weight:800;
+      cursor:pointer;
     }
 
     .input-wrap{
@@ -181,9 +269,7 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    button:active{
-      transform:scale(.98);
-    }
+    button:active{ transform:scale(.98); }
 
     .capture-btn{
       flex:1 1 220px;
@@ -192,7 +278,12 @@
       box-shadow:0 10px 22px rgba(134,239,172,.22);
     }
 
-    .capture-btn:hover{ filter:brightness(1.02); }
+    .action-btn{
+      flex:1 1 220px;
+      background:linear-gradient(180deg, var(--yellow-1), var(--yellow-2));
+      color:#422006;
+      box-shadow:0 10px 22px rgba(251,191,36,.20);
+    }
 
     .feedback{
       min-height:24px;
@@ -215,14 +306,7 @@
       animation:fadeIn .22s ease;
     }
 
-    .list-wrap.show{
-      display:block;
-    }
-
-    @keyframes fadeIn{
-      from{ opacity:0; transform:translateY(8px); }
-      to{ opacity:1; transform:none; }
-    }
+    .list-wrap.show{ display:block; }
 
     .list-top{
       display:flex;
@@ -264,9 +348,7 @@
       transition:transform .15s ease, background .15s ease, border-color .15s ease;
     }
 
-    .task-item.new{
-      animation:dropIn .22s ease;
-    }
+    .task-item.new{ animation:dropIn .22s ease; }
 
     @keyframes dropIn{
       from{ opacity:0; transform:translateY(-8px) scale(.98); }
@@ -330,6 +412,78 @@
       line-height:1.35;
     }
 
+    .goal-path{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .path-item{
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .path-label{
+      display:block;
+      font-size:12px;
+      font-weight:900;
+      color:#bbf7d0;
+      margin-bottom:6px;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .path-value{
+      font-size:20px;
+      font-weight:800;
+      line-height:1.3;
+      word-break:break-word;
+    }
+
+    .arrow{
+      text-align:center;
+      color:var(--muted);
+      font-size:20px;
+      font-weight:900;
+    }
+
+    .next-step-card{
+      margin-top:16px;
+      background:rgba(134,239,172,.12);
+      border:1px solid rgba(134,239,172,.28);
+      border-radius:22px;
+      padding:16px;
+      display:none;
+      animation:fadeIn .22s ease;
+    }
+
+    .next-step-card.show{ display:block; }
+
+    .next-step-fun{
+      font-size:18px;
+      font-weight:900;
+      color:#dcfce7;
+      margin-bottom:8px;
+    }
+
+    .next-step-title{
+      font-size:14px;
+      color:#bbf7d0;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      margin-bottom:6px;
+    }
+
+    .next-step-text{
+      font-size:24px;
+      font-weight:900;
+      line-height:1.25;
+    }
+
     .overlay{
       position:fixed;
       inset:0;
@@ -388,6 +542,14 @@
       line-height:1.15;
     }
 
+    .result-fun{
+      text-align:center;
+      color:#dcfce7;
+      font-size:22px;
+      font-weight:900;
+      margin:10px 0 4px;
+    }
+
     .result-sub{
       margin:8px 0 18px;
       text-align:center;
@@ -415,10 +577,7 @@
     }
 
     @keyframes lineIn{
-      to{
-        opacity:1;
-        transform:none;
-      }
+      to{ opacity:1; transform:none; }
     }
 
     .result-end{
@@ -478,14 +637,21 @@
       100%{ transform:translateY(-120vh) scale(1.03); opacity:0; }
     }
 
-    @media (max-width:640px){
+    @keyframes fadeIn{
+      from{ opacity:0; transform:translateY(8px); }
+      to{ opacity:1; transform:none; }
+    }
+
+    @media (max-width:680px){
+      .choice-grid{ grid-template-columns:1fr; }
       .page{ padding:16px 12px 110px; }
       .lead strong{ font-size:20px; }
       .lead span{ font-size:16px; }
-      .prompt{ font-size:18px; }
+      .section-title{ font-size:18px; }
       .task-input{ font-size:22px; }
-      .task-text, .result-line{ font-size:19px; }
+      .task-text, .path-value, .result-line{ font-size:19px; }
       .result h2{ font-size:26px; }
+      .next-step-text{ font-size:22px; }
     }
   </style>
 </head>
@@ -495,15 +661,43 @@
   <main class="page">
     <section class="hero">
       <div class="brain">🧠</div>
-      <h1>Brain Dumper</h1>
+      <h1>The Brain Dumper</h1>
+      <div class="subtitle">Get Unstuck</div>
+      <div class="tiny-detail">Too much in your head? Let’s sort it out.</div>
+
       <div class="lead">
         <strong>Too many things you need to get done?</strong>
         <span>Dump them here and we’ll turn it into a simple to-do list.</span>
       </div>
     </section>
 
-    <section class="card">
-      <div class="prompt" id="promptText">What’s one thing you need to do?</div>
+    <section class="card" id="homeCard">
+      <div class="section-title">What do you need right now?</div>
+      <div class="section-sub">Pick the one that fits best.</div>
+
+      <div class="choice-grid">
+        <button class="choice" id="openOverwhelmed" type="button">
+          <span class="icon">⚡</span>
+          <div class="title">I’m Overwhelmed Right Now</div>
+          <div class="desc">Dump your tasks and organize what matters today.</div>
+        </button>
+
+        <button class="choice" id="openGoal" type="button">
+          <span class="icon">🪜</span>
+          <div class="title">I Need Help With a Goal</div>
+          <div class="desc">We’ll help you find the next step.</div>
+        </button>
+      </div>
+    </section>
+
+    <section class="card hidden" id="overwhelmedCard">
+      <div class="mode-head">
+        <div>
+          <div class="section-title" id="owPrompt">What’s one thing you need to do?</div>
+          <div class="section-sub">One thing at a time. Keep it simple.</div>
+        </div>
+        <button class="back-btn" id="backFromOverwhelmed" type="button">← Back</button>
+      </div>
 
       <div class="input-wrap">
         <input
@@ -520,10 +714,10 @@
       </div>
 
       <div class="btn-row">
-        <button id="captureBtn" class="capture-btn">Capture Task</button>
+        <button id="captureBtn" class="capture-btn" type="button">Capture Task</button>
       </div>
 
-      <div class="feedback" id="feedback">Got another task?</div>
+      <div class="feedback" id="taskFeedback">Got another task?</div>
 
       <div class="list-wrap" id="listWrap">
         <div class="list-top">
@@ -534,8 +728,50 @@
         <div id="taskList" class="task-list"></div>
 
         <div class="bottom-actions">
-          <button id="clearBtn" class="clear-btn">Clear My Mind</button>
+          <button id="clearBtn" class="clear-btn" type="button">Clear My Mind</button>
           <div class="tiny-note">We’re just getting it out of your head and into order.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="goalCard">
+      <div class="mode-head">
+        <div>
+          <div class="section-title" id="goalPrompt">What are you trying to do?</div>
+          <div class="section-sub" id="goalSub">Start with the bigger goal.</div>
+        </div>
+        <button class="back-btn" id="backFromGoal" type="button">← Back</button>
+      </div>
+
+      <div class="input-wrap">
+        <input
+          id="goalInput"
+          class="task-input"
+          type="text"
+          autocomplete="off"
+          autocapitalize="sentences"
+          spellcheck="true"
+          placeholder="Type it here…"
+          aria-label="Type your goal or obstacle"
+        />
+        <div class="egg" id="goalEgg">e.g. get a car</div>
+      </div>
+
+      <div class="btn-row">
+        <button id="goalActionBtn" class="action-btn" type="button">Keep Going</button>
+      </div>
+
+      <div class="feedback" id="goalFeedback">Good. What’s in the way?</div>
+
+      <div class="goal-path" id="goalPath"></div>
+
+      <div class="next-step-card" id="nextStepCard">
+        <div class="next-step-fun">There it is.</div>
+        <div class="next-step-title">Next Step</div>
+        <div class="next-step-text" id="nextStepText"></div>
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="addNextStepBtn" class="capture-btn" type="button">Add to My List</button>
         </div>
       </div>
     </section>
@@ -544,33 +780,56 @@
   <div class="overlay" id="overlay" aria-hidden="true">
     <div class="result">
       <h2>Okay… that’s enough thinking.</h2>
+      <div class="result-fun">There it is.</div>
       <div class="result-sub">Here’s your to-do list.</div>
       <div id="resultList" class="result-list"></div>
       <div class="result-end">Now we relax and take it easy.</div>
+
       <div class="result-buttons">
-        <button id="closeBtn" class="soft-btn">Close</button>
-        <button id="restartBtn" class="restart-btn">Back to My List</button>
+        <button id="closeBtn" class="soft-btn" type="button">Close</button>
+        <button id="restartBtn" class="restart-btn" type="button">Back to My List</button>
       </div>
     </div>
   </div>
 
   <script>
     (() => {
+      const homeCard = document.getElementById("homeCard");
+      const overwhelmedCard = document.getElementById("overwhelmedCard");
+      const goalCard = document.getElementById("goalCard");
+
+      const openOverwhelmed = document.getElementById("openOverwhelmed");
+      const openGoal = document.getElementById("openGoal");
+      const backFromOverwhelmed = document.getElementById("backFromOverwhelmed");
+      const backFromGoal = document.getElementById("backFromGoal");
+
       const taskInput = document.getElementById("taskInput");
       const captureBtn = document.getElementById("captureBtn");
-      const promptText = document.getElementById("promptText");
+      const owPrompt = document.getElementById("owPrompt");
       const eggText = document.getElementById("eggText");
-      const feedback = document.getElementById("feedback");
+      const taskFeedback = document.getElementById("taskFeedback");
       const listWrap = document.getElementById("listWrap");
       const taskList = document.getElementById("taskList");
       const clearBtn = document.getElementById("clearBtn");
+
+      const goalInput = document.getElementById("goalInput");
+      const goalActionBtn = document.getElementById("goalActionBtn");
+      const goalPrompt = document.getElementById("goalPrompt");
+      const goalSub = document.getElementById("goalSub");
+      const goalEgg = document.getElementById("goalEgg");
+      const goalFeedback = document.getElementById("goalFeedback");
+      const goalPath = document.getElementById("goalPath");
+      const nextStepCard = document.getElementById("nextStepCard");
+      const nextStepText = document.getElementById("nextStepText");
+      const addNextStepBtn = document.getElementById("addNextStepBtn");
+
       const overlay = document.getElementById("overlay");
       const resultList = document.getElementById("resultList");
       const closeBtn = document.getElementById("closeBtn");
       const restartBtn = document.getElementById("restartBtn");
       const floaters = document.getElementById("floaters");
 
-      const eggs = [
+      const taskEggs = [
         "e.g. go to a meeting",
         "e.g. take a shower",
         "e.g. eat a snack",
@@ -581,9 +840,41 @@
         "e.g. rest for a bit"
       ];
 
-      let eggIndex = 0;
+      const obstacleEggs = [
+        "e.g. no license",
+        "e.g. no money",
+        "e.g. no ride",
+        "e.g. lost my ID",
+        "e.g. I’m scared",
+        "e.g. fines on my account"
+      ];
+
+      const actionHints = [
+        "go to the BMV",
+        "call and ask",
+        "find the paperwork",
+        "get a ride",
+        "make the appointment",
+        "fill out the form"
+      ];
+
+      const actionWords = [
+        "go","call","get","find","ask","make","fill","pay","apply","text",
+        "email","bring","pick","take","renew","schedule","start","submit"
+      ];
+
+      let taskEggIndex = 0;
+      let obstacleEggIndex = 0;
+      let actionEggIndex = 0;
       let tasks = [];
       let dragState = null;
+
+      let goalData = {
+        step: 0,      // 0 = goal, 1 = obstacle loop, 2 = next step
+        goal: "",
+        obstacles: [],
+        nextStep: ""
+      };
 
       function vibrate(ms = 12) {
         if (navigator.vibrate) navigator.vibrate(ms);
@@ -593,28 +884,68 @@
         return text.replace(/\s+/g, " ").trim();
       }
 
-      function rotateEgg() {
-        eggIndex = (eggIndex + 1) % eggs.length;
+      function showHome() {
+        homeCard.classList.remove("hidden");
+        overwhelmedCard.classList.add("hidden");
+        goalCard.classList.add("hidden");
+      }
+
+      function showOverwhelmed() {
+        homeCard.classList.add("hidden");
+        goalCard.classList.add("hidden");
+        overwhelmedCard.classList.remove("hidden");
+        setTimeout(() => taskInput.focus(), 80);
+      }
+
+      function showGoal() {
+        homeCard.classList.add("hidden");
+        overwhelmedCard.classList.add("hidden");
+        goalCard.classList.remove("hidden");
+        setTimeout(() => goalInput.focus(), 80);
+      }
+
+      function rotateTaskEgg() {
+        taskEggIndex = (taskEggIndex + 1) % taskEggs.length;
         eggText.style.opacity = "0";
         eggText.style.transform = "translateY(3px)";
         setTimeout(() => {
-          eggText.textContent = eggs[eggIndex];
+          eggText.textContent = taskEggs[taskEggIndex];
           eggText.style.opacity = "1";
           eggText.style.transform = "translateY(0)";
         }, 120);
       }
 
-      function showFeedback(text) {
-        feedback.textContent = text;
-        feedback.classList.add("show");
-        setTimeout(() => feedback.classList.remove("show"), 1200);
+      function setGoalEgg(text) {
+        goalEgg.style.opacity = "0";
+        goalEgg.style.transform = "translateY(3px)";
+        setTimeout(() => {
+          goalEgg.textContent = text;
+          goalEgg.style.opacity = "1";
+          goalEgg.style.transform = "translateY(0)";
+        }, 120);
       }
 
-      function addTask() {
-        const text = tidy(taskInput.value);
+      function rotateObstacleEgg() {
+        obstacleEggIndex = (obstacleEggIndex + 1) % obstacleEggs.length;
+        setGoalEgg(obstacleEggs[obstacleEggIndex]);
+      }
+
+      function rotateActionEgg() {
+        actionEggIndex = (actionEggIndex + 1) % actionHints.length;
+        setGoalEgg(`e.g. ${actionHints[actionEggIndex]}`);
+      }
+
+      function showFeedback(el, text) {
+        el.textContent = text;
+        el.classList.add("show");
+        setTimeout(() => el.classList.remove("show"), 1200);
+      }
+
+      function addTask(textFromOutside = "") {
+        const text = tidy(textFromOutside || taskInput.value);
         if (!text) {
           taskInput.focus();
-          showFeedback("Type one task first.");
+          showFeedback(taskFeedback, "Type one task first.");
           return;
         }
 
@@ -624,18 +955,19 @@
         };
 
         tasks.push(task);
-        renderList(task.id);
+        renderTaskList(task.id);
 
-        taskInput.value = "";
-        promptText.textContent = "Anything else you need to do?";
+        if (!textFromOutside) taskInput.value = "";
+        owPrompt.textContent = "Anything else you need to do?";
         listWrap.classList.add("show");
-        rotateEgg();
-        showFeedback("Got another task?");
+        rotateTaskEgg();
+        showFeedback(taskFeedback, textFromOutside ? "Added to your list." : "Got another task?");
         vibrate();
-        taskInput.focus();
+
+        if (!textFromOutside) taskInput.focus();
       }
 
-      function renderList(newId = null) {
+      function renderTaskList(newId = null) {
         taskList.innerHTML = "";
 
         tasks.forEach(task => {
@@ -721,7 +1053,6 @@
             closest = el;
           }
         }
-
         return closest;
       }
 
@@ -729,7 +1060,6 @@
         if (!dragState || e.pointerId !== dragState.pointerId) return;
 
         const { el, ghost } = dragState;
-
         el.classList.remove("dragging");
         el.style.transform = "";
 
@@ -768,7 +1098,7 @@
 
       function clearMind() {
         if (!tasks.length) {
-          showFeedback("Add at least one task first.");
+          showFeedback(taskFeedback, "Add at least one task first.");
           taskInput.focus();
           return;
         }
@@ -785,8 +1115,10 @@
           resultList.appendChild(line);
         });
 
-        overlay.classList.add("show");
-        overlay.setAttribute("aria-hidden", "false");
+        setTimeout(() => {
+          overlay.classList.add("show");
+          overlay.setAttribute("aria-hidden", "false");
+        }, 420);
       }
 
       function closeOverlay() {
@@ -794,10 +1126,147 @@
         overlay.setAttribute("aria-hidden", "true");
       }
 
-      captureBtn.addEventListener("click", addTask);
+      function isAction(text) {
+        const lower = text.toLowerCase();
+        return actionWords.some(word => lower.startsWith(word + " "));
+      }
+
+      function resetGoalMode() {
+        goalData = {
+          step: 0,
+          goal: "",
+          obstacles: [],
+          nextStep: ""
+        };
+
+        goalPrompt.textContent = "What are you trying to do?";
+        goalSub.textContent = "Start with the bigger goal.";
+        goalActionBtn.textContent = "Keep Going";
+        goalInput.value = "";
+        goalPath.innerHTML = "";
+        nextStepCard.classList.remove("show");
+        setGoalEgg("e.g. get a car");
+      }
+
+      function renderGoalPath() {
+        goalPath.innerHTML = "";
+
+        if (goalData.goal) {
+          const goalEl = document.createElement("div");
+          goalEl.className = "path-item";
+          goalEl.innerHTML = `
+            <span class="path-label">Goal</span>
+            <div class="path-value"></div>
+          `;
+          goalEl.querySelector(".path-value").textContent = goalData.goal;
+          goalPath.appendChild(goalEl);
+        }
+
+        goalData.obstacles.forEach(item => {
+          const arrow = document.createElement("div");
+          arrow.className = "arrow";
+          arrow.textContent = "↓";
+          goalPath.appendChild(arrow);
+
+          const obstacleEl = document.createElement("div");
+          obstacleEl.className = "path-item";
+          obstacleEl.innerHTML = `
+            <span class="path-label">In The Way</span>
+            <div class="path-value"></div>
+          `;
+          obstacleEl.querySelector(".path-value").textContent = item;
+          goalPath.appendChild(obstacleEl);
+        });
+
+        if (goalData.nextStep) {
+          const arrow = document.createElement("div");
+          arrow.className = "arrow";
+          arrow.textContent = "↓";
+          goalPath.appendChild(arrow);
+
+          const stepEl = document.createElement("div");
+          stepEl.className = "path-item";
+          stepEl.innerHTML = `
+            <span class="path-label">Next Step</span>
+            <div class="path-value"></div>
+          `;
+          stepEl.querySelector(".path-value").textContent = goalData.nextStep;
+          goalPath.appendChild(stepEl);
+        }
+      }
+
+      function handleGoalFlow() {
+        const text = tidy(goalInput.value);
+        if (!text) {
+          goalInput.focus();
+          showFeedback(goalFeedback, "Type one thing first.");
+          return;
+        }
+
+        if (goalData.step === 0) {
+          goalData.goal = text;
+          goalData.step = 1;
+          goalPrompt.textContent = "What’s standing in the way of that?";
+          goalSub.textContent = "Keep going until you reach something you can actually do.";
+          goalInput.value = "";
+          renderGoalPath();
+          rotateObstacleEgg();
+          showFeedback(goalFeedback, "Good. What’s in the way?");
+          vibrate();
+          goalInput.focus();
+          return;
+        }
+
+        if (goalData.step === 1) {
+          if (isAction(text)) {
+            goalData.nextStep = text;
+            goalData.step = 2;
+            goalInput.value = "";
+            renderGoalPath();
+            nextStepText.textContent = text;
+            nextStepCard.classList.add("show");
+            goalPrompt.textContent = "That sounds like a real next step.";
+            goalSub.textContent = "You don’t have to solve everything. Just start here.";
+            rotateActionEgg();
+            showFeedback(goalFeedback, "That’s the move.");
+            vibrate(18);
+            return;
+          } else {
+            goalData.obstacles.push(text);
+            goalInput.value = "";
+            renderGoalPath();
+            goalPrompt.textContent = "What’s standing in the way of that?";
+            goalSub.textContent = "Keep shrinking it until you get to one move you can make.";
+            rotateObstacleEgg();
+            showFeedback(goalFeedback, "Keep going.");
+            vibrate();
+            goalInput.focus();
+            return;
+          }
+        }
+
+        if (goalData.step === 2) {
+          goalInput.focus();
+        }
+      }
+
+      function addNextStepToList() {
+        if (!goalData.nextStep) return;
+        addTask(goalData.nextStep);
+        showOverwhelmed();
+      }
+
+      openOverwhelmed.addEventListener("click", showOverwhelmed);
+      openGoal.addEventListener("click", () => {
+        resetGoalMode();
+        showGoal();
+      });
+
+      backFromOverwhelmed.addEventListener("click", showHome);
+      backFromGoal.addEventListener("click", showHome);
+
+      captureBtn.addEventListener("click", () => addTask());
       clearBtn.addEventListener("click", clearMind);
-      closeBtn.addEventListener("click", closeOverlay);
-      restartBtn.addEventListener("click", closeOverlay);
 
       taskInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
@@ -810,6 +1279,26 @@
         eggText.style.opacity = taskInput.value.trim() ? ".55" : "1";
       });
 
+      goalActionBtn.addEventListener("click", handleGoalFlow);
+      goalInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleGoalFlow();
+        }
+      });
+
+      goalInput.addEventListener("input", () => {
+        goalEgg.style.opacity = goalInput.value.trim() ? ".55" : "1";
+      });
+
+      addNextStepBtn.addEventListener("click", addNextStepToList);
+
+      closeBtn.addEventListener("click", closeOverlay);
+      restartBtn.addEventListener("click", () => {
+        closeOverlay();
+        showOverwhelmed();
+      });
+
       overlay.addEventListener("click", (e) => {
         if (e.target === overlay) closeOverlay();
       });
@@ -820,7 +1309,7 @@
         }
       });
 
-      taskInput.focus();
+      showHome();
     })();
   </script>
 </body>
