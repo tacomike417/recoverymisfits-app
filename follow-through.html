@@ -162,14 +162,19 @@
     }
 
     .item.dragging{
-      opacity:.62;
+      opacity:.45;
       transform:scale(.99);
     }
 
+    .item.drag-over{
+      outline:2px dashed rgba(0,0,0,.25);
+      outline-offset:2px;
+    }
+
+    .item.status-next{background:var(--next)}
     .item.status-completed_full{background:var(--done)}
     .item.status-completed_good{background:#eef8ef}
     .item.status-on_hold{background:var(--hold)}
-    .item.status-next{background:var(--next)}
 
     .item-top{
       display:grid;
@@ -191,9 +196,12 @@
       place-items:center;
       font-size:1rem;
       color:#666;
+      touch-action:none;
     }
 
-    .drag-handle:active{cursor:grabbing}
+    .drag-handle:active{
+      cursor:grabbing;
+    }
 
     .item-text{
       font-size:.98rem;
@@ -298,7 +306,7 @@
     .toast-wrap{
       position:fixed;
       left:50%;
-      bottom:24px;
+      bottom:22px;
       transform:translateX(-50%);
       z-index:9999;
       pointer-events:none;
@@ -350,7 +358,7 @@
           maxlength="140"
           placeholder="Fix car, pay bill, call mom, meet sponsor..."
         />
-        <button id="addBtn" class="btn">Add Item</button>
+        <button id="addBtn" class="btn" type="button">Add Item</button>
       </div>
     </section>
 
@@ -376,7 +384,7 @@
 
   <script>
     (() => {
-      const STORAGE_KEY = "rm_brain_dumper_items_v2";
+      const STORAGE_KEY = "rm_brain_dumper_items_v3";
 
       const itemInput = document.getElementById("itemInput");
       const addBtn = document.getElementById("addBtn");
@@ -412,7 +420,7 @@
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
           toast.classList.remove("show");
-        }, 1100);
+        }, 1200);
       }
 
       function addItem() {
@@ -440,24 +448,19 @@
       }
 
       function setCategory(id, category) {
-        items = items.map(item => item.id === id ? { ...item, category } : item);
+        items = items.map(item =>
+          item.id === id ? { ...item, category } : item
+        );
         saveItems();
         render();
       }
 
       function setStatus(id, status) {
-        items = items.map(item => item.id === id ? { ...item, status } : item);
+        items = items.map(item =>
+          item.id === id ? { ...item, status } : item
+        );
         saveItems();
         render();
-      }
-
-      function escapeHtml(str) {
-        return str
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#39;");
       }
 
       function reorderItems(dragId, targetId) {
@@ -471,8 +474,18 @@
         const [moved] = updated.splice(fromIndex, 1);
         updated.splice(toIndex, 0, moved);
         items = updated;
+
         saveItems();
         render();
+      }
+
+      function escapeHtml(str) {
+        return str
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
       }
 
       function render() {
@@ -480,30 +493,31 @@
 
         listEl.innerHTML = items.map(item => {
           const safeText = escapeHtml(item.text);
+
           return `
             <article class="item ${item.status ? `status-${item.status}` : ""}" draggable="true" data-id="${item.id}">
               <div class="item-top">
-                <div class="drag-handle" title="Drag to reorder">☰</div>
+                <div class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder">☰</div>
                 <div class="item-text">${safeText}</div>
-                <button class="delete-btn" data-action="delete" data-id="${item.id}" aria-label="Delete item">✕</button>
+                <button class="delete-btn" data-action="delete" data-id="${item.id}" aria-label="Delete item" type="button">✕</button>
               </div>
 
               <div class="controls">
                 <div>
                   <span class="row-label">Need or Want</span>
                   <div class="needwant-row">
-                    <button class="chip ${item.category === "need" ? "active need" : ""}" data-action="category" data-id="${item.id}" data-value="need">Need</button>
-                    <button class="chip ${item.category === "want" ? "active want" : ""}" data-action="category" data-id="${item.id}" data-value="want">Want</button>
+                    <button class="chip ${item.category === "need" ? "active need" : ""}" data-action="category" data-id="${item.id}" data-value="need" type="button">Need</button>
+                    <button class="chip ${item.category === "want" ? "active want" : ""}" data-action="category" data-id="${item.id}" data-value="want" type="button">Want</button>
                   </div>
                 </div>
 
                 <div>
                   <span class="row-label">What happens with this one?</span>
                   <div class="status-row">
-                    <button class="status-btn ${item.status === "next" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="next">Do Next</button>
-                    <button class="status-btn ${item.status === "completed_full" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_full">I Did It</button>
-                    <button class="status-btn ${item.status === "completed_good" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_good">Good Enough</button>
-                    <button class="status-btn ${item.status === "on_hold" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="on_hold">Hold for Now</button>
+                    <button class="status-btn ${item.status === "next" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="next" type="button">Do Next</button>
+                    <button class="status-btn ${item.status === "completed_full" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_full" type="button">I Did It</button>
+                    <button class="status-btn ${item.status === "completed_good" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_good" type="button">Good Enough</button>
+                    <button class="status-btn ${item.status === "on_hold" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="on_hold" type="button">Hold for Now</button>
                   </div>
                 </div>
               </div>
@@ -515,7 +529,10 @@
       addBtn.addEventListener("click", addItem);
 
       itemInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") addItem();
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addItem();
+        }
       });
 
       listEl.addEventListener("click", (e) => {
@@ -530,29 +547,44 @@
         if (action === "status") setStatus(id, value);
       });
 
+      // Desktop drag/drop
       listEl.addEventListener("dragstart", (e) => {
         const item = e.target.closest(".item");
         if (!item) return;
         draggedId = item.dataset.id;
         item.classList.add("dragging");
         e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", draggedId);
       });
 
       listEl.addEventListener("dragend", (e) => {
         const item = e.target.closest(".item");
         if (item) item.classList.remove("dragging");
+        listEl.querySelectorAll(".item").forEach(el => el.classList.remove("drag-over"));
       });
 
       listEl.addEventListener("dragover", (e) => {
         e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
+        const target = e.target.closest(".item");
+        listEl.querySelectorAll(".item").forEach(el => el.classList.remove("drag-over"));
+        if (target && target.dataset.id !== draggedId) {
+          target.classList.add("drag-over");
+        }
+      });
+
+      listEl.addEventListener("dragleave", (e) => {
+        const target = e.target.closest(".item");
+        if (target) target.classList.remove("drag-over");
       });
 
       listEl.addEventListener("drop", (e) => {
         e.preventDefault();
         const target = e.target.closest(".item");
+        listEl.querySelectorAll(".item").forEach(el => el.classList.remove("drag-over"));
         if (!target) return;
-        reorderItems(draggedId, target.dataset.id);
+
+        const targetId = target.dataset.id;
+        reorderItems(draggedId, targetId);
         draggedId = null;
       });
 
