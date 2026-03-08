@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Follow-Through Tool — Recovery Misfits</title>
+
+  <!-- PWA bits -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#111111" />
+  <link rel="icon" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <style>
+    :root{
+      --bg:#f4f4f1;
+      --card:#ffffff;
+      --ink:#161616;
+      --muted:#666;
+      --line:#e7e7e2;
+      --accent:#111;
+      --soft:#f8f8f6;
+      --green:#dff3e3;
+      --yellow:#fff5d6;
+      --gray:#ececea;
+      --shadow:0 12px 28px rgba(0,0,0,.08);
+      --radius:22px;
+      --radius-sm:14px;
+      --max:760px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font-family: Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      line-height:1.45;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+
+    .wrap{
+      max-width:var(--max);
+      margin:0 auto;
+      padding:20px 14px 110px;
+    }
+
+    .hero{
+      background:linear-gradient(180deg,#171717,#0d0d0d);
+      color:#fff;
+      border-radius:28px;
+      padding:26px 20px;
+      box-shadow:var(--shadow);
+      margin:4px 0 18px;
+    }
+
+    .eyebrow{
+      font-size:.82rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      opacity:.78;
+      margin-bottom:8px;
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(1.8rem,4vw,2.5rem);
+      line-height:1.08;
+      font-weight:900;
+      letter-spacing:-.02em;
+    }
+
+    .tag{
+      margin-top:16px;
+      display:inline-block;
+      font-size:1.15rem;
+      font-weight:700;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.1);
+      padding:12px 16px;
+      border-radius:999px;
+    }
+
+    .sub{
+      margin:14px 0 0;
+      color:rgba(255,255,255,.82);
+      font-size:1rem;
+      max-width:42ch;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:var(--shadow);
+      margin:0 0 16px;
+      border:1px solid rgba(0,0,0,.04);
+    }
+
+    .section-title{
+      margin:0 0 4px;
+      font-size:1.16rem;
+      font-weight:800;
+      letter-spacing:-.02em;
+    }
+
+    .section-copy{
+      margin:0 0 14px;
+      color:var(--muted);
+      font-size:.98rem;
+    }
+
+    .add-row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+    }
+
+    .input{
+      width:100%;
+      border:1px solid var(--line);
+      background:var(--soft);
+      border-radius:16px;
+      padding:15px 14px;
+      font-size:1rem;
+      outline:none;
+      color:var(--ink);
+    }
+
+    .input:focus{
+      border-color:#bbb;
+      background:#fff;
+    }
+
+    .btn{
+      border:0;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:1rem;
+      font-weight:800;
+      cursor:pointer;
+      background:var(--accent);
+      color:#fff;
+      min-height:52px;
+    }
+
+    .btn.secondary{
+      background:#fff;
+      color:var(--ink);
+      border:1px solid var(--line);
+    }
+
+    .btn.wide{
+      width:100%;
+    }
+
+    .hint{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:.92rem;
+    }
+
+    .list{
+      display:grid;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .item{
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:14px;
+      background:#fff;
+      transition:.2s ease;
+    }
+
+    .item.status-completed_full{background:var(--green)}
+    .item.status-completed_good{background:#eef8ef}
+    .item.status-on_hold{background:var(--gray)}
+    .item.status-next{background:var(--yellow)}
+
+    .item-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+
+    .item-text{
+      font-size:1.08rem;
+      font-weight:700;
+      line-height:1.25;
+      word-break:break-word;
+    }
+
+    .item-actions{
+      display:flex;
+      gap:8px;
+      flex-shrink:0;
+    }
+
+    .icon-btn{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:12px;
+      width:38px;
+      height:38px;
+      cursor:pointer;
+      font-size:1rem;
+    }
+
+    .label{
+      display:block;
+      font-size:.82rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      margin-bottom:8px;
+      font-weight:700;
+    }
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:12px;
+    }
+
+    .chip{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+      border-radius:999px;
+      padding:10px 12px;
+      font-size:.92rem;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .chip.active{
+      background:#111;
+      color:#fff;
+      border-color:#111;
+    }
+
+    .status-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
+
+    .status{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+      border-radius:14px;
+      padding:11px 10px;
+      text-align:center;
+      font-size:.9rem;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .status.active{
+      background:#111;
+      color:#fff;
+      border-color:#111;
+    }
+
+    .toolbar{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .next-box{
+      display:none;
+      margin-top:14px;
+      border-radius:20px;
+      padding:16px;
+      background:#111;
+      color:#fff;
+    }
+
+    .next-box.show{display:block}
+
+    .next-label{
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      opacity:.74;
+      margin-bottom:8px;
+    }
+
+    .next-text{
+      font-size:1.35rem;
+      font-weight:900;
+      line-height:1.15;
+      margin:0;
+    }
+
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      padding:8px 4px 0;
+      font-size:.98rem;
+    }
+
+    .footer-note{
+      text-align:center;
+      color:var(--muted);
+      font-size:.92rem;
+      margin-top:16px;
+    }
+
+    .mini{
+      font-size:.88rem;
+      color:var(--muted);
+      margin-top:8px;
+    }
+
+    @media (max-width:640px){
+      .add-row{grid-template-columns:1fr}
+      .toolbar{grid-template-columns:1fr}
+      .status-grid{grid-template-columns:1fr}
+      .wrap{padding:14px 12px 100px}
+      .hero{padding:22px 16px}
+      .card{padding:16px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Recovery Misfits</div>
+      <h1>Follow-Through Tool</h1>
+      <div class="tag">Write. Sort. Do.</div>
+      <p class="sub">
+        Slow your head down. Get things out in the open. Figure out what actually matters,
+        then do the next thing.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">What’s hanging over your head?</h2>
+      <p class="section-copy">Start simple. Add whatever needs your attention right now.</p>
+
+      <div class="add-row">
+        <input
+          id="itemInput"
+          class="input"
+          type="text"
+          placeholder="Fix car, pay bill, call mom, go to meeting..."
+          maxlength="140"
+        />
+        <button id="addBtn" class="btn">Add Item</button>
+      </div>
+
+      <div class="hint">No perfection here. Just get it out of your head.</div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Your list</h2>
+      <p class="section-copy">
+        Sort each item by <strong>Need</strong> or <strong>Want</strong>, then mark what happens next.
+      </p>
+
+      <div class="toolbar">
+        <button id="pickNextBtn" class="btn wide">🎯 Pick My Next Thing</button>
+        <button id="clearCompletedBtn" class="btn secondary wide">Clear Completed</button>
+      </div>
+
+      <div id="nextBox" class="next-box">
+        <div class="next-label">Next Thing</div>
+        <p id="nextText" class="next-text"></p>
+        <div class="mini">One thing. Not all the things.</div>
+      </div>
+
+      <div id="list" class="list"></div>
+      <div id="emptyState" class="empty">Nothing here yet. Add a few things and start sorting.</div>
+    </section>
+
+    <p class="footer-note">Progress beats perfection.</p>
+  </main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "rm_follow_through_items_v1";
+
+      const itemInput = document.getElementById("itemInput");
+      const addBtn = document.getElementById("addBtn");
+      const listEl = document.getElementById("list");
+      const emptyState = document.getElementById("emptyState");
+      const pickNextBtn = document.getElementById("pickNextBtn");
+      const clearCompletedBtn = document.getElementById("clearCompletedBtn");
+      const nextBox = document.getElementById("nextBox");
+      const nextText = document.getElementById("nextText");
+
+      let items = loadItems();
+
+      function loadItems() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveItems() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      }
+
+      function uid() {
+        return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      }
+
+      function addItem() {
+        const text = itemInput.value.trim();
+        if (!text) return;
+
+        items.unshift({
+          id: uid(),
+          text,
+          category: "",
+          status: ""
+        });
+
+        itemInput.value = "";
+        nextBox.classList.remove("show");
+        saveItems();
+        render();
+        itemInput.focus();
+      }
+
+      function deleteItem(id) {
+        items = items.filter(item => item.id !== id);
+        saveItems();
+        render();
+      }
+
+      function setCategory(id, category) {
+        items = items.map(item => item.id === id ? { ...item, category } : item);
+        saveItems();
+        render();
+      }
+
+      function setStatus(id, status) {
+        items = items.map(item => item.id === id ? { ...item, status } : item);
+        saveItems();
+        render();
+      }
+
+      function clearCompleted() {
+        items = items.filter(item =>
+          item.status !== "completed_full" && item.status !== "completed_good"
+        );
+        nextBox.classList.remove("show");
+        saveItems();
+        render();
+      }
+
+      function pickNextThing() {
+        const candidates = items.filter(item =>
+          item.category === "need" &&
+          item.status !== "completed_full" &&
+          item.status !== "completed_good" &&
+          item.status !== "on_hold"
+        );
+
+        if (!candidates.length) {
+          nextText.textContent = "No active NEED items right now.";
+          nextBox.classList.add("show");
+          return;
+        }
+
+        const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+        nextText.textContent = chosen.text;
+        nextBox.classList.add("show");
+      }
+
+      function escapeHtml(str) {
+        return str
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function render() {
+        emptyState.style.display = items.length ? "none" : "block";
+
+        listEl.innerHTML = items.map(item => {
+          const safeText = escapeHtml(item.text);
+          return `
+            <article class="item ${item.status ? `status-${item.status}` : ""}">
+              <div class="item-top">
+                <div class="item-text">${safeText}</div>
+                <div class="item-actions">
+                  <button class="icon-btn" data-action="delete" data-id="${item.id}" aria-label="Delete item">✕</button>
+                </div>
+              </div>
+
+              <label class="label">Need or Want</label>
+              <div class="chips">
+                <button class="chip ${item.category === "need" ? "active" : ""}" data-action="category" data-id="${item.id}" data-value="need">Need</button>
+                <button class="chip ${item.category === "want" ? "active" : ""}" data-action="category" data-id="${item.id}" data-value="want">Want</button>
+              </div>
+
+              <label class="label">Status</label>
+              <div class="status-grid">
+                <button class="status ${item.status === "next" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="next">Next thing to do</button>
+                <button class="status ${item.status === "completed_full" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_full">Completed fully</button>
+                <button class="status ${item.status === "completed_good" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_good">Completed good enough</button>
+                <button class="status ${item.status === "on_hold" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="on_hold">Put on hold</button>
+              </div>
+            </article>
+          `;
+        }).join("");
+      }
+
+      addBtn.addEventListener("click", addItem);
+
+      itemInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addItem();
+      });
+
+      listEl.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+
+        const { action, id, value } = btn.dataset;
+        if (!action || !id) return;
+
+        if (action === "delete") deleteItem(id);
+        if (action === "category") setCategory(id, value);
+        if (action === "status") setStatus(id, value);
+      });
+
+      pickNextBtn.addEventListener("click", pickNextThing);
+      clearCompletedBtn.addEventListener("click", clearCompleted);
+
+      render();
+    })();
+  </script>
+</body>
+</html>
