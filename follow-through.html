@@ -6,21 +6,24 @@
   <title>The Brain Dumper — Recovery Misfits</title>
 
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#111111" />
+  <meta name="theme-color" content="#000000" />
   <link rel="icon" href="./icon-192.png">
-  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <!-- iPhone PWA support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
 
   <style>
     :root{
-      --bg:#f5f1eb;
+      --bg:#fff;
       --card:#ffffff;
       --brain:#f5dfe7;
       --brain-2:#f9e8ee;
-      --ink:#171717;
+      --ink:#111111;
       --muted:#666666;
-      --line:#ddd4d8;
+      --line:rgba(0,0,0,.12);
       --soft:#faf7f4;
       --accent:#111111;
       --pill:#ffffff;
@@ -29,88 +32,83 @@
       --next:#fff2c8;
       --want:#f4efe3;
       --need:#f7f3ff;
-      --shadow:0 10px 26px rgba(0,0,0,.07);
-      --radius:20px;
-      --max:840px;
     }
 
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0}
     body{
+      margin:0;
       font-family:Roboto,Arial,sans-serif;
       background:var(--bg);
       color:var(--ink);
-      line-height:1.42;
-      -webkit-font-smoothing:antialiased;
-      text-rendering:optimizeLegibility;
+      padding-bottom:120px;
     }
 
     .wrap{
-      max-width:var(--max);
+      max-width:900px;
       margin:0 auto;
-      padding:18px 14px 120px;
+      padding:16px 14px 28px;
     }
 
-    .top{
+    .title{
+      font-weight:1000;
+      font-size:18px;
+      margin:10px 4px 4px;
+      letter-spacing:.2px;
       text-align:center;
-      padding:8px 6px 14px;
-    }
-
-    .top h1{
-      margin:0;
-      font-size:1.1rem;
-      font-weight:800;
-      letter-spacing:.03em;
-      text-transform:uppercase;
     }
 
     .tagline{
-      margin-top:8px;
-      font-size:1.5rem;
-      font-weight:900;
-      letter-spacing:-.03em;
+      margin:6px 0 4px;
+      color:#111;
+      font-size:22px;
+      text-align:center;
+      font-weight:1000;
+      letter-spacing:-.02em;
+      line-height:1.1;
     }
 
     .sub{
-      margin:10px auto 0;
-      max-width:40ch;
-      color:var(--muted);
-      font-size:.96rem;
+      margin:6px 0 16px;
+      color:#666;
+      font-size:13px;
+      text-align:center;
+      font-weight:800;
+      line-height:1.25;
     }
 
     .card{
-      background:var(--card);
-      border:1px solid rgba(0,0,0,.04);
-      box-shadow:var(--shadow);
-      border-radius:20px;
-      padding:16px;
-      margin:0 0 14px;
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;
+      padding:14px;
+      margin:12px 0;
+      background:#fff;
+      box-shadow:0 1px 0 rgba(0,0,0,.03);
     }
 
     .card.work{
       background:linear-gradient(180deg,var(--brain),var(--brain-2));
-      border-color:rgba(80,20,40,.08);
+      border-color:rgba(0,0,0,.10);
     }
 
-    .card.input-card{
+    .input-card{
       position:relative;
-      padding-top:30px;
+      padding-top:28px;
     }
 
-    .section-title{
-      margin:0 0 4px;
-      font-size:1.08rem;
-      font-weight:800;
-      letter-spacing:-.02em;
+    .sectionTitle{
+      margin:0 0 6px;
+      font-size:15px;
+      font-weight:1000;
     }
 
-    .section-copy{
+    .sectionCopy{
       margin:0 0 12px;
-      color:var(--muted);
-      font-size:.95rem;
+      color:#666;
+      font-size:13px;
+      font-weight:850;
+      line-height:1.3;
     }
 
-    .add-row{
+    .addRow{
       display:grid;
       grid-template-columns:1fr auto;
       gap:10px;
@@ -119,31 +117,35 @@
 
     .input{
       width:100%;
-      border:1px solid var(--line);
+      border:1px solid rgba(0,0,0,.12);
       background:var(--soft);
-      border-radius:16px;
+      border-radius:14px;
       padding:14px 14px;
-      font-size:1rem;
+      font-size:16px;
       outline:none;
-      color:var(--ink);
-      min-height:52px;
+      color:#111;
+      min-height:50px;
+      -webkit-appearance:none;
+      appearance:none;
     }
 
     .input:focus{
       background:#fff;
-      border-color:#c8bcc1;
+      border-color:rgba(0,0,0,.22);
     }
 
     .btn{
       border:0;
-      border-radius:16px;
+      border-radius:14px;
       padding:13px 16px;
-      min-height:52px;
-      font-size:.98rem;
-      font-weight:800;
+      min-height:50px;
+      font-size:14px;
+      font-weight:1000;
       cursor:pointer;
-      background:var(--accent);
+      background:#111;
       color:#fff;
+      -webkit-appearance:none;
+      appearance:none;
     }
 
     .list{
@@ -153,78 +155,70 @@
 
     .empty{
       text-align:center;
-      color:var(--muted);
-      font-size:.95rem;
-      padding:10px 4px 2px;
+      color:#666;
+      font-size:13px;
+      padding:8px 4px 2px;
+      font-weight:850;
     }
 
     .item{
       background:rgba(255,255,255,.82);
-      border:1px solid rgba(0,0,0,.06);
-      border-radius:18px;
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:14px;
       padding:11px 12px;
-      transition:background .2s ease, box-shadow .2s ease, transform .16s ease;
     }
 
-    .item.dragging{
-      opacity:.45;
-      transform:scale(.99);
-    }
+    .item.status-next{ background:var(--next); }
+    .item.status-completed_full{ background:var(--done); }
+    .item.status-completed_good{ background:#eef8ef; }
+    .item.status-on_hold{ background:var(--hold); }
 
-    .item.drag-over{
-      outline:2px dashed rgba(0,0,0,.25);
-      outline-offset:2px;
-    }
-
-    .item.status-next{background:var(--next)}
-    .item.status-completed_full{background:var(--done)}
-    .item.status-completed_good{background:#eef8ef}
-    .item.status-on_hold{background:var(--hold)}
-
-    .item-top{
+    .itemTop{
       display:grid;
-      grid-template-columns:auto 1fr auto;
-      gap:10px;
+      grid-template-columns:1fr auto;
+      gap:8px;
       align-items:start;
       margin-bottom:10px;
     }
 
-    .drag-handle{
-      user-select:none;
-      cursor:grab;
-      border:1px solid rgba(0,0,0,.08);
-      background:#fff;
-      border-radius:12px;
-      width:34px;
-      height:34px;
-      display:grid;
-      place-items:center;
-      font-size:1rem;
-      color:#666;
-      touch-action:none;
-    }
-
-    .drag-handle:active{
-      cursor:grabbing;
-    }
-
-    .item-text{
-      font-size:.98rem;
-      font-weight:700;
-      line-height:1.24;
-      padding-top:5px;
+    .itemText{
+      font-size:15px;
+      font-weight:1000;
+      line-height:1.25;
       word-break:break-word;
+      padding-top:2px;
     }
 
-    .delete-btn{
-      border:1px solid rgba(0,0,0,.08);
+    .deleteBtn{
+      border:1px solid rgba(0,0,0,.10);
       background:#fff;
       color:#333;
       border-radius:12px;
       width:34px;
       height:34px;
       cursor:pointer;
-      font-size:.95rem;
+      font-size:15px;
+      font-weight:1000;
+      flex:0 0 auto;
+    }
+
+    .sortRow{
+      display:flex;
+      gap:8px;
+      margin:0 0 10px;
+    }
+
+    .sortBtn{
+      border:1px solid rgba(0,0,0,.10);
+      background:#fff;
+      color:#111;
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:12px;
+      font-weight:1000;
+      cursor:pointer;
+      line-height:1;
+      white-space:nowrap;
     }
 
     .controls{
@@ -232,18 +226,18 @@
       gap:9px;
     }
 
-    .row-label{
+    .rowLabel{
       display:block;
-      font-size:.74rem;
+      font-size:11px;
       text-transform:uppercase;
-      letter-spacing:.08em;
-      color:var(--muted);
+      letter-spacing:.12em;
+      color:#666;
       margin:0 0 7px;
-      font-weight:800;
+      font-weight:1000;
     }
 
-    .needwant-row,
-    .status-row{
+    .needWantRow,
+    .statusRow{
       display:flex;
       flex-wrap:wrap;
       gap:7px;
@@ -251,14 +245,14 @@
     }
 
     .chip,
-    .status-btn{
+    .statusBtn{
       border:1px solid rgba(0,0,0,.09);
-      background:var(--pill);
-      color:var(--ink);
+      background:#fff;
+      color:#111;
       border-radius:999px;
       padding:8px 11px;
-      font-size:.82rem;
-      font-weight:800;
+      font-size:12px;
+      font-weight:1000;
       cursor:pointer;
       line-height:1.1;
       white-space:nowrap;
@@ -274,7 +268,7 @@
       border-color:#d9ccb0;
     }
 
-    .status-btn.active{
+    .statusBtn.active{
       background:#111;
       color:#fff;
       border-color:#111;
@@ -283,32 +277,34 @@
     .connect{
       margin-top:14px;
       padding:14px 15px;
-      border-radius:18px;
+      border-radius:14px;
       background:rgba(255,255,255,.72);
       border:1px solid rgba(0,0,0,.06);
     }
 
-    .connect-title{
+    .connectTitle{
       margin:0 0 5px;
-      font-size:1rem;
-      font-weight:800;
+      font-size:15px;
+      font-weight:1000;
     }
 
-    .connect-copy{
+    .connectCopy{
       margin:0;
-      color:var(--muted);
-      font-size:.95rem;
+      color:#666;
+      font-size:13px;
+      font-weight:850;
+      line-height:1.3;
     }
 
-    .after-connect{
+    .afterConnect{
       margin-top:10px;
       text-align:center;
-      color:var(--muted);
-      font-size:.92rem;
-      font-weight:700;
+      color:#666;
+      font-size:13px;
+      font-weight:1000;
     }
 
-    .toast-wrap{
+    .toastWrap{
       position:absolute;
       left:14px;
       right:14px;
@@ -324,8 +320,8 @@
       color:var(--muted);
       padding:8px 14px;
       border-radius:999px;
-      font-size:.85rem;
-      font-weight:700;
+      font-size:13px;
+      font-weight:1000;
       border:1px solid rgba(0,0,0,.06);
       box-shadow:0 6px 16px rgba(0,0,0,.08);
       opacity:0;
@@ -339,32 +335,36 @@
     }
 
     @media (max-width:700px){
-      .add-row{grid-template-columns:1fr}
-      .tagline{font-size:1.32rem}
-      .wrap{padding:14px 12px 110px}
-      .card{padding:14px}
-      .card.input-card{padding-top:30px}
-      .toast-wrap{left:10px; right:10px;}
+      .addRow{ grid-template-columns:1fr; }
+      .tagline{ font-size:20px; }
+      .wrap{ padding:16px 12px 28px; }
+      .card{ padding:14px; }
+      .input-card{ padding-top:28px; }
+      .toastWrap{ left:10px; right:10px; }
     }
   </style>
 </head>
+
 <body>
-  <main class="wrap">
-    <section class="top">
-      <h1>🧠 The Brain Dumper</h1>
-      <div class="tagline">Write. Sort. Do.</div>
-      <p class="sub">Alright… slow down a second. Let’s sort this out.</p>
-    </section>
+
+  <!-- Shared TOP BAR -->
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
+
+  <div class="wrap">
+    <div class="title">🧠 The Brain Dumper</div>
+    <div class="tagline">Write. Sort. Do.</div>
+    <div class="sub">Alright… slow down a second. Let’s sort this out.</div>
 
     <section class="card input-card">
-      <div class="toast-wrap">
+      <div class="toastWrap">
         <div id="toast" class="toast">Added</div>
       </div>
 
-      <h2 class="section-title">🧠 Brain Dump</h2>
-      <p class="section-copy">Let’s figure out what actually needs your attention.</p>
+      <h2 class="sectionTitle">🧠 Brain Dump</h2>
+      <p class="sectionCopy">Let’s figure out what actually needs your attention.</p>
 
-      <div class="add-row">
+      <div class="addRow">
         <input
           id="itemInput"
           class="input"
@@ -377,24 +377,28 @@
     </section>
 
     <section class="card work">
-      <h2 class="section-title">⏸️ Alright… let’s slow down a second. Let’s sort this out.</h2>
-      <p class="section-copy">Drag items to reorder them. Then decide what really needs attention and what happens with each one.</p>
+      <h2 class="sectionTitle">⏸️ Alright… let’s slow down a second. Let’s sort this out.</h2>
+      <p class="sectionCopy">Use the arrows to move things up or down. Then decide what really needs attention and what happens with each one.</p>
 
       <div id="list" class="list"></div>
       <div id="emptyState" class="empty">Nothing here yet. Add a few things and start sorting.</div>
 
       <div class="connect">
-        <h3 class="connect-title">📞 Sometimes the next right thing is calling someone.</h3>
-        <p class="connect-copy">Is there someone you could reach out to right now who might help you feel a little better?</p>
+        <h3 class="connectTitle">📞 Sometimes the next right thing is calling someone.</h3>
+        <p class="connectCopy">Is there someone you could reach out to right now who might help you feel a little better?</p>
       </div>
 
-      <div class="after-connect">Progress over perfection.</div>
+      <div class="afterConnect">Progress over perfection.</div>
     </section>
-  </main>
+  </div>
+
+  <!-- Shared BOTTOM NAV -->
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
 
   <script>
     (() => {
-      const STORAGE_KEY = "rm_brain_dumper_items_v4";
+      const STORAGE_KEY = "rm_brain_dumper_items_v5";
 
       const itemInput = document.getElementById("itemInput");
       const addBtn = document.getElementById("addBtn");
@@ -404,7 +408,6 @@
 
       let items = loadItems();
       let toastTimer = null;
-      let draggedId = null;
 
       function loadItems() {
         try {
@@ -473,16 +476,16 @@
         render();
       }
 
-      function reorderItems(dragId, targetId) {
-        if (!dragId || !targetId || dragId === targetId) return;
+      function moveItem(id, direction) {
+        const index = items.findIndex(item => item.id === id);
+        if (index === -1) return;
 
-        const fromIndex = items.findIndex(item => item.id === dragId);
-        const toIndex = items.findIndex(item => item.id === targetId);
-        if (fromIndex === -1 || toIndex === -1) return;
+        const newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= items.length) return;
 
         const updated = [...items];
-        const [moved] = updated.splice(fromIndex, 1);
-        updated.splice(toIndex, 0, moved);
+        const [moved] = updated.splice(index, 1);
+        updated.splice(newIndex, 0, moved);
         items = updated;
 
         saveItems();
@@ -501,33 +504,37 @@
       function render() {
         emptyState.style.display = items.length ? "none" : "block";
 
-        listEl.innerHTML = items.map(item => {
+        listEl.innerHTML = items.map((item, index) => {
           const safeText = escapeHtml(item.text);
 
           return `
-            <article class="item ${item.status ? `status-${item.status}` : ""}" draggable="true" data-id="${item.id}">
-              <div class="item-top">
-                <div class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder">☰</div>
-                <div class="item-text">${safeText}</div>
-                <button class="delete-btn" data-action="delete" data-id="${item.id}" aria-label="Delete item" type="button">✕</button>
+            <article class="item ${item.status ? `status-${item.status}` : ""}" data-id="${item.id}">
+              <div class="itemTop">
+                <div class="itemText">${safeText}</div>
+                <button class="deleteBtn" data-action="delete" data-id="${item.id}" aria-label="Delete item" type="button">✕</button>
+              </div>
+
+              <div class="sortRow">
+                <button class="sortBtn" data-action="move-up" data-id="${item.id}" type="button" ${index === 0 ? "disabled" : ""}>↑ Up</button>
+                <button class="sortBtn" data-action="move-down" data-id="${item.id}" type="button" ${index === items.length - 1 ? "disabled" : ""}>↓ Down</button>
               </div>
 
               <div class="controls">
                 <div>
-                  <span class="row-label">Need or Want</span>
-                  <div class="needwant-row">
+                  <span class="rowLabel">Need or Want</span>
+                  <div class="needWantRow">
                     <button class="chip ${item.category === "need" ? "active need" : ""}" data-action="category" data-id="${item.id}" data-value="need" type="button">Need</button>
                     <button class="chip ${item.category === "want" ? "active want" : ""}" data-action="category" data-id="${item.id}" data-value="want" type="button">Want</button>
                   </div>
                 </div>
 
                 <div>
-                  <span class="row-label">What happens with this one?</span>
-                  <div class="status-row">
-                    <button class="status-btn ${item.status === "next" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="next" type="button">Do Next</button>
-                    <button class="status-btn ${item.status === "completed_full" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_full" type="button">I Did It</button>
-                    <button class="status-btn ${item.status === "completed_good" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_good" type="button">Good Enough</button>
-                    <button class="status-btn ${item.status === "on_hold" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="on_hold" type="button">Hold for Now</button>
+                  <span class="rowLabel">What happens with this one?</span>
+                  <div class="statusRow">
+                    <button class="statusBtn ${item.status === "next" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="next" type="button">Do Next</button>
+                    <button class="statusBtn ${item.status === "completed_full" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_full" type="button">I Did It</button>
+                    <button class="statusBtn ${item.status === "completed_good" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_good" type="button">Good Enough</button>
+                    <button class="statusBtn ${item.status === "on_hold" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="on_hold" type="button">Hold for Now</button>
                   </div>
                 </div>
               </div>
@@ -555,50 +562,13 @@
         if (action === "delete") deleteItem(id);
         if (action === "category") setCategory(id, value);
         if (action === "status") setStatus(id, value);
-      });
-
-      listEl.addEventListener("dragstart", (e) => {
-        const item = e.target.closest(".item");
-        if (!item) return;
-        draggedId = item.dataset.id;
-        item.classList.add("dragging");
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", draggedId);
-      });
-
-      listEl.addEventListener("dragend", (e) => {
-        const item = e.target.closest(".item");
-        if (item) item.classList.remove("dragging");
-        listEl.querySelectorAll(".item").forEach(el => el.classList.remove("drag-over"));
-      });
-
-      listEl.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        const target = e.target.closest(".item");
-        listEl.querySelectorAll(".item").forEach(el => el.classList.remove("drag-over"));
-        if (target && target.dataset.id !== draggedId) {
-          target.classList.add("drag-over");
-        }
-      });
-
-      listEl.addEventListener("dragleave", (e) => {
-        const target = e.target.closest(".item");
-        if (target) target.classList.remove("drag-over");
-      });
-
-      listEl.addEventListener("drop", (e) => {
-        e.preventDefault();
-        const target = e.target.closest(".item");
-        listEl.querySelectorAll(".item").forEach(el => el.classList.remove("drag-over"));
-        if (!target) return;
-
-        const targetId = target.dataset.id;
-        reorderItems(draggedId, targetId);
-        draggedId = null;
+        if (action === "move-up") moveItem(id, -1);
+        if (action === "move-down") moveItem(id, 1);
       });
 
       render();
     })();
   </script>
+
 </body>
 </html>
