@@ -19,7 +19,7 @@
       --brain:#f5dfe7;
       --brain-2:#f9e8ee;
       --ink:#171717;
-      --muted:#666;
+      --muted:#666666;
       --line:#ddd4d8;
       --soft:#faf7f4;
       --accent:#111111;
@@ -90,6 +90,11 @@
     .card.work{
       background:linear-gradient(180deg,var(--brain),var(--brain-2));
       border-color:rgba(80,20,40,.08);
+    }
+
+    .card.input-card{
+      position:relative;
+      padding-top:30px;
     }
 
     .section-title{
@@ -304,25 +309,28 @@
     }
 
     .toast-wrap{
-      position:fixed;
-      left:50%;
-      bottom:22px;
-      transform:translateX(-50%);
-      z-index:9999;
+      position:absolute;
+      left:14px;
+      right:14px;
+      top:-12px;
+      display:flex;
+      justify-content:center;
       pointer-events:none;
+      z-index:10;
     }
 
     .toast{
-      background:#111;
-      color:#fff;
-      padding:10px 16px;
+      background:var(--brain);
+      color:var(--muted);
+      padding:8px 14px;
       border-radius:999px;
-      font-size:.9rem;
-      font-weight:800;
-      box-shadow:0 10px 24px rgba(0,0,0,.18);
+      font-size:.85rem;
+      font-weight:700;
+      border:1px solid rgba(0,0,0,.06);
+      box-shadow:0 6px 16px rgba(0,0,0,.08);
       opacity:0;
-      transform:translateY(10px);
-      transition:opacity .22s ease, transform .22s ease;
+      transform:translateY(-6px);
+      transition:opacity .2s ease, transform .2s ease;
     }
 
     .toast.show{
@@ -335,18 +343,24 @@
       .tagline{font-size:1.32rem}
       .wrap{padding:14px 12px 110px}
       .card{padding:14px}
+      .card.input-card{padding-top:30px}
+      .toast-wrap{left:10px; right:10px;}
     }
   </style>
 </head>
 <body>
   <main class="wrap">
     <section class="top">
-      <h1>🧘 The Brain Dumper</h1>
+      <h1>🧠 The Brain Dumper</h1>
       <div class="tagline">Write. Sort. Do.</div>
       <p class="sub">Alright… slow down a second. Let’s sort this out.</p>
     </section>
 
-    <section class="card">
+    <section class="card input-card">
+      <div class="toast-wrap">
+        <div id="toast" class="toast">Added</div>
+      </div>
+
       <h2 class="section-title">🧠 Brain Dump</h2>
       <p class="section-copy">Let’s figure out what actually needs your attention.</p>
 
@@ -378,13 +392,9 @@
     </section>
   </main>
 
-  <div class="toast-wrap">
-    <div id="toast" class="toast">Added</div>
-  </div>
-
   <script>
     (() => {
-      const STORAGE_KEY = "rm_brain_dumper_items_v3";
+      const STORAGE_KEY = "rm_brain_dumper_items_v4";
 
       const itemInput = document.getElementById("itemInput");
       const addBtn = document.getElementById("addBtn");
@@ -547,7 +557,6 @@
         if (action === "status") setStatus(id, value);
       });
 
-      // Desktop drag/drop
       listEl.addEventListener("dragstart", (e) => {
         const item = e.target.closest(".item");
         if (!item) return;
