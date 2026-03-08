@@ -34,12 +34,14 @@
       --need:#f7f3ff;
     }
 
+    *{box-sizing:border-box}
+
     body{
       margin:0;
       font-family:Roboto,Arial,sans-serif;
       background:var(--bg);
       color:var(--ink);
-      padding-bottom:120px;
+      padding-bottom:120px; /* room for nav.js bottom bar */
     }
 
     .wrap{
@@ -148,6 +150,11 @@
       appearance:none;
     }
 
+    .btn.clear{
+      width:100%;
+      margin-top:14px;
+    }
+
     .list{
       display:grid;
       gap:10px;
@@ -166,6 +173,10 @@
       border:1px solid rgba(0,0,0,.08);
       border-radius:14px;
       padding:11px 12px;
+    }
+
+    .item.new{
+      animation:settleIn .25s ease-out;
     }
 
     .item.status-next{ background:var(--next); }
@@ -219,6 +230,11 @@
       cursor:pointer;
       line-height:1;
       white-space:nowrap;
+    }
+
+    .sortBtn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
     }
 
     .controls{
@@ -304,6 +320,52 @@
       font-weight:1000;
     }
 
+    .resultBox{
+      margin-top:14px;
+      padding:14px 15px;
+      border-radius:14px;
+      background:rgba(255,255,255,.78);
+      border:1px solid rgba(0,0,0,.08);
+      display:none;
+    }
+
+    .resultBox.show{
+      display:block;
+    }
+
+    .resultTitle{
+      margin:0 0 8px;
+      font-size:15px;
+      font-weight:1000;
+    }
+
+    .resultList{
+      margin:0;
+      padding-left:18px;
+      color:#222;
+      font-size:14px;
+      font-weight:900;
+      line-height:1.35;
+    }
+
+    .resultList li{
+      margin:6px 0;
+    }
+
+    .ending{
+      display:none;
+      margin-top:14px;
+      text-align:center;
+      color:#666;
+      font-size:14px;
+      font-weight:900;
+      line-height:1.5;
+    }
+
+    .ending.show{
+      display:block;
+    }
+
     .toastWrap{
       position:absolute;
       left:14px;
@@ -334,6 +396,17 @@
       transform:translateY(0);
     }
 
+    @keyframes settleIn{
+      from{
+        opacity:0;
+        transform:translateY(-8px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
     @media (max-width:700px){
       .addRow{ grid-template-columns:1fr; }
       .tagline{ font-size:20px; }
@@ -346,7 +419,6 @@
 </head>
 
 <body>
-
   <!-- Shared TOP BAR -->
   <div id="rm-topbar"></div>
   <script src="./topbar.js" defer></script>
@@ -370,7 +442,7 @@
           class="input"
           type="text"
           maxlength="140"
-          placeholder="Fix car, pay bill, call mom, meet sponsor..."
+          placeholder="Fix car, pay bill, call mom, meet sponsor, make time for fun too..."
         />
         <button id="addBtn" class="btn" type="button">Add Item</button>
       </div>
@@ -389,6 +461,18 @@
       </div>
 
       <div class="afterConnect">Progress over perfection.</div>
+
+      <button id="clearHeadBtn" class="btn clear" type="button">🧹 Clear My Head</button>
+
+      <div id="resultBox" class="resultBox">
+        <h3 class="resultTitle">🧠 What’s Left</h3>
+        <ul id="resultList" class="resultList"></ul>
+      </div>
+
+      <div id="ending" class="ending">
+        Okay… that's enough think, think, thinking…<br>
+        Now do the next small thing.
+      </div>
     </section>
   </div>
 
@@ -398,16 +482,21 @@
 
   <script>
     (() => {
-      const STORAGE_KEY = "rm_brain_dumper_items_v5";
+      const STORAGE_KEY = "rm_brain_dumper_items_v6";
 
       const itemInput = document.getElementById("itemInput");
       const addBtn = document.getElementById("addBtn");
       const listEl = document.getElementById("list");
       const emptyState = document.getElementById("emptyState");
       const toast = document.getElementById("toast");
+      const clearHeadBtn = document.getElementById("clearHeadBtn");
+      const resultBox = document.getElementById("resultBox");
+      const resultList = document.getElementById("resultList");
+      const ending = document.getElementById("ending");
 
       let items = loadItems();
       let toastTimer = null;
+      let lastAddedId = null;
 
       function loadItems() {
         try {
@@ -440,13 +529,15 @@
         const text = itemInput.value.trim();
         if (!text) return;
 
+        const id = uid();
         items.unshift({
-          id: uid(),
+          id,
           text,
           category: "",
           status: ""
         });
 
+        lastAddedId = id;
         itemInput.value = "";
         saveItems();
         render();
@@ -492,6 +583,32 @@
         render();
       }
 
+      function clearMyHead() {
+        items = items.filter(item =>
+          item.status !== "completed_full" &&
+          item.status !== "completed_good"
+        );
+
+        saveItems();
+        renderResults();
+        render();
+      }
+
+      function renderResults() {
+        const remaining = items.filter(item => item.text && item.text.trim());
+
+        if (!remaining.length) {
+          resultList.innerHTML = "<li>Your list is clear for now.</li>";
+        } else {
+          resultList.innerHTML = remaining.map(item =>
+            `<li>${escapeHtml(item.text)}</li>`
+          ).join("");
+        }
+
+        resultBox.classList.add("show");
+        ending.classList.add("show");
+      }
+
       function escapeHtml(str) {
         return str
           .replaceAll("&", "&amp;")
@@ -506,9 +623,10 @@
 
         listEl.innerHTML = items.map((item, index) => {
           const safeText = escapeHtml(item.text);
+          const isNew = item.id === lastAddedId ? "new" : "";
 
           return `
-            <article class="item ${item.status ? `status-${item.status}` : ""}" data-id="${item.id}">
+            <article class="item ${isNew} ${item.status ? `status-${item.status}` : ""}" data-id="${item.id}">
               <div class="itemTop">
                 <div class="itemText">${safeText}</div>
                 <button class="deleteBtn" data-action="delete" data-id="${item.id}" aria-label="Delete item" type="button">✕</button>
@@ -541,6 +659,15 @@
             </article>
           `;
         }).join("");
+
+        if (lastAddedId) {
+          setTimeout(() => {
+            lastAddedId = null;
+            document.querySelectorAll(".item.new").forEach(el => {
+              el.classList.remove("new");
+            });
+          }, 300);
+        }
       }
 
       addBtn.addEventListener("click", addItem);
@@ -551,6 +678,8 @@
           addItem();
         }
       });
+
+      clearHeadBtn.addEventListener("click", clearMyHead);
 
       listEl.addEventListener("click", (e) => {
         const btn = e.target.closest("button");
@@ -569,6 +698,5 @@
       render();
     })();
   </script>
-
 </body>
 </html>
