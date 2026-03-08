@@ -141,46 +141,6 @@
       color:#fff;
     }
 
-    .btn.secondary{
-      background:#fff;
-      color:var(--ink);
-      border:1px solid rgba(0,0,0,.08);
-    }
-
-    .toolbar{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-      margin-bottom:12px;
-    }
-
-    .next-box{
-      display:none;
-      margin:0 0 12px;
-      background:#111;
-      color:#fff;
-      border-radius:18px;
-      padding:14px 15px;
-    }
-
-    .next-box.show{display:block}
-
-    .next-label{
-      font-size:.74rem;
-      text-transform:uppercase;
-      letter-spacing:.1em;
-      opacity:.72;
-      margin-bottom:6px;
-      font-weight:800;
-    }
-
-    .next-text{
-      margin:0;
-      font-size:1.18rem;
-      font-weight:900;
-      line-height:1.15;
-    }
-
     .list{
       display:grid;
       gap:10px;
@@ -327,11 +287,12 @@
       font-size:.95rem;
     }
 
-    .footer-note{
+    .after-connect{
+      margin-top:10px;
       text-align:center;
       color:var(--muted);
-      font-size:.9rem;
-      margin-top:16px;
+      font-size:.92rem;
+      font-weight:700;
     }
 
     .toast-wrap{
@@ -363,7 +324,6 @@
 
     @media (max-width:700px){
       .add-row{grid-template-columns:1fr}
-      .toolbar{grid-template-columns:1fr}
       .tagline{font-size:1.32rem}
       .wrap{padding:14px 12px 110px}
       .card{padding:14px}
@@ -396,17 +356,7 @@
 
     <section class="card work">
       <h2 class="section-title">⏸️ Alright… let’s slow down a second. Let’s sort this out.</h2>
-      <p class="section-copy">Drag items to reorder them. Then decide what really needs attention and what happens next.</p>
-
-      <div class="toolbar">
-        <button id="pickNextBtn" class="btn">🎯 Pick My Next Thing</button>
-        <button id="clearCompletedBtn" class="btn secondary">Clear Completed</button>
-      </div>
-
-      <div id="nextBox" class="next-box">
-        <div class="next-label">👉 Start Here</div>
-        <p id="nextText" class="next-text"></p>
-      </div>
+      <p class="section-copy">Drag items to reorder them. Then decide what really needs attention and what happens with each one.</p>
 
       <div id="list" class="list"></div>
       <div id="emptyState" class="empty">Nothing here yet. Add a few things and start sorting.</div>
@@ -415,27 +365,23 @@
         <h3 class="connect-title">📞 Sometimes the next right thing is calling someone.</h3>
         <p class="connect-copy">Is there someone you could reach out to right now who might help you feel a little better?</p>
       </div>
-    </section>
 
-    <p class="footer-note">Progress beats perfection.</p>
+      <div class="after-connect">Progress over perfection.</div>
+    </section>
   </main>
 
   <div class="toast-wrap">
-    <div id="toast" class="toast">Got it.</div>
+    <div id="toast" class="toast">Added</div>
   </div>
 
   <script>
     (() => {
-      const STORAGE_KEY = "rm_brain_dumper_items_v1";
+      const STORAGE_KEY = "rm_brain_dumper_items_v2";
 
       const itemInput = document.getElementById("itemInput");
       const addBtn = document.getElementById("addBtn");
       const listEl = document.getElementById("list");
       const emptyState = document.getElementById("emptyState");
-      const pickNextBtn = document.getElementById("pickNextBtn");
-      const clearCompletedBtn = document.getElementById("clearCompletedBtn");
-      const nextBox = document.getElementById("nextBox");
-      const nextText = document.getElementById("nextText");
       const toast = document.getElementById("toast");
 
       let items = loadItems();
@@ -460,13 +406,13 @@
         return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
       }
 
-      function showToast(message = "Got it.") {
+      function showToast(message = "Added") {
         toast.textContent = message;
         toast.classList.add("show");
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => {
           toast.classList.remove("show");
-        }, 1200);
+        }, 1100);
       }
 
       function addItem() {
@@ -481,10 +427,9 @@
         });
 
         itemInput.value = "";
-        nextBox.classList.remove("show");
         saveItems();
         render();
-        showToast("Got it.");
+        showToast("Added");
         itemInput.focus();
       }
 
@@ -504,35 +449,6 @@
         items = items.map(item => item.id === id ? { ...item, status } : item);
         saveItems();
         render();
-      }
-
-      function clearCompleted() {
-        items = items.filter(item =>
-          item.status !== "completed_full" &&
-          item.status !== "completed_good"
-        );
-        nextBox.classList.remove("show");
-        saveItems();
-        render();
-      }
-
-      function pickNextThing() {
-        const candidates = items.filter(item =>
-          item.category === "need" &&
-          item.status !== "completed_full" &&
-          item.status !== "completed_good" &&
-          item.status !== "on_hold"
-        );
-
-        if (!candidates.length) {
-          nextText.textContent = "No active NEED items right now.";
-          nextBox.classList.add("show");
-          return;
-        }
-
-        const chosen = candidates[Math.floor(Math.random() * candidates.length)];
-        nextText.textContent = chosen.text;
-        nextBox.classList.add("show");
       }
 
       function escapeHtml(str) {
@@ -584,8 +500,8 @@
                 <div>
                   <span class="row-label">What happens with this one?</span>
                   <div class="status-row">
-                    <button class="status-btn ${item.status === "next" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="next">Next</button>
-                    <button class="status-btn ${item.status === "completed_full" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_full">Done Fully</button>
+                    <button class="status-btn ${item.status === "next" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="next">Do Next</button>
+                    <button class="status-btn ${item.status === "completed_full" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_full">I Did It</button>
                     <button class="status-btn ${item.status === "completed_good" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_good">Good Enough</button>
                     <button class="status-btn ${item.status === "on_hold" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="on_hold">Hold for Now</button>
                   </div>
@@ -639,9 +555,6 @@
         reorderItems(draggedId, target.dataset.id);
         draggedId = null;
       });
-
-      pickNextBtn.addEventListener("click", pickNextThing);
-      clearCompletedBtn.addEventListener("click", clearCompleted);
 
       render();
     })();
