@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Follow-Through Tool — Recovery Misfits</title>
+  <title>The Brain Dumper — Recovery Misfits</title>
 
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#111111" />
@@ -14,24 +14,24 @@
 
   <style>
     :root{
-      --bg:#f5f3ec;
+      --bg:#f5f1eb;
       --card:#ffffff;
-      --work:#eaf3ff;
+      --brain:#f5dfe7;
+      --brain-2:#f9e8ee;
       --ink:#171717;
       --muted:#666;
-      --line:#d8d8d2;
-      --soft:#f8f7f3;
+      --line:#ddd4d8;
+      --soft:#faf7f4;
       --accent:#111111;
       --pill:#ffffff;
       --done:#dff3e3;
-      --hold:#ecebe8;
-      --next:#fff3cd;
+      --hold:#ece9e6;
+      --next:#fff2c8;
       --want:#f4efe3;
-      --need:#e8f2ff;
+      --need:#f7f3ff;
       --shadow:0 10px 26px rgba(0,0,0,.07);
       --radius:20px;
-      --radius-sm:14px;
-      --max:820px;
+      --max:840px;
     }
 
     *{box-sizing:border-box}
@@ -53,7 +53,7 @@
 
     .top{
       text-align:center;
-      padding:6px 6px 14px;
+      padding:8px 6px 14px;
     }
 
     .top h1{
@@ -66,14 +66,14 @@
 
     .tagline{
       margin-top:8px;
-      font-size:1.45rem;
+      font-size:1.5rem;
       font-weight:900;
       letter-spacing:-.03em;
     }
 
     .sub{
       margin:10px auto 0;
-      max-width:34ch;
+      max-width:40ch;
       color:var(--muted);
       font-size:.96rem;
     }
@@ -82,13 +82,14 @@
       background:var(--card);
       border:1px solid rgba(0,0,0,.04);
       box-shadow:var(--shadow);
-      border-radius:var(--radius);
+      border-radius:20px;
       padding:16px;
       margin:0 0 14px;
     }
 
     .card.work{
-      background:var(--work);
+      background:linear-gradient(180deg,var(--brain),var(--brain-2));
+      border-color:rgba(80,20,40,.08);
     }
 
     .section-title{
@@ -125,7 +126,7 @@
 
     .input:focus{
       background:#fff;
-      border-color:#bdbdb5;
+      border-color:#c8bcc1;
     }
 
     .btn{
@@ -143,7 +144,7 @@
     .btn.secondary{
       background:#fff;
       color:var(--ink);
-      border:1px solid var(--line);
+      border:1px solid rgba(0,0,0,.08);
     }
 
     .toolbar{
@@ -151,6 +152,33 @@
       grid-template-columns:1fr 1fr;
       gap:10px;
       margin-bottom:12px;
+    }
+
+    .next-box{
+      display:none;
+      margin:0 0 12px;
+      background:#111;
+      color:#fff;
+      border-radius:18px;
+      padding:14px 15px;
+    }
+
+    .next-box.show{display:block}
+
+    .next-label{
+      font-size:.74rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      opacity:.72;
+      margin-bottom:6px;
+      font-weight:800;
+    }
+
+    .next-text{
+      margin:0;
+      font-size:1.18rem;
+      font-weight:900;
+      line-height:1.15;
     }
 
     .list{
@@ -226,6 +254,11 @@
       font-size:.95rem;
     }
 
+    .controls{
+      display:grid;
+      gap:9px;
+    }
+
     .row-label{
       display:block;
       font-size:.74rem;
@@ -234,11 +267,6 @@
       color:var(--muted);
       margin:0 0 7px;
       font-weight:800;
-    }
-
-    .controls{
-      display:grid;
-      gap:9px;
     }
 
     .needwant-row,
@@ -265,7 +293,7 @@
 
     .chip.active.need{
       background:var(--need);
-      border-color:#b8d2f0;
+      border-color:#d4c9ef;
     }
 
     .chip.active.want{
@@ -279,31 +307,24 @@
       border-color:#111;
     }
 
-    .next-box{
-      display:none;
-      margin:0 0 12px;
-      background:#111;
-      color:#fff;
-      border-radius:18px;
+    .connect{
+      margin-top:14px;
       padding:14px 15px;
+      border-radius:18px;
+      background:rgba(255,255,255,.72);
+      border:1px solid rgba(0,0,0,.06);
     }
 
-    .next-box.show{display:block}
-
-    .next-label{
-      font-size:.74rem;
-      text-transform:uppercase;
-      letter-spacing:.1em;
-      opacity:.7;
-      margin-bottom:6px;
+    .connect-title{
+      margin:0 0 5px;
+      font-size:1rem;
       font-weight:800;
     }
 
-    .next-text{
+    .connect-copy{
       margin:0;
-      font-size:1.18rem;
-      font-weight:900;
-      line-height:1.15;
+      color:var(--muted);
+      font-size:.95rem;
     }
 
     .footer-note{
@@ -352,14 +373,14 @@
 <body>
   <main class="wrap">
     <section class="top">
-      <h1>Follow-Through Tool</h1>
+      <h1>🧘 The Brain Dumper</h1>
       <div class="tagline">Write. Sort. Do.</div>
-      <p class="sub">Get it out of your head. Put it in order. Do the next thing.</p>
+      <p class="sub">Alright… slow down a second. Let’s sort this out.</p>
     </section>
 
     <section class="card">
-      <h2 class="section-title">What needs your attention?</h2>
-      <p class="section-copy">Add whatever is hanging over your head right now.</p>
+      <h2 class="section-title">🧠 Brain Dump</h2>
+      <p class="section-copy">Let’s figure out what actually needs your attention.</p>
 
       <div class="add-row">
         <input
@@ -374,8 +395,8 @@
     </section>
 
     <section class="card work">
-      <h2 class="section-title">Your List</h2>
-      <p class="section-copy">Drag items to reorder them. Sort by need or want. Mark what happens next.</p>
+      <h2 class="section-title">⏸️ Alright… let’s slow down a second. Let’s sort this out.</h2>
+      <p class="section-copy">Drag items to reorder them. Then decide what really needs attention and what happens next.</p>
 
       <div class="toolbar">
         <button id="pickNextBtn" class="btn">🎯 Pick My Next Thing</button>
@@ -383,24 +404,29 @@
       </div>
 
       <div id="nextBox" class="next-box">
-        <div class="next-label">Next Thing</div>
+        <div class="next-label">👉 Start Here</div>
         <p id="nextText" class="next-text"></p>
       </div>
 
       <div id="list" class="list"></div>
       <div id="emptyState" class="empty">Nothing here yet. Add a few things and start sorting.</div>
+
+      <div class="connect">
+        <h3 class="connect-title">📞 Sometimes the next right thing is calling someone.</h3>
+        <p class="connect-copy">Is there someone you could reach out to right now who might help you feel a little better?</p>
+      </div>
     </section>
 
     <p class="footer-note">Progress beats perfection.</p>
   </main>
 
   <div class="toast-wrap">
-    <div id="toast" class="toast">Added</div>
+    <div id="toast" class="toast">Got it.</div>
   </div>
 
   <script>
     (() => {
-      const STORAGE_KEY = "rm_follow_through_items_v2";
+      const STORAGE_KEY = "rm_brain_dumper_items_v1";
 
       const itemInput = document.getElementById("itemInput");
       const addBtn = document.getElementById("addBtn");
@@ -434,7 +460,7 @@
         return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
       }
 
-      function showToast(message = "Added") {
+      function showToast(message = "Got it.") {
         toast.textContent = message;
         toast.classList.add("show");
         clearTimeout(toastTimer);
@@ -458,7 +484,7 @@
         nextBox.classList.remove("show");
         saveItems();
         render();
-        showToast("Added");
+        showToast("Got it.");
         itemInput.focus();
       }
 
@@ -556,12 +582,12 @@
                 </div>
 
                 <div>
-                  <span class="row-label">Status</span>
+                  <span class="row-label">What happens with this one?</span>
                   <div class="status-row">
                     <button class="status-btn ${item.status === "next" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="next">Next</button>
                     <button class="status-btn ${item.status === "completed_full" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_full">Done Fully</button>
                     <button class="status-btn ${item.status === "completed_good" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="completed_good">Good Enough</button>
-                    <button class="status-btn ${item.status === "on_hold" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="on_hold">On Hold</button>
+                    <button class="status-btn ${item.status === "on_hold" ? "active" : ""}" data-action="status" data-id="${item.id}" data-value="on_hold">Hold for Now</button>
                   </div>
                 </div>
               </div>
