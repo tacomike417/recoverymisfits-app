@@ -1,921 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brain Dump</title>
-  <style>
-    :root{
-      --bg1:#14091c;
-      --bg2:#2a1033;
-      --panel:rgba(255,255,255,.08);
-      --panel-border:rgba(255,255,255,.12);
-      --text:#fff7fc;
-      --muted:#dfbfd0;
-      --pink:#ff4fa0;
-      --pink2:#ff7db8;
-      --pink3:#ffd3e7;
-      --hole:#09060f;
-      --holeGlow:rgba(255,79,160,.30);
-      --good:#ffe9f4;
-      --shadow:0 24px 60px rgba(0,0,0,.36);
-      --radius:26px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Brain Dumper</title>
 
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{
-      margin:0;
-      min-height:100%;
-      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(circle at 20% 10%, rgba(255,79,160,.18), transparent 28%),
-        radial-gradient(circle at 80% 0%, rgba(196,98,255,.12), transparent 22%),
-        linear-gradient(180deg,var(--bg2),var(--bg1));
-      overflow-x:hidden;
-    }
+<style>
 
-    body{
-      padding:16px 14px 32px;
-      display:flex;
-      justify-content:center;
-    }
+*{
+box-sizing:border-box;
+font-family:system-ui, -apple-system, Segoe UI, Roboto;
+}
 
-    .wrap{
-      width:100%;
-      max-width:760px;
-    }
+body{
+margin:0;
+color:white;
+overflow:hidden;
+}
 
-    .card{
-      background:var(--panel);
-      border:1px solid var(--panel-border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      backdrop-filter:blur(18px);
-      overflow:hidden;
-      position:relative;
-    }
+/* ---------- BRAIN BACKGROUND ---------- */
 
-    .top{
-      text-align:center;
-      padding:22px 20px 10px;
-    }
+body.gray{
+background:
+radial-gradient(circle at 20% 30%, #5a5a5a 0%, transparent 40%),
+radial-gradient(circle at 80% 70%, #6b6b6b 0%, transparent 40%),
+radial-gradient(circle at 50% 50%, #4c4c4c 0%, #2e2e2e 70%);
+transition:background 0.8s ease;
+}
 
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:9px 14px;
-      border-radius:999px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
-      color:var(--muted);
-      font-size:.88rem;
-      margin-bottom:10px;
-    }
+body.pink{
+background:
+radial-gradient(circle at 20% 30%, #ff9ec4 0%, transparent 40%),
+radial-gradient(circle at 80% 70%, #ffb7d2 0%, transparent 40%),
+radial-gradient(circle at 50% 50%, #ff7fb1 0%, #d94f88 70%);
+transition:background 0.8s ease;
+}
 
-    h1{
-      margin:0;
-      font-size:clamp(2.1rem,6vw,3.4rem);
-      line-height:.95;
-      letter-spacing:-.04em;
-    }
+/* ---------- UI ---------- */
 
-    .entry{
-      padding:12px 20px 0;
-    }
+.wrapper{
+max-width:700px;
+margin:auto;
+padding:20px;
+}
 
-    textarea{
-      width:100%;
-      min-height:130px;
-      resize:vertical;
-      border:none;
-      outline:none;
-      border-radius:22px;
-      padding:18px;
-      font-size:1.06rem;
-      line-height:1.45;
-      color:var(--text);
-      background:rgba(10,7,18,.58);
-      border:1px solid rgba(255,255,255,.11);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
-    }
+h1{
+text-align:center;
+margin:10px 0 20px;
+font-size:34px;
+}
 
-    textarea::placeholder{
-      color:#cfa5ba;
-    }
+textarea{
+width:100%;
+height:120px;
+border-radius:16px;
+border:none;
+padding:16px;
+font-size:16px;
+resize:none;
+background:#1e1e1e;
+color:white;
+}
 
-    .actions{
-      padding:14px 20px 18px;
-    }
+button{
+width:100%;
+margin-top:10px;
+padding:14px;
+font-size:18px;
+border-radius:999px;
+border:none;
+cursor:pointer;
+font-weight:bold;
+background:#ff4fa0;
+color:white;
+}
 
-    .dump-btn{
-      width:100%;
-      border:none;
-      cursor:pointer;
-      border-radius:999px;
-      padding:16px 24px;
-      font-size:1.06rem;
-      font-weight:900;
-      color:#fff;
-      background:linear-gradient(135deg,var(--pink),var(--pink2));
-      box-shadow:0 14px 28px rgba(255,79,160,.28);
-      transition:transform .14s ease, filter .2s ease, box-shadow .2s ease;
-    }
+/* ---------- GAME AREA ---------- */
 
-    .dump-btn:active{
-      transform:scale(.986);
-      filter:brightness(.98);
-    }
+.game{
+position:relative;
+height:420px;
+margin-top:20px;
+border-radius:20px;
+background:rgba(0,0,0,.25);
+overflow:hidden;
+}
 
-    .stage{
-      padding:0 20px 24px;
-    }
+.hole{
+position:absolute;
+bottom:40px;
+left:50%;
+transform:translateX(-50%);
+width:140px;
+height:40px;
+border-radius:50%;
+background:black;
+box-shadow:
+0 0 20px rgba(255,0,100,.6),
+inset 0 6px 10px rgba(255,255,255,.1);
+animation:pulse 1.6s infinite;
+}
 
-    .scene{
-      position:relative;
-      height:420px;
-      border-radius:26px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.08);
-      background:
-        radial-gradient(circle at 50% 14%, rgba(255,255,255,.10), transparent 26%),
-        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      user-select:none;
-      touch-action:none;
-    }
+@keyframes pulse{
+0%{transform:translateX(-50%) scale(1)}
+50%{transform:translateX(-50%) scale(1.12)}
+100%{transform:translateX(-50%) scale(1)}
+}
 
-    .scene::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        radial-gradient(circle at 50% 82%, rgba(255,79,160,.10), transparent 24%),
-        radial-gradient(circle at 50% 84%, rgba(255,255,255,.04), transparent 38%);
-      pointer-events:none;
-    }
+/* ---------- THOUGHT BUBBLE ---------- */
 
-    .orbit{
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      opacity:.45;
-    }
+.thought{
+position:absolute;
+top:100px;
+left:50%;
+transform:translate(-50%,0);
+padding:12px 18px;
+border-radius:999px;
+background:white;
+color:black;
+font-weight:bold;
+cursor:grab;
+user-select:none;
+white-space:nowrap;
+}
 
-    .orbit .ring{
-      position:absolute;
-      left:50%;
-      bottom:36px;
-      transform:translateX(-50%);
-      border-radius:50%;
-      border:1px solid rgba(255,255,255,.08);
-    }
+/* ---------- AFFIRMATION ---------- */
 
-    .ring.r1{ width:180px; height:40px; }
-    .ring.r2{ width:250px; height:58px; bottom:24px; opacity:.7}
-    .ring.r3{ width:320px; height:74px; bottom:14px; opacity:.5}
+.affirmation{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+text-align:center;
+font-size:34px;
+opacity:0;
+transition:opacity .8s;
+}
 
-    .thought{
-      position:absolute;
-      left:50%;
-      top:92px;
-      transform:translate(-50%,0) scale(.8);
-      max-width:78%;
-      min-width:150px;
-      padding:14px 18px;
-      border-radius:999px;
-      text-align:center;
-      background:linear-gradient(180deg, rgba(255,255,255,.17), rgba(255,255,255,.08));
-      border:1px solid rgba(255,255,255,.20);
-      color:#fff1f7;
-      font-weight:800;
-      font-size:1rem;
-      line-height:1.28;
-      box-shadow:0 12px 28px rgba(0,0,0,.18);
-      z-index:8;
-      opacity:0;
-      transition:
-        transform .18s ease,
-        box-shadow .2s ease,
-        opacity .24s ease,
-        filter .2s ease;
-      cursor:grab;
-      will-change:transform,left,top,opacity;
-    }
+.affirmation.show{
+opacity:1;
+}
 
-    .thought.show{
-      opacity:1;
-      transform:translate(-50%,0) scale(1);
-      animation:popIn .26s ease;
-    }
+/* ---------- DISCLAIMER ---------- */
 
-    .thought.ready{
-      box-shadow:0 0 0 6px rgba(255,79,160,.10), 0 16px 32px rgba(0,0,0,.22);
-    }
+.disclaimer{
+margin-top:14px;
+text-align:center;
+font-size:12px;
+opacity:.6;
+}
 
-    .thought.dragging{
-      cursor:grabbing;
-      transition:none;
-      filter:brightness(1.03);
-      z-index:20;
-    }
-
-    .thought.sucked{
-      transition:none;
-      pointer-events:none;
-    }
-
-    .brain{
-      position:absolute;
-      left:50%;
-      bottom:138px;
-      width:124px;
-      height:104px;
-      transform:translateX(-50%);
-      z-index:6;
-      filter:drop-shadow(0 16px 24px rgba(0,0,0,.28));
-      transition:transform .3s ease, opacity .3s ease;
-    }
-
-    .brain .blob{
-      position:absolute;
-      inset:0;
-      background:
-        radial-gradient(circle at 30% 28%, var(--pink3), #ff8ebb 70%),
-        linear-gradient(180deg, #ffb4d1, #ff6eae);
-      border-radius:48% 52% 46% 54% / 42% 42% 58% 58%;
-      border:3px solid rgba(255,255,255,.26);
-      box-shadow: inset 0 10px 16px rgba(255,255,255,.15);
-    }
-
-    .brain::before,
-    .brain::after{
-      content:"";
-      position:absolute;
-      top:11px;
-      width:48px;
-      height:72px;
-      border:3px solid rgba(255,255,255,.22);
-      border-radius:48% 52% 45% 55%;
-      opacity:.58;
-    }
-
-    .brain::before{left:12px}
-    .brain::after{right:12px}
-
-    .eye{
-      position:absolute;
-      top:44px;
-      width:10px;
-      height:10px;
-      background:#57243c;
-      border-radius:50%;
-    }
-
-    .eye.left{left:38px}
-    .eye.right{right:38px}
-
-    .mouth{
-      position:absolute;
-      left:50%;
-      bottom:22px;
-      width:32px;
-      height:14px;
-      transform:translateX(-50%);
-      border-bottom:4px solid #57243c;
-      border-radius:0 0 18px 18px;
-      opacity:.82;
-    }
-
-    .brain.hype{
-      animation:brainHype .9s ease-in-out infinite;
-    }
-
-    .brain.relax{
-      animation:brainRelax 1.2s ease forwards;
-    }
-
-    .hole-wrap{
-      position:absolute;
-      left:50%;
-      bottom:42px;
-      transform:translateX(-50%);
-      width:250px;
-      height:120px;
-      pointer-events:none;
-      z-index:4;
-    }
-
-    .hole-glow{
-      position:absolute;
-      left:50%;
-      bottom:18px;
-      transform:translateX(-50%);
-      width:220px;
-      height:60px;
-      border-radius:50%;
-      background:radial-gradient(circle, var(--holeGlow), transparent 70%);
-      filter:blur(18px);
-      opacity:.45;
-      transition:all .22s ease;
-    }
-
-    .hole{
-      position:absolute;
-      left:50%;
-      bottom:26px;
-      transform:translateX(-50%);
-      width:170px;
-      height:48px;
-      border-radius:50%;
-      background:
-        radial-gradient(ellipse at center, rgba(0,0,0,.96) 0%, rgba(8,5,12,.95) 45%, rgba(19,9,26,.7) 66%, transparent 72%);
-      box-shadow:
-        inset 0 8px 16px rgba(255,255,255,.03),
-        0 0 0 1px rgba(255,255,255,.04);
-      transition:all .18s ease;
-    }
-
-    .hole.active{
-      width:190px;
-      height:56px;
-      box-shadow:
-        0 0 0 2px rgba(255,79,160,.18),
-        0 0 24px rgba(255,79,160,.28),
-        inset 0 8px 16px rgba(255,255,255,.03);
-    }
-
-    .hole.active + .hole-glow,
-    .hole-wrap.active .hole-glow{
-      opacity:.8;
-      transform:translateX(-50%) scale(1.06);
-    }
-
-    .swirl{
-      position:absolute;
-      left:50%;
-      bottom:6px;
-      width:140px;
-      height:90px;
-      transform:translateX(-50%);
-      opacity:0;
-      pointer-events:none;
-      z-index:5;
-    }
-
-    .swirl.show{
-      opacity:1;
-      animation:spinSwirl .75s linear infinite;
-    }
-
-    .swirl::before,
-    .swirl::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      border-radius:50%;
-      border:3px solid transparent;
-      border-top-color:rgba(255,255,255,.65);
-      border-right-color:rgba(255,79,160,.6);
-      filter:blur(.3px);
-    }
-
-    .swirl::after{
-      inset:12px 20px;
-      border-top-color:rgba(255,205,227,.88);
-      border-right-color:rgba(255,255,255,.25);
-      animation:spinSwirlReverse .55s linear infinite;
-    }
-
-    .drop-label{
-      position:absolute;
-      left:50%;
-      bottom:112px;
-      transform:translateX(-50%);
-      font-size:.88rem;
-      font-weight:800;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:#ffd9e8;
-      opacity:0;
-      transition:opacity .2s ease, transform .2s ease;
-      pointer-events:none;
-      z-index:7;
-      text-shadow:0 0 12px rgba(255,79,160,.28);
-    }
-
-    .drop-label.show{
-      opacity:.9;
-      transform:translateX(-50%) translateY(-4px);
-    }
-
-    .affirmation-card{
-      margin-top:16px;
-      background:rgba(12,6,18,.55);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:22px;
-      padding:18px 16px 15px;
-      opacity:0;
-      transform:translateY(12px);
-      transition:all .42s ease;
-    }
-
-    .affirmation-card.show{
-      opacity:1;
-      transform:translateY(0);
-    }
-
-    .affirmation{
-      margin:0;
-      text-align:center;
-      font-size:1.12rem;
-      line-height:1.42;
-      color:var(--good);
-    }
-
-    .tiny{
-      margin-top:7px;
-      text-align:center;
-      color:var(--muted);
-      font-size:.88rem;
-    }
-
-    .burst{
-      position:absolute;
-      left:50%;
-      top:50%;
-      width:12px;
-      height:12px;
-      transform:translate(-50%,-50%);
-      z-index:10;
-      pointer-events:none;
-      opacity:0;
-    }
-
-    .burst.show{
-      opacity:1;
-    }
-
-    .spark{
-      position:absolute;
-      left:50%;
-      top:50%;
-      width:12px;
-      height:12px;
-      margin:-6px 0 0 -6px;
-      border-radius:50%;
-      background:radial-gradient(circle, #fff, #ff8dc0 70%, transparent 72%);
-      opacity:0;
-    }
-
-    .spark.s1{animation:spark1 .7s ease forwards}
-    .spark.s2{animation:spark2 .76s ease forwards}
-    .spark.s3{animation:spark3 .72s ease forwards}
-    .spark.s4{animation:spark4 .8s ease forwards}
-    .spark.s5{animation:spark5 .74s ease forwards}
-    .spark.s6{animation:spark6 .78s ease forwards}
-    .spark.s7{animation:spark7 .75s ease forwards}
-    .spark.s8{animation:spark8 .82s ease forwards}
-
-    .hint{
-      position:absolute;
-      left:50%;
-      top:18px;
-      transform:translateX(-50%);
-      padding:8px 12px;
-      border-radius:999px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.08);
-      color:#f2cadc;
-      font-size:.86rem;
-      font-weight:700;
-      opacity:.9;
-      z-index:3;
-      transition:opacity .2s ease, transform .2s ease;
-      pointer-events:none;
-    }
-
-    .hint.fade{
-      opacity:0;
-      transform:translateX(-50%) translateY(-10px);
-    }
-
-    @keyframes popIn{
-      0%{transform:translate(-50%,0) scale(.72)}
-      70%{transform:translate(-50%,0) scale(1.04)}
-      100%{transform:translate(-50%,0) scale(1)}
-    }
-
-    @keyframes brainHype{
-      0%,100%{transform:translateX(-50%) translateY(0)}
-      25%{transform:translateX(-50%) translateY(-4px)}
-      50%{transform:translateX(-50%) translateY(0)}
-      75%{transform:translateX(-50%) translateY(-3px)}
-    }
-
-    @keyframes brainRelax{
-      0%{transform:translateX(-50%) translateY(0) scale(1)}
-      50%{transform:translateX(-50%) translateY(-8px) scale(.98)}
-      100%{transform:translateX(-50%) translateY(-4px) scale(.985)}
-    }
-
-    @keyframes spinSwirl{
-      from{transform:translateX(-50%) rotate(0deg)}
-      to{transform:translateX(-50%) rotate(360deg)}
-    }
-
-    @keyframes spinSwirlReverse{
-      from{transform:rotate(0deg)}
-      to{transform:rotate(-360deg)}
-    }
-
-    @keyframes spark1{
-      0%{opacity:1;transform:translate(0,0) scale(1)}
-      100%{opacity:0;transform:translate(-90px,-50px) scale(.3)}
-    }
-    @keyframes spark2{
-      0%{opacity:1;transform:translate(0,0) scale(1)}
-      100%{opacity:0;transform:translate(90px,-54px) scale(.35)}
-    }
-    @keyframes spark3{
-      0%{opacity:1;transform:translate(0,0) scale(1)}
-      100%{opacity:0;transform:translate(-106px,10px) scale(.3)}
-    }
-    @keyframes spark4{
-      0%{opacity:1;transform:translate(0,0) scale(1)}
-      100%{opacity:0;transform:translate(110px,14px) scale(.35)}
-    }
-    @keyframes spark5{
-      0%{opacity:1;transform:translate(0,0) scale(1)}
-      100%{opacity:0;transform:translate(-26px,-90px) scale(.28)}
-    }
-    @keyframes spark6{
-      0%{opacity:1;transform:translate(0,0) scale(1)}
-      100%{opacity:0;transform:translate(24px,74px) scale(.38)}
-    }
-    @keyframes spark7{
-      0%{opacity:1;transform:translate(0,0) scale(1)}
-      100%{opacity:0;transform:translate(-72px,68px) scale(.36)}
-    }
-    @keyframes spark8{
-      0%{opacity:1;transform:translate(0,0) scale(1)}
-      100%{opacity:0;transform:translate(72px,66px) scale(.34)}
-    }
-
-    @media (max-width:560px){
-      .scene{height:400px}
-      .thought{max-width:84%; font-size:.96rem; top:90px}
-      .brain{width:114px;height:96px;bottom:142px}
-      .hole-wrap{width:220px}
-      .hole{width:158px;height:44px}
-      .hole.active{width:176px;height:52px}
-      .hint{font-size:.8rem}
-    }
-  </style>
+</style>
 </head>
-<body>
-  <div class="wrap">
-    <div class="card">
-      <div class="top">
-        <div class="badge">🧠 Brain Dump</div>
-        <h1>Dump it.</h1>
-      </div>
 
-      <div class="entry">
-        <textarea id="dumpInput" placeholder="I’m scared everybody hates me"></textarea>
-      </div>
+<body class="gray">
 
-      <div class="actions">
-        <button class="dump-btn" id="dumpBtn">Dump</button>
-      </div>
+<div class="wrapper">
 
-      <div class="stage">
-        <div class="scene" id="scene">
-          <div class="hint" id="hint">Drag the thought into the hole</div>
+<h1>The Brain Dumper</h1>
 
-          <div class="orbit">
-            <div class="ring r1"></div>
-            <div class="ring r2"></div>
-            <div class="ring r3"></div>
-          </div>
+<textarea id="thoughtInput" placeholder="What's stuck in your head?"></textarea>
 
-          <div class="thought" id="thoughtBubble"></div>
+<button id="dumpBtn">Dump</button>
 
-          <div class="brain hype" id="brain">
-            <div class="blob"></div>
-            <div class="eye left"></div>
-            <div class="eye right"></div>
-            <div class="mouth"></div>
-          </div>
+<div class="game" id="game">
 
-          <div class="drop-label" id="dropLabel">LET IT GO</div>
+<div class="hole" id="hole"></div>
 
-          <div class="hole-wrap" id="holeWrap">
-            <div class="hole" id="hole"></div>
-            <div class="hole-glow" id="holeGlow"></div>
-            <div class="swirl" id="swirl"></div>
-          </div>
+<div class="affirmation" id="affirmation"></div>
 
-          <div class="burst" id="burst"></div>
-        </div>
+</div>
 
-        <div class="affirmation-card" id="affirmationCard">
-          <p class="affirmation" id="affirmationText"></p>
-          <div class="tiny">dump complete</div>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="disclaimer">
+A small tool for letting thoughts go.  
+Not a substitute for professional care.
+</div>
 
-  <script>
-    const dumpBtn = document.getElementById("dumpBtn");
-    const dumpInput = document.getElementById("dumpInput");
-    const scene = document.getElementById("scene");
-    const thoughtBubble = document.getElementById("thoughtBubble");
-    const brain = document.getElementById("brain");
-    const hole = document.getElementById("hole");
-    const holeWrap = document.getElementById("holeWrap");
-    const swirl = document.getElementById("swirl");
-    const dropLabel = document.getElementById("dropLabel");
-    const hint = document.getElementById("hint");
-    const burst = document.getElementById("burst");
-    const affirmationCard = document.getElementById("affirmationCard");
-    const affirmationText = document.getElementById("affirmationText");
+</div>
 
-    const affirmations = [
-      "That one didn’t deserve to stay.",
-      "You can put that down now.",
-      "Not every thought gets to live here.",
-      "That was loud. It still had to go.",
-      "You don’t have to carry every weird idea.",
-      "That thought just lost its apartment.",
-      "There’s a little more room in your head now.",
-      "That spiral can go bother somebody else."
-    ];
+<script>
 
-    let dragActive = false;
-    let isReady = false;
-    let isDumping = false;
-    let offsetX = 0;
-    let offsetY = 0;
-    let currentPointerId = null;
+/* ---------- ELEMENTS ---------- */
 
-    let startX = 0;
-    let startY = 0;
+const dumpBtn = document.getElementById("dumpBtn")
+const input = document.getElementById("thoughtInput")
+const game = document.getElementById("game")
+const hole = document.getElementById("hole")
+const affirmation = document.getElementById("affirmation")
 
-    function pick(arr){
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
+let thought
+let dragging = false
 
-    function vibrate(pattern){
-      if (navigator.vibrate) navigator.vibrate(pattern);
-    }
+/* ---------- AFFIRMATIONS ---------- */
 
-    function showAffirmation(){
-      affirmationText.textContent = pick(affirmations);
-      affirmationCard.classList.add("show");
-    }
+const affirmations = [
 
-    function getSceneRect(){
-      return scene.getBoundingClientRect();
-    }
+"That thought doesn't get to stay.",
+"You can let that go.",
+"Not every thought is true.",
+"Your mind can be quieter.",
+"That spiral just lost.",
+"You don't have to carry that."
 
-    function getHoleCenter(){
-      const sceneRect = getSceneRect();
-      const holeRect = hole.getBoundingClientRect();
-      return {
-        x: holeRect.left - sceneRect.left + holeRect.width / 2,
-        y: holeRect.top - sceneRect.top + holeRect.height / 2
-      };
-    }
+]
 
-    function setThoughtPosition(x, y){
-      thoughtBubble.style.left = `${x}px`;
-      thoughtBubble.style.top = `${y}px`;
-      thoughtBubble.style.transform = `translate(-50%, -50%) scale(1)`;
-    }
+/* ---------- CREATE THOUGHT ---------- */
 
-    function resetThoughtPosition(animated = true){
-      const sceneRect = getSceneRect();
-      const x = sceneRect.width / 2;
-      const y = 118;
-      if (animated) {
-        thoughtBubble.style.transition = "left .22s ease, top .22s ease, transform .22s ease, opacity .2s ease";
-      } else {
-        thoughtBubble.style.transition = "none";
-      }
-      setThoughtPosition(x, y);
-      requestAnimationFrame(() => {
-        thoughtBubble.classList.remove("dragging");
-      });
-    }
+dumpBtn.onclick = () => {
 
-    function clearInteractiveState(){
-      hole.classList.remove("active");
-      holeWrap.classList.remove("active");
-      swirl.classList.remove("show");
-      dropLabel.classList.remove("show");
-      thoughtBubble.classList.remove("ready");
-    }
+const text = input.value.trim()
 
-    function createBurst(x, y){
-      burst.innerHTML = "";
-      burst.style.left = `${x}px`;
-      burst.style.top = `${y}px`;
-      const classes = ["s1","s2","s3","s4","s5","s6","s7","s8"];
-      classes.forEach(cls => {
-        const spark = document.createElement("div");
-        spark.className = `spark ${cls}`;
-        burst.appendChild(spark);
-      });
-      burst.classList.add("show");
-      setTimeout(() => burst.classList.remove("show"), 900);
-    }
+if(!text) return
 
-    function activateDump(text){
-      if (isDumping) return;
-      const clean = text.trim();
-      if (!clean) {
-        vibrate([40, 30, 60]);
-        affirmationText.textContent = "Throw something in there first.";
-        affirmationCard.classList.add("show");
-        return;
-      }
+const truncated = text.length > 40
+? text.slice(0,40)+"..."
+: text
 
-      isReady = true;
-      isDumping = false;
-      affirmationCard.classList.remove("show");
-      thoughtBubble.textContent = clean.length > 80 ? clean.slice(0, 80) + "…" : clean;
-      thoughtBubble.className = "thought show ready";
-      thoughtBubble.style.opacity = "1";
-      thoughtBubble.style.pointerEvents = "auto";
-      thoughtBubble.style.transition = "left .2s ease, top .2s ease, transform .2s ease, opacity .2s ease";
-      hint.classList.remove("fade");
-      resetThoughtPosition(false);
-    }
+thought = document.createElement("div")
+thought.className = "thought"
+thought.innerText = "Thought: " + truncated
 
-    function distance(ax, ay, bx, by){
-      return Math.hypot(ax - bx, ay - by);
-    }
+game.appendChild(thought)
 
-    function maybeActivateHole(x, y){
-      const holeCenter = getHoleCenter();
-      const d = distance(x, y, holeCenter.x, holeCenter.y);
+/* drifting motion */
 
-      if (d < 115) {
-        hole.classList.add("active");
-        holeWrap.classList.add("active");
-        swirl.classList.add("show");
-        dropLabel.classList.add("show");
-        vibrate(12);
-        return true;
-      } else {
-        hole.classList.remove("active");
-        holeWrap.classList.remove("active");
-        swirl.classList.remove("show");
-        dropLabel.classList.remove("show");
-        return false;
-      }
-    }
+let driftX = 0
+let driftY = 0
 
-    function startDrag(e){
-      if (!isReady || isDumping) return;
+setInterval(()=>{
 
-      const rect = thoughtBubble.getBoundingClientRect();
-      currentPointerId = e.pointerId;
-      dragActive = true;
+if(dragging) return
 
-      thoughtBubble.setPointerCapture(e.pointerId);
-      thoughtBubble.classList.add("dragging");
-      hint.classList.add("fade");
+driftX += (Math.random()-0.5)*40
+driftY += (Math.random()-0.5)*20
 
-      const sceneRect = getSceneRect();
-      startX = rect.left - sceneRect.left + rect.width / 2;
-      startY = rect.top - sceneRect.top + rect.height / 2;
+thought.style.transform =
+`translate(calc(-50% + ${driftX}px), ${driftY}px)`
 
-      offsetX = e.clientX - (rect.left + rect.width / 2);
-      offsetY = e.clientY - (rect.top + rect.height / 2);
-    }
+},900)
 
-    function onDrag(e){
-      if (!dragActive || isDumping || e.pointerId !== currentPointerId) return;
+/* drag */
 
-      const sceneRect = getSceneRect();
-      let x = e.clientX - sceneRect.left - offsetX;
-      let y = e.clientY - sceneRect.top - offsetY;
+thought.onpointerdown = e=>{
+dragging=true
+thought.setPointerCapture(e.pointerId)
+}
 
-      x = Math.max(60, Math.min(sceneRect.width - 60, x));
-      y = Math.max(40, Math.min(sceneRect.height - 36, y));
+thought.onpointermove = e=>{
+if(!dragging) return
 
-      setThoughtPosition(x, y);
-      maybeActivateHole(x, y);
-    }
+const rect = game.getBoundingClientRect()
 
-    function finishDump(x, y){
-      isDumping = true;
-      isReady = false;
-      dragActive = false;
+const x = e.clientX - rect.left
+const y = e.clientY - rect.top
 
-      hole.classList.add("active");
-      holeWrap.classList.add("active");
-      swirl.classList.add("show");
-      dropLabel.classList.remove("show");
-      brain.classList.remove("hype");
-      brain.classList.add("relax");
+thought.style.left = x+"px"
+thought.style.top = y+"px"
+thought.style.transform="translate(-50%,-50%)"
 
-      const target = getHoleCenter();
-      vibrate([30, 20, 45, 20, 70]);
+checkHole(x,y)
+}
 
-      let frame = 0;
-      const start = { x, y };
-      const totalFrames = 32;
+thought.onpointerup = ()=>{
+dragging=false
+}
 
-      thoughtBubble.classList.add("sucked");
-      thoughtBubble.style.pointerEvents = "none";
+}
 
-      function animateSuck(){
-        frame++;
-        const t = frame / totalFrames;
-        const ease = 1 - Math.pow(1 - t, 3);
+/* ---------- HOLE DETECTION ---------- */
 
-        const nx = start.x + (target.x - start.x) * ease;
-        const ny = start.y + (target.y - start.y) * ease;
-        const scale = 1 - ease * 0.86;
-        const rotate = ease * 420;
+function checkHole(x,y){
 
-        thoughtBubble.style.left = `${nx}px`;
-        thoughtBubble.style.top = `${ny}px`;
-        thoughtBubble.style.transform = `translate(-50%, -50%) scale(${Math.max(.14, scale)}) rotate(${rotate}deg)`;
-        thoughtBubble.style.opacity = `${Math.max(0, 1 - ease * 1.2)}`;
+const rect = hole.getBoundingClientRect()
+const gameRect = game.getBoundingClientRect()
 
-        if (frame < totalFrames) {
-          requestAnimationFrame(animateSuck);
-        } else {
-          thoughtBubble.style.opacity = "0";
-          createBurst(target.x, target.y - 6);
-          showAffirmation();
+const hx = rect.left - gameRect.left + rect.width/2
+const hy = rect.top - gameRect.top + rect.height/2
 
-          setTimeout(() => {
-            swirl.classList.remove("show");
-            hole.classList.remove("active");
-            holeWrap.classList.remove("active");
-            brain.classList.remove("relax");
-            brain.classList.add("hype");
-            hint.classList.remove("fade");
-            thoughtBubble.className = "thought";
-            thoughtBubble.style = "";
-            currentPointerId = null;
-            isDumping = false;
-          }, 900);
-        }
-      }
+const dist = Math.hypot(x-hx,y-hy)
 
-      requestAnimationFrame(animateSuck);
-    }
+if(dist < 70){
 
-    function endDrag(e){
-      if (!dragActive || e.pointerId !== currentPointerId) return;
+dumpSuccess()
 
-      dragActive = false;
-      thoughtBubble.classList.remove("dragging");
+}
 
-      const sceneRect = getSceneRect();
-      const x = e.clientX - sceneRect.left - offsetX;
-      const y = e.clientY - sceneRect.top - offsetY;
-      const inHole = maybeActivateHole(x, y);
+}
 
-      if (inHole) {
-        finishDump(
-          Math.max(60, Math.min(sceneRect.width - 60, x)),
-          Math.max(40, Math.min(sceneRect.height - 36, y))
-        );
-      } else {
-        clearInteractiveState();
-        resetThoughtPosition(true);
-        currentPointerId = null;
-      }
-    }
+/* ---------- SUCCESS ---------- */
 
-    dumpBtn.addEventListener("click", () => {
-      activateDump(dumpInput.value);
-    });
+function dumpSuccess(){
 
-    thoughtBubble.addEventListener("pointerdown", startDrag);
-    thoughtBubble.addEventListener("pointermove", onDrag);
-    thoughtBubble.addEventListener("pointerup", endDrag);
-    thoughtBubble.addEventListener("pointercancel", () => {
-      if (!dragActive) return;
-      dragActive = false;
-      currentPointerId = null;
-      clearInteractiveState();
-      resetThoughtPosition(true);
-    });
+thought.remove()
 
-    window.addEventListener("resize", () => {
-      if (isReady && !dragActive && !isDumping) {
-        resetThoughtPosition(false);
-      }
-    });
-  </script>
+document.body.classList.remove("gray")
+document.body.classList.add("pink")
+
+const text = affirmations[
+Math.floor(Math.random()*affirmations.length)
+]
+
+affirmation.innerText = text
+affirmation.classList.add("show")
+
+navigator.vibrate?.([60,40,80])
+
+}
+
+</script>
+
 </body>
 </html>
