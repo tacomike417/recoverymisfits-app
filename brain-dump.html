@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brain Dumper</title>
+  <title>Brain Dump</title>
   <style>
     :root{
-      --bg1:#08111f;
-      --bg2:#13233c;
-      --card:rgba(255,255,255,.08);
-      --cardBorder:rgba(255,255,255,.14);
-      --text:#f7fbff;
-      --muted:#bad0e8;
-      --accent:#7dd3fc;
-      --accent2:#a78bfa;
-      --good:#86efac;
+      --bg1:#12081a;
+      --bg2:#251033;
+      --panel:rgba(255,255,255,.08);
+      --panelBorder:rgba(255,255,255,.14);
+      --text:#fff7fc;
+      --muted:#d8bdd0;
+      --pink:#ff4fa0;
+      --pink2:#ff82c0;
+      --pink3:#ffd0e5;
+      --purple:#a855f7;
       --shadow:0 20px 60px rgba(0,0,0,.35);
-      --radius:24px;
+      --radius:26px;
     }
 
     *{box-sizing:border-box}
@@ -25,37 +26,36 @@
       min-height:100%;
       font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
       background:
-        radial-gradient(circle at 20% 20%, rgba(125,211,252,.16), transparent 25%),
-        radial-gradient(circle at 80% 10%, rgba(167,139,250,.14), transparent 28%),
+        radial-gradient(circle at 20% 10%, rgba(255,79,160,.22), transparent 28%),
+        radial-gradient(circle at 85% 0%, rgba(168,85,247,.16), transparent 25%),
         linear-gradient(180deg,var(--bg2),var(--bg1));
       color:var(--text);
       overflow-x:hidden;
     }
 
     body{
+      padding:18px 14px 34px;
       display:flex;
       justify-content:center;
-      padding:22px 14px 40px;
     }
 
     .wrap{
       width:100%;
       max-width:720px;
-      position:relative;
     }
 
     .card{
-      background:var(--card);
-      border:1px solid var(--cardBorder);
+      background:var(--panel);
+      border:1px solid var(--panelBorder);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
-      backdrop-filter: blur(18px);
+      backdrop-filter:blur(18px);
       overflow:hidden;
       position:relative;
     }
 
     .top{
-      padding:24px 20px 10px;
+      padding:22px 20px 10px;
       text-align:center;
     }
 
@@ -63,40 +63,24 @@
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:8px 14px;
+      padding:9px 15px;
       border-radius:999px;
-      background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.12);
-      font-size:.86rem;
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.11);
       color:var(--muted);
-      margin-bottom:14px;
+      font-size:.88rem;
+      margin-bottom:10px;
     }
 
     h1{
       margin:0;
-      font-size:clamp(2rem,5vw,3rem);
-      line-height:1;
-      letter-spacing:-.03em;
-    }
-
-    .sub{
-      margin:12px auto 0;
-      max-width:560px;
-      color:var(--muted);
-      font-size:1rem;
-      line-height:1.45;
+      font-size:clamp(2.1rem,6vw,3.4rem);
+      line-height:.95;
+      letter-spacing:-.04em;
     }
 
     .entry{
-      padding:18px 20px 0;
-    }
-
-    label{
-      display:block;
-      margin:0 0 10px;
-      color:#d9ecff;
-      font-weight:700;
-      font-size:.95rem;
+      padding:12px 20px 0;
     }
 
     textarea{
@@ -105,117 +89,128 @@
       resize:vertical;
       border:none;
       outline:none;
-      border-radius:20px;
-      padding:18px 18px 20px;
-      font-size:1.05rem;
-      line-height:1.5;
-      background:rgba(7,16,30,.75);
+      border-radius:22px;
+      padding:18px;
+      font-size:1.08rem;
+      line-height:1.45;
+      background:rgba(8,6,16,.56);
       color:var(--text);
       border:1px solid rgba(255,255,255,.12);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
 
     textarea::placeholder{
-      color:#97afc7;
+      color:#cfa8be;
     }
 
     .actions{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      padding:16px 20px 20px;
-    }
-
-    button{
-      border:none;
-      cursor:pointer;
-      border-radius:999px;
-      padding:15px 22px;
-      font-size:1rem;
-      font-weight:800;
-      transition:transform .15s ease, box-shadow .2s ease, opacity .2s ease;
-    }
-
-    button:active{
-      transform:scale(.98);
+      padding:14px 20px 18px;
     }
 
     .dump-btn{
-      flex:1 1 220px;
-      color:#08111f;
-      background:linear-gradient(135deg,var(--accent),#c4b5fd);
-      box-shadow:0 12px 25px rgba(125,211,252,.24);
+      width:100%;
+      border:none;
+      cursor:pointer;
+      border-radius:999px;
+      padding:16px 24px;
+      font-size:1.08rem;
+      font-weight:900;
+      color:white;
+      background:linear-gradient(135deg,var(--pink),var(--pink2));
+      box-shadow:0 14px 28px rgba(255,79,160,.28);
+      transition:transform .14s ease, box-shadow .2s ease, filter .2s ease;
     }
 
-    .clear-btn{
-      background:rgba(255,255,255,.08);
-      color:var(--text);
-      border:1px solid rgba(255,255,255,.12);
+    .dump-btn:active{
+      transform:scale(.985);
+      filter:brightness(.98);
     }
 
     .stage{
-      position:relative;
-      min-height:300px;
-      padding:4px 20px 24px;
-      overflow:hidden;
+      padding:0 20px 24px;
     }
 
     .scene{
       position:relative;
-      height:280px;
-      border-radius:24px;
-      background:
-        radial-gradient(circle at 50% 10%, rgba(255,255,255,.12), transparent 24%),
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.08);
+      height:350px;
+      border-radius:26px;
       overflow:hidden;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,.12), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
     }
 
-    .glow{
+    .arenaGlow{
       position:absolute;
-      inset:auto 0 18px 0;
-      margin:auto;
-      width:160px;
-      height:28px;
+      left:50%;
+      bottom:16px;
+      transform:translateX(-50%);
+      width:180px;
+      height:32px;
       border-radius:50%;
-      background:radial-gradient(circle, rgba(125,211,252,.32), transparent 70%);
-      filter:blur(12px);
-      opacity:.5;
+      background:radial-gradient(circle, rgba(255,79,160,.32), transparent 72%);
+      filter:blur(14px);
+      opacity:.7;
+    }
+
+    .thought{
+      position:absolute;
+      left:50%;
+      top:78px;
+      transform:translateX(-50%);
+      max-width:78%;
+      min-width:130px;
+      padding:12px 18px;
+      border-radius:999px;
+      text-align:center;
+      background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.08));
+      border:1px solid rgba(255,255,255,.18);
+      color:#ffeef6;
+      font-weight:700;
+      font-size:1rem;
+      line-height:1.3;
+      box-shadow:0 12px 24px rgba(0,0,0,.18);
+      z-index:5;
+      opacity:0;
+    }
+
+    .thought.show{
+      opacity:1;
     }
 
     .brain{
       position:absolute;
       left:50%;
-      bottom:62px;
-      width:128px;
-      height:108px;
+      bottom:74px;
+      width:134px;
+      height:112px;
       transform:translateX(-50%);
-      filter:drop-shadow(0 18px 24px rgba(0,0,0,.28));
-      transition:transform .45s ease, opacity .35s ease;
-      z-index:3;
+      z-index:6;
+      filter:drop-shadow(0 16px 24px rgba(0,0,0,.28));
     }
 
     .brain .blob{
       position:absolute;
       inset:0;
       background:
-        radial-gradient(circle at 30% 30%, #ffc6de, #ff90be 70%),
-        linear-gradient(180deg, #ffb0d0, #ff7db4);
+        radial-gradient(circle at 30% 28%, #ffd0e5, #ff89bb 70%),
+        linear-gradient(180deg, #ffb4d1, #ff6eae);
       border-radius:48% 52% 46% 54% / 42% 42% 58% 58%;
-      border:3px solid rgba(255,255,255,.28);
-      box-shadow: inset 0 10px 16px rgba(255,255,255,.14);
+      border:3px solid rgba(255,255,255,.26);
+      box-shadow: inset 0 10px 16px rgba(255,255,255,.15);
     }
 
     .brain:before,
     .brain:after{
       content:"";
       position:absolute;
-      top:12px;
+      top:11px;
       width:52px;
       height:76px;
-      border:3px solid rgba(255,255,255,.25);
+      border:3px solid rgba(255,255,255,.24);
       border-radius:48% 52% 45% 55%;
-      opacity:.55;
+      opacity:.58;
     }
 
     .brain:before{left:12px}
@@ -229,11 +224,12 @@
 
     .eye{
       position:absolute;
-      top:48px;
-      width:10px;
-      height:10px;
+      top:47px;
+      width:11px;
+      height:11px;
       border-radius:50%;
-      background:#4b2840;
+      background:#4f2138;
+      transition:transform .15s ease;
     }
 
     .eye.left{left:40px}
@@ -242,80 +238,70 @@
     .mouth{
       position:absolute;
       left:50%;
-      bottom:26px;
-      width:30px;
-      height:14px;
-      border-bottom:4px solid #4b2840;
-      border-radius:0 0 20px 20px;
+      bottom:24px;
+      width:34px;
+      height:15px;
       transform:translateX(-50%);
-      opacity:.75;
+      border-bottom:4px solid #4f2138;
+      border-radius:0 0 18px 18px;
+      opacity:.82;
     }
 
-    .dump-hole{
+    .weapon{
       position:absolute;
       left:50%;
-      bottom:26px;
-      transform:translateX(-50%);
-      width:150px;
-      height:42px;
-      background:radial-gradient(ellipse at center, rgba(0,0,0,.82), rgba(0,0,0,.25) 72%, transparent 73%);
-      border-radius:50%;
-      z-index:1;
-    }
-
-    .stream{
-      position:absolute;
-      left:50%;
-      bottom:82px;
-      width:18px;
-      height:20px;
-      transform:translateX(-50%);
-      background:linear-gradient(180deg, rgba(125,211,252,.95), rgba(167,139,250,.95));
-      border-radius:10px;
-      opacity:0;
-      filter:blur(.4px);
-      z-index:2;
-    }
-
-    .burst{
-      position:absolute;
-      left:50%;
-      top:52%;
-      width:14px;
-      height:14px;
-      border-radius:50%;
-      background:radial-gradient(circle, #fff, rgba(255,255,255,.2));
+      bottom:122px;
+      transform:translateX(-50%) scale(.5);
+      font-size:56px;
+      z-index:8;
       opacity:0;
       pointer-events:none;
+      filter:drop-shadow(0 8px 12px rgba(0,0,0,.24));
     }
 
-    .float-word{
+    .impact{
       position:absolute;
       left:50%;
-      top:56%;
-      transform:translate(-50%,0);
-      font-size:.9rem;
-      font-weight:700;
-      color:#e7f6ff;
-      background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.12);
-      padding:8px 12px;
-      border-radius:999px;
+      top:126px;
+      transform:translate(-50%,-50%) scale(.2);
+      font-weight:1000;
+      font-size:2rem;
+      letter-spacing:.04em;
+      color:#fff4fa;
+      text-shadow:0 0 16px rgba(255,255,255,.28);
       opacity:0;
+      z-index:9;
+      pointer-events:none;
       white-space:nowrap;
-      z-index:4;
-      box-shadow:0 8px 18px rgba(0,0,0,.18);
+    }
+
+    .bits{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:7;
+    }
+
+    .bit{
+      position:absolute;
+      left:50%;
+      top:126px;
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      opacity:0;
+      background:linear-gradient(135deg, #fff, #ff9cc8);
     }
 
     .affirmation-card{
       margin-top:16px;
-      background:rgba(8,17,31,.48);
-      border:1px solid rgba(125,211,252,.18);
+      background:rgba(12,6,18,.52);
+      border:1px solid rgba(255,255,255,.1);
       border-radius:22px;
-      padding:18px 18px 16px;
+      padding:16px 16px 15px;
       opacity:0;
       transform:translateY(12px);
-      transition:all .45s ease;
+      transition:all .4s ease;
     }
 
     .affirmation-card.show{
@@ -323,110 +309,182 @@
       transform:translateY(0);
     }
 
-    .affirmation-tag{
-      display:inline-block;
-      font-size:.78rem;
-      font-weight:800;
-      letter-spacing:.04em;
-      text-transform:uppercase;
-      color:var(--good);
-      margin-bottom:8px;
-    }
-
     .affirmation{
-      font-size:1.18rem;
-      line-height:1.45;
       margin:0;
+      font-size:1.12rem;
+      line-height:1.45;
+      text-align:center;
     }
 
     .tiny{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:.92rem;
-      line-height:1.45;
-    }
-
-    .shake{
-      animation:shake .45s ease;
-    }
-
-    .brain.dumping{
-      animation:brainDrop .95s ease forwards;
-    }
-
-    .stream.go{
-      animation:streamDump .95s ease forwards;
-    }
-
-    .brain.relief{
-      animation:brainRelief 1.5s ease forwards;
-    }
-
-    .burst.go{
-      animation:burst 1.2s ease forwards;
-    }
-
-    .float-word.go{
-      animation:floatAway 1.5s ease forwards;
-    }
-
-    @keyframes shake{
-      0%,100%{transform:translateX(0)}
-      20%{transform:translateX(-8px)}
-      40%{transform:translateX(7px)}
-      60%{transform:translateX(-5px)}
-      80%{transform:translateX(4px)}
-    }
-
-    @keyframes brainDrop{
-      0%{transform:translateX(-50%) translateY(0) scale(1)}
-      18%{transform:translateX(-50%) translateY(-10px) scale(1.03)}
-      50%{transform:translateX(-50%) translateY(18px) scale(.96)}
-      72%{transform:translateX(-50%) translateY(10px) scale(1.01)}
-      100%{transform:translateX(-50%) translateY(0) scale(1)}
-    }
-
-    @keyframes streamDump{
-      0%{opacity:0;height:10px}
-      15%{opacity:1;height:22px}
-      35%{opacity:1;height:88px}
-      70%{opacity:1;height:132px}
-      100%{opacity:0;height:148px}
-    }
-
-    @keyframes brainRelief{
-      0%{transform:translateX(-50%) translateY(0) scale(1)}
-      28%{transform:translateX(-50%) translateY(-10px) scale(.98)}
-      55%{transform:translateX(-50%) translateY(-18px) scale(.95)}
-      100%{transform:translateX(-50%) translateY(-10px) scale(.965)}
-    }
-
-    @keyframes burst{
-      0%{opacity:0; transform:translate(-50%,-50%) scale(.4)}
-      25%{opacity:1; transform:translate(-50%,-50%) scale(4)}
-      100%{opacity:0; transform:translate(-50%,-50%) scale(8)}
-    }
-
-    @keyframes floatAway{
-      0%{opacity:0; transform:translate(-50%,18px) scale(.8)}
-      10%{opacity:1; transform:translate(-50%,0) scale(1)}
-      60%{opacity:1; transform:translate(-50%,-54px) scale(1.03)}
-      100%{opacity:0; transform:translate(-50%,-104px) scale(.95)}
-    }
-
-    .footer-note{
+      margin-top:8px;
       text-align:center;
-      color:#a8bfd7;
-      font-size:.85rem;
-      padding:8px 18px 22px;
+      color:var(--muted);
+      font-size:.88rem;
+    }
+
+    .scene.shake{
+      animation:screenShake .45s ease;
+    }
+
+    .brain.punch{
+      animation:brainPunch .85s ease forwards;
+    }
+
+    .brain.stomp{
+      animation:brainStomp .95s ease forwards;
+    }
+
+    .brain.headbutt{
+      animation:brainHeadbutt .9s ease forwards;
+    }
+
+    .thought.punched{
+      animation:thoughtPunched .85s ease forwards;
+    }
+
+    .thought.stomped{
+      animation:thoughtStomped .95s ease forwards;
+    }
+
+    .thought.headbutted{
+      animation:thoughtHeadbutted .9s ease forwards;
+    }
+
+    .weapon.showPunch{
+      animation:weaponPunch .55s ease forwards;
+    }
+
+    .weapon.showBoot{
+      animation:weaponBoot .65s ease forwards;
+    }
+
+    .weapon.showStar{
+      animation:weaponStar .65s ease forwards;
+    }
+
+    .impact.show{
+      animation:impactPop .62s ease forwards;
+    }
+
+    .bit.fly1{ animation:bit1 .75s ease forwards; }
+    .bit.fly2{ animation:bit2 .8s ease forwards; }
+    .bit.fly3{ animation:bit3 .78s ease forwards; }
+    .bit.fly4{ animation:bit4 .82s ease forwards; }
+    .bit.fly5{ animation:bit5 .72s ease forwards; }
+    .bit.fly6{ animation:bit6 .84s ease forwards; }
+
+    @keyframes screenShake{
+      0%,100%{transform:translateX(0)}
+      15%{transform:translateX(-9px)}
+      30%{transform:translateX(8px)}
+      45%{transform:translateX(-7px)}
+      60%{transform:translateX(6px)}
+      75%{transform:translateX(-4px)}
+    }
+
+    @keyframes brainPunch{
+      0%{transform:translateX(-50%) translateY(0) rotate(0) scale(1)}
+      18%{transform:translateX(-50%) translateY(-4px) rotate(-4deg) scale(1.02)}
+      42%{transform:translateX(-30%) translateY(-40px) rotate(12deg) scale(1.07)}
+      58%{transform:translateX(-66%) translateY(-16px) rotate(-9deg) scale(1.02)}
+      74%{transform:translateX(-44%) translateY(-48px) rotate(8deg) scale(1.05)}
+      100%{transform:translateX(-50%) translateY(-8px) rotate(0) scale(1)}
+    }
+
+    @keyframes brainStomp{
+      0%{transform:translateX(-50%) translateY(0) scale(1)}
+      16%{transform:translateX(-50%) translateY(-46px) scale(1.04)}
+      40%{transform:translateX(-50%) translateY(12px) scale(.96,1.08)}
+      52%{transform:translateX(-50%) translateY(-18px) scale(1.02)}
+      70%{transform:translateX(-50%) translateY(8px) scale(.98,1.04)}
+      100%{transform:translateX(-50%) translateY(-8px) scale(1)}
+    }
+
+    @keyframes brainHeadbutt{
+      0%{transform:translateX(-50%) translateY(0) scale(1)}
+      22%{transform:translateX(-50%) translateY(-18px) scale(1.03)}
+      42%{transform:translateX(-50%) translateY(-80px) scale(1.08)}
+      58%{transform:translateX(-50%) translateY(-12px) scale(.98)}
+      100%{transform:translateX(-50%) translateY(-8px) scale(1)}
+    }
+
+    @keyframes thoughtPunched{
+      0%{transform:translateX(-50%) scale(1); opacity:1}
+      30%{transform:translateX(-50%) translateX(10px) scale(1.06)}
+      55%{transform:translateX(-50%) translateX(-16px) rotate(-8deg) scale(.96)}
+      100%{transform:translateX(-50%) translateY(-38px) scale(.2); opacity:0}
+    }
+
+    @keyframes thoughtStomped{
+      0%{transform:translateX(-50%) scale(1); opacity:1}
+      30%{transform:translateX(-50%) scale(1.14,.82)}
+      48%{transform:translateX(-50%) scale(.86,1.18)}
+      100%{transform:translateX(-50%) scale(.15); opacity:0}
+    }
+
+    @keyframes thoughtHeadbutted{
+      0%{transform:translateX(-50%) scale(1); opacity:1}
+      34%{transform:translateX(-50%) translateY(0) scale(1.03)}
+      55%{transform:translateX(-50%) translateY(-16px) scale(1.06)}
+      100%{transform:translateX(-50%) translateY(-72px) scale(.18); opacity:0}
+    }
+
+    @keyframes weaponPunch{
+      0%{opacity:0; transform:translateX(-50%) translateY(24px) scale(.4) rotate(-18deg)}
+      30%{opacity:1; transform:translateX(-10%) translateY(-48px) scale(1) rotate(12deg)}
+      100%{opacity:0; transform:translateX(24%) translateY(-66px) scale(1.15) rotate(18deg)}
+    }
+
+    @keyframes weaponBoot{
+      0%{opacity:0; transform:translateX(-50%) translateY(10px) scale(.45) rotate(-20deg)}
+      35%{opacity:1; transform:translateX(-50%) translateY(-78px) scale(1) rotate(0deg)}
+      100%{opacity:0; transform:translateX(-50%) translateY(-88px) scale(1.08) rotate(8deg)}
+    }
+
+    @keyframes weaponStar{
+      0%{opacity:0; transform:translateX(-50%) translateY(20px) scale(.4) rotate(0)}
+      30%{opacity:1; transform:translateX(-50%) translateY(-56px) scale(1) rotate(140deg)}
+      100%{opacity:0; transform:translateX(-50%) translateY(-80px) scale(1.2) rotate(260deg)}
+    }
+
+    @keyframes impactPop{
+      0%{opacity:0; transform:translate(-50%,-50%) scale(.2)}
+      28%{opacity:1; transform:translate(-50%,-50%) scale(1.3)}
+      100%{opacity:0; transform:translate(-50%,-50%) scale(1.8)}
+    }
+
+    @keyframes bit1{
+      0%{opacity:1; transform:translate(-50%,-50%) scale(1)}
+      100%{opacity:0; transform:translate(-120px,-90px) scale(.4)}
+    }
+    @keyframes bit2{
+      0%{opacity:1; transform:translate(-50%,-50%) scale(1)}
+      100%{opacity:0; transform:translate(110px,-80px) scale(.35)}
+    }
+    @keyframes bit3{
+      0%{opacity:1; transform:translate(-50%,-50%) scale(1)}
+      100%{opacity:0; transform:translate(-92px,22px) scale(.4)}
+    }
+    @keyframes bit4{
+      0%{opacity:1; transform:translate(-50%,-50%) scale(1)}
+      100%{opacity:0; transform:translate(95px,18px) scale(.35)}
+    }
+    @keyframes bit5{
+      0%{opacity:1; transform:translate(-50%,-50%) scale(1)}
+      100%{opacity:0; transform:translate(-28px,-112px) scale(.3)}
+    }
+    @keyframes bit6{
+      0%{opacity:1; transform:translate(-50%,-50%) scale(1)}
+      100%{opacity:0; transform:translate(18px,88px) scale(.45)}
     }
 
     @media (max-width:560px){
-      .scene{height:260px}
-      .brain{width:112px;height:96px}
-      .affirmation{font-size:1.05rem}
-      .actions{padding-top:14px}
-      .dump-btn,.clear-btn{width:100%}
+      .scene{height:330px}
+      .brain{width:118px;height:100px;bottom:78px}
+      .thought{top:72px;font-size:.96rem;max-width:84%}
+      .weapon{font-size:50px}
+      .impact{font-size:1.7rem}
     }
   </style>
 </head>
@@ -434,27 +492,24 @@
   <div class="wrap">
     <div class="card">
       <div class="top">
-        <div class="badge">🧠 Brain Dumper</div>
-        <h1>Dump it out.</h1>
-        <p class="sub">
-          Type the thing that’s spinning in your head, hit dump, and let the app
-          toss back something steadier and kinder.
-        </p>
+        <div class="badge">🧠 Brain Dump</div>
+        <h1>Dump it.</h1>
       </div>
 
       <div class="entry">
-        <label for="dumpInput">What’s stuck in your head right now?</label>
-        <textarea id="dumpInput" placeholder="Example: I’m scared everybody hates me."></textarea>
+        <textarea id="dumpInput" placeholder="I’m scared everybody hates me"></textarea>
       </div>
 
       <div class="actions">
-        <button class="dump-btn" id="dumpBtn">Dump It</button>
-        <button class="clear-btn" id="clearBtn" type="button">Clear</button>
+        <button class="dump-btn" id="dumpBtn">Dump</button>
       </div>
 
       <div class="stage">
         <div class="scene" id="scene">
-          <div class="glow"></div>
+          <div class="arenaGlow"></div>
+
+          <div class="thought" id="thoughtBubble"></div>
+
           <div class="brain" id="brain">
             <div class="blob"></div>
             <div class="face">
@@ -463,248 +518,168 @@
               <div class="mouth"></div>
             </div>
           </div>
-          <div class="stream" id="stream"></div>
-          <div class="dump-hole"></div>
-          <div class="burst" id="burst"></div>
-          <div class="float-word" id="floatWord">letting it go</div>
+
+          <div class="weapon" id="weapon"></div>
+          <div class="impact" id="impact"></div>
+
+          <div class="bits" id="bits">
+            <div class="bit" id="bit1"></div>
+            <div class="bit" id="bit2"></div>
+            <div class="bit" id="bit3"></div>
+            <div class="bit" id="bit4"></div>
+            <div class="bit" id="bit5"></div>
+            <div class="bit" id="bit6"></div>
+          </div>
         </div>
 
         <div class="affirmation-card" id="affirmationCard">
-          <div class="affirmation-tag">Relief returned:</div>
           <p class="affirmation" id="affirmationText"></p>
-          <div class="tiny" id="tinyText"></div>
+          <div class="tiny">dump complete</div>
         </div>
-      </div>
-
-      <div class="footer-note">
-        One thought dumped is one less thought running laps.
       </div>
     </div>
   </div>
 
   <script>
-    const input = document.getElementById('dumpInput');
-    const dumpBtn = document.getElementById('dumpBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const brain = document.getElementById('brain');
-    const stream = document.getElementById('stream');
-    const burst = document.getElementById('burst');
-    const floatWord = document.getElementById('floatWord');
-    const affirmationCard = document.getElementById('affirmationCard');
-    const affirmationText = document.getElementById('affirmationText');
-    const tinyText = document.getElementById('tinyText');
-    const scene = document.getElementById('scene');
+    const dumpBtn = document.getElementById("dumpBtn");
+    const dumpInput = document.getElementById("dumpInput");
+    const scene = document.getElementById("scene");
+    const brain = document.getElementById("brain");
+    const thoughtBubble = document.getElementById("thoughtBubble");
+    const weapon = document.getElementById("weapon");
+    const impact = document.getElementById("impact");
+    const affirmationCard = document.getElementById("affirmationCard");
+    const affirmationText = document.getElementById("affirmationText");
 
-    const categories = [
+    const bits = [
+      document.getElementById("bit1"),
+      document.getElementById("bit2"),
+      document.getElementById("bit3"),
+      document.getElementById("bit4"),
+      document.getElementById("bit5"),
+      document.getElementById("bit6")
+    ];
+
+    const affirmations = [
+      "That thought had a lot to say for something so flimsy.",
+      "Not every thought deserves a chair at the table.",
+      "Well, that got handled.",
+      "You don’t have to carry every weird thing your brain says.",
+      "That one can go ahead and leave now.",
+      "Heavy thought. Weak fighter.",
+      "Your brain really tried it. Anyway.",
+      "That spiral just got evicted."
+    ];
+
+    const attacks = [
       {
-        match: ['hate me','nobody likes me','everybody hates me','rejected','they hate me','ignored','left out','not wanted'],
-        word: 'rejection',
-        lines: [
-          "Not every quiet room is a verdict about you.",
-          "You do not need everyone’s approval to be okay today.",
-          "Your worth did not rise and fall because somebody felt weird."
-        ],
-        tiny: [
-          "Maybe this is just your fear doing impressions again.",
-          "You’re allowed to take up space without reading minds.",
-          "The story in your head is not always the truth in the room."
-        ]
+        name: "punch",
+        weapon: "🥊",
+        impact: "POW",
+        brainClass: "punch",
+        thoughtClass: "punched",
+        weaponClass: "showPunch",
+        vibration: [40, 30, 60]
       },
       {
-        match: ['scared','afraid','fear','panic','anxious','anxiety','terrified','nervous'],
-        word: 'fear',
-        lines: [
-          "Fear is loud, but loud does not mean true.",
-          "You can feel fear and still not obey it.",
-          "This moment is survivable, even if your head is being dramatic."
-        ],
-        tiny: [
-          "Breathe first. Decide second.",
-          "Your nervous system is trying to protect you, not predict the future.",
-          "You don’t have to solve your whole life in this one mood."
-        ]
+        name: "stomp",
+        weapon: "👢",
+        impact: "STOMP",
+        brainClass: "stomp",
+        thoughtClass: "stomped",
+        weaponClass: "showBoot",
+        vibration: [60, 40, 90]
       },
       {
-        match: ['failure','failing','screwed up','mess up','loser','not good enough','worthless','behind'],
-        word: 'shame',
-        lines: [
-          "A hard moment is not your whole identity.",
-          "You are allowed to be unfinished and still valuable.",
-          "Messy does not mean hopeless."
-        ],
-        tiny: [
-          "You’re a person, not a performance review.",
-          "Growth usually looks clumsy before it looks inspiring.",
-          "You can be learning without being lost."
-        ]
-      },
-      {
-        match: ['angry','mad','furious','resent','resentment','pissed','rage'],
-        word: 'anger',
-        lines: [
-          "Anger can signal pain without becoming your steering wheel.",
-          "You don’t have to carry this heat all day.",
-          "You can loosen your grip without pretending nothing happened."
-        ],
-        tiny: [
-          "Maybe your peace is worth more than one more mental argument.",
-          "You can step back before you strike back.",
-          "Not everything needs your courtroom today."
-        ]
-      },
-      {
-        match: ['alone','lonely','nobody','isolated','by myself','empty'],
-        word: 'loneliness',
-        lines: [
-          "Lonely is a feeling, not proof that you are forgotten.",
-          "You still belong here, even on the weird days.",
-          "Connection can start small — one text, one breath, one honest moment."
-        ],
-        tiny: [
-          "You do not have to disappear just because you feel low.",
-          "Sometimes the next right move is simply reaching one inch outward.",
-          "Being human feels strange sometimes. You’re still not alone in that."
-        ]
-      },
-      {
-        match: ['control','cant fix','can’t fix','fix it','make them','make him','make her','make people','controlling'],
-        word: 'control',
-        lines: [
-          "You can care deeply without running the universe.",
-          "Not everything is yours to fix.",
-          "Peace often begins where control finally gets tired."
-        ],
-        tiny: [
-          "You’re allowed to put down what was never really in your hands.",
-          "Trying harder is not always the same as surrendering better.",
-          "You can love people without managing their whole movie."
-        ]
-      },
-      {
-        match: ['tired','burned out','burnt out','exhausted','drained','done','worn out'],
-        word: 'burnout',
-        lines: [
-          "Tired does not mean broken.",
-          "Rest is not weakness; it is maintenance.",
-          "You do not have to earn the right to take a breath."
-        ],
-        tiny: [
-          "Even machines overheat. You are a person.",
-          "You’re allowed to stop clenching for a minute.",
-          "Maybe today doesn’t need greatness. Maybe it just needs gentleness."
-        ]
+        name: "headbutt",
+        weapon: "💥",
+        impact: "BONK",
+        brainClass: "headbutt",
+        thoughtClass: "headbutted",
+        weaponClass: "showStar",
+        vibration: [30, 20, 30, 20, 70]
       }
-    ];
-
-    const generalLines = [
-      "That thought can leave without taking you with it.",
-      "You are allowed to put this down for a minute.",
-      "Just because your brain said it with confidence does not make it true.",
-      "You can let this pass through instead of building a house for it.",
-      "You are not every thought that wanders through your head."
-    ];
-
-    const generalTiny = [
-      "Dumped thoughts don’t get the last word.",
-      "A little less pressure is still relief.",
-      "That spiral looked important. It wasn’t necessarily useful.",
-      "You don’t have to keep polishing a fear to prove it exists.",
-      "Good job taking out some mental trash."
-    ];
-
-    const floatWords = [
-      "letting it go",
-      "not today",
-      "less heavy",
-      "brain cleared",
-      "dump complete",
-      "out it goes"
     ];
 
     function pick(arr){
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function getAffirmation(text){
-      const t = text.toLowerCase();
+    function resetAnimation(){
+      scene.classList.remove("shake");
+      brain.className = "brain";
+      thoughtBubble.className = "thought";
+      weapon.className = "weapon";
+      impact.className = "impact";
+      affirmationCard.classList.remove("show");
 
-      for(const category of categories){
-        if(category.match.some(m => t.includes(m))){
-          return {
-            word: category.word,
-            line: pick(category.lines),
-            tiny: pick(category.tiny)
-          };
-        }
+      bits.forEach((bit, i) => {
+        bit.className = "bit";
+      });
+    }
+
+    function vibrate(pattern){
+      if (navigator.vibrate) {
+        navigator.vibrate(pattern);
       }
-
-      return {
-        word: 'mental clutter',
-        line: pick(generalLines),
-        tiny: pick(generalTiny)
-      };
     }
 
-    function resetAnimationState(){
-      brain.classList.remove('dumping','relief','shake');
-      stream.classList.remove('go');
-      burst.classList.remove('go');
-      floatWord.classList.remove('go');
+    function runBits(){
+      bits[0].classList.add("fly1");
+      bits[1].classList.add("fly2");
+      bits[2].classList.add("fly3");
+      bits[3].classList.add("fly4");
+      bits[4].classList.add("fly5");
+      bits[5].classList.add("fly6");
     }
 
-    function clearOutput(){
-      affirmationCard.classList.remove('show');
-      affirmationText.textContent = '';
-      tinyText.textContent = '';
-      floatWord.textContent = 'letting it go';
-    }
-
-    dumpBtn.addEventListener('click', () => {
-      const text = input.value.trim();
+    dumpBtn.addEventListener("click", () => {
+      const text = dumpInput.value.trim();
 
       if(!text){
-        scene.classList.remove('shake');
+        scene.classList.remove("shake");
         void scene.offsetWidth;
-        scene.classList.add('shake');
-        affirmationCard.classList.add('show');
-        affirmationText.textContent = "Put one thought in the box first, even if it’s ugly.";
-        tinyText.textContent = "A brain dump works better when there’s actually something to dump.";
+        scene.classList.add("shake");
+        vibrate([50,30,50]);
+        affirmationText.textContent = "Throw something in there first.";
+        affirmationCard.classList.add("show");
         return;
       }
 
-      const result = getAffirmation(text);
-      resetAnimationState();
-      void brain.offsetWidth;
+      const attack = pick(attacks);
+      const affirmation = pick(affirmations);
 
-      floatWord.textContent = pick(floatWords);
+      resetAnimation();
+      void scene.offsetWidth;
 
-      brain.classList.add('dumping');
-      stream.classList.add('go');
+      thoughtBubble.textContent = text.length > 70 ? text.slice(0, 70) + "..." : text;
+      thoughtBubble.classList.add("show");
 
-      setTimeout(() => {
-        brain.classList.remove('dumping');
-        brain.classList.add('relief');
-        burst.classList.add('go');
-        floatWord.classList.add('go');
-      }, 650);
+      weapon.textContent = attack.weapon;
+      impact.textContent = attack.impact;
 
-      setTimeout(() => {
-        affirmationText.textContent = result.line;
-        tinyText.textContent = result.tiny;
-        affirmationCard.classList.add('show');
-      }, 980);
+      scene.classList.add("shake");
+      vibrate(attack.vibration);
 
       setTimeout(() => {
-        resetAnimationState();
-      }, 2200);
-    });
+        brain.classList.add(attack.brainClass);
+        thoughtBubble.classList.add(attack.thoughtClass);
+        weapon.classList.add(attack.weaponClass);
+        impact.classList.add("show");
+        runBits();
+      }, 80);
 
-    clearBtn.addEventListener('click', () => {
-      input.value = '';
-      clearOutput();
-      resetAnimationState();
-      scene.classList.remove('shake');
-      input.focus();
+      setTimeout(() => {
+        affirmationText.textContent = affirmation;
+        affirmationCard.classList.add("show");
+      }, 780);
+
+      setTimeout(() => {
+        thoughtBubble.textContent = "";
+        thoughtBubble.className = "thought";
+        weapon.className = "weapon";
+        impact.className = "impact";
+      }, 1250);
     });
   </script>
 </body>
