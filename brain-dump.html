@@ -1,313 +1,871 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Brain Dumper</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Brain Dumper</title>
+  <style>
+    :root{
+      --bg:#2b2e33;
+      --panel:#1f2227;
+      --panel2:#2a2e34;
+      --text:#f4f5f7;
+      --muted:#b8bec8;
+      --pink:#ff4fa0;
+      --pink2:#ff8ec0;
+      --grayMatter1:#4b4e55;
+      --grayMatter2:#3b3e45;
+      --grayMatter3:#2f3238;
+      --pinkMatter1:#ff9fc8;
+      --pinkMatter2:#f97bb2;
+      --pinkMatter3:#d85792;
+      --danger:#111;
+      --success:#fff4fa;
+      --shadow:0 18px 40px rgba(0,0,0,.35);
+      --radius:24px;
+    }
 
-<style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{
+      margin:0;
+      min-height:100%;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    }
 
-*{
-box-sizing:border-box;
-font-family:system-ui, -apple-system, Segoe UI, Roboto;
-}
+    body{
+      display:flex;
+      justify-content:center;
+      padding:16px 12px 26px;
+    }
 
-body{
-margin:0;
-color:white;
-overflow:hidden;
-}
+    .wrap{
+      width:100%;
+      max-width:760px;
+    }
 
-/* ---------- BRAIN BACKGROUND ---------- */
+    .card{
+      background:linear-gradient(180deg,#2a2d33,#1e2126);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
 
-body.gray{
-background:
-radial-gradient(circle at 20% 30%, #5a5a5a 0%, transparent 40%),
-radial-gradient(circle at 80% 70%, #6b6b6b 0%, transparent 40%),
-radial-gradient(circle at 50% 50%, #4c4c4c 0%, #2e2e2e 70%);
-transition:background 0.8s ease;
-}
+    .top{
+      padding:20px 18px 10px;
+      text-align:center;
+    }
 
-body.pink{
-background:
-radial-gradient(circle at 20% 30%, #ff9ec4 0%, transparent 40%),
-radial-gradient(circle at 80% 70%, #ffb7d2 0%, transparent 40%),
-radial-gradient(circle at 50% 50%, #ff7fb1 0%, #d94f88 70%);
-transition:background 0.8s ease;
-}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      color:var(--muted);
+      font-size:.86rem;
+      margin-bottom:10px;
+    }
 
-/* ---------- UI ---------- */
+    h1{
+      margin:0;
+      font-size:clamp(2rem,5vw,3rem);
+      letter-spacing:-.04em;
+      line-height:1;
+    }
 
-.wrapper{
-max-width:700px;
-margin:auto;
-padding:20px;
-}
+    .entry{
+      padding:12px 18px 0;
+    }
 
-h1{
-text-align:center;
-margin:10px 0 20px;
-font-size:34px;
-}
+    textarea{
+      width:100%;
+      min-height:120px;
+      resize:vertical;
+      border:none;
+      outline:none;
+      border-radius:20px;
+      padding:16px;
+      background:#16181c;
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.08);
+      font-size:1rem;
+      line-height:1.45;
+    }
 
-textarea{
-width:100%;
-height:120px;
-border-radius:16px;
-border:none;
-padding:16px;
-font-size:16px;
-resize:none;
-background:#1e1e1e;
-color:white;
-}
+    textarea::placeholder{ color:#9ea6b2; }
 
-button{
-width:100%;
-margin-top:10px;
-padding:14px;
-font-size:18px;
-border-radius:999px;
-border:none;
-cursor:pointer;
-font-weight:bold;
-background:#ff4fa0;
-color:white;
-}
+    .actions{
+      padding:12px 18px 18px;
+    }
 
-/* ---------- GAME AREA ---------- */
+    .dump-btn{
+      width:100%;
+      border:none;
+      cursor:pointer;
+      border-radius:999px;
+      padding:15px 22px;
+      font-size:1rem;
+      font-weight:900;
+      color:white;
+      background:linear-gradient(135deg,var(--pink),var(--pink2));
+      box-shadow:0 12px 24px rgba(255,79,160,.24);
+      transition:transform .14s ease, filter .2s ease;
+    }
 
-.game{
-position:relative;
-height:420px;
-margin-top:20px;
-border-radius:20px;
-background:rgba(0,0,0,.25);
-overflow:hidden;
-}
+    .dump-btn:active{
+      transform:scale(.985);
+      filter:brightness(.98);
+    }
 
-.hole{
-position:absolute;
-bottom:40px;
-left:50%;
-transform:translateX(-50%);
-width:140px;
-height:40px;
-border-radius:50%;
-background:black;
-box-shadow:
-0 0 20px rgba(255,0,100,.6),
-inset 0 6px 10px rgba(255,255,255,.1);
-animation:pulse 1.6s infinite;
-}
+    .game-shell{
+      padding:0 18px 12px;
+    }
 
-@keyframes pulse{
-0%{transform:translateX(-50%) scale(1)}
-50%{transform:translateX(-50%) scale(1.12)}
-100%{transform:translateX(-50%) scale(1)}
-}
+    .hud{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin:0 0 10px;
+      padding:0 4px;
+      font-weight:800;
+      color:#d5d9e0;
+      font-size:.9rem;
+    }
 
-/* ---------- THOUGHT BUBBLE ---------- */
+    .hud .pill{
+      padding:7px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:70%;
+    }
 
-.thought{
-position:absolute;
-top:100px;
-left:50%;
-transform:translate(-50%,0);
-padding:12px 18px;
-border-radius:999px;
-background:white;
-color:black;
-font-weight:bold;
-cursor:grab;
-user-select:none;
-white-space:nowrap;
-}
+    .scene{
+      position:relative;
+      width:100%;
+      height:480px;
+      border-radius:24px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+      background:#30343a;
+      touch-action:manipulation;
+      user-select:none;
+    }
 
-/* ---------- AFFIRMATION ---------- */
+    .matter{
+      position:absolute;
+      inset:0;
+      transition:opacity .8s ease, filter .8s ease;
+    }
 
-.affirmation{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-text-align:center;
-font-size:34px;
-opacity:0;
-transition:opacity .8s;
-}
+    .matter.gray{
+      opacity:1;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,.08) 0 8%, transparent 9%),
+        radial-gradient(circle at 28% 34%, rgba(255,255,255,.05) 0 7%, transparent 8%),
+        radial-gradient(circle at 45% 18%, rgba(255,255,255,.06) 0 8%, transparent 9%),
+        radial-gradient(circle at 60% 32%, rgba(255,255,255,.05) 0 7%, transparent 8%),
+        radial-gradient(circle at 76% 20%, rgba(255,255,255,.07) 0 9%, transparent 10%),
+        radial-gradient(circle at 18% 68%, rgba(255,255,255,.05) 0 8%, transparent 9%),
+        radial-gradient(circle at 38% 78%, rgba(255,255,255,.06) 0 7%, transparent 8%),
+        radial-gradient(circle at 58% 66%, rgba(255,255,255,.05) 0 8%, transparent 9%),
+        radial-gradient(circle at 78% 75%, rgba(255,255,255,.06) 0 9%, transparent 10%),
+        linear-gradient(180deg,var(--grayMatter1),var(--grayMatter2) 50%,var(--grayMatter3));
+      filter:saturate(.85);
+    }
 
-.affirmation.show{
-opacity:1;
-}
+    .matter.pink{
+      opacity:0;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,.18) 0 8%, transparent 9%),
+        radial-gradient(circle at 28% 34%, rgba(255,255,255,.12) 0 7%, transparent 8%),
+        radial-gradient(circle at 45% 18%, rgba(255,255,255,.14) 0 8%, transparent 9%),
+        radial-gradient(circle at 60% 32%, rgba(255,255,255,.10) 0 7%, transparent 8%),
+        radial-gradient(circle at 76% 20%, rgba(255,255,255,.14) 0 9%, transparent 10%),
+        radial-gradient(circle at 18% 68%, rgba(255,255,255,.11) 0 8%, transparent 9%),
+        radial-gradient(circle at 38% 78%, rgba(255,255,255,.14) 0 7%, transparent 8%),
+        radial-gradient(circle at 58% 66%, rgba(255,255,255,.11) 0 8%, transparent 9%),
+        radial-gradient(circle at 78% 75%, rgba(255,255,255,.14) 0 9%, transparent 10%),
+        linear-gradient(180deg,var(--pinkMatter1),var(--pinkMatter2) 50%,var(--pinkMatter3));
+      filter:saturate(1.05);
+    }
 
-/* ---------- DISCLAIMER ---------- */
+    .scene.healed .matter.gray{ opacity:0; filter:blur(8px); }
+    .scene.healed .matter.pink{ opacity:1; }
 
-.disclaimer{
-margin-top:14px;
-text-align:center;
-font-size:12px;
-opacity:.6;
-}
+    .grid{
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size:34px 34px;
+      opacity:.5;
+      pointer-events:none;
+    }
 
-</style>
+    .vignette{
+      position:absolute;
+      inset:0;
+      background:radial-gradient(circle at center, transparent 30%, rgba(0,0,0,.16) 100%);
+      pointer-events:none;
+    }
+
+    .tap-hint{
+      position:absolute;
+      left:50%;
+      top:18px;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,.28);
+      border:1px solid rgba(255,255,255,.08);
+      color:#f6dce8;
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:.85rem;
+      font-weight:800;
+      z-index:6;
+      transition:opacity .25s ease, transform .25s ease;
+    }
+
+    .tap-hint.hide{
+      opacity:0;
+      transform:translateX(-50%) translateY(-10px);
+    }
+
+    .bird{
+      position:absolute;
+      width:136px;
+      min-height:48px;
+      padding:12px 14px;
+      border-radius:999px;
+      background:linear-gradient(180deg,#fff,#eceef3);
+      color:#111822;
+      font-weight:900;
+      font-size:.9rem;
+      line-height:1.15;
+      box-shadow:0 12px 24px rgba(0,0,0,.18);
+      border:2px solid rgba(255,255,255,.65);
+      z-index:4;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      transform-origin:center;
+    }
+
+    .bird::before{
+      content:"";
+      position:absolute;
+      left:-10px;
+      top:15px;
+      width:18px;
+      height:18px;
+      background:linear-gradient(135deg,#fff,#e5e7ed);
+      border-left:2px solid rgba(255,255,255,.65);
+      border-top:2px solid rgba(255,255,255,.65);
+      transform:rotate(-45deg);
+      border-radius:4px 0 0 0;
+    }
+
+    .bird-trail{
+      position:absolute;
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:rgba(255,255,255,.18);
+      filter:blur(2px);
+      pointer-events:none;
+      z-index:2;
+    }
+
+    .pipe{
+      position:absolute;
+      width:84px;
+      border-radius:18px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.15), rgba(255,255,255,.03) 40%, rgba(0,0,0,.08)),
+        linear-gradient(180deg,#0f1418,#23292f);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
+      z-index:3;
+    }
+
+    .pipe::after{
+      content:"";
+      position:absolute;
+      left:-8px;
+      width:100px;
+      height:18px;
+      border-radius:12px;
+      background:linear-gradient(180deg,#20262d,#101418);
+      border:1px solid rgba(255,255,255,.07);
+    }
+
+    .pipe.top::after{ bottom:0; }
+    .pipe.bottom::after{ top:0; }
+
+    .finish-zone{
+      position:absolute;
+      right:18px;
+      top:0;
+      bottom:0;
+      width:12px;
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(255,255,255,.0), rgba(255,255,255,.35), rgba(255,255,255,.0));
+      box-shadow:0 0 16px rgba(255,255,255,.22);
+      z-index:2;
+      opacity:.7;
+    }
+
+    .finish-hole{
+      position:absolute;
+      right:4px;
+      top:50%;
+      width:94px;
+      height:94px;
+      transform:translateY(-50%);
+      border-radius:50%;
+      background:
+        radial-gradient(circle at center, rgba(0,0,0,.95) 0 36%, rgba(20,10,18,.9) 45%, rgba(255,79,160,.28) 62%, rgba(255,79,160,0) 74%);
+      filter:drop-shadow(0 0 18px rgba(255,79,160,.35));
+      z-index:5;
+      animation:vortexPulse 1.15s ease-in-out infinite;
+    }
+
+    .finish-hole::before,
+    .finish-hole::after{
+      content:"";
+      position:absolute;
+      inset:12px;
+      border-radius:50%;
+      border:2px solid transparent;
+      border-top-color:rgba(255,255,255,.7);
+      border-right-color:rgba(255,79,160,.5);
+      animation:spin 1s linear infinite;
+    }
+
+    .finish-hole::after{
+      inset:24px;
+      animation-direction:reverse;
+      animation-duration:.7s;
+      opacity:.8;
+    }
+
+    @keyframes vortexPulse{
+      0%,100%{ transform:translateY(-50%) scale(1); }
+      50%{ transform:translateY(-50%) scale(1.06); }
+    }
+
+    @keyframes spin{
+      from{ transform:rotate(0deg); }
+      to{ transform:rotate(360deg); }
+    }
+
+    .start-overlay,
+    .result-overlay{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      text-align:center;
+      z-index:8;
+      padding:24px;
+      transition:opacity .35s ease;
+    }
+
+    .start-overlay{
+      background:linear-gradient(180deg, rgba(10,12,14,.15), rgba(10,12,14,.2));
+      color:#f6f7fa;
+    }
+
+    .start-box{
+      max-width:420px;
+      background:rgba(0,0,0,.24);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      padding:20px 18px;
+      box-shadow:0 10px 24px rgba(0,0,0,.18);
+    }
+
+    .start-title{
+      font-size:1.2rem;
+      font-weight:1000;
+      margin-bottom:8px;
+    }
+
+    .start-sub{
+      color:#d4d8de;
+      line-height:1.45;
+      font-size:.96rem;
+    }
+
+    .start-small{
+      margin-top:10px;
+      color:#f5cade;
+      font-weight:800;
+      font-size:.9rem;
+    }
+
+    .result-overlay{
+      opacity:0;
+      pointer-events:none;
+      background:linear-gradient(180deg, rgba(255,255,255,.0), rgba(255,255,255,.06));
+    }
+
+    .result-overlay.show{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    .affirmation{
+      font-size:clamp(2rem,6vw,3.5rem);
+      line-height:1.05;
+      letter-spacing:-.04em;
+      font-weight:1000;
+      color:var(--success);
+      text-shadow:0 8px 30px rgba(0,0,0,.18);
+      max-width:620px;
+    }
+
+    .sub-affirmation{
+      margin-top:14px;
+      font-size:1rem;
+      font-weight:700;
+      color:#fff3f8;
+      opacity:.92;
+    }
+
+    .again-btn{
+      margin-top:18px;
+      border:none;
+      border-radius:999px;
+      padding:12px 18px;
+      font-weight:900;
+      font-size:.98rem;
+      cursor:pointer;
+      color:#6b0f3f;
+      background:white;
+      box-shadow:0 10px 22px rgba(0,0,0,.16);
+    }
+
+    .scene.hide-game .bird,
+    .scene.hide-game .pipe,
+    .scene.hide-game .finish-zone,
+    .scene.hide-game .finish-hole,
+    .scene.hide-game .tap-hint,
+    .scene.hide-game .bird-trail{
+      opacity:0;
+      transition:opacity .45s ease;
+    }
+
+    .disclaimer{
+      padding:0 18px 18px;
+      text-align:center;
+      color:#aab1bc;
+      font-size:.74rem;
+      line-height:1.4;
+    }
+
+    @media (max-width:560px){
+      .scene{ height:430px; }
+      .bird{ width:122px; font-size:.84rem; min-height:44px; }
+      .pipe{ width:72px; }
+      .finish-hole{ width:84px; height:84px; }
+      .hud{ font-size:.82rem; }
+    }
+  </style>
 </head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <div class="badge">🧠 The Brain Dumper</div>
+        <h1>The Brain Dumper</h1>
+      </div>
 
-<body class="gray">
+      <div class="entry">
+        <textarea id="thoughtInput" placeholder="What’s stuck in your head right now?"></textarea>
+      </div>
 
-<div class="wrapper">
+      <div class="actions">
+        <button class="dump-btn" id="dumpBtn">Dump</button>
+      </div>
 
-<h1>The Brain Dumper</h1>
+      <div class="game-shell">
+        <div class="hud">
+          <div class="pill" id="thoughtLabel">Thought: waiting...</div>
+          <div class="pill" id="distanceLabel">Distance: --</div>
+        </div>
 
-<textarea id="thoughtInput" placeholder="What's stuck in your head?"></textarea>
+        <div class="scene" id="scene">
+          <div class="matter gray"></div>
+          <div class="matter pink"></div>
+          <div class="grid"></div>
+          <div class="vignette"></div>
 
-<button id="dumpBtn">Dump</button>
+          <div class="tap-hint" id="tapHint">Tap the game area to flap</div>
 
-<div class="game" id="game">
+          <div class="finish-zone"></div>
+          <div class="finish-hole"></div>
 
-<div class="hole" id="hole"></div>
+          <div class="start-overlay" id="startOverlay">
+            <div class="start-box">
+              <div class="start-title">Guide the thought through the maze</div>
+              <div class="start-sub">Tap to flap. Dodge the blockers. Reach the vortex.</div>
+              <div class="start-small">You’ll be busy for a few seconds — that’s the point.</div>
+            </div>
+          </div>
 
-<div class="affirmation" id="affirmation"></div>
+          <div class="result-overlay" id="resultOverlay">
+            <div class="affirmation" id="affirmationText"></div>
+            <div class="sub-affirmation">That thought doesn’t get to stay.</div>
+            <button class="again-btn" id="againBtn">Dump another thought</button>
+          </div>
+        </div>
+      </div>
 
-</div>
+      <div class="disclaimer">
+        A small reflection tool for stress relief and emotional reset. It is not a substitute for professional, crisis, or mental health care.
+      </div>
+    </div>
+  </div>
 
-<div class="disclaimer">
-A small tool for letting thoughts go.  
-Not a substitute for professional care.
-</div>
+  <script>
+    const scene = document.getElementById('scene');
+    const dumpBtn = document.getElementById('dumpBtn');
+    const thoughtInput = document.getElementById('thoughtInput');
+    const thoughtLabel = document.getElementById('thoughtLabel');
+    const distanceLabel = document.getElementById('distanceLabel');
+    const tapHint = document.getElementById('tapHint');
+    const startOverlay = document.getElementById('startOverlay');
+    const resultOverlay = document.getElementById('resultOverlay');
+    const affirmationText = document.getElementById('affirmationText');
+    const againBtn = document.getElementById('againBtn');
 
-</div>
+    const affirmations = [
+      "You can let that go.",
+      "That thought doesn’t get to stay.",
+      "Not every thought is true.",
+      "There’s a little more room in your head now.",
+      "You don’t have to carry every weird thing your mind says.",
+      "That spiral just lost its grip.",
+      "You can move on without dragging that with you."
+    ];
 
-<script>
+    let game = null;
 
-/* ---------- ELEMENTS ---------- */
+    function truncateThought(text, max = 28){
+      const clean = text.replace(/\s+/g, ' ').trim();
+      if (clean.length <= max) return clean;
+      return clean.slice(0, max).trim() + '...';
+    }
 
-const dumpBtn = document.getElementById("dumpBtn")
-const input = document.getElementById("thoughtInput")
-const game = document.getElementById("game")
-const hole = document.getElementById("hole")
-const affirmation = document.getElementById("affirmation")
+    function vibrate(pattern){
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    }
 
-let thought
-let dragging = false
+    function randomAffirmation(){
+      return affirmations[Math.floor(Math.random() * affirmations.length)];
+    }
 
-/* ---------- AFFIRMATIONS ---------- */
+    function clearGameVisuals(){
+      scene.querySelectorAll('.bird, .pipe, .bird-trail').forEach(el => el.remove());
+      scene.classList.remove('healed', 'hide-game');
+      resultOverlay.classList.remove('show');
+      tapHint.classList.remove('hide');
+      startOverlay.style.display = 'none';
+    }
 
-const affirmations = [
+    function createBird(label){
+      const bird = document.createElement('div');
+      bird.className = 'bird';
+      bird.textContent = `Thought: ${label}`;
+      scene.appendChild(bird);
+      return bird;
+    }
 
-"That thought doesn't get to stay.",
-"You can let that go.",
-"Not every thought is true.",
-"Your mind can be quieter.",
-"That spiral just lost.",
-"You don't have to carry that."
+    function createPipe(x, gapY, gapH, sceneH){
+      const top = document.createElement('div');
+      top.className = 'pipe top';
+      top.style.left = x + 'px';
+      top.style.top = '0px';
+      top.style.height = Math.max(40, gapY) + 'px';
 
-]
+      const bottom = document.createElement('div');
+      bottom.className = 'pipe bottom';
+      bottom.style.left = x + 'px';
+      bottom.style.top = (gapY + gapH) + 'px';
+      bottom.style.height = Math.max(40, sceneH - (gapY + gapH)) + 'px';
 
-/* ---------- CREATE THOUGHT ---------- */
+      scene.appendChild(top);
+      scene.appendChild(bottom);
 
-dumpBtn.onclick = () => {
+      return { x, w: 84, gapY, gapH, topEl: top, bottomEl: bottom, passed: false };
+    }
 
-const text = input.value.trim()
+    function startGame(){
+      const text = thoughtInput.value.trim();
+      if (!text) return;
 
-if(!text) return
+      clearGameVisuals();
 
-const truncated = text.length > 40
-? text.slice(0,40)+"..."
-: text
+      const sceneRect = scene.getBoundingClientRect();
+      const width = sceneRect.width;
+      const height = sceneRect.height;
 
-thought = document.createElement("div")
-thought.className = "thought"
-thought.innerText = "Thought: " + truncated
+      const label = truncateThought(text);
+      thoughtLabel.textContent = `Thought: ${label}`;
 
-game.appendChild(thought)
+      const bird = createBird(label);
 
-/* drifting motion */
+      game = {
+        running: true,
+        started: false,
+        won: false,
+        lost: false,
+        bird,
+        birdX: 74,
+        birdY: height * 0.44,
+        birdW: 136,
+        birdH: 52,
+        vel: 0,
+        gravity: 0.36,
+        flap: -6.6,
+        lastTime: 0,
+        pipes: [],
+        pipeSpeed: 2.2,
+        spawnTimer: 0,
+        spawnEvery: 118,
+        frame: 0,
+        finishX: width - 52,
+        finishRadius: 44,
+        trailTimer: 0
+      };
 
-let driftX = 0
-let driftY = 0
+      if (width < 560) {
+        game.birdW = 122;
+        game.birdH = 48;
+        game.pipeSpeed = 2.05;
+        game.flap = -6.2;
+        game.gravity = 0.34;
+      }
 
-setInterval(()=>{
+      startOverlay.style.display = 'flex';
+      startOverlay.innerHTML = `
+        <div class="start-box">
+          <div class="start-title">Ready?</div>
+          <div class="start-sub">Tap once to start flying.</div>
+          <div class="start-small">Guide the thought to the vortex.</div>
+        </div>
+      `;
 
-if(dragging) return
+      positionBird();
+      updateDistance();
+      loop(0);
+    }
 
-driftX += (Math.random()-0.5)*40
-driftY += (Math.random()-0.5)*20
+    function positionBird(){
+      if (!game) return;
+      game.bird.style.left = game.birdX + 'px';
+      game.bird.style.top = game.birdY + 'px';
+      const rotation = Math.max(-20, Math.min(24, game.vel * 3.2));
+      game.bird.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+    }
 
-thought.style.transform =
-`translate(calc(-50% + ${driftX}px), ${driftY}px)`
+    function addTrail(){
+      const t = document.createElement('div');
+      t.className = 'bird-trail';
+      t.style.left = (game.birdX - 22) + 'px';
+      t.style.top = game.birdY + 'px';
+      scene.appendChild(t);
+      requestAnimationFrame(() => {
+        t.style.transition = 'transform .4s ease, opacity .4s ease';
+        t.style.transform = 'scale(.2)';
+        t.style.opacity = '0';
+      });
+      setTimeout(() => t.remove(), 420);
+    }
 
-},900)
+    function spawnPipePair(){
+      const sceneH = scene.clientHeight;
+      const minGap = 126;
+      const maxGap = 142;
+      const gapH = minGap + Math.random() * (maxGap - minGap);
 
-/* drag */
+      const marginTop = 56;
+      const marginBottom = 72;
+      const maxGapY = sceneH - gapH - marginBottom;
+      const minGapY = marginTop;
+      const gapY = minGapY + Math.random() * Math.max(10, maxGapY - minGapY);
 
-thought.onpointerdown = e=>{
-dragging=true
-thought.setPointerCapture(e.pointerId)
-}
+      const pipe = createPipe(scene.clientWidth + 30, gapY, gapH, sceneH);
+      if (scene.clientWidth < 560) pipe.w = 72;
+      game.pipes.push(pipe);
+    }
 
-thought.onpointermove = e=>{
-if(!dragging) return
+    function rectsOverlap(a, b){
+      return (
+        a.x < b.x + b.w &&
+        a.x + a.w > b.x &&
+        a.y < b.y + b.h &&
+        a.y + a.h > b.y
+      );
+    }
 
-const rect = game.getBoundingClientRect()
+    function loseGame(){
+      if (!game || game.lost || game.won) return;
+      game.lost = true;
+      game.running = false;
+      vibrate([60, 30, 60]);
+      tapHint.classList.remove('hide');
+      tapHint.textContent = 'Thought got stuck. Tap Dump to try again.';
+      startOverlay.style.display = 'flex';
+      startOverlay.innerHTML = `
+        <div class="start-box">
+          <div class="start-title">Stuck in the maze</div>
+          <div class="start-sub">That’s okay. Dump it again.</div>
+          <div class="start-small">Same thought, one more run.</div>
+        </div>
+      `;
+    }
 
-const x = e.clientX - rect.left
-const y = e.clientY - rect.top
+    function winGame(){
+      if (!game || game.won || game.lost) return;
+      game.won = true;
+      game.running = false;
+      vibrate([30, 20, 40, 20, 80]);
 
-thought.style.left = x+"px"
-thought.style.top = y+"px"
-thought.style.transform="translate(-50%,-50%)"
+      scene.classList.add('hide-game');
 
-checkHole(x,y)
-}
+      setTimeout(() => {
+        scene.classList.add('healed');
+        affirmationText.textContent = randomAffirmation();
+      }, 180);
 
-thought.onpointerup = ()=>{
-dragging=false
-}
+      setTimeout(() => {
+        resultOverlay.classList.add('show');
+      }, 780);
+    }
 
-}
+    function updateDistance(){
+      if (!game) return;
+      const d = Math.max(0, Math.round((game.finishX - game.birdX) / 10));
+      distanceLabel.textContent = `Distance: ${d}`;
+    }
 
-/* ---------- HOLE DETECTION ---------- */
+    function updatePipes(){
+      const birdRect = {
+        x: game.birdX - game.birdW / 2 + 8,
+        y: game.birdY - game.birdH / 2 + 6,
+        w: game.birdW - 16,
+        h: game.birdH - 12
+      };
 
-function checkHole(x,y){
+      for (let i = game.pipes.length - 1; i >= 0; i--) {
+        const p = game.pipes[i];
+        p.x -= game.pipeSpeed;
+        p.topEl.style.left = p.x + 'px';
+        p.bottomEl.style.left = p.x + 'px';
 
-const rect = hole.getBoundingClientRect()
-const gameRect = game.getBoundingClientRect()
+        const topRect = { x: p.x, y: 0, w: p.w, h: p.gapY };
+        const bottomRect = { x: p.x, y: p.gapY + p.gapH, w: p.w, h: scene.clientHeight - (p.gapY + p.gapH) };
 
-const hx = rect.left - gameRect.left + rect.width/2
-const hy = rect.top - gameRect.top + rect.height/2
+        if (rectsOverlap(birdRect, topRect) || rectsOverlap(birdRect, bottomRect)) {
+          loseGame();
+        }
 
-const dist = Math.hypot(x-hx,y-hy)
+        if (p.x + p.w < -20) {
+          p.topEl.remove();
+          p.bottomEl.remove();
+          game.pipes.splice(i, 1);
+        }
+      }
+    }
 
-if(dist < 70){
+    function loop(ts){
+      if (!game) return;
+      if (!game.lastTime) game.lastTime = ts;
+      const dt = Math.min(1.5, (ts - game.lastTime) / 16.6667);
+      game.lastTime = ts;
 
-dumpSuccess()
+      if (game.running) {
+        game.frame++;
 
-}
+        if (game.started) {
+          game.vel += game.gravity * dt;
+          game.birdY += game.vel * dt;
 
-}
+          if (game.frame % 6 === 0) addTrail();
 
-/* ---------- SUCCESS ---------- */
+          game.spawnTimer += 1 * dt;
+          if (game.spawnTimer >= game.spawnEvery) {
+            game.spawnTimer = 0;
+            spawnPipePair();
+          }
 
-function dumpSuccess(){
+          updatePipes();
 
-thought.remove()
+          if (game.birdY < 26 || game.birdY > scene.clientHeight - 26) {
+            loseGame();
+          }
 
-document.body.classList.remove("gray")
-document.body.classList.add("pink")
+          if (game.birdX < game.finishX) {
+            game.birdX += 1.02 * dt;
+          }
 
-const text = affirmations[
-Math.floor(Math.random()*affirmations.length)
-]
+          const dx = game.finishX - game.birdX;
+          const dy = scene.clientHeight / 2 - game.birdY;
+          const dist = Math.hypot(dx, dy);
+          if (dist < game.finishRadius + 8) {
+            winGame();
+          }
 
-affirmation.innerText = text
-affirmation.classList.add("show")
+          updateDistance();
+          positionBird();
+        }
+      }
 
-navigator.vibrate?.([60,40,80])
+      if (!game.won) {
+        requestAnimationFrame(loop);
+      }
+    }
 
-}
+    function flap(){
+      if (!game) return;
+      if (!game.started && game.running) {
+        game.started = true;
+        startOverlay.style.display = 'none';
+        tapHint.classList.add('hide');
+      }
+      if (!game.running) return;
+      game.vel = game.flap;
+      vibrate(10);
+    }
 
-</script>
+    dumpBtn.addEventListener('click', startGame);
+    againBtn.addEventListener('click', () => {
+      resultOverlay.classList.remove('show');
+      startGame();
+    });
 
+    scene.addEventListener('pointerdown', flap);
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        e.preventDefault();
+        flap();
+      }
+    });
+  </script>
 </body>
 </html>
