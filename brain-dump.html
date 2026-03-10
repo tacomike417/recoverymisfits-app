@@ -1,997 +1,514 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🧠 The Brain Dumper</title>
-  <style>
-    :root{
-      --bg:#1b1e24;
-      --panel:#2a2f37;
-      --panel2:#1d2127;
-      --text:#f5f7fa;
-      --muted:#aeb6c0;
-      --pink:#ff5ea8;
-      --pink2:#ff9ac6;
-      --pink3:#ffd8e9;
-      --yellow:#f5c84c;
-      --blue:#56a8ff;
-      --purple:#a66bff;
-      --line:rgba(255,255,255,.12);
-    }
-
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-
-    html,body{
-      margin:0;
-      min-height:100%;
-      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-      background:linear-gradient(180deg,#252a31,#171a1f);
-      color:var(--text);
-    }
-
-    body{
-      display:flex;
-      justify-content:center;
-      padding:16px 12px 28px;
-    }
-
-    .wrap{
-      width:100%;
-      max-width:780px;
-    }
-
-    .card{
-      background:linear-gradient(180deg,var(--panel),var(--panel2));
-      border:1px solid var(--line);
-      border-radius:24px;
-      overflow:hidden;
-      box-shadow:0 24px 60px rgba(0,0,0,.35);
-    }
-
-    .top{
-      text-align:center;
-      padding:22px 18px 10px;
-    }
-
-    h1{
-      margin:0;
-      font-size:clamp(2rem,5vw,3rem);
-      line-height:1;
-      letter-spacing:-.04em;
-    }
-
-    .entry{
-      padding:12px 18px 0;
-    }
-
-    textarea{
-      width:100%;
-      min-height:120px;
-      resize:vertical;
-      border:none;
-      outline:none;
-      border-radius:18px;
-      padding:16px;
-      background:#12151a;
-      color:var(--text);
-      border:1px solid var(--line);
-      font-size:1rem;
-      line-height:1.45;
-    }
-
-    textarea::placeholder{
-      color:#95a0ac;
-    }
-
-    .actions{
-      padding:12px 18px 18px;
-    }
-
-    .dump-btn{
-      width:100%;
-      border:none;
-      border-radius:999px;
-      padding:15px 20px;
-      cursor:pointer;
-      font-size:1rem;
-      font-weight:1000;
-      color:#fff;
-      background:linear-gradient(135deg,var(--pink),var(--pink2));
-      box-shadow:0 12px 26px rgba(255,94,168,.24);
-    }
-
-    .dump-btn:active{
-      transform:scale(.985);
-    }
-
-    .scene{
-      position:relative;
-      margin:0 18px 16px;
-      height:600px;
-      border-radius:24px;
-      overflow:hidden;
-      border:1px solid var(--line);
-      background:
-        radial-gradient(circle at 50% 30%, rgba(255,255,255,.05), transparent 35%),
-        linear-gradient(180deg,#333842,#20242b 55%, #171a1f 100%);
-      user-select:none;
-    }
-
-    .scene.healed{
-      background:
-        radial-gradient(circle at 50% 30%, rgba(255,170,210,.18), transparent 38%),
-        linear-gradient(180deg,#5b3c51,#2a2230 55%, #1c1822 100%);
-    }
-
-    .prompt{
-      position:absolute;
-      top:14px;
-      left:50%;
-      transform:translateX(-50%);
-      padding:8px 14px;
-      border-radius:999px;
-      font-size:.86rem;
-      font-weight:1000;
-      color:#f8dce9;
-      background:rgba(0,0,0,.24);
-      border:1px solid var(--line);
-      z-index:20;
-      white-space:nowrap;
-    }
-
-    .health-wrap{
-      position:absolute;
-      top:56px;
-      left:50%;
-      transform:translateX(-50%);
-      width:min(280px,78%);
-      z-index:20;
-    }
-
-    .health-shell{
-      width:100%;
-      height:14px;
-      padding:2px;
-      border-radius:999px;
-      background:rgba(0,0,0,.28);
-      border:1px solid rgba(255,255,255,.10);
-      box-shadow:inset 0 1px 2px rgba(255,255,255,.04);
-      overflow:hidden;
-    }
-
-    .health-fill{
-      width:100%;
-      height:100%;
-      border-radius:999px;
-      background:linear-gradient(90deg,#ff98c4,#ff5ea8);
-      box-shadow:0 0 14px rgba(255,94,168,.28);
-      transition:width .18s ease;
-    }
-
-    .jar-zone{
-      position:absolute;
-      inset:90px 0 0 0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    .jar{
-      position:relative;
-      width:min(360px,82vw);
-      height:430px;
-      cursor:pointer;
-      transition:transform .08s ease;
-    }
-
-    .jar.hit{
-      transform:scale(.985);
-    }
-
-    .jar.breakshake{
-      animation:breakshake .28s ease;
-    }
-
-    @keyframes breakshake{
-      0%{transform:translate(0,0)}
-      20%{transform:translate(-4px,2px)}
-      40%{transform:translate(4px,-2px)}
-      60%{transform:translate(-3px,2px)}
-      80%{transform:translate(2px,-1px)}
-      100%{transform:translate(0,0)}
-    }
-
-    .jar-svg{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      z-index:1;
-      filter:drop-shadow(0 16px 24px rgba(0,0,0,.25));
-    }
-
-    .thought-core{
-      position:absolute;
-      left:50%;
-      top:55%;
-      width:210px;
-      height:185px;
-      transform:translate(-50%,-50%);
-      border-radius:54% 46% 52% 48% / 55% 52% 48% 45%;
-      background:
-        radial-gradient(circle at 35% 28%, #e0e4ea 0%, #c4ccd5 48%, #aeb7c1 100%);
-      box-shadow:
-        inset 0 10px 18px rgba(255,255,255,.35),
-        inset 0 -10px 20px rgba(0,0,0,.08),
-        0 14px 22px rgba(0,0,0,.14);
-      z-index:3;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:24px;
-      overflow:hidden;
-      transition:background .35s ease, opacity .25s ease, transform .15s ease;
-    }
-
-    .scene.healed .thought-core{
-      background:
-        radial-gradient(circle at 35% 28%, var(--pink3) 0%, #ff9fc9 48%, #ff63ad 100%);
-    }
-
-    .thought-core::before{
-      content:"";
-      position:absolute;
-      inset:12%;
-      border-radius:50%;
-      opacity:.2;
-      background:
-        repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.16) 0 6px, transparent 7px 14px);
-    }
-
-    .thought-text{
-      position:relative;
-      z-index:2;
-      color:#1a2027;
-      font-size:clamp(1rem,2.5vw,1.15rem);
-      line-height:1.2;
-      font-weight:1000;
-      word-break:break-word;
-      max-width:100%;
-    }
-
-    .scene.healed .thought-text{
-      color:#fff8fb;
-    }
-
-    .weakpoint{
-      position:absolute;
-      width:54px;
-      height:54px;
-      border-radius:50%;
-      z-index:8;
-      pointer-events:none;
-      transform:translate(-50%,-50%);
-      opacity:0;
-      transition:left .18s ease, top .18s ease, opacity .18s ease;
-    }
-
-    .weakpoint.show{
-      opacity:1;
-    }
-
-    .weakpoint .ring1,
-    .weakpoint .ring2,
-    .weakpoint .dot{
-      position:absolute;
-      inset:0;
-      border-radius:50%;
-    }
-
-    .weakpoint .ring1{
-      border:3px solid rgba(255,255,255,.92);
-      animation:targetPulse 1s ease-in-out infinite;
-    }
-
-    .weakpoint .ring2{
-      inset:10px;
-      border:2px solid rgba(255,230,242,.8);
-    }
-
-    .weakpoint .dot{
-      inset:19px;
-      background:#fff3f8;
-      box-shadow:0 0 14px rgba(255,255,255,.5);
-    }
-
-    @keyframes targetPulse{
-      0%,100%{transform:scale(1);opacity:1}
-      50%{transform:scale(1.12);opacity:.7}
-    }
-
-    .brain-cracks,
-    .jar-cracks{
-      position:absolute;
-      inset:0;
-      z-index:9;
-      pointer-events:none;
-    }
-
-    .crack{
-      position:absolute;
-      width:3px;
-      height:80px;
-      background:linear-gradient(180deg, rgba(30,36,43,.95), rgba(30,36,43,.18));
-      border-radius:999px;
-      transform-origin:top center;
-      opacity:.95;
-    }
-
-    .crack::before,
-    .crack::after{
-      content:"";
-      position:absolute;
-      width:3px;
-      border-radius:999px;
-      background:linear-gradient(180deg, rgba(30,36,43,.86), rgba(30,36,43,.16));
-      transform-origin:top center;
-    }
-
-    .crack::before{
-      height:var(--b1,22px);
-      top:18px;
-      left:-8px;
-      transform:rotate(-28deg);
-    }
-
-    .crack::after{
-      height:var(--b2,18px);
-      top:38px;
-      left:8px;
-      transform:rotate(28deg);
-    }
-
-    .glass-crack{
-      position:absolute;
-      width:2px;
-      height:95px;
-      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.18));
-      border-radius:999px;
-      transform-origin:top center;
-      opacity:.86;
-    }
-
-    .glass-crack::before,
-    .glass-crack::after{
-      content:"";
-      position:absolute;
-      width:2px;
-      border-radius:999px;
-      background:linear-gradient(180deg, rgba(255,255,255,.84), rgba(255,255,255,.16));
-      transform-origin:top center;
-    }
-
-    .glass-crack::before{
-      height:var(--g1,22px);
-      top:18px;
-      left:-7px;
-      transform:rotate(-30deg);
-    }
-
-    .glass-crack::after{
-      height:var(--g2,18px);
-      top:40px;
-      left:7px;
-      transform:rotate(28deg);
-    }
-
-    .flash{
-      position:absolute;
-      inset:0;
-      background:radial-gradient(circle at center, rgba(255,255,255,.22), transparent 38%);
-      opacity:0;
-      pointer-events:none;
-      z-index:18;
-    }
-
-    .flash.show{
-      animation:flashPop .22s ease;
-    }
-
-    @keyframes flashPop{
-      0%{opacity:0}
-      30%{opacity:1}
-      100%{opacity:0}
-    }
-
-    .chest{
-      position:absolute;
-      left:50%;
-      bottom:-140px;
-      width:96px;
-      height:78px;
-      transform:translateX(-50%) scale(.55);
-      z-index:30;
-      opacity:0;
-      cursor:pointer;
-      pointer-events:none;
-      transition:filter .2s ease;
-    }
-
-    .chest.show{
-      opacity:1;
-      pointer-events:auto;
-      animation:riseChest .7s cubic-bezier(.2,.85,.2,1) forwards;
-    }
-
-    @keyframes riseChest{
-      0%{
-        bottom:-140px;
-        transform:translateX(-50%) scale(.55);
-        opacity:0;
-      }
-      70%{
-        bottom:86px;
-        transform:translateX(-50%) scale(1.14);
-        opacity:1;
-      }
-      100%{
-        bottom:100px;
-        transform:translateX(-50%) scale(1);
-        opacity:1;
-      }
-    }
-
-    .chest.throb{
-      animation:
-        chestFloat 2.2s ease-in-out infinite,
-        chestPulse 1.2s ease-in-out infinite;
-    }
-
-    @keyframes chestFloat{
-      0%,100%{transform:translateX(-50%) translateY(0) scale(1)}
-      50%{transform:translateX(-50%) translateY(-4px) scale(1.02)}
-    }
-
-    @keyframes chestPulse{
-      0%,100%{filter:drop-shadow(0 0 0 rgba(255,255,255,0))}
-      50%{filter:drop-shadow(0 0 16px rgba(255,255,255,.18))}
-    }
-
-    .chest.opening{
-      animation:chestOpen .28s ease;
-    }
-
-    @keyframes chestOpen{
-      0%{transform:translateX(-50%) scale(1)}
-      50%{transform:translateX(-50%) scale(1.12)}
-      100%{transform:translateX(-50%) scale(1)}
-    }
-
-    .chest svg{
-      width:100%;
-      height:100%;
-      display:block;
-      position:relative;
-      z-index:2;
-      filter:drop-shadow(0 12px 18px rgba(0,0,0,.28));
-    }
-
-    .chest-orb{
-      position:absolute;
-      inset:-28px;
-      border-radius:50%;
-      z-index:1;
-      opacity:.9;
-      filter:blur(10px);
-      animation:orbPulse 1.25s ease-in-out infinite;
-    }
-
-    .chest.yellow .chest-orb{
-      background:radial-gradient(circle, rgba(245,200,76,.52) 0%, rgba(245,200,76,.22) 35%, transparent 70%);
-    }
-
-    .chest.blue .chest-orb{
-      background:radial-gradient(circle, rgba(86,168,255,.52) 0%, rgba(86,168,255,.22) 35%, transparent 70%);
-    }
-
-    .chest.purple .chest-orb{
-      background:radial-gradient(circle, rgba(166,107,255,.56) 0%, rgba(166,107,255,.24) 35%, transparent 70%);
-    }
-
-    @keyframes orbPulse{
-      0%,100%{transform:scale(.94);opacity:.78}
-      50%{transform:scale(1.08);opacity:1}
-    }
-
-    .reward{
-      position:absolute;
-      inset:0;
-      z-index:40;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:28px;
-      opacity:0;
-      pointer-events:none;
-      transition:opacity .45s ease;
-    }
-
-    .reward.show{
-      opacity:1;
-      pointer-events:auto;
-    }
-
-    .reward-box{
-      max-width:560px;
-    }
-
-    .reward-title{
-      font-size:clamp(2rem,5.8vw,3.4rem);
-      line-height:1.04;
-      letter-spacing:-.04em;
-      font-weight:1000;
-      color:#fff9fc;
-      text-shadow:0 10px 24px rgba(0,0,0,.18);
-    }
-
-    .reward-sub{
-      margin-top:12px;
-      color:#fff0f6;
-      font-size:1rem;
-      font-weight:900;
-    }
-
-    .again{
-      margin-top:18px;
-      border:none;
-      border-radius:999px;
-      padding:12px 18px;
-      font-size:.98rem;
-      font-weight:1000;
-      cursor:pointer;
-      color:#7b1547;
-      background:#fff;
-    }
-
-    .billbob{
-      margin-top:14px;
-      font-size:2.6rem;
-      letter-spacing:.2rem;
-      animation:dance 1s ease-in-out infinite;
-    }
-
-    @keyframes dance{
-      0%,100%{transform:translateY(0) rotate(0deg)}
-      25%{transform:translateY(-3px) rotate(-4deg)}
-      50%{transform:translateY(0) rotate(0deg)}
-      75%{transform:translateY(-3px) rotate(4deg)}
-    }
-
-    .disclaimer{
-      padding:0 18px 18px;
-      text-align:center;
-      color:#a8b2bc;
-      font-size:.74rem;
-      line-height:1.4;
-    }
-
-    @media (max-width:560px){
-      .scene{height:560px}
-      .jar{transform:scale(.92)}
-      .prompt{font-size:.8rem}
-      .health-wrap{width:min(240px,78%)}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧠 The Brain Dumper</title>
+
+<style>
+
+:root{
+--bg:#1b1e24;
+--panel:#2a2f37;
+--panel2:#1d2127;
+--text:#f5f7fa;
+--pink:#ff5ea8;
+--pink2:#ff9ac6;
+--yellow:#f5c84c;
+--blue:#56a8ff;
+--purple:#a66bff;
+--line:rgba(255,255,255,.12);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+html,body{
+margin:0;
+min-height:100%;
+font-family:system-ui,Segoe UI,Roboto,sans-serif;
+background:linear-gradient(#252a31,#171a1f);
+color:var(--text);
+}
+
+body{
+display:flex;
+justify-content:center;
+padding:16px 12px 28px;
+}
+
+.wrap{width:100%;max-width:760px}
+
+.card{
+background:linear-gradient(var(--panel),var(--panel2));
+border-radius:24px;
+border:1px solid var(--line);
+box-shadow:0 24px 60px rgba(0,0,0,.35);
+overflow:hidden;
+}
+
+.top{text-align:center;padding:22px 18px 10px}
+
+h1{
+margin:0;
+font-size:clamp(2rem,5vw,3rem);
+letter-spacing:-.04em;
+}
+
+.entry{padding:12px 18px 0}
+
+textarea{
+width:100%;
+min-height:110px;
+border-radius:18px;
+border:none;
+outline:none;
+padding:16px;
+background:#12151a;
+border:1px solid var(--line);
+color:white;
+font-size:1rem;
+}
+
+.actions{padding:12px 18px 18px}
+
+.dump-btn{
+width:100%;
+border:none;
+border-radius:999px;
+padding:15px;
+font-weight:900;
+font-size:1rem;
+cursor:pointer;
+color:white;
+background:linear-gradient(135deg,var(--pink),var(--pink2));
+box-shadow:0 12px 26px rgba(255,94,168,.24);
+}
+
+.scene{
+position:relative;
+margin:0 18px 16px;
+height:580px;
+border-radius:24px;
+overflow:hidden;
+border:1px solid var(--line);
+background:
+radial-gradient(circle at 50% 30%, rgba(255,255,255,.05), transparent 35%),
+linear-gradient(#333842,#20242b 55%, #171a1f);
+}
+
+.prompt{
+position:absolute;
+top:14px;
+left:50%;
+transform:translateX(-50%);
+padding:8px 14px;
+border-radius:999px;
+font-size:.86rem;
+font-weight:900;
+background:rgba(0,0,0,.25);
+border:1px solid var(--line);
+z-index:20;
+}
+
+.health{
+position:absolute;
+top:55px;
+left:50%;
+transform:translateX(-50%);
+width:240px;
+height:12px;
+background:#111;
+border-radius:999px;
+border:1px solid rgba(255,255,255,.1);
+overflow:hidden;
+z-index:20;
+}
+
+.health-fill{
+height:100%;
+width:100%;
+background:linear-gradient(90deg,#ff9ac6,#ff5ea8);
+transition:width .2s;
+}
+
+.jar-zone{
+position:absolute;
+inset:90px 0 0 0;
+display:flex;
+align-items:center;
+justify-content:center;
+transition:.5s;
+}
+
+.scene.chest-mode .jar-zone,
+.scene.chest-mode .health,
+.scene.chest-mode .prompt{
+opacity:0;
+transform:scale(.96);
+pointer-events:none;
+}
+
+.jar{
+position:relative;
+width:260px;
+height:300px;
+border-radius:18px;
+border:2px solid rgba(255,255,255,.25);
+background:rgba(255,255,255,.08);
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+cursor:pointer;
+}
+
+.thought{
+padding:18px;
+font-weight:700;
+}
+
+.weak{
+position:absolute;
+width:50px;
+height:50px;
+border-radius:50%;
+border:3px solid white;
+animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+0%,100%{transform:scale(1)}
+50%{transform:scale(1.2)}
+}
+
+.break-fade{
+position:absolute;
+inset:0;
+background:radial-gradient(circle at center, rgba(0,0,0,.2), rgba(0,0,0,.75));
+opacity:0;
+transition:.5s;
+z-index:22;
+}
+
+.scene.chest-mode .break-fade{
+opacity:1;
+}
+
+.chest{
+position:absolute;
+left:50%;
+bottom:-200px;
+transform:translateX(-50%);
+width:150px;
+height:120px;
+opacity:0;
+cursor:pointer;
+z-index:30;
+}
+
+.chest.show{
+opacity:1;
+animation:riseChest 1s forwards;
+}
+
+@keyframes riseChest{
+0%{bottom:-200px;transform:translateX(-50%) scale(.4)}
+70%{bottom:230px;transform:translateX(-50%) scale(1.2)}
+100%{bottom:210px;transform:translateX(-50%) scale(1)}
+}
+
+.chest-inner{
+position:relative;
+width:100%;
+height:100%;
+}
+
+.chest.throb .chest-inner{
+animation:throb 1.2s infinite;
+}
+
+@keyframes throb{
+0%,100%{transform:scale(1)}
+50%{transform:scale(1.08)}
+}
+
+.chest-orb{
+position:absolute;
+inset:-60px;
+border-radius:50%;
+filter:blur(18px);
+opacity:.9;
+animation:orbPulse 1.3s infinite;
+}
+
+.chest.yellow .chest-orb{background:radial-gradient(circle,rgba(245,200,76,.7),transparent 70%)}
+.chest.blue .chest-orb{background:radial-gradient(circle,rgba(86,168,255,.7),transparent 70%)}
+.chest.purple .chest-orb{background:radial-gradient(circle,rgba(166,107,255,.7),transparent 70%)}
+
+@keyframes orbPulse{
+0%,100%{transform:scale(.9)}
+50%{transform:scale(1.1)}
+}
+
+.reward{
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+padding:20px;
+opacity:0;
+pointer-events:none;
+transition:.3s;
+z-index:40;
+}
+
+.reward.show{
+opacity:1;
+pointer-events:auto;
+}
+
+.reward-title{
+font-size:2.6rem;
+font-weight:900;
+}
+
+.again{
+margin-top:16px;
+padding:12px 18px;
+border-radius:999px;
+border:none;
+font-weight:900;
+cursor:pointer;
+}
+
+.billbob{
+font-size:3rem;
+margin-top:12px;
+animation:dance 1s infinite;
+}
+
+@keyframes dance{
+0%,100%{transform:rotate(0)}
+50%{transform:rotate(10deg)}
+}
+
+.disclaimer{
+text-align:center;
+font-size:.75rem;
+color:#9aa3ad;
+padding:0 18px 18px;
+}
+
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="top">
-        <h1>🧠 The Brain Dumper</h1>
-      </div>
-
-      <div class="entry">
-        <textarea id="thoughtInput" placeholder="What's stuck in your head right now?"></textarea>
-      </div>
-
-      <div class="actions">
-        <button class="dump-btn" id="dumpBtn">Dump</button>
-      </div>
-
-      <div class="scene" id="scene">
-        <div class="prompt" id="prompt">Find the weak spot and smash that thought</div>
-
-        <div class="health-wrap" id="healthWrap">
-          <div class="health-shell">
-            <div class="health-fill" id="healthFill"></div>
-          </div>
-        </div>
-
-        <div class="flash" id="flash"></div>
-
-        <div class="jar-zone">
-          <div class="jar" id="jar">
-            <svg class="jar-svg" viewBox="0 0 320 420" aria-hidden="true">
-              <ellipse cx="160" cy="392" rx="100" ry="18" fill="rgba(0,0,0,.20)"/>
-              <rect x="94" y="20" width="132" height="34" rx="10" fill="#6d7682"/>
-              <rect x="106" y="28" width="108" height="6" rx="3" fill="rgba(255,255,255,.18)"/>
-              <path d="M88 52 Q84 95 84 130 L84 292 Q84 358 160 372 Q236 358 236 292 L236 130 Q236 95 232 52 Z"
-                    fill="rgba(255,255,255,.10)"
-                    stroke="rgba(255,255,255,.32)"
-                    stroke-width="4"/>
-              <path d="M100 72 Q96 98 96 132 L96 286 Q96 338 160 348 Q224 338 224 286 L224 132 Q224 98 220 72 Z"
-                    fill="rgba(255,255,255,.05)"/>
-              <path d="M112 80 Q104 158 106 276 Q110 318 138 340"
-                    fill="none" stroke="rgba(255,255,255,.18)" stroke-width="8" stroke-linecap="round"/>
-              <path d="M212 94 Q220 160 218 252"
-                    fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5" stroke-linecap="round"/>
-            </svg>
-
-            <div class="thought-core" id="thoughtCore">
-              <div class="thought-text" id="thoughtText">Drop a thought above</div>
-            </div>
-
-            <div class="weakpoint" id="weakpoint">
-              <div class="ring1"></div>
-              <div class="ring2"></div>
-              <div class="dot"></div>
-            </div>
-
-            <div class="brain-cracks" id="brainCracks"></div>
-            <div class="jar-cracks" id="jarCracks"></div>
-          </div>
-        </div>
-
-        <div class="chest" id="chest"></div>
-
-        <div class="reward" id="reward">
-          <div class="reward-box" id="rewardBox">
-            <div class="reward-title" id="rewardTitle"></div>
-            <div class="reward-sub" id="rewardSub"></div>
-            <button class="again" id="againBtn">Dump another thought</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="disclaimer">
-        A small reflection tool for emotional reset. It is not a substitute for professional, crisis, or mental health care.
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const thoughtInput = document.getElementById('thoughtInput');
-    const dumpBtn = document.getElementById('dumpBtn');
-    const scene = document.getElementById('scene');
-    const jar = document.getElementById('jar');
-    const thoughtCore = document.getElementById('thoughtCore');
-    const thoughtText = document.getElementById('thoughtText');
-    const weakpoint = document.getElementById('weakpoint');
-    const brainCracks = document.getElementById('brainCracks');
-    const jarCracks = document.getElementById('jarCracks');
-    const flash = document.getElementById('flash');
-    const chest = document.getElementById('chest');
-    const reward = document.getElementById('reward');
-    const rewardBox = document.getElementById('rewardBox');
-    const rewardTitle = document.getElementById('rewardTitle');
-    const rewardSub = document.getElementById('rewardSub');
-    const againBtn = document.getElementById('againBtn');
-    const healthFill = document.getElementById('healthFill');
-
-    const yellowRewards = [
-      "That one doesn’t get to stay.",
-      "You just made some room upstairs.",
-      "That thought just lost its lease.",
-      "Nice hit. Let it go.",
-      "That one broke easier than it acted."
-    ];
-
-    const blueRewards = [
-      "Progress, not perfection.",
-      "Feelings aren’t facts.",
-      "Acceptance changes the weather inside.",
-      "Peace usually shows up when the wrestling stops.",
-      "A bad thought is not a prophecy."
-    ];
-
-    const purpleRewards = [
-      "RULE 62"
-    ];
-
-    let state = {
-      mode: 'input',
-      durability: 0,
-      maxDurability: 0,
-      weakX: 0,
-      weakY: 0,
-      chestType: null
-    };
-
-    function randomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    function pick(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-
-    function truncate(text, max = 68) {
-      const clean = text.replace(/\s+/g, ' ').trim();
-      return clean.length <= max ? clean : clean.slice(0, max).trim() + '...';
-    }
-
-    function vibrate(pattern) {
-      if (navigator.vibrate) navigator.vibrate(pattern);
-    }
-
-    function updateHealthBar() {
-      if (!state.maxDurability) {
-        healthFill.style.width = '100%';
-        return;
-      }
-      const pct = Math.max(0, (state.durability / state.maxDurability) * 100);
-      healthFill.style.width = `${pct}%`;
-    }
-
-    function setWeakpoint() {
-      const rect = thoughtCore.getBoundingClientRect();
-      const jarRect = jar.getBoundingClientRect();
-
-      const pad = 36;
-      const x = (rect.left - jarRect.left) + randomInt(pad, Math.max(pad + 1, rect.width - pad));
-      const y = (rect.top - jarRect.top) + randomInt(pad, Math.max(pad + 1, rect.height - pad));
-
-      state.weakX = x;
-      state.weakY = y;
-
-      weakpoint.style.left = `${x}px`;
-      weakpoint.style.top = `${y}px`;
-      weakpoint.classList.add('show');
-    }
-
-    function addBrainCrack(stronger = false) {
-      const crack = document.createElement('div');
-      crack.className = 'crack';
-      crack.style.left = `${randomInt(80, 270)}px`;
-      crack.style.top = `${randomInt(120, 270)}px`;
-      crack.style.height = `${stronger ? randomInt(80,130) : randomInt(50,95)}px`;
-      crack.style.transform = `rotate(${randomInt(0, 359)}deg)`;
-      crack.style.setProperty('--b1', `${randomInt(14,32)}px`);
-      crack.style.setProperty('--b2', `${randomInt(12,24)}px`);
-      brainCracks.appendChild(crack);
-    }
-
-    function addJarCrack(stronger = false) {
-      const crack = document.createElement('div');
-      crack.className = 'glass-crack';
-      crack.style.left = `${randomInt(90, 250)}px`;
-      crack.style.top = `${randomInt(70, 250)}px`;
-      crack.style.height = `${stronger ? randomInt(90,140) : randomInt(60,100)}px`;
-      crack.style.transform = `rotate(${randomInt(0, 359)}deg)`;
-      crack.style.setProperty('--g1', `${randomInt(14,30)}px`);
-      crack.style.setProperty('--g2', `${randomInt(12,24)}px`);
-      jarCracks.appendChild(crack);
-    }
-
-    function popFlash() {
-      flash.classList.remove('show');
-      void flash.offsetWidth;
-      flash.classList.add('show');
-    }
-
-    function chooseChestType() {
-      const roll = Math.random();
-      if (roll < 0.70) return 'yellow';
-      if (roll < 0.95) return 'blue';
-      return 'purple';
-    }
-
-    function chestSVG(type) {
-      const colors = {
-        yellow: { top: '#f7d56a', body: '#d7a62b', band: '#7c5911' },
-        blue:   { top: '#7cc3ff', body: '#3b86da', band: '#1c4b84' },
-        purple: { top: '#c79aff', body: '#8755e8', band: '#48278e' }
-      };
-      const c = colors[type];
-      return `
-        <div class="chest-orb"></div>
-        <svg viewBox="0 0 120 100" aria-hidden="true">
-          <ellipse cx="60" cy="88" rx="34" ry="8" fill="rgba(0,0,0,.18)"/>
-          <rect x="18" y="36" width="84" height="40" rx="8" fill="${c.body}" />
-          <rect x="16" y="24" width="88" height="24" rx="10" fill="${c.top}" />
-          <rect x="54" y="24" width="12" height="52" rx="4" fill="${c.band}" />
-          <rect x="18" y="48" width="84" height="10" rx="4" fill="${c.band}" />
-          <rect x="52" y="44" width="16" height="16" rx="4" fill="#f3e7b0" />
-          <rect x="57" y="48" width="6" height="8" rx="2" fill="#8a6a1e" />
-        </svg>
-      `;
-    }
-
-    function resetGame() {
-      state.mode = 'input';
-      state.durability = 0;
-      state.maxDurability = 0;
-      state.chestType = null;
-
-      scene.classList.remove('healed');
-      thoughtText.textContent = 'Drop a thought above';
-      weakpoint.classList.remove('show');
-      brainCracks.innerHTML = '';
-      jarCracks.innerHTML = '';
-      chest.className = 'chest';
-      chest.innerHTML = '';
-      reward.classList.remove('show');
-      rewardTitle.textContent = '';
-      rewardSub.textContent = '';
-      rewardBox.querySelector('.billbob')?.remove();
-      updateHealthBar();
-    }
-
-    function startGame() {
-      const text = thoughtInput.value.trim();
-      if (!text) {
-        thoughtInput.focus();
-        return;
-      }
-
-      resetGame();
-
-      thoughtText.textContent = truncate(text);
-      state.mode = 'smashing';
-      state.maxDurability = randomInt(18, 28);
-      state.durability = state.maxDurability;
-      updateHealthBar();
-
-      setTimeout(() => setWeakpoint(), 120);
-    }
-
-    function showReward(type) {
-      rewardBox.querySelector('.billbob')?.remove();
-
-      if (type === 'yellow') {
-        rewardTitle.textContent = pick(yellowRewards);
-        rewardSub.textContent = 'Yellow chest';
-      } else if (type === 'blue') {
-        rewardTitle.textContent = pick(blueRewards);
-        rewardSub.textContent = 'Blue chest';
-      } else {
-        rewardTitle.textContent = pick(purpleRewards);
-        rewardSub.textContent = "Don't take yourself so damn serious.";
-        const dancers = document.createElement('div');
-        dancers.className = 'billbob';
-        dancers.textContent = '🕺 🕺';
-        rewardBox.insertBefore(dancers, rewardSub);
-      }
-
-      reward.classList.add('show');
-      state.mode = 'reward';
-    }
-
-    function spawnChest() {
-      state.mode = 'chest';
-      state.chestType = chooseChestType();
-      chest.innerHTML = chestSVG(state.chestType);
-      chest.className = `chest ${state.chestType} show`;
-      vibrate([40,20,60]);
-
-      setTimeout(() => {
-        chest.classList.add('throb');
-      }, 760);
-    }
-
-    function breakThought() {
-      state.mode = 'breaking';
-      weakpoint.classList.remove('show');
-      jar.classList.remove('hit');
-      jar.classList.add('breakshake');
-
-      for (let i = 0; i < 4; i++) addBrainCrack(true);
-      for (let i = 0; i < 4; i++) addJarCrack(true);
-
-      vibrate([50, 25, 80, 25, 120]);
-
-      setTimeout(() => {
-        scene.classList.add('healed');
-      }, 130);
-
-      setTimeout(() => {
-        thoughtCore.style.opacity = '.08';
-      }, 220);
-
-      setTimeout(() => {
-        spawnChest();
-      }, 700);
-
-      setTimeout(() => {
-        jar.classList.remove('breakshake');
-      }, 300);
-    }
-
-    function handleJarTap(e) {
-      if (state.mode !== 'smashing') return;
-
-      const rect = jar.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      const dx = x - state.weakX;
-      const dy = y - state.weakY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      let damage = 1;
-
-      jar.classList.remove('hit');
-      void jar.offsetWidth;
-      jar.classList.add('hit');
-      popFlash();
-
-      if (dist <= 18) {
-        damage = 3;
-        addBrainCrack(true);
-        addJarCrack(true);
-        vibrate([40]);
-      } else if (dist <= 42) {
-        damage = 2;
-        addBrainCrack(true);
-        if (Math.random() > 0.45) addJarCrack(false);
-        vibrate([20,20]);
-      } else {
-        damage = 1;
-        addBrainCrack(false);
-        if (Math.random() > 0.7) addJarCrack(false);
-        vibrate([12]);
-      }
-
-      state.durability -= damage;
-      updateHealthBar();
-
-      if (state.durability <= 0) {
-        state.durability = 0;
-        updateHealthBar();
-        breakThought();
-        return;
-      }
-
-      setWeakpoint();
-    }
-
-    function openChest() {
-      if (state.mode !== 'chest') return;
-
-      chest.classList.remove('throb');
-      chest.classList.remove('opening');
-      void chest.offsetWidth;
-      chest.classList.add('opening');
-
-      if (state.chestType === 'yellow') vibrate([25,20,40]);
-      if (state.chestType === 'blue') vibrate([30,20,60]);
-      if (state.chestType === 'purple') vibrate([40,20,70,20,90]);
-
-      setTimeout(() => {
-        chest.classList.remove('show');
-        showReward(state.chestType);
-      }, 220);
-    }
-
-    dumpBtn.addEventListener('click', startGame);
-    jar.addEventListener('click', handleJarTap);
-    chest.addEventListener('click', openChest);
-
-    againBtn.addEventListener('click', () => {
-      thoughtInput.value = '';
-      thoughtCore.style.opacity = '1';
-      resetGame();
-      thoughtInput.focus();
-    });
-
-    thoughtInput.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') startGame();
-    });
-
-    updateHealthBar();
-  </script>
+
+<div class="wrap">
+
+<div class="card">
+
+<div class="top">
+<h1>🧠 The Brain Dumper</h1>
+</div>
+
+<div class="entry">
+<textarea id="thoughtInput" placeholder="What's stuck in your head right now?"></textarea>
+</div>
+
+<div class="actions">
+<button class="dump-btn" id="dumpBtn">Dump</button>
+</div>
+
+<div class="scene" id="scene">
+
+<div class="prompt">Find the weak spot</div>
+
+<div class="health">
+<div class="health-fill" id="healthFill"></div>
+</div>
+
+<div class="break-fade"></div>
+
+<div class="jar-zone">
+
+<div class="jar" id="jar">
+
+<div class="thought" id="thoughtText">
+Drop a thought above
+</div>
+
+<div class="weak" id="weak"></div>
+
+</div>
+
+</div>
+
+<div class="chest" id="chest"></div>
+
+<div class="reward" id="reward">
+<div>
+<div class="reward-title" id="rewardTitle"></div>
+<div id="rule"></div>
+<button class="again" id="again">Dump another thought</button>
+</div>
+</div>
+
+</div>
+
+<div class="disclaimer">
+A small reflection tool for emotional reset.
+</div>
+
+</div>
+</div>
+
+<script>
+
+const dumpBtn=document.getElementById("dumpBtn")
+const thoughtInput=document.getElementById("thoughtInput")
+const thoughtText=document.getElementById("thoughtText")
+const weak=document.getElementById("weak")
+const jar=document.getElementById("jar")
+const scene=document.getElementById("scene")
+const chest=document.getElementById("chest")
+const reward=document.getElementById("reward")
+const rewardTitle=document.getElementById("rewardTitle")
+const again=document.getElementById("again")
+const rule=document.getElementById("rule")
+const healthFill=document.getElementById("healthFill")
+
+let health=0
+let maxHealth=0
+
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+
+function vibrate(p){if(navigator.vibrate)navigator.vibrate(p)}
+
+function moveWeak(){
+weak.style.left=rand(30,230)+"px"
+weak.style.top=rand(30,220)+"px"
+}
+
+dumpBtn.onclick=()=>{
+const t=thoughtInput.value.trim()
+if(!t)return
+
+thoughtText.textContent=t
+maxHealth=rand(18,26)
+health=maxHealth
+healthFill.style.width="100%"
+moveWeak()
+}
+
+jar.onclick=(e)=>{
+
+if(!health)return
+
+const rect=jar.getBoundingClientRect()
+const x=e.clientX-rect.left
+const y=e.clientY-rect.top
+
+const wx=weak.offsetLeft+25
+const wy=weak.offsetTop+25
+
+const dist=Math.hypot(x-wx,y-wy)
+
+let dmg=1
+
+if(dist<20){
+dmg=3
+vibrate([40])
+}
+else if(dist<50){
+dmg=2
+vibrate([20,20])
+}
+else{
+vibrate([10])
+}
+
+health-=dmg
+if(health<0)health=0
+
+healthFill.style.width=(health/maxHealth*100)+"%"
+
+if(health===0){
+breakThought()
+}else{
+moveWeak()
+}
+
+}
+
+function breakThought(){
+
+scene.classList.add("chest-mode")
+
+setTimeout(()=>{
+spawnChest()
+},600)
+
+}
+
+function spawnChest(){
+
+const roll=Math.random()
+
+let type="yellow"
+if(roll>.7)type="blue"
+if(roll>.95)type="purple"
+
+chest.className="chest "+type+" show"
+
+chest.innerHTML=`
+<div class="chest-inner">
+<div class="chest-orb"></div>
+<svg viewBox="0 0 120 100">
+<rect x="18" y="36" width="84" height="40" rx="8" fill="#d7a62b"/>
+<rect x="16" y="24" width="88" height="24" rx="10" fill="#f7d56a"/>
+</svg>
+</div>
+`
+
+setTimeout(()=>{chest.classList.add("throb")},900)
+
+chest.onclick=()=>openChest(type)
+
+}
+
+function openChest(type){
+
+vibrate([40,20,70])
+
+chest.style.display="none"
+
+if(type==="yellow"){
+rewardTitle.textContent="That one doesn’t get to stay."
+rule.textContent=""
+}
+
+if(type==="blue"){
+rewardTitle.textContent="Progress, not perfection."
+rule.textContent=""
+}
+
+if(type==="purple"){
+rewardTitle.textContent="RULE 62"
+rule.innerHTML='<div class="billbob">🕺🕺</div><div>Don\'t take yourself so damn serious</div>'
+}
+
+reward.classList.add("show")
+
+}
+
+again.onclick=()=>{
+location.reload()
+}
+
+</script>
+
 </body>
 </html>
