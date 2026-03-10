@@ -13,12 +13,10 @@
       --muted:#aeb6c0;
       --pink:#ff5ea8;
       --pink2:#ff9ac6;
+      --pink3:#ffd8e9;
       --yellow:#f5c84c;
       --blue:#56a8ff;
       --purple:#a66bff;
-      --danger:#d9dde3;
-      --danger2:#aeb6c0;
-      --glass:rgba(255,255,255,.08);
       --line:rgba(255,255,255,.12);
     }
 
@@ -110,7 +108,7 @@
     .scene{
       position:relative;
       margin:0 18px 16px;
-      height:560px;
+      height:600px;
       border-radius:24px;
       overflow:hidden;
       border:1px solid var(--line);
@@ -142,9 +140,38 @@
       white-space:nowrap;
     }
 
+    .health-wrap{
+      position:absolute;
+      top:56px;
+      left:50%;
+      transform:translateX(-50%);
+      width:min(280px,78%);
+      z-index:20;
+    }
+
+    .health-shell{
+      width:100%;
+      height:14px;
+      padding:2px;
+      border-radius:999px;
+      background:rgba(0,0,0,.28);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:inset 0 1px 2px rgba(255,255,255,.04);
+      overflow:hidden;
+    }
+
+    .health-fill{
+      width:100%;
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,#ff98c4,#ff5ea8);
+      box-shadow:0 0 14px rgba(255,94,168,.28);
+      transition:width .18s ease;
+    }
+
     .jar-zone{
       position:absolute;
-      inset:58px 0 0 0;
+      inset:90px 0 0 0;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -210,7 +237,7 @@
 
     .scene.healed .thought-core{
       background:
-        radial-gradient(circle at 35% 28%, #ffd7e8 0%, #ff9fc9 48%, #ff63ad 100%);
+        radial-gradient(circle at 35% 28%, var(--pink3) 0%, #ff9fc9 48%, #ff63ad 100%);
     }
 
     .thought-core::before{
@@ -359,28 +386,6 @@
       transform:rotate(28deg);
     }
 
-    .hit-word{
-      position:absolute;
-      z-index:25;
-      font-size:clamp(1.4rem,4vw,2.2rem);
-      font-weight:1000;
-      color:#fff7fb;
-      text-shadow:0 6px 18px rgba(0,0,0,.25);
-      opacity:0;
-      transform:scale(.35);
-      pointer-events:none;
-    }
-
-    .hit-word.show{
-      animation:wordPop .32s ease forwards;
-    }
-
-    @keyframes wordPop{
-      0%{opacity:0;transform:scale(.35)}
-      45%{opacity:1;transform:scale(1.12)}
-      100%{opacity:0;transform:scale(1.35)}
-    }
-
     .flash{
       position:absolute;
       inset:0;
@@ -403,35 +408,64 @@
     .chest{
       position:absolute;
       left:50%;
-      top:-120px;
-      width:110px;
-      height:90px;
-      transform:translateX(-50%);
+      bottom:-140px;
+      width:96px;
+      height:78px;
+      transform:translateX(-50%) scale(.55);
       z-index:30;
       opacity:0;
       cursor:pointer;
       pointer-events:none;
+      transition:filter .2s ease;
     }
 
     .chest.show{
       opacity:1;
       pointer-events:auto;
-      animation:dropChest .55s cubic-bezier(.2,.85,.2,1) forwards;
+      animation:riseChest .7s cubic-bezier(.2,.85,.2,1) forwards;
     }
 
-    @keyframes dropChest{
-      0%{top:-120px}
-      75%{top:360px}
-      100%{top:342px}
+    @keyframes riseChest{
+      0%{
+        bottom:-140px;
+        transform:translateX(-50%) scale(.55);
+        opacity:0;
+      }
+      70%{
+        bottom:86px;
+        transform:translateX(-50%) scale(1.14);
+        opacity:1;
+      }
+      100%{
+        bottom:100px;
+        transform:translateX(-50%) scale(1);
+        opacity:1;
+      }
     }
 
-    .chest.bounce{
-      animation:chestBounce .28s ease;
+    .chest.throb{
+      animation:
+        chestFloat 2.2s ease-in-out infinite,
+        chestPulse 1.2s ease-in-out infinite;
     }
 
-    @keyframes chestBounce{
+    @keyframes chestFloat{
+      0%,100%{transform:translateX(-50%) translateY(0) scale(1)}
+      50%{transform:translateX(-50%) translateY(-4px) scale(1.02)}
+    }
+
+    @keyframes chestPulse{
+      0%,100%{filter:drop-shadow(0 0 0 rgba(255,255,255,0))}
+      50%{filter:drop-shadow(0 0 16px rgba(255,255,255,.18))}
+    }
+
+    .chest.opening{
+      animation:chestOpen .28s ease;
+    }
+
+    @keyframes chestOpen{
       0%{transform:translateX(-50%) scale(1)}
-      50%{transform:translateX(-50%) scale(1.08)}
+      50%{transform:translateX(-50%) scale(1.12)}
       100%{transform:translateX(-50%) scale(1)}
     }
 
@@ -439,7 +473,36 @@
       width:100%;
       height:100%;
       display:block;
+      position:relative;
+      z-index:2;
       filter:drop-shadow(0 12px 18px rgba(0,0,0,.28));
+    }
+
+    .chest-orb{
+      position:absolute;
+      inset:-28px;
+      border-radius:50%;
+      z-index:1;
+      opacity:.9;
+      filter:blur(10px);
+      animation:orbPulse 1.25s ease-in-out infinite;
+    }
+
+    .chest.yellow .chest-orb{
+      background:radial-gradient(circle, rgba(245,200,76,.52) 0%, rgba(245,200,76,.22) 35%, transparent 70%);
+    }
+
+    .chest.blue .chest-orb{
+      background:radial-gradient(circle, rgba(86,168,255,.52) 0%, rgba(86,168,255,.22) 35%, transparent 70%);
+    }
+
+    .chest.purple .chest-orb{
+      background:radial-gradient(circle, rgba(166,107,255,.56) 0%, rgba(166,107,255,.24) 35%, transparent 70%);
+    }
+
+    @keyframes orbPulse{
+      0%,100%{transform:scale(.94);opacity:.78}
+      50%{transform:scale(1.08);opacity:1}
     }
 
     .reward{
@@ -516,9 +579,10 @@
     }
 
     @media (max-width:560px){
-      .scene{height:520px}
+      .scene{height:560px}
       .jar{transform:scale(.92)}
       .prompt{font-size:.8rem}
+      .health-wrap{width:min(240px,78%)}
     }
   </style>
 </head>
@@ -539,8 +603,14 @@
 
       <div class="scene" id="scene">
         <div class="prompt" id="prompt">Find the weak spot and smash that thought</div>
+
+        <div class="health-wrap" id="healthWrap">
+          <div class="health-shell">
+            <div class="health-fill" id="healthFill"></div>
+          </div>
+        </div>
+
         <div class="flash" id="flash"></div>
-        <div class="hit-word" id="hitWord">SMASH</div>
 
         <div class="jar-zone">
           <div class="jar" id="jar">
@@ -580,7 +650,7 @@
         <div class="reward" id="reward">
           <div class="reward-box" id="rewardBox">
             <div class="reward-title" id="rewardTitle"></div>
-            <div class="rewardSub reward-sub" id="rewardSub"></div>
+            <div class="reward-sub" id="rewardSub"></div>
             <button class="again" id="againBtn">Dump another thought</button>
           </div>
         </div>
@@ -602,7 +672,6 @@
     const weakpoint = document.getElementById('weakpoint');
     const brainCracks = document.getElementById('brainCracks');
     const jarCracks = document.getElementById('jarCracks');
-    const hitWord = document.getElementById('hitWord');
     const flash = document.getElementById('flash');
     const chest = document.getElementById('chest');
     const reward = document.getElementById('reward');
@@ -610,8 +679,7 @@
     const rewardTitle = document.getElementById('rewardTitle');
     const rewardSub = document.getElementById('rewardSub');
     const againBtn = document.getElementById('againBtn');
-
-    const hitWords = ['SMASH','CRACK','BONK','POP','HIT'];
+    const healthFill = document.getElementById('healthFill');
 
     const yellowRewards = [
       "That one doesn’t get to stay.",
@@ -630,12 +698,13 @@
     ];
 
     const purpleRewards = [
-      "RULE 62",
+      "RULE 62"
     ];
 
     let state = {
-      mode: 'input', // input, smashing, chest, reward
+      mode: 'input',
       durability: 0,
+      maxDurability: 0,
       weakX: 0,
       weakY: 0,
       chestType: null
@@ -656,6 +725,15 @@
 
     function vibrate(pattern) {
       if (navigator.vibrate) navigator.vibrate(pattern);
+    }
+
+    function updateHealthBar() {
+      if (!state.maxDurability) {
+        healthFill.style.width = '100%';
+        return;
+      }
+      const pct = Math.max(0, (state.durability / state.maxDurability) * 100);
+      healthFill.style.width = `${pct}%`;
     }
 
     function setWeakpoint() {
@@ -698,15 +776,6 @@
       jarCracks.appendChild(crack);
     }
 
-    function popWord(x, y, word) {
-      hitWord.textContent = word;
-      hitWord.style.left = `${x}px`;
-      hitWord.style.top = `${y}px`;
-      hitWord.classList.remove('show');
-      void hitWord.offsetWidth;
-      hitWord.classList.add('show');
-    }
-
     function popFlash() {
       flash.classList.remove('show');
       void flash.offsetWidth;
@@ -722,12 +791,13 @@
 
     function chestSVG(type) {
       const colors = {
-        yellow: { top: '#f7d56a', body: '#d7a62b', band: '#7c5911', glow: 'rgba(245,200,76,.35)' },
-        blue:   { top: '#7cc3ff', body: '#3b86da', band: '#1c4b84', glow: 'rgba(86,168,255,.35)' },
-        purple: { top: '#c79aff', body: '#8755e8', band: '#48278e', glow: 'rgba(166,107,255,.35)' }
+        yellow: { top: '#f7d56a', body: '#d7a62b', band: '#7c5911' },
+        blue:   { top: '#7cc3ff', body: '#3b86da', band: '#1c4b84' },
+        purple: { top: '#c79aff', body: '#8755e8', band: '#48278e' }
       };
       const c = colors[type];
       return `
+        <div class="chest-orb"></div>
         <svg viewBox="0 0 120 100" aria-hidden="true">
           <ellipse cx="60" cy="88" rx="34" ry="8" fill="rgba(0,0,0,.18)"/>
           <rect x="18" y="36" width="84" height="40" rx="8" fill="${c.body}" />
@@ -743,6 +813,7 @@
     function resetGame() {
       state.mode = 'input';
       state.durability = 0;
+      state.maxDurability = 0;
       state.chestType = null;
 
       scene.classList.remove('healed');
@@ -756,6 +827,7 @@
       rewardTitle.textContent = '';
       rewardSub.textContent = '';
       rewardBox.querySelector('.billbob')?.remove();
+      updateHealthBar();
     }
 
     function startGame() {
@@ -769,7 +841,9 @@
 
       thoughtText.textContent = truncate(text);
       state.mode = 'smashing';
-      state.durability = randomInt(18, 28);
+      state.maxDurability = randomInt(18, 28);
+      state.durability = state.maxDurability;
+      updateHealthBar();
 
       setTimeout(() => setWeakpoint(), 120);
     }
@@ -800,8 +874,12 @@
       state.mode = 'chest';
       state.chestType = chooseChestType();
       chest.innerHTML = chestSVG(state.chestType);
-      chest.classList.add('show');
+      chest.className = `chest ${state.chestType} show`;
       vibrate([40,20,60]);
+
+      setTimeout(() => {
+        chest.classList.add('throb');
+      }, 760);
     }
 
     function breakThought() {
@@ -844,7 +922,6 @@
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       let damage = 1;
-      let word = pick(hitWords);
 
       jar.classList.remove('hit');
       void jar.offsetWidth;
@@ -869,9 +946,11 @@
       }
 
       state.durability -= damage;
-      popWord(x, y, word);
+      updateHealthBar();
 
       if (state.durability <= 0) {
+        state.durability = 0;
+        updateHealthBar();
         breakThought();
         return;
       }
@@ -882,9 +961,10 @@
     function openChest() {
       if (state.mode !== 'chest') return;
 
-      chest.classList.remove('bounce');
+      chest.classList.remove('throb');
+      chest.classList.remove('opening');
       void chest.offsetWidth;
-      chest.classList.add('bounce');
+      chest.classList.add('opening');
 
       if (state.chestType === 'yellow') vibrate([25,20,40]);
       if (state.chestType === 'blue') vibrate([30,20,60]);
@@ -910,6 +990,8 @@
     thoughtInput.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') startGame();
     });
+
+    updateHealthBar();
   </script>
 </body>
 </html>
