@@ -6,28 +6,30 @@
   <title>🧠 The Brain Dumper</title>
   <style>
     :root{
-      --bg1:#1d2127;
-      --bg2:#12151a;
-      --card1:#2b3139;
-      --card2:#1b1f25;
+      --bg:#1b1e24;
+      --panel:#2a2f37;
+      --panel2:#1d2127;
       --text:#f5f7fa;
-      --muted:#b8c0ca;
-      --pink:#ff5ca8;
-      --pink2:#ff9dca;
-      --pink3:#ffd3e7;
-      --glass:rgba(255,255,255,.14);
-      --glass-line:rgba(255,255,255,.32);
-      --shadow:0 24px 60px rgba(0,0,0,.38);
+      --muted:#aeb6c0;
+      --pink:#ff5ea8;
+      --pink2:#ff9ac6;
+      --yellow:#f5c84c;
+      --blue:#56a8ff;
+      --purple:#a66bff;
+      --danger:#d9dde3;
+      --danger2:#aeb6c0;
+      --glass:rgba(255,255,255,.08);
+      --line:rgba(255,255,255,.12);
     }
 
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
     html,body{
       margin:0;
       min-height:100%;
       font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+      background:linear-gradient(180deg,#252a31,#171a1f);
       color:var(--text);
-      background:
-        radial-gradient(circle at top, #2b3139 0%, var(--bg1) 40%, var(--bg2) 100%);
     }
 
     body{
@@ -36,19 +38,22 @@
       padding:16px 12px 28px;
     }
 
-    .wrap{width:100%;max-width:760px}
+    .wrap{
+      width:100%;
+      max-width:780px;
+    }
 
     .card{
-      background:linear-gradient(180deg,var(--card1),var(--card2));
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:26px;
-      box-shadow:var(--shadow);
+      background:linear-gradient(180deg,var(--panel),var(--panel2));
+      border:1px solid var(--line);
+      border-radius:24px;
       overflow:hidden;
+      box-shadow:0 24px 60px rgba(0,0,0,.35);
     }
 
     .top{
-      padding:22px 18px 8px;
       text-align:center;
+      padding:22px 18px 10px;
     }
 
     h1{
@@ -58,7 +63,9 @@
       letter-spacing:-.04em;
     }
 
-    .entry{padding:14px 18px 0}
+    .entry{
+      padding:12px 18px 0;
+    }
 
     textarea{
       width:100%;
@@ -66,119 +73,104 @@
       resize:vertical;
       border:none;
       outline:none;
-      border-radius:20px;
+      border-radius:18px;
       padding:16px;
       background:#12151a;
       color:var(--text);
-      border:1px solid rgba(255,255,255,.08);
+      border:1px solid var(--line);
       font-size:1rem;
       line-height:1.45;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
     }
 
-    textarea::placeholder{color:#97a1ad}
+    textarea::placeholder{
+      color:#95a0ac;
+    }
 
-    .actions{padding:12px 18px 18px}
+    .actions{
+      padding:12px 18px 18px;
+    }
 
     .dump-btn{
       width:100%;
       border:none;
-      cursor:pointer;
       border-radius:999px;
-      padding:16px 22px;
+      padding:15px 20px;
+      cursor:pointer;
       font-size:1rem;
       font-weight:1000;
       color:#fff;
       background:linear-gradient(135deg,var(--pink),var(--pink2));
-      box-shadow:
-        0 14px 28px rgba(255,92,168,.28),
-        inset 0 1px 0 rgba(255,255,255,.28);
-      transition:transform .14s ease, filter .2s ease;
+      box-shadow:0 12px 26px rgba(255,94,168,.24);
     }
 
-    .dump-btn:active{transform:scale(.985);filter:brightness(.98)}
+    .dump-btn:active{
+      transform:scale(.985);
+    }
 
     .scene{
       position:relative;
-      height:560px;
       margin:0 18px 16px;
+      height:560px;
       border-radius:24px;
       overflow:hidden;
-      border:1px solid rgba(255,255,255,.08);
+      border:1px solid var(--line);
       background:
-        radial-gradient(circle at 50% 35%, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 38%),
-        linear-gradient(180deg,#343942 0%, #242932 55%, #191d23 100%);
-      isolation:isolate;
+        radial-gradient(circle at 50% 30%, rgba(255,255,255,.05), transparent 35%),
+        linear-gradient(180deg,#333842,#20242b 55%, #171a1f 100%);
+      user-select:none;
     }
 
-    .scene::before{
-      content:"";
-      position:absolute;
-      inset:0;
+    .scene.healed{
       background:
-        radial-gradient(circle at 20% 18%, rgba(255,255,255,.03) 0 2px, transparent 3px),
-        radial-gradient(circle at 70% 28%, rgba(255,255,255,.025) 0 2px, transparent 3px),
-        radial-gradient(circle at 40% 70%, rgba(255,255,255,.02) 0 2px, transparent 3px),
-        radial-gradient(circle at 78% 76%, rgba(255,255,255,.025) 0 2px, transparent 3px);
-      background-size:180px 180px;
-      opacity:.65;
-      pointer-events:none;
+        radial-gradient(circle at 50% 30%, rgba(255,170,210,.18), transparent 38%),
+        linear-gradient(180deg,#5b3c51,#2a2230 55%, #1c1822 100%);
     }
 
     .prompt{
       position:absolute;
-      top:16px;
+      top:14px;
       left:50%;
       transform:translateX(-50%);
-      z-index:9;
-      padding:9px 14px;
+      padding:8px 14px;
       border-radius:999px;
-      background:rgba(0,0,0,.24);
-      border:1px solid rgba(255,255,255,.08);
-      color:#f7dce9;
       font-size:.86rem;
       font-weight:1000;
-      letter-spacing:.02em;
+      color:#f8dce9;
+      background:rgba(0,0,0,.24);
+      border:1px solid var(--line);
+      z-index:20;
       white-space:nowrap;
     }
 
-    .jar-wrap{
+    .jar-zone{
       position:absolute;
-      inset:60px 0 0 0;
+      inset:58px 0 0 0;
       display:flex;
       align-items:center;
       justify-content:center;
-      z-index:5;
     }
 
     .jar{
       position:relative;
       width:min(360px,82vw);
-      height:min(430px,76vw);
-      max-height:430px;
-      transform-origin:center;
-      transition:transform .18s ease, filter .25s ease;
+      height:430px;
+      cursor:pointer;
+      transition:transform .08s ease;
     }
 
     .jar.hit{
-      animation:jarHit .18s ease;
+      transform:scale(.985);
     }
 
-    .scene.shake .jar{
-      animation:jarBreak .28s ease;
+    .jar.breakshake{
+      animation:breakshake .28s ease;
     }
 
-    @keyframes jarHit{
-      0%{transform:scale(1)}
-      40%{transform:scale(.982)}
-      100%{transform:scale(1)}
-    }
-
-    @keyframes jarBreak{
+    @keyframes breakshake{
       0%{transform:translate(0,0)}
       20%{transform:translate(-4px,2px)}
       40%{transform:translate(4px,-2px)}
-      60%{transform:translate(-3px,1px)}
+      60%{transform:translate(-3px,2px)}
       80%{transform:translate(2px,-1px)}
       100%{transform:translate(0,0)}
     }
@@ -188,117 +180,134 @@
       inset:0;
       width:100%;
       height:100%;
-      filter:drop-shadow(0 24px 28px rgba(0,0,0,.24));
+      z-index:1;
+      filter:drop-shadow(0 16px 24px rgba(0,0,0,.25));
     }
 
-    .brain-area{
+    .thought-core{
       position:absolute;
       left:50%;
-      top:54%;
-      width:62%;
-      aspect-ratio:1 / .9;
+      top:55%;
+      width:210px;
+      height:185px;
       transform:translate(-50%,-50%);
-      z-index:4;
+      border-radius:54% 46% 52% 48% / 55% 52% 48% 45%;
+      background:
+        radial-gradient(circle at 35% 28%, #e0e4ea 0%, #c4ccd5 48%, #aeb7c1 100%);
+      box-shadow:
+        inset 0 10px 18px rgba(255,255,255,.35),
+        inset 0 -10px 20px rgba(0,0,0,.08),
+        0 14px 22px rgba(0,0,0,.14);
+      z-index:3;
       display:flex;
       align-items:center;
       justify-content:center;
-      pointer-events:none;
-      transition:transform .3s ease, filter .5s ease;
-    }
-
-    .brain-blob{
-      position:absolute;
-      inset:0;
-      border-radius:56% 44% 52% 48% / 55% 52% 48% 45%;
-      background:
-        radial-gradient(circle at 34% 30%, #e2e6eb 0%, #cbd2d9 48%, #afb7c1 100%);
-      box-shadow:
-        inset 0 10px 14px rgba(255,255,255,.36),
-        inset 0 -10px 18px rgba(0,0,0,.08),
-        0 18px 24px rgba(0,0,0,.16);
-      animation:brainPulse 2.8s ease-in-out infinite;
+      text-align:center;
+      padding:24px;
       overflow:hidden;
+      transition:background .35s ease, opacity .25s ease, transform .15s ease;
     }
 
-    .brain-blob::before{
+    .scene.healed .thought-core{
+      background:
+        radial-gradient(circle at 35% 28%, #ffd7e8 0%, #ff9fc9 48%, #ff63ad 100%);
+    }
+
+    .thought-core::before{
       content:"";
       position:absolute;
-      inset:14% 18% 18% 16%;
+      inset:12%;
       border-radius:50%;
+      opacity:.2;
       background:
-        repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.16) 0 6px, rgba(255,255,255,0) 7px 16px);
-      opacity:.34;
-      filter:blur(1px);
-    }
-
-    .brain-blob::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        radial-gradient(circle at 68% 30%, rgba(255,255,255,.22) 0 10%, transparent 20%),
-        radial-gradient(circle at 35% 70%, rgba(255,255,255,.10) 0 12%, transparent 22%);
-      opacity:.8;
-    }
-
-    @keyframes brainPulse{
-      0%,100%{transform:scale(1)}
-      50%{transform:scale(1.018)}
-    }
-
-    .scene.healed .brain-blob{
-      background:
-        radial-gradient(circle at 34% 30%, var(--pink3) 0%, var(--pink2) 50%, var(--pink) 100%);
-      box-shadow:
-        inset 0 10px 14px rgba(255,255,255,.34),
-        inset 0 -10px 18px rgba(145,0,69,.14),
-        0 0 30px rgba(255,92,168,.24),
-        0 16px 22px rgba(0,0,0,.14);
+        repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.16) 0 6px, transparent 7px 14px);
     }
 
     .thought-text{
       position:relative;
       z-index:2;
-      width:76%;
-      text-align:center;
+      color:#1a2027;
+      font-size:clamp(1rem,2.5vw,1.15rem);
+      line-height:1.2;
       font-weight:1000;
-      font-size:clamp(.95rem,2.3vw,1.16rem);
-      line-height:1.22;
-      color:#1d232a;
-      text-shadow:0 1px 0 rgba(255,255,255,.25);
       word-break:break-word;
-      transition:color .4s ease, opacity .25s ease;
-      padding:6px 10px;
+      max-width:100%;
     }
 
-    .scene.healed .thought-text{color:#fff7fb}
+    .scene.healed .thought-text{
+      color:#fff8fb;
+    }
 
-    .brain-cracks{
+    .weakpoint{
+      position:absolute;
+      width:54px;
+      height:54px;
+      border-radius:50%;
+      z-index:8;
+      pointer-events:none;
+      transform:translate(-50%,-50%);
+      opacity:0;
+      transition:left .18s ease, top .18s ease, opacity .18s ease;
+    }
+
+    .weakpoint.show{
+      opacity:1;
+    }
+
+    .weakpoint .ring1,
+    .weakpoint .ring2,
+    .weakpoint .dot{
       position:absolute;
       inset:0;
+      border-radius:50%;
+    }
+
+    .weakpoint .ring1{
+      border:3px solid rgba(255,255,255,.92);
+      animation:targetPulse 1s ease-in-out infinite;
+    }
+
+    .weakpoint .ring2{
+      inset:10px;
+      border:2px solid rgba(255,230,242,.8);
+    }
+
+    .weakpoint .dot{
+      inset:19px;
+      background:#fff3f8;
+      box-shadow:0 0 14px rgba(255,255,255,.5);
+    }
+
+    @keyframes targetPulse{
+      0%,100%{transform:scale(1);opacity:1}
+      50%{transform:scale(1.12);opacity:.7}
+    }
+
+    .brain-cracks,
+    .jar-cracks{
+      position:absolute;
+      inset:0;
+      z-index:9;
       pointer-events:none;
-      z-index:3;
     }
 
     .crack{
       position:absolute;
-      left:50%;
-      top:50%;
       width:3px;
-      height:90px;
-      background:linear-gradient(180deg, rgba(34,40,47,.96), rgba(34,40,47,.15));
+      height:80px;
+      background:linear-gradient(180deg, rgba(30,36,43,.95), rgba(30,36,43,.18));
       border-radius:999px;
       transform-origin:top center;
-      opacity:.92;
-      box-shadow:0 0 0 1px rgba(255,255,255,.04);
+      opacity:.95;
     }
 
-    .crack::before,.crack::after{
+    .crack::before,
+    .crack::after{
       content:"";
       position:absolute;
       width:3px;
       border-radius:999px;
-      background:linear-gradient(180deg, rgba(34,40,47,.86), rgba(34,40,47,.16));
+      background:linear-gradient(180deg, rgba(30,36,43,.86), rgba(30,36,43,.16));
       transform-origin:top center;
     }
 
@@ -316,90 +325,127 @@
       transform:rotate(28deg);
     }
 
-    .glass-cracks{
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      z-index:7;
-    }
-
-    .glass-line{
+    .glass-crack{
       position:absolute;
       width:2px;
-      height:110px;
-      background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.18));
+      height:95px;
+      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.18));
       border-radius:999px;
       transform-origin:top center;
-      opacity:.85;
-      filter:blur(.1px);
+      opacity:.86;
     }
 
-    .glass-line::before,.glass-line::after{
+    .glass-crack::before,
+    .glass-crack::after{
       content:"";
       position:absolute;
       width:2px;
       border-radius:999px;
-      background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.16));
+      background:linear-gradient(180deg, rgba(255,255,255,.84), rgba(255,255,255,.16));
       transform-origin:top center;
     }
 
-    .glass-line::before{
-      height:var(--g1,24px);
-      top:22px;
+    .glass-crack::before{
+      height:var(--g1,22px);
+      top:18px;
       left:-7px;
       transform:rotate(-30deg);
     }
 
-    .glass-line::after{
+    .glass-crack::after{
       height:var(--g2,18px);
-      top:48px;
+      top:40px;
       left:7px;
-      transform:rotate(26deg);
+      transform:rotate(28deg);
     }
 
-    .smash{
+    .hit-word{
       position:absolute;
-      z-index:10;
-      font-size:clamp(2rem,5vw,3rem);
+      z-index:25;
+      font-size:clamp(1.4rem,4vw,2.2rem);
       font-weight:1000;
-      letter-spacing:.05em;
-      color:#fff8fb;
-      text-shadow:
-        0 8px 22px rgba(0,0,0,.24),
-        0 0 18px rgba(255,255,255,.16);
+      color:#fff7fb;
+      text-shadow:0 6px 18px rgba(0,0,0,.25);
       opacity:0;
-      transform:scale(.3) rotate(-6deg);
+      transform:scale(.35);
       pointer-events:none;
     }
 
-    .smash.show{animation:smashPop .38s ease forwards}
-    @keyframes smashPop{
-      0%{opacity:0;transform:scale(.3) rotate(-8deg)}
-      45%{opacity:1;transform:scale(1.1) rotate(0deg)}
-      100%{opacity:0;transform:scale(1.35) rotate(5deg)}
+    .hit-word.show{
+      animation:wordPop .32s ease forwards;
     }
 
-    .bloom{
-      position:absolute;
-      inset:-12%;
-      z-index:2;
-      background:
-        radial-gradient(circle at center, rgba(255,255,255,.26) 0%, rgba(255,180,214,.18) 18%, rgba(255,92,168,.14) 34%, transparent 62%);
-      opacity:0;
-      transform:scale(.75);
-      transition:opacity .8s ease, transform .8s ease;
-      pointer-events:none;
+    @keyframes wordPop{
+      0%{opacity:0;transform:scale(.35)}
+      45%{opacity:1;transform:scale(1.12)}
+      100%{opacity:0;transform:scale(1.35)}
     }
 
-    .scene.healed .bloom{
-      opacity:1;
-      transform:scale(1.04);
-    }
-
-    .result{
+    .flash{
       position:absolute;
       inset:0;
-      z-index:12;
+      background:radial-gradient(circle at center, rgba(255,255,255,.22), transparent 38%);
+      opacity:0;
+      pointer-events:none;
+      z-index:18;
+    }
+
+    .flash.show{
+      animation:flashPop .22s ease;
+    }
+
+    @keyframes flashPop{
+      0%{opacity:0}
+      30%{opacity:1}
+      100%{opacity:0}
+    }
+
+    .chest{
+      position:absolute;
+      left:50%;
+      top:-120px;
+      width:110px;
+      height:90px;
+      transform:translateX(-50%);
+      z-index:30;
+      opacity:0;
+      cursor:pointer;
+      pointer-events:none;
+    }
+
+    .chest.show{
+      opacity:1;
+      pointer-events:auto;
+      animation:dropChest .55s cubic-bezier(.2,.85,.2,1) forwards;
+    }
+
+    @keyframes dropChest{
+      0%{top:-120px}
+      75%{top:360px}
+      100%{top:342px}
+    }
+
+    .chest.bounce{
+      animation:chestBounce .28s ease;
+    }
+
+    @keyframes chestBounce{
+      0%{transform:translateX(-50%) scale(1)}
+      50%{transform:translateX(-50%) scale(1.08)}
+      100%{transform:translateX(-50%) scale(1)}
+    }
+
+    .chest svg{
+      width:100%;
+      height:100%;
+      display:block;
+      filter:drop-shadow(0 12px 18px rgba(0,0,0,.28));
+    }
+
+    .reward{
+      position:absolute;
+      inset:0;
+      z-index:40;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -407,29 +453,30 @@
       padding:28px;
       opacity:0;
       pointer-events:none;
-      transition:opacity .65s ease;
+      transition:opacity .45s ease;
     }
 
-    .result.show{
+    .reward.show{
       opacity:1;
       pointer-events:auto;
     }
 
-    .affirmation{
-      font-size:clamp(2rem,5.6vw,3.6rem);
+    .reward-box{
+      max-width:560px;
+    }
+
+    .reward-title{
+      font-size:clamp(2rem,5.8vw,3.4rem);
       line-height:1.04;
       letter-spacing:-.04em;
       font-weight:1000;
       color:#fff9fc;
-      text-shadow:
-        0 10px 24px rgba(0,0,0,.18),
-        0 0 20px rgba(255,255,255,.12);
-      max-width:560px;
+      text-shadow:0 10px 24px rgba(0,0,0,.18);
     }
 
-    .subaffirm{
+    .reward-sub{
       margin-top:12px;
-      color:#fff2f8;
+      color:#fff0f6;
       font-size:1rem;
       font-weight:900;
     }
@@ -442,22 +489,35 @@
       font-size:.98rem;
       font-weight:1000;
       cursor:pointer;
-      color:#7b1548;
+      color:#7b1547;
       background:#fff;
-      box-shadow:0 10px 20px rgba(0,0,0,.14);
+    }
+
+    .billbob{
+      margin-top:14px;
+      font-size:2.6rem;
+      letter-spacing:.2rem;
+      animation:dance 1s ease-in-out infinite;
+    }
+
+    @keyframes dance{
+      0%,100%{transform:translateY(0) rotate(0deg)}
+      25%{transform:translateY(-3px) rotate(-4deg)}
+      50%{transform:translateY(0) rotate(0deg)}
+      75%{transform:translateY(-3px) rotate(4deg)}
     }
 
     .disclaimer{
       padding:0 18px 18px;
       text-align:center;
-      color:#a9b2bd;
+      color:#a8b2bc;
       font-size:.74rem;
       line-height:1.4;
     }
 
     @media (max-width:560px){
-      .scene{height:500px}
-      .jar-wrap{inset:54px 0 0 0}
+      .scene{height:520px}
+      .jar{transform:scale(.92)}
       .prompt{font-size:.8rem}
     }
   </style>
@@ -470,7 +530,7 @@
       </div>
 
       <div class="entry">
-        <textarea id="thoughtInput" placeholder="What’s stuck in your head right now?"></textarea>
+        <textarea id="thoughtInput" placeholder="What's stuck in your head right now?"></textarea>
       </div>
 
       <div class="actions">
@@ -478,87 +538,56 @@
       </div>
 
       <div class="scene" id="scene">
-        <div class="prompt" id="prompt">Now smash that thought</div>
-        <div class="bloom"></div>
+        <div class="prompt" id="prompt">Find the weak spot and smash that thought</div>
+        <div class="flash" id="flash"></div>
+        <div class="hit-word" id="hitWord">SMASH</div>
 
-        <div class="jar-wrap">
+        <div class="jar-zone">
           <div class="jar" id="jar">
             <svg class="jar-svg" viewBox="0 0 320 420" aria-hidden="true">
-              <defs>
-                <linearGradient id="glassGrad" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="rgba(255,255,255,.20)" />
-                  <stop offset="100%" stop-color="rgba(255,255,255,.08)" />
-                </linearGradient>
-                <linearGradient id="lidGrad" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#959daa" />
-                  <stop offset="100%" stop-color="#5e6671" />
-                </linearGradient>
-              </defs>
-
-              <ellipse cx="160" cy="392" rx="98" ry="18" fill="rgba(0,0,0,.22)"/>
-
-              <rect x="92" y="22" width="136" height="34" rx="10" fill="url(#lidGrad)" opacity=".95"/>
-              <rect x="102" y="30" width="116" height="6" rx="3" fill="rgba(255,255,255,.20)"/>
-
-              <path d="M88 52
-                       Q86 82 84 124
-                       L84 292
-                       Q84 360 160 372
-                       Q236 360 236 292
-                       L236 124
-                       Q234 82 232 52 Z"
+              <ellipse cx="160" cy="392" rx="100" ry="18" fill="rgba(0,0,0,.20)"/>
+              <rect x="94" y="20" width="132" height="34" rx="10" fill="#6d7682"/>
+              <rect x="106" y="28" width="108" height="6" rx="3" fill="rgba(255,255,255,.18)"/>
+              <path d="M88 52 Q84 95 84 130 L84 292 Q84 358 160 372 Q236 358 236 292 L236 130 Q236 95 232 52 Z"
                     fill="rgba(255,255,255,.10)"
-                    stroke="rgba(255,255,255,.34)"
+                    stroke="rgba(255,255,255,.32)"
                     stroke-width="4"/>
-
-              <path d="M100 72
-                       Q96 98 96 132
-                       L96 286
-                       Q96 338 160 348
-                       Q224 338 224 286
-                       L224 132
-                       Q224 98 220 72 Z"
-                    fill="rgba(255,255,255,.06)"/>
-
-              <path d="M112 78
-                       Q102 152 104 274
-                       Q108 318 138 340"
-                    fill="none"
-                    stroke="rgba(255,255,255,.20)"
-                    stroke-width="8"
-                    stroke-linecap="round"/>
-
-              <path d="M214 92
-                       Q222 160 220 250"
-                    fill="none"
-                    stroke="rgba(255,255,255,.09)"
-                    stroke-width="5"
-                    stroke-linecap="round"/>
+              <path d="M100 72 Q96 98 96 132 L96 286 Q96 338 160 348 Q224 338 224 286 L224 132 Q224 98 220 72 Z"
+                    fill="rgba(255,255,255,.05)"/>
+              <path d="M112 80 Q104 158 106 276 Q110 318 138 340"
+                    fill="none" stroke="rgba(255,255,255,.18)" stroke-width="8" stroke-linecap="round"/>
+              <path d="M212 94 Q220 160 218 252"
+                    fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5" stroke-linecap="round"/>
             </svg>
 
-            <div class="brain-area">
-              <div class="brain-blob" id="brainBlob"></div>
+            <div class="thought-core" id="thoughtCore">
               <div class="thought-text" id="thoughtText">Drop a thought above</div>
-              <div class="brain-cracks" id="brainCracks"></div>
             </div>
 
-            <div class="glass-cracks" id="glassCracks"></div>
+            <div class="weakpoint" id="weakpoint">
+              <div class="ring1"></div>
+              <div class="ring2"></div>
+              <div class="dot"></div>
+            </div>
+
+            <div class="brain-cracks" id="brainCracks"></div>
+            <div class="jar-cracks" id="jarCracks"></div>
           </div>
         </div>
 
-        <div class="smash" id="smashText">SMASH</div>
+        <div class="chest" id="chest"></div>
 
-        <div class="result" id="result">
-          <div>
-            <div class="affirmation" id="affirmationText"></div>
-            <div class="subaffirm">You don’t have to keep that one.</div>
+        <div class="reward" id="reward">
+          <div class="reward-box" id="rewardBox">
+            <div class="reward-title" id="rewardTitle"></div>
+            <div class="rewardSub reward-sub" id="rewardSub"></div>
             <button class="again" id="againBtn">Dump another thought</button>
           </div>
         </div>
       </div>
 
       <div class="disclaimer">
-        A small reflection tool for stress relief and emotional reset. It is not a substitute for professional, crisis, or mental health care.
+        A small reflection tool for emotional reset. It is not a substitute for professional, crisis, or mental health care.
       </div>
     </div>
   </div>
@@ -568,165 +597,318 @@
     const dumpBtn = document.getElementById('dumpBtn');
     const scene = document.getElementById('scene');
     const jar = document.getElementById('jar');
+    const thoughtCore = document.getElementById('thoughtCore');
     const thoughtText = document.getElementById('thoughtText');
+    const weakpoint = document.getElementById('weakpoint');
     const brainCracks = document.getElementById('brainCracks');
-    const glassCracks = document.getElementById('glassCracks');
-    const smashText = document.getElementById('smashText');
-    const result = document.getElementById('result');
-    const affirmationText = document.getElementById('affirmationText');
+    const jarCracks = document.getElementById('jarCracks');
+    const hitWord = document.getElementById('hitWord');
+    const flash = document.getElementById('flash');
+    const chest = document.getElementById('chest');
+    const reward = document.getElementById('reward');
+    const rewardBox = document.getElementById('rewardBox');
+    const rewardTitle = document.getElementById('rewardTitle');
+    const rewardSub = document.getElementById('rewardSub');
     const againBtn = document.getElementById('againBtn');
 
-    const affirmations = [
-      "You can let that go.",
-      "That thought doesn’t get to stay.",
-      "Not every thought is true.",
-      "Your mind just made more room.",
-      "You don’t have to carry that one.",
-      "That spiral just lost its grip.",
-      "That one was loud, not wise.",
-      "You are allowed to release it."
+    const hitWords = ['SMASH','CRACK','BONK','POP','HIT'];
+
+    const yellowRewards = [
+      "That one doesn’t get to stay.",
+      "You just made some room upstairs.",
+      "That thought just lost its lease.",
+      "Nice hit. Let it go.",
+      "That one broke easier than it acted."
     ];
 
-    const smashWords = ["SMASH", "CRACK", "POP", "BREAK"];
+    const blueRewards = [
+      "Progress, not perfection.",
+      "Feelings aren’t facts.",
+      "Acceptance changes the weather inside.",
+      "Peace usually shows up when the wrestling stops.",
+      "A bad thought is not a prophecy."
+    ];
+
+    const purpleRewards = [
+      "RULE 62",
+    ];
 
     let state = {
-      ready: false,
-      broken: false,
-      tapsNeeded: 0,
-      tapsDone: 0,
-      currentThought: ""
+      mode: 'input', // input, smashing, chest, reward
+      durability: 0,
+      weakX: 0,
+      weakY: 0,
+      chestType: null
     };
 
-    function truncateThought(text, max = 70) {
-      const clean = text.replace(/\s+/g, ' ').trim();
-      return clean.length <= max ? clean : clean.slice(0, max).trim() + '...';
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     function pick(arr) {
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function randomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
+    function truncate(text, max = 68) {
+      const clean = text.replace(/\s+/g, ' ').trim();
+      return clean.length <= max ? clean : clean.slice(0, max).trim() + '...';
     }
 
     function vibrate(pattern) {
       if (navigator.vibrate) navigator.vibrate(pattern);
     }
 
-    function resetVisuals() {
-      scene.classList.remove('healed', 'shake');
-      result.classList.remove('show');
-      brainCracks.innerHTML = '';
-      glassCracks.innerHTML = '';
-      smashText.classList.remove('show');
-      state.broken = false;
-      state.tapsDone = 0;
+    function setWeakpoint() {
+      const rect = thoughtCore.getBoundingClientRect();
+      const jarRect = jar.getBoundingClientRect();
+
+      const pad = 36;
+      const x = (rect.left - jarRect.left) + randomInt(pad, Math.max(pad + 1, rect.width - pad));
+      const y = (rect.top - jarRect.top) + randomInt(pad, Math.max(pad + 1, rect.height - pad));
+
+      state.weakX = x;
+      state.weakY = y;
+
+      weakpoint.style.left = `${x}px`;
+      weakpoint.style.top = `${y}px`;
+      weakpoint.classList.add('show');
     }
 
-    function buildGame() {
+    function addBrainCrack(stronger = false) {
+      const crack = document.createElement('div');
+      crack.className = 'crack';
+      crack.style.left = `${randomInt(80, 270)}px`;
+      crack.style.top = `${randomInt(120, 270)}px`;
+      crack.style.height = `${stronger ? randomInt(80,130) : randomInt(50,95)}px`;
+      crack.style.transform = `rotate(${randomInt(0, 359)}deg)`;
+      crack.style.setProperty('--b1', `${randomInt(14,32)}px`);
+      crack.style.setProperty('--b2', `${randomInt(12,24)}px`);
+      brainCracks.appendChild(crack);
+    }
+
+    function addJarCrack(stronger = false) {
+      const crack = document.createElement('div');
+      crack.className = 'glass-crack';
+      crack.style.left = `${randomInt(90, 250)}px`;
+      crack.style.top = `${randomInt(70, 250)}px`;
+      crack.style.height = `${stronger ? randomInt(90,140) : randomInt(60,100)}px`;
+      crack.style.transform = `rotate(${randomInt(0, 359)}deg)`;
+      crack.style.setProperty('--g1', `${randomInt(14,30)}px`);
+      crack.style.setProperty('--g2', `${randomInt(12,24)}px`);
+      jarCracks.appendChild(crack);
+    }
+
+    function popWord(x, y, word) {
+      hitWord.textContent = word;
+      hitWord.style.left = `${x}px`;
+      hitWord.style.top = `${y}px`;
+      hitWord.classList.remove('show');
+      void hitWord.offsetWidth;
+      hitWord.classList.add('show');
+    }
+
+    function popFlash() {
+      flash.classList.remove('show');
+      void flash.offsetWidth;
+      flash.classList.add('show');
+    }
+
+    function chooseChestType() {
+      const roll = Math.random();
+      if (roll < 0.70) return 'yellow';
+      if (roll < 0.95) return 'blue';
+      return 'purple';
+    }
+
+    function chestSVG(type) {
+      const colors = {
+        yellow: { top: '#f7d56a', body: '#d7a62b', band: '#7c5911', glow: 'rgba(245,200,76,.35)' },
+        blue:   { top: '#7cc3ff', body: '#3b86da', band: '#1c4b84', glow: 'rgba(86,168,255,.35)' },
+        purple: { top: '#c79aff', body: '#8755e8', band: '#48278e', glow: 'rgba(166,107,255,.35)' }
+      };
+      const c = colors[type];
+      return `
+        <svg viewBox="0 0 120 100" aria-hidden="true">
+          <ellipse cx="60" cy="88" rx="34" ry="8" fill="rgba(0,0,0,.18)"/>
+          <rect x="18" y="36" width="84" height="40" rx="8" fill="${c.body}" />
+          <rect x="16" y="24" width="88" height="24" rx="10" fill="${c.top}" />
+          <rect x="54" y="24" width="12" height="52" rx="4" fill="${c.band}" />
+          <rect x="18" y="48" width="84" height="10" rx="4" fill="${c.band}" />
+          <rect x="52" y="44" width="16" height="16" rx="4" fill="#f3e7b0" />
+          <rect x="57" y="48" width="6" height="8" rx="2" fill="#8a6a1e" />
+        </svg>
+      `;
+    }
+
+    function resetGame() {
+      state.mode = 'input';
+      state.durability = 0;
+      state.chestType = null;
+
+      scene.classList.remove('healed');
+      thoughtText.textContent = 'Drop a thought above';
+      weakpoint.classList.remove('show');
+      brainCracks.innerHTML = '';
+      jarCracks.innerHTML = '';
+      chest.className = 'chest';
+      chest.innerHTML = '';
+      reward.classList.remove('show');
+      rewardTitle.textContent = '';
+      rewardSub.textContent = '';
+      rewardBox.querySelector('.billbob')?.remove();
+    }
+
+    function startGame() {
       const text = thoughtInput.value.trim();
       if (!text) {
         thoughtInput.focus();
         return;
       }
 
-      resetVisuals();
+      resetGame();
 
-      state.ready = true;
-      state.currentThought = truncateThought(text);
-      state.tapsNeeded = randomInt(4, 9);
-      thoughtText.textContent = state.currentThought;
+      thoughtText.textContent = truncate(text);
+      state.mode = 'smashing';
+      state.durability = randomInt(18, 28);
+
+      setTimeout(() => setWeakpoint(), 120);
     }
 
-    function addBrainCrack() {
-      const crack = document.createElement('div');
-      crack.className = 'crack';
-      crack.style.left = `${randomInt(30, 70)}%`;
-      crack.style.top = `${randomInt(26, 68)}%`;
-      crack.style.height = `${randomInt(48, 108)}px`;
-      crack.style.transform = `rotate(${randomInt(0, 359)}deg)`;
-      crack.style.setProperty('--b1', `${randomInt(14, 30)}px`);
-      crack.style.setProperty('--b2', `${randomInt(12, 24)}px`);
-      brainCracks.appendChild(crack);
+    function showReward(type) {
+      rewardBox.querySelector('.billbob')?.remove();
+
+      if (type === 'yellow') {
+        rewardTitle.textContent = pick(yellowRewards);
+        rewardSub.textContent = 'Yellow chest';
+      } else if (type === 'blue') {
+        rewardTitle.textContent = pick(blueRewards);
+        rewardSub.textContent = 'Blue chest';
+      } else {
+        rewardTitle.textContent = pick(purpleRewards);
+        rewardSub.textContent = "Don't take yourself so damn serious.";
+        const dancers = document.createElement('div');
+        dancers.className = 'billbob';
+        dancers.textContent = '🕺 🕺';
+        rewardBox.insertBefore(dancers, rewardSub);
+      }
+
+      reward.classList.add('show');
+      state.mode = 'reward';
     }
 
-    function addGlassCrack() {
-      const line = document.createElement('div');
-      line.className = 'glass-line';
-      line.style.left = `${randomInt(26, 74)}%`;
-      line.style.top = `${randomInt(20, 54)}%`;
-      line.style.height = `${randomInt(70, 130)}px`;
-      line.style.transform = `rotate(${randomInt(0, 359)}deg)`;
-      line.style.setProperty('--g1', `${randomInt(14, 32)}px`);
-      line.style.setProperty('--g2', `${randomInt(12, 24)}px`);
-      glassCracks.appendChild(line);
+    function spawnChest() {
+      state.mode = 'chest';
+      state.chestType = chooseChestType();
+      chest.innerHTML = chestSVG(state.chestType);
+      chest.classList.add('show');
+      vibrate([40,20,60]);
     }
 
-    function popSmash() {
-      const rect = scene.getBoundingClientRect();
-      smashText.textContent = pick(smashWords);
-      smashText.style.left = `${randomInt(rect.width * 0.18, rect.width * 0.72)}px`;
-      smashText.style.top = `${randomInt(rect.height * 0.20, rect.height * 0.58)}px`;
-      smashText.classList.remove('show');
-      void smashText.offsetWidth;
-      smashText.classList.add('show');
+    function breakThought() {
+      state.mode = 'breaking';
+      weakpoint.classList.remove('show');
+      jar.classList.remove('hit');
+      jar.classList.add('breakshake');
+
+      for (let i = 0; i < 4; i++) addBrainCrack(true);
+      for (let i = 0; i < 4; i++) addJarCrack(true);
+
+      vibrate([50, 25, 80, 25, 120]);
+
+      setTimeout(() => {
+        scene.classList.add('healed');
+      }, 130);
+
+      setTimeout(() => {
+        thoughtCore.style.opacity = '.08';
+      }, 220);
+
+      setTimeout(() => {
+        spawnChest();
+      }, 700);
+
+      setTimeout(() => {
+        jar.classList.remove('breakshake');
+      }, 300);
     }
 
-    function tapJar() {
-      if (!state.ready || state.broken) return;
+    function handleJarTap(e) {
+      if (state.mode !== 'smashing') return;
 
-      state.tapsDone += 1;
+      const rect = jar.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const dx = x - state.weakX;
+      const dy = y - state.weakY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      let damage = 1;
+      let word = pick(hitWords);
 
       jar.classList.remove('hit');
       void jar.offsetWidth;
       jar.classList.add('hit');
+      popFlash();
 
-      addBrainCrack();
-      if (state.tapsDone >= 2 && Math.random() > 0.35) addGlassCrack();
-
-      popSmash();
-      vibrate(18);
-
-      if (state.tapsDone >= state.tapsNeeded) {
-        completeBreak();
+      if (dist <= 18) {
+        damage = 3;
+        addBrainCrack(true);
+        addJarCrack(true);
+        vibrate([40]);
+      } else if (dist <= 42) {
+        damage = 2;
+        addBrainCrack(true);
+        if (Math.random() > 0.45) addJarCrack(false);
+        vibrate([20,20]);
+      } else {
+        damage = 1;
+        addBrainCrack(false);
+        if (Math.random() > 0.7) addJarCrack(false);
+        vibrate([12]);
       }
+
+      state.durability -= damage;
+      popWord(x, y, word);
+
+      if (state.durability <= 0) {
+        breakThought();
+        return;
+      }
+
+      setWeakpoint();
     }
 
-    function completeBreak() {
-      state.broken = true;
-      scene.classList.add('shake');
+    function openChest() {
+      if (state.mode !== 'chest') return;
 
-      if (glassCracks.children.length < 4) {
-        for (let i = glassCracks.children.length; i < 4; i++) addGlassCrack();
-      }
+      chest.classList.remove('bounce');
+      void chest.offsetWidth;
+      chest.classList.add('bounce');
 
-      vibrate([25, 20, 45, 20, 80]);
-
-      setTimeout(() => {
-        scene.classList.add('healed');
-      }, 120);
+      if (state.chestType === 'yellow') vibrate([25,20,40]);
+      if (state.chestType === 'blue') vibrate([30,20,60]);
+      if (state.chestType === 'purple') vibrate([40,20,70,20,90]);
 
       setTimeout(() => {
-        affirmationText.textContent = pick(affirmations);
-        result.classList.add('show');
-        state.ready = false;
-      }, 760);
+        chest.classList.remove('show');
+        showReward(state.chestType);
+      }, 220);
     }
 
-    dumpBtn.addEventListener('click', buildGame);
-    jar.addEventListener('click', tapJar);
+    dumpBtn.addEventListener('click', startGame);
+    jar.addEventListener('click', handleJarTap);
+    chest.addEventListener('click', openChest);
 
     againBtn.addEventListener('click', () => {
-      resetVisuals();
-      state.ready = false;
       thoughtInput.value = '';
-      thoughtText.textContent = 'Drop a thought above';
+      thoughtCore.style.opacity = '1';
+      resetGame();
       thoughtInput.focus();
     });
 
     thoughtInput.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') buildGame();
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') startGame();
     });
   </script>
 </body>
