@@ -16,6 +16,8 @@
       --blue:#56a8ff;
       --purple:#a66bff;
       --line:rgba(255,255,255,.12);
+      --green1:#7df0a1;
+      --green2:#2ecc71;
     }
 
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -157,8 +159,8 @@
       width:100%;
       height:100%;
       border-radius:999px;
-      background:linear-gradient(90deg,#ff98c4,#ff5ea8);
-      box-shadow:0 0 14px rgba(255,94,168,.28);
+      background:linear-gradient(90deg,var(--green1),var(--green2));
+      box-shadow:0 0 14px rgba(46,204,113,.28);
       transition:width .18s ease;
     }
 
@@ -198,7 +200,7 @@
       position:relative;
       width:min(360px,82vw);
       height:430px;
-      cursor:pointer;
+      pointer-events:none;
       transition:transform .08s ease;
     }
 
@@ -747,14 +749,14 @@
     }
 
     function setWeakpoint() {
-      const coreRect = thoughtCore.getBoundingClientRect();
-      const jarRect = jar.getBoundingClientRect();
+      const sceneRect = scene.getBoundingClientRect();
+      const size = 54;
+      const pad = 18;
 
-      const pad = 32;
-      const minX = coreRect.left - jarRect.left + pad;
-      const maxX = coreRect.right - jarRect.left - pad;
-      const minY = coreRect.top - jarRect.top + pad;
-      const maxY = coreRect.bottom - jarRect.top - pad;
+      const minX = pad + size / 2;
+      const maxX = sceneRect.width - pad - size / 2;
+      const minY = 110;
+      const maxY = sceneRect.height - 80;
 
       state.weakX = randomInt(Math.round(minX), Math.round(maxX));
       state.weakY = randomInt(Math.round(minY), Math.round(maxY));
@@ -923,10 +925,10 @@
       }, 700);
     }
 
-    function handleJarTap(e) {
+    function handleSceneTap(e) {
       if (state.mode !== 'smashing') return;
 
-      const rect = jar.getBoundingClientRect();
+      const rect = scene.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
@@ -988,8 +990,11 @@
     }
 
     dumpBtn.addEventListener('click', startGame);
-    jar.addEventListener('click', handleJarTap);
-    chest.addEventListener('click', openChest);
+    scene.addEventListener('click', handleSceneTap);
+    chest.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openChest();
+    });
 
     againBtn.addEventListener('click', () => {
       thoughtInput.value = '';
