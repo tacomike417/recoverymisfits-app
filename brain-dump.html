@@ -1,710 +1,355 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The Brain Dumper</title>
-  <style>
-    :root{
-      --bg:#22252b;
-      --panel:#2a2e35;
-      --panel2:#1d2025;
-      --text:#f4f6f8;
-      --muted:#b6bec8;
-      --pink:#ff4fa0;
-      --pink2:#ff8fc2;
-      --white:#ffffff;
-      --shadow:0 20px 50px rgba(0,0,0,.35);
-      --radius:24px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Brain Dumper</title>
 
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{
-      margin:0;
-      min-height:100%;
-      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-      color:var(--text);
-      background:var(--bg);
-    }
+<style>
 
-    body{
-      display:flex;
-      justify-content:center;
-      padding:16px 12px 24px;
-    }
+:root{
+--bg:#1e2126;
+--panel:#2a2e35;
+--text:#f3f5f7;
+--pink:#ff6ca8;
+--pink2:#ff9fc8;
+--gray1:#d6dbe1;
+--gray2:#c0c6cd;
+--gray3:#aeb6bf;
+}
 
-    .wrap{
-      width:100%;
-      max-width:760px;
-    }
+*{box-sizing:border-box}
 
-    .card{
-      background:linear-gradient(180deg,var(--panel),var(--panel2));
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
+body{
+margin:0;
+font-family:system-ui,Segoe UI,Roboto,sans-serif;
+background:linear-gradient(#2b2f36,#1e2126);
+color:var(--text);
+display:flex;
+justify-content:center;
+padding:20px;
+}
 
-    .top{
-      padding:20px 18px 10px;
-      text-align:center;
-    }
+.wrap{
+width:100%;
+max-width:700px;
+}
 
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 14px;
-      border-radius:999px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.08);
-      color:var(--muted);
-      font-size:.86rem;
-      margin-bottom:10px;
-    }
+.card{
+background:linear-gradient(#2a2e35,#1b1e23);
+border-radius:24px;
+border:1px solid rgba(255,255,255,.08);
+box-shadow:0 20px 40px rgba(0,0,0,.35);
+overflow:hidden;
+}
 
-    h1{
-      margin:0;
-      font-size:clamp(2rem,5vw,3rem);
-      line-height:1;
-      letter-spacing:-.04em;
-    }
+.top{
+text-align:center;
+padding:24px 20px 10px;
+}
 
-    .entry{
-      padding:12px 18px 0;
-    }
+h1{
+margin:0;
+font-size:2.6rem;
+letter-spacing:-.04em;
+}
 
-    textarea{
-      width:100%;
-      min-height:120px;
-      resize:vertical;
-      border:none;
-      outline:none;
-      border-radius:20px;
-      padding:16px;
-      background:#15181c;
-      color:var(--text);
-      border:1px solid rgba(255,255,255,.08);
-      font-size:1rem;
-      line-height:1.45;
-    }
+.entry{
+padding:14px 20px 0;
+}
 
-    textarea::placeholder{
-      color:#9ba4b0;
-    }
+textarea{
+width:100%;
+min-height:110px;
+border-radius:18px;
+border:none;
+outline:none;
+padding:16px;
+background:#13161a;
+border:1px solid rgba(255,255,255,.08);
+color:white;
+font-size:1rem;
+}
 
-    .actions{
-      padding:12px 18px 18px;
-    }
+textarea::placeholder{
+color:#9aa3ad;
+}
 
-    .dump-btn{
-      width:100%;
-      border:none;
-      cursor:pointer;
-      border-radius:999px;
-      padding:15px 22px;
-      font-size:1rem;
-      font-weight:900;
-      color:#fff;
-      background:linear-gradient(135deg,var(--pink),var(--pink2));
-      box-shadow:0 12px 24px rgba(255,79,160,.25);
-      transition:transform .14s ease, filter .2s ease;
-    }
+.actions{
+padding:12px 20px 18px;
+}
 
-    .dump-btn:active{
-      transform:scale(.985);
-      filter:brightness(.98);
-    }
+.dump-btn{
+width:100%;
+padding:15px;
+border:none;
+border-radius:999px;
+font-weight:900;
+font-size:1rem;
+color:white;
+cursor:pointer;
+background:linear-gradient(135deg,var(--pink),var(--pink2));
+box-shadow:0 12px 24px rgba(255,80,160,.25);
+}
 
-    .hud{
-      display:flex;
-      justify-content:center;
-      padding:0 18px 12px;
-    }
+.scene{
+position:relative;
+height:480px;
+margin:0 20px 16px;
+border-radius:22px;
+overflow:hidden;
+border:1px solid rgba(255,255,255,.08);
+background:#30343b;
+display:flex;
+align-items:center;
+justify-content:center;
+}
 
-    .hud-pill{
-      padding:8px 12px;
-      border-radius:999px;
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.08);
-      color:#d5dbe3;
-      font-size:.9rem;
-      font-weight:800;
-      max-width:100%;
-      overflow:hidden;
-      white-space:nowrap;
-      text-overflow:ellipsis;
-    }
+.prompt{
+position:absolute;
+top:16px;
+left:50%;
+transform:translateX(-50%);
+background:rgba(0,0,0,.25);
+border-radius:999px;
+padding:8px 14px;
+font-weight:900;
+font-size:.85rem;
+}
 
-    .scene{
-      position:relative;
-      height:500px;
-      margin:0 18px 14px;
-      border-radius:24px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.08);
-      background:#2f3339;
-      user-select:none;
-      isolation:isolate;
-    }
+.brain{
+width:320px;
+aspect-ratio:1/1;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+padding:40px;
+cursor:pointer;
+color:#1c2127;
+font-weight:900;
+font-size:1.2rem;
 
-    .matter{
-      position:absolute;
-      inset:0;
-      transition:opacity .9s ease, filter .9s ease, transform .9s ease;
-    }
+background:
+radial-gradient(circle at 35% 30%,var(--gray1) 0%,var(--gray2) 45%,var(--gray3) 100%);
 
-    .matter.gray{
-      opacity:1;
-      background:
-        radial-gradient(circle at 12% 18%, rgba(255,255,255,.08) 0 7%, transparent 8%),
-        radial-gradient(circle at 25% 30%, rgba(255,255,255,.05) 0 6%, transparent 7%),
-        radial-gradient(circle at 40% 20%, rgba(255,255,255,.07) 0 8%, transparent 9%),
-        radial-gradient(circle at 56% 34%, rgba(255,255,255,.05) 0 7%, transparent 8%),
-        radial-gradient(circle at 75% 22%, rgba(255,255,255,.07) 0 8%, transparent 9%),
-        radial-gradient(circle at 18% 68%, rgba(255,255,255,.05) 0 8%, transparent 9%),
-        radial-gradient(circle at 36% 76%, rgba(255,255,255,.06) 0 7%, transparent 8%),
-        radial-gradient(circle at 57% 65%, rgba(255,255,255,.05) 0 7%, transparent 8%),
-        radial-gradient(circle at 78% 72%, rgba(255,255,255,.06) 0 9%, transparent 10%),
-        linear-gradient(180deg,#4b4f56,#3d4047 45%,#2e3238);
-      filter:saturate(.85);
-    }
+border-radius:55% 45% 50% 50% / 55% 55% 45% 45%;
 
-    .matter.pink{
-      opacity:0;
-      background:
-        radial-gradient(circle at 12% 18%, rgba(255,255,255,.16) 0 7%, transparent 8%),
-        radial-gradient(circle at 25% 30%, rgba(255,255,255,.11) 0 6%, transparent 7%),
-        radial-gradient(circle at 40% 20%, rgba(255,255,255,.14) 0 8%, transparent 9%),
-        radial-gradient(circle at 56% 34%, rgba(255,255,255,.10) 0 7%, transparent 8%),
-        radial-gradient(circle at 75% 22%, rgba(255,255,255,.14) 0 8%, transparent 9%),
-        radial-gradient(circle at 18% 68%, rgba(255,255,255,.10) 0 8%, transparent 9%),
-        radial-gradient(circle at 36% 76%, rgba(255,255,255,.13) 0 7%, transparent 8%),
-        radial-gradient(circle at 57% 65%, rgba(255,255,255,.10) 0 7%, transparent 8%),
-        radial-gradient(circle at 78% 72%, rgba(255,255,255,.13) 0 9%, transparent 10%),
-        linear-gradient(180deg,#ffb0d1,#ff84b8 45%,#d75c95);
-      filter:saturate(1.05);
-    }
+box-shadow:
+0 18px 40px rgba(0,0,0,.25),
+inset 0 10px 20px rgba(255,255,255,.6),
+inset 0 -10px 20px rgba(0,0,0,.05);
 
-    .scene.healed .matter.gray{
-      opacity:0;
-      filter:blur(8px);
-      transform:scale(1.04);
-    }
+animation:pulse 2.8s ease-in-out infinite;
+}
 
-    .scene.healed .matter.pink{
-      opacity:1;
-    }
+@keyframes pulse{
+0%,100%{transform:scale(1)}
+50%{transform:scale(1.02)}
+}
 
-    .grid{
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-      background-size:34px 34px;
-      opacity:.35;
-      pointer-events:none;
-    }
+.brain.hit{
+animation:thump .18s ease;
+}
 
-    .vignette{
-      position:absolute;
-      inset:0;
-      background:radial-gradient(circle at center, transparent 32%, rgba(0,0,0,.18) 100%);
-      pointer-events:none;
-    }
+@keyframes thump{
+0%{transform:scale(1)}
+40%{transform:scale(.95)}
+100%{transform:scale(1)}
+}
 
-    .prompt{
-      position:absolute;
-      top:16px;
-      left:50%;
-      transform:translateX(-50%);
-      z-index:5;
-      padding:9px 13px;
-      border-radius:999px;
-      background:rgba(0,0,0,.26);
-      border:1px solid rgba(255,255,255,.08);
-      color:#f8dde9;
-      font-size:.85rem;
-      font-weight:900;
-      letter-spacing:.03em;
-      transition:opacity .25s ease, transform .25s ease;
-    }
+.scene.healed .brain{
+background:
+radial-gradient(circle at 35% 30%,#ffd6e8 0%,#ff9ec7 45%,#ff6da9 100%);
+color:white;
+}
 
-    .prompt.hide{
-      opacity:0;
-      transform:translateX(-50%) translateY(-10px);
-    }
+.smash{
+position:absolute;
+font-weight:900;
+font-size:2rem;
+color:white;
+opacity:0;
+pointer-events:none;
+}
 
-    .thought-wrap{
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      z-index:4;
-      transition:opacity .35s ease, transform .35s ease;
-    }
+.smash.show{
+animation:pop .35s ease forwards;
+}
 
-    .thought-wrap.hide{
-      opacity:0;
-      transform:scale(.9);
-      pointer-events:none;
-    }
+@keyframes pop{
+0%{opacity:0;transform:scale(.4)}
+50%{opacity:1;transform:scale(1.2)}
+100%{opacity:0;transform:scale(1.4)}
+}
 
-    .thought{
-      position:relative;
-      width:min(360px,84%);
-      aspect-ratio:1 / 1;
-      border-radius:50%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:42px;
-      cursor:pointer;
-      background:
-        radial-gradient(circle at 30% 26%, #ffffff 0 18%, #f4f6fb 19%, #e5eaf2 70%, #d5dce7 100%);
-      border:3px solid rgba(255,255,255,.7);
-      box-shadow:
-        0 18px 34px rgba(0,0,0,.2),
-        inset 0 10px 18px rgba(255,255,255,.65),
-        inset 0 -10px 20px rgba(0,0,0,.05);
-      overflow:hidden;
-      transition:transform .08s ease, box-shadow .18s ease, filter .18s ease;
-    }
+.result{
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+opacity:0;
+transition:.6s;
+}
 
-    .thought:active{
-      transform:scale(.985);
-    }
+.result.show{
+opacity:1;
+}
 
-    .thought.hit{
-      animation:thump .18s ease;
-    }
+.affirmation{
+font-size:2.6rem;
+font-weight:900;
+max-width:500px;
+}
 
-    @keyframes thump{
-      0%{transform:scale(1)}
-      40%{transform:scale(.96)}
-      100%{transform:scale(1)}
-    }
+.again{
+margin-top:18px;
+border:none;
+border-radius:999px;
+padding:12px 18px;
+font-weight:900;
+cursor:pointer;
+}
 
-    .thought-text{
-      position:relative;
-      z-index:2;
-      color:#17202a;
-      font-size:clamp(1rem,2.6vw,1.25rem);
-      line-height:1.25;
-      font-weight:1000;
-      max-width:100%;
-      word-break:break-word;
-    }
+.disclaimer{
+text-align:center;
+font-size:.75rem;
+color:#9aa3ad;
+padding:0 20px 20px;
+}
 
-    .cracks{
-      position:absolute;
-      inset:0;
-      z-index:3;
-      pointer-events:none;
-    }
-
-    .crack{
-      position:absolute;
-      left:50%;
-      top:50%;
-      width:3px;
-      height:80px;
-      background:linear-gradient(180deg, rgba(40,44,52,.9), rgba(40,44,52,.2));
-      border-radius:999px;
-      transform-origin:top center;
-      opacity:.95;
-      box-shadow:0 0 0 1px rgba(255,255,255,.05);
-    }
-
-    .crack::before,
-    .crack::after{
-      content:"";
-      position:absolute;
-      width:3px;
-      background:linear-gradient(180deg, rgba(40,44,52,.8), rgba(40,44,52,.15));
-      border-radius:999px;
-      transform-origin:top center;
-    }
-
-    .crack::before{
-      height:28px;
-      top:20px;
-      left:-8px;
-      transform:rotate(-28deg);
-    }
-
-    .crack::after{
-      height:22px;
-      top:36px;
-      left:8px;
-      transform:rotate(30deg);
-    }
-
-    .smash{
-      position:absolute;
-      font-weight:1000;
-      color:#fff4fa;
-      text-shadow:0 6px 18px rgba(0,0,0,.18);
-      letter-spacing:.04em;
-      opacity:0;
-      pointer-events:none;
-      z-index:6;
-      transform:scale(.4);
-    }
-
-    .smash.show{
-      animation:smashPop .38s ease forwards;
-    }
-
-    @keyframes smashPop{
-      0%{opacity:0;transform:scale(.4)}
-      45%{opacity:1;transform:scale(1.12)}
-      100%{opacity:0;transform:scale(1.38)}
-    }
-
-    .piece{
-      position:absolute;
-      background:
-        radial-gradient(circle at 35% 30%, #fff 0 18%, #f1f4f9 19%, #dde3ec 100%);
-      border:2px solid rgba(255,255,255,.65);
-      box-shadow:0 12px 20px rgba(0,0,0,.16);
-      pointer-events:none;
-      z-index:5;
-    }
-
-    .result{
-      position:absolute;
-      inset:0;
-      z-index:7;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:28px;
-      opacity:0;
-      pointer-events:none;
-      transition:opacity .7s ease;
-    }
-
-    .result.show{
-      opacity:1;
-      pointer-events:auto;
-    }
-
-    .affirmation{
-      font-size:clamp(2rem,6vw,3.7rem);
-      line-height:1.03;
-      letter-spacing:-.04em;
-      font-weight:1000;
-      color:#fff8fb;
-      text-shadow:0 10px 28px rgba(0,0,0,.16);
-      max-width:620px;
-    }
-
-    .subaffirm{
-      margin-top:14px;
-      color:#fff0f6;
-      font-size:1rem;
-      font-weight:800;
-      opacity:.95;
-    }
-
-    .again{
-      margin-top:20px;
-      border:none;
-      border-radius:999px;
-      padding:12px 18px;
-      font-size:.98rem;
-      font-weight:1000;
-      cursor:pointer;
-      color:#7a1247;
-      background:#fff;
-      box-shadow:0 10px 20px rgba(0,0,0,.14);
-    }
-
-    .disclaimer{
-      padding:0 18px 18px;
-      text-align:center;
-      color:#aab3be;
-      font-size:.74rem;
-      line-height:1.4;
-    }
-
-    @media (max-width:560px){
-      .scene{height:440px}
-      .thought{width:min(300px,86%);padding:34px}
-      .thought-text{font-size:1rem}
-      .prompt{font-size:.8rem}
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="top">
-        <div class="badge">🧠 The Brain Dumper</div>
-        <h1>The Brain Dumper</h1>
-      </div>
 
-      <div class="entry">
-        <textarea id="thoughtInput" placeholder="What’s stuck in your head right now?"></textarea>
-      </div>
+<div class="wrap">
 
-      <div class="actions">
-        <button class="dump-btn" id="dumpBtn">Dump</button>
-      </div>
+<div class="card">
 
-      <div class="hud">
-        <div class="hud-pill" id="statusPill">Thought: waiting...</div>
-      </div>
+<div class="top">
+<h1>🧠 The Brain Dumper</h1>
+</div>
 
-      <div class="scene" id="scene">
-        <div class="matter gray"></div>
-        <div class="matter pink"></div>
-        <div class="grid"></div>
-        <div class="vignette"></div>
+<div class="entry">
+<textarea id="thoughtInput" placeholder="What's stuck in your head right now?"></textarea>
+</div>
 
-        <div class="prompt" id="prompt">Tap the thought until it breaks</div>
+<div class="actions">
+<button class="dump-btn" id="dumpBtn">Dump</button>
+</div>
 
-        <div class="thought-wrap" id="thoughtWrap">
-          <div class="thought" id="thought">
-            <div class="thought-text" id="thoughtText">Thought: waiting...</div>
-            <div class="cracks" id="cracks"></div>
-          </div>
-        </div>
+<div class="scene" id="scene">
 
-        <div class="smash" id="smashText">SMASH</div>
+<div class="prompt">Now smash that thought</div>
 
-        <div class="result" id="result">
-          <div>
-            <div class="affirmation" id="affirmationText"></div>
-            <div class="subaffirm">You don’t have to keep that one.</div>
-            <button class="again" id="againBtn">Dump another thought</button>
-          </div>
-        </div>
-      </div>
+<div class="brain" id="brain">
+Drop a thought above
+</div>
 
-      <div class="disclaimer">
-        A small reflection tool for stress relief and emotional reset. It is not a substitute for professional, crisis, or mental health care.
-      </div>
-    </div>
-  </div>
+<div class="smash" id="smash">SMASH</div>
 
-  <script>
-    const thoughtInput = document.getElementById('thoughtInput');
-    const dumpBtn = document.getElementById('dumpBtn');
-    const scene = document.getElementById('scene');
-    const promptEl = document.getElementById('prompt');
-    const thoughtWrap = document.getElementById('thoughtWrap');
-    const thought = document.getElementById('thought');
-    const thoughtText = document.getElementById('thoughtText');
-    const cracks = document.getElementById('cracks');
-    const smashText = document.getElementById('smashText');
-    const result = document.getElementById('result');
-    const affirmationText = document.getElementById('affirmationText');
-    const againBtn = document.getElementById('againBtn');
-    const statusPill = document.getElementById('statusPill');
+<div class="result" id="result">
+<div>
+<div class="affirmation" id="affirmation"></div>
+<button class="again" id="again">Dump another thought</button>
+</div>
+</div>
 
-    const affirmations = [
-      "You can let that go.",
-      "That thought doesn’t get to stay.",
-      "Not every thought is true.",
-      "There’s a little more room in your head now.",
-      "You do not have to carry every weird thing your mind says.",
-      "That spiral just lost its grip.",
-      "You can move on without dragging that with you.",
-      "That one was loud, not wise."
-    ];
+</div>
 
-    const smashWords = ["SMASH", "CRACK", "BONK", "POP", "BREAK"];
+<div class="disclaimer">
+A small reflection tool for emotional reset. Not a substitute for professional care.
+</div>
 
-    let state = {
-      ready: false,
-      broken: false,
-      tapsNeeded: 0,
-      tapsDone: 0,
-      thoughtLabel: ""
-    };
+</div>
+</div>
 
-    function truncateThought(text, max = 38) {
-      const clean = text.replace(/\s+/g, ' ').trim();
-      if (clean.length <= max) return clean;
-      return clean.slice(0, max).trim() + '...';
-    }
+<script>
 
-    function pick(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
+const brain=document.getElementById("brain")
+const dumpBtn=document.getElementById("dumpBtn")
+const thoughtInput=document.getElementById("thoughtInput")
+const smash=document.getElementById("smash")
+const scene=document.getElementById("scene")
+const result=document.getElementById("result")
+const affirmation=document.getElementById("affirmation")
+const again=document.getElementById("again")
 
-    function vibrate(pattern) {
-      if (navigator.vibrate) navigator.vibrate(pattern);
-    }
+const affirmations=[
+"You can let that go.",
+"That thought doesn't get to stay.",
+"Not every thought is true.",
+"Your mind just made more space.",
+"You don't have to carry that one.",
+"That spiral just lost its grip."
+]
 
-    function randomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
+let tapsNeeded=0
+let taps=0
+let ready=false
 
-    function resetGame() {
-      scene.classList.remove('healed');
-      result.classList.remove('show');
-      thoughtWrap.classList.remove('hide');
-      promptEl.classList.remove('hide');
-      cracks.innerHTML = '';
-      thought.style.display = 'flex';
-      thought.style.filter = '';
-      thought.style.transform = '';
-      state.broken = false;
-      state.tapsDone = 0;
-    }
+function rand(min,max){
+return Math.floor(Math.random()*(max-min+1))+min
+}
 
-    function buildGame() {
-      const text = thoughtInput.value.trim();
-      if (!text) return;
+dumpBtn.onclick=()=>{
+const text=thoughtInput.value.trim()
+if(!text)return
 
-      resetGame();
+brain.textContent=text
+tapsNeeded=rand(3,10)
+taps=0
+ready=true
+scene.classList.remove("healed")
+result.classList.remove("show")
+}
 
-      state.ready = true;
-      state.tapsNeeded = randomInt(2, 15);
-      state.tapsDone = 0;
-      state.thoughtLabel = `Thought: ${truncateThought(text)}`;
+brain.onclick=()=>{
 
-      thoughtText.textContent = state.thoughtLabel;
-      statusPill.textContent = `${state.thoughtLabel}  •  Taps left: ${state.tapsNeeded}`;
-      affirmationText.textContent = '';
-    }
+if(!ready)return
 
-    function addCrack() {
-      const crack = document.createElement('div');
-      crack.className = 'crack';
+taps++
 
-      const angle = randomInt(0, 359);
-      const length = randomInt(52, 130);
-      const x = randomInt(28, 72);
-      const y = randomInt(24, 70);
+brain.classList.remove("hit")
+void brain.offsetWidth
+brain.classList.add("hit")
 
-      crack.style.left = `${x}%`;
-      crack.style.top = `${y}%`;
-      crack.style.height = `${length}px`;
-      crack.style.transform = `rotate(${angle}deg)`;
+smash.textContent=["SMASH","CRACK","POP","BONK"][rand(0,3)]
 
-      const beforeH = randomInt(14, 34);
-      const afterH = randomInt(12, 28);
+smash.style.left=rand(40,300)+"px"
+smash.style.top=rand(120,260)+"px"
 
-      crack.style.setProperty('--beforeH', `${beforeH}px`);
-      crack.style.setProperty('--afterH', `${afterH}px`);
+smash.classList.remove("show")
+void smash.offsetWidth
+smash.classList.add("show")
 
-      cracks.appendChild(crack);
-    }
+if(taps>=tapsNeeded){
 
-    function popSmash() {
-      smashText.textContent = pick(smashWords);
-      smashText.classList.remove('show');
+scene.classList.add("healed")
 
-      const sceneRect = scene.getBoundingClientRect();
-      const x = randomInt(sceneRect.width * 0.22, sceneRect.width * 0.78);
-      const y = randomInt(sceneRect.height * 0.22, sceneRect.height * 0.7);
+affirmation.textContent=
+affirmations[rand(0,affirmations.length-1)]
 
-      smashText.style.left = `${x}px`;
-      smashText.style.top = `${y}px`;
+result.classList.add("show")
 
-      void smashText.offsetWidth;
-      smashText.classList.add('show');
-    }
+ready=false
 
-    function burstPieces() {
-      const sceneRect = scene.getBoundingClientRect();
-      const thoughtRect = thought.getBoundingClientRect();
+}
 
-      const cx = thoughtRect.left - sceneRect.left + thoughtRect.width / 2;
-      const cy = thoughtRect.top - sceneRect.top + thoughtRect.height / 2;
+}
 
-      const pieces = 10;
-      for (let i = 0; i < pieces; i++) {
-        const piece = document.createElement('div');
-        piece.className = 'piece';
+again.onclick=()=>{
+thoughtInput.value=""
+brain.textContent="Drop a thought above"
+result.classList.remove("show")
+scene.classList.remove("healed")
+ready=false
+}
 
-        const size = randomInt(22, 54);
-        piece.style.width = `${size}px`;
-        piece.style.height = `${size}px`;
-        piece.style.left = `${cx - size / 2}px`;
-        piece.style.top = `${cy - size / 2}px`;
+</script>
 
-        if (Math.random() > 0.5) {
-          piece.style.borderRadius = `${randomInt(30, 55)}% ${randomInt(30, 55)}% ${randomInt(30, 55)}% ${randomInt(30, 55)}%`;
-        } else {
-          piece.style.borderRadius = '50%';
-        }
-
-        scene.appendChild(piece);
-
-        const dx = randomInt(-180, 180);
-        const dy = randomInt(-180, 180);
-        const rot = randomInt(-220, 220);
-        const scale = (Math.random() * 0.6 + 0.4).toFixed(2);
-
-        requestAnimationFrame(() => {
-          piece.style.transition = 'transform .75s cubic-bezier(.2,.8,.2,1), opacity .75s ease';
-          piece.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(${scale})`;
-          piece.style.opacity = '0';
-        });
-
-        setTimeout(() => piece.remove(), 800);
-      }
-    }
-
-    function completeBreak() {
-      if (state.broken) return;
-      state.broken = true;
-      statusPill.textContent = `${state.thoughtLabel}  •  Broken`;
-
-      vibrate([35, 20, 55, 20, 85]);
-      burstPieces();
-
-      thoughtWrap.classList.add('hide');
-      promptEl.classList.add('hide');
-
-      setTimeout(() => {
-        scene.classList.add('healed');
-      }, 120);
-
-      setTimeout(() => {
-        affirmationText.textContent = pick(affirmations);
-        result.classList.add('show');
-      }, 850);
-    }
-
-    dumpBtn.addEventListener('click', buildGame);
-
-    thought.addEventListener('click', () => {
-      if (!state.ready || state.broken) return;
-
-      state.tapsDone += 1;
-      const tapsLeft = Math.max(0, state.tapsNeeded - state.tapsDone);
-
-      thought.classList.remove('hit');
-      void thought.offsetWidth;
-      thought.classList.add('hit');
-
-      addCrack();
-      popSmash();
-
-      if (tapsLeft > 0) {
-        statusPill.textContent = `${state.thoughtLabel}  •  Taps left: ${tapsLeft}`;
-        vibrate(18);
-      } else {
-        completeBreak();
-      }
-    });
-
-    againBtn.addEventListener('click', () => {
-      buildGame();
-    });
-
-    buildGame = buildGame.bind(window);
-  </script>
 </body>
 </html>
