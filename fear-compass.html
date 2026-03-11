@@ -458,6 +458,30 @@
       color:var(--blue);
     }
 
+    .release-screen{
+      text-align:center;
+      padding:18px 6px;
+      animation:fadeIn .25s ease;
+    }
+
+    .release-screen h2{
+      margin:0 0 10px;
+      font-size:1.7rem;
+      line-height:1.2;
+    }
+
+    .release-screen p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.55;
+      font-size:1.04rem;
+    }
+
+    @keyframes fadeIn{
+      from{ opacity:0; transform:translateY(6px); }
+      to{ opacity:1; transform:translateY(0); }
+    }
+
     @media (max-width:640px){
       .wrap{ padding:16px 12px 70px; }
       .panel{ padding:16px; }
@@ -503,48 +527,63 @@
   <script>
     const categories = {
       "Me and other people": [
-        "Fear of Rejection",
-        "Fear of Loneliness",
-        "Fear of Abandonment",
-        "Fear of Intimacy",
+        "Fear of Being Rejected",
+        "Fear of Being Alone",
+        "Fear of Being Abandoned",
+        "Fear of Getting Close to People",
         "Fear of Losing a Wife",
         "Fear of Losing a Husband",
         "Fear of Losing a Child",
         "Fear of Men",
         "Fear of Women",
-        "Fear of Parents",
-        "Fear of People",
+        "Fear of My Parents",
+        "Fear of People in General",
         "Fear of Hurting Others",
-        "Fear of Disapproval",
-        "Fear of Gossip"
+        "Fear of People Being Disappointed in Me",
+        "Fear of People Talking About Me",
+        "Fear of Being Judged",
+        "Fear of Not Being Good Enough",
+        "Fear of Not Being Approved By Others"
       ],
       "How I feel": [
-        "Fear of Insecurity",
-        "Fear of Self-Expression",
+        "Fear of Not Feeling Secure",
+        "Fear of Expressing Myself",
         "Fear of Failure",
         "Fear of Success",
         "Fear of Responsibility",
-        "Fear of Feelings",
+        "Fear of Feeling My Feelings",
         "Fear of Crying",
         "Fear of Being Found Out",
-        "Fear of Fear",
-        "Fear of Being Alive",
-        "Fear of Writing Inventory"
+        "Fear of Writing Inventory",
+        "Fear of Looking Stupid",
+        "Fear of Facing Reality",
+        "Fear of Being Wrong"
       ],
       "Body and health": [
         "Fear of Dying",
         "Fear of Insanity",
+        "Fear of Losing My Mind",
         "Fear of Disease",
+        "Fear of Serious Illness",
         "Fear of Physical Pain",
         "Fear of Hospitals",
         "Fear of Doctors",
-        "Fear of Getting Old"
+        "Fear of Getting Old",
+        "Fear of Losing My Health",
+        "Fear of Becoming Disabled",
+        "Fear of Not Being Able to Take Care of Myself"
       ],
       "Drinking and using": [
         "Fear of Alcohol",
         "Fear of Drugs",
         "Fear of Relapse",
-        "Fear of Sobriety"
+        "Fear of Sobriety",
+        "Fear of Running Into My Old Drinking Crowd",
+        "Fear of Making New Sober Friends",
+        "Fear of Being Boring Without Alcohol",
+        "Fear of Temptation",
+        "Fear of Hitting Another Rock Bottom",
+        "Fear of Going Back to My Old Life"
       ],
       "Authority stuff": [
         "Fear of Authority",
@@ -553,18 +592,27 @@
         "Fear of Government",
         "Fear of Gangs",
         "Fear of Creditors",
-        "Fear of Stealing"
+        "Fear of Being Accused of Stealing",
+        "Fear of Becoming Desperate Enough to Steal"
       ],
       "Life falling apart": [
-        "Fear of Unemployment",
+        "Fear of Being Unemployable",
         "Fear of Employment",
-        "Fear of Poverty",
         "Fear of Wealthy People",
-        "Fear of Change"
+        "Fear of Change",
+        "Fear of Losing My Job",
+        "Fear of Becoming Homeless",
+        "Fear of Not Having Enough Money",
+        "Fear of Being Broke",
+        "Fear of My Life Falling Apart Again"
       ],
       "God and spiritual stuff": [
         "Fear of God",
-        "Fear of Doing Something Wrong"
+        "Fear of Doing Something Spiritually Wrong",
+        "Fear of Not Being Forgiven",
+        "Fear of Being Judged by God",
+        "Fear of Turning My Will Over to God",
+        "Fear of Letting God Down"
       ],
       "Physical danger": [
         "Fear of Heights",
@@ -573,8 +621,7 @@
         "Fear of Drowning",
         "Fear of Violence",
         "Fear of Guns",
-        "Fear of Confrontation",
-        "Fear of The Unknown"
+        "Fear of Physical Confrontation"
       ]
     };
 
@@ -647,7 +694,8 @@
       nextRightThing: "",
       meditationRunning: false,
       meditationSeconds: 30,
-      meditationInterval: null
+      meditationInterval: null,
+      releaseTimeout: null
     };
 
     const app = document.getElementById("app");
@@ -667,6 +715,13 @@
       signalText.textContent = text;
       signal.classList.add("show");
       setTimeout(() => signal.classList.remove("show"), ms);
+    }
+
+    function clearReleaseTimeout(){
+      if(state.releaseTimeout){
+        clearTimeout(state.releaseTimeout);
+        state.releaseTimeout = null;
+      }
     }
 
     function renderCategoryButtons(){
@@ -863,12 +918,21 @@
         </div>
         <div class="btn-row">
           <button class="secondary" onclick="startOver()">Work on another fear?</button>
-          <button class="primary" onclick="showMeditation()">I’m done</button>
+          <button class="primary" onclick="showReleaseScreen()">I’m done</button>
         </div>
       `;
     }
 
     function renderStep9(){
+      app.innerHTML = `
+        <div class="release-screen">
+          <h2>🧭 Fear Looked At Honestly</h2>
+          <p>Fear loses power when it is seen clearly.</p>
+        </div>
+      `;
+    }
+
+    function renderStep10(){
       const seconds = state.meditationSeconds;
       const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
       const ss = String(seconds % 60).padStart(2, "0");
@@ -916,15 +980,24 @@
         case 7: renderStep7(); break;
         case 8: renderStep8(); break;
         case 9: renderStep9(); break;
+        case 10: renderStep10(); break;
       }
     }
 
     function goBack(){
+      clearReleaseTimeout();
+
       if(state.step > 1){
-        if(state.step === 9){
+        if(state.step === 10){
           storeNextRightThingFromInput();
         }
-        state.step--;
+
+        if(state.step === 9){
+          state.step = 8;
+        } else {
+          state.step--;
+        }
+
         render();
       }
     }
@@ -1029,8 +1102,20 @@
       render();
     }
 
-    function showMeditation(){
+    function showReleaseScreen(){
+      clearReleaseTimeout();
       state.step = 9;
+      render();
+
+      state.releaseTimeout = setTimeout(() => {
+        state.releaseTimeout = null;
+        showMeditation();
+      }, 1000);
+    }
+
+    function showMeditation(){
+      clearReleaseTimeout();
+      state.step = 10;
       state.meditationRunning = false;
       state.meditationSeconds = 30;
       clearInterval(state.meditationInterval);
@@ -1090,6 +1175,7 @@
     }
 
     function startOver(){
+      clearReleaseTimeout();
       clearInterval(state.meditationInterval);
       state.meditationInterval = null;
 
@@ -1123,6 +1209,7 @@
     window.nextFromIfTrue = nextFromIfTrue;
     window.toggleReaction = toggleReaction;
     window.finishFearWork = finishFearWork;
+    window.showReleaseScreen = showReleaseScreen;
     window.showMeditation = showMeditation;
     window.startMeditation = startMeditation;
     window.pauseMeditation = pauseMeditation;
