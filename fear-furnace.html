@@ -10,8 +10,11 @@
       --panel:#ffffff;
       --line:#111111;
       --soft:#666666;
+      --soft2:#bdbdbd;
       --fill:#f5f5f5;
       --text:#111111;
+      --ember:#c65a1e;
+      --ember-soft:#f6e3d8;
       --radius:22px;
       --shadow:0 8px 24px rgba(0,0,0,.06);
     }
@@ -79,21 +82,21 @@
       display:flex;
     }
 
-    .ember{
+    .ember-dot{
       width:14px;
       height:14px;
       border-radius:50%;
-      background:#111;
+      background:var(--ember);
       animation:pulse 1s ease-in-out infinite;
       position:relative;
       flex:0 0 14px;
     }
 
-    .ember::after{
+    .ember-dot::after{
       content:"";
       position:absolute;
       inset:-6px;
-      border:1px solid #111;
+      border:1px solid var(--ember);
       border-radius:50%;
       opacity:.25;
       animation:ripple 1s ease-out infinite;
@@ -152,6 +155,12 @@
       background:#fff;
       outline:none;
       resize:vertical;
+    }
+
+    textarea:focus,
+    input[type="text"]:focus{
+      border-color:var(--ember);
+      box-shadow:0 0 0 3px rgba(198,90,30,.10);
     }
 
     .btn-row{
@@ -218,34 +227,102 @@
       color:#fff;
     }
 
-    .subsection{
-      margin-top:16px;
-      padding-top:16px;
-      border-top:1px solid #d7d7d7;
+    .category-grid.compact{
+      grid-template-columns:1fr;
     }
 
-    .search-wrap{
-      margin:12px 0 12px;
+    .category-selected{
+      margin-top:8px;
+      margin-bottom:14px;
+    }
+
+    .fear-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+      margin-top:8px;
+    }
+
+    .fear-choice{
+      background:#111;
+      color:#fff;
+      border:2px solid #111;
+      border-radius:18px;
+      padding:14px;
+      text-align:left;
+      line-height:1.35;
+      min-height:62px;
+      font-weight:700;
+    }
+
+    .fear-choice:hover{
+      transform:translateY(-1px);
+    }
+
+    .fear-list-wrap{
+      margin-top:14px;
+      padding-top:14px;
+      border-top:1px solid #d7d7d7;
     }
 
     .selected-box{
       margin-top:12px;
       padding:14px;
-      border:2px solid #111;
+      border:2px solid var(--ember);
       border-radius:18px;
-      background:#f7f7f7;
+      background:var(--ember-soft);
       line-height:1.45;
       font-weight:700;
+      box-shadow:0 0 0 2px rgba(198,90,30,.07);
     }
 
     .selected-box .mini{
       display:block;
       font-size:.84rem;
-      color:var(--soft);
-      font-weight:700;
+      color:var(--ember);
+      font-weight:800;
       margin-bottom:4px;
       text-transform:uppercase;
       letter-spacing:.5px;
+    }
+
+    .root-grid{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .root-card{
+      background:#fff;
+      color:#111;
+      border:2px solid #111;
+      border-radius:18px;
+      padding:14px;
+      text-align:left;
+      line-height:1.4;
+      min-height:76px;
+    }
+
+    .root-card strong{
+      display:block;
+      margin-bottom:4px;
+      font-size:1rem;
+    }
+
+    .root-card small{
+      display:block;
+      color:var(--soft);
+      line-height:1.45;
+      font-size:.92rem;
+    }
+
+    .root-card.selected{
+      background:#111;
+      color:#fff;
+    }
+
+    .root-card.selected small{
+      color:#f1f1f1;
     }
 
     .checklist{
@@ -284,13 +361,15 @@
     }
 
     .quote-box{
-      border:2px solid #111;
-      border-radius:18px;
-      padding:14px;
-      margin:0 0 14px;
-      background:#f7f7f7;
-      line-height:1.55;
+      border:2px solid var(--ember);
+      border-radius:20px;
+      padding:18px;
+      margin:0 0 16px;
+      background:var(--ember-soft);
+      line-height:1.65;
       font-style:italic;
+      font-size:1.1rem;
+      text-align:center;
     }
 
     .summary{
@@ -321,8 +400,8 @@
     }
 
     .done-screen h2{
-      margin:0 0 8px;
-      font-size:1.5rem;
+      margin:0 0 10px;
+      font-size:1.55rem;
     }
 
     .done-screen p{
@@ -333,28 +412,30 @@
 
     .meditation-wrap{
       margin-top:16px;
-      padding:16px;
+      padding:18px;
       border:2px solid #111;
-      border-radius:18px;
+      border-radius:20px;
       text-align:center;
-      background:#f7f7f7;
+      background:#fff;
     }
 
     .clock{
-      font-size:2rem;
+      font-size:2.3rem;
       font-weight:800;
       letter-spacing:1px;
-      margin:8px 0 12px;
+      margin:10px 0 14px;
     }
 
     @media (max-width:640px){
       .wrap{padding:16px 12px 70px}
       .panel{padding:16px}
-      .choice-grid{grid-template-columns:1fr 1fr}
+      .choice-grid,
+      .fear-grid{grid-template-columns:1fr 1fr}
     }
 
     @media (max-width:460px){
-      .choice-grid{grid-template-columns:1fr}
+      .choice-grid,
+      .fear-grid{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -369,7 +450,7 @@
 
     <div class="signal-row">
       <div class="signal" id="signal">
-        <div class="ember"></div>
+        <div class="ember-dot"></div>
         <span id="signalText">Working through it…</span>
       </div>
     </div>
@@ -456,17 +537,29 @@
     };
 
     const underneathOptions = [
-      "Rejection",
-      "Abandonment",
-      "Not feeling good enough",
-      "The unknown"
+      {
+        key: "Rejection",
+        description: "I’m not accepted."
+      },
+      {
+        key: "Abandonment",
+        description: "They moved on without me, and I’m all alone."
+      },
+      {
+        key: "Neglect",
+        description: "Nobody’s there for me, and I’m on my own."
+      },
+      {
+        key: "Unknown",
+        description: "I have no control over what happens next."
+      }
     ];
 
     const reactionOptions = [
       {
         key: "Selfish",
         label: "Selfish",
-        description: "I'm putting my wants ahead of everything else."
+        description: "I’m putting my wants ahead of everything else."
       },
       {
         key: "Self-seeking",
@@ -481,7 +574,7 @@
       {
         key: "Self-centered",
         label: "Self-centered",
-        description: "I'm making it all about me again."
+        description: "I’m making it all about me again."
       }
     ];
 
@@ -489,11 +582,10 @@
       step: 1,
       fearText: "",
       selectedCategory: "",
-      fearSearch: "",
       namedFear: "",
-      ifTrue: "",
-      underneath: "",
       heldBack: "",
+      underneath: "",
+      ifTrue: "",
       reactions: [],
       meditationRunning: false,
       meditationSeconds: 30,
@@ -522,10 +614,22 @@
     }
 
     function renderCategoryButtons(){
+      const keys = Object.keys(categories);
+
+      if(state.selectedCategory){
+        return `
+          <div class="category-selected">
+            <button class="choice selected" onclick="clearCategorySelection()">
+              ${escapeHtml(state.selectedCategory)}
+            </button>
+          </div>
+        `;
+      }
+
       return `
-        <div class="choice-grid">
-          ${Object.keys(categories).map(cat => `
-            <button class="choice ${state.selectedCategory === cat ? 'selected' : ''}" onclick="pickCategory(${JSON.stringify(cat).replace(/"/g, '&quot;')})">
+        <div class="choice-grid category-grid">
+          ${keys.map(cat => `
+            <button class="choice" onclick="pickCategory(${JSON.stringify(cat).replace(/"/g, '&quot;')})">
               ${escapeHtml(cat)}
             </button>
           `).join("")}
@@ -533,16 +637,9 @@
       `;
     }
 
-    function getFilteredFears(){
-      if(!state.selectedCategory) return [];
-      const all = categories[state.selectedCategory] || [];
-      const q = state.fearSearch.trim().toLowerCase();
-      if(!q) return all;
-      return all.filter(item => item.toLowerCase().includes(q));
-    }
-
     function renderFearChoices(){
       if(!state.selectedCategory) return "";
+
       if(state.namedFear){
         return `
           <div class="selected-box">
@@ -552,21 +649,17 @@
         `;
       }
 
-      const filtered = getFilteredFears();
+      const fears = categories[state.selectedCategory] || [];
 
       return `
-        <div class="subsection">
-          <div class="search-wrap">
-            <input type="text" id="fearSearchInput" placeholder="Search this list..." value="${escapeHtml(state.fearSearch)}" oninput="updateFearSearch(this.value)" />
-          </div>
-          <div class="choice-grid">
-            ${filtered.map(item => `
-              <button class="choice" onclick="pickNamedFear(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+        <div class="fear-list-wrap">
+          <div class="fear-grid">
+            ${fears.map(item => `
+              <button class="fear-choice" onclick="pickNamedFear(${JSON.stringify(item).replace(/"/g, '&quot;')})">
                 ${escapeHtml(item)}
               </button>
             `).join("")}
           </div>
-          ${filtered.length === 0 ? `<p class="help" style="margin-top:12px;">No matches in this category.</p>` : ""}
         </div>
       `;
     }
@@ -598,12 +691,12 @@
     function renderStep3(){
       app.innerHTML = `
         <div class="tag">Let’s take it further</div>
-        <h2 class="prompt">If this fear actually came true… what would happen?</h2>
-        <p class="help">Write what your mind tells you would happen.</p>
-        <textarea id="ifTrueInput" rows="5" placeholder="Write it out...">${escapeHtml(state.ifTrue)}</textarea>
+        <h2 class="prompt">What has this fear held you back from doing?</h2>
+        <p class="help">This is where we look at the cost.</p>
+        <textarea id="heldBackInput" rows="5" placeholder="Write it out...">${escapeHtml(state.heldBack)}</textarea>
         <div class="btn-row">
           <button class="secondary" onclick="goBack()">Back</button>
-          <button class="primary" onclick="nextFromIfTrue()">Next</button>
+          <button class="primary" onclick="nextFromHeldBack()">Next</button>
         </div>
       `;
     }
@@ -613,10 +706,11 @@
         <div class="tag">Let’s take it further</div>
         <h2 class="prompt">Is this fear feeling like one of these?</h2>
         <p class="help">Pick the one that feels closest.</p>
-        <div class="choice-grid">
+        <div class="root-grid">
           ${underneathOptions.map(opt => `
-            <button class="choice ${state.underneath === opt ? 'selected' : ''}" onclick="pickUnderneath(${JSON.stringify(opt).replace(/"/g, '&quot;')})">
-              ${escapeHtml(opt)}
+            <button class="root-card ${state.underneath === opt.key ? 'selected' : ''}" onclick="pickUnderneath(${JSON.stringify(opt.key).replace(/"/g, '&quot;')})">
+              <strong>${escapeHtml(opt.key)}</strong>
+              <small>${escapeHtml(opt.description)}</small>
             </button>
           `).join("")}
         </div>
@@ -630,12 +724,12 @@
     function renderStep5(){
       app.innerHTML = `
         <div class="tag">Let’s take it further</div>
-        <h2 class="prompt">What has this fear held you back from doing?</h2>
-        <p class="help">This is where we look at the cost.</p>
-        <textarea id="heldBackInput" rows="5" placeholder="Write it out...">${escapeHtml(state.heldBack)}</textarea>
+        <h2 class="prompt">If this fear actually came true… what would happen?</h2>
+        <p class="help">Write what your mind tells you would happen.</p>
+        <textarea id="ifTrueInput" rows="5" placeholder="Write it out...">${escapeHtml(state.ifTrue)}</textarea>
         <div class="btn-row">
           <button class="secondary" onclick="goBack()">Back</button>
-          <button class="primary" onclick="nextFromHeldBack()">Next</button>
+          <button class="primary" onclick="nextFromIfTrue()">Next</button>
         </div>
       `;
     }
@@ -666,10 +760,7 @@
     function renderStep7(){
       app.innerHTML = `
         <div class="tag">Let’s take it further</div>
-        <div class="quote-box">
-          “We ask Him to remove our fear and direct our attention to what He would have us be.”
-          <br />— Alcoholics Anonymous, p. 68
-        </div>
+        <h2 class="prompt">Here’s what you came up with.</h2>
 
         <div class="summary">
           <div class="item">
@@ -688,13 +779,13 @@
           </div>
 
           <div class="item">
-            <div class="label">If it came true</div>
-            <div>${escapeHtml(state.ifTrue)}</div>
+            <div class="label">What it held you back from doing</div>
+            <div>${escapeHtml(state.heldBack)}</div>
           </div>
 
           <div class="item">
-            <div class="label">What it held you back from doing</div>
-            <div>${escapeHtml(state.heldBack)}</div>
+            <div class="label">If it came true</div>
+            <div>${escapeHtml(state.ifTrue)}</div>
           </div>
 
           <div class="item">
@@ -718,7 +809,12 @@
       app.innerHTML = `
         <div class="done-screen">
           <h2>Nice work.</h2>
-          <p>Take 30 seconds and sit still with it.</p>
+          <p>Take 30 seconds and sit still with this.</p>
+
+          <div class="quote-box">
+            “We ask Him to remove our fear and direct our attention to what He would have us be.”
+            <br />— Alcoholics Anonymous, p. 68
+          </div>
 
           <div class="meditation-wrap">
             <div class="label" style="margin-bottom:8px;">30 second meditation</div>
@@ -726,8 +822,8 @@
             <div class="btn-row" style="justify-content:center;">
               ${
                 state.meditationRunning
-                ? `<button class="secondary" onclick="pauseMeditation()">Pause</button>`
-                : `<button class="primary" onclick="startMeditation()">Start</button>`
+                  ? `<button class="secondary" onclick="pauseMeditation()">Pause</button>`
+                  : `<button class="primary" onclick="startMeditation()">Start</button>`
               }
               <button class="secondary" onclick="resetMeditation()">Reset</button>
               <button class="ghost" onclick="startOver()">Work on another fear?</button>
@@ -770,22 +866,15 @@
     };
 
     window.pickCategory = function(value){
-      if(state.selectedCategory !== value){
-        state.selectedCategory = value;
-        state.namedFear = "";
-        state.fearSearch = "";
-      }
+      state.selectedCategory = value;
+      state.namedFear = "";
       render();
     };
 
-    window.updateFearSearch = function(value){
-      state.fearSearch = value;
+    window.clearCategorySelection = function(){
+      state.selectedCategory = "";
+      state.namedFear = "";
       render();
-      const el = document.getElementById("fearSearchInput");
-      if(el){
-        el.focus();
-        el.setSelectionRange(value.length, value.length);
-      }
     };
 
     window.pickNamedFear = function(value){
@@ -803,13 +892,13 @@
       setTimeout(render, 250);
     };
 
-    window.nextFromIfTrue = function(){
-      const value = document.getElementById("ifTrueInput").value.trim();
+    window.nextFromHeldBack = function(){
+      const value = document.getElementById("heldBackInput").value.trim();
       if(!value){
-        alert("Write what would happen if it came true.");
+        alert("Write what this fear has held you back from doing.");
         return;
       }
-      state.ifTrue = value;
+      state.heldBack = value;
       state.step = 4;
       render();
     };
@@ -828,13 +917,13 @@
       render();
     };
 
-    window.nextFromHeldBack = function(){
-      const value = document.getElementById("heldBackInput").value.trim();
+    window.nextFromIfTrue = function(){
+      const value = document.getElementById("ifTrueInput").value.trim();
       if(!value){
-        alert("Write what this fear has held you back from doing.");
+        alert("Write what would happen if it came true.");
         return;
       }
-      state.heldBack = value;
+      state.ifTrue = value;
       state.step = 6;
       render();
     };
@@ -908,11 +997,10 @@
       state.step = 1;
       state.fearText = "";
       state.selectedCategory = "";
-      state.fearSearch = "";
       state.namedFear = "";
-      state.ifTrue = "";
-      state.underneath = "";
       state.heldBack = "";
+      state.underneath = "";
+      state.ifTrue = "";
       state.reactions = [];
       state.meditationRunning = false;
       state.meditationSeconds = 30;
