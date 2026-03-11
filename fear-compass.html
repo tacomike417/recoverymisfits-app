@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fear Compass</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="./icon-192.png">
+
+  <!-- iPhone PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
   <style>
     :root{
       --bg:#ffffff;
@@ -31,6 +42,7 @@
 
     body{
       min-height:100vh;
+      padding-bottom:120px; /* room for nav.js bottom bar */
     }
 
     .wrap{
@@ -508,6 +520,11 @@
   </style>
 </head>
 <body>
+
+  <!-- Shared TOP BAR (injected by topbar.js) -->
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
+
   <div class="wrap">
     <div class="hero">
       <h1>🧭 Fear Compass</h1>
@@ -523,6 +540,10 @@
 
     <div class="panel" id="app"></div>
   </div>
+
+  <!-- Shared BOTTOM NAV (injected by nav.js) -->
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
 
   <script>
     const categories = {
@@ -667,7 +688,7 @@
       {
         key: "Self-seeking",
         label: "Self-seeking",
-        description: "I want my way."
+        description: "I want my way / More attention than I deserve."
       },
       {
         key: "Self-reliant",
@@ -918,7 +939,7 @@
         </div>
         <div class="btn-row">
           <button class="secondary" onclick="startOver()">Work on another fear?</button>
-          <button class="primary" onclick="showReleaseScreen()">I’m done</button>
+          <button class="primary" onclick="showReleaseScreen()">Wrap This Up</button>
         </div>
       `;
     }
@@ -939,7 +960,7 @@
 
       app.innerHTML = `
         <div class="done-screen">
-          <h2>Nice work.</h2>
+          <h2>Let’s Wrap This Up</h2>
           <p>Take 30 seconds and sit still with this.</p>
 
           <div class="quote-box">
@@ -959,7 +980,7 @@
               ${
                 state.meditationRunning
                   ? `<button class="secondary" onclick="pauseMeditation()">Pause</button>`
-                  : `<button class="primary" onclick="startMeditation()">Start</button>`
+                  : `<button class="primary" onclick="startMeditation()">Finish</button>`
               }
               <button class="secondary" onclick="resetMeditation()">Reset</button>
               <button class="ghost" onclick="startOver()">Work on another fear?</button>
@@ -1132,6 +1153,12 @@
 
     function startMeditation(){
       storeNextRightThingFromInput();
+
+      if(!state.nextRightThing.trim()){
+        alert("Write your next right thing before finishing.");
+        return;
+      }
+
       if(state.meditationRunning) return;
 
       state.meditationRunning = true;
