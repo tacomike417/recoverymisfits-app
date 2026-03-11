@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fear Compass</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --panel:#ffffff;
+      --line:#111111;
+      --soft:#666666;
+      --soft2:#bdbdbd;
+      --fill:#f5f5f5;
+      --text:#111111;
+      --ember:#c65a1e;
+      --ember-dark:#a3471b;
+      --ember-soft:#f6e3d8;
+      --ember-soft-2:#f1d3c2;
+      --radius:22px;
+      --shadow:0 8px 24px rgba(0,0,0,.06);
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
+      margin:0;
+      padding:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
+      min-height:100vh;
+    }
+
+    .wrap{
+      max-width:760px;
+      margin:0 auto;
+      padding:20px 14px 80px;
+    }
+
+    .hero{
+      text-align:center;
+      margin-bottom:16px;
+    }
+
+    .hero h1{
+      margin:0;
+      font-size:clamp(2rem, 4vw, 2.6rem);
+      letter-spacing:.4px;
+    }
+
+    .hero p{
+      margin:10px auto 0;
+      max-width:560px;
+      color:var(--soft);
+      line-height:1.5;
+      font-size:1rem;
+    }
+
+    .signal-row{
+      min-height:34px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:8px 0 16px;
+    }
+
+    .signal{
+      display:none;
+      align-items:center;
+      gap:10px;
+      font-size:.96rem;
+      color:var(--soft);
+      border:1px solid var(--ember-dark);
+      border-radius:999px;
+      padding:8px 14px;
+      background:#fff;
+    }
+
+    .signal.show{
+      display:flex;
+    }
+
+    .ember-dot{
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      background:var(--ember);
+      animation:pulse 1s ease-in-out infinite;
+      position:relative;
+      flex:0 0 14px;
+    }
+
+    .ember-dot::after{
+      content:"";
+      position:absolute;
+      inset:-6px;
+      border:1px solid var(--ember);
+      border-radius:50%;
+      opacity:.25;
+      animation:ripple 1s ease-out infinite;
+    }
+
+    @keyframes pulse{
+      0%,100%{transform:scale(.78); opacity:.55;}
+      50%{transform:scale(1); opacity:1;}
+    }
+
+    @keyframes ripple{
+      0%{transform:scale(.6); opacity:.35;}
+      100%{transform:scale(1.55); opacity:0;}
+    }
+
+    .panel{
+      background:var(--panel);
+      border:2px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .tag{
+      display:inline-block;
+      padding:8px 12px;
+      border:1.5px solid var(--ember-dark);
+      border-radius:999px;
+      font-weight:700;
+      font-size:.9rem;
+      margin-bottom:12px;
+      background:var(--ember-soft);
+      color:#5f2b11;
+    }
+
+    .prompt{
+      margin:0 0 12px;
+      font-size:1.22rem;
+      line-height:1.35;
+    }
+
+    .help{
+      margin:0 0 14px;
+      color:var(--soft);
+      line-height:1.5;
+    }
+
+    textarea,
+    input[type="text"]{
+      width:100%;
+      border:2px solid var(--line);
+      border-radius:18px;
+      padding:15px;
+      font-size:1rem;
+      line-height:1.5;
+      color:var(--text);
+      background:#fff;
+      outline:none;
+      resize:vertical;
+    }
+
+    textarea:focus,
+    input[type="text"]:focus{
+      border-color:var(--ember);
+      box-shadow:0 0 0 3px rgba(198,90,30,.10);
+    }
+
+    .btn-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    button{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      border-radius:999px;
+      padding:13px 18px;
+      font-weight:800;
+      font-size:.96rem;
+      transition:.15s ease;
+    }
+
+    button:hover{
+      transform:translateY(-1px);
+    }
+
+    .primary{
+      background:var(--ember-dark);
+      color:#fff;
+      border:2px solid var(--ember-dark);
+    }
+
+    .secondary{
+      background:#fff;
+      color:#111;
+      border:2px solid #111;
+    }
+
+    .ghost{
+      background:#f3f3f3;
+      color:#111;
+      border:2px dashed #111;
+    }
+
+    .choice-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+      margin-top:8px;
+    }
+
+    .choice{
+      background:#fff;
+      color:#111;
+      border:2px solid var(--ember-dark);
+      border-radius:18px;
+      padding:14px;
+      text-align:left;
+      line-height:1.35;
+      min-height:62px;
+      font-weight:700;
+    }
+
+    .choice.selected{
+      background:var(--ember-dark);
+      color:#fff;
+      border-color:var(--ember-dark);
+    }
+
+    .category-selected{
+      margin-top:8px;
+      margin-bottom:14px;
+    }
+
+    .fear-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px;
+      margin-top:8px;
+    }
+
+    .fear-choice{
+      background:var(--ember-soft);
+      color:#4b2512;
+      border:2px solid var(--ember-dark);
+      border-radius:18px;
+      padding:14px;
+      text-align:left;
+      line-height:1.35;
+      min-height:62px;
+      font-weight:700;
+    }
+
+    .fear-choice:hover{
+      transform:translateY(-1px);
+      background:var(--ember-soft-2);
+    }
+
+    .fear-list-wrap{
+      margin-top:14px;
+      padding-top:14px;
+      border-top:1px solid #e3c8bb;
+    }
+
+    .selected-box{
+      margin-top:12px;
+      padding:14px;
+      border:2px solid var(--ember-dark);
+      border-radius:18px;
+      background:linear-gradient(180deg, var(--ember-soft), #f8eae2);
+      line-height:1.45;
+      font-weight:700;
+      box-shadow:0 0 0 2px rgba(198,90,30,.07);
+    }
+
+    .selected-box .mini{
+      display:block;
+      font-size:.84rem;
+      color:var(--ember-dark);
+      font-weight:800;
+      margin-bottom:4px;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+
+    .root-grid{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .root-card{
+      background:#fff;
+      color:#111;
+      border:2px solid var(--ember-dark);
+      border-radius:18px;
+      padding:14px;
+      text-align:left;
+      line-height:1.4;
+      min-height:76px;
+    }
+
+    .root-card strong{
+      display:block;
+      margin-bottom:4px;
+      font-size:1rem;
+      color:#5f2b11;
+    }
+
+    .root-card small{
+      display:block;
+      color:var(--soft);
+      line-height:1.45;
+      font-size:.92rem;
+    }
+
+    .root-card.selected{
+      background:var(--ember-dark);
+      color:#fff;
+      border-color:var(--ember-dark);
+    }
+
+    .root-card.selected strong,
+    .root-card.selected small{
+      color:#fff;
+    }
+
+    .checklist{
+      display:grid;
+      gap:12px;
+      margin-top:12px;
+    }
+
+    .check{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      border:2px solid var(--ember-dark);
+      border-radius:16px;
+      padding:14px;
+      background:#fff;
+    }
+
+    .check input{
+      width:20px;
+      height:20px;
+      accent-color:var(--ember-dark);
+      flex:0 0 20px;
+      margin-top:2px;
+    }
+
+    .check strong{
+      display:block;
+      margin-bottom:4px;
+      color:#5f2b11;
+    }
+
+    .check small{
+      color:var(--soft);
+      line-height:1.45;
+      display:block;
+    }
+
+    .quote-box{
+      border:2px solid var(--ember);
+      border-radius:20px;
+      padding:18px;
+      margin:0 0 16px;
+      background:var(--ember-soft);
+      line-height:1.65;
+      font-style:italic;
+      font-size:1.1rem;
+      text-align:center;
+    }
+
+    .summary{
+      display:grid;
+      gap:10px;
+      margin-top:8px;
+    }
+
+    .item{
+      border:2px solid var(--ember-dark);
+      border-radius:18px;
+      padding:14px;
+      background:#fff;
+    }
+
+    .label{
+      font-size:.82rem;
+      text-transform:uppercase;
+      letter-spacing:.7px;
+      margin-bottom:6px;
+      color:var(--ember-dark);
+      font-weight:800;
+    }
+
+    .done-screen{
+      text-align:center;
+      padding:12px 4px 4px;
+    }
+
+    .done-screen h2{
+      margin:0 0 10px;
+      font-size:1.55rem;
+    }
+
+    .done-screen p{
+      margin:0 0 14px;
+      color:var(--soft);
+      line-height:1.5;
+    }
+
+    .meditation-wrap{
+      margin-top:16px;
+      padding:18px;
+      border:2px solid var(--ember-dark);
+      border-radius:20px;
+      text-align:center;
+      background:#fff;
+    }
+
+    .clock{
+      font-size:2.3rem;
+      font-weight:800;
+      letter-spacing:1px;
+      margin:10px 0 14px;
+      color:var(--ember-dark);
+    }
+
+    @media (max-width:640px){
+      .wrap{padding:16px 12px 70px}
+      .panel{padding:16px}
+      .choice-grid,
+      .fear-grid{grid-template-columns:1fr 1fr}
+    }
+
+    @media (max-width:460px){
+      .choice-grid,
+      .fear-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>🧭 Fear Compass</h1>
+      <p>
+        A simple tool to help you look honestly at a fear, walk it through, and let it go.
+      </p>
+    </div>
+
+    <div class="signal-row">
+      <div class="signal" id="signal">
+        <div class="ember-dot"></div>
+        <span id="signalText">Working through it…</span>
+      </div>
+    </div>
+
+    <div class="panel" id="app"></div>
+  </div>
+
+  <script>
+    const categories = {
+      "Me and other people": [
+        "Fear of Rejection",
+        "Fear of Loneliness",
+        "Fear of Abandonment",
+        "Fear of Intimacy",
+        "Fear of Losing a Wife",
+        "Fear of Losing a Husband",
+        "Fear of Losing a Child",
+        "Fear of Men",
+        "Fear of Women",
+        "Fear of Parents",
+        "Fear of People",
+        "Fear of Hurting Others",
+        "Fear of Disapproval",
+        "Fear of Gossip"
+      ],
+      "How I feel": [
+        "Fear of Insecurity",
+        "Fear of Self-Expression",
+        "Fear of Failure",
+        "Fear of Success",
+        "Fear of Responsibility",
+        "Fear of Feelings",
+        "Fear of Crying",
+        "Fear of Being Found Out",
+        "Fear of Fear",
+        "Fear of Being Alive",
+        "Fear of Writing Inventory"
+      ],
+      "Body and health": [
+        "Fear of Dying",
+        "Fear of Insanity",
+        "Fear of Disease",
+        "Fear of Physical Pain",
+        "Fear of Hospitals",
+        "Fear of Doctors",
+        "Fear of Getting Old"
+      ],
+      "Drinking and using": [
+        "Fear of Alcohol",
+        "Fear of Drugs",
+        "Fear of Relapse",
+        "Fear of Sobriety"
+      ],
+      "Authority stuff": [
+        "Fear of Authority",
+        "Fear of Police",
+        "Fear of Jail",
+        "Fear of Government",
+        "Fear of Gangs",
+        "Fear of Creditors",
+        "Fear of Stealing"
+      ],
+      "Life falling apart": [
+        "Fear of Unemployment",
+        "Fear of Employment",
+        "Fear of Poverty",
+        "Fear of Wealthy People",
+        "Fear of Change"
+      ],
+      "God and spiritual stuff": [
+        "Fear of God",
+        "Fear of Doing Something Wrong"
+      ],
+      "Physical danger": [
+        "Fear of Heights",
+        "Fear of Animals",
+        "Fear of Insects",
+        "Fear of Drowning",
+        "Fear of Violence",
+        "Fear of Guns",
+        "Fear of Confrontation",
+        "Fear of The Unknown"
+      ]
+    };
+
+    const underneathOptions = [
+      {
+        key: "Rejection",
+        description: "I might not be accepted."
+      },
+      {
+        key: "Abandonment",
+        description: "They might move on without me and I’m all alone."
+      },
+      {
+        key: "Neglect",
+        description: "I feel like I’m on my own and nobody’s there for me."
+      },
+      {
+        key: "Unknown",
+        description: "I feel like I have no control or idea of what happens next."
+      }
+    ];
+
+    const reactionOptions = [
+      {
+        key: "Selfish",
+        label: "Selfish",
+        description: "I’m putting my wants ahead of everything else."
+      },
+      {
+        key: "Self-seeking",
+        label: "Self-seeking",
+        description: "I want my way."
+      },
+      {
+        key: "Self-reliant",
+        label: "Self-reliant",
+        description: "I am not asking for help."
+      },
+      {
+        key: "Self-centered",
+        label: "Self-centered",
+        description: "I’m making it all about me again."
+      }
+    ];
+
+    const state = {
+      step: 1,
+      fearText: "",
+      selectedCategory: "",
+      namedFear: "",
+      heldBack: "",
+      underneath: "",
+      ifTrue: "",
+      reactions: [],
+      nextRightThing: "",
+      meditationRunning: false,
+      meditationSeconds: 30,
+      meditationInterval: null
+    };
+
+    const app = document.getElementById("app");
+    const signal = document.getElementById("signal");
+    const signalText = document.getElementById("signalText");
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function showSignal(text = "Working through it…", ms = 1100){
+      signalText.textContent = text;
+      signal.classList.add("show");
+      setTimeout(() => {
+        signal.classList.remove("show");
+      }, ms);
+    }
+
+    function renderCategoryButtons(){
+      const keys = Object.keys(categories);
+
+      if(state.selectedCategory){
+        return `
+          <div class="category-selected">
+            <button class="choice selected" onclick="clearCategorySelection()">
+              ${escapeHtml(state.selectedCategory)}
+            </button>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="choice-grid">
+          ${keys.map(cat => `
+            <button class="choice" onclick="pickCategory(${JSON.stringify(cat).replace(/"/g, '&quot;')})">
+              ${escapeHtml(cat)}
+            </button>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderFearChoices(){
+      if(!state.selectedCategory) return "";
+
+      if(state.namedFear){
+        return `
+          <div class="selected-box">
+            <span class="mini">Selected fear</span>
+            ${escapeHtml(state.namedFear)}
+          </div>
+        `;
+      }
+
+      const fears = categories[state.selectedCategory] || [];
+
+      return `
+        <div class="fear-list-wrap">
+          <div class="fear-grid">
+            ${fears.map(item => `
+              <button class="fear-choice" onclick="pickNamedFear(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                ${escapeHtml(item)}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderStep1(){
+      app.innerHTML = `
+        <h2 class="prompt">What fear is bothering you right now?</h2>
+        <p class="help">Type it out plain and honest. No perfect wording needed.</p>
+        <textarea id="fearInput" rows="5" placeholder="Example: I’m afraid I’m going to get fired from my job.">${escapeHtml(state.fearText)}</textarea>
+        <div class="btn-row">
+          <button class="primary" onclick="nextFromFear()">Keep going</button>
+        </div>
+      `;
+    }
+
+    function renderStep2(){
+      app.innerHTML = `
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">What’s the nature of this fear?</h2>
+        ${renderCategoryButtons()}
+        ${renderFearChoices()}
+        <div class="btn-row">
+          <button class="secondary" onclick="goBack()">Back</button>
+          <button class="primary" onclick="nextFromNamedFear()">Next</button>
+        </div>
+      `;
+    }
+
+    function renderStep3(){
+      app.innerHTML = `
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">What has this fear held you back from doing?</h2>
+        <p class="help">This is where we look at the cost.</p>
+        <textarea id="heldBackInput" rows="5" placeholder="Write it out...">${escapeHtml(state.heldBack)}</textarea>
+        <div class="btn-row">
+          <button class="secondary" onclick="goBack()">Back</button>
+          <button class="primary" onclick="nextFromHeldBack()">Next</button>
+        </div>
+      `;
+    }
+
+    function renderStep4(){
+      app.innerHTML = `
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">Is this fear feeling like one of these?</h2>
+        <p class="help">Pick the one that feels closest.</p>
+        <div class="root-grid">
+          ${underneathOptions.map(opt => `
+            <button class="root-card ${state.underneath === opt.key ? 'selected' : ''}" onclick="pickUnderneath(${JSON.stringify(opt.key).replace(/"/g, '&quot;')})">
+              <strong>${escapeHtml(opt.key)}</strong>
+              <small>${escapeHtml(opt.description)}</small>
+            </button>
+          `).join("")}
+        </div>
+        <div class="btn-row">
+          <button class="secondary" onclick="goBack()">Back</button>
+          <button class="primary" onclick="nextFromUnderneath()">Next</button>
+        </div>
+      `;
+    }
+
+    function renderStep5(){
+      app.innerHTML = `
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">If this fear actually came true… what would happen?</h2>
+        <p class="help">Write what your mind tells you would happen.</p>
+        <textarea id="ifTrueInput" rows="5" placeholder="Write it out...">${escapeHtml(state.ifTrue)}</textarea>
+        <div class="btn-row">
+          <button class="secondary" onclick="goBack()">Back</button>
+          <button class="primary" onclick="nextFromIfTrue()">Next</button>
+        </div>
+      `;
+    }
+
+    function renderStep6(){
+      app.innerHTML = `
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">Where did I get the ball rolling on this fear?</h2>
+        <p class="help">Check any that fit.</p>
+        <div class="checklist">
+          ${reactionOptions.map(opt => `
+            <label class="check">
+              <input type="checkbox" value="${escapeHtml(opt.key)}" ${state.reactions.includes(opt.key) ? "checked" : ""} onchange="toggleReaction(this.value, this.checked)" />
+              <div>
+                <strong>${escapeHtml(opt.label)}</strong>
+                <small>${escapeHtml(opt.description)}</small>
+              </div>
+            </label>
+          `).join("")}
+        </div>
+        <div class="btn-row">
+          <button class="secondary" onclick="goBack()">Back</button>
+          <button class="primary" onclick="finishFearWork()">Next</button>
+        </div>
+      `;
+    }
+
+    function renderStep7(){
+      app.innerHTML = `
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">Here’s what you came up with.</h2>
+
+        <div class="summary">
+          <div class="item">
+            <div class="label">What fear was bothering you</div>
+            <div>${escapeHtml(state.fearText)}</div>
+          </div>
+
+          <div class="item">
+            <div class="label">What you were really afraid of</div>
+            <div>${escapeHtml(state.namedFear)}</div>
+          </div>
+
+          <div class="item">
+            <div class="label">What this fear feels like underneath</div>
+            <div>${escapeHtml(state.underneath)}</div>
+          </div>
+
+          <div class="item">
+            <div class="label">What it held you back from doing</div>
+            <div>${escapeHtml(state.heldBack)}</div>
+          </div>
+
+          <div class="item">
+            <div class="label">If it came true</div>
+            <div>${escapeHtml(state.ifTrue)}</div>
+          </div>
+
+          <div class="item">
+            <div class="label">Where you got the ball rolling</div>
+            <div>${state.reactions.length ? escapeHtml(state.reactions.join(", ")) : "Nothing checked."}</div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="secondary" onclick="startOver()">Work on another fear?</button>
+          <button class="primary" onclick="showMeditation()">I’m done</button>
+        </div>
+      `;
+    }
+
+    function renderStep8(){
+      const seconds = state.meditationSeconds;
+      const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+      const ss = String(seconds % 60).padStart(2, "0");
+
+      app.innerHTML = `
+        <div class="done-screen">
+          <h2>Nice work.</h2>
+          <p>Take 30 seconds and sit still with this.</p>
+
+          <div class="quote-box">
+            “We ask Him to remove our fear and direct our attention to what He would have us be.”
+            <br />— Alcoholics Anonymous, p. 68
+          </div>
+
+          <textarea id="nextRightThingInput" rows="4" placeholder="What’s the next right thing to do without this fear running the show?">${escapeHtml(state.nextRightThing)}</textarea>
+
+          <div class="meditation-wrap">
+            <div class="label" style="margin-bottom:8px;">30 second meditation</div>
+            <div class="clock" id="clock">${mm}:${ss}</div>
+            <div class="btn-row" style="justify-content:center;">
+              ${
+                state.meditationRunning
+                  ? `<button class="secondary" onclick="pauseMeditation()">Pause</button>`
+                  : `<button class="primary" onclick="startMeditation()">Start</button>`
+              }
+              <button class="secondary" onclick="resetMeditation()">Reset</button>
+              <button class="ghost" onclick="startOver()">Work on another fear?</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function render(){
+      switch(state.step){
+        case 1: renderStep1(); break;
+        case 2: renderStep2(); break;
+        case 3: renderStep3(); break;
+        case 4: renderStep4(); break;
+        case 5: renderStep5(); break;
+        case 6: renderStep6(); break;
+        case 7: renderStep7(); break;
+        case 8: renderStep8(); break;
+      }
+    }
+
+    function goBack(){
+      if(state.step > 1){
+        state.step--;
+        render();
+      }
+    }
+
+    window.nextFromFear = function(){
+      const value = document.getElementById("fearInput").value.trim();
+      if(!value){
+        alert("Write the fear first.");
+        return;
+      }
+      state.fearText = value;
+      showSignal("Looking at it…");
+      state.step = 2;
+      setTimeout(render, 250);
+    };
+
+    window.pickCategory = function(value){
+      state.selectedCategory = value;
+      state.namedFear = "";
+      render();
+    };
+
+    window.clearCategorySelection = function(){
+      state.selectedCategory = "";
+      state.namedFear = "";
+      render();
+    };
+
+    window.pickNamedFear = function(value){
+      state.namedFear = value;
+      render();
+    };
+
+    window.nextFromNamedFear = function(){
+      if(!state.namedFear){
+        alert("Pick the fear that fits best.");
+        return;
+      }
+      showSignal("Taking it a little deeper…");
+      state.step = 3;
+      setTimeout(render, 250);
+    };
+
+    window.nextFromHeldBack = function(){
+      const value = document.getElementById("heldBackInput").value.trim();
+      if(!value){
+        alert("Write what this fear has held you back from doing.");
+        return;
+      }
+      state.heldBack = value;
+      state.step = 4;
+      render();
+    };
+
+    window.pickUnderneath = function(value){
+      state.underneath = value;
+      render();
+    };
+
+    window.nextFromUnderneath = function(){
+      if(!state.underneath){
+        alert("Pick the one that feels closest.");
+        return;
+      }
+      state.step = 5;
+      render();
+    };
+
+    window.nextFromIfTrue = function(){
+      const value = document.getElementById("ifTrueInput").value.trim();
+      if(!value){
+        alert("Write what would happen if it came true.");
+        return;
+      }
+      state.ifTrue = value;
+      state.step = 6;
+      render();
+    };
+
+    window.toggleReaction = function(value, checked){
+      if(checked){
+        if(!state.reactions.includes(value)) state.reactions.push(value);
+      } else {
+        state.reactions = state.reactions.filter(v => v !== value);
+      }
+    };
+
+    window.finishFearWork = function(){
+      showSignal("Putting it together…");
+      state.step = 7;
+      setTimeout(render, 250);
+    };
+
+    window.showMeditation = function(){
+      state.step = 8;
+      state.meditationRunning = false;
+      state.meditationSeconds = 30;
+      clearInterval(state.meditationInterval);
+      state.meditationInterval = null;
+      render();
+    };
+
+    function storeNextRightThingFromInput(){
+      const input = document.getElementById("nextRightThingInput");
+      if(input){
+        state.nextRightThing = input.value;
+      }
+    }
+
+    window.startMeditation = function(){
+      storeNextRightThingFromInput();
+
+      if(state.meditationRunning) return;
+      state.meditationRunning = true;
+      render();
+
+      state.meditationInterval = setInterval(() => {
+        if(state.meditationSeconds > 0){
+          state.meditationSeconds--;
+          const clock = document.getElementById("clock");
+          if(clock){
+            const mm = String(Math.floor(state.meditationSeconds / 60)).padStart(2, "0");
+            const ss = String(state.meditationSeconds % 60).padStart(2, "0");
+            clock.textContent = `${mm}:${ss}`;
+          }
+          storeNextRightThingFromInput();
+        } else {
+          clearInterval(state.meditationInterval);
+          state.meditationInterval = null;
+          state.meditationRunning = false;
+          storeNextRightThingFromInput();
+          render();
+          showSignal("Done.");
+        }
+      }, 1000);
+    };
+
+    window.pauseMeditation = function(){
+      storeNextRightThingFromInput();
+      state.meditationRunning = false;
+      clearInterval(state.meditationInterval);
+      state.meditationInterval = null;
+      render();
+    };
+
+    window.resetMeditation = function(){
+      storeNextRightThingFromInput();
+      state.meditationRunning = false;
+      clearInterval(state.meditationInterval);
+      state.meditationInterval = null;
+      state.meditationSeconds = 30;
+      render();
+    };
+
+    window.startOver = function(){
+      clearInterval(state.meditationInterval);
+      state.meditationInterval = null;
+
+      state.step = 1;
+      state.fearText = "";
+      state.selectedCategory = "";
+      state.namedFear = "";
+      state.heldBack = "";
+      state.underneath = "";
+      state.ifTrue = "";
+      state.reactions = [];
+      state.nextRightThing = "";
+      state.meditationRunning = false;
+      state.meditationSeconds = 30;
+      render();
+    };
+
+    render();
+  </script>
+</body>
+</html>
