@@ -6,264 +6,159 @@
   <title>Fear Furnace</title>
   <style>
     :root{
-      --bg1:#160f14;
-      --bg2:#2b1712;
-      --panel:#23171b;
-      --panel2:#2d1d21;
-      --text:#f7efe8;
-      --muted:#c7b7aa;
-      --accent:#ff9a3c;
-      --accent2:#ffcb6b;
-      --danger:#ff6b4a;
-      --glow:0 0 20px rgba(255,154,60,.35);
-      --radius:24px;
+      --bg:#ffffff;
+      --panel:#ffffff;
+      --line:#111111;
+      --soft:#666666;
+      --soft2:#8a8a8a;
+      --fill:#f5f5f5;
+      --fill2:#efefef;
+      --text:#111111;
+      --radius:22px;
+      --shadow:0 8px 24px rgba(0,0,0,.06);
     }
 
     *{box-sizing:border-box}
-    body{
+
+    html,body{
       margin:0;
-      font-family:Arial, Helvetica, sans-serif;
+      padding:0;
+      background:var(--bg);
       color:var(--text);
-      background:
-        radial-gradient(circle at top, rgba(255,130,70,.12), transparent 30%),
-        linear-gradient(180deg, #2a1514 0%, #140d12 55%, #0d090d 100%);
+      font-family:Arial, Helvetica, sans-serif;
+    }
+
+    body{
       min-height:100vh;
-      overflow-x:hidden;
     }
 
     .wrap{
-      max-width:780px;
+      max-width:760px;
       margin:0 auto;
-      padding:24px 18px 80px;
+      padding:20px 14px 80px;
     }
 
     .hero{
       text-align:center;
-      margin-bottom:18px;
+      margin-bottom:16px;
     }
 
     .hero h1{
       margin:0;
-      font-size:clamp(2rem, 4vw, 3rem);
-      letter-spacing:.5px;
+      font-size:clamp(2rem, 4vw, 2.6rem);
+      letter-spacing:.4px;
     }
 
     .hero p{
       margin:10px auto 0;
-      color:var(--muted);
-      max-width:620px;
+      max-width:560px;
+      color:var(--soft);
       line-height:1.5;
       font-size:1rem;
     }
 
-    .furnace-stage{
-      position:relative;
-      height:290px;
-      margin:10px auto 22px;
-      display:flex;
-      align-items:flex-end;
-      justify-content:center;
-      overflow:hidden;
-    }
-
-    .shaft{
-      position:absolute;
-      top:0;
-      left:50%;
-      transform:translateX(-50%);
-      width:12px;
-      height:95px;
-      border-radius:999px;
-      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,160,70,.12));
-      opacity:.45;
-    }
-
-    .fear-card{
-      position:absolute;
-      top:18px;
-      left:50%;
-      transform:translateX(-50%);
-      width:min(86%, 420px);
-      min-height:72px;
-      padding:16px 18px;
-      border-radius:18px;
-      background:linear-gradient(180deg, #403039, #2a2028);
-      border:1px solid rgba(255,255,255,.08);
-      box-shadow:0 16px 30px rgba(0,0,0,.35);
-      color:#fff;
+    .signal-row{
+      min-height:34px;
       display:flex;
       align-items:center;
       justify-content:center;
-      text-align:center;
-      line-height:1.35;
-      font-weight:700;
-      opacity:0;
-      pointer-events:none;
+      margin:8px 0 16px;
     }
 
-    .fear-card.drop{
-      animation:dropFear 1.25s ease-in forwards;
+    .signal{
+      display:none;
+      align-items:center;
+      gap:10px;
+      font-size:.96rem;
+      color:var(--soft);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:8px 14px;
+      background:#fff;
     }
 
-    @keyframes dropFear{
-      0%{opacity:1; top:18px; transform:translateX(-50%) scale(1) rotate(0deg)}
-      70%{opacity:1; top:132px; transform:translateX(-50%) scale(.97) rotate(-2deg)}
-      100%{opacity:0; top:190px; transform:translateX(-50%) scale(.55) rotate(6deg)}
+    .signal.show{
+      display:flex;
     }
 
-    .furnace{
+    .ember{
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      background:#111;
+      animation:pulse 1s ease-in-out infinite;
       position:relative;
-      width:min(90vw, 360px);
-      height:180px;
-      border-radius:34px 34px 26px 26px;
-      background:
-        linear-gradient(180deg, #4a2d28 0%, #2a1919 40%, #1a1115 100%);
-      border:2px solid rgba(255,180,120,.18);
-      box-shadow:
-        inset 0 10px 35px rgba(255,190,120,.05),
-        inset 0 -10px 30px rgba(0,0,0,.5),
-        0 15px 40px rgba(0,0,0,.35);
+      flex:0 0 14px;
     }
 
-    .furnace::before{
+    .ember::after{
       content:"";
       position:absolute;
-      inset:16px 20px 34px;
-      border-radius:24px;
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.18));
-      border:1px solid rgba(255,255,255,.06);
+      inset:-6px;
+      border:1px solid #111;
+      border-radius:50%;
+      opacity:.25;
+      animation:ripple 1s ease-out infinite;
     }
 
-    .mouth{
-      position:absolute;
-      left:50%;
-      bottom:36px;
-      transform:translateX(-50%);
-      width:210px;
-      height:78px;
-      border-radius:20px;
-      background:
-        radial-gradient(circle at 50% 85%, rgba(255,235,140,.9), rgba(255,140,50,.95) 40%, rgba(159,42,12,.9) 70%, #220a0b 100%);
-      box-shadow:
-        0 0 18px rgba(255,120,40,.55),
-        0 0 50px rgba(255,140,40,.25),
-        inset 0 0 25px rgba(255,245,170,.2);
-      overflow:hidden;
+    @keyframes pulse{
+      0%,100%{transform:scale(.78); opacity:.55;}
+      50%{transform:scale(1); opacity:1;}
     }
 
-    .furnace.active .mouth{
-      animation:pulseFire .9s ease-in-out infinite alternate;
-    }
-
-    @keyframes pulseFire{
-      from{transform:translateX(-50%) scale(1)}
-      to{transform:translateX(-50%) scale(1.03)}
-    }
-
-    .flame{
-      position:absolute;
-      bottom:-8px;
-      width:70px;
-      height:95px;
-      border-radius:50% 50% 45% 45%;
-      background:radial-gradient(circle at 50% 65%, #fff6aa 0%, #ffc14a 28%, #ff7f2f 55%, rgba(255,90,20,.3) 75%, transparent 100%);
-      filter:blur(.5px);
-      opacity:.9;
-      animation:flicker 1s infinite ease-in-out alternate;
-    }
-
-    .flame.f1{left:18px; animation-delay:.1s}
-    .flame.f2{left:68px; height:110px; animation-delay:.35s}
-    .flame.f3{left:120px; height:90px; animation-delay:.2s}
-
-    @keyframes flicker{
-      from{transform:translateY(4px) scale(.97)}
-      to{transform:translateY(-3px) scale(1.05)}
-    }
-
-    .ash{
-      position:absolute;
-      bottom:12px;
-      left:50%;
-      transform:translateX(-50%);
-      color:rgba(255,220,190,.55);
-      font-size:.8rem;
-      letter-spacing:2px;
-      text-transform:uppercase;
-    }
-
-    .release-banner{
-      position:absolute;
-      top:10px;
-      left:50%;
-      transform:translateX(-50%) translateY(-8px);
-      background:linear-gradient(180deg, rgba(255,193,92,.16), rgba(255,105,56,.1));
-      border:1px solid rgba(255,185,110,.35);
-      color:#ffe8bd;
-      border-radius:999px;
-      padding:10px 18px;
-      font-weight:700;
-      font-size:.95rem;
-      opacity:0;
-      transition:.35s ease;
-      box-shadow:var(--glow);
-      text-align:center;
-    }
-
-    .release-banner.show{
-      opacity:1;
-      transform:translateX(-50%) translateY(0);
+    @keyframes ripple{
+      0%{transform:scale(.6); opacity:.35;}
+      100%{transform:scale(1.55); opacity:0;}
     }
 
     .panel{
-      background:linear-gradient(180deg, rgba(41,26,30,.96), rgba(28,18,22,.98));
-      border:1px solid rgba(255,255,255,.06);
+      background:var(--panel);
+      border:2px solid var(--line);
       border-radius:var(--radius);
       padding:18px;
-      box-shadow:0 10px 30px rgba(0,0,0,.22);
+      box-shadow:var(--shadow);
     }
 
-    .step-tag{
+    .tag{
       display:inline-block;
       padding:8px 12px;
-      font-size:.85rem;
-      font-weight:700;
+      border:1.5px solid var(--line);
       border-radius:999px;
-      color:#ffe7d1;
-      background:rgba(255,158,74,.12);
-      border:1px solid rgba(255,158,74,.22);
+      font-weight:700;
+      font-size:.9rem;
       margin-bottom:12px;
+      background:#fff;
     }
 
     .prompt{
-      font-size:1.25rem;
-      font-weight:800;
-      margin:0 0 14px;
-      line-height:1.3;
+      margin:0 0 12px;
+      font-size:1.22rem;
+      line-height:1.35;
     }
 
     .help{
-      color:var(--muted);
       margin:0 0 14px;
+      color:var(--soft);
       line-height:1.5;
     }
 
-    textarea, input[type="text"]{
+    textarea,
+    input[type="text"]{
       width:100%;
-      background:#140f13;
-      border:1px solid rgba(255,255,255,.08);
-      color:var(--text);
+      border:2px solid var(--line);
       border-radius:18px;
-      padding:16px;
+      padding:15px;
       font-size:1rem;
       line-height:1.5;
-      resize:vertical;
+      color:var(--text);
+      background:#fff;
       outline:none;
+      resize:vertical;
     }
 
-    textarea:focus, input[type="text"]:focus{
-      border-color:rgba(255,170,90,.4);
-      box-shadow:0 0 0 3px rgba(255,155,70,.12);
+    textarea:focus,
+    input[type="text"]:focus{
+      background:#fff;
     }
 
     .btn-row{
@@ -278,62 +173,86 @@
       border:none;
       cursor:pointer;
       border-radius:999px;
-      padding:14px 18px;
+      padding:13px 18px;
       font-weight:800;
-      font-size:.97rem;
-      transition:.2s ease;
+      font-size:.96rem;
+      transition:.15s ease;
+    }
+
+    button:hover{
+      transform:translateY(-1px);
     }
 
     .primary{
-      background:linear-gradient(180deg, #ffb04f, #ff7b37);
-      color:#29140e;
-      box-shadow:0 10px 22px rgba(255,128,53,.22);
+      background:#111;
+      color:#fff;
+      border:2px solid #111;
     }
 
-    .primary:hover{transform:translateY(-1px)}
     .secondary{
-      background:#1a1318;
-      color:var(--text);
-      border:1px solid rgba(255,255,255,.08);
+      background:#fff;
+      color:#111;
+      border:2px solid #111;
     }
 
-    .secondary:hover{background:#21171d}
     .ghost{
-      background:transparent;
-      color:#f4cfa5;
-      border:1px dashed rgba(255,190,120,.28);
+      background:#f3f3f3;
+      color:#111;
+      border:2px dashed #111;
     }
 
     .choice-grid{
       display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
       gap:10px;
       margin-top:8px;
-      max-height:340px;
-      overflow:auto;
-      padding-right:2px;
     }
 
     .choice{
-      background:#181116;
-      color:var(--text);
-      border:1px solid rgba(255,255,255,.07);
+      background:#fff;
+      color:#111;
+      border:2px solid #111;
       border-radius:18px;
-      padding:14px 14px;
+      padding:14px;
       text-align:left;
       line-height:1.35;
-      min-height:64px;
-    }
-
-    .choice:hover{
-      border-color:rgba(255,173,94,.28);
-      background:#20161d;
+      min-height:62px;
+      font-weight:700;
     }
 
     .choice.selected{
-      background:linear-gradient(180deg, rgba(255,143,60,.2), rgba(255,109,49,.14));
-      border-color:rgba(255,176,102,.44);
-      box-shadow:var(--glow);
+      background:#111;
+      color:#fff;
+    }
+
+    .subsection{
+      margin-top:16px;
+      padding-top:16px;
+      border-top:1px solid #d7d7d7;
+    }
+
+    .search-wrap{
+      margin:12px 0 12px;
+    }
+
+    .selected-box{
+      margin-top:12px;
+      padding:14px;
+      border:2px solid #111;
+      border-radius:18px;
+      background:#f7f7f7;
+      line-height:1.45;
+      font-weight:700;
+    }
+
+    .selected-box .mini{
+      display:block;
+      font-size:.84rem;
+      color:var(--soft);
+      font-weight:700;
+      margin-bottom:4px;
+      text-transform:uppercase;
+      letter-spacing:.5px;
     }
 
     .checklist{
@@ -346,63 +265,99 @@
       display:flex;
       align-items:center;
       gap:12px;
-      padding:14px 14px;
+      border:2px solid #111;
       border-radius:16px;
-      background:#181116;
-      border:1px solid rgba(255,255,255,.06);
+      padding:14px;
+      background:#fff;
     }
 
     .check input{
       width:20px;
       height:20px;
-      accent-color:#ff9a3c;
+      accent-color:#111;
+      flex:0 0 20px;
     }
 
     .quote-box{
-      background:rgba(255,162,73,.08);
-      border:1px solid rgba(255,190,120,.18);
-      color:#ffe8c8;
-      padding:14px 16px;
+      border:2px solid #111;
       border-radius:18px;
-      line-height:1.55;
+      padding:14px;
       margin:0 0 14px;
+      background:#f7f7f7;
+      line-height:1.55;
+      font-style:italic;
     }
 
     .summary{
       display:grid;
       gap:10px;
-      margin-top:10px;
+      margin-top:8px;
     }
 
-    .summary .item{
-      background:#181116;
-      border:1px solid rgba(255,255,255,.06);
+    .item{
+      border:2px solid #111;
       border-radius:18px;
       padding:14px;
+      background:#fff;
     }
 
-    .summary .label{
-      color:#f5c38f;
+    .label{
       font-size:.82rem;
       text-transform:uppercase;
-      letter-spacing:1px;
+      letter-spacing:.7px;
       margin-bottom:6px;
+      color:var(--soft);
       font-weight:800;
     }
 
-    .tiny{
-      font-size:.92rem;
-      color:var(--muted);
+    .done-wrap{
+      text-align:center;
+    }
+
+    .meditation-wrap{
+      margin-top:16px;
+      padding:16px;
+      border:2px solid #111;
+      border-radius:18px;
+      text-align:center;
+      background:#f7f7f7;
+    }
+
+    .clock{
+      font-size:2rem;
+      font-weight:800;
+      letter-spacing:1px;
+      margin:8px 0 12px;
+    }
+
+    .done-screen{
+      text-align:center;
+      padding:12px 4px 4px;
+    }
+
+    .done-screen h2{
+      margin:0 0 8px;
+      font-size:1.5rem;
+    }
+
+    .done-screen p{
+      margin:0 0 14px;
+      color:var(--soft);
       line-height:1.5;
     }
 
-    .hidden{display:none !important}
+    .hidden{
+      display:none !important;
+    }
 
-    @media (max-width:600px){
-      .wrap{padding:18px 12px 70px}
+    @media (max-width:640px){
+      .wrap{padding:16px 12px 70px}
       .panel{padding:16px}
-      .prompt{font-size:1.14rem}
       .choice-grid{grid-template-columns:1fr 1fr}
+    }
+
+    @media (max-width:460px){
+      .choice-grid{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -411,23 +366,14 @@
     <div class="hero">
       <h1>Fear Furnace</h1>
       <p>
-        A simple tool to help you look honestly at a fear, walk it through,
-        and let it go.
+        A simple tool to help you look honestly at a fear, walk it through, and let it go.
       </p>
     </div>
 
-    <div class="furnace-stage">
-      <div class="release-banner" id="releaseBanner">Fear released. Now go do the next right thing.</div>
-      <div class="shaft"></div>
-      <div class="fear-card" id="fearCard"></div>
-
-      <div class="furnace" id="furnace">
-        <div class="mouth">
-          <div class="flame f1"></div>
-          <div class="flame f2"></div>
-          <div class="flame f3"></div>
-        </div>
-        <div class="ash">Fear Furnace</div>
+    <div class="signal-row">
+      <div class="signal" id="signal">
+        <div class="ember"></div>
+        <span id="signalText">Working through it…</span>
       </div>
     </div>
 
@@ -435,68 +381,82 @@
   </div>
 
   <script>
-    const fearOptions = [
-      "Fear of God",
-      "Fear of Dying",
-      "Fear of Insanity",
-      "Fear of Insecurity",
-      "Fear of Rejection",
-      "Fear of Loneliness",
-      "Fear of Disease",
-      "Fear of Alcohol",
-      "Fear of Drugs",
-      "Fear of Relapse",
-      "Fear of Sex",
-      "Fear of Sin",
-      "Fear of Self-Expression",
-      "Fear of Authority",
-      "Fear of Heights",
-      "Fear of Unemployment",
-      "Fear of Employment",
-      "Fear of Parents",
-      "Fear of Losing a Wife",
-      "Fear of Losing a Husband",
-      "Fear of Losing a Child",
-      "Fear of Animals",
-      "Fear of Insects",
-      "Fear of Police",
-      "Fear of Jail",
-      "Fear of Doctors",
-      "Fear of Stealing",
-      "Fear of Creditors",
-      "Fear of Being Found Out",
-      "Fear of Failure",
-      "Fear of Success",
-      "Fear of Responsibility",
-      "Fear of Physical Pain",
-      "Fear of Fear",
-      "Fear of Drowning",
-      "Fear of Men",
-      "Fear of Women",
-      "Fear of Being Alone",
-      "Fear of People",
-      "Fear of Crying",
-      "Fear of Poverty",
-      "Fear of The Unknown",
-      "Fear of Abandonment",
-      "Fear of Intimacy",
-      "Fear of Disapproval",
-      "Fear of Confrontation",
-      "Fear of Sobriety",
-      "Fear of Hospitals",
-      "Fear of Feelings",
-      "Fear of Getting Old",
-      "Fear of Hurting Others",
-      "Fear of Violence",
-      "Fear of Writing Inventory",
-      "Fear of Being Alive",
-      "Fear of Government",
-      "Fear of Gangs",
-      "Fear of Gossip",
-      "Fear of Wealthy People",
-      "Fear of Guns",
-      "Fear of Change"
-    ];
+    const categories = {
+      "Relationship": [
+        "Fear of Rejection",
+        "Fear of Loneliness",
+        "Fear of Abandonment",
+        "Fear of Intimacy",
+        "Fear of Losing a Wife",
+        "Fear of Losing a Husband",
+        "Fear of Losing a Child",
+        "Fear of Men",
+        "Fear of Women",
+        "Fear of Parents",
+        "Fear of People",
+        "Fear of Hurting Others",
+        "Fear of Disapproval",
+        "Fear of Gossip"
+      ],
+      "Identity / Emotional": [
+        "Fear of Insecurity",
+        "Fear of Self-Expression",
+        "Fear of Failure",
+        "Fear of Success",
+        "Fear of Responsibility",
+        "Fear of Feelings",
+        "Fear of Crying",
+        "Fear of Being Found Out",
+        "Fear of Fear",
+        "Fear of Being Alive",
+        "Fear of Writing Inventory"
+      ],
+      "Health / Death": [
+        "Fear of Dying",
+        "Fear of Insanity",
+        "Fear of Disease",
+        "Fear of Physical Pain",
+        "Fear of Hospitals",
+        "Fear of Doctors",
+        "Fear of Getting Old"
+      ],
+      "Addiction / Recovery": [
+        "Fear of Alcohol",
+        "Fear of Drugs",
+        "Fear of Relapse",
+        "Fear of Sobriety"
+      ],
+      "Authority / Consequences": [
+        "Fear of Authority",
+        "Fear of Police",
+        "Fear of Jail",
+        "Fear of Government",
+        "Fear of Gangs",
+        "Fear of Creditors",
+        "Fear of Stealing"
+      ],
+      "Work / Money / Stability": [
+        "Fear of Unemployment",
+        "Fear of Employment",
+        "Fear of Poverty",
+        "Fear of Wealthy People",
+        "Fear of Change"
+      ],
+      "Spiritual": [
+        "Fear of God",
+        "Fear of Sin"
+      ],
+      "Physical / Situational": [
+        "Fear of Heights",
+        "Fear of Animals",
+        "Fear of Insects",
+        "Fear of Drowning",
+        "Fear of Violence",
+        "Fear of Guns",
+        "Fear of Confrontation",
+        "Fear of The Unknown"
+      ]
+    };
 
     const underneathOptions = [
       "Rejection",
@@ -515,18 +475,21 @@
     const state = {
       step: 1,
       fearText: "",
+      selectedCategory: "",
+      fearSearch: "",
       namedFear: "",
       underneath: "",
       ifTrue: "",
       keptFrom: "",
       reactions: [],
-      whatToBe: ""
+      meditationRunning: false,
+      meditationSeconds: 30,
+      meditationInterval: null
     };
 
     const app = document.getElementById("app");
-    const fearCard = document.getElementById("fearCard");
-    const furnace = document.getElementById("furnace");
-    const releaseBanner = document.getElementById("releaseBanner");
+    const signal = document.getElementById("signal");
+    const signalText = document.getElementById("signalText");
 
     function escapeHtml(str) {
       return String(str)
@@ -537,55 +500,84 @@
         .replace(/'/g, "&#039;");
     }
 
-    function animateFearDrop(text){
-      if(!text.trim()) return;
-      fearCard.textContent = text.trim();
-      fearCard.classList.remove("drop");
-      void fearCard.offsetWidth;
-      fearCard.classList.add("drop");
-      furnace.classList.add("active");
-      setTimeout(() => furnace.classList.remove("active"), 1800);
-    }
-
-    function showRelease(){
-      furnace.classList.add("active");
-      releaseBanner.classList.add("show");
+    function showSignal(text = "Working through it…", ms = 1100){
+      signalText.textContent = text;
+      signal.classList.add("show");
       setTimeout(() => {
-        releaseBanner.classList.remove("show");
-        furnace.classList.remove("active");
-      }, 3000);
+        signal.classList.remove("show");
+      }, ms);
     }
 
-    function renderChoiceButtons(options, selectedValue, onClickName){
+    function renderCategoryButtons(){
       return `
         <div class="choice-grid">
-          ${options.map(opt => `
-            <button class="choice ${selectedValue === opt ? 'selected' : ''}" onclick="${onClickName}(${JSON.stringify(opt).replace(/"/g, '&quot;')})">
-              ${escapeHtml(opt)}
+          ${Object.keys(categories).map(cat => `
+            <button class="choice ${state.selectedCategory === cat ? 'selected' : ''}" onclick="pickCategory(${JSON.stringify(cat).replace(/"/g, '&quot;')})">
+              ${escapeHtml(cat)}
             </button>
           `).join("")}
         </div>
       `;
     }
 
+    function getFilteredFears(){
+      if(!state.selectedCategory) return [];
+      const all = categories[state.selectedCategory] || [];
+      const q = state.fearSearch.trim().toLowerCase();
+      if(!q) return all;
+      return all.filter(item => item.toLowerCase().includes(q));
+    }
+
+    function renderFearChoices(){
+      if(!state.selectedCategory) return "";
+      if(state.namedFear){
+        return `
+          <div class="selected-box">
+            <span class="mini">Selected fear</span>
+            ${escapeHtml(state.namedFear)}
+          </div>
+        `;
+      }
+
+      const filtered = getFilteredFears();
+
+      return `
+        <div class="subsection">
+          <p class="help"><strong>${escapeHtml(state.selectedCategory)}</strong></p>
+          <div class="search-wrap">
+            <input type="text" id="fearSearchInput" placeholder="Search this list..." value="${escapeHtml(state.fearSearch)}" oninput="updateFearSearch(this.value)" />
+          </div>
+          <div class="choice-grid">
+            ${filtered.map(item => `
+              <button class="choice" onclick="pickNamedFear(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                ${escapeHtml(item)}
+              </button>
+            `).join("")}
+          </div>
+          ${filtered.length === 0 ? `<p class="help" style="margin-top:12px;">No matches in this category.</p>` : ""}
+        </div>
+      `;
+    }
+
     function renderStep1(){
       app.innerHTML = `
-        <div class="step-tag">Step 1</div>
+        <div class="tag">Let’s take it further</div>
         <h2 class="prompt">What fear is bothering you right now?</h2>
         <p class="help">Type it out plain and honest. No perfect wording needed.</p>
         <textarea id="fearInput" rows="5" placeholder="Example: I’m afraid to go to work because my girlfriend just broke up with me.">${escapeHtml(state.fearText)}</textarea>
         <div class="btn-row">
-          <button class="primary" onclick="nextFromFear()">Drop it in the furnace</button>
+          <button class="primary" onclick="nextFromFear()">Keep going</button>
         </div>
       `;
     }
 
     function renderStep2(){
       app.innerHTML = `
-        <div class="step-tag">Step 2</div>
-        <h2 class="prompt">What are you really afraid of here?</h2>
-        <p class="help">Pick the one that fits best. Don’t overthink it.</p>
-        ${renderChoiceButtons(fearOptions, state.namedFear, "pickNamedFear")}
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">What’s the nature of this fear?</h2>
+        <p class="help">Start with the category that fits best. Then pick the fear that feels closest to what’s going on.</p>
+        ${renderCategoryButtons()}
+        ${renderFearChoices()}
         <div class="btn-row">
           <button class="secondary" onclick="goBack()">Back</button>
           <button class="primary" onclick="nextFromNamedFear()">Next</button>
@@ -595,10 +587,16 @@
 
     function renderStep3(){
       app.innerHTML = `
-        <div class="step-tag">Step 3</div>
-        <h2 class="prompt">Underneath that… which one fits best?</h2>
-        <p class="help">This is just to help you look a little deeper.</p>
-        ${renderChoiceButtons(underneathOptions, state.underneath, "pickUnderneath")}
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">Is this fear feeling like one of these?</h2>
+        <p class="help">Pick the one that feels closest.</p>
+        <div class="choice-grid">
+          ${underneathOptions.map(opt => `
+            <button class="choice ${state.underneath === opt ? 'selected' : ''}" onclick="pickUnderneath(${JSON.stringify(opt).replace(/"/g, '&quot;')})">
+              ${escapeHtml(opt)}
+            </button>
+          `).join("")}
+        </div>
         <div class="btn-row">
           <button class="secondary" onclick="goBack()">Back</button>
           <button class="primary" onclick="nextFromUnderneath()">Next</button>
@@ -608,7 +606,7 @@
 
     function renderStep4(){
       app.innerHTML = `
-        <div class="step-tag">Step 4</div>
+        <div class="tag">Let’s take it further</div>
         <h2 class="prompt">If this fear actually came true… what would happen?</h2>
         <p class="help">Write what your mind tells you would happen.</p>
         <textarea id="ifTrueInput" rows="5" placeholder="Write it out...">${escapeHtml(state.ifTrue)}</textarea>
@@ -621,7 +619,7 @@
 
     function renderStep5(){
       app.innerHTML = `
-        <div class="step-tag">Step 5</div>
+        <div class="tag">Let’s take it further</div>
         <h2 class="prompt">What has this fear kept you from doing?</h2>
         <p class="help">This is where we look at the cost.</p>
         <textarea id="keptFromInput" rows="5" placeholder="Write it out...">${escapeHtml(state.keptFrom)}</textarea>
@@ -634,8 +632,8 @@
 
     function renderStep6(){
       app.innerHTML = `
-        <div class="step-tag">Step 6</div>
-        <h2 class="prompt">How have you been reacting to this fear?</h2>
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">Where did I get the ball rolling on this fear?</h2>
         <p class="help">Check any that fit.</p>
         <div class="checklist">
           ${reactionOptions.map(opt => `
@@ -647,33 +645,15 @@
         </div>
         <div class="btn-row">
           <button class="secondary" onclick="goBack()">Back</button>
-          <button class="primary" onclick="nextFromReactions()">Next</button>
+          <button class="primary" onclick="finishFearWork()">Next</button>
         </div>
       `;
     }
 
     function renderStep7(){
       app.innerHTML = `
-        <div class="step-tag">Step 7</div>
-        <h2 class="prompt">What would God have you be instead?</h2>
-        <div class="quote-box">
-          “We ask Him to remove our fear and direct our attention to what He would have us be.”
-          <br />— Alcoholics Anonymous, p. 68
-        </div>
-        <textarea id="whatToBeInput" rows="5" placeholder="Example: honest, trusting, patient, willing, courageous...">${escapeHtml(state.whatToBe)}</textarea>
-        <div class="btn-row">
-          <button class="secondary" onclick="goBack()">Back</button>
-          <button class="primary" onclick="finishFurnace()">Release it</button>
-        </div>
-      `;
-    }
-
-    function renderStep8(){
-      app.innerHTML = `
-        <div class="step-tag">Done</div>
-        <h2 class="prompt">You walked through the fear.</h2>
-        <p class="help">Here’s what you wrote. Read it over slow.</p>
-
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">Here’s what you came up with.</h2>
         <div class="summary">
           <div class="item">
             <div class="label">What fear was bothering you</div>
@@ -686,7 +666,7 @@
           </div>
 
           <div class="item">
-            <div class="label">Underneath that</div>
+            <div class="label">What this fear feels like underneath</div>
             <div>${escapeHtml(state.underneath)}</div>
           </div>
 
@@ -701,18 +681,46 @@
           </div>
 
           <div class="item">
-            <div class="label">How you were reacting</div>
-            <div>${state.reactions.length ? escapeHtml(state.reactions.join(", ")) : "<span class='tiny'>Nothing checked.</span>"}</div>
+            <div class="label">Where you got the ball rolling</div>
+            <div>${state.reactions.length ? escapeHtml(state.reactions.join(", ")) : "Nothing checked."}</div>
           </div>
 
           <div class="item">
-            <div class="label">What God would have you be instead</div>
-            <div>${escapeHtml(state.whatToBe)}</div>
+            <div class="label">Big Book reminder</div>
+            <div>“We ask Him to remove our fear and direct our attention to what He would have us be.” — Alcoholics Anonymous, p. 68</div>
           </div>
         </div>
 
         <div class="btn-row">
-          <button class="secondary" onclick="startOver()">Start another fear</button>
+          <button class="secondary" onclick="startOver()">Work on another fear?</button>
+          <button class="primary" onclick="showMeditation()">I’m done</button>
+        </div>
+      `;
+    }
+
+    function renderStep8(){
+      const seconds = state.meditationSeconds;
+      const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+      const ss = String(seconds % 60).padStart(2, "0");
+
+      app.innerHTML = `
+        <div class="done-screen">
+          <h2>Nice work.</h2>
+          <p>Take 30 seconds and sit still with it.</p>
+
+          <div class="meditation-wrap">
+            <div class="label" style="margin-bottom:8px;">30 second meditation</div>
+            <div class="clock" id="clock">${mm}:${ss}</div>
+            <div class="btn-row" style="justify-content:center;">
+              ${
+                state.meditationRunning
+                ? `<button class="secondary" onclick="pauseMeditation()">Pause</button>`
+                : `<button class="primary" onclick="startMeditation()">Start</button>`
+              }
+              <button class="secondary" onclick="resetMeditation()">Reset</button>
+              <button class="ghost" onclick="startOver()">Work on another fear?</button>
+            </div>
+          </div>
         </div>
       `;
     }
@@ -731,8 +739,10 @@
     }
 
     function goBack(){
-      if(state.step > 1) state.step--;
-      render();
+      if(state.step > 1){
+        state.step--;
+        render();
+      }
     }
 
     window.nextFromFear = function(){
@@ -742,9 +752,28 @@
         return;
       }
       state.fearText = value;
-      animateFearDrop(value);
+      showSignal("Looking at it…");
       state.step = 2;
-      setTimeout(render, 350);
+      setTimeout(render, 250);
+    };
+
+    window.pickCategory = function(value){
+      if(state.selectedCategory !== value){
+        state.selectedCategory = value;
+        state.namedFear = "";
+        state.fearSearch = "";
+      }
+      render();
+    };
+
+    window.updateFearSearch = function(value){
+      state.fearSearch = value;
+      render();
+      const el = document.getElementById("fearSearchInput");
+      if(el){
+        el.focus();
+        el.setSelectionRange(value.length, value.length);
+      }
     };
 
     window.pickNamedFear = function(value){
@@ -757,8 +786,9 @@
         alert("Pick the fear that fits best.");
         return;
       }
+      showSignal("Taking it a little deeper…");
       state.step = 3;
-      render();
+      setTimeout(render, 250);
     };
 
     window.pickUnderneath = function(value){
@@ -768,7 +798,7 @@
 
     window.nextFromUnderneath = function(){
       if(!state.underneath){
-        alert("Pick the one underneath it that fits best.");
+        alert("Pick the one that feels closest.");
         return;
       }
       state.step = 4;
@@ -805,33 +835,75 @@
       }
     };
 
-    window.nextFromReactions = function(){
+    window.finishFearWork = function(){
+      showSignal("Putting it together…");
       state.step = 7;
+      setTimeout(render, 250);
+    };
+
+    window.showMeditation = function(){
+      state.step = 8;
+      state.meditationRunning = false;
+      state.meditationSeconds = 30;
+      clearInterval(state.meditationInterval);
+      state.meditationInterval = null;
       render();
     };
 
-    window.finishFurnace = function(){
-      const value = document.getElementById("whatToBeInput").value.trim();
-      if(!value){
-        alert("Write what God would have you be instead.");
-        return;
-      }
-      state.whatToBe = value;
-      animateFearDrop(state.namedFear || state.fearText);
-      showRelease();
-      state.step = 8;
-      setTimeout(render, 450);
+    window.startMeditation = function(){
+      if(state.meditationRunning) return;
+      state.meditationRunning = true;
+      render();
+
+      state.meditationInterval = setInterval(() => {
+        if(state.meditationSeconds > 0){
+          state.meditationSeconds--;
+          const clock = document.getElementById("clock");
+          if(clock){
+            const mm = String(Math.floor(state.meditationSeconds / 60)).padStart(2, "0");
+            const ss = String(state.meditationSeconds % 60).padStart(2, "0");
+            clock.textContent = `${mm}:${ss}`;
+          }
+        } else {
+          clearInterval(state.meditationInterval);
+          state.meditationInterval = null;
+          state.meditationRunning = false;
+          render();
+          showSignal("Done.");
+        }
+      }, 1000);
+    };
+
+    window.pauseMeditation = function(){
+      state.meditationRunning = false;
+      clearInterval(state.meditationInterval);
+      state.meditationInterval = null;
+      render();
+    };
+
+    window.resetMeditation = function(){
+      state.meditationRunning = false;
+      clearInterval(state.meditationInterval);
+      state.meditationInterval = null;
+      state.meditationSeconds = 30;
+      render();
     };
 
     window.startOver = function(){
+      clearInterval(state.meditationInterval);
+      state.meditationInterval = null;
+
       state.step = 1;
       state.fearText = "";
+      state.selectedCategory = "";
+      state.fearSearch = "";
       state.namedFear = "";
       state.underneath = "";
       state.ifTrue = "";
       state.keptFrom = "";
       state.reactions = [];
-      state.whatToBe = "";
+      state.meditationRunning = false;
+      state.meditationSeconds = 30;
       render();
     };
 
