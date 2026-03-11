@@ -10,9 +10,7 @@
       --panel:#ffffff;
       --line:#111111;
       --soft:#666666;
-      --soft2:#8a8a8a;
       --fill:#f5f5f5;
-      --fill2:#efefef;
       --text:#111111;
       --radius:22px;
       --shadow:0 8px 24px rgba(0,0,0,.06);
@@ -156,11 +154,6 @@
       resize:vertical;
     }
 
-    textarea:focus,
-    input[type="text"]:focus{
-      background:#fff;
-    }
-
     .btn-row{
       display:flex;
       gap:10px;
@@ -263,7 +256,7 @@
 
     .check{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       gap:12px;
       border:2px solid #111;
       border-radius:16px;
@@ -276,6 +269,18 @@
       height:20px;
       accent-color:#111;
       flex:0 0 20px;
+      margin-top:2px;
+    }
+
+    .check strong{
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .check small{
+      color:var(--soft);
+      line-height:1.45;
+      display:block;
     }
 
     .quote-box{
@@ -310,8 +315,20 @@
       font-weight:800;
     }
 
-    .done-wrap{
+    .done-screen{
       text-align:center;
+      padding:12px 4px 4px;
+    }
+
+    .done-screen h2{
+      margin:0 0 8px;
+      font-size:1.5rem;
+    }
+
+    .done-screen p{
+      margin:0 0 14px;
+      color:var(--soft);
+      line-height:1.5;
     }
 
     .meditation-wrap{
@@ -330,26 +347,6 @@
       margin:8px 0 12px;
     }
 
-    .done-screen{
-      text-align:center;
-      padding:12px 4px 4px;
-    }
-
-    .done-screen h2{
-      margin:0 0 8px;
-      font-size:1.5rem;
-    }
-
-    .done-screen p{
-      margin:0 0 14px;
-      color:var(--soft);
-      line-height:1.5;
-    }
-
-    .hidden{
-      display:none !important;
-    }
-
     @media (max-width:640px){
       .wrap{padding:16px 12px 70px}
       .panel{padding:16px}
@@ -364,7 +361,7 @@
 <body>
   <div class="wrap">
     <div class="hero">
-      <h1>Fear Furnace</h1>
+      <h1>♨️ Fear Furnace</h1>
       <p>
         A simple tool to help you look honestly at a fear, walk it through, and let it go.
       </p>
@@ -382,7 +379,7 @@
 
   <script>
     const categories = {
-      "Relationship": [
+      "Me and other people": [
         "Fear of Rejection",
         "Fear of Loneliness",
         "Fear of Abandonment",
@@ -398,7 +395,7 @@
         "Fear of Disapproval",
         "Fear of Gossip"
       ],
-      "Identity / Emotional": [
+      "How I feel": [
         "Fear of Insecurity",
         "Fear of Self-Expression",
         "Fear of Failure",
@@ -411,7 +408,7 @@
         "Fear of Being Alive",
         "Fear of Writing Inventory"
       ],
-      "Health / Death": [
+      "Body and health": [
         "Fear of Dying",
         "Fear of Insanity",
         "Fear of Disease",
@@ -420,13 +417,13 @@
         "Fear of Doctors",
         "Fear of Getting Old"
       ],
-      "Addiction / Recovery": [
+      "Drinking and using": [
         "Fear of Alcohol",
         "Fear of Drugs",
         "Fear of Relapse",
         "Fear of Sobriety"
       ],
-      "Authority / Consequences": [
+      "Authority stuff": [
         "Fear of Authority",
         "Fear of Police",
         "Fear of Jail",
@@ -435,18 +432,18 @@
         "Fear of Creditors",
         "Fear of Stealing"
       ],
-      "Work / Money / Stability": [
+      "Life falling apart": [
         "Fear of Unemployment",
         "Fear of Employment",
         "Fear of Poverty",
         "Fear of Wealthy People",
         "Fear of Change"
       ],
-      "Spiritual": [
+      "God and spiritual stuff": [
         "Fear of God",
-        "Fear of Sin"
+        "Fear of Doing Something Wrong"
       ],
-      "Physical / Situational": [
+      "Physical danger": [
         "Fear of Heights",
         "Fear of Animals",
         "Fear of Insects",
@@ -466,10 +463,26 @@
     ];
 
     const reactionOptions = [
-      "Selfish",
-      "Self-seeking",
-      "Self-reliant",
-      "Self-centered"
+      {
+        key: "Selfish",
+        label: "Selfish",
+        description: "I'm putting my wants ahead of everything else."
+      },
+      {
+        key: "Self-seeking",
+        label: "Self-seeking",
+        description: "I want my way."
+      },
+      {
+        key: "Self-reliant",
+        label: "Self-reliant",
+        description: "I am not asking for help."
+      },
+      {
+        key: "Self-centered",
+        label: "Self-centered",
+        description: "I'm making it all about me again."
+      }
     ];
 
     const state = {
@@ -478,9 +491,9 @@
       selectedCategory: "",
       fearSearch: "",
       namedFear: "",
-      underneath: "",
       ifTrue: "",
-      keptFrom: "",
+      underneath: "",
+      heldBack: "",
       reactions: [],
       meditationRunning: false,
       meditationSeconds: 30,
@@ -543,7 +556,6 @@
 
       return `
         <div class="subsection">
-          <p class="help"><strong>${escapeHtml(state.selectedCategory)}</strong></p>
           <div class="search-wrap">
             <input type="text" id="fearSearchInput" placeholder="Search this list..." value="${escapeHtml(state.fearSearch)}" oninput="updateFearSearch(this.value)" />
           </div>
@@ -561,10 +573,9 @@
 
     function renderStep1(){
       app.innerHTML = `
-        <div class="tag">Let’s take it further</div>
         <h2 class="prompt">What fear is bothering you right now?</h2>
         <p class="help">Type it out plain and honest. No perfect wording needed.</p>
-        <textarea id="fearInput" rows="5" placeholder="Example: I’m afraid to go to work because my girlfriend just broke up with me.">${escapeHtml(state.fearText)}</textarea>
+        <textarea id="fearInput" rows="5" placeholder="Example: I’m afraid I’m going to get fired from my job.">${escapeHtml(state.fearText)}</textarea>
         <div class="btn-row">
           <button class="primary" onclick="nextFromFear()">Keep going</button>
         </div>
@@ -575,7 +586,6 @@
       app.innerHTML = `
         <div class="tag">Let’s take it further</div>
         <h2 class="prompt">What’s the nature of this fear?</h2>
-        <p class="help">Start with the category that fits best. Then pick the fear that feels closest to what’s going on.</p>
         ${renderCategoryButtons()}
         ${renderFearChoices()}
         <div class="btn-row">
@@ -586,6 +596,19 @@
     }
 
     function renderStep3(){
+      app.innerHTML = `
+        <div class="tag">Let’s take it further</div>
+        <h2 class="prompt">If this fear actually came true… what would happen?</h2>
+        <p class="help">Write what your mind tells you would happen.</p>
+        <textarea id="ifTrueInput" rows="5" placeholder="Write it out...">${escapeHtml(state.ifTrue)}</textarea>
+        <div class="btn-row">
+          <button class="secondary" onclick="goBack()">Back</button>
+          <button class="primary" onclick="nextFromIfTrue()">Next</button>
+        </div>
+      `;
+    }
+
+    function renderStep4(){
       app.innerHTML = `
         <div class="tag">Let’s take it further</div>
         <h2 class="prompt">Is this fear feeling like one of these?</h2>
@@ -604,28 +627,15 @@
       `;
     }
 
-    function renderStep4(){
-      app.innerHTML = `
-        <div class="tag">Let’s take it further</div>
-        <h2 class="prompt">If this fear actually came true… what would happen?</h2>
-        <p class="help">Write what your mind tells you would happen.</p>
-        <textarea id="ifTrueInput" rows="5" placeholder="Write it out...">${escapeHtml(state.ifTrue)}</textarea>
-        <div class="btn-row">
-          <button class="secondary" onclick="goBack()">Back</button>
-          <button class="primary" onclick="nextFromIfTrue()">Next</button>
-        </div>
-      `;
-    }
-
     function renderStep5(){
       app.innerHTML = `
         <div class="tag">Let’s take it further</div>
-        <h2 class="prompt">What has this fear kept you from doing?</h2>
+        <h2 class="prompt">What has this fear held you back from doing?</h2>
         <p class="help">This is where we look at the cost.</p>
-        <textarea id="keptFromInput" rows="5" placeholder="Write it out...">${escapeHtml(state.keptFrom)}</textarea>
+        <textarea id="heldBackInput" rows="5" placeholder="Write it out...">${escapeHtml(state.heldBack)}</textarea>
         <div class="btn-row">
           <button class="secondary" onclick="goBack()">Back</button>
-          <button class="primary" onclick="nextFromKeptFrom()">Next</button>
+          <button class="primary" onclick="nextFromHeldBack()">Next</button>
         </div>
       `;
     }
@@ -638,8 +648,11 @@
         <div class="checklist">
           ${reactionOptions.map(opt => `
             <label class="check">
-              <input type="checkbox" value="${escapeHtml(opt)}" ${state.reactions.includes(opt) ? "checked" : ""} onchange="toggleReaction(this.value, this.checked)" />
-              <span>${escapeHtml(opt)}</span>
+              <input type="checkbox" value="${escapeHtml(opt.key)}" ${state.reactions.includes(opt.key) ? "checked" : ""} onchange="toggleReaction(this.value, this.checked)" />
+              <div>
+                <strong>${escapeHtml(opt.label)}</strong>
+                <small>${escapeHtml(opt.description)}</small>
+              </div>
             </label>
           `).join("")}
         </div>
@@ -653,7 +666,11 @@
     function renderStep7(){
       app.innerHTML = `
         <div class="tag">Let’s take it further</div>
-        <h2 class="prompt">Here’s what you came up with.</h2>
+        <div class="quote-box">
+          “We ask Him to remove our fear and direct our attention to what He would have us be.”
+          <br />— Alcoholics Anonymous, p. 68
+        </div>
+
         <div class="summary">
           <div class="item">
             <div class="label">What fear was bothering you</div>
@@ -676,18 +693,13 @@
           </div>
 
           <div class="item">
-            <div class="label">What it has kept you from doing</div>
-            <div>${escapeHtml(state.keptFrom)}</div>
+            <div class="label">What it held you back from doing</div>
+            <div>${escapeHtml(state.heldBack)}</div>
           </div>
 
           <div class="item">
             <div class="label">Where you got the ball rolling</div>
             <div>${state.reactions.length ? escapeHtml(state.reactions.join(", ")) : "Nothing checked."}</div>
-          </div>
-
-          <div class="item">
-            <div class="label">Big Book reminder</div>
-            <div>“We ask Him to remove our fear and direct our attention to what He would have us be.” — Alcoholics Anonymous, p. 68</div>
           </div>
         </div>
 
@@ -791,6 +803,17 @@
       setTimeout(render, 250);
     };
 
+    window.nextFromIfTrue = function(){
+      const value = document.getElementById("ifTrueInput").value.trim();
+      if(!value){
+        alert("Write what would happen if it came true.");
+        return;
+      }
+      state.ifTrue = value;
+      state.step = 4;
+      render();
+    };
+
     window.pickUnderneath = function(value){
       state.underneath = value;
       render();
@@ -801,28 +824,17 @@
         alert("Pick the one that feels closest.");
         return;
       }
-      state.step = 4;
-      render();
-    };
-
-    window.nextFromIfTrue = function(){
-      const value = document.getElementById("ifTrueInput").value.trim();
-      if(!value){
-        alert("Write what would happen if it came true.");
-        return;
-      }
-      state.ifTrue = value;
       state.step = 5;
       render();
     };
 
-    window.nextFromKeptFrom = function(){
-      const value = document.getElementById("keptFromInput").value.trim();
+    window.nextFromHeldBack = function(){
+      const value = document.getElementById("heldBackInput").value.trim();
       if(!value){
-        alert("Write what this fear has kept you from doing.");
+        alert("Write what this fear has held you back from doing.");
         return;
       }
-      state.keptFrom = value;
+      state.heldBack = value;
       state.step = 6;
       render();
     };
@@ -898,9 +910,9 @@
       state.selectedCategory = "";
       state.fearSearch = "";
       state.namedFear = "";
-      state.underneath = "";
       state.ifTrue = "";
-      state.keptFrom = "";
+      state.underneath = "";
+      state.heldBack = "";
       state.reactions = [];
       state.meditationRunning = false;
       state.meditationSeconds = 30;
