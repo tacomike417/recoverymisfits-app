@@ -1,918 +1,169 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits — Tools</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Recovery Misfits — Tools</title>
 
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000" />
-  <link rel="icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#000000" />
+<link rel="icon" href="./icon-192.png">
 
-  <!-- iPhone PWA support -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
-  <link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="./icon-192.png">
 
-  <style>
-    body{
-      font-family:Roboto,Arial,sans-serif;
-      margin:0;
-      background:#fff;
-      color:#111;
-      padding-bottom:120px; /* room for nav.js bottom bar */
-    }
+<style>
 
-    /* Page content */
-    .page{
-      max-width:980px;
-      margin:0 auto;
-      padding:14px 12px 0;
-    }
-    .pageTitle{
-      font-weight:1000;
-      font-size:18px;
-      margin:12px 4px 4px;
-      letter-spacing:.2px;
-    }
-    .pageSub{
-      font-weight:800;
-      color:#666;
-      margin:0 4px 12px;
-      line-height:1.25;
-      font-size:13px;
-    }
+body{
+font-family:Roboto,Arial,sans-serif;
+margin:0;
+background:#fff;
+color:#111;
+padding-bottom:120px;
+}
 
-    .toolGrid{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:10px;
-      margin:10px 4px 14px;
-    }
-    @media (min-width:720px){
-      .toolGrid{ grid-template-columns:1fr 1fr; }
-    }
-    .toolCard{
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:16px;
-      padding:14px;
-      background:#fff;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      box-shadow:0 1px 0 rgba(0,0,0,.03);
-    }
-    .toolCardTitle{
-      font-weight:1000;
-      font-size:15px;
-      margin:0;
-    }
-    .toolCardDesc{
-      font-weight:800;
-      color:#666;
-      line-height:1.25;
-      font-size:13px;
-      margin:0;
-    }
+.page{
+max-width:980px;
+margin:0 auto;
+padding:14px 12px 0;
+}
 
-    /* Inputs / buttons (matches your index.html feel) */
-    input{
-      width:100%;
-      padding:10px;
-      border-radius:12px;
-      border:1px solid rgba(0,0,0,.18);
-      margin-top:8px;
-      font-weight:800;
-      box-sizing:border-box;
-      font-size:16px;
-    }
-    textarea{
-      width:100%;
-      padding:10px;
-      border-radius:12px;
-      border:1px solid rgba(0,0,0,.18);
-      margin-top:8px;
-      font-weight:800;
-      box-sizing:border-box;
-      font-size:16px;
-      line-height:1.35;
-      resize:vertical;
-      min-height:88px;
-      font-family:inherit;
-    }
-    .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.pageTitle{
+font-weight:1000;
+font-size:18px;
+margin:12px 4px 4px;
+}
 
-    .btn{
-      padding:9px 12px;
-      border-radius:999px;
-      border:1px solid rgba(0,0,0,.18);
-      background:#fff;
-      font-weight:900;
-      cursor:pointer;
-      text-decoration:none;
-      color:#111;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      box-sizing:border-box;
-      min-height:44px;
-      line-height:1.1;
-    }
-    .btn.primary{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
+.pageSub{
+font-weight:800;
+color:#666;
+margin:0 4px 12px;
+line-height:1.25;
+font-size:13px;
+}
 
-    .muted{color:#666;font-weight:800;line-height:1.25;}
+.toolGrid{
+display:grid;
+grid-template-columns:1fr;
+gap:10px;
+margin:10px 4px 14px;
+}
 
-    /* Shared sheet system */
-    .backdrop{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.35);
-      display:none;
-      z-index:10000;
-    }
-    .sheet{
-      position:fixed;
-      left:0;right:0;bottom:0;
-      background:#fff;
-      border-radius:18px 18px 0 0;
-      padding:14px;
-      transform:translateY(110%);
-      transition:transform .2s ease;
-      z-index:10001;
-      max-height: calc(92vh - env(safe-area-inset-bottom));
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .sheet.open{transform:translateY(0);}
+@media (min-width:720px){
+.toolGrid{grid-template-columns:1fr 1fr;}
+}
 
-    /* Gratitude */
-    .qLabel{margin-top:12px;font-weight:1000;letter-spacing:.2px;}
-    .tinyMeta{
-      display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;
-      font-weight:900;color:#666;font-size:12px;
-    }
-    .divider{height:1px;background:rgba(0,0,0,.10);margin:12px 0;}
+.toolCard{
+border:1px solid rgba(0,0,0,.12);
+border-radius:16px;
+padding:14px;
+background:#fff;
+display:flex;
+flex-direction:column;
+gap:8px;
+}
 
-    .archiveHeader{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
-      cursor:pointer;user-select:none;
-      padding:10px 12px;border:1px solid rgba(0,0,0,.12);
-      border-radius:14px;margin-top:12px;
-    }
-    .archiveList{
-      display:none;margin-top:8px;border:1px solid rgba(0,0,0,.12);
-      border-radius:14px;overflow:hidden;max-height:220px;overflow:auto;
-    }
-    .archiveList.open{display:block;}
-    .archiveItem{
-      padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.08);
-      cursor:pointer;font-weight:900;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;
-    }
-    .archiveItem:last-child{border-bottom:none;}
-    .archiveItem:active{background:#f5f5f5;}
-    .chip{
-      font-size:12px;font-weight:1000;border:1px solid rgba(0,0,0,.14);
-      border-radius:999px;padding:3px 8px;color:#444;
-    }
+.toolCardTitle{
+font-weight:1000;
+font-size:15px;
+}
 
-    /* star burst */
-    .burstWrap{position:relative; display:inline-flex;}
-    .star{
-      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-      pointer-events:none;will-change:transform,opacity;font-size:16px;opacity:0;
-      animation:starFly .85s ease-out forwards;
-      filter: drop-shadow(0 2px 2px rgba(0,0,0,.10));
-    }
-    @keyframes starFly{
-      0%{opacity:0;transform:translate(-50%,-50%) scale(.9);}
-      10%{opacity:1;}
-      100%{opacity:0;transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15);}
-    }
+.toolCardDesc{
+font-weight:800;
+color:#666;
+line-height:1.25;
+font-size:13px;
+}
 
-    /* Burn pad */
-    .stepWrap{display:none;}
-    .stepWrap.active{display:block;}
+.btn{
+padding:10px 12px;
+border-radius:999px;
+border:1px solid rgba(0,0,0,.18);
+background:#fff;
+font-weight:900;
+font-size:15px;
+cursor:pointer;
+text-decoration:none;
+color:#111;
+display:flex;
+align-items:center;
+justify-content:center;
+min-height:44px;
+line-height:1.1;
+font-family:inherit;
+}
 
-    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-    .chipBtn{
-      border:1px solid rgba(0,0,0,.18);
-      border-radius:999px;padding:7px 10px;background:#fff;
-      font-weight:1000;cursor:pointer;user-select:none;font-size:13px;
-    }
-    .chipBtn.active{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
-    .burnHeaderLine{margin-top:6px;font-weight:900;color:#666;line-height:1.25;}
+.btn.primary{
+background:#111;
+color:#fff;
+}
 
-    .tinyLink{
-      background:none;border:none;padding:0;margin:0;
-      color:#111; font-weight:1000; cursor:pointer;
-      text-decoration:underline; text-underline-offset:3px;
-    }
+.muted{
+color:#666;
+font-weight:800;
+line-height:1.25;
+}
 
-    /* Prayer modal content */
-    .prayerBox{
-      margin-top:10px;
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-      font-weight:900;
-      line-height:1.45;
-    }
-
-    /* Burn release animation */
-    #burnDoneSheet .doneWrap{
-      margin-top:12px;
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:16px;
-      padding:14px;
-      background:#fff;
-    }
-
-    .burnAnimStage{
-      position:relative;
-      height:120px;
-      border:1px solid rgba(0,0,0,.10);
-      border-radius:14px;
-      background:#fff;
-      overflow:hidden;
-    }
-
-    .burnGlow{
-      position:absolute;
-      inset:-30%;
-      background: radial-gradient(circle at 70% 30%, rgba(255, 210, 110, .65), rgba(255,210,110,0) 55%);
-      opacity:0;
-      transform:scale(.9);
-    }
-
-    .burnTrash{
-      position:absolute;
-      right:18px;
-      bottom:16px;
-      width:40px;
-      height:46px;
-      border:2px solid rgba(0,0,0,.55);
-      border-top-left-radius:8px;
-      border-top-right-radius:8px;
-      border-bottom-left-radius:10px;
-      border-bottom-right-radius:10px;
-      background:rgba(255,255,255,.6);
-    }
-    .burnTrash:before{
-      content:"";
-      position:absolute;
-      left:-4px;
-      right:-4px;
-      top:-10px;
-      height:10px;
-      border:2px solid rgba(0,0,0,.55);
-      border-bottom:none;
-      border-top-left-radius:10px;
-      border-top-right-radius:10px;
-      background:#fff;
-      opacity:.95;
-    }
-    .burnTrash:after{
-      content:"";
-      position:absolute;
-      left:9px; right:9px;
-      top:8px; bottom:8px;
-      border-left:2px solid rgba(0,0,0,.18);
-      border-right:2px solid rgba(0,0,0,.18);
-      opacity:.9;
-    }
-
-    .burnPaper{
-      position:absolute;
-      left:18px;
-      bottom:22px;
-      width:42px;
-      height:52px;
-      border:2px solid rgba(0,0,0,.22);
-      border-radius:8px;
-      background:#fff;
-      box-shadow:0 2px 6px rgba(0,0,0,.08);
-      transform:translateX(0) translateY(0) rotate(0deg) scale(1);
-      opacity:1;
-    }
-
-    .burnMsg{
-      margin-top:12px;
-      font-weight:1000;
-      line-height:1.3;
-      opacity:0;
-      transition:opacity .25s ease;
-    }
-
-    .burnDoneBtnRow{
-      margin-top:12px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .burnDoneBtnRow .btn{ width:100%; }
-
-    .burnAnimStage.run .burnPaper{ animation: paperSlide .55s ease-out forwards; }
-    .burnAnimStage.run .burnGlow{
-      animation: glowUp .60s ease-out forwards;
-      animation-delay:.55s;
-    }
-    .burnAnimStage.run .burnTrash{
-      animation: trashNod .22s ease-out forwards;
-      animation-delay:.55s;
-    }
-
-    @keyframes paperSlide{
-      0%{ transform:translateX(0) translateY(0) rotate(0deg) scale(1); opacity:1; }
-      70%{ transform:translateX(160px) translateY(-8px) rotate(8deg) scale(.95); opacity:1; }
-      100%{ transform:translateX(186px) translateY(18px) rotate(12deg) scale(.85); opacity:0; }
-    }
-    @keyframes glowUp{
-      0%{ opacity:0; transform:scale(.9); }
-      100%{ opacity:1; transform:scale(1.05); }
-    }
-    @keyframes trashNod{
-      0%{ transform:translateY(0); }
-      50%{ transform:translateY(2px); }
-      100%{ transform:translateY(0); }
-    }
-  </style>
+</style>
 </head>
 
 <body>
 
-  <!-- Shared TOP BAR (injected by topbar.js) -->
-  <div id="rm-topbar"></div>
-  <script src="./topbar.js" defer></script>
+<div id="rm-topbar"></div>
+<script src="./topbar.js" defer></script>
 
-  <main class="page">
-    <div class="pageTitle">Tools</div>
-    <div class="pageSub">Burn Pad and Gratitude Journal. Quiet, simple, useful.</div>
+<main class="page">
 
-    <div class="toolGrid">
-      <div class="toolCard">
-        <div class="toolCardTitle">🔥 Burn Pad</div>
-        <p class="toolCardDesc">Get it out, inspect it, then release it.</p>
-        <button class="btn primary" id="openBurnFromPage" type="button">Open Burn Pad</button>
-      </div>
+<div class="pageTitle">Tools</div>
+<div class="pageSub">Burn Pad and Gratitude Journal. Quiet, simple, useful.</div>
 
-      <div class="toolCard">
-        <div class="toolCardTitle">🧭 Fear Compass</div>
-        <p class="toolCardDesc">Sort through fear and find what’s underneath it.</p>
-        <a class="btn primary" href="https://tacomike417.github.io/recoverymisfits-app/fear-compass.html">Open Fear Compass</a>
-      </div>
+<div class="toolGrid">
 
-      <div class="toolCard">
-        <div class="toolCardTitle">⭐ Gratitude Journal</div>
-        <p class="toolCardDesc">Happy. Peace. Useful. Journal. Save to archive.</p>
-        <button class="btn primary" id="openGratFromPage" type="button">Open Gratitude</button>
-      </div>
-    </div>
-  </main>
+<div class="toolCard">
+<div class="toolCardTitle">🔥 Burn Pad</div>
+<p class="toolCardDesc">Get it out, inspect it, then release it.</p>
+<button class="btn primary" id="openBurnFromPage">Open Burn Pad</button>
+</div>
 
-  <!-- Shared BOTTOM NAV (injected by nav.js) -->
-  <div id="rm-bottom-nav"></div>
-  <script src="./nav.js" defer></script>
+<div class="toolCard">
+<div class="toolCardTitle">🧭 Fear Compass</div>
+<p class="toolCardDesc">Sort through fear and find what's underneath it.</p>
+<a class="btn primary" href="https://tacomike417.github.io/recoverymisfits-app/fear-compass.html">Open Fear Compass</a>
+</div>
 
-  <!-- GRATITUDE SHEET -->
-  <div class="backdrop" id="gratBackdrop"></div>
-  <div class="sheet" id="gratSheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <h3 style="margin:0;">Gratitude Journal</h3>
-      <button class="btn" id="closeGrat" type="button">Close</button>
-    </div>
+<div class="toolCard">
+<div class="toolCardTitle">⭐ Gratitude Journal</div>
+<p class="toolCardDesc">Happy. Peace. Useful. Journal. Save to archive.</p>
+<button class="btn primary" id="openGratFromPage">Open Gratitude</button>
+</div>
 
-    <div class="tinyMeta">
-      <span id="gratViewing">Viewing: —</span>
-      <span class="chip" id="gratStatus" style="display:none;">Saved</span>
-    </div>
+</div>
+</main>
 
-    <div class="muted" style="margin-top:8px;">
-      You can save entries. They stay on your device — we never see them.
-    </div>
+<div id="rm-bottom-nav"></div>
+<script src="./nav.js" defer></script>
 
-    <div class="divider"></div>
+<script>
 
-    <div class="qLabel">Where have I been happy today?</div>
-    <textarea id="gratHappy"></textarea>
+if ("serviceWorker" in navigator) {
+navigator.serviceWorker.register("./sw.js");
+}
 
-    <div class="qLabel">Where have I been at peace today?</div>
-    <textarea id="gratPeace"></textarea>
+function getTodayISO(){
+return new Date().toISOString().slice(0,10);
+}
 
-    <div class="qLabel">Where have I been useful to other people today?</div>
-    <textarea id="gratUseful"></textarea>
+document.getElementById("openBurnFromPage").onclick=function(){
+location.hash="#burn";
+}
 
-    <div class="qLabel">Gratitude Journal</div>
-    <textarea id="gratJournal" placeholder="God shots, good moments, things you noticed happening for you…"></textarea>
+document.getElementById("openGratFromPage").onclick=function(){
+location.hash="#grat";
+}
 
-    <div class="row" style="margin-top:12px;">
-      <span class="burstWrap">
-        <button class="btn primary" id="gratSave" type="button">Save</button>
-      </span>
-      <button class="btn" id="gratClear" type="button">Clear</button>
-    </div>
-
-    <div class="archiveHeader" id="archiveToggle" role="button" aria-expanded="false">
-      <div style="font-weight:1000;">Archive <span id="archiveCount" class="chip">0</span></div>
-      <div style="font-weight:1000;" id="archiveCaret">▾</div>
-    </div>
-    <div class="archiveList" id="archiveList"></div>
-  </div>
-
-  <!-- BURN PAD SHEET -->
-  <div class="backdrop" id="burnBackdrop"></div>
-  <div class="sheet" id="burnSheet">
-
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <h3 style="margin:0;">Burn Pad</h3>
-      <button class="btn" id="closeBurn" type="button">Close</button>
-    </div>
-
-    <div class="stepWrap active" id="burnStep1">
-      <div class="burnHeaderLine">Write out the text that won’t be sent</div>
-      <div class="muted" style="margin-top:6px;">
-        Nobody sees this but you. It doesn’t get sent anywhere.
-      </div>
-
-      <div class="qLabel">Name</div>
-      <input id="burnName" type="text" placeholder="Who is this about? (optional)">
-
-      <textarea id="burnDraft"
-        placeholder="This isn’t for replaying the struggle. It’s for getting it out and moving on."
-        style="min-height:160px;"></textarea>
-
-      <div class="row" style="margin-top:12px;">
-        <button class="btn primary" id="burnNext" type="button">Next</button>
-        <button class="btn" id="burnClear1" type="button">Clear</button>
-      </div>
-    </div>
-
-    <div class="stepWrap" id="burnStep2">
-      <div class="muted" style="margin-top:6px;">
-        Strong reactions usually mean something important got touched.
-      </div>
-
-      <div style="margin-top:10px;">
-        <button class="tinyLink" id="burnToggleSimple" type="button">Show fewer questions</button>
-      </div>
-
-      <div class="qLabel">Right now I’m:</div>
-      <div class="chips" id="burnStateChips">
-        <button class="chipBtn" type="button" data-v="angry">Angry</button>
-        <button class="chipBtn" type="button" data-v="scared">Scared</button>
-        <button class="chipBtn" type="button" data-v="hurt">Hurt</button>
-        <button class="chipBtn" type="button" data-v="embarrassed">Embarrassed</button>
-        <button class="chipBtn" type="button" data-v="tired">Tired</button>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="qLabel">Where was my mistake?</div>
-      <textarea id="burnMistake" placeholder="Self-seeking… lied… held onto anger too long… passive aggressive… withheld a loving attitude…"></textarea>
-
-      <div class="qLabel">Where did I make it worse?</div>
-      <textarea id="burnFlames"></textarea>
-
-      <div class="qLabel">What was I trying to control, change, or force?</div>
-      <textarea id="burnControl"></textarea>
-
-      <div id="burnAdvanced">
-        <div class="qLabel">What’s actually threatened here?</div>
-        <div class="chips" id="burnThreatChips">
-          <button class="chipBtn" type="button" data-v="ego">Ego</button>
-          <button class="chipBtn" type="button" data-v="fear">Fear</button>
-          <button class="chipBtn" type="button" data-v="comfort">Comfort</button>
-          <button class="chipBtn" type="button" data-v="image">Image</button>
-          <button class="chipBtn" type="button" data-v="security">Security</button>
-        </div>
-
-        <div class="qLabel">What’s the next right move — if any?</div>
-        <textarea id="burnNextMove" placeholder="Sometimes the move is to do nothing and let things cool."></textarea>
-
-        <div class="qLabel">Who could help me see this more clearly?</div>
-        <textarea id="burnWho"></textarea>
-      </div>
-
-      <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:900;color:#444;user-select:none;">
-        <input id="burnNotReady" type="checkbox" style="width:auto;margin:0;transform:scale(1.1);">
-        I’m not ready to let this go yet.
-      </label>
-      <div class="muted" id="burnNotReadyHint" style="margin-top:6px;display:none;">
-        That’s honest. You can still pause it and come back when you’re ready.
-      </div>
-
-      <div class="muted" style="margin-top:12px;">
-        Probably not a bad idea to talk this through with someone in recovery.
-      </div>
-      <div class="muted" style="margin-top:10px;">
-        Feelings usually shift if we give them a little time.
-      </div>
-
-      <div class="row" style="margin-top:12px;">
-        <span class="burstWrap">
-          <button class="btn primary" id="burnRelease" type="button">Release it</button>
-        </span>
-        <button class="btn" id="burnBack" type="button">Back</button>
-        <button class="btn" id="burnClear2" type="button">Clear</button>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- BURN RELEASE DONE SHEET -->
-  <div class="backdrop" id="burnDoneBackdrop"></div>
-  <div class="sheet" id="burnDoneSheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <h3 style="margin:0;">Burn Pad</h3>
-      <button class="btn" id="closeBurnDoneX" type="button">Close</button>
-    </div>
-
-    <div class="doneWrap">
-      <div class="burnAnimStage" id="burnAnimStage" aria-hidden="true">
-        <div class="burnGlow" id="burnGlow"></div>
-        <div class="burnTrash" aria-hidden="true"></div>
-        <div class="burnPaper" id="burnPaper" aria-hidden="true"></div>
-      </div>
-
-      <div class="burnMsg" id="burnDoneMsg">
-        Released. Not yours to carry today.
-      </div>
-
-      <div class="burnDoneBtnRow">
-        <button class="btn primary" id="burnDoneClose" type="button">Close Burn Pad</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SICK MAN'S PRAYER MODAL -->
-  <div class="backdrop" id="prayerBackdrop"></div>
-  <div class="sheet" id="prayerSheet" role="dialog" aria-modal="true" aria-labelledby="prayerTitle">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <h3 id="prayerTitle" style="margin:0;">Sick Man’s Prayer</h3>
-      <button class="btn" id="closePrayerX" type="button">Close</button>
-    </div>
-
-    <div class="prayerBox" style="margin-top:12px;">
-      This is a sick man. How can I be helpful to him?<br>
-      God save me from being angry.<br>
-      Thy will be done.
-    </div>
-
-    <div class="row" style="margin-top:14px;">
-      <button class="btn primary" id="prayerDone" type="button">Let it go</button>
-    </div>
-  </div>
-
-  <script>
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
-    function getTodayISO(){ return new Date().toISOString().slice(0,10); }
-
-    function burstStars(onButtonEl){
-      const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
-      if(!wrap) return;
-      const emojis = ["⭐","✨","🌟"];
-      const count = 14;
-      for(let i=0;i<count;i++){
-        const s = document.createElement("span");
-        s.className="star";
-        s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-        s.style.setProperty("--dx", (Math.random()*90 - 45).toFixed(0) + "px");
-        s.style.setProperty("--dy", (Math.random()*-80 - 20).toFixed(0) + "px");
-        s.style.setProperty("--rot", (Math.random()*220 - 110).toFixed(0) + "deg");
-        s.style.animationDelay = (Math.random()*0.08).toFixed(2)+"s";
-        wrap.appendChild(s);
-        setTimeout(() => s.remove(), 950);
-      }
-    }
-
-    /* Gratitude */
-    const GRAT_INDEX_KEY = "rm_grat_index";
-    const gratBackdrop = document.getElementById("gratBackdrop");
-    const gratSheet = document.getElementById("gratSheet");
-
-    const gratViewing = document.getElementById("gratViewing");
-    const gratStatus = document.getElementById("gratStatus");
-
-    const gratHappy = document.getElementById("gratHappy");
-    const gratPeace = document.getElementById("gratPeace");
-    const gratUseful = document.getElementById("gratUseful");
-    const gratJournal = document.getElementById("gratJournal");
-
-    const archiveToggle = document.getElementById("archiveToggle");
-    const archiveList = document.getElementById("archiveList");
-    const archiveCount = document.getElementById("archiveCount");
-    const archiveCaret = document.getElementById("archiveCaret");
-
-    let currentGratDate = null;
-
-    function gratKey(dateISO){ return "rm_grat_" + dateISO; }
-    function readIndex(){
-      try{
-        const raw = localStorage.getItem(GRAT_INDEX_KEY);
-        const arr = raw ? JSON.parse(raw) : [];
-        return Array.isArray(arr) ? arr : [];
-      }catch(e){ return []; }
-    }
-    function writeIndex(arr){ localStorage.setItem(GRAT_INDEX_KEY, JSON.stringify(arr)); }
-
-    function saveEntry(dateISO, data){
-      localStorage.setItem(gratKey(dateISO), JSON.stringify(data));
-      let idx = readIndex();
-      if(!idx.includes(dateISO)){ idx.unshift(dateISO); writeIndex(idx); }
-      else { idx = [dateISO].concat(idx.filter(d => d !== dateISO)); writeIndex(idx); }
-    }
-
-    function loadEntry(dateISO){
-      const raw = localStorage.getItem(gratKey(dateISO));
-      if(!raw) return null;
-      try{ return JSON.parse(raw); }catch(e){ return null; }
-    }
-
-    function setStatusSaved(){
-      gratStatus.style.display="inline-flex";
-      gratStatus.textContent="Saved";
-      setTimeout(() => gratStatus.style.display = "none", 1000);
-    }
-
-    function openGrat(dateISO){
-      currentGratDate = dateISO || getTodayISO();
-      gratViewing.textContent = "Viewing: " + currentGratDate;
-
-      const entry = loadEntry(currentGratDate);
-      gratHappy.value = entry?.happy || "";
-      gratPeace.value = entry?.peace || "";
-      gratUseful.value = entry?.useful || "";
-      gratJournal.value = entry?.journal || "";
-
-      gratBackdrop.style.display="block";
-      gratSheet.classList.add("open");
-      renderArchive();
-    }
-    function closeGrat(){ gratSheet.classList.remove("open"); gratBackdrop.style.display="none"; }
-
-    gratBackdrop.onclick = closeGrat;
-    document.getElementById("closeGrat").onclick = closeGrat;
-
-    archiveToggle.onclick = () => {
-      const isOpen = archiveList.classList.toggle("open");
-      archiveToggle.setAttribute("aria-expanded", String(isOpen));
-      archiveCaret.textContent = isOpen ? "▴" : "▾";
-    };
-
-    function renderArchive(){
-      const idx = readIndex();
-      archiveCount.textContent = String(idx.length);
-      archiveList.innerHTML = "";
-
-      if(idx.length === 0){
-        const empty = document.createElement("div");
-        empty.className="archiveItem";
-        empty.style.cursor="default";
-        empty.innerHTML = `<span style="opacity:.7;font-weight:900;">No saved entries yet</span><span class="chip">—</span>`;
-        archiveList.appendChild(empty);
-        return;
-      }
-
-      idx.forEach(dateISO => {
-        const row = document.createElement("div");
-        row.className="archiveItem";
-        const isToday = (dateISO === getTodayISO());
-        row.innerHTML = `<span>${dateISO}</span><span class="chip">${isToday ? "today" : "open"}</span>`;
-        row.onclick = () => {
-          currentGratDate = dateISO;
-          gratViewing.textContent = "Viewing: " + currentGratDate;
-          const entry = loadEntry(currentGratDate);
-          gratHappy.value = entry?.happy || "";
-          gratPeace.value = entry?.peace || "";
-          gratUseful.value = entry?.useful || "";
-          gratJournal.value = entry?.journal || "";
-        };
-        archiveList.appendChild(row);
-      });
-    }
-
-    document.getElementById("gratSave").onclick = () => {
-      const dateISO = currentGratDate || getTodayISO();
-      const payload = {
-        date: dateISO,
-        happy: gratHappy.value.trim(),
-        peace: gratPeace.value.trim(),
-        useful: gratUseful.value.trim(),
-        journal: gratJournal.value.trim()
-      };
-      try{
-        saveEntry(dateISO, payload);
-        setStatusSaved();
-        burstStars(document.getElementById("gratSave"));
-        renderArchive();
-      }catch(e){
-        gratStatus.style.display="inline-flex";
-        gratStatus.textContent="Couldn’t save";
-        setTimeout(() => gratStatus.style.display="none", 1400);
-      }
-    };
-    document.getElementById("gratClear").onclick = () => {
-      gratHappy.value=""; gratPeace.value=""; gratUseful.value=""; gratJournal.value="";
-    };
-
-    /* Burn Pad */
-    const burnBackdrop = document.getElementById("burnBackdrop");
-    const burnSheet = document.getElementById("burnSheet");
-
-    const burnStep1 = document.getElementById("burnStep1");
-    const burnStep2 = document.getElementById("burnStep2");
-
-    const burnName = document.getElementById("burnName");
-    const burnDraft = document.getElementById("burnDraft");
-    const burnMistake = document.getElementById("burnMistake");
-    const burnFlames = document.getElementById("burnFlames");
-    const burnControl = document.getElementById("burnControl");
-    const burnNextMove = document.getElementById("burnNextMove");
-    const burnWho = document.getElementById("burnWho");
-
-    const burnThreatChips = document.getElementById("burnThreatChips");
-    let burnThreat = "";
-
-    const burnStateChips = document.getElementById("burnStateChips");
-    let burnState = "";
-
-    const burnAdvanced = document.getElementById("burnAdvanced");
-    const burnToggleSimple = document.getElementById("burnToggleSimple");
-    let burnSimple = false;
-
-    const burnNotReady = document.getElementById("burnNotReady");
-    const burnNotReadyHint = document.getElementById("burnNotReadyHint");
-    const burnReleaseBtn = document.getElementById("burnRelease");
-
-    function showBurnStep(n){
-      if(n===1){ burnStep1.classList.add("active"); burnStep2.classList.remove("active"); }
-      else { burnStep1.classList.remove("active"); burnStep2.classList.add("active"); }
-    }
-    function openBurn(){
-      burnBackdrop.style.display="block";
-      burnSheet.classList.add("open");
-      showBurnStep(1);
-      setTimeout(() => burnName.focus({preventScroll:true}), 120);
-    }
-    function closeBurn(){ burnSheet.classList.remove("open"); burnBackdrop.style.display="none"; }
-
-    function resetNotReadyUI(){
-      burnNotReady.checked = false;
-      burnNotReadyHint.style.display = "none";
-      burnReleaseBtn.textContent = "Release it";
-    }
-    function resetSimpleUI(){
-      burnSimple = false;
-      if(burnAdvanced) burnAdvanced.style.display = "";
-      if(burnToggleSimple) burnToggleSimple.textContent = "Show fewer questions";
-    }
-    function clearBurnAll(){
-      burnName.value = "";
-      burnDraft.value=""; burnMistake.value=""; burnFlames.value=""; burnControl.value="";
-      if(burnNextMove) burnNextMove.value=""; if(burnWho) burnWho.value="";
-      burnThreat=""; burnState="";
-      if(burnThreatChips) burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
-      if(burnStateChips) burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
-      resetNotReadyUI();
-      resetSimpleUI();
-    }
-
-    burnBackdrop.onclick = closeBurn;
-    document.getElementById("closeBurn").onclick = closeBurn;
-
-    document.getElementById("burnNext").onclick = () => { showBurnStep(2); setTimeout(() => burnMistake.focus({preventScroll:true}), 80); };
-    document.getElementById("burnBack").onclick = () => { showBurnStep(1); setTimeout(() => burnName.focus({preventScroll:true}), 80); };
-
-    document.getElementById("burnClear1").onclick = () => { burnName.value=""; burnDraft.value=""; };
-    document.getElementById("burnClear2").onclick = () => {
-      burnMistake.value=""; burnFlames.value=""; burnControl.value="";
-      if(burnNextMove) burnNextMove.value=""; if(burnWho) burnWho.value="";
-      burnThreat=""; burnState="";
-      if(burnThreatChips) burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
-      if(burnStateChips) burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
-      resetNotReadyUI();
-      resetSimpleUI();
-    };
-
-    if(burnThreatChips){
-      burnThreatChips.addEventListener("click", (e) => {
-        const btn = e.target.closest(".chipBtn");
-        if(!btn) return;
-        const v = btn.getAttribute("data-v") || "";
-        const isActive = btn.classList.contains("active");
-
-        burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
-        if(!isActive){ btn.classList.add("active"); burnThreat = v; }
-        else { burnThreat = ""; }
-      });
-    }
-
-    if(burnStateChips){
-      burnStateChips.addEventListener("click", (e) => {
-        const btn = e.target.closest(".chipBtn");
-        if(!btn) return;
-        const v = btn.getAttribute("data-v") || "";
-        const isActive = btn.classList.contains("active");
-
-        burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
-        if(!isActive){ btn.classList.add("active"); burnState = v; }
-        else { burnState = ""; }
-      });
-    }
-
-    if(burnToggleSimple){
-      burnToggleSimple.onclick = () => {
-        burnSimple = !burnSimple;
-        if(burnAdvanced) burnAdvanced.style.display = burnSimple ? "none" : "";
-        burnToggleSimple.textContent = burnSimple ? "Show all questions" : "Show fewer questions";
-      };
-    }
-
-    burnNotReady.addEventListener("change", () => {
-      if(burnNotReady.checked){
-        burnReleaseBtn.textContent="Pause it";
-        burnNotReadyHint.style.display="block";
-      } else {
-        burnReleaseBtn.textContent="Release it";
-        burnNotReadyHint.style.display="none";
-      }
-    });
-
-    /* Burn Done */
-    const burnDoneBackdrop = document.getElementById("burnDoneBackdrop");
-    const burnDoneSheet = document.getElementById("burnDoneSheet");
-    const burnAnimStage = document.getElementById("burnAnimStage");
-    const burnDoneMsg = document.getElementById("burnDoneMsg");
-    const burnDoneCloseBtn = document.getElementById("burnDoneClose");
-
-    function openBurnDone(){
-      burnDoneBackdrop.style.display="block";
-      burnDoneSheet.classList.add("open");
-
-      burnDoneMsg.style.opacity = "0";
-      burnAnimStage.classList.remove("run");
-
-      requestAnimationFrame(() => {
-        burnAnimStage.classList.add("run");
-        setTimeout(() => { burnDoneMsg.style.opacity = "1"; }, 850);
-      });
-
-      setTimeout(() => burnDoneCloseBtn.focus({preventScroll:true}), 180);
-    }
-
-    function closeBurnDone(){
-      burnDoneSheet.classList.remove("open");
-      burnDoneBackdrop.style.display="none";
-    }
-
-    burnDoneBackdrop.onclick = closeBurnDone;
-    document.getElementById("closeBurnDoneX").onclick = closeBurnDone;
-
-    /* Sick Man’s Prayer modal */
-    const prayerBackdrop = document.getElementById("prayerBackdrop");
-    const prayerSheet = document.getElementById("prayerSheet");
-    const prayerDone = document.getElementById("prayerDone");
-    const closePrayerX = document.getElementById("closePrayerX");
-
-    function openPrayer(){
-      prayerBackdrop.style.display="block";
-      prayerSheet.classList.add("open");
-      setTimeout(() => prayerDone.focus({preventScroll:true}), 120);
-    }
-    function closePrayer(){
-      prayerSheet.classList.remove("open");
-      prayerBackdrop.style.display="none";
-    }
-    prayerBackdrop.onclick = closePrayer;
-    closePrayerX.onclick = closePrayer;
-    prayerDone.onclick = closePrayer;
-
-    burnReleaseBtn.onclick = () => {
-      if (burnNotReady.checked){
-        closeBurn();
-        return;
-      }
-      closeBurn();
-      openBurnDone();
-    };
-
-    burnDoneCloseBtn.onclick = () => {
-      clearBurnAll();
-      closeBurnDone();
-    };
-
-    // Page buttons
-    document.getElementById("openBurnFromPage").onclick = () => openBurn();
-    document.getElementById("openGratFromPage").onclick = () => openGrat(getTodayISO());
-
-    // Hash open support
-    (function init(){
-      if (location.hash === "#burn") setTimeout(() => openBurn(), 100);
-      if (location.hash === "#grat") setTimeout(() => openGrat(getTodayISO()), 100);
-    })();
-  </script>
+</script>
 
 </body>
 </html>
