@@ -15,97 +15,101 @@
 <link rel="apple-touch-icon" href="./icon-192.png">
 
 <style>
-
 body{
-font-family:Roboto,Arial,sans-serif;
-margin:0;
-background:#fff;
-color:#111;
-padding-bottom:120px;
+  font-family:Roboto,Arial,sans-serif;
+  margin:0;
+  background:#fff;
+  color:#111;
+  padding-bottom:120px;
 }
 
 .page{
-max-width:980px;
-margin:0 auto;
-padding:14px 12px 0;
+  max-width:980px;
+  margin:0 auto;
+  padding:14px 12px 0;
 }
 
 .pageTitle{
-font-weight:1000;
-font-size:18px;
-margin:12px 4px 4px;
+  font-weight:1000;
+  font-size:18px;
+  margin:12px 4px 4px;
 }
 
 .pageSub{
-font-weight:800;
-color:#666;
-margin:0 4px 12px;
-line-height:1.25;
-font-size:13px;
+  font-weight:800;
+  color:#666;
+  margin:0 4px 12px;
+  line-height:1.25;
+  font-size:13px;
 }
 
 .toolGrid{
-display:grid;
-grid-template-columns:1fr;
-gap:10px;
-margin:10px 4px 14px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+  margin:10px 4px 14px;
 }
 
 @media (min-width:720px){
-.toolGrid{grid-template-columns:1fr 1fr;}
+  .toolGrid{grid-template-columns:1fr 1fr;}
 }
 
 .toolCard{
-border:1px solid rgba(0,0,0,.12);
-border-radius:16px;
-padding:14px;
-background:#fff;
-display:flex;
-flex-direction:column;
-gap:8px;
+  border:1px solid rgba(0,0,0,.12);
+  border-radius:16px;
+  padding:14px;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
 }
 
 .toolCardTitle{
-font-weight:1000;
-font-size:15px;
+  font-weight:1000;
+  font-size:15px;
 }
 
 .toolCardDesc{
-font-weight:800;
-color:#666;
-line-height:1.25;
-font-size:13px;
+  font-weight:800;
+  color:#666;
+  line-height:1.25;
+  font-size:13px;
+  min-height:34px; /* keeps button row aligned even when text wraps differently */
+  margin:0;
 }
 
 .btn{
-padding:10px 12px;
-border-radius:999px;
-border:1px solid rgba(0,0,0,.18);
-background:#fff;
-font-weight:900;
-font-size:15px;
-cursor:pointer;
-text-decoration:none;
-color:#111;
-display:flex;
-align-items:center;
-justify-content:center;
-min-height:44px;
-line-height:1.1;
-font-family:inherit;
+  padding:10px 12px;
+  border-radius:999px;
+  border:1px solid rgba(0,0,0,.18);
+  background:#fff;
+  font-weight:900;
+  font-size:15px;
+  cursor:pointer;
+  text-decoration:none;
+  color:#111;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-height:44px;
+  height:44px; /* forces all buttons to same height */
+  line-height:1.1;
+  font-family:inherit;
+  box-sizing:border-box;
+  margin-top:auto; /* pushes buttons to same level */
 }
 
 .btn.primary{
-background:#111;
-color:#fff;
+  background:#111;
+  color:#fff;
 }
 
 .muted{
-color:#666;
-font-weight:800;
-line-height:1.25;
+  color:#666;
+  font-weight:800;
+  line-height:1.25;
 }
-
 </style>
 </head>
 
@@ -116,53 +120,51 @@ line-height:1.25;
 
 <main class="page">
 
-<div class="pageTitle">Tools</div>
-<div class="pageSub">Burn Pad and Gratitude Journal. Quiet, simple, useful.</div>
+  <div class="pageTitle">Tools</div>
+  <div class="pageSub">Burn Pad and Gratitude Journal. Quiet, simple, useful.</div>
 
-<div class="toolGrid">
+  <div class="toolGrid">
 
-<div class="toolCard">
-<div class="toolCardTitle">🔥 Burn Pad</div>
-<p class="toolCardDesc">Get it out, inspect it, then release it.</p>
-<button class="btn primary" id="openBurnFromPage">Open Burn Pad</button>
-</div>
+    <div class="toolCard">
+      <div class="toolCardTitle">🔥 Burn Pad</div>
+      <p class="toolCardDesc">Get it out, inspect it, then release it.</p>
+      <button class="btn primary" id="openBurnFromPage">Open Burn Pad</button>
+    </div>
 
-<div class="toolCard">
-<div class="toolCardTitle">🧭 Fear Compass</div>
-<p class="toolCardDesc">Sort through fear and find what's underneath it.</p>
-<a class="btn primary" href="https://tacomike417.github.io/recoverymisfits-app/fear-compass.html">Open Fear Compass</a>
-</div>
+    <div class="toolCard">
+      <div class="toolCardTitle">🧭 Fear Compass</div>
+      <p class="toolCardDesc">Get pointed in the right direction.</p>
+      <a class="btn primary" href="https://tacomike417.github.io/recoverymisfits-app/fear-compass.html">Open Fear Compass</a>
+    </div>
 
-<div class="toolCard">
-<div class="toolCardTitle">⭐ Gratitude Journal</div>
-<p class="toolCardDesc">Happy. Peace. Useful. Journal. Save to archive.</p>
-<button class="btn primary" id="openGratFromPage">Open Gratitude</button>
-</div>
+    <div class="toolCard">
+      <div class="toolCardTitle">⭐ Gratitude Journal</div>
+      <p class="toolCardDesc">Happy. Peace. Useful. Journal. Save to archive.</p>
+      <button class="btn primary" id="openGratFromPage">Open Gratitude</button>
+    </div>
 
-</div>
+  </div>
 </main>
 
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
 
 <script>
-
 if ("serviceWorker" in navigator) {
-navigator.serviceWorker.register("./sw.js");
+  navigator.serviceWorker.register("./sw.js");
 }
 
 function getTodayISO(){
-return new Date().toISOString().slice(0,10);
+  return new Date().toISOString().slice(0,10);
 }
 
-document.getElementById("openBurnFromPage").onclick=function(){
-location.hash="#burn";
-}
+document.getElementById("openBurnFromPage").onclick = function(){
+  location.hash = "#burn";
+};
 
-document.getElementById("openGratFromPage").onclick=function(){
-location.hash="#grat";
-}
-
+document.getElementById("openGratFromPage").onclick = function(){
+  location.hash = "#grat";
+};
 </script>
 
 </body>
