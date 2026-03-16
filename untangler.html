@@ -190,6 +190,9 @@
         <p class="muted small">Drag to reorder. Tap the trash can to remove an item.</p>
         <div class="task-list" id="entryTaskList"></div>
         <p class="muted small" id="entryEmpty">No tasks yet.</p>
+        <div class="btn-row" style="margin-top:14px;">
+          <button class="btn" id="inspectFromEntryBtn">Next → Inspect List</button>
+        </div>
       </div>
     </section>
 
@@ -432,15 +435,31 @@
       let placeholder = null;
       let offsetY = 0;
       let active = false;
-      let startX = 0;
-      let startY = 0;
+
+      const cleanup = () => {
+        if(dragged){
+          dragged.classList.remove('dragging');
+          dragged.style.position = '';
+          dragged.style.zIndex = '';
+          dragged.style.left = '';
+          dragged.style.top = '';
+          dragged.style.width = '';
+          dragged.style.pointerEvents = '';
+        }
+        if(placeholder && placeholder.parentNode){
+          placeholder.parentNode.insertBefore(dragged, placeholder);
+          placeholder.remove();
+        }
+        dragged = null;
+        placeholder = null;
+        active = false;
+      };
 
       const onTouchMove = (e) => {
         if(!active || !dragged || !placeholder) return;
         const touch = e.touches[0];
         e.preventDefault();
         dragged.style.top = (touch.clientY - offsetY) + 'px';
-        dragged.style.left = startX + 'px';
 
         const siblings = [...container.querySelectorAll(itemSelector)].filter(el => el !== dragged);
         let inserted = false;
@@ -457,21 +476,12 @@
         }
       };
 
-      const removeListeners = () => {
-        document.removeEventListener('touchmove', onTouchMove);
-        document.removeEventListener('touchend', onTouchEnd);
-        document.removeEventListener('touchcancel', onTouchEnd);
-      };
-
       const onTouchEnd = () => {
-        if(!active || !dragged || !placeholder) {
-          removeListeners();
-          return;
-        }
-
+        if(!active || !dragged || !placeholder) return;
         container.insertBefore(dragged, placeholder);
+        const orderedIds = [...container.querySelectorAll(itemSelector)].map(el => el.dataset.id);
+        state.tasks = orderedIds.map(id => state.tasks.find(t => t.id === id)).filter(Boolean);
         placeholder.remove();
-
         dragged.classList.remove('dragging');
         dragged.style.position = '';
         dragged.style.zIndex = '';
@@ -479,16 +489,13 @@
         dragged.style.top = '';
         dragged.style.width = '';
         dragged.style.pointerEvents = '';
-
-        const orderedIds = [...container.querySelectorAll(itemSelector)].map(el => el.dataset.id);
-        const taskMap = new Map(state.tasks.map(t => [t.id, t]));
-        state.tasks = orderedIds.map(id => taskMap.get(id)).filter(Boolean);
-
         dragged = null;
         placeholder = null;
         active = false;
-        removeListeners();
         renderEntryTasks();
+        document.removeEventListener('touchmove', onTouchMove, { passive:false });
+        document.removeEventListener('touchend', onTouchEnd);
+        document.removeEventListener('touchcancel', onTouchEnd);
       };
 
       container.querySelectorAll(itemSelector).forEach(item => {
@@ -496,24 +503,17 @@
         if(!handle) return;
         handle.ontouchstart = (e) => {
           if(e.touches.length !== 1) return;
-          e.preventDefault();
-
           const touch = e.touches[0];
           const rect = item.getBoundingClientRect();
           dragged = item;
           active = true;
-          startX = rect.left;
-          startY = rect.top;
           offsetY = touch.clientY - rect.top;
-
           placeholder = document.createElement('div');
           placeholder.className = 'task-item';
           placeholder.style.visibility = 'hidden';
           placeholder.style.height = rect.height + 'px';
-          placeholder.style.pointerEvents = 'none';
-
-          container.insertBefore(placeholder, item.nextSibling);
-
+          placeholder.dataset.id = item.dataset.id;
+          item.parentNode.insertBefore(placeholder, item.nextSibling);
           item.classList.add('dragging');
           item.style.position = 'fixed';
           item.style.zIndex = '9999';
@@ -521,7 +521,6 @@
           item.style.top = rect.top + 'px';
           item.style.width = rect.width + 'px';
           item.style.pointerEvents = 'none';
-
           document.addEventListener('touchmove', onTouchMove, { passive:false });
           document.addEventListener('touchend', onTouchEnd);
           document.addEventListener('touchcancel', onTouchEnd);
@@ -647,15 +646,6 @@
       navButtons.innerHTML = '';
 
       if(state.screen === 'screen-enter'){
-        const next = document.createElement('button');
-        next.className = 'btn';
-        next.textContent = 'Next → Inspect List';
-        next.disabled = state.tasks.length === 0;
-        next.addEventListener('click', () => {
-          renderInspect();
-          showScreen('screen-inspect');
-        });
-        navButtons.appendChild(next);
         return;
       }
 
@@ -832,6 +822,12 @@
         if(e.key === 'Enter') addTask(taskInput.value);
       });
 
+      document.getElementById('inspectFromEntryBtn').addEventListener('click', () => {
+        if(!state.tasks.length) return;
+        renderInspect();
+        showScreen('screen-inspect');
+      });
+
       document.getElementById('editListBtn').addEventListener('click', () => showScreen('screen-enter'));
       document.getElementById('enoughBtn').addEventListener('click', () => {
         renderExport();
@@ -845,11 +841,7 @@
     function render(){
       ensureTaskBuckets();
       renderEntryTasks();
-      if(state.screen === 'screen-inspect') renderInspect();
-      if(state.screen === 'screen-sort') renderSort();
-      if(state.screen === 'screen-export') renderExport();
-      renderNav();
-    }
+      const inspectBtn = document.getEleme
 
     function init(){
       renderPrompts();
