@@ -432,31 +432,15 @@
       let placeholder = null;
       let offsetY = 0;
       let active = false;
-
-      const cleanup = () => {
-        if(dragged){
-          dragged.classList.remove('dragging');
-          dragged.style.position = '';
-          dragged.style.zIndex = '';
-          dragged.style.left = '';
-          dragged.style.top = '';
-          dragged.style.width = '';
-          dragged.style.pointerEvents = '';
-        }
-        if(placeholder && placeholder.parentNode){
-          placeholder.parentNode.insertBefore(dragged, placeholder);
-          placeholder.remove();
-        }
-        dragged = null;
-        placeholder = null;
-        active = false;
-      };
+      let startX = 0;
+      let startY = 0;
 
       const onTouchMove = (e) => {
         if(!active || !dragged || !placeholder) return;
         const touch = e.touches[0];
         e.preventDefault();
         dragged.style.top = (touch.clientY - offsetY) + 'px';
+        dragged.style.left = startX + 'px';
 
         const siblings = [...container.querySelectorAll(itemSelector)].filter(el => el !== dragged);
         let inserted = false;
@@ -473,12 +457,21 @@
         }
       };
 
+      const removeListeners = () => {
+        document.removeEventListener('touchmove', onTouchMove);
+        document.removeEventListener('touchend', onTouchEnd);
+        document.removeEventListener('touchcancel', onTouchEnd);
+      };
+
       const onTouchEnd = () => {
-        if(!active || !dragged || !placeholder) return;
+        if(!active || !dragged || !placeholder) {
+          removeListeners();
+          return;
+        }
+
         container.insertBefore(dragged, placeholder);
-        const orderedIds = [...container.querySelectorAll(itemSelector)].map(el => el.dataset.id);
-        state.tasks = orderedIds.map(id => state.tasks.find(t => t.id === id)).filter(Boolean);
         placeholder.remove();
+
         dragged.classList.remove('dragging');
         dragged.style.position = '';
         dragged.style.zIndex = '';
@@ -486,13 +479,16 @@
         dragged.style.top = '';
         dragged.style.width = '';
         dragged.style.pointerEvents = '';
+
+        const orderedIds = [...container.querySelectorAll(itemSelector)].map(el => el.dataset.id);
+        const taskMap = new Map(state.tasks.map(t => [t.id, t]));
+        state.tasks = orderedIds.map(id => taskMap.get(id)).filter(Boolean);
+
         dragged = null;
         placeholder = null;
         active = false;
+        removeListeners();
         renderEntryTasks();
-        document.removeEventListener('touchmove', onTouchMove, { passive:false });
-        document.removeEventListener('touchend', onTouchEnd);
-        document.removeEventListener('touchcancel', onTouchEnd);
       };
 
       container.querySelectorAll(itemSelector).forEach(item => {
@@ -500,17 +496,24 @@
         if(!handle) return;
         handle.ontouchstart = (e) => {
           if(e.touches.length !== 1) return;
+          e.preventDefault();
+
           const touch = e.touches[0];
           const rect = item.getBoundingClientRect();
           dragged = item;
           active = true;
+          startX = rect.left;
+          startY = rect.top;
           offsetY = touch.clientY - rect.top;
+
           placeholder = document.createElement('div');
           placeholder.className = 'task-item';
           placeholder.style.visibility = 'hidden';
           placeholder.style.height = rect.height + 'px';
-          placeholder.dataset.id = item.dataset.id;
-          item.parentNode.insertBefore(placeholder, item.nextSibling);
+          placeholder.style.pointerEvents = 'none';
+
+          container.insertBefore(placeholder, item.nextSibling);
+
           item.classList.add('dragging');
           item.style.position = 'fixed';
           item.style.zIndex = '9999';
@@ -518,6 +521,7 @@
           item.style.top = rect.top + 'px';
           item.style.width = rect.width + 'px';
           item.style.pointerEvents = 'none';
+
           document.addEventListener('touchmove', onTouchMove, { passive:false });
           document.addEventListener('touchend', onTouchEnd);
           document.addEventListener('touchcancel', onTouchEnd);
