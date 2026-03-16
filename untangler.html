@@ -186,7 +186,7 @@
       </div>
 
       <div class="card">
-        <h2>Your list</h2>
+        <h2>Make it easy on yourself</h2>
         <p class="muted small">Drag to reorder. Tap the trash can to remove an item.</p>
         <div class="task-list" id="entryTaskList"></div>
         <p class="muted small" id="entryEmpty">No tasks yet.</p>
@@ -424,6 +424,105 @@
       entryTaskList.innerHTML = '';
       entryEmpty.style.display = state.tasks.length ? 'none' : 'block';
       state.tasks.forEach(task => entryTaskList.appendChild(buildTaskRow(task, 'entry')));
+      enableTouchReorder(entryTaskList, '.task-item');
+    }
+
+    function enableTouchReorder(container, itemSelector){
+      let dragged = null;
+      let placeholder = null;
+      let offsetY = 0;
+      let active = false;
+
+      const cleanup = () => {
+        if(dragged){
+          dragged.classList.remove('dragging');
+          dragged.style.position = '';
+          dragged.style.zIndex = '';
+          dragged.style.left = '';
+          dragged.style.top = '';
+          dragged.style.width = '';
+          dragged.style.pointerEvents = '';
+        }
+        if(placeholder && placeholder.parentNode){
+          placeholder.parentNode.insertBefore(dragged, placeholder);
+          placeholder.remove();
+        }
+        dragged = null;
+        placeholder = null;
+        active = false;
+      };
+
+      const onTouchMove = (e) => {
+        if(!active || !dragged || !placeholder) return;
+        const touch = e.touches[0];
+        e.preventDefault();
+        dragged.style.top = (touch.clientY - offsetY) + 'px';
+
+        const siblings = [...container.querySelectorAll(itemSelector)].filter(el => el !== dragged);
+        let inserted = false;
+        for(const sib of siblings){
+          const rect = sib.getBoundingClientRect();
+          if(touch.clientY < rect.top + rect.height / 2){
+            container.insertBefore(placeholder, sib);
+            inserted = true;
+            break;
+          }
+        }
+        if(!inserted){
+          container.appendChild(placeholder);
+        }
+      };
+
+      const onTouchEnd = () => {
+        if(!active || !dragged || !placeholder) return;
+        container.insertBefore(dragged, placeholder);
+        const orderedIds = [...container.querySelectorAll(itemSelector)].map(el => el.dataset.id);
+        state.tasks = orderedIds.map(id => state.tasks.find(t => t.id === id)).filter(Boolean);
+        placeholder.remove();
+        dragged.classList.remove('dragging');
+        dragged.style.position = '';
+        dragged.style.zIndex = '';
+        dragged.style.left = '';
+        dragged.style.top = '';
+        dragged.style.width = '';
+        dragged.style.pointerEvents = '';
+        dragged = null;
+        placeholder = null;
+        active = false;
+        renderEntryTasks();
+        document.removeEventListener('touchmove', onTouchMove, { passive:false });
+        document.removeEventListener('touchend', onTouchEnd);
+        document.removeEventListener('touchcancel', onTouchEnd);
+      };
+
+      container.querySelectorAll(itemSelector).forEach(item => {
+        const handle = item.querySelector('.drag-handle');
+        if(!handle) return;
+        handle.ontouchstart = (e) => {
+          if(e.touches.length !== 1) return;
+          const touch = e.touches[0];
+          const rect = item.getBoundingClientRect();
+          dragged = item;
+          active = true;
+          offsetY = touch.clientY - rect.top;
+          placeholder = document.createElement('div');
+          placeholder.className = 'task-item';
+          placeholder.style.visibility = 'hidden';
+          placeholder.style.height = rect.height + 'px';
+          placeholder.dataset.id = item.dataset.id;
+          item.parentNode.insertBefore(placeholder, item.nextSibling);
+          item.classList.add('dragging');
+          item.style.position = 'fixed';
+          item.style.zIndex = '9999';
+          item.style.left = rect.left + 'px';
+          item.style.top = rect.top + 'px';
+          item.style.width = rect.width + 'px';
+          item.style.pointerEvents = 'none';
+          document.addEventListener('touchmove', onTouchMove, { passive:false });
+          document.addEventListener('touchend', onTouchEnd);
+          document.addEventListener('touchcancel', onTouchEnd);
+        };
+      });
     }
 
     function renderInspect(){
