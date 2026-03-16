@@ -11,7 +11,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
   <link rel="apple-touch-icon" href="./icon-192.png">
-
   <style>
     :root{
       --bg:#f7f3ea;
@@ -20,44 +19,27 @@
       --muted:#6d675f;
       --line:#d8d0c4;
       --tan:#d8c3a5;
+      --tan-dark:#b79a75;
       --black:#111111;
       --danger:#a54848;
+      --success:#2b6f47;
       --shadow:0 10px 24px rgba(0,0,0,.08);
       --radius:18px;
     }
 
     *{box-sizing:border-box;}
-    html,body{
-      margin:0;
-      padding:0;
-      background:var(--bg);
-      color:var(--ink);
-      font-family:Roboto,Arial,sans-serif;
-    }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Roboto,Arial,sans-serif;}
+    body{min-height:100vh;padding-bottom:120px;-webkit-tap-highlight-color:transparent;}
 
-    body{
-      min-height:100vh;
-      padding-bottom:110px;
-      -webkit-tap-highlight-color:transparent;
-    }
+    
+    
+    
+    
 
-    .app{
-      max-width:820px;
-      margin:0 auto;
-      padding:16px 14px 30px;
-    }
-
-    .screen{
-      display:none;
-      animation:fade .18s ease;
-    }
-
+    .app{max-width:820px;margin:0 auto;padding:16px 14px 30px;}
+    .screen{display:none;animation:fade .18s ease;}
     .screen.active{display:block;}
-
-    @keyframes fade{
-      from{opacity:.25;transform:translateY(6px)}
-      to{opacity:1;transform:none}
-    }
+    @keyframes fade{from{opacity:.25;transform:translateY(6px)}to{opacity:1;transform:none}}
 
     .hero{
       background:linear-gradient(180deg,#fff,#fbf8f2);
@@ -67,26 +49,9 @@
       padding:20px 18px;
       margin-bottom:14px;
     }
-
-    .eyebrow{
-      font-size:12px;
-      font-weight:700;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:var(--muted);
-    }
-
-    h1{
-      margin:6px 0 4px;
-      font-size:31px;
-      line-height:1.05;
-    }
-
-    .tagline{
-      margin:0;
-      color:var(--muted);
-      font-size:16px;
-    }
+    .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+    h1{margin:6px 0 4px;font-size:31px;line-height:1.05;}
+    .tagline{margin:0;color:var(--muted);font-size:16px;}
 
     .card{
       background:var(--card);
@@ -96,307 +61,132 @@
       padding:16px;
       margin-bottom:14px;
     }
-
-    h2{
-      margin:0 0 8px;
-      font-size:22px;
-      line-height:1.12;
-    }
-
-    p{
-      margin:0 0 12px;
-      line-height:1.45;
-    }
-
+    h2{margin:0 0 8px;font-size:22px;line-height:1.12;}
+    p{margin:0 0 12px;line-height:1.45;}
     .muted{color:var(--muted);}
     .small{font-size:13px;}
 
-    .input-row{
-      display:flex;
-      gap:10px;
-      align-items:stretch;
-    }
-
+    .input-row{display:flex;gap:10px;align-items:stretch;}
     input[type="text"]{
-      width:100%;
-      padding:14px 14px;
-      font-size:16px;
-      border-radius:14px;
-      border:2px solid var(--line);
-      outline:none;
-      background:#fff;
-      color:var(--ink);
+      width:100%;padding:14px 14px;font-size:16px;border-radius:14px;border:2px solid var(--line);
+      outline:none;background:#fff;color:var(--ink);
     }
-
-    input[type="text"]:focus{
-      border-color:var(--black);
-    }
+    input[type="text"]:focus{border-color:var(--black);}
 
     .btn{
-      appearance:none;
-      border:none;
-      border-radius:14px;
-      padding:14px 16px;
-      font-size:15px;
-      font-weight:800;
-      background:var(--black);
-      color:#fff;
-      cursor:pointer;
-      min-height:52px;
+      appearance:none;border:none;border-radius:14px;padding:14px 16px;font-size:15px;font-weight:800;
+      background:var(--black);color:#fff;cursor:pointer;min-height:52px;height:52px;width:100%;
+      display:inline-flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;
+      touch-action:manipulation;
     }
-
-    .btn.secondary{
-      background:#fff;
-      color:var(--ink);
-      border:2px solid var(--black);
-    }
-
-    .btn.tan{
-      background:var(--tan);
-      color:var(--ink);
-    }
-
-    .btn:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-    }
-
+    .btn.secondary{background:#fff;color:var(--ink);border:2px solid var(--black);}
+    .btn.tan{background:var(--tan);color:var(--ink);}
+    .btn.ghost{background:transparent;color:var(--ink);border:2px dashed var(--line);}
+    .btn.danger{background:var(--danger);color:#fff;}
+    .btn:disabled{opacity:.45;cursor:not-allowed;}
     .btn-row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
+      display:flex;gap:10px;flex-wrap:wrap;
     }
+    .btn-row > .btn{flex:1 1 180px;}
+    .inline-next{margin-top:14px;}
+    .inline-next .btn{width:100%;max-width:100%;flex:0 0 100%;}
+    .action-stack{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
 
-    .btn-row > .btn{
-      flex:1 1 180px;
+    .btn-row > .btn{flex:1 1 180px;}
+
+    .prompt-chips,.blocker-chips{
+      display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;
     }
-
-    .inline-next{
-      margin-top:14px;
-    }
-
-    .inline-next .btn{
-      width:100%;
-      max-width:100%;
-      flex:0 0 100%;
-    }
-
-    .blocker-chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:10px;
-    }
-
     .chip{
-      border:2px solid var(--black);
-      background:#fff;
-      border-radius:999px;
-      padding:10px 12px;
-      font-size:14px;
-      font-weight:700;
-      cursor:pointer;
+      border:2px solid var(--black);background:#fff;border-radius:999px;padding:10px 12px;
+      font-size:14px;font-weight:700;cursor:pointer;
     }
+    .chip.selected{background:var(--tan);}
 
-    .chip.selected{
-      background:var(--tan);
-    }
-
-    .task-list{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      margin-top:14px;
-    }
-
+    .task-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
     .task-item{
-      background:#fff;
-      border:2px solid var(--line);
-      border-radius:16px;
-      padding:12px 12px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      touch-action:none;
+      background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 12px;
+      display:flex;align-items:center;gap:10px;touch-action:none;
     }
-
-    .task-item.dragging{
-      opacity:.65;
-    }
-
+    .task-item.dragging{opacity:.65;}
     .drag-handle{
-      width:38px;
-      min-width:38px;
-      height:38px;
-      border-radius:12px;
-      background:#f1ece2;
-      border:1px solid var(--line);
-      display:grid;
-      place-items:center;
-      font-size:18px;
-      color:#444;
-      cursor:grab;
-      user-select:none;
+      width:38px;min-width:38px;height:38px;border-radius:12px;background:#f1ece2;border:1px solid var(--line);
+      display:grid;place-items:center;font-size:18px;color:#444;cursor:grab;user-select:none;
+      -webkit-user-select:none;touch-action:none;
     }
-
-    .task-main{
-      flex:1;
-      min-width:0;
-    }
-
-    .task-title{
-      font-weight:800;
-      line-height:1.2;
-      word-break:break-word;
-    }
-
-    .task-meta{
-      font-size:12px;
-      color:var(--muted);
-      margin-top:4px;
-    }
-
-    .task-actions{
-      display:flex;
-      gap:8px;
-      align-items:center;
-    }
-
+    .task-main{flex:1;min-width:0;}
+    .task-title{font-weight:800;line-height:1.2;word-break:break-word;}
+    .task-meta{font-size:12px;color:var(--muted);margin-top:4px;}
+    .task-actions{display:flex;gap:8px;align-items:center;}
     .icon-btn{
-      width:38px;
-      height:38px;
-      border-radius:12px;
-      border:2px solid var(--line);
-      background:#fff;
-      color:var(--ink);
-      font-size:16px;
-      cursor:pointer;
+      width:38px;height:38px;border-radius:12px;border:2px solid var(--line);background:#fff;color:var(--ink);font-size:16px;cursor:pointer;
+      display:inline-flex;align-items:center;justify-content:center;touch-action:manipulation;
     }
 
-    .inspect-list{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
-
+    .inspect-list{display:flex;flex-direction:column;gap:12px;}
     .inspect-card{
-      border:2px solid var(--line);
-      border-radius:16px;
-      padding:12px;
-      background:#fff;
+      border:2px solid var(--line);border-radius:16px;padding:12px;background:#fff;
     }
+    .inspect-title{font-size:17px;font-weight:800;margin-bottom:10px;}
 
-    .inspect-title{
-      font-size:17px;
-      font-weight:800;
-      margin-bottom:10px;
-    }
-
-    .week-note{
-      margin:6px 0 12px;
-      color:var(--muted);
-    }
-
-    .sort-board{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
-
+    .week-note{margin:6px 0 12px;color:var(--muted);}
+    .sort-board{display:flex;flex-direction:column;gap:12px;}
     .bucket{
-      background:#fff;
-      border:2px dashed var(--line);
-      border-radius:18px;
-      padding:12px;
-      min-height:92px;
+      background:#fff;border:2px dashed var(--line);border-radius:18px;padding:12px;min-height:92px;
     }
-
-    .bucket.over{
-      border-color:var(--black);
-      background:#fcfaf6;
-    }
-
-    .bucket-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-    }
-
-    .bucket-title{
-      font-size:16px;
-      font-weight:900;
-      letter-spacing:.02em;
-    }
-
-    .bucket-count{
-      font-size:12px;
-      color:var(--muted);
-      font-weight:700;
-    }
-
-    .bucket-list{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      min-height:12px;
-    }
-
-    .empty-note{
-      font-size:13px;
-      color:var(--muted);
-      padding:8px 2px;
-    }
+    .bucket.over{border-color:var(--black);background:#fcfaf6;}
+    .bucket-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+    .bucket-title{font-size:16px;font-weight:900;letter-spacing:.02em;}
+    .bucket-count{font-size:12px;color:var(--muted);font-weight:700;}
+    .bucket-list{display:flex;flex-direction:column;gap:10px;min-height:12px;}
+    .empty-note{font-size:13px;color:var(--muted);padding:8px 2px;}
 
     .decision-box{
-      text-align:center;
-      padding:22px 14px;
+      text-align:center;padding:22px 14px;
     }
-
-    .decision-box .line{
-      font-size:18px;
-      font-weight:800;
-      margin-bottom:8px;
-    }
+    .decision-box .line{font-size:18px;font-weight:800;margin-bottom:8px;}
 
     .export-box{
-      background:#fff;
-      border:2px solid var(--black);
-      border-radius:18px;
-      padding:16px;
-      white-space:pre-wrap;
-      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-      font-size:14px;
-      line-height:1.45;
+      background:#fff;border:2px solid var(--black);border-radius:18px;padding:16px;white-space:pre-wrap;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;line-height:1.45;
     }
 
     .footer-space{height:10px;}
 
+    
+    
+    .bottom-actions .btn{flex:1;}
+
     .pill{
-      display:inline-block;
-      background:#eee4d5;
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:6px 10px;
-      font-size:12px;
-      font-weight:800;
-      color:#5b5146;
-      margin:10px 14px 0;
+      display:inline-block;background:#eee4d5;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;color:#5b5146;
     }
 
     @media (max-width:640px){
+      .app{padding:14px 12px 28px;}
       h1{font-size:28px;}
       h2{font-size:20px;}
       .input-row{flex-direction:column;}
       .btn-row{flex-direction:column;}
+      .btn-row > .btn{flex:1 1 auto;}
+      .card{padding:14px;}
+      .task-item{padding:12px 10px;}
+      .bucket{padding:10px;}
+      .pill{margin:10px 12px 0;display:block;width:fit-content;max-width:calc(100% - 24px);}
+    }
+      h2{font-size:20px;}
+      .input-row{flex-direction:column;}
+      .btn-row{flex-direction:column;}
+      .bottom-actions .inner{flex-direction:column;}
     }
   </style>
 </head>
 <body>
+  <!-- Shared TOP BAR (injected by topbar.js) -->
   <div id="rm-topbar"></div>
   <script src="./topbar.js" defer></script>
-  <span class="pill" id="todayPill">Loading week…</span>
+      <span class="pill" id="todayPill">Loading week…</span>
+    </div>
+  </div>
 
   <main class="app">
     <section class="screen active" id="screen-enter">
@@ -418,7 +208,7 @@
 
       <div class="card">
         <h2>Make it easy on yourself</h2>
-        <p class="muted small">Drag by the handle to reorder. Tap the trash can to remove an item.</p>
+        <p class="muted small">Drag to reorder. Tap the trash can to remove an item.</p>
         <div class="task-list" id="entryTaskList"></div>
         <p class="muted small" id="entryEmpty">No tasks yet.</p>
         <div class="btn-row inline-next">
@@ -432,7 +222,7 @@
         <h2>What’s holding this up?</h2>
         <p class="muted">Tap a blocker for each item. Keep it quick.</p>
         <div class="inspect-list" id="inspectList"></div>
-        <div class="btn-row inline-next">
+        <div class="action-stack">
           <button class="btn secondary" id="backToEntryBtn" type="button">Back</button>
           <button class="btn" id="toSortBtn" type="button">Next → Sort It</button>
         </div>
@@ -444,7 +234,7 @@
         <h2>When are you doing this?</h2>
         <p class="week-note" id="weekNote"></p>
         <div class="sort-board" id="sortBoard"></div>
-        <div class="btn-row inline-next">
+        <div class="action-stack">
           <button class="btn secondary" id="backToInspectBtn" type="button">Back</button>
           <button class="btn" id="looksGoodBtn" type="button">Looks Good</button>
         </div>
@@ -473,7 +263,6 @@
           <button class="btn" id="copyBtn" type="button">Copy List</button>
           <button class="btn secondary" id="shareBtn" type="button">Share List</button>
           <button class="btn tan" id="screenshotBtn" type="button">Save Screenshot</button>
-          <button class="btn secondary" id="backToStartBtn" type="button">Back to List</button>
         </div>
         <p class="muted small" style="margin-top:12px;">On most phones, “Save Screenshot” will open the share sheet with an image you can save to Photos, text to yourself, or keep in Notes.</p>
       </div>
@@ -482,10 +271,13 @@
     <div class="footer-space"></div>
   </main>
 
+  <!-- Shared BOTTOM NAV (injected by nav.js) -->
   <div id="rm-bottom-nav"></div>
   <script src="./nav.js" defer></script>
 
   <script>
+    const prompts = []; // examples are now shown as text instead of buttons
+
     const blockers = [
       'Fear',
       'Time',
@@ -501,6 +293,7 @@
       screen: 'screen-enter',
       tasks: [],
       dragTaskId: null,
+      dragSourceBucket: null,
       currentDayIndex: new Date().getDay(),
       bucketOrder: []
     };
@@ -508,6 +301,7 @@
     const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
     const screens = Array.from(document.querySelectorAll('.screen'));
+    const navButtons = null;
     const taskInput = document.getElementById('taskInput');
     const addTaskBtn = document.getElementById('addTaskBtn');
     const entryTaskList = document.getElementById('entryTaskList');
@@ -523,7 +317,7 @@
     }
 
     function normalize(text){
-      return (text || '').replace(/\s+/g,' ').trim();
+      return text.replace(/\s+/g,' ').trim();
     }
 
     function getRemainingBuckets(){
@@ -551,7 +345,12 @@
     function addTask(text){
       const title = normalize(text);
       if(!title) return;
-      state.tasks.push({ id: uid(), title, blocker: '', bucket: 'today' });
+      state.tasks.push({
+        id: uid(),
+        title,
+        blocker: '',
+        bucket: 'today'
+      });
       taskInput.value = '';
       taskInput.focus();
       render();
@@ -573,48 +372,49 @@
     function showScreen(id){
       state.screen = id;
       screens.forEach(screen => screen.classList.toggle('active', screen.id === id));
+      renderNav();
       if(id === 'screen-export') renderExport();
       window.scrollTo({top:0,behavior:'smooth'});
     }
+
+    function renderPrompts(){ /* examples now static text */ }
 
     function buildTaskRow(task, context = 'entry'){
       const row = document.createElement('div');
       row.className = 'task-item';
       row.draggable = true;
       row.dataset.id = task.id;
-      row.dataset.context = context;
 
       row.addEventListener('dragstart', (e) => {
         state.dragTaskId = task.id;
+        state.dragSourceBucket = task.bucket || null;
         row.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', task.id);
       });
-
       row.addEventListener('dragend', () => {
         row.classList.remove('dragging');
         state.dragTaskId = null;
+        state.dragSourceBucket = null;
         document.querySelectorAll('.bucket').forEach(b => b.classList.remove('over'));
       });
-
-      if(context === 'entry'){
-        row.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-        });
-
-        row.addEventListener('drop', (e) => {
-          e.preventDefault();
-          const fromId = state.dragTaskId || e.dataTransfer.getData('text/plain');
-          if(!fromId || fromId === task.id) return;
-          const fromIndex = state.tasks.findIndex(t => t.id === fromId);
-          const toIndex = state.tasks.findIndex(t => t.id === task.id);
-          if(fromIndex >= 0 && toIndex >= 0){
-            moveTaskInArray(fromIndex, toIndex);
-            renderEntryTasks();
-          }
-        });
-      }
+      row.addEventListener('dragover', (e) => {
+        if(context !== 'entry') return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      });
+      row.addEventListener('drop', (e) => {
+        if(context !== 'entry') return;
+        e.preventDefault();
+        const fromId = state.dragTaskId || e.dataTransfer.getData('text/plain');
+        if(!fromId || fromId === task.id) return;
+        const fromIndex = state.tasks.findIndex(t => t.id === fromId);
+        const toIndex = state.tasks.findIndex(t => t.id === task.id);
+        if(fromIndex >= 0 && toIndex >= 0){
+          moveTaskInArray(fromIndex, toIndex);
+          renderEntryTasks();
+        }
+      });
 
       const handle = document.createElement('div');
       handle.className = 'drag-handle';
@@ -622,23 +422,23 @@
 
       const main = document.createElement('div');
       main.className = 'task-main';
-
       const title = document.createElement('div');
       title.className = 'task-title';
       title.textContent = task.title;
-
       const meta = document.createElement('div');
       meta.className = 'task-meta';
-      meta.textContent = task.blocker
-        ? `Holding it up: ${task.blocker}`
-        : (context === 'sort' ? 'No blocker chosen' : ' ');
-
+      if(task.blocker){
+        meta.textContent = `Holding it up: ${task.blocker}`;
+      } else if(context === 'sort') {
+        meta.textContent = 'No blocker chosen';
+      } else {
+        meta.textContent = ' '; 
+      }
       main.appendChild(title);
       main.appendChild(meta);
 
       const actions = document.createElement('div');
       actions.className = 'task-actions';
-
       if(context === 'entry'){
         const del = document.createElement('button');
         del.className = 'icon-btn';
@@ -657,15 +457,16 @@
       entryTaskList.innerHTML = '';
       entryEmpty.style.display = state.tasks.length ? 'none' : 'block';
       state.tasks.forEach(task => entryTaskList.appendChild(buildTaskRow(task, 'entry')));
-      enableTouchEntryReorder(entryTaskList, '.task-item');
+      enableTouchReorder(entryTaskList, '.task-item');
     }
 
-    function enableTouchEntryReorder(container, itemSelector){
+    function enableTouchReorder(container, itemSelector){
       let dragged = null;
       let placeholder = null;
       let offsetY = 0;
       let active = false;
       let startX = 0;
+      let startY = 0;
 
       const onTouchMove = (e) => {
         if(!active || !dragged || !placeholder) return;
@@ -676,7 +477,6 @@
 
         const siblings = [...container.querySelectorAll(itemSelector)].filter(el => el !== dragged);
         let inserted = false;
-
         for(const sib of siblings){
           const rect = sib.getBoundingClientRect();
           if(touch.clientY < rect.top + rect.height / 2){
@@ -685,8 +485,9 @@
             break;
           }
         }
-
-        if(!inserted) container.appendChild(placeholder);
+        if(!inserted){
+          container.appendChild(placeholder);
+        }
       };
 
       const removeListeners = () => {
@@ -696,7 +497,7 @@
       };
 
       const onTouchEnd = () => {
-        if(!active || !dragged || !placeholder){
+        if(!active || !dragged || !placeholder) {
           removeListeners();
           return;
         }
@@ -726,17 +527,16 @@
       container.querySelectorAll(itemSelector).forEach(item => {
         const handle = item.querySelector('.drag-handle');
         if(!handle) return;
-
         handle.ontouchstart = (e) => {
           if(e.touches.length !== 1) return;
           e.preventDefault();
 
           const touch = e.touches[0];
           const rect = item.getBoundingClientRect();
-
           dragged = item;
           active = true;
           startX = rect.left;
+          startY = rect.top;
           offsetY = touch.clientY - rect.top;
 
           placeholder = document.createElement('div');
@@ -762,91 +562,8 @@
       });
     }
 
-    function enableTouchSortBuckets(){
-      const rows = sortBoard.querySelectorAll('.task-item[data-context="sort"]');
-
-      rows.forEach(item => {
-        const handle = item.querySelector('.drag-handle');
-        if(!handle) return;
-
-        handle.ontouchstart = (e) => {
-          if(e.touches.length !== 1) return;
-          e.preventDefault();
-
-          const rect = item.getBoundingClientRect();
-          const touch = e.touches[0];
-          const taskId = item.dataset.id;
-          const offsetX = touch.clientX - rect.left;
-          const offsetY = touch.clientY - rect.top;
-
-          item.classList.add('dragging');
-          item.style.position = 'fixed';
-          item.style.left = rect.left + 'px';
-          item.style.top = rect.top + 'px';
-          item.style.width = rect.width + 'px';
-          item.style.zIndex = '9999';
-          item.style.pointerEvents = 'none';
-
-          let activeBucket = null;
-
-          const clearHighlights = () => {
-            document.querySelectorAll('.bucket').forEach(b => b.classList.remove('over'));
-          };
-
-          const onMove = (ev) => {
-            if(ev.touches.length !== 1) return;
-            ev.preventDefault();
-
-            const t = ev.touches[0];
-            item.style.left = (t.clientX - offsetX) + 'px';
-            item.style.top = (t.clientY - offsetY) + 'px';
-
-            clearHighlights();
-
-            const target = document.elementFromPoint(t.clientX, t.clientY);
-            const bucket = target ? target.closest('.bucket') : null;
-
-            if(bucket){
-              activeBucket = bucket;
-              bucket.classList.add('over');
-            } else {
-              activeBucket = null;
-            }
-          };
-
-          const onEnd = () => {
-            document.removeEventListener('touchmove', onMove);
-            document.removeEventListener('touchend', onEnd);
-            document.removeEventListener('touchcancel', onEnd);
-
-            item.classList.remove('dragging');
-            item.style.position = '';
-            item.style.left = '';
-            item.style.top = '';
-            item.style.width = '';
-            item.style.zIndex = '';
-            item.style.pointerEvents = '';
-
-            clearHighlights();
-
-            if(activeBucket){
-              const task = state.tasks.find(t => t.id === taskId);
-              if(task) task.bucket = activeBucket.dataset.bucket;
-            }
-
-            renderSort();
-          };
-
-          document.addEventListener('touchmove', onMove, { passive:false });
-          document.addEventListener('touchend', onEnd);
-          document.addEventListener('touchcancel', onEnd);
-        };
-      });
-    }
-
     function renderInspect(){
       inspectList.innerHTML = '';
-
       if(!state.tasks.length){
         const note = document.createElement('p');
         note.className = 'muted';
@@ -858,11 +575,9 @@
       state.tasks.forEach(task => {
         const card = document.createElement('div');
         card.className = 'inspect-card';
-
         const title = document.createElement('div');
         title.className = 'inspect-title';
         title.textContent = task.title;
-
         const chipWrap = document.createElement('div');
         chipWrap.className = 'blocker-chips';
 
@@ -901,11 +616,7 @@
           section.classList.add('over');
           e.dataTransfer.dropEffect = 'move';
         });
-
-        section.addEventListener('dragleave', () => {
-          section.classList.remove('over');
-        });
-
+        section.addEventListener('dragleave', () => section.classList.remove('over'));
         section.addEventListener('drop', (e) => {
           e.preventDefault();
           section.classList.remove('over');
@@ -919,22 +630,17 @@
 
         const header = document.createElement('div');
         header.className = 'bucket-header';
-
         const title = document.createElement('div');
         title.className = 'bucket-title';
         title.textContent = bucket.label;
-
         const items = state.tasks.filter(t => t.bucket === bucket.key);
-
         const count = document.createElement('div');
         count.className = 'bucket-count';
         count.textContent = `${items.length} item${items.length === 1 ? '' : 's'}`;
-
         header.append(title, count);
 
         const list = document.createElement('div');
         list.className = 'bucket-list';
-
         if(!items.length){
           const empty = document.createElement('div');
           empty.className = 'empty-note';
@@ -951,11 +657,14 @@
       enableTouchSortBuckets();
     }
 
+    function renderExport(){
+      exportBox.textContent = buildExportText();
+    }
+
     function buildExportText(){
       ensureTaskBuckets();
       const buckets = getRemainingBuckets();
       const lines = ['THE UNTANGLER', ''];
-
       buckets.forEach(bucket => {
         const items = state.tasks.filter(t => t.bucket === bucket.key);
         if(!items.length) return;
@@ -963,13 +672,14 @@
         items.forEach(task => lines.push(`• ${task.title}`));
         lines.push('');
       });
-
-      if(lines.length === 2) lines.push('No items added yet.');
+      if(lines.length === 2){
+        lines.push('No items added yet.');
+      }
       return lines.join('\n').trim();
     }
 
-    function renderExport(){
-      exportBox.textContent = buildExportText();
+    function renderNav(){
+      return;
     }
 
     async function copyList(){
@@ -991,21 +701,6 @@
         } catch {}
       }
       copyList();
-    }
-
-    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
-      let r = radius;
-      if (width < 2 * r) r = width / 2;
-      if (height < 2 * r) r = height / 2;
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.arcTo(x + width, y, x + width, y + height, r);
-      ctx.arcTo(x + width, y + height, x, y + height, r);
-      ctx.arcTo(x, y + height, x, y, r);
-      ctx.arcTo(x, y, x + width, y, r);
-      ctx.closePath();
-      if (fill) ctx.fill();
-      if (stroke) ctx.stroke();
     }
 
     async function saveScreenshot(){
@@ -1084,9 +779,23 @@
       }, 'image/png');
     }
 
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      let r = radius;
+      if (width < 2 * r) r = width / 2;
+      if (height < 2 * r) r = height / 2;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + width, y, x + width, y + height, r);
+      ctx.arcTo(x + width, y + height, x, y + height, r);
+      ctx.arcTo(x, y + height, x, y, r);
+      ctx.arcTo(x, y, x + width, y, r);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
     function bindEvents(){
       addTaskBtn.addEventListener('click', () => addTask(taskInput.value));
-
       taskInput.addEventListener('keydown', (e) => {
         if(e.key === 'Enter'){
           e.preventDefault();
@@ -1094,48 +803,131 @@
         }
       });
 
-      document.getElementById('inspectFromEntryBtn').addEventListener('click', () => {
-        if(!state.tasks.length) return;
-        renderInspect();
-        showScreen('screen-inspect');
-      });
+      const inspectFromEntryBtn = document.getElementById('inspectFromEntryBtn');
+      const backToEntryBtn = document.getElementById('backToEntryBtn');
+      const toSortBtn = document.getElementById('toSortBtn');
+      const backToInspectBtn = document.getElementById('backToInspectBtn');
+      const looksGoodBtn = document.getElementById('looksGoodBtn');
 
-      document.getElementById('backToEntryBtn').addEventListener('click', () => showScreen('screen-enter'));
+      if(inspectFromEntryBtn){
+        inspectFromEntryBtn.addEventListener('click', () => {
+          if(!state.tasks.length) return;
+          renderInspect();
+          showScreen('screen-inspect');
+        });
+      }
+      if(backToEntryBtn){
+        backToEntryBtn.addEventListener('click', () => showScreen('screen-enter'));
+      }
+      if(toSortBtn){
+        toSortBtn.addEventListener('click', () => {
+          renderSort();
+          showScreen('screen-sort');
+        });
+      }
+      if(backToInspectBtn){
+        backToInspectBtn.addEventListener('click', () => {
+          renderInspect();
+          showScreen('screen-inspect');
+        });
+      }
+      if(looksGoodBtn){
+        looksGoodBtn.addEventListener('click', () => showScreen('screen-decision'));
+      }
 
-      document.getElementById('toSortBtn').addEventListener('click', () => {
-        renderSort();
-        showScreen('screen-sort');
-      });
-
-      document.getElementById('backToInspectBtn').addEventListener('click', () => {
-        renderInspect();
-        showScreen('screen-inspect');
-      });
-
-      document.getElementById('looksGoodBtn').addEventListener('click', () => showScreen('screen-decision'));
       document.getElementById('editListBtn').addEventListener('click', () => showScreen('screen-enter'));
-
       document.getElementById('enoughBtn').addEventListener('click', () => {
         renderExport();
         showScreen('screen-export');
       });
-
       document.getElementById('copyBtn').addEventListener('click', copyList);
       document.getElementById('shareBtn').addEventListener('click', shareList);
       document.getElementById('screenshotBtn').addEventListener('click', saveScreenshot);
-      document.getElementById('backToStartBtn').addEventListener('click', () => showScreen('screen-enter'));
+    }
+
+    function enableTouchSortBuckets(){
+      const rows = sortBoard.querySelectorAll('.task-item[data-context="sort"]');
+      rows.forEach(item => {
+        const handle = item.querySelector('.drag-handle');
+        if(!handle) return;
+        handle.ontouchstart = (e) => {
+          if(e.touches.length !== 1) return;
+          e.preventDefault();
+          const rect = item.getBoundingClientRect();
+          const touch = e.touches[0];
+          const taskId = item.dataset.id;
+          const offsetX = touch.clientX - rect.left;
+          const offsetY = touch.clientY - rect.top;
+
+          item.classList.add('dragging');
+          item.style.position = 'fixed';
+          item.style.left = rect.left + 'px';
+          item.style.top = rect.top + 'px';
+          item.style.width = rect.width + 'px';
+          item.style.zIndex = '9999';
+          item.style.pointerEvents = 'none';
+
+          let activeBucket = null;
+          const clearHighlights = () => {
+            document.querySelectorAll('.bucket').forEach(b => b.classList.remove('over'));
+          };
+
+          const onMove = (ev) => {
+            if(ev.touches.length !== 1) return;
+            ev.preventDefault();
+            const t = ev.touches[0];
+            item.style.left = (t.clientX - offsetX) + 'px';
+            item.style.top = (t.clientY - offsetY) + 'px';
+            clearHighlights();
+            const target = document.elementFromPoint(t.clientX, t.clientY);
+            const bucket = target ? target.closest('.bucket') : null;
+            if(bucket){
+              activeBucket = bucket;
+              bucket.classList.add('over');
+            } else {
+              activeBucket = null;
+            }
+          };
+
+          const onEnd = () => {
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
+            document.removeEventListener('touchcancel', onEnd);
+            item.classList.remove('dragging');
+            item.style.position = '';
+            item.style.left = '';
+            item.style.top = '';
+            item.style.width = '';
+            item.style.zIndex = '';
+            item.style.pointerEvents = '';
+            clearHighlights();
+            if(activeBucket){
+              const task = state.tasks.find(t => t.id === taskId);
+              if(task) task.bucket = activeBucket.dataset.bucket;
+            }
+            renderSort();
+          };
+
+          document.addEventListener('touchmove', onMove, { passive:false });
+          document.addEventListener('touchend', onEnd);
+          document.addEventListener('touchcancel', onEnd);
+        };
+      });
     }
 
     function render(){
       ensureTaskBuckets();
       renderEntryTasks();
-      document.getElementById('inspectFromEntryBtn').disabled = state.tasks.length === 0;
+      const inspectBtn = document.getElementById('inspectFromEntryBtn');
+      if(inspectBtn) inspectBtn.disabled = state.tasks.length === 0;
       if(state.screen === 'screen-inspect') renderInspect();
       if(state.screen === 'screen-sort') renderSort();
       if(state.screen === 'screen-export') renderExport();
+      renderNav();
     }
 
     function init(){
+      renderPrompts();
       bindEvents();
       ensureTaskBuckets();
       todayPill.textContent = `Today is ${dayNames[state.currentDayIndex]}`;
