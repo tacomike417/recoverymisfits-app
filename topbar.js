@@ -188,7 +188,7 @@
       <div class="rm-brand">
         <div class="rm-brand-title" id="rm-brand-title">Recovery Misfits v2</div>
         <div class="rm-brand-sub">Free recovery tools</div>
-        <div class="rm-brand-sub small">No account. No spam. 100% free.</div>
+        <div class="rm-brand-sub small">No account. No spam. Always free.</div>
       </div>
 
       <div class="rm-right"></div>
