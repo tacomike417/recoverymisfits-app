@@ -207,6 +207,12 @@
       box-shadow:0 4px 12px rgba(0,0,0,0.06);
     }
 
+    .dp-btn:disabled{
+      opacity:0.65;
+      cursor:default;
+      box-shadow:none;
+    }
+
     .dp-btn-secondary{
       background:#f7f7f7;
     }
@@ -222,6 +228,12 @@
       color:#7a1b1b;
       font-size:14px;
       font-weight:800;
+    }
+
+    .dp-shot-mode .dp-texttab,
+    .dp-shot-mode .dp-pass,
+    .dp-shot-mode .dp-error{
+      display:none !important;
     }
 
     @media (max-width:520px){
@@ -282,6 +294,7 @@
           <div class="dp-actions" id="dp-actions">
             <a class="dp-btn" id="dp-fb" href="#" target="_blank" rel="noopener">Facebook</a>
             <a class="dp-btn" id="dp-sms" href="#" rel="noopener">Text</a>
+            <button class="dp-btn" id="dp-screenshot" type="button">Screenshot</button>
             <button class="dp-btn dp-btn-secondary" id="dp-copy" type="button">Copy link</button>
             <span class="dp-copied" id="dp-copied" style="display:none;">Copied.</span>
           </div>
@@ -295,6 +308,8 @@
   <!-- Shared SOBER BAR + NAV (injected by nav.js) -->
   <div id="rm-bottom-nav"></div>
   <script src="./nav.js" defer></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script>
     (function() {
@@ -315,6 +330,7 @@
       var passEl      = $("#dp-pass");
       var actionsEl   = $("#dp-actions");
       var errorEl     = $("#dp-error");
+      var cardEl      = $("#dp-card");
 
       var textSizeWrap = $("#dp-textsize");
       var btnSmaller   = $("#dp-text-smaller");
@@ -374,6 +390,7 @@
 
           var fb = $("#dp-fb");
           var sms = $("#dp-sms");
+          var screenshotBtn = $("#dp-screenshot");
           var copyBtn = $("#dp-copy");
           var copiedEl = $("#dp-copied");
 
@@ -393,6 +410,12 @@
                 copiedEl.textContent = ok ? "Copied." : "Copy failed—tap and hold to copy.";
                 setTimeout(function(){ copiedEl.style.display = "none"; }, 1400);
               });
+            };
+          }
+
+          if (screenshotBtn) {
+            screenshotBtn.onclick = function() {
+              makeScreenshot(postTitle);
             };
           }
 
@@ -466,6 +489,100 @@
             cb(!!ok);
           } catch(e) {
             cb(false);
+          }
+        }
+      }
+
+      function sanitizeFileName(name) {
+        return (name || "another-day-sober")
+          .replace(/[<>:"/\\|?*]+/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .toLowerCase();
+      }
+
+      function blobFromCanvas(canvas) {
+        return new Promise(function(resolve){
+          if (canvas.toBlob) {
+            canvas.toBlob(function(blob){ resolve(blob); }, "image/png");
+          } else {
+            var dataUrl = canvas.toDataURL("image/png");
+            resolve(dataURLToBlob(dataUrl));
+          }
+        });
+      }
+
+      function dataURLToBlob(dataurl) {
+        var arr = dataurl.split(',');
+        var mime = arr[0].match(/:(.*?);/)[1];
+        var bstr = atob(arr[1]);
+        var n = bstr.length;
+        var u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], { type: mime });
+      }
+
+      async function makeScreenshot(postTitle) {
+        var shotBtn = $("#dp-screenshot");
+        var oldText = shotBtn ? shotBtn.textContent : "";
+
+        if (!cardEl || typeof html2canvas === "undefined") {
+          showError("Screenshot tool failed to load.");
+          return;
+        }
+
+        try {
+          if (shotBtn) {
+            shotBtn.disabled = true;
+            shotBtn.textContent = "Working...";
+          }
+
+          cardEl.classList.add("dp-shot-mode");
+
+          var canvas = await html2canvas(cardEl, {
+            backgroundColor: "#ffffff",
+            scale: Math.min(2, window.devicePixelRatio || 2),
+            useCORS: true,
+            allowTaint: false,
+            logging: false,
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            windowWidth: document.documentElement.clientWidth,
+            windowHeight: document.documentElement.scrollHeight
+          });
+
+          cardEl.classList.remove("dp-shot-mode");
+
+          var blob = await blobFromCanvas(canvas);
+          var fileName = sanitizeFileName(postTitle) + ".png";
+          var file = new File([blob], fileName, { type: "image/png" });
+
+          if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: postTitle,
+              text: "Another Day Sober"
+            });
+          } else {
+            var a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function(){
+              URL.revokeObjectURL(a.href);
+              document.body.removeChild(a);
+            }, 1000);
+          }
+        } catch(err) {
+          cardEl.classList.remove("dp-shot-mode");
+          showError("Couldn’t make screenshot on this device.");
+        } finally {
+          if (shotBtn) {
+            shotBtn.disabled = false;
+            shotBtn.textContent = oldText || "Screenshot";
           }
         }
       }
