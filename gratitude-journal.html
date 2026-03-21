@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Gratitude Journal — Recovery Misfits</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="./icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <style>
+    :root{
+      --bg:#0b0b0b;
+      --card:#151515;
+      --card2:#1d1d1d;
+      --ink:#f5f5f5;
+      --muted:#b9b9b9;
+      --line:#2a2a2a;
+      --accent:#ffffff;
+      --soft:#cfcfcf;
+      --danger:#ff7b7b;
+      --success:#9ff0b8;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Roboto,Arial,sans-serif}
+    body{min-height:100vh}
+
+    .wrap{
+      width:min(920px,100%);
+      margin:0 auto;
+      padding:20px 14px 110px;
+    }
+
+    .hero{
+      background:linear-gradient(180deg,#1b1b1b 0%, #111 100%);
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:20px 18px 18px;
+      box-shadow:var(--shadow);
+      margin-bottom:16px;
+    }
+
+    .eyebrow{
+      font-size:.8rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+
+    h1{
+      margin:0 0 8px;
+      font-size:1.9rem;
+      line-height:1.08;
+      letter-spacing:-.02em;
+    }
+
+    .sub{
+      color:var(--soft);
+      font-size:1rem;
+      line-height:1.5;
+      margin:0;
+    }
+
+    .datebar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin:16px 0;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:12px 14px;
+      box-shadow:var(--shadow);
+    }
+
+    .dateText{
+      font-size:.98rem;
+      color:var(--soft);
+    }
+
+    .status{
+      font-size:.88rem;
+      color:var(--muted);
+      min-height:1.2em;
+    }
+
+    .grid{
+      display:grid;
+      gap:14px;
+    }
+
+    .card{
+      background:linear-gradient(180deg,var(--card) 0%, var(--card2) 100%);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+    }
+
+    .prompt{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .num{
+      width:32px;
+      height:32px;
+      min-width:32px;
+      border-radius:999px;
+      border:1px solid #3a3a3a;
+      display:grid;
+      place-items:center;
+      font-weight:700;
+      font-size:.92rem;
+      background:#0f0f0f;
+      color:#fff;
+    }
+
+    .promptText{
+      margin:2px 0 0;
+      font-size:1.02rem;
+      line-height:1.45;
+      color:#fff;
+    }
+
+    textarea{
+      width:100%;
+      min-height:120px;
+      resize:vertical;
+      border-radius:16px;
+      border:1px solid #343434;
+      background:#0f0f0f;
+      color:#fff;
+      padding:14px;
+      font:inherit;
+      line-height:1.45;
+      outline:none;
+      transition:border-color .18s ease, transform .18s ease;
+    }
+
+    textarea:focus{
+      border-color:#6a6a6a;
+      transform:translateY(-1px);
+    }
+
+    .tools{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    .btnRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:18px;
+    }
+
+    button{
+      appearance:none;
+      border:none;
+      border-radius:999px;
+      padding:13px 18px;
+      font:inherit;
+      font-weight:700;
+      cursor:pointer;
+      transition:transform .14s ease, opacity .14s ease, background .14s ease;
+    }
+
+    button:hover{transform:translateY(-1px)}
+    button:active{transform:translateY(0)}
+
+    .primary{
+      background:#fff;
+      color:#000;
+    }
+
+    .secondary{
+      background:#262626;
+      color:#fff;
+      border:1px solid #3a3a3a;
+    }
+
+    .danger{
+      background:#2b1717;
+      color:#ffd4d4;
+      border:1px solid #5a2d2d;
+    }
+
+    .footerNote{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.45;
+    }
+
+    .tiny{
+      font-size:.84rem;
+      color:var(--muted);
+    }
+
+    .savedFlash{
+      color:var(--success);
+    }
+
+    .bottomSpace{height:18px}
+
+    @media (max-width:700px){
+      .wrap{padding:14px 10px 110px}
+      h1{font-size:1.55rem}
+      .tools{grid-template-columns:1fr}
+      textarea{min-height:110px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Recovery Misfits</div>
+      <h1>Gratitude Journal</h1>
+      <p class="sub">
+        A simple daily gratitude inventory. Slow down, tell the truth, and write down what was good,
+        useful, peaceful, or quietly meaningful in the last day or two.
+      </p>
+    </section>
+
+    <section class="datebar">
+      <div>
+        <div class="dateText" id="todayLabel">Today</div>
+        <div class="tiny">Saved on this device automatically</div>
+      </div>
+      <div class="status" id="saveStatus">Ready</div>
+    </section>
+
+    <section class="grid" id="journalGrid">
+      <article class="card">
+        <div class="prompt">
+          <div class="num">1</div>
+          <p class="promptText">Growth — Where did I grow, even a little, in the last day or two?</p>
+        </div>
+        <textarea id="entry-growth" placeholder="Maybe I paused before reacting. Maybe I told the truth. Maybe I stayed sober when my head wanted drama."></textarea>
+      </article>
+
+      <article class="card">
+        <div class="prompt">
+          <div class="num">2</div>
+          <p class="promptText">Inspiration — What inspired me, encouraged me, or reminded me I’m not doing this alone?</p>
+        </div>
+        <textarea id="entry-inspiration" placeholder="A reading, a person, a meeting, a song, a line I heard, a quiet moment that hit me right."></textarea>
+      </article>
+
+      <article class="card">
+        <div class="prompt">
+          <div class="num">3</div>
+          <p class="promptText">Friends &amp; Family — Who am I grateful for today, and why?</p>
+        </div>
+        <textarea id="entry-people" placeholder="Name the people. Keep it real. What did they bring into your life lately?"></textarea>
+      </article>
+
+      <article class="card">
+        <div class="prompt">
+          <div class="num">4</div>
+          <p class="promptText">Tranquility — Where did I experience peace, relief, safety, or a break from my own head?</p>
+        </div>
+        <textarea id="entry-tranquility" placeholder="A walk, coffee on the porch, prayer, laughter, silence, a deep breath, a nap, a meeting."></textarea>
+      </article>
+
+      <article class="card">
+        <div class="prompt">
+          <div class="num">5</div>
+          <p class="promptText">Signs from the last day or two — What happened that felt meaningful, helpful, or like a quiet nudge from God?</p>
+        </div>
+        <textarea id="entry-signs" placeholder="Little things count. A door opening. A weird coincidence. A reminder. A moment of clarity."></textarea>
+      </article>
+
+      <article class="card">
+        <div class="prompt">
+          <div class="num">6</div>
+          <p class="promptText">Bonus — What simple thing am I grateful for right now?</p>
+        </div>
+        <textarea id="entry-bonus" placeholder="Hot coffee. A bed. Clean socks. A laugh. Another day sober. Keep it humble."></textarea>
+      </article>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
+      <div class="prompt" style="margin-bottom:8px;">
+        <div class="num">★</div>
+        <p class="promptText">Today’s full gratitude snapshot</p>
+      </div>
+      <textarea id="entry-summary" placeholder="Sum it up in your own words. What kind of day was this, really?"></textarea>
+
+      <div class="btnRow">
+        <button class="primary" id="copyBtn">Copy Journal</button>
+        <button class="secondary" id="downloadBtn">Download .txt</button>
+        <button class="secondary" id="shareBtn">Share</button>
+        <button class="danger" id="clearBtn">Clear All</button>
+      </div>
+
+      <p class="footerNote">
+        This is not about sounding wise. It’s about noticing what’s good before your head turns everything into a court case.
+      </p>
+    </section>
+
+    <div class="bottomSpace"></div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "rm_gratitude_journal_v1";
+
+    const fields = [
+      { id: "entry-growth", label: "Growth" },
+      { id: "entry-inspiration", label: "Inspiration" },
+      { id: "entry-people", label: "Friends & Family" },
+      { id: "entry-tranquility", label: "Tranquility" },
+      { id: "entry-signs", label: "Signs from the last day or two" },
+      { id: "entry-bonus", label: "Bonus" },
+      { id: "entry-summary", label: "Today’s full gratitude snapshot" }
+    ];
+
+    const saveStatus = document.getElementById("saveStatus");
+    const todayLabel = document.getElementById("todayLabel");
+
+    function formatToday() {
+      const now = new Date();
+      return now.toLocaleDateString(undefined, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+    }
+
+    function showToday() {
+      todayLabel.textContent = formatToday();
+    }
+
+    function collectData() {
+      const data = {
+        date: new Date().toISOString(),
+        prettyDate: formatToday(),
+        entries: {}
+      };
+
+      fields.forEach(field => {
+        const el = document.getElementById(field.id);
+        data.entries[field.id] = el ? el.value : "";
+      });
+
+      return data;
+    }
+
+    function saveData() {
+      const data = collectData();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      flashSaved("Saved");
+    }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (!data || !data.entries) return;
+
+        fields.forEach(field => {
+          const el = document.getElementById(field.id);
+          if (el && typeof data.entries[field.id] === "string") {
+            el.value = data.entries[field.id];
+          }
+        });
+
+        saveStatus.textContent = data.prettyDate
+          ? `Loaded saved journal from ${data.prettyDate}`
+          : "Loaded saved journal";
+      } catch (err) {
+        saveStatus.textContent = "Could not load saved journal";
+      }
+    }
+
+    let saveTimer = null;
+    function queueSave() {
+      clearTimeout(saveTimer);
+      saveStatus.textContent = "Saving...";
+      saveTimer = setTimeout(saveData, 250);
+    }
+
+    function flashSaved(text) {
+      saveStatus.textContent = text;
+      saveStatus.classList.add("savedFlash");
+      setTimeout(() => {
+        saveStatus.classList.remove("savedFlash");
+      }, 900);
+    }
+
+    function buildExportText() {
+      const data = collectData();
+      const chunks = [];
+      chunks.push("RECOVERY MISFITS — GRATITUDE JOURNAL");
+      chunks.push(data.prettyDate);
+      chunks.push("");
+
+      fields.forEach(field => {
+        const value = (data.entries[field.id] || "").trim();
+        chunks.push(field.label);
+        chunks.push(value || "(blank)");
+        chunks.push("");
+      });
+
+      return chunks.join("\n");
+    }
+
+    async function copyJournal() {
+      const text = buildExportText();
+      try {
+        await navigator.clipboard.writeText(text);
+        flashSaved("Copied to clipboard");
+      } catch (err) {
+        saveStatus.textContent = "Copy failed";
+      }
+    }
+
+    function downloadJournal() {
+      const text = buildExportText();
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      const date = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `gratitude-journal-${date}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      flashSaved("Downloaded");
+    }
+
+    async function shareJournal() {
+      const text = buildExportText();
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "Gratitude Journal",
+            text
+          });
+          flashSaved("Shared");
+        } catch (err) {
+          if (err && err.name !== "AbortError") {
+            saveStatus.textContent = "Share cancelled";
+          }
+        }
+      } else {
+        await copyJournal();
+      }
+    }
+
+    function clearAll() {
+      const ok = confirm("Clear this gratitude journal?");
+      if (!ok) return;
+
+      fields.forEach(field => {
+        const el = document.getElementById(field.id);
+        if (el) el.value = "";
+      });
+
+      localStorage.removeItem(STORAGE_KEY);
+      flashSaved("Cleared");
+    }
+
+    function bindEvents() {
+      fields.forEach(field => {
+        const el = document.getElementById(field.id);
+        if (!el) return;
+        el.addEventListener("input", queueSave);
+      });
+
+      document.getElementById("copyBtn").addEventListener("click", copyJournal);
+      document.getElementById("downloadBtn").addEventListener("click", downloadJournal);
+      document.getElementById("shareBtn").addEventListener("click", shareJournal);
+      document.getElementById("clearBtn").addEventListener("click", clearAll);
+    }
+
+    showToday();
+    loadData();
+    bindEvents();
+  </script>
+</body>
+</html>
