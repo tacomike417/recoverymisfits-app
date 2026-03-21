@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Burn Pad — Recovery Misfits</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Recovery Misfits — Burn Pad</title>
 
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#ffffff" />
   <link rel="icon" href="./icon-192.png">
 
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,507 +15,593 @@
   <link rel="apple-touch-icon" href="./icon-192.png">
 
   <style>
-    :root{
-      --bg:#f7f3ea;
-      --card:#ffffff;
-      --ink:#111111;
-      --muted:#6b665f;
-      --line:#ddd4c8;
-      --accent:#111111;
-      --danger:#8a1c1c;
-      --gold:#d4af37;
-      --shadow:0 10px 30px rgba(0,0,0,.08);
-      --radius:18px;
-    }
-
-    *{box-sizing:border-box}
-
-    html,body{
-      margin:0;
-      padding:0;
-      background:var(--bg);
-      color:var(--ink);
-      font-family:Roboto,Arial,sans-serif;
-    }
-
     body{
-      min-height:100vh;
-      padding-bottom:110px;
-    }
-
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:50;
-      background:#111;
-      color:#fff;
-      padding:16px 18px;
-      text-align:center;
-      font-weight:1000;
-      letter-spacing:.2px;
-      box-shadow:0 2px 10px rgba(0,0,0,.15);
+      font-family:Roboto,Arial,sans-serif;
+      margin:0;
+      background:#fff;
+      color:#111;
+      padding-bottom:120px;
     }
 
     .page{
-      max-width:860px;
+      max-width:980px;
       margin:0 auto;
-      padding:16px 14px 28px;
+      padding:14px 12px 24px;
     }
 
-    .hero{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:18px;
-      box-shadow:var(--shadow);
-      margin-bottom:14px;
-    }
-
-    .title{
-      margin:0 0 6px;
-      font-size:24px;
+    .pageTitle{
       font-weight:1000;
-      line-height:1.05;
+      font-size:18px;
+      margin:12px 4px 4px;
     }
 
-    .sub{
-      margin:0;
-      color:var(--muted);
+    .pageSub{
       font-weight:800;
+      color:#666;
+      margin:0 4px 12px;
+      line-height:1.25;
+      font-size:13px;
+    }
+
+    input{
+      width:100%;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,.18);
+      margin-top:8px;
+      font-weight:800;
+      box-sizing:border-box;
+      font-size:16px;
+    }
+
+    textarea{
+      width:100%;
+      padding:10px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,.18);
+      margin-top:8px;
+      font-weight:800;
+      box-sizing:border-box;
+      font-size:16px;
       line-height:1.35;
-      font-size:14px;
+      resize:vertical;
+      min-height:88px;
+      font-family:inherit;
+    }
+
+    .row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+
+    .btn{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.18);
+      background:#fff;
+      font-weight:900;
+      cursor:pointer;
+      text-decoration:none;
+      color:#111;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      box-sizing:border-box;
+      min-height:44px;
+      line-height:1.1;
+      font-family:inherit;
+    }
+    .btn.primary{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
+
+    .muted{color:#666;font-weight:800;line-height:1.25;}
+    .qLabel{margin-top:12px;font-weight:1000;letter-spacing:.2px;}
+    .divider{height:1px;background:rgba(0,0,0,.10);margin:12px 0;}
+
+    .stepWrap{display:none;}
+    .stepWrap.active{display:block;}
+
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+    .chipBtn{
+      border:1px solid rgba(0,0,0,.18);
+      border-radius:999px;padding:7px 10px;background:#fff;
+      font-weight:1000;cursor:pointer;user-select:none;font-size:13px;
+    }
+    .chipBtn.active{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
+    .burnHeaderLine{margin-top:6px;font-weight:900;color:#666;line-height:1.25;}
+
+    .tinyLink{
+      background:none;border:none;padding:0;margin:0;
+      color:#111; font-weight:1000; cursor:pointer;
+      text-decoration:underline; text-underline-offset:3px;
+      font-family:inherit;
+      font-size:inherit;
+    }
+
+    .burstWrap{position:relative; display:inline-flex;}
+    .star{
+      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+      pointer-events:none;will-change:transform,opacity;font-size:16px;opacity:0;
+      animation:starFly .85s ease-out forwards;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,.10));
+    }
+    @keyframes starFly{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.9);}
+      10%{opacity:1;}
+      100%{opacity:0;transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15);}
+    }
+
+    .prayerBox{
+      margin-top:10px;
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      font-weight:900;
+      line-height:1.45;
     }
 
     .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:14px;
-      margin-bottom:14px;
-    }
-
-    .label{
-      display:block;
-      font-size:13px;
-      font-weight:1000;
-      margin:0 0 8px;
-    }
-
-    .textarea{
-      width:100%;
-      min-height:280px;
-      border:1px solid var(--line);
+      border:1px solid rgba(0,0,0,.12);
       border-radius:16px;
-      background:#fff;
-      color:var(--ink);
-      font:inherit;
-      font-size:16px;
-      line-height:1.45;
       padding:14px;
-      resize:vertical;
-      outline:none;
-      transition:border-color .15s ease, box-shadow .15s ease, opacity .25s ease, transform .25s ease;
+      background:#fff;
+      margin:10px 4px 14px;
     }
 
-    .textarea:focus{
-      border-color:#999;
-      box-shadow:0 0 0 3px rgba(0,0,0,.06);
+    #burnDoneSheet .doneWrap{
+      margin-top:12px;
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:16px;
+      padding:14px;
+      background:#fff;
     }
 
-    .textarea.burning{
-      opacity:.2;
-      transform:scale(.985);
-      filter:blur(1px);
+    .burnAnimStage{
+      position:relative;
+      height:120px;
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;
+      background:#fff;
+      overflow:hidden;
     }
 
-    .metaRow{
+    .burnGlow{
+      position:absolute;
+      inset:-30%;
+      background: radial-gradient(circle at 70% 30%, rgba(255, 210, 110, .65), rgba(255,210,110,0) 55%);
+      opacity:0;
+      transform:scale(.9);
+    }
+
+    .burnTrash{
+      position:absolute;
+      right:18px;
+      bottom:16px;
+      width:40px;
+      height:46px;
+      border:2px solid rgba(0,0,0,.55);
+      border-top-left-radius:8px;
+      border-top-right-radius:8px;
+      border-bottom-left-radius:10px;
+      border-bottom-right-radius:10px;
+      background:rgba(255,255,255,.6);
+    }
+    .burnTrash:before{
+      content:"";
+      position:absolute;
+      left:-4px;
+      right:-4px;
+      top:-10px;
+      height:10px;
+      border:2px solid rgba(0,0,0,.55);
+      border-bottom:none;
+      border-top-left-radius:10px;
+      border-top-right-radius:10px;
+      background:#fff;
+      opacity:.95;
+    }
+    .burnTrash:after{
+      content:"";
+      position:absolute;
+      left:9px; right:9px;
+      top:8px; bottom:8px;
+      border-left:2px solid rgba(0,0,0,.18);
+      border-right:2px solid rgba(0,0,0,.18);
+      opacity:.9;
+    }
+
+    .burnPaper{
+      position:absolute;
+      left:18px;
+      bottom:22px;
+      width:42px;
+      height:52px;
+      border:2px solid rgba(0,0,0,.22);
+      border-radius:8px;
+      background:#fff;
+      box-shadow:0 2px 6px rgba(0,0,0,.08);
+      transform:translateX(0) translateY(0) rotate(0deg) scale(1);
+      opacity:1;
+    }
+
+    .burnMsg{
+      margin-top:12px;
+      font-weight:1000;
+      line-height:1.3;
+      opacity:0;
+      transition:opacity .25s ease;
+    }
+
+    .burnDoneBtnRow{
+      margin-top:12px;
       display:flex;
       gap:10px;
       flex-wrap:wrap;
-      margin-top:10px;
-      color:var(--muted);
-      font-size:12px;
-      font-weight:900;
+    }
+    .burnDoneBtnRow .btn{ width:100%; }
+
+    .burnAnimStage.run .burnPaper{
+      animation: paperSlide .55s ease-out forwards;
+    }
+    .burnAnimStage.run .burnGlow{
+      animation: glowUp .60s ease-out forwards;
+      animation-delay:.55s;
+    }
+    .burnAnimStage.run .burnTrash{
+      animation: trashNod .22s ease-out forwards;
+      animation-delay:.55s;
     }
 
-    .actions{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-      margin-top:14px;
+    @keyframes paperSlide{
+      0%{ transform:translateX(0) translateY(0) rotate(0deg) scale(1); opacity:1; }
+      70%{ transform:translateX(160px) translateY(-8px) rotate(8deg) scale(.95); opacity:1; }
+      100%{ transform:translateX(186px) translateY(18px) rotate(12deg) scale(.85); opacity:0; }
+    }
+    @keyframes glowUp{
+      0%{ opacity:0; transform:scale(.9); }
+      100%{ opacity:1; transform:scale(1.05); }
+    }
+    @keyframes trashNod{
+      0%{ transform:translateY(0); }
+      50%{ transform:translateY(2px); }
+      100%{ transform:translateY(0); }
     }
 
-    .btn{
-      appearance:none;
-      border:none;
-      border-radius:999px;
-      min-height:46px;
-      padding:12px 16px;
-      font:inherit;
-      font-size:15px;
-      font-weight:1000;
-      cursor:pointer;
-      transition:transform .06s ease, opacity .15s ease, background .15s ease, color .15s ease;
-    }
-
-    .btn:active{
-      transform:translateY(1px);
-    }
-
-    .btn.primary{
-      background:#111;
-      color:#fff;
-    }
-
-    .btn.secondary{
-      background:#fff;
-      color:#111;
-      border:1px solid rgba(0,0,0,.14);
-    }
-
-    .btn.danger{
-      background:var(--danger);
-      color:#fff;
-    }
-
-    .btn.ghost{
-      background:#efe8dd;
-      color:#111;
-    }
-
-    .smallActions{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:10px;
-      margin-top:10px;
-    }
-
-    .status{
-      margin-top:12px;
-      min-height:20px;
-      color:var(--muted);
-      font-size:13px;
-      font-weight:900;
-    }
-
-    .notice{
-      background:#fff7db;
-      border:1px solid #ead28a;
-      color:#5e4a12;
-      border-radius:14px;
-      padding:12px 14px;
-      font-size:13px;
-      font-weight:900;
-      line-height:1.35;
-      margin-top:10px;
-    }
-
-    .ashesWrap{
-      position:relative;
-      overflow:hidden;
-      min-height:44px;
-      margin-top:10px;
-      border-radius:14px;
-      background:linear-gradient(180deg,#1b1b1b 0%, #2a2a2a 100%);
-      border:1px solid rgba(0,0,0,.18);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:10px;
-    }
-
-    .ashesWrap.show{
-      display:flex;
-    }
-
-    .ashesText{
-      color:#f3ede2;
-      font-size:13px;
-      font-weight:1000;
-      letter-spacing:.2px;
-      position:relative;
-      z-index:2;
-    }
-
-    .ember{
-      position:absolute;
-      width:8px;
-      height:8px;
-      border-radius:50%;
-      background:radial-gradient(circle, #ffd36b 0%, #ff8a00 55%, rgba(255,90,0,.05) 100%);
-      opacity:.9;
-      animation:floatUp linear forwards;
-    }
-
-    @keyframes floatUp{
-      0%{
-        transform:translateY(14px) scale(.7);
-        opacity:0;
-      }
-      20%{
-        opacity:1;
-      }
-      100%{
-        transform:translateY(-80px) scale(1.2);
-        opacity:0;
-      }
-    }
-
-    @media (max-width:640px){
-      .actions{
-        grid-template-columns:1fr;
-      }
-      .smallActions{
-        grid-template-columns:1fr;
-      }
-      .title{
-        font-size:22px;
-      }
-      .textarea{
-        min-height:240px;
-      }
+    @media (max-width:720px){
+      .row .btn{width:100%;}
     }
   </style>
 </head>
+
 <body>
 
-  <div id="rm-topbar"></div>
-  <script src="./topbar.js" defer></script>
+<div id="rm-topbar"></div>
+<script src="./topbar.js" defer></script>
 
-  <header class="topbar">🔥 Burn Pad</header>
+<main class="page">
+  <div class="pageTitle">Burn Pad</div>
+  <div class="pageSub">Get it out, inspect it, then release it.</div>
 
-  <main class="page">
-    <section class="hero">
-      <h1 class="title">Get it out. Look at it. Let it go.</h1>
-      <p class="sub">Write the resentment, fear, shame, obsession, fantasy, argument, or garbage thought. Save it for later if you need to. Burn it when you are done with it.</p>
-    </section>
+  <div class="card">
+    <div class="stepWrap active" id="burnStep1">
+      <div class="burnHeaderLine">Write out the text that won’t be sent</div>
 
-    <section class="card">
-      <label class="label" for="burnInput">What needs to come out right now?</label>
-      <textarea
-        id="burnInput"
-        class="textarea"
-        placeholder="Type it here. Be honest. Nobody else sees this unless you copy it out yourself."
-        spellcheck="true"
-      ></textarea>
+      <div class="qLabel">Name</div>
+      <input id="burnName" type="text" placeholder="Who is this about? (optional)">
 
-      <div class="metaRow">
-        <div><span id="charCount">0</span> characters</div>
-        <div>Saved: <span id="saveState">not yet</span></div>
+      <textarea id="burnDraft"
+        placeholder="This isn’t for replaying the struggle. It’s for getting it out and moving on."
+        style="min-height:160px;"></textarea>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn primary" id="burnNext" type="button">Next</button>
+        <button class="btn" id="burnClear1" type="button">Clear</button>
+      </div>
+    </div>
+
+    <div class="stepWrap" id="burnStep2">
+      <div class="muted" style="margin-top:6px;">
+        Strong reactions usually mean something important got touched.
       </div>
 
-      <div class="actions">
-        <button class="btn primary" id="saveBtn">Save</button>
-        <button class="btn danger" id="burnBtn">Burn It</button>
+      <div style="margin-top:10px;">
+        <button class="tinyLink" id="burnToggleSimple" type="button">Show fewer questions</button>
       </div>
 
-      <div class="smallActions">
-        <button class="btn secondary" id="copyBtn">Copy</button>
-        <button class="btn ghost" id="clearBtn">Clear</button>
-        <button class="btn secondary" id="downloadBtn">Download</button>
+      <div class="qLabel">Right now I’m:</div>
+      <div class="chips" id="burnStateChips">
+        <button class="chipBtn" type="button" data-v="angry">Angry</button>
+        <button class="chipBtn" type="button" data-v="scared">Scared</button>
+        <button class="chipBtn" type="button" data-v="hurt">Hurt</button>
+        <button class="chipBtn" type="button" data-v="embarrassed">Embarrassed</button>
+        <button class="chipBtn" type="button" data-v="tired">Tired</button>
       </div>
 
-      <div class="status" id="statusMsg"></div>
+      <div class="divider"></div>
 
-      <div class="notice">
-        Saved only on this device using local storage. Burning clears the text from this page and local storage.
+      <div class="qLabel">Where was my mistake?</div>
+      <textarea id="burnMistake" placeholder="Self-seeking… lied… held onto anger too long… passive aggressive… withheld a loving attitude…"></textarea>
+
+      <div class="qLabel">Where did I make it worse?</div>
+      <textarea id="burnFlames"></textarea>
+
+      <div class="qLabel">What was I trying to control, change, or force?</div>
+      <textarea id="burnControl"></textarea>
+
+      <div id="burnAdvanced">
+        <div class="qLabel">What’s actually threatened here?</div>
+        <div class="chips" id="burnThreatChips">
+          <button class="chipBtn" type="button" data-v="ego">Ego</button>
+          <button class="chipBtn" type="button" data-v="fear">Fear</button>
+          <button class="chipBtn" type="button" data-v="comfort">Comfort</button>
+          <button class="chipBtn" type="button" data-v="image">Image</button>
+          <button class="chipBtn" type="button" data-v="security">Security</button>
+        </div>
+
+        <div class="qLabel">What’s the next right move — if any?</div>
+        <textarea id="burnNextMove" placeholder="Sometimes the move is to do nothing and let things cool."></textarea>
+
+        <div class="qLabel">Who could help me see this more clearly?</div>
+        <textarea id="burnWho"></textarea>
       </div>
 
-      <div class="ashesWrap" id="ashesWrap" aria-hidden="true">
-        <div class="ashesText" id="ashesText">Ashes.</div>
+      <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:900;color:#444;user-select:none;">
+        <input id="burnNotReady" type="checkbox" style="width:auto;margin:0;transform:scale(1.1);">
+        I’m not ready to let this go yet.
+      </label>
+      <div class="muted" id="burnNotReadyHint" style="margin-top:6px;display:none;">
+        That’s honest. You can still pause it and come back when you’re ready.
       </div>
-    </section>
-  </main>
 
-  <div id="rm-bottom-nav"></div>
-  <script src="./nav.js" defer></script>
+      <div class="muted" style="margin-top:12px;">
+        Probably not a bad idea to talk this through with someone in recovery.
+      </div>
+      <div class="muted" style="margin-top:10px;">
+        Feelings usually shift if we give them a little time.
+      </div>
 
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js");
+      <div class="row" style="margin-top:12px;">
+        <span class="burstWrap">
+          <button class="btn primary" id="burnRelease" type="button">Release it</button>
+        </span>
+        <button class="btn" id="burnBack" type="button">Back</button>
+        <button class="btn" id="burnClear2" type="button">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="burnDoneSheet" style="display:none;">
+    <div class="doneWrap">
+      <div class="burnAnimStage" id="burnAnimStage" aria-hidden="true">
+        <div class="burnGlow" id="burnGlow"></div>
+        <div class="burnTrash" aria-hidden="true"></div>
+        <div class="burnPaper" id="burnPaper" aria-hidden="true"></div>
+      </div>
+
+      <div class="burnMsg" id="burnDoneMsg">
+        Released. Not yours to carry today.
+      </div>
+
+      <div class="burnDoneBtnRow">
+        <button class="btn primary" id="burnDoneClose" type="button">Close Burn Pad</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="prayerSheet" style="display:none;">
+    <h3 id="prayerTitle" style="margin:0;">Sick Man’s Prayer</h3>
+
+    <div class="prayerBox" style="margin-top:12px;">
+      This is a sick man. How can I be helpful to him?<br>
+      God save me from being angry.<br>
+      Thy will be done.
+    </div>
+
+    <div class="row" style="margin-top:14px;">
+      <button class="btn primary" id="prayerDone" type="button">Let it go</button>
+    </div>
+  </div>
+</main>
+
+<div id="rm-bottom-nav"></div>
+<script src="./nav.js" defer></script>
+
+<script>
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+
+  function burstStars(onButtonEl){
+    const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
+    if(!wrap) return;
+    const emojis = ["⭐","✨","🌟"];
+    const count = 14;
+    for(let i=0;i<count;i++){
+      const s = document.createElement("span");
+      s.className="star";
+      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      s.style.setProperty("--dx", (Math.random()*90 - 45).toFixed(0) + "px");
+      s.style.setProperty("--dy", (Math.random()*-80 - 20).toFixed(0) + "px");
+      s.style.setProperty("--rot", (Math.random()*220 - 110).toFixed(0) + "deg");
+      s.style.animationDelay = (Math.random()*0.08).toFixed(2)+"s";
+      wrap.appendChild(s);
+      setTimeout(() => s.remove(), 950);
     }
+  }
 
-    const STORAGE_KEY = "rm_burn_pad_text_v1";
-    const STORAGE_TIME_KEY = "rm_burn_pad_saved_at_v1";
+  const burnStep1 = document.getElementById("burnStep1");
+  const burnStep2 = document.getElementById("burnStep2");
 
-    const burnInput = document.getElementById("burnInput");
-    const saveBtn = document.getElementById("saveBtn");
-    const burnBtn = document.getElementById("burnBtn");
-    const copyBtn = document.getElementById("copyBtn");
-    const clearBtn = document.getElementById("clearBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const charCount = document.getElementById("charCount");
-    const saveState = document.getElementById("saveState");
-    const statusMsg = document.getElementById("statusMsg");
-    const ashesWrap = document.getElementById("ashesWrap");
-    const ashesText = document.getElementById("ashesText");
+  const burnName = document.getElementById("burnName");
+  const burnDraft = document.getElementById("burnDraft");
+  const burnMistake = document.getElementById("burnMistake");
+  const burnFlames = document.getElementById("burnFlames");
+  const burnControl = document.getElementById("burnControl");
+  const burnNextMove = document.getElementById("burnNextMove");
+  const burnWho = document.getElementById("burnWho");
 
-    function formatStamp(ts){
-      if (!ts) return "not yet";
-      const d = new Date(ts);
-      if (isNaN(d.getTime())) return "not yet";
-      return d.toLocaleString([], {
-        year:"numeric",
-        month:"short",
-        day:"numeric",
-        hour:"numeric",
-        minute:"2-digit"
-      });
+  const burnThreatChips = document.getElementById("burnThreatChips");
+  let burnThreat = "";
+
+  const burnStateChips = document.getElementById("burnStateChips");
+  let burnState = "";
+
+  const burnAdvanced = document.getElementById("burnAdvanced");
+  const burnToggleSimple = document.getElementById("burnToggleSimple");
+  let burnSimple = false;
+
+  const burnNotReady = document.getElementById("burnNotReady");
+  const burnNotReadyHint = document.getElementById("burnNotReadyHint");
+  const burnReleaseBtn = document.getElementById("burnRelease");
+
+  const burnDoneSheet = document.getElementById("burnDoneSheet");
+  const burnAnimStage = document.getElementById("burnAnimStage");
+  const burnDoneMsg = document.getElementById("burnDoneMsg");
+  const burnDoneCloseBtn = document.getElementById("burnDoneClose");
+
+  const prayerSheet = document.getElementById("prayerSheet");
+  const prayerDone = document.getElementById("prayerDone");
+
+  function showBurnStep(n){
+    if(n===1){ burnStep1.classList.add("active"); burnStep2.classList.remove("active"); }
+    else { burnStep1.classList.remove("active"); burnStep2.classList.add("active"); }
+  }
+
+  function resetNotReadyUI(){
+    burnNotReady.checked = false;
+    burnNotReadyHint.style.display = "none";
+    burnReleaseBtn.textContent = "Release it";
+  }
+
+  function resetSimpleUI(){
+    burnSimple = false;
+    if(burnAdvanced) burnAdvanced.style.display = "";
+    if(burnToggleSimple) burnToggleSimple.textContent = "Show fewer questions";
+  }
+
+  function clearBurnAll(){
+    burnName.value = "";
+    burnDraft.value=""; burnMistake.value=""; burnFlames.value=""; burnControl.value="";
+    if(burnNextMove) burnNextMove.value=""; if(burnWho) burnWho.value="";
+    burnThreat=""; burnState="";
+    if(burnThreatChips) burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    if(burnStateChips) burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    resetNotReadyUI();
+    resetSimpleUI();
+    showBurnStep(1);
+  }
+
+  document.getElementById("burnNext").onclick = () => {
+    showBurnStep(2);
+    setTimeout(() => burnMistake.focus({preventScroll:true}), 80);
+  };
+
+  document.getElementById("burnBack").onclick = () => {
+    showBurnStep(1);
+    setTimeout(() => burnName.focus({preventScroll:true}), 80);
+  };
+
+  document.getElementById("burnClear1").onclick = () => {
+    burnName.value=""; burnDraft.value="";
+  };
+
+  document.getElementById("burnClear2").onclick = () => {
+    burnMistake.value=""; burnFlames.value=""; burnControl.value="";
+    if(burnNextMove) burnNextMove.value=""; if(burnWho) burnWho.value="";
+    burnThreat=""; burnState="";
+    if(burnThreatChips) burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    if(burnStateChips) burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+    resetNotReadyUI();
+    resetSimpleUI();
+  };
+
+  if(burnThreatChips){
+    burnThreatChips.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chipBtn");
+      if(!btn) return;
+      const v = btn.getAttribute("data-v") || "";
+      const isActive = btn.classList.contains("active");
+
+      burnThreatChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+      if(!isActive){ btn.classList.add("active"); burnThreat = v; }
+      else { burnThreat = ""; }
+    });
+  }
+
+  if(burnStateChips){
+    burnStateChips.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chipBtn");
+      if(!btn) return;
+      const v = btn.getAttribute("data-v") || "";
+      const isActive = btn.classList.contains("active");
+
+      burnStateChips.querySelectorAll(".chipBtn").forEach(b=>b.classList.remove("active"));
+      if(!isActive){ btn.classList.add("active"); burnState = v; }
+      else { burnState = ""; }
+    });
+  }
+
+  if(burnToggleSimple){
+    burnToggleSimple.onclick = () => {
+      burnSimple = !burnSimple;
+      if(burnAdvanced) burnAdvanced.style.display = burnSimple ? "none" : "";
+      burnToggleSimple.textContent = burnSimple ? "Show all questions" : "Show fewer questions";
+    };
+  }
+
+  burnNotReady.addEventListener("change", () => {
+    if(burnNotReady.checked){
+      burnReleaseBtn.textContent="Pause it";
+      burnNotReadyHint.style.display="block";
+    } else {
+      burnReleaseBtn.textContent="Release it";
+      burnNotReadyHint.style.display="none";
     }
+  });
 
-    function setStatus(msg){
-      statusMsg.textContent = msg;
-    }
+  function openBurnDone(){
+    burnDoneSheet.style.display = "block";
+    burnDoneMsg.style.opacity = "0";
+    burnAnimStage.classList.remove("run");
 
-    function updateCounts(){
-      charCount.textContent = burnInput.value.length;
-    }
-
-    function savePad(showMessage = true){
-      localStorage.setItem(STORAGE_KEY, burnInput.value);
-      const now = new Date().toISOString();
-      localStorage.setItem(STORAGE_TIME_KEY, now);
-      saveState.textContent = formatStamp(now);
-      if (showMessage) setStatus("Saved on this device.");
-    }
-
-    function loadPad(){
-      const saved = localStorage.getItem(STORAGE_KEY);
-      const savedAt = localStorage.getItem(STORAGE_TIME_KEY);
-
-      if (saved !== null) {
-        burnInput.value = saved;
-      }
-
-      saveState.textContent = formatStamp(savedAt);
-      updateCounts();
-    }
-
-    function clearPad(showMessage = true){
-      burnInput.value = "";
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(STORAGE_TIME_KEY);
-      saveState.textContent = "not yet";
-      updateCounts();
-      if (showMessage) setStatus("Cleared.");
-    }
-
-    async function copyText(){
-      const text = burnInput.value.trim();
-      if (!text) {
-        setStatus("Nothing to copy.");
-        return;
-      }
-
-      try{
-        await navigator.clipboard.writeText(text);
-        setStatus("Copied to clipboard.");
-      }catch(err){
-        burnInput.select();
-        document.execCommand("copy");
-        setStatus("Copied to clipboard.");
-      }
-    }
-
-    function downloadText(){
-      const text = burnInput.value.trim();
-      if (!text) {
-        setStatus("Nothing to download.");
-        return;
-      }
-
-      const blob = new Blob([text], { type:"text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,"-");
-      a.href = url;
-      a.download = `burn-pad-${stamp}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      setStatus("Downloaded.");
-    }
-
-    function spawnEmbers(count = 22){
-      const rect = ashesWrap.getBoundingClientRect();
-
-      for(let i = 0; i < count; i++){
-        const ember = document.createElement("span");
-        ember.className = "ember";
-        ember.style.left = Math.random() * rect.width + "px";
-        ember.style.bottom = (Math.random() * 12) + "px";
-        ember.style.animationDuration = (1.2 + Math.random() * 1.5) + "s";
-        ember.style.animationDelay = (Math.random() * .35) + "s";
-        ashesWrap.appendChild(ember);
-
-        setTimeout(() => ember.remove(), 2300);
-      }
-    }
-
-    function burnPad(){
-      const text = burnInput.value.trim();
-
-      if (!text) {
-        setStatus("Nothing to burn.");
-        return;
-      }
-
-      burnInput.classList.add("burning");
-      burnBtn.disabled = true;
-      saveBtn.disabled = true;
-      copyBtn.disabled = true;
-      clearBtn.disabled = true;
-      downloadBtn.disabled = true;
-
-      ashesWrap.classList.add("show");
-      ashesText.textContent = "Burning it up...";
-      spawnEmbers(28);
-      setStatus("Letting it go...");
-
-      setTimeout(() => {
-        burnInput.value = "";
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STORAGE_TIME_KEY);
-        saveState.textContent = "not yet";
-        updateCounts();
-        ashesText.textContent = "Ashes. Move on.";
-        setStatus("Burned. Gone from this device.");
-      }, 900);
-
-      setTimeout(() => {
-        burnInput.classList.remove("burning");
-        burnBtn.disabled = false;
-        saveBtn.disabled = false;
-        copyBtn.disabled = false;
-        clearBtn.disabled = false;
-        downloadBtn.disabled = false;
-      }, 1100);
-
-      setTimeout(() => {
-        ashesWrap.classList.remove("show");
-      }, 2600);
-    }
-
-    let autosaveTimer = null;
-    burnInput.addEventListener("input", () => {
-      updateCounts();
-      setStatus("Typing...");
-      clearTimeout(autosaveTimer);
-      autosaveTimer = setTimeout(() => {
-        savePad(false);
-        setStatus("Autosaved.");
-      }, 450);
+    requestAnimationFrame(() => {
+      burnAnimStage.classList.add("run");
+      setTimeout(() => { burnDoneMsg.style.opacity = "1"; }, 850);
     });
 
-    saveBtn.addEventListener("click", () => savePad(true));
-    burnBtn.addEventListener("click", burnPad);
-    copyBtn.addEventListener("click", copyText);
-    clearBtn.addEventListener("click", () => clearPad(true));
-    downloadBtn.addEventListener("click", downloadText);
+    burnDoneSheet.scrollIntoView({behavior:"smooth", block:"start"});
+    setTimeout(() => burnDoneCloseBtn.focus({preventScroll:true}), 180);
+  }
 
-    loadPad();
-  </script>
+  function closeBurnDone(){
+    burnDoneSheet.style.display = "none";
+  }
+
+  function openPrayer(){
+    prayerSheet.style.display = "block";
+    prayerSheet.scrollIntoView({behavior:"smooth", block:"start"});
+    setTimeout(() => prayerDone.focus({preventScroll:true}), 120);
+  }
+
+  function closePrayer(){
+    prayerSheet.style.display = "none";
+  }
+
+  prayerDone.onclick = closePrayer;
+
+  burnReleaseBtn.onclick = () => {
+    burstStars(burnReleaseBtn);
+
+    if (burnNotReady.checked){
+      return;
+    }
+
+    openBurnDone();
+  };
+
+  burnDoneCloseBtn.onclick = () => {
+    clearBurnAll();
+    closeBurnDone();
+  };
+
+  showBurnStep(1);
+</script>
+
 </body>
 </html>
