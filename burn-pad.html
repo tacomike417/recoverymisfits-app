@@ -1,85 +1,521 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Burn Pad — Recovery Misfits</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Burn Pad — Recovery Misfits</title>
 
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#000000" />
-<link rel="icon" href="./icon-192.png">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="./icon-192.png">
 
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
-<link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
 
-<style>
-body{
-  font-family:Roboto,Arial,sans-serif;
-  margin:0;
-  background:#fff;
-  color:#111;
-  padding-bottom:80px;
-}
+  <style>
+    :root{
+      --bg:#f7f3ea;
+      --card:#ffffff;
+      --ink:#111111;
+      --muted:#6b665f;
+      --line:#ddd4c8;
+      --accent:#111111;
+      --danger:#8a1c1c;
+      --gold:#d4af37;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --radius:18px;
+    }
 
-.topbar{
-  background:#111;
-  color:#fff;
-  padding:16px;
-  text-align:center;
-  font-weight:1000;
-}
+    *{box-sizing:border-box}
 
-.wrap{
-  max-width:700px;
-  margin:0 auto;
-  padding:16px;
-}
+    html,body{
+      margin:0;
+      padding:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:Roboto,Arial,sans-serif;
+    }
 
-textarea{
-  width:100%;
-  height:180px;
-  padding:12px;
-  font-size:14px;
-  border-radius:12px;
-  border:1px solid #ccc;
-  resize:none;
-}
+    body{
+      min-height:100vh;
+      padding-bottom:110px;
+    }
 
-.btn{
-  margin-top:12px;
-  padding:12px;
-  border-radius:999px;
-  border:none;
-  font-weight:900;
-  width:100%;
-  cursor:pointer;
-}
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:#111;
+      color:#fff;
+      padding:16px 18px;
+      text-align:center;
+      font-weight:1000;
+      letter-spacing:.2px;
+      box-shadow:0 2px 10px rgba(0,0,0,.15);
+    }
 
-.btn.primary{
-  background:#111;
-  color:#fff;
-}
-</style>
+    .page{
+      max-width:860px;
+      margin:0 auto;
+      padding:16px 14px 28px;
+    }
+
+    .hero{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:18px;
+      box-shadow:var(--shadow);
+      margin-bottom:14px;
+    }
+
+    .title{
+      margin:0 0 6px;
+      font-size:24px;
+      font-weight:1000;
+      line-height:1.05;
+    }
+
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-weight:800;
+      line-height:1.35;
+      font-size:14px;
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+      margin-bottom:14px;
+    }
+
+    .label{
+      display:block;
+      font-size:13px;
+      font-weight:1000;
+      margin:0 0 8px;
+    }
+
+    .textarea{
+      width:100%;
+      min-height:280px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:#fff;
+      color:var(--ink);
+      font:inherit;
+      font-size:16px;
+      line-height:1.45;
+      padding:14px;
+      resize:vertical;
+      outline:none;
+      transition:border-color .15s ease, box-shadow .15s ease, opacity .25s ease, transform .25s ease;
+    }
+
+    .textarea:focus{
+      border-color:#999;
+      box-shadow:0 0 0 3px rgba(0,0,0,.06);
+    }
+
+    .textarea.burning{
+      opacity:.2;
+      transform:scale(.985);
+      filter:blur(1px);
+    }
+
+    .metaRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .btn{
+      appearance:none;
+      border:none;
+      border-radius:999px;
+      min-height:46px;
+      padding:12px 16px;
+      font:inherit;
+      font-size:15px;
+      font-weight:1000;
+      cursor:pointer;
+      transition:transform .06s ease, opacity .15s ease, background .15s ease, color .15s ease;
+    }
+
+    .btn:active{
+      transform:translateY(1px);
+    }
+
+    .btn.primary{
+      background:#111;
+      color:#fff;
+    }
+
+    .btn.secondary{
+      background:#fff;
+      color:#111;
+      border:1px solid rgba(0,0,0,.14);
+    }
+
+    .btn.danger{
+      background:var(--danger);
+      color:#fff;
+    }
+
+    .btn.ghost{
+      background:#efe8dd;
+      color:#111;
+    }
+
+    .smallActions{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .status{
+      margin-top:12px;
+      min-height:20px;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:900;
+    }
+
+    .notice{
+      background:#fff7db;
+      border:1px solid #ead28a;
+      color:#5e4a12;
+      border-radius:14px;
+      padding:12px 14px;
+      font-size:13px;
+      font-weight:900;
+      line-height:1.35;
+      margin-top:10px;
+    }
+
+    .ashesWrap{
+      position:relative;
+      overflow:hidden;
+      min-height:44px;
+      margin-top:10px;
+      border-radius:14px;
+      background:linear-gradient(180deg,#1b1b1b 0%, #2a2a2a 100%);
+      border:1px solid rgba(0,0,0,.18);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:10px;
+    }
+
+    .ashesWrap.show{
+      display:flex;
+    }
+
+    .ashesText{
+      color:#f3ede2;
+      font-size:13px;
+      font-weight:1000;
+      letter-spacing:.2px;
+      position:relative;
+      z-index:2;
+    }
+
+    .ember{
+      position:absolute;
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:radial-gradient(circle, #ffd36b 0%, #ff8a00 55%, rgba(255,90,0,.05) 100%);
+      opacity:.9;
+      animation:floatUp linear forwards;
+    }
+
+    @keyframes floatUp{
+      0%{
+        transform:translateY(14px) scale(.7);
+        opacity:0;
+      }
+      20%{
+        opacity:1;
+      }
+      100%{
+        transform:translateY(-80px) scale(1.2);
+        opacity:0;
+      }
+    }
+
+    @media (max-width:640px){
+      .actions{
+        grid-template-columns:1fr;
+      }
+      .smallActions{
+        grid-template-columns:1fr;
+      }
+      .title{
+        font-size:22px;
+      }
+      .textarea{
+        min-height:240px;
+      }
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="topbar">🔥 Burn Pad</div>
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
 
-<div class="wrap">
+  <header class="topbar">🔥 Burn Pad</header>
 
-  <!-- 🔥 YOUR ORIGINAL BURN PAD HTML GOES HERE -->
-  <!-- paste from tools.html -->
+  <main class="page">
+    <section class="hero">
+      <h1 class="title">Get it out. Look at it. Let it go.</h1>
+      <p class="sub">Write the resentment, fear, shame, obsession, fantasy, argument, or garbage thought. Save it for later if you need to. Burn it when you are done with it.</p>
+    </section>
 
-</div>
+    <section class="card">
+      <label class="label" for="burnInput">What needs to come out right now?</label>
+      <textarea
+        id="burnInput"
+        class="textarea"
+        placeholder="Type it here. Be honest. Nobody else sees this unless you copy it out yourself."
+        spellcheck="true"
+      ></textarea>
 
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js");
-}
-</script>
+      <div class="metaRow">
+        <div><span id="charCount">0</span> characters</div>
+        <div>Saved: <span id="saveState">not yet</span></div>
+      </div>
 
+      <div class="actions">
+        <button class="btn primary" id="saveBtn">Save</button>
+        <button class="btn danger" id="burnBtn">Burn It</button>
+      </div>
+
+      <div class="smallActions">
+        <button class="btn secondary" id="copyBtn">Copy</button>
+        <button class="btn ghost" id="clearBtn">Clear</button>
+        <button class="btn secondary" id="downloadBtn">Download</button>
+      </div>
+
+      <div class="status" id="statusMsg"></div>
+
+      <div class="notice">
+        Saved only on this device using local storage. Burning clears the text from this page and local storage.
+      </div>
+
+      <div class="ashesWrap" id="ashesWrap" aria-hidden="true">
+        <div class="ashesText" id="ashesText">Ashes.</div>
+      </div>
+    </section>
+  </main>
+
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js");
+    }
+
+    const STORAGE_KEY = "rm_burn_pad_text_v1";
+    const STORAGE_TIME_KEY = "rm_burn_pad_saved_at_v1";
+
+    const burnInput = document.getElementById("burnInput");
+    const saveBtn = document.getElementById("saveBtn");
+    const burnBtn = document.getElementById("burnBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const charCount = document.getElementById("charCount");
+    const saveState = document.getElementById("saveState");
+    const statusMsg = document.getElementById("statusMsg");
+    const ashesWrap = document.getElementById("ashesWrap");
+    const ashesText = document.getElementById("ashesText");
+
+    function formatStamp(ts){
+      if (!ts) return "not yet";
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return "not yet";
+      return d.toLocaleString([], {
+        year:"numeric",
+        month:"short",
+        day:"numeric",
+        hour:"numeric",
+        minute:"2-digit"
+      });
+    }
+
+    function setStatus(msg){
+      statusMsg.textContent = msg;
+    }
+
+    function updateCounts(){
+      charCount.textContent = burnInput.value.length;
+    }
+
+    function savePad(showMessage = true){
+      localStorage.setItem(STORAGE_KEY, burnInput.value);
+      const now = new Date().toISOString();
+      localStorage.setItem(STORAGE_TIME_KEY, now);
+      saveState.textContent = formatStamp(now);
+      if (showMessage) setStatus("Saved on this device.");
+    }
+
+    function loadPad(){
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const savedAt = localStorage.getItem(STORAGE_TIME_KEY);
+
+      if (saved !== null) {
+        burnInput.value = saved;
+      }
+
+      saveState.textContent = formatStamp(savedAt);
+      updateCounts();
+    }
+
+    function clearPad(showMessage = true){
+      burnInput.value = "";
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_TIME_KEY);
+      saveState.textContent = "not yet";
+      updateCounts();
+      if (showMessage) setStatus("Cleared.");
+    }
+
+    async function copyText(){
+      const text = burnInput.value.trim();
+      if (!text) {
+        setStatus("Nothing to copy.");
+        return;
+      }
+
+      try{
+        await navigator.clipboard.writeText(text);
+        setStatus("Copied to clipboard.");
+      }catch(err){
+        burnInput.select();
+        document.execCommand("copy");
+        setStatus("Copied to clipboard.");
+      }
+    }
+
+    function downloadText(){
+      const text = burnInput.value.trim();
+      if (!text) {
+        setStatus("Nothing to download.");
+        return;
+      }
+
+      const blob = new Blob([text], { type:"text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,"-");
+      a.href = url;
+      a.download = `burn-pad-${stamp}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatus("Downloaded.");
+    }
+
+    function spawnEmbers(count = 22){
+      const rect = ashesWrap.getBoundingClientRect();
+
+      for(let i = 0; i < count; i++){
+        const ember = document.createElement("span");
+        ember.className = "ember";
+        ember.style.left = Math.random() * rect.width + "px";
+        ember.style.bottom = (Math.random() * 12) + "px";
+        ember.style.animationDuration = (1.2 + Math.random() * 1.5) + "s";
+        ember.style.animationDelay = (Math.random() * .35) + "s";
+        ashesWrap.appendChild(ember);
+
+        setTimeout(() => ember.remove(), 2300);
+      }
+    }
+
+    function burnPad(){
+      const text = burnInput.value.trim();
+
+      if (!text) {
+        setStatus("Nothing to burn.");
+        return;
+      }
+
+      burnInput.classList.add("burning");
+      burnBtn.disabled = true;
+      saveBtn.disabled = true;
+      copyBtn.disabled = true;
+      clearBtn.disabled = true;
+      downloadBtn.disabled = true;
+
+      ashesWrap.classList.add("show");
+      ashesText.textContent = "Burning it up...";
+      spawnEmbers(28);
+      setStatus("Letting it go...");
+
+      setTimeout(() => {
+        burnInput.value = "";
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_TIME_KEY);
+        saveState.textContent = "not yet";
+        updateCounts();
+        ashesText.textContent = "Ashes. Move on.";
+        setStatus("Burned. Gone from this device.");
+      }, 900);
+
+      setTimeout(() => {
+        burnInput.classList.remove("burning");
+        burnBtn.disabled = false;
+        saveBtn.disabled = false;
+        copyBtn.disabled = false;
+        clearBtn.disabled = false;
+        downloadBtn.disabled = false;
+      }, 1100);
+
+      setTimeout(() => {
+        ashesWrap.classList.remove("show");
+      }, 2600);
+    }
+
+    let autosaveTimer = null;
+    burnInput.addEventListener("input", () => {
+      updateCounts();
+      setStatus("Typing...");
+      clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(() => {
+        savePad(false);
+        setStatus("Autosaved.");
+      }, 450);
+    });
+
+    saveBtn.addEventListener("click", () => savePad(true));
+    burnBtn.addEventListener("click", burnPad);
+    copyBtn.addEventListener("click", copyText);
+    clearBtn.addEventListener("click", () => clearPad(true));
+    downloadBtn.addEventListener("click", downloadText);
+
+    loadPad();
+  </script>
 </body>
 </html>
