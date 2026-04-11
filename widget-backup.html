@@ -1,0 +1,381 @@
+<!-- Blogger Widget: Daily Post by Label (MM-DD) + Styled Card + Boomer-Proof Text Size + Pass It On -->
+<div id="dailyPostWidget">
+  <div id="dp-card" class="dp-card">
+    <div class="dp-loading" id="dp-loading">Loading today’s post…</div>
+
+    <div class="dp-header" id="dp-header" style="display:none;">
+
+      <!-- Header block -->
+      <div class="dp-brandblock">
+        <div class="dp-brandtitle">📖 Another Day Sober</div>
+        <div class="dp-subtitle">one day at a time</div>
+        <div class="dp-divider"></div>
+      </div>
+
+      <!-- Text size "tab" (top-right on desktop, moves below on mobile) -->
+      <div class="dp-texttab" id="dp-textsize" style="display:none;">
+        <button class="dp-tabbtn" id="dp-text-smaller" type="button" aria-label="Make text smaller">A−</button>
+        <button class="dp-tabbtn" id="dp-text-bigger" type="button" aria-label="Make text bigger">A+</button>
+        <button class="dp-tabbtn dp-tabbtn-secondary" id="dp-text-reset" type="button" aria-label="Reset text size">↺</button>
+      </div>
+
+      <!-- Dynamic post title (today's entry title) -->
+      <div class="dp-title" id="dp-title"></div>
+    </div>
+
+    <!-- Reading capsule -->
+    <div class="dp-readingwrap">
+      <div class="dp-content" id="dp-content"></div>
+    </div>
+
+    <!-- PASS IT ON + SHARE -->
+    <div class="dp-pass" id="dp-pass" style="display:none;">
+      <div class="dp-pass-label">PASS IT ON</div>
+      <div class="dp-actions" id="dp-actions">
+        <a class="dp-btn" id="dp-fb" href="#" target="_blank" rel="noopener">Facebook</a>
+        <a class="dp-btn" id="dp-sms" href="#" rel="noopener">Text</a>
+        <button class="dp-btn dp-btn-secondary" id="dp-copy" type="button">Copy link</button>
+        <span class="dp-copied" id="dp-copied" style="display:none;">Copied.</span>
+      </div>
+    </div>
+
+    <div class="dp-error" id="dp-error" style="display:none;"></div>
+  </div>
+</div>
+
+<style>
+  /* Fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,700;1,700&display=swap');
+
+  :root{
+    --dp-text:#1f1f1f;
+    --dp-muted:#555;
+    --dp-border:#e9e9e9;
+    --dp-bg:#ffffff;
+    --dp-reading-size:16px;
+  }
+
+  .dp-card{
+    position:relative;
+    font-family:Roboto, Arial, sans-serif;
+    color:var(--dp-text);
+    background:var(--dp-bg);
+    border:1px solid var(--dp-border);
+    border-radius:18px;
+    padding:18px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.06);
+  }
+
+  .dp-loading{ font-size:14px; color:var(--dp-muted); }
+
+  /* Brand block: reserve space for the absolute tab on desktop */
+  .dp-brandblock{ padding-right:78px; }
+
+  .dp-brandtitle{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:700;
+    font-style:italic;          /* ✅ italic */
+    font-size:34px;
+    line-height:1.05;
+    letter-spacing:0.02em;
+    color:#222;
+    margin:0;
+  }
+
+  /* Subtitle: modern + humble */
+  .dp-subtitle{
+    font-family:Roboto, Arial, sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.18em;
+    text-transform:lowercase;
+    color:#666;
+    margin:6px 0 8px;
+  }
+
+  .dp-divider{
+    height:1px;
+    background:var(--dp-border);
+    width:100%;
+    margin:0 0 12px;
+  }
+
+  /* Text size tab (top-right) */
+  .dp-texttab{
+    position:absolute;
+    top:14px;
+    right:14px;
+    display:flex;
+    gap:6px;
+    padding:8px;
+    border:1px solid var(--dp-border);
+    border-radius:14px;
+    background:#fafafa;
+  }
+
+  .dp-tabbtn{
+    border:1px solid var(--dp-border);
+    background:#fff;
+    border-radius:10px;
+    padding:8px 10px;
+    font-weight:900;
+    font-size:13px;
+    line-height:1;
+    cursor:pointer;
+    color:var(--dp-text);
+  }
+
+  .dp-tabbtn:hover{ box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+
+  .dp-tabbtn-secondary{ background:#f1f1f1; }
+
+  /* Today's entry title */
+  .dp-title{
+    font-family:Roboto, Arial, sans-serif;
+    font-weight:800;
+    font-size:20px;
+    line-height:1.25;
+    margin:4px 0 12px;
+    color:var(--dp-text);
+  }
+
+  /* Reading capsule */
+  .dp-readingwrap{
+    border:1px solid var(--dp-border);
+    border-radius:16px;
+    background:#fafafa;
+    padding:14px;
+  }
+
+  .dp-content{
+    font-size:var(--dp-reading-size);
+    line-height:1.65;
+    color:var(--dp-text);
+    word-wrap:break-word;
+  }
+
+  .dp-content p{ margin:0 0 12px; }
+  .dp-content ul, .dp-content ol{ margin:0 0 12px 22px; }
+  .dp-content li{ margin:6px 0; }
+  .dp-content blockquote{
+    margin:12px 0;
+    padding:10px 14px;
+    border-left:4px solid var(--dp-border);
+    background:#fff;
+    border-radius:12px;
+  }
+  .dp-content img{ max-width:100%; height:auto; border-radius:12px; }
+  .dp-content a{ color:var(--dp-text); text-decoration:underline; }
+
+  /* PASS IT ON */
+  .dp-pass{
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px solid var(--dp-border);
+  }
+
+  .dp-pass-label{
+    font-size:12px;
+    letter-spacing:0.08em;
+    font-weight:900;
+    color:var(--dp-muted);
+    margin-bottom:10px;
+  }
+
+  .dp-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+
+  .dp-btn{
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid var(--dp-border);
+    background:#fff;
+    color:var(--dp-text);
+    text-decoration:none;
+    font-size:14px;
+    font-weight:800;
+    cursor:pointer;
+  }
+
+  .dp-btn:hover{ box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+
+  .dp-btn-secondary{ background:#f7f7f7; }
+
+  .dp-copied{ font-size:13px; color:var(--dp-muted); font-weight:800; }
+
+  .dp-error{
+    margin-top:10px;
+    color:#7a1b1b;
+    font-size:14px;
+    font-weight:800;
+  }
+
+  /* ✅ Mobile: remove absolute tab so it never overlaps the title */
+  @media (max-width:520px){
+    .dp-brandblock{ padding-right:0; }
+
+    .dp-texttab{
+      position:static;
+      margin:8px 0 6px;
+      justify-content:flex-end;
+    }
+
+    .dp-brandtitle{ font-size:30px; }
+  }
+</style>
+
+<script>
+(function() {
+  var FORCE_LABEL = ""; // e.g. "03-03" for testing
+
+  var root = document.getElementById("dailyPostWidget");
+  if (!root) return;
+  function $(sel){ return root.querySelector(sel); }
+
+  var blogOrigin = window.location.protocol + "//" + window.location.host;
+  var label = FORCE_LABEL || getTodayLabel();
+  var callbackName = "dp_cb_" + Math.floor(Math.random() * 1e9);
+
+  var loadingEl   = $("#dp-loading");
+  var headerEl    = $("#dp-header");
+  var titleEl     = $("#dp-title");
+  var contentEl   = $("#dp-content");
+  var passEl      = $("#dp-pass");
+  var actionsEl   = $("#dp-actions");
+  var errorEl     = $("#dp-error");
+
+  var textSizeWrap = $("#dp-textsize");
+  var btnSmaller   = $("#dp-text-smaller");
+  var btnBigger    = $("#dp-text-bigger");
+  var btnReset     = $("#dp-text-reset");
+
+  var feedUrl = blogOrigin + "/feeds/posts/default/-/" + encodeURIComponent(label) +
+                "?alt=json-in-script&max-results=1&callback=" + callbackName;
+
+  // --- TEXT SIZE ---
+  var STORAGE_KEY = "dp_reading_size_px";
+  var MIN = 14, MAX = 24, STEP = 2, DEFAULT = 16;
+
+  function setReadingSize(px) {
+    px = Math.max(MIN, Math.min(MAX, px));
+    document.documentElement.style.setProperty("--dp-reading-size", px + "px");
+    try { localStorage.setItem(STORAGE_KEY, String(px)); } catch(e) {}
+  }
+
+  function getSavedSize() {
+    try {
+      var v = localStorage.getItem(STORAGE_KEY);
+      var n = parseInt(v, 10);
+      if (!isNaN(n)) return n;
+    } catch(e) {}
+    return DEFAULT;
+  }
+
+  setReadingSize(getSavedSize());
+
+  if (btnSmaller) btnSmaller.onclick = function() { setReadingSize(getSavedSize() - STEP); };
+  if (btnBigger)  btnBigger.onclick  = function() { setReadingSize(getSavedSize() + STEP); };
+  if (btnReset)   btnReset.onclick   = function() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+    setReadingSize(DEFAULT);
+  };
+
+  window[callbackName] = function(json) {
+    try {
+      var entry = json && json.feed && json.feed.entry && json.feed.entry[0];
+      if (!entry) { showError("No post found with label: " + label); return; }
+
+      var postTitle = entry.title && entry.title.$t ? entry.title.$t : "(Untitled)";
+      var postHtml  = entry.content && entry.content.$t ? entry.content.$t : "";
+      var postUrl   = getAlternateLink(entry.link) || window.location.href;
+
+      if (titleEl) titleEl.textContent = postTitle;
+      if (contentEl) contentEl.innerHTML = postHtml;
+
+      // Share links
+      var fb = $("#dp-fb");
+      var sms = $("#dp-sms");
+      var copyBtn = $("#dp-copy");
+      var copiedEl = $("#dp-copied");
+
+      if (fb) fb.href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(postUrl);
+      if (sms) sms.href = makeSmsHref("Check this out: " + postTitle + " " + postUrl);
+
+      if (copyBtn) copyBtn.onclick = function() {
+        copyText(postUrl, function(ok){
+          if (!copiedEl) return;
+          copiedEl.style.display = "inline";
+          copiedEl.textContent = ok ? "Copied." : "Copy failed—tap and hold to copy.";
+          setTimeout(function(){ copiedEl.style.display = "none"; }, 1400);
+        });
+      };
+
+      if (loadingEl) loadingEl.style.display = "none";
+      if (headerEl) headerEl.style.display  = "block";
+      if (textSizeWrap) textSizeWrap.style.display = "flex";
+      if (passEl) passEl.style.display = "block";
+      if (actionsEl) actionsEl.style.display = "flex";
+    } catch(e) {
+      showError("Error rendering post.");
+    } finally {
+      try { delete window[callbackName]; } catch(e) {}
+    }
+  };
+
+  var s = document.createElement("script");
+  s.src = feedUrl;
+  s.onerror = function() { showError("Feed failed to load. Check label format or feed access."); };
+  document.body.appendChild(s);
+
+  function getTodayLabel() {
+    var d = new Date();
+    return String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+
+  function getAlternateLink(links) {
+    links = links || [];
+    for (var i=0;i<links.length;i++) {
+      if (links[i].rel === "alternate") return links[i].href;
+    }
+    return "";
+  }
+
+  function showError(msg) {
+    if (loadingEl) loadingEl.style.display = "none";
+    if (errorEl) { errorEl.style.display = "block"; errorEl.textContent = msg; }
+  }
+
+  function makeSmsHref(bodyText) {
+    var ua = navigator.userAgent || "";
+    var isIOS = /iPhone|iPad|iPod/i.test(ua);
+    var sep = isIOS ? "&" : "?";
+    return "sms:" + sep + "body=" + encodeURIComponent(bodyText);
+  }
+
+  function copyText(text, cb) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){ cb(true); }).catch(function(){ fallback(); });
+    } else { fallback(); }
+
+    function fallback() {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        cb(!!ok);
+      } catch(e) { cb(false); }
+    }
+  }
+})();
+</script>
