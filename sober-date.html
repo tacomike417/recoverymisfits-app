@@ -238,7 +238,7 @@
       display:flex;
       flex-wrap:wrap;
       gap:10px;
-      margin-top:4px;
+      margin-top:14px;
     }
 
     button{
@@ -257,6 +257,12 @@
 
     .btnSecondary{
       background:#222;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+
+    .btnGhost{
+      background:#111;
       color:var(--text);
       border:1px solid var(--line);
     }
@@ -297,6 +303,16 @@
       .subStats{
         grid-template-columns:repeat(2,1fr);
       }
+
+      .btnRow button{
+        flex:1 1 calc(50% - 10px);
+      }
+    }
+
+    @media (max-width:520px){
+      .btnRow button{
+        flex:1 1 100%;
+      }
     }
   </style>
 </head>
@@ -309,10 +325,7 @@
     <section class="hero">
       <div class="eyebrow">Recovery Misfits</div>
       <h1>Sobriety Counts</h1>
-      <p>
-        This is not about ego. It is about remembering what God has done,
-        what you have survived, and how many days you did not have to go back out.
-      </p>
+      <p>One day at a time. Still here.</p>
     </section>
 
     <div class="stack">
@@ -340,6 +353,15 @@
             <div class="statLabel">Minutes</div>
           </div>
         </div>
+
+        <div class="btnRow">
+          <button class="btnGhost" id="shareTextBtn" type="button">Share text</button>
+          <button class="btnGhost" id="shareImageBtn" type="button">Share image</button>
+        </div>
+
+        <div class="tiny">
+          Share text copies or opens your phone’s share sheet. Share image makes a bold Recovery Misfits sobriety card.
+        </div>
       </section>
 
       <section class="card">
@@ -363,12 +385,11 @@
 
         <div class="btnRow">
           <button class="btnPrimary" id="saveBtn" type="button">Save sobriety date</button>
-          <button class="btnSecondary" id="shareBtn" type="button">Share sobriety</button>
-          <button class="btnDanger" id="resetBtn" type="button">Reset</button>
+          <button class="btnSecondary" id="resetBtn" type="button">Reset</button>
         </div>
 
         <div class="tiny">
-          Your sobriety date matches the sober bar in the app. This stays on your device unless you choose to share it.
+          Your sobriety date matches the sober bar already in the app. The date uses the same local storage key your nav bar already uses: <strong>rm_sober_date</strong>. :contentReference[oaicite:1]{index=1}
         </div>
       </section>
 
@@ -386,7 +407,7 @@
 
   <script>
     (function(){
-      // MATCH nav.js
+      // Match the existing app storage from nav.js
       const SOBER_KEY = "rm_sober_date";
       const REASON_KEY = "rm_sober_reason";
 
@@ -404,8 +425,9 @@
       const reasonPreview = document.getElementById("reasonPreview");
 
       const saveBtn = document.getElementById("saveBtn");
-      const shareBtn = document.getElementById("shareBtn");
       const resetBtn = document.getElementById("resetBtn");
+      const shareTextBtn = document.getElementById("shareTextBtn");
+      const shareImageBtn = document.getElementById("shareImageBtn");
 
       const milestoneList = [1, 3, 7, 14, 30, 60, 90, 120, 180, 270, 365, 547, 730, 1095, 1825, 3650];
 
@@ -458,16 +480,6 @@
         return Math.max(0, diff + 1); // inclusive, same as nav.js
       }
 
-      function renderMilestones(days){
-        milestones.innerHTML = "";
-        milestoneList.forEach(function(m){
-          const chip = document.createElement("div");
-          chip.className = "chip" + (days >= m ? " hit" : "");
-          chip.textContent = milestoneLabel(m);
-          milestones.appendChild(chip);
-        });
-      }
-
       function milestoneLabel(days){
         if (days === 1) return "1 day";
         if (days === 30) return "30 days";
@@ -482,6 +494,16 @@
         if (days === 1825) return "5 years";
         if (days === 3650) return "10 years";
         return days + " days";
+      }
+
+      function renderMilestones(days){
+        milestones.innerHTML = "";
+        milestoneList.forEach(function(m){
+          const chip = document.createElement("div");
+          chip.className = "chip" + (days >= m ? " hit" : "");
+          chip.textContent = milestoneLabel(m);
+          milestones.appendChild(chip);
+        });
       }
 
       function render(){
@@ -526,6 +548,174 @@
         renderMilestones(totalDays);
       }
 
+      function buildShareText() {
+        const days = dayCount.textContent || "0";
+        const ymd = getSoberDateYMD();
+        if (ymd) {
+          return "I have " + days + " days sober today. Sobriety date: " + ymdToDisplayMDY(ymd) + ". Recovery Misfits.";
+        }
+        return "I am sober today. Recovery Misfits.";
+      }
+
+      async function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.setAttribute("readonly", "");
+          ta.style.position = "fixed";
+          ta.style.left = "-9999px";
+          document.body.appendChild(ta);
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+          const ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          return !!ok;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function loadImage(src) {
+        return new Promise(function(resolve, reject) {
+          const img = new Image();
+          img.onload = function() { resolve(img); };
+          img.onerror = function() { reject(new Error("Image failed to load")); };
+          img.src = src;
+        });
+      }
+
+      function canvasToBlob(canvas) {
+        return new Promise(function(resolve, reject) {
+          canvas.toBlob(function(blob) {
+            if (blob) resolve(blob);
+            else reject(new Error("Canvas blob failed"));
+          }, "image/png");
+        });
+      }
+
+      async function makeShareImage() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1080;
+        canvas.height = 1350;
+
+        const ctx = canvas.getContext("2d");
+        const days = dayCount.textContent || "0";
+        const since = sinceLine.textContent || "";
+        const reason = (localStorage.getItem(REASON_KEY) || "").trim();
+
+        // Background
+        ctx.fillStyle = "#0a0a0a";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Subtle texture stripes
+        ctx.globalAlpha = 0.04;
+        for (let i = -1350; i < 1350; i += 34) {
+          ctx.beginPath();
+          ctx.moveTo(i, 0);
+          ctx.lineTo(i + 900, 1350);
+          ctx.lineWidth = 12;
+          ctx.strokeStyle = "#ffffff";
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+
+        // Border panel
+        ctx.strokeStyle = "#2d2d2d";
+        ctx.lineWidth = 3;
+        roundRect(ctx, 48, 48, 984, 1254, 34);
+        ctx.stroke();
+
+        // Logo / icon
+        try {
+          const icon = await loadImage("./icon-192.png");
+          ctx.drawImage(icon, 444, 90, 192, 192);
+        } catch (e) {
+          // If icon fails, just continue with text branding
+        }
+
+        // Branding
+        ctx.fillStyle = "#b9b2a4";
+        ctx.font = "700 34px Roboto, Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("RECOVERY MISFITS", 540, 325);
+
+        ctx.fillStyle = "#f5f1e8";
+        ctx.font = "700 54px Roboto, Arial, sans-serif";
+        ctx.fillText("ANOTHER DAY SOBER", 540, 390);
+
+        // Big days number
+        ctx.fillStyle = "#f5f1e8";
+        ctx.font = "400 240px Anton, Impact, sans-serif";
+        ctx.fillText(days, 540, 690);
+
+        ctx.fillStyle = "#e8dcc3";
+        ctx.font = "900 64px Roboto, Arial, sans-serif";
+        ctx.fillText("DAYS SOBER", 540, 780);
+
+        // Since line
+        ctx.fillStyle = "#b9b2a4";
+        ctx.font = "700 36px Roboto, Arial, sans-serif";
+        ctx.fillText(since || "One day at a time.", 540, 860);
+
+        // Optional reason line block
+        if (reason) {
+          const trimmed = reason.length > 140 ? reason.slice(0, 137) + "..." : reason;
+          ctx.fillStyle = "#f5f1e8";
+          ctx.font = "500 34px Roboto, Arial, sans-serif";
+          wrapText(ctx, trimmed, 140, 990, 800, 46);
+        }
+
+        // Footer
+        ctx.fillStyle = "#b9b2a4";
+        ctx.font = "700 30px Roboto, Arial, sans-serif";
+        ctx.fillText("recoverymisfits", 540, 1220);
+
+        return canvas;
+      }
+
+      function roundRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+      }
+
+      function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        const words = String(text || "").split(" ");
+        let line = "";
+        let lineY = y;
+
+        for (let n = 0; n < words.length; n++) {
+          const testLine = line + words[n] + " ";
+          const metrics = ctx.measureText(testLine);
+          const testWidth = metrics.width;
+          if (testWidth > maxWidth && n > 0) {
+            ctx.fillText(line.trim(), x + maxWidth / 2, lineY);
+            line = words[n] + " ";
+            lineY += lineHeight;
+            if (lineY > 1110) break;
+          } else {
+            line = testLine;
+          }
+        }
+
+        if (lineY <= 1110) {
+          ctx.fillText(line.trim(), x + maxWidth / 2, lineY);
+        }
+      }
+
       saveBtn.addEventListener("click", function(){
         if (!sobrietyDate.value) {
           alert("Put in a sobriety date first.");
@@ -547,12 +737,16 @@
         alert("Sobriety date saved.");
       });
 
-      shareBtn.addEventListener("click", async function(){
-        const days = dayCount.textContent || "0";
-        const ymd = getSoberDateYMD();
-        const msg = ymd
-          ? "I have " + days + " days sober today. Sobriety date: " + ymdToDisplayMDY(ymd) + ". Recovery Misfits."
-          : "I am sober today. Recovery Misfits.";
+      resetBtn.addEventListener("click", function(){
+        const ok = confirm("Reset your sobriety date? This will clear it on this device.");
+        if (!ok) return;
+        localStorage.removeItem(SOBER_KEY);
+        localStorage.removeItem(REASON_KEY);
+        render();
+      });
+
+      shareTextBtn.addEventListener("click", async function(){
+        const msg = buildShareText();
 
         if (navigator.share) {
           try {
@@ -561,23 +755,44 @@
               text: msg
             });
             return;
-          } catch(e){}
+          } catch(e) {}
         }
 
-        try {
-          await navigator.clipboard.writeText(msg);
-          alert("Copied your sobriety message.");
-        } catch(e) {
-          alert(msg);
-        }
+        const ok = await copyText(msg);
+        alert(ok ? "Copied your sobriety message." : msg);
       });
 
-      resetBtn.addEventListener("click", function(){
-        const ok = confirm("Reset your sobriety date? This will clear it on this device.");
-        if (!ok) return;
-        localStorage.removeItem(SOBER_KEY);
-        localStorage.removeItem(REASON_KEY);
-        render();
+      shareImageBtn.addEventListener("click", async function(){
+        try {
+          const canvas = await makeShareImage();
+          const blob = await canvasToBlob(canvas);
+          const file = new File([blob], "recovery-misfits-sobriety.png", { type: "image/png" });
+
+          if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: "My sobriety",
+                text: buildShareText()
+              });
+              return;
+            } catch (e) {}
+          }
+
+          // fallback: download image
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "recovery-misfits-sobriety.png";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+          alert("Sobriety image downloaded.");
+        } catch (e) {
+          console.error(e);
+          alert("Could not create share image.");
+        }
       });
 
       render();
