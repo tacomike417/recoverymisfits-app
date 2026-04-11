@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Recovery Misfits — Sober Date</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="./icon-192.png">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;700;900&display=swap');
+
+    :root{
+      --bg:#0a0a0a;
+      --panel:#141414;
+      --panel2:#1c1c1c;
+      --text:#f5f1e8;
+      --muted:#b9b2a4;
+      --line:#2d2d2d;
+      --accent:#e8dcc3;
+      --danger:#b64c4c;
+      --success:#d8c79a;
+      --shadow:0 12px 30px rgba(0,0,0,.35);
+      --radius:22px;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family:Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top, #1a1a1a 0%, #0a0a0a 45%, #050505 100%);
+      color:var(--text);
+      padding-bottom:120px;
+    }
+
+    .page{
+      max-width:900px;
+      margin:0 auto;
+      padding:18px 16px 40px;
+    }
+
+    .hero{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:28px;
+      padding:20px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.05), transparent 35%),
+        repeating-linear-gradient(
+          -45deg,
+          transparent 0 12px,
+          rgba(255,255,255,.015) 12px 24px
+        );
+      pointer-events:none;
+    }
+
+    .eyebrow{
+      font-size:12px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:700;
+      margin-bottom:10px;
+      position:relative;
+      z-index:1;
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      font-family:Anton, Impact, sans-serif;
+      font-size:clamp(38px, 10vw, 82px);
+      line-height:.95;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+      position:relative;
+      z-index:1;
+    }
+
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      font-size:16px;
+      line-height:1.6;
+      max-width:700px;
+      position:relative;
+      z-index:1;
+    }
+
+    .stack{
+      display:grid;
+      gap:16px;
+      margin-top:18px;
+    }
+
+    .card{
+      background:linear-gradient(180deg, var(--panel), var(--panel2));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .cardTitle{
+      font-size:12px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:800;
+      margin:0 0 12px;
+    }
+
+    .bigCount{
+      font-family:Anton, Impact, sans-serif;
+      font-size:clamp(72px, 24vw, 180px);
+      line-height:.9;
+      letter-spacing:.02em;
+      margin:0;
+    }
+
+    .bigLabel{
+      font-size:16px;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--accent);
+      margin-top:6px;
+    }
+
+    .subStats{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      margin-top:18px;
+    }
+
+    .stat{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px 10px;
+      text-align:center;
+    }
+
+    .statNum{
+      font-size:28px;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .statLabel{
+      margin-top:6px;
+      font-size:11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .milestones{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:8px;
+    }
+
+    .chip{
+      border:1px solid var(--line);
+      background:#111;
+      color:var(--text);
+      border-radius:999px;
+      padding:10px 14px;
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .chip.hit{
+      background:var(--accent);
+      color:#111;
+      border-color:var(--accent);
+    }
+
+    .formGrid{
+      display:grid;
+      gap:12px;
+    }
+
+    label{
+      display:block;
+      font-size:13px;
+      font-weight:800;
+      color:var(--muted);
+      margin-bottom:6px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    input, textarea{
+      width:100%;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#0f0f0f;
+      color:var(--text);
+      padding:14px 14px;
+      font:inherit;
+      outline:none;
+    }
+
+    textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+
+    .btnRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:4px;
+    }
+
+    button{
+      border:none;
+      border-radius:16px;
+      padding:14px 16px;
+      font:inherit;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .btnPrimary{
+      background:var(--accent);
+      color:#111;
+    }
+
+    .btnSecondary{
+      background:#222;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+
+    .btnDanger{
+      background:#2a1515;
+      color:#ffd5d5;
+      border:1px solid #5a2a2a;
+    }
+
+    .tiny{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.6;
+      margin-top:10px;
+    }
+
+    .reasonBox{
+      white-space:pre-wrap;
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      min-height:72px;
+      line-height:1.6;
+      color:var(--text);
+    }
+
+    .footerNote{
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:18px;
+      letter-spacing:.04em;
+    }
+
+    @media (max-width:700px){
+      .subStats{
+        grid-template-columns:repeat(2,1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
+
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">Recovery Misfits</div>
+      <h1>Clean Time Counts</h1>
+      <p>
+        Not for showing off. Not for acting special. Just a hard number that says
+        you made it through some stuff and kept going.
+      </p>
+    </section>
+
+    <div class="stack">
+      <section class="card">
+        <div class="cardTitle">Your time</div>
+        <div class="bigCount" id="dayCount">0</div>
+        <div class="bigLabel">Days sober</div>
+
+        <div class="subStats">
+          <div class="stat">
+            <div class="statNum" id="yearCount">0</div>
+            <div class="statLabel">Years</div>
+          </div>
+          <div class="stat">
+            <div class="statNum" id="monthCount">0</div>
+            <div class="statLabel">Months</div>
+          </div>
+          <div class="stat">
+            <div class="statNum" id="hourCount">0</div>
+            <div class="statLabel">Hours</div>
+          </div>
+          <div class="stat">
+            <div class="statNum" id="minuteCount">0</div>
+            <div class="statLabel">Minutes</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="cardTitle">Milestones</div>
+        <div class="milestones" id="milestones"></div>
+      </section>
+
+      <section class="card">
+        <div class="cardTitle">Set your sober date</div>
+        <div class="formGrid">
+          <div>
+            <label for="sobrietyDate">Sobriety date</label>
+            <input id="sobrietyDate" type="date" />
+          </div>
+
+          <div>
+            <label for="sobrietyTime">Time started</label>
+            <input id="sobrietyTime" type="time" />
+          </div>
+
+          <div>
+            <label for="whyStaySober">Why I stay sober</label>
+            <textarea id="whyStaySober" placeholder="Put the real stuff here. Family. Peace. God. Freedom. Not going back. Whatever is true."></textarea>
+          </div>
+        </div>
+
+        <div class="btnRow">
+          <button class="btnPrimary" id="saveBtn" type="button">Save my date</button>
+          <button class="btnSecondary" id="shareBtn" type="button">Share my time</button>
+          <button class="btnDanger" id="resetBtn" type="button">Reset</button>
+        </div>
+
+        <div class="tiny">
+          This stays on your device unless you choose to share it.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="cardTitle">Why I stay sober</div>
+        <div class="reasonBox" id="reasonPreview">No reason saved yet.</div>
+      </section>
+    </div>
+
+    <div class="footerNote">One day at a time still counts.</div>
+  </main>
+
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = "rm_sobriety_profile_v1";
+
+      const sobrietyDate = document.getElementById("sobrietyDate");
+      const sobrietyTime = document.getElementById("sobrietyTime");
+      const whyStaySober = document.getElementById("whyStaySober");
+
+      const dayCount = document.getElementById("dayCount");
+      const yearCount = document.getElementById("yearCount");
+      const monthCount = document.getElementById("monthCount");
+      const hourCount = document.getElementById("hourCount");
+      const minuteCount = document.getElementById("minuteCount");
+
+      const milestones = document.getElementById("milestones");
+      const reasonPreview = document.getElementById("reasonPreview");
+
+      const saveBtn = document.getElementById("saveBtn");
+      const shareBtn = document.getElementById("shareBtn");
+      const resetBtn = document.getElementById("resetBtn");
+
+      const milestoneList = [1, 3, 7, 14, 30, 60, 90, 120, 180, 270, 365, 547, 730, 1095, 1825, 3650];
+
+      function loadProfile(){
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        } catch(e){
+          return {};
+        }
+      }
+
+      function saveProfile(data){
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
+
+      function getStartDate(){
+        const profile = loadProfile();
+        if (!profile.date) return null;
+        return new Date(profile.date + "T" + (profile.time || "00:00") + ":00");
+      }
+
+      function renderMilestones(days){
+        milestones.innerHTML = "";
+        milestoneList.forEach(function(m){
+          const chip = document.createElement("div");
+          chip.className = "chip" + (days >= m ? " hit" : "");
+          chip.textContent = milestoneLabel(m);
+          milestones.appendChild(chip);
+        });
+      }
+
+      function milestoneLabel(days){
+        if (days === 1) return "1 day";
+        if (days === 30) return "30 days";
+        if (days === 60) return "60 days";
+        if (days === 90) return "90 days";
+        if (days === 180) return "6 months";
+        if (days === 270) return "9 months";
+        if (days === 365) return "1 year";
+        if (days === 547) return "18 months";
+        if (days === 730) return "2 years";
+        if (days === 1095) return "3 years";
+        if (days === 1825) return "5 years";
+        if (days === 3650) return "10 years";
+        return days + " days";
+      }
+
+      function render(){
+        const profile = loadProfile();
+
+        sobrietyDate.value = profile.date || "";
+        sobrietyTime.value = profile.time || "";
+        whyStaySober.value = profile.reason || "";
+        reasonPreview.textContent = profile.reason || "No reason saved yet.";
+
+        const start = getStartDate();
+        if (!start || isNaN(start.getTime())){
+          dayCount.textContent = "0";
+          yearCount.textContent = "0";
+          monthCount.textContent = "0";
+          hourCount.textContent = "0";
+          minuteCount.textContent = "0";
+          renderMilestones(0);
+          return;
+        }
+
+        const now = new Date();
+        const diff = Math.max(0, now - start);
+
+        const totalMinutes = Math.floor(diff / 60000);
+        const totalHours = Math.floor(diff / 3600000);
+        const totalDays = Math.floor(diff / 86400000);
+
+        const years = Math.floor(totalDays / 365);
+        const months = Math.floor(totalDays / 30.4375);
+
+        dayCount.textContent = totalDays.toLocaleString();
+        yearCount.textContent = years.toLocaleString();
+        monthCount.textContent = months.toLocaleString();
+        hourCount.textContent = totalHours.toLocaleString();
+        minuteCount.textContent = totalMinutes.toLocaleString();
+
+        renderMilestones(totalDays);
+      }
+
+      saveBtn.addEventListener("click", function(){
+        if (!sobrietyDate.value) {
+          alert("Put in a sober date first.");
+          return;
+        }
+
+        saveProfile({
+          date: sobrietyDate.value,
+          time: sobrietyTime.value,
+          reason: whyStaySober.value.trim()
+        });
+
+        render();
+        alert("Sober date saved.");
+      });
+
+      shareBtn.addEventListener("click", async function(){
+        const profile = loadProfile();
+        const days = dayCount.textContent || "0";
+        const msg = "I’ve got " + days + " days sober today. Recovery Misfits.";
+
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: "My sober time",
+              text: msg
+            });
+            return;
+          } catch(e){}
+        }
+
+        try {
+          await navigator.clipboard.writeText(msg);
+          alert("Copied your sober time message.");
+        } catch(e) {
+          alert(msg);
+        }
+      });
+
+      resetBtn.addEventListener("click", function(){
+        const ok = confirm("Reset your sober date? This will clear your saved time on this device.");
+        if (!ok) return;
+        localStorage.removeItem(STORAGE_KEY);
+        render();
+      });
+
+      render();
+      setInterval(render, 60000);
+    })();
+  </script>
+</body>
+</html>
