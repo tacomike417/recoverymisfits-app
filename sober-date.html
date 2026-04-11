@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits — Sober Date</title>
+  <title>Recovery Misfits — Sobriety Date</title>
 
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#000000" />
@@ -26,7 +26,6 @@
       --line:#2d2d2d;
       --accent:#e8dcc3;
       --danger:#b64c4c;
-      --success:#d8c79a;
       --shadow:0 12px 30px rgba(0,0,0,.35);
       --radius:22px;
     }
@@ -142,6 +141,13 @@
       text-transform:uppercase;
       color:var(--accent);
       margin-top:6px;
+    }
+
+    .sinceLine{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:15px;
+      font-weight:700;
     }
 
     .subStats{
@@ -302,18 +308,19 @@
   <main class="page">
     <section class="hero">
       <div class="eyebrow">Recovery Misfits</div>
-      <h1>Clean Time Counts</h1>
+      <h1>Sobriety Counts</h1>
       <p>
-        Not for showing off. Not for acting special. Just a hard number that says
-        you made it through some stuff and kept going.
+        This is not about ego. It is about remembering what God has done,
+        what you have survived, and how many days you did not have to go back out.
       </p>
     </section>
 
     <div class="stack">
       <section class="card">
-        <div class="cardTitle">Your time</div>
+        <div class="cardTitle">Your sobriety</div>
         <div class="bigCount" id="dayCount">0</div>
         <div class="bigLabel">Days sober</div>
+        <div class="sinceLine" id="sinceLine">No sobriety date saved yet.</div>
 
         <div class="subStats">
           <div class="stat">
@@ -341,7 +348,7 @@
       </section>
 
       <section class="card">
-        <div class="cardTitle">Set your sober date</div>
+        <div class="cardTitle">Your sobriety date</div>
         <div class="formGrid">
           <div>
             <label for="sobrietyDate">Sobriety date</label>
@@ -349,24 +356,19 @@
           </div>
 
           <div>
-            <label for="sobrietyTime">Time started</label>
-            <input id="sobrietyTime" type="time" />
-          </div>
-
-          <div>
             <label for="whyStaySober">Why I stay sober</label>
-            <textarea id="whyStaySober" placeholder="Put the real stuff here. Family. Peace. God. Freedom. Not going back. Whatever is true."></textarea>
+            <textarea id="whyStaySober" placeholder="Put the real stuff here. Family. Peace. God. Freedom. Not wanting to go back. Whatever is true."></textarea>
           </div>
         </div>
 
         <div class="btnRow">
-          <button class="btnPrimary" id="saveBtn" type="button">Save my date</button>
-          <button class="btnSecondary" id="shareBtn" type="button">Share my time</button>
+          <button class="btnPrimary" id="saveBtn" type="button">Save sobriety date</button>
+          <button class="btnSecondary" id="shareBtn" type="button">Share sobriety</button>
           <button class="btnDanger" id="resetBtn" type="button">Reset</button>
         </div>
 
         <div class="tiny">
-          This stays on your device unless you choose to share it.
+          Your sobriety date matches the sober bar in the app. This stays on your device unless you choose to share it.
         </div>
       </section>
 
@@ -384,10 +386,11 @@
 
   <script>
     (function(){
-      const STORAGE_KEY = "rm_sobriety_profile_v1";
+      // MATCH nav.js
+      const SOBER_KEY = "rm_sober_date";
+      const REASON_KEY = "rm_sober_reason";
 
       const sobrietyDate = document.getElementById("sobrietyDate");
-      const sobrietyTime = document.getElementById("sobrietyTime");
       const whyStaySober = document.getElementById("whyStaySober");
 
       const dayCount = document.getElementById("dayCount");
@@ -395,6 +398,7 @@
       const monthCount = document.getElementById("monthCount");
       const hourCount = document.getElementById("hourCount");
       const minuteCount = document.getElementById("minuteCount");
+      const sinceLine = document.getElementById("sinceLine");
 
       const milestones = document.getElementById("milestones");
       const reasonPreview = document.getElementById("reasonPreview");
@@ -405,22 +409,53 @@
 
       const milestoneList = [1, 3, 7, 14, 30, 60, 90, 120, 180, 270, 365, 547, 730, 1095, 1825, 3650];
 
-      function loadProfile(){
-        try {
-          return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-        } catch(e){
-          return {};
-        }
+      function pad2(n) {
+        return String(n).padStart(2, "0");
       }
 
-      function saveProfile(data){
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      function todayLocalYMD() {
+        const d = new Date();
+        return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
       }
 
-      function getStartDate(){
-        const profile = loadProfile();
-        if (!profile.date) return null;
-        return new Date(profile.date + "T" + (profile.time || "00:00") + ":00");
+      function parseYMDToLocalDate(ymd) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || "").trim());
+        if (!m) return null;
+        const y = Number(m[1]);
+        const mo = Number(m[2]) - 1;
+        const da = Number(m[3]);
+        const dt = new Date(y, mo, da, 0, 0, 0, 0);
+        if (Number.isNaN(dt.getTime())) return null;
+        if (dt.getFullYear() !== y || dt.getMonth() !== mo || dt.getDate() !== da) return null;
+        return dt;
+      }
+
+      function daysBetweenLocal(startYMD, endYMD) {
+        const s = parseYMDToLocalDate(startYMD);
+        const e = parseYMDToLocalDate(endYMD);
+        if (!s || !e) return null;
+        const msPerDay = 24 * 60 * 60 * 1000;
+        return Math.floor((e.getTime() - s.getTime()) / msPerDay);
+      }
+
+      function getSoberDateYMD() {
+        const v = localStorage.getItem(SOBER_KEY);
+        return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
+      }
+
+      function ymdToDisplayMDY(ymd) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || ""));
+        if (!m) return "";
+        return m[2] + "-" + m[3] + "-" + m[1];
+      }
+
+      function computeSoberDays() {
+        const start = getSoberDateYMD();
+        if (!start) return null;
+        const today = todayLocalYMD();
+        const diff = daysBetweenLocal(start, today);
+        if (diff === null) return null;
+        return Math.max(0, diff + 1); // inclusive, same as nav.js
       }
 
       function renderMilestones(days){
@@ -450,30 +485,34 @@
       }
 
       function render(){
-        const profile = loadProfile();
+        const ymd = getSoberDateYMD();
+        const reason = localStorage.getItem(REASON_KEY) || "";
 
-        sobrietyDate.value = profile.date || "";
-        sobrietyTime.value = profile.time || "";
-        whyStaySober.value = profile.reason || "";
-        reasonPreview.textContent = profile.reason || "No reason saved yet.";
+        sobrietyDate.value = ymd || "";
+        whyStaySober.value = reason;
+        reasonPreview.textContent = reason || "No reason saved yet.";
 
-        const start = getStartDate();
-        if (!start || isNaN(start.getTime())){
+        const totalDays = computeSoberDays();
+
+        if (!ymd || totalDays === null) {
           dayCount.textContent = "0";
           yearCount.textContent = "0";
           monthCount.textContent = "0";
           hourCount.textContent = "0";
           minuteCount.textContent = "0";
+          sinceLine.textContent = "No sobriety date saved yet.";
           renderMilestones(0);
           return;
         }
 
+        sinceLine.textContent = "Since " + ymdToDisplayMDY(ymd);
+
+        const start = parseYMDToLocalDate(ymd);
         const now = new Date();
         const diff = Math.max(0, now - start);
 
         const totalMinutes = Math.floor(diff / 60000);
         const totalHours = Math.floor(diff / 3600000);
-        const totalDays = Math.floor(diff / 86400000);
 
         const years = Math.floor(totalDays / 365);
         const months = Math.floor(totalDays / 30.4375);
@@ -489,29 +528,36 @@
 
       saveBtn.addEventListener("click", function(){
         if (!sobrietyDate.value) {
-          alert("Put in a sober date first.");
+          alert("Put in a sobriety date first.");
           return;
         }
 
-        saveProfile({
-          date: sobrietyDate.value,
-          time: sobrietyTime.value,
-          reason: whyStaySober.value.trim()
-        });
+        const picked = sobrietyDate.value;
+        const diff = daysBetweenLocal(picked, todayLocalYMD());
+
+        if (diff === null || diff < 0) {
+          alert("That sobriety date does not look right.");
+          return;
+        }
+
+        localStorage.setItem(SOBER_KEY, picked);
+        localStorage.setItem(REASON_KEY, (whyStaySober.value || "").trim());
 
         render();
-        alert("Sober date saved.");
+        alert("Sobriety date saved.");
       });
 
       shareBtn.addEventListener("click", async function(){
-        const profile = loadProfile();
         const days = dayCount.textContent || "0";
-        const msg = "I’ve got " + days + " days sober today. Recovery Misfits.";
+        const ymd = getSoberDateYMD();
+        const msg = ymd
+          ? "I have " + days + " days sober today. Sobriety date: " + ymdToDisplayMDY(ymd) + ". Recovery Misfits."
+          : "I am sober today. Recovery Misfits.";
 
         if (navigator.share) {
           try {
             await navigator.share({
-              title: "My sober time",
+              title: "My sobriety",
               text: msg
             });
             return;
@@ -520,16 +566,17 @@
 
         try {
           await navigator.clipboard.writeText(msg);
-          alert("Copied your sober time message.");
+          alert("Copied your sobriety message.");
         } catch(e) {
           alert(msg);
         }
       });
 
       resetBtn.addEventListener("click", function(){
-        const ok = confirm("Reset your sober date? This will clear your saved time on this device.");
+        const ok = confirm("Reset your sobriety date? This will clear it on this device.");
         if (!ok) return;
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(SOBER_KEY);
+        localStorage.removeItem(REASON_KEY);
         render();
       });
 
