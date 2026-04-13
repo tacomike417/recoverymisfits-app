@@ -14,6 +14,18 @@
   <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
   <link rel="apple-touch-icon" href="./icon-192.png">
 
+  <!-- Social preview tags -->
+  <meta property="og:title" content="Recovery Misfits — Sobriety Counts">
+  <meta property="og:description" content="One day at a time. Still here. Track your sober date and share it with friends.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://recoverymisfits.blogspot.com/">
+  <meta property="og:image" content="https://blogger.googleusercontent.com/img/a/AVvXsEhMQkk3xaDJyzM5uvXRSakqjBxcP3TCgJsgZddmCHAjaJWRpwdVyLxsiX9WyMaPf-OewzrRFiiZLUNsFM9krRLpW6vbwxLoMLIc9ZLu9YvDzcAxFAjif8zgEL1zqIps6LIVRYkCUCNuT-Rh6RIETLU9z61WpcoWkU4qrT2vQFy4-2rvGDpwz_atWzZ4-sya=s1600">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Recovery Misfits — Sobriety Counts">
+  <meta name="twitter:description" content="One day at a time. Still here.">
+  <meta name="twitter:image" content="https://recoverymisfits.blogspot.com/icon-192.png">
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;700;900&display=swap');
 
@@ -273,6 +285,54 @@
       border:1px solid #5a2a2a;
     }
 
+    .shareFriendsWrap{
+      margin-top:18px;
+      display:grid;
+      gap:12px;
+    }
+
+    .shareFriendsBtn{
+      width:100%;
+      border:none;
+      border-radius:22px;
+      padding:18px 20px;
+      font:inherit;
+      font-weight:900;
+      cursor:pointer;
+      background:linear-gradient(180deg, #f2e6cf 0%, #dbc9a1 100%);
+      color:#111;
+      box-shadow:0 10px 24px rgba(0,0,0,.28);
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      font-size:18px;
+    }
+
+    .shareFriendsBtn:active{
+      transform:scale(.98);
+    }
+
+    .shareFriendsSub{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+    }
+
+    .shareFriendsSub button,
+    .shareFriendsSub a{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      text-decoration:none;
+      min-height:52px;
+      border-radius:16px;
+      font-weight:900;
+      border:1px solid var(--line);
+      background:#111;
+      color:var(--text);
+      padding:12px 14px;
+    }
+
     .tiny{
       font-size:13px;
       color:var(--muted);
@@ -312,6 +372,10 @@
     @media (max-width:520px){
       .btnRow button{
         flex:1 1 100%;
+      }
+
+      .shareFriendsSub{
+        grid-template-columns:1fr;
       }
     }
   </style>
@@ -354,13 +418,25 @@
           </div>
         </div>
 
-        <div class="btnRow">
-          <button class="btnGhost" id="shareTextBtn" type="button">Share text</button>
-          <button class="btnGhost" id="shareImageBtn" type="button">Share image</button>
+        <div class="shareFriendsWrap">
+          <button class="shareFriendsBtn" id="shareFriendsBtn" type="button">Share With Friends</button>
+
+          <div class="shareFriendsSub">
+            <button id="copyLinkBtn" type="button">Copy Recovery Misfits Link</button>
+            <a id="facebookShareBtn"
+               href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Frecoverymisfits.blogspot.com%2F"
+               target="_blank"
+               rel="noopener noreferrer">Share to Facebook</a>
+          </div>
+
+          <div class="btnRow">
+            <button class="btnGhost" id="shareTextBtn" type="button">Share text</button>
+            <button class="btnGhost" id="shareImageBtn" type="button">Share image</button>
+          </div>
         </div>
 
         <div class="tiny">
-          Share text copies or opens your phone’s share sheet. Share image makes a bold Recovery Misfits sobriety card.
+          Share your sober time and point people to Recovery Misfits. On phones, the big button opens the share sheet for text, Facebook, Messenger, and more.
         </div>
       </section>
 
@@ -389,7 +465,7 @@
         </div>
 
         <div class="tiny">
-          Your sobriety date matches the sober bar already in the app. The date uses the same local storage key your nav bar already uses: <strong>rm_sober_date</strong>. :contentReference[oaicite:1]{index=1}
+          Your sobriety date matches the sober bar already in the app. The date uses the same local storage key your nav bar already uses: <strong>rm_sober_date</strong>.
         </div>
       </section>
 
@@ -407,9 +483,9 @@
 
   <script>
     (function(){
-      // Match the existing app storage from nav.js
       const SOBER_KEY = "rm_sober_date";
       const REASON_KEY = "rm_sober_reason";
+      const SHARE_URL = "https://recoverymisfits.blogspot.com/";
 
       const sobrietyDate = document.getElementById("sobrietyDate");
       const whyStaySober = document.getElementById("whyStaySober");
@@ -426,6 +502,8 @@
 
       const saveBtn = document.getElementById("saveBtn");
       const resetBtn = document.getElementById("resetBtn");
+      const shareFriendsBtn = document.getElementById("shareFriendsBtn");
+      const copyLinkBtn = document.getElementById("copyLinkBtn");
       const shareTextBtn = document.getElementById("shareTextBtn");
       const shareImageBtn = document.getElementById("shareImageBtn");
 
@@ -477,7 +555,7 @@
         const today = todayLocalYMD();
         const diff = daysBetweenLocal(start, today);
         if (diff === null) return null;
-        return Math.max(0, diff + 1); // inclusive, same as nav.js
+        return Math.max(0, diff + 1);
       }
 
       function milestoneLabel(days){
@@ -557,6 +635,17 @@
         return "I am sober today. Recovery Misfits.";
       }
 
+      function buildFriendsShareText() {
+        const days = dayCount.textContent || "0";
+        const ymd = getSoberDateYMD();
+
+        if (ymd) {
+          return "I have " + days + " days sober today. My sobriety date is " + ymdToDisplayMDY(ymd) + ". Check out Recovery Misfits: " + SHARE_URL;
+        }
+
+        return "I am sober today. Check out Recovery Misfits: " + SHARE_URL;
+      }
+
       async function copyText(text) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(text);
@@ -608,11 +697,9 @@
         const since = sinceLine.textContent || "";
         const reason = (localStorage.getItem(REASON_KEY) || "").trim();
 
-        // Background
         ctx.fillStyle = "#0a0a0a";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Subtle texture stripes
         ctx.globalAlpha = 0.04;
         for (let i = -1350; i < 1350; i += 34) {
           ctx.beginPath();
@@ -624,21 +711,18 @@
         }
         ctx.globalAlpha = 1;
 
-        // Border panel
         ctx.strokeStyle = "#2d2d2d";
         ctx.lineWidth = 3;
         roundRect(ctx, 48, 48, 984, 1254, 34);
         ctx.stroke();
 
-        // Logo / icon
         try {
           const icon = await loadImage("./icon-192.png");
           ctx.drawImage(icon, 444, 90, 192, 192);
         } catch (e) {
-          // If icon fails, just continue with text branding
+          // Keep going if icon doesn't load
         }
 
-        // Branding
         ctx.fillStyle = "#b9b2a4";
         ctx.font = "700 34px Roboto, Arial, sans-serif";
         ctx.textAlign = "center";
@@ -648,7 +732,6 @@
         ctx.font = "700 54px Roboto, Arial, sans-serif";
         ctx.fillText("ANOTHER DAY SOBER", 540, 390);
 
-        // Big days number
         ctx.fillStyle = "#f5f1e8";
         ctx.font = "400 240px Anton, Impact, sans-serif";
         ctx.fillText(days, 540, 690);
@@ -657,12 +740,10 @@
         ctx.font = "900 64px Roboto, Arial, sans-serif";
         ctx.fillText("DAYS SOBER", 540, 780);
 
-        // Since line
         ctx.fillStyle = "#b9b2a4";
         ctx.font = "700 36px Roboto, Arial, sans-serif";
         ctx.fillText(since || "One day at a time.", 540, 860);
 
-        // Optional reason line block
         if (reason) {
           const trimmed = reason.length > 140 ? reason.slice(0, 137) + "..." : reason;
           ctx.fillStyle = "#f5f1e8";
@@ -670,10 +751,13 @@
           wrapText(ctx, trimmed, 140, 990, 800, 46);
         }
 
-        // Footer
         ctx.fillStyle = "#b9b2a4";
         ctx.font = "700 30px Roboto, Arial, sans-serif";
-        ctx.fillText("recoverymisfits", 540, 1220);
+        ctx.fillText("Recovery Misfits", 540, 1190);
+
+        ctx.fillStyle = "#e8dcc3";
+        ctx.font = "700 24px Roboto, Arial, sans-serif";
+        ctx.fillText("recoverymisfits.blogspot.com", 540, 1235);
 
         return canvas;
       }
@@ -745,14 +829,38 @@
         render();
       });
 
+      shareFriendsBtn.addEventListener("click", async function(){
+        const text = buildFriendsShareText();
+
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: "Recovery Misfits",
+              text: text,
+              url: SHARE_URL
+            });
+            return;
+          } catch (e) {}
+        }
+
+        const ok = await copyText(text);
+        alert(ok ? "Recovery Misfits share message copied." : text);
+      });
+
+      copyLinkBtn.addEventListener("click", async function(){
+        const ok = await copyText(SHARE_URL);
+        alert(ok ? "Recovery Misfits link copied." : SHARE_URL);
+      });
+
       shareTextBtn.addEventListener("click", async function(){
-        const msg = buildShareText();
+        const msg = buildFriendsShareText();
 
         if (navigator.share) {
           try {
             await navigator.share({
               title: "My sobriety",
-              text: msg
+              text: msg,
+              url: SHARE_URL
             });
             return;
           } catch(e) {}
@@ -773,13 +881,13 @@
               await navigator.share({
                 files: [file],
                 title: "My sobriety",
-                text: buildShareText()
+                text: buildFriendsShareText(),
+                url: SHARE_URL
               });
               return;
             } catch (e) {}
           }
 
-          // fallback: download image
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
