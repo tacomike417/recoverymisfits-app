@@ -1,911 +1,182 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits — Sobriety Date</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Recovery Misfits — Sobriety Date</title>
 
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000" />
-  <link rel="icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#000000" />
+<link rel="icon" href="./icon-192.png">
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
-  <link rel="apple-touch-icon" href="./icon-192.png">
+<!-- SOCIAL SHARE -->
+<meta property="og:title" content="Recovery Misfits — Sobriety Counts">
+<meta property="og:description" content="One day at a time. Still here.">
+<meta property="og:image" content="https://blogger.googleusercontent.com/img/a/AVvXsEhMQkk3xaDJyzM5uvXRSakqjBxcP3TCgJsgZddmCHAjaJWRpwdVyLxsiX9WyMaPf-OewzrRFiiZLUNsFM9krRLpW6vbwxLoMLIc9ZLu9YvDzcAxFAjif8zgEL1zqIps6LIVRYkCUCNuT-Rh6RIETLU9z61WpcoWkU4qrT2vQFy4-2rvGDpwz_atWzZ4-sya=s1600">
 
-  <!-- Social preview tags -->
-  <meta property="og:title" content="Recovery Misfits — Sobriety Counts">
-  <meta property="og:description" content="One day at a time. Still here. Track your sober date and share it with friends.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://recoverymisfits.blogspot.com/">
-  <meta property="og:image" content="https://blogger.googleusercontent.com/img/a/AVvXsEhMQkk3xaDJyzM5uvXRSakqjBxcP3TCgJsgZddmCHAjaJWRpwdVyLxsiX9WyMaPf-OewzrRFiiZLUNsFM9krRLpW6vbwxLoMLIc9ZLu9YvDzcAxFAjif8zgEL1zqIps6LIVRYkCUCNuT-Rh6RIETLU9z61WpcoWkU4qrT2vQFy4-2rvGDpwz_atWzZ4-sya=s1600">
+<style>
+body{
+  margin:0;
+  background:#0a0a0a;
+  color:#f5f1e8;
+  font-family:Arial;
+}
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Recovery Misfits — Sobriety Counts">
-  <meta name="twitter:description" content="One day at a time. Still here.">
-  <meta name="twitter:image" content="https://blogger.googleusercontent.com/img/a/AVvXsEhMQkk3xaDJyzM5uvXRSakqjBxcP3TCgJsgZddmCHAjaJWRpwdVyLxsiX9WyMaPf-OewzrRFiiZLUNsFM9krRLpW6vbwxLoMLIc9ZLu9YvDzcAxFAjif8zgEL1zqIps6LIVRYkCUCNuT-Rh6RIETLU9z61WpcoWkU4qrT2vQFy4-2rvGDpwz_atWzZ4-sya=s1600">
+.page{
+  max-width:800px;
+  margin:auto;
+  padding:20px;
+}
 
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;700;900&display=swap');
+.bigCount{
+  font-size:80px;
+  font-weight:900;
+  text-align:center;
+}
 
-    :root{
-      --bg:#0a0a0a;
-      --panel:#141414;
-      --panel2:#1c1c1c;
-      --text:#f5f1e8;
-      --muted:#b9b2a4;
-      --line:#2d2d2d;
-      --accent:#e8dcc3;
-      --danger:#b64c4c;
-      --shadow:0 12px 30px rgba(0,0,0,.35);
-      --radius:22px;
-    }
-
-    *{ box-sizing:border-box; }
-
-    body{
-      margin:0;
-      font-family:Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(circle at top, #1a1a1a 0%, #0a0a0a 45%, #050505 100%);
-      color:var(--text);
-      padding-bottom:120px;
-    }
-
-    .page{
-      max-width:900px;
-      margin:0 auto;
-      padding:18px 16px 40px;
-    }
-
-    .hero{
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border:1px solid var(--line);
-      border-radius:28px;
-      padding:20px;
-      box-shadow:var(--shadow);
-      overflow:hidden;
-      position:relative;
-    }
-
-    .hero::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.05), transparent 35%),
-        repeating-linear-gradient(
-          -45deg,
-          transparent 0 12px,
-          rgba(255,255,255,.015) 12px 24px
-        );
-      pointer-events:none;
-    }
-
-    .eyebrow{
-      font-size:12px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:var(--muted);
-      font-weight:700;
-      margin-bottom:10px;
-      position:relative;
-      z-index:1;
-    }
-
-    .hero h1{
-      margin:0 0 10px;
-      font-family:Anton, Impact, sans-serif;
-      font-size:clamp(38px, 10vw, 82px);
-      line-height:.95;
-      letter-spacing:.02em;
-      text-transform:uppercase;
-      position:relative;
-      z-index:1;
-    }
-
-    .hero p{
-      margin:0;
-      color:var(--muted);
-      font-size:16px;
-      line-height:1.6;
-      max-width:700px;
-      position:relative;
-      z-index:1;
-    }
-
-    .stack{
-      display:grid;
-      gap:16px;
-      margin-top:18px;
-    }
-
-    .card{
-      background:linear-gradient(180deg, var(--panel), var(--panel2));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      padding:18px;
-      box-shadow:var(--shadow);
-    }
-
-    .cardTitle{
-      font-size:12px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      color:var(--muted);
-      font-weight:800;
-      margin:0 0 12px;
-    }
-
-    .bigCount{
-      font-family:Anton, Impact, sans-serif;
-      font-size:clamp(72px, 24vw, 180px);
-      line-height:.9;
-      letter-spacing:.02em;
-      margin:0;
-    }
-
-    .bigLabel{
-      font-size:16px;
-      font-weight:800;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:var(--accent);
-      margin-top:6px;
-    }
-
-    .sinceLine{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:15px;
-      font-weight:700;
-    }
-
-    .subStats{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:10px;
-      margin-top:18px;
-    }
-
-    .stat{
-      background:rgba(255,255,255,.03);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:14px 10px;
-      text-align:center;
-    }
-
-    .statNum{
-      font-size:28px;
-      font-weight:900;
-      line-height:1;
-    }
-
-    .statLabel{
-      margin-top:6px;
-      font-size:11px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:var(--muted);
-      font-weight:700;
-    }
-
-    .milestones{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:8px;
-    }
-
-    .chip{
-      border:1px solid var(--line);
-      background:#111;
-      color:var(--text);
-      border-radius:999px;
-      padding:10px 14px;
-      font-size:13px;
-      font-weight:800;
-    }
-
-    .chip.hit{
-      background:var(--accent);
-      color:#111;
-      border-color:var(--accent);
-    }
-
-    .formGrid{
-      display:grid;
-      gap:12px;
-    }
-
-    label{
-      display:block;
-      font-size:13px;
-      font-weight:800;
-      color:var(--muted);
-      margin-bottom:6px;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-    }
-
-    input, textarea{
-      width:100%;
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:#0f0f0f;
-      color:var(--text);
-      padding:14px 14px;
-      font:inherit;
-      outline:none;
-    }
-
-    textarea{
-      min-height:120px;
-      resize:vertical;
-    }
-
-    .btnRow{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:14px;
-    }
-
-    button{
-      border:none;
-      border-radius:16px;
-      padding:14px 16px;
-      font:inherit;
-      font-weight:900;
-      cursor:pointer;
-    }
-
-    .btnPrimary{
-      background:var(--accent);
-      color:#111;
-    }
-
-    .btnSecondary{
-      background:#222;
-      color:var(--text);
-      border:1px solid var(--line);
-    }
-
-    .btnGhost{
-      background:#111;
-      color:var(--text);
-      border:1px solid var(--line);
-    }
-
-    .btnDanger{
-      background:#2a1515;
-      color:#ffd5d5;
-      border:1px solid #5a2a2a;
-    }
-
-    .shareFriendsWrap{
-      margin-top:18px;
-      display:grid;
-      gap:12px;
-    }
-
-    .shareFriendsBtn{
-      width:100%;
-      border:none;
-      border-radius:22px;
-      padding:18px 20px;
-      font:inherit;
-      font-weight:900;
-      cursor:pointer;
-      background:linear-gradient(180deg, #f2e6cf 0%, #dbc9a1 100%);
-      color:#111;
-      box-shadow:0 10px 24px rgba(0,0,0,.28);
-      text-transform:uppercase;
-      letter-spacing:.06em;
-      font-size:18px;
-    }
-
-    .shareFriendsBtn:active{
-      transform:scale(.98);
-    }
-
-    .shareFriendsSub{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:10px;
-    }
-
-    .shareFriendsSub button,
-    .shareFriendsSub a{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      text-decoration:none;
-      min-height:52px;
-      border-radius:16px;
-      font-weight:900;
-      border:1px solid var(--line);
-      background:#111;
-      color:var(--text);
-      padding:12px 14px;
-    }
-
-    .tiny{
-      font-size:13px;
-      color:var(--muted);
-      line-height:1.6;
-      margin-top:10px;
-    }
-
-    .reasonBox{
-      white-space:pre-wrap;
-      background:rgba(255,255,255,.03);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:14px;
-      min-height:72px;
-      line-height:1.6;
-      color:var(--text);
-    }
-
-    .footerNote{
-      text-align:center;
-      color:var(--muted);
-      font-size:12px;
-      margin-top:18px;
-      letter-spacing:.04em;
-    }
-
-    @media (max-width:700px){
-      .subStats{
-        grid-template-columns:repeat(2,1fr);
-      }
-
-      .btnRow button{
-        flex:1 1 calc(50% - 10px);
-      }
-    }
-
-    @media (max-width:520px){
-      .btnRow button{
-        flex:1 1 100%;
-      }
-
-      .shareFriendsSub{
-        grid-template-columns:1fr;
-      }
-    }
-  </style>
+.shareBtn{
+  margin-top:20px;
+  width:100%;
+  padding:18px;
+  font-size:18px;
+  font-weight:900;
+  border-radius:20px;
+  background:#e8dcc3;
+  color:#111;
+  border:none;
+}
+</style>
 </head>
+
 <body>
 
-  <div id="rm-topbar"></div>
-  <script src="./topbar.js" defer></script>
-
-  <main class="page">
-    <section class="hero">
-      <div class="eyebrow">Recovery Misfits</div>
-      <h1>Sobriety Counts</h1>
-      <p>One day at a time. Still here.</p>
-    </section>
-
-    <div class="stack">
-      <section class="card">
-        <div class="cardTitle">Your sobriety</div>
-        <div class="bigCount" id="dayCount">0</div>
-        <div class="bigLabel">Days sober</div>
-        <div class="sinceLine" id="sinceLine">No sobriety date saved yet.</div>
-
-        <div class="subStats">
-          <div class="stat">
-            <div class="statNum" id="yearCount">0</div>
-            <div class="statLabel">Years</div>
-          </div>
-          <div class="stat">
-            <div class="statNum" id="monthCount">0</div>
-            <div class="statLabel">Months</div>
-          </div>
-          <div class="stat">
-            <div class="statNum" id="hourCount">0</div>
-            <div class="statLabel">Hours</div>
-          </div>
-          <div class="stat">
-            <div class="statNum" id="minuteCount">0</div>
-            <div class="statLabel">Minutes</div>
-          </div>
-        </div>
-
-        <div class="shareFriendsWrap">
-          <button class="shareFriendsBtn" id="shareFriendsBtn" type="button">Share With Friends</button>
-
-          <div class="shareFriendsSub">
-            <button id="copyLinkBtn" type="button">Copy Recovery Misfits Link</button>
-            <a id="facebookShareBtn"
-               href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Frecoverymisfits.blogspot.com%2F"
-               target="_blank"
-               rel="noopener noreferrer">Share to Facebook</a>
-          </div>
-
-          <div class="btnRow">
-            <button class="btnGhost" id="shareTextBtn" type="button">Share text</button>
-            <button class="btnGhost" id="shareImageBtn" type="button">Share image</button>
-          </div>
-        </div>
-
-        <div class="tiny">
-          Share your sober time and point people to Recovery Misfits. On phones, the big button opens the share sheet for text, Facebook, Messenger, and more.
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="cardTitle">Milestones</div>
-        <div class="milestones" id="milestones"></div>
-      </section>
-
-      <section class="card">
-        <div class="cardTitle">Your sobriety date</div>
-        <div class="formGrid">
-          <div>
-            <label for="sobrietyDate">Sobriety date</label>
-            <input id="sobrietyDate" type="date" />
-          </div>
-
-          <div>
-            <label for="whyStaySober">Why I stay sober</label>
-            <textarea id="whyStaySober" placeholder="Put the real stuff here. Family. Peace. God. Freedom. Not wanting to go back. Whatever is true."></textarea>
-          </div>
-        </div>
-
-        <div class="btnRow">
-          <button class="btnPrimary" id="saveBtn" type="button">Save sobriety date</button>
-          <button class="btnSecondary" id="resetBtn" type="button">Reset</button>
-        </div>
-
-        <div class="tiny">
-          Your sobriety date matches the sober bar already in the app. The date uses the same local storage key your nav bar already uses: <strong>rm_sober_date</strong>.
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="cardTitle">Why I stay sober</div>
-        <div class="reasonBox" id="reasonPreview">No reason saved yet.</div>
-      </section>
-    </div>
-
-    <div class="footerNote">One day at a time still counts.</div>
-  </main>
-
-  <div id="rm-bottom-nav"></div>
-  <script src="./nav.js" defer></script>
-
-  <script>
-    (function(){
-      const SOBER_KEY = "rm_sober_date";
-      const REASON_KEY = "rm_sober_reason";
-      const SHARE_URL = "https://recoverymisfits.blogspot.com/";
-
-      const sobrietyDate = document.getElementById("sobrietyDate");
-      const whyStaySober = document.getElementById("whyStaySober");
-
-      const dayCount = document.getElementById("dayCount");
-      const yearCount = document.getElementById("yearCount");
-      const monthCount = document.getElementById("monthCount");
-      const hourCount = document.getElementById("hourCount");
-      const minuteCount = document.getElementById("minuteCount");
-      const sinceLine = document.getElementById("sinceLine");
-
-      const milestones = document.getElementById("milestones");
-      const reasonPreview = document.getElementById("reasonPreview");
-
-      const saveBtn = document.getElementById("saveBtn");
-      const resetBtn = document.getElementById("resetBtn");
-      const shareFriendsBtn = document.getElementById("shareFriendsBtn");
-      const copyLinkBtn = document.getElementById("copyLinkBtn");
-      const shareTextBtn = document.getElementById("shareTextBtn");
-      const shareImageBtn = document.getElementById("shareImageBtn");
-
-      const milestoneList = [1, 3, 7, 14, 30, 60, 90, 120, 180, 270, 365, 547, 730, 1095, 1825, 3650];
-
-      function pad2(n) {
-        return String(n).padStart(2, "0");
-      }
-
-      function todayLocalYMD() {
-        const d = new Date();
-        return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
-      }
-
-      function parseYMDToLocalDate(ymd) {
-        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || "").trim());
-        if (!m) return null;
-        const y = Number(m[1]);
-        const mo = Number(m[2]) - 1;
-        const da = Number(m[3]);
-        const dt = new Date(y, mo, da, 0, 0, 0, 0);
-        if (Number.isNaN(dt.getTime())) return null;
-        if (dt.getFullYear() !== y || dt.getMonth() !== mo || dt.getDate() !== da) return null;
-        return dt;
-      }
-
-      function daysBetweenLocal(startYMD, endYMD) {
-        const s = parseYMDToLocalDate(startYMD);
-        const e = parseYMDToLocalDate(endYMD);
-        if (!s || !e) return null;
-        const msPerDay = 24 * 60 * 60 * 1000;
-        return Math.floor((e.getTime() - s.getTime()) / msPerDay);
-      }
-
-      function getSoberDateYMD() {
-        const v = localStorage.getItem(SOBER_KEY);
-        return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
-      }
-
-      function ymdToDisplayMDY(ymd) {
-        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || ""));
-        if (!m) return "";
-        return m[2] + "-" + m[3] + "-" + m[1];
-      }
-
-      function computeSoberDays() {
-        const start = getSoberDateYMD();
-        if (!start) return null;
-        const today = todayLocalYMD();
-        const diff = daysBetweenLocal(start, today);
-        if (diff === null) return null;
-        return Math.max(0, diff + 1);
-      }
-
-      function milestoneLabel(days){
-        if (days === 1) return "1 day";
-        if (days === 30) return "30 days";
-        if (days === 60) return "60 days";
-        if (days === 90) return "90 days";
-        if (days === 180) return "6 months";
-        if (days === 270) return "9 months";
-        if (days === 365) return "1 year";
-        if (days === 547) return "18 months";
-        if (days === 730) return "2 years";
-        if (days === 1095) return "3 years";
-        if (days === 1825) return "5 years";
-        if (days === 3650) return "10 years";
-        return days + " days";
-      }
-
-      function renderMilestones(days){
-        milestones.innerHTML = "";
-        milestoneList.forEach(function(m){
-          const chip = document.createElement("div");
-          chip.className = "chip" + (days >= m ? " hit" : "");
-          chip.textContent = milestoneLabel(m);
-          milestones.appendChild(chip);
-        });
-      }
-
-      function render(){
-        const ymd = getSoberDateYMD();
-        const reason = localStorage.getItem(REASON_KEY) || "";
-
-        sobrietyDate.value = ymd || "";
-        whyStaySober.value = reason;
-        reasonPreview.textContent = reason || "No reason saved yet.";
-
-        const totalDays = computeSoberDays();
-
-        if (!ymd || totalDays === null) {
-          dayCount.textContent = "0";
-          yearCount.textContent = "0";
-          monthCount.textContent = "0";
-          hourCount.textContent = "0";
-          minuteCount.textContent = "0";
-          sinceLine.textContent = "No sobriety date saved yet.";
-          renderMilestones(0);
-          return;
-        }
-
-        sinceLine.textContent = "Since " + ymdToDisplayMDY(ymd);
-
-        const start = parseYMDToLocalDate(ymd);
-        const now = new Date();
-        const diff = Math.max(0, now - start);
-
-        const totalMinutes = Math.floor(diff / 60000);
-        const totalHours = Math.floor(diff / 3600000);
-
-        const years = Math.floor(totalDays / 365);
-        const months = Math.floor(totalDays / 30.4375);
-
-        dayCount.textContent = totalDays.toLocaleString();
-        yearCount.textContent = years.toLocaleString();
-        monthCount.textContent = months.toLocaleString();
-        hourCount.textContent = totalHours.toLocaleString();
-        minuteCount.textContent = totalMinutes.toLocaleString();
-
-        renderMilestones(totalDays);
-      }
-
-      function buildShareText() {
-        const days = dayCount.textContent || "0";
-        const ymd = getSoberDateYMD();
-        if (ymd) {
-          return "I have " + days + " days sober today. Sobriety date: " + ymdToDisplayMDY(ymd) + ". Recovery Misfits.";
-        }
-        return "I am sober today. Recovery Misfits.";
-      }
-
-      function buildFriendsShareText() {
-        const days = dayCount.textContent || "0";
-        const ymd = getSoberDateYMD();
-
-        if (ymd) {
-          return "I have " + days + " days sober today. My sobriety date is " + ymdToDisplayMDY(ymd) + ". Check out Recovery Misfits: " + SHARE_URL;
-        }
-
-        return "I am sober today. Check out Recovery Misfits: " + SHARE_URL;
-      }
-
-      async function copyText(text) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(text);
-          return true;
-        }
-
-        try {
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          ta.setAttribute("readonly", "");
-          ta.style.position = "fixed";
-          ta.style.left = "-9999px";
-          document.body.appendChild(ta);
-          ta.select();
-          ta.setSelectionRange(0, ta.value.length);
-          const ok = document.execCommand("copy");
-          document.body.removeChild(ta);
-          return !!ok;
-        } catch (e) {
-          return false;
-        }
-      }
-
-      function loadImage(src) {
-        return new Promise(function(resolve, reject) {
-          const img = new Image();
-          img.onload = function() { resolve(img); };
-          img.onerror = function() { reject(new Error("Image failed to load")); };
-          img.src = src;
-        });
-      }
-
-      function canvasToBlob(canvas) {
-        return new Promise(function(resolve, reject) {
-          canvas.toBlob(function(blob) {
-            if (blob) resolve(blob);
-            else reject(new Error("Canvas blob failed"));
-          }, "image/png");
-        });
-      }
-
-      async function makeShareImage() {
-        const canvas = document.createElement("canvas");
-        canvas.width = 1080;
-        canvas.height = 1350;
-
-        const ctx = canvas.getContext("2d");
-        const days = dayCount.textContent || "0";
-        const since = sinceLine.textContent || "";
-        const reason = (localStorage.getItem(REASON_KEY) || "").trim();
-
-        ctx.fillStyle = "#0a0a0a";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.globalAlpha = 0.04;
-        for (let i = -1350; i < 1350; i += 34) {
-          ctx.beginPath();
-          ctx.moveTo(i, 0);
-          ctx.lineTo(i + 900, 1350);
-          ctx.lineWidth = 12;
-          ctx.strokeStyle = "#ffffff";
-          ctx.stroke();
-        }
-        ctx.globalAlpha = 1;
-
-        ctx.strokeStyle = "#2d2d2d";
-        ctx.lineWidth = 3;
-        roundRect(ctx, 48, 48, 984, 1254, 34);
-        ctx.stroke();
-
-        try {
-          const icon = await loadImage("./icon-192.png");
-          ctx.drawImage(icon, 444, 90, 192, 192);
-        } catch (e) {
-          // Keep going if icon doesn't load
-        }
-
-        ctx.fillStyle = "#b9b2a4";
-        ctx.font = "700 34px Roboto, Arial, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("RECOVERY MISFITS", 540, 325);
-
-        ctx.fillStyle = "#f5f1e8";
-        ctx.font = "700 54px Roboto, Arial, sans-serif";
-        ctx.fillText("ANOTHER DAY SOBER", 540, 390);
-
-        ctx.fillStyle = "#f5f1e8";
-        ctx.font = "400 240px Anton, Impact, sans-serif";
-        ctx.fillText(days, 540, 690);
-
-        ctx.fillStyle = "#e8dcc3";
-        ctx.font = "900 64px Roboto, Arial, sans-serif";
-        ctx.fillText("DAYS SOBER", 540, 780);
-
-        ctx.fillStyle = "#b9b2a4";
-        ctx.font = "700 36px Roboto, Arial, sans-serif";
-        ctx.fillText(since || "One day at a time.", 540, 860);
-
-        if (reason) {
-          const trimmed = reason.length > 140 ? reason.slice(0, 137) + "..." : reason;
-          ctx.fillStyle = "#f5f1e8";
-          ctx.font = "500 34px Roboto, Arial, sans-serif";
-          wrapText(ctx, trimmed, 140, 990, 800, 46);
-        }
-
-        ctx.fillStyle = "#b9b2a4";
-        ctx.font = "700 30px Roboto, Arial, sans-serif";
-        ctx.fillText("Recovery Misfits", 540, 1190);
-
-        ctx.fillStyle = "#e8dcc3";
-        ctx.font = "700 24px Roboto, Arial, sans-serif";
-        ctx.fillText("recoverymisfits.blogspot.com", 540, 1235);
-
-        return canvas;
-      }
-
-      function roundRect(ctx, x, y, width, height, radius) {
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + width - radius, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        ctx.lineTo(x + radius, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
-      }
-
-      function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-        const words = String(text || "").split(" ");
-        let line = "";
-        let lineY = y;
-
-        for (let n = 0; n < words.length; n++) {
-          const testLine = line + words[n] + " ";
-          const metrics = ctx.measureText(testLine);
-          const testWidth = metrics.width;
-          if (testWidth > maxWidth && n > 0) {
-            ctx.fillText(line.trim(), x + maxWidth / 2, lineY);
-            line = words[n] + " ";
-            lineY += lineHeight;
-            if (lineY > 1110) break;
-          } else {
-            line = testLine;
-          }
-        }
-
-        if (lineY <= 1110) {
-          ctx.fillText(line.trim(), x + maxWidth / 2, lineY);
-        }
-      }
-
-      saveBtn.addEventListener("click", function(){
-        if (!sobrietyDate.value) {
-          alert("Put in a sobriety date first.");
-          return;
-        }
-
-        const picked = sobrietyDate.value;
-        const diff = daysBetweenLocal(picked, todayLocalYMD());
-
-        if (diff === null || diff < 0) {
-          alert("That sobriety date does not look right.");
-          return;
-        }
-
-        localStorage.setItem(SOBER_KEY, picked);
-        localStorage.setItem(REASON_KEY, (whyStaySober.value || "").trim());
-
-        render();
-        alert("Sobriety date saved.");
+<div class="page">
+
+<h2>Days Sober</h2>
+<div id="dayCount" class="bigCount">0</div>
+
+<button class="shareBtn" id="shareFriendsBtn">
+Share With Friends
+</button>
+
+</div>
+
+<script>
+const SHARE_URL = "https://recoverymisfits.blogspot.com/";
+const SOBER_KEY = "rm_sober_date";
+
+function today(){
+  const d=new Date();
+  return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
+}
+
+function getDays(){
+  const s=localStorage.getItem(SOBER_KEY);
+  if(!s) return 0;
+  const start=new Date(s);
+  const now=new Date();
+  return Math.floor((now-start)/(1000*60*60*24))+1;
+}
+
+function render(){
+  document.getElementById("dayCount").innerText=getDays();
+}
+
+render();
+
+function milestoneLabel(d){
+  if(d===30) return "30 DAYS";
+  if(d===60) return "60 DAYS";
+  if(d===90) return "90 DAYS";
+  if(d===180) return "6 MONTHS";
+  if(d===365) return "1 YEAR";
+  return d+" DAYS";
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+async function makeImage(){
+  const canvas=document.createElement("canvas");
+  canvas.width=1080;
+  canvas.height=1350;
+  const ctx=canvas.getContext("2d");
+
+  const days=getDays();
+
+  ctx.fillStyle="#000";
+  ctx.fillRect(0,0,1080,1350);
+
+  // LOGO
+  const img=new Image();
+  img.src="https://blogger.googleusercontent.com/img/a/AVvXsEhMQkk3xaDJyzM5uvXRSakqjBxcP3TCgJsgZddmCHAjaJWRpwdVyLxsiX9WyMaPf-OewzrRFiiZLUNsFM9krRLpW6vbwxLoMLIc9ZLu9YvDzcAxFAjif8zgEL1zqIps6LIVRYkCUCNuT-Rh6RIETLU9z61WpcoWkU4qrT2vQFy4-2rvGDpwz_atWzZ4-sya=s1600";
+  await new Promise(r=>img.onload=r);
+
+  ctx.drawImage(img,390,40,300,300);
+
+  ctx.fillStyle="#fff";
+  ctx.font="900 200px Arial";
+  ctx.textAlign="center";
+  ctx.fillText(days,540,600);
+
+  ctx.font="40px Arial";
+  ctx.fillText("DAYS SOBER",540,670);
+
+  // milestones
+  const list=[30,60,90,180,365];
+  list.forEach((m,i)=>{
+    const hit=days>=m;
+    const x=100+i*180;
+    const y=750;
+
+    roundRect(ctx,x,y,150,60,20);
+    ctx.fillStyle=hit?"#e8dcc3":"#222";
+    ctx.fill();
+
+    ctx.fillStyle=hit?"#000":"#fff";
+    ctx.font="20px Arial";
+    ctx.fillText(milestoneLabel(m),x+75,y+38);
+  });
+
+  ctx.fillStyle="#aaa";
+  ctx.font="28px Arial";
+  ctx.fillText("recoverymisfits.blogspot.com",540,1300);
+
+  return canvas;
+}
+
+document.getElementById("shareFriendsBtn").onclick=async()=>{
+  const canvas=await makeImage();
+
+  canvas.toBlob(async blob=>{
+    const file=new File([blob],"sobriety.png",{type:"image/png"});
+
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({
+        files:[file],
+        text:"Check out Recovery Misfits — "+SHARE_URL
       });
+    }else{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url;
+      a.download="sobriety.png";
+      a.click();
+    }
+  });
+};
+</script>
 
-      resetBtn.addEventListener("click", function(){
-        const ok = confirm("Reset your sobriety date? This will clear it on this device.");
-        if (!ok) return;
-        localStorage.removeItem(SOBER_KEY);
-        localStorage.removeItem(REASON_KEY);
-        render();
-      });
-
-      shareFriendsBtn.addEventListener("click", async function(){
-        const text = buildFriendsShareText();
-
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title: "Recovery Misfits",
-              text: text,
-              url: SHARE_URL
-            });
-            return;
-          } catch (e) {}
-        }
-
-        const ok = await copyText(text);
-        alert(ok ? "Recovery Misfits share message copied." : text);
-      });
-
-      copyLinkBtn.addEventListener("click", async function(){
-        const ok = await copyText(SHARE_URL);
-        alert(ok ? "Recovery Misfits link copied." : SHARE_URL);
-      });
-
-      shareTextBtn.addEventListener("click", async function(){
-        const msg = buildFriendsShareText();
-
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title: "My sobriety",
-              text: msg,
-              url: SHARE_URL
-            });
-            return;
-          } catch(e) {}
-        }
-
-        const ok = await copyText(msg);
-        alert(ok ? "Copied your sobriety message." : msg);
-      });
-
-      shareImageBtn.addEventListener("click", async function(){
-        try {
-          const canvas = await makeShareImage();
-          const blob = await canvasToBlob(canvas);
-          const file = new File([blob], "recovery-misfits-sobriety.png", { type: "image/png" });
-
-          if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({
-                files: [file],
-                title: "My sobriety",
-                text: buildFriendsShareText(),
-                url: SHARE_URL
-              });
-              return;
-            } catch (e) {}
-          }
-
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "recovery-misfits-sobriety.png";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-          alert("Sobriety image downloaded.");
-        } catch (e) {
-          console.error(e);
-          alert("Could not create share image.");
-        }
-      });
-
-      render();
-      setInterval(render, 60000);
-    })();
-  </script>
 </body>
 </html>
