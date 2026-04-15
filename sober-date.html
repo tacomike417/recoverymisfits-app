@@ -36,7 +36,6 @@
       --muted:#b9b2a4;
       --line:#2d2d2d;
       --accent:#e8dcc3;
-      --danger:#b64c4c;
       --shadow:0 12px 30px rgba(0,0,0,.35);
       --radius:22px;
     }
@@ -74,11 +73,7 @@
       inset:0;
       background:
         linear-gradient(135deg, rgba(255,255,255,.05), transparent 35%),
-        repeating-linear-gradient(
-          -45deg,
-          transparent 0 12px,
-          rgba(255,255,255,.015) 12px 24px
-        );
+        repeating-linear-gradient(-45deg, transparent 0 12px, rgba(255,255,255,.015) 12px 24px);
       pointer-events:none;
     }
 
@@ -292,8 +287,7 @@
       font:inherit;
       font-weight:900;
       cursor:pointer;
-      background:
-        linear-gradient(180deg, #f2e6cf 0%, #dbc9a1 100%);
+      background:linear-gradient(180deg, #f2e6cf 0%, #dbc9a1 100%);
       color:#111;
       box-shadow:0 10px 24px rgba(0,0,0,.28);
       text-transform:uppercase;
@@ -311,13 +305,11 @@
       gap:10px;
     }
 
-    .shareFriendsSub button,
-    .shareFriendsSub a{
+    .shareFriendsSub button{
       display:flex;
       align-items:center;
       justify-content:center;
       text-align:center;
-      text-decoration:none;
       min-height:52px;
       border-radius:16px;
       font-weight:900;
@@ -357,7 +349,6 @@
       .subStats{
         grid-template-columns:repeat(2,1fr);
       }
-
       .btnRow button{
         flex:1 1 calc(50% - 10px);
       }
@@ -367,7 +358,6 @@
       .btnRow button{
         flex:1 1 100%;
       }
-
       .shareFriendsSub{
         grid-template-columns:1fr;
       }
@@ -427,7 +417,7 @@
         </div>
 
         <div class="tiny">
-          On supported phones, sharing the card opens your device share sheet so you can pick Facebook, Messages, and more. On desktop or unsupported browsers, the card image downloads instead.
+          On supported phones, sharing the card opens your device share sheet so you can pick Facebook, Messages, and more. On unsupported browsers, the card image downloads instead.
         </div>
       </section>
 
@@ -477,7 +467,7 @@
       const SOBER_KEY = "rm_sober_date";
       const REASON_KEY = "rm_sober_reason";
       const SHARE_URL = "https://recoverymisfits.blogspot.com/";
-      const SHARE_LOGO_URL = "https://tacomike417.github.io/recoverymisfits-app/icon-512-splash.png";
+      const SHARE_LOGO_URL = "./icon-512-splash.png";
 
       const sobrietyDate = document.getElementById("sobrietyDate");
       const whyStaySober = document.getElementById("whyStaySober");
@@ -606,7 +596,6 @@
 
         const totalMinutes = Math.floor(diff / 60000);
         const totalHours = Math.floor(diff / 3600000);
-
         const years = Math.floor(totalDays / 365);
         const months = Math.floor(totalDays / 30.4375);
 
@@ -656,20 +645,58 @@
       function loadImage(src) {
         return new Promise(function(resolve, reject) {
           const img = new Image();
-          img.crossOrigin = "anonymous";
+
           img.onload = function() { resolve(img); };
-          img.onerror = function() { reject(new Error("Image failed to load")); };
+          img.onerror = function() { reject(new Error("Image failed to load: " + src)); };
+
+          if (/^https?:\/\//i.test(src) && !src.startsWith(window.location.origin)) {
+            img.crossOrigin = "anonymous";
+          }
+
           img.src = src;
         });
       }
 
       function canvasToBlob(canvas) {
         return new Promise(function(resolve, reject) {
-          canvas.toBlob(function(blob) {
-            if (blob) resolve(blob);
-            else reject(new Error("Canvas blob failed"));
-          }, "image/png");
+          try {
+            if (canvas.toBlob) {
+              canvas.toBlob(function(blob) {
+                if (blob) {
+                  resolve(blob);
+                  return;
+                }
+                reject(new Error("Canvas blob failed"));
+              }, "image/png");
+              return;
+            }
+
+            const dataUrl = canvas.toDataURL("image/png");
+            const byteString = atob(dataUrl.split(",")[1]);
+            const mimeString = dataUrl.split(",")[0].split(":")[1].split(";")[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+
+            for (let i = 0; i < byteString.length; i++) {
+              ia[i] = byteString.charCodeAt(i);
+            }
+
+            resolve(new Blob([ab], { type: mimeString }));
+          } catch (err) {
+            reject(err);
+          }
         });
+      }
+
+      function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
       }
 
       function roundRect(ctx, x, y, width, height, radius) {
@@ -752,17 +779,23 @@
         ctx.restore();
         ctx.globalAlpha = 1;
 
+        let logoLoaded = false;
         try {
           const logo = await loadImage(SHARE_LOGO_URL);
           ctx.drawImage(logo, 390, 55, 300, 300);
+          logoLoaded = true;
         } catch (e) {
-          ctx.fillStyle = "#e8dcc3";
-          ctx.font = "700 42px Roboto, Arial, sans-serif";
-          ctx.textAlign = "center";
-          ctx.fillText("RECOVERY MISFITS", 540, 180);
+          console.warn("Logo load failed:", e);
         }
 
         ctx.textAlign = "center";
+
+        if (!logoLoaded) {
+          ctx.fillStyle = "#e8dcc3";
+          ctx.font = "700 42px Roboto, Arial, sans-serif";
+          ctx.fillText("RECOVERY MISFITS", 540, 180);
+        }
+
         ctx.fillStyle = "#b9b2a4";
         ctx.font = "700 28px Roboto, Arial, sans-serif";
         ctx.fillText("RECOVERY MISFITS", 540, 380);
@@ -846,26 +879,25 @@
       async function shareCanvasImage(preferTitle) {
         const canvas = await makeShareImage();
         const blob = await canvasToBlob(canvas);
-        const file = new File([blob], "recovery-misfits-sobriety-card.png", { type: "image/png" });
-        const shareData = {
-          files: [file],
-          title: preferTitle || "My sobriety",
-          text: buildFriendsShareText()
-        };
 
-        if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
-          await navigator.share(shareData);
-          return "shared";
+        try {
+          if (typeof File !== "undefined") {
+            const file = new File([blob], "recovery-misfits-sobriety-card.png", { type: "image/png" });
+
+            if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                files: [file],
+                title: preferTitle || "My sobriety",
+                text: buildFriendsShareText()
+              });
+              return "shared";
+            }
+          }
+        } catch (err) {
+          console.warn("File share failed, falling back to download:", err);
         }
 
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "recovery-misfits-sobriety-card.png";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+        downloadBlob(blob, "recovery-misfits-sobriety-card.png");
         return "downloaded";
       }
 
@@ -906,7 +938,7 @@
           }
         } catch (e) {
           console.error(e);
-          alert("Could not create share card.");
+          alert("Could not create the share image.");
         }
       });
 
@@ -914,11 +946,11 @@
         try {
           const result = await shareCanvasImage("Share to Facebook");
           if (result === "downloaded") {
-            alert("Your browser cannot send the card straight to Facebook from this page, so the card was downloaded instead.");
+            alert("Your browser downloaded the card instead. You can upload that image to Facebook.");
           }
         } catch (e) {
           console.error(e);
-          alert("Could not create the Facebook share card.");
+          alert("Could not create the Facebook share image.");
         }
       });
 
@@ -953,7 +985,7 @@
           }
         } catch (e) {
           console.error(e);
-          alert("Could not create share card.");
+          alert("Could not create the share image.");
         }
       });
 
