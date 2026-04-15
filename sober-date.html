@@ -18,12 +18,12 @@
   <meta property="og:description" content="One day at a time. Still here. Track your sober date and share it with friends.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://recoverymisfits.blogspot.com/">
-  <meta property="og:image" content="https://blogger.googleusercontent.com/img/a/AVvXsEhMQkk3xaDJyzM5uvXRSakqjBxcP3TCgJsgZddmCHAjaJWRpwdVyLxsiX9WyMaPf-OewzrRFiiZLUNsFM9krRLpW6vbwxLoMLIc9ZLu9YvDzcAxFAjif8zgEL1zqIps6LIVRYkCUCNuT-Rh6RIETLU9z61WpcoWkU4qrT2vQFy4-2rvGDpwz_atWzZ4-sya=s1600">
+  <meta property="og:image" content="https://tacomike417.github.io/recoverymisfits-app/icon-512-splash.png">
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Recovery Misfits — Sobriety Counts">
   <meta name="twitter:description" content="One day at a time. Still here.">
-  <meta name="twitter:image" content="https://blogger.googleusercontent.com/img/a/AVvXsEhMQkk3xaDJyzM5uvXRSakqjBxcP3TCgJsgZddmCHAjaJWRpwdVyLxsiX9WyMaPf-OewzrRFiiZLUNsFM9krRLpW6vbwxLoMLIc9ZLu9YvDzcAxFAjif8zgEL1zqIps6LIVRYkCUCNuT-Rh6RIETLU9z61WpcoWkU4qrT2vQFy4-2rvGDpwz_atWzZ4-sya=s1600">
+  <meta name="twitter:image" content="https://tacomike417.github.io/recoverymisfits-app/icon-512-splash.png">
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;500;700;900&display=swap');
@@ -417,10 +417,7 @@
 
           <div class="shareFriendsSub">
             <button id="copyLinkBtn" type="button">Copy Recovery Misfits Link</button>
-            <a id="facebookShareBtn"
-               href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Frecoverymisfits.blogspot.com%2F"
-               target="_blank"
-               rel="noopener noreferrer">Share to Facebook</a>
+            <button id="facebookCardBtn" type="button">Share Card to Facebook</button>
           </div>
 
           <div class="btnRow">
@@ -430,7 +427,7 @@
         </div>
 
         <div class="tiny">
-          Share your sober time and point people to Recovery Misfits. On phones, the big button opens the share sheet for text, Facebook, Messenger, and more.
+          On supported phones, sharing the card opens your device share sheet so you can pick Facebook, Messages, and more. On desktop or unsupported browsers, the card image downloads instead.
         </div>
       </section>
 
@@ -459,7 +456,7 @@
         </div>
 
         <div class="tiny">
-          Your sobriety date matches the sober bar already in the app. The date uses the same local storage key your nav bar already uses: <strong>rm_sober_date</strong>.
+          Your sobriety date uses the same local storage key your nav bar already uses: <strong>rm_sober_date</strong>.
         </div>
       </section>
 
@@ -480,7 +477,7 @@
       const SOBER_KEY = "rm_sober_date";
       const REASON_KEY = "rm_sober_reason";
       const SHARE_URL = "https://recoverymisfits.blogspot.com/";
-      const SHARE_LOGO_URL = "https://blogger.googleusercontent.com/img/a/AVvXsEhMQkk3xaDJyzM5uvXRSakqjBxcP3TCgJsgZddmCHAjaJWRpwdVyLxsiX9WyMaPf-OewzrRFiiZLUNsFM9krRLpW6vbwxLoMLIc9ZLu9YvDzcAxFAjif8zgEL1zqIps6LIVRYkCUCNuT-Rh6RIETLU9z61WpcoWkU4qrT2vQFy4-2rvGDpwz_atWzZ4-sya=s1600";
+      const SHARE_LOGO_URL = "https://tacomike417.github.io/recoverymisfits-app/icon-512-splash.png";
 
       const sobrietyDate = document.getElementById("sobrietyDate");
       const whyStaySober = document.getElementById("whyStaySober");
@@ -499,6 +496,7 @@
       const resetBtn = document.getElementById("resetBtn");
       const shareFriendsBtn = document.getElementById("shareFriendsBtn");
       const copyLinkBtn = document.getElementById("copyLinkBtn");
+      const facebookCardBtn = document.getElementById("facebookCardBtn");
       const shareTextBtn = document.getElementById("shareTextBtn");
       const shareImageBtn = document.getElementById("shareImageBtn");
 
@@ -688,7 +686,7 @@
         ctx.closePath();
       }
 
-      function wrapTextLeft(ctx, text, x, y, maxWidth, lineHeight) {
+      function wrapTextLeft(ctx, text, x, y, maxWidth, lineHeight, maxY) {
         const words = String(text || "").split(" ");
         let line = "";
         let lineY = y;
@@ -700,13 +698,13 @@
             ctx.fillText(line.trim(), x, lineY);
             line = words[n] + " ";
             lineY += lineHeight;
-            if (lineY > 1160) break;
+            if (lineY > maxY) break;
           } else {
             line = testLine;
           }
         }
 
-        if (lineY <= 1160) {
+        if (lineY <= maxY) {
           ctx.fillText(line.trim(), x, lineY);
         }
       }
@@ -714,7 +712,7 @@
       async function makeShareImage() {
         const canvas = document.createElement("canvas");
         canvas.width = 1080;
-        canvas.height = 1350;
+        canvas.height = 1500;
 
         const ctx = canvas.getContext("2d");
         const daysText = dayCount.textContent || "0";
@@ -725,13 +723,13 @@
         ctx.fillStyle = "#070707";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const glow = ctx.createRadialGradient(540, 120, 80, 540, 120, 700);
+        const glow = ctx.createRadialGradient(540, 120, 80, 540, 120, 760);
         glow.addColorStop(0, "rgba(255,255,255,0.08)");
         glow.addColorStop(1, "rgba(255,255,255,0)");
         ctx.fillStyle = glow;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        roundRect(ctx, 38, 38, 1004, 1274, 36);
+        roundRect(ctx, 38, 38, 1004, 1424, 36);
         ctx.fillStyle = "#101010";
         ctx.fill();
         ctx.lineWidth = 3;
@@ -740,13 +738,13 @@
 
         ctx.save();
         ctx.beginPath();
-        roundRect(ctx, 38, 38, 1004, 1274, 36);
+        roundRect(ctx, 38, 38, 1004, 1424, 36);
         ctx.clip();
         ctx.globalAlpha = 0.03;
-        for (let i = -1300; i < 1500; i += 34) {
+        for (let i = -1300; i < 1700; i += 34) {
           ctx.beginPath();
           ctx.moveTo(i, 0);
-          ctx.lineTo(i + 900, 1350);
+          ctx.lineTo(i + 950, 1500);
           ctx.lineWidth = 10;
           ctx.strokeStyle = "#ffffff";
           ctx.stroke();
@@ -756,7 +754,7 @@
 
         try {
           const logo = await loadImage(SHARE_LOGO_URL);
-          ctx.drawImage(logo, 420, 60, 240, 240);
+          ctx.drawImage(logo, 390, 55, 300, 300);
         } catch (e) {
           ctx.fillStyle = "#e8dcc3";
           ctx.font = "700 42px Roboto, Arial, sans-serif";
@@ -767,42 +765,40 @@
         ctx.textAlign = "center";
         ctx.fillStyle = "#b9b2a4";
         ctx.font = "700 28px Roboto, Arial, sans-serif";
-        ctx.fillText("RECOVERY MISFITS", 540, 340);
+        ctx.fillText("RECOVERY MISFITS", 540, 380);
 
         ctx.fillStyle = "#f5f1e8";
         ctx.font = "900 44px Roboto, Arial, sans-serif";
-        ctx.fillText("SOBRIETY COUNTS", 540, 390);
+        ctx.fillText("SOBRIETY COUNTS", 540, 430);
 
         ctx.fillStyle = "#e8dcc3";
         ctx.font = "900 38px Roboto, Arial, sans-serif";
-        ctx.fillText("DAYS SOBER", 540, 470);
+        ctx.fillText("DAYS SOBER", 540, 510);
 
         ctx.fillStyle = "#f5f1e8";
         ctx.font = "400 220px Anton, Impact, sans-serif";
-        ctx.fillText(daysText, 540, 675);
+        ctx.fillText(daysText, 540, 715);
 
         ctx.fillStyle = "#b9b2a4";
         ctx.font = "700 34px Roboto, Arial, sans-serif";
-        ctx.fillText(since, 540, 740);
+        ctx.fillText(since, 540, 780);
 
         ctx.fillStyle = "#e8dcc3";
         ctx.font = "900 30px Roboto, Arial, sans-serif";
-        ctx.fillText("MILESTONES", 540, 820);
+        ctx.fillText("MILESTONES", 540, 850);
 
         const shareMilestones = [1, 7, 30, 60, 90, 180, 365, 730, 1095, 1825];
         const chipW = 180;
         const chipH = 54;
         const gap = 18;
         const startX = 111;
-        const rows = [
-          shareMilestones.slice(0, 5),
-          shareMilestones.slice(5, 10)
-        ];
+        const row1Y = 885;
+        const row2Y = 955;
 
-        rows.forEach((row, rowIndex) => {
+        [shareMilestones.slice(0, 5), shareMilestones.slice(5, 10)].forEach((row, rowIndex) => {
           row.forEach((m, i) => {
             const x = startX + i * (chipW + gap);
-            const y = 855 + rowIndex * 76;
+            const y = rowIndex === 0 ? row1Y : row2Y;
             const hit = totalDaysNum >= m;
 
             roundRect(ctx, x, y, chipW, chipH, 27);
@@ -820,9 +816,9 @@
         });
 
         if (reason) {
-          const trimmed = reason.length > 120 ? reason.slice(0, 117) + "..." : reason;
+          const trimmed = reason.length > 140 ? reason.slice(0, 137) + "..." : reason;
 
-          roundRect(ctx, 90, 1045, 900, 125, 24);
+          roundRect(ctx, 90, 1060, 900, 180, 24);
           ctx.fillStyle = "rgba(255,255,255,0.035)";
           ctx.fill();
           ctx.lineWidth = 2;
@@ -832,19 +828,45 @@
           ctx.textAlign = "left";
           ctx.fillStyle = "#b9b2a4";
           ctx.font = "900 22px Roboto, Arial, sans-serif";
-          ctx.fillText("WHY I STAY SOBER", 125, 1088);
+          ctx.fillText("WHY I STAY SOBER", 125, 1105);
 
           ctx.fillStyle = "#f5f1e8";
           ctx.font = "500 28px Roboto, Arial, sans-serif";
-          wrapTextLeft(ctx, trimmed, 125, 1135, 830, 36);
+          wrapTextLeft(ctx, trimmed, 125, 1150, 830, 36, 1215);
         }
 
         ctx.textAlign = "center";
         ctx.fillStyle = "#b9b2a4";
         ctx.font = "700 24px Roboto, Arial, sans-serif";
-        ctx.fillText("recoverymisfits.blogspot.com", 540, 1262);
+        ctx.fillText("recoverymisfits.blogspot.com", 540, 1395);
 
         return canvas;
+      }
+
+      async function shareCanvasImage(preferTitle) {
+        const canvas = await makeShareImage();
+        const blob = await canvasToBlob(canvas);
+        const file = new File([blob], "recovery-misfits-sobriety-card.png", { type: "image/png" });
+        const shareData = {
+          files: [file],
+          title: preferTitle || "My sobriety",
+          text: buildFriendsShareText()
+        };
+
+        if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+          await navigator.share(shareData);
+          return "shared";
+        }
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "recovery-misfits-sobriety-card.png";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+        return "downloaded";
       }
 
       saveBtn.addEventListener("click", function(){
@@ -878,34 +900,25 @@
 
       shareFriendsBtn.addEventListener("click", async function(){
         try {
-          const canvas = await makeShareImage();
-          const blob = await canvasToBlob(canvas);
-          const file = new File([blob], "recovery-misfits-sobriety-card.png", { type: "image/png" });
-
-          if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({
-                files: [file],
-                title: "My sobriety",
-                text: buildFriendsShareText(),
-                url: SHARE_URL
-              });
-              return;
-            } catch (e) {}
+          const result = await shareCanvasImage("My sobriety");
+          if (result === "downloaded") {
+            alert("Sobriety share card downloaded.");
           }
-
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "recovery-misfits-sobriety-card.png";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-          alert("Sobriety share card downloaded.");
         } catch (e) {
           console.error(e);
           alert("Could not create share card.");
+        }
+      });
+
+      facebookCardBtn.addEventListener("click", async function(){
+        try {
+          const result = await shareCanvasImage("Share to Facebook");
+          if (result === "downloaded") {
+            alert("Your browser cannot send the card straight to Facebook from this page, so the card was downloaded instead.");
+          }
+        } catch (e) {
+          console.error(e);
+          alert("Could not create the Facebook share card.");
         }
       });
 
@@ -934,31 +947,10 @@
 
       shareImageBtn.addEventListener("click", async function(){
         try {
-          const canvas = await makeShareImage();
-          const blob = await canvasToBlob(canvas);
-          const file = new File([blob], "recovery-misfits-sobriety-card.png", { type: "image/png" });
-
-          if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({
-                files: [file],
-                title: "My sobriety",
-                text: buildFriendsShareText(),
-                url: SHARE_URL
-              });
-              return;
-            } catch (e) {}
+          const result = await shareCanvasImage("My sobriety");
+          if (result === "downloaded") {
+            alert("Sobriety share card downloaded.");
           }
-
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "recovery-misfits-sobriety-card.png";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-          alert("Sobriety share card downloaded.");
         } catch (e) {
           console.error(e);
           alert("Could not create share card.");
