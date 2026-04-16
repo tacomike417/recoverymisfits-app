@@ -1,4 +1,4 @@
-// nav.js — Recovery Misfits v2 merged bottom nav with sober tab on the left
+// nav.js — Recovery Misfits v2 bottom app bar with left sober panel
 (() => {
   const mount = document.getElementById("rm-bottom-nav");
   if (!mount) return;
@@ -49,6 +49,7 @@
   function parseDMYToYMD(value) {
     const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(String(value || "").trim());
     if (!m) return "";
+
     const da = Number(m[1]);
     const mo = Number(m[2]);
     const y = Number(m[3]);
@@ -84,8 +85,12 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = `
+      html, body {
+        overflow-x: hidden;
+      }
+
       body {
-        padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
       }
 
       #rm-bottom-nav {
@@ -100,48 +105,146 @@
 
       #rm-bottom-nav .rm-nav-wrap {
         width: 100%;
-        max-width: 980px;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 0 8px calc(env(safe-area-inset-bottom, 0px) + 8px);
+        padding: 0 10px calc(env(safe-area-inset-bottom, 0px) + 10px);
         box-sizing: border-box;
         pointer-events: auto;
       }
 
-      #bottomBar {
-        display: grid;
-        grid-template-columns: 1.45fr repeat(5, 1fr);
-        gap: 6px;
+      #rmAppBar {
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
         width: 100%;
         margin: 0 auto;
-        padding: 6px;
-        border-radius: 18px;
-        background: rgba(10,10,10,.96);
+        padding: 8px;
+        border-radius: 20px;
+        background: rgba(10,10,10,.97);
         border: 1px solid rgba(255,255,255,.08);
         box-shadow: 0 10px 30px rgba(0,0,0,.28);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
-        align-items: stretch;
+        box-sizing: border-box;
       }
 
-      .navItem,
-      .soberTab {
-        min-height: 58px;
-        border-radius: 14px;
+      .rm-sober-panel {
+        flex: 0 0 310px;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+        color: #f5f5f5;
+        border: 1px solid rgba(214,179,106,.18);
+        border-left: 4px solid #d6b36a;
+        box-sizing: border-box;
+      }
+
+      .rm-sober-copy {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .rm-sober-kicker {
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: #d6b36a;
+        margin-bottom: 2px;
+        line-height: 1;
+      }
+
+      .rm-sober-main {
+        font-size: 14px;
+        font-weight: 900;
+        line-height: 1.1;
+        color: #fff;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .rm-sober-sub {
+        font-size: 11px;
+        color: rgba(255,255,255,.72);
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .rm-sober-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 0 0 auto;
+      }
+
+      .rm-sober-btn {
+        appearance: none;
+        border-radius: 10px;
+        padding: 6px 8px;
         text-decoration: none;
-        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        line-height: 1;
+        white-space: nowrap;
+        border: 1px solid rgba(255,255,255,.12);
+        transition: transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
+      }
+
+      .rm-sober-btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .rm-sober-btn:active {
+        transform: scale(.98);
+      }
+
+      .rm-sober-btn.set {
+        background: #d6b36a;
+        color: #111;
+        border-color: #d6b36a;
+      }
+
+      .rm-sober-btn.share {
+        background: transparent;
+        color: #f5f5f5;
+        border-color: rgba(255,255,255,.16);
+      }
+
+      .rm-nav-links {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 6px;
       }
 
       .navItem {
+        min-height: 68px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 4px;
+        text-decoration: none;
         color: rgba(255,255,255,.78);
+        border-radius: 14px;
         font-size: 11px;
         font-weight: 700;
         letter-spacing: .2px;
         transition: background .18s ease, color .18s ease, transform .18s ease;
+        -webkit-tap-highlight-color: transparent;
       }
 
       .navItem:hover {
@@ -156,97 +259,6 @@
       .navItem.active {
         background: #f3e0ac;
         color: #111;
-      }
-
-      .soberTab {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        padding: 8px 10px;
-        background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
-        color: #f5f5f5;
-        border: 1px solid rgba(214,179,106,.20);
-        border-left: 4px solid #d6b36a;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
-      }
-
-      .soberTab-copy {
-        min-width: 0;
-        flex: 1 1 auto;
-      }
-
-      .soberTab-kicker {
-        font-size: 8px;
-        font-weight: 800;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-        color: #d6b36a;
-        margin-bottom: 2px;
-        line-height: 1;
-      }
-
-      .soberTab-main {
-        font-size: 12px;
-        font-weight: 900;
-        line-height: 1.1;
-        color: #fff;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .soberTab-sub {
-        font-size: 9px;
-        color: rgba(255,255,255,.70);
-        line-height: 1.15;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin-top: 1px;
-      }
-
-      .soberTab-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        flex: 0 0 auto;
-      }
-
-      .soberBtn {
-        appearance: none;
-        border-radius: 9px;
-        padding: 5px 7px;
-        text-decoration: none;
-        cursor: pointer;
-        font-size: 9px;
-        font-weight: 900;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        line-height: 1;
-        white-space: nowrap;
-        border: 1px solid rgba(255,255,255,.12);
-        transition: transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
-      }
-
-      .soberBtn:hover {
-        transform: translateY(-1px);
-      }
-
-      .soberBtn:active {
-        transform: scale(.98);
-      }
-
-      .soberBtn.set {
-        background: #d6b36a;
-        color: #111;
-        border-color: #d6b36a;
-      }
-
-      .soberBtn.share {
-        background: transparent;
-        color: #f5f5f5;
-        border-color: rgba(255,255,255,.16);
       }
 
       .ico {
@@ -350,57 +362,80 @@
         border: 1px solid #d6b36a;
       }
 
-      @media (max-width: 700px) {
+      @media (max-width: 900px) {
         body {
-          padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+          padding-bottom: calc(172px + env(safe-area-inset-bottom, 0px));
         }
 
-        #rm-bottom-nav .rm-nav-wrap {
-          padding-left: 6px;
-          padding-right: 6px;
+        #rmAppBar {
+          flex-direction: column;
         }
 
-        #bottomBar {
-          grid-template-columns: 1.65fr repeat(5, 1fr);
-          gap: 4px;
-          padding: 5px;
-          border-radius: 16px;
+        .rm-sober-panel {
+          flex: 1 1 auto;
+          width: 100%;
         }
 
-        .navItem,
-        .soberTab {
-          min-height: 54px;
+        .rm-nav-links {
+          width: 100%;
+          grid-template-columns: repeat(6, minmax(0, 1fr));
         }
 
         .navItem {
-          font-size: 9px;
+          min-height: 58px;
+          font-size: 10px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding-bottom: calc(170px + env(safe-area-inset-bottom, 0px));
         }
 
-        .soberTab {
-          padding: 6px 7px;
+        #rm-bottom-nav .rm-nav-wrap {
+          padding-left: 8px;
+          padding-right: 8px;
+        }
+
+        #rmAppBar {
+          padding: 6px;
           gap: 6px;
+          border-radius: 16px;
         }
 
-        .soberTab-kicker {
-          font-size: 7px;
+        .rm-sober-panel {
+          padding: 8px 9px;
+          border-radius: 13px;
         }
 
-        .soberTab-main {
-          font-size: 11px;
+        .rm-sober-main {
+          font-size: 13px;
         }
 
-        .soberTab-sub {
-          font-size: 8px;
+        .rm-sober-sub {
+          font-size: 10px;
         }
 
-        .soberTab-actions {
-          gap: 4px;
+        .rm-sober-actions {
+          flex-direction: row;
+          gap: 5px;
         }
 
-        .soberBtn {
-          padding: 4px 6px;
+        .rm-sober-btn {
+          padding: 6px 7px;
           font-size: 8px;
           border-radius: 8px;
+        }
+
+        .rm-nav-links {
+          gap: 4px;
+          grid-template-columns: repeat(6, minmax(0, 1fr));
+        }
+
+        .navItem {
+          min-height: 52px;
+          font-size: 9px;
+          border-radius: 12px;
         }
 
         .ico {
@@ -411,16 +446,6 @@
         .rm-ico {
           width: 20px;
           height: 20px;
-        }
-      }
-
-      @media (max-width: 520px) {
-        #bottomBar {
-          grid-template-columns: 1.8fr repeat(5, 1fr);
-        }
-
-        .soberTab-sub {
-          display: none;
         }
       }
     `;
@@ -441,7 +466,8 @@
     { href: "./tools.html", label: "Tools", icon: ICONS.tools },
     { href: "./readings.html", label: "Readings", icon: ICONS.book },
     { href: "./audio.html", label: "Audio", icon: ICONS.audio },
-    { href: "./fun.html", label: "Fun", icon: ICONS.fun }
+    { href: "./fun.html", label: "Fun", icon: ICONS.fun },
+    { href: "./updates.html", label: "Updates", icon: ICONS.updates }
   ];
 
   injectStyles();
@@ -449,37 +475,37 @@
   const wrapper = document.createElement("div");
   wrapper.className = "rm-nav-wrap";
 
-  const nav = document.createElement("nav");
-  nav.id = "bottomBar";
+  const appBar = document.createElement("div");
+  appBar.id = "rmAppBar";
 
-  const soberTab = document.createElement("div");
-  soberTab.className = "soberTab";
-  soberTab.innerHTML = `
-    <div class="soberTab-copy">
-      <div class="soberTab-kicker">One Day At A Time</div>
-      <div class="soberTab-main" id="rmSoberBarText">Sober Date Not Set</div>
-      <div class="soberTab-sub" id="rmSoberBarSub">Set your date and keep going.</div>
+  const soberPanel = document.createElement("div");
+  soberPanel.className = "rm-sober-panel";
+  soberPanel.innerHTML = `
+    <div class="rm-sober-copy">
+      <div class="rm-sober-kicker">Sober Date</div>
+      <div class="rm-sober-main" id="rmSoberBarText">None</div>
+      <div class="rm-sober-sub" id="rmSoberBarSub">Home feeling ---</div>
     </div>
-    <div class="soberTab-actions">
-      <button type="button" class="soberBtn set" id="rmSetSoberDateBtn">Set</button>
-      <a class="soberBtn share" id="rmShareSoberDateBtn" href="./sober-date.html">Share</a>
+    <div class="rm-sober-actions">
+      <button type="button" class="rm-sober-btn set" id="rmSetSoberDateBtn">Set</button>
+      <a class="rm-sober-btn share" id="rmShareSoberDateBtn" href="./sober-date.html">Share</a>
     </div>
   `;
 
-  function refreshSoberTab() {
-    const main = soberTab.querySelector("#rmSoberBarText");
-    const sub = soberTab.querySelector("#rmSoberBarSub");
+  function refreshSoberPanel() {
+    const main = soberPanel.querySelector("#rmSoberBarText");
+    const sub = soberPanel.querySelector("#rmSoberBarSub");
 
     const days = computeSoberDays();
     const ymd = getSoberDateYMD();
 
     if (!ymd || days === null) {
-      main.textContent = "Sober Date Not Set";
-      sub.textContent = "Set your date and keep going.";
+      main.textContent = "None";
+      sub.textContent = "Set your sober date";
       return;
     }
 
-    main.textContent = `${days.toLocaleString()} ${days === 1 ? "Day" : "Days"} Sober`;
+    main.textContent = `${days.toLocaleString()} days`;
     sub.textContent = `Since ${ymdToDisplayDMY(ymd)}`;
   }
 
@@ -528,7 +554,7 @@
       }
       localStorage.setItem(SOBER_KEY, ymd);
       modal.classList.remove("show");
-      refreshSoberTab();
+      refreshSoberPanel();
     });
 
     modal.addEventListener("click", (e) => {
@@ -542,14 +568,16 @@
     const modal = ensureModal();
     const input = modal.querySelector("#rmSoberDateInput");
     const current = getSoberDateYMD();
+
     input.value = current ? ymdToDisplayDMY(current) : "";
     modal.classList.add("show");
     setTimeout(() => input.focus(), 30);
   }
 
-  const cur = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+  const navLinks = document.createElement("div");
+  navLinks.className = "rm-nav-links";
 
-  nav.appendChild(soberTab);
+  const cur = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
 
   items.forEach((it) => {
     const a = document.createElement("a");
@@ -560,17 +588,19 @@
     if (hrefFile === cur) a.classList.add("active");
 
     a.innerHTML = `<span class="ico">${it.icon}</span><span>${it.label}</span>`;
-    nav.appendChild(a);
+    navLinks.appendChild(a);
   });
 
-  wrapper.appendChild(nav);
+  appBar.appendChild(soberPanel);
+  appBar.appendChild(navLinks);
+  wrapper.appendChild(appBar);
   mount.replaceChildren(wrapper);
 
-  const setBtn = soberTab.querySelector("#rmSetSoberDateBtn");
+  const setBtn = soberPanel.querySelector("#rmSetSoberDateBtn");
   if (setBtn) {
     setBtn.addEventListener("click", openSoberModal);
   }
 
-  refreshSoberTab();
-  setInterval(refreshSoberTab, 60000);
+  refreshSoberPanel();
+  setInterval(refreshSoberPanel, 60000);
 })();
