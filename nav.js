@@ -1,4 +1,4 @@
-// nav.js — Recovery Misfits v2 shared bottom nav + sober date bar
+// nav.js — Recovery Misfits v2 merged bottom nav with sober tab on the left
 (() => {
   const mount = document.getElementById("rm-bottom-nav");
   if (!mount) return;
@@ -85,7 +85,7 @@
     style.id = STYLE_ID;
     style.textContent = `
       body {
-        padding-bottom: calc(138px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
       }
 
       #rm-bottom-nav {
@@ -102,132 +102,46 @@
         width: 100%;
         max-width: 980px;
         margin: 0 auto;
-        padding: 0 10px calc(env(safe-area-inset-bottom, 0px) + 8px);
+        padding: 0 8px calc(env(safe-area-inset-bottom, 0px) + 8px);
         box-sizing: border-box;
         pointer-events: auto;
       }
 
-      #rmSoberBar {
-        width: 100%;
-        margin: 0 auto 6px;
-        padding: 8px 10px;
-        border-radius: 14px;
-        background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
-        color: #f5f5f5;
-        border: 1px solid rgba(214,179,106,.20);
-        border-left: 4px solid #d6b36a;
-        box-shadow: 0 8px 20px rgba(0,0,0,.24);
-        box-sizing: border-box;
-      }
-
-      .rm-sober-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-      }
-
-      .rm-sober-copy {
-        min-width: 0;
-        flex: 1 1 auto;
-      }
-
-      .rm-sober-kicker {
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-        color: #d6b36a;
-        margin-bottom: 2px;
-      }
-
-      #rmSoberBarText {
-        font-size: 14px;
-        font-weight: 900;
-        line-height: 1.1;
-        letter-spacing: .02em;
-        margin-bottom: 1px;
-      }
-
-      #rmSoberBarSub {
-        font-size: 11px;
-        color: rgba(255,255,255,.72);
-        line-height: 1.2;
-      }
-
-      .rm-sober-actions {
-        display: flex;
-        flex-direction: row;
-        gap: 6px;
-        flex: 0 0 auto;
-      }
-
-      .rm-sober-btn {
-        appearance: none;
-        border: 1px solid rgba(255,255,255,.12);
-        border-radius: 10px;
-        padding: 6px 8px;
-        text-decoration: none;
-        cursor: pointer;
-        font-size: 10px;
-        font-weight: 900;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        line-height: 1;
-        white-space: nowrap;
-        transition: transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
-      }
-
-      .rm-sober-btn:hover {
-        transform: translateY(-1px);
-      }
-
-      .rm-sober-btn:active {
-        transform: scale(.98);
-      }
-
-      .rm-sober-btn.set {
-        background: #d6b36a;
-        color: #111;
-        border-color: #d6b36a;
-      }
-
-      .rm-sober-btn.share {
-        background: transparent;
-        color: #f5f5f5;
-        border-color: rgba(255,255,255,.18);
-      }
-
       #bottomBar {
         display: grid;
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: 1.45fr repeat(5, 1fr);
         gap: 6px;
         width: 100%;
         margin: 0 auto;
         padding: 6px;
-        border-radius: 16px;
+        border-radius: 18px;
         background: rgba(10,10,10,.96);
         border: 1px solid rgba(255,255,255,.08);
         box-shadow: 0 10px 30px rgba(0,0,0,.28);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
+        align-items: stretch;
+      }
+
+      .navItem,
+      .soberTab {
+        min-height: 58px;
+        border-radius: 14px;
+        text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
       }
 
       .navItem {
-        min-height: 56px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 4px;
-        text-decoration: none;
         color: rgba(255,255,255,.78);
-        border-radius: 14px;
         font-size: 11px;
         font-weight: 700;
         letter-spacing: .2px;
         transition: background .18s ease, color .18s ease, transform .18s ease;
-        -webkit-tap-highlight-color: transparent;
       }
 
       .navItem:hover {
@@ -242,6 +156,97 @@
       .navItem.active {
         background: #f3e0ac;
         color: #111;
+      }
+
+      .soberTab {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 10px;
+        background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
+        color: #f5f5f5;
+        border: 1px solid rgba(214,179,106,.20);
+        border-left: 4px solid #d6b36a;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+      }
+
+      .soberTab-copy {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .soberTab-kicker {
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: #d6b36a;
+        margin-bottom: 2px;
+        line-height: 1;
+      }
+
+      .soberTab-main {
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.1;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .soberTab-sub {
+        font-size: 9px;
+        color: rgba(255,255,255,.70);
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 1px;
+      }
+
+      .soberTab-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex: 0 0 auto;
+      }
+
+      .soberBtn {
+        appearance: none;
+        border-radius: 9px;
+        padding: 5px 7px;
+        text-decoration: none;
+        cursor: pointer;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        line-height: 1;
+        white-space: nowrap;
+        border: 1px solid rgba(255,255,255,.12);
+        transition: transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
+      }
+
+      .soberBtn:hover {
+        transform: translateY(-1px);
+      }
+
+      .soberBtn:active {
+        transform: scale(.98);
+      }
+
+      .soberBtn.set {
+        background: #d6b36a;
+        color: #111;
+        border-color: #d6b36a;
+      }
+
+      .soberBtn.share {
+        background: transparent;
+        color: #f5f5f5;
+        border-color: rgba(255,255,255,.16);
       }
 
       .ico {
@@ -347,53 +352,55 @@
 
       @media (max-width: 700px) {
         body {
-          padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
+          padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
         }
 
         #rm-bottom-nav .rm-nav-wrap {
-          padding-left: 8px;
-          padding-right: 8px;
-        }
-
-        #rmSoberBar {
-          padding: 7px 8px;
-          border-radius: 12px;
-        }
-
-        .rm-sober-top {
-          gap: 8px;
-        }
-
-        .rm-sober-kicker {
-          font-size: 8px;
-        }
-
-        #rmSoberBarText {
-          font-size: 13px;
-        }
-
-        #rmSoberBarSub {
-          font-size: 10px;
-        }
-
-        .rm-sober-actions {
-          gap: 5px;
-        }
-
-        .rm-sober-btn {
-          padding: 6px 7px;
-          font-size: 9px;
+          padding-left: 6px;
+          padding-right: 6px;
         }
 
         #bottomBar {
+          grid-template-columns: 1.65fr repeat(5, 1fr);
           gap: 4px;
-          padding: 6px;
+          padding: 5px;
           border-radius: 16px;
         }
 
+        .navItem,
+        .soberTab {
+          min-height: 54px;
+        }
+
         .navItem {
-          min-height: 52px;
-          font-size: 10px;
+          font-size: 9px;
+        }
+
+        .soberTab {
+          padding: 6px 7px;
+          gap: 6px;
+        }
+
+        .soberTab-kicker {
+          font-size: 7px;
+        }
+
+        .soberTab-main {
+          font-size: 11px;
+        }
+
+        .soberTab-sub {
+          font-size: 8px;
+        }
+
+        .soberTab-actions {
+          gap: 4px;
+        }
+
+        .soberBtn {
+          padding: 4px 6px;
+          font-size: 8px;
+          border-radius: 8px;
         }
 
         .ico {
@@ -404,6 +411,16 @@
         .rm-ico {
           width: 20px;
           height: 20px;
+        }
+      }
+
+      @media (max-width: 520px) {
+        #bottomBar {
+          grid-template-columns: 1.8fr repeat(5, 1fr);
+        }
+
+        .soberTab-sub {
+          display: none;
         }
       }
     `;
@@ -424,8 +441,7 @@
     { href: "./tools.html", label: "Tools", icon: ICONS.tools },
     { href: "./readings.html", label: "Readings", icon: ICONS.book },
     { href: "./audio.html", label: "Audio", icon: ICONS.audio },
-    { href: "./fun.html", label: "Fun", icon: ICONS.fun },
-    { href: "./updates.html", label: "Updates", icon: ICONS.updates }
+    { href: "./fun.html", label: "Fun", icon: ICONS.fun }
   ];
 
   injectStyles();
@@ -433,25 +449,26 @@
   const wrapper = document.createElement("div");
   wrapper.className = "rm-nav-wrap";
 
-  const soberBar = document.createElement("div");
-  soberBar.id = "rmSoberBar";
-  soberBar.innerHTML = `
-    <div class="rm-sober-top">
-      <div class="rm-sober-copy">
-        <div class="rm-sober-kicker">One Day At A Time</div>
-        <div id="rmSoberBarText">Sober Date Not Set</div>
-        <div id="rmSoberBarSub">Set your date and keep going.</div>
-      </div>
-      <div class="rm-sober-actions">
-        <button type="button" class="rm-sober-btn set" id="rmSetSoberDateBtn">Set</button>
-        <a class="rm-sober-btn share" id="rmShareSoberDateBtn" href="./sober-date.html">Share</a>
-      </div>
+  const nav = document.createElement("nav");
+  nav.id = "bottomBar";
+
+  const soberTab = document.createElement("div");
+  soberTab.className = "soberTab";
+  soberTab.innerHTML = `
+    <div class="soberTab-copy">
+      <div class="soberTab-kicker">One Day At A Time</div>
+      <div class="soberTab-main" id="rmSoberBarText">Sober Date Not Set</div>
+      <div class="soberTab-sub" id="rmSoberBarSub">Set your date and keep going.</div>
+    </div>
+    <div class="soberTab-actions">
+      <button type="button" class="soberBtn set" id="rmSetSoberDateBtn">Set</button>
+      <a class="soberBtn share" id="rmShareSoberDateBtn" href="./sober-date.html">Share</a>
     </div>
   `;
 
-  function refreshSoberBar() {
-    const main = soberBar.querySelector("#rmSoberBarText");
-    const sub = soberBar.querySelector("#rmSoberBarSub");
+  function refreshSoberTab() {
+    const main = soberTab.querySelector("#rmSoberBarText");
+    const sub = soberTab.querySelector("#rmSoberBarSub");
 
     const days = computeSoberDays();
     const ymd = getSoberDateYMD();
@@ -511,7 +528,7 @@
       }
       localStorage.setItem(SOBER_KEY, ymd);
       modal.classList.remove("show");
-      refreshSoberBar();
+      refreshSoberTab();
     });
 
     modal.addEventListener("click", (e) => {
@@ -525,16 +542,14 @@
     const modal = ensureModal();
     const input = modal.querySelector("#rmSoberDateInput");
     const current = getSoberDateYMD();
-
     input.value = current ? ymdToDisplayDMY(current) : "";
     modal.classList.add("show");
     setTimeout(() => input.focus(), 30);
   }
 
-  const nav = document.createElement("nav");
-  nav.id = "bottomBar";
-
   const cur = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+
+  nav.appendChild(soberTab);
 
   items.forEach((it) => {
     const a = document.createElement("a");
@@ -548,15 +563,14 @@
     nav.appendChild(a);
   });
 
-  wrapper.appendChild(soberBar);
   wrapper.appendChild(nav);
   mount.replaceChildren(wrapper);
 
-  const setBtn = soberBar.querySelector("#rmSetSoberDateBtn");
+  const setBtn = soberTab.querySelector("#rmSetSoberDateBtn");
   if (setBtn) {
     setBtn.addEventListener("click", openSoberModal);
   }
 
-  refreshSoberBar();
-  setInterval(refreshSoberBar, 60000);
+  refreshSoberTab();
+  setInterval(refreshSoberTab, 60000);
 })();
