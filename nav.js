@@ -85,7 +85,7 @@
     style.id = STYLE_ID;
     style.textContent = `
       body {
-        padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(138px + env(safe-area-inset-bottom, 0px));
       }
 
       #rm-bottom-nav {
@@ -109,22 +109,22 @@
 
       #rmSoberBar {
         width: 100%;
-        margin: 0 auto 8px;
-        padding: 12px 14px;
-        border-radius: 16px;
+        margin: 0 auto 6px;
+        padding: 8px 10px;
+        border-radius: 14px;
         background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
         color: #f5f5f5;
-        border: 1px solid rgba(214,179,106,.22);
+        border: 1px solid rgba(214,179,106,.20);
         border-left: 4px solid #d6b36a;
-        box-shadow: 0 10px 30px rgba(0,0,0,.28);
+        box-shadow: 0 8px 20px rgba(0,0,0,.24);
         box-sizing: border-box;
       }
 
       .rm-sober-top {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        gap: 12px;
+        gap: 10px;
       }
 
       .rm-sober-copy {
@@ -133,43 +133,43 @@
       }
 
       .rm-sober-kicker {
-        font-size: 10px;
+        font-size: 9px;
         font-weight: 800;
-        letter-spacing: .16em;
+        letter-spacing: .14em;
         text-transform: uppercase;
         color: #d6b36a;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
       }
 
       #rmSoberBarText {
-        font-size: 17px;
+        font-size: 14px;
         font-weight: 900;
         line-height: 1.1;
         letter-spacing: .02em;
-        margin-bottom: 3px;
+        margin-bottom: 1px;
       }
 
       #rmSoberBarSub {
-        font-size: 12px;
+        font-size: 11px;
         color: rgba(255,255,255,.72);
-        line-height: 1.25;
+        line-height: 1.2;
       }
 
       .rm-sober-actions {
         display: flex;
-        flex-direction: column;
-        gap: 8px;
+        flex-direction: row;
+        gap: 6px;
         flex: 0 0 auto;
       }
 
       .rm-sober-btn {
         appearance: none;
         border: 1px solid rgba(255,255,255,.12);
-        border-radius: 12px;
-        padding: 10px 12px;
+        border-radius: 10px;
+        padding: 6px 8px;
         text-decoration: none;
         cursor: pointer;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 900;
         letter-spacing: .08em;
         text-transform: uppercase;
@@ -204,8 +204,8 @@
         gap: 6px;
         width: 100%;
         margin: 0 auto;
-        padding: 8px;
-        border-radius: 20px;
+        padding: 6px;
+        border-radius: 16px;
         background: rgba(10,10,10,.96);
         border: 1px solid rgba(255,255,255,.08);
         box-shadow: 0 10px 30px rgba(0,0,0,.28);
@@ -214,7 +214,7 @@
       }
 
       .navItem {
-        min-height: 58px;
+        min-height: 56px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -347,7 +347,7 @@
 
       @media (max-width: 700px) {
         body {
-          padding-bottom: calc(175px + env(safe-area-inset-bottom, 0px));
+          padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
         }
 
         #rm-bottom-nav .rm-nav-wrap {
@@ -355,19 +355,34 @@
           padding-right: 8px;
         }
 
+        #rmSoberBar {
+          padding: 7px 8px;
+          border-radius: 12px;
+        }
+
         .rm-sober-top {
-          flex-direction: column;
-          align-items: stretch;
+          gap: 8px;
+        }
+
+        .rm-sober-kicker {
+          font-size: 8px;
+        }
+
+        #rmSoberBarText {
+          font-size: 13px;
+        }
+
+        #rmSoberBarSub {
+          font-size: 10px;
         }
 
         .rm-sober-actions {
-          flex-direction: row;
-          width: 100%;
+          gap: 5px;
         }
 
         .rm-sober-btn {
-          flex: 1 1 0;
-          text-align: center;
+          padding: 6px 7px;
+          font-size: 9px;
         }
 
         #bottomBar {
@@ -377,7 +392,7 @@
         }
 
         .navItem {
-          min-height: 54px;
+          min-height: 52px;
           font-size: 10px;
         }
 
@@ -429,7 +444,7 @@
       </div>
       <div class="rm-sober-actions">
         <button type="button" class="rm-sober-btn set" id="rmSetSoberDateBtn">Set</button>
-        <a class="rm-sober-btn share" id="rmShareSoberDateBtn" href="./sober-date.html">Share With Friends</a>
+        <a class="rm-sober-btn share" id="rmShareSoberDateBtn" href="./sober-date.html">Share</a>
       </div>
     </div>
   `;
