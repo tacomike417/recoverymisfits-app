@@ -224,6 +224,13 @@
       display:flex; align-items:center; gap:8px; flex-wrap:wrap;
     }
     .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+    .rowActions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
     .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none; font-weight:900;}
 
     /* ===== SAGE GREEN "PLAYING" CHAPTER ROW ===== */
@@ -533,11 +540,11 @@
       { type:"mp3_book", key:"gorilla",    title: BOOKS.gorilla.title,    sub: BOOKS.gorilla.sub },
       { type:"mp3_book", key:"sweatpants", title: BOOKS.sweatpants.title, sub: BOOKS.sweatpants.sub },
 
-      { type:"yt_playlist", key:"joe",    title:"Joe & Charlie",  sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E" },
-      { type:"yt_playlist", key:"martin", title:"Father Martin",  sub:"Chalk Talks",    id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf" },
-      { type:"yt_playlist", key:"chuck",  title:"Chuck C",        sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA" },
-      { type:"yt_playlist", key:"allen",  title:"Allen McGinnis", sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE" },
-      { type:"yt_playlist", key:"stepwork", title:"Danny's Big Book Study", sub:"YouTube Playlist", id:"PLcWUlHHreIu63jNVOsrx1NiRPv25Q_BPn" }
+      { type:"yt_playlist", key:"joe",    title:"Joe & Charlie",  sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E", randomMax:50 },
+      { type:"yt_playlist", key:"martin", title:"Father Martin",  sub:"Chalk Talks",    id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf", randomMax:50 },
+      { type:"yt_playlist", key:"chuck",  title:"Chuck C",        sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA", randomMax:50 },
+      { type:"yt_playlist", key:"allen",  title:"Allen McGinnis", sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE", randomMax:50 },
+      { type:"yt_playlist", key:"stepwork", title:"Danny's Big Book Study", sub:"YouTube Playlist", id:"PLcWUlHHreIu63jNVOsrx1NiRPv25Q_BPn", randomMax:50 }
     ];
 
     const libraryHost = document.getElementById("library");
@@ -748,7 +755,7 @@
     stopBtn.addEventListener("click", stopEverything);
     unloadBtn.addEventListener("click", unloadEverything);
 
-    function playYouTubePlaylist(title, sub, listId){
+    function playYouTubePlaylist(title, sub, listId, index=0){
       stopEverything();
       mp3Area.style.display = "none";
 
@@ -757,10 +764,43 @@
       playerAreaSub.textContent = "";
 
       ytArea.style.display = "block";
-      ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(listId)}`;
+
+      const safeListId = encodeURIComponent(listId);
+      const safeIndex = Math.max(0, parseInt(index, 10) || 0);
+      ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${safeListId}&index=${safeIndex}`;
 
       showPlayerArea();
-      toast("Playing: " + title);
+      toast(safeIndex > 0 ? "Surprise loaded: " + title : "Playing: " + title);
+    }
+
+    function openYouTubePlaylist(listId, index=0){
+      const safeListId = encodeURIComponent(listId);
+      const safeIndex = Math.max(0, parseInt(index, 10) || 0);
+
+      // Opens YouTube itself, which gives your logged-in YouTube/Premium session the best chance to kick in.
+      const url = safeIndex > 0
+        ? `https://www.youtube.com/playlist?list=${safeListId}&index=${safeIndex}`
+        : `https://www.youtube.com/playlist?list=${safeListId}`;
+
+      window.open(url, "_blank", "noopener");
+    }
+
+    function randomPlaylistIndex(item){
+      // YouTube embeds don't expose playlist contents to this app without an API key.
+      // This uses a simple "random starting position" number.
+      // If a playlist has more/less than 50 videos, adjust randomMax on that LIBRARY item.
+      const max = Math.max(1, parseInt(item.randomMax || 50, 10));
+      return Math.floor(Math.random() * max);
+    }
+
+    function surpriseYouTubePlaylist(item){
+      const idx = randomPlaylistIndex(item);
+
+      // Load the random-ish starting spot in the embedded player.
+      playYouTubePlaylist(item.title, item.sub, item.id, idx);
+
+      // Also offer the clean YouTube app/site behavior from the toast.
+      toast("Surprise Me: " + item.title);
     }
 
     function showMp3Book(bookKey){
@@ -899,6 +939,9 @@
 
         left.appendChild(col);
 
+        const rowActions = document.createElement("div");
+        rowActions.className = "rowActions";
+
         const playBtn = document.createElement("button");
         playBtn.className = "btn primary";
         playBtn.type = "button";
@@ -930,8 +973,35 @@
           runSelectionAndPlay();
         });
 
+        rowActions.appendChild(playBtn);
+
+        if(item.type === "yt_playlist"){
+          const ytBtn = document.createElement("button");
+          ytBtn.className = "btn";
+          ytBtn.type = "button";
+          ytBtn.textContent = "YouTube";
+          ytBtn.addEventListener("click", (e)=>{
+            e.stopPropagation();
+            selectLibraryRow(item.key);
+            openYouTubePlaylist(item.id);
+          });
+
+          const randomBtn = document.createElement("button");
+          randomBtn.className = "btn";
+          randomBtn.type = "button";
+          randomBtn.textContent = "🎲 Surprise Me";
+          randomBtn.addEventListener("click", (e)=>{
+            e.stopPropagation();
+            selectLibraryRow(item.key);
+            surpriseYouTubePlaylist(item);
+          });
+
+          rowActions.appendChild(ytBtn);
+          rowActions.appendChild(randomBtn);
+        }
+
         row.appendChild(left);
-        row.appendChild(playBtn);
+        row.appendChild(rowActions);
         listEl.appendChild(row);
       }
 
