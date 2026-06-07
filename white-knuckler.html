@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The White Knuckler — Recovery Misfits v2</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="./icon-192.png">
+
+  <!-- iPhone PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <style>
+    body{
+      margin:0;
+      font-family:Roboto,Arial,sans-serif;
+      background:#fff;
+      color:#111;
+      padding-bottom:120px;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:16px 14px 28px;
+    }
+
+    .title{
+      font-weight:1000;
+      font-size:22px;
+      margin:10px 4px 4px;
+      letter-spacing:.2px;
+      text-align:center;
+    }
+
+    .sub{
+      margin:6px 0 16px;
+      color:#555;
+      font-size:14px;
+      text-align:center;
+      font-weight:900;
+      line-height:1.3;
+    }
+
+    .sectionLabel{
+      margin:18px 4px 8px;
+      font-weight:1000;
+      font-size:12px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#666;
+    }
+
+    .card{
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:14px;
+      padding:14px;
+      margin:12px 0;
+      background:#fff;
+      box-shadow:0 1px 0 rgba(0,0,0,.03);
+    }
+
+    .card h3{
+      margin:0 0 6px;
+      font-size:15px;
+      font-weight:1000;
+    }
+
+    .meta{
+      font-size:12px;
+      color:#666;
+      margin-bottom:8px;
+      font-weight:900;
+      line-height:1.35;
+    }
+
+    label{
+      font-weight:1000;
+      font-size:13px;
+      display:block;
+      margin:12px 0 6px;
+    }
+
+    select,
+    input[type="text"]{
+      width:100%;
+      box-sizing:border-box;
+      border:1px solid rgba(0,0,0,.18);
+      border-radius:12px;
+      padding:12px;
+      font-size:15px;
+      font-weight:850;
+      background:#fff;
+      color:#111;
+      outline:none;
+    }
+
+    .btnRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    button{
+      border:0;
+      border-radius:999px;
+      padding:11px 14px;
+      font-size:13px;
+      font-weight:1000;
+      cursor:pointer;
+      background:#111;
+      color:#fff;
+    }
+
+    button.secondary{
+      background:#eee;
+      color:#111;
+      border:1px solid rgba(0,0,0,.10);
+    }
+
+    .goalBox{
+      font-size:18px;
+      font-weight:1000;
+      line-height:1.25;
+      text-align:center;
+      padding:4px 0;
+    }
+
+    .counter{
+      margin-top:8px;
+      font-size:13px;
+      color:#555;
+      text-align:center;
+      font-weight:1000;
+    }
+
+    .barShell{
+      height:14px;
+      background:#eee;
+      border-radius:999px;
+      overflow:hidden;
+      margin:12px 0 2px;
+      border:1px solid rgba(0,0,0,.08);
+    }
+
+    .barFill{
+      height:100%;
+      width:0%;
+      background:#111;
+      border-radius:999px;
+      transition:width .25s ease;
+    }
+
+    .daysGrid{
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .day{
+      border:1px solid rgba(0,0,0,.12);
+      border-radius:12px;
+      padding:10px 6px;
+      text-align:center;
+      font-weight:1000;
+      font-size:12px;
+      user-select:none;
+      background:#fff;
+    }
+
+    .day input{
+      display:block;
+      margin:0 auto 6px;
+      width:20px;
+      height:20px;
+      accent-color:#111;
+    }
+
+    .reward{
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;
+      padding:12px;
+      margin:10px 0;
+      background:#fafafa;
+    }
+
+    .reward.locked{
+      opacity:.45;
+    }
+
+    .rewardTitle{
+      font-size:14px;
+      font-weight:1000;
+      margin-bottom:4px;
+    }
+
+    .rewardText{
+      font-size:13px;
+      color:#333;
+      font-weight:850;
+      line-height:1.35;
+    }
+
+    .slip{
+      font-size:14px;
+      font-weight:900;
+      line-height:1.45;
+      color:#222;
+    }
+
+    .tiny{
+      font-size:12px;
+      color:#666;
+      font-weight:850;
+      line-height:1.35;
+      margin-top:8px;
+    }
+
+    @media (max-width:480px){
+      .daysGrid{
+        grid-template-columns:repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Shared TOP BAR -->
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
+
+  <div class="wrap">
+    <div class="title">The White Knuckler</div>
+    <div class="sub">Change sucks. Keep going anyway.</div>
+
+    <div class="card">
+      <h3>Pick one thing.</h3>
+      <div class="meta">Not your whole life. Just one wall to start swinging at.</div>
+
+      <label for="goalSelect">Choose a change</label>
+      <select id="goalSelect">
+        <option value="">Choose one...</option>
+        <option>Don't start drinking</option>
+        <option>Hit a meeting</option>
+        <option>Don't start smoking</option>
+        <option>Take a little walk</option>
+        <option>Do morning prayer</option>
+        <option>Don't text her/him back</option>
+        <option>Be of service to someone</option>
+        <option>Meditate</option>
+        <option>Eat healthy</option>
+        <option>Hit the gym</option>
+        <option value="custom">Write my own</option>
+      </select>
+
+      <div id="customWrap" style="display:none;">
+        <label for="customGoal">My own goal</label>
+        <input id="customGoal" type="text" placeholder="Example: Take daily walks" maxlength="80">
+      </div>
+
+      <div class="btnRow">
+        <button id="saveGoalBtn">Save Goal</button>
+        <button id="resetBtn" class="secondary">Start Over</button>
+      </div>
+    </div>
+
+    <div class="sectionLabel">Current Wall</div>
+
+    <div class="card">
+      <div id="goalDisplay" class="goalBox">Pick a goal above.</div>
+      <div id="counter" class="counter">0 of 30 white knuckles earned</div>
+      <div class="barShell">
+        <div id="barFill" class="barFill"></div>
+      </div>
+      <div class="tiny">Missed a day? You didn't lose your progress. You just found a pothole. Keep going.</div>
+    </div>
+
+    <div class="sectionLabel">30 Days</div>
+
+    <div class="card">
+      <h3>Check the box. Stack the days.</h3>
+      <div class="meta">This is not about being perfect. This is about coming back.</div>
+      <div id="daysGrid" class="daysGrid"></div>
+    </div>
+
+    <div class="sectionLabel">Rewards</div>
+
+    <div class="card">
+      <div id="reward5" class="reward locked">
+        <div class="rewardTitle">5 Days — You survived the awkward part.</div>
+        <div class="rewardText">The beginning always feels weird. You showed up anyway.</div>
+      </div>
+
+      <div id="reward10" class="reward locked">
+        <div class="rewardTitle">10 Days — This is starting to become a thing.</div>
+        <div class="rewardText">You are building evidence that change is possible.</div>
+      </div>
+
+      <div id="reward20" class="reward locked">
+        <div class="rewardTitle">20 Days — Look at you, acting like a person with a plan.</div>
+        <div class="rewardText">Not perfect. Not magic. Just steady enough to matter.</div>
+      </div>
+
+      <div id="reward30" class="reward locked">
+        <div class="rewardTitle">30 Days — Wall Breaker.</div>
+        <div class="rewardText">Thirty days ago this was just an idea. Now you have proof. What wall are we knocking down next?</div>
+      </div>
+    </div>
+
+    <div class="sectionLabel">Slip-Up Friendly</div>
+
+    <div class="card">
+      <h3>Missed a day?</h3>
+      <div class="slip">
+        Good. Now you know you're human.<br><br>
+        One missed day does not erase the ones you already earned.
+        Check the next box and get back on the horse.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Shared BOTTOM NAV -->
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = 'rmWhiteKnucklerV1';
+
+      const goalSelect = document.getElementById('goalSelect');
+      const customWrap = document.getElementById('customWrap');
+      const customGoal = document.getElementById('customGoal');
+      const saveGoalBtn = document.getElementById('saveGoalBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const goalDisplay = document.getElementById('goalDisplay');
+      const counter = document.getElementById('counter');
+      const barFill = document.getElementById('barFill');
+      const daysGrid = document.getElementById('daysGrid');
+
+      const rewards = {
+        5: document.getElementById('reward5'),
+        10: document.getElementById('reward10'),
+        20: document.getElementById('reward20'),
+        30: document.getElementById('reward30')
+      };
+
+      let state = {
+        goal: '',
+        selected: '',
+        custom: '',
+        days: Array(30).fill(false)
+      };
+
+      function load(){
+        try{
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if(saved && Array.isArray(saved.days)){
+            state = Object.assign(state, saved);
+            state.days = state.days.slice(0,30);
+            while(state.days.length < 30) state.days.push(false);
+          }
+        }catch(e){}
+      }
+
+      function save(){
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function completedCount(){
+        return state.days.filter(Boolean).length;
+      }
+
+      function renderDays(){
+        daysGrid.innerHTML = '';
+        for(let i=0; i<30; i++){
+          const label = document.createElement('label');
+          label.className = 'day';
+
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !!state.days[i];
+          cb.addEventListener('change', function(){
+            state.days[i] = cb.checked;
+            save();
+            renderProgress();
+          });
+
+          const span = document.createElement('span');
+          span.textContent = 'Day ' + (i + 1);
+
+          label.appendChild(cb);
+          label.appendChild(span);
+          daysGrid.appendChild(label);
+        }
+      }
+
+      function renderProgress(){
+        const count = completedCount();
+        const pct = Math.round((count / 30) * 100);
+
+        goalDisplay.textContent = state.goal || 'Pick a goal above.';
+        counter.textContent = count + ' of 30 white knuckles earned';
+        barFill.style.width = pct + '%';
+
+        Object.keys(rewards).forEach(function(num){
+          rewards[num].classList.toggle('locked', count < Number(num));
+        });
+      }
+
+      function renderGoalInputs(){
+        if(state.selected){
+          goalSelect.value = state.selected;
+        }
+        customGoal.value = state.custom || '';
+        customWrap.style.display = goalSelect.value === 'custom' ? 'block' : 'none';
+      }
+
+      goalSelect.addEventListener('change', function(){
+        customWrap.style.display = goalSelect.value === 'custom' ? 'block' : 'none';
+      });
+
+      saveGoalBtn.addEventListener('click', function(){
+        const selected = goalSelect.value;
+        let goal = '';
+
+        if(selected === 'custom'){
+          goal = customGoal.value.trim();
+        }else{
+          goal = selected;
+        }
+
+        if(!goal){
+          goalDisplay.textContent = 'Pick a goal above.';
+          return;
+        }
+
+        state.goal = goal;
+        state.selected = selected;
+        state.custom = customGoal.value.trim();
+        save();
+        renderProgress();
+      });
+
+      resetBtn.addEventListener('click', function(){
+        const ok = confirm('Start this White Knuckler over? This clears the goal and checkboxes.');
+        if(!ok) return;
+
+        state = {
+          goal: '',
+          selected: '',
+          custom: '',
+          days: Array(30).fill(false)
+        };
+        save();
+        goalSelect.value = '';
+        customGoal.value = '';
+        customWrap.style.display = 'none';
+        renderDays();
+        renderProgress();
+      });
+
+      load();
+      renderGoalInputs();
+      renderDays();
+      renderProgress();
+    })();
+  </script>
+
+</body>
+</html>
