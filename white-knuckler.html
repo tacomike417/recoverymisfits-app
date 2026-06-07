@@ -9,7 +9,6 @@
   <meta name="theme-color" content="#000000" />
   <link rel="icon" href="./icon-192.png">
 
-  <!-- iPhone PWA support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
@@ -34,7 +33,6 @@
       font-weight:1000;
       font-size:22px;
       margin:10px 4px 4px;
-      letter-spacing:.2px;
       text-align:center;
     }
 
@@ -79,21 +77,13 @@
       line-height:1.35;
     }
 
-    label{
-      font-weight:1000;
-      font-size:13px;
-      display:block;
-      margin:12px 0 6px;
-    }
-
-    select,
     input[type="text"]{
       width:100%;
       box-sizing:border-box;
       border:1px solid rgba(0,0,0,.18);
       border-radius:12px;
-      padding:12px;
-      font-size:15px;
+      padding:14px;
+      font-size:17px;
       font-weight:850;
       background:#fff;
       color:#111;
@@ -233,7 +223,6 @@
 
 <body>
 
-  <!-- Shared TOP BAR -->
   <div id="rm-topbar"></div>
   <script src="./topbar.js" defer></script>
 
@@ -242,41 +231,22 @@
     <div class="sub">Change sucks. Keep going anyway.</div>
 
     <div class="card">
-      <h3>Pick one thing.</h3>
-      <div class="meta">Not your whole life. Just one wall to start swinging at.</div>
+      <h3>What are we working on?</h3>
+      <div class="meta">Write it down. Keep it simple.</div>
 
-      <label for="goalSelect">Choose a change</label>
-      <select id="goalSelect">
-        <option value="">Choose one...</option>
-        <option>Don't start drinking</option>
-        <option>Hit a meeting</option>
-        <option>Don't start smoking</option>
-        <option>Take a little walk</option>
-        <option>Do morning prayer</option>
-        <option>Don't text her/him back</option>
-        <option>Be of service to someone</option>
-        <option>Meditate</option>
-        <option>Eat healthy</option>
-        <option>Hit the gym</option>
-        <option value="custom">Write my own</option>
-      </select>
-
-      <div id="customWrap" style="display:none;">
-        <label for="customGoal">My own goal</label>
-        <input id="customGoal" type="text" placeholder="Example: Take daily walks" maxlength="80">
-      </div>
+      <input id="goalInput" type="text" maxlength="100">
 
       <div class="btnRow">
-        <button id="saveGoalBtn">Save Goal</button>
-        <button id="resetBtn" class="secondary">Start Over</button>
+        <button id="saveGoalBtn">Start Swinging</button>
+        <button id="resetBtn" class="secondary">New Wall</button>
       </div>
     </div>
 
-    <div class="sectionLabel">Current Wall</div>
+    <div class="sectionLabel">Your Wall</div>
 
     <div class="card">
-      <div id="goalDisplay" class="goalBox">Pick a goal above.</div>
-      <div id="counter" class="counter">0 of 30 white knuckles earned</div>
+      <div id="goalDisplay" class="goalBox">Nothing picked yet.</div>
+      <div id="counter" class="counter">0 of 30 days showing up</div>
       <div class="barShell">
         <div id="barFill" class="barFill"></div>
       </div>
@@ -328,17 +298,14 @@
 
   </div>
 
-  <!-- Shared BOTTOM NAV -->
   <div id="rm-bottom-nav"></div>
   <script src="./nav.js" defer></script>
 
   <script>
     (function(){
-      const STORAGE_KEY = 'rmWhiteKnucklerV1';
+      const STORAGE_KEY = 'rmWhiteKnucklerV2';
 
-      const goalSelect = document.getElementById('goalSelect');
-      const customWrap = document.getElementById('customWrap');
-      const customGoal = document.getElementById('customGoal');
+      const goalInput = document.getElementById('goalInput');
       const saveGoalBtn = document.getElementById('saveGoalBtn');
       const resetBtn = document.getElementById('resetBtn');
       const goalDisplay = document.getElementById('goalDisplay');
@@ -355,8 +322,6 @@
 
       let state = {
         goal: '',
-        selected: '',
-        custom: '',
         days: Array(30).fill(false)
       };
 
@@ -381,6 +346,7 @@
 
       function renderDays(){
         daysGrid.innerHTML = '';
+
         for(let i=0; i<30; i++){
           const label = document.createElement('label');
           label.className = 'day';
@@ -388,6 +354,7 @@
           const cb = document.createElement('input');
           cb.type = 'checkbox';
           cb.checked = !!state.days[i];
+
           cb.addEventListener('change', function(){
             state.days[i] = cb.checked;
             save();
@@ -407,8 +374,8 @@
         const count = completedCount();
         const pct = Math.round((count / 30) * 100);
 
-        goalDisplay.textContent = state.goal || 'Pick a goal above.';
-        counter.textContent = count + ' of 30 white knuckles earned';
+        goalDisplay.textContent = state.goal || 'Nothing picked yet.';
+        counter.textContent = count + ' of 30 days showing up';
         barFill.style.width = pct + '%';
 
         Object.keys(rewards).forEach(function(num){
@@ -416,60 +383,36 @@
         });
       }
 
-      function renderGoalInputs(){
-        if(state.selected){
-          goalSelect.value = state.selected;
-        }
-        customGoal.value = state.custom || '';
-        customWrap.style.display = goalSelect.value === 'custom' ? 'block' : 'none';
-      }
-
-      goalSelect.addEventListener('change', function(){
-        customWrap.style.display = goalSelect.value === 'custom' ? 'block' : 'none';
-      });
-
       saveGoalBtn.addEventListener('click', function(){
-        const selected = goalSelect.value;
-        let goal = '';
-
-        if(selected === 'custom'){
-          goal = customGoal.value.trim();
-        }else{
-          goal = selected;
-        }
+        const goal = goalInput.value.trim();
 
         if(!goal){
-          goalDisplay.textContent = 'Pick a goal above.';
+          goalDisplay.textContent = 'Nothing picked yet.';
           return;
         }
 
         state.goal = goal;
-        state.selected = selected;
-        state.custom = customGoal.value.trim();
         save();
         renderProgress();
       });
 
       resetBtn.addEventListener('click', function(){
-        const ok = confirm('Start this White Knuckler over? This clears the goal and checkboxes.');
+        const ok = confirm('Start a new wall? This clears the goal and checkboxes.');
         if(!ok) return;
 
         state = {
           goal: '',
-          selected: '',
-          custom: '',
           days: Array(30).fill(false)
         };
+
         save();
-        goalSelect.value = '';
-        customGoal.value = '';
-        customWrap.style.display = 'none';
+        goalInput.value = '';
         renderDays();
         renderProgress();
       });
 
       load();
-      renderGoalInputs();
+      goalInput.value = state.goal || '';
       renderDays();
       renderProgress();
     })();
