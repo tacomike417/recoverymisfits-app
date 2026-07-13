@@ -3,6 +3,8 @@
   const ctx = canvas.getContext("2d");
   const engine = window.RecoveryEngine;
 const currentChapter = engine.getChapter(0);
+const chapterTimer = engine.createTimer(0);
+let chapterFinished = false;
 
   let width = 0;
   let height = 0;
@@ -81,10 +83,19 @@ const currentChapter = engine.getChapter(0);
     }
   }
 
-  function update() {
-    bill.y += (bill.targetY - bill.y) * 0.14;
-    updateBackground();
+ function update() {
+  if (chapterFinished) {
+    return;
   }
+
+  if (chapterTimer.isFinished()) {
+    chapterFinished = true;
+    return;
+  }
+
+  bill.y += (bill.targetY - bill.y) * 0.14;
+  updateBackground();
+}
 
   function drawBackground() {
     ctx.fillStyle = "#172330";
@@ -162,29 +173,67 @@ const currentChapter = engine.getChapter(0);
   }
 
   function drawInstructions() {
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "16px monospace";
+  ctx.fillStyle = "#ffffff";
 
-    ctx.fillText(
-      "Drag Bill up and down",
-      20,
-      32
-    );
+  ctx.font = "16px monospace";
+  ctx.fillText(
+    "Drag Bill up and down",
+    20,
+    32
+  );
 
-    ctx.font = "13px monospace";
+  ctx.font = "13px monospace";
+  ctx.fillText(
+    currentChapter.title,
+    20,
+    55
+  );
 
-    ctx.fillText(
-   currentChapter.title,
-      20,
-      55
-    );
+  ctx.font = "22px monospace";
+  ctx.textAlign = "right";
+
+  ctx.fillText(
+    chapterTimer.getRemainingSeconds(),
+    width - 25,
+    40
+  );
+
+  ctx.textAlign = "left";
+}
+  function drawChapterFinished() {
+  if (!chapterFinished) {
+    return;
   }
 
-  function draw() {
-    drawBackground();
-    drawBill();
-    drawInstructions();
-  }
+  ctx.fillStyle = "rgba(0, 0, 0, 0.78)";
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+
+  ctx.font = "28px monospace";
+  ctx.fillText(
+    "CHAPTER COMPLETE",
+    width / 2,
+    height / 2 - 20
+  );
+
+  ctx.font = "18px monospace";
+  ctx.fillText(
+    "Story card coming next",
+    width / 2,
+    height / 2 + 25
+  );
+
+  ctx.textAlign = "left";
+}
+
+ function draw() {
+  drawBackground();
+  drawBill();
+  drawInstructions();
+  drawChapterFinished();
+}
 
   function gameLoop() {
     update();
