@@ -1,7 +1,8 @@
-const chapters = [
+window.chapters = [
   {
     id: 1,
     title: "Just One More Time",
+  
 
     gameplay: {
       duration: 30,

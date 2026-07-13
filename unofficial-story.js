@@ -1,6 +1,8 @@
 (() => {
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
+  const engine = window.RecoveryEngine;
+const currentChapter = engine.getChapter(0);
 
   let width = 0;
   let height = 0;
@@ -172,7 +174,7 @@
     ctx.font = "13px monospace";
 
     ctx.fillText(
-      chapters[0].title,
+   currentChapter.title,
       20,
       55
     );
