@@ -1732,7 +1732,7 @@
             bill.targetY -
             bill.y
           ) *
-          0.14;
+          0.24;
 
         updateBackground();
         updateObstacles(now);

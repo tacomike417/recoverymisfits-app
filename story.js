@@ -16,8 +16,8 @@ window.gameData = {
 
         player: {
           image: "assets/players/player-chapter1.png",
-          width: 145,
-          height: 123
+          width: 181,
+          height: 154
         },
 
        obstacles: [
@@ -25,7 +25,7 @@ window.gameData = {
     id: "trouble-woman",
     image: "assets/obstacles/obstacle-woman.png",
     label: "Wanna Party?",
-    height: 150,
+    height: 188,
     movement: "horizontal",
     speed: 4
   },
@@ -34,7 +34,7 @@ window.gameData = {
     id: "drink-pal",
     image: "assets/obstacles/obstacle-drink-pal.png",
     label: "Lemme Buy Ya a Drink Pal",
-    height: 150,
+    height: 188,
     movement: "horizontal",
     speed: 4.5
   },
@@ -43,9 +43,9 @@ window.gameData = {
     id: "falling-drunk",
     image: "assets/obstacles/obstacle-falling-drunk.png",
     label: "Just One Won't Hurt Ya",
-    height: 190,
+    height: 205,
     movement: "vertical",
-    speed: 3.5
+    speed: 7
   }
 ],
 
@@ -66,7 +66,7 @@ All the men I work with drink too.`
 
         {
   image: "assets/cards/chapter1-card2.png",
-  title: "WHY ARE YOU ON MY CASE?",
+  title: "WHY IS EVERYONE ON MY CASE?",
   text:
 `Sure...
 
@@ -77,7 +77,7 @@ But who doesn't when they drink? That's the fun of drinking!`
 
         {
   image: "assets/cards/chapter1-card3.png",
-  title: "WHY DO I KEEP ENDING UP HERE?",
+  title: "HOW DO I KEEP ENDING UP HERE?",
   text:
 `I don't get it...
 
@@ -94,16 +94,16 @@ They don't spend their whole paychecks at the bar.`
 
 Once I start I don't want to stop.  I can't stop.  I don't know why.
 
-I'm determined to figure this out!`
+I have to figure this out!`
 },
 
   {
   image: "assets/cards/chapter1-card5.png",
-  title: "IT WILL BE DIFFERENT THIS TIME!",
+  title: "IT WILL BE DIFFERENT THIS TIME I SWEAR!",
   text:
-`That's it! I just need to avoid the people that get me into trouble! Maybe I'll just stick to beer this time.
+`That's it! I just need to avoid the people that get me into trouble... I'll just stick to beer this time.
 
-Then I won't drink so much.  My wife ill be happy again.  And I'll be back to normal.`
+Then I won't drink so much.  My wife will be happy again.  And I'll be back to normal.`
 },
 {
   image: "assets/cards/chapter1-card6.png",
