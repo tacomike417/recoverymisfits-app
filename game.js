@@ -125,7 +125,7 @@
   // =====================================
 
   const bill = {
-    x: 120,
+    x: 40,
     y: 200,
 
     width:
@@ -140,7 +140,7 @@
   };
 
   function resetBill() {
-    bill.x = 120;
+    bill.x = 40;
 
     bill.y = Math.max(
       80,
