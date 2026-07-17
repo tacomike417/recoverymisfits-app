@@ -99,9 +99,9 @@ I have to figure this out!`
 
   {
   image: "assets/cards/chapter1-card5.png",
-  title: "IT WILL BE DIFFERENT THIS TIME I SWEAR!",
+  title: "IT WILL BE DIFFERENT THIS TIME...",
   text:
-`That's it! I just need to avoid the people that get me into trouble... I'll just stick to beer this time.
+`It will be different this time I swear! I just need to avoid the people that get me into trouble... And I'll just stick to beer this time I promise.
 
 Then I won't drink so much.  My wife will be happy again.  And I'll be back to normal.`
 },

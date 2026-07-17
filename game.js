@@ -562,35 +562,38 @@
     }
   }
 
-  canvas.addEventListener(
-    "pointerdown",
-    handlePrimaryAction
-  );
+  canvas.style.touchAction = "none";
+
+canvas.addEventListener(
+  "pointerdown",
+  (event) => {
+    canvas.setPointerCapture(event.pointerId);
+    handlePrimaryAction(event);
+  }
+);
 
   canvas.addEventListener(
-    "pointermove",
-    (event) => {
-      if (
-        gameState !== "playing"
-      ) {
-        return;
-      }
-
-      if (
-        event.pointerType ===
-          "mouse" &&
-        event.buttons === 0
-      ) {
-        return;
-      }
-
-      bill.targetY =
-        event.clientY -
-        bill.height / 2;
-
-      keepBillOnScreen();
+  "pointermove",
+  (event) => {
+    if (gameState !== "playing") {
+      return;
     }
-  );
+
+    if (
+      event.pointerType === "mouse" &&
+      event.buttons === 0
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    bill.targetY =
+      event.clientY - bill.height / 2;
+
+    keepBillOnScreen();
+  }
+);
 
   window.addEventListener(
     "keydown",
