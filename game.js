@@ -256,7 +256,6 @@ for (const definition of collectibleDefinitions) {
   }
 
   function playClickFeedback() {
-    unlockAudio();
     playSound("click");
     vibrate(8);
   }
@@ -264,8 +263,6 @@ for (const definition of collectibleDefinitions) {
   function playPickupFeedback(
     effectStrength = 1
   ) {
-    unlockAudio();
-
     const strength =
       Math.max(
         1,
@@ -303,7 +300,6 @@ for (const definition of collectibleDefinitions) {
   }
 
   function playCrashFeedback() {
-    unlockAudio();
     playSound("crash");
     vibrate([55, 25, 70]);
   }
@@ -1405,6 +1401,13 @@ for (const definition of collectibleDefinitions) {
       engine.createTimer(0);
 
     gameState = "playing";
+
+    /*
+      Start the background music only when
+      Bill's 30-second gameplay begins.
+    */
+
+    unlockAudio();
   }
 
   function finishChapter() {
