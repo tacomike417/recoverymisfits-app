@@ -9,32 +9,7 @@
   const ctx = canvas.getContext("2d");
 
   const engine = window.RecoveryEngine;
-
-  /*
-    Chapters are numbered normally in the URL:
-
-      ?chapter=1
-      ?chapter=2
-      ?chapter=3
-
-    The engine still uses zero-based chapter indexes.
-  */
-
-  const chapterNumber =
-    Math.max(
-      1,
-      Number(
-        new URLSearchParams(
-          window.location.search
-        ).get("chapter")
-      ) || 1
-    );
-
-  const chapterIndex =
-    chapterNumber - 1;
-
-  const currentChapter =
-    engine.getChapter(chapterIndex);
+  const currentChapter = engine.getChapter(0);
 
   let width = 0;
   let height = 0;
@@ -134,21 +109,6 @@
       image
     );
   }
-  const collectibleDefinitions =
-  currentChapter?.gameplay?.collectibles || [];
-
-  const collectibleImages = new Map();
-
-for (const definition of collectibleDefinitions) {
-  const image = new Image();
-
-  image.src = definition.image || "";
-
-  collectibleImages.set(
-    definition.id,
-    image
-  );
-}
 
   const splashImage = new Image();
 
@@ -159,154 +119,6 @@ for (const definition of collectibleDefinitions) {
 
   titleImage.src =
     "assets/title/unofficial-title.png";
-
-  // =====================================
-  // SOUND AND VIBRATION
-  // =====================================
-
-  /*
-    Audio files currently used:
-
-      assets/sounds/music/chapter1.mp3
-      assets/sounds/sfx/click.ogg
-      assets/sounds/sfx/crash.mp3
-      assets/sounds/sfx/pickup-large.mp3
-
-    Future chapters can use chapter2.mp3,
-    chapter3.mp3, and so on.
-  */
-
-  const backgroundMusic = new Audio(
-    `assets/sounds/music/chapter${chapterNumber}.mp3`
-  );
-
-  backgroundMusic.loop = true;
-  backgroundMusic.volume = 0.32;
-  backgroundMusic.preload = "auto";
-
-  const soundFiles = {
-    click:
-      "assets/sounds/sfx/click.ogg",
-
-    crash:
-      "assets/sounds/sfx/crash.mp3",
-
-    pickup:
-      "assets/sounds/sfx/pickup-large.mp3"
-  };
-
-  const soundVolumes = {
-    click: 0.5,
-    crash: 0.72,
-    pickup: 0.58
-  };
-
-  let audioUnlocked = false;
-
-  function unlockAudio() {
-    if (audioUnlocked) {
-      return;
-    }
-
-    audioUnlocked = true;
-
-    backgroundMusic
-      .play()
-      .catch(() => {
-        audioUnlocked = false;
-      });
-  }
-
-  function playSound(
-    soundName,
-    options = {}
-  ) {
-    const source =
-      soundFiles[soundName];
-
-    if (!source) {
-      return;
-    }
-
-    const sound =
-      new Audio(source);
-
-    sound.volume =
-      options.volume ??
-      soundVolumes[soundName] ??
-      0.6;
-
-    sound.playbackRate =
-      options.playbackRate ?? 1;
-
-    sound
-      .play()
-      .catch(() => {});
-  }
-
-  function vibrate(pattern) {
-    if (
-      typeof navigator.vibrate !==
-      "function"
-    ) {
-      return;
-    }
-
-    navigator.vibrate(pattern);
-  }
-
-  function playClickFeedback() {
-    unlockAudio();
-    playSound("click");
-    vibrate(8);
-  }
-
-  function playPickupFeedback(
-    effectStrength = 1
-  ) {
-    unlockAudio();
-
-    const strength =
-      Math.max(
-        1,
-        Number(effectStrength) || 1
-      );
-
-    playSound(
-      "pickup",
-      {
-        playbackRate:
-          Math.max(
-            0.82,
-            1.05 -
-              Math.min(strength, 6) *
-                0.035
-          ),
-
-        volume:
-          Math.min(
-            0.78,
-            0.54 +
-              Math.min(strength, 6) *
-                0.035
-          )
-      }
-    );
-
-    if (strength >= 4) {
-      vibrate([18, 20, 28]);
-    } else if (strength >= 2) {
-      vibrate([14, 18, 18]);
-    } else {
-      vibrate(12);
-    }
-  }
-
-  function playCrashFeedback() {
-    unlockAudio();
-    playSound("crash");
-    vibrate([55, 25, 70]);
-  }
 
   // =====================================
   // PLAYER
@@ -354,43 +166,10 @@ for (const definition of collectibleDefinitions) {
   }
 
   // =====================================
-  // GAME ENTITIES
-  // Handles hazards and collectibles.
+  // OBSTACLES
   // =====================================
 
-  const activeEntities = [];
-
-  // =====================================
-  // BEER COUNT, PICKUP EFFECTS, AND NEAR MISSES
-  // =====================================
-
-  let score = 0;
-  let displayedScore = 0;
-
-  const pickupParticles = [];
-  const floatingNumbers = [];
-  const pickupFlashes = [];
-
-  let screenShake = 0;
-  let billPickupBounce = 0;
-  let scorePulse = 0;
-
-  function resetPickupEffects() {
-    score = 0;
-    displayedScore = 0;
-
-    pickupParticles.length = 0;
-    floatingNumbers.length = 0;
-    pickupFlashes.length = 0;
-
-    screenShake = 0;
-    billPickupBounce = 0;
-    scorePulse = 0;
-  }
-
-  // =====================================
-  // HAZARD SPAWNING
-  // =====================================
+  const activeObstacles = [];
 
   let nextObstacleSpawnAt = 0;
 
@@ -405,43 +184,12 @@ for (const definition of collectibleDefinitions) {
     );
   }
 
-  // =====================================
-  // COLLECTIBLE SPAWNING
-  // =====================================
-
-  let nextCollectibleSpawnAt = 0;
-
-  const MIN_COLLECTIBLE_SPAWN_DELAY = 700;
-  const MAX_COLLECTIBLE_SPAWN_DELAY = 1400;
-
-  function getRandomCollectibleSpawnDelay() {
-    return (
-      MIN_COLLECTIBLE_SPAWN_DELAY +
-      Math.random() *
-        (
-          MAX_COLLECTIBLE_SPAWN_DELAY -
-          MIN_COLLECTIBLE_SPAWN_DELAY
-        )
-    );
-  }
-
-  // =====================================
-  // ENTITY RESET
-  // =====================================
-
   function resetObstacles() {
-    activeEntities.length = 0;
+    activeObstacles.length = 0;
 
     nextObstacleSpawnAt =
       performance.now() + 1200;
-
-    nextCollectibleSpawnAt =
-      performance.now() + 500;
   }
-
-  // =====================================
-  // HAZARD CREATION
-  // =====================================
 
   function spawnObstacle(now) {
     if (obstacleDefinitions.length === 0) {
@@ -452,7 +200,7 @@ for (const definition of collectibleDefinitions) {
       obstacleDefinitions[
         Math.floor(
           Math.random() *
-            obstacleDefinitions.length
+          obstacleDefinitions.length
         )
       ];
 
@@ -482,7 +230,7 @@ for (const definition of collectibleDefinitions) {
     /*
       The falling drunk is marked "vertical"
       in story.js, but the engine converts him
-      into a fast diagonal hazard.
+      into a fast diagonal obstacle.
     */
 
     if (movement === "vertical") {
@@ -505,8 +253,7 @@ for (const definition of collectibleDefinitions) {
       const speed =
         definition.speed || 7;
 
-      activeEntities.push({
-        type: "hazard",
+      activeObstacles.push({
         definition,
         x,
         y,
@@ -538,8 +285,7 @@ for (const definition of collectibleDefinitions) {
       obstacleHeight -
       25;
 
-    activeEntities.push({
-      type: "hazard",
+    activeObstacles.push({
       definition,
       x,
       y,
@@ -553,75 +299,6 @@ for (const definition of collectibleDefinitions) {
       now + getRandomSpawnDelay();
   }
 
-  // =====================================
-  // COLLECTIBLE CREATION
-  // =====================================
-
-  function spawnCollectible(now) {
-    if (collectibleDefinitions.length === 0) {
-      return;
-    }
-
-    const definition =
-      collectibleDefinitions[
-        Math.floor(
-          Math.random() *
-            collectibleDefinitions.length
-        )
-      ];
-
-    const collectibleHeight =
-      definition.height || 80;
-
-    const image =
-      collectibleImages.get(definition.id);
-
-    const aspectRatio =
-      image &&
-      image.naturalWidth > 0 &&
-      image.naturalHeight > 0
-        ? image.naturalWidth /
-          image.naturalHeight
-        : 1;
-
-    const collectibleWidth =
-      collectibleHeight * aspectRatio;
-
-    const topLimit = 70;
-
-    const bottomLimit =
-      Math.max(
-        topLimit,
-        height -
-          collectibleHeight -
-          45
-      );
-
-    const y =
-      topLimit +
-      Math.random() *
-        (bottomLimit - topLimit);
-
-    activeEntities.push({
-      type: "collectible",
-      definition,
-      x: width + collectibleWidth,
-      y,
-      width: collectibleWidth,
-      height: collectibleHeight,
-      movement: "horizontal",
-      speed: definition.speed || 4.5
-    });
-
-    nextCollectibleSpawnAt =
-      now +
-      getRandomCollectibleSpawnDelay();
-  }
-
-  // =====================================
-  // HAZARD MOVEMENT
-  // =====================================
-
   function updateObstacles(now) {
     if (now >= nextObstacleSpawnAt) {
       spawnObstacle(now);
@@ -629,92 +306,66 @@ for (const definition of collectibleDefinitions) {
 
     for (
       let index =
-        activeEntities.length - 1;
+        activeObstacles.length - 1;
       index >= 0;
       index -= 1
     ) {
-      const entity =
-        activeEntities[index];
+      const obstacle =
+        activeObstacles[index];
 
-      if (entity.type !== "hazard") {
-        continue;
-      }
+      if (
+        obstacle.movement === "diagonal"
+      ) {
+        obstacle.x +=
+          obstacle.velocityX;
 
-      if (entity.movement === "diagonal") {
-        entity.x += entity.velocityX;
-        entity.y += entity.velocityY;
+        obstacle.y +=
+          obstacle.velocityY;
 
         const isOffscreen =
-          entity.x + entity.width < -80 ||
-          entity.y + entity.height < -80 ||
-          entity.y > height + 80;
+          obstacle.x +
+              obstacle.width <
+            -80 ||
+          obstacle.y +
+              obstacle.height <
+            -80 ||
+          obstacle.y >
+            height + 80;
 
         if (isOffscreen) {
-          activeEntities.splice(index, 1);
+          activeObstacles.splice(
+            index,
+            1
+          );
         }
 
         continue;
       }
 
-      entity.x -= entity.speed;
+      obstacle.x -= obstacle.speed;
 
       if (
-        entity.x + entity.width <
+        obstacle.x +
+          obstacle.width <
         -40
       ) {
-        activeEntities.splice(index, 1);
+        activeObstacles.splice(
+          index,
+          1
+        );
       }
     }
   }
-
-  // =====================================
-  // COLLECTIBLE MOVEMENT
-  // =====================================
-
-  function updateCollectibles(now) {
-    if (now >= nextCollectibleSpawnAt) {
-      spawnCollectible(now);
-    }
-
-    for (
-      let index =
-        activeEntities.length - 1;
-      index >= 0;
-      index -= 1
-    ) {
-      const entity =
-        activeEntities[index];
-
-      if (entity.type !== "collectible") {
-        continue;
-      }
-
-      entity.x -= entity.speed;
-
-      if (
-        entity.x + entity.width <
-        -40
-      ) {
-        activeEntities.splice(index, 1);
-      }
-    }
-  }
-
-  // =====================================
-  // HAZARD DRAWING
-  // =====================================
 
   function drawObstacles() {
     ctx.imageSmoothingEnabled = false;
 
-    for (const entity of activeEntities) {
-      if (entity.type !== "hazard") {
-        continue;
-      }
-
+    for (
+      const obstacle of activeObstacles
+    ) {
       const image =
         obstacleImages.get(
-          entity.definition.id
+          obstacle.definition.id
         );
 
       if (
@@ -724,344 +375,14 @@ for (const definition of collectibleDefinitions) {
       ) {
         ctx.drawImage(
           image,
-          entity.x,
-          entity.y,
-          entity.width,
-          entity.height
+          obstacle.x,
+          obstacle.y,
+          obstacle.width,
+          obstacle.height
         );
       }
     }
   }
-
-  // =====================================
-  // COLLECTIBLE DRAWING
-  // =====================================
-
-  function drawCollectibles() {
-    ctx.imageSmoothingEnabled = false;
-
-    for (const entity of activeEntities) {
-      if (entity.type !== "collectible") {
-        continue;
-      }
-
-      const image =
-        collectibleImages.get(
-          entity.definition.id
-        );
-
-      if (
-        image &&
-        image.complete &&
-        image.naturalWidth > 0
-      ) {
-        ctx.drawImage(
-          image,
-          entity.x,
-          entity.y,
-          entity.width,
-          entity.height
-        );
-
-        continue;
-      }
-
-      /*
-        Temporary fallback so collectibles
-        remain visible even if an image path
-        or filename is wrong.
-      */
-
-      ctx.fillStyle = "#f2c94c";
-
-      ctx.fillRect(
-        entity.x,
-        entity.y,
-        entity.width,
-        entity.height
-      );
-
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 12px monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      ctx.fillText(
-        `BEER +${entity.definition.value || 0}`,
-        entity.x + entity.width / 2,
-        entity.y + entity.height / 2
-      );
-
-      ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
-    }
-  }
-
-  // =====================================
-  // PICKUP EFFECT CREATION
-  // =====================================
-
-  function createPickupEffects(
-    entity,
-    meterAmount,
-    effectStrength
-  ) {
-    const centerX =
-      entity.x + entity.width / 2;
-
-    const centerY =
-      entity.y + entity.height / 2;
-
-    /*
-      Every beer collectible adds exactly one
-      to the ONE MORE meter.
-
-      The original collectible value is still
-      used only to control how dramatic the
-      particles, flash, and screen shake feel.
-    */
-
-    const particleCount =
-      12 +
-      Math.min(
-        18,
-        effectStrength * 2
-      );
-
-    for (
-      let index = 0;
-      index < particleCount;
-      index += 1
-    ) {
-      const angle =
-        Math.random() * Math.PI * 2;
-
-      const speed =
-        1.8 + Math.random() * 4.8;
-
-      pickupParticles.push({
-        x: centerX,
-        y: centerY,
-        velocityX:
-          Math.cos(angle) * speed,
-        velocityY:
-          Math.sin(angle) * speed - 1.2,
-        gravity: 0.13 + Math.random() * 0.08,
-        size: 3 + Math.floor(Math.random() * 6),
-        life: 1,
-        decay: 0.025 + Math.random() * 0.025,
-        rotation: Math.random() * Math.PI,
-        rotationSpeed:
-          (Math.random() - 0.5) * 0.35,
-        color:
-          Math.random() > 0.45
-            ? "#ffd84d"
-            : "#ffffff"
-      });
-    }
-
-    /*
-      Small beer pickups rely on the particles,
-      flash, bounce, and beer counter.
-
-      Larger pickups get a short arcade-style
-      celebration word—never a point value.
-    */
-
-    let pickupWord = "";
-
-    if (effectStrength >= 10) {
-      pickupWord = "JACKPOT!";
-    } else if (effectStrength >= 6) {
-      pickupWord = "BIG HAUL!";
-    } else if (effectStrength >= 3) {
-      pickupWord = "NICE!";
-    }
-
-    if (pickupWord) {
-      floatingNumbers.push({
-        x: centerX,
-        y: centerY - entity.height * 0.15,
-        text: pickupWord,
-        life: 1,
-        velocityY: -1.6,
-        scale: 0.65,
-        color: "#ffffff"
-      });
-    }
-
-    pickupFlashes.push({
-      x: centerX,
-      y: centerY,
-      radius: 8,
-      life: 1
-    });
-
-    screenShake = Math.max(
-      screenShake,
-      4 +
-      Math.min(
-        7,
-        effectStrength * 0.6
-      )
-    );
-
-    billPickupBounce = 1;
-    scorePulse = 1;
-  }
-
-  // =====================================
-  // PICKUP EFFECT MOVEMENT
-  // =====================================
-
-  function updatePickupEffects() {
-    displayedScore +=
-      (score - displayedScore) * 0.22;
-
-    if (Math.abs(score - displayedScore) < 0.05) {
-      displayedScore = score;
-    }
-
-    screenShake *= 0.82;
-    billPickupBounce *= 0.82;
-    scorePulse *= 0.84;
-
-    for (
-      let index = pickupParticles.length - 1;
-      index >= 0;
-      index -= 1
-    ) {
-      const particle = pickupParticles[index];
-
-      particle.x += particle.velocityX;
-      particle.y += particle.velocityY;
-      particle.velocityY += particle.gravity;
-      particle.velocityX *= 0.985;
-      particle.rotation += particle.rotationSpeed;
-      particle.life -= particle.decay;
-
-      if (particle.life <= 0) {
-        pickupParticles.splice(index, 1);
-      }
-    }
-
-    for (
-      let index = floatingNumbers.length - 1;
-      index >= 0;
-      index -= 1
-    ) {
-      const number = floatingNumbers[index];
-
-      number.y += number.velocityY;
-      number.velocityY *= 0.96;
-      number.life -= 0.022;
-      number.scale += (1 - number.scale) * 0.2;
-
-      if (number.life <= 0) {
-        floatingNumbers.splice(index, 1);
-      }
-    }
-
-    for (
-      let index = pickupFlashes.length - 1;
-      index >= 0;
-      index -= 1
-    ) {
-      const flash = pickupFlashes[index];
-
-      flash.radius += 3.8;
-      flash.life -= 0.065;
-
-      if (flash.life <= 0) {
-        pickupFlashes.splice(index, 1);
-      }
-    }
-  }
-
-  // =====================================
-  // PICKUP EFFECT DRAWING
-  // =====================================
-
-  function drawPickupEffects() {
-    ctx.save();
-    ctx.imageSmoothingEnabled = false;
-
-    for (const flash of pickupFlashes) {
-      ctx.globalAlpha = flash.life * 0.7;
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 3;
-
-      ctx.beginPath();
-      ctx.arc(
-        flash.x,
-        flash.y,
-        flash.radius,
-        0,
-        Math.PI * 2
-      );
-      ctx.stroke();
-
-      ctx.globalAlpha = flash.life * 0.35;
-      ctx.fillStyle = "#ffe56b";
-
-      ctx.beginPath();
-      ctx.arc(
-        flash.x,
-        flash.y,
-        flash.radius * 0.55,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
-    }
-
-    for (const particle of pickupParticles) {
-      ctx.save();
-      ctx.globalAlpha = particle.life;
-      ctx.translate(particle.x, particle.y);
-      ctx.rotate(particle.rotation);
-
-      const size = particle.size;
-
-      ctx.fillStyle =
-        particle.color || "#ffffff";
-
-      ctx.fillRect(
-        -size / 2,
-        -size / 2,
-        size,
-        size
-      );
-
-      ctx.restore();
-    }
-
-    for (const number of floatingNumbers) {
-      ctx.save();
-      ctx.globalAlpha = number.life;
-      ctx.translate(number.x, number.y);
-      ctx.scale(number.scale, number.scale);
-
-      ctx.font = "bold 27px monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = "#000000";
-      ctx.fillStyle =
-        number.color || "#ffffff";
-
-      ctx.strokeText(number.text, 0, 0);
-      ctx.fillText(number.text, 0, 0);
-
-      ctx.restore();
-    }
-
-    ctx.restore();
-  }
-
-  // =====================================
-  // COLLISION HELPERS
-  // =====================================
 
   function rectanglesOverlap(a, b) {
     return (
@@ -1072,119 +393,12 @@ for (const definition of collectibleDefinitions) {
     );
   }
 
-  // =====================================
-  // NEAR MISS EFFECTS
-  // =====================================
-
-  function createNearMissEffects(
-    entity,
-    billHitbox
-  ) {
-    const words = [
-      "WHEW!",
-      "CLOSE ONE!",
-      "TOO CLOSE!"
-    ];
-
-    floatingNumbers.push({
-      x:
-        billHitbox.x +
-        billHitbox.width / 2 +
-        28,
-
-      y:
-        billHitbox.y - 10,
-
-      text:
-        words[
-          Math.floor(
-            Math.random() *
-            words.length
-          )
-        ],
-
-      life: 1,
-      velocityY: -1.25,
-      scale: 0.72,
-      color: "#8fe9ff"
-    });
-
-    const burstX =
-      Math.max(
-        billHitbox.x +
-          billHitbox.width,
-        entity.x
-      );
-
-    const burstY =
-      billHitbox.y +
-      billHitbox.height / 2;
-
-    for (
-      let index = 0;
-      index < 10;
-      index += 1
-    ) {
-      const angle =
-        Math.random() * Math.PI * 2;
-
-      const speed =
-        1.2 + Math.random() * 3.2;
-
-      pickupParticles.push({
-        x: burstX,
-        y: burstY,
-        velocityX:
-          Math.cos(angle) * speed,
-        velocityY:
-          Math.sin(angle) * speed,
-        gravity: 0.03,
-        size:
-          2 +
-          Math.floor(
-            Math.random() * 4
-          ),
-        life: 1,
-        decay:
-          0.035 +
-          Math.random() * 0.025,
-        rotation:
-          Math.random() * Math.PI,
-        rotationSpeed:
-          (Math.random() - 0.5) * 0.3,
-        color:
-          Math.random() > 0.5
-            ? "#8fe9ff"
-            : "#ffffff"
-      });
-    }
-
-    /*
-      Near misses should feel exciting,
-      but less powerful than grabbing
-      a large beer collectible.
-    */
-
-    screenShake = Math.max(
-      screenShake,
-      2.5
-    );
-
-    billPickupBounce = Math.max(
-      billPickupBounce,
-      0.45
-    );
-  }
-
-  // =====================================
-  // HAZARD COLLISIONS
-  // =====================================
-
   function checkObstacleCollisions() {
     /*
-      Reduced hitboxes prevent transparent
-      areas, speech bubbles, hats and bottles
-      from causing unfair collisions.
+      These reduced hitboxes prevent
+      transparent areas, speech bubbles,
+      hats and bottles from causing
+      unfair collisions.
     */
 
     const billHitbox = {
@@ -1203,173 +417,40 @@ for (const definition of collectibleDefinitions) {
         bill.height * 0.5
     };
 
-    for (const entity of activeEntities) {
-      if (entity.type !== "hazard") {
-        continue;
-      }
-
-      const entityHitbox = {
+    for (
+      const obstacle of activeObstacles
+    ) {
+      const obstacleHitbox = {
         x:
-          entity.x +
-          entity.width * 0.32,
+          obstacle.x +
+          obstacle.width * 0.32,
 
         y:
-          entity.y +
-          entity.height * 0.38,
+          obstacle.y +
+          obstacle.height * 0.38,
 
         width:
-          entity.width * 0.36,
+          obstacle.width * 0.36,
 
         height:
-          entity.height * 0.48
+          obstacle.height * 0.48
       };
-
-      /*
-        A real collision still restarts
-        the gameplay immediately.
-      */
 
       if (
         rectanglesOverlap(
           billHitbox,
-          entityHitbox
+          obstacleHitbox
         )
       ) {
-        playCrashFeedback();
         restartGameplay();
         return;
       }
-
-      /*
-        The near-miss zone surrounds the
-        real hazard hitbox by a small margin.
-      */
-
-      const nearMissPadding = 34;
-
-      const nearMissZone = {
-        x:
-          entityHitbox.x -
-          nearMissPadding,
-
-        y:
-          entityHitbox.y -
-          nearMissPadding,
-
-        width:
-          entityHitbox.width +
-          nearMissPadding * 2,
-
-        height:
-          entityHitbox.height +
-          nearMissPadding * 2
-      };
-
-      if (
-        rectanglesOverlap(
-          billHitbox,
-          nearMissZone
-        )
-      ) {
-        entity.nearMissArmed = true;
-      }
-
-      /*
-        Once the hazard has passed Bill,
-        reward the close escape exactly once.
-      */
-
-      const hazardHasPassedBill =
-        entityHitbox.x +
-          entityHitbox.width <
-        billHitbox.x;
-
-      if (
-        entity.nearMissArmed &&
-        !entity.nearMissTriggered &&
-        hazardHasPassedBill
-      ) {
-        entity.nearMissTriggered = true;
-
-        createNearMissEffects(
-          entity,
-          billHitbox
-        );
-      }
     }
   }
-
-  // =====================================
-  // COLLECTIBLE COLLISIONS
-  // =====================================
-
-  function checkCollectibleCollisions() {
-    const billHitbox = {
-      x: bill.x + bill.width * 0.22,
-      y: bill.y + bill.height * 0.18,
-      width: bill.width * 0.56,
-      height: bill.height * 0.64
-    };
-
-    for (
-      let index = activeEntities.length - 1;
-      index >= 0;
-      index -= 1
-    ) {
-      const entity = activeEntities[index];
-
-      if (entity.type !== "collectible") {
-        continue;
-      }
-
-      const collectibleHitbox = {
-        x: entity.x + entity.width * 0.12,
-        y: entity.y + entity.height * 0.12,
-        width: entity.width * 0.76,
-        height: entity.height * 0.76
-      };
-
-      if (
-        !rectanglesOverlap(
-          billHitbox,
-          collectibleHitbox
-        )
-      ) {
-        continue;
-      }
-
-      const effectStrength =
-        Number(entity.definition.value) || 1;
-
-      /*
-        Every mug, six-pack, twelve-pack,
-        or crate advances the meter by one.
-      */
-
-      score += 1;
-
-      playPickupFeedback(
-        effectStrength
-      );
-
-      createPickupEffects(
-        entity,
-        1,
-        effectStrength
-      );
-
-      activeEntities.splice(index, 1);
-    }
-  }
-
-  // =====================================
-  // GAMEPLAY RESTART
-  // =====================================
 
   function restartGameplay() {
     resetBill();
     resetObstacles();
-    resetPickupEffects();
 
     backgroundOffset = 0;
     chapterFinished = false;
@@ -1396,7 +477,6 @@ for (const definition of collectibleDefinitions) {
   function startGameplay() {
     resetBill();
     resetObstacles();
-    resetPickupEffects();
 
     chapterFinished = false;
     backgroundOffset = 0;
@@ -1410,39 +490,6 @@ for (const definition of collectibleDefinitions) {
   function finishChapter() {
     chapterFinished = true;
     gameState = "finished";
-  }
-
-  function continueToNextChapter() {
-    const nextChapterNumber =
-      chapterNumber + 1;
-
-    const nextChapter =
-      engine.getChapter(
-        nextChapterNumber - 1
-      );
-
-    /*
-      As soon as Chapter 2 exists in story.js,
-      tapping the finished screen loads it.
-
-      Until then, the finished screen remains
-      in place instead of opening a broken page.
-    */
-
-    if (!nextChapter) {
-      return;
-    }
-
-    const nextUrl =
-      new URL(window.location.href);
-
-    nextUrl.searchParams.set(
-      "chapter",
-      String(nextChapterNumber)
-    );
-
-    window.location.href =
-      nextUrl.toString();
   }
 
   // =====================================
@@ -1489,20 +536,12 @@ for (const definition of collectibleDefinitions) {
 
   function handlePrimaryAction(event) {
     if (gameState === "title") {
-      playClickFeedback();
       showStoryCards();
       return;
     }
 
     if (gameState === "story") {
-      playClickFeedback();
       advanceStoryCard();
-      return;
-    }
-
-    if (gameState === "finished") {
-      playClickFeedback();
-      continueToNextChapter();
       return;
     }
 
@@ -1565,8 +604,7 @@ canvas.addEventListener(
       ) {
         if (
           gameState === "title" ||
-          gameState === "story" ||
-          gameState === "finished"
+          gameState === "story"
         ) {
           event.preventDefault();
 
@@ -1835,32 +873,16 @@ canvas.addEventListener(
   function drawBill() {
     ctx.imageSmoothingEnabled = false;
 
-    const bounceScale =
-      1 + billPickupBounce * 0.08;
-
-    const drawWidth =
-      bill.width * bounceScale;
-
-    const drawHeight =
-      bill.height *
-      (1 - billPickupBounce * 0.05);
-
-    const drawX =
-      bill.x - (drawWidth - bill.width) / 2;
-
-    const drawY =
-      bill.y + (bill.height - drawHeight) / 2;
-
     if (
       billImage.complete &&
       billImage.naturalWidth > 0
     ) {
       ctx.drawImage(
         billImage,
-        drawX,
-        drawY,
-        drawWidth,
-        drawHeight
+        bill.x,
+        bill.y,
+        bill.width,
+        bill.height
       );
 
       return;
@@ -1869,10 +891,10 @@ canvas.addEventListener(
     ctx.fillStyle = "#ffffff";
 
     ctx.fillRect(
-      drawX,
-      drawY,
-      drawWidth,
-      drawHeight
+      bill.x,
+      bill.y,
+      bill.width,
+      bill.height
     );
   }
 
@@ -2623,28 +1645,13 @@ canvas.addEventListener(
       return;
     }
 
-    const counterWidth = Math.min(
-      250,
-      Math.max(180, width * 0.38)
-    );
-
-    const counterHeight = 28;
-    const counterX = 20;
-    const counterY = 74;
-
-    ctx.save();
-
-    // -------------------------------------
-    // PLAY INSTRUCTION
-    // -------------------------------------
-
     ctx.fillStyle = "#ffffff";
     ctx.font = "16px monospace";
 
     ctx.fillText(
       "Drag up and down",
       20,
-      30
+      32
     );
 
     ctx.font = "13px monospace";
@@ -2652,164 +1659,11 @@ canvas.addEventListener(
     ctx.fillText(
       currentChapter.title,
       20,
-      52
+      55
     );
-
-    // -------------------------------------
-    // ONE MORE TITLE
-    // -------------------------------------
-
-    const counterScale =
-      1 + scorePulse * 0.08;
-
-    ctx.save();
-
-    ctx.translate(
-      counterX,
-      counterY
-    );
-
-    ctx.scale(
-      counterScale,
-      counterScale
-    );
-
-    ctx.font = "bold 16px monospace";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "bottom";
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "#000000";
-    ctx.fillStyle = "#fff2a8";
-
-    ctx.strokeText(
-      "ONE MORE...",
-      0,
-      -7
-    );
-
-    ctx.fillText(
-      "ONE MORE...",
-      0,
-      -7
-    );
-
-    ctx.restore();
-
-    // -------------------------------------
-    // OPEN-ENDED BEER COUNTER
-    // -------------------------------------
-
-    ctx.fillStyle =
-      "rgba(0, 0, 0, 0.78)";
-
-    ctx.fillRect(
-      counterX - 4,
-      counterY - 4,
-      counterWidth + 8,
-      counterHeight + 8
-    );
-
-    ctx.fillStyle = "#3b2a16";
-
-    ctx.fillRect(
-      counterX,
-      counterY,
-      counterWidth,
-      counterHeight
-    );
-
-    /*
-      The gold sweep loops gently across the
-      counter. It gives the HUD motion without
-      suggesting there is a finish line.
-    */
-
-    const sweepWidth =
-      Math.max(
-        36,
-        counterWidth * 0.22
-      );
-
-    const sweepTravel =
-      counterWidth + sweepWidth;
-
-    const sweepX =
-      counterX -
-      sweepWidth +
-      (
-        (performance.now() * 0.07) %
-        sweepTravel
-      );
-
-    ctx.save();
-
-    ctx.beginPath();
-
-    ctx.rect(
-      counterX,
-      counterY,
-      counterWidth,
-      counterHeight
-    );
-
-    ctx.clip();
-
-    ctx.fillStyle =
-      "rgba(242, 169, 0, 0.72)";
-
-    ctx.fillRect(
-      sweepX,
-      counterY,
-      sweepWidth,
-      counterHeight
-    );
-
-    ctx.fillStyle =
-      "rgba(255, 255, 255, 0.34)";
-
-    ctx.fillRect(
-      sweepX,
-      counterY + 3,
-      sweepWidth,
-      5
-    );
-
-    ctx.restore();
-
-    // -------------------------------------
-    // BEER TOTAL
-    // -------------------------------------
-
-    ctx.font = "bold 16px monospace";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "#000000";
-    ctx.fillStyle = "#ffffff";
-
-    const beerLabel =
-      `${Math.round(displayedScore)} BEERS`;
-
-    ctx.strokeText(
-      beerLabel,
-      counterX + counterWidth / 2,
-      counterY + counterHeight / 2 + 1
-    );
-
-    ctx.fillText(
-      beerLabel,
-      counterX + counterWidth / 2,
-      counterY + counterHeight / 2 + 1
-    );
-
-    // -------------------------------------
-    // TIMER
-    // -------------------------------------
 
     ctx.font = "22px monospace";
     ctx.textAlign = "right";
-    ctx.textBaseline = "alphabetic";
-    ctx.fillStyle = "#ffffff";
 
     ctx.fillText(
       chapterTimer.getRemainingSeconds(),
@@ -2817,7 +1671,7 @@ canvas.addEventListener(
       40
     );
 
-    ctx.restore();
+    ctx.textAlign = "left";
   }
 
   // =====================================
@@ -2826,7 +1680,7 @@ canvas.addEventListener(
 
   function drawChapterFinished() {
     ctx.fillStyle =
-      "rgba(0, 0, 0, 0.84)";
+      "rgba(0, 0, 0, 0.78)";
 
     ctx.fillRect(
       0,
@@ -2835,181 +1689,24 @@ canvas.addEventListener(
       height
     );
 
+    ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
 
-    // -------------------------------------
-    // YOU WIN
-    // -------------------------------------
-
-    const winPulse =
-      1 +
-      Math.sin(
-        performance.now() * 0.004
-      ) *
-        0.025;
-
-    ctx.save();
-
-    ctx.translate(
-      width / 2,
-      height / 2 - 112
-    );
-
-    ctx.scale(
-      winPulse,
-      winPulse
-    );
-
-    ctx.font = "900 46px monospace";
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = "#000000";
-    ctx.fillStyle = "#ffe56b";
-
-    ctx.strokeText(
-      "YOU WIN!",
-      0,
-      0
-    );
+    ctx.font = "28px monospace";
 
     ctx.fillText(
-      "YOU WIN!",
-      0,
-      0
-    );
-
-    ctx.restore();
-
-    // -------------------------------------
-    // DETOX MESSAGE
-    // -------------------------------------
-
-    ctx.font = "bold 20px monospace";
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = "#000000";
-    ctx.fillStyle = "#ffffff";
-
-    ctx.strokeText(
-      "...ANOTHER TRIP",
+      "CHAPTER COMPLETE",
       width / 2,
-      height / 2 - 58
+      height / 2 - 20
     );
+
+    ctx.font = "18px monospace";
 
     ctx.fillText(
-      "...ANOTHER TRIP",
+      "More story coming next.",
       width / 2,
-      height / 2 - 58
+      height / 2 + 25
     );
-
-    ctx.strokeText(
-      "TO DETOX.",
-      width / 2,
-      height / 2 - 28
-    );
-
-    ctx.fillText(
-      "TO DETOX.",
-      width / 2,
-      height / 2 - 28
-    );
-
-    // -------------------------------------
-    // FINAL MESSAGE BOX
-    // -------------------------------------
-
-    const boxWidth = Math.min(
-      350,
-      width * 0.82
-    );
-
-    const boxHeight = 112;
-
-    const boxX =
-      width / 2 -
-      boxWidth / 2;
-
-    const boxY =
-      height / 2 + 10;
-
-    ctx.fillStyle = "#000000";
-
-    ctx.fillRect(
-      boxX - 5,
-      boxY - 5,
-      boxWidth + 10,
-      boxHeight + 10
-    );
-
-    ctx.fillStyle = "#3b2a16";
-
-    ctx.fillRect(
-      boxX,
-      boxY,
-      boxWidth,
-      boxHeight
-    );
-
-    ctx.fillStyle = "#f2a900";
-
-    ctx.fillRect(
-      boxX,
-      boxY,
-      boxWidth,
-      8
-    );
-
-    ctx.font = "bold 16px monospace";
-    ctx.fillStyle = "#fff2a8";
-
-    ctx.fillText(
-      "ONE'S TOO MANY...",
-      width / 2,
-      boxY + 34
-    );
-
-    ctx.fillText(
-      "A THOUSAND ISN'T ENOUGH!",
-      width / 2,
-      boxY + 58
-    );
-
-    ctx.font = "bold 23px monospace";
-    ctx.fillStyle = "#ffffff";
-
-    ctx.fillText(
-      `${score} BEERS`,
-      width / 2,
-      boxY + 91
-    );
-
-    // -------------------------------------
-    // CONTINUE PROMPT
-    // -------------------------------------
-
-    const blink =
-      Math.floor(
-        performance.now() / 500
-      ) %
-        2 ===
-      0;
-
-    if (blink) {
-      ctx.font = "bold 16px monospace";
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = "#000000";
-      ctx.fillStyle = "#ffffff";
-
-      ctx.strokeText(
-        "TAP TO CONTINUE",
-        width / 2,
-        boxY + boxHeight + 44
-      );
-
-      ctx.fillText(
-        "TAP TO CONTINUE",
-        width / 2,
-        boxY + boxHeight + 44
-      );
-    }
 
     ctx.textAlign = "left";
   }
@@ -3042,9 +1739,6 @@ canvas.addEventListener(
 
         updateBackground();
         updateObstacles(now);
-        updateCollectibles(now);
-        updatePickupEffects();
-        checkCollectibleCollisions();
         checkObstacleCollisions();
 
         break;
@@ -3072,34 +1766,17 @@ canvas.addEventListener(
         drawStoryCard();
         break;
 
-      case "playing": {
-        const shakeX =
-          (Math.random() - 0.5) * screenShake;
-
-        const shakeY =
-          (Math.random() - 0.5) * screenShake;
-
-        ctx.save();
-        ctx.translate(shakeX, shakeY);
-
+      case "playing":
         drawBackground();
         drawObstacles();
-        drawCollectibles();
         drawBill();
-        drawPickupEffects();
-
-        ctx.restore();
-
         drawGameplayHud();
         break;
-      }
 
       case "finished":
         drawBackground();
         drawObstacles();
-        drawCollectibles();
         drawBill();
-        drawPickupEffects();
         drawGameplayHud();
         drawChapterFinished();
         break;
@@ -3117,26 +1794,6 @@ canvas.addEventListener(
         break;
     }
   }
-
-  // =====================================
-  // PAGE VISIBILITY
-  // =====================================
-
-  document.addEventListener(
-    "visibilitychange",
-    () => {
-      if (document.hidden) {
-        backgroundMusic.pause();
-        return;
-      }
-
-      if (audioUnlocked) {
-        backgroundMusic
-          .play()
-          .catch(() => {});
-      }
-    }
-  );
 
   // =====================================
   // MAIN LOOP
