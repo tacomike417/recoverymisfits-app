@@ -36,11 +36,76 @@
   const currentChapter =
     engine.getChapter(chapterIndex);
 
+  // =====================================
+  // CHAPTER 2 STORY CARDS
+  // Edit this text whenever you want.
+  // =====================================
+
+  if (chapterNumber === 2 && currentChapter) {
+    currentChapter.cards = [
+      {
+        title: "HERE WE GO AGAIN",
+        image: "assets/cards/chapter2-card1.png",
+        text:
+          "Bill's plan didn't work.\n\n" +
+          "Beer turned into uncontrolable drinking,\n" +
+          "and avoiding certain people\n" +
+          "didn't change a thing.\n\n" +
+          "Now Lois is making another call for help."
+      },
+
+      {
+        title: "THE BELLADONNA TREATMENT",
+        image: "assets/cards/chapter2-card2.png",
+        text:
+          "\"Yes... we'll begin immediately.\"\n\n" +
+          "Hydrotherapy...\n" +
+          "Intense exercise...\n" +
+          "Belladonna treatments...\n\n" +
+          "The goal is to calm his nervous system.\n\n" +
+          "When we're finished he'll be a new man.\n"
+      },
+
+      {
+        title: "RUN! RUN! RUN!",
+        image: "assets/cards/chapter2-card3.png",
+        text:
+          "RUN! RUN! RUN!\n\n" +
+          "Now hot bath!\n\n" +
+          "Now cold shower!\n\n" +
+          "Now Belladonna..."
+      },
+
+      {
+        title: "BILL OBJECTS",
+        image: "assets/cards/chapter2-card4.png",
+        text:
+          "Bill:\n" +
+          "\"I don't want to drink Belladonna!\"\n\n" +
+          "Nurse:\n" +
+          "\"Oh, honey...\n\n" +
+          "You don't drink it...\n\n" +
+          "It goes in the other way.\""
+      },
+
+      {
+        title: "THIS IS TORTURE",
+        image: "assets/cards/chapter2-card5.png",
+        text:
+          "This...\n\n" +
+          "is...\n\n" +
+          "TORTURE."
+      }
+    ];
+  }
+
   let width = 0;
   let height = 0;
 
   // splash → title → story → playing → finished
-  let gameState = "splash";
+  const skipIntro = new URLSearchParams(window.location.search).get("skipIntro") === "1";
+
+  let gameState = skipIntro ? "story" : "splash";
 
   // =====================================
   // SPLASH SETTINGS
@@ -1381,6 +1446,10 @@ for (const definition of collectibleDefinitions) {
   // =====================================
 
   function showTitleScreen() {
+    if (skipIntro) {
+      showStoryCards();
+      return;
+    }
     gameState = "title";
   }
 
@@ -1442,6 +1511,11 @@ for (const definition of collectibleDefinitions) {
     nextUrl.searchParams.set(
       "chapter",
       String(nextChapterNumber)
+    );
+
+    nextUrl.searchParams.set(
+      "skipIntro",
+      "1"
     );
 
     window.location.href =
@@ -2227,7 +2301,7 @@ canvas.addEventListener(
         cardImage.complete &&
         cardImage.naturalWidth > 0
       ) {
-        const scale = Math.min(
+        const scale = Math.max(
           imageAreaWidth /
             cardImage.naturalWidth,
 
