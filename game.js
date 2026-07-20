@@ -102,10 +102,20 @@
   let width = 0;
   let height = 0;
 
-  // splash → title → story → playing → finished
+  // splash → chapter1CutScene → title/story → playing → finished
   const skipIntro = new URLSearchParams(window.location.search).get("skipIntro") === "1";
 
-  let gameState = skipIntro ? "story" : "splash";
+  /*
+    Chapter 2 intentionally begins with the shared crawl even though
+    Chapter 1 sends it over with skipIntro=1. Other chapters keep the
+    existing skipIntro behavior unchanged.
+  */
+  let gameState =
+    chapterNumber === 2
+      ? "chapter1CutScene"
+      : skipIntro
+        ? "story"
+        : "splash";
 
   // =====================================
   // SPLASH SETTINGS
@@ -115,6 +125,105 @@
   const SPLASH_FADE_MS = 800;
 
   let splashStartedAt = performance.now();
+
+  // =====================================
+  // CHAPTER 1 OPENING CUT SCENE
+  // =====================================
+
+  const chapter1CutSceneEnabled =
+    (chapterNumber === 1 && !skipIntro) ||
+    chapterNumber === 2;
+
+  const chapter1CutSceneText =
+    chapterNumber === 2
+      ? [
+          "CHAPTER 2",
+          "",
+          "Seven years have passed...",
+          "",
+          "Our friend is now a regular at hospitals seeking help.",
+          "",
+          "His drinking has become impossible to hide.",
+          "",
+          "Steady work has become impossible to keep.",
+          "",
+          "His marriage has grown unhappy.",
+          "",
+          "His friends have left him behind.",
+          "",
+          "His life is on the brink of collapse.",
+          "",
+          "Experimental treatment now seems like his only option.",
+          "",
+          "He is becoming desperate for a solution..."
+        ]
+      : [
+    "CHAPTER 1",
+    "",
+    "NOT SO VERY LONG AGO...",
+    "",
+    "Our friend is a successful businessman.",
+    "",
+    "He has a loving wife...",
+    "",
+    "Good friends...",
+    "",
+    "And a future that looks bright.",
+    "",
+    "Drinking has become a part of his everyday life.",
+    "",
+    "After work.",
+    "",
+    "With friends.",
+    "",
+    "To celebrate.",
+    "",
+    "To relax.",
+    "",
+    "Most days are fine.",
+    "",
+    "But every now and then...",
+    "",
+    "He takes it too far.",
+    "",
+    "Another apology.",
+    "",
+    "Another promise.",
+    "",
+    "Another hospital stay.",
+    "",
+    "Each time he leaves the hospital...",
+    "",
+    "He believes this time will be different.",
+    "",
+    "He'll be more careful.",
+    "",
+    "He'll have more willpower.",
+    "",
+    "He'll finally get it under control.",
+    "",
+    "He has no idea...",
+    "",
+    "He's about to begin a journey...",
+    "",
+    "One that millions of us would one day understand."
+  ];
+
+  const CHAPTER_1_CUT_SCENE_SCROLL_SPEED = 22;
+  const CHAPTER_1_CUT_SCENE_END_HOLD_MS = 1700;
+
+  let chapter1CutSceneStartedAt = 0;
+  let chapter1CutSceneFinishedAt = 0;
+
+  const chapter1CutSceneStars = Array.from(
+    { length: 115 },
+    (_, index) => ({
+      x: ((index * 73) % 997) / 997,
+      y: ((index * 191) % 991) / 991,
+      size: 0.7 + ((index * 29) % 17) / 10,
+      phase: (index * 0.73) % (Math.PI * 2)
+    })
+  );
 
   // =====================================
   // CHAPTER STATE
@@ -170,6 +279,14 @@
   let treatmentFailedLabel = "";
   let treatmentAttempt = 0;
   let treatmentOverloadTriggered = false;
+
+  /*
+    Chapter 1 keeps its exact current difficulty until the first
+    obstacle collision. Every retry after that collision uses the
+    easier hazard settings below. Chapter 2 keeps its own existing
+    first-attempt/easier-retry system.
+  */
+  let chapter1EasierRetry = false;
   const treatmentParticles = [];
 
   // =====================================
@@ -567,10 +684,20 @@ for (const definition of collectibleDefinitions) {
   const MAX_SPAWN_DELAY = 3000;
 
   function getRandomSpawnDelay() {
+    const minimumDelay =
+      chapterNumber === 1 && chapter1EasierRetry
+        ? 2700
+        : MIN_SPAWN_DELAY;
+
+    const maximumDelay =
+      chapterNumber === 1 && chapter1EasierRetry
+        ? 4500
+        : MAX_SPAWN_DELAY;
+
     return (
-      MIN_SPAWN_DELAY +
+      minimumDelay +
       Math.random() *
-        (MAX_SPAWN_DELAY - MIN_SPAWN_DELAY)
+        (maximumDelay - minimumDelay)
     );
   }
 
@@ -602,7 +729,12 @@ for (const definition of collectibleDefinitions) {
     activeEntities.length = 0;
 
     nextObstacleSpawnAt =
-      performance.now() + 1200;
+      performance.now() +
+      (
+        chapterNumber === 1 && chapter1EasierRetry
+          ? 2200
+          : 1200
+      );
 
     nextCollectibleSpawnAt =
       performance.now() + 500;
@@ -671,8 +803,13 @@ for (const definition of collectibleDefinitions) {
       const distance =
         Math.hypot(dx, dy) || 1;
 
-      const speed =
+      const baseSpeed =
         definition.speed || 7;
+
+      const speed =
+        chapterNumber === 1 && chapter1EasierRetry
+          ? baseSpeed * 0.62
+          : baseSpeed;
 
       activeEntities.push({
         type: "hazard",
@@ -715,7 +852,10 @@ for (const definition of collectibleDefinitions) {
       width: obstacleWidth,
       height: obstacleHeight,
       movement,
-      speed: definition.speed || 4
+      speed:
+        chapterNumber === 1 && chapter1EasierRetry
+          ? (definition.speed || 4) * 0.62
+          : definition.speed || 4
     });
 
     nextObstacleSpawnAt =
@@ -1356,20 +1496,27 @@ for (const definition of collectibleDefinitions) {
       from causing unfair collisions.
     */
 
+    const easierChapter1Retry =
+      chapterNumber === 1 && chapter1EasierRetry;
+
     const billHitbox = {
       x:
         bill.x +
-        bill.width * 0.3,
+        bill.width *
+          (easierChapter1Retry ? 0.37 : 0.3),
 
       y:
         bill.y +
-        bill.height * 0.25,
+        bill.height *
+          (easierChapter1Retry ? 0.33 : 0.25),
 
       width:
-        bill.width * 0.4,
+        bill.width *
+          (easierChapter1Retry ? 0.26 : 0.4),
 
       height:
-        bill.height * 0.5
+        bill.height *
+          (easierChapter1Retry ? 0.34 : 0.5)
     };
 
     for (const entity of activeEntities) {
@@ -1380,17 +1527,21 @@ for (const definition of collectibleDefinitions) {
       const entityHitbox = {
         x:
           entity.x +
-          entity.width * 0.32,
+          entity.width *
+            (easierChapter1Retry ? 0.4 : 0.32),
 
         y:
           entity.y +
-          entity.height * 0.38,
+          entity.height *
+            (easierChapter1Retry ? 0.44 : 0.38),
 
         width:
-          entity.width * 0.36,
+          entity.width *
+            (easierChapter1Retry ? 0.2 : 0.36),
 
         height:
-          entity.height * 0.48
+          entity.height *
+            (easierChapter1Retry ? 0.32 : 0.48)
       };
 
       /*
@@ -1404,6 +1555,10 @@ for (const definition of collectibleDefinitions) {
           entityHitbox
         )
       ) {
+        if (chapterNumber === 1) {
+          chapter1EasierRetry = true;
+        }
+
         playCrashFeedback();
         restartGameplay();
         return;
@@ -1574,6 +1729,28 @@ for (const definition of collectibleDefinitions) {
   // =====================================
   // STATE CHANGES
   // =====================================
+
+  function showChapter1CutScene() {
+    if (!chapter1CutSceneEnabled) {
+      showTitleScreen();
+      return;
+    }
+
+    chapter1CutSceneStartedAt = performance.now();
+    chapter1CutSceneFinishedAt = 0;
+    gameState = "chapter1CutScene";
+  }
+
+  function finishChapter1CutScene() {
+    chapter1CutSceneFinishedAt = 0;
+
+    if (chapterNumber === 2) {
+      showStoryCards();
+      return;
+    }
+
+    gameState = "title";
+  }
 
   function showTitleScreen() {
     if (skipIntro) {
@@ -2088,6 +2265,23 @@ for (const definition of collectibleDefinitions) {
   // =====================================
 
   function handlePrimaryAction(event) {
+    if (gameState === "chapter1CutScene") {
+      if (
+        !event ||
+        typeof event.clientX !== "number" ||
+        typeof event.clientY !== "number" ||
+        chapter1CutSceneSkipButtonContains(
+          event.clientX,
+          event.clientY
+        )
+      ) {
+        playClickFeedback();
+        finishChapter1CutScene();
+      }
+
+      return;
+    }
+
     if (gameState === "title") {
       playClickFeedback();
       showStoryCards();
@@ -2180,6 +2374,7 @@ canvas.addEventListener(
         event.key === " "
       ) {
         if (
+          gameState === "chapter1CutScene" ||
           gameState === "title" ||
           gameState === "story" ||
           gameState === "finished"
@@ -2544,7 +2739,7 @@ canvas.addEventListener(
       SPLASH_HOLD_MS +
         SPLASH_FADE_MS
     ) {
-      showTitleScreen();
+      showChapter1CutScene();
     }
   }
 
@@ -2588,6 +2783,281 @@ canvas.addEventListener(
       splashImage
     );
 
+    ctx.restore();
+  }
+
+  // =====================================
+  // CHAPTER 1 OPENING CUT SCENE
+  // =====================================
+
+  function getChapter1CutSceneSkipButton() {
+    const buttonWidth = Math.min(124, width * 0.28);
+    const buttonHeight = 44;
+    const margin = 16;
+
+    return {
+      x: width - buttonWidth - margin,
+      y: height - buttonHeight - margin,
+      width: buttonWidth,
+      height: buttonHeight
+    };
+  }
+
+  function chapter1CutSceneSkipButtonContains(x, y) {
+    const button = getChapter1CutSceneSkipButton();
+
+    return (
+      x >= button.x &&
+      x <= button.x + button.width &&
+      y >= button.y &&
+      y <= button.y + button.height
+    );
+  }
+
+  function wrapChapter1CutSceneLine(textLine, maxCharacters) {
+    if (!textLine) {
+      return [""];
+    }
+
+    const words = textLine.split(/\s+/);
+    const wrapped = [];
+    let current = "";
+
+    for (const word of words) {
+      const candidate = current
+        ? `${current} ${word}`
+        : word;
+
+      if (
+        current &&
+        candidate.length > maxCharacters
+      ) {
+        wrapped.push(current);
+        current = word;
+      } else {
+        current = candidate;
+      }
+    }
+
+    if (current) {
+      wrapped.push(current);
+    }
+
+    return wrapped;
+  }
+
+  function getChapter1CutSceneLines() {
+    const maxCharacters =
+      width < 520 ? 28 : 42;
+
+    const lines = [];
+
+    for (const paragraph of chapter1CutSceneText) {
+      lines.push(
+        ...wrapChapter1CutSceneLine(
+          paragraph,
+          maxCharacters
+        )
+      );
+    }
+
+    return lines;
+  }
+
+  function updateChapter1CutScene(now) {
+    if (!chapter1CutSceneStartedAt) {
+      chapter1CutSceneStartedAt = now;
+    }
+
+    const lines = getChapter1CutSceneLines();
+    const baseFontSize =
+      Math.max(25, Math.min(42, width * 0.057));
+    const lineSpacing = baseFontSize * 1.28;
+    const elapsedSeconds =
+      (now - chapter1CutSceneStartedAt) / 1000;
+    const crawlTop =
+      height * 0.93 -
+      elapsedSeconds *
+        CHAPTER_1_CUT_SCENE_SCROLL_SPEED;
+    const lastLineY =
+      crawlTop +
+      Math.max(0, lines.length - 1) *
+        lineSpacing;
+
+    if (lastLineY > height * 0.18) {
+      chapter1CutSceneFinishedAt = 0;
+      return;
+    }
+
+    if (!chapter1CutSceneFinishedAt) {
+      chapter1CutSceneFinishedAt = now;
+      return;
+    }
+
+    if (
+      now - chapter1CutSceneFinishedAt >=
+      CHAPTER_1_CUT_SCENE_END_HOLD_MS
+    ) {
+      finishChapter1CutScene();
+    }
+  }
+
+  function drawChapter1CutSceneStars(now) {
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, width, height);
+
+    for (const star of chapter1CutSceneStars) {
+      const twinkle =
+        0.48 +
+        Math.sin(
+          now * 0.0017 + star.phase
+        ) *
+          0.22;
+
+      ctx.globalAlpha = Math.max(0.18, twinkle);
+      ctx.fillStyle = "#ffffff";
+
+      const starSize =
+        Math.max(1, star.size);
+
+      ctx.fillRect(
+        star.x * width,
+        star.y * height,
+        starSize,
+        starSize
+      );
+    }
+
+    ctx.globalAlpha = 1;
+  }
+
+  function drawChapter1CutScene(now) {
+    drawChapter1CutSceneStars(now);
+
+    const lines = getChapter1CutSceneLines();
+    const baseFontSize =
+      Math.max(25, Math.min(42, width * 0.057));
+    const lineSpacing = baseFontSize * 1.28;
+    const elapsedSeconds =
+      (now - chapter1CutSceneStartedAt) / 1000;
+    const crawlTop =
+      height * 0.93 -
+      elapsedSeconds *
+        CHAPTER_1_CUT_SCENE_SCROLL_SPEED;
+    const horizonY = height * 0.115;
+    const bottomY = height * 0.91;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(width * 0.42, horizonY);
+    ctx.lineTo(width * 0.58, horizonY);
+    ctx.lineTo(width * 0.96, bottomY);
+    ctx.lineTo(width * 0.04, bottomY);
+    ctx.closePath();
+    ctx.clip();
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    for (let index = 0; index < lines.length; index += 1) {
+      const virtualY =
+        crawlTop + index * lineSpacing;
+
+      if (
+        virtualY < horizonY - lineSpacing ||
+        virtualY > height + lineSpacing
+      ) {
+        continue;
+      }
+
+      const depth = Math.max(
+        0,
+        Math.min(
+          1,
+          (virtualY - horizonY) /
+            Math.max(1, bottomY - horizonY)
+        )
+      );
+
+      const perspectiveScale =
+        0.34 + depth * 0.88;
+      const screenY =
+        horizonY +
+        Math.pow(depth, 1.16) *
+          (bottomY - horizonY);
+      const fadeNearHorizon =
+        Math.max(
+          0,
+          Math.min(1, (screenY - horizonY) / 95)
+        );
+      const fadeNearBottom =
+        Math.max(
+          0,
+          Math.min(1, (height - screenY) / 75)
+        );
+
+      let fontWeight = "700";
+      let fontSize = baseFontSize;
+
+      if (index === 0) {
+        fontWeight = "900";
+        fontSize = baseFontSize * 1.18;
+      } else if (index === 2) {
+        fontWeight = "900";
+        fontSize = baseFontSize * 0.96;
+      }
+
+      ctx.save();
+      ctx.globalAlpha =
+        Math.min(fadeNearHorizon, fadeNearBottom);
+      ctx.translate(width / 2, screenY);
+      ctx.scale(perspectiveScale, perspectiveScale);
+      ctx.font =
+        `${fontWeight} ${fontSize}px Arial, Helvetica, sans-serif`;
+      ctx.fillStyle =
+        index === 0 || index === 2
+          ? "#ffd84d"
+          : "#fff2a8";
+      ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
+      ctx.shadowBlur = 7;
+      ctx.fillText(
+        lines[index],
+        0,
+        0,
+        width * 0.76 / perspectiveScale
+      );
+      ctx.restore();
+    }
+
+    ctx.restore();
+
+    const button = getChapter1CutSceneSkipButton();
+
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.78)";
+    ctx.fillRect(
+      button.x,
+      button.y,
+      button.width,
+      button.height
+    );
+    ctx.strokeStyle = "#fff2a8";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(
+      button.x,
+      button.y,
+      button.width,
+      button.height
+    );
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "800 16px Arial, Helvetica, sans-serif";
+    ctx.fillStyle = "#fff7dc";
+    ctx.fillText(
+      "SKIP",
+      button.x + button.width / 2,
+      button.y + button.height / 2 + 1
+    );
     ctx.restore();
   }
 
@@ -3569,6 +4039,10 @@ canvas.addEventListener(
         updateSplash(now);
         break;
 
+      case "chapter1CutScene":
+        updateChapter1CutScene(now);
+        break;
+
       case "playing":
         if (
           chapterTimer &&
@@ -3613,6 +4087,10 @@ canvas.addEventListener(
     switch (gameState) {
       case "splash":
         drawSplashScreen(now);
+        break;
+
+      case "chapter1CutScene":
+        drawChapter1CutScene(now);
         break;
 
       case "title":
