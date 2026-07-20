@@ -47,11 +47,11 @@
         title: "HERE WE GO AGAIN",
         image: "assets/cards/chapter2-card1.png",
         text:
-          "Bill's plan didn't work.\n\n" +
+          "Our friend's plan didn't work.\n\n" +
           "Beer turned into uncontrolable drinking,\n" +
           "and avoiding certain people\n" +
           "didn't change a thing.\n\n" +
-          "Now Lois is making another call for help."
+          "Now his wife is making another call for help."
       },
 
       {
@@ -60,7 +60,7 @@
         text:
           "\"Yes... we'll begin immediately.\"\n\n" +
           "Hydrotherapy...\n" +
-          "Intense exercise...\n" +
+          "Mild exercise...\n" +
           "Belladonna treatments...\n\n" +
           "The goal is to calm his nervous system.\n\n" +
           "When we're finished he'll be a new man.\n"
@@ -80,7 +80,6 @@
         title: "BELLADONNA?",
         image: "assets/cards/chapter2-card4.png",
         text:
-          "Bill:\n" +
           "\"I don't want to drink any Belladonna!\"\n\n" +
           "Nurse:\n" +
           "\"Oh, honey...\n\n" +
@@ -2239,9 +2238,16 @@ for (const definition of collectibleDefinitions) {
     ctx.fillText("TREATMENT RESTART", width / 2, boxY + 51, boxWidth - 24);
     ctx.fillText("REQUIRED", width / 2, boxY + 84, boxWidth - 24);
 
+    const missedTreatmentText = {
+      "RUN!": "YOU MISSED MILD EXERCISE",
+      "HOT SHOWER!": "YOU MISSED A HOT SHOWER",
+      "COLD BATH!": "YOU MISSED A COLD BATH",
+      "BELLADONNA!": "YOU MISSED BELLADONNA TREATMENT"
+    }[treatmentFailedLabel] || `YOU MISSED ${treatmentFailedLabel}`;
+
     ctx.font = "700 14px Arial, Helvetica, sans-serif";
     ctx.fillStyle = "#ffe6e6";
-    ctx.fillText(`${treatmentFailedLabel} WAS MISSED`, width / 2, boxY + 122, boxWidth - 28);
+    ctx.fillText(missedTreatmentText, width / 2, boxY + 122, boxWidth - 28);
 
     const buttonX = boxX + 28;
     const buttonY = boxY + 151;
