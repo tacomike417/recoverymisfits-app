@@ -1,8 +1,54 @@
 (() => {
   "use strict";
 
+  // ============================================================================
+  // RECOVERY MISFITS GAME.JS — PLAIN-ENGLISH MAP
+  // ============================================================================
+  //
+  // This file controls the full browser-game flow. Nothing in this comment
+  // appears inside the game. It is only here to help you find things quickly.
+  //
+  // GAME FLOW
+  // 1. OPENING CLICK-THROUGH PAGE
+  //    Image: assets/splash/opening-splash.png
+  //    Purpose: waits for a real tap/click so Chrome will allow audio.
+  //
+  // 2. RECOVERY MISFITS SPLASH PAGE
+  //    Image: assets/splash/recovery-misfits-splash.png
+  //    Sound: assets/sounds/splash.mp3
+  //    Behavior: fades in, stays visible for the whole sound, then fades out.
+  //
+  // 3. OPENING CHAPTER CRAWL
+  //    Sound: assets/sounds/music/cutscene1.mp3
+  //    Behavior: Star-Wars-style perspective without cutting off sentence edges.
+  //
+  // 4. STORY / TITLE CARDS
+  //    Chapter 1 cards mostly come from story.js.
+  //    Chapter 2 and Chapter 3 cards are written near the top of this file.
+  //
+  // 5. GAMEPLAY
+  //    Chapter 1: moving hazards and beer collectibles.
+  //    Chapter 2: treatment mini-game.
+  //    Chapter 3: Doctor's Opinion / obsession and craving mini-game.
+  //
+  // 6. FINISH SCREEN AND NEXT CHAPTER
+  //
+  // HOW TO FIND A SECTION
+  // Use Ctrl+F and search for one of these exact phrases:
+  //   OPENING CLICK-THROUGH PAGE
+  //   RECOVERY MISFITS SPLASH PAGE
+  //   OPENING CHAPTER CRAWL
+  //   CHAPTER 2 STORY CARDS
+  //   CHAPTER 3 STORY CARDS
+  //   MAIN GAME LOOP
+  //   INPUT / TAP / CLICK HANDLING
+  //
+  // IMPORTANT
+  // The big comments are safe reading guides. They do not change gameplay.
+  // ============================================================================
+
   // =====================================
-  // CORE SETUP
+  // CORE SETUP — CANVAS, ENGINE, URL CHAPTER NUMBER
   // =====================================
 
   const canvas = document.getElementById("game");
@@ -40,8 +86,27 @@
       : null);
 
   // =====================================
-  // CHAPTER 2 STORY CARDS
-  // Edit this text whenever you want.
+  // CHAPTER 1 STORY CARDS — SMALL TEXT ADJUSTMENTS
+  // =====================================
+
+  if (chapterNumber === 1 && currentChapter?.cards) {
+    currentChapter.cards = currentChapter.cards.filter((card) => {
+      const searchableText = `${card?.title || ""} ${card?.text || ""}`;
+      return !/swipe/i.test(searchableText);
+    });
+
+    const bigDealCard = currentChapter.cards.find((card) =>
+      /get out of control|who doesn(?:'|’)t when they drink/i.test(card?.text || "")
+    );
+
+    if (bigDealCard && !/what(?:'|’)s the big deal/i.test(bigDealCard.text || "")) {
+      bigDealCard.text = `${bigDealCard.text || ""}\n\n"What's the big deal?"`;
+    }
+  }
+
+  // =====================================
+  // CHAPTER 2 STORY CARDS — EDIT THESE OBJECTS TO CHANGE THE CARDS
+  // Each object has a title, image path, and the words shown on that card.
   // =====================================
 
   if (chapterNumber === 2 && currentChapter) {
@@ -50,7 +115,7 @@
         title: "HERE WE GO AGAIN",
         image: "assets/cards/chapter2-card1.png",
         text:
-          "Our friend's plan didn't work.\n\n" +
+          "Our friend's plan hasn't worked.\n\n" +
           "Beer turned into uncontrolable drinking,\n" +
           "and avoiding certain people\n" +
           "didn't change a thing.\n\n" +
@@ -58,7 +123,7 @@
       },
 
       {
-        title: "THE BELLADONNA TREATMENT",
+        title: "BELLADONNA TREATMENT?",
         image: "assets/cards/chapter2-card2.png",
         text:
           "\"Yes... we'll begin immediately.\"\n\n" +
@@ -113,7 +178,7 @@
         image: "assets/cards/chapter2-card7.png",
         text:
           "\"The treatments have helped your body.\"\n\n" +
-          "\"You'll soon be well enough to leave.\"\n\n" +
+          "\"You are well enough to leave.\"\n\n" +
           "But the doctor has seen this before."
       },
 
@@ -122,7 +187,7 @@
         image: "assets/cards/chapter2-card8.png",
         text:
           "Men arrive broken...\n\n" +
-          "They recover...\n\n" +
+          "They sober up...\n\n" +
           "They swear they will never drink again...\n\n" +
           "So why do they always come back?"
       }
@@ -130,8 +195,8 @@
   }
 
   // =====================================
-  // CHAPTER 3 STORY CARDS
-  // Images can be added later using the paths below.
+  // CHAPTER 3 STORY CARDS — EDIT THESE OBJECTS TO CHANGE THE CARDS
+  // Each object has a title, image path, and the words shown on that card.
   // =====================================
 
   if (chapterNumber === 3 && currentChapter) {
@@ -191,7 +256,7 @@
   let width = 0;
   let height = 0;
 
-  // splash → chapter1CutScene → title/story → playing → finished
+  // openingSplash → splash → chapter1CutScene → title/story → playing → finished
   const skipIntro = new URLSearchParams(window.location.search).get("skipIntro") === "1";
 
   /*
@@ -204,20 +269,46 @@
       ? "chapter1CutScene"
       : skipIntro
         ? "story"
-        : "splash";
+        : "openingSplash";
 
-  // =====================================
-  // SPLASH SETTINGS
-  // =====================================
+  // ============================================================================
+  // RECOVERY MISFITS SPLASH PAGE — TIMING SETTINGS
+  // ============================================================================
+  //
+  // This is the SECOND screen, after the opening click-through page.
+  //
+  // SPLASH_FADE_IN_MS:
+  // How long recovery-misfits-splash.png takes to fade from black to visible.
+  //
+  // SPLASH_FADE_MS:
+  // How long it takes to fade back to black AFTER splash.mp3 ends.
+  //
+  // SPLASH_AUDIO_FALLBACK_MS:
+  // Emergency safety timer only. Normally the real "ended" event from
+  // splash.mp3 controls when the fade-out begins.
+  // ============================================================================
 
-  const SPLASH_HOLD_MS = 2000;
-  const SPLASH_FADE_MS = 800;
+  const SPLASH_FADE_IN_MS = 900;
+  const SPLASH_FADE_MS = 900;
+  const SPLASH_AUDIO_FALLBACK_MS = 15000;
+  const MUSIC_FADE_MS = 650;
+  const FINISHED_INPUT_LOCK_MS = 1200;
 
-  let splashStartedAt = performance.now();
+  let splashStartedAt = 0;
+  let splashAudioFinished = false;
+  let splashFadeStartedAt = 0;
+  let splashFallbackEndsAt = 0;
+  let finishedInputReadyAt = 0;
 
-  // =====================================
-  // CHAPTER 1 OPENING CUT SCENE
-  // =====================================
+  // ============================================================================
+  // OPENING CHAPTER CRAWL — TEXT, SPEED, PERSPECTIVE, AND SKIP BUTTON
+  // ============================================================================
+  // This same cinematic system is used before Chapters 1, 2, and 3.
+  // Search for chapter1CutSceneText near the top to edit the actual wording.
+  // Search for CHAPTER_1_CUT_SCENE_SCROLL_SPEED to change its speed.
+  // The drawing code below keeps the narrowing perspective while calculating
+  // a safe width for every line so sentence edges do not get cut off.
+  // ============================================================================
 
   const chapter1CutSceneEnabled =
     (chapterNumber === 1 && !skipIntro) ||
@@ -324,8 +415,15 @@
   const CHAPTER_1_CUT_SCENE_SCROLL_SPEED = 22;
   const CHAPTER_1_CUT_SCENE_END_HOLD_MS = 1700;
 
+  // This shared setting controls the speed button on every chapter crawl.
+  let chapter1CutSceneSpeedMultiplier = 1;
+
   let chapter1CutSceneStartedAt = 0;
   let chapter1CutSceneFinishedAt = 0;
+
+  // These track the crawl frame-by-frame so changing speed does not make it jump.
+  let chapter1CutSceneCrawlDistance = 0;
+  let chapter1CutSceneLastUpdatedAt = 0;
 
   const chapter1CutSceneStars = Array.from(
     { length: 115 },
@@ -338,7 +436,7 @@
   );
 
   // =====================================
-  // CHAPTER STATE
+  // SHARED CHAPTER STATE — TIMER, CURRENT CARD, GAMEPLAY START TIME
   // =====================================
 
   let chapterTimer = null;
@@ -456,7 +554,7 @@
   const BACKGROUND_SCROLL_SPEED = 1.2;
 
   // =====================================
-  // CANVAS
+  // CANVAS SIZE — MAKES THE GAME FILL THE BROWSER WINDOW
   // =====================================
 
   function resizeCanvas() {
@@ -492,7 +590,7 @@
   resizeCanvas();
 
   // =====================================
-  // IMAGE LOADING
+  // IMAGE LOADING — ALL ART FILE PATHS USED BY THE GAME
   // =====================================
 
   const billImage = new Image();
@@ -540,6 +638,15 @@ for (const definition of collectibleDefinitions) {
   );
 }
 
+  // OPENING CLICK-THROUGH PAGE IMAGE
+  // This is the very first page with the flashing TAP TO START message.
+  const openingSplashImage = new Image();
+
+  openingSplashImage.src =
+    "assets/splash/opening-splash.png";
+
+  // RECOVERY MISFITS SPLASH PAGE IMAGE
+  // This is shown while assets/sounds/splash.mp3 plays.
   const splashImage = new Image();
 
   splashImage.src =
@@ -563,7 +670,7 @@ for (const definition of collectibleDefinitions) {
     "assets/treatment/treatment-restart-required.png";
 
   // =====================================
-  // SOUND AND VIBRATION
+  // SOUND AND VIBRATION — MUSIC, SPLASH AUDIO, CLICKS, CRASHES
   // =====================================
 
   /*
@@ -578,26 +685,34 @@ for (const definition of collectibleDefinitions) {
     chapter3.mp3, and so on.
   */
 
+  // OPENING CHAPTER CRAWL MUSIC
+  // This track belongs ONLY to the scrolling cinematic crawl.
+  const cutsceneMusic = new Audio(
+    "assets/sounds/music/cutscene1.mp3"
+  );
+
+  cutsceneMusic.loop = true;
+  cutsceneMusic.volume = 0.32;
+  cutsceneMusic.preload = "auto";
+
+  // GAMEPLAY MUSIC
+  // Each chapter can have chapter1.mp3, chapter2.mp3, chapter3.mp3, etc.
   const backgroundMusic = new Audio(
     `assets/sounds/music/chapter${chapterNumber}.mp3`
   );
 
   backgroundMusic.loop = true;
-  backgroundMusic.volume = 0.32;
+  backgroundMusic.volume = 0;
   backgroundMusic.preload = "auto";
 
+  // RECOVERY MISFITS SPLASH SOUND
+  // The splash image stays visible until this exact sound finishes.
   const splashSound = new Audio(
     "assets/sounds/splash.mp3"
   );
 
   splashSound.volume = 1;
   splashSound.preload = "auto";
-
-  if (gameState === "splash") {
-    splashSound
-      .play()
-      .catch(() => {});
-  }
 
   const soundFiles = {
     click:
@@ -626,24 +741,131 @@ for (const definition of collectibleDefinitions) {
     smoothing: 0.08
   };
 
-  function startBackgroundMusicForGameplay() {
-    audioUnlocked = true;
+  function playAudio(audio) {
+    return audio.play().then(() => true).catch(() => false);
+  }
 
-    if (isTreatmentLevel) {
-      backgroundMusic.pause();
-      backgroundMusic.currentTime = 0;
-      backgroundMusic.playbackRate = treatmentMusicSettings.startRate;
-      backgroundMusic.volume = treatmentMusicSettings.baseVolume;
-    } else {
-      backgroundMusic.playbackRate = 1;
-      backgroundMusic.volume = 0.32;
+  function fadeAudio(audio, targetVolume, duration = MUSIC_FADE_MS, pauseWhenSilent = false) {
+    const startVolume = audio.volume;
+    const startedAt = performance.now();
+
+    function step(now) {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      audio.volume = startVolume + (targetVolume - startVolume) * progress;
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+        return;
+      }
+
+      audio.volume = targetVolume;
+
+      if (pauseWhenSilent && targetVolume === 0) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
     }
 
-    backgroundMusic
-      .play()
-      .catch(() => {
-        audioUnlocked = false;
+    requestAnimationFrame(step);
+  }
+
+  function startCutsceneMusic() {
+    audioUnlocked = true;
+    backgroundMusic.pause();
+    cutsceneMusic.playbackRate = chapter1CutSceneSpeedMultiplier;
+
+    if (cutsceneMusic.paused) {
+      cutsceneMusic.volume = 0;
+      playAudio(cutsceneMusic).then((started) => {
+        if (started && gameState === "chapter1CutScene") {
+          fadeAudio(cutsceneMusic, 0.32);
+        }
       });
+    } else if (gameState === "chapter1CutScene") {
+      fadeAudio(cutsceneMusic, 0.32);
+    }
+  }
+
+  function stopCutsceneMusic() {
+    cutsceneMusic.pause();
+    cutsceneMusic.currentTime = 0;
+    cutsceneMusic.volume = 0;
+    cutsceneMusic.playbackRate = 1;
+  }
+
+  function unlockAudioFromUserGesture() {
+    audioUnlocked = true;
+
+    /*
+      Start the audible splash sound and the silent cut-scene track
+      directly inside the first tap. The cut-scene track stays running
+      at zero volume until the Recovery Misfits splash ends.
+    */
+    splashSound.pause();
+    splashSound.muted = false;
+    splashSound.currentTime = 0;
+
+    cutsceneMusic.pause();
+    cutsceneMusic.muted = false;
+    cutsceneMusic.currentTime = 0;
+    cutsceneMusic.volume = 0;
+    cutsceneMusic.playbackRate = 1;
+
+    const splashPromise = playAudio(splashSound);
+    playAudio(cutsceneMusic);
+
+    return splashPromise;
+  }
+
+  function beginRecoveryMisfitsSplash() {
+    splashStartedAt = performance.now();
+    splashAudioFinished = false;
+    splashFadeStartedAt = 0;
+    splashFallbackEndsAt = splashStartedAt + SPLASH_AUDIO_FALLBACK_MS;
+    gameState = "splash";
+
+    unlockAudioFromUserGesture().then((started) => {
+      if (!started) {
+        splashAudioFinished = true;
+        splashFadeStartedAt = performance.now();
+      }
+    });
+  }
+
+  function finishSplashAudio() {
+    if (gameState !== "splash" || splashAudioFinished) {
+      return;
+    }
+
+    splashAudioFinished = true;
+    splashFadeStartedAt = performance.now();
+  }
+
+  splashSound.addEventListener("ended", finishSplashAudio);
+  splashSound.addEventListener("error", finishSplashAudio);
+
+  function startBackgroundMusicForGameplay() {
+    audioUnlocked = true;
+    fadeAudio(cutsceneMusic, 0, MUSIC_FADE_MS, true);
+
+    backgroundMusic.pause();
+    backgroundMusic.currentTime = 0;
+    backgroundMusic.volume = 0;
+    backgroundMusic.playbackRate = isTreatmentLevel
+      ? treatmentMusicSettings.startRate
+      : 1;
+
+    playAudio(backgroundMusic).then((started) => {
+      if (!started) {
+        audioUnlocked = false;
+        return;
+      }
+
+      fadeAudio(
+        backgroundMusic,
+        isTreatmentLevel ? treatmentMusicSettings.baseVolume : 0.32
+      );
+    });
   }
 
   function stopBackgroundMusic(resetToBeginning = false) {
@@ -766,7 +988,7 @@ for (const definition of collectibleDefinitions) {
   }
 
   // =====================================
-  // PLAYER
+  // PLAYER — BILL IMAGE SIZE AND VERTICAL POSITION
   // =====================================
 
   const bill = {
@@ -811,7 +1033,7 @@ for (const definition of collectibleDefinitions) {
   }
 
   // =====================================
-  // GAME ENTITIES
+  // GAME ENTITIES — ACTIVE HAZARDS AND COLLECTIBLES
   // Handles hazards and collectibles.
   // =====================================
 
@@ -1858,7 +2080,7 @@ for (const definition of collectibleDefinitions) {
   }
 
   // =====================================
-  // GAMEPLAY RESTART
+  // GAMEPLAY RESTART — RESET THE CURRENT ATTEMPT
   // =====================================
 
   function resetTreatmentGame(now = performance.now()) {
@@ -1898,7 +2120,7 @@ for (const definition of collectibleDefinitions) {
   }
 
   // =====================================
-  // STATE CHANGES
+  // SCREEN / STATE CHANGES — MOVE FROM ONE PART OF THE GAME TO ANOTHER
   // =====================================
 
   function showChapter1CutScene() {
@@ -1909,11 +2131,19 @@ for (const definition of collectibleDefinitions) {
 
     chapter1CutSceneStartedAt = performance.now();
     chapter1CutSceneFinishedAt = 0;
+    chapter1CutSceneSpeedMultiplier = 1;
+    chapter1CutSceneCrawlDistance = 0;
+    chapter1CutSceneLastUpdatedAt = chapter1CutSceneStartedAt;
     gameState = "chapter1CutScene";
+    startCutsceneMusic();
   }
 
   function finishChapter1CutScene() {
     chapter1CutSceneFinishedAt = 0;
+
+    // The crawl music belongs only to the cinematic. Stop and reset it before
+    // showing the title screen or any story cards.
+    stopCutsceneMusic();
 
     if (chapterNumber === 2) {
       showStoryCards();
@@ -1977,6 +2207,7 @@ for (const definition of collectibleDefinitions) {
   function finishChapter() {
     chapterFinished = true;
     stopBackgroundMusic(false);
+    finishedInputReadyAt = performance.now() + FINISHED_INPUT_LOCK_MS;
     gameState = "finished";
   }
 
@@ -2847,15 +3078,39 @@ for (const definition of collectibleDefinitions) {
   }
 
   // =====================================
-  // INPUT
+  // INPUT / TAP / CLICK HANDLING — WHAT HAPPENS WHEN THE PLAYER PRESSES
   // =====================================
 
   function handlePrimaryAction(event) {
+    if (gameState === "openingSplash") {
+      beginRecoveryMisfitsSplash();
+      return;
+    }
+
     if (gameState === "chapter1CutScene") {
+      startCutsceneMusic();
+
       if (
         !event ||
         typeof event.clientX !== "number" ||
-        typeof event.clientY !== "number" ||
+        typeof event.clientY !== "number"
+      ) {
+        playClickFeedback();
+        finishChapter1CutScene();
+        return;
+      }
+
+      if (
+        chapter1CutSceneSpeedButtonContains(
+          event.clientX,
+          event.clientY
+        )
+      ) {
+        toggleChapter1CutSceneSpeed();
+        return;
+      }
+
+      if (
         chapter1CutSceneSkipButtonContains(
           event.clientX,
           event.clientY
@@ -2881,6 +3136,10 @@ for (const definition of collectibleDefinitions) {
     }
 
     if (gameState === "finished") {
+      if (performance.now() < finishedInputReadyAt) {
+        return;
+      }
+
       playClickFeedback();
       continueToNextChapter();
       return;
@@ -2934,9 +3193,24 @@ for (const definition of collectibleDefinitions) {
 canvas.addEventListener(
   "pointerdown",
   (event) => {
-    canvas.setPointerCapture(event.pointerId);
+    event.preventDefault();
+
+    /*
+      Process the first tap before attempting pointer capture.
+      Some Chrome/mobile combinations can reject setPointerCapture(),
+      which must never block the TAP TO START action.
+    */
     handlePrimaryAction(event);
-  }
+
+    try {
+      if (canvas.hasPointerCapture && !canvas.hasPointerCapture(event.pointerId)) {
+        canvas.setPointerCapture(event.pointerId);
+      }
+    } catch (error) {
+      // Pointer capture is optional; the game still responds to the tap.
+    }
+  },
+  { passive: false }
 );
 
   canvas.addEventListener(
@@ -2970,6 +3244,7 @@ canvas.addEventListener(
         event.key === " "
       ) {
         if (
+          gameState === "openingSplash" ||
           gameState === "chapter1CutScene" ||
           gameState === "title" ||
           gameState === "story" ||
@@ -3275,7 +3550,7 @@ canvas.addEventListener(
   }
 
   // =====================================
-  // PLAYER DRAWING
+  // PLAYER — BILL IMAGE SIZE AND VERTICAL POSITION DRAWING
   // =====================================
 
   function drawBill() {
@@ -3322,69 +3597,119 @@ canvas.addEventListener(
     );
   }
 
-  // =====================================
-  // SPLASH SCREEN
-  // =====================================
+  // ============================================================================
+  // RECOVERY MISFITS SPLASH PAGE
+  // ============================================================================
+  //
+  // SCREEN ORDER
+  // opening-splash.png -> player taps -> recovery-misfits-splash.png
+  // -> splash.mp3 finishes -> splash fades out -> opening chapter crawl
+  //
+  // updateSplash() decides WHEN this screen ends.
+  // drawSplashScreen() decides HOW it looks while it is on screen.
+  // ============================================================================
 
   function updateSplash(now) {
-    const elapsed =
-      now - splashStartedAt;
+    if (!splashAudioFinished && now >= splashFallbackEndsAt) {
+      splashAudioFinished = true;
+      splashFadeStartedAt = now;
+    }
 
-    if (
-      elapsed >=
-      SPLASH_HOLD_MS +
-        SPLASH_FADE_MS
-    ) {
+    if (!splashAudioFinished) {
+      return;
+    }
+
+    if (!splashFadeStartedAt) {
+      splashFadeStartedAt = now;
+    }
+
+    if (now - splashFadeStartedAt >= SPLASH_FADE_MS) {
       showChapter1CutScene();
     }
   }
 
-  function drawSplashScreen(now) {
+  // ============================================================================
+  // OPENING CLICK-THROUGH PAGE
+  // ============================================================================
+  // This screen has no music of its own. Its job is to receive the first
+  // tap/click, unlock browser audio, and then start the Recovery Misfits splash.
+  // ============================================================================
+  function drawOpeningSplashScreen(now) {
     ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, width, height);
+    drawContainedImage(openingSplashImage);
 
-    ctx.fillRect(
-      0,
-      0,
-      width,
-      height
-    );
-
-    const elapsed =
-      now - splashStartedAt;
-
-    let opacity = 1;
-
-    if (
-      elapsed >
-      SPLASH_HOLD_MS
-    ) {
-      const fadeProgress =
-        (
-          elapsed -
-          SPLASH_HOLD_MS
-        ) /
-        SPLASH_FADE_MS;
-
-      opacity = Math.max(
-        0,
-        1 - fadeProgress
-      );
-    }
+    const centerX = width / 2;
+    const baseFont = Math.max(13, Math.min(19, width * 0.042));
+    const wordingStartY = height * 0.73;
 
     ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.strokeStyle = "#000000";
+    ctx.fillStyle = "#ffffff";
+    ctx.lineWidth = Math.max(3, baseFont * 0.2);
 
-    ctx.globalAlpha = opacity;
+    const wordingLines = [
+      { text: "2026", size: baseFont * 0.82, y: wordingStartY },
+      { text: "RECOVERY MISFITS", size: baseFont * 1.12, y: wordingStartY + baseFont * 1.45 },
+      { text: "recoverymisfits.org", size: baseFont * 0.74, y: wordingStartY + baseFont * 2.75 },
+      { text: "ONE DAY AT A TIME", size: baseFont * 0.78, y: wordingStartY + baseFont * 3.95 }
+    ];
 
-    drawContainedImage(
-      splashImage
-    );
+    for (const line of wordingLines) {
+      ctx.font = `900 ${line.size}px monospace`;
+      ctx.strokeText(line.text, centerX, line.y);
+      ctx.fillText(line.text, centerX, line.y);
+    }
+
+    const blinkOn = Math.floor(now / 500) % 2 === 0;
+
+    if (blinkOn) {
+      const promptSize = Math.max(17, Math.min(25, width * 0.055));
+      const promptY = height - Math.max(32, height * 0.07);
+      ctx.font = `900 ${promptSize}px monospace`;
+      ctx.lineWidth = Math.max(4, promptSize * 0.22);
+      ctx.strokeText("► TAP TO START ◄", centerX, promptY);
+      ctx.fillText("► TAP TO START ◄", centerX, promptY);
+    }
 
     ctx.restore();
   }
 
+  function drawSplashScreen(now) {
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, width, height);
+
+    // First fade IN from black as splash.mp3 begins.
+    const fadeInProgress = Math.max(
+      0,
+      Math.min(1, (now - splashStartedAt) / SPLASH_FADE_IN_MS)
+    );
+
+    let opacity = fadeInProgress;
+
+    // Do not begin fading OUT until splash.mp3 has actually finished.
+    if (splashAudioFinished && splashFadeStartedAt) {
+      const fadeOutProgress = Math.max(
+        0,
+        Math.min(1, (now - splashFadeStartedAt) / SPLASH_FADE_MS)
+      );
+
+      opacity = fadeInProgress * (1 - fadeOutProgress);
+    }
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    drawContainedImage(splashImage);
+    ctx.restore();
+  }
+
   // =====================================
-  // CHAPTER 1 OPENING CUT SCENE
+  // CHAPTER CUT SCENE — STAR-WARS-STYLE CRAWL
   // =====================================
+  // This is shared by Chapters 1, 2, and 3. The speed button therefore
+  // appears on every chapter crawl that uses this shared screen.
 
   function getChapter1CutSceneSkipButton() {
     const buttonWidth = Math.min(124, width * 0.28);
@@ -3393,6 +3718,20 @@ canvas.addEventListener(
 
     return {
       x: width - buttonWidth - margin,
+      y: height - buttonHeight - margin,
+      width: buttonWidth,
+      height: buttonHeight
+    };
+  }
+
+  function getChapter1CutSceneSpeedButton() {
+    const buttonWidth = Math.min(124, width * 0.28);
+    const buttonHeight = 44;
+    const margin = 16;
+    const gap = 10;
+
+    return {
+      x: width - buttonWidth * 2 - margin - gap,
       y: height - buttonHeight - margin,
       width: buttonWidth,
       height: buttonHeight
@@ -3410,6 +3749,25 @@ canvas.addEventListener(
     );
   }
 
+  function chapter1CutSceneSpeedButtonContains(x, y) {
+    const button = getChapter1CutSceneSpeedButton();
+
+    return (
+      x >= button.x &&
+      x <= button.x + button.width &&
+      y >= button.y &&
+      y <= button.y + button.height
+    );
+  }
+
+  function toggleChapter1CutSceneSpeed() {
+    chapter1CutSceneSpeedMultiplier =
+      chapter1CutSceneSpeedMultiplier === 1 ? 2 : 1;
+
+    cutsceneMusic.playbackRate = chapter1CutSceneSpeedMultiplier;
+    playClickFeedback();
+  }
+
   function wrapChapter1CutSceneLine(textLine, maxCharacters) {
     if (!textLine) {
       return [""];
@@ -3420,14 +3778,9 @@ canvas.addEventListener(
     let current = "";
 
     for (const word of words) {
-      const candidate = current
-        ? `${current} ${word}`
-        : word;
+      const candidate = current ? `${current} ${word}` : word;
 
-      if (
-        current &&
-        candidate.length > maxCharacters
-      ) {
+      if (current && candidate.length > maxCharacters) {
         wrapped.push(current);
         current = word;
       } else {
@@ -3443,18 +3796,11 @@ canvas.addEventListener(
   }
 
   function getChapter1CutSceneLines() {
-    const maxCharacters =
-      width < 520 ? 28 : 42;
-
+    const maxCharacters = width < 520 ? 24 : 36;
     const lines = [];
 
     for (const paragraph of chapter1CutSceneText) {
-      lines.push(
-        ...wrapChapter1CutSceneLine(
-          paragraph,
-          maxCharacters
-        )
-      );
+      lines.push(...wrapChapter1CutSceneLine(paragraph, maxCharacters));
     }
 
     return lines;
@@ -3463,22 +3809,34 @@ canvas.addEventListener(
   function updateChapter1CutScene(now) {
     if (!chapter1CutSceneStartedAt) {
       chapter1CutSceneStartedAt = now;
+      chapter1CutSceneLastUpdatedAt = now;
+      chapter1CutSceneCrawlDistance = 0;
+      chapter1CutSceneSpeedMultiplier = 1;
+      cutsceneMusic.playbackRate = 1;
     }
 
+    if (!chapter1CutSceneLastUpdatedAt) {
+      chapter1CutSceneLastUpdatedAt = now;
+    }
+
+    const frameSeconds = Math.max(
+      0,
+      (now - chapter1CutSceneLastUpdatedAt) / 1000
+    );
+
+    chapter1CutSceneLastUpdatedAt = now;
+
+    chapter1CutSceneCrawlDistance +=
+      frameSeconds *
+      CHAPTER_1_CUT_SCENE_SCROLL_SPEED *
+      chapter1CutSceneSpeedMultiplier;
+
     const lines = getChapter1CutSceneLines();
-    const baseFontSize =
-      Math.max(25, Math.min(42, width * 0.057));
+    const baseFontSize = Math.max(25, Math.min(42, width * 0.057));
     const lineSpacing = baseFontSize * 1.28;
-    const elapsedSeconds =
-      (now - chapter1CutSceneStartedAt) / 1000;
-    const crawlTop =
-      height * 0.93 -
-      elapsedSeconds *
-        CHAPTER_1_CUT_SCENE_SCROLL_SPEED;
+    const crawlTop = height * 0.93 - chapter1CutSceneCrawlDistance;
     const lastLineY =
-      crawlTop +
-      Math.max(0, lines.length - 1) *
-        lineSpacing;
+      crawlTop + Math.max(0, lines.length - 1) * lineSpacing;
 
     if (lastLineY > height * 0.18) {
       chapter1CutSceneFinishedAt = 0;
@@ -3504,17 +3862,12 @@ canvas.addEventListener(
 
     for (const star of chapter1CutSceneStars) {
       const twinkle =
-        0.48 +
-        Math.sin(
-          now * 0.0017 + star.phase
-        ) *
-          0.22;
+        0.48 + Math.sin(now * 0.0017 + star.phase) * 0.22;
 
       ctx.globalAlpha = Math.max(0.18, twinkle);
       ctx.fillStyle = "#ffffff";
 
-      const starSize =
-        Math.max(1, star.size);
+      const starSize = Math.max(1, star.size);
 
       ctx.fillRect(
         star.x * width,
@@ -3531,15 +3884,9 @@ canvas.addEventListener(
     drawChapter1CutSceneStars(now);
 
     const lines = getChapter1CutSceneLines();
-    const baseFontSize =
-      Math.max(25, Math.min(42, width * 0.057));
+    const baseFontSize = Math.max(25, Math.min(42, width * 0.057));
     const lineSpacing = baseFontSize * 1.28;
-    const elapsedSeconds =
-      (now - chapter1CutSceneStartedAt) / 1000;
-    const crawlTop =
-      height * 0.93 -
-      elapsedSeconds *
-        CHAPTER_1_CUT_SCENE_SCROLL_SPEED;
+    const crawlTop = height * 0.93 - chapter1CutSceneCrawlDistance;
     const horizonY = height * 0.115;
     const bottomY = height * 0.91;
 
@@ -3556,13 +3903,9 @@ canvas.addEventListener(
     ctx.textBaseline = "middle";
 
     for (let index = 0; index < lines.length; index += 1) {
-      const virtualY =
-        crawlTop + index * lineSpacing;
+      const virtualY = crawlTop + index * lineSpacing;
 
-      if (
-        virtualY < horizonY - lineSpacing ||
-        virtualY > height + lineSpacing
-      ) {
+      if (virtualY < horizonY - lineSpacing || virtualY > bottomY) {
         continue;
       }
 
@@ -3570,27 +3913,21 @@ canvas.addEventListener(
         0,
         Math.min(
           1,
-          (virtualY - horizonY) /
-            Math.max(1, bottomY - horizonY)
+          (virtualY - horizonY) / Math.max(1, bottomY - horizonY)
         )
       );
 
-      const perspectiveScale =
-        0.34 + depth * 0.88;
+      const perspectiveScale = 0.34 + depth * 0.88;
       const screenY =
-        horizonY +
-        Math.pow(depth, 1.16) *
-          (bottomY - horizonY);
-      const fadeNearHorizon =
-        Math.max(
-          0,
-          Math.min(1, (screenY - horizonY) / 95)
-        );
-      const fadeNearBottom =
-        Math.max(
-          0,
-          Math.min(1, (height - screenY) / 75)
-        );
+        horizonY + Math.pow(depth, 1.16) * (bottomY - horizonY);
+      const fadeNearHorizon = Math.max(
+        0,
+        Math.min(1, (screenY - horizonY) / 95)
+      );
+      const fadeNearBottom = Math.max(
+        0,
+        Math.min(1, (height - screenY) / 75)
+      );
 
       let fontWeight = "700";
       let fontSize = baseFontSize;
@@ -3604,47 +3941,69 @@ canvas.addEventListener(
       }
 
       ctx.save();
-      ctx.globalAlpha =
-        Math.min(fadeNearHorizon, fadeNearBottom);
+      ctx.globalAlpha = Math.min(fadeNearHorizon, fadeNearBottom);
       ctx.translate(width / 2, screenY);
       ctx.scale(perspectiveScale, perspectiveScale);
       ctx.font =
         `${fontWeight} ${fontSize}px Arial, Helvetica, sans-serif`;
       ctx.fillStyle =
-        index === 0 || index === 2
-          ? "#ffd84d"
-          : "#fff2a8";
+        index === 0 || index === 2 ? "#ffd84d" : "#fff2a8";
       ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
       ctx.shadowBlur = 7;
-      ctx.fillText(
-        lines[index],
-        0,
-        0,
-        width * 0.76 / perspectiveScale
-      );
+
+      const trapezoidWidthAtLine = width * (0.16 + depth * 0.76);
+      const safeScreenWidth = trapezoidWidthAtLine * 0.82;
+      const safeUnscaledWidth = safeScreenWidth / perspectiveScale;
+
+      ctx.fillText(lines[index], 0, 0, safeUnscaledWidth);
       ctx.restore();
     }
 
     ctx.restore();
 
-    const button = getChapter1CutSceneSkipButton();
+    // 1X / 2X SPEED BUTTON
+    const speedButton = getChapter1CutSceneSpeedButton();
 
     ctx.save();
-    ctx.fillStyle = "rgba(0, 0, 0, 0.78)";
+    ctx.fillStyle =
+      chapter1CutSceneSpeedMultiplier === 2
+        ? "rgba(255, 216, 77, 0.92)"
+        : "rgba(0, 0, 0, 0.78)";
     ctx.fillRect(
-      button.x,
-      button.y,
-      button.width,
-      button.height
+      speedButton.x,
+      speedButton.y,
+      speedButton.width,
+      speedButton.height
     );
     ctx.strokeStyle = "#fff2a8";
     ctx.lineWidth = 2;
     ctx.strokeRect(
-      button.x,
-      button.y,
-      button.width,
-      button.height
+      speedButton.x,
+      speedButton.y,
+      speedButton.width,
+      speedButton.height
     );
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "800 16px Arial, Helvetica, sans-serif";
+    ctx.fillStyle =
+      chapter1CutSceneSpeedMultiplier === 2 ? "#000000" : "#fff7dc";
+    ctx.fillText(
+      chapter1CutSceneSpeedMultiplier === 2 ? "2X SPEED" : "1X SPEED",
+      speedButton.x + speedButton.width / 2,
+      speedButton.y + speedButton.height / 2 + 1
+    );
+    ctx.restore();
+
+    // SKIP BUTTON
+    const button = getChapter1CutSceneSkipButton();
+
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.78)";
+    ctx.fillRect(button.x, button.y, button.width, button.height);
+    ctx.strokeStyle = "#fff2a8";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(button.x, button.y, button.width, button.height);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.font = "800 16px Arial, Helvetica, sans-serif";
@@ -3658,7 +4017,7 @@ canvas.addEventListener(
   }
 
   // =====================================
-  // TITLE SCREEN
+  // TITLE SCREEN — UNOFFICIAL STORY TITLE IMAGE
   // =====================================
 
   function drawTitleScreen() {
@@ -4578,7 +4937,7 @@ canvas.addEventListener(
     );
 
     ctx.fillText(
-      "A THOUSAND ISN'T ENOUGH!",
+      "A THOUSAND AIN'T ENOUGH.",
       width / 2,
       boxY + 58
     );
@@ -4665,6 +5024,9 @@ canvas.addEventListener(
 
   function update(now) {
     switch (gameState) {
+      case "openingSplash":
+        break;
+
       case "splash":
         updateSplash(now);
         break;
@@ -4720,6 +5082,10 @@ canvas.addEventListener(
 
   function draw(now) {
     switch (gameState) {
+      case "openingSplash":
+        drawOpeningSplashScreen(now);
+        break;
+
       case "splash":
         drawSplashScreen(now);
         break;
@@ -4818,19 +5184,24 @@ canvas.addEventListener(
     () => {
       if (document.hidden) {
         backgroundMusic.pause();
+        cutsceneMusic.pause();
         return;
       }
 
-      if (audioUnlocked && gameState === "playing") {
-        backgroundMusic
-          .play()
-          .catch(() => {});
+      if (!audioUnlocked) {
+        return;
+      }
+
+      if (gameState === "playing") {
+        playAudio(backgroundMusic);
+      } else if (gameState === "chapter1CutScene") {
+        playAudio(cutsceneMusic);
       }
     }
   );
 
   // =====================================
-  // MAIN LOOP
+  // MAIN GAME LOOP — UPDATES AND DRAWS THE CORRECT SCREEN EVERY FRAME
   // =====================================
 
   function gameLoop(now) {
@@ -4843,6 +5214,10 @@ canvas.addEventListener(
   }
 
   resetBill();
+
+  if (gameState === "chapter1CutScene") {
+    startCutsceneMusic();
+  }
 
   requestAnimationFrame(
     gameLoop
