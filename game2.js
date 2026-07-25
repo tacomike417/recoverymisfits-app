@@ -55,6 +55,13 @@
   const ctx = canvas.getContext("2d");
 
   const engine = window.RecoveryEngine;
+(() => {
+  "use strict";
+
+  const AudioEngine = {};
+
+  window.RecoveryAudio = AudioEngine;
+})();
 
   /*
     Chapters are numbered normally in the URL:
