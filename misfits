@@ -1,0 +1,398 @@
+#!/usr/bin/env bash
+
+set -u
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BACKUP_ROOT="$PROJECT_DIR/backups/toolkit"
+
+cd "$PROJECT_DIR" || exit 1
+
+line() {
+  printf '%s\n' "============================================================"
+}
+
+show_help() {
+  cat <<'HELP'
+RECOVERY MISFITS DEVELOPER TOOLKIT
+
+Usage:
+
+  ./misfits backup
+      Creates a dated backup of the modular development game.
+
+  ./misfits restore
+      Restores the newest toolkit backup.
+
+  ./misfits restore BACKUP_NAME
+      Restores a specific backup.
+
+  ./misfits checkpoint "Description of change"
+      Runs safety checks, creates a backup, and commits only the
+      modular development files to Git.
+
+  ./misfits test
+      Checks that the modular files exist and that
+      unofficial-story2.html loads them in the correct order.
+
+  ./misfits status
+      Shows Git status and available toolkit backups.
+
+  ./misfits help
+      Shows this help screen.
+
+Files managed by this toolkit:
+
+  game2.js
+  unofficial-story2.html
+  chapters/chapter1.js
+  chapters/chapter2.js
+  chapters/chapter3.js
+
+The original game.js and unofficial-story.html are never restored,
+overwritten, or staged by this toolkit.
+HELP
+}
+
+required_files=(
+  "game2.js"
+  "unofficial-story2.html"
+  "chapters/chapter1.js"
+  "chapters/chapter2.js"
+  "chapters/chapter3.js"
+)
+
+check_required_files() {
+  local missing=0
+
+  for file in "${required_files[@]}"; do
+    if [[ ! -f "$file" ]]; then
+      echo "MISSING: $file"
+      missing=1
+    fi
+  done
+
+  if [[ "$missing" -ne 0 ]]; then
+    echo
+    echo "Safety check failed. Nothing was changed."
+    return 1
+  fi
+
+  return 0
+}
+
+run_test() {
+  line
+  echo "RECOVERY MISFITS SAFETY TEST"
+  line
+
+  if ! check_required_files; then
+    return 1
+  fi
+
+  python3 <<'PY'
+from pathlib import Path
+import sys
+
+html_path = Path("unofficial-story2.html")
+html = html_path.read_text(encoding="utf-8")
+
+required_scripts = [
+    "story.js",
+    "recovery-engine.js",
+    "chapters/chapter1.js",
+    "chapters/chapter2.js",
+    "chapters/chapter3.js",
+    "game2.js",
+]
+
+positions = []
+failed = False
+
+for script in required_scripts:
+    marker = f'src="{script}"'
+    position = html.find(marker)
+
+    if position == -1:
+        print(f"MISSING SCRIPT TAG: {script}")
+        failed = True
+    else:
+        print(f"FOUND: {script}")
+        positions.append((script, position))
+
+if not failed:
+    actual_order = [name for name, _ in sorted(positions, key=lambda item: item[1])]
+
+    if actual_order != required_scripts:
+        print("\nERROR: Script files are loaded in the wrong order.")
+        print("Expected:")
+        for script in required_scripts:
+            print(f"  {script}")
+
+        print("Found:")
+        for script in actual_order:
+            print(f"  {script}")
+
+        failed = True
+
+chapter_checks = {
+    "chapters/chapter1.js": "window.RecoveryChapters",
+    "chapters/chapter2.js": "window.RecoveryChapters",
+    "chapters/chapter3.js": "window.RecoveryChapters",
+}
+
+for filename, expected in chapter_checks.items():
+    text = Path(filename).read_text(encoding="utf-8")
+
+    if expected not in text:
+        print(f"MISSING CHAPTER REGISTRY CODE: {filename}")
+        failed = True
+    else:
+        print(f"VALID CHAPTER FILE: {filename}")
+
+game2 = Path("game2.js").read_text(encoding="utf-8")
+
+if 'document.getElementById("game")' not in game2:
+    print('WARNING: Could not find document.getElementById("game") in game2.js')
+
+if failed:
+    print("\nTEST FAILED. No files were changed.")
+    sys.exit(1)
+
+print("\nAll structural checks passed.")
+PY
+
+  local result=$?
+
+  line
+
+  if [[ "$result" -eq 0 ]]; then
+    echo "TEST PASSED"
+    echo "Open unofficial-story2.html with Live Server for the gameplay test."
+  else
+    echo "TEST FAILED"
+  fi
+
+  line
+  return "$result"
+}
+
+make_backup() {
+  if ! check_required_files; then
+    return 1
+  fi
+
+  mkdir -p "$BACKUP_ROOT"
+
+  local timestamp
+  timestamp="$(date '+%Y-%m-%d_%H-%M-%S')"
+
+  local destination="$BACKUP_ROOT/$timestamp"
+
+  mkdir -p "$destination/chapters"
+
+  cp game2.js "$destination/game2.js"
+  cp unofficial-story2.html "$destination/unofficial-story2.html"
+  cp chapters/chapter1.js "$destination/chapters/chapter1.js"
+  cp chapters/chapter2.js "$destination/chapters/chapter2.js"
+  cp chapters/chapter3.js "$destination/chapters/chapter3.js"
+
+  cat > "$destination/BACKUP_INFO.txt" <<EOF
+Recovery Misfits modular development backup
+Created: $(date)
+Git branch: $(git branch --show-current 2>/dev/null || echo "unknown")
+Git commit: $(git rev-parse --short HEAD 2>/dev/null || echo "not available")
+EOF
+
+  line
+  echo "BACKUP CREATED"
+  echo
+  echo "$destination"
+  line
+}
+
+restore_backup() {
+  mkdir -p "$BACKUP_ROOT"
+
+  local requested="${1:-}"
+  local source=""
+
+  if [[ -n "$requested" ]]; then
+    source="$BACKUP_ROOT/$requested"
+  else
+    source="$(find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d \
+      -printf '%f\n' 2>/dev/null | sort -r | head -n 1)"
+
+    if [[ -n "$source" ]]; then
+      source="$BACKUP_ROOT/$source"
+    fi
+  fi
+
+  if [[ -z "$source" || ! -d "$source" ]]; then
+    echo "No matching toolkit backup was found."
+    echo
+    echo "Run:"
+    echo "  ./misfits status"
+    return 1
+  fi
+
+  local backup_name
+  backup_name="$(basename "$source")"
+
+  echo "This will replace only these development files:"
+  echo
+  printf '  %s\n' "${required_files[@]}"
+  echo
+  echo "Backup selected:"
+  echo "  $backup_name"
+  echo
+  read -r -p "Type RESTORE to continue: " confirmation
+
+  if [[ "$confirmation" != "RESTORE" ]]; then
+    echo "Restore cancelled. Nothing was changed."
+    return 1
+  fi
+
+  if [[ ! -f "$source/game2.js" ||
+        ! -f "$source/unofficial-story2.html" ||
+        ! -f "$source/chapters/chapter1.js" ||
+        ! -f "$source/chapters/chapter2.js" ||
+        ! -f "$source/chapters/chapter3.js" ]]; then
+    echo "That backup is incomplete. Nothing was restored."
+    return 1
+  fi
+
+  cp "$source/game2.js" game2.js
+  cp "$source/unofficial-story2.html" unofficial-story2.html
+  cp "$source/chapters/chapter1.js" chapters/chapter1.js
+  cp "$source/chapters/chapter2.js" chapters/chapter2.js
+  cp "$source/chapters/chapter3.js" chapters/chapter3.js
+
+  line
+  echo "RESTORE COMPLETE"
+  echo
+  echo "Restored backup: $backup_name"
+  echo "Original game.js was not touched."
+  line
+}
+
+create_checkpoint() {
+  local message="${1:-}"
+
+  if [[ -z "$message" ]]; then
+    echo 'Please include a checkpoint description.'
+    echo
+    echo 'Example:'
+    echo '  ./misfits checkpoint "Move Chapter 2 crawl"'
+    return 1
+  fi
+
+  if ! run_test; then
+    echo
+    echo "Checkpoint cancelled because the safety test failed."
+    return 1
+  fi
+
+  echo
+  make_backup || return 1
+
+  git add \
+    game2.js \
+    unofficial-story2.html \
+    chapters/chapter1.js \
+    chapters/chapter2.js \
+    chapters/chapter3.js \
+    .gitignore \
+    misfits
+
+  if git diff --cached --quiet; then
+    line
+    echo "NO NEW CHANGES TO COMMIT"
+    echo
+    echo "The backup was still created successfully."
+    echo "game.js was not staged."
+    line
+    return 0
+  fi
+
+  git commit -m "$message"
+
+  local result=$?
+
+  line
+
+  if [[ "$result" -eq 0 ]]; then
+    echo "CHECKPOINT CREATED"
+    echo
+    echo "$message"
+    echo
+    echo "Original game.js was not staged or committed."
+  else
+    echo "Git could not create the checkpoint."
+    echo "Your files and backup are still safe."
+  fi
+
+  line
+  return "$result"
+}
+
+show_status() {
+  line
+  echo "GIT STATUS"
+  line
+  git status --short
+
+  echo
+  line
+  echo "TOOLKIT BACKUPS"
+  line
+
+  mkdir -p "$BACKUP_ROOT"
+
+  local backups
+  backups="$(find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d \
+    -printf '%f\n' 2>/dev/null | sort -r)"
+
+  if [[ -z "$backups" ]]; then
+    echo "No toolkit backups yet."
+  else
+    echo "$backups"
+  fi
+
+  line
+}
+
+command="${1:-help}"
+
+case "$command" in
+  backup)
+    make_backup
+    ;;
+
+  restore)
+    restore_backup "${2:-}"
+    ;;
+
+  checkpoint)
+    shift
+    create_checkpoint "$*"
+    ;;
+
+  test)
+    run_test
+    ;;
+
+  status)
+    show_status
+    ;;
+
+  help|--help|-h)
+    show_help
+    ;;
+
+  *)
+    echo "Unknown command: $command"
+    echo
+    show_help
+    exit 1
+    ;;
+esac
