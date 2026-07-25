@@ -4893,19 +4893,18 @@ canvas.addEventListener(
           break;
         }
 
-        bill.y +=
-          (
-            bill.targetY -
-            bill.y
-          ) *
-          0.24;
-
-        updateBackground();
-        updateObstacles(now);
-        updateCollectibles(now);
-        updatePickupEffects();
-        checkCollectibleCollisions();
-        checkObstacleCollisions();
+        if (typeof currentChapter?.updateGameplay === "function") {
+          currentChapter.updateGameplay({
+            now,
+            bill,
+            updateBackground,
+            updateObstacles,
+            updateCollectibles,
+            updatePickupEffects,
+            checkCollectibleCollisions,
+            checkObstacleCollisions
+          });
+        }
 
         break;
 

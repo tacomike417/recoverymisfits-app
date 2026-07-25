@@ -208,6 +208,29 @@ that get you into trouble.`
     }
   ],
 
+  updateGameplay(runtime) {
+    const {
+      bill,
+      updateBackground,
+      updateObstacles,
+      updateCollectibles,
+      updatePickupEffects,
+      checkCollectibleCollisions,
+      checkObstacleCollisions
+    } = runtime;
+
+    bill.y +=
+      (bill.targetY - bill.y) *
+      0.24;
+
+    updateBackground();
+    updateObstacles(runtime.now);
+    updateCollectibles(runtime.now);
+    updatePickupEffects();
+    checkCollectibleCollisions();
+    checkObstacleCollisions();
+  },
+
   prepare() {
     if (!Array.isArray(this.cards)) {
       return;
