@@ -339,27 +339,7 @@
           "something that would change everything."
         ]
       : chapterNumber === 2
-      ? [
-          "CHAPTER 2",
-          "",
-          "Seven years have passed...",
-          "",
-          "Our friend is now a regular at hospitals seeking help.",
-          "",
-          "His drinking has become impossible to hide.",
-          "",
-          "Steady work has become impossible to keep.",
-          "",
-          "His marriage has grown unhappy.",
-          "",
-          "His friends have left him behind.",
-          "",
-          "His life is on the brink of collapse.",
-          "",
-          "Experimental treatment now seems like his only option.",
-          "",
-          "He is becoming desperate for a solution..."
-        ]
+      ? window.RecoveryChapters?.chapter2?.crawl || []
       : window.RecoveryChapters?.chapter1?.crawl || [];
 
   const CHAPTER_1_CUT_SCENE_SCROLL_SPEED = 22;
