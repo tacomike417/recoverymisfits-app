@@ -4134,85 +4134,79 @@ canvas.addEventListener(
   // =====================================
 
   // =====================================
-  // CHAPTER RUNTIME BUILDER
-  // Gives chapter files access to shared
-  // engine state and reusable helpers.
+  // CHAPTER RUNTIME CONNECTIONS
+  // Connects game2.js state to the shared
+  // builder in engine/runtime.js.
   // =====================================
 
-  function createChapterRuntime(
-    now = performance.now(),
-    options = {}
-  ) {
-    return {
-      now,
-      width,
-      height,
-      ctx,
+  const chapterRuntimeContext = {
+    ctx,
+    bill,
+    activeEntities,
 
-      bill,
-      activeEntities,
+    obstacleDefinitions,
+    obstacleImages,
 
-      obstacleDefinitions,
-      obstacleImages,
+    collectibleDefinitions,
+    collectibleImages,
 
-      collectibleDefinitions,
-      collectibleImages,
+    floatingNumbers,
+    pickupParticles,
 
-      easierRetry:
+    getWidth:
+      () => width,
+
+    getHeight:
+      () => height,
+
+    isEasierRetry:
+      () =>
         chapterNumber === 1 &&
         chapter1EasierRetry,
 
-      screenShake:
-        options.screenShake ??
-        screenShake,
+    getScreenShake:
+      () => screenShake,
 
-      updateBackground,
-      updatePickupEffects,
+    setScreenShake:
+      (value) => {
+        screenShake = value;
+      },
 
-      drawBackground,
-      drawBill,
-      drawPickupEffects,
+    getBillPickupBounce:
+      () => billPickupBounce,
 
-      floatingNumbers,
-      pickupParticles,
+    setBillPickupBounce:
+      (value) => {
+        billPickupBounce = value;
+      },
 
-      getScreenShake:
-        () => screenShake,
+    setEasierRetry:
+      (value) => {
+        if (chapterNumber === 1) {
+          chapter1EasierRetry =
+            Boolean(value);
+        }
+      },
 
-      setScreenShake:
-        (value) => {
-          screenShake = value;
-        },
+    addScore:
+      (amount) => {
+        score +=
+          Number(amount) || 0;
+      },
 
-      getBillPickupBounce:
-        () => billPickupBounce,
+    updateBackground,
+    updatePickupEffects,
 
-      setBillPickupBounce:
-        (value) => {
-          billPickupBounce = value;
-        },
+    drawBackground,
+    drawBill,
+    drawPickupEffects,
 
-      setEasierRetry:
-        (value) => {
-          if (chapterNumber === 1) {
-            chapter1EasierRetry =
-              Boolean(value);
-          }
-        },
+    playCrashFeedback,
+    restartGameplay,
 
-      playCrashFeedback,
-      restartGameplay,
-
-      addScore:
-        (amount) => {
-          score +=
-            Number(amount) || 0;
-        },
-
-      playPickupFeedback,
-      createPickupEffects
-    };
-  }
+    playPickupFeedback,
+    createPickupEffects
+  };
 
   function update(now) {
     switch (gameState) {
@@ -4249,7 +4243,10 @@ canvas.addEventListener(
 
         if (typeof currentChapter?.updateGameplay === "function") {
           currentChapter.updateGameplay(
-            createChapterRuntime(now)
+            window.RecoveryRuntime.createChapterRuntime(
+              chapterRuntimeContext,
+              now
+            )
           );
         }
 
@@ -4300,7 +4297,10 @@ canvas.addEventListener(
 
         if (typeof currentChapter?.drawGameplay === "function") {
           currentChapter.drawGameplay(
-            createChapterRuntime(now)
+            window.RecoveryRuntime.createChapterRuntime(
+              chapterRuntimeContext,
+              now
+            )
           );
         }
 
@@ -4327,7 +4327,8 @@ canvas.addEventListener(
           typeof currentChapter?.drawGameplay === "function"
         ) {
           currentChapter.drawGameplay(
-            createChapterRuntime(
+            window.RecoveryRuntime.createChapterRuntime(
+              chapterRuntimeContext,
               now,
               {
                 screenShake: 0
