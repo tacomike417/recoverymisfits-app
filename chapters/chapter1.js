@@ -668,13 +668,327 @@ that get you into trouble.`
     }
   },
 
+
+  // =====================================
+  // CHAPTER 1 COLLISION SYSTEM
+  // =====================================
+
+  rectanglesOverlap(a, b) {
+    return (
+      a.x < b.x + b.width &&
+      a.x + a.width > b.x &&
+      a.y < b.y + b.height &&
+      a.y + a.height > b.y
+    );
+  },
+
+  createNearMissEffects(runtime, entity, billHitbox) {
+    const {
+      floatingNumbers,
+      pickupParticles,
+      getScreenShake,
+      setScreenShake,
+      getBillPickupBounce,
+      setBillPickupBounce
+    } = runtime;
+
+    const words = [
+      "WHEW!",
+      "CLOSE ONE!",
+      "TOO CLOSE!"
+    ];
+
+    floatingNumbers.push({
+      x:
+        billHitbox.x +
+        billHitbox.width / 2 +
+        28,
+
+      y:
+        billHitbox.y - 10,
+
+      text:
+        words[
+          Math.floor(
+            Math.random() *
+            words.length
+          )
+        ],
+
+      life: 1,
+      velocityY: -1.25,
+      scale: 0.72,
+      color: "#8fe9ff"
+    });
+
+    const burstX =
+      Math.max(
+        billHitbox.x +
+          billHitbox.width,
+        entity.x
+      );
+
+    const burstY =
+      billHitbox.y +
+      billHitbox.height / 2;
+
+    for (
+      let index = 0;
+      index < 10;
+      index += 1
+    ) {
+      const angle =
+        Math.random() * Math.PI * 2;
+
+      const speed =
+        1.2 + Math.random() * 3.2;
+
+      pickupParticles.push({
+        x: burstX,
+        y: burstY,
+
+        velocityX:
+          Math.cos(angle) * speed,
+
+        velocityY:
+          Math.sin(angle) * speed,
+
+        gravity: 0.03,
+
+        size:
+          2 +
+          Math.floor(
+            Math.random() * 4
+          ),
+
+        life: 1,
+
+        decay:
+          0.035 +
+          Math.random() * 0.025,
+
+        rotation:
+          Math.random() * Math.PI,
+
+        rotationSpeed:
+          (Math.random() - 0.5) * 0.3,
+
+        color:
+          Math.random() > 0.5
+            ? "#8fe9ff"
+            : "#ffffff"
+      });
+    }
+
+    setScreenShake(
+      Math.max(
+        getScreenShake(),
+        2.5
+      )
+    );
+
+    setBillPickupBounce(
+      Math.max(
+        getBillPickupBounce(),
+        0.45
+      )
+    );
+  },
+
+  checkObstacleCollisions(runtime) {
+    const {
+      bill,
+      activeEntities,
+      easierRetry,
+      setEasierRetry,
+      playCrashFeedback,
+      restartGameplay
+    } = runtime;
+
+    const billHitbox = {
+      x:
+        bill.x +
+        bill.width *
+          (easierRetry ? 0.37 : 0.3),
+
+      y:
+        bill.y +
+        bill.height *
+          (easierRetry ? 0.33 : 0.25),
+
+      width:
+        bill.width *
+          (easierRetry ? 0.26 : 0.4),
+
+      height:
+        bill.height *
+          (easierRetry ? 0.34 : 0.5)
+    };
+
+    for (const entity of activeEntities) {
+      if (entity.type !== "hazard") {
+        continue;
+      }
+
+      const entityHitbox = {
+        x:
+          entity.x +
+          entity.width *
+            (easierRetry ? 0.4 : 0.32),
+
+        y:
+          entity.y +
+          entity.height *
+            (easierRetry ? 0.44 : 0.38),
+
+        width:
+          entity.width *
+            (easierRetry ? 0.2 : 0.36),
+
+        height:
+          entity.height *
+            (easierRetry ? 0.32 : 0.48)
+      };
+
+      if (
+        this.rectanglesOverlap(
+          billHitbox,
+          entityHitbox
+        )
+      ) {
+        setEasierRetry(true);
+        playCrashFeedback();
+        restartGameplay();
+        return;
+      }
+
+      const nearMissPadding = 34;
+
+      const nearMissZone = {
+        x:
+          entityHitbox.x -
+          nearMissPadding,
+
+        y:
+          entityHitbox.y -
+          nearMissPadding,
+
+        width:
+          entityHitbox.width +
+          nearMissPadding * 2,
+
+        height:
+          entityHitbox.height +
+          nearMissPadding * 2
+      };
+
+      if (
+        this.rectanglesOverlap(
+          billHitbox,
+          nearMissZone
+        )
+      ) {
+        entity.nearMissArmed = true;
+      }
+
+      const hazardHasPassedBill =
+        entityHitbox.x +
+          entityHitbox.width <
+        billHitbox.x;
+
+      if (
+        entity.nearMissArmed &&
+        !entity.nearMissTriggered &&
+        hazardHasPassedBill
+      ) {
+        entity.nearMissTriggered = true;
+
+        this.createNearMissEffects(
+          runtime,
+          entity,
+          billHitbox
+        );
+      }
+    }
+  },
+
+  checkCollectibleCollisions(runtime) {
+    const {
+      bill,
+      activeEntities,
+      addScore,
+      playPickupFeedback,
+      createPickupEffects
+    } = runtime;
+
+    const billHitbox = {
+      x: bill.x + bill.width * 0.22,
+      y: bill.y + bill.height * 0.18,
+      width: bill.width * 0.56,
+      height: bill.height * 0.64
+    };
+
+    for (
+      let index =
+        activeEntities.length - 1;
+      index >= 0;
+      index -= 1
+    ) {
+      const entity =
+        activeEntities[index];
+
+      if (entity.type !== "collectible") {
+        continue;
+      }
+
+      const collectibleHitbox = {
+        x:
+          entity.x +
+          entity.width * 0.12,
+
+        y:
+          entity.y +
+          entity.height * 0.12,
+
+        width:
+          entity.width * 0.76,
+
+        height:
+          entity.height * 0.76
+      };
+
+      if (
+        !this.rectanglesOverlap(
+          billHitbox,
+          collectibleHitbox
+        )
+      ) {
+        continue;
+      }
+
+      const effectStrength =
+        Number(
+          entity.definition.value
+        ) || 1;
+
+      addScore(1);
+      playPickupFeedback(effectStrength);
+
+      createPickupEffects(
+        entity,
+        1,
+        effectStrength
+      );
+
+      activeEntities.splice(index, 1);
+    }
+  },
+
   updateGameplay(runtime) {
     const {
       bill,
       updateBackground,
-      updatePickupEffects,
-      checkCollectibleCollisions,
-      checkObstacleCollisions
+      updatePickupEffects
     } = runtime;
 
     bill.y +=
@@ -685,8 +999,8 @@ that get you into trouble.`
     this.updateObstacles(runtime);
     this.updateCollectibles(runtime);
     updatePickupEffects();
-    checkCollectibleCollisions();
-    checkObstacleCollisions();
+    this.checkCollectibleCollisions(runtime);
+    this.checkObstacleCollisions(runtime);
   },
 
   prepare() {

@@ -1168,323 +1168,6 @@ for (const definition of collectibleDefinitions) {
     ctx.restore();
   }
 
-  // =====================================
-  // COLLISION HELPERS
-  // =====================================
-
-  function rectanglesOverlap(a, b) {
-    return (
-      a.x < b.x + b.width &&
-      a.x + a.width > b.x &&
-      a.y < b.y + b.height &&
-      a.y + a.height > b.y
-    );
-  }
-
-  // =====================================
-  // NEAR MISS EFFECTS
-  // =====================================
-
-  function createNearMissEffects(
-    entity,
-    billHitbox
-  ) {
-    const words = [
-      "WHEW!",
-      "CLOSE ONE!",
-      "TOO CLOSE!"
-    ];
-
-    floatingNumbers.push({
-      x:
-        billHitbox.x +
-        billHitbox.width / 2 +
-        28,
-
-      y:
-        billHitbox.y - 10,
-
-      text:
-        words[
-          Math.floor(
-            Math.random() *
-            words.length
-          )
-        ],
-
-      life: 1,
-      velocityY: -1.25,
-      scale: 0.72,
-      color: "#8fe9ff"
-    });
-
-    const burstX =
-      Math.max(
-        billHitbox.x +
-          billHitbox.width,
-        entity.x
-      );
-
-    const burstY =
-      billHitbox.y +
-      billHitbox.height / 2;
-
-    for (
-      let index = 0;
-      index < 10;
-      index += 1
-    ) {
-      const angle =
-        Math.random() * Math.PI * 2;
-
-      const speed =
-        1.2 + Math.random() * 3.2;
-
-      pickupParticles.push({
-        x: burstX,
-        y: burstY,
-        velocityX:
-          Math.cos(angle) * speed,
-        velocityY:
-          Math.sin(angle) * speed,
-        gravity: 0.03,
-        size:
-          2 +
-          Math.floor(
-            Math.random() * 4
-          ),
-        life: 1,
-        decay:
-          0.035 +
-          Math.random() * 0.025,
-        rotation:
-          Math.random() * Math.PI,
-        rotationSpeed:
-          (Math.random() - 0.5) * 0.3,
-        color:
-          Math.random() > 0.5
-            ? "#8fe9ff"
-            : "#ffffff"
-      });
-    }
-
-    /*
-      Near misses should feel exciting,
-      but less powerful than grabbing
-      a large beer collectible.
-    */
-
-    screenShake = Math.max(
-      screenShake,
-      2.5
-    );
-
-    billPickupBounce = Math.max(
-      billPickupBounce,
-      0.45
-    );
-  }
-
-  // =====================================
-  // HAZARD COLLISIONS
-  // =====================================
-
-  function checkObstacleCollisions() {
-    /*
-      Reduced hitboxes prevent transparent
-      areas, speech bubbles, hats and bottles
-      from causing unfair collisions.
-    */
-
-    const easierChapter1Retry =
-      chapterNumber === 1 && chapter1EasierRetry;
-
-    const billHitbox = {
-      x:
-        bill.x +
-        bill.width *
-          (easierChapter1Retry ? 0.37 : 0.3),
-
-      y:
-        bill.y +
-        bill.height *
-          (easierChapter1Retry ? 0.33 : 0.25),
-
-      width:
-        bill.width *
-          (easierChapter1Retry ? 0.26 : 0.4),
-
-      height:
-        bill.height *
-          (easierChapter1Retry ? 0.34 : 0.5)
-    };
-
-    for (const entity of activeEntities) {
-      if (entity.type !== "hazard") {
-        continue;
-      }
-
-      const entityHitbox = {
-        x:
-          entity.x +
-          entity.width *
-            (easierChapter1Retry ? 0.4 : 0.32),
-
-        y:
-          entity.y +
-          entity.height *
-            (easierChapter1Retry ? 0.44 : 0.38),
-
-        width:
-          entity.width *
-            (easierChapter1Retry ? 0.2 : 0.36),
-
-        height:
-          entity.height *
-            (easierChapter1Retry ? 0.32 : 0.48)
-      };
-
-      /*
-        A real collision still restarts
-        the gameplay immediately.
-      */
-
-      if (
-        rectanglesOverlap(
-          billHitbox,
-          entityHitbox
-        )
-      ) {
-        if (chapterNumber === 1) {
-          chapter1EasierRetry = true;
-        }
-
-        playCrashFeedback();
-        restartGameplay();
-        return;
-      }
-
-      /*
-        The near-miss zone surrounds the
-        real hazard hitbox by a small margin.
-      */
-
-      const nearMissPadding = 34;
-
-      const nearMissZone = {
-        x:
-          entityHitbox.x -
-          nearMissPadding,
-
-        y:
-          entityHitbox.y -
-          nearMissPadding,
-
-        width:
-          entityHitbox.width +
-          nearMissPadding * 2,
-
-        height:
-          entityHitbox.height +
-          nearMissPadding * 2
-      };
-
-      if (
-        rectanglesOverlap(
-          billHitbox,
-          nearMissZone
-        )
-      ) {
-        entity.nearMissArmed = true;
-      }
-
-      /*
-        Once the hazard has passed Bill,
-        reward the close escape exactly once.
-      */
-
-      const hazardHasPassedBill =
-        entityHitbox.x +
-          entityHitbox.width <
-        billHitbox.x;
-
-      if (
-        entity.nearMissArmed &&
-        !entity.nearMissTriggered &&
-        hazardHasPassedBill
-      ) {
-        entity.nearMissTriggered = true;
-
-        createNearMissEffects(
-          entity,
-          billHitbox
-        );
-      }
-    }
-  }
-
-  // =====================================
-  // COLLECTIBLE COLLISIONS
-  // =====================================
-
-  function checkCollectibleCollisions() {
-    const billHitbox = {
-      x: bill.x + bill.width * 0.22,
-      y: bill.y + bill.height * 0.18,
-      width: bill.width * 0.56,
-      height: bill.height * 0.64
-    };
-
-    for (
-      let index = activeEntities.length - 1;
-      index >= 0;
-      index -= 1
-    ) {
-      const entity = activeEntities[index];
-
-      if (entity.type !== "collectible") {
-        continue;
-      }
-
-      const collectibleHitbox = {
-        x: entity.x + entity.width * 0.12,
-        y: entity.y + entity.height * 0.12,
-        width: entity.width * 0.76,
-        height: entity.height * 0.76
-      };
-
-      if (
-        !rectanglesOverlap(
-          billHitbox,
-          collectibleHitbox
-        )
-      ) {
-        continue;
-      }
-
-      const effectStrength =
-        Number(entity.definition.value) || 1;
-
-      /*
-        Every mug, six-pack, twelve-pack,
-        or crate advances the meter by one.
-      */
-
-      score += 1;
-
-      playPickupFeedback(
-        effectStrength
-      );
-
-      createPickupEffects(
-        entity,
-        1,
-        effectStrength
-      );
-
-      activeEntities.splice(index, 1);
-    }
-  }
 
   // =====================================
   // GAMEPLAY RESTART — RESET THE CURRENT ATTEMPT
@@ -4497,10 +4180,48 @@ canvas.addEventListener(
             easierRetry:
               chapterNumber === 1 &&
               chapter1EasierRetry,
+
             updateBackground,
             updatePickupEffects,
-            checkCollectibleCollisions,
-            checkObstacleCollisions
+
+            floatingNumbers,
+            pickupParticles,
+
+            getScreenShake:
+              () => screenShake,
+
+            setScreenShake:
+              (value) => {
+                screenShake = value;
+              },
+
+            getBillPickupBounce:
+              () => billPickupBounce,
+
+            setBillPickupBounce:
+              (value) => {
+                billPickupBounce = value;
+              },
+
+            setEasierRetry:
+              (value) => {
+                if (chapterNumber === 1) {
+                  chapter1EasierRetry =
+                    Boolean(value);
+                }
+              },
+
+            playCrashFeedback,
+            restartGameplay,
+
+            addScore:
+              (amount) => {
+                score +=
+                  Number(amount) || 0;
+              },
+
+            playPickupFeedback,
+            createPickupEffects
           });
         }
 
