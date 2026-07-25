@@ -1,0 +1,1 @@
+window.RecoveryChapters = window.RecoveryChapters || {};
