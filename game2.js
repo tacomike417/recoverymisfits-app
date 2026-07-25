@@ -86,22 +86,11 @@
       : null);
 
   // =====================================
-  // CHAPTER 1 STORY CARDS — SMALL TEXT ADJUSTMENTS
+  // CURRENT CHAPTER SETUP
   // =====================================
 
-  if (chapterNumber === 1 && currentChapter?.cards) {
-    currentChapter.cards = currentChapter.cards.filter((card) => {
-      const searchableText = `${card?.title || ""} ${card?.text || ""}`;
-      return !/swipe/i.test(searchableText);
-    });
-
-    const bigDealCard = currentChapter.cards.find((card) =>
-      /get out of control|who doesn(?:'|’)t when they drink/i.test(card?.text || "")
-    );
-
-    if (bigDealCard && !/what(?:'|’)s the big deal/i.test(bigDealCard.text || "")) {
-      bigDealCard.text = `${bigDealCard.text || ""}\n\n"What's the big deal?"`;
-    }
+  if (typeof currentChapter?.prepare === "function") {
+    currentChapter.prepare();
   }
 
   // =====================================

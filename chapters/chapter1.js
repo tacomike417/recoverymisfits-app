@@ -54,5 +54,30 @@ window.RecoveryChapters.chapter1 = {
     "He's about to begin a journey...",
     "",
     "One that millions of us would one day understand."
-  ]
+  ],
+
+  prepare() {
+    if (!Array.isArray(this.cards)) {
+      return;
+    }
+
+    this.cards = this.cards.filter((card) => {
+      const searchableText = `${card?.title || ""} ${card?.text || ""}`;
+      return !/swipe/i.test(searchableText);
+    });
+
+    const bigDealCard = this.cards.find((card) =>
+      /get out of control|who doesn(?:'|’)t when they drink/i.test(
+        card?.text || ""
+      )
+    );
+
+    if (
+      bigDealCard &&
+      !/what(?:'|’)s the big deal/i.test(bigDealCard.text || "")
+    ) {
+      bigDealCard.text =
+        `${bigDealCard.text || ""}\n\n"What's the big deal?"`;
+    }
+  }
 };
