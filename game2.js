@@ -208,9 +208,9 @@
   // splash.mp3 controls when the fade-out begins.
   // ============================================================================
 
-  const SPLASH_FADE_IN_MS = 900;
-  const SPLASH_FADE_MS = 900;
-  const SPLASH_AUDIO_FALLBACK_MS = 15000;
+  const SPLASH_FADE_IN_MS = 500;
+  const SPLASH_FADE_MS = 650;
+  const SPLASH_AUDIO_FALLBACK_MS = 4000;
   const MUSIC_FADE_MS = 650;
   const FINISHED_INPUT_LOCK_MS = 1200;
 
@@ -538,7 +538,7 @@ for (const definition of collectibleDefinitions) {
   // RECOVERY MISFITS SPLASH SOUND
   // The splash image stays visible until this exact sound finishes.
   const splashSound = new Audio(
-    "assets/sounds/splash.mp3"
+    `assets/sounds/splash.mp3?v=${Date.now()}`
   );
 
   splashSound.volume = 1;
@@ -572,7 +572,9 @@ for (const definition of collectibleDefinitions) {
   };
 
   function playAudio(audio) {
-    return audio.play().then(() => true).catch(() => false);
+    return audio.play()
+      .then(() => true)
+      .catch(() => false);
   }
 
   function fadeAudio(audio, targetVolume, duration = MUSIC_FADE_MS, pauseWhenSilent = false) {
@@ -627,24 +629,21 @@ for (const definition of collectibleDefinitions) {
     audioUnlocked = true;
 
     /*
-      Start the audible splash sound and the silent cut-scene track
-      directly inside the first tap. The cut-scene track stays running
-      at zero volume until the Recovery Misfits splash ends.
+      Start only the audible splash sound inside the first real tap.
+      Starting a second audio track at the same moment can cause some
+      browsers to reject or interrupt the splash sound. The cut-scene
+      music starts normally after the splash has finished.
     */
     splashSound.pause();
     splashSound.muted = false;
     splashSound.currentTime = 0;
 
     cutsceneMusic.pause();
-    cutsceneMusic.muted = false;
     cutsceneMusic.currentTime = 0;
     cutsceneMusic.volume = 0;
     cutsceneMusic.playbackRate = 1;
 
-    const splashPromise = playAudio(splashSound);
-    playAudio(cutsceneMusic);
-
-    return splashPromise;
+    return playAudio(splashSound);
   }
 
   function beginRecoveryMisfitsSplash() {
@@ -656,8 +655,7 @@ for (const definition of collectibleDefinitions) {
 
     unlockAudioFromUserGesture().then((started) => {
       if (!started) {
-        splashAudioFinished = true;
-        splashFadeStartedAt = performance.now();
+        // Keep the splash visible until the safety timer expires.
       }
     });
   }
@@ -3020,16 +3018,37 @@ for (const definition of collectibleDefinitions) {
 
   canvas.style.touchAction = "none";
 
+  /*
+    Chrome may reject audio started from pointerdown while mobile
+    device emulation is active. Use a real click to unlock and start
+    the Recovery Misfits splash sound.
+  */
+  canvas.addEventListener(
+    "click",
+    (event) => {
+      if (gameState !== "openingSplash") {
+        return;
+      }
+
+      event.preventDefault();
+      beginRecoveryMisfitsSplash();
+    },
+    { passive: false }
+  );
+
 canvas.addEventListener(
   "pointerdown",
   (event) => {
     event.preventDefault();
 
     /*
-      Process the first tap before attempting pointer capture.
-      Some Chrome/mobile combinations can reject setPointerCapture(),
-      which must never block the TAP TO START action.
+      The opening splash is handled by the click listener above,
+      because Chrome recognizes click more reliably for audio unlock.
     */
+    if (gameState === "openingSplash") {
+      return;
+    }
+
     handlePrimaryAction(event);
 
     try {
@@ -4622,8 +4641,8 @@ canvas.addEventListener(
 
       ctx.font = "bold 17px monospace";
       ctx.fillStyle = "#fff2a8";
-      ctx.strokeText("BILL IS EXHAUSTED.", width / 2, height / 2 + 24);
-      ctx.fillText("BILL IS EXHAUSTED.", width / 2, height / 2 + 24);
+      ctx.strokeText("OUR FRIEND IS EXHAUSTED.", width / 2, height / 2 + 24);
+      ctx.fillText("OUR FRIEND IS EXHAUSTED.", width / 2, height / 2 + 24);
 
       const blink = Math.floor(performance.now() / 500) % 2 === 0;
       if (blink) {
