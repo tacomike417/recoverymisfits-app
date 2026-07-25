@@ -4133,6 +4133,87 @@ canvas.addEventListener(
   // UPDATE
   // =====================================
 
+  // =====================================
+  // CHAPTER RUNTIME BUILDER
+  // Gives chapter files access to shared
+  // engine state and reusable helpers.
+  // =====================================
+
+  function createChapterRuntime(
+    now = performance.now(),
+    options = {}
+  ) {
+    return {
+      now,
+      width,
+      height,
+      ctx,
+
+      bill,
+      activeEntities,
+
+      obstacleDefinitions,
+      obstacleImages,
+
+      collectibleDefinitions,
+      collectibleImages,
+
+      easierRetry:
+        chapterNumber === 1 &&
+        chapter1EasierRetry,
+
+      screenShake:
+        options.screenShake ??
+        screenShake,
+
+      updateBackground,
+      updatePickupEffects,
+
+      drawBackground,
+      drawBill,
+      drawPickupEffects,
+
+      floatingNumbers,
+      pickupParticles,
+
+      getScreenShake:
+        () => screenShake,
+
+      setScreenShake:
+        (value) => {
+          screenShake = value;
+        },
+
+      getBillPickupBounce:
+        () => billPickupBounce,
+
+      setBillPickupBounce:
+        (value) => {
+          billPickupBounce = value;
+        },
+
+      setEasierRetry:
+        (value) => {
+          if (chapterNumber === 1) {
+            chapter1EasierRetry =
+              Boolean(value);
+          }
+        },
+
+      playCrashFeedback,
+      restartGameplay,
+
+      addScore:
+        (amount) => {
+          score +=
+            Number(amount) || 0;
+        },
+
+      playPickupFeedback,
+      createPickupEffects
+    };
+  }
+
   function update(now) {
     switch (gameState) {
       case "openingSplash":
@@ -4167,62 +4248,9 @@ canvas.addEventListener(
         }
 
         if (typeof currentChapter?.updateGameplay === "function") {
-          currentChapter.updateGameplay({
-            now,
-            width,
-            height,
-            bill,
-            activeEntities,
-            obstacleDefinitions,
-            obstacleImages,
-            collectibleDefinitions,
-            collectibleImages,
-            easierRetry:
-              chapterNumber === 1 &&
-              chapter1EasierRetry,
-
-            updateBackground,
-            updatePickupEffects,
-
-            floatingNumbers,
-            pickupParticles,
-
-            getScreenShake:
-              () => screenShake,
-
-            setScreenShake:
-              (value) => {
-                screenShake = value;
-              },
-
-            getBillPickupBounce:
-              () => billPickupBounce,
-
-            setBillPickupBounce:
-              (value) => {
-                billPickupBounce = value;
-              },
-
-            setEasierRetry:
-              (value) => {
-                if (chapterNumber === 1) {
-                  chapter1EasierRetry =
-                    Boolean(value);
-                }
-              },
-
-            playCrashFeedback,
-            restartGameplay,
-
-            addScore:
-              (amount) => {
-                score +=
-                  Number(amount) || 0;
-              },
-
-            playPickupFeedback,
-            createPickupEffects
-          });
+          currentChapter.updateGameplay(
+            createChapterRuntime(now)
+          );
         }
 
         break;
@@ -4271,16 +4299,9 @@ canvas.addEventListener(
         }
 
         if (typeof currentChapter?.drawGameplay === "function") {
-          currentChapter.drawGameplay({
-            ctx,
-            screenShake,
-            activeEntities,
-            obstacleImages,
-            collectibleImages,
-            drawBackground,
-            drawBill,
-            drawPickupEffects
-          });
+          currentChapter.drawGameplay(
+            createChapterRuntime(now)
+          );
         }
 
         drawGameplayHud();
@@ -4305,16 +4326,14 @@ canvas.addEventListener(
         } else if (
           typeof currentChapter?.drawGameplay === "function"
         ) {
-          currentChapter.drawGameplay({
-            ctx,
-            screenShake: 0,
-            activeEntities,
-            obstacleImages,
-            collectibleImages,
-            drawBackground,
-            drawBill,
-            drawPickupEffects
-          });
+          currentChapter.drawGameplay(
+            createChapterRuntime(
+              now,
+              {
+                screenShake: 0
+              }
+            )
+          );
         }
 
         drawGameplayHud();
