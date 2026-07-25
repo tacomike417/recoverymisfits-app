@@ -885,435 +885,25 @@ for (const definition of collectibleDefinitions) {
   }
 
   // =====================================
-  // HAZARD SPAWNING
-  // =====================================
-
-  let nextObstacleSpawnAt = 0;
-
-  const MIN_SPAWN_DELAY = 1700;
-  const MAX_SPAWN_DELAY = 3000;
-
-  function getRandomSpawnDelay() {
-    const minimumDelay =
-      chapterNumber === 1 && chapter1EasierRetry
-        ? 2700
-        : MIN_SPAWN_DELAY;
-
-    const maximumDelay =
-      chapterNumber === 1 && chapter1EasierRetry
-        ? 4500
-        : MAX_SPAWN_DELAY;
-
-    return (
-      minimumDelay +
-      Math.random() *
-        (maximumDelay - minimumDelay)
-    );
-  }
-
-  // =====================================
-  // COLLECTIBLE SPAWNING
-  // =====================================
-
-  let nextCollectibleSpawnAt = 0;
-
-  const MIN_COLLECTIBLE_SPAWN_DELAY = 700;
-  const MAX_COLLECTIBLE_SPAWN_DELAY = 1400;
-
-  function getRandomCollectibleSpawnDelay() {
-    return (
-      MIN_COLLECTIBLE_SPAWN_DELAY +
-      Math.random() *
-        (
-          MAX_COLLECTIBLE_SPAWN_DELAY -
-          MIN_COLLECTIBLE_SPAWN_DELAY
-        )
-    );
-  }
-
-  // =====================================
-  // ENTITY RESET
+  // CHAPTER ENTITY RESET
+  // Chapter 1 owns hazard and collectible timing.
   // =====================================
 
   function resetObstacles() {
-    activeEntities.length = 0;
-
-    nextObstacleSpawnAt =
-      performance.now() +
-      (
-        chapterNumber === 1 && chapter1EasierRetry
-          ? 2200
-          : 1200
-      );
-
-    nextCollectibleSpawnAt =
-      performance.now() + 500;
-  }
-
-  // =====================================
-  // HAZARD CREATION
-  // =====================================
-
-  function spawnObstacle(now) {
-    if (obstacleDefinitions.length === 0) {
-      return;
-    }
-
-    const definition =
-      obstacleDefinitions[
-        Math.floor(
-          Math.random() *
-            obstacleDefinitions.length
-        )
-      ];
-
-    const obstacleHeight =
-      definition.height || 180;
-
-    const image =
-      obstacleImages.get(definition.id);
-
-    const aspectRatio =
-      image &&
-      image.naturalWidth > 0 &&
-      image.naturalHeight > 0
-        ? image.naturalWidth /
-          image.naturalHeight
-        : 1;
-
-    const obstacleWidth =
-      obstacleHeight * aspectRatio;
-
-    const movement =
-      definition.movement || "horizontal";
-
-    let x;
-    let y;
-
-    /*
-      The falling drunk is marked "vertical"
-      in story.js, but the engine converts him
-      into a fast diagonal hazard.
-    */
-
-    if (movement === "vertical") {
-      x = width + obstacleWidth;
-
-      y =
-        height -
-        obstacleHeight -
-        25;
-
-      const targetX = bill.x;
-      const targetY = bill.y;
-
-      const dx = targetX - x;
-      const dy = targetY - y;
-
-      const distance =
-        Math.hypot(dx, dy) || 1;
-
-      const baseSpeed =
-        definition.speed || 7;
-
-      const speed =
-        chapterNumber === 1 && chapter1EasierRetry
-          ? baseSpeed * 0.62
-          : baseSpeed;
-
-      activeEntities.push({
-        type: "hazard",
-        definition,
-        x,
-        y,
-        width: obstacleWidth,
-        height: obstacleHeight,
-        movement: "diagonal",
-        speed,
-        velocityX:
-          (dx / distance) * speed,
-        velocityY:
-          (dy / distance) * speed
-      });
-
-      nextObstacleSpawnAt =
-        now + getRandomSpawnDelay();
-
-      return;
-    }
-
-    /*
-      Woman and drink pal stay aligned
-      along the bottom of the screen.
-    */
-
-    x = width + obstacleWidth;
-
-    y =
-      height -
-      obstacleHeight -
-      25;
-
-    activeEntities.push({
-      type: "hazard",
-      definition,
-      x,
-      y,
-      width: obstacleWidth,
-      height: obstacleHeight,
-      movement,
-      speed:
-        chapterNumber === 1 && chapter1EasierRetry
-          ? (definition.speed || 4) * 0.62
-          : definition.speed || 4
-    });
-
-    nextObstacleSpawnAt =
-      now + getRandomSpawnDelay();
-  }
-
-  // =====================================
-  // COLLECTIBLE CREATION
-  // =====================================
-
-  function spawnCollectible(now) {
-    if (collectibleDefinitions.length === 0) {
-      return;
-    }
-
-    const definition =
-      collectibleDefinitions[
-        Math.floor(
-          Math.random() *
-            collectibleDefinitions.length
-        )
-      ];
-
-    const collectibleHeight =
-      definition.height || 80;
-
-    const image =
-      collectibleImages.get(definition.id);
-
-    const aspectRatio =
-      image &&
-      image.naturalWidth > 0 &&
-      image.naturalHeight > 0
-        ? image.naturalWidth /
-          image.naturalHeight
-        : 1;
-
-    const collectibleWidth =
-      collectibleHeight * aspectRatio;
-
-    const topLimit = 70;
-
-    const bottomLimit =
-      Math.max(
-        topLimit,
-        height -
-          collectibleHeight -
-          45
-      );
-
-    const y =
-      topLimit +
-      Math.random() *
-        (bottomLimit - topLimit);
-
-    activeEntities.push({
-      type: "collectible",
-      definition,
-      x: width + collectibleWidth,
-      y,
-      width: collectibleWidth,
-      height: collectibleHeight,
-      movement: "horizontal",
-      speed: definition.speed || 4.5
-    });
-
-    nextCollectibleSpawnAt =
-      now +
-      getRandomCollectibleSpawnDelay();
-  }
-
-  // =====================================
-  // HAZARD MOVEMENT
-  // =====================================
-
-  function updateObstacles(now) {
-    if (now >= nextObstacleSpawnAt) {
-      spawnObstacle(now);
-    }
-
-    for (
-      let index =
-        activeEntities.length - 1;
-      index >= 0;
-      index -= 1
+    if (
+      typeof currentChapter?.resetEntities !==
+      "function"
     ) {
-      const entity =
-        activeEntities[index];
-
-      if (entity.type !== "hazard") {
-        continue;
-      }
-
-      if (entity.movement === "diagonal") {
-        entity.x += entity.velocityX;
-        entity.y += entity.velocityY;
-
-        const isOffscreen =
-          entity.x + entity.width < -80 ||
-          entity.y + entity.height < -80 ||
-          entity.y > height + 80;
-
-        if (isOffscreen) {
-          activeEntities.splice(index, 1);
-        }
-
-        continue;
-      }
-
-      entity.x -= entity.speed;
-
-      if (
-        entity.x + entity.width <
-        -40
-      ) {
-        activeEntities.splice(index, 1);
-      }
-    }
-  }
-
-  // =====================================
-  // COLLECTIBLE MOVEMENT
-  // =====================================
-
-  function updateCollectibles(now) {
-    if (now >= nextCollectibleSpawnAt) {
-      spawnCollectible(now);
+      activeEntities.length = 0;
+      return;
     }
 
-    for (
-      let index =
-        activeEntities.length - 1;
-      index >= 0;
-      index -= 1
-    ) {
-      const entity =
-        activeEntities[index];
-
-      if (entity.type !== "collectible") {
-        continue;
-      }
-
-      entity.x -= entity.speed;
-
-      if (
-        entity.x + entity.width <
-        -40
-      ) {
-        activeEntities.splice(index, 1);
-      }
-    }
-  }
-
-  // =====================================
-  // HAZARD DRAWING
-  // =====================================
-
-  function drawObstacles() {
-    ctx.imageSmoothingEnabled = false;
-
-    for (const entity of activeEntities) {
-      if (entity.type !== "hazard") {
-        continue;
-      }
-
-      const image =
-        obstacleImages.get(
-          entity.definition.id
-        );
-
-      if (
-        image &&
-        image.complete &&
-        image.naturalWidth > 0
-      ) {
-        ctx.drawImage(
-          image,
-          entity.x,
-          entity.y,
-          entity.width,
-          entity.height
-        );
-      }
-    }
-  }
-
-  // =====================================
-  // COLLECTIBLE DRAWING
-  // =====================================
-
-  function drawCollectibles() {
-    ctx.imageSmoothingEnabled = false;
-
-    for (const entity of activeEntities) {
-      if (entity.type !== "collectible") {
-        continue;
-      }
-
-      const image =
-        collectibleImages.get(
-          entity.definition.id
-        );
-
-      if (
-        image &&
-        image.complete &&
-        image.naturalWidth > 0
-      ) {
-        ctx.drawImage(
-          image,
-          entity.x,
-          entity.y,
-          entity.width,
-          entity.height
-        );
-
-        continue;
-      }
-
-      /*
-        Temporary fallback so collectibles
-        remain visible even if an image path
-        or filename is wrong.
-      */
-
-      ctx.fillStyle = "#f2c94c";
-
-      ctx.fillRect(
-        entity.x,
-        entity.y,
-        entity.width,
-        entity.height
-      );
-
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 12px monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      ctx.fillText(
-        `BEER +${entity.definition.value || 0}`,
-        entity.x + entity.width / 2,
-        entity.y + entity.height / 2
-      );
-
-      ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
-    }
+    currentChapter.resetEntities({
+      activeEntities,
+      easierRetry:
+        chapterNumber === 1 &&
+        chapter1EasierRetry
+    });
   }
 
   // =====================================
@@ -4896,10 +4486,18 @@ canvas.addEventListener(
         if (typeof currentChapter?.updateGameplay === "function") {
           currentChapter.updateGameplay({
             now,
+            width,
+            height,
             bill,
+            activeEntities,
+            obstacleDefinitions,
+            obstacleImages,
+            collectibleDefinitions,
+            collectibleImages,
+            easierRetry:
+              chapterNumber === 1 &&
+              chapter1EasierRetry,
             updateBackground,
-            updateObstacles,
-            updateCollectibles,
             updatePickupEffects,
             checkCollectibleCollisions,
             checkObstacleCollisions
@@ -4951,22 +4549,18 @@ canvas.addEventListener(
           break;
         }
 
-        const shakeX =
-          (Math.random() - 0.5) * screenShake;
-
-        const shakeY =
-          (Math.random() - 0.5) * screenShake;
-
-        ctx.save();
-        ctx.translate(shakeX, shakeY);
-
-        drawBackground();
-        drawObstacles();
-        drawCollectibles();
-        drawBill();
-        drawPickupEffects();
-
-        ctx.restore();
+        if (typeof currentChapter?.drawGameplay === "function") {
+          currentChapter.drawGameplay({
+            ctx,
+            screenShake,
+            activeEntities,
+            obstacleImages,
+            collectibleImages,
+            drawBackground,
+            drawBill,
+            drawPickupEffects
+          });
+        }
 
         drawGameplayHud();
         break;
@@ -4987,13 +4581,21 @@ canvas.addEventListener(
           drawDoctorsOpinionGame(now);
         } else if (isTreatmentLevel) {
           drawTreatmentGame();
-        } else {
-          drawBackground();
-          drawObstacles();
-          drawCollectibles();
-          drawBill();
-          drawPickupEffects();
+        } else if (
+          typeof currentChapter?.drawGameplay === "function"
+        ) {
+          currentChapter.drawGameplay({
+            ctx,
+            screenShake: 0,
+            activeEntities,
+            obstacleImages,
+            collectibleImages,
+            drawBackground,
+            drawBill,
+            drawPickupEffects
+          });
         }
+
         drawGameplayHud();
         drawChapterFinished();
         break;

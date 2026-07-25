@@ -208,12 +208,470 @@ that get you into trouble.`
     }
   ],
 
+  nextObstacleSpawnAt: 0,
+  nextCollectibleSpawnAt: 0,
+
+  getRandomSpawnDelay(runtime) {
+    const minimumDelay =
+      runtime.easierRetry
+        ? 2700
+        : 1700;
+
+    const maximumDelay =
+      runtime.easierRetry
+        ? 4500
+        : 3000;
+
+    return (
+      minimumDelay +
+      Math.random() *
+        (maximumDelay - minimumDelay)
+    );
+  },
+
+  getRandomCollectibleSpawnDelay() {
+    const minimumDelay = 700;
+    const maximumDelay = 1400;
+
+    return (
+      minimumDelay +
+      Math.random() *
+        (maximumDelay - minimumDelay)
+    );
+  },
+
+  resetEntities(runtime) {
+    runtime.activeEntities.length = 0;
+
+    this.nextObstacleSpawnAt =
+      performance.now() +
+      (
+        runtime.easierRetry
+          ? 2200
+          : 1200
+      );
+
+    this.nextCollectibleSpawnAt =
+      performance.now() + 500;
+  },
+
+  spawnObstacle(runtime) {
+    const {
+      now,
+      width,
+      height,
+      bill,
+      activeEntities,
+      obstacleDefinitions,
+      obstacleImages,
+      easierRetry
+    } = runtime;
+
+    if (obstacleDefinitions.length === 0) {
+      return;
+    }
+
+    const definition =
+      obstacleDefinitions[
+        Math.floor(
+          Math.random() *
+            obstacleDefinitions.length
+        )
+      ];
+
+    const obstacleHeight =
+      definition.height || 180;
+
+    const image =
+      obstacleImages.get(definition.id);
+
+    const aspectRatio =
+      image &&
+      image.naturalWidth > 0 &&
+      image.naturalHeight > 0
+        ? image.naturalWidth /
+          image.naturalHeight
+        : 1;
+
+    const obstacleWidth =
+      obstacleHeight * aspectRatio;
+
+    const movement =
+      definition.movement || "horizontal";
+
+    let x;
+    let y;
+
+    /*
+      The falling drunk is marked vertical
+      in the configuration, but Chapter 1
+      turns him into a diagonal hazard.
+    */
+
+    if (movement === "vertical") {
+      x = width + obstacleWidth;
+
+      y =
+        height -
+        obstacleHeight -
+        25;
+
+      const targetX = bill.x;
+      const targetY = bill.y;
+
+      const dx = targetX - x;
+      const dy = targetY - y;
+
+      const distance =
+        Math.hypot(dx, dy) || 1;
+
+      const baseSpeed =
+        definition.speed || 7;
+
+      const speed =
+        easierRetry
+          ? baseSpeed * 0.62
+          : baseSpeed;
+
+      activeEntities.push({
+        type: "hazard",
+        definition,
+        x,
+        y,
+        width: obstacleWidth,
+        height: obstacleHeight,
+        movement: "diagonal",
+        speed,
+        velocityX:
+          (dx / distance) * speed,
+        velocityY:
+          (dy / distance) * speed
+      });
+
+      this.nextObstacleSpawnAt =
+        now +
+        this.getRandomSpawnDelay(runtime);
+
+      return;
+    }
+
+    /*
+      The woman and drink pal stay aligned
+      along the bottom of the screen.
+    */
+
+    x = width + obstacleWidth;
+
+    y =
+      height -
+      obstacleHeight -
+      25;
+
+    activeEntities.push({
+      type: "hazard",
+      definition,
+      x,
+      y,
+      width: obstacleWidth,
+      height: obstacleHeight,
+      movement,
+      speed:
+        easierRetry
+          ? (definition.speed || 4) * 0.62
+          : definition.speed || 4
+    });
+
+    this.nextObstacleSpawnAt =
+      now +
+      this.getRandomSpawnDelay(runtime);
+  },
+
+  spawnCollectible(runtime) {
+    const {
+      now,
+      width,
+      height,
+      activeEntities,
+      collectibleDefinitions,
+      collectibleImages
+    } = runtime;
+
+    if (collectibleDefinitions.length === 0) {
+      return;
+    }
+
+    const definition =
+      collectibleDefinitions[
+        Math.floor(
+          Math.random() *
+            collectibleDefinitions.length
+        )
+      ];
+
+    const collectibleHeight =
+      definition.height || 80;
+
+    const image =
+      collectibleImages.get(definition.id);
+
+    const aspectRatio =
+      image &&
+      image.naturalWidth > 0 &&
+      image.naturalHeight > 0
+        ? image.naturalWidth /
+          image.naturalHeight
+        : 1;
+
+    const collectibleWidth =
+      collectibleHeight * aspectRatio;
+
+    const topLimit = 70;
+
+    const bottomLimit =
+      Math.max(
+        topLimit,
+        height -
+          collectibleHeight -
+          45
+      );
+
+    const y =
+      topLimit +
+      Math.random() *
+        (bottomLimit - topLimit);
+
+    activeEntities.push({
+      type: "collectible",
+      definition,
+      x: width + collectibleWidth,
+      y,
+      width: collectibleWidth,
+      height: collectibleHeight,
+      movement: "horizontal",
+      speed: definition.speed || 4.5
+    });
+
+    this.nextCollectibleSpawnAt =
+      now +
+      this.getRandomCollectibleSpawnDelay();
+  },
+
+  updateObstacles(runtime) {
+    const {
+      now,
+      height,
+      activeEntities
+    } = runtime;
+
+    if (now >= this.nextObstacleSpawnAt) {
+      this.spawnObstacle(runtime);
+    }
+
+    for (
+      let index =
+        activeEntities.length - 1;
+      index >= 0;
+      index -= 1
+    ) {
+      const entity =
+        activeEntities[index];
+
+      if (entity.type !== "hazard") {
+        continue;
+      }
+
+      if (entity.movement === "diagonal") {
+        entity.x += entity.velocityX;
+        entity.y += entity.velocityY;
+
+        const isOffscreen =
+          entity.x + entity.width < -80 ||
+          entity.y + entity.height < -80 ||
+          entity.y > height + 80;
+
+        if (isOffscreen) {
+          activeEntities.splice(index, 1);
+        }
+
+        continue;
+      }
+
+      entity.x -= entity.speed;
+
+      if (
+        entity.x + entity.width <
+        -40
+      ) {
+        activeEntities.splice(index, 1);
+      }
+    }
+  },
+
+  updateCollectibles(runtime) {
+    const {
+      now,
+      activeEntities
+    } = runtime;
+
+    if (now >= this.nextCollectibleSpawnAt) {
+      this.spawnCollectible(runtime);
+    }
+
+    for (
+      let index =
+        activeEntities.length - 1;
+      index >= 0;
+      index -= 1
+    ) {
+      const entity =
+        activeEntities[index];
+
+      if (entity.type !== "collectible") {
+        continue;
+      }
+
+      entity.x -= entity.speed;
+
+      if (
+        entity.x + entity.width <
+        -40
+      ) {
+        activeEntities.splice(index, 1);
+      }
+    }
+  },
+
+  drawGameplay(runtime) {
+    const {
+      ctx,
+      screenShake,
+      drawBackground,
+      drawBill,
+      drawPickupEffects
+    } = runtime;
+
+    const shakeX =
+      (Math.random() - 0.5) * screenShake;
+
+    const shakeY =
+      (Math.random() - 0.5) * screenShake;
+
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
+    drawBackground();
+    this.drawObstacles(runtime);
+    this.drawCollectibles(runtime);
+    drawBill();
+    drawPickupEffects();
+
+    ctx.restore();
+  },
+
+  drawObstacles(runtime) {
+    const {
+      ctx,
+      activeEntities,
+      obstacleImages
+    } = runtime;
+
+    ctx.imageSmoothingEnabled = false;
+
+    for (const entity of activeEntities) {
+      if (entity.type !== "hazard") {
+        continue;
+      }
+
+      const image =
+        obstacleImages.get(
+          entity.definition.id
+        );
+
+      if (
+        image &&
+        image.complete &&
+        image.naturalWidth > 0
+      ) {
+        ctx.drawImage(
+          image,
+          entity.x,
+          entity.y,
+          entity.width,
+          entity.height
+        );
+      }
+    }
+  },
+
+  drawCollectibles(runtime) {
+    const {
+      ctx,
+      activeEntities,
+      collectibleImages
+    } = runtime;
+
+    ctx.imageSmoothingEnabled = false;
+
+    for (const entity of activeEntities) {
+      if (entity.type !== "collectible") {
+        continue;
+      }
+
+      const image =
+        collectibleImages.get(
+          entity.definition.id
+        );
+
+      if (
+        image &&
+        image.complete &&
+        image.naturalWidth > 0
+      ) {
+        ctx.drawImage(
+          image,
+          entity.x,
+          entity.y,
+          entity.width,
+          entity.height
+        );
+
+        continue;
+      }
+
+      /*
+        Temporary fallback so collectibles
+        remain visible if an image fails.
+      */
+
+      ctx.fillStyle = "#f2c94c";
+
+      ctx.fillRect(
+        entity.x,
+        entity.y,
+        entity.width,
+        entity.height
+      );
+
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      ctx.fillText(
+        `BEER +${entity.definition.value || 0}`,
+        entity.x + entity.width / 2,
+        entity.y + entity.height / 2
+      );
+
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+    }
+  },
+
   updateGameplay(runtime) {
     const {
       bill,
       updateBackground,
-      updateObstacles,
-      updateCollectibles,
       updatePickupEffects,
       checkCollectibleCollisions,
       checkObstacleCollisions
@@ -224,8 +682,8 @@ that get you into trouble.`
       0.24;
 
     updateBackground();
-    updateObstacles(runtime.now);
-    updateCollectibles(runtime.now);
+    this.updateObstacles(runtime);
+    this.updateCollectibles(runtime);
     updatePickupEffects();
     checkCollectibleCollisions();
     checkObstacleCollisions();
