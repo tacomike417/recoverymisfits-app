@@ -1,0 +1,287 @@
+===== FUNCTIONS =====
+386:  function resizeCanvas() {
+570:  function playAudio(audio) {
+576:  function fadeAudio(audio, targetVolume, duration = MUSIC_FADE_MS, pauseWhenSilent = false) {
+580:    function step(now) {
+600:  function startCutsceneMusic() {
+617:  function stopCutsceneMusic() {
+624:  function unlockAudioFromUserGesture() {
+645:  function beginRecoveryMisfitsSplash() {
+659:  function finishSplashAudio() {
+671:  function startBackgroundMusicForGameplay() {
+695:  function stopBackgroundMusic(resetToBeginning = false) {
+703:  function updateTreatmentMusic(now) {
+727:  function playSound(
+754:  function vibrate(pattern) {
+765:  function playClickFeedback() {
+770:  function playPickupFeedback(
+809:  function playCrashFeedback() {
+833:  function resetBill() {
+844:  function keepBillOnScreen() {
+881:  function resetPickupEffects() {
+899:  function resetObstacles() {
+920:  function createPickupEffects(
+1033:  function updatePickupEffects() {
+1101:  function drawPickupEffects() {
+1183:  function resetTreatmentGame(now = performance.now()) {
+1199:  function restartGameplay() {
+1223:  function showChapter1CutScene() {
+1238:  function finishChapter1CutScene() {
+1258:  function showTitleScreen() {
+1266:  function showStoryCards() {
+1271:  function startGameplay() {
+1304:  function finishChapter() {
+1311:  function continueToNextChapter() {
+1359:  function getStoryCards() {
+1371:  function getCurrentStoryCard() {
+1380:  function advanceStoryCard() {
+1397:  function resetDoctorsOpinionGame(now = performance.now()) {
+1418:  function getDoctorLayout() {
+1439:  function showDoctorMessage(text, duration = 1700) {
+1444:  function spawnObsessionThought(now) {
+1465:  function updateDoctorsOpinionGame(now) {
+1545:  function spawnCravingObject(now, firstBeer) {
+1559:  function useObsessionButton(id, now) {
+1605:  function tapDoctorsOpinionGame(x, y) {
+1636:  function drawPixelBill(centerX, groundY, peaceful = false) {
+1661:  function drawDoctorsOpinionGame(now) {
+1789:  function getTreatmentLayout() {
+1806:  function activateTreatmentCue(now) {
+1861:  function triggerFirstAttemptTreatmentOverload(now, progress) {
+1890:  function updateTreatmentParticles() {
+1905:  function createTreatmentExplosion(item, label) {
+1927:  function failTreatment(slot) {
+1937:  function updateTreatmentGame(now) {
+1959:  function tapTreatmentSlot(clientX, clientY) {
+1984:  function drawImageCoverInRect(image, x, y, targetWidth, targetHeight) {
+2013:  function drawTreatmentGame() {
+2125:  function drawTreatmentFailed() {
+2181:  function handlePrimaryAction(event) {
+2405:  function drawContainedImage(image) {
+2444:  function drawCoverImage(image) {
+2487:  function backgroundImageIsReady() {
+2497:  function getBackgroundDrawSize() {
+2518:  function updateBackground() {
+2552:  function drawImageBackground() {
+2588:  function drawFallbackBackground() {
+2661:  function drawBackground() {
+2674:  function drawBill() {
+2730:  function updateSplash(now) {
+2755:  function drawOpeningSplashScreen(now) {
+2798:  function drawSplashScreen(now) {
+2832:  function getChapter1CutSceneSkipButton() {
+2845:  function getChapter1CutSceneSpeedButton() {
+2859:  function chapter1CutSceneSkipButtonContains(x, y) {
+2870:  function chapter1CutSceneSpeedButtonContains(x, y) {
+2881:  function toggleChapter1CutSceneSpeed() {
+2889:  function wrapChapter1CutSceneLine(textLine, maxCharacters) {
+2916:  function getChapter1CutSceneLines() {
+2927:  function updateChapter1CutScene(now) {
+2977:  function drawChapter1CutSceneStars(now) {
+3001:  function drawChapter1CutScene(now) {
+3141:  function drawTitleScreen() {
+3222:  function wrapText(
+3277:  function drawStoryCard() {
+3819:  function drawGameplayHud() {
+3884:  function drawChapterFinished() {
+4110:  function drawChapter3PreviewFinished() {
+4218:  function update(now) {
+4271:  function draw(now) {
+4394:  function gameLoop(now) {
+
+===== CONST DECLARATIONS =====
+54:  const canvas = document.getElementById("game");
+55:  const ctx = canvas.getContext("2d");
+57:  const engine = window.RecoveryEngine;
+61:  const AudioEngine = {};
+76:  const chapterNumber =
+86:  const chapterIndex =
+89:  const currentChapter =
+176:  const skipIntro = new URLSearchParams(window.location.search).get("skipIntro") === "1";
+207:  const SPLASH_FADE_IN_MS = 500;
+208:  const SPLASH_FADE_MS = 650;
+209:  const SPLASH_AUDIO_FALLBACK_MS = 4000;
+210:  const MUSIC_FADE_MS = 650;
+211:  const FINISHED_INPUT_LOCK_MS = 1200;
+229:  const chapter1CutSceneEnabled =
+234:  const chapter1CutSceneText =
+241:  const CHAPTER_1_CUT_SCENE_SCROLL_SPEED = 22;
+242:  const CHAPTER_1_CUT_SCENE_END_HOLD_MS = 1700;
+254:  const chapter1CutSceneStars = Array.from(
+273:  const isTreatmentLevel = chapterNumber === 2;
+274:  const isDoctorsOpinionLevel = chapterNumber === 3;
+275:  const treatmentDurationMs =
+282:  const obsessionThoughtTexts = [
+295:  const obsessionButtons = [
+323:  const treatmentSlots = [
+372:  const treatmentParticles = [];
+380:  const BACKGROUND_SCROLL_SPEED = 1.2;
+390:    const scale = Math.max(
+422:  const billImage = new Image();
+428:  const backgroundImage = new Image();
+436:  const obstacleDefinitions =
+439:  const obstacleImages = new Map();
+442:    const image = new Image();
+451:  const collectibleDefinitions =
+454:  const collectibleImages = new Map();
+457:  const image = new Image();
+469:  const openingSplashImage = new Image();
+476:  const splashImage = new Image();
+481:  const titleImage = new Image();
+486:  const treatmentImages = new Map();
+489:    const image = new Image();
+494:  const treatmentRestartImage = new Image();
+516:  const cutsceneMusic = new Audio(
+526:  const backgroundMusic = new Audio(
+536:  const splashSound = new Audio(
+543:  const soundFiles = {
+554:  const soundVolumes = {
+562:  const treatmentMusicSettings = {
+577:    const startVolume = audio.volume;
+578:    const startedAt = performance.now();
+581:      const progress = Math.min(1, (now - startedAt) / duration);
+708:    const elapsed = Math.max(0, now - gameplayStartedAt);
+709:    const progress = Math.min(1, elapsed / treatmentDurationMs);
+710:    const activeTiles = treatmentSlots.filter(slot => slot.active).length;
+712:    const progressRate =
+717:    const targetRate = Math.min(
+731:    const source =
+738:    const sound =
+773:    const strength =
+818:  const bill = {
+845:    const topLimit = 40;
+847:    const bottomLimit =
+864:  const activeEntities = [];
+873:  const pickupParticles = [];
+874:  const floatingNumbers = [];
+875:  const pickupFlashes = [];
+925:    const centerX =
+928:    const centerY =
+940:    const particleCount =
+952:      const angle =
+955:      const speed =
+1050:      const particle = pickupParticles[index];
+1069:      const number = floatingNumbers[index];
+1086:      const flash = pickupFlashes[index];
+1140:      const size = particle.size;
+1312:    const nextChapterNumber =
+1315:    const nextChapter =
+1338:    const nextUrl =
+1372:    const cards = getStoryCards();
+1381:    const cards = getStoryCards();
+1419:    const panelWidth = Math.max(150, Math.min(210, width * 0.36));
+1420:    const gap = 7;
+1421:    const margin = 10;
+1422:    const buttonHeight = Math.max(42, Math.min(55, (height - 84 - gap * 5) / 6));
+1423:    const x = width - panelWidth - margin;
+1424:    const top = 66;
+1445:    const layout = getDoctorLayout();
+1446:    const rebound = now < doctorReboundUntil;
+1447:    const slowed = now < doctorSlowUntil;
+1448:    const size = 13 + Math.floor(Math.random() * 5);
+1475:        const layout = getDoctorLayout();
+1476:        const billGroundY = height - 45 + doctorBurial;
+1478:          const thought = doctorThoughts[i];
+1517:      const elapsed = now - cravingStartedAt;
+1518:      const intensity = Math.min(1, elapsed / 17000);
+1520:        const count = elapsed < 2500 ? 1 : 1 + Math.floor(intensity * 3);
+1546:    const types = ["BEER", "BEER", "BEER", "SHOT", "WHISKEY"];
+1547:    const type = firstBeer ? "BEER" : types[Math.floor(Math.random() * types.length)];
+1601:    const totalUses = doctorCopingUses.asylum + doctorCopingUses.busy + doctorCopingUses.read;
+1606:    const now = performance.now();
+1620:        const item = cravingObjects[i];
+
+===== LET DECLARATIONS =====
+172:  let width = 0;
+173:  let height = 0;
+183:  let gameState =
+213:  let splashStartedAt = 0;
+214:  let splashAudioFinished = false;
+215:  let splashFadeStartedAt = 0;
+216:  let splashFallbackEndsAt = 0;
+217:  let finishedInputReadyAt = 0;
+245:  let chapter1CutSceneSpeedMultiplier = 1;
+247:  let chapter1CutSceneStartedAt = 0;
+248:  let chapter1CutSceneFinishedAt = 0;
+251:  let chapter1CutSceneCrawlDistance = 0;
+252:  let chapter1CutSceneLastUpdatedAt = 0;
+268:  let chapterTimer = null;
+269:  let chapterFinished = false;
+270:  let currentCardIndex = 0;
+271:  let gameplayStartedAt = 0;
+304:  let doctorPhase = "obsession";
+305:  let doctorPhaseStartedAt = 0;
+306:  let doctorMessage = "";
+307:  let doctorMessageUntil = 0;
+308:  let doctorReliefUntil = 0;
+309:  let doctorThoughts = [];
+310:  let doctorNextThoughtAt = 0;
+311:  let doctorBurial = 0;
+312:  let doctorSlowUntil = 0;
+313:  let doctorClearUntil = 0;
+314:  let doctorReboundUntil = 0;
+315:  let doctorCopingUses = { asylum: 0, busy: 0, read: 0 };
+316:  let doctorCooldowns = { asylum: 0, busy: 0, read: 0 };
+317:  let cravingObjects = [];
+318:  let cravingNextSpawnAt = 0;
+319:  let cravingStartedAt = 0;
+320:  let cravingCollected = 0;
+321:  let cravingEndAt = 0;
+358:  let treatmentNextCueAt = 0;
+359:  let treatmentHits = 0;
+360:  let treatmentMisses = 0;
+361:  let treatmentFailedLabel = "";
+362:  let treatmentAttempt = 0;
+363:  let treatmentOverloadTriggered = false;
+371:  let chapter1EasierRetry = false;
+378:  let backgroundOffset = 0;
+560:  let audioUnlocked = false;
+870:  let score = 0;
+871:  let displayedScore = 0;
+877:  let screenShake = 0;
+878:  let billPickupBounce = 0;
+879:  let scorePulse = 0;
+948:      let index = 0;
+987:    let pickupWord = "";
+1046:      let index = pickupParticles.length - 1;
+1065:      let index = floatingNumbers.length - 1;
+1082:      let index = pickupFlashes.length - 1;
+1458:    let delay = 560;
+1477:        for (let i = doctorThoughts.length - 1; i >= 0; i -= 1) {
+1521:        for (let i = 0; i < count; i += 1) spawnCravingObject(now, false);
+1619:      for (let i = cravingObjects.length - 1; i >= 0; i -= 1) {
+1626:          for (let n = 0; n < splits; n += 1) spawnCravingObject(now, false);
+1677:      for (let x = 0; x < layout.playWidth; x += 18) {
+1891:    for (let i = treatmentParticles.length - 1; i >= 0; i -= 1) {
+1912:    for (let i = 0; i < 34; i += 1) {
+2565:    let drawX = backgroundOffset;
+2609:    let buildingNumber = 0;
+2612:      let x =
+2640:      let x =
+2808:    let opacity = fadeInProgress;
+2896:    let current = "";
+3023:    for (let index = 0; index < lines.length; index += 1) {
+3050:      let fontWeight = "700";
+3051:      let fontSize = baseFontSize;
+3246:      let line = "";
+3318:    let cardImage = null;
+3563:      let textY =
+3769:      let textY =
+
+===== CLASS DECLARATIONS =====
+
+===== EXPORTS =====
+
+===== MODULE LOADS =====
+57:  const engine = window.RecoveryEngine;
+63:  window.RecoveryAudio = AudioEngine;
+110:      window.RecoveryChapters?.chapter2?.cards || [];
+236:      ? window.RecoveryChapters?.chapter3?.crawl || []
+238:      ? window.RecoveryChapters?.chapter2?.crawl || []
+239:      : window.RecoveryChapters?.chapter1?.crawl || [];
+4253:            window.RecoveryRuntime.createChapterRuntime(
+4307:            window.RecoveryRuntime.createChapterRuntime(
+4337:            window.RecoveryRuntime.createChapterRuntime(
+
+===== FILE INFO =====
+4411 game2.js

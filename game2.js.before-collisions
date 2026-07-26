@@ -86,22 +86,11 @@
       : null);
 
   // =====================================
-  // CHAPTER 1 STORY CARDS — SMALL TEXT ADJUSTMENTS
+  // CURRENT CHAPTER SETUP
   // =====================================
 
-  if (chapterNumber === 1 && currentChapter?.cards) {
-    currentChapter.cards = currentChapter.cards.filter((card) => {
-      const searchableText = `${card?.title || ""} ${card?.text || ""}`;
-      return !/swipe/i.test(searchableText);
-    });
-
-    const bigDealCard = currentChapter.cards.find((card) =>
-      /get out of control|who doesn(?:'|’)t when they drink/i.test(card?.text || "")
-    );
-
-    if (bigDealCard && !/what(?:'|’)s the big deal/i.test(bigDealCard.text || "")) {
-      bigDealCard.text = `${bigDealCard.text || ""}\n\n"What's the big deal?"`;
-    }
+  if (typeof currentChapter?.prepare === "function") {
+    currentChapter.prepare();
   }
 
   // =====================================
@@ -110,88 +99,8 @@
   // =====================================
 
   if (chapterNumber === 2 && currentChapter) {
-    currentChapter.cards = [
-      {
-        title: "HERE WE GO AGAIN",
-        image: "assets/cards/chapter2-card1.png",
-        text:
-          "Our friend's plan hasn't worked.\n\n" +
-          "Beer turned into uncontrolable drinking,\n" +
-          "and avoiding certain people\n" +
-          "didn't change a thing.\n\n" +
-          "Now his wife is making another call for help."
-      },
-
-      {
-        title: "BELLADONNA TREATMENT?",
-        image: "assets/cards/chapter2-card2.png",
-        text:
-          "\"Yes... we'll begin immediately.\"\n\n" +
-          "Hydrotherapy...\n" +
-          "Mild exercise...\n" +
-          "Belladonna treatments...\n\n" +
-          "The goal is to calm his nervous system.\n\n" +
-          "When we're finished he'll be a new man.\n"
-      },
-
-      {
-        title: "RUN! RUN! RUN!",
-        image: "assets/cards/chapter2-card3.png",
-        text:
-          "RUN! RUN! RUN!\n\n" +
-          "Now hot bath!\n\n" +
-          "Now cold shower!\n\n" +
-          "Now Belladonna..."
-      },
-
-      {
-        title: "BELLADONNA?",
-        image: "assets/cards/chapter2-card4.png",
-        text:
-          "\"I don't want to drink any Belladonna!\"\n\n" +
-          "Nurse:\n" +
-          "\"Oh, honey...\n\n" +
-          "You don't drink it...\n\n" +
-          "It goes in the other way.\""
-      },
-
-      {
-        title: "THIS IS TORTURE",
-        image: "assets/cards/chapter2-card5.png",
-        text:
-          "This...\n\n" +
-          "is...\n\n" +
-          "TORTURE.\n\n" + "There has to be a better solution..."
-      },
-
-      {
-        title: "THE GOOD DOCTOR",
-        image: "assets/cards/chapter2-card6.png",
-        text:
-          "During this stay at Towns Hospital,\n" +
-          "our friend meets a kindly physician.\n\n" +
-          "Dr. William D. Silkworth."
-      },
-
-      {
-        title: "PHYSICALLY RESTORED",
-        image: "assets/cards/chapter2-card7.png",
-        text:
-          "\"The treatments have helped your body.\"\n\n" +
-          "\"You are well enough to leave.\"\n\n" +
-          "But the doctor has seen this before."
-      },
-
-      {
-        title: "THE REAL QUESTION",
-        image: "assets/cards/chapter2-card8.png",
-        text:
-          "Men arrive broken...\n\n" +
-          "They sober up...\n\n" +
-          "They swear they will never drink again...\n\n" +
-          "So why do they always come back drunker than before?"
-      }
-    ];
+    currentChapter.cards =
+      window.RecoveryChapters?.chapter2?.cards || [];
   }
 
   // =====================================
@@ -288,9 +197,9 @@
   // splash.mp3 controls when the fade-out begins.
   // ============================================================================
 
-  const SPLASH_FADE_IN_MS = 900;
-  const SPLASH_FADE_MS = 900;
-  const SPLASH_AUDIO_FALLBACK_MS = 15000;
+  const SPLASH_FADE_IN_MS = 500;
+  const SPLASH_FADE_MS = 650;
+  const SPLASH_AUDIO_FALLBACK_MS = 4000;
   const MUSIC_FADE_MS = 650;
   const FINISHED_INPUT_LOCK_MS = 1200;
 
@@ -317,100 +226,10 @@
 
   const chapter1CutSceneText =
     chapterNumber === 3
-      ? [
-          "CHAPTER 3",
-          "",
-          "THE DOCTOR'S OPINION",
-          "",
-          "Our friend completed treatment.",
-          "",
-          "For several months, life seemed to be getting better.",
-          "",
-          "Eventually, he began to wonder if he could drink normally again.",
-          "",
-          "He took the gamble...",
-          "",
-          "And lost.",
-          "",
-          "Back at Towns Hospital,",
-          "",
-          "our friend was about to hear",
-          "",
-          "something that would change everything."
-        ]
+      ? window.RecoveryChapters?.chapter3?.crawl || []
       : chapterNumber === 2
-      ? [
-          "CHAPTER 2",
-          "",
-          "Seven years have passed...",
-          "",
-          "Our friend is now a regular at hospitals seeking help.",
-          "",
-          "His drinking has become impossible to hide.",
-          "",
-          "Steady work has become impossible to keep.",
-          "",
-          "His marriage has grown unhappy.",
-          "",
-          "His friends have left him behind.",
-          "",
-          "His life is on the brink of collapse.",
-          "",
-          "Experimental treatment now seems like his only option.",
-          "",
-          "He is becoming desperate for a solution..."
-        ]
-      : [
-    "CHAPTER 1",
-    "",
-    "NOT SO VERY LONG AGO...",
-    "",
-    "Our friend is a successful businessman.",
-    "",
-    "He has a loving wife...",
-    "",
-    "Good friends...",
-    "",
-    "And a future that looks bright.",
-    "",
-    "Drinking has become a part of his everyday life.",
-    "",
-    "After work.",
-    "",
-    "With friends.",
-    "",
-    "To celebrate.",
-    "",
-    "To relax.",
-    "",
-    "Most days are fine.",
-    "",
-    "But every now and then...",
-    "",
-    "He takes it too far.",
-    "",
-    "Another apology.",
-    "",
-    "Another promise.",
-    "",
-    "Another hospital stay.",
-    "",
-    "Each time he leaves the hospital...",
-    "",
-    "He believes this time will be different.",
-    "",
-    "He'll be more careful.",
-    "",
-    "He'll have more willpower.",
-    "",
-    "He'll finally get it under control.",
-    "",
-    "He has no idea...",
-    "",
-    "He's about to begin a journey...",
-    "",
-    "One that millions of us would one day understand."
-  ];
+      ? window.RecoveryChapters?.chapter2?.crawl || []
+      : window.RecoveryChapters?.chapter1?.crawl || [];
 
   const CHAPTER_1_CUT_SCENE_SCROLL_SPEED = 22;
   const CHAPTER_1_CUT_SCENE_END_HOLD_MS = 1700;
@@ -708,7 +527,7 @@ for (const definition of collectibleDefinitions) {
   // RECOVERY MISFITS SPLASH SOUND
   // The splash image stays visible until this exact sound finishes.
   const splashSound = new Audio(
-    "assets/sounds/splash.mp3"
+    `assets/sounds/splash.mp3?v=${Date.now()}`
   );
 
   splashSound.volume = 1;
@@ -742,7 +561,9 @@ for (const definition of collectibleDefinitions) {
   };
 
   function playAudio(audio) {
-    return audio.play().then(() => true).catch(() => false);
+    return audio.play()
+      .then(() => true)
+      .catch(() => false);
   }
 
   function fadeAudio(audio, targetVolume, duration = MUSIC_FADE_MS, pauseWhenSilent = false) {
@@ -797,24 +618,21 @@ for (const definition of collectibleDefinitions) {
     audioUnlocked = true;
 
     /*
-      Start the audible splash sound and the silent cut-scene track
-      directly inside the first tap. The cut-scene track stays running
-      at zero volume until the Recovery Misfits splash ends.
+      Start only the audible splash sound inside the first real tap.
+      Starting a second audio track at the same moment can cause some
+      browsers to reject or interrupt the splash sound. The cut-scene
+      music starts normally after the splash has finished.
     */
     splashSound.pause();
     splashSound.muted = false;
     splashSound.currentTime = 0;
 
     cutsceneMusic.pause();
-    cutsceneMusic.muted = false;
     cutsceneMusic.currentTime = 0;
     cutsceneMusic.volume = 0;
     cutsceneMusic.playbackRate = 1;
 
-    const splashPromise = playAudio(splashSound);
-    playAudio(cutsceneMusic);
-
-    return splashPromise;
+    return playAudio(splashSound);
   }
 
   function beginRecoveryMisfitsSplash() {
@@ -826,8 +644,7 @@ for (const definition of collectibleDefinitions) {
 
     unlockAudioFromUserGesture().then((started) => {
       if (!started) {
-        splashAudioFinished = true;
-        splashFadeStartedAt = performance.now();
+        // Keep the splash visible until the safety timer expires.
       }
     });
   }
@@ -1068,435 +885,25 @@ for (const definition of collectibleDefinitions) {
   }
 
   // =====================================
-  // HAZARD SPAWNING
-  // =====================================
-
-  let nextObstacleSpawnAt = 0;
-
-  const MIN_SPAWN_DELAY = 1700;
-  const MAX_SPAWN_DELAY = 3000;
-
-  function getRandomSpawnDelay() {
-    const minimumDelay =
-      chapterNumber === 1 && chapter1EasierRetry
-        ? 2700
-        : MIN_SPAWN_DELAY;
-
-    const maximumDelay =
-      chapterNumber === 1 && chapter1EasierRetry
-        ? 4500
-        : MAX_SPAWN_DELAY;
-
-    return (
-      minimumDelay +
-      Math.random() *
-        (maximumDelay - minimumDelay)
-    );
-  }
-
-  // =====================================
-  // COLLECTIBLE SPAWNING
-  // =====================================
-
-  let nextCollectibleSpawnAt = 0;
-
-  const MIN_COLLECTIBLE_SPAWN_DELAY = 700;
-  const MAX_COLLECTIBLE_SPAWN_DELAY = 1400;
-
-  function getRandomCollectibleSpawnDelay() {
-    return (
-      MIN_COLLECTIBLE_SPAWN_DELAY +
-      Math.random() *
-        (
-          MAX_COLLECTIBLE_SPAWN_DELAY -
-          MIN_COLLECTIBLE_SPAWN_DELAY
-        )
-    );
-  }
-
-  // =====================================
-  // ENTITY RESET
+  // CHAPTER ENTITY RESET
+  // Chapter 1 owns hazard and collectible timing.
   // =====================================
 
   function resetObstacles() {
-    activeEntities.length = 0;
-
-    nextObstacleSpawnAt =
-      performance.now() +
-      (
-        chapterNumber === 1 && chapter1EasierRetry
-          ? 2200
-          : 1200
-      );
-
-    nextCollectibleSpawnAt =
-      performance.now() + 500;
-  }
-
-  // =====================================
-  // HAZARD CREATION
-  // =====================================
-
-  function spawnObstacle(now) {
-    if (obstacleDefinitions.length === 0) {
-      return;
-    }
-
-    const definition =
-      obstacleDefinitions[
-        Math.floor(
-          Math.random() *
-            obstacleDefinitions.length
-        )
-      ];
-
-    const obstacleHeight =
-      definition.height || 180;
-
-    const image =
-      obstacleImages.get(definition.id);
-
-    const aspectRatio =
-      image &&
-      image.naturalWidth > 0 &&
-      image.naturalHeight > 0
-        ? image.naturalWidth /
-          image.naturalHeight
-        : 1;
-
-    const obstacleWidth =
-      obstacleHeight * aspectRatio;
-
-    const movement =
-      definition.movement || "horizontal";
-
-    let x;
-    let y;
-
-    /*
-      The falling drunk is marked "vertical"
-      in story.js, but the engine converts him
-      into a fast diagonal hazard.
-    */
-
-    if (movement === "vertical") {
-      x = width + obstacleWidth;
-
-      y =
-        height -
-        obstacleHeight -
-        25;
-
-      const targetX = bill.x;
-      const targetY = bill.y;
-
-      const dx = targetX - x;
-      const dy = targetY - y;
-
-      const distance =
-        Math.hypot(dx, dy) || 1;
-
-      const baseSpeed =
-        definition.speed || 7;
-
-      const speed =
-        chapterNumber === 1 && chapter1EasierRetry
-          ? baseSpeed * 0.62
-          : baseSpeed;
-
-      activeEntities.push({
-        type: "hazard",
-        definition,
-        x,
-        y,
-        width: obstacleWidth,
-        height: obstacleHeight,
-        movement: "diagonal",
-        speed,
-        velocityX:
-          (dx / distance) * speed,
-        velocityY:
-          (dy / distance) * speed
-      });
-
-      nextObstacleSpawnAt =
-        now + getRandomSpawnDelay();
-
-      return;
-    }
-
-    /*
-      Woman and drink pal stay aligned
-      along the bottom of the screen.
-    */
-
-    x = width + obstacleWidth;
-
-    y =
-      height -
-      obstacleHeight -
-      25;
-
-    activeEntities.push({
-      type: "hazard",
-      definition,
-      x,
-      y,
-      width: obstacleWidth,
-      height: obstacleHeight,
-      movement,
-      speed:
-        chapterNumber === 1 && chapter1EasierRetry
-          ? (definition.speed || 4) * 0.62
-          : definition.speed || 4
-    });
-
-    nextObstacleSpawnAt =
-      now + getRandomSpawnDelay();
-  }
-
-  // =====================================
-  // COLLECTIBLE CREATION
-  // =====================================
-
-  function spawnCollectible(now) {
-    if (collectibleDefinitions.length === 0) {
-      return;
-    }
-
-    const definition =
-      collectibleDefinitions[
-        Math.floor(
-          Math.random() *
-            collectibleDefinitions.length
-        )
-      ];
-
-    const collectibleHeight =
-      definition.height || 80;
-
-    const image =
-      collectibleImages.get(definition.id);
-
-    const aspectRatio =
-      image &&
-      image.naturalWidth > 0 &&
-      image.naturalHeight > 0
-        ? image.naturalWidth /
-          image.naturalHeight
-        : 1;
-
-    const collectibleWidth =
-      collectibleHeight * aspectRatio;
-
-    const topLimit = 70;
-
-    const bottomLimit =
-      Math.max(
-        topLimit,
-        height -
-          collectibleHeight -
-          45
-      );
-
-    const y =
-      topLimit +
-      Math.random() *
-        (bottomLimit - topLimit);
-
-    activeEntities.push({
-      type: "collectible",
-      definition,
-      x: width + collectibleWidth,
-      y,
-      width: collectibleWidth,
-      height: collectibleHeight,
-      movement: "horizontal",
-      speed: definition.speed || 4.5
-    });
-
-    nextCollectibleSpawnAt =
-      now +
-      getRandomCollectibleSpawnDelay();
-  }
-
-  // =====================================
-  // HAZARD MOVEMENT
-  // =====================================
-
-  function updateObstacles(now) {
-    if (now >= nextObstacleSpawnAt) {
-      spawnObstacle(now);
-    }
-
-    for (
-      let index =
-        activeEntities.length - 1;
-      index >= 0;
-      index -= 1
+    if (
+      typeof currentChapter?.resetEntities !==
+      "function"
     ) {
-      const entity =
-        activeEntities[index];
-
-      if (entity.type !== "hazard") {
-        continue;
-      }
-
-      if (entity.movement === "diagonal") {
-        entity.x += entity.velocityX;
-        entity.y += entity.velocityY;
-
-        const isOffscreen =
-          entity.x + entity.width < -80 ||
-          entity.y + entity.height < -80 ||
-          entity.y > height + 80;
-
-        if (isOffscreen) {
-          activeEntities.splice(index, 1);
-        }
-
-        continue;
-      }
-
-      entity.x -= entity.speed;
-
-      if (
-        entity.x + entity.width <
-        -40
-      ) {
-        activeEntities.splice(index, 1);
-      }
-    }
-  }
-
-  // =====================================
-  // COLLECTIBLE MOVEMENT
-  // =====================================
-
-  function updateCollectibles(now) {
-    if (now >= nextCollectibleSpawnAt) {
-      spawnCollectible(now);
+      activeEntities.length = 0;
+      return;
     }
 
-    for (
-      let index =
-        activeEntities.length - 1;
-      index >= 0;
-      index -= 1
-    ) {
-      const entity =
-        activeEntities[index];
-
-      if (entity.type !== "collectible") {
-        continue;
-      }
-
-      entity.x -= entity.speed;
-
-      if (
-        entity.x + entity.width <
-        -40
-      ) {
-        activeEntities.splice(index, 1);
-      }
-    }
-  }
-
-  // =====================================
-  // HAZARD DRAWING
-  // =====================================
-
-  function drawObstacles() {
-    ctx.imageSmoothingEnabled = false;
-
-    for (const entity of activeEntities) {
-      if (entity.type !== "hazard") {
-        continue;
-      }
-
-      const image =
-        obstacleImages.get(
-          entity.definition.id
-        );
-
-      if (
-        image &&
-        image.complete &&
-        image.naturalWidth > 0
-      ) {
-        ctx.drawImage(
-          image,
-          entity.x,
-          entity.y,
-          entity.width,
-          entity.height
-        );
-      }
-    }
-  }
-
-  // =====================================
-  // COLLECTIBLE DRAWING
-  // =====================================
-
-  function drawCollectibles() {
-    ctx.imageSmoothingEnabled = false;
-
-    for (const entity of activeEntities) {
-      if (entity.type !== "collectible") {
-        continue;
-      }
-
-      const image =
-        collectibleImages.get(
-          entity.definition.id
-        );
-
-      if (
-        image &&
-        image.complete &&
-        image.naturalWidth > 0
-      ) {
-        ctx.drawImage(
-          image,
-          entity.x,
-          entity.y,
-          entity.width,
-          entity.height
-        );
-
-        continue;
-      }
-
-      /*
-        Temporary fallback so collectibles
-        remain visible even if an image path
-        or filename is wrong.
-      */
-
-      ctx.fillStyle = "#f2c94c";
-
-      ctx.fillRect(
-        entity.x,
-        entity.y,
-        entity.width,
-        entity.height
-      );
-
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 12px monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      ctx.fillText(
-        `BEER +${entity.definition.value || 0}`,
-        entity.x + entity.width / 2,
-        entity.y + entity.height / 2
-      );
-
-      ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
-    }
+    currentChapter.resetEntities({
+      activeEntities,
+      easierRetry:
+        chapterNumber === 1 &&
+        chapter1EasierRetry
+    });
   }
 
   // =====================================
@@ -3190,16 +2597,37 @@ for (const definition of collectibleDefinitions) {
 
   canvas.style.touchAction = "none";
 
+  /*
+    Chrome may reject audio started from pointerdown while mobile
+    device emulation is active. Use a real click to unlock and start
+    the Recovery Misfits splash sound.
+  */
+  canvas.addEventListener(
+    "click",
+    (event) => {
+      if (gameState !== "openingSplash") {
+        return;
+      }
+
+      event.preventDefault();
+      beginRecoveryMisfitsSplash();
+    },
+    { passive: false }
+  );
+
 canvas.addEventListener(
   "pointerdown",
   (event) => {
     event.preventDefault();
 
     /*
-      Process the first tap before attempting pointer capture.
-      Some Chrome/mobile combinations can reject setPointerCapture(),
-      which must never block the TAP TO START action.
+      The opening splash is handled by the click listener above,
+      because Chrome recognizes click more reliably for audio unlock.
     */
+    if (gameState === "openingSplash") {
+      return;
+    }
+
     handlePrimaryAction(event);
 
     try {
@@ -4792,8 +4220,8 @@ canvas.addEventListener(
 
       ctx.font = "bold 17px monospace";
       ctx.fillStyle = "#fff2a8";
-      ctx.strokeText("BILL IS EXHAUSTED.", width / 2, height / 2 + 24);
-      ctx.fillText("BILL IS EXHAUSTED.", width / 2, height / 2 + 24);
+      ctx.strokeText("OUR FRIEND IS EXHAUSTED.", width / 2, height / 2 + 24);
+      ctx.fillText("OUR FRIEND IS EXHAUSTED.", width / 2, height / 2 + 24);
 
       const blink = Math.floor(performance.now() / 500) % 2 === 0;
       if (blink) {
@@ -5055,19 +4483,26 @@ canvas.addEventListener(
           break;
         }
 
-        bill.y +=
-          (
-            bill.targetY -
-            bill.y
-          ) *
-          0.24;
-
-        updateBackground();
-        updateObstacles(now);
-        updateCollectibles(now);
-        updatePickupEffects();
-        checkCollectibleCollisions();
-        checkObstacleCollisions();
+        if (typeof currentChapter?.updateGameplay === "function") {
+          currentChapter.updateGameplay({
+            now,
+            width,
+            height,
+            bill,
+            activeEntities,
+            obstacleDefinitions,
+            obstacleImages,
+            collectibleDefinitions,
+            collectibleImages,
+            easierRetry:
+              chapterNumber === 1 &&
+              chapter1EasierRetry,
+            updateBackground,
+            updatePickupEffects,
+            checkCollectibleCollisions,
+            checkObstacleCollisions
+          });
+        }
 
         break;
 
@@ -5114,22 +4549,18 @@ canvas.addEventListener(
           break;
         }
 
-        const shakeX =
-          (Math.random() - 0.5) * screenShake;
-
-        const shakeY =
-          (Math.random() - 0.5) * screenShake;
-
-        ctx.save();
-        ctx.translate(shakeX, shakeY);
-
-        drawBackground();
-        drawObstacles();
-        drawCollectibles();
-        drawBill();
-        drawPickupEffects();
-
-        ctx.restore();
+        if (typeof currentChapter?.drawGameplay === "function") {
+          currentChapter.drawGameplay({
+            ctx,
+            screenShake,
+            activeEntities,
+            obstacleImages,
+            collectibleImages,
+            drawBackground,
+            drawBill,
+            drawPickupEffects
+          });
+        }
 
         drawGameplayHud();
         break;
@@ -5150,13 +4581,21 @@ canvas.addEventListener(
           drawDoctorsOpinionGame(now);
         } else if (isTreatmentLevel) {
           drawTreatmentGame();
-        } else {
-          drawBackground();
-          drawObstacles();
-          drawCollectibles();
-          drawBill();
-          drawPickupEffects();
+        } else if (
+          typeof currentChapter?.drawGameplay === "function"
+        ) {
+          currentChapter.drawGameplay({
+            ctx,
+            screenShake: 0,
+            activeEntities,
+            obstacleImages,
+            collectibleImages,
+            drawBackground,
+            drawBill,
+            drawPickupEffects
+          });
         }
+
         drawGameplayHud();
         drawChapterFinished();
         break;
