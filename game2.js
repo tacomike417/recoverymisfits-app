@@ -22,7 +22,7 @@
   //    Sound: assets/sounds/music/cutscene1.mp3
   //    Behavior: Star-Wars-style perspective without cutting off sentence edges.
   //
-  // 4. STORY / TITLE CARDS
+  // 4. STORY / TITLE CARDS (engine/story.js)
   //    Chapter 1 cards mostly come from story.js.
   //    Chapter 2 and Chapter 3 cards are written near the top of this file.
   //
@@ -109,57 +109,8 @@
   // =====================================
 
   if (chapterNumber === 3 && currentChapter) {
-    currentChapter.cards = [
-      {
-        title: "OUR FRIEND IS BACK",
-        image: "assets/cards/chapter3-card1.png",
-        text:
-          "Dr.: \"You're back.\"\n\n" +
-          "\"I don't know why this keeps happening to me. " +
-          "I get well. I leave. I honestly believe this time will be different. " +
-          "Then the thought of drinking returns. I drink. I can't stop. " +
-          "And I come back.\""
-      },
-
-      {
-        title: "THE DOCTOR'S OPINION",
-        image: "assets/cards/chapter3-card2.png",
-        text:
-          "\"I've developed a theory after seeing so many men come through our hospital. " +
-          "Some men have developed an allergy to alcohol—a two-fold illness. " +
-          "The first part is that once they drink, they cannot stop on their own willpower. " +
-          "One drink and the phenomenon of craving starts, and they cannot stop.\""
-      },
-
-      {
-        title: "THE MENTAL OBSESSION",
-        image: "assets/cards/chapter3-card3.png",
-        text:
-          "\"And once these men have stopped, sworn off alcohol for good, " +
-          "a mental obsession—an idea that overcomes all other ideas—takes hold " +
-          "and tells these men they can drink safely again.\""
-      },
-
-      {
-        title: "THE VICIOUS CYCLE",
-        image: "assets/cards/chapter3-card4.png",
-        text:
-          "\"And the vicious cycle starts all over again. " +
-          "They lose jobs. Families. Freedom. " +
-          "They find themselves locked up, seeking care again... " +
-          "or unfortunately die.\""
-      },
-
-      {
-        title: "MY OPINION",
-        image: "assets/cards/chapter3-card5.png",
-        text:
-          "\"This is my opinion as I see it right now. " +
-          "I know of no solution other than complete abstinence. " +
-          "Yet even then, these men seem to suffer. " +
-          "They cannot stay away from alcohol for very long.\""
-      }
-    ];
+    currentChapter.cards =
+      window.RecoveryChapters?.chapter3?.cards || [];
   }
 
   let width = 0;
@@ -260,7 +211,6 @@
 
   let chapterTimer = null;
   let chapterFinished = false;
-  let currentCardIndex = 0;
   let gameplayStartedAt = 0;
 
   const isTreatmentLevel = chapterNumber === 2;
@@ -268,50 +218,7 @@
   const treatmentDurationMs =
     (currentChapter?.gameplay?.duration || 30) * 1000;
 
-  // =====================================
-  // CHAPTER 3: DOCTOR'S OPINION GAME
-  // =====================================
-
-  const obsessionThoughtTexts = [
-    "JUST ONE...",
-    "YOU DESERVE IT.",
-    "THIS TIME WILL BE DIFFERENT.",
-    "YOU'VE BEEN SOBER LONG ENOUGH.",
-    "NOBODY WILL KNOW.",
-    "JUST BEER.",
-    "TOMORROW YOU'LL QUIT.",
-    "YOU'VE EARNED IT.",
-    "WHAT'S THE BIG DEAL?",
-    "IT'LL BE DIFFERENT THIS TIME."
-  ];
-
-  const obsessionButtons = [
-    { id: "drink", label: "DRINK", icon: "🍺" },
-    { id: "meeting", label: "GO TO A MEETING", icon: "👥" },
-    { id: "sponsor", label: "CALL A SPONSOR", icon: "☎" },
-    { id: "asylum", label: "GO TO AN ASYLUM", icon: "🏥" },
-    { id: "busy", label: "STAY BUSY", icon: "🚶" },
-    { id: "read", label: "READ ABOUT IT", icon: "📖" }
-  ];
-
-  let doctorPhase = "obsession";
-  let doctorPhaseStartedAt = 0;
-  let doctorMessage = "";
-  let doctorMessageUntil = 0;
-  let doctorReliefUntil = 0;
-  let doctorThoughts = [];
-  let doctorNextThoughtAt = 0;
-  let doctorBurial = 0;
-  let doctorSlowUntil = 0;
-  let doctorClearUntil = 0;
-  let doctorReboundUntil = 0;
-  let doctorCopingUses = { asylum: 0, busy: 0, read: 0 };
-  let doctorCooldowns = { asylum: 0, busy: 0, read: 0 };
-  let cravingObjects = [];
-  let cravingNextSpawnAt = 0;
-  let cravingStartedAt = 0;
-  let cravingCollected = 0;
-  let cravingEndAt = 0;
+  // Chapter 3 gameplay state now lives in chapters/chapter3-gameplay.js.
 
   const treatmentSlots = [
     {
@@ -363,14 +270,6 @@
   */
   let chapter1EasierRetry = false;
   const treatmentParticles = [];
-
-  // =====================================
-  // BACKGROUND STATE
-  // =====================================
-
-  let backgroundOffset = 0;
-
-  const BACKGROUND_SCROLL_SPEED = 1.2;
 
   // =====================================
   // CANVAS SIZE — MAKES THE GAME FILL THE BROWSER WINDOW
@@ -426,36 +325,39 @@
       : currentChapter?.gameplay?.background?.image ||
         "";
 
-  const obstacleDefinitions =
-    currentChapter?.gameplay?.obstacles || [];
+  const backgroundSystem =
+    window.RecoveryBackground.createBackground({
+      ctx,
+      image: backgroundImage,
+      getWidth: () => width,
+      getHeight: () => height,
+      scrollSpeed: 1.2
+    });
 
-  const obstacleImages = new Map();
+  const entitySystem =
+    window.RecoveryEntities.createState(currentChapter);
 
-  for (const definition of obstacleDefinitions) {
-    const image = new Image();
+  const {
+    activeEntities,
+    obstacleDefinitions,
+    obstacleImages,
+    collectibleDefinitions,
+    collectibleImages
+  } = entitySystem;
 
-    image.src = definition.image || "";
-
-    obstacleImages.set(
-      definition.id,
-      image
-    );
-  }
-  const collectibleDefinitions =
-  currentChapter?.gameplay?.collectibles || [];
-
-  const collectibleImages = new Map();
-
-for (const definition of collectibleDefinitions) {
-  const image = new Image();
-
-  image.src = definition.image || "";
-
-  collectibleImages.set(
-    definition.id,
-    image
-  );
-}
+  const storySystem =
+    window.RecoveryStory.createStorySystem({
+      ctx,
+      currentChapter,
+      engine,
+      chapterNumber,
+      getWidth: () => width,
+      getHeight: () => height,
+      isTreatmentLevel: () => isTreatmentLevel,
+      getTreatmentHits: () => treatmentHits,
+      getScore: () => score,
+      onStoryComplete: startGameplay
+    });
 
   // OPENING CLICK-THROUGH PAGE IMAGE
   // This is the very first page with the flashing TAP TO START message.
@@ -470,11 +372,6 @@ for (const definition of collectibleDefinitions) {
 
   splashImage.src =
     "assets/splash/recovery-misfits-splash.png";
-
-  const titleImage = new Image();
-
-  titleImage.src =
-    "assets/title/unofficial-title.png";
 
   const treatmentImages = new Map();
 
@@ -804,6 +701,20 @@ for (const definition of collectibleDefinitions) {
     vibrate([55, 25, 70]);
   }
 
+  const doctorsOpinionGame =
+    window.RecoveryChapter3Gameplay.createDoctorsOpinionGame({
+      ctx,
+      getWidth: () => width,
+      getHeight: () => height,
+      backgroundMusic,
+      stopBackgroundMusic,
+      playClickFeedback,
+      playPickupFeedback,
+      setGameState: (nextState) => {
+        gameState = nextState;
+      }
+    });
+
   // =====================================
   // PLAYER — BILL IMAGE SIZE AND VERTICAL POSITION
   // =====================================
@@ -828,11 +739,9 @@ for (const definition of collectibleDefinitions) {
   }
 
   // =====================================
-  // GAME ENTITIES — ACTIVE HAZARDS AND COLLECTIBLES
-  // Handles hazards and collectibles.
+  // GAME ENTITIES
+  // Stored and loaded by engine/entities.js.
   // =====================================
-
-  const activeEntities = [];
 
   // =====================================
   // BEER COUNT, PICKUP EFFECTS, AND NEAR MISSES
@@ -868,16 +777,7 @@ for (const definition of collectibleDefinitions) {
   // =====================================
 
   function resetObstacles() {
-    if (
-      typeof currentChapter?.resetEntities !==
-      "function"
-    ) {
-      activeEntities.length = 0;
-      return;
-    }
-
-    currentChapter.resetEntities({
-      activeEntities,
+    entitySystem.resetChapter({
       easierRetry:
         chapterNumber === 1 &&
         chapter1EasierRetry
@@ -1172,7 +1072,7 @@ for (const definition of collectibleDefinitions) {
     resetObstacles();
     resetPickupEffects();
 
-    backgroundOffset = 0;
+    backgroundSystem.reset();
     chapterFinished = false;
 
     chapterTimer =
@@ -1235,7 +1135,7 @@ for (const definition of collectibleDefinitions) {
   }
 
   function showStoryCards() {
-    currentCardIndex = 0;
+    storySystem.reset();
     gameState = "story";
   }
 
@@ -1245,7 +1145,7 @@ for (const definition of collectibleDefinitions) {
     resetPickupEffects();
 
     chapterFinished = false;
-    backgroundOffset = 0;
+    backgroundSystem.reset();
 
     chapterTimer = isDoctorsOpinionLevel
       ? null
@@ -1259,7 +1159,7 @@ for (const definition of collectibleDefinitions) {
     }
 
     if (isDoctorsOpinionLevel) {
-      resetDoctorsOpinionGame(gameplayStartedAt);
+      doctorsOpinionGame.reset(gameplayStartedAt);
     }
 
     gameState = "playing";
@@ -1280,478 +1180,22 @@ for (const definition of collectibleDefinitions) {
   }
 
   function continueToNextChapter() {
-    const nextChapterNumber =
-      chapterNumber + 1;
-
-    const nextChapter =
-      engine.getChapter(
-        nextChapterNumber - 1
-      );
-
-    /*
-      As soon as Chapter 2 exists in story.js,
-      tapping the finished screen loads it.
-
-      Until then, the finished screen remains
-      in place instead of opening a broken page.
-    */
-
-    /*
-      Chapter 3 currently begins as a cutscene preview, so Chapter 2
-      is allowed to open it even before Chapter 3 has been added to
-      story.js. Later chapters still require a matching chapter entry.
-    */
-
-    if (!nextChapter && nextChapterNumber !== 3) {
-      return;
-    }
-
-    const nextUrl =
-      new URL(window.location.href);
-
-    nextUrl.searchParams.set(
-      "chapter",
-      String(nextChapterNumber)
-    );
-
-    nextUrl.searchParams.set(
-      "skipIntro",
-      "1"
-    );
-
-    window.location.href =
-      nextUrl.toString();
+    storySystem.continueToNextChapter();
   }
 
   // =====================================
   // STORY CARD HELPERS
   // =====================================
 
-  function getStoryCards() {
-    if (
-      !Array.isArray(
-        currentChapter?.cards
-      )
-    ) {
-      return [];
-    }
 
-    return currentChapter.cards;
-  }
 
-  function getCurrentStoryCard() {
-    const cards = getStoryCards();
 
-    return (
-      cards[currentCardIndex] ||
-      null
-    );
-  }
 
   function advanceStoryCard() {
-    const cards = getStoryCards();
-
-    currentCardIndex += 1;
-
-    if (
-      currentCardIndex >=
-      cards.length
-    ) {
-      startGameplay();
-    }
+    storySystem.advance();
   }
 
-  // =====================================
-  // CHAPTER 3 DOCTOR'S OPINION MINI-GAME
-  // =====================================
-
-  function resetDoctorsOpinionGame(now = performance.now()) {
-    doctorPhase = "obsession";
-    doctorPhaseStartedAt = now;
-    doctorMessage = "USE THE BUTTONS. FIND SOME RELIEF.";
-    doctorMessageUntil = now + 3200;
-    doctorReliefUntil = 0;
-    doctorThoughts = [];
-    doctorNextThoughtAt = now + 450;
-    doctorBurial = 0;
-    doctorSlowUntil = 0;
-    doctorClearUntil = 0;
-    doctorReboundUntil = 0;
-    doctorCopingUses = { asylum: 0, busy: 0, read: 0 };
-    doctorCooldowns = { asylum: 0, busy: 0, read: 0 };
-    cravingObjects = [];
-    cravingNextSpawnAt = 0;
-    cravingStartedAt = 0;
-    cravingCollected = 0;
-    cravingEndAt = 0;
-  }
-
-  function getDoctorLayout() {
-    const panelWidth = Math.max(150, Math.min(210, width * 0.36));
-    const gap = 7;
-    const margin = 10;
-    const buttonHeight = Math.max(42, Math.min(55, (height - 84 - gap * 5) / 6));
-    const x = width - panelWidth - margin;
-    const top = 66;
-    return {
-      playWidth: x - 8,
-      panelX: x,
-      panelWidth,
-      buttons: obsessionButtons.map((button, index) => ({
-        button,
-        x,
-        y: top + index * (buttonHeight + gap),
-        width: panelWidth,
-        height: buttonHeight
-      }))
-    };
-  }
-
-  function showDoctorMessage(text, duration = 1700) {
-    doctorMessage = text;
-    doctorMessageUntil = performance.now() + duration;
-  }
-
-  function spawnObsessionThought(now) {
-    const layout = getDoctorLayout();
-    const rebound = now < doctorReboundUntil;
-    const slowed = now < doctorSlowUntil;
-    const size = 13 + Math.floor(Math.random() * 5);
-    doctorThoughts.push({
-      text: obsessionThoughtTexts[Math.floor(Math.random() * obsessionThoughtTexts.length)],
-      x: 10 + Math.random() * Math.max(30, layout.playWidth - 135),
-      y: -24,
-      speed: (0.9 + Math.random() * 1.2) * (rebound ? 1.75 : slowed ? 0.45 : 1),
-      size,
-      wobble: Math.random() * Math.PI * 2
-    });
-
-    let delay = 560;
-    if (slowed) delay = 1000;
-    if (rebound) delay = 260;
-    delay -= Math.min(220, doctorBurial * 2.2);
-    doctorNextThoughtAt = now + Math.max(180, delay + Math.random() * 180);
-  }
-
-  function updateDoctorsOpinionGame(now) {
-    if (doctorPhase === "obsession") {
-      if (now >= doctorNextThoughtAt && now >= doctorClearUntil) {
-        spawnObsessionThought(now);
-      }
-
-      if (now < doctorClearUntil) {
-        doctorThoughts.length = 0;
-        doctorBurial = Math.max(0, doctorBurial - 0.45);
-      } else {
-        const layout = getDoctorLayout();
-        const billGroundY = height - 45 + doctorBurial;
-        for (let i = doctorThoughts.length - 1; i >= 0; i -= 1) {
-          const thought = doctorThoughts[i];
-          thought.y += thought.speed;
-          thought.x += Math.sin(now * 0.004 + thought.wobble) * 0.18;
-          if (thought.y >= billGroundY - 90) {
-            doctorBurial = Math.min(76, doctorBurial + 5.5);
-            doctorThoughts.splice(i, 1);
-          } else if (thought.y > height + 30 || thought.x > layout.playWidth) {
-            doctorThoughts.splice(i, 1);
-          }
-        }
-      }
-      return;
-    }
-
-    if (doctorPhase === "relief") {
-      doctorThoughts.length = 0;
-      doctorBurial = Math.max(0, doctorBurial - 1.8);
-      if (now >= doctorReliefUntil) {
-        doctorPhase = "cravingIntro";
-        doctorPhaseStartedAt = now;
-      }
-      return;
-    }
-
-    if (doctorPhase === "cravingIntro") {
-      if (now - doctorPhaseStartedAt >= 1800) {
-        doctorPhase = "craving";
-        cravingStartedAt = now;
-        cravingNextSpawnAt = now;
-        spawnCravingObject(now, true);
-        backgroundMusic.currentTime = 0;
-        backgroundMusic.playbackRate = 1.08;
-        backgroundMusic.volume = 0.34;
-        backgroundMusic.play().catch(() => {});
-      }
-      return;
-    }
-
-    if (doctorPhase === "craving") {
-      const elapsed = now - cravingStartedAt;
-      const intensity = Math.min(1, elapsed / 17000);
-      if (now >= cravingNextSpawnAt) {
-        const count = elapsed < 2500 ? 1 : 1 + Math.floor(intensity * 3);
-        for (let i = 0; i < count; i += 1) spawnCravingObject(now, false);
-        cravingNextSpawnAt = now + Math.max(190, 850 - intensity * 620);
-      }
-
-      for (const item of cravingObjects) {
-        item.x += item.vx;
-        item.y += item.vy;
-        if (item.x < 18 || item.x > width - 18) item.vx *= -1;
-        if (item.y < 58 || item.y > height - 20) item.vy *= -1;
-      }
-
-      if (elapsed > 19000 || cravingObjects.length > 105) {
-        doctorPhase = "cravingEnd";
-        cravingEndAt = now;
-        stopBackgroundMusic(false);
-      }
-      return;
-    }
-
-    if (doctorPhase === "cravingEnd" && now - cravingEndAt > 4800) {
-      gameState = "chapter3PreviewFinished";
-    }
-  }
-
-  function spawnCravingObject(now, firstBeer) {
-    const types = ["BEER", "BEER", "BEER", "SHOT", "WHISKEY"];
-    const type = firstBeer ? "BEER" : types[Math.floor(Math.random() * types.length)];
-    cravingObjects.push({
-      type,
-      x: width * (0.18 + Math.random() * 0.64),
-      y: height * (0.22 + Math.random() * 0.60),
-      vx: (Math.random() - 0.5) * (firstBeer ? 0.4 : 1.8),
-      vy: (Math.random() - 0.5) * (firstBeer ? 0.4 : 1.8),
-      size: firstBeer ? 58 : 34 + Math.random() * 18,
-      born: now
-    });
-  }
-
-  function useObsessionButton(id, now) {
-    if (id === "drink") {
-      doctorPhase = "relief";
-      doctorPhaseStartedAt = now;
-      doctorReliefUntil = now + 2600;
-      doctorThoughts.length = 0;
-      doctorMessage = "RELIEF...";
-      doctorMessageUntil = doctorReliefUntil;
-      backgroundMusic.pause();
-      return;
-    }
-
-    if (id === "meeting") {
-      showDoctorMessage("SORRY, KID. AA HASN'T BEEN INVENTED YET.", 2300);
-      return;
-    }
-
-    if (id === "sponsor") {
-      showDoctorMessage("SORRY, NO SUCH THING YET, KID.", 2300);
-      return;
-    }
-
-    if (now < doctorCooldowns[id]) {
-      showDoctorMessage("STILL WEARING OFF...", 900);
-      return;
-    }
-
-    doctorCopingUses[id] += 1;
-    doctorCooldowns[id] = now + 6800;
-    doctorSlowUntil = now + 4300;
-    doctorBurial = Math.max(0, doctorBurial - 22);
-
-    if (id === "asylum") {
-      doctorClearUntil = now + 2500;
-      showDoctorMessage("THE THOUGHTS QUIET DOWN... FOR A WHILE.", 2200);
-    } else if (id === "busy") {
-      showDoctorMessage("KEEPING BUSY HELPS... FOR A WHILE.", 2100);
-    } else {
-      doctorThoughts.splice(0, Math.floor(doctorThoughts.length * 0.7));
-      showDoctorMessage("KNOWLEDGE HELPS... BUT THE THOUGHT RETURNS.", 2200);
-    }
-
-    const totalUses = doctorCopingUses.asylum + doctorCopingUses.busy + doctorCopingUses.read;
-    doctorReboundUntil = now + 4300 + totalUses * 700;
-  }
-
-  function tapDoctorsOpinionGame(x, y) {
-    const now = performance.now();
-    if (doctorPhase === "obsession") {
-      for (const item of getDoctorLayout().buttons) {
-        if (x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height) {
-          playClickFeedback();
-          useObsessionButton(item.button.id, now);
-          return true;
-        }
-      }
-      return false;
-    }
-
-    if (doctorPhase === "craving") {
-      for (let i = cravingObjects.length - 1; i >= 0; i -= 1) {
-        const item = cravingObjects[i];
-        const radius = item.size * 0.62;
-        if (Math.hypot(x - item.x, y - item.y) <= radius) {
-          cravingCollected += 1;
-          cravingObjects.splice(i, 1);
-          const splits = 2 + Math.floor(Math.random() * 3);
-          for (let n = 0; n < splits; n += 1) spawnCravingObject(now, false);
-          if (Math.random() < 0.55) spawnCravingObject(now, false);
-          playPickupFeedback(3);
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  function drawPixelBill(centerX, groundY, peaceful = false) {
-    const buried = peaceful ? 0 : doctorBurial;
-    const y = groundY + buried;
-    ctx.save();
-    ctx.translate(centerX, y);
-    ctx.fillStyle = "#2a2118";
-    ctx.fillRect(-25, -88, 50, 55);
-    ctx.fillStyle = "#d5a06b";
-    ctx.fillRect(-17, -112, 34, 27);
-    ctx.fillStyle = "#3a2b1c";
-    ctx.fillRect(-23, -119, 46, 9);
-    ctx.fillRect(-15, -128, 30, 10);
-    ctx.fillStyle = peaceful ? "#fff2a8" : "#ffffff";
-    ctx.fillRect(-9, -101, 5, 4);
-    ctx.fillRect(6, -101, 5, 4);
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(-10, -100, 3, 3);
-    ctx.fillRect(7, -100, 3, 3);
-    ctx.fillRect(-7, -89, 14, 3);
-    ctx.fillStyle = "#1a1a1a";
-    ctx.fillRect(-22, -33, 17, 35);
-    ctx.fillRect(5, -33, 17, 35);
-    ctx.restore();
-  }
-
-  function drawDoctorsOpinionGame(now) {
-    ctx.fillStyle = "#11131a";
-    ctx.fillRect(0, 0, width, height);
-
-    if (doctorPhase === "obsession" || doctorPhase === "relief") {
-      const layout = getDoctorLayout();
-      const peaceful = doctorPhase === "relief";
-      const gradient = ctx.createLinearGradient(0, 0, 0, height);
-      gradient.addColorStop(0, peaceful ? "#263348" : "#171923");
-      gradient.addColorStop(1, peaceful ? "#73582c" : "#39271e");
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, layout.playWidth, height);
-
-      ctx.fillStyle = "#5d3d23";
-      ctx.fillRect(0, height - 45, layout.playWidth, 45);
-      ctx.fillStyle = "#2c1c12";
-      for (let x = 0; x < layout.playWidth; x += 18) {
-        ctx.fillRect(x, height - 45 + ((x / 18) % 2) * 8, 13, 7);
-      }
-
-      for (const thought of doctorThoughts) {
-        ctx.font = `900 ${thought.size}px monospace`;
-        ctx.textAlign = "left";
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = "#000000";
-        ctx.fillStyle = "#f4efe0";
-        ctx.strokeText(thought.text, thought.x, thought.y);
-        ctx.fillText(thought.text, thought.x, thought.y);
-      }
-
-      drawPixelBill(layout.playWidth * 0.52, height - 44, peaceful);
-
-      ctx.fillStyle = "rgba(0,0,0,0.72)";
-      ctx.fillRect(layout.panelX - 6, 0, layout.panelWidth + 16, height);
-      for (const item of layout.buttons) {
-        const cooling = doctorCooldowns[item.button.id] && now < doctorCooldowns[item.button.id];
-        ctx.fillStyle = item.button.id === "drink" ? "#c78d22" : cooling ? "#4c4c4c" : "#e7dcc4";
-        ctx.fillRect(item.x, item.y, item.width, item.height);
-        ctx.strokeStyle = "#000000";
-        ctx.lineWidth = 3;
-        ctx.strokeRect(item.x, item.y, item.width, item.height);
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.font = `900 ${Math.max(11, Math.min(15, item.height * 0.28))}px monospace`;
-        ctx.fillStyle = item.button.id === "drink" ? "#000000" : cooling ? "#c8c8c8" : "#161616";
-        ctx.fillText(`${item.button.icon} ${item.button.label}`, item.x + item.width / 2, item.y + item.height / 2, item.width - 10);
-        if (cooling) {
-          const remaining = Math.ceil((doctorCooldowns[item.button.id] - now) / 1000);
-          ctx.font = "bold 10px monospace";
-          ctx.fillText(`${remaining}s`, item.x + item.width - 18, item.y + 10);
-        }
-      }
-
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      if (now < doctorMessageUntil) {
-        const boxW = Math.min(layout.playWidth - 24, 420);
-        ctx.fillStyle = "rgba(0,0,0,0.82)";
-        ctx.fillRect(layout.playWidth / 2 - boxW / 2, 12, boxW, 42);
-        ctx.font = "900 13px monospace";
-        ctx.fillStyle = peaceful ? "#fff2a8" : "#ffffff";
-        ctx.fillText(doctorMessage, layout.playWidth / 2, 33, boxW - 12);
-      }
-      ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
-      return;
-    }
-
-    if (doctorPhase === "cravingIntro") {
-      ctx.fillStyle = "#000000";
-      ctx.fillRect(0, 0, width, height);
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = "900 35px monospace";
-      ctx.fillStyle = "#fff2a8";
-      ctx.fillText("RELIEF...", width / 2, height / 2 - 25);
-      ctx.font = "bold 17px monospace";
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText("THEN THE FIRST DRINK.", width / 2, height / 2 + 34);
-      ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
-      return;
-    }
-
-    ctx.fillStyle = "#20150e";
-    ctx.fillRect(0, 0, width, height);
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    for (const item of cravingObjects) {
-      const icon = item.type === "SHOT" ? "🥃" : item.type === "WHISKEY" ? "🍾" : "🍺";
-      ctx.font = `${Math.floor(item.size)}px serif`;
-      ctx.fillText(icon, item.x, item.y);
-    }
-
-    if (doctorPhase === "craving") {
-      ctx.font = "900 16px monospace";
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = "#000000";
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeText(cravingCollected === 0 ? "TAP THE FIRST DRINK" : "TRY TO KEEP UP", width / 2, 30);
-      ctx.fillText(cravingCollected === 0 ? "TAP THE FIRST DRINK" : "TRY TO KEEP UP", width / 2, 30);
-    }
-
-    if (doctorPhase === "cravingEnd") {
-      ctx.fillStyle = "rgba(0,0,0,0.78)";
-      ctx.fillRect(0, 0, width, height);
-      const elapsed = now - cravingEndAt;
-      ctx.font = "900 28px monospace";
-      ctx.fillStyle = "#fff2a8";
-      ctx.fillText("ONE'S TOO MANY.", width / 2, height / 2 - 45, width - 24);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText("A THOUSAND AIN'T ENOUGH.", width / 2, height / 2, width - 24);
-      if (elapsed > 2300) {
-        ctx.font = "900 17px monospace";
-        ctx.fillStyle = "#ffe56b";
-        ctx.fillText("THIS IS THE PHENOMENON OF CRAVING.", width / 2, height / 2 + 64, width - 24);
-      }
-    }
-
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-  }
+  // Chapter 3 gameplay now lives in chapters/chapter3-gameplay.js.
 
   // =====================================
   // CHAPTER 2 TREATMENT MINI-GAME
@@ -2145,128 +1589,7 @@ for (const definition of collectibleDefinitions) {
     ctx.textBaseline = "alphabetic";
   }
 
-  // =====================================
-  // INPUT / TAP / CLICK HANDLING — WHAT HAPPENS WHEN THE PLAYER PRESSES
-  // =====================================
-
-  function handlePrimaryAction(event) {
-    if (gameState === "openingSplash") {
-      beginRecoveryMisfitsSplash();
-      return;
-    }
-
-    if (gameState === "chapter1CutScene") {
-      startCutsceneMusic();
-
-      if (
-        !event ||
-        typeof event.clientX !== "number" ||
-        typeof event.clientY !== "number"
-      ) {
-        playClickFeedback();
-        finishChapter1CutScene();
-        return;
-      }
-
-      if (
-        chapter1CutSceneSpeedButtonContains(
-          event.clientX,
-          event.clientY
-        )
-      ) {
-        toggleChapter1CutSceneSpeed();
-        return;
-      }
-
-      if (
-        chapter1CutSceneSkipButtonContains(
-          event.clientX,
-          event.clientY
-        )
-      ) {
-        playClickFeedback();
-        finishChapter1CutScene();
-      }
-
-      return;
-    }
-
-    if (gameState === "title") {
-      playClickFeedback();
-      showStoryCards();
-      return;
-    }
-
-    if (gameState === "story") {
-      playClickFeedback();
-      advanceStoryCard();
-      return;
-    }
-
-    if (gameState === "finished") {
-      if (performance.now() < finishedInputReadyAt) {
-        return;
-      }
-
-      playClickFeedback();
-      continueToNextChapter();
-      return;
-    }
-
-    if (gameState === "treatmentFailed") {
-      playClickFeedback();
-      startGameplay();
-      return;
-    }
-
-    if (gameState !== "playing") {
-      return;
-    }
-
-    if (
-      isDoctorsOpinionLevel &&
-      event &&
-      typeof event.clientX === "number" &&
-      typeof event.clientY === "number"
-    ) {
-      tapDoctorsOpinionGame(event.clientX, event.clientY);
-      return;
-    }
-
-    if (
-      isTreatmentLevel &&
-      event &&
-      typeof event.clientX === "number" &&
-      typeof event.clientY === "number"
-    ) {
-      tapTreatmentSlot(event.clientX, event.clientY);
-      return;
-    }
-
-    if (
-      event &&
-      typeof event.clientY ===
-        "number"
-    ) {
-      window.RecoveryPlayer.setPlayerTargetY(
-        bill,
-        event.clientY -
-          bill.height / 2,
-        height
-      );
-    }
-  }
-
-  window.RecoveryInput.installInputHandlers({
-    canvas,
-    getGameState: () => gameState,
-    isTreatmentLevel,
-    isDoctorsOpinionLevel,
-    handlePrimaryAction,
-    beginRecoveryMisfitsSplash,
-    player: bill,
-    getHeight: () => height
-  });
+  // Input handling is installed by engine/gameflow.js near the bottom.
 
   // =====================================
   // IMAGE DRAWING HELPER
@@ -2352,190 +1675,8 @@ for (const definition of collectibleDefinitions) {
 
   // =====================================
   // BACKGROUND
+  // Handled by engine/background.js.
   // =====================================
-
-  function backgroundImageIsReady() {
-    return (
-      backgroundImage.complete &&
-      backgroundImage.naturalWidth >
-        0 &&
-      backgroundImage.naturalHeight >
-        0
-    );
-  }
-
-  function getBackgroundDrawSize() {
-    if (!backgroundImageIsReady()) {
-      return {
-        width: 0,
-        height: 0
-      };
-    }
-
-    const scale =
-      height /
-      backgroundImage.naturalHeight;
-
-    return {
-      width:
-        backgroundImage.naturalWidth *
-        scale,
-
-      height
-    };
-  }
-
-  function updateBackground() {
-    backgroundOffset -=
-      BACKGROUND_SCROLL_SPEED;
-
-    if (
-      !backgroundImageIsReady()
-    ) {
-      if (
-        backgroundOffset <= -140
-      ) {
-        backgroundOffset += 140;
-      }
-
-      return;
-    }
-
-    const backgroundSize =
-      getBackgroundDrawSize();
-
-    if (
-      backgroundSize.width <= 0
-    ) {
-      return;
-    }
-
-    while (
-      backgroundOffset <=
-      -backgroundSize.width
-    ) {
-      backgroundOffset +=
-        backgroundSize.width;
-    }
-  }
-
-  function drawImageBackground() {
-    const backgroundSize =
-      getBackgroundDrawSize();
-
-    if (
-      backgroundSize.width <= 0 ||
-      backgroundSize.height <= 0
-    ) {
-      return false;
-    }
-
-    ctx.imageSmoothingEnabled = false;
-
-    let drawX = backgroundOffset;
-
-    while (drawX > 0) {
-      drawX -=
-        backgroundSize.width;
-    }
-
-    while (drawX < width) {
-      ctx.drawImage(
-        backgroundImage,
-        drawX,
-        0,
-        backgroundSize.width,
-        backgroundSize.height
-      );
-
-      drawX +=
-        backgroundSize.width;
-    }
-
-    return true;
-  }
-
-  function drawFallbackBackground() {
-    ctx.fillStyle = "#172330";
-
-    ctx.fillRect(
-      0,
-      0,
-      width,
-      height
-    );
-
-    ctx.fillStyle = "#263747";
-
-    ctx.fillRect(
-      0,
-      height * 0.65,
-      width,
-      height * 0.35
-    );
-
-    ctx.fillStyle = "#10171d";
-
-    let buildingNumber = 0;
-
-    for (
-      let x =
-        backgroundOffset - 140;
-      x < width + 140;
-      x += 140
-    ) {
-      const buildingHeight =
-        130 +
-        (
-          Math.abs(
-            buildingNumber
-          ) % 3
-        ) *
-          40;
-
-      ctx.fillRect(
-        x,
-        height * 0.65 -
-          buildingHeight,
-        110,
-        buildingHeight
-      );
-
-      buildingNumber += 1;
-    }
-
-    ctx.fillStyle = "#ffd66b";
-
-    for (
-      let x =
-        backgroundOffset - 115;
-      x < width + 140;
-      x += 140
-    ) {
-      ctx.fillRect(
-        x,
-        height * 0.65 - 95,
-        15,
-        20
-      );
-
-      ctx.fillRect(
-        x + 40,
-        height * 0.65 - 60,
-        15,
-        20
-      );
-    }
-  }
-
-  function drawBackground() {
-    const imageWasDrawn =
-      drawImageBackground();
-
-    if (!imageWasDrawn) {
-      drawFallbackBackground();
-    }
-  }
 
   // =====================================
   // PLAYER — BILL IMAGE SIZE AND VERTICAL POSITION DRAWING
@@ -2974,80 +2115,7 @@ for (const definition of collectibleDefinitions) {
   // TITLE SCREEN — UNOFFICIAL STORY TITLE IMAGE
   // =====================================
 
-  function drawTitleScreen() {
-    ctx.fillStyle = "#000000";
 
-    ctx.fillRect(
-      0,
-      0,
-      width,
-      height
-    );
-
-    drawContainedImage(titleImage);
-
-    const blink =
-      Math.floor(
-        performance.now() / 500
-      ) %
-        2 ===
-      0;
-
-    if (!blink) {
-      return;
-    }
-
-    const boxWidth = Math.min(
-      440,
-      width - 30
-    );
-
-    const boxHeight = 54;
-
-    const boxX =
-      width / 2 -
-      boxWidth / 2;
-
-    const boxY =
-      height -
-      boxHeight -
-      30;
-
-    ctx.fillStyle =
-      "rgba(0, 0, 0, 0.78)";
-
-    ctx.fillRect(
-      boxX,
-      boxY,
-      boxWidth,
-      boxHeight
-    );
-
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 2;
-
-    ctx.strokeRect(
-      boxX,
-      boxY,
-      boxWidth,
-      boxHeight
-    );
-
-    ctx.fillStyle = "#ffffff";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.font = "18px monospace";
-
-    ctx.fillText(
-      "CLICK, TAP, OR PRESS ENTER",
-      width / 2,
-      boxY + boxHeight / 2
-    );
-
-    ctx.textAlign = "left";
-    ctx.textBaseline =
-      "alphabetic";
-  }
 
   // =====================================
   // GAME CARD
@@ -3055,594 +2123,9 @@ for (const definition of collectibleDefinitions) {
   // we change story-card appearance.
   // =====================================
 
-  function wrapText(
-    text,
-    maxWidth
-  ) {
-    const paragraphs =
-      String(text || "").split(
-        "\n"
-      );
 
-    const lines = [];
 
-    for (
-      const paragraph of paragraphs
-    ) {
-      if (
-        paragraph.trim() === ""
-      ) {
-        lines.push("");
-        continue;
-      }
 
-      const words =
-        paragraph.split(/\s+/);
-
-      let line = "";
-
-      for (const word of words) {
-        const testLine =
-          line.length > 0
-            ? `${line} ${word}`
-            : word;
-
-        if (
-          ctx.measureText(
-            testLine
-          ).width <= maxWidth
-        ) {
-          line = testLine;
-        } else {
-          if (line) {
-            lines.push(line);
-          }
-
-          line = word;
-        }
-      }
-
-      if (line) {
-        lines.push(line);
-      }
-    }
-
-    return lines;
-  }
-
-  function drawStoryCard() {
-    const card =
-      getCurrentStoryCard();
-
-    ctx.fillStyle = "#000000";
-
-    ctx.fillRect(
-      0,
-      0,
-      width,
-      height
-    );
-
-    if (!card) {
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "center";
-      ctx.font = "20px monospace";
-
-      ctx.fillText(
-        "No story card found.",
-        width / 2,
-        height / 2
-      );
-
-      ctx.textAlign = "left";
-
-      return;
-    }
-
-    /*
-      Cache card images so they are
-      not recreated every frame.
-    */
-
-    if (
-      !drawStoryCard.imageCache
-    ) {
-      drawStoryCard.imageCache =
-        new Map();
-    }
-
-    let cardImage = null;
-
-    if (card.image) {
-      if (
-        !drawStoryCard.imageCache.has(
-          card.image
-        )
-      ) {
-        const image =
-          new Image();
-
-        image.src = card.image;
-
-        drawStoryCard.imageCache.set(
-          card.image,
-          image
-        );
-      }
-
-      cardImage =
-        drawStoryCard.imageCache.get(
-          card.image
-        );
-    }
-
-    const isMobile =
-      width < 650;
-
-    const cardWidth = Math.min(
-      900,
-      width - 20
-    );
-
-    const cardHeight = Math.min(
-      isMobile
-        ? height - 20
-        : 540,
-
-      height - 20
-    );
-
-    const cardX =
-      (width - cardWidth) / 2;
-
-    const cardY =
-      (height - cardHeight) / 2;
-
-    /*
-      Cream-colored card body.
-    */
-
-    ctx.fillStyle = "#d8c69e";
-
-    ctx.fillRect(
-      cardX,
-      cardY,
-      cardWidth,
-      cardHeight
-    );
-
-    /*
-      Dark SNES-style outer border.
-    */
-
-    ctx.strokeStyle = "#101828";
-    ctx.lineWidth = 7;
-
-    ctx.strokeRect(
-      cardX,
-      cardY,
-      cardWidth,
-      cardHeight
-    );
-
-    const title =
-      card.title || "";
-
-    // =====================================
-    // MOBILE GAME CARD
-    // =====================================
-
-    if (isMobile) {
-      const innerPadding = 10;
-
-      const imageAreaX =
-        cardX + innerPadding;
-
-      const imageAreaY =
-        cardY + innerPadding;
-
-      const imageAreaWidth =
-        cardWidth -
-        innerPadding * 2;
-
-      const imageAreaHeight =
-        cardHeight * 0.48;
-
-      /*
-        Draw the entire card image without
-        cropping it on mobile.
-      */
-
-      if (
-        cardImage &&
-        cardImage.complete &&
-        cardImage.naturalWidth > 0
-      ) {
-        const scale = Math.max(
-          imageAreaWidth /
-            cardImage.naturalWidth,
-
-          imageAreaHeight /
-            cardImage.naturalHeight
-        );
-
-        const drawWidth =
-          cardImage.naturalWidth *
-          scale;
-
-        const drawHeight =
-          cardImage.naturalHeight *
-          scale;
-
-        const drawX =
-          imageAreaX +
-          (
-            imageAreaWidth -
-            drawWidth
-          ) /
-            2;
-
-        const drawY =
-          imageAreaY +
-          (
-            imageAreaHeight -
-            drawHeight
-          ) /
-            2;
-
-        ctx.save();
-
-        ctx.beginPath();
-
-        ctx.rect(
-          imageAreaX,
-          imageAreaY,
-          imageAreaWidth,
-          imageAreaHeight
-        );
-
-        ctx.clip();
-
-        ctx.imageSmoothingEnabled =
-          false;
-
-        ctx.drawImage(
-          cardImage,
-          drawX,
-          drawY,
-          drawWidth,
-          drawHeight
-        );
-
-        ctx.restore();
-      }
-
-      /*
-        Title bar overlays the bottom
-        of the picture.
-      */
-
-      const titleBarHeight = 40;
-
-      const titleBarY =
-        imageAreaY +
-        imageAreaHeight -
-        titleBarHeight;
-
-      ctx.fillStyle = "#000000";
-
-      ctx.fillRect(
-        imageAreaX,
-        titleBarY,
-        imageAreaWidth,
-        titleBarHeight
-      );
-
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-
-      const titleFontSize =
-        Math.max(
-          13,
-          Math.min(
-            18,
-            cardWidth * 0.045
-          )
-        );
-
-      ctx.font =
-        `bold ${titleFontSize}px monospace`;
-
-      ctx.fillText(
-        title.toUpperCase(),
-        imageAreaX + 12,
-        titleBarY +
-          titleBarHeight / 2
-      );
-
-      /*
-        Story text starts directly below
-        the picture. There is no divider line.
-      */
-
-      const textX =
-        cardX + 18;
-
-      const textWidth =
-        cardWidth - 36;
-
-      const bodyFontSize =
-        Math.max(
-          13,
-          Math.min(
-            17,
-            cardWidth * 0.038
-          )
-        );
-
-      ctx.fillStyle = "#1b1713";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-
-      ctx.font =
-        `${bodyFontSize}px monospace`;
-
-      const lines = wrapText(
-        card.text,
-        textWidth
-      );
-
-      const lineHeight =
-        bodyFontSize * 1.45;
-
-      let textY =
-        imageAreaY +
-        imageAreaHeight +
-        14;
-
-      for (const line of lines) {
-        ctx.fillText(
-          line,
-          textX,
-          textY
-        );
-
-        textY += lineHeight;
-      }
-
-      const cards =
-        getStoryCards();
-
-      const isLastCard =
-        currentCardIndex ===
-        cards.length - 1;
-
-      ctx.font =
-        `bold ${Math.max(
-          12,
-          bodyFontSize * 0.78
-        )}px monospace`;
-
-      ctx.fillText(
-        isLastCard
-          ? "TAP TO BEGIN"
-          : "TAP FOR NEXT PAGE",
-        textX,
-        cardY +
-          cardHeight -
-          34
-      );
-    }
-
-    // =====================================
-    // DESKTOP GAME CARD
-    // =====================================
-
-    else {
-      const imageWidth =
-        cardWidth * 0.52;
-
-      const imageAreaX =
-        cardX + 8;
-
-      const imageAreaY =
-        cardY + 8;
-
-      const imageAreaWidth =
-        imageWidth - 8;
-
-      const imageAreaHeight =
-        cardHeight - 16;
-
-      const textX =
-        cardX +
-        imageWidth +
-        18;
-
-      const textWidth =
-        cardWidth -
-        imageWidth -
-        36;
-
-      if (
-        cardImage &&
-        cardImage.complete &&
-        cardImage.naturalWidth > 0
-      ) {
-        const scale = Math.max(
-          imageAreaWidth /
-            cardImage.naturalWidth,
-
-          imageAreaHeight /
-            cardImage.naturalHeight
-        );
-
-        const drawWidth =
-          cardImage.naturalWidth *
-          scale;
-
-        const drawHeight =
-          cardImage.naturalHeight *
-          scale;
-
-        const drawX =
-          imageAreaX +
-          (
-            imageAreaWidth -
-            drawWidth
-          ) /
-            2;
-
-        const drawY =
-          imageAreaY +
-          (
-            imageAreaHeight -
-            drawHeight
-          ) /
-            2;
-
-        ctx.save();
-
-        ctx.beginPath();
-
-        ctx.rect(
-          imageAreaX,
-          imageAreaY,
-          imageAreaWidth,
-          imageAreaHeight
-        );
-
-        ctx.clip();
-
-        ctx.imageSmoothingEnabled =
-          false;
-
-        ctx.drawImage(
-          cardImage,
-          drawX,
-          drawY,
-          drawWidth,
-          drawHeight
-        );
-
-        ctx.restore();
-      }
-
-      /*
-        Desktop title bar also overlays
-        the bottom of the picture.
-      */
-
-      const titleBarHeight = 44;
-
-      const titleBarY =
-        imageAreaY +
-        imageAreaHeight -
-        titleBarHeight;
-
-      ctx.fillStyle = "#000000";
-
-      ctx.fillRect(
-        imageAreaX,
-        titleBarY,
-        imageAreaWidth,
-        titleBarHeight
-      );
-
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-
-      const titleFontSize =
-        Math.max(
-          15,
-          Math.min(
-            21,
-            cardWidth * 0.03
-          )
-        );
-
-      ctx.font =
-        `bold ${titleFontSize}px monospace`;
-
-      ctx.fillText(
-        title.toUpperCase(),
-        imageAreaX + 12,
-        titleBarY +
-          titleBarHeight / 2
-      );
-
-      /*
-        Editable story text remains
-        on the right on desktop.
-      */
-
-      const bodyFontSize =
-        Math.max(
-          13,
-          Math.min(
-            20,
-            cardWidth * 0.027
-          )
-        );
-
-      ctx.fillStyle = "#1b1713";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-
-      ctx.font =
-        `${bodyFontSize}px monospace`;
-
-      const lines = wrapText(
-        card.text,
-        textWidth
-      );
-
-      const lineHeight =
-        bodyFontSize * 1.55;
-
-      let textY =
-        cardY + 28;
-
-      for (const line of lines) {
-        ctx.fillText(
-          line,
-          textX,
-          textY
-        );
-
-        textY += lineHeight;
-      }
-
-      const cards =
-        getStoryCards();
-
-      const isLastCard =
-        currentCardIndex ===
-        cards.length - 1;
-
-      ctx.font =
-        `bold ${Math.max(
-          12,
-          bodyFontSize * 0.75
-        )}px monospace`;
-
-      ctx.fillText(
-        isLastCard
-          ? "TAP TO BEGIN"
-          : "TAP FOR NEXT PAGE",
-        textX,
-        cardY +
-          cardHeight -
-          42
-      );
-    }
-
-    ctx.textAlign = "left";
-    ctx.textBaseline =
-      "alphabetic";
-  }
 
   // =====================================
   // END GAME CARD
@@ -3717,260 +2200,14 @@ for (const definition of collectibleDefinitions) {
   // FINISHED SCREEN
   // =====================================
 
-  function drawChapterFinished() {
-    ctx.fillStyle =
-      "rgba(0, 0, 0, 0.84)";
 
-    ctx.fillRect(
-      0,
-      0,
-      width,
-      height
-    );
-
-    ctx.textAlign = "center";
-
-    if (isTreatmentLevel) {
-      ctx.font = "900 34px monospace";
-      ctx.lineWidth = 8;
-      ctx.strokeStyle = "#000000";
-      ctx.fillStyle = "#ffe56b";
-      ctx.strokeText("TREATMENT COMPLETE!", width / 2, height / 2 - 72, width - 28);
-      ctx.fillText("TREATMENT COMPLETE!", width / 2, height / 2 - 72, width - 28);
-
-      ctx.font = "bold 19px monospace";
-      ctx.lineWidth = 5;
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeText(`${treatmentHits} ORDERS COMPLETED`, width / 2, height / 2 - 18);
-      ctx.fillText(`${treatmentHits} ORDERS COMPLETED`, width / 2, height / 2 - 18);
-
-      ctx.font = "bold 17px monospace";
-      ctx.fillStyle = "#fff2a8";
-      ctx.strokeText("OUR FRIEND IS EXHAUSTED.", width / 2, height / 2 + 24);
-      ctx.fillText("OUR FRIEND IS EXHAUSTED.", width / 2, height / 2 + 24);
-
-      const blink = Math.floor(performance.now() / 500) % 2 === 0;
-      if (blink) {
-        ctx.font = "bold 16px monospace";
-        ctx.fillStyle = "#ffffff";
-        ctx.strokeText("TAP TO CONTINUE", width / 2, height / 2 + 92);
-        ctx.fillText("TAP TO CONTINUE", width / 2, height / 2 + 92);
-      }
-
-      ctx.textAlign = "left";
-      return;
-    }
-
-    // -------------------------------------
-    // YOU WIN
-    // -------------------------------------
-
-    const winPulse =
-      1 +
-      Math.sin(
-        performance.now() * 0.004
-      ) *
-        0.025;
-
-    ctx.save();
-
-    ctx.translate(
-      width / 2,
-      height / 2 - 112
-    );
-
-    ctx.scale(
-      winPulse,
-      winPulse
-    );
-
-    ctx.font = "900 46px monospace";
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = "#000000";
-    ctx.fillStyle = "#ffe56b";
-
-    ctx.strokeText(
-      "YOU WIN!",
-      0,
-      0
-    );
-
-    ctx.fillText(
-      "YOU WIN!",
-      0,
-      0
-    );
-
-    ctx.restore();
-
-    // -------------------------------------
-    // DETOX MESSAGE
-    // -------------------------------------
-
-    ctx.font = "bold 20px monospace";
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = "#000000";
-    ctx.fillStyle = "#ffffff";
-
-    ctx.strokeText(
-      "...ANOTHER TRIP",
-      width / 2,
-      height / 2 - 58
-    );
-
-    ctx.fillText(
-      "...ANOTHER TRIP",
-      width / 2,
-      height / 2 - 58
-    );
-
-    ctx.strokeText(
-      "TO DETOX.",
-      width / 2,
-      height / 2 - 28
-    );
-
-    ctx.fillText(
-      "TO DETOX.",
-      width / 2,
-      height / 2 - 28
-    );
-
-    // -------------------------------------
-    // FINAL MESSAGE BOX
-    // -------------------------------------
-
-    const boxWidth = Math.min(
-      350,
-      width * 0.82
-    );
-
-    const boxHeight = 112;
-
-    const boxX =
-      width / 2 -
-      boxWidth / 2;
-
-    const boxY =
-      height / 2 + 10;
-
-    ctx.fillStyle = "#000000";
-
-    ctx.fillRect(
-      boxX - 5,
-      boxY - 5,
-      boxWidth + 10,
-      boxHeight + 10
-    );
-
-    ctx.fillStyle = "#3b2a16";
-
-    ctx.fillRect(
-      boxX,
-      boxY,
-      boxWidth,
-      boxHeight
-    );
-
-    ctx.fillStyle = "#f2a900";
-
-    ctx.fillRect(
-      boxX,
-      boxY,
-      boxWidth,
-      8
-    );
-
-    ctx.font = "bold 16px monospace";
-    ctx.fillStyle = "#fff2a8";
-
-    ctx.fillText(
-      "ONE'S TOO MANY...",
-      width / 2,
-      boxY + 34
-    );
-
-    ctx.fillText(
-      "A THOUSAND AIN'T ENOUGH.",
-      width / 2,
-      boxY + 58
-    );
-
-    ctx.font = "bold 23px monospace";
-    ctx.fillStyle = "#ffffff";
-
-    ctx.fillText(
-      `${score} BEERS`,
-      width / 2,
-      boxY + 91
-    );
-
-    // -------------------------------------
-    // CONTINUE PROMPT
-    // -------------------------------------
-
-    const blink =
-      Math.floor(
-        performance.now() / 500
-      ) %
-        2 ===
-      0;
-
-    if (blink) {
-      ctx.font = "bold 16px monospace";
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = "#000000";
-      ctx.fillStyle = "#ffffff";
-
-      ctx.strokeText(
-        "TAP TO CONTINUE",
-        width / 2,
-        boxY + boxHeight + 44
-      );
-
-      ctx.fillText(
-        "TAP TO CONTINUE",
-        width / 2,
-        boxY + boxHeight + 44
-      );
-    }
-
-    ctx.textAlign = "left";
-  }
 
 
   // =====================================
   // CHAPTER 3 PREVIEW END SCREEN
   // =====================================
 
-  function drawChapter3PreviewFinished() {
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, width, height);
 
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.font = "900 32px monospace";
-    ctx.lineWidth = 7;
-    ctx.strokeStyle = "#000000";
-    ctx.fillStyle = "#ffe56b";
-    ctx.strokeText("CHAPTER 3", width / 2, height / 2 - 50, width - 30);
-    ctx.fillText("CHAPTER 3", width / 2, height / 2 - 50, width - 30);
-
-    ctx.font = "bold 18px monospace";
-    ctx.lineWidth = 5;
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeText("THE DOCTOR'S OPINION", width / 2, height / 2, width - 30);
-    ctx.fillText("THE DOCTOR'S OPINION", width / 2, height / 2, width - 30);
-
-    ctx.font = "bold 15px monospace";
-    ctx.fillStyle = "#fff2a8";
-    ctx.strokeText("CONTINUES SOON...", width / 2, height / 2 + 62, width - 30);
-    ctx.fillText("CONTINUES SOON...", width / 2, height / 2 + 62, width - 30);
-
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-  }
 
   // =====================================
   // UPDATE
@@ -4044,10 +2281,12 @@ for (const definition of collectibleDefinitions) {
         );
       },
 
-    updateBackground,
+    updateBackground:
+      backgroundSystem.update,
     updatePickupEffects,
 
-    drawBackground,
+    drawBackground:
+      backgroundSystem.draw,
     drawBill,
     drawPickupEffects,
 
@@ -4058,190 +2297,93 @@ for (const definition of collectibleDefinitions) {
     createPickupEffects
   };
 
-  function update(now) {
-    switch (gameState) {
-      case "openingSplash":
-        break;
+  const gameFlow = window.RecoveryGameFlow.createController({
+    canvas,
+    ctx,
 
-      case "splash":
-        updateSplash(now);
-        break;
+    getGameState: () => gameState,
+    getFinishedInputReadyAt: () => finishedInputReadyAt,
+    getWidth: () => width,
+    getHeight: () => height,
 
-      case "chapter1CutScene":
-        updateChapter1CutScene(now);
-        break;
+    isTreatmentLevel,
+    isDoctorsOpinionLevel,
 
-      case "playing":
-        if (isDoctorsOpinionLevel) {
-          updateDoctorsOpinionGame(now);
-          break;
-        }
+    beginRecoveryMisfitsSplash,
+    startCutsceneMusic,
+    finishChapter1CutScene,
+    chapter1CutSceneSpeedButtonContains,
+    chapter1CutSceneSkipButtonContains,
+    toggleChapter1CutSceneSpeed,
+    playClickFeedback,
+    showStoryCards,
+    advanceStoryCard,
+    continueToNextChapter,
+    startGameplay,
+    tapDoctorsOpinionGame: doctorsOpinionGame.tap,
+    tapTreatmentSlot,
 
-        if (
-          chapterTimer &&
-          chapterTimer.isFinished()
-        ) {
-          finishChapter();
-          break;
-        }
+    player: bill,
 
-        if (isTreatmentLevel) {
-          updateTreatmentGame(now);
-          updateTreatmentMusic(now);
-          break;
-        }
+    updateSplash,
+    updateChapter1CutScene,
+    updateDoctorsOpinionGame: doctorsOpinionGame.update,
+    updateTreatmentGame,
+    updateTreatmentMusic,
+    finishChapter,
 
-        if (typeof currentChapter?.updateGameplay === "function") {
-          currentChapter.updateGameplay(
-            window.RecoveryRuntime.createChapterRuntime(
-              chapterRuntimeContext,
-              now
-            )
-          );
-        }
+    chapterTimerIsFinished: () =>
+      Boolean(chapterTimer?.isFinished()),
 
-        break;
+    updateChapterEntities: (now) => {
+      entitySystem.updateChapter(
+        window.RecoveryRuntime.createChapterRuntime(
+          chapterRuntimeContext,
+          now
+        )
+      );
+    },
 
-      default:
-        break;
-    }
-  }
+    drawOpeningSplashScreen,
+    drawSplashScreen,
+    drawChapter1CutScene,
+    drawTitleScreen: storySystem.drawTitleScreen,
+    drawStoryCard: storySystem.drawStoryCard,
+    drawDoctorsOpinionGame: doctorsOpinionGame.draw,
+    drawTreatmentGame,
+    drawGameplayHud,
+    drawTreatmentFailed,
+    drawChapter3PreviewFinished:
+      storySystem.drawChapter3PreviewFinished,
+    drawChapterFinished:
+      storySystem.drawChapterFinished,
 
-  // =====================================
-  // DRAW
-  // =====================================
+    drawChapterEntities: (now, options) => {
+      entitySystem.drawChapter(
+        window.RecoveryRuntime.createChapterRuntime(
+          chapterRuntimeContext,
+          now,
+          options
+        )
+      );
+    },
 
-  function draw(now) {
-    switch (gameState) {
-      case "openingSplash":
-        drawOpeningSplashScreen(now);
-        break;
+    backgroundMusic,
+    cutsceneMusic,
+    isAudioUnlocked: () => audioUnlocked,
+    playAudio
+  });
 
-      case "splash":
-        drawSplashScreen(now);
-        break;
-
-      case "chapter1CutScene":
-        drawChapter1CutScene(now);
-        break;
-
-      case "title":
-        drawTitleScreen();
-        break;
-
-      case "story":
-        drawStoryCard();
-        break;
-
-      case "playing": {
-        if (isDoctorsOpinionLevel) {
-          drawDoctorsOpinionGame(now);
-          break;
-        }
-
-        if (isTreatmentLevel) {
-          drawTreatmentGame();
-          drawGameplayHud();
-          break;
-        }
-
-        if (typeof currentChapter?.drawGameplay === "function") {
-          currentChapter.drawGameplay(
-            window.RecoveryRuntime.createChapterRuntime(
-              chapterRuntimeContext,
-              now
-            )
-          );
-        }
-
-        drawGameplayHud();
-        break;
-      }
-
-      case "treatmentFailed":
-        drawTreatmentGame();
-        drawGameplayHud();
-        drawTreatmentFailed();
-        break;
-
-      case "chapter3PreviewFinished":
-        drawChapter3PreviewFinished();
-        break;
-
-      case "finished":
-        if (isDoctorsOpinionLevel) {
-          drawDoctorsOpinionGame(now);
-        } else if (isTreatmentLevel) {
-          drawTreatmentGame();
-        } else if (
-          typeof currentChapter?.drawGameplay === "function"
-        ) {
-          currentChapter.drawGameplay(
-            window.RecoveryRuntime.createChapterRuntime(
-              chapterRuntimeContext,
-              now,
-              {
-                screenShake: 0
-              }
-            )
-          );
-        }
-
-        drawGameplayHud();
-        drawChapterFinished();
-        break;
-
-      default:
-        ctx.fillStyle = "#000000";
-
-        ctx.fillRect(
-          0,
-          0,
-          width,
-          height
-        );
-
-        break;
-    }
-  }
-
-  // =====================================
-  // PAGE VISIBILITY
-  // =====================================
-
-  document.addEventListener(
-    "visibilitychange",
-    () => {
-      if (document.hidden) {
-        backgroundMusic.pause();
-        cutsceneMusic.pause();
-        return;
-      }
-
-      if (!audioUnlocked) {
-        return;
-      }
-
-      if (gameState === "playing") {
-        playAudio(backgroundMusic);
-      } else if (gameState === "chapter1CutScene") {
-        playAudio(cutsceneMusic);
-      }
-    }
-  );
-
-  // =====================================
-  // MAIN GAME LOOP — UPDATES AND DRAWS THE CORRECT SCREEN EVERY FRAME
-  // =====================================
-
-  function gameLoop(now) {
-    update(now);
-    draw(now);
-
-    requestAnimationFrame(
-      gameLoop
-    );
-  }
+  window.RecoveryInput.installInputHandlers({
+    canvas,
+    getGameState: () => gameState,
+    isTreatmentLevel,
+    isDoctorsOpinionLevel,
+    handlePrimaryAction: gameFlow.handlePrimaryAction,
+    beginRecoveryMisfitsSplash,
+    player: bill,
+    getHeight: () => height
+  });
 
   resetBill();
 
@@ -4249,7 +2391,5 @@ for (const definition of collectibleDefinitions) {
     startCutsceneMusic();
   }
 
-  requestAnimationFrame(
-    gameLoop
-  );
+  gameFlow.start();
 })();
