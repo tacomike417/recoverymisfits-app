@@ -79,43 +79,11 @@
   const chapterIndex =
     chapterNumber - 1;
 
-  const chapterKey = `chapter${chapterNumber}`;
-
-  const chapterDefinition =
-    window.RecoveryChapters?.[chapterKey] ||
-    null;
-
-  const engineChapter =
-    engine.getChapter(chapterIndex) ||
-    null;
-
   const currentChapter =
-    engineChapter || chapterDefinition
-      ? {
-          ...(engineChapter || {}),
-          ...(chapterDefinition || {}),
-          gameplay: {
-            ...(engineChapter?.gameplay || {}),
-            ...(chapterDefinition?.gameplay || {})
-          }
-        }
-      : null;
-
-  const availableChapterNumbers =
-    Object.keys(window.RecoveryChapters || {})
-      .map((key) => {
-        const match = /^chapter(\d+)$/.exec(key);
-        return match ? Number(match[1]) : null;
-      })
-      .filter((number) => Number.isInteger(number));
-
-  const chapterExists =
-    Boolean(currentChapter) &&
-    availableChapterNumbers.includes(chapterNumber);
-
-  const usesSharedCrawl =
-    chapterExists &&
-    chapterNumber > 1;
+    engine.getChapter(chapterIndex) ||
+    (chapterNumber === 3
+      ? { cards: [], gameplay: {} }
+      : null);
 
   // =====================================
   // CURRENT CHAPTER SETUP
@@ -123,6 +91,26 @@
 
   if (typeof currentChapter?.prepare === "function") {
     currentChapter.prepare();
+  }
+
+  // =====================================
+  // CHAPTER 2 STORY CARDS — EDIT THESE OBJECTS TO CHANGE THE CARDS
+  // Each object has a title, image path, and the words shown on that card.
+  // =====================================
+
+  if (chapterNumber === 2 && currentChapter) {
+    currentChapter.cards =
+      window.RecoveryChapters?.chapter2?.cards || [];
+  }
+
+  // =====================================
+  // CHAPTER 3 STORY CARDS — EDIT THESE OBJECTS TO CHANGE THE CARDS
+  // Each object has a title, image path, and the words shown on that card.
+  // =====================================
+
+  if (chapterNumber === 3 && currentChapter) {
+    currentChapter.cards =
+      window.RecoveryChapters?.chapter3?.cards || [];
   }
 
   let width = 0;
@@ -137,9 +125,9 @@
     existing skipIntro behavior unchanged.
   */
   let gameState =
-    usesSharedCrawl
+    chapterNumber === 2 || chapterNumber === 3
       ? "chapter1CutScene"
-      : chapterExists && skipIntro
+      : skipIntro
         ? "story"
         : "openingSplash";
 
@@ -183,13 +171,16 @@
   // ============================================================================
 
   const chapter1CutSceneEnabled =
-    chapterExists &&
-    ((chapterNumber === 1 && !skipIntro) || usesSharedCrawl);
+    (chapterNumber === 1 && !skipIntro) ||
+    chapterNumber === 2 ||
+    chapterNumber === 3;
 
   const chapter1CutSceneText =
-    currentChapter?.crawl ||
-    window.RecoveryChapters?.chapter1?.crawl ||
-    [];
+    chapterNumber === 3
+      ? window.RecoveryChapters?.chapter3?.crawl || []
+      : chapterNumber === 2
+      ? window.RecoveryChapters?.chapter2?.crawl || []
+      : window.RecoveryChapters?.chapter1?.crawl || [];
 
   const CHAPTER_1_CUT_SCENE_SCROLL_SPEED = 22;
   const CHAPTER_1_CUT_SCENE_END_HOLD_MS = 1700;
@@ -223,23 +214,7 @@
   let gameplayStartedAt = 0;
 
   const isTreatmentLevel = chapterNumber === 2;
-  // Any chapter can provide its own custom gameplay module.
-  // Future chapter files should export one of these factory names:
-  //   createChapterGame (preferred)
-  //   createChapter<number>Game
-  // Existing Chapter 3 keeps its original createDoctorsOpinionGame name.
-  const customGameplayModule =
-    window[`RecoveryChapter${chapterNumber}Gameplay`] ||
-    null;
-
-  const customGameplayFactory =
-    customGameplayModule?.createChapterGame ||
-    customGameplayModule?.[`createChapter${chapterNumber}Game`] ||
-    customGameplayModule?.createDoctorsOpinionGame ||
-    null;
-
-  const isCustomGameplayLevel =
-    typeof customGameplayFactory === "function";
+  const isDoctorsOpinionLevel = chapterNumber === 3;
   const treatmentDurationMs =
     (currentChapter?.gameplay?.duration || 30) * 1000;
 
@@ -792,20 +767,19 @@
     vibrate([55, 25, 70]);
   }
 
-  const customGameplay = isCustomGameplayLevel
-    ? customGameplayFactory({
-        ctx,
-        getWidth: () => width,
-        getHeight: () => height,
-        backgroundMusic,
-        stopBackgroundMusic,
-        playClickFeedback,
-        playPickupFeedback,
-        setGameState: (nextState) => {
-          gameState = nextState;
-        }
-      })
-    : null;
+  const doctorsOpinionGame =
+    window.RecoveryChapter3Gameplay.createDoctorsOpinionGame({
+      ctx,
+      getWidth: () => width,
+      getHeight: () => height,
+      backgroundMusic,
+      stopBackgroundMusic,
+      playClickFeedback,
+      playPickupFeedback,
+      setGameState: (nextState) => {
+        gameState = nextState;
+      }
+    });
 
   // =====================================
   // PLAYER — BILL IMAGE SIZE AND VERTICAL POSITION
@@ -1205,7 +1179,12 @@
     // showing the title screen or any story cards.
     stopCutsceneMusic();
 
-    if (usesSharedCrawl) {
+    if (chapterNumber === 2) {
+      showStoryCards();
+      return;
+    }
+
+    if (chapterNumber === 3) {
       showStoryCards();
       return;
     }
@@ -1238,7 +1217,7 @@
     chapterFinished = false;
     backgroundSystem.reset();
 
-    chapterTimer = isCustomGameplayLevel
+    chapterTimer = isDoctorsOpinionLevel
       ? null
       : engine.createTimer(0);
 
@@ -1249,8 +1228,8 @@
       resetTreatmentGame(gameplayStartedAt);
     }
 
-    if (isCustomGameplayLevel) {
-      customGameplay.reset(gameplayStartedAt);
+    if (isDoctorsOpinionLevel) {
+      doctorsOpinionGame.reset(gameplayStartedAt);
     }
 
     gameState = "playing";
@@ -2398,7 +2377,7 @@
     getHeight: () => height,
 
     isTreatmentLevel,
-    isCustomGameplayLevel,
+    isDoctorsOpinionLevel,
 
     beginRecoveryMisfitsSplash,
     startCutsceneMusic,
@@ -2411,14 +2390,14 @@
     advanceStoryCard,
     continueToNextChapter,
     startGameplay,
-    tapCustomGameplay: customGameplay?.tap || (() => false),
+    tapDoctorsOpinionGame: doctorsOpinionGame.tap,
     tapTreatmentSlot,
 
     player: bill,
 
     updateSplash,
     updateChapter1CutScene,
-    updateCustomGameplay: customGameplay?.update || (() => {}),
+    updateDoctorsOpinionGame: doctorsOpinionGame.update,
     updateTreatmentGame,
     updateTreatmentMusic,
     finishChapter,
@@ -2440,7 +2419,7 @@
     drawChapter1CutScene,
     drawTitleScreen: storySystem.drawTitleScreen,
     drawStoryCard: storySystem.drawStoryCard,
-    drawCustomGameplay: customGameplay?.draw || (() => {}),
+    drawDoctorsOpinionGame: doctorsOpinionGame.draw,
     drawTreatmentGame,
     drawGameplayHud,
     drawTreatmentFailed,
@@ -2469,7 +2448,7 @@
     canvas,
     getGameState: () => gameState,
     isTreatmentLevel,
-    isDoctorsOpinionLevel: isCustomGameplayLevel,
+    isDoctorsOpinionLevel,
     handlePrimaryAction: gameFlow.handlePrimaryAction,
     beginRecoveryMisfitsSplash,
     player: bill,

@@ -205,6 +205,16 @@ to move Bill.
 
 Avoid the people
 that get you into trouble.`
+    },
+
+    {
+      type: "mission",
+      image: "assets/cards/chapter1-card6.png",
+      title: "MISSION",
+      text:
+`Stick with beer.
+
+Avoid people who get you in trouble!`
     }
   ],
 
@@ -215,6 +225,11 @@ that get you into trouble.`
 
     this.cards = this.cards.filter((card) => {
       const searchableText = `${card?.title || ""} ${card?.text || ""}`;
+
+      if (card?.type === "mission") {
+        return true;
+      }
+
       return !/swipe/i.test(searchableText);
     });
 

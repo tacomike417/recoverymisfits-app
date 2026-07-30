@@ -17,7 +17,7 @@
       getFinishedInputReadyAt,
       getHeight,
       isTreatmentLevel,
-      isCustomGameplayLevel,
+      isDoctorsOpinionLevel,
       beginRecoveryMisfitsSplash,
       startCutsceneMusic,
       finishChapter1CutScene,
@@ -29,12 +29,12 @@
       advanceStoryCard,
       continueToNextChapter,
       startGameplay,
-      tapCustomGameplay,
+      tapDoctorsOpinionGame,
       tapTreatmentSlot,
       player,
       updateSplash,
       updateChapter1CutScene,
-      updateCustomGameplay,
+      updateDoctorsOpinionGame,
       updateTreatmentGame,
       updateTreatmentMusic,
       finishChapter,
@@ -45,7 +45,7 @@
       drawChapter1CutScene,
       drawTitleScreen,
       drawStoryCard,
-      drawCustomGameplay,
+      drawDoctorsOpinionGame,
       drawTreatmentGame,
       drawGameplayHud,
       drawTreatmentFailed,
@@ -130,8 +130,8 @@
         return;
       }
 
-      if (isCustomGameplayLevel && hasPointerCoordinates(event)) {
-        tapCustomGameplay(event.clientX, event.clientY);
+      if (isDoctorsOpinionLevel && hasPointerCoordinates(event)) {
+        tapDoctorsOpinionGame(event.clientX, event.clientY);
         return;
       }
 
@@ -163,8 +163,8 @@
           break;
 
         case "playing":
-          if (isCustomGameplayLevel) {
-            updateCustomGameplay(now);
+          if (isDoctorsOpinionLevel) {
+            updateDoctorsOpinionGame(now);
             break;
           }
 
@@ -210,8 +210,8 @@
           break;
 
         case "playing":
-          if (isCustomGameplayLevel) {
-            drawCustomGameplay(now);
+          if (isDoctorsOpinionLevel) {
+            drawDoctorsOpinionGame(now);
             break;
           }
 
@@ -236,8 +236,8 @@
           break;
 
         case "finished":
-          if (isCustomGameplayLevel) {
-            drawCustomGameplay(now);
+          if (isDoctorsOpinionLevel) {
+            drawDoctorsOpinionGame(now);
           } else if (isTreatmentLevel) {
             drawTreatmentGame();
           } else {
