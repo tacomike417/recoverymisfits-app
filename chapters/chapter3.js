@@ -20,17 +20,17 @@ window.RecoveryChapters.chapter3 = {
       image: "assets/cards/chapter3-card2.png",
       text:
         "\"I've developed a theory after seeing so many men come through our hospital. " +
-        "Some men have developed an allergy to alcohol—a two-fold illness. " +
-        "The first part is that once they drink, they cannot stop on their own willpower. " +
-        "One drink and the phenomenon of craving starts, and they cannot stop.\""
+        "Some men have developed an allergy to alcohol. " +
+        "Once they drink, they cannot stop on their own willpower. " +
+        "One drink and the phenomenon of craving starts, and they cannot stop. The more they drink the thirstier they get.\""
     },
     {
       title: "THE MENTAL OBSESSION",
       image: "assets/cards/chapter3-card3.png",
       text:
         "\"And once these men have stopped, sworn off alcohol for good, " +
-        "a mental obsession—an idea that overcomes all other ideas—takes hold " +
-        "and tells these men they can drink safely again.\""
+        "a mental obsession, an idea that overcomes all other ideas, takes hold " +
+        "and tells these men they can drink safely again.  Willpower seems to be of no use.\""
     },
     {
       title: "THE VICIOUS CYCLE",
@@ -61,7 +61,7 @@ window.RecoveryChapters.chapter3 = {
     "",
     "For several months, life seemed to be getting better.",
     "",
-    "Eventually, he began to wonder if he could drink normally again.",
+    "Eventually, he began to wonder if he could drink safely again.",
     "",
     "He took the gamble...",
     "",

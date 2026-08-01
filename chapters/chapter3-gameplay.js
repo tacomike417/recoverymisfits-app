@@ -1215,11 +1215,13 @@
         }
 
         playClickFeedback();
-        doctorPhase = "chapter4ComingSoon";
-        return true;
-      }
+        doctorPhase = "complete";
 
-      if (doctorPhase === "chapter4ComingSoon") {
+        const nextChapterUrl = new URL(window.location.href);
+        nextChapterUrl.searchParams.set("chapter", "4");
+        nextChapterUrl.searchParams.delete("skipIntro");
+        window.location.href = nextChapterUrl.toString();
+
         return true;
       }
 
@@ -3481,6 +3483,10 @@
         return;
       }
 
+      if (doctorPhase === "complete") {
+        return;
+      }
+
       if (doctorPhase === "cravingEnd") {
         const elapsed = Math.max(0, now - cravingEndAt);
         const cardAlpha = Math.min(1, elapsed / 650);
@@ -3523,45 +3529,6 @@
           "TAP TO CONTINUE",
           width / 2,
           height * 0.78,
-          width * 0.82
-        );
-
-        ctx.restore();
-        return;
-      }
-
-      if (doctorPhase === "chapter4ComingSoon") {
-        ctx.save();
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, width, height);
-
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        ctx.font = `900 ${Math.max(24, width * 0.050)}px monospace`;
-        ctx.fillStyle = "#a68adf";
-        ctx.fillText(
-          "CHAPTER 4",
-          width / 2,
-          height * 0.37,
-          width * 0.88
-        );
-
-        ctx.font = `900 ${Math.max(27, width * 0.056)}px monospace`;
-        ctx.fillStyle = "#ffe56b";
-        ctx.fillText(
-          "THE INTERRUPTION",
-          width / 2,
-          height * 0.49,
-          width * 0.92
-        );
-
-        ctx.font = `900 ${Math.max(18, width * 0.034)}px monospace`;
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(
-          "COMING SOON",
-          width / 2,
-          height * 0.64,
           width * 0.82
         );
 

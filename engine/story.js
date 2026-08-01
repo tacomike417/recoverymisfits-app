@@ -532,21 +532,81 @@
         const isLastCard =
           currentCardIndex ===
           cards.length - 1;
+
+        const controlY =
+          cardY +
+          cardHeight -
+          34;
+
+        const separatorY =
+          controlY - 18;
+
+        ctx.strokeStyle =
+          "rgba(0, 0, 0, 0.35)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(textX, separatorY);
+        ctx.lineTo(
+          cardX + cardWidth - 18,
+          separatorY
+        );
+        ctx.stroke();
   
         ctx.font =
           `bold ${Math.max(
             12,
             bodyFontSize * 0.78
           )}px monospace`;
+        ctx.fillStyle = "#000000";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
   
         ctx.fillText(
           isLastCard
             ? "TAP TO BEGIN"
             : "TAP FOR NEXT PAGE",
           textX,
-          cardY +
-            cardHeight -
-            34
+          controlY
+        );
+
+        const progressLabel =
+          "STORY PROGRESS";
+        const progressWidth =
+          Math.min(110, cardWidth * 0.28);
+        const progressX =
+          cardX + cardWidth - 18 - progressWidth;
+        const progressY =
+          controlY + 15;
+        const remainingProgress =
+          cards.length > 0
+            ? (cards.length - currentCardIndex) /
+              cards.length
+            : 0;
+
+        ctx.font =
+          `${Math.max(9, bodyFontSize * 0.58)}px monospace`;
+        ctx.textAlign = "right";
+        ctx.fillText(
+          progressLabel,
+          cardX + cardWidth - 18,
+          controlY - 1
+        );
+
+        ctx.fillStyle =
+          "rgba(0, 0, 0, 0.16)";
+        ctx.fillRect(
+          progressX,
+          progressY,
+          progressWidth,
+          2
+        );
+
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(
+          progressX,
+          progressY,
+          progressWidth * remainingProgress,
+          2
         );
       }
   
@@ -736,21 +796,81 @@
         const isLastCard =
           currentCardIndex ===
           cards.length - 1;
+
+        const controlY =
+          cardY +
+          cardHeight -
+          42;
+
+        const separatorY =
+          controlY - 20;
+
+        ctx.strokeStyle =
+          "rgba(0, 0, 0, 0.35)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(textX, separatorY);
+        ctx.lineTo(
+          cardX + cardWidth - 18,
+          separatorY
+        );
+        ctx.stroke();
   
         ctx.font =
           `bold ${Math.max(
             12,
             bodyFontSize * 0.75
           )}px monospace`;
+        ctx.fillStyle = "#000000";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
   
         ctx.fillText(
           isLastCard
             ? "TAP TO BEGIN"
             : "TAP FOR NEXT PAGE",
           textX,
-          cardY +
-            cardHeight -
-            42
+          controlY
+        );
+
+        const progressLabel =
+          "STORY PROGRESS";
+        const progressWidth =
+          Math.min(120, textWidth * 0.42);
+        const progressX =
+          cardX + cardWidth - 18 - progressWidth;
+        const progressY =
+          controlY + 16;
+        const remainingProgress =
+          cards.length > 0
+            ? (cards.length - currentCardIndex) /
+              cards.length
+            : 0;
+
+        ctx.font =
+          `${Math.max(9, bodyFontSize * 0.56)}px monospace`;
+        ctx.textAlign = "right";
+        ctx.fillText(
+          progressLabel,
+          cardX + cardWidth - 18,
+          controlY - 1
+        );
+
+        ctx.fillStyle =
+          "rgba(0, 0, 0, 0.16)";
+        ctx.fillRect(
+          progressX,
+          progressY,
+          progressWidth,
+          2
+        );
+
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(
+          progressX,
+          progressY,
+          progressWidth * remainingProgress,
+          2
         );
       }
   

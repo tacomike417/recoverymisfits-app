@@ -297,35 +297,76 @@
   const treatmentParticles = [];
 
   // =====================================
-  // CANVAS SIZE — MAKES THE GAME FILL THE BROWSER WINDOW
+  // FIXED MOBILE GAME BOARD
+  // =====================================
+  //
+  // The game always uses one portrait layout internally.
+  // Phones, tablets, and desktop browsers only scale the
+  // finished canvas up or down. Nothing inside the game
+  // changes position or stretches.
   // =====================================
 
-  function resizeCanvas() {
-    width = window.innerWidth;
-    height = window.innerHeight;
+  const GAME_WIDTH = 390;
+  const GAME_HEIGHT = 780;
 
-    const scale = Math.max(
+  function resizeCanvas() {
+    const viewportWidth =
+      window.visualViewport?.width ||
+      window.innerWidth;
+
+    const viewportHeight =
+      window.visualViewport?.height ||
+      window.innerHeight;
+
+    const displayScale = Math.min(
+      viewportWidth / GAME_WIDTH,
+      viewportHeight / GAME_HEIGHT
+    );
+
+    const pixelRatio = Math.max(
       1,
       window.devicePixelRatio || 1
     );
 
-    canvas.width = Math.floor(width * scale);
-    canvas.height = Math.floor(height * scale);
+    /*
+      All game drawing code continues to work
+      inside the same 390 × 780 coordinate system.
+    */
+    width = GAME_WIDTH;
+    height = GAME_HEIGHT;
 
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
+    /*
+      The backing canvas stays sharp on high-DPI
+      phone screens while CSS controls its visible size.
+    */
+    canvas.width =
+      Math.floor(GAME_WIDTH * pixelRatio);
+
+    canvas.height =
+      Math.floor(GAME_HEIGHT * pixelRatio);
+
+    canvas.style.width =
+      `${Math.floor(GAME_WIDTH * displayScale)}px`;
+
+    canvas.style.height =
+      `${Math.floor(GAME_HEIGHT * displayScale)}px`;
 
     ctx.setTransform(
-      scale,
+      pixelRatio,
       0,
       0,
-      scale,
+      pixelRatio,
       0,
       0
     );
   }
 
   window.addEventListener(
+    "resize",
+    resizeCanvas
+  );
+
+  window.visualViewport?.addEventListener(
     "resize",
     resizeCanvas
   );
@@ -500,21 +541,34 @@
   }
 
   function fadeAudio(audio, targetVolume, duration = MUSIC_FADE_MS, pauseWhenSilent = false) {
-    const startVolume = audio.volume;
+    const clampVolume = (value) => Math.max(0, Math.min(1, value));
+    const safeTargetVolume = clampVolume(targetVolume);
+    const startVolume = clampVolume(audio.volume);
+    const safeDuration = Math.max(1, duration);
     const startedAt = performance.now();
 
     function step(now) {
-      const progress = Math.min(1, (now - startedAt) / duration);
-      audio.volume = startVolume + (targetVolume - startVolume) * progress;
+      // A requestAnimationFrame timestamp can occasionally be slightly earlier
+      // than performance.now() from the frame in which it was scheduled.
+      // Clamp progress on both ends so the calculated volume never goes negative.
+      const progress = Math.max(
+        0,
+        Math.min(1, (now - startedAt) / safeDuration)
+      );
+
+      const nextVolume =
+        startVolume + (safeTargetVolume - startVolume) * progress;
+
+      audio.volume = clampVolume(nextVolume);
 
       if (progress < 1) {
         requestAnimationFrame(step);
         return;
       }
 
-      audio.volume = targetVolume;
+      audio.volume = safeTargetVolume;
 
-      if (pauseWhenSilent && targetVolume === 0) {
+      if (pauseWhenSilent && safeTargetVolume === 0) {
         audio.pause();
         audio.currentTime = 0;
       }
@@ -1849,15 +1903,35 @@
       ctx.fillText(line.text, centerX, line.y);
     }
 
+    const promptSize = Math.max(14, Math.min(22, width * 0.047));
+    const promptY = height - Math.max(32, height * 0.07);
+
+    /*
+      Small unofficial-story reminder above the flashing play prompt.
+    */
+    const officialStorySize = Math.max(8, Math.min(11, width * 0.025));
+    const officialStoryY = promptY - Math.max(28, officialStorySize * 2.4);
+
+    ctx.font = `700 ${officialStorySize}px monospace`;
+    ctx.lineWidth = Math.max(2, officialStorySize * 0.18);
+    ctx.strokeText(
+      "IF YOU WANT THE OFFICIAL STORY READ THE BIG BOOK",
+      centerX,
+      officialStoryY
+    );
+    ctx.fillText(
+      "IF YOU WANT THE OFFICIAL STORY READ THE BIG BOOK",
+      centerX,
+      officialStoryY
+    );
+
     const blinkOn = Math.floor(now / 500) % 2 === 0;
 
     if (blinkOn) {
-      const promptSize = Math.max(17, Math.min(25, width * 0.055));
-      const promptY = height - Math.max(32, height * 0.07);
       ctx.font = `900 ${promptSize}px monospace`;
-      ctx.lineWidth = Math.max(4, promptSize * 0.22);
-      ctx.strokeText("► TAP TO START ◄", centerX, promptY);
-      ctx.fillText("► TAP TO START ◄", centerX, promptY);
+      ctx.lineWidth = Math.max(3, promptSize * 0.2);
+      ctx.strokeText("► THIS'LL DO FOR NOW - PLAY ◄", centerX, promptY);
+      ctx.fillText("► THIS'LL DO FOR NOW - PLAY ◄", centerX, promptY);
     }
 
     ctx.restore();

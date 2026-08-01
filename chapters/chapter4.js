@@ -6,69 +6,86 @@ window.RecoveryChapters.chapter4 = {
 
   cards: [
     {
-      title: "SOMETHING IS DIFFERENT",
-      image: "assets/cards/chapter4/card1.png",
-      text:
-        "Our friend expected to see the same old drinking buddy.\n\n" +
-        "Instead, he found someone he hardly recognized.\n\n" +
-        "His old friend wasn't just sober.\n\n" +
-        "There was a sparkle in his eyes and a calm confidence our friend had never seen before.\n\n" +
-        "...Well that's new.\n\n" +
-        "Our friend wanted what he had."
-    },
+  title: "SOMETHING IS DIFFERENT",
+  image: "assets/cards/chapter4-card1.png",
+  text:
+    "Our friend expected to see\n" +
+    "the same old drinking buddy.\n\n" +
+    "Instead...\n\n" +
+    "the man standing in his doorway\n" +
+    "looked healthier than he'd ever\n" +
+    "seen him.\n\n" +
+    "He looked peaceful.\n\n" +
+    "Confident.\n\n" +
+    "Something was different."
+},
     {
-      title: "WHAT'S GOTTEN INTO YOU?",
-      image: "assets/cards/chapter4/card2.png",
-      text:
-        "Our friend slid his buddy a drink.\n\n" +
-        "His buddy quietly pushed it back.\n\n" +
-        "He didn't even seem tempted.\n\n" +
-        "Yeah...\n\n" +
-        "That had never happened before.\n\n" +
-        "Finally, our friend asked...\n\n" +
-        "\"What's gotten into you?\""
-    },
+  title: "WHAT'S GOTTEN INTO YOU?",
+  image: "assets/cards/chapter4-card2.png",
+  text:
+    "Our friend slid his buddy a drink.\n\n" +
+    "His buddy smiled...\n\n" +
+    "then quietly pushed it back.\n\n" +
+    "He didn't even seem tempted.\n\n" +
+    "Our friend sat there in disbelief.\n\n" +
+    "Finally he asked...\n\n" +
+    "\"What's gotten into you?\""
+},
     {
-      title: "MORE THAN RELIGION",
-      image: "assets/cards/chapter4/card3.png",
-      text:
-        "His buddy smiled.\n\n" +
-        "\"I've got religion.\"\n\n" +
-        "...\n\n" +
-        "Not exactly the answer our friend was hoping for.\n\n" +
-        "\"Religion?\n\nThat's not going to fix me.\"\n\n" +
-        "His buddy simply smiled."
-    },
+  title: "MORE THAN RELIGION",
+  image: "assets/cards/chapter4-card3.png",
+  text:
+    "His buddy smiled.\n\n" +
+    "\"I've got religion.\"\n\n" +
+    "Our friend thought...\n\n" +
+    "Great.\n\n" +
+    "Last year we were drinking together.\n\n" +
+    "Now he's found religion.\n\n" +
+    "I can surely outdrink this sermon."
+},
     {
-      title: "THE SIMPLE SOLUTION",
-      image: "assets/cards/chapter4/card4.png",
-      text:
-        "\"Call it what you want.\n\n" +
-        "I found a Power greater than myself...\n\n" +
-        "and it changed everything.\"\n\n" +
-        "Okay...\n\n" +
-        "Now he had our friend's attention.\n\n" +
-        "\"I admitted I couldn't do it alone.\n\n" +
-        "I turned to God for help.\n\n" +
-        "I tried to make right what I'd done wrong.\n\n" +
-        "Then I started helping others...\n\n" +
-        "especially alcoholics.\"\n\n" +
-        "Simple.\n\n" +
-        "Not easy."
-    },
+  title: "CONTEMPT BEFORE PRIOR INVESTIGATION",
+  image: "assets/cards/chapter4-card4.png",
+  text:
+    "Disappointed, our friend's mind snapped shut.\n\n" +
+    "\"God solved your drinking problem?\n\n" +
+    "Come on, man. Which God did they brainwash you into believing this time?\"\n\n" +
+    "His buddy didn't argue. He simply smiled."
+},
     {
-      title: "A NEW IDEA",
-      image: "assets/cards/chapter4/card5.png",
-      text:
-        "Our friend frowned.\n\n" +
-        "\"That can't possibly be enough.\"\n\n" +
-        "His buddy smiled.\n\n" +
-        "\"Simple doesn't mean easy.\"\n\n" +
-        "Then he asked...\n\n" +
-        "\"Why don't you choose your own conception of God?\"\n\n" +
-        "...\n\n" +
-        "Maybe there really was another way."
-    }
+  title: "SIMPLE DOESN'T MEAN EASY",
+  image: "assets/cards/chapter4-card5.png",
+  text:
+    "\"So which God is it this time?\"\n\n" +
+    "\"What's His name?\n" +
+    "What are the rules?\n" +
+    "What do I have to do?\"\n\n" +
+    "\"That can't be enough.\"\n\n" +
+    "His buddy smiled.\n\n" +
+    "\"Why don't you choose your own idea of God?\""
+},
+{
+  title: "A NEW WAY OF LIVING",
+  image: "assets/cards/chapter4-card6.png",
+  text:
+    "His buddy leaned forward.\n\n" +
+    "\"Here's what I did...\"\n\n" +
+    "\"I admitted alcohol had me licked.\n\n" +
+    "I sincerely asked God for help.\n\n" +
+    "I cleaned up my past.\n\n" +
+    "Then I tried to live a different way with the help of the group I met. And it's been working for me.\""
+},
+{
+  title: "THE SOLUTION: A PROGRAM OF ACTION",
+  image: "assets/cards/chapter4-card7.png",
+  text:
+    "\"Then I started helping\n" +
+    "other people.\n\n" +
+    "I tried to be useful wherever I could.\n\n" +
+    "Especially with people who wanted to stop drinking.\n\n" +
+    "\"Nobody understands\n" +
+    "an alcoholic like another alcoholic which is why I am here.\""
+}
   ],
 
   crawl: [

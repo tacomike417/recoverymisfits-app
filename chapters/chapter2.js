@@ -78,6 +78,11 @@ window.RecoveryChapters.chapter2 = {
         "They sober up...\n\n" +
         "They swear they will never drink again...\n\n" +
         "So why do they always come back drunker than before?"
+    },
+    {
+      title: "MISSION",
+      image: "assets/cards/chapter2-card9.png",
+      text: "Follow the treatment orders!"
     }
   ],
 

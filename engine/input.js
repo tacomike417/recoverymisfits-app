@@ -14,6 +14,39 @@
     canvas.style.touchAction = "none";
 
     /*
+      Convert browser coordinates into the game's fixed internal
+      canvas coordinates. This keeps every tap target aligned when
+      the 390 × 780 game board is scaled or centered.
+    */
+    function toGamePoint(event) {
+      const rect = canvas.getBoundingClientRect();
+
+      return {
+        x:
+          (event.clientX - rect.left) *
+          (390 / rect.width),
+
+        y:
+          (event.clientY - rect.top) *
+          (780 / rect.height)
+      };
+    }
+
+    function toGameEvent(event) {
+      const point = toGamePoint(event);
+
+      return {
+        clientX: point.x,
+        clientY: point.y,
+        pointerId: event.pointerId,
+        pointerType: event.pointerType,
+        buttons: event.buttons,
+        button: event.button,
+        preventDefault: () => event.preventDefault()
+      };
+    }
+
+    /*
       Chrome may reject audio started from pointerdown while mobile
       device emulation is active. Use a real click to unlock and start
       the Recovery Misfits splash sound.
@@ -44,7 +77,9 @@
           return;
         }
 
-        handlePrimaryAction(event);
+        handlePrimaryAction(
+          toGameEvent(event)
+        );
 
         try {
           if (
@@ -80,9 +115,11 @@
 
         event.preventDefault();
 
+        const point = toGamePoint(event);
+
         window.RecoveryPlayer.setPlayerTargetY(
           player,
-          event.clientY -
+          point.y -
             player.height / 2,
           getHeight()
         );
