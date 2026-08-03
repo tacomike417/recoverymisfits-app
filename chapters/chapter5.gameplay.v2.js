@@ -313,6 +313,9 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     let drunkachuTried = false;
     let triedAnimationStartedAt = 0;
     let triedCharacter = null;
+    let billPromptText = [];
+    let billPromptUntil = 0;
+    let lastPromptTriedCount = 0;
 
     const HUD_HEIGHT = 26;
     const TRIED_HEIGHT = 34;
@@ -325,11 +328,22 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     const HEART_ROLL_DURATION = 1700;
     const TRIED_ADD_DURATION = 1100;
 
+    function showBillPrompt(lines, duration = 4200) {
+      billPromptText = Array.isArray(lines) ? lines : [String(lines)];
+      billPromptUntil = performance.now() + duration;
+    }
+
     function beginGameplay() {
       gamePhase = "playing";
       pointerDown = false;
       pointerX = Bill.x;
       pointerY = Bill.y;
+      lastPromptTriedCount = normalDrunksTriedCount();
+      showBillPrompt([
+        "START HERE.",
+        "DRAG BILL TO THE DRUNKS",
+        "ON THE MAP."
+      ], 6200);
     }
 
     function signalChapter6() {
@@ -1594,7 +1608,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         Drunkachu.buildingIndex =
           Math.floor(Math.random() * Buildings.length);
         positionDrunkachuAtBuilding(Drunkachu.buildingIndex);
-        Drunkachu.state = "hidden";
+        Drunkachu.state = "hide";
         Drunkachu.stateStartedAt = now;
         Drunkachu.nextActionAt =
           now + 1300 + Math.random() * 1800;
@@ -1659,7 +1673,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         const dx = targetX - Drunkachu.x;
         const dy = targetY - Drunkachu.y;
         const distance = Math.hypot(dx, dy);
-        const speed = 2.25;
+        // He bolts across the map while hiding from Bill. He is not part
+        // of normal sprite separation, so this movement cannot shove or
+        // collide with the other characters.
+        const speed = normalDrunksFinished() ? 1.15 : 4.8;
 
         if (distance <= speed + 2) {
           Drunkachu.buildingIndex =
@@ -3234,10 +3251,14 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     }
 
     function drawDrunkachuBehindBuildings() {
-      /*
-        Intentionally blank. Drunkachu is completely invisible
-        whenever he is hiding inside a building.
-      */
+      // During a dash, draw him before the buildings so he appears to
+      // streak behind them instead of colliding with sprites on top.
+      if (
+        drunkachuUnlockedForAppearance() &&
+        Drunkachu.state === "scurry"
+      ) {
+        drawDrunkachuSprite();
+      }
     }
 
     function drawDrunkachu() {
@@ -3245,7 +3266,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         return;
       }
 
-      if (["hide", "hidden", "peek", "waiting", "caught", "poof", "message", "hudSoberRoll", "hudHeartRoll", "triedAdd", "returned"].includes(Drunkachu.state)) return;
+      if (["hide", "hidden", "peek", "waiting", "scurry", "caught", "poof", "message", "hudSoberRoll", "hudHeartRoll", "triedAdd", "returned"].includes(Drunkachu.state)) return;
       const placement = drunkachuPlacement();
       if (!placement) return;
       if (nearbyDrunk === Drunkachu) drawInteractionRays(Drunkachu.x, Drunkachu.y - Drunkachu.height / 2, placement.width, placement.height);
@@ -5422,6 +5443,26 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       ctx.restore();
     }
 
+    function drawBillPrompt() {
+      if (performance.now() >= billPromptUntil || billPromptText.length === 0) {
+        return;
+      }
+
+      const width = billPromptText.length > 1 ? 226 : 116;
+      const x = Math.max(5, Math.min(getWidth() - width - 5, Bill.x - width / 2));
+      const y = Math.max(44, Bill.y - BILL_HEIGHT - 92);
+
+      drawSpeechBubble(
+        x,
+        y,
+        width,
+        billPromptText,
+        Bill.x,
+        Bill.y - BILL_HEIGHT * 0.62,
+        "#fff8ad"
+      );
+    }
+
     function drawBill() {
       const image = Assets.bill;
 
@@ -5573,16 +5614,18 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     function drawScreenPanel(title, lines, footer) {
       const width = getWidth();
       const height = getHeight();
-      const panelWidth = Math.min(350, width - 28);
-      const panelHeight = 250;
+      const panelWidth = Math.min(360, width - 20);
+      const panelHeight = 330;
       const panelX = (width - panelWidth) / 2;
-      const panelY = (height - panelHeight) / 2;
+      const panelY = (height - panelHeight) / 2 + 18;
 
       ctx.save();
 
       ctx.fillStyle = "rgba(3, 5, 10, 0.82)";
       ctx.fillRect(0, 0, width, height);
 
+      // Draw the scroll-style container first. The title plaque is drawn
+      // last so it sits in front of, and hides, the rounded top border.
       ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
       ctx.shadowBlur = 14;
       ctx.fillStyle = "rgba(18, 22, 34, 0.98)";
@@ -5603,22 +5646,55 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
+      // Reserve room for the overlapping logo plaque at the top.
+      let logoPlacement = null;
+      let contentTop = panelY + 82;
+
+      if (
+        Assets.title.complete &&
+        Assets.title.naturalWidth > 0 &&
+        Assets.title.naturalHeight > 0
+      ) {
+        const crop = getTitleCrop(Assets.title);
+        const logoWidth = panelWidth * 0.85;
+        const logoAspect = crop.width / crop.height;
+        const logoHeight = logoWidth / logoAspect;
+
+        logoPlacement = {
+          crop,
+          x: panelX + (panelWidth - logoWidth) / 2,
+          // Center the logo vertically on the panel's top rounded edge.
+          y: panelY - logoHeight / 2,
+          width: logoWidth,
+          height: logoHeight
+        };
+
+        contentTop = panelY + logoHeight / 2 + 34;
+      }
+
       ctx.fillStyle = "#ffe778";
-      ctx.font = "bold 20px monospace";
+      ctx.font = "bold 18px monospace";
       ctx.fillText(
         title,
         width / 2,
-        panelY + 43
+        contentTop
       );
 
       ctx.fillStyle = "#fff8dc";
       ctx.font = "bold 13px monospace";
 
+      const lineStartY = contentTop + 42;
+      const availableBottom = panelY + panelHeight - 57;
+      const lineSpacing =
+        lines.length > 1
+          ? Math.min(27, (availableBottom - lineStartY) / (lines.length - 1))
+          : 27;
+
       lines.forEach((line, index) => {
         ctx.fillText(
           line,
           width / 2,
-          panelY + 92 + index * 30
+          lineStartY + index * lineSpacing
         );
       });
 
@@ -5633,8 +5709,39 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       ctx.fillText(
         footer,
         width / 2,
-        panelY + panelHeight - 30
+        panelY + panelHeight - 27
       );
+      ctx.globalAlpha = 1;
+
+      // Draw the existing title.png last, over the container border.
+      if (logoPlacement) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = true;
+        ctx.shadowColor = "rgba(0, 0, 0, 0.72)";
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 5;
+        ctx.drawImage(
+          Assets.title,
+          logoPlacement.crop.x,
+          logoPlacement.crop.y,
+          logoPlacement.crop.width,
+          logoPlacement.crop.height,
+          logoPlacement.x,
+          logoPlacement.y,
+          logoPlacement.width,
+          logoPlacement.height
+        );
+        ctx.restore();
+      } else {
+        // Text fallback if the image has not loaded yet.
+        ctx.fillStyle = "#ffe778";
+        ctx.font = "bold 20px monospace";
+        ctx.fillText(
+          "GOTTA SOBER 'EM ALL!",
+          width / 2,
+          panelY
+        );
+      }
 
       ctx.restore();
     }
@@ -5757,6 +5864,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       Drunkachu.moveShoutUntil = 0;
       Drunkachu.tried = false;
 
+      billPromptText = [];
+      billPromptUntil = 0;
+      lastPromptTriedCount = 0;
+
       alignJigglyToTavern();
       alignPukeeToJazzClub();
       alignBarflyToBar();
@@ -5800,12 +5911,23 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       updateBarflySequence();
       updateTankSequence();
       updateDrunkachuSequence();
+
+      const currentTriedCount = normalDrunksTriedCount();
+      if (currentTriedCount > lastPromptTriedCount) {
+        lastPromptTriedCount = currentTriedCount;
+        showBillPrompt(["KEEP GOING."], 3000);
+      }
     }
 
     function draw() {
       drawBackground();
       drawDrunkachuBehindBuildings();
       drawBuildings();
+
+      // Keep the title/logo behind every character and speech bubble.
+      // Dialogue must always remain readable, even near the top of the map.
+      drawTitle();
+
       drawCorker();
       drawJigglydrunk();
       drawPukee();
@@ -5813,7 +5935,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       drawTank();
       drawDrunkachu();
       drawBill();
-      drawTitle();
+      drawBillPrompt();
       drawCorkerCatchSequence();
       drawJigglyCatchSequence();
       drawPukeeCatchSequence();
