@@ -44,7 +44,7 @@ window.RecoveryChapters.chapter4 = {
     "I can surely outdrink this sermon."
 },
     {
-  title: "CONTEMPT BEFORE PRIOR INVESTIGATION",
+  title: "CONTEMPT PRIOR TO INVESTIGATION",
   image: "assets/cards/chapter4-card4.png",
   text:
     "Disappointed, our friend's mind snapped shut.\n\n" +

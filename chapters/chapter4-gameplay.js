@@ -30,7 +30,7 @@
       board: "RECOVERED ALCOHOLICS WHO WERE HAPPY",
       score: 96,
       takeaway: "They laughed, enjoyed life, and had something we wanted.",
-      resistance: "BILL:  AND happy? Not possible..."
+      resistance: "BILL:  Sober AND happy? Not possible..."
     },
     {
       theme: "HONESTY",
