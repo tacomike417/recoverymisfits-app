@@ -66,12 +66,12 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         "assets/players/chapter5/chap5-drunk1-corker.png"
       ),
 
-      jigglydrunk: loadImage(
-        "assets/players/chapter5/chap5-drunk2-jigglydrunk.png"
+      papaParty: loadImage(
+        "assets/players/chapter5/chap5-drunk2-papa-party.png"
       ),
 
-      pukee: loadImage(
-        "assets/players/chapter5/chap5-drunk3-pukee.png"
+      puker: loadImage(
+        "assets/players/chapter5/chap5-drunk3-puker.png"
       ),
 
       barfly: loadImage(
@@ -82,8 +82,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         "assets/players/chapter5/chap5-drunk5-tank.png"
       ),
 
-      drunkachu: loadImage(
-        "assets/players/chapter5/chap5-drunk6-drunkachu.png"
+      wasteCase: loadImage(
+        "assets/players/chapter5/chap5-drunk6-waste-case.png"
       )
     };
 
@@ -201,10 +201,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     };
 
     //--------------------------------------------------
-    // SECOND DRUNK: JIGGLYDRUNK
+    // SECOND DRUNK: PAPA PARTY
     //--------------------------------------------------
 
-    const Jigglydrunk = {
+    const PapaParty = {
       x: 280,
       y: 300,
       height: 126,
@@ -221,10 +221,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     };
 
     //--------------------------------------------------
-    // THIRD DRUNK: PUKEE
+    // THIRD DRUNK: PUKER
     //--------------------------------------------------
 
-    const Pukee = {
+    const Puker = {
       x: 92,
       y: 300,
       height: 75,
@@ -277,10 +277,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
 
     //--------------------------------------------------
-    // FINAL SPECIAL DRUNK: DRUNKACHU
+    // FINAL SPECIAL DRUNK: WASTE CASE
     //--------------------------------------------------
 
-    const Drunkachu = {
+    const WasteCase = {
       x: 0,
       y: 0,
       height: 100,
@@ -307,10 +307,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     let hudAnimationStartedAt = 0;
     let corkerTried = false;
     let jigglyTried = false;
-    let pukeeTried = false;
+    let pukerTried = false;
     let barflyTried = false;
     let tankTried = false;
-    let drunkachuTried = false;
+    let wasteCaseTried = false;
     let triedAnimationStartedAt = 0;
     let triedCharacter = null;
     let billPromptText = [];
@@ -402,11 +402,11 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
       return (
         lockedStates.includes(Corker.state) ||
-        lockedStates.includes(Jigglydrunk.state) ||
-        lockedStates.includes(Pukee.state) ||
+        lockedStates.includes(PapaParty.state) ||
+        lockedStates.includes(Puker.state) ||
         lockedStates.includes(Barfly.state) ||
         lockedStates.includes(Tank.state) ||
-        lockedStates.includes(Drunkachu.state)
+        lockedStates.includes(WasteCase.state)
       );
     }
 
@@ -477,28 +477,28 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
       if (nearbyDrunk === Corker && Corker.state === "wander") {
         tryTapCorker(event);
-      } else if (nearbyDrunk === Jigglydrunk && Jigglydrunk.state === "wander") {
-        tryTapJigglydrunk(event);
-      } else if (nearbyDrunk === Pukee && Pukee.state === "wander") {
-        tryTapPukee(event);
+      } else if (nearbyDrunk === PapaParty && PapaParty.state === "wander") {
+        tryTapPapaParty(event);
+      } else if (nearbyDrunk === Puker && Puker.state === "wander") {
+        tryTapPuker(event);
       } else if (nearbyDrunk === Barfly && Barfly.state === "wander") {
         tryTapBarfly(event);
       } else if (nearbyDrunk === Tank && Tank.state === "wander") {
         tryTapTank(event);
-      } else if (nearbyDrunk === Drunkachu && Drunkachu.state === "wander") {
-        tryTapDrunkachu(event);
+      } else if (nearbyDrunk === WasteCase && WasteCase.state === "wander") {
+        tryTapWasteCase(event);
       } else if (Corker.state === "readyToSober") {
         tryTapSoberButton(event);
-      } else if (Jigglydrunk.state === "readyToSober") {
+      } else if (PapaParty.state === "readyToSober") {
         tryTapJigglySoberButton(event);
-      } else if (Pukee.state === "readyToSober") {
-        tryTapPukeeSoberButton(event);
+      } else if (Puker.state === "readyToSober") {
+        tryTapPukerSoberButton(event);
       } else if (Barfly.state === "readyToSober") {
         tryTapBarflySoberButton(event);
       } else if (Tank.state === "readyToSober") {
         tryTapTankSoberButton(event);
-      } else if (Drunkachu.state === "readyToSober") {
-        tryTapDrunkachuSoberButton(event);
+      } else if (WasteCase.state === "readyToSober") {
+        tryTapWasteCaseSoberButton(event);
       }
 
       if (
@@ -662,7 +662,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     }
 
     function jigglyPlacement() {
-      const image = Assets.jigglydrunk;
+      const image = Assets.papaParty;
 
       if (
         !image.complete ||
@@ -673,18 +673,18 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       }
 
       const aspect = image.naturalWidth / image.naturalHeight;
-      const width = Jigglydrunk.height * aspect;
+      const width = PapaParty.height * aspect;
 
       return {
-        x: Jigglydrunk.x - width / 2,
-        y: Jigglydrunk.y - Jigglydrunk.height,
+        x: PapaParty.x - width / 2,
+        y: PapaParty.y - PapaParty.height,
         width,
-        height: Jigglydrunk.height
+        height: PapaParty.height
       };
     }
 
-    function pukeePlacement() {
-      const image = Assets.pukee;
+    function pukerPlacement() {
+      const image = Assets.puker;
 
       if (
         !image.complete ||
@@ -695,13 +695,13 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       }
 
       const aspect = image.naturalWidth / image.naturalHeight;
-      const width = Pukee.height * aspect;
+      const width = Puker.height * aspect;
 
       return {
-        x: Pukee.x - width / 2,
-        y: Pukee.y - Pukee.height,
+        x: Puker.x - width / 2,
+        y: Puker.y - Puker.height,
         width,
-        height: Pukee.height
+        height: Puker.height
       };
     }
 
@@ -749,8 +749,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       };
     }
 
-    function drunkachuPlacement() {
-      const image = Assets.drunkachu;
+    function wasteCasePlacement() {
+      const image = Assets.wasteCase;
 
       if (
         !image.complete ||
@@ -761,26 +761,26 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       }
 
       const aspect = image.naturalWidth / image.naturalHeight;
-      const width = Drunkachu.height * aspect;
+      const width = WasteCase.height * aspect;
 
       return {
-        x: Drunkachu.x - width / 2,
-        y: Drunkachu.y - Drunkachu.height,
+        x: WasteCase.x - width / 2,
+        y: WasteCase.y - WasteCase.height,
         width,
-        height: Drunkachu.height
+        height: WasteCase.height
       };
     }
 
-    function updateNearbyJigglydrunk() {
-      if (Jigglydrunk.state !== "wander") {
-        Jigglydrunk.nearbySince = 0;
+    function updateNearbyPapaParty() {
+      if (PapaParty.state !== "wander") {
+        PapaParty.nearbySince = 0;
         return;
       }
 
       const placement = jigglyPlacement();
 
       if (!placement) {
-        Jigglydrunk.nearbySince = 0;
+        PapaParty.nearbySince = 0;
         return;
       }
 
@@ -789,27 +789,27 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       const distance = Math.hypot(Bill.x - centerX, Bill.y - centerY);
 
       if (distance <= DRUNK_GLOW_DISTANCE + 12) {
-        nearbyDrunk = Jigglydrunk;
+        nearbyDrunk = PapaParty;
 
-        if (Jigglydrunk.nearbySince === 0) {
-          Jigglydrunk.nearbySince = performance.now();
+        if (PapaParty.nearbySince === 0) {
+          PapaParty.nearbySince = performance.now();
         }
-      } else if (nearbyDrunk === Jigglydrunk) {
+      } else if (nearbyDrunk === PapaParty) {
         nearbyDrunk = null;
-        Jigglydrunk.nearbySince = 0;
+        PapaParty.nearbySince = 0;
       }
     }
 
-    function updateNearbyPukee() {
-      if (Pukee.state !== "wander") {
-        Pukee.nearbySince = 0;
+    function updateNearbyPuker() {
+      if (Puker.state !== "wander") {
+        Puker.nearbySince = 0;
         return;
       }
 
-      const placement = pukeePlacement();
+      const placement = pukerPlacement();
 
       if (!placement) {
-        Pukee.nearbySince = 0;
+        Puker.nearbySince = 0;
         return;
       }
 
@@ -818,14 +818,14 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       const distance = Math.hypot(Bill.x - centerX, Bill.y - centerY);
 
       if (distance <= DRUNK_GLOW_DISTANCE + 12) {
-        nearbyDrunk = Pukee;
+        nearbyDrunk = Puker;
 
-        if (Pukee.nearbySince === 0) {
-          Pukee.nearbySince = performance.now();
+        if (Puker.nearbySince === 0) {
+          Puker.nearbySince = performance.now();
         }
-      } else if (nearbyDrunk === Pukee) {
+      } else if (nearbyDrunk === Puker) {
         nearbyDrunk = null;
-        Pukee.nearbySince = 0;
+        Puker.nearbySince = 0;
       }
     }
 
@@ -887,16 +887,16 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       }
     }
 
-    function updateNearbyDrunkachu() {
-      if (Drunkachu.state !== "wander") {
-        Drunkachu.nearbySince = 0;
+    function updateNearbyWasteCase() {
+      if (WasteCase.state !== "wander") {
+        WasteCase.nearbySince = 0;
         return;
       }
 
-      const placement = drunkachuPlacement();
+      const placement = wasteCasePlacement();
 
       if (!placement) {
-        Drunkachu.nearbySince = 0;
+        WasteCase.nearbySince = 0;
         return;
       }
 
@@ -908,24 +908,24 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
           distance <= DRUNK_GLOW_DISTANCE + 18) {
         pointerDown = false;
         nearbyDrunk = null;
-        Drunkachu.nearbySince = 0;
-        Drunkachu.state = "scurry";
-        Drunkachu.stateStartedAt = performance.now();
-        Drunkachu.moveShoutUntil = performance.now() + 1200;
-        Drunkachu.targetBuildingIndex =
-          chooseDifferentDrunkachuBuilding();
+        WasteCase.nearbySince = 0;
+        WasteCase.state = "scurry";
+        WasteCase.stateStartedAt = performance.now();
+        WasteCase.moveShoutUntil = performance.now() + 1200;
+        WasteCase.targetBuildingIndex =
+          chooseDifferentWasteCaseBuilding();
         return;
       }
 
       if (distance <= DRUNK_GLOW_DISTANCE + 12) {
-        nearbyDrunk = Drunkachu;
+        nearbyDrunk = WasteCase;
 
-        if (Drunkachu.nearbySince === 0) {
-          Drunkachu.nearbySince = performance.now();
+        if (WasteCase.nearbySince === 0) {
+          WasteCase.nearbySince = performance.now();
         }
-      } else if (nearbyDrunk === Drunkachu) {
+      } else if (nearbyDrunk === WasteCase) {
         nearbyDrunk = null;
-        Drunkachu.nearbySince = 0;
+        WasteCase.nearbySince = 0;
       }
     }
 
@@ -970,17 +970,17 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     function beginJigglySequence() {
       pointerDown = false;
       nearbyDrunk = null;
-      Jigglydrunk.state = "conversation";
-      Jigglydrunk.conversationStep = 0;
-      Jigglydrunk.stateStartedAt = performance.now();
+      PapaParty.state = "conversation";
+      PapaParty.conversationStep = 0;
+      PapaParty.stateStartedAt = performance.now();
     }
 
-    function beginPukeeSequence() {
+    function beginPukerSequence() {
       pointerDown = false;
       nearbyDrunk = null;
-      Pukee.state = "conversation";
-      Pukee.conversationStep = 0;
-      Pukee.stateStartedAt = performance.now();
+      Puker.state = "conversation";
+      Puker.conversationStep = 0;
+      Puker.stateStartedAt = performance.now();
     }
 
     function beginBarflySequence() {
@@ -999,18 +999,18 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       Tank.stateStartedAt = performance.now();
     }
 
-    function beginDrunkachuSequence() {
+    function beginWasteCaseSequence() {
       pointerDown = false;
       nearbyDrunk = null;
-      Drunkachu.state = "conversation";
-      Drunkachu.conversationStep = 0;
-      Drunkachu.stateStartedAt = performance.now();
+      WasteCase.state = "conversation";
+      WasteCase.conversationStep = 0;
+      WasteCase.stateStartedAt = performance.now();
     }
 
-    function tryTapJigglydrunk(event) {
+    function tryTapPapaParty(event) {
       if (
-        nearbyDrunk !== Jigglydrunk ||
-        Jigglydrunk.state !== "wander"
+        nearbyDrunk !== PapaParty ||
+        PapaParty.state !== "wander"
       ) {
         return false;
       }
@@ -1031,15 +1031,15 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       return true;
     }
 
-    function tryTapPukee(event) {
+    function tryTapPuker(event) {
       if (
-        nearbyDrunk !== Pukee ||
-        Pukee.state !== "wander"
+        nearbyDrunk !== Puker ||
+        Puker.state !== "wander"
       ) {
         return false;
       }
 
-      const placement = pukeePlacement();
+      const placement = pukerPlacement();
 
       if (!placement) {
         return false;
@@ -1051,7 +1051,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         return false;
       }
 
-      beginPukeeSequence();
+      beginPukerSequence();
       return true;
     }
 
@@ -1103,27 +1103,27 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       return true;
     }
 
-    function tryTapDrunkachu(event) {
+    function tryTapWasteCase(event) {
       if (!normalDrunksFinished()) {
         pointerDown = false;
         nearbyDrunk = null;
-        Drunkachu.nearbySince = 0;
-        Drunkachu.state = "scurry";
-        Drunkachu.stateStartedAt = performance.now();
-        Drunkachu.moveShoutUntil = performance.now() + 1200;
-        Drunkachu.targetBuildingIndex =
-          chooseDifferentDrunkachuBuilding();
+        WasteCase.nearbySince = 0;
+        WasteCase.state = "scurry";
+        WasteCase.stateStartedAt = performance.now();
+        WasteCase.moveShoutUntil = performance.now() + 1200;
+        WasteCase.targetBuildingIndex =
+          chooseDifferentWasteCaseBuilding();
         return false;
       }
 
       if (
-        nearbyDrunk !== Drunkachu ||
-        Drunkachu.state !== "wander"
+        nearbyDrunk !== WasteCase ||
+        WasteCase.state !== "wander"
       ) {
         return false;
       }
 
-      const placement = drunkachuPlacement();
+      const placement = wasteCasePlacement();
 
       if (!placement) {
         return false;
@@ -1135,7 +1135,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         return false;
       }
 
-      beginDrunkachuSequence();
+      beginWasteCaseSequence();
       return true;
     }
 
@@ -1172,12 +1172,12 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         return false;
       }
 
-      Jigglydrunk.state = "caught";
-      Jigglydrunk.stateStartedAt = performance.now();
+      PapaParty.state = "caught";
+      PapaParty.stateStartedAt = performance.now();
       return true;
     }
 
-    function tryTapPukeeSoberButton(event) {
+    function tryTapPukerSoberButton(event) {
       const point = canvasPoint(event);
       const button = soberButtonPlacement();
 
@@ -1185,8 +1185,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         return false;
       }
 
-      Pukee.state = "caught";
-      Pukee.stateStartedAt = performance.now();
+      Puker.state = "caught";
+      Puker.stateStartedAt = performance.now();
       return true;
     }
 
@@ -1216,7 +1216,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       return true;
     }
 
-    function tryTapDrunkachuSoberButton(event) {
+    function tryTapWasteCaseSoberButton(event) {
       const point = canvasPoint(event);
       const button = soberButtonPlacement();
 
@@ -1224,8 +1224,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         return false;
       }
 
-      Drunkachu.state = "caught";
-      Drunkachu.stateStartedAt = performance.now();
+      WasteCase.state = "caught";
+      WasteCase.stateStartedAt = performance.now();
       return true;
     }
 
@@ -1268,61 +1268,61 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     }
 
     function updateJigglyMovement() {
-      if (Jigglydrunk.state !== "wander") {
+      if (PapaParty.state !== "wander") {
         return;
       }
 
       const now = performance.now();
 
-      if (Jigglydrunk.drinkAt === 0) {
-        Jigglydrunk.drinkAt = now + 2400;
+      if (PapaParty.drinkAt === 0) {
+        PapaParty.drinkAt = now + 2400;
       }
 
-      if (now >= Jigglydrunk.drinkAt && now >= Jigglydrunk.drinkingUntil) {
-        Jigglydrunk.drinkingUntil = now + 1250;
-        Jigglydrunk.drinkAt = Jigglydrunk.drinkingUntil + 2600;
+      if (now >= PapaParty.drinkAt && now >= PapaParty.drinkingUntil) {
+        PapaParty.drinkingUntil = now + 1250;
+        PapaParty.drinkAt = PapaParty.drinkingUntil + 2600;
       }
 
-      if (now < Jigglydrunk.drinkingUntil) {
+      if (now < PapaParty.drinkingUntil) {
         return;
       }
 
-      if (now >= Jigglydrunk.turnAt) {
-        Jigglydrunk.direction *= -1;
-        Jigglydrunk.turnAt = now + 1500 + Math.random() * 1000;
+      if (now >= PapaParty.turnAt) {
+        PapaParty.direction *= -1;
+        PapaParty.turnAt = now + 1500 + Math.random() * 1000;
       }
 
-      Jigglydrunk.x += Jigglydrunk.direction * 0.34;
-      Jigglydrunk.y += Math.sin(now / 310) * 0.1;
+      PapaParty.x += PapaParty.direction * 0.34;
+      PapaParty.y += Math.sin(now / 310) * 0.1;
 
-      Jigglydrunk.x = Math.max(
+      PapaParty.x = Math.max(
         62,
-        Math.min(getWidth() - 62, Jigglydrunk.x)
+        Math.min(getWidth() - 62, PapaParty.x)
       );
 
-      Jigglydrunk.y = Math.max(
+      PapaParty.y = Math.max(
         210,
-        Math.min(getHeight() - BOTTOM_UI_HEIGHT - 4, Jigglydrunk.y)
+        Math.min(getHeight() - BOTTOM_UI_HEIGHT - 4, PapaParty.y)
       );
     }
 
-    function updatePukeeMovement() {
-      if (Pukee.state !== "wander") {
+    function updatePukerMovement() {
+      if (Puker.state !== "wander") {
         return;
       }
 
       const now = performance.now();
 
-      if (now >= Pukee.turnAt) {
-        Pukee.direction *= -1;
-        Pukee.turnAt = now + 1300 + Math.random() * 900;
+      if (now >= Puker.turnAt) {
+        Puker.direction *= -1;
+        Puker.turnAt = now + 1300 + Math.random() * 900;
       }
 
-      Pukee.x += Pukee.direction * 0.3;
-      Pukee.y += Math.sin(now / 260) * 0.12;
+      Puker.x += Puker.direction * 0.3;
+      Puker.y += Math.sin(now / 260) * 0.12;
 
-      Pukee.x = Math.max(38, Math.min(182, Pukee.x));
-      Pukee.y = Math.max(72, Math.min(205, Pukee.y));
+      Puker.x = Math.max(38, Math.min(182, Puker.x));
+      Puker.y = Math.max(72, Math.min(205, Puker.y));
     }
 
     function updateTankMovement() {
@@ -1393,8 +1393,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     function activeNormalDrunks() {
       return [
         Corker,
-        Jigglydrunk,
-        Pukee,
+        PapaParty,
+        Puker,
         Barfly,
         Tank
       ].filter(
@@ -1491,8 +1491,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
       const roster = [
         { character: Corker, tried: corkerTried },
-        { character: Jigglydrunk, tried: jigglyTried },
-        { character: Pukee, tried: pukeeTried },
+        { character: PapaParty, tried: jigglyTried },
+        { character: Puker, tried: pukerTried },
         { character: Barfly, tried: barflyTried },
         { character: Tank, tried: tankTried }
       ];
@@ -1522,11 +1522,11 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
           entry.character.stateStartedAt = now;
           entry.character.nearbySince = 0;
 
-          if (entry.character === Jigglydrunk) {
-            Jigglydrunk.turnAt = now + 1200;
-            Jigglydrunk.drinkAt = now + 1800;
-          } else if (entry.character === Pukee) {
-            Pukee.turnAt = now + 1000;
+          if (entry.character === PapaParty) {
+            PapaParty.turnAt = now + 1200;
+            PapaParty.drinkAt = now + 1800;
+          } else if (entry.character === Puker) {
+            Puker.turnAt = now + 1000;
           } else if (entry.character === Barfly) {
             Barfly.routeIndex = 0;
             alignBarflyToBar();
@@ -1544,21 +1544,21 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       return [
         corkerTried,
         jigglyTried,
-        pukeeTried,
+        pukerTried,
         barflyTried,
         tankTried
       ].filter(Boolean).length;
     }
 
-    function drunkachuUnlockedForAppearance() {
+    function wasteCaseUnlockedForAppearance() {
       return normalDrunksTriedCount() >= 3;
     }
 
     function normalDrunksFinished() {
-      return corkerTried && jigglyTried && pukeeTried && barflyTried && tankTried;
+      return corkerTried && jigglyTried && pukerTried && barflyTried && tankTried;
     }
 
-    function positionDrunkachuAtBuilding(index) {
+    function positionWasteCaseAtBuilding(index) {
       const building = Buildings[index % Buildings.length];
       const placement = buildingPlacement(building);
 
@@ -1567,19 +1567,19 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       }
 
       /*
-        Drunkachu is placed directly inside the building footprint.
+        WasteCase is placed directly inside the building footprint.
         He is not drawn while hiding, so no part of him can show through.
       */
-      Drunkachu.x = placement.x + placement.width / 2;
-      Drunkachu.y = placement.y + placement.height * 0.72;
+      WasteCase.x = placement.x + placement.width / 2;
+      WasteCase.y = placement.y + placement.height * 0.72;
     }
 
-    function updateDrunkachuMovement() {
-      if (!drunkachuUnlockedForAppearance()) {
-        Drunkachu.state = "hidden";
-        Drunkachu.nearbySince = 0;
+    function updateWasteCaseMovement() {
+      if (!wasteCaseUnlockedForAppearance()) {
+        WasteCase.state = "hidden";
+        WasteCase.nearbySince = 0;
 
-        if (nearbyDrunk === Drunkachu) {
+        if (nearbyDrunk === WasteCase) {
           nearbyDrunk = null;
         }
 
@@ -1599,66 +1599,66 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
           "hudHeartRoll",
           "triedAdd",
           "returned"
-        ].includes(Drunkachu.state)
+        ].includes(WasteCase.state)
       ) {
         return;
       }
 
-      if (Drunkachu.state === "hidden") {
-        Drunkachu.buildingIndex =
+      if (WasteCase.state === "hidden") {
+        WasteCase.buildingIndex =
           Math.floor(Math.random() * Buildings.length);
-        positionDrunkachuAtBuilding(Drunkachu.buildingIndex);
-        Drunkachu.state = "hide";
-        Drunkachu.stateStartedAt = now;
-        Drunkachu.nextActionAt =
+        positionWasteCaseAtBuilding(WasteCase.buildingIndex);
+        WasteCase.state = "hide";
+        WasteCase.stateStartedAt = now;
+        WasteCase.nextActionAt =
           now + 1300 + Math.random() * 1800;
         return;
       }
 
-      if (Drunkachu.state === "hide") {
+      if (WasteCase.state === "hide") {
         /*
-          Once every regular Pokémon is finished, Drunkachu finally
+          Once every regular Pokémon is finished, WasteCase finally
           steps out and becomes an ordinary capturable encounter.
         */
-        if (normalDrunksFinished() && now >= Drunkachu.nextActionAt) {
-          const building = Buildings[Drunkachu.buildingIndex];
+        if (normalDrunksFinished() && now >= WasteCase.nextActionAt) {
+          const building = Buildings[WasteCase.buildingIndex];
           const placement = buildingPlacement(building);
 
           if (placement) {
-            Drunkachu.x =
+            WasteCase.x =
               placement.x + placement.width / 2;
-            Drunkachu.y =
+            WasteCase.y =
               Math.min(
                 getHeight() - BOTTOM_UI_HEIGHT - 4,
                 placement.y + placement.height + 8
               );
           }
 
-          Drunkachu.state = "wander";
-          Drunkachu.stateStartedAt = now;
+          WasteCase.state = "wander";
+          WasteCase.stateStartedAt = now;
           return;
         }
 
-        if (now >= Drunkachu.nextActionAt) {
+        if (now >= WasteCase.nextActionAt) {
           let next =
             Math.floor(Math.random() * Buildings.length);
 
-          if (next === Drunkachu.buildingIndex) {
+          if (next === WasteCase.buildingIndex) {
             next = (next + 1) % Buildings.length;
           }
 
-          Drunkachu.targetBuildingIndex = next;
-          Drunkachu.state = "scurry";
-          Drunkachu.stateStartedAt = now;
-          Drunkachu.moveShoutUntil = now + 1200;
+          WasteCase.targetBuildingIndex = next;
+          WasteCase.state = "scurry";
+          WasteCase.stateStartedAt = now;
+          WasteCase.moveShoutUntil = now + 1200;
         }
 
         return;
       }
 
-      if (Drunkachu.state === "scurry") {
+      if (WasteCase.state === "scurry") {
         const targetBuilding =
-          Buildings[Drunkachu.targetBuildingIndex];
+          Buildings[WasteCase.targetBuildingIndex];
         const placement =
           buildingPlacement(targetBuilding);
 
@@ -1670,8 +1670,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
           placement.x + placement.width / 2;
         const targetY =
           placement.y + placement.height * 0.72;
-        const dx = targetX - Drunkachu.x;
-        const dy = targetY - Drunkachu.y;
+        const dx = targetX - WasteCase.x;
+        const dy = targetY - WasteCase.y;
         const distance = Math.hypot(dx, dy);
         // He bolts across the map while hiding from Bill. He is not part
         // of normal sprite separation, so this movement cannot shove or
@@ -1679,20 +1679,20 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         const speed = normalDrunksFinished() ? 1.15 : 4.8;
 
         if (distance <= speed + 2) {
-          Drunkachu.buildingIndex =
-            Drunkachu.targetBuildingIndex;
-          positionDrunkachuAtBuilding(
-            Drunkachu.buildingIndex
+          WasteCase.buildingIndex =
+            WasteCase.targetBuildingIndex;
+          positionWasteCaseAtBuilding(
+            WasteCase.buildingIndex
           );
-          Drunkachu.state = "hide";
-          Drunkachu.stateStartedAt = now;
-          Drunkachu.nextActionAt =
+          WasteCase.state = "hide";
+          WasteCase.stateStartedAt = now;
+          WasteCase.nextActionAt =
             now + 1100 + Math.random() * 1700;
           return;
         }
 
-        Drunkachu.x += (dx / distance) * speed;
-        Drunkachu.y += (dy / distance) * speed;
+        WasteCase.x += (dx / distance) * speed;
+        WasteCase.y += (dy / distance) * speed;
       }
     }
 
@@ -1756,61 +1756,61 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
     function updateJigglySequence() {
       const now = performance.now();
-      const elapsed = now - Jigglydrunk.stateStartedAt;
+      const elapsed = now - PapaParty.stateStartedAt;
 
-      if (Jigglydrunk.state === "conversation") {
+      if (PapaParty.state === "conversation") {
         const step = Math.floor(elapsed / DIALOGUE_LINE_DURATION);
 
         if (step <= 3) {
-          Jigglydrunk.conversationStep = step;
+          PapaParty.conversationStep = step;
         } else {
-          Jigglydrunk.state = "readyToSober";
-          Jigglydrunk.stateStartedAt = now;
+          PapaParty.state = "readyToSober";
+          PapaParty.stateStartedAt = now;
         }
 
         return;
       }
 
-      if (Jigglydrunk.state === "caught" && elapsed >= 6800) {
-        Jigglydrunk.state = "poof";
-        Jigglydrunk.stateStartedAt = now;
+      if (PapaParty.state === "caught" && elapsed >= 6800) {
+        PapaParty.state = "poof";
+        PapaParty.stateStartedAt = now;
       } else if (
-        Jigglydrunk.state === "poof" &&
+        PapaParty.state === "poof" &&
         elapsed >= 1600
       ) {
-        Jigglydrunk.state = "message";
-        Jigglydrunk.stateStartedAt = now;
+        PapaParty.state = "message";
+        PapaParty.stateStartedAt = now;
       } else if (
-        Jigglydrunk.state === "message" &&
+        PapaParty.state === "message" &&
         elapsed >= 4800
       ) {
-        Jigglydrunk.state = "hudSoberRoll";
-        Jigglydrunk.stateStartedAt = now;
+        PapaParty.state = "hudSoberRoll";
+        PapaParty.stateStartedAt = now;
         hudAnimationStartedAt = now;
       } else if (
-        Jigglydrunk.state === "hudSoberRoll" &&
+        PapaParty.state === "hudSoberRoll" &&
         elapsed >= SOBER_ROLL_DURATION
       ) {
         soberCounterDisplay = 0;
-        Jigglydrunk.state = "hudHeartRoll";
-        Jigglydrunk.stateStartedAt = now;
+        PapaParty.state = "hudHeartRoll";
+        PapaParty.stateStartedAt = now;
         hudAnimationStartedAt = now;
       } else if (
-        Jigglydrunk.state === "hudHeartRoll" &&
+        PapaParty.state === "hudHeartRoll" &&
         elapsed >= HEART_ROLL_DURATION
       ) {
-        friendsSobriety += Jigglydrunk.hearts;
+        friendsSobriety += PapaParty.hearts;
         jigglyTried = true;
-        triedCharacter = "jigglydrunk";
-        Jigglydrunk.state = "triedAdd";
-        Jigglydrunk.stateStartedAt = now;
+        triedCharacter = "papaParty";
+        PapaParty.state = "triedAdd";
+        PapaParty.stateStartedAt = now;
         triedAnimationStartedAt = now;
       } else if (
-        Jigglydrunk.state === "triedAdd" &&
+        PapaParty.state === "triedAdd" &&
         elapsed >= TRIED_ADD_DURATION
       ) {
-        Jigglydrunk.state = "returned";
-        Jigglydrunk.stateStartedAt = now;
+        PapaParty.state = "returned";
+        PapaParty.stateStartedAt = now;
         alignJigglyToTavern();
 
         pointerX = Bill.x;
@@ -1818,64 +1818,64 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       }
     }
 
-    function updatePukeeSequence() {
+    function updatePukerSequence() {
       const now = performance.now();
-      const elapsed = now - Pukee.stateStartedAt;
+      const elapsed = now - Puker.stateStartedAt;
 
-      if (Pukee.state === "conversation") {
+      if (Puker.state === "conversation") {
         const step = Math.floor(elapsed / DIALOGUE_LINE_DURATION);
 
         if (step <= 2) {
-          Pukee.conversationStep = step;
+          Puker.conversationStep = step;
         } else {
-          Pukee.state = "readyToSober";
-          Pukee.stateStartedAt = now;
+          Puker.state = "readyToSober";
+          Puker.stateStartedAt = now;
         }
 
         return;
       }
 
-      if (Pukee.state === "caught" && elapsed >= 6800) {
-        Pukee.state = "poof";
-        Pukee.stateStartedAt = now;
+      if (Puker.state === "caught" && elapsed >= 6800) {
+        Puker.state = "poof";
+        Puker.stateStartedAt = now;
       } else if (
-        Pukee.state === "poof" &&
+        Puker.state === "poof" &&
         elapsed >= 1600
       ) {
-        Pukee.state = "message";
-        Pukee.stateStartedAt = now;
+        Puker.state = "message";
+        Puker.stateStartedAt = now;
       } else if (
-        Pukee.state === "message" &&
+        Puker.state === "message" &&
         elapsed >= 4800
       ) {
-        Pukee.state = "hudSoberRoll";
-        Pukee.stateStartedAt = now;
+        Puker.state = "hudSoberRoll";
+        Puker.stateStartedAt = now;
         hudAnimationStartedAt = now;
       } else if (
-        Pukee.state === "hudSoberRoll" &&
+        Puker.state === "hudSoberRoll" &&
         elapsed >= SOBER_ROLL_DURATION
       ) {
         soberCounterDisplay = 0;
-        Pukee.state = "hudHeartRoll";
-        Pukee.stateStartedAt = now;
+        Puker.state = "hudHeartRoll";
+        Puker.stateStartedAt = now;
         hudAnimationStartedAt = now;
       } else if (
-        Pukee.state === "hudHeartRoll" &&
+        Puker.state === "hudHeartRoll" &&
         elapsed >= HEART_ROLL_DURATION
       ) {
-        friendsSobriety += Pukee.hearts;
-        pukeeTried = true;
-        triedCharacter = "pukee";
-        Pukee.state = "triedAdd";
-        Pukee.stateStartedAt = now;
+        friendsSobriety += Puker.hearts;
+        pukerTried = true;
+        triedCharacter = "puker";
+        Puker.state = "triedAdd";
+        Puker.stateStartedAt = now;
         triedAnimationStartedAt = now;
       } else if (
-        Pukee.state === "triedAdd" &&
+        Puker.state === "triedAdd" &&
         elapsed >= TRIED_ADD_DURATION
       ) {
-        Pukee.state = "returned";
-        Pukee.stateStartedAt = now;
-        alignPukeeToJazzClub();
+        Puker.state = "returned";
+        Puker.stateStartedAt = now;
+        alignPukerToJazzClub();
 
         pointerX = Bill.x;
         pointerY = Bill.y;
@@ -1946,63 +1946,63 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       }
     }
 
-    function updateDrunkachuSequence() {
+    function updateWasteCaseSequence() {
       const now = performance.now();
-      const elapsed = now - Drunkachu.stateStartedAt;
+      const elapsed = now - WasteCase.stateStartedAt;
 
-      if (Drunkachu.state === "conversation") {
+      if (WasteCase.state === "conversation") {
         const step = Math.floor(elapsed / DIALOGUE_LINE_DURATION);
 
         if (step <= 2) {
-          Drunkachu.conversationStep = step;
+          WasteCase.conversationStep = step;
         } else {
-          Drunkachu.state = "readyToSober";
-          Drunkachu.stateStartedAt = now;
+          WasteCase.state = "readyToSober";
+          WasteCase.stateStartedAt = now;
         }
 
         return;
       }
 
-      if (Drunkachu.state === "caught" && elapsed >= 6800) {
-        Drunkachu.state = "poof";
-        Drunkachu.stateStartedAt = now;
+      if (WasteCase.state === "caught" && elapsed >= 6800) {
+        WasteCase.state = "poof";
+        WasteCase.stateStartedAt = now;
       } else if (
-        Drunkachu.state === "poof" &&
+        WasteCase.state === "poof" &&
         elapsed >= 1600
       ) {
-        Drunkachu.state = "message";
-        Drunkachu.stateStartedAt = now;
+        WasteCase.state = "message";
+        WasteCase.stateStartedAt = now;
       } else if (
-        Drunkachu.state === "message" &&
+        WasteCase.state === "message" &&
         elapsed >= 4800
       ) {
-        Drunkachu.state = "hudSoberRoll";
-        Drunkachu.stateStartedAt = now;
+        WasteCase.state = "hudSoberRoll";
+        WasteCase.stateStartedAt = now;
         hudAnimationStartedAt = now;
       } else if (
-        Drunkachu.state === "hudSoberRoll" &&
+        WasteCase.state === "hudSoberRoll" &&
         elapsed >= SOBER_ROLL_DURATION
       ) {
         soberCounterDisplay = 0;
-        Drunkachu.state = "hudHeartRoll";
-        Drunkachu.stateStartedAt = now;
+        WasteCase.state = "hudHeartRoll";
+        WasteCase.stateStartedAt = now;
         hudAnimationStartedAt = now;
       } else if (
-        Drunkachu.state === "hudHeartRoll" &&
+        WasteCase.state === "hudHeartRoll" &&
         elapsed >= HEART_ROLL_DURATION
       ) {
-        friendsSobriety += Drunkachu.hearts;
-        drunkachuTried = true;
-        triedCharacter = "drunkachu";
-        Drunkachu.state = "triedAdd";
-        Drunkachu.stateStartedAt = now;
+        friendsSobriety += WasteCase.hearts;
+        wasteCaseTried = true;
+        triedCharacter = "wasteCase";
+        WasteCase.state = "triedAdd";
+        WasteCase.stateStartedAt = now;
         triedAnimationStartedAt = now;
       } else if (
-        Drunkachu.state === "triedAdd" &&
+        WasteCase.state === "triedAdd" &&
         elapsed >= TRIED_ADD_DURATION
       ) {
-        Drunkachu.state = "returned";
-        Drunkachu.stateStartedAt = now;
+        WasteCase.state = "returned";
+        WasteCase.stateStartedAt = now;
         pointerDown = false;
         pointerX = Bill.x;
         pointerY = Bill.y;
@@ -2178,11 +2178,11 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         return;
       }
 
-      Jigglydrunk.x = placement.x + placement.width / 2;
-      Jigglydrunk.y = placement.y + placement.height + 8;
+      PapaParty.x = placement.x + placement.width / 2;
+      PapaParty.y = placement.y + placement.height + 8;
     }
 
-    function alignPukeeToJazzClub() {
+    function alignPukerToJazzClub() {
       const jazzClub = Buildings.find(
         (building) => building.id === "rock"
       );
@@ -2195,8 +2195,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         return;
       }
 
-      Pukee.x = placement.x + placement.width / 2;
-      Pukee.y = Math.min(
+      Puker.x = placement.x + placement.width / 2;
+      Puker.y = Math.min(
         getHeight() - BOTTOM_UI_HEIGHT - 4,
         placement.y + placement.height + 8
       );
@@ -2232,11 +2232,11 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
     }
 
 
-    function alignDrunkachuToBuilding() {
-      Drunkachu.buildingIndex = Math.floor(Math.random() * Buildings.length);
-      Drunkachu.targetBuildingIndex = (Drunkachu.buildingIndex + 1) % Buildings.length;
-      Drunkachu.side = Math.random() < 0.5 ? -1 : 1;
-      positionDrunkachuAtBuilding(Drunkachu.buildingIndex, false);
+    function alignWasteCaseToBuilding() {
+      WasteCase.buildingIndex = Math.floor(Math.random() * Buildings.length);
+      WasteCase.targetBuildingIndex = (WasteCase.buildingIndex + 1) % Buildings.length;
+      WasteCase.side = Math.random() < 0.5 ? -1 : 1;
+      positionWasteCaseAtBuilding(WasteCase.buildingIndex, false);
     }
 
     function alignBillToHospital() {
@@ -2927,15 +2927,15 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       );
     }
 
-    function drawJigglydrunk() {
+    function drawPapaParty() {
       if (
-        Jigglydrunk.state === "waiting" ||
-        Jigglydrunk.state === "caught" ||
-        Jigglydrunk.state === "poof" ||
-        Jigglydrunk.state === "message" ||
-        Jigglydrunk.state === "hudSoberRoll" ||
-        Jigglydrunk.state === "hudHeartRoll" ||
-        Jigglydrunk.state === "triedAdd"
+        PapaParty.state === "waiting" ||
+        PapaParty.state === "caught" ||
+        PapaParty.state === "poof" ||
+        PapaParty.state === "message" ||
+        PapaParty.state === "hudSoberRoll" ||
+        PapaParty.state === "hudHeartRoll" ||
+        PapaParty.state === "triedAdd"
       ) {
         return;
       }
@@ -2947,17 +2947,17 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       }
 
       const now = performance.now();
-      const drinking = now < Jigglydrunk.drinkingUntil;
+      const drinking = now < PapaParty.drinkingUntil;
       const wobble =
         Math.sin(now / 150) * 0.06 +
         Math.sin(now / 310) * 0.025;
       const bob = Math.abs(Math.sin(now / 125)) * 2.5;
       const drinkTilt = drinking ? -0.13 : 0;
 
-      if (nearbyDrunk === Jigglydrunk) {
+      if (nearbyDrunk === PapaParty) {
         drawInteractionRays(
-          Jigglydrunk.x,
-          Jigglydrunk.y - Jigglydrunk.height / 2,
+          PapaParty.x,
+          PapaParty.y - PapaParty.height / 2,
           placement.width,
           placement.height
         );
@@ -2965,18 +2965,18 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
       ctx.save();
       ctx.translate(
-        Jigglydrunk.x,
-        Jigglydrunk.y - Jigglydrunk.height / 2 - bob
+        PapaParty.x,
+        PapaParty.y - PapaParty.height / 2 - bob
       );
       ctx.rotate(wobble + drinkTilt);
       ctx.imageSmoothingEnabled = false;
 
       ctx.drawImage(
-        Assets.jigglydrunk,
+        Assets.papaParty,
         0,
         0,
-        Assets.jigglydrunk.naturalWidth,
-        Assets.jigglydrunk.naturalHeight,
+        Assets.papaParty.naturalWidth,
+        Assets.papaParty.naturalHeight,
         -placement.width / 2,
         -placement.height / 2,
         placement.width,
@@ -3009,38 +3009,38 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       }
 
       const nearbyElapsed =
-        Jigglydrunk.nearbySince > 0
-          ? now - Jigglydrunk.nearbySince
+        PapaParty.nearbySince > 0
+          ? now - PapaParty.nearbySince
           : 0;
 
       if (
-        Jigglydrunk.state === "wander" &&
-        nearbyDrunk === Jigglydrunk &&
+        PapaParty.state === "wander" &&
+        nearbyDrunk === PapaParty &&
         nearbyElapsed >= HINT_DELAY
       ) {
         drawSpeechBubble(
-          Math.max(5, Jigglydrunk.x - 48),
+          Math.max(5, PapaParty.x - 48),
           Math.max(55, placement.y - 48),
           96,
           ["TAP ME!"],
-          Jigglydrunk.x,
-          Jigglydrunk.y - Jigglydrunk.height * 0.35,
+          PapaParty.x,
+          PapaParty.y - PapaParty.height * 0.35,
           "#ffffff"
         );
       }
 
-      if (Jigglydrunk.state === "conversation") {
-        if (Jigglydrunk.conversationStep === 0) {
+      if (PapaParty.state === "conversation") {
+        if (PapaParty.conversationStep === 0) {
           drawLabeledSpeechBubble(
-            "JIGGLYDRUNK",
-            Math.max(5, Jigglydrunk.x - 100),
+            "PAPA PARTY",
+            Math.max(5, PapaParty.x - 100),
             Math.max(55, placement.y - 76),
             200,
             ["HEY PAL... DRINK A", "COLD ONE WITH ME!"],
-            Jigglydrunk.x,
-            Jigglydrunk.y - Jigglydrunk.height * 0.35
+            PapaParty.x,
+            PapaParty.y - PapaParty.height * 0.35
           );
-        } else if (Jigglydrunk.conversationStep === 1) {
+        } else if (PapaParty.conversationStep === 1) {
           drawLabeledSpeechBubble(
             "OUR FRIEND",
             Math.max(5, Bill.x - 104),
@@ -3054,87 +3054,87 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
             Bill.x,
             Bill.y - BILL_HEIGHT * 0.55
           );
-        } else if (Jigglydrunk.conversationStep === 2) {
+        } else if (PapaParty.conversationStep === 2) {
           drawLabeledSpeechBubble(
-            "JIGGLYDRUNK",
-            Math.max(5, Jigglydrunk.x - 105),
+            "PAPA PARTY",
+            Math.max(5, PapaParty.x - 105),
             Math.max(55, placement.y - 78),
             210,
             ["SOLUTION? I SEE NO", "PROBLEM HERE!"],
-            Jigglydrunk.x,
-            Jigglydrunk.y - Jigglydrunk.height * 0.35
+            PapaParty.x,
+            PapaParty.y - PapaParty.height * 0.35
           );
         } else {
           drawLabeledSpeechBubble(
-            "JIGGLYDRUNK",
-            Math.max(5, Jigglydrunk.x - 72),
+            "PAPA PARTY",
+            Math.max(5, PapaParty.x - 72),
             Math.max(55, placement.y - 62),
             144,
             ["*BUUUURP!*"],
-            Jigglydrunk.x,
-            Jigglydrunk.y - Jigglydrunk.height * 0.35
+            PapaParty.x,
+            PapaParty.y - PapaParty.height * 0.35
           );
         }
       }
 
-      if (Jigglydrunk.state === "readyToSober") {
+      if (PapaParty.state === "readyToSober") {
         drawLabeledSpeechBubble(
-          "JIGGLYDRUNK",
-          Math.max(5, Jigglydrunk.x - 72),
+          "PAPA PARTY",
+          Math.max(5, PapaParty.x - 72),
           Math.max(55, placement.y - 62),
           144,
           ["*BUUUURP!*"],
-          Jigglydrunk.x,
-          Jigglydrunk.y - Jigglydrunk.height * 0.35
+          PapaParty.x,
+          PapaParty.y - PapaParty.height * 0.35
         );
 
         drawSoberButton();
       }
       drawReturnedDismissal(
-        Jigglydrunk,
+        PapaParty,
         placement,
-        "JIGGLYDRUNK"
+        "PAPA PARTY"
       );
     }
 
-    function drawPukee() {
+    function drawPuker() {
       if (
-        Pukee.state === "waiting" ||
-        Pukee.state === "caught" ||
-        Pukee.state === "poof" ||
-        Pukee.state === "message" ||
-        Pukee.state === "hudSoberRoll" ||
-        Pukee.state === "hudHeartRoll" ||
-        Pukee.state === "triedAdd"
+        Puker.state === "waiting" ||
+        Puker.state === "caught" ||
+        Puker.state === "poof" ||
+        Puker.state === "message" ||
+        Puker.state === "hudSoberRoll" ||
+        Puker.state === "hudHeartRoll" ||
+        Puker.state === "triedAdd"
       ) {
         return;
       }
 
-      const placement = pukeePlacement();
+      const placement = pukerPlacement();
       if (!placement) return;
 
       const now = performance.now();
       const wobble = Math.sin(now / 120) * 0.07;
       const bob = Math.abs(Math.sin(now / 105)) * 2.5;
 
-      if (nearbyDrunk === Pukee) {
+      if (nearbyDrunk === Puker) {
         drawInteractionRays(
-          Pukee.x,
-          Pukee.y - Pukee.height / 2,
+          Puker.x,
+          Puker.y - Puker.height / 2,
           placement.width,
           placement.height
         );
       }
 
       ctx.save();
-      ctx.translate(Pukee.x, Pukee.y - Pukee.height / 2 - bob);
+      ctx.translate(Puker.x, Puker.y - Puker.height / 2 - bob);
       ctx.rotate(wobble);
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(
-        Assets.pukee,
+        Assets.puker,
         0, 0,
-        Assets.pukee.naturalWidth,
-        Assets.pukee.naturalHeight,
+        Assets.puker.naturalWidth,
+        Assets.puker.naturalHeight,
         -placement.width / 2,
         -placement.height / 2,
         placement.width,
@@ -3143,36 +3143,36 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       ctx.restore();
 
       const nearbyElapsed =
-        Pukee.nearbySince > 0 ? now - Pukee.nearbySince : 0;
+        Puker.nearbySince > 0 ? now - Puker.nearbySince : 0;
 
       if (
-        Pukee.state === "wander" &&
-        nearbyDrunk === Pukee &&
+        Puker.state === "wander" &&
+        nearbyDrunk === Puker &&
         nearbyElapsed >= HINT_DELAY
       ) {
         drawSpeechBubble(
-          Math.max(5, Pukee.x - 48),
+          Math.max(5, Puker.x - 48),
           Math.max(55, placement.y - 48),
           96,
           ["TAP ME!"],
-          Pukee.x,
-          Pukee.y - Pukee.height * 0.35,
+          Puker.x,
+          Puker.y - Puker.height * 0.35,
           "#ffffff"
         );
       }
 
-      if (Pukee.state === "conversation") {
-        if (Pukee.conversationStep === 0) {
+      if (Puker.state === "conversation") {
+        if (Puker.conversationStep === 0) {
           drawLabeledSpeechBubble(
-            "PUKEE",
-            Math.max(5, Pukee.x - 94),
+            "PUKER",
+            Math.max(5, Puker.x - 94),
             Math.max(55, placement.y - 68),
             188,
             ["BLEEEEECCCCH!", "GURGLE!"],
-            Pukee.x,
-            Pukee.y - Pukee.height * 0.35
+            Puker.x,
+            Puker.y - Puker.height * 0.35
           );
-        } else if (Pukee.conversationStep === 1) {
+        } else if (Puker.conversationStep === 1) {
           drawLabeledSpeechBubble(
             "OUR FRIEND",
             Math.max(5, Bill.x - 104),
@@ -3184,32 +3184,32 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
           );
         } else {
           drawLabeledSpeechBubble(
-            "PUKEE",
-            Math.max(5, Pukee.x - 72),
+            "PUKER",
+            Math.max(5, Puker.x - 72),
             Math.max(55, placement.y - 62),
             144,
             ["YAAAAACK!"],
-            Pukee.x,
-            Pukee.y - Pukee.height * 0.35
+            Puker.x,
+            Puker.y - Puker.height * 0.35
           );
         }
       }
 
-      if (Pukee.state === "readyToSober") {
+      if (Puker.state === "readyToSober") {
         drawLabeledSpeechBubble(
-          "PUKEE",
-          Math.max(5, Pukee.x - 72),
+          "PUKER",
+          Math.max(5, Puker.x - 72),
           Math.max(55, placement.y - 62),
           144,
           ["YAAAAACK!"],
-          Pukee.x,
-          Pukee.y - Pukee.height * 0.35
+          Puker.x,
+          Puker.y - Puker.height * 0.35
         );
         drawSoberButton();
       }
     }
 
-    function drawDrunkachuGlow(x, y, width, height) {
+    function drawWasteCaseGlow(x, y, width, height) {
       const now = performance.now();
       ctx.save();
       ctx.translate(x, y);
@@ -3235,69 +3235,69 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       ctx.restore();
     }
 
-    function drawDrunkachuSprite() {
-      const placement = drunkachuPlacement();
+    function drawWasteCaseSprite() {
+      const placement = wasteCasePlacement();
       if (!placement) return;
       const now = performance.now();
       const bob = Math.abs(Math.sin(now / 95)) * 2;
       const wobble = Math.sin(now / 130) * 0.055;
-      drawDrunkachuGlow(Drunkachu.x, Drunkachu.y - Drunkachu.height / 2, placement.width, placement.height);
+      drawWasteCaseGlow(WasteCase.x, WasteCase.y - WasteCase.height / 2, placement.width, placement.height);
       ctx.save();
-      ctx.translate(Drunkachu.x, Drunkachu.y - Drunkachu.height / 2 - bob);
+      ctx.translate(WasteCase.x, WasteCase.y - WasteCase.height / 2 - bob);
       ctx.rotate(wobble);
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(Assets.drunkachu, 0, 0, Assets.drunkachu.naturalWidth, Assets.drunkachu.naturalHeight, -placement.width / 2, -placement.height / 2, placement.width, placement.height);
+      ctx.drawImage(Assets.wasteCase, 0, 0, Assets.wasteCase.naturalWidth, Assets.wasteCase.naturalHeight, -placement.width / 2, -placement.height / 2, placement.width, placement.height);
       ctx.restore();
     }
 
-    function drawDrunkachuBehindBuildings() {
+    function drawWasteCaseBehindBuildings() {
       // During a dash, draw him before the buildings so he appears to
       // streak behind them instead of colliding with sprites on top.
       if (
-        drunkachuUnlockedForAppearance() &&
-        Drunkachu.state === "scurry"
+        wasteCaseUnlockedForAppearance() &&
+        WasteCase.state === "scurry"
       ) {
-        drawDrunkachuSprite();
+        drawWasteCaseSprite();
       }
     }
 
-    function drawDrunkachu() {
-      if (!drunkachuUnlockedForAppearance()) {
+    function drawWasteCase() {
+      if (!wasteCaseUnlockedForAppearance()) {
         return;
       }
 
-      if (["hide", "hidden", "peek", "waiting", "scurry", "caught", "poof", "message", "hudSoberRoll", "hudHeartRoll", "triedAdd", "returned"].includes(Drunkachu.state)) return;
-      const placement = drunkachuPlacement();
+      if (["hide", "hidden", "peek", "waiting", "scurry", "caught", "poof", "message", "hudSoberRoll", "hudHeartRoll", "triedAdd", "returned"].includes(WasteCase.state)) return;
+      const placement = wasteCasePlacement();
       if (!placement) return;
-      if (nearbyDrunk === Drunkachu) drawInteractionRays(Drunkachu.x, Drunkachu.y - Drunkachu.height / 2, placement.width, placement.height);
-      drawDrunkachuSprite();
+      if (nearbyDrunk === WasteCase) drawInteractionRays(WasteCase.x, WasteCase.y - WasteCase.height / 2, placement.width, placement.height);
+      drawWasteCaseSprite();
       const now = performance.now();
-      const nearbyElapsed = Drunkachu.nearbySince > 0 ? now - Drunkachu.nearbySince : 0;
+      const nearbyElapsed = WasteCase.nearbySince > 0 ? now - WasteCase.nearbySince : 0;
 
-      if (Drunkachu.state === "scurry" && now < Drunkachu.moveShoutUntil) {
+      if (WasteCase.state === "scurry" && now < WasteCase.moveShoutUntil) {
         drawLabeledSpeechBubble(
-          "DRUNKACHU",
-          Math.max(5, Drunkachu.x - 72),
+          "WASTE CASE",
+          Math.max(5, WasteCase.x - 72),
           Math.max(55, placement.y - 52),
           144,
           ["PARTAAAY!"],
-          Drunkachu.x,
-          Drunkachu.y - Drunkachu.height * 0.35
+          WasteCase.x,
+          WasteCase.y - WasteCase.height * 0.35
         );
       }
 
-      if (Drunkachu.state === "wander" && nearbyDrunk === Drunkachu && nearbyElapsed >= HINT_DELAY) {
-        drawSpeechBubble(Math.max(5, Drunkachu.x - 48), Math.max(55, placement.y - 48), 96, ["TAP ME!"], Drunkachu.x, Drunkachu.y - Drunkachu.height * 0.35, "#fff8ad");
+      if (WasteCase.state === "wander" && nearbyDrunk === WasteCase && nearbyElapsed >= HINT_DELAY) {
+        drawSpeechBubble(Math.max(5, WasteCase.x - 48), Math.max(55, placement.y - 48), 96, ["TAP ME!"], WasteCase.x, WasteCase.y - WasteCase.height * 0.35, "#fff8ad");
       }
-      if (Drunkachu.state === "conversation") {
-        if (Drunkachu.conversationStep === 0 || Drunkachu.conversationStep === 2) {
-          drawLabeledSpeechBubble("DRUNKACHU", Math.max(5, Drunkachu.x - 82), Math.max(55, placement.y - 64), 164, ["PARTAAAY!"], Drunkachu.x, Drunkachu.y - Drunkachu.height * 0.35);
+      if (WasteCase.state === "conversation") {
+        if (WasteCase.conversationStep === 0 || WasteCase.conversationStep === 2) {
+          drawLabeledSpeechBubble("WASTE CASE", Math.max(5, WasteCase.x - 82), Math.max(55, placement.y - 64), 164, ["PARTAAAY!"], WasteCase.x, WasteCase.y - WasteCase.height * 0.35);
         } else {
           drawLabeledSpeechBubble("OUR FRIEND", Math.max(5, Bill.x - 104), Math.max(55, Bill.y - BILL_HEIGHT - 92), 208, ["GOOD NEWS!", "I FOUND THE SOLUTION", "TO YOUR DRUNKENNESS!"], Bill.x, Bill.y - BILL_HEIGHT * 0.55);
         }
       }
-      if (Drunkachu.state === "readyToSober") {
-        drawLabeledSpeechBubble("DRUNKACHU", Math.max(5, Drunkachu.x - 82), Math.max(55, placement.y - 64), 164, ["PARTAAAY!"], Drunkachu.x, Drunkachu.y - Drunkachu.height * 0.35);
+      if (WasteCase.state === "readyToSober") {
+        drawLabeledSpeechBubble("WASTE CASE", Math.max(5, WasteCase.x - 82), Math.max(55, placement.y - 64), 164, ["PARTAAAY!"], WasteCase.x, WasteCase.y - WasteCase.height * 0.35);
         drawSoberButton();
       }
     }
@@ -3811,20 +3811,20 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
     function drawJigglyCatchSequence() {
       if (
-        Jigglydrunk.state !== "caught" &&
-        Jigglydrunk.state !== "poof" &&
-        Jigglydrunk.state !== "message"
+        PapaParty.state !== "caught" &&
+        PapaParty.state !== "poof" &&
+        PapaParty.state !== "message"
       ) {
         return;
       }
 
       const centerX = getWidth() / 2;
       const centerY = getHeight() / 2 - 12;
-      const elapsed = performance.now() - Jigglydrunk.stateStartedAt;
+      const elapsed = performance.now() - PapaParty.stateStartedAt;
 
       ctx.save();
 
-      if (Jigglydrunk.state === "poof" && elapsed < 420) {
+      if (PapaParty.state === "poof" && elapsed < 420) {
         const shakeStrength = 4 * (1 - elapsed / 420);
         ctx.translate(
           Math.sin(elapsed / 22) * shakeStrength,
@@ -3840,7 +3840,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         getHeight() + 12
       );
 
-      if (Jigglydrunk.state === "caught") {
+      if (PapaParty.state === "caught") {
         /*
           Three-part catch illusion:
           1. Corker is pulled toward the center as though entering a collection.
@@ -3908,7 +3908,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
         ctx.restore();
 
-        const image = Assets.jigglydrunk;
+        const image = Assets.papaParty;
 
         /*
           Pull from large to collection-size, then grow slightly while
@@ -4005,8 +4005,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         ctx.fillText("YOU TRIED TO SOBER UP", centerX, 95);
 
         ctx.font = "bold 27px monospace";
-        ctx.strokeText("JIGGLYDRUNK!", centerX, 132);
-        ctx.fillText("JIGGLYDRUNK!", centerX, 132);
+        ctx.strokeText("PAPA PARTY!", centerX, 132);
+        ctx.fillText("PAPA PARTY!", centerX, 132);
 
         if (struggleProgress > 0.18) {
           const warningAlpha =
@@ -4029,10 +4029,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
           ctx.fillRect(0, 0, getWidth(), getHeight());
           ctx.globalAlpha = 1;
         }
-      } else if (Jigglydrunk.state === "poof") {
+      } else if (PapaParty.state === "poof") {
         const progress = Math.min(1, elapsed / 1300);
         drawPoofCloud(centerX, centerY, progress);
-      } else if (Jigglydrunk.state === "message") {
+      } else if (PapaParty.state === "message") {
         const boxWidth = Math.min(getWidth() - 30, 330);
         const boxHeight = 142;
         const boxX = (getWidth() - boxWidth) / 2;
@@ -4058,7 +4058,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
         ctx.font = "bold 18px monospace";
         ctx.fillText(
-          "JIGGLYDRUNK ESCAPED!",
+          "PAPA PARTY ESCAPED!",
           centerX,
           boxY + 40
         );
@@ -4081,22 +4081,22 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       ctx.restore();
     }
 
-    function drawPukeeCatchSequence() {
+    function drawPukerCatchSequence() {
       if (
-        Pukee.state !== "caught" &&
-        Pukee.state !== "poof" &&
-        Pukee.state !== "message"
+        Puker.state !== "caught" &&
+        Puker.state !== "poof" &&
+        Puker.state !== "message"
       ) {
         return;
       }
 
       const centerX = getWidth() / 2;
       const centerY = getHeight() / 2 - 12;
-      const elapsed = performance.now() - Pukee.stateStartedAt;
+      const elapsed = performance.now() - Puker.stateStartedAt;
 
       ctx.save();
 
-      if (Pukee.state === "poof" && elapsed < 420) {
+      if (Puker.state === "poof" && elapsed < 420) {
         const shakeStrength = 4 * (1 - elapsed / 420);
         ctx.translate(
           Math.sin(elapsed / 22) * shakeStrength,
@@ -4112,7 +4112,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         getHeight() + 12
       );
 
-      if (Pukee.state === "caught") {
+      if (Puker.state === "caught") {
         /*
           Three-part catch illusion:
           1. Corker is pulled toward the center as though entering a collection.
@@ -4180,7 +4180,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
         ctx.restore();
 
-        const image = Assets.pukee;
+        const image = Assets.puker;
 
         /*
           Pull from large to collection-size, then grow slightly while
@@ -4277,8 +4277,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         ctx.fillText("YOU TRIED TO SOBER UP", centerX, 95);
 
         ctx.font = "bold 27px monospace";
-        ctx.strokeText("PUKEE!", centerX, 132);
-        ctx.fillText("PUKEE!", centerX, 132);
+        ctx.strokeText("PUKER!", centerX, 132);
+        ctx.fillText("PUKER!", centerX, 132);
 
         if (struggleProgress > 0.18) {
           const warningAlpha =
@@ -4301,10 +4301,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
           ctx.fillRect(0, 0, getWidth(), getHeight());
           ctx.globalAlpha = 1;
         }
-      } else if (Pukee.state === "poof") {
+      } else if (Puker.state === "poof") {
         const progress = Math.min(1, elapsed / 1300);
         drawPoofCloud(centerX, centerY, progress);
-      } else if (Pukee.state === "message") {
+      } else if (Puker.state === "message") {
         const boxWidth = Math.min(getWidth() - 30, 330);
         const boxHeight = 142;
         const boxX = (getWidth() - boxWidth) / 2;
@@ -4330,7 +4330,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
         ctx.font = "bold 18px monospace";
         ctx.fillText(
-          "PUKEE ESCAPED!",
+          "PUKER ESCAPED!",
           centerX,
           boxY + 40
         );
@@ -4897,22 +4897,22 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       ctx.restore();
     }
 
-    function drawDrunkachuCatchSequence() {
+    function drawWasteCaseCatchSequence() {
       if (
-        Drunkachu.state !== "caught" &&
-        Drunkachu.state !== "poof" &&
-        Drunkachu.state !== "message"
+        WasteCase.state !== "caught" &&
+        WasteCase.state !== "poof" &&
+        WasteCase.state !== "message"
       ) {
         return;
       }
 
       const centerX = getWidth() / 2;
       const centerY = getHeight() / 2 - 12;
-      const elapsed = performance.now() - Drunkachu.stateStartedAt;
+      const elapsed = performance.now() - WasteCase.stateStartedAt;
 
       ctx.save();
 
-      if (Drunkachu.state === "poof" && elapsed < 420) {
+      if (WasteCase.state === "poof" && elapsed < 420) {
         const shakeStrength = 4 * (1 - elapsed / 420);
         ctx.translate(
           Math.sin(elapsed / 22) * shakeStrength,
@@ -4928,7 +4928,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         getHeight() + 12
       );
 
-      if (Drunkachu.state === "caught") {
+      if (WasteCase.state === "caught") {
         /*
           Three-part catch illusion:
           1. Corker is pulled toward the center as though entering a collection.
@@ -4996,7 +4996,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
         ctx.restore();
 
-        const image = Assets.drunkachu;
+        const image = Assets.wasteCase;
 
         /*
           Pull from large to collection-size, then grow slightly while
@@ -5093,8 +5093,8 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         ctx.fillText("YOU TRIED TO SOBER UP", centerX, 95);
 
         ctx.font = "bold 27px monospace";
-        ctx.strokeText("DRUNKACHU!", centerX, 132);
-        ctx.fillText("DRUNKACHU!", centerX, 132);
+        ctx.strokeText("WASTE CASE!", centerX, 132);
+        ctx.fillText("WASTE CASE!", centerX, 132);
 
         if (struggleProgress > 0.18) {
           const warningAlpha =
@@ -5117,10 +5117,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
           ctx.fillRect(0, 0, getWidth(), getHeight());
           ctx.globalAlpha = 1;
         }
-      } else if (Drunkachu.state === "poof") {
+      } else if (WasteCase.state === "poof") {
         const progress = Math.min(1, elapsed / 1300);
         drawPoofCloud(centerX, centerY, progress);
-      } else if (Drunkachu.state === "message") {
+      } else if (WasteCase.state === "message") {
         const boxWidth = Math.min(getWidth() - 30, 330);
         const boxHeight = 142;
         const boxX = (getWidth() - boxWidth) / 2;
@@ -5146,7 +5146,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
         ctx.font = "bold 18px monospace";
         ctx.fillText(
-          "DRUNKACHU ESCAPED!",
+          "WASTE CASE ESCAPED!",
           centerX,
           boxY + 40
         );
@@ -5285,7 +5285,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         }
       }
 
-      // Collection fills left to right: Corker, Jigglydrunk, Pukee, then future drunks.
+      // Collection fills left to right: Corker, PapaParty, Puker, then future drunks.
       drawTriedPortrait(
         Assets.corker,
         0,
@@ -5294,17 +5294,17 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       );
 
       drawTriedPortrait(
-        Assets.jigglydrunk,
+        Assets.papaParty,
         1,
         jigglyTried,
-        triedCharacter === "jigglydrunk" && Jigglydrunk.state === "triedAdd"
+        triedCharacter === "papaParty" && PapaParty.state === "triedAdd"
       );
 
       drawTriedPortrait(
-        Assets.pukee,
+        Assets.puker,
         2,
-        pukeeTried,
-        triedCharacter === "pukee" && Pukee.state === "triedAdd"
+        pukerTried,
+        triedCharacter === "puker" && Puker.state === "triedAdd"
       );
 
 
@@ -5323,10 +5323,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       );
 
       drawTriedPortrait(
-        Assets.drunkachu,
+        Assets.wasteCase,
         5,
-        drunkachuTried,
-        triedCharacter === "drunkachu" && Drunkachu.state === "triedAdd"
+        wasteCaseTried,
+        triedCharacter === "wasteCase" && WasteCase.state === "triedAdd"
       );
 
       ctx.restore();
@@ -5337,19 +5337,19 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       const now = performance.now();
       const soberRolling =
         Corker.state === "hudSoberRoll" ||
-        Jigglydrunk.state === "hudSoberRoll" ||
-        Pukee.state === "hudSoberRoll" ||
+        PapaParty.state === "hudSoberRoll" ||
+        Puker.state === "hudSoberRoll" ||
         Barfly.state === "hudSoberRoll" ||
         Tank.state === "hudSoberRoll" ||
-        Drunkachu.state === "hudSoberRoll";
+        WasteCase.state === "hudSoberRoll";
 
       const heartRolling =
         Corker.state === "hudHeartRoll" ||
-        Jigglydrunk.state === "hudHeartRoll" ||
-        Pukee.state === "hudHeartRoll" ||
+        PapaParty.state === "hudHeartRoll" ||
+        Puker.state === "hudHeartRoll" ||
         Barfly.state === "hudHeartRoll" ||
         Tank.state === "hudHeartRoll" ||
-        Drunkachu.state === "hudHeartRoll";
+        WasteCase.state === "hudHeartRoll";
 
       if (soberRolling) {
         const elapsed = now - hudAnimationStartedAt;
@@ -5364,10 +5364,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       const rollingHearts =
         Barfly.state === "hudHeartRoll"
           ? Barfly.hearts
-          : Pukee.state === "hudHeartRoll"
-            ? Pukee.hearts
-            : Jigglydrunk.state === "hudHeartRoll"
-              ? Jigglydrunk.hearts
+          : Puker.state === "hudHeartRoll"
+            ? Puker.hearts
+            : PapaParty.state === "hudHeartRoll"
+              ? PapaParty.hearts
               : Corker.hearts;
 
       const heartPreview =
@@ -5790,10 +5790,10 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       hudAnimationStartedAt = 0;
       corkerTried = false;
       jigglyTried = false;
-      pukeeTried = false;
+      pukerTried = false;
       barflyTried = false;
       tankTried = false;
-      drunkachuTried = false;
+      wasteCaseTried = false;
       triedAnimationStartedAt = 0;
       triedCharacter = null;
 
@@ -5809,27 +5809,27 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       Corker.nearbySince = 0;
       Corker.conversationStep = 0;
 
-      Jigglydrunk.x = 280;
-      Jigglydrunk.y = 300;
-      Jigglydrunk.state = "waiting";
-      Jigglydrunk.stateStartedAt = performance.now();
-      Jigglydrunk.nearbySince = 0;
-      Jigglydrunk.conversationStep = 0;
-      Jigglydrunk.direction = 1;
-      Jigglydrunk.turnAt = 0;
-      Jigglydrunk.drinkAt = 0;
-      Jigglydrunk.drinkingUntil = 0;
-      Jigglydrunk.tried = false;
+      PapaParty.x = 280;
+      PapaParty.y = 300;
+      PapaParty.state = "waiting";
+      PapaParty.stateStartedAt = performance.now();
+      PapaParty.nearbySince = 0;
+      PapaParty.conversationStep = 0;
+      PapaParty.direction = 1;
+      PapaParty.turnAt = 0;
+      PapaParty.drinkAt = 0;
+      PapaParty.drinkingUntil = 0;
+      PapaParty.tried = false;
 
-      Pukee.x = 92;
-      Pukee.y = 300;
-      Pukee.state = "waiting";
-      Pukee.stateStartedAt = performance.now();
-      Pukee.nearbySince = 0;
-      Pukee.conversationStep = 0;
-      Pukee.direction = 1;
-      Pukee.turnAt = 0;
-      Pukee.tried = false;
+      Puker.x = 92;
+      Puker.y = 300;
+      Puker.state = "waiting";
+      Puker.stateStartedAt = performance.now();
+      Puker.nearbySince = 0;
+      Puker.conversationStep = 0;
+      Puker.direction = 1;
+      Puker.turnAt = 0;
+      Puker.tried = false;
 
       Barfly.x = 0;
       Barfly.y = 0;
@@ -5851,28 +5851,28 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       Tank.tried = false;
 
 
-      Drunkachu.x = 0;
-      Drunkachu.y = 0;
-      Drunkachu.state = "hide";
-      Drunkachu.stateStartedAt = performance.now();
-      Drunkachu.nearbySince = 0;
-      Drunkachu.conversationStep = 0;
-      Drunkachu.buildingIndex = 0;
-      Drunkachu.targetBuildingIndex = 1;
-      Drunkachu.side = 1;
-      Drunkachu.nextActionAt = 0;
-      Drunkachu.moveShoutUntil = 0;
-      Drunkachu.tried = false;
+      WasteCase.x = 0;
+      WasteCase.y = 0;
+      WasteCase.state = "hide";
+      WasteCase.stateStartedAt = performance.now();
+      WasteCase.nearbySince = 0;
+      WasteCase.conversationStep = 0;
+      WasteCase.buildingIndex = 0;
+      WasteCase.targetBuildingIndex = 1;
+      WasteCase.side = 1;
+      WasteCase.nextActionAt = 0;
+      WasteCase.moveShoutUntil = 0;
+      WasteCase.tried = false;
 
       billPromptText = [];
       billPromptUntil = 0;
       lastPromptTriedCount = 0;
 
       alignJigglyToTavern();
-      alignPukeeToJazzClub();
+      alignPukerToJazzClub();
       alignBarflyToBar();
       alignTankToPool();
-      alignDrunkachuToBuilding();
+      alignWasteCaseToBuilding();
       installMovementInput();
     }
 
@@ -5893,24 +5893,24 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       updateNormalDrunkPopulation();
       updateCorkerMovement();
       updateJigglyMovement();
-      updatePukeeMovement();
+      updatePukerMovement();
       updateBarflyMovement();
       updateTankMovement();
       keepDrunksSeparated();
-      updateDrunkachuMovement();
+      updateWasteCaseMovement();
       updateNearbyBuilding();
       updateNearbyDrunk();
-      updateNearbyJigglydrunk();
-      updateNearbyPukee();
+      updateNearbyPapaParty();
+      updateNearbyPuker();
       updateNearbyBarfly();
       updateNearbyTank();
-      updateNearbyDrunkachu();
+      updateNearbyWasteCase();
       updateCorkerSequence();
       updateJigglySequence();
-      updatePukeeSequence();
+      updatePukerSequence();
       updateBarflySequence();
       updateTankSequence();
-      updateDrunkachuSequence();
+      updateWasteCaseSequence();
 
       const currentTriedCount = normalDrunksTriedCount();
       if (currentTriedCount > lastPromptTriedCount) {
@@ -5921,7 +5921,7 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
 
     function draw() {
       drawBackground();
-      drawDrunkachuBehindBuildings();
+      drawWasteCaseBehindBuildings();
       drawBuildings();
 
       // Keep the title/logo behind every character and speech bubble.
@@ -5929,19 +5929,19 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
       drawTitle();
 
       drawCorker();
-      drawJigglydrunk();
-      drawPukee();
+      drawPapaParty();
+      drawPuker();
       drawBarfly();
       drawTank();
-      drawDrunkachu();
+      drawWasteCase();
       drawBill();
       drawBillPrompt();
       drawCorkerCatchSequence();
       drawJigglyCatchSequence();
-      drawPukeeCatchSequence();
+      drawPukerCatchSequence();
       drawBarflyCatchSequence();
       drawTankCatchSequence();
-      drawDrunkachuCatchSequence();
+      drawWasteCaseCatchSequence();
       drawTriedCollection();
       drawHud();
 

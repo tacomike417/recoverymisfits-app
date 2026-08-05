@@ -855,6 +855,9 @@
         stopBackgroundMusic,
         playClickFeedback,
         playPickupFeedback,
+        chapterNumber,
+        currentChapter,
+        finishChapter,
         setGameState: (nextState) => {
           gameState = nextState;
         }
