@@ -8,12 +8,23 @@
 
 <style>
   html, body{
-    margin:0; padding:0; height:100%;
+    margin:0; padding:0; width:100%; height:100%;
     background:#000; overflow:hidden;
     font-family:"Press Start 2P", monospace;
     touch-action:none;
   }
-  canvas{ display:block; width:100vw; height:100vh; }
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  canvas{
+    display:block;
+    width:390px;
+    height:780px;
+    max-width:100vw;
+    max-height:100vh;
+  }
 
   #pauseBtn, #shareBtn{
     position:fixed;
@@ -39,7 +50,11 @@
 <canvas id="game"></canvas>
 
 <audio id="bgm" loop preload="auto">
-  <source src="E-Lot%20-%208-Bit%20Boss.mp3" type="audio/mpeg">
+  <source src="./assets-trudge/E-Lot%20-%208-Bit%20Boss.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="meditationBgm" preload="auto">
+  <source src="./assets-trudge/warp-world.mp3" type="audio/mpeg">
 </audio>
 
 <button id="pauseBtn">PAUSE / BREATHE</button>
@@ -50,42 +65,72 @@
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
   const bgm = document.getElementById("bgm");
+  const meditationBgm = document.getElementById("meditationBgm");
   const pauseBtn = document.getElementById("pauseBtn");
   const shareBtn = document.getElementById("shareBtn");
 
-  // ===== screen size in CSS pixels =====
-  let W = 0, H = 0;
+  // ===== fixed mobile playfield =====
+  const GAME_W = 390;
+  const GAME_H = 780;
+  let W = GAME_W, H = GAME_H;
+
   function resize(){
-    const rect = canvas.getBoundingClientRect();
-    W = Math.max(1, Math.floor(rect.width));
-    H = Math.max(1, Math.floor(rect.height));
+    const scale = Math.min(window.innerWidth / GAME_W, window.innerHeight / GAME_H);
+    const cssW = Math.max(1, Math.floor(GAME_W * scale));
+    const cssH = Math.max(1, Math.floor(GAME_H * scale));
+
+    canvas.style.width = `${cssW}px`;
+    canvas.style.height = `${cssH}px`;
+
     const dpr = Math.max(1, window.devicePixelRatio || 1);
-    canvas.width  = Math.floor(W * dpr);
-    canvas.height = Math.floor(H * dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+    canvas.width = Math.floor(GAME_W * dpr);
+    canvas.height = Math.floor(GAME_H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const rect = canvas.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    pauseBtn.style.left = `${centerX}px`;
+    pauseBtn.style.top = `${Math.max(rect.top + 8, rect.bottom - 52)}px`;
+    pauseBtn.style.bottom = "auto";
+    shareBtn.style.left = `${centerX}px`;
+    shareBtn.style.top = `${Math.max(rect.top + 8, rect.bottom - 58)}px`;
+    shareBtn.style.bottom = "auto";
   }
   addEventListener("resize", resize);
   resize();
 
   // ===== sprite =====
   const runnerImg = new Image();
-  runnerImg.src = "./runner.png";
+  runnerImg.src = "./assets-trudge/runner.png";
   let runnerReady = false;
-  runnerImg.onload = () => runnerReady = true;
+  runnerImg.onload = () => {
+    runnerReady = true;
+    const targetH = 96;
+    const aspect = runnerImg.width / runnerImg.height;
+    player.h = targetH;
+    player.w = Math.round(targetH * aspect);
+    player.x = Math.floor(W * PLAYER_X_RATIO);
+  };
+
+  // ===== title logo =====
+  const titleImg = new Image();
+  titleImg.src = "./assets-trudge/trudge-title.png";
+  let titleImgReady = false;
+  titleImg.onload = () => { titleImgReady = true; };
 
   // ===== modes =====
-  let mode = "title"; // title | countdown | play | pause | gameover | ending
+  let mode = "title"; // title | countdown | ready | play | pause | gameover | ending
   function setMode(m){
     mode = m;
     pauseBtn.style.display = (mode === "play" || mode === "pause") ? "block" : "none";
-    shareBtn.style.display = (mode === "ending") ? "block" : "none";
+    shareBtn.style.display = (mode === "ending" || mode === "gameover") ? "block" : "none";
   }
 
   // ===== constants =====
   const MAX_LIVES = 3;
 
   const DRAG_FOLLOW = 0.92;
-  const PLAYER_X_RATIO = 0.28;
+  const PLAYER_X_RATIO = 0.04;
 
   const BASE_SPEED = 3.1;
   const MAX_SPEED  = 6.8;
@@ -107,17 +152,167 @@
   let invuln = 0;
   let slowTimer = 0; // meditation frames remaining
 
+  // rocket fuel — pink clouds refill Bill's engine
+  const MAX_FUEL = 100;
+  const FUEL_BURN_PER_FRAME = 0.025; // roughly 65 seconds from full to empty
+  const PINK_CLOUD_FUEL = 38;
+  let fuel = MAX_FUEL;
+  let fuelWarningCooldown = 0;
+  let fuelEmptyPenaltyCooldown = 0;
+
   // intro overlay
   const INTRO_HOLD = 60 * 4;
   const INTRO_FADE = 60 * 1;
   let introTimer = 0;
 
+  // ===== dopamine / feel systems =====
+  let streak = 0;
+  let bestStreakThisRun = 0;
+  let graceUsed = false;
+  let nearMissCooldown = 0;
+  let runStartFrame = 0;
+  let frameCount = 0;
+
+  let screenShakeFrames = 0;
+  let screenShakeMag = 0;
+  function shakeScreen(mag, frames){
+    screenShakeMag = Math.max(screenShakeMag, mag);
+    screenShakeFrames = Math.max(screenShakeFrames, frames);
+  }
+
+  let edgeFlash = null; // { color, t, ttl }
+  function flashEdges(color, ttl=22){
+    edgeFlash = { color, t: 0, ttl };
+  }
+
+  let billSquash = null; // { t, ttl, kind: "hit" | "bonus" }
+  function squashBill(kind, ttl=16){
+    billSquash = { t: 0, ttl, kind };
+  }
+
+  const impactParticles = [];
+  function spawnImpactBurst(x, y, color, count=16){
+    for (let i=0; i<count; i++){
+      const a = Math.random() * Math.PI * 2;
+      const sp = 1.5 + Math.random()*4;
+      impactParticles.push({
+        x, y,
+        vx: Math.cos(a)*sp,
+        vy: Math.sin(a)*sp,
+        r: 2 + Math.random()*3,
+        t: 0,
+        ttl: 20 + (Math.random()*16|0),
+        color
+      });
+    }
+    if (impactParticles.length > 160) impactParticles.splice(0, impactParticles.length - 160);
+  }
+  function updateImpactParticles(){
+    for (let i=impactParticles.length-1; i>=0; i--){
+      const p = impactParticles[i];
+      p.t++;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.12;
+      if (p.t >= p.ttl) impactParticles.splice(i,1);
+    }
+  }
+  function drawImpactParticles(){
+    for (const p of impactParticles){
+      const a = Math.max(0, 1 - p.t/p.ttl);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Cosmetic rocket-trail color that upgrades with prestige level.
+  const PRESTIGE_TRAIL_COLORS = [
+    "220,220,220", // prestige 0 — classic white/grey
+    "255,170,60",  // prestige 1 — orange
+    "80,220,255",  // prestige 2 — cyan
+    "200,110,255", // prestige 3 — purple
+    "120,255,140"  // prestige 4+ — green
+  ];
+  function currentTrailRGB(){
+    const idx = Math.min(prestige, PRESTIGE_TRAIL_COLORS.length - 1);
+    return PRESTIGE_TRAIL_COLORS[idx];
+  }
+
+  // ===== simple WebAudio chimes (no extra asset files needed) =====
+  let audioCtx = null;
+  function getAudioCtx(){
+    if (!audioCtx){
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch(e){ audioCtx = null; }
+    }
+    return audioCtx;
+  }
+  function resumeAudioCtx(){
+    const a = getAudioCtx();
+    if (a && a.state === "suspended") a.resume().catch(()=>{});
+  }
+  function playTone(freq, dur=0.12, type="square", vol=0.05, delay=0){
+    const a = getAudioCtx();
+    if (!a) return;
+    try {
+      const t0 = a.currentTime + delay;
+      const osc = a.createOscillator();
+      const gain = a.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol, t0);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(gain);
+      gain.connect(a.destination);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
+    } catch(e){}
+  }
+  function playHitBuzz(){
+    playTone(110, 0.18, "sawtooth", 0.05);
+  }
+  function playStreakChime(count){
+    const freq = 440 + Math.min(count, 12) * 34;
+    playTone(freq, 0.10, "square", 0.045);
+  }
+  function playStepJingle(){
+    [523.25, 659.25, 783.99].forEach((f, i) => {
+      playTone(f, 0.16, "triangle", 0.05, i * 0.07);
+    });
+  }
+
+  // ===== personal bests (saved locally in this browser) =====
+  const BEST_KEY = "trudge_best_stats_v1";
+  function loadBestStats(){
+    try {
+      const raw = localStorage.getItem(BEST_KEY);
+      if (!raw) return { bestStreak: 0, bestSteps: 0, bestSurvivalSec: 0 };
+      const p = JSON.parse(raw);
+      return {
+        bestStreak: p.bestStreak || 0,
+        bestSteps: p.bestSteps || 0,
+        bestSurvivalSec: p.bestSurvivalSec || 0
+      };
+    } catch(e){
+      return { bestStreak: 0, bestSteps: 0, bestSurvivalSec: 0 };
+    }
+  }
+  function saveBestStats(){
+    try { localStorage.setItem(BEST_KEY, JSON.stringify(bestStats)); } catch(e){}
+  }
+  let bestStats = loadBestStats();
+  let justBeatBest = { streak:false, steps:false, survival:false };
+
   // ===== player =====
   const player = {
     x: 120,
     y: 0,
-    w: Math.round(86 * 1.2),
-    h: Math.round(114 * 1.2),
+    w: 72,
+    h: 96,
     targetY: 0
   };
 
@@ -189,23 +384,56 @@
   const microClouds = [];
   const stepTokens = [];
 
-  // ===== banners =====
-  let banner = null;
-  const bannerQueue = [];
+  // ===== Bill speech bubbles =====
+  const resentmentLines = [
+    "HEY, WATCH OUT! RESENTMENT IS THE #1 OFFENDER!",
+    "WHOA, BUDDY! RESENTMENT DESTROYS MORE ALCOHOLICS THAN ANYTHING ELSE!",
+    "CAREFUL! RESENTMENT STEMS ALL FORMS OF SPIRITUAL DISEASE!",
+    "HEY! DON'T BLOCK ME OFF FROM THE SUNLIGHT OF THE SPIRIT!"
+  ];
+  const pitfallLines = [
+    "WHOA! {L} JUST KNOCKED ME OFF THE ROAD!",
+    "HEY! {L} WILL TAKE YOU OUT EVERY TIME!",
+    "CAREFUL! {L} BLOCKS ME OFF FROM THE SUNLIGHT OF THE SPIRIT!",
+    "WATCH OUT! {L} IS A SLIPPERY SLOPE!",
+    "OOF! DON'T LET {L} GET A FOOTHOLD!"
+  ];
+  let billSpeech = null;
+  let resentmentPauseFrames = 0;
+  let resentmentSpeechText = "";
 
-  function pushBanner(kind, title, sub="", ttl=85){
-    if (bannerQueue.length > 1) bannerQueue.shift();
-    const b = { kind, title, sub, t:0, ttl };
-    if (!banner) banner = b;
-    else bannerQueue.push(b);
+  // kind: "good" (green), "bad" (orange/red), "status" (neutral white)
+  function showBillSpeech(text, ttl=140, kind="status"){
+    // +120 frames (~2 extra seconds) so there's time to actually read these.
+    billSpeech = { text, t: 0, ttl: ttl + 120, kind };
   }
 
-  function tickBanner(){
-    if (!banner) return;
-    banner.t++;
-    if (banner.t >= banner.ttl){
-      banner = bannerQueue.shift() || null;
+  function tickBillSpeech(){
+    if (!billSpeech) return;
+    billSpeech.t++;
+    if (billSpeech.t >= billSpeech.ttl) billSpeech = null;
+  }
+
+  function startResentmentReaction(label, isGrace=false){
+    const cleanLabel = label || "Resentment";
+    lastObstacleLabel = cleanLabel;
+
+    if (isGrace){
+      resentmentSpeechText = `WHOA! ${cleanLabel.toUpperCase()} ALMOST GOT ME — FIRST ONE'S FREE!`;
+    } else {
+      const isResentment = cleanLabel.toLowerCase().includes("resentment");
+      if (isResentment){
+        resentmentSpeechText = rand(resentmentLines) || resentmentLines[0];
+      } else {
+        const template = rand(pitfallLines) || pitfallLines[0];
+        resentmentSpeechText = template.replace("{L}", cleanLabel.toUpperCase());
+      }
     }
+
+    resentmentPauseFrames = 180; // 3 seconds
+    billSpeech = null;
+
+    setMode("resentment");
   }
 
   // ===== audio =====
@@ -217,36 +445,60 @@
     }
   }
 
+  function startMeditationMusic(){
+    if (!meditationBgm) return;
+    if (bgm && !bgm.paused) bgm.pause();
+    meditationBgm.currentTime = 0;
+    meditationBgm.volume = 0.32;
+    meditationBgm.play().catch(()=>{});
+  }
+
+  function stopMeditationMusic(){
+    if (meditationBgm){
+      meditationBgm.pause();
+      meditationBgm.currentTime = 0;
+    }
+    if (mode === "play" && bgm){
+      bgm.play().catch(()=>{});
+    }
+  }
+
   pauseBtn.onclick = () => {
     if (mode === "play"){
       bgm && bgm.pause();
+      meditationBgm && meditationBgm.pause();
       setMode("pause");
     } else if (mode === "pause"){
-      bgm && bgm.play().catch(()=>{});
+      if (slowTimer > 0){
+        meditationBgm && meditationBgm.play().catch(()=>{});
+      } else {
+        bgm && bgm.play().catch(()=>{});
+      }
       setMode("play");
     }
   };
 
   // ===== PASS IT ON share =====
-  const PASS_URL = "https://recoverymisfits.blogspot.com/";
+  const PASS_URL = "https://www.recoverymisfits.org";
   function sharePassItOn(){
     const text =
 `PASS IT ON — Recovery Misfits
 Find the app here:
 ${PASS_URL}`;
 
+    // Real phones (iOS/Android) support the native share sheet — use it.
     if (navigator.share){
       navigator.share({ title:"Pass it on", text, url: PASS_URL }).catch(()=>{});
       return;
     }
 
-    const sms = `sms:?&body=${encodeURIComponent(text)}`;
-    try { window.location.href = sms; return; } catch(e){}
-
+    // Desktop/other browsers: just copy the link, no unreliable sms: handoff.
     if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(()=>alert("Copied! Paste it in a text.")).catch(()=>{});
+      navigator.clipboard.writeText(text).then(()=>alert("Copied! Paste it anywhere to share.")).catch(()=>{
+        prompt("Copy this and share it:", text);
+      });
     } else {
-      prompt("Copy this and text it:", text);
+      prompt("Copy this and share it:", text);
     }
   }
   shareBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); sharePassItOn(); };
@@ -273,6 +525,11 @@ ${PASS_URL}`;
 
     if (slowTimer > 0) s *= 0.15;  // meditation: VERY slow
     if (warmupFrames < WARMUP_TOTAL) s *= 0.86;
+
+    // Out of fuel: Bill is basically coasting. Keep a little movement so
+    // a pink cloud can still reach him and restart the engine.
+    if (fuel <= 0) s *= 0.18;
+    else if (fuel < 18) s *= 0.72;
 
     return s;
   }
@@ -396,6 +653,74 @@ ${PASS_URL}`;
 
   // ===== sparkle FX =====
   const sparkleFx = [];
+
+  // ===== rocket exhaust / smoke =====
+  const exhaustFx = [];
+  let sputterTick = 0;
+
+  function spawnSputter(){
+    // Short irregular dirty puffs when the rocket is starved for fuel.
+    const burst = 2 + (Math.random()*3|0);
+    for (let i=0; i<burst; i++){
+      exhaustFx.push({
+        x: player.x + 4 + Math.random()*7,
+        y: player.y + player.h*0.72 + (Math.random()*14 - 7),
+        vx: -(0.35 + Math.random()*0.9),
+        vy: (Math.random()*1.2 - 0.6),
+        r: 2 + Math.random()*5,
+        t: 0,
+        ttl: 12 + (Math.random()*16|0),
+        sputter: true
+      });
+    }
+  }
+
+  function spawnExhaust(){
+    if (fuel <= 0 || mode !== "play") return;
+
+    // Less exhaust as the tank gets low.
+    const fuelRatio = fuel / MAX_FUEL;
+    const count = fuelRatio < 0.20 ? 1 : 2;
+
+    for (let i=0; i<count; i++){
+      exhaustFx.push({
+        x: player.x + 5 + Math.random()*8,
+        y: player.y + player.h*0.72 + (Math.random()*12 - 6),
+        vx: -(0.8 + Math.random()*1.4),
+        vy: (Math.random()*0.7 - 0.35),
+        r: 2.5 + Math.random()*4.5,
+        t: 0,
+        ttl: 22 + (Math.random()*18|0)
+      });
+    }
+
+    if (exhaustFx.length > 90){
+      exhaustFx.splice(0, exhaustFx.length - 90);
+    }
+  }
+
+  function updateExhaust(){
+    for (let i=exhaustFx.length-1; i>=0; i--){
+      const p = exhaustFx[i];
+      p.t++;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.r += 0.10;
+      if (p.t >= p.ttl) exhaustFx.splice(i,1);
+    }
+  }
+
+  function drawExhaust(){
+    for (const p of exhaustFx){
+      const a = Math.max(0, 1 - p.t/p.ttl);
+      ctx.globalAlpha = (p.sputter ? 0.72 : 0.50) * a;
+      ctx.fillStyle = p.sputter ? "rgba(135,135,135,1)" : `rgba(${currentTrailRGB()},1)`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
   function spawnSparkles(x, y, count=20){
     for (let i=0;i<count;i++){
       const ch = (Math.random() < 0.55) ? "⭐" : (Math.random() < 0.75 ? "✨" : "🌟");
@@ -483,9 +808,11 @@ ${PASS_URL}`;
       (theme === "purple") ? "rgba(250,240,255,1)" :
       "rgba(255,240,250,1)";
 
-    ctx.globalAlpha = (micro ? 0.10 : 0.16) * alpha;
-    ctx.fillStyle = fill;
-    ctx.fillRect(x-(micro?10:18), y-(micro?10:16), w+(micro?20:36), h+(micro?20:32));
+    if (!micro){
+      ctx.globalAlpha = 0.16 * alpha;
+      ctx.fillStyle = fill;
+      ctx.fillRect(x-18, y-16, w+36, h+32);
+    }
 
     ctx.globalAlpha = (micro ? 0.30 : 0.34) * alpha;
     ctx.fillStyle = fill;
@@ -495,11 +822,13 @@ ${PASS_URL}`;
       ctx.fill();
     }
 
-    ctx.globalAlpha = 0.95 * alpha;
-    ctx.strokeStyle = stroke;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x, y, w, h);
-    ctx.lineWidth = 1;
+    if (!micro){
+      ctx.globalAlpha = 0.95 * alpha;
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, w, h);
+      ctx.lineWidth = 1;
+    }
 
     ctx.globalAlpha = 0.70 * alpha;
     ctx.fillStyle = spark;
@@ -514,10 +843,10 @@ ${PASS_URL}`;
     const label = labelOverride || rand(obstaclesPool);
     const lanes = laneYCenters();
     const lane = (laneOverride !== null) ? laneOverride : ((Math.random() * 3) | 0);
-    const { w, h } = sizeForLabel(label, 220, 540, 46);
+    const { w, h } = sizeForLabel(label, 154, 378, 32);
     const x = (xOverride !== null) ? xOverride : (W + 90);
 
-    const tooClose = obstacles.some(o => o.lane === lane && Math.abs(o.x - x) < Math.max(260, w * 0.80));
+    const tooClose = obstacles.some(o => o.lane === lane && Math.abs(o.x - x) < Math.max(182, w * 0.80));
     if (tooClose) return;
 
     obstacles.push({ x, y: lanes[lane]-h/2, w, h, label, lane, passed:false });
@@ -528,7 +857,7 @@ ${PASS_URL}`;
     const lanes = laneYCenters();
     const r = Math.random();
     const lane = r < 0.55 ? 1 : (r < 0.78 ? 0 : 2);
-    const { w, h } = sizeForLabel(b.label, 280, 580, 42);
+    const { w, h } = sizeForLabel(b.label, 196, 406, 29);
 
     bonuses.push({
       x: W + 90,
@@ -544,7 +873,7 @@ ${PASS_URL}`;
   function spawnMicroCloud(){
     const lanes = laneYCenters();
     const lane = (Math.random() * 3) | 0;
-    const w = 110, h = 40;
+    const w = 77, h = 28;
     microClouds.push({
       x: W + 90,
       y: lanes[lane] - h/2,
@@ -560,13 +889,13 @@ ${PASS_URL}`;
     const label = `STEP ${next.n} — ${next.p}`;
     const lanes = laneYCenters();
     const lane = (Math.random() * 3) | 0;
-    const { w, h } = sizeForLabel(label, 360, 760, 52);
+    const { w, h } = sizeForLabel(label, 252, 532, 36);
     const x = W + 110;
 
     stepTokens.push({ x, y: lanes[lane]-h/2, w, h, lane, label });
 
     const guardLane = (lane + 1 + ((Math.random()*2)|0)) % 3;
-    spawnObstacle(null, guardLane, x - 220);
+    spawnObstacle(null, guardLane, x - 154);
   }
 
   // ===== reset =====
@@ -581,10 +910,16 @@ ${PASS_URL}`;
     bonuses.length = 0;
     microClouds.length = 0;
     stepTokens.length = 0;
+    exhaustFx.length = 0;
+    sputterTick = 0;
 
     warmupFrames = 0;
     invuln = 0;
     slowTimer = 0;
+    fuel = MAX_FUEL;
+    fuelWarningCooldown = 0;
+    fuelEmptyPenaltyCooldown = 0;
+    if (meditationBgm){ meditationBgm.pause(); meditationBgm.currentTime = 0; }
 
     obstacleGapPx = 520;
     bonusGapPx = 900;
@@ -592,9 +927,21 @@ ${PASS_URL}`;
     stepCooldown = 60 * 6;
     stepSpawnBias = 0;
 
-    banner = null;
-    bannerQueue.length = 0;
+    billSpeech = null;
+    resentmentPauseFrames = 0;
+    resentmentSpeechText = "";
     introTimer = 0;
+
+    streak = 0;
+    bestStreakThisRun = 0;
+    graceUsed = false;
+    nearMissCooldown = 0;
+    runStartFrame = frameCount;
+    screenShakeFrames = 0;
+    screenShakeMag = 0;
+    edgeFlash = null;
+    billSquash = null;
+    impactParticles.length = 0;
 
     player.x = Math.floor(W * PLAYER_X_RATIO);
     const lanes = laneYCenters();
@@ -606,7 +953,7 @@ ${PASS_URL}`;
       prestigeSpeedBoost = 0;
     }
 
-    pushBanner("good", "TRUDGE THE ROAD", "Go thru all 12 steps!", 70);
+    showBillSpeech("TRUDGE THE ROAD — Go thru all 12 steps!", 70, "good");
   }
 
   // ===== controls =====
@@ -616,21 +963,36 @@ ${PASS_URL}`;
   function pointerDown(e){
     canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
     startMusic();
+    resumeAudioCtx();
 
     if (mode === "title"){ startCountdown(); return; }
     if (mode === "gameover" || mode === "ending"){ setMode("title"); return; }
+    if (mode === "ready") {
+      const rect = canvas.getBoundingClientRect();
+      const gameX = (e.clientX - rect.left) * (W / rect.width);
+      const gameY = (e.clientY - rect.top) * (H / rect.height);
+      if (aabb(gameX, gameY, 1, 1, player.x, player.y, player.w, player.h)) {
+        introTimer = INTRO_HOLD + INTRO_FADE + 5;
+        setMode("play");
+      }
+      return;
+    }
     if (mode !== "play") return;
 
     dragging = true;
     dragPointerId = e.pointerId;
-    player.targetY = e.clientY - player.h/2;
+    const rect = canvas.getBoundingClientRect();
+    const gameY = (e.clientY - rect.top) * (H / rect.height);
+    player.targetY = gameY - player.h/2;
   }
 
   function pointerMove(e){
     if (!dragging) return;
     if (dragPointerId !== null && e.pointerId !== dragPointerId) return;
     if (mode !== "play") return;
-    player.targetY = e.clientY - player.h/2;
+    const rect = canvas.getBoundingClientRect();
+    const gameY = (e.clientY - rect.top) * (H / rect.height);
+    player.targetY = gameY - player.h/2;
   }
 
   function pointerUp(e){
@@ -645,7 +1007,11 @@ ${PASS_URL}`;
   canvas.addEventListener("pointerup", pointerUp, {passive:true});
   canvas.addEventListener("pointercancel", pointerUp, {passive:true});
 
-  function tapStartOnly(){
+  function tapStartOnly(e){
+    // Ignore taps that land on the HTML buttons (share/pause) — those have
+    // their own handlers and shouldn't also trigger a mode change here.
+    if (e && e.target && e.target.closest && e.target.closest("#shareBtn, #pauseBtn")) return;
+
     startMusic();
     if (mode === "title") { startCountdown(); return; }
     if (mode === "gameover" || mode === "ending") { setMode("title"); return; }
@@ -655,6 +1021,7 @@ ${PASS_URL}`;
 
   // ===== title / countdown =====
   let titleTimer = 0;
+  let globalTick = 0;
   let countdownTimer = 0;
   let countdownValue = 3;
 
@@ -734,23 +1101,109 @@ ${PASS_URL}`;
     if (countdownTimer % 60 === 0){
       countdownValue--;
       if (countdownValue < 0){
-        setMode("play");
+        const boxW = Math.min(W - 44, 980);
+        const by = Math.max(92, Math.floor(H * 0.18));
+        const pad = 18;
+        ctx.font = "12px 'Press Start 2P'";
+        const maxTextW = boxW - pad*2;
+        const readyLines = [
+          "Drag Bill around to go thru all 12 steps.",
+          "Be careful — pitfalls cost a life.",
+          "Blue clouds help you stay alive.",
+          "Purple cloud slows life down."
+        ];
+        const wrapped = [];
+        for (const l of readyLines){
+          wrapped.push(...wrapLines(l, maxTextW));
+          wrapped.push("");
+        }
+        if (wrapped.length && wrapped[wrapped.length-1] === "") wrapped.pop();
+        const boxH = 24 + wrapped.length * 18 + 26;
+        player.x = Math.floor(W * PLAYER_X_RATIO);
+        player.y = Math.min(H - player.h - 72, by + boxH + 105);
+        player.targetY = player.y;
+        setMode("ready");
       }
     }
   }
 
   function updatePlay(){
     warmupFrames++;
+    frameCount++;
+    if (nearMissCooldown > 0) nearMissCooldown--;
+    if (screenShakeFrames > 0) screenShakeFrames--; else screenShakeMag = 0;
+    updateImpactParticles();
+    if (billSquash && billSquash.t < billSquash.ttl) billSquash.t++;
+    if (edgeFlash){
+      edgeFlash.t++;
+      if (edgeFlash.t >= edgeFlash.ttl) edgeFlash = null;
+    }
     if (introTimer < (INTRO_HOLD + INTRO_FADE + 5)) introTimer++;
 
+    // Burn rocket fuel while the run is active.
+    // Prayer & Meditation slows the whole experience, so fuel burns more gently there too.
+    const fuelBurn = slowTimer > 0 ? FUEL_BURN_PER_FRAME * 0.25 : FUEL_BURN_PER_FRAME;
+    fuel = Math.max(0, fuel - fuelBurn);
+
+    if (fuelWarningCooldown > 0) fuelWarningCooldown--;
+    if (fuel <= 0 && fuelWarningCooldown <= 0){
+      showBillSpeech("FUEL UP — GET ON THE PINK CLOUD", 110, "pink");
+      fuelWarningCooldown = 60 * 4;
+    }
+
+    // Running on empty has real teeth now — not just a slowdown.
+    if (fuel <= 0){
+      if (fuelEmptyPenaltyCooldown > 0){
+        fuelEmptyPenaltyCooldown--;
+      } else {
+        fuelEmptyPenaltyCooldown = 60 * 3; // a life every 3s spent completely empty
+        if (invuln === 0){
+          lives--;
+          invuln = 80;
+          streak = 0;
+          shakeScreen(6, 10);
+          flashEdges("255,90,140", 20);
+          squashBill("hit", 14);
+          playHitBuzz();
+          showBillSpeech("RUNNING ON EMPTY — this'll wear you down!", 90, "pink");
+
+          if (lives <= 0){
+            setMode("gameover");
+            return;
+          }
+        }
+      }
+    } else {
+      fuelEmptyPenaltyCooldown = 0;
+    }
+
     if (invuln > 0) invuln--;
-    if (slowTimer > 0) slowTimer--;
+    if (slowTimer > 0){
+      slowTimer--;
+      if (slowTimer === 0) stopMeditationMusic();
+    }
 
     // sparkle drift while meditating
     if (slowTimer > 0 && (slowTimer % 18 === 0)){
       spawnSparkles(player.x + player.w*0.55, player.y + player.h*0.40, 4);
     }
     updateSparkles();
+
+    if (fuel > 0){
+      sputterTick = 0;
+      if (warmupFrames % 3 === 0) spawnExhaust();
+    } else {
+      sputterTick++;
+      // Uneven bursts: cough, pause, cough-cough.
+      if (
+        sputterTick % 46 === 1 ||
+        sputterTick % 46 === 8 ||
+        (sputterTick % 79 === 24)
+      ){
+        spawnSputter();
+      }
+    }
+    updateExhaust();
 
     const padTop = 74;
     const padBot = 74;
@@ -788,43 +1241,74 @@ ${PASS_URL}`;
       clearArmed = false;
 
       if (cleared > 0){
-        pushBanner("good", "WRITE IT DOWN", "Nice! You cleared out the traps!", 90);
+        showBillSpeech("WRITE IT DOWN — Nice! You cleared out the traps!", 90, "good");
       } else {
-        pushBanner("good", "WRITE IT DOWN", "Nothing to clear... yet.", 70);
+        showBillSpeech("WRITE IT DOWN — Nothing to clear... yet.", 70, "good");
       }
     }
 
     // hitbox
-    const rx = player.x + 20;
-    const ry = player.y + 18;
-    const rw = player.w - 40;
-    const rh = player.h - 34;
+    // Scale the collision box with Bill's current sprite dimensions.
+    // The old fixed 20px/18px cuts were based on the larger stretched sprite
+    // and became too small after runner.png was corrected to its natural ratio.
+    const rx = player.x + player.w * 0.12;
+    const ry = player.y + player.h * 0.10;
+    const rw = player.w * 0.76;
+    const rh = player.h * 0.80;
 
-    // obstacles
+    // obstacles — every obstacle in the pool is a "pitfall" that costs a
+    // life, so all of them use the same lane-based hit window and trigger
+    // Bill's reaction bubble (worded generically unless it's literally
+    // "Resentment", which keeps its own specific lines). Requires real
+    // vertical closeness (not just lane index) plus a tighter horizontal
+    // window than before, so a hit only registers when Bill is actually
+    // visually near the obstacle.
     for (const o of obstacles){
       if (o.lane !== playerLane) continue;
 
-      const ox = o.x + 22;
-      const oy = o.y + 12;
-      const ow = Math.max(2, o.w - 44);
-      const oh = Math.max(2, o.h - 22);
+      const playerCenterY = player.y + player.h/2;
+      const obstacleCenterY = o.y + o.h/2;
+      const verticalClose = Math.abs(playerCenterY - obstacleCenterY) <= player.h * 0.65;
 
-      if (invuln === 0 && aabb(rx, ry, rw, rh, ox, oy, ow, oh)){
-        lives--;
-        lastObstacleLabel = o.label;
-        invuln = 80;
+      const reachedBill =
+        verticalClose &&
+        o.x <= (player.x + player.w * 0.75) &&
+        (o.x + o.w) >= (player.x + player.w * 0.20);
+
+      if (reachedBill){
         o.x = -9999;
+        lastObstacleLabel = o.label;
 
-        pushBanner("bad", `${lastObstacleLabel.toUpperCase()} TOOK YOU OUT`, "-1 SPIRITUALLIFE", 90);
-        if (lives <= 0){
-          setMode("gameover");
-          return;
+        const isFirstHitThisRun = !graceUsed;
+        graceUsed = true;
+
+        if (isFirstHitThisRun){
+          // Grace: the first pitfall of a run is a warning, not a life loss.
+          invuln = Math.max(invuln, 60);
+        } else if (invuln === 0){
+          lives--;
+          invuln = 80;
         }
+
+        streak = 0;
+        shakeScreen(9, 14);
+        spawnImpactBurst(player.x + player.w*0.5, player.y + player.h*0.5, "rgba(255,120,60,1)", 18);
+        flashEdges("255,80,40", 24);
+        squashBill("hit", 16);
+        playHitBuzz();
+
+        startResentmentReaction(o.label, isFirstHitThisRun);
+        return;
       }
 
       if (!o.passed && (o.x + o.w) < player.x){
         o.passed = true;
         obstaclesPassed++;
+
+        if (nearMissCooldown <= 0){
+          nearMissCooldown = 90;
+          showBillSpeech("WHEW, CLOSE ONE!", 60, "status");
+        }
       }
     }
 
@@ -841,15 +1325,27 @@ ${PASS_URL}`;
         if (b.type === "life"){
           const before = lives;
           lives = Math.min(MAX_LIVES, lives + 1);
-          pushBanner("good", b.label.toUpperCase(), (lives>before ? "+1 SPIRITUAL LIFE" : "LIVING A FULL SPIRITUAL LIFE!"), 75);
+          showBillSpeech(
+            b.label.toUpperCase() + " — " + (lives>before ? "+1 SPIRITUAL LIFE" : "LIVING A FULL SPIRITUAL LIFE!"),
+            75, "good"
+          );
         } else if (b.type === "slow"){
-          slowTimer = 60 * 5;
-          pushBanner("good", "PRAYER & MEDITATION", "Deep calm for 5 seconds.", 80);
+          slowTimer = 60 * 12;
+          startMeditationMusic();
+          showBillSpeech("PRAYER & MEDITATION — Deep calm for 12 seconds.", 80, "good");
           spawnSparkles(player.x + player.w*0.60, player.y + player.h*0.40, 24);
         } else if (b.type === "clear"){
           clearArmed = true;
-          pushBanner("good", "WRITE IT DOWN", "Clearing traps...", 55);
+          showBillSpeech("WRITE IT DOWN — Clearing traps...", 55, "good");
         }
+
+        streak++;
+        if (streak > bestStreakThisRun) bestStreakThisRun = streak;
+        squashBill("bonus", 14);
+        spawnImpactBurst(player.x + player.w*0.5, player.y + player.h*0.4, "rgba(120,255,150,1)", 14);
+        flashEdges("90,255,130", 18);
+        playStreakChime(streak);
+
         b.x = -9999;
       }
     }
@@ -864,7 +1360,13 @@ ${PASS_URL}`;
       const mh = m.h - 16;
 
       if (aabb(rx, ry, rw, rh, mx, my, mw, mh)){
-        pushBanner("good", "PINK CLOUD", rand(calmWhispers), 65);
+        const beforeFuel = fuel;
+        fuel = Math.min(MAX_FUEL, fuel + PINK_CLOUD_FUEL);
+        const gained = Math.round(fuel - beforeFuel);
+        showBillSpeech(
+          "PINK CLOUD — FUEL — " + (gained > 0 ? `+${gained}% FUEL` : "TANK FULL"),
+          70, "pink"
+        );
         m.x = -9999;
       }
     }
@@ -882,9 +1384,13 @@ ${PASS_URL}`;
         stepIndex++;
         s.x = -9999;
 
+        playStepJingle();
+        spawnSparkles(player.x + player.w*0.5, player.y + player.h*0.35, 18);
+        squashBill("bonus", 16);
+
         if (stepIndex < 12){
           const got = steps[stepIndex-1];
-          pushBanner("good", `STEP ${got.n} — ${got.p}`, "Keep moving.", 80);
+          showBillSpeech(`STEP ${got.n} — ${got.p} — Keep moving.`, 80, "good");
           stepCooldown = 60 * (20 + (Math.random()*12|0));
           stepSpawnBias = 0;
         } else {
@@ -944,11 +1450,24 @@ ${PASS_URL}`;
         stepSpawnBias = 0;
 
         const next = steps[stepIndex];
-        pushBanner("status", `NEXT: STEP ${next.n}`, "Find the step card.", 65);
+        showBillSpeech(`NEXT: STEP ${next.n} — Find the step card.`, 65, "status");
       }
     }
 
-    tickBanner();
+    tickBillSpeech();
+  }
+
+  function updateResentment(){
+    if (resentmentPauseFrames > 0) resentmentPauseFrames--;
+
+    if (resentmentPauseFrames <= 0){
+      resentmentSpeechText = "";
+      if (lives <= 0){
+        setMode("gameover");
+      } else {
+        setMode("play");
+      }
+    }
   }
 
   function updateEnding(){
@@ -961,26 +1480,40 @@ ${PASS_URL}`;
   function update(){
     if (mode === "title") return updateTitle();
     if (mode === "countdown") return updateCountdown();
+    if (mode === "ready") return;
     if (mode === "play") return updatePlay();
+    if (mode === "resentment") return updateResentment();
     if (mode === "ending") return updateEnding();
   }
 
   // ===== draw =====
   function drawHeader(){
     ctx.globalAlpha = 0.95;
-    ctx.fillStyle = "rgba(0,0,0,0.62)";
+    const headerGrad = ctx.createLinearGradient(0, 0, 0, 72);
+    headerGrad.addColorStop(0, "rgba(20,0,30,0.78)");
+    headerGrad.addColorStop(1, "rgba(0,0,0,0.55)");
+    ctx.fillStyle = headerGrad;
     ctx.fillRect(0, 0, W, 72);
 
-    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    const lineGrad = ctx.createLinearGradient(0, 0, W, 0);
+    lineGrad.addColorStop(0, "rgba(255,90,170,0)");
+    lineGrad.addColorStop(0.5, "rgba(255,90,170,0.55)");
+    lineGrad.addColorStop(1, "rgba(255,90,170,0)");
+    ctx.strokeStyle = lineGrad;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(0, 72);
     ctx.lineTo(W, 72);
     ctx.stroke();
+    ctx.lineWidth = 1;
 
     ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
     ctx.font = "14px 'Press Start 2P'";
+    ctx.shadowColor = "rgba(255,90,170,0.6)";
+    ctx.shadowBlur = 6;
     ctx.fillText("TRUDGE THE ROAD", W/2, 44);
+    ctx.shadowBlur = 0;
 
     const curStep = Math.min(12, stepIndex + 1);
     const curName = steps[Math.min(stepIndex, 11)].p;
@@ -998,13 +1531,19 @@ ${PASS_URL}`;
 
   function drawDangerObstacle(o){
     const x=o.x, y=o.y, w=o.w, h=o.h;
+    const isResentment = String(o.label || "").toLowerCase().includes("resentment");
+    const pulse = 0.5 + 0.5*Math.sin(frameCount*0.12 + x*0.05);
 
-    ctx.fillStyle = "rgba(255,0,0,0.12)";
+    ctx.fillStyle = isResentment ? "rgba(255,160,0,0.22)" : "rgba(255,0,0,0.12)";
     ctx.fillRect(x-8, y-6, w+16, h+12);
 
-    ctx.fillStyle = "#0b0b0b";
-    ctx.strokeStyle = "rgba(255,80,80,0.9)";
-    ctx.lineWidth = 2;
+    ctx.save();
+    ctx.shadowColor = isResentment ? "rgba(255,170,0,0.85)" : "rgba(255,60,60,0.7)";
+    ctx.shadowBlur = 4 + pulse*6;
+
+    ctx.fillStyle = isResentment ? "#2a1400" : "#0b0b0b";
+    ctx.strokeStyle = isResentment ? "rgba(255,170,0,0.95)" : "rgba(255,80,80,0.9)";
+    ctx.lineWidth = isResentment ? 3 : 2;
 
     ctx.beginPath();
     const spikes = 10;
@@ -1020,9 +1559,10 @@ ${PASS_URL}`;
     ctx.fill();
     ctx.stroke();
     ctx.lineWidth = 1;
+    ctx.restore();
 
-    ctx.font = "12px 'Press Start 2P'";
-    ctx.fillStyle = "#fff";
+    ctx.font = "9px 'Press Start 2P'";
+    ctx.fillStyle = isResentment ? "#ffcc66" : "#fff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(o.label.toUpperCase(), x + w/2, y + h/2 + 8);
@@ -1034,7 +1574,7 @@ ${PASS_URL}`;
     const theme = (b.type === "slow") ? "purple" : "blue";
     drawCloud(b.x, b.y, b.w, b.h, b.cloud, 1, false, theme);
 
-    ctx.font = "12px 'Press Start 2P'";
+    ctx.font = "9px 'Press Start 2P'";
     ctx.fillStyle = "rgba(10,20,30,0.95)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -1044,6 +1584,12 @@ ${PASS_URL}`;
   }
 
   function drawStepToken(tk){
+    // Gentle shake so Step cards feel alive as they come through.
+    const shakeX = Math.sin((performance.now() / 55) + tk.x * 0.03) * 2;
+    const shakeY = Math.cos((performance.now() / 70) + tk.y * 0.03) * 1;
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
     ctx.globalAlpha = 0.94;
     ctx.fillStyle = "rgba(255,255,255,0.94)";
     ctx.fillRect(tk.x, tk.y, tk.w, tk.h);
@@ -1057,7 +1603,7 @@ ${PASS_URL}`;
     ctx.strokeStyle = "rgba(0,0,0,0.35)";
     ctx.strokeRect(tk.x+4, tk.y+4, tk.w-8, tk.h-8);
 
-    ctx.font = "13px 'Press Start 2P'";
+    ctx.font = "9px 'Press Start 2P'";
     ctx.fillStyle = "rgba(0,0,0,0.92)";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -1065,11 +1611,12 @@ ${PASS_URL}`;
 
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
+    ctx.restore();
   }
 
   function drawMicroCloud(m){
     drawCloud(m.x, m.y, m.w, m.h, m.cloud, 0.95, true, "pink");
-    ctx.font = "12px 'Press Start 2P'";
+    ctx.font = "9px 'Press Start 2P'";
     ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -1079,17 +1626,135 @@ ${PASS_URL}`;
   }
 
   function drawRunner(){
+    // Squash/stretch feedback on hit or bonus pickup.
+    let sx = 1, sy = 1;
+    if (billSquash && billSquash.t < billSquash.ttl){
+      const u = billSquash.t / billSquash.ttl;
+      const wobble = Math.sin(u * Math.PI) * (1 - u);
+      if (billSquash.kind === "hit"){
+        sx = 1 - wobble * 0.22;
+        sy = 1 + wobble * 0.18;
+      } else {
+        sx = 1 + wobble * 0.16;
+        sy = 1 - wobble * 0.14;
+      }
+    }
+
+    const cx = player.x + player.w/2;
+    const cy = player.y + player.h/2;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(sx, sy);
+    ctx.translate(-cx, -cy);
+
     if (!runnerReady){
       ctx.fillStyle = "#fff";
       ctx.fillRect(player.x, player.y, player.w, player.h);
-      return;
+    } else {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(runnerImg, 0, 0, runnerImg.width, runnerImg.height, player.x, player.y, player.w, player.h);
     }
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(runnerImg, 0, 0, runnerImg.width, runnerImg.height, player.x, player.y, player.w, player.h);
+
+    ctx.restore();
+  }
+
+  function drawBillSpeech(){
+    if (!billSpeech) return;
+
+    const alphaIn = Math.min(1, billSpeech.t / 10);
+    const alphaOut = Math.min(1, (billSpeech.ttl - billSpeech.t) / 15);
+    const alpha = Math.max(0, Math.min(alphaIn, alphaOut));
+
+    const kind = billSpeech.kind || "status";
+    const theme =
+      (kind === "good") ? { bg: "rgba(210,255,220,0.97)", border: "rgba(0,110,40,0.95)", text: "#063d16" } :
+      (kind === "bad")  ? { bg: "rgba(255,225,200,0.97)", border: "rgba(180,70,0,0.95)", text: "#5c2600" } :
+      (kind === "pink") ? { bg: "rgba(255,214,235,0.97)", border: "rgba(220,20,120,0.95)", text: "#7a0a4a" } :
+      { bg: "rgba(255,255,255,0.97)", border: "rgba(0,0,0,0.92)", text: "#000" };
+
+    const maxW = Math.min(250, W - 24);
+    const pad = 12;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = "8px 'Press Start 2P'";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+
+    const lines = wrapLines(billSpeech.text, maxW - pad*2);
+    const lineH = 13;
+    const bubbleH = Math.max(54, pad*2 + lines.length*lineH);
+
+    // Always sits directly above Bill's head — never beside/over his sprite,
+    // regardless of his width or which lane he's in.
+    const bubbleX = Math.max(8, Math.min(W - maxW - 8, player.x + player.w/2 - maxW/2));
+    const bubbleY = Math.max(165, player.y - bubbleH - 14);
+
+    ctx.fillStyle = theme.bg;
+    ctx.fillRect(bubbleX, bubbleY, maxW, bubbleH);
+
+    ctx.strokeStyle = theme.border;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bubbleX, bubbleY, maxW, bubbleH);
+
+    ctx.fillStyle = theme.text;
+    let ty = bubbleY + pad;
+    for (const line of lines){
+      ctx.fillText(line, bubbleX + pad, ty);
+      ty += lineH;
+    }
+
+    ctx.restore();
+  }
+
+  function drawFuelHUD(){
+    const x = 12;
+    const y = 118;
+    const w = W - 24;
+    const h = 12;
+    const pct = Math.max(0, Math.min(1, fuel / MAX_FUEL));
+    const critical = pct <= 0.2;
+
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = "8px 'Press Start 2P'";
+    ctx.fillStyle = critical ? `rgba(255,${80 + 60*Math.sin(frameCount*0.35)|0},120,1)` : "#fff";
+    ctx.fillText("FUEL", x, y - 5);
+
+    const barX = x + 48, barY = y - 13, barW = w - 48;
+    ctx.fillStyle = "rgba(255,255,255,0.14)";
+    ctx.fillRect(barX, barY, barW, h);
+
+    if (critical){
+      const pulse = 0.5 + 0.5*Math.sin(frameCount*0.35);
+      ctx.save();
+      ctx.shadowColor = "rgba(255,60,90,0.9)";
+      ctx.shadowBlur = 6 + pulse*6;
+      ctx.fillStyle = `rgba(255,${60+pulse*40|0},90,0.98)`;
+      ctx.fillRect(barX, barY, barW * pct, h);
+      ctx.restore();
+    } else {
+      const grad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+      grad.addColorStop(0, "rgba(255,90,170,0.98)");
+      grad.addColorStop(1, "rgba(255,170,210,0.98)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(barX, barY, barW * pct, h);
+    }
+
+    ctx.strokeStyle = "rgba(255,255,255,0.65)";
+    ctx.strokeRect(barX, barY, barW, h);
+
+    ctx.textAlign = "right";
+    ctx.font = "7px 'Press Start 2P'";
+    ctx.fillStyle = "#fff";
+    ctx.fillText(`${Math.round(fuel)}%`, W - 14, y - 4);
+
+    ctx.textAlign = "left";
   }
 
   function drawLivesHUD(){
-    const startX = 12, y = 112;
+    const startX = 12, y = 138;
     const sizeW = 16, sizeH = 20, gap = 6;
 
     for (let i = 0; i < MAX_LIVES; i++){
@@ -1109,56 +1774,28 @@ ${PASS_URL}`;
     }
   }
 
-  function drawBanner(){
-    if (!banner) return;
-
-    const t = banner.t || 0;
-    const ttl = banner.ttl || 80;
-    const fadeIn = Math.min(1, t / 12);
-    const fadeOut = Math.min(1, (ttl - t) / 12);
-    const alpha = Math.max(0, Math.min(1, Math.min(fadeIn, fadeOut)));
-
-    ctx.globalAlpha = 0.92 * alpha;
-
-    const boxW = Math.min(W - 40, 920);
-    const boxH = 126;
-    const bx = (W - boxW)/2;
-    const by = Math.max(86, Math.floor(H * 0.18));
-
-    ctx.fillStyle =
-      (banner.kind === "bad") ? "rgba(70,0,0,0.78)" :
-      (banner.kind === "good") ? "rgba(0,40,0,0.72)" :
-      "rgba(0,0,0,0.72)";
-    ctx.fillRect(bx, by, boxW, boxH);
-
-    ctx.strokeStyle =
-      (banner.kind === "bad") ? "rgba(255,80,80,0.88)" :
-      (banner.kind === "good") ? "rgba(120,255,140,0.82)" :
-      "rgba(255,255,255,0.18)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(bx, by, boxW, boxH);
-    ctx.lineWidth = 1;
-
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-
-    ctx.font = "14px 'Press Start 2P'";
-    const maxW = boxW - 40;
-    const titleLines = wrapLines(String(banner.title || ""), maxW);
-    let y = by + 48;
-    for (const ln of titleLines.slice(0,2)){
-      ctx.fillText(ln, W/2, y);
-      y += 18;
-    }
-
-    if (banner.sub){
-      ctx.font = "12px 'Press Start 2P'";
-      drawWrappedCentered(String(banner.sub), W/2, by + 96, maxW, 16);
-    }
-
+  function drawStreakHUD(){
+    if (streak < 2) return;
+    ctx.textAlign = "right";
+    ctx.font = "10px 'Press Start 2P'";
+    ctx.fillStyle = "rgba(255,210,80,0.95)";
+    ctx.fillText(`\u{1F525} x${streak}`, W - 12, 153);
     ctx.textAlign = "left";
+  }
+
+  function drawEdgeFlash(){
+    if (!edgeFlash) return;
+    const a = Math.max(0, 1 - edgeFlash.t / edgeFlash.ttl);
+    const th = 26;
+    ctx.globalAlpha = a * 0.55;
+    ctx.fillStyle = `rgba(${edgeFlash.color},1)`;
+    ctx.fillRect(0, 0, W, th);
+    ctx.fillRect(0, H - th, W, th);
+    ctx.fillRect(0, 0, th, H);
+    ctx.fillRect(W - th, 0, th, H);
     ctx.globalAlpha = 1;
   }
+
 
   function drawIntroRules(){
     const t = introTimer;
@@ -1183,6 +1820,7 @@ ${PASS_URL}`;
       "Drag Bill around to go thru all 12 steps.",
       "Be careful — pitfalls cost a life.",
       "Blue clouds help you stay alive.",
+      "Pink clouds fuel Bill's rocket.",
       "Purple cloud slows life down."
     ];
 
@@ -1293,18 +1931,42 @@ ${PASS_URL}`;
     ctx.fillStyle="#fff";
     ctx.textAlign="center";
 
-    ctx.font="28px 'Press Start 2P'";
-    ctx.fillText("TRUDGE", W/2, H/2 - 170);
-    ctx.fillText("THE ROAD", W/2, H/2 - 130);
-
     const cardW = Math.min(W - 40, 920);
     const cx = (W - cardW)/2;
     const cy = H/2 - 90;
     const pad = 18;
 
+    if (titleImgReady){
+      const maxLogoW = W - 30; // span most of the game width
+      const aspect = titleImg.width / titleImg.height;
+      let logoW = maxLogoW;
+      let logoH = logoW / aspect;
+      const maxLogoH = cy - 40; // leave breathing room above the card
+      if (logoH > maxLogoH){
+        logoH = maxLogoH;
+        logoW = logoH * aspect;
+      }
+      const logoX = (W - logoW) / 2;
+      const logoY = cy - 20 - logoH;
+      ctx.save();
+      ctx.shadowColor = "rgba(255,90,170,0.55)";
+      ctx.shadowBlur = 20;
+      ctx.drawImage(titleImg, logoX, logoY, logoW, logoH);
+      ctx.restore();
+    } else {
+      ctx.font="28px 'Press Start 2P'";
+      ctx.fillText("TRUDGE", W/2, H/2 - 170);
+      ctx.fillText("THE ROAD", W/2, H/2 - 130);
+    }
+
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.55)";
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetY = 6;
     ctx.globalAlpha = 0.95;
     ctx.fillStyle = "rgba(255,255,255,0.95)";
     ctx.fillRect(cx, cy, cardW, 200);
+    ctx.restore();
 
     ctx.globalAlpha = 1;
     ctx.lineWidth = 3;
@@ -1366,7 +2028,94 @@ ${PASS_URL}`;
     ctx.textAlign="left";
   }
 
+  function drawReady(){
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,W,H);
+    drawStarfield(0.35);
+    drawHeader();
+    drawLivesHUD();
+
+    const boxW = Math.min(W - 44, 980);
+    const bx = (W - boxW)/2;
+    const by = Math.max(92, Math.floor(H * 0.18));
+    const pad = 18;
+
+    const lines = [
+      "Drag Bill around to go thru all 12 steps.",
+      "Be careful — pitfalls cost a life.",
+      "Blue clouds help you stay alive.",
+      "Pink clouds fuel Bill's rocket.",
+      "Purple cloud slows life down."
+    ];
+
+    ctx.font = "12px 'Press Start 2P'";
+    const maxTextW = boxW - pad*2;
+    const wrapped = [];
+    for (const l of lines){
+      wrapped.push(...wrapLines(l, maxTextW));
+      wrapped.push("");
+    }
+    if (wrapped.length && wrapped[wrapped.length-1] === "") wrapped.pop();
+
+    const lineH = 18;
+    const boxH = 24 + wrapped.length * lineH + 26;
+
+    ctx.globalAlpha = 0.90;
+    ctx.fillStyle = "rgba(0,0,0,0.82)";
+    ctx.fillRect(bx, by, boxW, boxH);
+    ctx.strokeStyle = "rgba(255,255,255,0.20)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bx, by, boxW, boxH);
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "left";
+    let y = by + 44;
+    for (const ln of wrapped){
+      ctx.fillText(ln, bx + pad, y);
+      y += lineH;
+    }
+
+    drawRunner();
+
+    const bubbleW = 190;
+    const bubbleH = 54;
+    const bubbleX = clamp(player.x + player.w/2 - bubbleW/2, 12, W - bubbleW - 12);
+    const bubbleY = player.y - bubbleH - 20;
+
+    ctx.fillStyle = "#fff";
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 3;
+    ctx.fillRect(bubbleX, bubbleY, bubbleW, bubbleH);
+    ctx.strokeRect(bubbleX, bubbleY, bubbleW, bubbleH);
+
+    ctx.beginPath();
+    ctx.moveTo(player.x + player.w/2 - 10, bubbleY + bubbleH);
+    ctx.lineTo(player.x + player.w/2, bubbleY + bubbleH + 16);
+    ctx.lineTo(player.x + player.w/2 + 10, bubbleY + bubbleH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#000";
+    ctx.font = "11px 'Press Start 2P'";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("TAP ME TO START", bubbleX + bubbleW/2, bubbleY + bubbleH/2 + 1);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.lineWidth = 1;
+  }
+
   function drawPlayfield(){
+    ctx.save();
+    if (screenShakeFrames > 0 && screenShakeMag > 0){
+      const dx = (Math.random()*2 - 1) * screenShakeMag;
+      const dy = (Math.random()*2 - 1) * screenShakeMag;
+      ctx.translate(dx, dy);
+    }
+
     if (slowTimer > 0){
       drawSky();
     } else {
@@ -1382,21 +2131,158 @@ ${PASS_URL}`;
     for (const s of stepTokens) drawStepToken(s);
     for (const m of microClouds) drawMicroCloud(m);
 
+    drawExhaust();
     drawRunner();
+    drawImpactParticles();
+    drawFuelHUD();
     drawLivesHUD();
-    drawBanner();
+    drawStreakHUD();
 
     drawSparkles();
 
+    // Normal Bill speech.
+    drawBillSpeech();
+
     if (mode === "play") drawIntroRules();
+
+    ctx.restore();
+
+    drawEdgeFlash();
+  }
+
+  function drawResentmentScreen(){
+    // Completely frozen reaction screen.
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,W,H);
+    drawStarfield(0);
+    drawHeader();
+
+    // Bill stays visible on the left.
+    drawRunner();
+    drawFuelHUD();
+    drawLivesHUD();
+
+    const reactionText = resentmentSpeechText || resentmentLines[0];
+
+    // Large unmistakable speech bubble.
+    const bx = 72;
+    const bw = W - 84;
+    const pad = 14;
+
+    ctx.save();
+    ctx.font = "8px 'Press Start 2P'";
+    const lines = wrapLines(reactionText, bw - pad*2);
+    const lineH = 15;
+    const bh = Math.max(92, pad*2 + lines.length*lineH);
+    const by = Math.max(180, Math.min(H - bh - 80, player.y - 55));
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(bx, by, bw, bh);
+
+    ctx.fillStyle = "#000";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    let ty = by + pad;
+    for (const line of lines){
+      ctx.fillText(line, bx + pad, ty);
+      ty += lineH;
+    }
+    ctx.restore();
   }
 
   function drawGameOver(){
-    drawOverlay(`${lastObstacleLabel.toUpperCase()} TOOK YOU OUT`, [
-      "GAME OVER",
-      "Try again — or don’t.",
-      "We’ll be here."
-    ]);
+    const survivalSec = Math.round((frameCount - runStartFrame) / 60);
+    const beatBest = justBeatBest.streak || justBeatBest.steps || justBeatBest.survival;
+
+    ctx.fillStyle = "rgba(0,0,0,0.88)";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#fff";
+    ctx.font = "11px 'Press Start 2P'";
+    ctx.shadowColor = "rgba(255,80,80,0.6)";
+    ctx.shadowBlur = 6;
+    drawWrappedCentered(`${lastObstacleLabel.toUpperCase()} TOOK YOU OUT`, W/2, Math.floor(H*0.14), Math.floor(W*0.86), 18);
+    ctx.shadowBlur = 0;
+
+    ctx.font = "18px 'Press Start 2P'";
+    ctx.fillStyle = "rgba(255,90,90,0.95)";
+    ctx.fillText("GAME OVER", W/2, Math.floor(H*0.22));
+
+    // Stat card
+    const cardW = Math.min(W - 48, 320);
+    const cx = (W - cardW)/2;
+    const cardY = Math.floor(H*0.28);
+    const rowH = 34;
+    const rows = [
+      ["STEPS CLEARED", `${stepIndex} / 12`],
+      ["BEST STREAK", `${bestStreakThisRun}`],
+      ["TIME ON THE ROAD", `${survivalSec}s`],
+      ["ALL-TIME BEST STREAK", `${bestStats.bestStreak}`]
+    ];
+    const cardH = rows.length * rowH + 24;
+
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 5;
+    ctx.fillStyle = "rgba(20,20,26,0.92)";
+    ctx.fillRect(cx, cardY, cardW, cardH);
+    ctx.restore();
+
+    ctx.strokeStyle = "rgba(255,255,255,0.22)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cx, cardY, cardW, cardH);
+    ctx.lineWidth = 1;
+
+    ctx.font = "9px 'Press Start 2P'";
+    let ry = cardY + 12;
+    for (const [label, val] of rows){
+      ctx.textAlign = "left";
+      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.fillText(label, cx + 16, ry + 18);
+
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#fff";
+      ctx.fillText(val, cx + cardW - 16, ry + 18);
+
+      if (ry + rowH < cardY + cardH - 4){
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.beginPath();
+        ctx.moveTo(cx + 12, ry + rowH - 6);
+        ctx.lineTo(cx + cardW - 12, ry + rowH - 6);
+        ctx.stroke();
+      }
+      ry += rowH;
+    }
+
+    ctx.textAlign = "center";
+
+    let afterY = cardY + cardH + 30;
+    if (beatBest){
+      const pulse = 0.6 + 0.4*Math.sin(frameCount*0.25);
+      ctx.font = "11px 'Press Start 2P'";
+      ctx.fillStyle = `rgba(255,215,${80+pulse*80|0},1)`;
+      ctx.fillText("★ NEW PERSONAL BEST! ★", W/2, afterY);
+      afterY += 34;
+    }
+
+    const blink = ((globalTick/18)|0) % 2 === 0;
+    if (blink){
+      ctx.font = "11px 'Press Start 2P'";
+      ctx.fillStyle = "#fff";
+      ctx.fillText("TAP TO TRY AGAIN", W/2, afterY);
+    }
+    afterY += 30;
+
+    ctx.font = "8px 'Press Start 2P'";
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.fillText("Try again — or don't. We'll be here.", W/2, afterY);
+
+    ctx.textAlign = "left";
   }
 
   function drawEnding(){
@@ -1404,6 +2290,7 @@ ${PASS_URL}`;
     drawCoins();
     drawEndingCard("YOU MADE IT THROUGH THE STEPS.", [
       "That matters.",
+      `Best streak this run: ${bestStreakThisRun}`,
       "PASS IT ON below."
     ]);
   }
@@ -1412,13 +2299,47 @@ ${PASS_URL}`;
     drawOverlay("PAUSED", ["Take a breath."]);
   }
 
+  // ===== global screen finish (scanlines + vignette) =====
+  let scanlinePattern = null;
+  function getScanlinePattern(){
+    if (scanlinePattern) return scanlinePattern;
+    const p = document.createElement("canvas");
+    p.width = 4; p.height = 4;
+    const pctx = p.getContext("2d");
+    pctx.fillStyle = "rgba(0,0,0,0)";
+    pctx.fillRect(0,0,4,4);
+    pctx.fillStyle = "rgba(0,0,0,0.16)";
+    pctx.fillRect(0,0,4,1);
+    scanlinePattern = ctx.createPattern(p, "repeat");
+    return scanlinePattern;
+  }
+
+  function drawScreenFX(){
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = getScanlinePattern();
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+
+    const grad = ctx.createRadialGradient(W/2, H*0.42, H*0.32, W/2, H*0.5, H*0.78);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(1, "rgba(0,0,0,0.5)");
+    ctx.save();
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
   function draw(){
-    if (mode === "title") return drawTitle();
-    if (mode === "countdown") return drawCountdown();
-    if (mode === "play") return drawPlayfield();
-    if (mode === "pause") return drawPause();
-    if (mode === "gameover") return drawGameOver();
-    if (mode === "ending") return drawEnding();
+    if (mode === "title") drawTitle();
+    else if (mode === "countdown") drawCountdown();
+    else if (mode === "ready") drawReady();
+    else if (mode === "play") drawPlayfield();
+    else if (mode === "resentment") drawResentmentScreen();
+    else if (mode === "pause") drawPause();
+    else if (mode === "gameover") drawGameOver();
+    else if (mode === "ending") drawEnding();
+    drawScreenFX();
   }
 
   // ===== mode transitions =====
@@ -1427,10 +2348,32 @@ ${PASS_URL}`;
     prestigeSpeedBoost = Math.min(2.0, prestige * 0.30);
   }
 
+  function finalizeRunStats(){
+    const survivalSec = Math.round((frameCount - runStartFrame) / 60);
+    justBeatBest = { streak:false, steps:false, survival:false };
+
+    if (bestStreakThisRun > bestStats.bestStreak){
+      bestStats.bestStreak = bestStreakThisRun;
+      justBeatBest.streak = true;
+    }
+    if (stepIndex > bestStats.bestSteps){
+      bestStats.bestSteps = stepIndex;
+      justBeatBest.steps = true;
+    }
+    if (survivalSec > bestStats.bestSurvivalSec){
+      bestStats.bestSurvivalSec = survivalSec;
+      justBeatBest.survival = true;
+    }
+    saveBestStats();
+  }
+
   const _setMode = setMode;
   setMode = (m) => {
     if (mode === "ending" && m === "title"){
       handleTryAgainFromEnding();
+    }
+    if ((m === "gameover" || m === "ending") && mode !== m){
+      finalizeRunStats();
     }
     _setMode(m);
   };
@@ -1448,6 +2391,7 @@ ${PASS_URL}`;
   setMode("title");
 
   function loop(){
+    globalTick++;
     update();
     draw();
     requestAnimationFrame(loop);

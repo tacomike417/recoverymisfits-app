@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>On Awakening — Recovery Misfits</title>
+<style>
+  :root{
+    --bb: #082f6b;
+    --bbTint: rgba(8,47,107,.06);
+    --bbBorder: rgba(8,47,107,.22);
+    --bbSpine: rgba(8,47,107,.55);
+    --border: rgba(0,0,0,.12);
+    --muted: rgba(0,0,0,.65);
+  }
+
+  *{ box-sizing:border-box; }
+
+  html, body{
+    margin:0;
+    background:#fff;
+    font-family:Roboto,Arial,sans-serif;
+    color:#111;
+  }
+
+  /* ===== Header bar, matches the Big Book card treatment in readings.html ===== */
+  .rdrHeader{
+    position:sticky;
+    top:0;
+    z-index:20;
+    background: var(--bbTint);
+    border-bottom:1px solid var(--bbBorder);
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .rdrSpine{
+    width:6px;
+    align-self:stretch;
+    background: var(--bbSpine);
+    border-radius:3px;
+    flex:0 0 auto;
+  }
+
+  .rdrHeaderText{
+    flex:1 1 auto;
+    min-width:0;
+  }
+
+  .rdrEyebrow{
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color: var(--bb);
+    opacity:.75;
+  }
+
+  .rdrTitle{
+    font-size:16px;
+    font-weight:1000;
+    color:#111;
+    margin-top:1px;
+  }
+
+  .rdrBack{
+    flex:0 0 auto;
+    padding:8px 12px;
+    border-radius:999px;
+    border:1px solid rgba(0,0,0,.18);
+    background:#fff;
+    color:#111;
+    font-weight:900;
+    font-size:12px;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+
+  /* ===== Reader body ===== */
+  .rdrBody{
+    max-width:720px;
+    margin:0 auto;
+    padding:16px 12px 40px;
+  }
+
+  .rdrStatus{
+    text-align:center;
+    padding:40px 16px;
+    color:var(--muted);
+    font-size:14px;
+    font-weight:700;
+    line-height:1.4;
+  }
+
+  .rdrStatus.err{
+    color:#7a1420;
+  }
+
+  .rdrFallbackLink{
+    display:inline-block;
+    margin-top:14px;
+    padding:10px 16px;
+    border-radius:999px;
+    background:var(--bb);
+    color:#fff;
+    font-weight:900;
+    font-size:13px;
+    text-decoration:none;
+  }
+
+  .rdrPageWrap{
+    position:relative;
+    margin:0 auto;
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 2px 14px rgba(0,0,0,.08);
+    display:none; /* shown once rendered */
+  }
+
+  .rdrPageWrap canvas{
+    display:block;
+    width:100%;
+    height:auto;
+  }
+
+  .rdrHighlight{
+    position:absolute;
+    background: rgba(255, 209, 92, .45);
+    border-radius: 2px;
+    pointer-events:none;
+  }
+
+  .rdrSourceNote{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:14px;
+    line-height:1.4;
+  }
+
+  .rdrSourceNote a{ color:var(--bb); font-weight:800; }
+</style>
+</head>
+<body>
+
+  <div class="rdrHeader">
+    <div class="rdrSpine"></div>
+    <div class="rdrHeaderText">
+      <div class="rdrEyebrow">Big Book · pp. 86–88</div>
+      <div class="rdrTitle">On Awakening</div>
+    </div>
+    <a class="rdrBack" href="./readings.html">Done</a>
+  </div>
+
+  <div class="rdrBody">
+    <div id="rdrStatus" class="rdrStatus">Loading today's reading…</div>
+
+    <div id="rdrPageWrap" class="rdrPageWrap">
+      <canvas id="rdrCanvas"></canvas>
+      <div id="rdrHighlightLayer"></div>
+    </div>
+
+    <div class="rdrSourceNote">
+      Rendered live from AA.org's official Chapter 6 PDF — nothing is copied or stored.<br>
+      <a id="rdrSourceLink" href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt6.pdf" target="_blank" rel="noopener">Open the full chapter on aa.org</a>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+  (async function(){
+    const PDF_URL = "https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt6.pdf";
+    const PAGE_NUM = 15; // PDF-internal page for printed page 86 ("On awakening...")
+    const SEARCH_PHRASE = "on awakening let us think";
+
+    const statusEl = document.getElementById("rdrStatus");
+    const pageWrap = document.getElementById("rdrPageWrap");
+    const canvas = document.getElementById("rdrCanvas");
+    const ctx = canvas.getContext("2d");
+    const highlightLayer = document.getElementById("rdrHighlightLayer");
+
+    function showError(msg){
+      statusEl.textContent = msg;
+      statusEl.classList.add("err");
+      const link = document.createElement("a");
+      link.className = "rdrFallbackLink";
+      link.href = PDF_URL + "#page=" + PAGE_NUM;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = "Open on aa.org instead";
+      statusEl.appendChild(document.createElement("br"));
+      statusEl.appendChild(link);
+    }
+
+    if (!window.pdfjsLib){
+      showError("Couldn't load the PDF reader. You can still read today's passage directly on aa.org.");
+      return;
+    }
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+    try {
+      const loadingTask = pdfjsLib.getDocument({ url: PDF_URL });
+      const pdf = await loadingTask.promise;
+
+      if (PAGE_NUM > pdf.numPages){
+        showError("This reading isn't available right now.");
+        return;
+      }
+
+      const page = await pdf.getPage(PAGE_NUM);
+
+      // Fit the page to the container width, rendered crisply for retina screens.
+      const containerWidth = Math.min(720, window.innerWidth - 24);
+      const baseViewport = page.getViewport({ scale: 1 });
+      const scale = containerWidth / baseViewport.width;
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const viewport = page.getViewport({ scale: scale * dpr });
+
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      canvas.style.width = (viewport.width / dpr) + "px";
+      canvas.style.height = (viewport.height / dpr) + "px";
+      pageWrap.style.width = (viewport.width / dpr) + "px";
+
+      await page.render({ canvasContext: ctx, viewport }).promise;
+
+      // ---- Locate and highlight the "On Awakening" passage ----
+      const textContent = await page.getTextContent();
+      const items = textContent.items;
+
+      let fullText = "";
+      const offsets = []; // offsets[i] = starting char index of items[i] in fullText
+      for (let i = 0; i < items.length; i++){
+        offsets.push(fullText.length);
+        fullText += items[i].str;
+      }
+
+      const idx = fullText.toLowerCase().indexOf(SEARCH_PHRASE);
+      let startItemIndex = -1;
+      if (idx !== -1){
+        for (let i = 0; i < items.length; i++){
+          const start = offsets[i];
+          const end = start + items[i].str.length;
+          if (idx >= start && idx < end){ startItemIndex = i; break; }
+        }
+      }
+
+      if (startItemIndex !== -1){
+        for (let i = startItemIndex; i < items.length; i++){
+          const item = items[i];
+          if (!item.str || !item.str.trim()) continue;
+
+          const combined = pdfjsLib.Util.transform(viewport.transform, item.transform);
+          const heightPx = Math.hypot(combined[2], combined[3]);
+          const widthPx = item.width * Math.hypot(combined[0], combined[1]) /
+            Math.max(0.0001, Math.hypot(item.transform[0], item.transform[1]));
+
+          const left = combined[4];
+          const top = combined[5] - heightPx;
+
+          const box = document.createElement("div");
+          box.className = "rdrHighlight";
+          box.style.left = (left / dpr) + "px";
+          box.style.top = (top / dpr) + "px";
+          box.style.width = (widthPx / dpr) + "px";
+          box.style.height = (heightPx / dpr) + "px";
+          highlightLayer.appendChild(box);
+        }
+      }
+
+      statusEl.style.display = "none";
+      pageWrap.style.display = "block";
+
+      if (startItemIndex !== -1){
+        requestAnimationFrame(() => {
+          const firstBox = highlightLayer.firstChild;
+          if (firstBox){
+            firstBox.scrollIntoView({ block: "center", behavior: "instant" });
+          }
+        });
+      }
+
+    } catch (err){
+      console.error("PDF reader error:", err);
+      showError("Couldn't load today's reading right now — aa.org's server may be blocking this. You can still read it directly.");
+    }
+  })();
+  </script>
+</body>
+</html>
