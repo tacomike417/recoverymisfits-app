@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Another Day Sober — Admin</title>
+<style>
+  :root{
+    --bg:#1c1c1c; --panel:#fff; --ink:#1c1c1c; --muted:#6b6b6b;
+    --border:#e2ddd2; --accent:#8a2b2b; --accentDark:#6e2222;
+    --ok:#2e7d32; --warn:#b45309; --err:#b3261e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:#111;color:#f2f2f2;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  header h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.02em}
+  header .sub{font-size:12px;color:#aaa}
+  #gate{max-width:440px;margin:80px auto;background:var(--panel);padding:28px;border-radius:10px}
+  #gate p{color:var(--muted);font-size:14px;line-height:1.5}
+  #gate input{width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:14px;margin-top:6px}
+  #gate button{margin-top:14px;width:100%;padding:11px;background:var(--accent);color:#fff;border:0;border-radius:6px;font-size:14px;cursor:pointer;font-weight:600}
+  #gate button:hover{background:var(--accentDark)}
+  #app{display:none;max-width:1100px;margin:0 auto;padding:18px;gap:18px;grid-template-columns:280px 1fr}
+  #app.shown{display:grid}
+  .panel{background:var(--panel);border-radius:10px;padding:14px;max-height:calc(100vh - 100px);overflow:auto}
+  .list-item{padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;gap:6px}
+  .list-item:hover{background:#f4efe4}
+  .list-item.active{background:var(--accent);color:#fff}
+  .list-item small{color:inherit;opacity:.65;flex-shrink:0}
+  #searchBox{width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px;margin-bottom:10px}
+  .tabs{display:flex;gap:6px;margin-bottom:10px}
+  .tab{padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:#faf7f0}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+  .field input, .field textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit}
+  .field textarea{min-height:360px;line-height:1.5;resize:vertical}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{padding:9px 16px;border-radius:6px;border:0;font-size:13px;cursor:pointer;font-weight:600}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accentDark)}
+  .btn-ghost{background:#eee;color:#333}
+  .btn-danger{background:#fde8e6;color:var(--err)}
+  .status{font-size:13px;padding:8px 10px;border-radius:6px;margin-top:10px}
+  .status.ok{background:#e6f4ea;color:var(--ok)}
+  .status.err{background:#fde8e6;color:var(--err)}
+  .status.warn{background:#fff4e0;color:var(--warn)}
+  .empty{color:var(--muted);font-size:13px;text-align:center;padding:40px 10px}
+  .badge{font-size:10px;background:var(--warn);color:#fff;padding:2px 6px;border-radius:10px;margin-left:6px}
+  @media (max-width:800px){ #app.shown{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ANOTHER DAY SOBER — ADMIN</h1>
+  <div class="sub" id="repoLabel"></div>
+</header>
+
+<div id="gate">
+  <p><strong>Private editor.</strong> Paste a GitHub fine-grained Personal Access Token scoped to just
+  <code>tacomike417/recoverymisfits-app</code> with <em>Contents: read and write</em>. It's kept in this
+  browser tab only (sessionStorage) — never sent anywhere except GitHub's API, never saved by this page.</p>
+  <label style="font-size:13px;color:#444;font-weight:600">GitHub token</label>
+  <input type="password" id="tokenInput" placeholder="github_pat_...">
+  <button id="enterBtn">Unlock</button>
+  <div id="gateStatus"></div>
+</div>
+
+<div id="app">
+  <div class="panel">
+    <div class="tabs">
+      <div class="tab active" data-tab="readings">Readings</div>
+      <div class="tab" data-tab="drafts">Drafts <span id="draftCount" class="badge" style="display:none"></span></div>
+    </div>
+    <input type="text" id="searchBox" placeholder="Search title or date (MM-DD)...">
+    <div style="margin-bottom:10px">
+      <button class="btn btn-ghost" id="newBtn" style="width:100%">+ New reading</button>
+    </div>
+    <div id="listArea"></div>
+  </div>
+
+  <div class="panel" id="editorArea">
+    <div class="empty">Select a reading from the left, or create a new one.</div>
+  </div>
+</div>
+
+<script>
+const OWNER = 'tacomike417';
+const REPO = 'recoverymisfits-app';
+const BRANCH = 'main';
+const READINGS_PATH = 'data/readings.json';
+const DRAFTS_PATH = 'data/drafts.json';
+const API = `https://api.github.com/repos/${OWNER}/${REPO}/contents`;
+
+document.getElementById('repoLabel').textContent = `${OWNER}/${REPO} (${BRANCH})`;
+
+let token = sessionStorage.getItem('rm_admin_token') || '';
+let readings = {};     // { "MM-DD": {title, body} }
+let readingsSha = null;
+let drafts = [];       // [{title, body, suggested_date}]
+let draftsSha = null;
+let activeTab = 'readings';
+let activeKey = null;  // date string or draft index
+let dirty = false;
+
+function b64EncodeUnicode(str){
+  return btoa(unicode_to_utf8(str));
+}
+function unicode_to_utf8(str){
+  return unescape(encodeURIComponent(str));
+}
+function b64DecodeUnicode(str){
+  return decodeURIComponent(escape(atob(str)));
+}
+
+async function ghGet(path){
+  const res = await fetch(`${API}/${path}?ref=${BRANCH}`, {
+    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+  });
+  if(!res.ok) throw new Error(`GET ${path} failed: ${res.status} ${res.statusText}`);
+  const data = await res.json();
+  return { content: JSON.parse(b64DecodeUnicode(data.content)), sha: data.sha };
+}
+
+async function ghPut(path, obj, sha, message){
+  const body = {
+    message,
+    content: b64EncodeUnicode(JSON.stringify(obj, null, 2)),
+    branch: BRANCH
+  };
+  if(sha) body.sha = sha;
+  const res = await fetch(`${API}/${path}`, {
+    method: 'PUT',
+    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){
+    const t = await res.text();
+    throw new Error(`Save failed: ${res.status} ${t}`);
+  }
+  return res.json();
+}
+
+document.getElementById('enterBtn').addEventListener('click', async () => {
+  const t = document.getElementById('tokenInput').value.trim();
+  const gs = document.getElementById('gateStatus');
+  if(!t){ gs.innerHTML = '<div class="status err">Paste a token first.</div>'; return; }
+  token = t;
+  gs.innerHTML = '<div class="status warn">Loading readings.json and drafts.json...</div>';
+  try{
+    const r = await ghGet(READINGS_PATH);
+    readings = r.content; readingsSha = r.sha;
+    const d = await ghGet(DRAFTS_PATH);
+    drafts = d.content; draftsSha = d.sha;
+    sessionStorage.setItem('rm_admin_token', token);
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').classList.add('shown');
+    renderList();
+  }catch(err){
+    gs.innerHTML = `<div class="status err">${err.message}</div>`;
+  }
+});
+
+// auto-unlock if token already in session
+if(token){
+  document.getElementById('tokenInput').value = token;
+  document.getElementById('enterBtn').click();
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeTab = tab.dataset.tab;
+    activeKey = null;
+    renderList();
+    renderEmptyEditor();
+  });
+});
+
+document.getElementById('searchBox').addEventListener('input', renderList);
+
+document.getElementById('newBtn').addEventListener('click', () => {
+  activeTab = 'readings';
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.tab[data-tab="readings"]').classList.add('active');
+  activeKey = '__new__';
+  renderList();
+  renderEditorNew();
+});
+
+function renderList(){
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const listArea = document.getElementById('listArea');
+  listArea.innerHTML = '';
+  const draftCountEl = document.getElementById('draftCount');
+  draftCountEl.style.display = drafts.length ? 'inline-block' : 'none';
+  draftCountEl.textContent = drafts.length;
+
+  if(activeTab === 'readings'){
+    const keys = Object.keys(readings).sort();
+    keys.filter(k => {
+      if(!q) return true;
+      return k.includes(q) || (readings[k].title||'').toLowerCase().includes(q);
+    }).forEach(k => {
+      const el = document.createElement('div');
+      el.className = 'list-item' + (activeKey === k ? ' active' : '');
+      el.innerHTML = `<span>${escapeHtml(readings[k].title || '(untitled)')}</span><small>${k}</small>`;
+      el.addEventListener('click', () => { activeKey = k; renderList(); renderEditorReading(k); });
+      listArea.appendChild(el);
+    });
+  } else {
+    drafts.filter((d,i) => {
+      if(!q) return true;
+      return (d.title||'').toLowerCase().includes(q);
+    }).forEach((d, i) => {
+      const el = document.createElement('div');
+      el.className = 'list-item' + (activeKey === i ? ' active' : '');
+      el.innerHTML = `<span>${escapeHtml(d.title || '(untitled)')}</span><small>${d.suggested_date||''}</small>`;
+      el.addEventListener('click', () => { activeKey = i; renderList(); renderEditorDraft(i); });
+      listArea.appendChild(el);
+    });
+    if(!drafts.length){
+      listArea.innerHTML = '<div class="empty">No drafts waiting.</div>';
+    }
+  }
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function renderEmptyEditor(){
+  document.getElementById('editorArea').innerHTML = '<div class="empty">Select a reading from the left, or create a new one.</div>';
+}
+
+function renderEditorReading(key){
+  const r = readings[key];
+  const area = document.getElementById('editorArea');
+  area.innerHTML = `
+    <div class="field"><label>Date (MM-DD)</label><input type="text" id="f_date" value="${key}" pattern="\\d{2}-\\d{2}"></div>
+    <div class="field"><label>Title</label><input type="text" id="f_title" value="${escapeHtml(r.title)}"></div>
+    <div class="field"><label>Body</label><textarea id="f_body">${escapeHtml(r.body)}</textarea></div>
+    <div class="row">
+      <button class="btn btn-primary" id="saveBtn">Save to GitHub</button>
+      <button class="btn btn-danger" id="delBtn">Delete this reading</button>
+    </div>
+    <div id="editStatus"></div>
+  `;
+  document.getElementById('saveBtn').addEventListener('click', () => saveReading(key));
+  document.getElementById('delBtn').addEventListener('click', () => deleteReading(key));
+}
+
+function renderEditorNew(){
+  const area = document.getElementById('editorArea');
+  area.innerHTML = `
+    <div class="field"><label>Date (MM-DD)</label><input type="text" id="f_date" placeholder="08-07"></div>
+    <div class="field"><label>Title</label><input type="text" id="f_title" placeholder="August 7 – Resentment"></div>
+    <div class="field"><label>Body</label><textarea id="f_body" placeholder="Body text. Leave a blank line before the closing question."></textarea></div>
+    <div class="row"><button class="btn btn-primary" id="saveBtn">Create &amp; save to GitHub</button></div>
+    <div id="editStatus"></div>
+  `;
+  document.getElementById('saveBtn').addEventListener('click', () => saveReading(null));
+}
+
+function renderEditorDraft(i){
+  const d = drafts[i];
+  const area = document.getElementById('editorArea');
+  area.innerHTML = `
+    <div class="field"><label>Title</label><input type="text" id="f_title" value="${escapeHtml(d.title)}"></div>
+    <div class="field"><label>Body</label><textarea id="f_body">${escapeHtml(d.body)}</textarea></div>
+    <div class="field"><label>Assign to date (MM-DD)</label><input type="text" id="f_date" value="${d.suggested_date||''}" placeholder="MM-DD"></div>
+    <div class="row">
+      <button class="btn btn-primary" id="assignBtn">Save edits to draft</button>
+      <button class="btn btn-primary" id="publishBtn">Assign date &amp; move to readings</button>
+      <button class="btn btn-danger" id="delDraftBtn">Delete draft</button>
+    </div>
+    <div id="editStatus"></div>
+  `;
+  document.getElementById('assignBtn').addEventListener('click', () => saveDraftEdit(i));
+  document.getElementById('publishBtn').addEventListener('click', () => publishDraft(i));
+  document.getElementById('delDraftBtn').addEventListener('click', () => deleteDraft(i));
+}
+
+function setStatus(msg, kind){
+  const el = document.getElementById('editStatus');
+  if(el) el.innerHTML = `<div class="status ${kind}">${msg}</div>`;
+}
+
+async function saveReading(oldKey){
+  const date = document.getElementById('f_date').value.trim();
+  const title = document.getElementById('f_title').value.trim();
+  const body = document.getElementById('f_body').value;
+  if(!/^\d{2}-\d{2}$/.test(date)){ setStatus('Date must be MM-DD, e.g. 08-07.', 'err'); return; }
+  if(oldKey && oldKey !== date && readings[date]){
+    setStatus(`${date} already has a reading. Rename or delete that one first.`, 'err'); return;
+  }
+  if(oldKey && oldKey !== date) delete readings[oldKey];
+  readings[date] = { title, body };
+  setStatus('Saving...', 'warn');
+  try{
+    const res = await ghPut(READINGS_PATH, readings, readingsSha, `Edit reading ${date} via admin`);
+    readingsSha = res.content.sha;
+    activeKey = date;
+    setStatus('Saved.', 'ok');
+    renderList();
+  }catch(err){ setStatus(err.message, 'err'); }
+}
+
+async function deleteReading(key){
+  if(!confirm(`Delete the reading for ${key}? This can't be undone here (though it stays in your git history).`)) return;
+  delete readings[key];
+  try{
+    const res = await ghPut(READINGS_PATH, readings, readingsSha, `Delete reading ${key} via admin`);
+    readingsSha = res.content.sha;
+    activeKey = null;
+    renderList();
+    renderEmptyEditor();
+  }catch(err){ setStatus(err.message, 'err'); }
+}
+
+async function saveDraftEdit(i){
+  drafts[i].title = document.getElementById('f_title').value.trim();
+  drafts[i].body = document.getElementById('f_body').value;
+  drafts[i].suggested_date = document.getElementById('f_date').value.trim();
+  setStatus('Saving draft...', 'warn');
+  try{
+    const res = await ghPut(DRAFTS_PATH, drafts, draftsSha, 'Edit draft via admin');
+    draftsSha = res.content.sha;
+    setStatus('Draft saved.', 'ok');
+    renderList();
+  }catch(err){ setStatus(err.message, 'err'); }
+}
+
+async function publishDraft(i){
+  const date = document.getElementById('f_date').value.trim();
+  if(!/^\d{2}-\d{2}$/.test(date)){ setStatus('Date must be MM-DD, e.g. 08-07.', 'err'); return; }
+  if(readings[date] && !confirm(`${date} already has a reading ("${readings[date].title}"). Overwrite it?`)) return;
+  const title = document.getElementById('f_title').value.trim();
+  const body = document.getElementById('f_body').value;
+  readings[date] = { title, body };
+  const removed = drafts.splice(i, 1);
+  setStatus('Publishing...', 'warn');
+  try{
+    const r1 = await ghPut(READINGS_PATH, readings, readingsSha, `Assign draft "${removed[0].title}" to ${date}`);
+    readingsSha = r1.content.sha;
+    const r2 = await ghPut(DRAFTS_PATH, drafts, draftsSha, `Remove published draft "${removed[0].title}"`);
+    draftsSha = r2.content.sha;
+    activeKey = null;
+    activeTab = 'readings';
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.tab[data-tab="readings"]').classList.add('active');
+    renderList();
+    renderEmptyEditor();
+  }catch(err){ setStatus(err.message, 'err'); }
+}
+
+async function deleteDraft(i){
+  if(!confirm('Delete this draft permanently?')) return;
+  drafts.splice(i, 1);
+  try{
+    const res = await ghPut(DRAFTS_PATH, drafts, draftsSha, 'Delete draft via admin');
+    draftsSha = res.content.sha;
+    activeKey = null;
+    renderList();
+    renderEmptyEditor();
+  }catch(err){ setStatus(err.message, 'err'); }
+}
+</script>
+</body>
+</html>
