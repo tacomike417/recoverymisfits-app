@@ -39,21 +39,22 @@
         top: 0;
         z-index: 9000;
         background:#0e0e10;
-        border-bottom:1px solid rgba(255,255,255,.08);
+        border-bottom:1px solid rgba(255,255,255,.06);
+        box-shadow:0 2px 10px rgba(0,0,0,.28);
         font-family:Roboto,Arial,sans-serif;
       }
 
       .rm-topbar-inner{
         max-width:980px;
         margin:0 auto;
-        padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+        padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
         display:flex;
         align-items:center;
         justify-content:center;
       }
 
       .rm-logo{
-        width:min(78%, 300px);
+        width:min(80%, 320px);
         height:auto;
         display:block;
         user-select:none;
@@ -411,7 +412,8 @@
       return {
         id: marker.getAttribute("data-update-id") || "",
         title: marker.getAttribute("data-update-title") || "",
-        banner: marker.getAttribute("data-update-banner") || ""
+        banner: marker.getAttribute("data-update-banner") || "",
+        date: marker.getAttribute("data-update-date") || ""
       };
     } catch {
       return null;
@@ -426,6 +428,17 @@
     const dismissedId = localStorage.getItem(dismissedKey) || "";
 
     if (dismissedId === update.id) return;
+
+    // Auto-expire the banner after 14 days from its posted date, even if
+    // nobody ever clicks Close, so it can't linger indefinitely.
+    const BANNER_EXPIRE_DAYS = 14;
+    if (update.date) {
+      const postedAt = new Date(update.date + "T00:00:00");
+      if (!isNaN(postedAt.getTime())) {
+        const elapsedDays = (Date.now() - postedAt.getTime()) / (1000 * 60 * 60 * 24);
+        if (elapsedDays > BANNER_EXPIRE_DAYS) return;
+      }
+    }
 
     bannerText.innerHTML =
       "<small>update:</small> " + (update.banner || update.title);
