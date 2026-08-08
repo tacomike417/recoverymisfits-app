@@ -87,6 +87,20 @@
     return String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
   }
 
+  var MONTHS = ["january","february","march","april","may","june","july",
+                "august","september","october","november","december"];
+  var LEADING_DATE_RE = new RegExp("^(" + MONTHS.join("|") + ")\\s+\\d{1,2}\\s*[-\u2013\u2014]\\s*", "i");
+
+  function slugify(title){
+    var stripped = (title || "").replace(LEADING_DATE_RE, "").trim();
+    if (!stripped) stripped = title || "";
+    var s = stripped.toLowerCase();
+    s = s.replace(/[\u2019'"]/g, "");
+    s = s.replace(/[^a-z0-9]+/g, "-");
+    s = s.replace(/-+/g, "-").replace(/^-|-$/g, "");
+    return s || "reading";
+  }
+
   function showError(msg) {
     if (loadingEl) loadingEl.style.display = "none";
     if (errorEl) { errorEl.style.display = "block"; errorEl.textContent = msg; }
@@ -161,7 +175,7 @@
       if (!entry) { showError("No post found with label: " + label); return; }
 
       var postTitle = entry.title || "(Untitled)";
-      var postUrl = window.location.origin + window.location.pathname + "?reading=" + label;
+      var postUrl = window.location.origin + "/another-day-sober/" + label + "/" + slugify(postTitle) + "/";
       var shareMessage = "Check this out: " + postTitle + " " + postUrl;
 
       if (titleEl) titleEl.textContent = postTitle;

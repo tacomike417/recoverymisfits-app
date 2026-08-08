@@ -1,0 +1,49 @@
+name: Build and deploy site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Assemble the site into a clean build folder
+        run: |
+          mkdir -p _site
+          # copy everything except git/CI internals and the source-only folders
+          rsync -a --exclude='.git' --exclude='.github' --exclude='_site' \
+                --exclude='scripts' ./ _site/
+
+      - name: Generate reading pages + sitemap into the build folder
+        env:
+          ADS_OUT_ROOT: ${{ github.workspace }}/_site
+        run: python3 scripts/build_pages.py
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
