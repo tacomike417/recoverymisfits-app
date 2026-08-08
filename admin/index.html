@@ -61,7 +61,7 @@
 <div id="gate">
   <p><strong>Private editor.</strong> Paste a GitHub fine-grained Personal Access Token scoped to just
   <code>tacomike417/recoverymisfits-app</code> with <em>Contents: read and write</em>. It's kept in this
-  browser tab only (sessionStorage) — never sent anywhere except GitHub's API, never saved by this page.</p>
+  browser tab only (localStorage) — never sent anywhere except GitHub's API, never saved by this page.</p>
   <label style="font-size:13px;color:#444;font-weight:600">GitHub token</label>
   <input type="password" id="tokenInput" placeholder="github_pat_...">
   <button id="enterBtn">Unlock</button>
@@ -96,7 +96,7 @@ const API = `https://api.github.com/repos/${OWNER}/${REPO}/contents`;
 
 document.getElementById('repoLabel').textContent = `${OWNER}/${REPO} (${BRANCH})`;
 
-let token = sessionStorage.getItem('rm_admin_token') || '';
+let token = localStorage.getItem('rm_admin_token') || '';
 let readings = {};     // { "MM-DD": {title, body} }
 let readingsSha = null;
 let drafts = [];       // [{title, body, suggested_date}]
@@ -154,7 +154,7 @@ document.getElementById('enterBtn').addEventListener('click', async () => {
     readings = r.content; readingsSha = r.sha;
     const d = await ghGet(DRAFTS_PATH);
     drafts = d.content; draftsSha = d.sha;
-    sessionStorage.setItem('rm_admin_token', token);
+    localStorage.setItem('rm_admin_token', token);
     document.getElementById('gate').style.display = 'none';
     document.getElementById('app').classList.add('shown');
     renderList();
