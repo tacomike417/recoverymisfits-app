@@ -131,7 +131,22 @@
       }
 
       if (isCustomGameplayLevel && hasPointerCoordinates(event)) {
-        tapCustomGameplay(event.clientX, event.clientY);
+        const result = tapCustomGameplay(
+          event.clientX,
+          event.clientY
+        );
+
+        // Custom gameplay modules (like chapter 5's town map) signal
+        // completion by returning { complete: true, nextChapter }
+        // from tap(). gameFlow previously ignored this return value
+        // entirely, so tap() could report completion correctly and
+        // nothing would ever act on it. This is what actually advances
+        // the chapter.
+        if (result && result.complete) {
+          playClickFeedback();
+          continueToNextChapter();
+        }
+
         return;
       }
 

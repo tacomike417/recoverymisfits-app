@@ -80,18 +80,27 @@
     }
 
     function continueToNextChapter() {
-      const nextChapterNumber = chapterNumber + 1;
-      const nextChapter = engine?.getChapter?.(nextChapterNumber - 1);
+  const nextChapterNumber = chapterNumber + 1;
 
-      if (!nextChapter && nextChapterNumber !== 3) {
-        return;
-      }
+  // Chapters 3+ are registered on window.RecoveryChapters (e.g.
+  // chapter6.js sets window.RecoveryChapters.chapter6), not on
+  // window.chapters, which only ever contains chapters 1-2. Check
+  // RecoveryChapters first -- same lookup game2.js already uses to
+  // load whichever chapter is currently active.
+  const nextChapterKey = `chapter${nextChapterNumber}`;
+  const nextChapter =
+    window.RecoveryChapters?.[nextChapterKey] ||
+    engine?.getChapter?.(nextChapterNumber - 1);
 
-      const nextUrl = new URL(window.location.href);
-      nextUrl.searchParams.set("chapter", String(nextChapterNumber));
-      nextUrl.searchParams.set("skipIntro", "1");
-      window.location.href = nextUrl.toString();
-    }
+  if (!nextChapter && nextChapterNumber !== 3) {
+    return;
+  }
+
+  const nextUrl = new URL(window.location.href);
+  nextUrl.searchParams.set("chapter", String(nextChapterNumber));
+  nextUrl.searchParams.set("skipIntro", "1");
+  window.location.href = nextUrl.toString();
+}
 
     function drawTitleScreen() {
       syncRuntime();

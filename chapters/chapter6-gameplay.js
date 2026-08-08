@@ -6,7 +6,14 @@
 (() => {
   "use strict";
 
-  const SHARE_URL = "";
+  // GAME DEV TEST #1
+  // Wired the share button up to the Web Share API (native share sheet
+  // on phones), with a clipboard-copy fallback for desktop browsers
+  // that don't support navigator.share.
+
+  const SHARE_URL = "https://www.recoverymisfits.org/unofficial-story.html";
+  const SHARE_TITLE = "Recovery Misfits";
+  const SHARE_TEXT = "Check out this game I found:";
 
   const slides = [
     {
@@ -125,6 +132,8 @@
     let slideStartedAt = 0;
     let sequenceStartedAt = 0;
     let soundtrackStarted = false;
+    let shareStatusMessage = "";
+    let shareStatusUntil = 0;
 
     const imageCache = new Map();
 
@@ -238,6 +247,42 @@
       return false;
     }
 
+    function showShareStatus(message, duration = 2200) {
+      shareStatusMessage = message;
+      shareStatusUntil = performance.now() + duration;
+    }
+
+    async function shareGame() {
+      const shareData = {
+        title: SHARE_TITLE,
+        text: SHARE_TEXT,
+        url: SHARE_URL
+      };
+
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+        } catch (err) {
+          // User canceled the native share sheet -- not an error.
+        }
+        return;
+      }
+
+      const fallbackText = `${SHARE_TEXT} ${SHARE_URL}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(fallbackText);
+          showShareStatus("LINK COPIED!");
+          return;
+        } catch (err) {
+          // Fall through to opening the link directly below.
+        }
+      }
+
+      window.open(SHARE_URL, "_blank", "noopener,noreferrer");
+    }
+
     function tap(clientX, clientY) {
       if (slideIndex >= 1 && soundtrack.paused) {
         soundtrackStarted = false;
@@ -263,11 +308,10 @@
           clientY <= button.y + button.height;
 
         if (inside && SHARE_URL) {
-          window.open(
-            SHARE_URL,
-            "_blank",
-            "noopener,noreferrer"
-          );
+          if (typeof playClickFeedback === "function") {
+            playClickFeedback();
+          }
+          shareGame();
         }
       }
 
@@ -701,6 +745,19 @@
         width / 2,
         button.y + button.height / 2 + 1
       );
+
+      if (
+        shareStatusMessage &&
+        performance.now() < shareStatusUntil
+      ) {
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 13px monospace";
+        ctx.fillText(
+          shareStatusMessage,
+          width / 2,
+          button.y + button.height + 22
+        );
+      }
 
       ctx.restore();
     }

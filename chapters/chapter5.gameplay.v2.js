@@ -4,6 +4,11 @@ CHAPTER 5 - TOWN ENGINE V2 Recovery Misfits
 
 Milestone 2: - Loads the full background - Places all seven building
 assets - Draws Bill - Draws the title
+==========================================================
+
+GAME DEV TEST #3
+Debug "SKIP -> END" button removed now that the chapter 5 -> 6
+transition is confirmed working end to end.
 ========================================================== */
 
 (() => {
@@ -441,11 +446,14 @@ function createChapter5Game({ ctx, getWidth, getHeight }) {
         return;
       }
 
-      if (gamePhase === "ending") {
-        signalChapter6();
-        event.preventDefault();
-        return;
-      }
+      // NOTE: chapter completion is intentionally NOT handled here.
+      // The engine (game2.js) calls this module's exported tap() function
+      // to learn when chapter 5 is finished. If we also flip gamePhase to
+      // "complete" from this internal pointerdown listener, it wins the
+      // race against the engine's own tap() call, so tap() sees phase
+      // "complete" instead of "ending" and never returns the
+      // { complete: true, nextChapter: 6 } signal the engine needs. Let
+      // the generic guard below just no-op the tap; tap() handles it.
 
       if (gamePhase !== "playing" || !canBillMove()) {
         pointerDown = false;
