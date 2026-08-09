@@ -111,7 +111,7 @@ PAGE_TEMPLATE = """<!doctype html>
           <a class="dp-btn" id="dp-fb" href="https://www.facebook.com/sharer/sharer.php?u={canonical_enc}" target="_blank" rel="noopener">Facebook</a>
           <button class="dp-btn" id="dp-sms" type="button">Text</button>
           <button class="dp-btn dp-btn-secondary" id="dp-copy" type="button">Copy link</button>
-          <button class="dp-btn dp-btn-ig" id="dp-image" type="button">Share image</button>
+          <button class="dp-btn dp-btn-ig" id="dp-image" type="button"><img src="/snapshot-icon.png" alt="" class="dp-btn-icon">Take Snapshot</button>
           <span class="dp-copied" id="dp-copied" style="display:none;"></span>
         </div>
       </div>
