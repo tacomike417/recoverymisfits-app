@@ -26,9 +26,10 @@
    scene plays (with room for dialogue) before they head back out to the
    next meeting.
 
-   The top HUD has three fixed sections: LIVES (left), the story clock
-   (center, atmosphere only -- see STORY_TIMES), and a Level 1 progress
-   bar (right).
+   The top HUD has three fixed sections: LIVES (left), a fictional "TIME
+   LEFT ON EARTH" story clock (center -- purely visual, no gameplay
+   authority; see CONFIG.storyClockSpeed / getScriptClockSeconds), and a
+   Level 1 progress bar (right).
 
    ENTRY POINT (already wired from chapter1-story.js):
        window.HalloweenGame.chapter1Gameplay.start();
@@ -50,11 +51,47 @@
        ====================================================================== */
     const CONFIG = {
         // movement
-        walkSpeed: 140,             // px/sec the world scrolls at while walking
-        dashSpeed: 320,             // px/sec while dashing
+        // walkSpeed/billOutdoorStrollFPS/bobOutdoorStrollFPS are getters,
+        // not plain numbers, so that every EXISTING read of them (there
+        // are many, scattered through the normal walk/dash/obstacle/
+        // approach code, all completely untouched) automatically scales
+        // with repeated FASTER presses -- see fasterSpeedLevel/
+        // getFasterSpeedMultiplier below. dashSpeed is deliberately left
+        // a plain number: dash is already its own separate speed burst,
+        // not something FASTER should compound.
+        //
+        // Safety against overshooting a scripted stop: dt is hard-capped
+        // at 0.05s (see the `dt = Math.min(0.05, ...)` line in the main
+        // loop), and every scripted-stop check in the file already works
+        // by comparing a remaining-distance gap against a threshold and
+        // SNAPPING exactly to it the frame that gap is crossed (e.g.
+        // updateApproach's `if (distanceToBuilding <= stopDistance) {
+        // ... setDistanceTraveled(exact target) }`) -- that kind of check
+        // is correct at ANY speed, it just catches the crossing a frame
+        // later at higher speed, never overshoots. The smallest such gap
+        // in the game is CONFIG.meetingSlowDistance (480px); even at
+        // fasterSpeedMaxLevel, one frame's worst-case travel
+        // (walkSpeed * dtMax) stays a small fraction of that, so this is
+        // comfortably safe -- see fasterSpeedMaxLevel/
+        // fasterSpeedLevelIncrement below for the actual cap.
+        get walkSpeed() { return 140 * getFasterSpeedMultiplier(); }, // px/sec the world scrolls at while walking -- base value, see note above
+        dashSpeed: 320,             // px/sec while dashing -- NOT scaled by FASTER, dash is its own separate boost
         dashDuration: 0.6,          // seconds a dash burst lasts
         dashCooldown: 0.35,         // seconds before another action can trigger
         doubleTapWindow: 300,       // ms between presses to count as a double press
+        facingSpeedEpsilon: 1,      // px/sec -- outdoor currentSpeed below this counts as "stopped" for facing purposes (see updateCharacterFacing), so tiny float noise never reads as walking
+
+        // FASTER button speed progression -- every tap while the button
+        // reads FASTER (not just the existing double-press dash, which
+        // is untouched) bumps fasterSpeedLevel by one, up to
+        // fasterSpeedMaxLevel, permanently raising CONFIG.walkSpeed (and
+        // the outdoor run-cycle FPS below, so the animation itself reads
+        // faster too) for the rest of the level. Resets to 0 only on
+        // retry/game-over -- see resetRuntimeState. 5 levels * 0.3 =
+        // 2.5x top speed, comfortably inside the safety margin described
+        // above.
+        fasterSpeedMaxLevel: 5,
+        fasterSpeedLevelIncrement: 0.3,
 
         // the three contextual obstacle actions. DOUBLE PRESS always
         // means the same thing to the player; the game picks which of
@@ -116,8 +153,19 @@
         meetingStopDistance: 70,    // distance from building where they stop (doorway)
         meetingApproachMinSpeedFactor: 0.18, // slowest fraction of walkSpeed during approach
         doorwaySlideSpeedMultiplier: 1.45, // ONLY applied during the APPROACHING_MEETING slide-into-the-doorway movement above -- ~45% faster, normal walkSpeed/dashSpeed themselves are untouched
-        doorwayDustSpawnInterval: 0.15,    // seconds between dust puffs while sliding into the doorway
-        doorwayDustLifeSeconds: 0.32,      // how long each puff lives before fully fading -- keeps it feeling like a quick "zip," not a lingering cloud
+        doorwayDustSpawnInterval: 0.08,    // seconds between dust puff CLUSTERS while sliding into the doorway (was 0.15 for a single puff -- more frequent AND each tick is now a cluster, see doorwayDustPuffsPerSpawn)
+        doorwayDustLifeSeconds: 0.5,       // how long each zip puff lives before fully fading (was 0.32) -- still reads as a quick "zip," just big enough now to actually see
+        doorwayDustPuffsPerSpawn: 4,       // puffs spawned per character per spawn tick, each with randomized size/offset/rotation -- see spawnDoorwayDustPuff
+
+        // Big one-time dust burst the instant Bill/Bob actually come to a
+        // stop (any scripted stop, not just the doorway slide above) --
+        // purely a visual reaction to the EXISTING currentSpeed hitting 0,
+        // see checkSkidDustBurst/spawnSkidDustBurst. Never changes when or
+        // where they stop, only what's drawn when they do.
+        skidDustBurstMinSpeed: 40,         // px/sec -- must have been going at least this fast for stopping to kick up a burst at all (a near-standstill shouldn't spawn a cloud)
+        skidDustBurstBasePuffCount: 8,     // burst size at base walkSpeed
+        skidDustBurstMaxPuffCount: 22,     // burst size at walkSpeed scaled all the way up by FASTER (fasterSpeedMaxLevel) -- "BIG ridiculous skid cloud" at max speed
+        skidDustBurstLifeSeconds: 0.55,    // a bit longer than a zip puff so the big burst has time to actually read before fading
 
         // the meeting doorway -- must match between rendering (drawBuilding)
         // and hit-testing (getDoorwayScreenRect) so the tappable area is
@@ -127,6 +175,7 @@
         doorwayHitPadding: 28,          // extra thumb-friendly margin around the visible doorway, in every direction
         doorwayHintDelayFirst: 2.5,     // seconds to wait before showing the pointer hint, the first time
         doorwayHintDelayLearned: 4.0,   // seconds to wait on later meetings, once the player has already used a doorway once
+        doorwayArrowBlinkSpeed: 8,      // was 4 (the old bob-motion frequency) -- doubled per visual-review request for more urgency, still readable
 
         // follower ("invisible leash")
         followerDistance: 70,           // comfortable distance behind primary
@@ -152,14 +201,12 @@
         insideMeetingMaxDuration: 20.0, // safety cap so a dialogue-timing mistake can't soft-lock the level
 
         // dialogue
-        dialogueDefaultDelay: 2.0,
-        dialogueDisplayDuration: 4.0,
+     // dialogue
+dialogueDefaultDelay: 0.6,
+dialogueDisplayDuration: 2.5,
 
-        // pause after a meeting dialogue point finishes, before the interior
-        // cinematic moves again (see the "dialoguePoint" step type in
-        // updateInteriorSequence) -- also reused as the changing store's
-        // post-pt1 pause before the doorway zip begins
-        interiorPostDialoguePause: 2.0,
+// pause after a meeting dialogue point finishes
+interiorPostDialoguePause: 0.5,
 
         // CHANGING STORE STORY EVENT (building6.png) -- see
         // updateChangingStoreEvent for the phase-by-phase choreography.
@@ -168,6 +215,7 @@
         // doorwaySlideSpeedMultiplier values above so this event feels
         // identical to a real meeting doorway; only these are new.
         changingStoreTransformDelay: 1.75,      // seconds Bill and Bob stay hidden inside while their sprites swap (spec: ~1.5-2s)
+        changingStoreFadeDuration: 0.2,         // seconds for the quick comic-panel fade-to-black/fade-back-in bracketing that same hidden window (see drawTransitionOverlay) -- purely visual, does NOT change changingStoreTransformDelay itself
         changingStoreEmergeStepDuration: 0.5,   // seconds easing back out from the doorway to their normal standing spot (mirrors exitDoorStepDuration)
         changingStoreRevealWalkDuration: 0.6,   // seconds walking a short distance from the door afterward so both new costumes are clearly visible, not overlapping
         changingStoreCostumeRevealPause: 0.8,   // brief comedic pause after the costume reveal, before ChangingStore-level1/pt2 plays
@@ -177,8 +225,24 @@
         clockMinutesPerRealSecond: 6.5, // how fast the displayed clock ticks forward while walking outside
         clockApproachBuffer: 3,         // game-minutes the clock holds back from the next locked milestone until the story actually reaches it
 
-        // the permanent bottom control button
-        actionButtonLabel: "ACTION",    // easy to change later if we want different wording
+        // HUD "TIME LEFT ON EARTH" fictional STORY CLOCK -- purely a visual
+        // storytelling device, no gameplay authority whatsoever: nothing
+        // reads this to end the level, end a scene, move Bill/Bob, or
+        // change lives/progress/buildings/timing. script.js's own
+        // "clock: HH:MM:SS" lines (see getScriptClockSeconds) are the ONLY
+        // thing that ever sets/re-anchors its value; between anchors it
+        // just visually ticks down on its own at storyClockSpeed. Kept as
+        // exactly these two named values (per the spec) rather than
+        // scattering the multiplier/default anywhere else in the code.
+        storyClockSpeed: 5,                    // STORY_CLOCK_SPEED -- fictional seconds that pass per real second (5 = 5x)
+        storyClockDefaultSeconds: 24 * 60 * 60, // 24:00:00 -- used only if script.js has no "clock:" value yet for the current section
+
+        // the permanent bottom control button's label/appearance/behavior
+        // all change with game state (START / FASTER / ENTER / IN MEETING /
+        // "..." / CONTINUE) -- fully centralized in getActionButtonState()
+        // (see the ACTION BUTTON section below), applied every frame from
+        // updateHud().
+        actionButtonWhooshDuration: 0.2, // seconds the "WHOOSH!" comic effect stays visible after a successful FASTER press (spec: 150-250ms)
 
         // neighborhood scenery -- the repeating tile is scaled by HEIGHT
         // ONLY (aspect ratio preserved) to fill the entire sky-to-ground
@@ -199,8 +263,8 @@
         // see drawBillCharacter.
         billScale: 2.025,            // one central knob for Bill's on-screen size -- tune this, not scattered values (was 1.35; x1.5 per visual review, feet stay grounded via bottom-anchored render)
         billBaseDisplayHeight: 84,   // px -- starting point matched to the previous placeholder character's visual height; billScale multiplies this
-        billStrollFPS: 4,            // the walk cycle (see BILL_STROLL_FRAMES) -- tune independently of walkSpeed/dashSpeed, travel speed is unaffected. Used INSIDE meetings only (see billOutdoorStrollFPS for the outdoor street level).
-        billOutdoorStrollFPS: 5,     // OUTDOOR ONLY -- 4 * 1.25, sprite animation only, Bill's actual travel speed (walkSpeed/dashSpeed) is completely untouched
+        billStrollFPS: 6,            // the walk cycle (see BILL_STROLL_FRAMES) -- tune independently of walkSpeed/dashSpeed, travel speed is unaffected. Used INSIDE meetings only (see billOutdoorStrollFPS for the outdoor street level).
+        get billOutdoorStrollFPS() { return 7 * getFasterSpeedMultiplier(); },     // OUTDOOR ONLY -- 4 * 1.25 base, now also scales with FASTER (see CONFIG.walkSpeed above) so the run cycle visibly quickens along with actual travel speed. Bill's actual travel speed (walkSpeed/dashSpeed) is a completely separate value, this only affects the animation.
         billRenderOffsetX: 0,        // px -- nudge sprite left/right without touching gameplay x
         billRenderOffsetY: 0,        // px -- nudge sprite up/down without touching gameplay/ground y
         billIdleBlipMinInterval: 4,  // seconds -- soonest an occasional idle variation (1->2->1 or 1->4->1) can happen after the last one
@@ -216,8 +280,8 @@
         // character scale as Bill currently appears").
         bobScale: 2.025,             // x1.5 per visual review, feet stay grounded via bottom-anchored render (matches billScale)
         bobBaseDisplayHeight: 84,
-        bobStrollFPS: 4,              // the 6-frame walk cycle (see BOB_WALK_FRAMES). Used INSIDE meetings only (see bobOutdoorStrollFPS for the outdoor street level).
-        bobOutdoorStrollFPS: 5,       // OUTDOOR ONLY -- 4 * 1.25, sprite animation only, Bob's actual travel/follow speed is completely untouched
+        bobStrollFPS: 6,              // the 6-frame walk cycle (see BOB_WALK_FRAMES). Used INSIDE meetings only (see bobOutdoorStrollFPS for the outdoor street level).
+        get bobOutdoorStrollFPS() { return 7 * getFasterSpeedMultiplier(); },       // OUTDOOR ONLY -- 4 * 1.25 base, same FASTER scaling as billOutdoorStrollFPS above. Bob's actual travel/follow speed is a completely separate value, this only affects the animation.
         bobRenderOffsetX: 0,
         // Isolated positioning fix: Bob was rendering too low, clipping his
         // feet at the bottom of the sprite and pushing his head down into
@@ -251,6 +315,14 @@
         billBubbleMargin: 14,
         bobBubbleMargin: 14,
 
+        // BUILDING SPEECH BUBBLES ("building-dialogue:" lines in script.js,
+        // see parseScriptText/getActiveBuildingBubbleAnchor). Same small-gap
+        // idea as billBubbleMargin/bobBubbleMargin above, plus a floor so
+        // the bubble never creeps up under the top HUD strip even for a
+        // tall building (e.g. the AA church).
+        buildingBubbleMargin: 14,
+        buildingBubbleMinYFrac: 0.14, // fraction of canvas height -- bubble anchor never goes above this line
+
         // MEETING INTERIOR CINEMATIC -- see the "MEETING INTERIOR CINEMATIC"
         // block further down (buildInteriorSequence/updateInteriorSequence)
         // for the reusable choreography system these values drive. None of
@@ -258,7 +330,7 @@
         // scene -- interiorCharacterScale is an on-top multiplier applied
         // only while state === STATE.INSIDE_MEETING (or LEAVING_MEETING,
         // which just renders the frozen final interior frame).
-        interiorCharacterScale: 2.5,     // characters render at this multiple of their CURRENT outdoor size while inside a meeting
+        interiorCharacterScale: 1.875,   // characters render at this multiple of their CURRENT outdoor size while inside a meeting (was 2.5; x0.75 per visual review to shrink Bill/Bob inside meetings only -- outdoor billScale/bobScale untouched)
         interiorGroundYFrac: 0.90,       // fraction of canvas height used as the interior floor line (bigger characters need a lower line so heads don't clip)
         interiorWalkSpeedFrac: 0.09,     // fraction of the full background width crossed per second while walking inside -- resolution-independent
         interiorBobGapFrac: 0.075,       // Bob's trailing gap behind Bill while on the move, as a fraction of the full background width -- always on the side Bill is FACING FROM, never in front of him
@@ -274,8 +346,162 @@
         interiorPauseEntrance: 0.8,      // seconds paused just after entering, before wandering farther in
         interiorPauseMid: 1.6,           // seconds paused at the first stop
         interiorPauseFar: 1.2,           // seconds paused at the far stop before settling into the scene
-        interiorPauseBeforeExit: 0.4     // seconds paused back at the entrance before actually leaving
+        interiorPauseBeforeExit: 0.4,    // seconds paused back at the entrance before actually leaving
+
+        // ====================================================================
+        // VISUAL POLISH PASS 2 -- 80s arcade + comic-book "juice" pass.
+        // Everything below is purely additive/decorative: speed lines,
+        // running foot dust, the bigger directional skid explosion, the
+        // SKRRRT lettering, the tiny max-speed camera bump, and the clock
+        // alert-state framework. None of it reads or writes
+        // distanceTraveled, currentSpeed's role in movement, doorway
+        // hitboxes, or any scripted stop position -- see the functions
+        // themselves (drawSpeedLines, updateRunningDust, spawnSkidDustBurst,
+        // updateEffectsTimers) for how each stays purely additive.
+        // ====================================================================
+
+        // RUNNING SPEED LINES -- comic streaks trailing behind Bill/Bob
+        // while they're actually walking/dashing outdoors at an elevated
+        // FASTER level. Drawn fresh every frame from fasterSpeedLevel/
+        // currentSpeed directly (see drawSpeedLines) -- no particle
+        // array, so they vanish the instant Bill/Bob stop, automatically.
+        speedLineMinLevel: 1,        // fasterSpeedLevel must be at least this for any lines to show at all
+        speedLineMaxCount: 5,        // how many streaks at fasterSpeedMaxLevel
+        speedLineBaseLength: 14,     // px at the lowest visible level
+        speedLineMaxLength: 46,      // px at fasterSpeedMaxLevel
+        speedLineBaseOpacity: 0.18,
+        speedLineMaxOpacity: 0.5,
+
+        // RUNNING FOOT DUST -- small continuous puffs while walking/dashing
+        // at an elevated FASTER level, much smaller than the skid-stop
+        // burst below. Purely decorative -- see updateRunningDust/
+        // spawnRunningDustPuff/drawDust.
+        runningDustMinLevel: 2,          // fasterSpeedLevel must be at least this before any foot dust kicks up
+        runningDustSpawnInterval: 0.16,  // seconds between spawn ticks per character at runningDustMinLevel
+        runningDustMinSpawnInterval: 0.07, // fastest spawn tick, at fasterSpeedMaxLevel
+        runningDustLifeSeconds: 0.3,
+        runningDustPuffChance: 0.6,      // each tick only sometimes actually spawns a puff, so it reads as occasional kicks, not a constant stream
+
+        // MASSIVE DIRECTIONAL SKID CLOUD -- on top of the existing
+        // skidDustBurst* sizing above, these push the MAX-speed stop into
+        // "absurd cartoon smoke explosion" territory and bias most of the
+        // cloud backward (behind the direction of travel -- Bill/Bob
+        // always run screen-right, so "behind" is negative x, same
+        // convention spawnSkidDustBurst already used) with only a few
+        // puffs landing forward around their feet. See spawnSkidDustBurst.
+        skidCloudBackwardBias: 0.75,     // fraction of puffs that land behind (vs. in front of) their feet
+        skidCloudMaxSizeBoost: 1.9,      // extra radius multiplier blended in ONLY at the very top of the speed range, on top of the existing sizeScale growth
+        skidCloudHighSpeedThreshold: 0.72, // speedFrac (0..1) above which a stop counts as "high/max speed" for SKRRRT + camera bump purposes below
+
+        // Optional comic "SKRRRT!" lettering -- only ever considered on a
+        // high/max-speed stop (see skidCloudHighSpeedThreshold above), and
+        // even then only sometimes, so it stays a fun surprise rather than
+        // firing on every single stop. See spawnSkidDustBurst/drawSkrrrtEffect.
+        skrrrtChance: 0.4,
+        skrrrtLifeSeconds: 0.6,
+
+        // Tiny non-positional "camera" bump on the very biggest stops --
+        // a couple of frames of a small canvas-element transform that's
+        // immediately eased back to nothing. NEVER touches world
+        // coordinates, Bill/Bob's x/y, or the canvas's internal drawing
+        // space -- see updateEffectsTimers/applyCameraBumpTransform. Only
+        // ever triggered from the same high-speed stop branch that can
+        // trigger SKRRRT, above.
+        cameraBumpDuration: 0.09,    // seconds the whole bump+recovery takes -- deliberately just a couple of frames
+        cameraBumpMaxOffsetPx: 4,    // peak px offset, small and screen-resolution-independent
+
+        // CLOCK VISUAL-STATE FRAMEWORK -- see CLOCK_VISUAL_STATES and
+        // setClockVisualState() near the fictional-clock code below. The
+        // level starts and stays in "normal" (plain neon green) this pass;
+        // nothing here auto-advances based on elapsed time. It exists so a
+        // later pass can call setClockVisualState("warning") etc. from the
+        // story/script side without touching any clock math.
+        clockVisualStateDefault: "normal",
+
+        // ====================================================================
+        // VISUAL POLISH PASS 3 -- chevron doorway control, real particle
+        // fire, meeting-interior "feels alive" choreography (chatter
+        // placement/overlap, Bill/Bob reaction beats, per-meeting pacing),
+        // and subtle interior ambience. Everything below is additive/
+        // decorative only -- no new sprite sheets, no changes to
+        // destination coordinates, doorway hitboxes, scripted stops, or
+        // story flow. See the functions referenced in each comment.
+        // ====================================================================
+
+        // ANIMATED CHEVRON DOORWAY CONTROL -- replaces the "ENTER" text
+        // label (only while getActionButtonState() === BUTTON_STATE.ENTER)
+        // with three stacked chevrons doing a continuous upward chase. See
+        // buildDom's chevron creation block and updateActionButtonHud/
+        // applyActionButtonVisualState for how the swap happens. Purely
+        // presentational -- getActionButtonState() and the press handler
+        // (onActionButtonPointerDown -> enterMeeting()) are completely
+        // unchanged; this only changes what's rendered while that state
+        // is active.
+        chevronChaseCycleSeconds: 1.1,     // one full up-the-stack cycle -- overridden right after CONFIG closes to derive from doorwayArrowBlinkSpeed instead, so the two stay visually connected; left here only as the fallback shape/default
+        chevronBumpIntervalSeconds: 2.2,   // how often the whole button gives a small upward bump while chevrons are showing
+
+        // REAL PARTICLE FIRE (FASTER button) -- replaces the old static
+        // flame shapes with small DOM particles spawned above the button,
+        // driven every frame from updateActionButtonFireParticles. See
+        // that function plus spawnFireParticle. Base "just a glow, no
+        // flames yet" behavior for low levels is unchanged (still the
+        // boxShadow color ramp in updateActionButtonFireVisual).
+        fireParticleMinLevel: 2,       // fasterSpeedLevel must be at least this before any flame particles spawn (matches the old flameStartLevel cutoff)
+        fireParticleEmberMinLevel: 4,  // embers only start appearing at this level and up
+        fireParticleSpawnIntervalBase: 0.09,  // seconds between spawn ticks at fireParticleMinLevel
+        fireParticleSpawnIntervalMax: 0.03,   // fastest spawn tick, at fasterSpeedMaxLevel
+        fireParticleLifeSeconds: 0.55,
+        fireEmberLifeSeconds: 0.85,        // embers live a bit longer and travel farther, per spec
+        fireParticleFastFadeMultiplier: 5, // once the button leaves FASTER/active, existing particles decay this much faster so they clear almost immediately instead of lingering
+        fireParticleMaxAlive: 26,          // hard cap so a long FASTER hold can never accumulate unbounded DOM nodes
+        fireEmberChancePerSpawn: 0.35,      // at fireParticleEmberMinLevel+, this fraction of spawn ticks add an ember on top of the normal particle
+
+        // WORLD CHATTER: OVERLAP -- see updateDialogue's fadingWorldBubble
+        // handling and drawSpeechBubbles. Only ever considered between two
+        // consecutive "crowd" lines (crowd is meeting-interior-only, see
+        // script.js's own comment on that speaker), so Bill/Bob's own
+        // dialogue timing/order is never touched. Per-meeting chance lives
+        // in MEETING_INTERIOR_CONFIG (personality knob); this is just the
+        // fallback if a meeting has no override.
+        worldChatterOverlapBaseChance: 0.2,
+        worldChatterOverlapFadeSeconds: 0.9, // how long the OLD bubble lingers, fading out, once the new one has already appeared
+
+        // BILL/BOB REACTION BEATS -- reuses the EXISTING idle-blip pose
+        // system (billIdleBlipCol/BILL_IDLE_VARIANT_COLS etc., already in
+        // the file) rather than any new artwork/animation. See
+        // maybeTriggerReactionBlip, called from updateDialogue whenever a
+        // new "crowd" line starts. Per-meeting chance lives in
+        // MEETING_INTERIOR_CONFIG; this is the fallback.
+        reactionBlipBaseChance: 0.25,
+
+        // SUBTLE INTERIOR AMBIENCE -- dust motes + a very soft breathing
+        // warm-light vignette, both fully generic (no per-background
+        // anchor point needed, so they're safe to enable everywhere) --
+        // see drawInteriorAmbientMotes/drawInteriorLampBreathing. Coffee
+        // steam was considered but deliberately left out: it needs a
+        // real per-meeting anchor point on each interior background that
+        // isn't available to verify from code alone, and guessing one
+        // risks steam rising out of a wall -- see the note above
+        // drawInteriorAmbientMotes.
+        interiorDustMoteCount: 5,
+        interiorDustMoteDriftSpeed: 6,      // px/sec upward drift
+        interiorLampBreatheSpeed: 0.6,      // cycles/sec, very slow
+        interiorLampBreatheAlpha: 0.05,     // peak extra alpha -- deliberately tiny
+
+        // HALLOWEEN ATMOSPHERE RAMP -- a barely-there extra warm/orange
+        // vignette that increases slightly with meetingIndex (later
+        // meetings = a little more atmosphere), reusing the interior
+        // lamp-breathing draw call rather than any new art. See
+        // getHalloweenAtmosphereFrac.
+        interiorHalloweenMaxExtraAlpha: 0.05 // on top of interiorLampBreatheAlpha, only at the very last meeting
     };
+
+    // Chevron chase cadence -- still derived from CONFIG.doorwayArrowBlinkSpeed
+    // (a presentation timing constant only) purely to keep the same
+    // rhythm the doorway visuals used to share, now that the arrow/glow
+    // themselves have been removed (per the "controller-style, chevrons-
+    // only" pass) and the chevrons are the sole doorway cue.
+    CONFIG.chevronChaseCycleSeconds = (Math.PI * 2) / CONFIG.doorwayArrowBlinkSpeed;
 
     /* ======================================================================
        ENVIRONMENT_STATES -- the neighborhood's visual progression from
@@ -357,6 +583,63 @@
     // default; never enable this for normal play.
     const DEBUG_BILL_SPRITE = false;
 
+    /* ======================================================================
+       ANCHOR JUMP DEBUGGER -- a permanent dev tool, kept in the codebase
+       for whenever the next costume/sprite change needs the same kind of
+       investigation (this is exactly what caught the idle-blip jump on
+       both Bill and Bob -- see the big comment above getAutoFrameOffsetX).
+
+       Hidden by default so it's never in the way during normal play or
+       design review. Press Ctrl+D (Cmd+D on Mac) anywhere in the game to
+       reveal the "ANCHOR DEBUG" toggle button in the bottom-right corner
+       -- see the keydown listener in attachInput. The hotkey only shows
+       the BUTTON; tap the button itself to actually turn tracking on/off
+       (window.DEBUG_ANCHOR), so it's still a deliberate two-step action,
+       not something that can start logging by accident.
+
+       Once turned on, every pose change for Bill/Bob is checked against
+       the SAME anchor math the renderer itself uses (destX +
+       displayWidth/2, which should equal the character's logical x every
+       frame when a pose's offset is correct -- see the derivation in the
+       comments above billOffsetX/bobOffsetXRaw). Any unexplained shift
+       prints straight to the console, naming the exact pose transition
+       and pixel size:
+
+           [ANCHOR JUMP] bill: 0,0,normal,false -> 0,1,normal,false  jump=12.0px  (logical x 131.8->131.8)
+
+       It also draws a thin magenta vertical line at each character's
+       logical x every frame, so a drift is visible on screen too, not
+       just in the console.
+       ====================================================================== */
+    const anchorDebugState = { bill: null, bob: null };
+    function debugTrackAnchor(who, row, col, appearance, facingLeft, x, destX, displayWidth) {
+        const visualAnchorX = destX + displayWidth / 2; // see billOffsetX/bobOffsetXRaw comments -- this equals x exactly when a pose's offset is correct, mirrored or not
+        const poseKey = row + "," + col + "," + appearance + "," + facingLeft;
+        const prev = anchorDebugState[who];
+        if (prev) {
+            const expectedShift = x - prev.x; // legitimate movement since last frame -- not a bug
+            const jump = (visualAnchorX - prev.visualAnchorX) - expectedShift;
+            if (prev.poseKey !== poseKey && Math.abs(jump) > 1.5) {
+                console.warn(
+                    "[ANCHOR JUMP] " + who + ": " + prev.poseKey + " -> " + poseKey +
+                    "  jump=" + jump.toFixed(1) + "px" +
+                    "  (logical x " + prev.x.toFixed(1) + "->" + x.toFixed(1) + ")"
+                );
+            }
+        }
+        anchorDebugState[who] = { poseKey, visualAnchorX, x };
+    }
+    function debugDrawAnchorLine(x, groundY) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(255, 0, 255, 0.9)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, groundY - 260);
+        ctx.lineTo(x, groundY + 4);
+        ctx.stroke();
+        ctx.restore();
+    }
+
     const ASSETS = {
         bill: "assets/players/chapter1-bill.png",
         bob: "assets/players/chapter1-bob.png",
@@ -415,8 +698,107 @@
         // assets/backgrounds/ -- corrected per explicit path confirmation.
         level1Visuals: "assets/players/level1-visuals.png",
 
-        music: "assets/audio/chapter1-gameplay-music.mp3"
+        music: "assets/audio/chapter1-gameplay-music.mp3",
+        // Meeting-interior foreground chatter, and the Fresh Threads
+        // costume-reveal-exit music sting -- see the AUDIO section near
+        // the bottom of the file (setAudioMode/duckMusicForMeeting/
+        // restoreMusicAfterMeeting/playFreshThreadsSting) for how these
+        // three tracks are coordinated so they never overlap incorrectly.
+        meetingChatter: "assets/audio/meeting-chatter.mp3",
+        freshThreadsSting: "assets/audio/fresh.mp3"
     };
+
+    /* ======================================================================
+       DIALOGUE FONTS -- loaded ONCE via the FontFace API (not per-level
+       start/retry -- there's nothing to redo on retry, so this runs
+       exactly once when the script itself first loads), from local
+       files only:
+           assets/fonts/ComicNeue-Bold.ttf  -- ALL speech-bubble dialogue
+               (Bill, Bob, meeting/crowd chatter, building chatter)
+           assets/fonts/Bangers-Regular.ttf -- comic sound-effect/
+               exclamation lettering only (currently just "SKRRRT!")
+       No Google Fonts, no external URL, no @font-face pointed at
+       someone else's server -- both are local files bundled with the
+       game.
+
+       BASE-URL RESOLUTION: every other asset in this file (images via
+       `img.src = "assets/backgrounds/building1.png"`, audio via
+       `new Audio("assets/audio/...")`) is a plain relative string,
+       which the browser resolves against the DOCUMENT's own base URL
+       (document.baseURI) -- that's the proven-working convention here,
+       confirmed by the images actually loading. FontFace()'s url()
+       string is CSS syntax and, in this test setup, was NOT resolving
+       against that same document base (two straight rounds of 404s on
+       a plain relative path proved that empirically -- guessing another
+       relative string was not going to fix it). resolveAssetUrl() below
+       sidesteps the ambiguity entirely: it builds the exact same
+       absolute URL the browser would compute for `img.src = path`
+       (new URL(path, document.baseURI)), so the font -- and the music
+       Audio() call, which uses the same helper below for consistency --
+       resolve through the identical, already-proven-correct base as
+       every working image/background asset, not a second guessed path.
+       ====================================================================== */
+    function resolveAssetUrl(relativePath) {
+        try {
+            return new URL(relativePath, document.baseURI).href;
+        } catch (e) {
+            return relativePath; // extremely old browser without the URL constructor -- fall back to the plain relative string
+        }
+    }
+
+    let comicNeueFontLoaded = false;
+    let bangersFontLoaded = false;
+
+    function loadDialogueFonts() {
+        if (typeof FontFace === "undefined" || !document.fonts) {
+            // Very old browser without the FontFace API -- fall back to
+            // the system comic-lettering stack rather than blocking
+            // dialogue forever. See isComicNeueReady()/isBangersReady().
+            comicNeueFontLoaded = "unsupported";
+            bangersFontLoaded = "unsupported";
+            return;
+        }
+
+        const comicNeueUrl = resolveAssetUrl("assets/fonts/ComicNeue-Bold.ttf");
+        const comicNeue = new FontFace("ComicNeueBold", "url('" + comicNeueUrl + "')", { weight: "700", style: "normal" });
+        comicNeue.load().then(function (loadedFace) {
+            document.fonts.add(loadedFace);
+            comicNeueFontLoaded = true;
+        }).catch(function (err) {
+            comicNeueFontLoaded = "unsupported"; // missing/failed load -- fall back rather than block dialogue forever
+            console.warn("chapter1-gameplay: ComicNeue-Bold failed to load from " + comicNeueUrl + " -- falling back to system font.", err);
+        });
+
+        const bangersUrl = resolveAssetUrl("assets/fonts/Bangers-Regular.ttf");
+        const bangers = new FontFace("BangersRegular", "url('" + bangersUrl + "')", { weight: "400", style: "normal" });
+        bangers.load().then(function (loadedFace) {
+            document.fonts.add(loadedFace);
+            bangersFontLoaded = true;
+        }).catch(function (err) {
+            bangersFontLoaded = "unsupported";
+            console.warn("chapter1-gameplay: Bangers-Regular failed to load from " + bangersUrl + " -- falling back to system font.", err);
+        });
+    }
+    loadDialogueFonts();
+
+    // Resolved CSS font-family value for dialogue/SKRRRT text -- ready
+    // (true) uses the real local font; "unsupported" (load failed or no
+    // FontFace API) uses the closest system comic-lettering fallback so
+    // the game never blocks dialogue forever over a missing font file.
+    function getDialogueFontFamily() {
+        if (comicNeueFontLoaded === "unsupported") return "'Comic Sans MS', 'Trebuchet MS', sans-serif";
+        return "'ComicNeueBold'";
+    }
+    function getSkrrrtFontFamily() {
+        if (bangersFontLoaded === "unsupported") return "'Comic Sans MS', 'Trebuchet MS', sans-serif";
+        return "'BangersRegular'";
+    }
+    function isDialogueFontReady() {
+        return comicNeueFontLoaded === true || comicNeueFontLoaded === "unsupported";
+    }
+    function isSkrrrtFontReady() {
+        return bangersFontLoaded === true || bangersFontLoaded === "unsupported";
+    }
 
     /* ======================================================================
        MODULAR NEIGHBORHOOD SCENERY SYSTEM
@@ -497,11 +879,32 @@
 
            aa: { midFrac: 0.28, farFrac: 0.85 }
 
-       Leave a meeting out entirely (as all of them are right now) to
-       just use the defaults from CONFIG (interiorEntranceFrac/
-       interiorMidFrac/interiorFarFrac).
+       Leave a meeting out entirely to just use the defaults from CONFIG
+       (interiorEntranceFrac/interiorMidFrac/interiorFarFrac).
+
+       PERSONALITY KNOBS (added for the "meetings feel less passive" pass)
+       -- pauseMultiplier scales the existing wait-step durations
+       (interiorPauseEntrance/interiorPostDialoguePause/
+       interiorPauseBeforeExit), walkSpeedMultiplier scales
+       interiorWalkSpeedFrac, chatterOverlapChance/reactionChance feed
+       updateDialogue's world-chatter-overlap and reaction-blip rolls.
+       None of these touch entrance/mid/far positions, dialogue content,
+       scene-timer caps, or story order -- purely rhythm. See
+       getInteriorConfig for how a missing knob falls back to CONFIG's
+       shared default.
        ====================================================================== */
-    const MEETING_INTERIOR_CONFIG = {};
+    const MEETING_INTERIOR_CONFIG = {
+        // AA -- calm but social: a bit more lingering, occasional chatter overlap.
+        aa: { pauseMultiplier: 1.25, walkSpeedMultiplier: 0.9, chatterOverlapChance: 0.28, reactionChance: 0.28 },
+        // CA -- slightly more energetic: faster cadence, a little more movement.
+        ca: { pauseMultiplier: 0.8, walkSpeedMultiplier: 1.25, chatterOverlapChance: 0.15, reactionChance: 0.22 },
+        // GA -- a little awkward/nervous: longer pauses, more reactive glances, less overlap.
+        ga: { pauseMultiplier: 1.4, walkSpeedMultiplier: 0.85, chatterOverlapChance: 0.08, reactionChance: 0.4 },
+        // EA -- noticeably calmer: longest rests, quietest room, least overlap.
+        ea: { pauseMultiplier: 1.55, walkSpeedMultiplier: 0.8, chatterOverlapChance: 0.05, reactionChance: 0.15 },
+        // CMA/Harrison Corner -- most lively of the later meetings.
+        cma: { pauseMultiplier: 0.75, walkSpeedMultiplier: 1.3, chatterOverlapChance: 0.32, reactionChance: 0.32 }
+    };
 
     // BILL SPRITE SHEET LAYOUT -- basic-level1-bill.png, verified against
     // the actual file on disk (1536x1024 -> exactly 6 cols x 4 rows of
@@ -671,6 +1074,131 @@
         const override = BOB_CROP_INSET_OVERRIDES[overrideKey];
         return override ? Object.assign({}, base, override) : base;
     }
+
+    /* ------------------------------------------------------------------
+       AUTO-MEASURED HORIZONTAL RECENTERING -- the single anchor system
+       for every Bill/Bob frame, both costumes.
+
+       This used to only cover costume2 (which had no hand-measured
+       table at all -- a flat 0, no correction). The in-game
+       [ANCHOR JUMP] debugger (Ctrl+D to reveal its toggle button --
+       see debugTrackAnchor/onDebugHotkeyDown) then caught the SAME kind
+       of jump happening on the NORMAL costume too, on the idle
+       "resting" <-> idle "blip" transition specifically:
+
+           bill: 0,0 -> 0,1  jump=12.0px   (BILL_FRAME_OFFSET_X: -18.5 vs -0.5)
+           bob:  0,0 -> 0,1  jump=37.2px   (BOB_FRAME_OFFSET_X:  -49.5 vs +6.5)
+
+       Both of those hand-measured numbers were individually "correct"
+       in the sense that they really do center each cell's FULL alpha
+       silhouette. The bug is that methodology itself: the idle blip
+       frame raises a hand/tilts the head, which shifts the whole-
+       silhouette bounding box even though the character's feet never
+       actually move -- so "recenter the full silhouette" makes the
+       body visibly hop every time the gesture changes, exactly the
+       jump reported. A frame's POSE is allowed to change; its
+       body anchor is not.
+
+       First attempt at a fix measured a LOWER band (feet/shoes) instead
+       of the whole silhouette, on the theory that feet stay planted
+       across a pose change. That fixed the idle blip, but the SAME
+       debugger then caught much BIGGER jumps during ordinary WALKING --
+       bob 1,0->1,1 jump=-23.0px, bill 1,1->1,2 jump=18.1px, both
+       perfectly repeatable every cycle. The feet band was the wrong
+       target for a walk cycle specifically: legs are SUPPOSED to swing
+       side to side mid-stride, that's what makes it read as walking, so
+       recentering on a moving foot fights the animation instead of
+       fixing it -- of course it jumps every frame, the foot is meant to
+       be somewhere different each frame.
+
+       The fix: measure a MID band instead (TORSO_REGION_* below) --
+       roughly chest-to-waist -- which stays still in BOTH situations:
+       arms swing above it during idle gestures, legs swing below it
+       during a walk cycle, but a character's torso doesn't lurch
+       sideways for either one. That gives one consistent body anchor
+       across every pose without needing separate hand-measured tables
+       per costume, so this now replaces BILL_FRAME_OFFSET_X/
+       BOB_FRAME_OFFSET_X entirely (both left in place above, unused, as
+       a record of the old numbers). Each cell is measured once and
+       cached -- costs nothing per frame after a pose's first use -- and
+       works for any future costume automatically, no new table to
+       hand-measure.
+       ------------------------------------------------------------------ */
+    // Bottom-band history, for whoever tunes this next:
+    //   - bottom 45% (legs+feet): idle blip jump shrank but didn't zero
+    //     out (bob ~21px, bill ~7px) -- still catching a hand/arm.
+    //   - bottom 15% (shoes only): idle blip fixed, but walking then
+    //     showed even BIGGER jumps (up to ~40px) -- shoes genuinely move
+    //     during a walk cycle, so anchoring there fights the animation.
+    // Chest-to-waist is stable across both idle gestures and a walking
+    // gait, which is why this replaced the feet band rather than just
+    // narrowing it further. If a future costume's jump doesn't resolve
+    // to ~0, adjust these two fractions -- watch the console with
+    // Ctrl+D's debug button on to see the exact before/after per pose.
+    const TORSO_REGION_Y_START_FRAC = 0.35;
+    const TORSO_REGION_Y_END_FRAC = 0.62;
+    const autoFrameOffsetXCache = {};
+    function measureFrameAlphaCenterX(image, srcX, srcY, cellW, cellH, yStartFrac, yEndFrac) {
+        const w = Math.max(1, Math.round(cellW));
+        const h = Math.max(1, Math.round(cellH));
+        const off = document.createElement("canvas");
+        off.width = w;
+        off.height = h;
+        const offCtx = off.getContext("2d");
+        offCtx.imageSmoothingEnabled = false;
+        offCtx.drawImage(image, srcX, srcY, cellW, cellH, 0, 0, w, h);
+
+        let pixels;
+        try {
+            pixels = offCtx.getImageData(0, 0, w, h).data;
+        } catch (e) {
+            // Cross-origin or otherwise unreadable canvas -- fall back to
+            // "already centered" (no correction) rather than throwing.
+            // Same fail-safe the rest of this feature relies on below.
+            return null;
+        }
+
+        const rowStartPx = Math.floor(h * (yStartFrac === undefined ? 0 : yStartFrac));
+        const rowEndPx = Math.ceil(h * (yEndFrac === undefined ? 1 : yEndFrac));
+        let minX = null, maxX = null;
+        const ALPHA_THRESHOLD = 8; // ignore near-invisible anti-aliasing dust at the silhouette edge
+        for (let py = rowStartPx; py < rowEndPx && py < h; py++) {
+            const rowStart = py * w;
+            for (let px = 0; px < w; px++) {
+                const alpha = pixels[(rowStart + px) * 4 + 3];
+                if (alpha > ALPHA_THRESHOLD) {
+                    if (minX === null || px < minX) minX = px;
+                    if (maxX === null || px > maxX) maxX = px;
+                }
+            }
+        }
+        if (minX === null) return null; // nothing found in this band -- e.g. a cell with no legs visible
+        return (minX + maxX) / 2;
+    }
+    // Returns how far (in native cell px) to shift the draw position so
+    // this cell's TORSO lands on the same horizontal anchor every other
+    // frame uses -- the single replacement for what
+    // BILL_FRAME_OFFSET_X/BOB_FRAME_OFFSET_X used to hand-measure via
+    // the whole silhouette. cacheKey should be unique per sheet/
+    // character (e.g. "bill-normal", "bill-costume2") so caches never
+    // collide.
+    function getAutoFrameOffsetX(cacheKey, image, row, col, cellW, cellH, srcX, srcY) {
+        const key = cacheKey + "," + row + "," + col;
+        if (Object.prototype.hasOwnProperty.call(autoFrameOffsetXCache, key)) {
+            return autoFrameOffsetXCache[key];
+        }
+        let centerX = measureFrameAlphaCenterX(image, srcX, srcY, cellW, cellH, TORSO_REGION_Y_START_FRAC, TORSO_REGION_Y_END_FRAC);
+        if (centerX === null) {
+            // No content in the torso band (shouldn't normally happen for
+            // a standing character cell) -- fall back to the full-cell
+            // measurement rather than leaving this pose uncorrected.
+            centerX = measureFrameAlphaCenterX(image, srcX, srcY, cellW, cellH);
+        }
+        const offset = (centerX === null) ? 0 : (cellW / 2) - centerX;
+        autoFrameOffsetXCache[key] = offset;
+        return offset;
+    }
+
     // appearanceKey/sourceImage let this same cache/crop system serve BOTH
     // basic-level1-bob.png and the costume2 sheet -- keying purely on
     // row/col would silently hand back a costume2 draw call the NORMAL
@@ -1029,7 +1557,17 @@
             // Measured against building4.png: this door sits well left of
             // center (~34%, under the porch roof), not centered like the
             // generic default assumed -- top ~38% down to the ground.
-            doorway: { xPercent: 0.34, bottomPercent: 1.0, widthPercent: 0.14, heightPercent: 0.40 }
+            doorway: { xPercent: 0.34, bottomPercent: 1.0, widthPercent: 0.14, heightPercent: 0.40 },
+            // EA-ONLY fix: the door's large leftward offset from center
+            // meant the generic fixed-distance-from-building-center stop
+            // (CONFIG.meetingStopDistance) let Bill/Bob slide past the real
+            // door before stopping. This opts EA into
+            // getMeetingApproachStopDistance()'s doorway-aware stop
+            // calculation instead -- see that function. Every other
+            // meeting (including CMA, which has a similar offset but whose
+            // stopping pose is intentionally being kept -- see
+            // showTapDoorHint below) is untouched by this flag.
+            alignStopToDoorway: true
         },
         {
             id: "cma",
@@ -1041,7 +1579,17 @@
             // "CMA / COME AS YOU ARE" door sits left of center (~35%),
             // under the main sign -- not centered like the generic
             // default assumed. Top ~52% down to the ground.
-            doorway: { xPercent: 0.35, bottomPercent: 1.0, widthPercent: 0.11, heightPercent: 0.30 }
+            doorway: { xPercent: 0.35, bottomPercent: 1.0, widthPercent: 0.11, heightPercent: 0.30 },
+            // Bill/Bob's stopping spot here (off to the side, pointing at
+            // the CMA sign) is being KEPT as-is -- it reads as personality.
+            // Note: the "TAP DOOR" label that used to disambiguate this
+            // deliberately-offset pose was removed along with the doorway
+            // arrow/glow (per the controller-style pass) -- the chevron
+            // control is now the only doorway cue anywhere, including
+            // here. showTapDoorHint is left set (now inert/unused) rather
+            // than pulled out of this data, in case a future pass wants
+            // a different way to flag this meeting's offset pose.
+            showTapDoorHint: true
         }
     ];
 
@@ -1242,12 +1790,30 @@
     let canvas = null;
     let ctx = null;
     let livesDisplay = null;
+    let livesHeartsEl = null;       // hearts-only child of livesDisplay -- see buildDom's LIVES panel and updateHud (kept separate from livesDisplay itself so the new "LIVES" caption underneath isn't wiped every time updateHud rewrites the hearts)
     let clockDisplay = null;
-    let progressFill = null;
+    let countdownDigitsEl = null;   // flex row wrapper holding countdownMainEl + countdownSecEl -- see buildDom's clock block
+    let countdownMainEl = null;     // dominant "HH:MM" piece, state-colored -- see setClockVisualState
+    let countdownSecEl = null;      // small warm-white ":SS" piece -- deliberately NOT state-colored (see updateHud/setClockVisualState), so the constantly-changing seconds never visually dominate the display
+    let countdownCaptionEl = null;  // "TIME LEFT ON EARTH" caption under the digits
+    let progressLabelEl = null;     // small "PROGRESS" caption above the segmented meter
+    let progressSegmentEls = [];    // the segmented arcade-meter blocks -- see buildDom's PROGRESS panel and updateHud
     let startPrompt = null;
-    let actionButton = null;
+    let actionButton = null;           // outer element: position/size/touch-target only -- deliberately kept larger than the visible housing for a comfortable phone tap target, and never itself styled with a border/background/glow
+    let actionButtonHousing = null;    // inner compact "arcade housing" -- the actual visible black/bevel/rivet box, centered inside actionButton; all border/background/boxShadow/press-transform/pop-animation styling targets THIS element now, not actionButton
+    let actionButtonPlayEl = null;     // solid CSS triangle -- shown only for BUTTON_STATE.START
+    let actionButtonBoltEl = null;     // lightning-bolt clip-path shape -- shown only for BUTTON_STATE.FASTER, color-ramped by fasterSpeedLevel same as the old text glow was
+    let actionButtonWhooshEl = null;   // one-shot "WHOOSH!" comic effect on a successful FASTER press -- not dialogue, not a speech bubble
+    let actionButtonFireContainer = null; // houses the dynamic fire particle divs -- see spawnFireParticle/updateActionButtonFireParticles
+    let fireParticles = [];            // { el, x, y, vx, vy, life, maxLife, isEmber } -- see spawnFireParticle/updateActionButtonFireParticles
+    let fireSpawnTimer = 0;
+    let actionButtonChevronEls = [];   // 3 chevron divs shown instead of "ENTER" -- see buildDom's chevron creation block and updateActionButtonHud
+    let actionButtonChevronWrap = null; // their shared positioned container -- toggled visible only for BUTTON_STATE.ENTER, see applyActionButtonVisualState
+    let chevronBumpTimer = 0;          // seconds until the next small upward bump while chevrons are showing -- see updateChevronBump
+    let lastActionButtonState = null;  // previous frame's button state, so updateHud() can fire a one-time pop only on an actual transition
     let retryOverlay = null;
     let retryButton = null;
+    let debugAnchorButton = null; // small in-game toggle for the anchor-jump debugger -- hidden by default, revealed with Ctrl+D (see attachInput's keydown listener)
 
     let rafId = null;
     let lastFrameTime = 0;
@@ -1259,6 +1825,7 @@
     let distanceTraveled = 0;       // logical distance covered in the CURRENT section only (0..sectionDistance) -- resets to 0 every time advanceToNextSection() runs. All section-boundary/gameplay-logic checks (approach, obstacles, doorway) use this, unchanged.
     let worldScrollDistance = 0;    // continuous logical distance covered since Level 1 started -- NEVER reset at a section boundary. Purely for rendering continuity (tiled background scroll phase, atmosphere parallax) -- see advanceDistance()/setDistanceTraveled() below and the note above advanceToNextSection().
     let currentSpeed = 0;           // current px/sec of the primary character
+    let fasterSpeedLevel = 0;       // 0..CONFIG.fasterSpeedMaxLevel -- see getFasterSpeedMultiplier, bumped by onActionButtonPointerDown's FASTER case, reset in resetRuntimeState
 
     let dashTimeRemaining = 0;
     let dashCooldownRemaining = 0;
@@ -1280,9 +1847,9 @@
 
     let obstacles = [];   // active obstacles for the current section, with runtime flags
 
-    // meeting doorway -- see getDoorwayScreenRect / isPointOnDoorway / drawDoorwayHintArrow
-    let doorwayWaitTimer = 0;      // seconds spent waiting at the current doorway, unpressed
-    let hasLearnedDoorway = false; // true once the player has successfully tapped any doorway this level (gives the hint longer to appear on later doors)
+    // meeting doorway -- see getDoorwayScreenRect / isPointOnDoorway
+    let doorwayWaitTimer = 0;      // seconds spent waiting at the current doorway, unpressed -- still drives the serenity-prayer bubble's pop-in timing and CONFIG.chevronChaseCycleSeconds's cadence
+    let hasLearnedDoorway = false; // no longer affects anything visual (the doorway hint arrow it used to gate was removed) -- left set for potential future use rather than ripped out
 
     // CHANGING STORE EVENT -- see CHANGING_STORE / checkChangingStoreApproach /
     // updateChangingStoreEvent. changingStorePhase is only meaningful while
@@ -1311,7 +1878,18 @@
     let crowdBubblePresetIndex = 0; // rotates through CROWD_BUBBLE_PRESETS so consecutive crowd lines don't reuse the same spot -- see pickCrowdBubblePreset()
 
     let musicEl = null;
-    let musicFading = false;
+    let musicFading = false; // drives the existing full fade-to-stop (fadeOutMusic/stopMusic) used on finish/out-of-lives -- unrelated to the meeting-duck/Fresh-sting system below, which uses its own audioMode state
+
+    // See the AUDIO section near the bottom of the file for
+    // setAudioMode() -- the single entry point that moves between
+    // "outside"/"meeting"/"freshSting" -- these variables are that
+    // system's entire state, kept together so it's obvious at a glance
+    // that only one "extra" track (chatter OR sting) can ever be active
+    // at once.
+    let meetingChatterEl = null;   // singleton -- always stopped/replaced, never stacked, see startMeetingChatter()
+    let freshStingEl = null;       // singleton -- same idea, see startFreshThreadsSting()
+    let audioMode = "outside";     // "outside" | "meeting" | "freshSting" -- see setAudioMode()
+    let musicFadeIntervalId = null; // single active volume-fade timer on musicEl at a time -- starting a new one always clears this first, so duck/restore/pause calls firing in quick succession can never fight each other
 
     let transitionTimer = 0;
     let transitionPhase = null;  // "in" | "finishing"
@@ -1319,6 +1897,7 @@
 
     // inside-the-meeting sequence
     let insideElapsed = 0;
+    let insideMeetingMaxDurationActive = CONFIG.insideMeetingMaxDuration; // this meeting's resolved cap (script.js scene-timer if set, else CONFIG.insideMeetingMaxDuration) -- reset fresh by enterInsideMeeting() every time a meeting is entered
     let insideFadeTimer = 0;
     let leaveFadeTimer = 0;
     let exitMeetingTimer = 0;
@@ -1337,12 +1916,25 @@
     let interiorStepTimer = 0;
     let billInteriorWalking = false; // this-frame movement flags, purely for picking Bill/Bob's walk vs idle animation
     let bobInteriorWalking = false;
-    let billInteriorFacingLeft = false; // which way each character is currently drawn facing -- see updateInteriorSequence/updateInteriorBob
-    let bobInteriorFacingLeft = false;
+    let billInteriorMoveDir = 1;    // which way Bill is walking/about to walk during a "walk" step (1 = right, -1 = left) -- movement bookkeeping ONLY, not a facing decision. See updateCharacterFacing for the single place facing is actually decided.
+    let billInteriorTurning = false; // true during Bill's brief pre-walk "stop and turn" pause (see the "walk" case in updateInteriorSequence)
+    let bobInteriorMoveDir = 1;     // same idea as billInteriorMoveDir, for Bob's trailing motion
+    let bobInteriorTurning = false;
     let bobInteriorTurnTimer = 0;       // brief "stop and turn" beat before Bob reverses, mirrors the walk-step turn beat below
+
+    // ------------------------------------------------------------------
+    // GLOBAL CHARACTER FACING -- the ONLY two variables anything should
+    // read to decide which way Bill/Bob are drawn, indoors or out. Set
+    // exclusively by updateCharacterFacing() once per frame; nothing
+    // else in the file should assign to these directly. See
+    // updateCharacterFacing for the full priority order.
+    // ------------------------------------------------------------------
+    let billFacingLeft = false;
+    let bobFacingLeft = false;
 
     // story clock (atmosphere only)
     let clockMinutes = 0;
+    let storyClockSecondsRemaining = 0; // HUD "TIME LEFT ON EARTH" -- fictional seconds left, purely visual (see CONFIG.storyClockSpeed / updateFictionalClock). NOT gameplay time.
 
     // neighborhood scenery system -- see BACKGROUND_TILE_ASSET / HOUSE_ASSET_SOURCES / LEVEL1_HOUSES / LEVEL1_STREET_LAMPS above
     let tileImage = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 };
@@ -1359,8 +1951,20 @@
     let billIdleBlipCol = null;     // which variation column (1 or 3) the current/last blip used
     let billDoorwaySequenceStartAt = null; // billAnimElapsed timestamp the one-shot doorway reaction sequence began
     let billWasInDoorwayState = false;     // tracks entry into APPROACHING_MEETING/WAITING_AT_DOOR so the sequence starts fresh exactly once
-    let doorwayDustPuffs = [];             // small dust puffs during the faster doorway slide -- see updateApproach/drawDoorwayDust
+    let doorwayDustPuffs = [];             // dust puffs during the faster doorway slide -- see updateApproach/drawDust
     let doorwayDustSpawnTimer = 0;
+    let skidDustPuffs = [];                // big one-time burst puffs on an abrupt stop, anywhere in the game -- see checkSkidDustBurst/spawnSkidDustBurst/drawDust
+    let prevOutdoorSpeedForSkid = 0;       // last frame's currentSpeed, purely to detect a moving->stopped transition -- see checkSkidDustBurst
+
+    // VISUAL POLISH PASS 2 -- see the CONFIG block above for all the
+    // tuning knobs these read from.
+    let runningDustPuffs = [];             // small continuous puffs while running at an elevated FASTER level -- see updateRunningDust/spawnRunningDustPuff/drawDust
+    let runningDustSpawnTimer = { bill: 0, bob: 0 };
+    let skrrrtEffect = null;               // { life, maxLife, x, y } | null -- one-shot comic "SKRRRT!" lettering, see spawnSkidDustBurst/drawSkrrrtEffect
+    let cameraBumpTimer = 0;               // seconds remaining on the current tiny camera bump, see spawnSkidDustBurst/updateEffectsTimers/applyCameraBumpTransform
+    let clockVisualState = CONFIG.clockVisualStateDefault; // "normal" | "alert" | "warning" | "danger" | "critical" -- see setClockVisualState
+    let activeInteriorConfig = null;       // this meeting's resolved getInteriorConfig() result, set fresh by enterInsideMeeting() -- see buildInteriorSequence/updateInteriorSequence's "walk" case/updateDialogue for where pauseMultiplier/walkSpeedMultiplier/chatterOverlapChance/reactionChance are actually used
+    let fadingWorldBubble = null;          // { speaker, text, crowdPos, life, maxLife } | null -- the previous world-chatter bubble, briefly still fading out while a new one has already appeared, see updateDialogue/drawSpeechBubbles
 
     let bobSpriteImage = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 };
     let bobSpriteImage2 = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 }; // costume2 -- see bobAppearance
@@ -1421,85 +2025,483 @@
         ctx = canvas.getContext("2d");
 
         // ------------------------------------------------------------
-        // TOP HUD -- three fixed sections: LIVES (left), story clock
-        // (center, atmosphere only), Level 1 progress (right).
+        // TOP HUD -- 80s digital-alarm-clock styling. Same three fixed
+        // sections as before (LIVES left / TIME LEFT ON EARTH center /
+        // PROGRESS right); only the presentation changed here -- lives
+        // math, the story clock's own internal tracking, and progress
+        // calculation are all untouched (see updateHud/computeLevelProgress).
+        // Sizes use clamp(px, vw, px) instead of fixed px so the three
+        // sections stay clear of each other and inside the viewport
+        // across the game's actual phone-width range, not just one
+        // reference screen size.
         // ------------------------------------------------------------
+        // ------------------------------------------------------------
+        // UNIFIED 80s ARCADE HUD PANEL -- a single shared "instrument
+        // panel" backdrop the three existing sections (lives/clock/
+        // progress) sit on top of, so the whole HUD strip reads as one
+        // physical piece of arcade hardware bolted to the top of the
+        // screen instead of three separate floating widgets. Purely a
+        // background layer, added purely via DOM paint order (appended
+        // first, so everything else naturally draws on top) -- none of
+        // the three sections' own math, content, or positioning below
+        // changes at all.
+        // ------------------------------------------------------------
+        const hudPanel = document.createElement("div");
+        hudPanel.style.position = "absolute";
+        hudPanel.style.top = "0";
+        hudPanel.style.left = "0";
+        hudPanel.style.width = "100%";
+        hudPanel.style.height = "clamp(68px, 18vw, 92px)";
+        hudPanel.style.background = "linear-gradient(#332f2c, #181615 55%, #0c0b0a)";
+        hudPanel.style.borderBottom = "3px solid #6b4a1f"; // thicker gold hairline trim
+        hudPanel.style.boxShadow = "inset 0 -3px 0 rgba(255,255,255,0.05), inset 0 3px 0 rgba(255,255,255,0.07), inset 0 0 0 3px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.55), 0 3px 0 #0a0a0a";
+        hudPanel.style.pointerEvents = "none";
+        container.appendChild(hudPanel);
+
+        // Small "rivets" at the outer corners AND at the two internal
+        // section boundaries (roughly where LIVES meets the clock, and
+        // where the clock meets PROGRESS) -- purely decorative, matching
+        // the reference's hardware-bolt look without adding a full
+        // separate panel background per section (which risked fighting
+        // the three sections' own existing clamp()-based positioning).
+        ["6px", "33%", "67%", "calc(100% - 11px)"].forEach(function (leftPos) {
+            const screw = document.createElement("div");
+            screw.style.position = "absolute";
+            screw.style.left = leftPos;
+            screw.style.top = "6px";
+            screw.style.width = "5px";
+            screw.style.height = "5px";
+            screw.style.borderRadius = "50%";
+            screw.style.background = "radial-gradient(circle at 35% 35%, #6a6a6a, #1a1a1a 70%)";
+            screw.style.boxShadow = "0 0.5px 0.5px rgba(255,255,255,0.15)";
+            hudPanel.appendChild(screw);
+        });
+
+        // LEFT -- LIVES. Hearts math/opacity-flash logic is completely
+        // unchanged (see updateHud) -- only the housing changed: a
+        // recessed sub-panel with its own bevel, plus a small "LIVES"
+        // caption underneath, matching the reference. livesHeartsEl is a
+        // separate child so updateHud rewriting the hearts each frame
+        // never wipes the caption. min-width is a PROTECTED reservation
+        // -- the center clock module is explicitly capped (see
+        // clockDisplay.style.maxWidth below) so it can never grow into
+        // this space, no matter how long the digit string gets.
         livesDisplay = document.createElement("div");
         livesDisplay.style.position = "absolute";
         livesDisplay.style.top = "10px";
-        livesDisplay.style.left = "12px";
-        livesDisplay.style.padding = "4px 10px";
-        livesDisplay.style.borderRadius = "10px";
-        livesDisplay.style.background = "rgba(0,0,0,0.35)";
-        livesDisplay.style.color = "#d9534f";
-        livesDisplay.style.font = "13px sans-serif";
-        livesDisplay.style.letterSpacing = "2px";
+        livesDisplay.style.left = "10px";
+        livesDisplay.style.display = "flex";
+        livesDisplay.style.flexDirection = "column";
+        livesDisplay.style.alignItems = "center";
+        livesDisplay.style.minWidth = "clamp(88px, 24vw, 108px)";
+        livesDisplay.style.padding = "8px 12px 6px";
+        livesDisplay.style.boxSizing = "border-box";
+        livesDisplay.style.borderRadius = "8px";
+        livesDisplay.style.background = "linear-gradient(#242021, #121010)";
+        livesDisplay.style.border = "3px solid #3a3634";
+        livesDisplay.style.boxShadow = "inset 0 0 5px rgba(0,0,0,0.7), inset 0 2px 0 rgba(255,255,255,0.06), inset 0 0 0 1px #0a0a0a";
         livesDisplay.style.pointerEvents = "none";
         container.appendChild(livesDisplay);
 
-        // Small, unobtrusive story clock -- atmosphere only, not a
-        // countdown. See STORY_TIMES for how its milestones are set.
+        livesHeartsEl = document.createElement("div");
+        livesHeartsEl.style.color = "#ff3b30";
+        livesHeartsEl.style.font = "bold clamp(16px, 4.6vw, 23px) monospace";
+        livesHeartsEl.style.letterSpacing = "2px";
+        livesHeartsEl.style.textShadow = "0 0 6px rgba(255,59,48,0.55)";
+        livesHeartsEl.style.whiteSpace = "nowrap";
+        livesDisplay.appendChild(livesHeartsEl);
+
+        const livesLabelEl = document.createElement("div");
+        livesLabelEl.textContent = "LIVES";
+        livesLabelEl.style.font = "bold clamp(8px, 2.3vw, 11px) sans-serif";
+        livesLabelEl.style.color = "#e8a33d";
+        livesLabelEl.style.letterSpacing = "1.5px";
+        livesLabelEl.style.marginTop = "2px";
+        livesLabelEl.style.whiteSpace = "nowrap";
+        livesDisplay.appendChild(livesLabelEl);
+
+        // Center: "TIME LEFT ON EARTH" fictional story clock, styled like
+        // an old black-plastic digital alarm clock -- dark housing, green
+        // LED/VFD-style digits, small caption underneath. See
+        // updateFictionalClock/formatFictionalClockParts for the actual
+        // (purely visual, no gameplay authority) clock logic; this block
+        // is presentation only. maxWidth is the hard collision guard
+        // against LIVES/PROGRESS -- reserves roughly their combined
+        // footprint on each side so the clock module can genuinely never
+        // grow into either, regardless of viewport width or how many
+        // digits are showing.
         clockDisplay = document.createElement("div");
         clockDisplay.style.position = "absolute";
         clockDisplay.style.top = "10px";
         clockDisplay.style.left = "50%";
         clockDisplay.style.transform = "translateX(-50%)";
-        clockDisplay.style.padding = "4px 10px";
-        clockDisplay.style.borderRadius = "10px";
-        clockDisplay.style.background = "rgba(0,0,0,0.35)";
-        clockDisplay.style.color = "#eee";
-        clockDisplay.style.font = "12px sans-serif";
-        clockDisplay.style.letterSpacing = "1px";
+        clockDisplay.style.display = "flex";
+        clockDisplay.style.flexDirection = "column";
+        clockDisplay.style.alignItems = "center";
+        clockDisplay.style.maxWidth = "calc(100% - 228px)";
+        clockDisplay.style.padding = "7px 16px 9px";
+        clockDisplay.style.boxSizing = "border-box";
+        clockDisplay.style.borderRadius = "9px";
+        clockDisplay.style.background = "linear-gradient(#1c1a1a, #0a0909)";
+        clockDisplay.style.border = "4px solid #3a3634";
+        clockDisplay.style.boxShadow = "inset 0 0 6px rgba(0,0,0,0.75), inset 0 2px 0 rgba(255,255,255,0.06), inset 0 0 0 1px #0a0a0a";
         clockDisplay.style.pointerEvents = "none";
         container.appendChild(clockDisplay);
 
-        // Level 1 progress bar -- route/section progress plus completed
-        // meeting checkpoints. Not time, not a countdown.
+        // Split digit row: dominant "HH:MM" + a much smaller trailing
+        // ":SS". The constantly-ticking seconds no longer dominate the
+        // display or the module's own width -- see
+        // formatFictionalClockParts/updateHud.
+        countdownDigitsEl = document.createElement("div");
+        countdownDigitsEl.style.display = "flex";
+        countdownDigitsEl.style.alignItems = "baseline";
+        countdownDigitsEl.style.whiteSpace = "nowrap";
+        clockDisplay.appendChild(countdownDigitsEl);
+
+        countdownMainEl = document.createElement("span");
+        countdownMainEl.style.font = "bold clamp(21px, 6.8vw, 31px) 'Courier New', monospace";
+        countdownMainEl.style.letterSpacing = "1px";
+        countdownMainEl.style.lineHeight = "1";
+        countdownDigitsEl.appendChild(countdownMainEl);
+        setClockVisualState(clockVisualState); // applies color/glow/animation to countdownMainEl for the current state (normal, by default) now that it exists
+
+        countdownSecEl = document.createElement("span");
+        // ~30% of the main digit height, per spec -- deliberately NOT
+        // run through setClockVisualState/CLOCK_VISUAL_STATES: seconds
+        // stay a plain warm-white regardless of clock state, so they
+        // never compete with the state color for attention either.
+        countdownSecEl.style.font = "bold clamp(7px, 2.2vw, 10px) 'Courier New', monospace";
+        countdownSecEl.style.color = "#f0e6d2";
+        countdownSecEl.style.marginLeft = "3px";
+        countdownSecEl.style.lineHeight = "1";
+        countdownDigitsEl.appendChild(countdownSecEl);
+
+        countdownCaptionEl = document.createElement("div");
+        countdownCaptionEl.textContent = "TIME LEFT ON EARTH";
+        countdownCaptionEl.style.font = "bold clamp(7px, 2vw, 9px) sans-serif";
+        countdownCaptionEl.style.color = "#e8a33d";
+        countdownCaptionEl.style.letterSpacing = "1px";
+        countdownCaptionEl.style.marginTop = "2px";
+        countdownCaptionEl.style.whiteSpace = "nowrap";
+        clockDisplay.appendChild(countdownCaptionEl);
+
+        // RIGHT -- PROGRESS. Same computeLevelProgress() value as before
+        // (see updateHud) -- only the presentation changed, from a smooth
+        // fill bar to a segmented arcade-meter (a fixed row of blocks,
+        // lit up left-to-right as the fraction rises), matching the
+        // reference. The underlying percentage is identical either way;
+        // this only changes how many of the fixed segments currently
+        // read as "lit."
+        const progressWrap = document.createElement("div");
+        progressWrap.style.position = "absolute";
+        progressWrap.style.top = "12px";
+        progressWrap.style.right = "12px";
+        progressWrap.style.display = "flex";
+        progressWrap.style.flexDirection = "column";
+        progressWrap.style.alignItems = "flex-end";
+        progressWrap.style.pointerEvents = "none";
+        container.appendChild(progressWrap);
+
+        progressLabelEl = document.createElement("div");
+        progressLabelEl.textContent = "PROGRESS";
+        progressLabelEl.style.font = "bold clamp(8px, 2.3vw, 10px) sans-serif";
+        progressLabelEl.style.color = "#e8a33d";
+        progressLabelEl.style.letterSpacing = "1px";
+        progressLabelEl.style.marginBottom = "4px";
+        progressLabelEl.style.whiteSpace = "nowrap";
+        progressWrap.appendChild(progressLabelEl);
+
         const progressTrack = document.createElement("div");
-        progressTrack.style.position = "absolute";
-        progressTrack.style.top = "10px";
-        progressTrack.style.right = "12px";
-        progressTrack.style.width = "84px";
-        progressTrack.style.height = "14px";
-        progressTrack.style.padding = "2px";
+        progressTrack.style.display = "flex";
+        progressTrack.style.gap = "3px";
+        progressTrack.style.width = "clamp(84px, 24vw, 124px)";
+        progressTrack.style.height = "22px";
+        progressTrack.style.padding = "3px";
         progressTrack.style.boxSizing = "border-box";
-        progressTrack.style.borderRadius = "8px";
-        progressTrack.style.background = "rgba(0,0,0,0.35)";
-        progressTrack.style.border = "1px solid rgba(222,208,174,0.5)";
-        progressTrack.style.pointerEvents = "none";
-        container.appendChild(progressTrack);
+        progressTrack.style.borderRadius = "6px";
+        progressTrack.style.background = "linear-gradient(#1c1a1a, #0a0909)";
+        progressTrack.style.border = "3px solid #3a3634";
+        progressTrack.style.boxShadow = "inset 0 0 5px rgba(0,0,0,0.7), inset 0 0 0 1px #0a0a0a";
+        progressWrap.appendChild(progressTrack);
 
-        progressFill = document.createElement("div");
-        progressFill.style.width = "0%";
-        progressFill.style.height = "100%";
-        progressFill.style.borderRadius = "5px";
-        progressFill.style.background = "#ded0ae";
-        progressTrack.appendChild(progressFill);
+        const PROGRESS_SEGMENT_COUNT = 9;
+        progressSegmentEls = [];
+        for (let i = 0; i < PROGRESS_SEGMENT_COUNT; i++) {
+            const segment = document.createElement("div");
+            segment.style.flex = "1";
+            segment.style.height = "100%";
+            segment.style.borderRadius = "1px";
+            segment.style.background = "#241f1d"; // unlit -- updateHud lights it up left-to-right as progress rises
+            progressTrack.appendChild(segment);
+            progressSegmentEls.push(segment);
+        }
 
-        // The one permanent control. PRESS = GO, DOUBLE PRESS = ACTION.
+        // One-shot CSS animations for the button (a comic "pop" on ENTER/
+        // CONTINUE, a smaller "snap" on START->FASTER, on every FASTER
+        // speed-level bump, and reused for the periodic chevron bump --
+        // see updateChevronBump -- and the WHOOSH fade-away burst on a
+        // successful FASTER double-press dash), plus the clock-state and
+        // chevron-chase keyframes below. Injected once per buildDom() as
+        // a child of `container`, so it's wiped and recreated cleanly by
+        // container.innerHTML="" on every start()/retry() -- never
+        // accumulates across replays. (The old hgFlameFlicker keyframe
+        // that used to live here was removed along with the static flame
+        // shapes it drove -- see spawnFireParticle/
+        // updateActionButtonFireParticles for the real particle system
+        // that replaced them.)
+        const buttonAnimStyle = document.createElement("style");
+        buttonAnimStyle.textContent =
+            // These three now animate actionButtonHousing (centered via
+            // translate(-50%, -50%), not actionButton's old
+            // translateX(-50%)-only positioning) -- see
+            // updateActionButtonHud/updateChevronBump/bumpFasterSpeedLevel.
+            "@keyframes hgButtonPop {" +
+            "0% { transform: translate(-50%, -50%) scale(1); }" +
+            "40% { transform: translate(-50%, -50%) scale(1.16); }" +
+            "70% { transform: translate(-50%, -50%) scale(0.96); }" +
+            "100% { transform: translate(-50%, -50%) scale(1); } }" +
+            "@keyframes hgButtonPopBig {" +
+            "0% { transform: translate(-50%, -50%) scale(1); }" +
+            "40% { transform: translate(-50%, -50%) scale(1.3); }" +
+            "70% { transform: translate(-50%, -50%) scale(0.9); }" +
+            "100% { transform: translate(-50%, -50%) scale(1); } }" +
+            "@keyframes hgButtonSnap {" +
+            "0% { transform: translate(-50%, -50%) scale(1); }" +
+            "50% { transform: translate(-50%, -50%) scale(1.08); }" +
+            "100% { transform: translate(-50%, -50%) scale(1); } }" +
+            "@keyframes hgWhooshFade {" +
+            "0% { opacity: 1; transform: translate(-50%, 0); }" +
+            "100% { opacity: 0; transform: translate(-50%, -16px); } }" +
+            // CLOCK VISUAL-STATE keyframes -- see CLOCK_VISUAL_STATES/
+            // setClockVisualState. Unused (clock stays "normal" this
+            // pass, animation:none) until a later pass calls
+            // setClockVisualState with one of these names.
+            "@keyframes hgClockPulse {" +
+            "0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }" +
+            "@keyframes hgClockFlicker {" +
+            "0%, 92%, 100% { opacity: 1; } 94% { opacity: 0.3; } 96% { opacity: 1; } 98% { opacity: 0.5; } }" +
+            "@keyframes hgClockCriticalPulse {" +
+            "0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.04); } }" +
+            // Shared chase animation for the 3 doorway chevrons -- see
+            // buildDom's chevron creation block. Each of the 3 chevrons
+            // uses this SAME keyframe at a staggered animation-delay
+            // (1/3 cycle apart), which is what makes them brighten/rise
+            // in sequence bottom->middle->top rather than all together.
+            "@keyframes hgChevronChase {" +
+            "0% { opacity: 0.25; transform: translateX(-50%) translateY(4px); }" +
+            "30% { opacity: 1; transform: translateX(-50%) translateY(0px); }" +
+            "60% { opacity: 1; transform: translateX(-50%) translateY(-2px); }" +
+            "100% { opacity: 0.15; transform: translateX(-50%) translateY(-7px); } }" +
+            // Gentle idle "looks pressable" breathing for the PLAY
+            // triangle and the FASTER lightning bolt -- opacity/scale
+            // only, small enough it never reads as jittery. Chevrons
+            // already have their own chase animation and don't need this.
+            "@keyframes hgSymbolIdlePulse {" +
+            "0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }" +
+            "50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); } }";
+        container.appendChild(buttonAnimStyle);
+
+        // The one permanent control -- now a compact "controller button"
+        // instead of a labeled UI button: a small black arcade housing
+        // holding just a symbol, sitting inside a LARGER invisible tap
+        // target (actionButton itself) so the visible control can shrink
+        // without shrinking the actual touchable area. PRESS = GO
+        // (context-sensitive: START / FASTER / ENTER / CONTINUE
+        // depending on state; disabled and inert while IN MEETING or
+        // during an automatic transition), DOUBLE PRESS = ACTION (dash/
+        // hustle, unchanged, only while the control is in its FASTER/
+        // lightning-bolt state). State (symbol + visual + animation) is
+        // fully centralized in getActionButtonState()/updateActionButtonHud()
+        // below -- see that comment block for the full state table.
+        //
+        // actionButton (this element): position, size, and touch
+        // handling ONLY -- deliberately larger than the visible housing
+        // for a comfortable phone tap target, and never itself carries a
+        // border/background/glow. All of that lives on actionButtonHousing.
         actionButton = document.createElement("div");
-        actionButton.textContent = CONFIG.actionButtonLabel;
         actionButton.style.position = "absolute";
         actionButton.style.left = "50%";
-        actionButton.style.bottom = "18px";
+        actionButton.style.bottom = "14px";
         actionButton.style.transform = "translateX(-50%)";
-        actionButton.style.width = "132px";
-        actionButton.style.height = "58px";
-        actionButton.style.display = "flex";
-        actionButton.style.alignItems = "center";
-        actionButton.style.justifyContent = "center";
-        actionButton.style.borderRadius = "10px";
-        actionButton.style.border = "2px solid #ded0ae";
-        actionButton.style.background = "#1c1712";
-        actionButton.style.color = "#ded0ae";
-        actionButton.style.font = "bold 16px sans-serif";
-        actionButton.style.letterSpacing = "2px";
-        actionButton.style.boxShadow = "0 3px 0 rgba(0,0,0,0.5)";
+        actionButton.style.width = "clamp(64px, 17vw, 76px)";
+        actionButton.style.height = "clamp(64px, 17vw, 76px)";
         actionButton.style.touchAction = "none";
         actionButton.style.userSelect = "none";
         actionButton.style.webkitUserSelect = "none";
-        actionButton.style.cursor = "pointer";
         container.appendChild(actionButton);
+
+        // actionButtonHousing: the actual VISIBLE compact arcade
+        // housing -- black/metal, beveled, a few hardware rivets,
+        // centered inside the larger invisible tap target above. This is
+        // what applyActionButtonVisualState/updateActionButtonFireVisual/
+        // setActionButtonPressed/bumpFasterSpeedLevel/updateChevronBump
+        // all style (border, background, boxShadow, press-transform,
+        // pop-animations) -- actionButton itself is never touched by any
+        // of that.
+        actionButtonHousing = document.createElement("div");
+        actionButtonHousing.style.position = "absolute";
+        actionButtonHousing.style.left = "50%";
+        actionButtonHousing.style.top = "50%";
+        actionButtonHousing.style.transform = "translate(-50%, -50%)";
+        actionButtonHousing.style.width = "56px";
+        actionButtonHousing.style.height = "56px";
+        actionButtonHousing.style.boxSizing = "border-box";
+        actionButtonHousing.style.borderRadius = "10px 14px 11px 15px"; // slightly uneven -- reads as hand-cut, not a clean UI rect
+        actionButtonHousing.style.pointerEvents = "none"; // actionButton (larger, behind it in z-order via DOM position) owns all touch handling
+        actionButton.appendChild(actionButtonHousing);
+
+        // Corner "rivets," matching the top HUD panel's hardware
+        // language -- scaled down for the now-compact housing. Purely
+        // decorative, pointer-events:none (inherited).
+        [["2px", "2px"], ["calc(100% - 6px)", "2px"], ["2px", "calc(100% - 6px)"], ["calc(100% - 6px)", "calc(100% - 6px)"]].forEach(function (pos) {
+            const rivet = document.createElement("div");
+            rivet.style.position = "absolute";
+            rivet.style.left = pos[0];
+            rivet.style.top = pos[1];
+            rivet.style.width = "4px";
+            rivet.style.height = "4px";
+            rivet.style.borderRadius = "50%";
+            rivet.style.background = "radial-gradient(circle at 35% 35%, #6a6a6a, #1a1a1a 70%)";
+            rivet.style.boxShadow = "0 0.5px 0.5px rgba(255,255,255,0.15)";
+            actionButtonHousing.appendChild(rivet);
+        });
+
+        // PLAY (START state) -- a solid CSS triangle (border trick, not
+        // an emoji glyph), large enough to dominate the compact housing.
+        // Shown/hidden per state in applyActionButtonVisualState.
+        actionButtonPlayEl = document.createElement("div");
+        actionButtonPlayEl.style.position = "absolute";
+        actionButtonPlayEl.style.left = "58%";
+        actionButtonPlayEl.style.top = "50%";
+        actionButtonPlayEl.style.transform = "translate(-50%, -50%)";
+        actionButtonPlayEl.style.width = "0";
+        actionButtonPlayEl.style.height = "0";
+        actionButtonPlayEl.style.borderTop = "14px solid transparent";
+        actionButtonPlayEl.style.borderBottom = "14px solid transparent";
+        actionButtonPlayEl.style.borderLeft = "22px solid #39ff14";
+        actionButtonPlayEl.style.filter = "drop-shadow(0 0 6px rgba(57,255,20,0.75))";
+        actionButtonPlayEl.style.animation = "hgSymbolIdlePulse 1.8s ease-in-out infinite";
+        actionButtonPlayEl.style.display = "none"; // toggled by applyActionButtonVisualState
+        actionButtonHousing.appendChild(actionButtonPlayEl);
+
+        // FASTER -- a lightning-bolt shape built from clip-path (not an
+        // emoji glyph either), same idea: dominate the housing, subtle
+        // idle pulse. Its fill color is updated by updateActionButtonFireVisual
+        // (green -> hotter yellow/white as fasterSpeedLevel rises) --
+        // see that function -- exactly the same color ramp the old text
+        // glow used to follow.
+        actionButtonBoltEl = document.createElement("div");
+        actionButtonBoltEl.style.position = "absolute";
+        actionButtonBoltEl.style.left = "50%";
+        actionButtonBoltEl.style.top = "50%";
+        actionButtonBoltEl.style.transform = "translate(-50%, -50%)";
+        actionButtonBoltEl.style.width = "26px";
+        actionButtonBoltEl.style.height = "38px";
+        actionButtonBoltEl.style.background = "#39ff14";
+        actionButtonBoltEl.style.clipPath = "polygon(58% 0%, 8% 58%, 42% 58%, 32% 100%, 92% 38%, 52% 38%)";
+        actionButtonBoltEl.style.filter = "drop-shadow(0 0 6px rgba(57,255,20,0.75))";
+        actionButtonBoltEl.style.animation = "hgSymbolIdlePulse 1.8s ease-in-out infinite";
+        actionButtonBoltEl.style.display = "none"; // toggled by applyActionButtonVisualState
+        actionButtonHousing.appendChild(actionButtonBoltEl);
+
+        // ANIMATED CHEVRON DOORWAY CONTROL -- shown ONLY while
+        // getActionButtonState() === BUTTON_STATE.ENTER. A recessed
+        // "screen" panel (dark fill, glowing green border) housing three
+        // stacked CSS-triangle chevrons -- sized to fill most of the
+        // compact housing -- that share one "chase" keyframe
+        // (hgChevronChase, staggered by 1/3 cycle each) so energy reads
+        // as continuously pushing upward through the stack toward the
+        // doorway. This is now the ONLY visual doorway cue anywhere (the
+        // old floating arrow and the yellow doorway highlight were both
+        // removed -- see drawBuilding/renderOutdoorScene). Purely
+        // presentational either way -- enterMeeting()/doorway trigger
+        // logic are completely untouched.
+        actionButtonChevronWrap = document.createElement("div");
+        actionButtonChevronWrap.style.position = "absolute";
+        actionButtonChevronWrap.style.left = "50%";
+        actionButtonChevronWrap.style.top = "50%";
+        actionButtonChevronWrap.style.transform = "translate(-50%, -50%)";
+        actionButtonChevronWrap.style.width = "44px";
+        actionButtonChevronWrap.style.height = "46px";
+        actionButtonChevronWrap.style.boxSizing = "border-box";
+        actionButtonChevronWrap.style.borderRadius = "6px";
+        actionButtonChevronWrap.style.background = "radial-gradient(circle at 50% 40%, #0f2a0f, #081208)";
+        actionButtonChevronWrap.style.border = "2px solid #39ff14";
+        actionButtonChevronWrap.style.boxShadow = "0 0 10px rgba(57,255,20,0.6), inset 0 0 6px rgba(0,0,0,0.6)";
+        actionButtonChevronWrap.style.display = "none"; // toggled by applyActionButtonVisualState
+        actionButtonHousing.appendChild(actionButtonChevronWrap);
+
+        actionButtonChevronEls = [];
+        [30, 15, 1].forEach(function (bottomPx, i) { // bottom, middle, top chevron
+            const chevron = document.createElement("div");
+            chevron.style.position = "absolute";
+            chevron.style.left = "50%";
+            chevron.style.bottom = bottomPx + "px";
+            chevron.style.width = "0";
+            chevron.style.height = "0";
+            chevron.style.borderLeft = "10px solid transparent";
+            chevron.style.borderRight = "10px solid transparent";
+            chevron.style.borderBottom = "13px solid #39ff14";
+            chevron.style.filter = "drop-shadow(0 0 4px rgba(57,255,20,0.9))";
+            chevron.style.transform = "translateX(-50%)";
+            chevron.style.animation = "hgChevronChase " + CONFIG.chevronChaseCycleSeconds + "s ease-in-out infinite";
+            chevron.style.animationDelay = (i * (CONFIG.chevronChaseCycleSeconds / 3)) + "s";
+            actionButtonChevronWrap.appendChild(chevron);
+            actionButtonChevronEls.push(chevron);
+        });
+
+        // REAL PARTICLE FIRE (FASTER state) -- just an empty positioned
+        // container here; actual particle divs are created/destroyed
+        // dynamically by spawnFireParticle/updateActionButtonFireParticles
+        // as fasterSpeedLevel changes, never a fixed set of shapes. See
+        // those functions for the organic rise/drift/shrink/fade
+        // behavior. Now a child of the compact HOUSING (not the larger
+        // invisible tap target) so particles originate from the visible
+        // control's actual edges regardless of how much bigger the tap
+        // target is. overflow:visible + tall parent-independent particle
+        // positioning still lets flames rise well above the housing at
+        // max level without being clipped.
+        actionButtonFireContainer = document.createElement("div");
+        actionButtonFireContainer.style.position = "absolute";
+        actionButtonFireContainer.style.left = "0";
+        actionButtonFireContainer.style.bottom = "0";
+        actionButtonFireContainer.style.width = "100%";
+        actionButtonFireContainer.style.height = "1px"; // particles themselves are absolutely positioned within this; height only matters as an overflow-visible anchor
+        actionButtonFireContainer.style.overflow = "visible";
+        actionButtonFireContainer.style.pointerEvents = "none";
+        actionButtonHousing.appendChild(actionButtonFireContainer);
+        fireParticles = [];
+        fireSpawnTimer = 0;
+
+        // Apply correct visual state immediately (state is always
+        // WAITING_TO_START here) rather than leaving the button unstyled
+        // for a frame until updateHud() first runs. Also resets
+        // lastActionButtonState so THIS build's first real updateHud()
+        // call correctly sees "no change yet" and doesn't fire a spurious
+        // pop animation on load -- important on retryLevel(), which
+        // rebuilds these elements from scratch but doesn't otherwise touch
+        // that module-level variable.
+        lastActionButtonState = BUTTON_STATE.START;
+        applyActionButtonVisualState(BUTTON_STATE.START);
+
+        // Tiny comic action-effect burst on a successful FASTER press
+        // (see playActionButtonWhoosh) -- NOT dialogue, not a speech
+        // bubble, just a one-shot label that fades/slides away over
+        // CONFIG.actionButtonWhooshDuration. Sits just above the button,
+        // starts invisible.
+        actionButtonWhooshEl = document.createElement("div");
+        actionButtonWhooshEl.textContent = "WHOOSH!";
+        actionButtonWhooshEl.style.position = "absolute";
+        actionButtonWhooshEl.style.left = "50%";
+        actionButtonWhooshEl.style.bottom = "98px";
+        actionButtonWhooshEl.style.transform = "translate(-50%, 0)";
+        actionButtonWhooshEl.style.font = "bold 15px 'Comic Sans MS', 'Trebuchet MS', sans-serif";
+        actionButtonWhooshEl.style.color = "#39ff14";
+        actionButtonWhooshEl.style.textShadow = "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000";
+        actionButtonWhooshEl.style.letterSpacing = "1px";
+        actionButtonWhooshEl.style.opacity = "0";
+        actionButtonWhooshEl.style.pointerEvents = "none";
+        container.appendChild(actionButtonWhooshEl);
 
         // Small instruction that sits above the button until the player's
         // first press, then disappears for good.
@@ -1507,7 +2509,7 @@
         startPrompt.textContent = "PRESS TO START";
         startPrompt.style.position = "absolute";
         startPrompt.style.left = "50%";
-        startPrompt.style.bottom = "84px";
+        startPrompt.style.bottom = "118px";
         startPrompt.style.transform = "translateX(-50%)";
         startPrompt.style.padding = "5px 12px";
         startPrompt.style.borderRadius = "14px";
@@ -1560,10 +2562,94 @@
 
         container.appendChild(retryOverlay);
 
+        // ------------------------------------------------------------
+        // DEBUG: anchor-jump toggle. HIDDEN by default (display:none) --
+        // press Ctrl+D / Cmd+D anywhere in the game to reveal it (see the
+        // keydown listener in attachInput), then tap it to actually turn
+        // window.DEBUG_ANCHOR on/off. Tucked in the bottom-right corner
+        // when visible, well clear of the centered action button and the
+        // top HUD.
+        // ------------------------------------------------------------
+        debugAnchorButton = document.createElement("div");
+        debugAnchorButton.style.position = "absolute";
+        debugAnchorButton.style.right = "10px";
+        debugAnchorButton.style.bottom = "10px";
+        debugAnchorButton.style.padding = "6px 10px";
+        debugAnchorButton.style.borderRadius = "8px";
+        debugAnchorButton.style.border = "1px solid rgba(255,255,255,0.4)";
+        debugAnchorButton.style.font = "bold 11px sans-serif";
+        debugAnchorButton.style.letterSpacing = "1px";
+        debugAnchorButton.style.cursor = "pointer";
+        debugAnchorButton.style.touchAction = "none";
+        debugAnchorButton.style.userSelect = "none";
+        debugAnchorButton.style.webkitUserSelect = "none";
+        debugAnchorButton.style.zIndex = "20";
+        debugAnchorButton.style.display = "none"; // revealed only via the Ctrl+D hotkey
+        container.appendChild(debugAnchorButton);
+        updateDebugAnchorButtonVisual();
+
+        // ------------------------------------------------------------
+        // SUBTLE RETRO SCREEN TREATMENT -- extremely light scanlines +
+        // a soft edge vignette, meant to be felt more than consciously
+        // noticed. Pure CSS, one static layer (no per-frame cost), sits
+        // above everything (including the HUD panel) but is deliberately
+        // faint enough that it never fights the artwork or HUD
+        // readability. z-index 5 keeps it below the debug button (20)
+        // and the out-of-lives overlay (10).
+        // ------------------------------------------------------------
+        const crtOverlay = document.createElement("div");
+        crtOverlay.style.position = "absolute";
+        crtOverlay.style.top = "0";
+        crtOverlay.style.left = "0";
+        crtOverlay.style.width = "100%";
+        crtOverlay.style.height = "100%";
+        crtOverlay.style.pointerEvents = "none";
+        crtOverlay.style.zIndex = "5";
+        crtOverlay.style.mixBlendMode = "multiply"; // darkens slightly rather than flattening the art's own colors
+        crtOverlay.style.background =
+            "repeating-linear-gradient(rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.05) 3px, rgba(0,0,0,0) 4px)," +
+            "radial-gradient(ellipse at center, rgba(0,0,0,0) 58%, rgba(0,0,0,0.15) 100%)";
+        container.appendChild(crtOverlay);
+
         if (getComputedStyle(container).position === "static") {
             container.style.position = "relative";
         }
         container.style.overflow = "hidden";
+    }
+
+    // Reflects window.DEBUG_ANCHOR's current on/off state on the button
+    // itself, so it's obvious at a glance whether it's active -- called
+    // once when the button is built and again every time it's tapped.
+    function updateDebugAnchorButtonVisual() {
+        if (!debugAnchorButton) return;
+        const on = typeof window !== "undefined" && !!window.DEBUG_ANCHOR;
+        debugAnchorButton.textContent = on ? "ANCHOR DEBUG: ON" : "ANCHOR DEBUG";
+        debugAnchorButton.style.background = on ? "#c0392b" : "rgba(0,0,0,0.45)";
+        debugAnchorButton.style.color = on ? "#fff" : "rgba(255,255,255,0.75)";
+    }
+
+    function onDebugAnchorButtonPointerDown(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof window === "undefined") return;
+        window.DEBUG_ANCHOR = !window.DEBUG_ANCHOR;
+        updateDebugAnchorButtonVisual();
+        console.log("[ANCHOR DEBUG] " + (window.DEBUG_ANCHOR ? "ON -- watch the console for jump warnings, and look for the magenta guide line under each character." : "OFF"));
+    }
+
+    // Ctrl+D / Cmd+D reveals (or re-hides) the debug button itself --
+    // this does NOT turn tracking on, just makes the button visible/
+    // tappable, so accidentally hitting this combo never starts logging
+    // on its own. preventDefault stops the browser's own "bookmark this
+    // page" shortcut from firing.
+    function onDebugHotkeyDown(e) {
+        const key = (e.key || "").toLowerCase();
+        if (key !== "d" || !(e.ctrlKey || e.metaKey)) return;
+        e.preventDefault();
+        if (!debugAnchorButton) return;
+        const nowVisible = debugAnchorButton.style.display === "none";
+        debugAnchorButton.style.display = nowVisible ? "block" : "none";
+        console.log("[ANCHOR DEBUG] button " + (nowVisible ? "shown" : "hidden") + " (Ctrl+D/Cmd+D to toggle)");
     }
 
     function resetRuntimeState() {
@@ -1574,6 +2660,7 @@
         distanceTraveled = 0;
         worldScrollDistance = 0;
         currentSpeed = 0;
+        fasterSpeedLevel = 0;
 
         dashTimeRemaining = 0;
         dashCooldownRemaining = 0;
@@ -1611,6 +2698,17 @@
         billWasInDoorwayState = false;
         doorwayDustPuffs = [];
         doorwayDustSpawnTimer = 0;
+        skidDustPuffs = [];
+        prevOutdoorSpeedForSkid = 0;
+        runningDustPuffs = [];
+        runningDustSpawnTimer = { bill: 0, bob: 0 };
+        skrrrtEffect = null;
+        cameraBumpTimer = 0;
+        setClockVisualState(CONFIG.clockVisualStateDefault);
+        activeInteriorConfig = null;
+        fadingWorldBubble = null;
+        fireParticles = [];
+        fireSpawnTimer = 0;
         bobAnimElapsed = 0;
         bobIdleNextBlipAt = null;
         bobIdleBlipEndAt = null;
@@ -1633,11 +2731,21 @@
         interiorStepTimer = 0;
         billInteriorWalking = false;
         bobInteriorWalking = false;
-        billInteriorFacingLeft = false;
-        bobInteriorFacingLeft = false;
+        billInteriorMoveDir = 1;
+        billInteriorTurning = false;
+        bobInteriorMoveDir = 1;
+        bobInteriorTurning = false;
         bobInteriorTurnTimer = 0;
+        billFacingLeft = false;
+        bobFacingLeft = false;
 
         clockMinutes = parseStoryTime(STORY_TIMES.levelStart);
+
+        // Fictional HUD story clock -- anchor to script.js's "clock:" value
+        // for the opening outdoor section if one is set, else the default
+        // 24:00:00. Purely cosmetic; see CONFIG.storyClockDefaultSeconds.
+        const openingClock = getScriptClockSeconds("Outside-level1");
+        storyClockSecondsRemaining = (typeof openingClock === "number") ? openingClock : CONFIG.storyClockDefaultSeconds;
 
         loadObstaclesForSection();
         loadHousesForSection();
@@ -1875,10 +2983,12 @@
     const DIALOGUE_GAP = 2000;            // ms between consecutive script.js dialogue lines -- the one timing knob for this system
 
     let scriptDialogue = null;            // parsed { section: { point: [ {speaker, text} ] } }, or null until loaded/if loading failed
+    let scriptSceneConfig = null;         // parsed { section: { sceneTimer: seconds } }, or null until loaded/if loading failed -- see "scene-timer:" in parseScriptText
     let scriptDialogueLoadAttempted = false;
 
     function parseScriptText(text) {
         const result = {};
+        const sceneConfig = {};   // { sectionKey: { sceneTimer: seconds } } -- scene-level config, kept OUT of the dialogue tables in `result`
         let currentSection = null;
         let currentPointKey = null;
 
@@ -1928,12 +3038,63 @@
                 return;
             }
 
-            // speaker: dialogue text
-            const speakerMatch = line.match(/^([A-Za-z]+)\s*:\s*(.*)$/);
+            // scene-timer: <seconds> -- scene CONFIG for the current section,
+            // not a dialogue line. Checked before the speaker match below so
+            // it's never mistaken for (or warned about as) an unrecognized
+            // speaker. Stored separately in `sceneConfig`, never pushed into
+            // `result`, so nothing that reads dialogue points ever sees it.
+            const sceneTimerMatch = line.match(/^scene-timer\s*:\s*([\d.]+)\s*$/i);
+            if (sceneTimerMatch) {
+                if (!currentSection) {
+                    console.warn("script.js line " + (index + 1) + ": scene-timer appears before any //SectionName -- ignoring.");
+                    return;
+                }
+                const seconds = parseFloat(sceneTimerMatch[1]);
+                if (isNaN(seconds)) {
+                    console.warn("script.js line " + (index + 1) + ": couldn't parse scene-timer value -- ignoring.");
+                    return;
+                }
+                if (!sceneConfig[currentSection]) {
+                    sceneConfig[currentSection] = {};
+                }
+                sceneConfig[currentSection].sceneTimer = seconds;
+                return;
+            }
+
+            // clock: HH:MM:SS -- re-anchors the fictional HUD "TIME LEFT ON
+            // EARTH" story clock for the current section. Also scene CONFIG,
+            // not dialogue -- stored in `sceneConfig` right alongside
+            // scene-timer but as its own independent key (clockSeconds), so
+            // editing one never touches the other. See getScriptClockSeconds.
+            const clockMatch = line.match(/^clock\s*:\s*(\d{1,3}):(\d{2}):(\d{2})\s*$/i);
+            if (clockMatch) {
+                if (!currentSection) {
+                    console.warn("script.js line " + (index + 1) + ": clock appears before any //SectionName -- ignoring.");
+                    return;
+                }
+                const hh = parseInt(clockMatch[1], 10);
+                const mm = parseInt(clockMatch[2], 10);
+                const ss = parseInt(clockMatch[3], 10);
+                if (mm > 59 || ss > 59) {
+                    console.warn("script.js line " + (index + 1) + ": clock minutes/seconds must be 00-59 -- ignoring.");
+                    return;
+                }
+                if (!sceneConfig[currentSection]) {
+                    sceneConfig[currentSection] = {};
+                }
+                sceneConfig[currentSection].clockSeconds = hh * 3600 + mm * 60 + ss;
+                return;
+            }
+
+            // speaker: dialogue text -- speaker names may contain a hyphen
+            // (needed for "building-dialogue"), hence [A-Za-z-]+ instead of
+            // just [A-Za-z]+; still requires at least one plain letter so a
+            // stray "--" or "-" alone can't accidentally match here.
+            const speakerMatch = line.match(/^([A-Za-z][A-Za-z-]*)\s*:\s*(.*)$/);
             if (speakerMatch) {
-                const speaker = speakerMatch[1].trim().toLowerCase();
+                const rawSpeaker = speakerMatch[1].trim().toLowerCase();
                 const dialogueText = speakerMatch[2].trim();
-                if (speaker !== "bill" && speaker !== "bob" && speaker !== "crowd") {
+                if (rawSpeaker !== "bill" && rawSpeaker !== "bob" && rawSpeaker !== "crowd" && rawSpeaker !== "building-dialogue") {
                     console.warn("script.js line " + (index + 1) + ": unrecognized speaker \"" + speakerMatch[1] + "\" -- ignoring line.");
                     return;
                 }
@@ -1942,6 +3103,11 @@
                     return;
                 }
                 if (dialogueText.length === 0) return;
+                // "building-dialogue" is authoring syntax, not a character --
+                // it's stored internally as speaker "building" (see
+                // drawSpeechBubbles), same ordered-array entry shape as
+                // bill/bob/crowd, just anchored differently when drawn.
+                const speaker = (rawSpeaker === "building-dialogue") ? "building" : rawSpeaker;
                 result[currentSection][currentPointKey].push({ speaker: speaker, text: dialogueText });
                 return;
             }
@@ -1949,7 +3115,7 @@
             console.warn("script.js line " + (index + 1) + ": couldn't parse \"" + rawLine.trim() + "\" -- ignoring.");
         });
 
-        return result;
+        return { dialogue: result, sceneConfig: sceneConfig };
     }
 
     function loadScriptDialogue() {
@@ -1964,11 +3130,14 @@
                 return response.text();
             })
             .then(function (text) {
-                scriptDialogue = parseScriptText(text);
+                const parsed = parseScriptText(text);
+                scriptDialogue = parsed.dialogue;
+                scriptSceneConfig = parsed.sceneConfig;
             })
             .catch(function (err) {
                 console.warn("script.js could not be loaded (" + err.message + ") -- falling back to existing dialogue tables.");
                 scriptDialogue = null;
+                scriptSceneConfig = null;
             });
     }
 
@@ -1983,6 +3152,28 @@
         if (!section) return null;
         const entries = section[String(pointKey).toLowerCase()];
         return (entries && entries.length > 0) ? entries : null;
+    }
+
+    // Returns the "scene-timer: <seconds>" value script.js configured for
+    // this section (e.g. "AA-level1"), or null if script.js hasn't loaded
+    // yet or has no scene-timer for that section -- callers fall back to
+    // CONFIG.insideMeetingMaxDuration in that case, same null-means-fallback
+    // convention as getScriptDialogue above.
+    function getSceneTimer(sectionKey) {
+        if (!scriptSceneConfig) return null;
+        const cfg = scriptSceneConfig[String(sectionKey).toLowerCase()];
+        return (cfg && typeof cfg.sceneTimer === "number") ? cfg.sceneTimer : null;
+    }
+
+    // Returns the "clock: HH:MM:SS" value (as total seconds) script.js
+    // configured for this section, or null if script.js hasn't loaded yet
+    // or has no clock: for that section -- callers leave the fictional HUD
+    // clock running untouched in that case (no re-anchor), same
+    // null-means-"don't touch it" convention as getSceneTimer above.
+    function getScriptClockSeconds(sectionKey) {
+        if (!scriptSceneConfig) return null;
+        const cfg = scriptSceneConfig[String(sectionKey).toLowerCase()];
+        return (cfg && typeof cfg.clockSeconds === "number") ? cfg.clockSeconds : null;
     }
 
     // Fires immediately as soon as this file itself loads/parses -- well
@@ -2104,6 +3295,13 @@
         retryButton.addEventListener("pointerdown", onRetryButtonPointerDown, { passive: false });
         retryButton.addEventListener("touchstart", preventDefaultTouch, { passive: false });
 
+        // Debug anchor-jump toggle -- always wired up (not tied to any
+        // particular game state), even though the button itself starts
+        // hidden until Ctrl+D reveals it.
+        debugAnchorButton.addEventListener("pointerdown", onDebugAnchorButtonPointerDown, { passive: false });
+        debugAnchorButton.addEventListener("touchstart", preventDefaultTouch, { passive: false });
+        document.addEventListener("keydown", onDebugHotkeyDown);
+
         pointerListenersAttached = true;
     }
 
@@ -2125,6 +3323,11 @@
             retryButton.removeEventListener("pointerdown", onRetryButtonPointerDown);
             retryButton.removeEventListener("touchstart", preventDefaultTouch);
         }
+        if (debugAnchorButton) {
+            debugAnchorButton.removeEventListener("pointerdown", onDebugAnchorButtonPointerDown);
+            debugAnchorButton.removeEventListener("touchstart", preventDefaultTouch);
+        }
+        document.removeEventListener("keydown", onDebugHotkeyDown);
 
         pointerListenersAttached = false;
     }
@@ -2287,6 +3490,28 @@
         return { x: x, groundY: groundY, displayWidth: 180, displayHeight: displayHeight, usingOverride: false };
     }
 
+    // EA-ONLY doorway-aware approach stop (see the "alignStopToDoorway"
+    // flag on EA's MEETINGS entry). The generic approach in updateApproach
+    // stops Bill/Bob a fixed CONFIG.meetingStopDistance before the
+    // building's own horizontal CENTER, which works fine for a centered
+    // door but overshoots for a door that sits well left of center, like
+    // EA's. This solves for the stop distance that instead keeps the
+    // ACTUAL doorway (getMeetingDoorwayConfig's xPercent) the usual
+    // CONFIG.meetingStopDistance in front of Bill -- using this building's
+    // own real rendered width (via getBuildingRenderGeometry, so it's
+    // correct at any canvas size, not a hardcoded guess) rather than
+    // duplicating that geometry logic. Every meeting WITHOUT the flag
+    // (including CMA, which has a similar offset but keeps its current,
+    // intentionally-off-center stop) returns the plain, unmodified
+    // CONFIG.meetingStopDistance -- this never changes global approach
+    // behavior.
+    function getMeetingApproachStopDistance(meeting) {
+        if (!meeting.alignStopToDoorway || !canvas) return CONFIG.meetingStopDistance;
+        const geo = getBuildingRenderGeometry(meeting, canvas.width, canvas.height, 0);
+        const doorway = getMeetingDoorwayConfig(meeting);
+        return CONFIG.meetingStopDistance + geo.displayWidth * (0.5 - doorway.xPercent);
+    }
+
     // The doorway rectangle for a given building's already-computed
     // geometry -- factored out of getDoorwayScreenRect so a receding,
     // already-exited building (see drawBuilding's isCurrent=false path)
@@ -2359,25 +3584,90 @@
 
 
     /* ------------------------------------------------------------------
-       THE ACTION BUTTON -- the player's one control.
-         PRESS         = GO
-         DOUBLE PRESS  = ACTION (jump or hustle, decided automatically)
+       THE ACTION BUTTON -- the player's one control, fully context-
+       sensitive. getActionButtonState() below is the SINGLE source of
+       truth: updateHud() reads it to set the label/subtitle/visual style
+       and fire one-time transition animations, and
+       onActionButtonPointerDown reads the SAME function to decide what a
+       press actually does -- so the label and the behavior can never
+       drift apart (see BUTTON_STATE / getActionButtonState).
+
+         BUTTON_STATE.START             "START"       press begins the level (unchanged)
+         BUTTON_STATE.FASTER            "FASTER"      double-press = dash/hustle (existing performAction, unchanged) + WHOOSH effect
+         BUTTON_STATE.ENTER             "ENTER"       press = enterMeeting() -- the SAME function the doorway tap calls
+         BUTTON_STATE.DISABLED_MEETING  "IN MEETING"  inert -- inside/entering/leaving a meeting
+         BUTTON_STATE.DISABLED_TRANSITION "..."       inert -- any other automatic sequence (Fresh Threads, Dry Club, approaching a doorway, scene transitions) where a press already had no effect
+         BUTTON_STATE.CONTINUE          "CONTINUE"    press hands off to the next chapter (see goToNextChapter)
        ------------------------------------------------------------------ */
+    const BUTTON_STATE = {
+        START: "START",
+        FASTER: "FASTER",
+        ENTER: "ENTER",
+        DISABLED_MEETING: "DISABLED_MEETING",
+        DISABLED_TRANSITION: "DISABLED_TRANSITION",
+        CONTINUE: "CONTINUE"
+    };
+
+    function getActionButtonState() {
+        if (state === STATE.WAITING_TO_START) return BUTTON_STATE.START;
+        if (state === STATE.FINISHED) return BUTTON_STATE.CONTINUE;
+        if (state === STATE.WAITING_AT_DOOR) return BUTTON_STATE.ENTER;
+        if (state === STATE.ENTERING_MEETING || state === STATE.INSIDE_MEETING ||
+            state === STATE.LEAVING_MEETING || state === STATE.EXITING_MEETING) {
+            return BUTTON_STATE.DISABLED_MEETING;
+        }
+        if (state === STATE.WALKING || state === STATE.DASHING ||
+            state === STATE.JUMPING || state === STATE.SMASHING || state === STATE.KICKING) {
+            return BUTTON_STATE.FASTER;
+        }
+        // Everything else -- APPROACHING_MEETING (the automatic slide into
+        // a doorway), CHANGING_STORE_EVENT, DRY_CLUB_DIALOGUE,
+        // TRANSITIONING, OUT_OF_LIVES -- is an automatic sequence where a
+        // press already has zero effect today; "..." says so honestly
+        // instead of showing FASTER/GO and being wrong.
+        return BUTTON_STATE.DISABLED_TRANSITION;
+    }
+
     function onActionButtonPointerDown(e) {
         e.preventDefault();
+        const buttonState = getActionButtonState();
         setActionButtonPressed(true);
 
         const now = performance.now();
         const isDoublePress = (now - lastTapTime) <= CONFIG.doubleTapWindow;
         lastTapTime = isDoublePress ? 0 : now; // consume so a triple-press isn't double-double
 
-        if (state === STATE.WAITING_TO_START) {
-            beginWalking();
-            return;
-        }
-
-        if (isDoublePress && (state === STATE.WALKING || state === STATE.DASHING)) {
-            performAction();
+        switch (buttonState) {
+            case BUTTON_STATE.START:
+                beginWalking();
+                return;
+            case BUTTON_STATE.ENTER:
+                enterMeeting(); // same function the doorway tap calls -- see onCanvasPointerDown
+                return;
+            case BUTTON_STATE.CONTINUE:
+                goToNextChapter();
+                return;
+            case BUTTON_STATE.FASTER:
+                // NEW: every tap (single or double) while the button reads
+                // FASTER permanently bumps the persistent speed level --
+                // see fasterSpeedLevel/getFasterSpeedMultiplier and
+                // bumpFasterSpeedLevel. This is layered on top of, and
+                // completely separate from, the EXISTING double-press
+                // dash/hustle below, which is unchanged.
+                bumpFasterSpeedLevel();
+                // Unchanged from before: only an actual DOUBLE press during
+                // WALKING/DASHING triggers the existing dash/hustle -- the
+                // button now just honestly explains that's what it does.
+                if (isDoublePress && (state === STATE.WALKING || state === STATE.DASHING)) {
+                    const triggered = performAction();
+                    if (triggered) playActionButtonWhoosh();
+                }
+                return;
+            default:
+                // DISABLED_MEETING / DISABLED_TRANSITION -- absolutely
+                // nothing, on purpose (see spec: "no speed boost, no
+                // movement, no accidental actions").
+                return;
         }
     }
 
@@ -2386,14 +3676,81 @@
     }
 
     function setActionButtonPressed(isPressed) {
-        // Small press/depress visual response -- nothing fancier.
-        if (!actionButton) return;
+        // Small press/depress "compress and spring back" response --
+        // layered on top of whatever translate/scale a one-time state
+        // animation is currently applying (see updateActionButtonHud),
+        // since both are just transform values applied to the same
+        // element at different moments, never simultaneously. Applied to
+        // actionButtonHousing (the visible control) -- actionButton (the
+        // larger invisible tap target) never moves or changes appearance.
+        if (!actionButton || !actionButtonHousing) return;
+        const disabled = (getActionButtonState() === BUTTON_STATE.DISABLED_MEETING ||
+            getActionButtonState() === BUTTON_STATE.DISABLED_TRANSITION);
+        if (disabled) return; // no press feedback on an inert button
         if (isPressed) {
-            actionButton.style.transform = "translateX(-50%) translateY(2px)";
-            actionButton.style.boxShadow = "0 1px 0 rgba(0,0,0,0.5)";
+            actionButtonHousing.style.transform = "translate(-50%, -50%) translateY(3px)";
+            actionButtonHousing.style.boxShadow = "0 1px 0 #000, 0 2px 4px rgba(0,0,0,0.5)";
         } else {
-            actionButton.style.transform = "translateX(-50%)";
-            actionButton.style.boxShadow = "0 3px 0 rgba(0,0,0,0.5)";
+            actionButtonHousing.style.transform = "translate(-50%, -50%)";
+            actionButtonHousing.style.boxShadow = "0 3px 0 #000, 0 5px 8px rgba(0,0,0,0.5)";
+        }
+    }
+
+    // Reuses the SAME chapter hand-off this project already wires up
+    // elsewhere (window.HalloweenGame.nextChapter -- see the public
+    // finish() API below) rather than inventing a second navigation
+    // system. Previously this fired automatically the instant Level 1
+    // finished (see completeFinish); it now only fires when the player
+    // deliberately presses CONTINUE.
+    function goToNextChapter() {
+        const next = window.HalloweenGame.nextChapter;
+        if (next && typeof next.start === "function") {
+            next.start();
+        } else {
+            console.warn("CONTINUE pressed, but window.HalloweenGame.nextChapter isn't set -- nothing to advance to yet.");
+        }
+    }
+
+    // One-shot "WHOOSH!" comic action-effect on a successful FASTER press
+    // -- visual feedback only, NOT added to dialogueQueue, NOT a speech
+    // bubble. Restarting the CSS animation on an element that's already
+    // mid-animation requires the "set to none, force reflow, set to real
+    // value" trick below, so rapid repeated presses each get their own
+    // clean burst instead of the animation silently no-op'ing.
+    function playActionButtonWhoosh() {
+        if (!actionButtonWhooshEl) return;
+        actionButtonWhooshEl.style.opacity = "1";
+        actionButtonWhooshEl.style.animation = "none";
+        void actionButtonWhooshEl.offsetWidth; // force reflow so the next line's animation restarts cleanly
+        actionButtonWhooshEl.style.animation = "hgWhooshFade " + CONFIG.actionButtonWhooshDuration + "s ease-out forwards";
+    }
+
+    // How much faster than base Bill/Bob currently travel -- see
+    // CONFIG.walkSpeed/billOutdoorStrollFPS/bobOutdoorStrollFPS getters
+    // above, which read this on every access so nothing else needs to
+    // poll it. 1.0 at fasterSpeedLevel 0 (unchanged from today), up to
+    // 1 + fasterSpeedMaxLevel*fasterSpeedLevelIncrement at max.
+    function getFasterSpeedMultiplier() {
+        return 1 + fasterSpeedLevel * CONFIG.fasterSpeedLevelIncrement;
+    }
+
+    // Called on every FASTER press (see onActionButtonPointerDown) --
+    // permanently raises fasterSpeedLevel by one, capped at
+    // fasterSpeedMaxLevel, and refreshes the button's fire/glow visual
+    // (see updateActionButtonFireVisual) plus a small pop so each press
+    // feels like it landed even when already close to the cap. Does NOT
+    // touch movement/stop logic at all -- it only changes what
+    // CONFIG.walkSpeed reads as, which the existing movement code was
+    // already reading fresh every frame.
+    function bumpFasterSpeedLevel() {
+        if (fasterSpeedLevel < CONFIG.fasterSpeedMaxLevel) {
+            fasterSpeedLevel++;
+        }
+        updateActionButtonFireVisual();
+        if (actionButtonHousing) {
+            actionButtonHousing.style.animation = "none";
+            void actionButtonHousing.offsetWidth; // force reflow so back-to-back presses each restart the pop cleanly
+            actionButtonHousing.style.animation = "hgButtonSnap 0.32s ease-out";
         }
     }
 
@@ -2413,20 +3770,25 @@
          - "smash" -> startSmash()
          - "kick"  -> startKick()
        If nothing is close enough, ACTION just means a normal hustle/dash.
+       Returns true/false so callers (see onActionButtonPointerDown, which
+       uses this to decide whether to fire the WHOOSH effect) can tell
+       whether anything actually happened -- e.g. the dash cooldown can
+       still silently block it, exactly as before.
        ------------------------------------------------------------------ */
     function performAction() {
-        if (dashCooldownRemaining > 0) return;
+        if (dashCooldownRemaining > 0) return false;
 
         const nearest = findNearestUnresolvedObstacle();
         if (nearest) {
             const gap = nearest.distance - distanceTraveled;
             if (gap <= CONFIG.actionTriggerDistance) {
                 triggerObstacleAction(nearest);
-                return;
+                return true;
             }
         }
 
         startDash();
+        return true;
     }
 
     function triggerObstacleAction(obstacle) {
@@ -2604,7 +3966,15 @@
 
         updateFollower(dt);
         updateDialogue(dt);
+        updateCharacterFacing(dt);
+        checkSkidDustBurst();
+        updateSkidDust(dt);
+        updateRunningDust(dt);
+        updateEffectsTimers(dt);
+        updateActionButtonFireParticles(dt);
+        updateChevronBump(dt);
         updateStoryClock(dt);
+        updateFictionalClock(dt);
         updateImpactEffects(dt);
         updateAmbientEvents(dt);
         updateRollingObstacles(dt);
@@ -2779,11 +4149,13 @@
     }
 
     function updateApproach(dt) {
+        const meeting = MEETINGS[meetingIndex];
+        const stopDistance = getMeetingApproachStopDistance(meeting);
         const distanceToBuilding = Math.max(0, getCurrentSectionDistance() - distanceTraveled);
 
-        if (distanceToBuilding <= CONFIG.meetingStopDistance) {
+        if (distanceToBuilding <= stopDistance) {
             currentSpeed = 0;
-            setDistanceTraveled(getCurrentSectionDistance() - CONFIG.meetingStopDistance);
+            setDistanceTraveled(getCurrentSectionDistance() - stopDistance);
             state = STATE.WAITING_AT_DOOR;
             doorwayWaitTimer = 0;
             // "They arrive" -- dust disappears completely right here,
@@ -2807,20 +4179,23 @@
         updateDoorwayDust(dt);
     }
 
-    // Small SNES-style dust puffs during the doorway slide -- see
-    // drawDoorwayDust for the actual rendering. Spawn timing/lifetime are
-    // tracked here in world/update time; each puff only remembers WHICH
-    // character it belongs to plus a small fixed jitter, and gets resolved
-    // to an actual screen position at render time using that frame's real
-    // primaryDrawX/followerX -- so the puffs always sit correctly at
-    // whichever character's feet, every frame, with no separate position
+    // Dust puff clusters during the doorway slide -- see drawDust for the
+    // actual rendering (shared with the skid-stop burst below). Spawn
+    // timing/lifetime are tracked here in world/update time; each puff
+    // only remembers WHICH character it belongs to plus a small random
+    // jitter/size/rotation, and gets resolved to an actual screen
+    // position at render time using that frame's real primaryDrawX/
+    // followerX -- so the puffs always sit correctly at whichever
+    // character's feet, every frame, with no separate position
     // bookkeeping to keep in sync.
     function updateDoorwayDust(dt) {
         doorwayDustSpawnTimer -= dt;
         if (doorwayDustSpawnTimer <= 0) {
             doorwayDustSpawnTimer = CONFIG.doorwayDustSpawnInterval;
-            spawnDoorwayDustPuff("bill");
-            spawnDoorwayDustPuff("bob");
+            for (let i = 0; i < CONFIG.doorwayDustPuffsPerSpawn; i++) {
+                spawnDoorwayDustPuff("bill");
+                spawnDoorwayDustPuff("bob");
+            }
         }
 
         for (let i = doorwayDustPuffs.length - 1; i >= 0; i--) {
@@ -2837,11 +4212,295 @@
             life: CONFIG.doorwayDustLifeSeconds,
             maxLife: CONFIG.doorwayDustLifeSeconds,
             // Behind the direction of travel (they're moving right, toward
-            // the doorway, so "behind" is a negative x offset) and a small
-            // random vertical variance right at ground level.
-            jitterX: -billRandomRange(8, 20),
-            jitterY: billRandomRange(-2, 2)
+            // the doorway, so "behind" is a negative x offset) and a
+            // randomized vertical variance right at ground level, plus a
+            // per-puff size/rotation so a cluster never looks like one
+            // uniform stamped shape -- see drawDust.
+            jitterX: -billRandomRange(6, 26),
+            jitterY: billRandomRange(-3, 3),
+            sizeScale: billRandomRange(0.8, 1.3),
+            rotation: billRandomRange(0, Math.PI * 2)
         });
+    }
+
+    // Purely observational: watches currentSpeed every frame (outdoors
+    // only) and, the instant it drops from a meaningful speed down to
+    // effectively zero -- i.e. Bill/Bob actually coming to a stop,
+    // whatever scripted trigger caused it -- fires one big one-time dust
+    // burst. Does NOT read or change state/currentSpeed/distanceTraveled
+    // itself, so it can never affect the EXISTING stop logic; it only
+    // ever reacts a frame after the fact. Bigger burst the faster they
+    // were going, which naturally scales with fasterSpeedLevel too since
+    // that's what currentSpeed itself was already reading from (see
+    // CONFIG.walkSpeed). Skipped while inside a meeting (currentSpeed
+    // isn't meaningful there -- interior movement uses its own frac-based
+    // system, see billInteriorWalking/bobInteriorWalking) and while the
+    // doorway slide's own continuous puffs are already running, so the
+    // two effects don't both fire directly on top of each other at a
+    // doorway arrival -- the continuous puffs already made that moment
+    // busy enough, and get cleared right at arrival (see updateApproach).
+    function checkSkidDustBurst() {
+        const wasMoving = prevOutdoorSpeedForSkid >= CONFIG.skidDustBurstMinSpeed;
+        const nowStopped = currentSpeed <= 1;
+        if (wasMoving && nowStopped && state !== STATE.INSIDE_MEETING &&
+            state !== STATE.APPROACHING_MEETING && state !== STATE.WAITING_AT_DOOR) {
+            spawnSkidDustBurst(prevOutdoorSpeedForSkid);
+        }
+        prevOutdoorSpeedForSkid = currentSpeed;
+    }
+
+    function spawnSkidDustBurst(speedAtStop) {
+        // 0 at base walkSpeed, 1 at the fastest FASTER can ever make
+        // walkSpeed -- scales both how many puffs spawn and how big each
+        // one is, so "at maximum running speed I want a BIG ridiculous
+        // skid cloud" scales smoothly rather than jumping straight to max.
+        const baseWalkSpeed = 140; // matches CONFIG.walkSpeed's own base -- see that getter's comment
+        const maxWalkSpeed = baseWalkSpeed * (1 + CONFIG.fasterSpeedMaxLevel * CONFIG.fasterSpeedLevelIncrement);
+        const speedFrac = Math.max(0, Math.min(1, (speedAtStop - baseWalkSpeed) / (maxWalkSpeed - baseWalkSpeed)));
+        const puffCount = Math.round(CONFIG.skidDustBurstBasePuffCount +
+            speedFrac * (CONFIG.skidDustBurstMaxPuffCount - CONFIG.skidDustBurstBasePuffCount));
+
+        // Extra size boost that only really kicks in near the very top of
+        // the speed range, on top of the existing (1 + speedFrac*0.5)
+        // growth below -- this is what pushes a genuinely max-speed stop
+        // into "absurd cartoon smoke explosion, briefly waist/chest height"
+        // territory without inflating ordinary mid-speed stops.
+        const extraSizeBoost = 1 + Math.pow(speedFrac, 3) * (CONFIG.skidCloudMaxSizeBoost - 1);
+
+        ["bill", "bob"].forEach(function (who) {
+            for (let i = 0; i < puffCount; i++) {
+                // DIRECTIONAL: most puffs explode backward (behind the
+                // direction of travel -- Bill/Bob always run screen-right
+                // in this level, so "behind" is negative x, same
+                // convention as the doorway zip puffs), a minority land
+                // forward around/in front of their feet. See
+                // CONFIG.skidCloudBackwardBias.
+                const goesBackward = Math.random() < CONFIG.skidCloudBackwardBias;
+                const spread = billRandomRange(6, 30) * (1 + speedFrac * 0.6);
+                const jitterX = goesBackward ? -spread : spread * 0.6; // forward puffs stay a bit tighter to the feet
+
+                skidDustPuffs.push({
+                    belongsTo: who,
+                    life: CONFIG.skidDustBurstLifeSeconds,
+                    maxLife: CONFIG.skidDustBurstLifeSeconds,
+                    // Wider spread than a single zip puff, and puffs land
+                    // on BOTH sides of the character (a real skid kicks up
+                    // dust behind AND out to the sides), covering roughly
+                    // their lower half rather than one spot at the feet.
+                    jitterX: jitterX,
+                    jitterY: billRandomRange(-14, 4),
+                    sizeScale: billRandomRange(0.9, 1.6) * (1 + speedFrac * 0.5) * extraSizeBoost,
+                    rotation: billRandomRange(0, Math.PI * 2),
+                    isBurst: true // bigger draw formula than a zip puff -- see drawDust
+                });
+            }
+        });
+
+        // High/max-speed stop only: maybe a "SKRRRT!" comic pop, and
+        // always a tiny non-positional camera bump -- see
+        // CONFIG.skidCloudHighSpeedThreshold / skrrrtChance /
+        // cameraBumpDuration. Both purely decorative, see
+        // spawnSkrrrtEffect/applyCameraBumpTransform.
+        if (speedFrac >= CONFIG.skidCloudHighSpeedThreshold) {
+            if (Math.random() < CONFIG.skrrrtChance) {
+                spawnSkrrrtEffect();
+            }
+            cameraBumpTimer = CONFIG.cameraBumpDuration;
+        }
+    }
+
+    function updateSkidDust(dt) {
+        for (let i = skidDustPuffs.length - 1; i >= 0; i--) {
+            skidDustPuffs[i].life -= dt;
+            if (skidDustPuffs[i].life <= 0) {
+                skidDustPuffs.splice(i, 1);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // RUNNING FOOT DUST -- small, occasional puffs kicked up behind
+    // Bill/Bob's feet while they're actually covering ground outdoors at
+    // an elevated FASTER level. Purely observational (reads state/
+    // currentSpeed/fasterSpeedLevel, never sets them), so it can never
+    // affect movement or stop position -- same guarantee as
+    // checkSkidDustBurst above. Skipped entirely below
+    // CONFIG.runningDustMinLevel so normal-speed walking stays exactly as
+    // before (no dust at all, matching the previous behavior).
+    // ------------------------------------------------------------------
+    function updateRunningDust(dt) {
+        const isRunningOutdoors = (state === STATE.WALKING || state === STATE.DASHING) &&
+            fasterSpeedLevel >= CONFIG.runningDustMinLevel && currentSpeed > 1;
+
+        if (isRunningOutdoors) {
+            const levelFrac = fasterSpeedLevel / CONFIG.fasterSpeedMaxLevel;
+            const interval = CONFIG.runningDustSpawnInterval -
+                (CONFIG.runningDustSpawnInterval - CONFIG.runningDustMinSpawnInterval) * levelFrac;
+
+            ["bill", "bob"].forEach(function (who) {
+                runningDustSpawnTimer[who] -= dt;
+                if (runningDustSpawnTimer[who] <= 0) {
+                    runningDustSpawnTimer[who] = interval;
+                    if (Math.random() < CONFIG.runningDustPuffChance) {
+                        spawnRunningDustPuff(who);
+                    }
+                }
+            });
+        } else {
+            runningDustSpawnTimer.bill = 0;
+            runningDustSpawnTimer.bob = 0;
+        }
+
+        for (let i = runningDustPuffs.length - 1; i >= 0; i--) {
+            runningDustPuffs[i].life -= dt;
+            if (runningDustPuffs[i].life <= 0) {
+                runningDustPuffs.splice(i, 1);
+            }
+        }
+    }
+
+    function spawnRunningDustPuff(belongsTo) {
+        // Small and right at the trailing foot -- much smaller than a
+        // skid-stop burst puff (see spawnSkidDustBurst), just enough to
+        // visually connect the running character to the ground.
+        runningDustPuffs.push({
+            belongsTo: belongsTo,
+            life: CONFIG.runningDustLifeSeconds,
+            maxLife: CONFIG.runningDustLifeSeconds,
+            jitterX: -billRandomRange(2, 12), // trails slightly behind -- same "behind = negative x" convention as the doorway/skid puffs
+            jitterY: billRandomRange(-2, 2),
+            sizeScale: billRandomRange(0.35, 0.55),
+            rotation: billRandomRange(0, Math.PI * 2),
+            isRunning: true // smallest draw formula in drawDust
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Comic-book horizontal speed streaks, drawn fresh every frame
+    // directly from currentSpeed/fasterSpeedLevel -- no particle array,
+    // so they're simply not drawn (not "faded out", just absent) the
+    // instant Bill/Bob stop moving. Purely decorative, drawn behind the
+    // characters (see renderOutdoorScene call order) so they never
+    // obscure Bill/Bob or the environment. billX/bobX are the same
+    // on-screen draw positions drawDust already uses.
+    // ------------------------------------------------------------------
+    function drawSpeedLines(billX, bobX, groundY) {
+        if (!(state === STATE.WALKING || state === STATE.DASHING)) return;
+        if (fasterSpeedLevel < CONFIG.speedLineMinLevel || currentSpeed <= 1) return;
+
+        const levelFrac = Math.min(1, fasterSpeedLevel / CONFIG.fasterSpeedMaxLevel);
+        const count = Math.round(1 + levelFrac * (CONFIG.speedLineMaxCount - 1));
+        const length = CONFIG.speedLineBaseLength + levelFrac * (CONFIG.speedLineMaxLength - CONFIG.speedLineBaseLength);
+        const opacity = CONFIG.speedLineBaseOpacity + levelFrac * (CONFIG.speedLineMaxOpacity - CONFIG.speedLineBaseOpacity);
+
+        // A slow, free-running phase (not tied to a spawn/despawn array)
+        // so the streaks gently drift rather than sitting perfectly
+        // static -- purely cosmetic, has no bearing on anything else.
+        const phase = billAnimElapsed * 6;
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,255,255," + opacity.toFixed(2) + ")";
+        ctx.lineCap = "round";
+
+        [
+            { x: billX, y: groundY - 46, seed: 0 },
+            { x: billX, y: groundY - 30, seed: 1.7 },
+            { x: bobX, y: groundY - 46, seed: 3.1 },
+            { x: bobX, y: groundY - 30, seed: 4.6 }
+        ].forEach(function (origin, oi) {
+            for (let i = 0; i < count; i++) {
+                const wobble = Math.sin(phase + origin.seed + i * 1.3) * 3;
+                const lineLen = length * (0.7 + 0.3 * Math.sin(phase * 1.3 + i));
+                const startX = origin.x - 14 - i * 10; // trailing behind (screen-left), never in front
+                const y = origin.y + wobble + (oi % 2) * 2;
+                ctx.lineWidth = 1.5 + levelFrac * 1.2;
+                ctx.beginPath();
+                ctx.moveTo(startX, y);
+                ctx.lineTo(startX - lineLen, y);
+                ctx.stroke();
+            }
+        });
+        ctx.restore();
+    }
+
+    // ------------------------------------------------------------------
+    // Optional one-shot comic "SKRRRT!" lettering + the tiny max-speed
+    // camera bump -- both only ever considered from spawnSkidDustBurst
+    // below, on an actual high/max-speed stop. See CONFIG.skrrrtChance /
+    // skidCloudHighSpeedThreshold / cameraBumpDuration.
+    // ------------------------------------------------------------------
+    function spawnSkrrrtEffect() {
+        skrrrtEffect = {
+            life: CONFIG.skrrrtLifeSeconds,
+            maxLife: CONFIG.skrrrtLifeSeconds
+        };
+    }
+
+    // billX/bobX/groundY are the same actual on-screen draw positions
+    // drawDust already receives that frame -- computed at draw time
+    // (rather than stored at spawn time in update()) so the lettering
+    // always tracks wherever Bill/Bob actually are, same as the dust
+    // puffs it appears alongside.
+    function drawSkrrrtEffect(billX, bobX, groundY) {
+        if (!skrrrtEffect) return;
+        // Same "don't measure/draw in a font that hasn't actually
+        // loaded yet" rule as dialogue -- see isSkrrrtFontReady()/the
+        // DIALOGUE FONTS block near the top of the file. SKRRRT! has no
+        // wrapping/measuring step, but waiting keeps it visually
+        // consistent with the rest of the comic lettering rather than
+        // popping in Bangers a frame after everything else.
+        if (!isSkrrrtFontReady()) return;
+        const t = 1 - Math.max(0, skrrrtEffect.life / skrrrtEffect.maxLife);
+        const alpha = 1 - t;
+        if (alpha <= 0.02) return;
+        const bounce = Math.sin(Math.min(1, t * 3) * Math.PI * 0.5); // quick pop in, then holds/fades
+        const scale = 0.7 + bounce * 0.4;
+        const x = (billX + bobX) / 2 - 10;
+        const y = groundY - 60;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(x, y - t * 10); // drifts up slightly as it fades, like comic lettering
+        ctx.rotate(-0.08);
+        ctx.scale(scale, scale);
+        ctx.textAlign = "center";
+        ctx.font = "bold 26px " + getSkrrrtFontFamily();
+        ctx.lineJoin = "round";
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "#0a0a0a";
+        ctx.strokeText("SKRRRT!", 0, 0);
+        ctx.fillStyle = "#fff6c2";
+        ctx.fillText("SKRRRT!", 0, 0);
+        ctx.restore();
+    }
+
+    // Small canvas-element-only transform "thud" on the very biggest
+    // stops -- 1-2 frames of a couple px offset that immediately eases
+    // back to nothing. Applied to the CANVAS ELEMENT's own CSS transform,
+    // never to anything inside the drawing space itself, so it cannot
+    // touch world coordinates, Bill/Bob's x/y, or any hit-testing math
+    // (all of which happen in logical/canvas space, not CSS space).
+    function applyCameraBumpTransform() {
+        if (!canvas) return;
+        if (cameraBumpTimer <= 0) {
+            canvas.style.transform = "";
+            return;
+        }
+        const t = cameraBumpTimer / CONFIG.cameraBumpDuration; // 1 -> 0
+        const offset = CONFIG.cameraBumpMaxOffsetPx * t;
+        canvas.style.transform = "translate(0px, " + offset.toFixed(1) + "px)";
+    }
+
+    function updateEffectsTimers(dt) {
+        if (skrrrtEffect) {
+            skrrrtEffect.life -= dt;
+            if (skrrrtEffect.life <= 0) skrrrtEffect = null;
+        }
+        if (cameraBumpTimer > 0) {
+            cameraBumpTimer -= dt;
+            if (cameraBumpTimer < 0) cameraBumpTimer = 0;
+        }
+        applyCameraBumpTransform();
     }
 
     /* ======================================================================
@@ -2974,6 +4633,7 @@
                 if (changingStoreTimer <= 0) {
                     changingStorePhase = "emerging";
                     changingStoreTimer = CONFIG.changingStoreEmergeStepDuration;
+                    setAudioMode("freshSting"); // pauses gameplay music, plays fresh.mp3 alone -- resumes automatically when the sting finishes, see the AUDIO section near the bottom of the file
                     // Reappear at the same spot they stood before entering
                     // -- render eases them visually out from the doorway
                     // from there (see the CHANGING_STORE_EVENT branch in
@@ -3234,6 +4894,7 @@
         state = STATE.INSIDE_MEETING;
         insideElapsed = 0;
         insideFadeTimer = CONFIG.insideFadeDuration;
+        setAudioMode("meeting"); // ducks gameplay music, starts meeting-chatter.mp3 -- see the AUDIO section near the bottom of the file
         // Dialogue is no longer loaded up-front here -- each "dialoguePoint"
         // step in the interior sequence below loads its own point (pt1,
         // pt2, pt3...) exactly when Bill and Bob actually stop at that
@@ -3246,12 +4907,35 @@
         // Spawn Bill and Bob near the entrance and hand off to the
         // choreographed cinematic -- see updateInteriorSequence.
         const meetingId = MEETINGS[meetingIndex].id;
+        // scene-timer: <seconds> from script.js (see parseScriptText) drives
+        // how long this meeting scene is allowed to run before the safety-net
+        // exit kicks in -- falls back to CONFIG.insideMeetingMaxDuration if
+        // this section has no scene-timer configured yet.
+        const configuredSceneTimer = getSceneTimer(getMeetingLabelById(meetingId) + "-level1");
+        insideMeetingMaxDurationActive = (typeof configuredSceneTimer === "number")
+            ? configuredSceneTimer
+            : CONFIG.insideMeetingMaxDuration;
+
+        // Fictional HUD story clock: re-anchor to this meeting's script.js
+        // "clock:" value if one is set, completely independent of
+        // scene-timer above -- changing one never affects the other. If
+        // this section has no clock: yet, leave the clock exactly where it
+        // already is and let it keep counting down (no reset).
+        const configuredClockSeconds = getScriptClockSeconds(getMeetingLabelById(meetingId) + "-level1");
+        if (typeof configuredClockSeconds === "number") {
+            storyClockSecondsRemaining = configuredClockSeconds;
+        }
         const cfg = getInteriorConfig(meetingId);
+        activeInteriorConfig = cfg; // resolved once per meeting entry -- read by the "walk" step (walkSpeedMultiplier) and updateDialogue (chatterOverlapChance/reactionChance)
         billInteriorFrac = cfg.entranceFrac;
-        billInteriorFacingLeft = false; // spawns facing right, into the room
+        billInteriorMoveDir = 1; // spawns facing right, into the room
+        billInteriorTurning = false;
         bobInteriorFrac = Math.max(0, cfg.entranceFrac - CONFIG.interiorBobRestGapFrac);
-        bobInteriorFacingLeft = false;
+        bobInteriorMoveDir = 1;
+        bobInteriorTurning = false;
         bobInteriorTurnTimer = 0;
+        billFacingLeft = false;
+        bobFacingLeft = false;
         interiorCameraFrac = 0;
         interiorSequence = buildInteriorSequence(meetingId);
         interiorStepIndex = 0;
@@ -3266,12 +4950,15 @@
         }
         insideElapsed += dt;
 
-        // Absolute safety net -- unchanged in spirit from before. If the
-        // choreographed scene or a dialogue entry is ever misconfigured
-        // badly enough that we're still here after insideMeetingMaxDuration,
+        // Absolute safety net -- unchanged in spirit from before, except the
+        // cap itself now comes from this meeting's script.js scene-timer
+        // when one is set (see insideMeetingMaxDurationActive, resolved once
+        // in enterInsideMeeting), falling back to CONFIG.insideMeetingMaxDuration
+        // otherwise. If the choreographed scene or a dialogue entry is ever
+        // misconfigured badly enough that we're still here after that cap,
         // leave immediately rather than soft-locking, wherever the
         // cinematic sequence currently happens to be.
-        if (insideElapsed >= CONFIG.insideMeetingMaxDuration) {
+        if (insideElapsed >= insideMeetingMaxDurationActive) {
             beginLeavingMeeting();
             return;
         }
@@ -3304,7 +4991,11 @@
         return {
             entranceFrac: overrides.entranceFrac !== undefined ? overrides.entranceFrac : CONFIG.interiorEntranceFrac,
             midFrac: overrides.midFrac !== undefined ? overrides.midFrac : CONFIG.interiorMidFrac,
-            farFrac: overrides.farFrac !== undefined ? overrides.farFrac : CONFIG.interiorFarFrac
+            farFrac: overrides.farFrac !== undefined ? overrides.farFrac : CONFIG.interiorFarFrac,
+            pauseMultiplier: overrides.pauseMultiplier !== undefined ? overrides.pauseMultiplier : 1,
+            walkSpeedMultiplier: overrides.walkSpeedMultiplier !== undefined ? overrides.walkSpeedMultiplier : 1,
+            chatterOverlapChance: overrides.chatterOverlapChance !== undefined ? overrides.chatterOverlapChance : CONFIG.worldChatterOverlapBaseChance,
+            reactionChance: overrides.reactionChance !== undefined ? overrides.reactionChance : CONFIG.reactionBlipBaseChance
         };
     }
 
@@ -3324,18 +5015,18 @@
         const waypointFracs = buildInteriorWaypointFracs(cfg, pointCount);
 
         const steps = [
-            { type: "wait", duration: CONFIG.interiorPauseEntrance }
+            { type: "wait", duration: CONFIG.interiorPauseEntrance * cfg.pauseMultiplier }
         ];
 
         waypointFracs.forEach(function (frac, i) {
             steps.push({ type: "walk", to: frac });
             steps.push({ type: "dialoguePoint", point: "pt" + (i + 1) });
-            steps.push({ type: "wait", duration: CONFIG.interiorPostDialoguePause });
+            steps.push({ type: "wait", duration: CONFIG.interiorPostDialoguePause * cfg.pauseMultiplier });
         });
 
         steps.push({ type: "waitMin" });
         steps.push({ type: "walk", to: cfg.entranceFrac });
-        steps.push({ type: "wait", duration: CONFIG.interiorPauseBeforeExit });
+        steps.push({ type: "wait", duration: CONFIG.interiorPauseBeforeExit * cfg.pauseMultiplier });
         steps.push({ type: "exit" });
 
         return steps;
@@ -3442,25 +5133,30 @@
             }
             case "walk": {
                 const dir = step.to >= billInteriorFrac ? 1 : -1;
-                const wantsFacingLeft = dir < 0;
 
                 // Deliberate stop-turn-go beat: if this walk needs Bill to
-                // reverse from his current facing, turn him first (idle
-                // pose, already mirrored) and hold briefly before any
-                // actual movement starts, rather than an instant bounce.
-                if (wantsFacingLeft !== billInteriorFacingLeft && !step._turned) {
-                    billInteriorFacingLeft = wantsFacingLeft;
+                // reverse from his current direction, turn him first (idle
+                // pose, already mirrored via billInteriorMoveDir/billInteriorTurning
+                // -- see updateCharacterFacing, the single place that turns
+                // this into an actual facingLeft) and hold briefly before
+                // any actual movement starts, rather than an instant bounce.
+                if (dir !== billInteriorMoveDir && !step._turned) {
+                    billInteriorMoveDir = dir;
+                    billInteriorTurning = true;
                     billInteriorWalking = false;
                     interiorStepTimer += dt;
                     if (interiorStepTimer >= CONFIG.interiorTurnDuration) {
                         step._turned = true;
                         interiorStepTimer = 0;
+                        billInteriorTurning = false;
                     }
                     break;
                 }
+                billInteriorTurning = false;
 
-                const speed = CONFIG.interiorWalkSpeedFrac;
+                const speed = CONFIG.interiorWalkSpeedFrac * (activeInteriorConfig ? activeInteriorConfig.walkSpeedMultiplier : 1);
                 billInteriorWalking = true;
+                billInteriorMoveDir = dir;
                 billInteriorFrac += dir * speed * dt;
                 if ((dir > 0 && billInteriorFrac >= step.to) || (dir < 0 && billInteriorFrac <= step.to)) {
                     billInteriorFrac = step.to;
@@ -3521,8 +5217,10 @@
         // waitMin) get a wider, clearly-separated resting spot; mid-walk
         // gets a closer but still visibly separate trailing gap. Either
         // way the target is BEHIND Bill relative to the direction he's
-        // actually facing, so Bob never ends up leading or overlapping
-        // Bill when they turn around together.
+        // actually walking/facing, so Bob never ends up leading or
+        // overlapping Bill when they turn around together. Facing itself
+        // is decided later, once per frame, by updateCharacterFacing --
+        // this only drives Bob's position.
         const isResting = (step.type === "wait" || step.type === "holdForScene" ||
             step.type === "dialoguePoint" || step.type === "waitMin");
         updateInteriorBob(dt, isResting);
@@ -3539,17 +5237,22 @@
     // direction he needs to trail in flips.
     function updateInteriorBob(dt, isResting) {
         const gapFrac = isResting ? CONFIG.interiorBobRestGapFrac : CONFIG.interiorBobGapFrac;
-        const behindOffset = billInteriorFacingLeft ? gapFrac : -gapFrac;
+        // "Behind" is relative to the direction Bill is actually walking/
+        // about to walk (billInteriorMoveDir), NOT his displayed facing --
+        // those are two different things now (see updateCharacterFacing).
+        const behindOffset = billInteriorMoveDir < 0 ? gapFrac : -gapFrac;
         const targetFrac = Math.max(0, Math.min(1, billInteriorFrac + behindOffset));
         const delta = targetFrac - bobInteriorFrac;
 
-        const wantsFacingLeft = delta < -0.002;
-        const wantsFacingRight = delta > 0.002;
+        const wantsMoveLeft = delta < -0.002;
+        const wantsMoveRight = delta > 0.002;
+        const wantsDir = wantsMoveLeft ? -1 : 1;
 
-        if ((wantsFacingLeft || wantsFacingRight) && wantsFacingLeft !== bobInteriorFacingLeft) {
+        if ((wantsMoveLeft || wantsMoveRight) && wantsDir !== bobInteriorMoveDir) {
             if (bobInteriorTurnTimer <= 0) {
-                bobInteriorFacingLeft = wantsFacingLeft;
+                bobInteriorMoveDir = wantsDir;
             }
+            bobInteriorTurning = true;
             bobInteriorTurnTimer += dt;
             if (bobInteriorTurnTimer < CONFIG.interiorTurnDuration) {
                 bobInteriorWalking = false;
@@ -3559,9 +5262,11 @@
         } else {
             bobInteriorTurnTimer = 0;
         }
+        bobInteriorTurning = false;
 
         bobInteriorFrac += delta * Math.min(1, CONFIG.interiorBobLerpSpeed * dt);
         bobInteriorWalking = Math.abs(delta) > 0.002;
+        if (bobInteriorWalking) bobInteriorMoveDir = wantsDir;
     }
 
     // Soft deadzone camera: Bill can roam within the middle band of the
@@ -3605,6 +5310,7 @@
     function beginLeavingMeeting() {
         state = STATE.LEAVING_MEETING;
         leaveFadeTimer = CONFIG.insideFadeDuration;
+        setAudioMode("outside"); // stops meeting-chatter.mp3, restores gameplay music -- see the AUDIO section near the bottom of the file
     }
 
     function updateLeavingMeeting(dt) {
@@ -3710,7 +5416,12 @@
     }
 
     /* ======================================================================
-       STORY CLOCK (atmosphere only -- see STORY_TIMES above)
+       TIME-OF-DAY CLOCK (unused legacy atmosphere system -- NOT the HUD
+       "TIME LEFT ON EARTH" story clock; see updateFictionalClock below for
+       that one). This one tracked a 12-hour wall-clock time of night
+       (STORY_TIMES) and is no longer shown anywhere in the HUD, but is
+       kept running exactly as before since nothing else reads clockMinutes,
+       in case it's wanted again later.
 
        Ticks forward quickly while walking outside, for a sense of covering
        real distance through Akron, but never crosses the next locked
@@ -3734,6 +5445,79 @@
         const minutes = parseInt(match[2], 10);
         if (/pm/i.test(match[3])) hours += 12;
         return hours * 60 + minutes;
+    }
+
+    /* ======================================================================
+       HUD "TIME LEFT ON EARTH" -- a FICTIONAL story clock, purely visual.
+       It has no gameplay authority: nothing here ends the game, ends a
+       scene, moves Bill/Bob, or touches lives/progress/buildings/timing.
+       It simply ticks down on its own at CONFIG.storyClockSpeed (fictional
+       seconds per real second) so it reads as "alive" -- its value is only
+       ever SET by script.js's "clock: HH:MM:SS" lines (see
+       getScriptClockSeconds, called from resetRuntimeState/enterInsideMeeting),
+       never calculated from actual elapsed gameplay time. Pauses on the
+       title screen and once the level has ended or the player is out of
+       lives (nothing to visually count down through there); never goes
+       below zero.
+       ====================================================================== */
+    function updateFictionalClock(dt) {
+        if (state === STATE.WAITING_TO_START || state === STATE.OUT_OF_LIVES || state === STATE.FINISHED) return;
+        storyClockSecondsRemaining = Math.max(0, storyClockSecondsRemaining - dt * CONFIG.storyClockSpeed);
+    }
+
+    // ------------------------------------------------------------------
+    // CLOCK VISUAL-STATE FRAMEWORK -- purely presentational styling for
+    // the "TIME LEFT ON EARTH" housing (digit color/glow + a CSS
+    // animation name), keyed by name. NOT wired to elapsed time or
+    // storyClockSecondsRemaining in any way -- the level starts and
+    // currently stays in "normal" for this whole pass (see
+    // CONFIG.clockVisualStateDefault / resetRuntimeState). A future pass
+    // can call setClockVisualState("warning") etc. explicitly (e.g. from
+    // a script.js line) without touching any clock math here.
+    // ------------------------------------------------------------------
+    const CLOCK_VISUAL_STATES = {
+        normal: { color: "#39ff14", glow: "0 0 6px rgba(57,255,20,0.7), 0 0 16px rgba(57,255,20,0.4), 0 0 28px rgba(57,255,20,0.15)", animation: "none" },
+        alert: { color: "#8cff3d", glow: "0 0 7px rgba(140,255,61,0.7)", animation: "hgClockPulse 1.6s ease-in-out infinite" },
+        warning: { color: "#f2c14e", glow: "0 0 8px rgba(242,193,78,0.75)", animation: "hgClockFlicker 2.4s ease-in-out infinite" },
+        danger: { color: "#ff8a3d", glow: "0 0 10px rgba(255,138,61,0.85)", animation: "hgClockPulse 0.9s ease-in-out infinite" },
+        critical: { color: "#ff3b30", glow: "0 0 14px rgba(255,59,48,0.95)", animation: "hgClockCriticalPulse 0.55s ease-in-out infinite" }
+    };
+
+    function setClockVisualState(name) {
+        const resolved = CLOCK_VISUAL_STATES[name] ? name : "normal";
+        clockVisualState = resolved;
+        if (!countdownMainEl) return; // buildDom hasn't run yet -- applied again once it does, see buildDom's own initial call
+        const style = CLOCK_VISUAL_STATES[resolved];
+        // Only the dominant "HH:MM" piece follows the clock's alert
+        // state -- countdownSecEl (the small ":SS") deliberately stays a
+        // fixed warm-white regardless of state, per the "seconds never
+        // dominate" redesign; see buildDom's clock block.
+        countdownMainEl.style.color = style.color;
+        countdownMainEl.style.textShadow = style.glow;
+        countdownMainEl.style.animation = style.animation;
+    }
+
+    function formatFictionalClock(totalSeconds) {
+        const wholeSeconds = Math.max(0, Math.ceil(totalSeconds));
+        const hh = Math.floor(wholeSeconds / 3600);
+        const mm = Math.floor((wholeSeconds % 3600) / 60);
+        const ss = wholeSeconds % 60;
+        const pad = function (n) { return n < 10 ? "0" + n : String(n); };
+        return pad(hh) + ":" + pad(mm) + ":" + pad(ss);
+    }
+
+    // Same fictional clock value as formatFictionalClock, split into the
+    // dominant "HH:MM" piece and a much smaller trailing ":SS" piece --
+    // see countdownMainEl/countdownSecEl in buildDom/updateHud. Purely a
+    // different split of the same string; storyClockSecondsRemaining's
+    // own countdown math (updateFictionalClock) is untouched.
+    function formatFictionalClockParts(totalSeconds) {
+        const wholeSeconds = Math.max(0, Math.ceil(totalSeconds));
+        const hh = Math.floor(wholeSeconds / 3600);
+        const mm = Math.floor((wholeSeconds % 3600) / 60);
+        const ss = wholeSeconds % 60;
+        const pad = function (n) { return n < 10 ? "0" + n : String(n); };
+        return { main: pad(hh) + ":" + pad(mm), sec: ":" + pad(ss) };
     }
 
     function formatClock(totalMinutes) {
@@ -3815,8 +5599,34 @@
         if (activeBubble) {
             activeBubble.timeRemaining -= dt;
             if (activeBubble.timeRemaining <= 0) {
+                // BRIEF WORLD-CHATTER OVERLAP -- only ever between two
+                // consecutive "crowd" lines (crowd is meeting-interior-only,
+                // see script.js's own comment on that speaker), so Bill/Bob's
+                // own dialogue is never affected. Sparingly (see
+                // chatterOverlapChance): the OLD bubble keeps fading for a
+                // moment in fadingWorldBubble while the new one appears
+                // below, rather than a hard cut -- see drawSpeechBubbles.
+                // Purely a rendering echo -- dialogueQueue/dialogueTimer
+                // advancement itself is completely unaffected either way.
+                if (activeBubble.speaker === "crowd" && dialogueQueue.length > 0 &&
+                    dialogueQueue[0].speaker === "crowd" && !fadingWorldBubble) {
+                    const overlapChance = activeInteriorConfig ? activeInteriorConfig.chatterOverlapChance : CONFIG.worldChatterOverlapBaseChance;
+                    if (Math.random() < overlapChance) {
+                        fadingWorldBubble = {
+                            text: activeBubble.text,
+                            crowdPos: activeBubble.crowdPos,
+                            life: CONFIG.worldChatterOverlapFadeSeconds,
+                            maxLife: CONFIG.worldChatterOverlapFadeSeconds
+                        };
+                    }
+                }
                 activeBubble = null;
             }
+        }
+
+        if (fadingWorldBubble) {
+            fadingWorldBubble.life -= dt;
+            if (fadingWorldBubble.life <= 0) fadingWorldBubble = null;
         }
 
         if (dialogueQueue.length === 0) return;
@@ -3834,12 +5644,140 @@
                 // per-frame in drawSpeechBubbles) so the bubble doesn't
                 // jitter between positions while it's on screen. See
                 // pickCrowdBubblePreset()/CROWD_BUBBLE_PRESETS.
-                crowdPos: (entry.speaker === "crowd") ? pickCrowdBubblePreset() : null
+                crowdPos: (entry.speaker === "crowd") ? pickCrowdBubblePreset() : null,
+                // Comic "pop" appear animation reads elapsed time since
+                // this moment -- see getBubblePopTransform/drawBubble/
+                // drawWorldBubble. Purely presentational.
+                popStartTime: billAnimElapsed
             };
+            if (entry.speaker === "crowd") {
+                maybeTriggerReactionBlip();
+            }
             if (dialogueQueue.length > 0) {
                 dialogueTimer = dialogueQueue[0].delay;
             }
         }
+    }
+
+    // BILL/BOB REACTION BEATS -- reuses the EXISTING idle-blip pose system
+    // (billIdleBlipCol/BILL_IDLE_VARIANT_COLS, bobIdleBlipEndAt, etc. --
+    // all already in the file, already running on their own random
+    // interval) rather than any new artwork or animation state. This just
+    // makes one happen NOW, tied to a chatter line, by nudging
+    // bill/bobIdleNextBlipAt to "due immediately" -- the exact same code
+    // path in drawBillCharacter/drawBobCharacter picks it up on the very
+    // next frame. Only fires for whichever of them is actually idle
+    // (not mid-walk/turn) and not already mid-blip, and only sparingly
+    // (see reactionChance) so it reads as occasional flavor, never forced
+    // after every line.
+    function maybeTriggerReactionBlip() {
+        if (state !== STATE.INSIDE_MEETING) return;
+        const chance = activeInteriorConfig ? activeInteriorConfig.reactionChance : CONFIG.reactionBlipBaseChance;
+        if (Math.random() >= chance) return;
+
+        const billIdle = !billInteriorWalking && !billInteriorTurning && billIdleBlipEndAt === null;
+        const bobIdle = !bobInteriorWalking && !bobInteriorTurning && bobIdleBlipEndAt === null;
+        const candidates = [];
+        if (billIdle) candidates.push("bill");
+        if (bobIdle) candidates.push("bob");
+        if (candidates.length === 0) return;
+
+        const who = candidates[Math.floor(Math.random() * candidates.length)];
+        if (who === "bill") {
+            billIdleNextBlipAt = billAnimElapsed; // due immediately -- picked up by drawBillCharacter's existing check next frame
+        } else {
+            bobIdleNextBlipAt = bobAnimElapsed;
+        }
+    }
+
+    /* ======================================================================
+       GLOBAL CHARACTER FACING -- the single authoritative place that
+       decides which way Bill and Bob are drawn, both outdoors and inside
+       a meeting. Runs once per frame, after every position/dialogue
+       update for the frame has already happened, and is the ONLY code
+       in the file that assigns to billFacingLeft/bobFacingLeft.
+
+       Priority order (first match wins, every frame -- nothing here is
+       "sticky" beyond what each tier itself holds):
+
+         1. A special doorway/entrance/exit animation is actively
+            playing -- leave facing exactly as it already is; that
+            one-shot pose owns the visual and this system must not
+            fight it.
+         2. Either of them is still actually moving (beyond a small
+            epsilon, so floating-point noise never counts) -- face
+            direction of travel. Bill leads outdoors by construction
+            (the follower system never lets Bob overtake him); indoors
+            each of them simply faces the way they're currently walking.
+         3. Both are essentially stationary AND a dialogue bubble is
+            active -- face each other, decided from their actual
+            positions. Never tied to who's currently speaking, so
+            alternating bubbles never cause any flipping.
+         4. Both stationary, no dialogue -- leave facing exactly as it
+            already is (stable idle, no flipping for no reason).
+       ====================================================================== */
+    function updateCharacterFacing(dt) {
+        // Tier 1 -- a doorway/entrance/exit one-shot sequence is playing.
+        // These already have their own dedicated animation and hold
+        // their own look; don't touch facing while any of them are live.
+        const doorwayActive =
+            state === STATE.APPROACHING_MEETING ||
+            state === STATE.WAITING_AT_DOOR ||
+            state === STATE.ENTERING_MEETING ||
+            state === STATE.LEAVING_MEETING ||
+            state === STATE.EXITING_MEETING ||
+            (state === STATE.CHANGING_STORE_EVENT && (
+                changingStorePhase === "entering" ||
+                changingStorePhase === "hidden" ||
+                changingStorePhase === "emerging"
+            ));
+        if (doorwayActive) return;
+
+        if (state === STATE.INSIDE_MEETING) {
+            // Tier 2 (indoors): billInteriorWalking/bobInteriorWalking
+            // already encode "moving beyond the epsilon" (see
+            // updateInteriorBob's 0.002 deadband), and billInteriorTurning/
+            // bobInteriorTurning cover the brief pre-walk turn beat, which
+            // is itself part of "about to move that way," not idle.
+            const billMoving = billInteriorWalking || billInteriorTurning;
+            const bobMoving = bobInteriorWalking || bobInteriorTurning;
+            if (billMoving || bobMoving) {
+                if (billMoving) billFacingLeft = billInteriorMoveDir < 0;
+                if (bobMoving) bobFacingLeft = bobInteriorMoveDir < 0;
+                return;
+            }
+            // Tier 3: both stopped, dialogue active -- face each other by
+            // actual x position (frac).
+            if (activeBubble) {
+                const billIsLeftOfBob = billInteriorFrac < bobInteriorFrac;
+                billFacingLeft = !billIsLeftOfBob;
+                bobFacingLeft = billIsLeftOfBob;
+            }
+            // Tier 4 (implicit): stopped, no dialogue -- leave as-is.
+            return;
+        }
+
+        // Outdoors. This is a rightward-only side-scroller (see
+        // drawBillCharacter/drawBobCharacter's own notes on this), and
+        // the follower system never lets Bob overtake Bill, so the
+        // leader/follower relationship is always structurally stable --
+        // there's no position math needed to know who's on which side.
+        const moving = currentSpeed > CONFIG.facingSpeedEpsilon;
+        if (moving) {
+            // Tier 2: face direction of travel -- always rightward here.
+            billFacingLeft = false;
+            bobFacingLeft = false;
+            return;
+        }
+        if (activeBubble) {
+            // Tier 3: stopped and talking (Dry People's Club, Fresh
+            // Threads, or any other outdoor dialogue stop) -- face each
+            // other. Bob (the follower) is always behind/left of Bill by
+            // construction, so this never needs a position comparison.
+            billFacingLeft = true;
+            bobFacingLeft = false;
+        }
+        // Tier 4 (implicit): stopped, no dialogue -- leave as-is.
     }
 
     /* ======================================================================
@@ -3981,15 +5919,19 @@
         // starts, so doorwayDustPuffs is already empty here regardless.
         const billBobHidden = (state === STATE.CHANGING_STORE_EVENT && changingStorePhase === "hidden");
 
-        if (doorwayDustPuffs.length > 0) {
-            drawDoorwayDust(primaryDrawX, followerX, groundY);
+        if (!billBobHidden) {
+            drawSpeedLines(primaryDrawX, followerX, groundY);
         }
+        if (doorwayDustPuffs.length > 0 || skidDustPuffs.length > 0 || runningDustPuffs.length > 0) {
+            drawDust(primaryDrawX, followerX, groundY);
+        }
+        drawSkrrrtEffect(primaryDrawX, followerX, groundY);
 
         let bobBox = null;
         let billBox = null;
         if (!billBobHidden) {
-            bobBox = drawBobCharacter(followerX, groundY, h, driftY);           // follower (Bob)
-            billBox = drawBillCharacter(primaryDrawX, groundY, h, jumpArcOffset()); // primary (Bill) -- lifts during a jump
+            bobBox = drawBobCharacter(followerX, groundY, h, driftY, { facingLeft: bobFacingLeft });           // follower (Bob)
+            billBox = drawBillCharacter(primaryDrawX, groundY, h, jumpArcOffset(), { facingLeft: billFacingLeft }); // primary (Bill) -- lifts during a jump
         }
 
         if (state === STATE.KICKING) {
@@ -3997,14 +5939,8 @@
         }
 
         if (billBox && bobBox) {
-            drawSpeechBubbles(primaryX, followerX, groundY, h, w, billBox, bobBox);
-        }
-
-        // No permanent "TAP THE DOORWAY" text -- the doorway itself is the
-        // interaction. A small pointer only appears after a short wait,
-        // and never if the player has already tapped it.
-        if (state === STATE.WAITING_AT_DOOR && shouldShowDoorwayHint()) {
-            drawDoorwayHintArrow(w, h);
+            const buildingAnchor = getActiveBuildingBubbleAnchor(w, h, primaryX);
+            drawSpeechBubbles(primaryX, followerX, groundY, h, w, billBox, bobBox, buildingAnchor);
         }
     }
 
@@ -4055,6 +5991,12 @@
             ctx.restore();
         }
 
+        // SUBTLE INTERIOR AMBIENCE -- very soft warm-light breathing,
+        // drawn right after the background/before Bill & Bob so it tints
+        // the room itself rather than the characters. Generic (no
+        // per-background anchor needed), see drawInteriorLampBreathing.
+        drawInteriorLampBreathing(w, h);
+
         // Bill and Bob's actual screen position: their fraction-of-room
         // position (see the interior cinematic engine above) converted to
         // world pixels, minus the camera's current offset in world pixels.
@@ -4070,17 +6012,82 @@
         const interiorRenderOptions = { scaleMultiplier: CONFIG.interiorCharacterScale };
 
         const bobBox = drawBobCharacter(bobScreenX, groundY, h, driftY,
-            Object.assign({ walkingOverride: bobInteriorWalking, facingLeft: bobInteriorFacingLeft }, interiorRenderOptions));
+            Object.assign({ walkingOverride: bobInteriorWalking, facingLeft: bobFacingLeft }, interiorRenderOptions));
         const billBox = drawBillCharacter(billScreenX, groundY, h, 0,
-            Object.assign({ walkingOverride: billInteriorWalking, facingLeft: billInteriorFacingLeft }, interiorRenderOptions));
+            Object.assign({ walkingOverride: billInteriorWalking, facingLeft: billFacingLeft }, interiorRenderOptions));
 
         // Existing "inside" dialogue (see loadInsideDialogueForSection) still
         // works exactly as before -- it's the SAME dialogueQueue/activeBubble
         // system used outdoors, just anchored here to each character's
         // EXACT returned bounding box (billBox/bobBox above), which is
         // already camera-scroll-aware, facing-aware, and correct for the
-        // much larger interior scale -- see drawSpeechBubbles.
-        drawSpeechBubbles(billScreenX, bobScreenX, groundY, h, w, billBox, bobBox);
+        // much larger interior scale -- see drawSpeechBubbles. No exterior
+        // building is on screen in here, so buildingAnchor is always null --
+        // a stray "building-dialogue:" line inside a meeting section just
+        // gets skipped silently (see drawSpeechBubbles).
+        drawSpeechBubbles(billScreenX, bobScreenX, groundY, h, w, billBox, bobBox, null);
+
+        // Floating dust motes -- drawn LAST, on top of everything, so they
+        // read as tiny particles hanging in the room's air in front of
+        // the scene. See drawInteriorAmbientMotes for why coffee steam
+        // specifically was left out this pass.
+        drawInteriorAmbientMotes(w, h);
+    }
+
+    // ------------------------------------------------------------------
+    // SUBTLE INTERIOR AMBIENCE -- both effects below are fully procedural
+    // (computed straight from billAnimElapsed + a per-instance seed, no
+    // spawn/despawn array, no per-meeting anchor point), which is what
+    // makes them safe to enable in every interior without any manual
+    // per-background tuning. Coffee steam was deliberately NOT added:
+    // making it look right needs a real anchor point on each meeting's
+    // interior background (where the coffee/kitchen area actually is in
+    // that specific piece of art), which isn't something that can be
+    // verified from code alone -- guessing one risked steam rising out of
+    // a wall or floating over someone's head. Per the brief's own "skip
+    // it rather than hardcode something unsafe" guidance, it's left out
+    // this pass; a future pass with the actual background art in hand
+    // could add real per-meeting steam anchors here.
+    // ------------------------------------------------------------------
+    function drawInteriorAmbientMotes(w, h) {
+        ctx.save();
+        ctx.fillStyle = "rgba(255, 235, 190, 1)";
+        for (let i = 0; i < CONFIG.interiorDustMoteCount; i++) {
+            const seed = i * 137.5;
+            const speed = CONFIG.interiorDustMoteDriftSpeed * (0.7 + (i % 3) * 0.2);
+            const y = h - ((billAnimElapsed * speed + seed) % h);
+            const x = (w * ((seed * 0.61803) % 1)) + Math.sin(billAnimElapsed * 0.6 + seed) * 10;
+            const alpha = 0.15 + 0.15 * Math.sin(billAnimElapsed * 0.9 + seed);
+            if (alpha <= 0.02) continue;
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.arc(x, y, 1.4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    // 0 at the first meeting, 1 at the last -- used only to very slightly
+    // deepen the lamp-breathing warm vignette below as the night goes on
+    // (see CONFIG.interiorHalloweenMaxExtraAlpha). Not tied to real
+    // elapsed time, just which meeting this is.
+    function getHalloweenAtmosphereFrac() {
+        const totalSteps = Math.max(1, MEETINGS.length - 1);
+        return Math.max(0, Math.min(1, meetingIndex / totalSteps));
+    }
+
+    function drawInteriorLampBreathing(w, h) {
+        const breathe = 0.5 + 0.5 * Math.sin(billAnimElapsed * Math.PI * 2 * CONFIG.interiorLampBreatheSpeed);
+        const extra = CONFIG.interiorHalloweenMaxExtraAlpha * getHalloweenAtmosphereFrac();
+        const alpha = (CONFIG.interiorLampBreatheAlpha + extra) * breathe;
+        if (alpha <= 0.002) return;
+        ctx.save();
+        const grad = ctx.createRadialGradient(w / 2, h * 0.4, h * 0.15, w / 2, h * 0.4, h * 0.75);
+        grad.addColorStop(0, "rgba(255,170,90," + alpha.toFixed(3) + ")");
+        grad.addColorStop(1, "rgba(255,170,90,0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+        ctx.restore();
     }
 
     // Scrolled variant of drawCoverImage: scales the interior background by
@@ -4545,16 +6552,13 @@
     // x is the building's already-computed screen position -- section-local
     // for the CURRENT meeting (see the call site in renderOutdoorScene), or
     // continuous-world for a just-EXITED meeting still receding into view
-    // (see exitedMeetingIndex). isCurrent gates the doorway glow/highlight,
-    // which only makes sense for the meeting the player can actually
-    // interact with right now.
+    // (see exitedMeetingIndex).
     function drawBuilding(meeting, w, h, x, isCurrent) {
         // Single source of truth for where/how big this building is drawn --
-        // getDoorwayScreenRect() (hit-testing), drawDoorwayGlow(), and
-        // drawDoorwayHintArrow() all derive from this same geometry, so the
-        // tap target and every doorway-adjacent visual always agree with
-        // what's actually on screen. See the comment above
-        // getBuildingRenderGeometry() for why this used to drift.
+        // getDoorwayScreenRect() (hit-testing) derives from this same
+        // geometry, so the tap target always agrees with what's actually
+        // on screen. See the comment above getBuildingRenderGeometry()
+        // for why this used to drift.
         const geo = getBuildingRenderGeometry(meeting, w, h, x);
         if (geo.x < -260) return;
 
@@ -4565,9 +6569,6 @@
         // what's drawn.
         if (geo.usingOverride) {
             drawBuildingImage(buildingImages[meeting.id], geo.x, geo.groundY, geo.displayHeight);
-            if (isCurrent && state === STATE.WAITING_AT_DOOR) {
-                drawDoorwayGlow(w, h);
-            }
         } else {
             drawBuildingPlaceholder(meeting, geo, isCurrent);
         }
@@ -4592,18 +6593,6 @@
     function drawBuildingImage(asset, x, groundY, displayHeight) {
         const displayWidth = displayHeight * (asset.naturalWidth / asset.naturalHeight);
         ctx.drawImage(asset.image, x - displayWidth / 2, groundY - displayHeight, displayWidth, displayHeight);
-    }
-
-    function drawDoorwayGlow(w, h) {
-        // Subtle "you can tap here" cue drawn over a real building
-        // image -- the artist's own doorway art shows through beneath it.
-        // Uses the exact same rect as the tap-target (getDoorwayScreenRect),
-        // so the glow always sits exactly over the real, live doorway.
-        const rect = getDoorwayScreenRect(w, h);
-        ctx.save();
-        ctx.fillStyle = "rgba(242, 193, 78, 0.35)";
-        ctx.fillRect(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
-        ctx.restore();
     }
 
     function drawBuildingPlaceholder(meeting, geo, isCurrent) {
@@ -4676,36 +6665,73 @@
         }
     }
 
-    // Small SNES-style "zip" dust puffs during the faster doorway slide --
-    // see updateDoorwayDust/spawnDoorwayDustPuff for spawning/lifetime.
-    // Deliberately tiny and few: a soft filled circle per puff, growing
-    // slightly and fading out over its short life, never more than a
-    // couple visible at once. billX/bobX are that frame's actual drawn
-    // screen positions (primaryDrawX/followerX), so a puff always tracks
-    // whichever character it belongs to correctly even as they move.
-    function drawDoorwayDust(billX, bobX, groundY) {
+    // Comic-book skid/slide dust -- TWO sources feed this one renderer:
+    // doorwayDustPuffs (the continuous "zip" trail while sliding into a
+    // doorway at elevated speed, see updateDoorwayDust) and skidDustPuffs
+    // (a big one-time burst the instant Bill/Bob actually stop ANYWHERE,
+    // see checkSkidDustBurst/spawnSkidDustBurst). Both are just puffs
+    // with a life/maxLife, a belongsTo character, and per-puff jitter/
+    // size/rotation baked in at spawn time for variety -- burst puffs are
+    // simply bigger and get an inked outline, everything else is shared.
+    // billX/bobX are that frame's actual drawn screen positions
+    // (primaryDrawX/followerX), so a puff always tracks whichever
+    // character it belongs to correctly even as they move. Purely
+    // decorative -- never touches collision, position, or movement.
+    function drawDust(billX, bobX, groundY) {
         ctx.save();
-        doorwayDustPuffs.forEach(function (puff) {
+        const allPuffs = doorwayDustPuffs.concat(skidDustPuffs, runningDustPuffs);
+        allPuffs.forEach(function (puff) {
             const t = 1 - Math.max(0, puff.life / puff.maxLife); // 0 = just spawned, 1 = about to vanish
             const baseX = (puff.belongsTo === "bill") ? billX : bobX;
             const cx = baseX + puff.jitterX;
             const cy = groundY + puff.jitterY;
-            const radius = 6 + t * 13;
-            const alpha = 0.7 * (1 - t);
-            if (alpha <= 0) return;
+            const scale = puff.sizeScale || 1;
 
-            // Two-tone puff (soft outer + brighter core) so it reads
-            // clearly against both light and dark ground art, not just a
-            // flat translucent dot.
+            // Burst puffs (the big skid-stop cloud) get a much larger
+            // radius range and a slightly slower fade than a zip puff, so
+            // "the faster they were going, the more dramatic" actually
+            // reads on screen -- see spawnSkidDustBurst for how sizeScale
+            // itself already grows with stop speed. Running foot-dust
+            // puffs (isRunning) are the smallest of the three -- just
+            // enough to connect a running character to the ground, see
+            // spawnRunningDustPuff.
+            const radius = puff.isBurst
+                ? (14 + t * 34) * scale
+                : puff.isRunning
+                    ? (5 + t * 9) * scale
+                    : (10 + t * 22) * scale;
+            const baseAlpha = puff.isBurst ? 0.72 : puff.isRunning ? 0.5 : 0.65;
+            const alpha = baseAlpha * (1 - t);
+            if (alpha <= 0.01) return;
+
+            // Every puff is drawn as a squashed, rotated ellipse rather
+            // than a plain circle -- rotation/scale were randomized at
+            // spawn (see spawnDoorwayDustPuff/spawnSkidDustBurst) so a
+            // whole cluster reads as several distinct irregular puffs,
+            // not one uniform stamped blob.
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(puff.rotation || 0);
+
             ctx.beginPath();
             ctx.fillStyle = "rgba(214, 202, 176, " + alpha.toFixed(3) + ")";
-            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, radius, radius * 0.72, 0, 0, Math.PI * 2);
             ctx.fill();
+            if (puff.isBurst) {
+                // Cartoon-ink outline -- only on the big burst puffs, a
+                // zip puff stays soft/light to keep reading as a quick
+                // trail rather than a comic-panel "POW" cloud.
+                ctx.strokeStyle = "rgba(60, 50, 38, " + (alpha * 0.55).toFixed(3) + ")";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
 
             ctx.beginPath();
             ctx.fillStyle = "rgba(255, 250, 235, " + (alpha * 0.8).toFixed(3) + ")";
-            ctx.arc(cx, cy, radius * 0.55, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, radius * 0.55, radius * 0.4, 0, 0, Math.PI * 2);
             ctx.fill();
+
+            ctx.restore();
         });
         ctx.restore();
     }
@@ -4845,15 +6871,22 @@
         // (x, groundY) itself is untouched.
         const displayHeight = CONFIG.billBaseDisplayHeight * CONFIG.billScale * scaleMultiplier;
         const displayWidth = displayHeight * (cellW / cellH);
-        // BILL_FRAME_OFFSET_X was hand-measured against the ORIGINAL
-        // basic-level1-bill.png only -- applying those same per-cell
-        // corrections to the different costume2 artwork is as likely to
-        // introduce misalignment as fix it, so costume2 gets a neutral
-        // (0) offset until it has its own measured table.
-        const billOffsetX = (billAppearance === "costume2") ? 0 : billFrameOffsetX(row, col);
+        // Torso-anchored auto-measurement for every pose, both costumes
+        // -- see the big comment above getAutoFrameOffsetX for why this
+        // replaced BILL_FRAME_OFFSET_X (that table centered each frame's
+        // WHOLE silhouette, which visibly hops the body whenever an idle
+        // blip/gesture changes arm position, or a walk cycle swings a
+        // leg -- both confirmed live via the debug overlay).
+        const billCacheKey = "bill-" + billAppearance;
+        const billOffsetX = getAutoFrameOffsetX(billCacheKey, activeBillImage.image, row, col, cellW, cellH, srcX, srcY);
         const frameOffsetDisplay = billOffsetX * (displayWidth / cellW);
         const destX = x - displayWidth / 2 + frameOffsetDisplay + CONFIG.billRenderOffsetX;
         const destY = groundY - displayHeight + verticalOffset + CONFIG.billRenderOffsetY;
+
+        if (typeof window !== "undefined" && window.DEBUG_ANCHOR) {
+            debugTrackAnchor("bill", row, col, billAppearance, !!renderOptions.facingLeft, x, destX, displayWidth);
+            debugDrawAnchorLine(x, groundY);
+        }
 
         // Directional, appearance-aware inset on the SOURCE rect -- see
         // SPRITE_INSET above. costume2 gets a much bigger TOP margin to
@@ -4866,14 +6899,13 @@
         const srcWi = cellW - billInset.left - billInset.right;
         const srcHi = cellH - billInset.top - billInset.bottom;
 
-        // facingLeft (interior cinematic only -- outdoor Bill only ever
-        // walks right, so renderOptions.facingLeft is always falsy there
-        // and this exactly matches the old unflipped draw). Mirrors the
-        // SAME frames horizontally around Bill's own x rather than using
-        // separate left-facing art. imageSmoothingEnabled is turned off
-        // just for this draw so the large interior scale-up can't sample
-        // pixels from the neighboring sprite-sheet cell at the frame's
-        // edges -- see the matching note in drawBobCharacter.
+        // facingLeft (set every frame by updateCharacterFacing -- see that
+        // function for the full priority order, both indoors and out).
+        // Mirrors the SAME frames horizontally around Bill's own x rather
+        // than using separate left-facing art. imageSmoothingEnabled is
+        // turned off just for this draw so the large interior scale-up
+        // can't sample pixels from the neighboring sprite-sheet cell at
+        // the frame's edges -- see the matching note in drawBobCharacter.
         const wasSmoothing = ctx.imageSmoothingEnabled;
         ctx.imageSmoothingEnabled = false;
         let screenLeft;
@@ -5042,17 +7074,30 @@
         // is untouched -- this only affects where the art is drawn.
         const displayHeight = CONFIG.bobBaseDisplayHeight * CONFIG.bobScale * scaleMultiplier;
         const displayWidth = displayHeight * (cellW / cellH);
-        // Same reasoning as billOffsetX in drawBillCharacter: BOB_FRAME_OFFSET_X/Y
-        // were hand-measured against the ORIGINAL basic-level1-bob.png only --
-        // applying those same per-cell corrections to the different costume2
-        // artwork is as likely to introduce misalignment as fix it, so
-        // costume2 gets neutral (0) offsets until it has its own measured table.
-        const bobOffsetXRaw = (bobAppearance === "costume2") ? 0 : bobFrameOffsetX(row, col);
+        // Same reasoning as billOffsetX in drawBillCharacter: torso-
+        // anchored auto-measurement for every pose, both costumes -- see
+        // the comment above getAutoFrameOffsetX. This replaces
+        // BOB_FRAME_OFFSET_X, which centered each frame's whole
+        // silhouette and was confirmed live (via the debug overlay) to
+        // visibly hop Bob's body -- both on the 0,0 <-> 0,1 idle-blip
+        // transition, and worse, during ordinary walking once an
+        // intermediate feet-only anchor was tried. Y is untouched (still
+        // BOB_FRAME_OFFSET_Y) -- the reported bug is horizontal only,
+        // and every used frame's feet are already flush to its cell's
+        // bottom edge except cell 19, which that table already corrects
+        // for.
+        const bobCacheKey = "bob-" + bobAppearance;
+        const bobOffsetXRaw = getAutoFrameOffsetX(bobCacheKey, activeBobImage.image, row, col, cellW, cellH, srcX, srcY);
         const bobOffsetYRaw = (bobAppearance === "costume2") ? 0 : bobFrameOffsetY(row, col);
         const offsetXDisplay = bobOffsetXRaw * (displayWidth / cellW);
         const offsetYDisplay = bobOffsetYRaw * (displayHeight / cellH);
         const destX = x - displayWidth / 2 + offsetXDisplay + CONFIG.bobRenderOffsetX;
         const destY = groundY - displayHeight + verticalOffset + offsetYDisplay + CONFIG.bobRenderOffsetY;
+
+        if (typeof window !== "undefined" && window.DEBUG_ANCHOR) {
+            debugTrackAnchor("bob", row, col, bobAppearance, !!renderOptions.facingLeft, x, destX, displayWidth);
+            debugDrawAnchorLine(x, groundY);
+        }
 
         // The actual fix: draw from this cell's own isolated, pre-cropped
         // canvas (see getBobFrameCanvas) instead of the shared spritesheet
@@ -5063,13 +7108,13 @@
         // than another tweak of the same source-rect-inset approach.
         const frame = getBobFrameCanvas(bobAppearance, activeBobImage.image, row, col, cellW, cellH, srcX, srcY);
 
-        // facingLeft (interior cinematic only -- outdoor Bob only ever
-        // walks right, so renderOptions.facingLeft is always falsy there
-        // and this exactly matches the old unflipped draw). Same mirror-
-        // about-x approach as Bill; see the note in drawBillCharacter.
-        // imageSmoothingEnabled off here too -- belt-and-suspenders on
-        // top of the isolation fix, and harmless either way since the
-        // isolated canvas has no neighbor data to sample regardless.
+        // facingLeft (set every frame by updateCharacterFacing -- see that
+        // function for the full priority order, both indoors and out).
+        // Same mirror-about-x approach as Bill; see the note in
+        // drawBillCharacter. imageSmoothingEnabled off here too -- belt-
+        // and-suspenders on top of the isolation fix, and harmless either
+        // way since the isolated canvas has no neighbor data to sample
+        // regardless.
         const wasSmoothing = ctx.imageSmoothingEnabled;
         ctx.imageSmoothingEnabled = false;
         let screenLeft;
@@ -5107,11 +7152,11 @@
     // random/procedural placement) -- just enough that consecutive crowd
     // lines don't all come from the exact same spot.
     const CROWD_BUBBLE_PRESETS = [
-        { xFrac: 0.26, yFrac: 0.22 }, // upper-left
-        { xFrac: 0.50, yFrac: 0.18 }, // upper-middle
-        { xFrac: 0.74, yFrac: 0.23 }, // upper-right
-        { xFrac: 0.34, yFrac: 0.32 }, // mid-left
-        { xFrac: 0.68, yFrac: 0.33 }  // mid-right
+        { xFrac: 0.26, yFrac: 0.30 }, // upper-left
+        { xFrac: 0.50, yFrac: 0.27 }, // upper-middle
+        { xFrac: 0.74, yFrac: 0.31 }, // upper-right
+        { xFrac: 0.34, yFrac: 0.40 }, // mid-left
+        { xFrac: 0.68, yFrac: 0.41 }  // mid-right
     ];
     function pickCrowdBubblePreset() {
         const preset = CROWD_BUBBLE_PRESETS[crowdBubblePresetIndex % CROWD_BUBBLE_PRESETS.length];
@@ -5119,7 +7164,61 @@
         return preset;
     }
 
-    function drawSpeechBubbles(primaryX, followerX, groundY, h, canvasWidth, billBox, bobBox) {
+    // BUILDING SPEECH BUBBLES ("building-dialogue:" lines in script.js) --
+    // anchored to whichever building/landmark is actually the current
+    // outdoor context, reusing each one's OWN existing render geometry
+    // rather than tracking a separate duplicate position for this:
+    //   - Fresh Threads event active -> the CHANGING_STORE building
+    //   - Dry People's Club stop active -> its own decorative landmark
+    //     entry in LEVEL1_DECORATIVE_BUILDINGS (matched by section+distance,
+    //     same "noEntry2" object drawDecorativeBuildings already draws --
+    //     never a duplicated/hardcoded position)
+    //   - otherwise -> the meeting building currently being approached
+    //     (MEETINGS[meetingIndex]), which covers the normal case of
+    //     building-dialogue lines inside Outside-level1's dialogue points
+    // Returns null only while inside a meeting (renderInsideMeeting never
+    // calls this -- there's no exterior building on screen there), in
+    // which case drawSpeechBubbles skips a "building" bubble silently
+    // rather than guessing a screen position.
+    function getActiveBuildingBubbleAnchor(w, h, primaryX) {
+        const architectureY = outdoorArchitectureY(h);
+        let geo = null;
+        let anchorX = null;
+
+        if (state === STATE.CHANGING_STORE_EVENT) {
+            anchorX = worldToScreenX(CHANGING_STORE.distance, primaryX);
+            geo = getBuildingRenderGeometry(CHANGING_STORE, w, h, anchorX);
+        } else if (state === STATE.DRY_CLUB_DIALOGUE) {
+            const landmark = LEVEL1_DECORATIVE_BUILDINGS.filter(function (b) {
+                return b.section === DRY_CLUB_STOP.section && b.distance === DRY_CLUB_STOP.distance;
+            })[0];
+            if (landmark) {
+                anchorX = sceneryScreenX(landmark.section, landmark.distance, primaryX);
+                const buildingGroundY = architectureY - Math.max(2, h * 0.006); // matches drawDecorativeBuildings' own buildingGroundY exactly
+                geo = { groundY: buildingGroundY, displayHeight: h * 0.48 * (landmark.scale || 1) };
+            }
+        } else {
+            const meeting = MEETINGS[meetingIndex];
+            if (meeting) {
+                anchorX = worldToScreenX(getCurrentSectionDistance(), primaryX);
+                geo = getBuildingRenderGeometry(meeting, w, h, anchorX);
+            }
+        }
+
+        if (!geo || anchorX === null) return null;
+
+        // Upper-middle of the building, not its peak/roofline and not its
+        // doorway -- reads as "the building/sign itself" rather than
+        // pointing at any one architectural feature (per the "aim for the
+        // upper/front, avoid covering signage" request), then floored so a
+        // tall building (the AA church) never pushes the bubble up under
+        // the HUD strip.
+        const rawAnchorY = geo.groundY - geo.displayHeight * 0.78 - CONFIG.buildingBubbleMargin;
+        const minAnchorY = h * CONFIG.buildingBubbleMinYFrac;
+        return { x: anchorX, y: Math.max(rawAnchorY, minAnchorY) };
+    }
+
+    function drawSpeechBubbles(primaryX, followerX, groundY, h, canvasWidth, billBox, bobBox, buildingAnchor) {
         // Only one dialogue bubble is ever active at once -- see updateDialogue().
         // billBox/bobBox are the EXACT bounding boxes drawBillCharacter/
         // drawBobCharacter just drew (screen-space left/top/width/height,
@@ -5132,6 +7231,25 @@
         // whichever way they're currently facing. billBubbleMargin/
         // bobBubbleMargin give each character its own small fixed gap
         // above their own head, independent of the other.
+        //
+        // TWO visual styles, one intentional distinction (see drawBubble
+        // vs drawWorldBubble): Bill/Bob speaking use the original comic
+        // speech-balloon design, unchanged. Crowd chatter and building
+        // dialogue -- voices from the world/environment around them, not
+        // one of the two main characters -- both route through the SAME
+        // drawWorldBubble instead, so there's exactly one place that
+        // defines what "ambient dialogue" looks like.
+        // Brief overlap: the previous world-chatter line, still fading
+        // out, drawn first (underneath, visually secondary) so it never
+        // competes with the new one -- see updateDialogue's
+        // fadingWorldBubble handling above. Crowd-only, same as the
+        // overlap logic itself.
+        if (fadingWorldBubble && state === STATE.INSIDE_MEETING && fadingWorldBubble.crowdPos) {
+            const fadeAlpha = Math.max(0, fadingWorldBubble.life / fadingWorldBubble.maxLife) * 0.7; // caps below full opacity so it always reads as "the old one," never competes with the fresh bubble
+            drawWorldBubble(fadingWorldBubble.crowdPos.xFrac * canvasWidth, fadingWorldBubble.crowdPos.yFrac * h,
+                fadingWorldBubble.text, canvasWidth, h, fadeAlpha, null); // null popStartTime -- it's fading out, not appearing, so no pop-in
+        }
+
         if (activeBubble && activeBubble.speaker === "crowd") {
             // Anonymous meeting-room voice -- no anchor box at all, just
             // one of the preset room positions picked when this bubble
@@ -5140,8 +7258,17 @@
             // one (script.js is meeting-only for "crowd:" today), skip it
             // silently rather than showing an anonymous bubble outdoors.
             if (state === STATE.INSIDE_MEETING && activeBubble.crowdPos) {
-                drawBubble(activeBubble.crowdPos.xFrac * canvasWidth, activeBubble.crowdPos.yFrac * h,
-                    activeBubble.text, canvasWidth);
+                drawWorldBubble(activeBubble.crowdPos.xFrac * canvasWidth, activeBubble.crowdPos.yFrac * h,
+                    activeBubble.text, canvasWidth, h, 1, activeBubble.popStartTime);
+            }
+        } else if (activeBubble && activeBubble.speaker === "building") {
+            // "building-dialogue:" lines -- anchored to whichever building
+            // is the current outdoor context (see getActiveBuildingBubbleAnchor,
+            // recomputed fresh every frame so it scrolls with the world
+            // exactly like the building itself). null while inside a
+            // meeting -- skip silently rather than guessing a position.
+            if (buildingAnchor) {
+                drawWorldBubble(buildingAnchor.x, buildingAnchor.y, activeBubble.text, canvasWidth, h, 1, activeBubble.popStartTime);
             }
         } else if (activeBubble) {
             const isBill = (activeBubble.speaker === "bill");
@@ -5155,7 +7282,7 @@
                 anchorX = isBill ? primaryX : followerX;
                 bubbleY = groundY - 110;
             }
-            drawBubble(anchorX, bubbleY, activeBubble.text, canvasWidth);
+            drawBubble(anchorX, bubbleY, activeBubble.text, canvasWidth, h, activeBubble.popStartTime);
         }
 
         if (state === STATE.WAITING_AT_DOOR) {
@@ -5166,9 +7293,48 @@
             const visibleBuildingHeight = hasBuildingImage
                 ? getBuildingImageDisplayHeight(meeting.buildingStyle, h)
                 : buildingStyleHeight(meeting.buildingStyle);
+            // Bill's own inner thought while waiting, not ambient chatter
+            // -- keeps the character-style bubble, unchanged. Pops in
+            // once using doorwayWaitTimer (already resets to 0 the
+            // instant WAITING_AT_DOOR begins, see updateDoorwayWait) as
+            // its "time since appeared" -- billAnimElapsed - doorwayWaitTimer
+            // is exactly the billAnimElapsed value it first appeared at.
             drawBubble(x, groundY - visibleBuildingHeight - 26,
-                "God, grant me the serenity...", canvasWidth);
+                "God, grant me the serenity...", canvasWidth, h, billAnimElapsed - doorwayWaitTimer);
         }
+    }
+
+    // ------------------------------------------------------------------
+    // COMIC BUBBLE POP-IN -- shared by both bubble families. Reads
+    // elapsed time since the bubble was created (billAnimElapsed minus
+    // the popStartTime stamped on it in updateDialogue, or passed
+    // directly for the always-on WAITING_AT_DOOR bubble) and returns a
+    // scale/rotation to apply for a brief comic "pop": 90% -> ~105% ->
+    // 100%, settling from a small +/-1 degree tilt. One-shot -- once
+    // elapsed passes popDuration it always returns {scale:1, rotation:0},
+    // so this never becomes a continuous bounce. Passing popStartTime as
+    // null/undefined (the fading-out echo bubble) skips the pop entirely.
+    // ------------------------------------------------------------------
+    function getBubblePopTransform(popStartTime, anchorX) {
+        if (popStartTime === null || popStartTime === undefined) {
+            return { scale: 1, rotation: 0 };
+        }
+        const popDuration = 0.16;
+        const elapsed = billAnimElapsed - popStartTime;
+        if (elapsed >= popDuration || elapsed < 0) {
+            return { scale: 1, rotation: 0 };
+        }
+        const t = elapsed / popDuration;
+        const scale = (t < 0.5)
+            ? (0.9 + (1.05 - 0.9) * (t / 0.5))
+            : (1.05 + (1.0 - 1.05) * ((t - 0.5) / 0.5));
+        // Fixed +/-1 degree sign derived from the anchor position (not
+        // Math.random(), so it's stable across the bubble's whole
+        // lifetime instead of re-rolling every frame) -- purely a small
+        // flourish, fades to 0 by the time the pop settles.
+        const sign = (Math.sin(anchorX * 0.37) >= 0) ? 1 : -1;
+        const rotation = sign * (Math.PI / 180) * (1 - t);
+        return { scale: scale, rotation: rotation };
     }
 
     function wrapBubbleText(text, maxWidth) {
@@ -5190,111 +7356,364 @@
         return lines;
     }
 
-    function drawBubble(anchorX, anchorY, text, canvasWidth) {
-        // Restrained comic-style bubble: cream fill, dark outline, small
-        // tail toward the speaker. Wraps to multiple lines and slides away
-        // from the screen edge (without losing track of who's talking) so
-        // it stays fully visible and readable on a phone.
-        ctx.save();
-        ctx.font = "15px sans-serif";
+    // ------------------------------------------------------------------
+    // VERBATIM SVG PATH GEOMETRY -- these two path strings are copied
+    // EXACTLY, character for character, from the authoritative CodePen
+    // ("Comic Book Speech Bubbles with SVG" by Dudley Storey,
+    // https://codepen.io/dudleystorey/pen/wMLBLK), fetched directly from
+    // the pen's own JS panel. Nothing about the geometry below is
+    // reinterpreted, redrawn, or approximated -- see drawSvgPathOnCanvas
+    // for the generic (M/L/C/S, upper=absolute/lower=relative, Z)
+    // SVG-path-command interpreter that executes these exact strings as
+    // canvas bezier/line calls, and drawSpeechBalloon/drawStarburstBubble
+    // below for how each is scaled UNIFORMLY (never distorted) to fit
+    // the current line of dialogue.
+    // ------------------------------------------------------------------
 
-        const paddingX = 12;
-        const paddingY = 9;
-        const lineHeight = 19;
-        const edgePadding = 10;
-        const maxBubbleWidth = Math.min(230, canvasWidth * 0.62);
-        const maxTextWidth = maxBubbleWidth - paddingX * 2;
+    // "speech bubble" class from the CodePen -- the classic smooth
+    // rounded balloon, tail included as part of the same continuous
+    // outline (the thin curved tendril reaching down to lower-left).
+    // Native viewBox: 0 0 132 136.
+    const SVG_SPEECH_BUBBLE = {
+        viewBoxW: 132,
+        viewBoxH: 136,
+        d: "M66.1 1.5C30.4 1.5 1.5 22.9 1.5 46c0 18.1 17.9 33.5 42.8 39.3 1.5 14.8-1.3 39-8.5 48.1 10.8-12.5 22.4-33.6 26.6-45.7 1.2 0 2.5.1 3.7.1 35.7 0 64.6-18.7 64.6-41.8S101.8 1.5 66.1 1.5zM35.8 133.4c-.3.4-.7.8-1 1.1.4-.3.7-.7 1-1.1z",
+        // Safe interior region for text, in the path's own local
+        // coordinate space -- the rounded MAIN BODY only, deliberately
+        // excluding the thin tail tendril (roughly local y 90-136) so
+        // vertical centering never runs text down into the tail.
+        // Estimated from the path's own coordinate structure (the body
+        // is the round portion from the top apex at local (66,1.5) down
+        // to where the outline pinches into the tail around y~90).
+        safeLeft: 14, safeTop: 10, safeRight: 118, safeBottom: 78,
+        // Where the tail's tip actually lands, in local coordinates --
+        // this is what gets translated to the real on-screen anchor
+        // (the speaker), per "point the finished SVG toward the
+        // character, don't redraw the tail separately."
+        tailTipX: 35.4, tailTipY: 134.5,
+        stroke: "#000",
+        strokeWidth: 4,
+        lineJoin: "bevel"
+    };
 
-        const lines = wrapBubbleText(text, maxTextWidth);
-        let textWidth = 0;
-        lines.forEach(function (line) {
-            textWidth = Math.max(textWidth, ctx.measureText(line).width);
-        });
+    // "electric" class from the CodePen -- the explosive/starburst
+    // balloon with its angular lightning-style tail, also part of the
+    // same continuous outline. Native viewBox: 0 0 300 150.
+    const SVG_STARBURST_BUBBLE = {
+        viewBoxW: 300,
+        viewBoxH: 150,
+        d: "M32.7,18.3c11,5,33.3,3.3,37-11.3 c11.7,8.7,40,11.3,54.7,0c7.3,10,36.7,13.3,46,0c0.3,8,29,16.7,39.3,11.7C202.3,27,212,40.7,229,42c-11.7,6-7.7,28.3,0,32.7 c-11,1-14.3,12.3-14.3,12.3l34.7,25.3l-12.7,2.3l36.7,21l-52.9-12.6l6.2-6.4l-28.3-16.3c0,0-14.7,14-14.3,19.3 c-10-5-36,3.7-44.3,13.3c-9.7-13.7-40.3-12.7-56-2c-7-10.3-37.7-11.7-48.7-10.7c7.2-9.7-9.3-31.7-27-35c14-5,19.7-34.3,6.7-40.7 C30.3,43.3,39.7,28,32.7,18.3z",
+        // Safe interior region -- NOT eyeballed from the CSS padding
+        // percentages. The CodePen's own `.electric { padding: 4% 6%
+        // 12% 0% }` looked like a natural starting point, but this
+        // star's outline is concave (spikes/valleys, not a smooth
+        // oval), so a rectangle built from simple corner percentages
+        // can still land in a notch between two points and clip the
+        // outline. This exact rectangle was instead verified
+        // empirically: the path was sampled into ~570 points along its
+        // real bezier/line curves, and this region was grown outward
+        // from the shape's body center until every point on its
+        // boundary (checked via point-in-polygon, 1-unit resolution)
+        // still tested strictly inside the outline, then padded in a
+        // few more units for margin -- so it's guaranteed clear of both
+        // the outline and the lightning tail (which starts well past
+        // x=195), not an estimate.
+        safeLeft: 42, safeTop: 26, safeRight: 180, safeBottom: 114,
+        tailTipX: 273.4, tailTipY: 100.4,
+        stroke: "#231F20",
+        strokeWidth: 4,
+        lineJoin: "miter"
+    };
 
-        const bubbleW = Math.min(maxBubbleWidth, textWidth + paddingX * 2);
-        const bubbleH = paddingY * 2 + lines.length * lineHeight;
-        const halfW = bubbleW / 2;
+    // ------------------------------------------------------------------
+    // Minimal SVG path-command interpreter -- supports exactly the
+    // commands used by the two paths above (M/m, L/l, C/c, S/s, Z/z;
+    // uppercase = absolute, lowercase = relative, per the SVG spec,
+    // including the "S" smooth-curve reflection and implicit repeated
+    // commands). This exists purely so the path DATA above can be used
+    // completely verbatim -- exactly as authored in the CodePen -- while
+    // still rendering through this game's existing canvas pipeline
+    // (everything else in the game world is canvas-drawn, not SVG/DOM,
+    // so this keeps the bubble geometry pixel-faithful to the reference
+    // without introducing a second, separately-positioned rendering
+    // layer). offsetX/offsetY/scaleX/scaleY map the path's own local
+    // coordinates onto the screen; a negative scaleX mirrors the whole
+    // shape horizontally (see drawSpeechBalloon's flip logic).
+    // ------------------------------------------------------------------
+    function drawSvgPathOnCanvas(c, d, offsetX, offsetY, scaleX, scaleY) {
+        const tokens = d.match(/[MLCSZmlcsz]|-?\d*\.?\d+(?:e-?\d+)?/g);
+        let i = 0;
+        let cx = 0, cy = 0;
+        let startX = 0, startY = 0;
+        let prevControlX = null, prevControlY = null;
+        let lastCmd = null;
 
-        // Keep the bubble body fully on screen even if the speaker is
-        // standing near an edge.
-        let bubbleCenterX = anchorX;
-        if (bubbleCenterX - halfW < edgePadding) {
-            bubbleCenterX = edgePadding + halfW;
-        } else if (bubbleCenterX + halfW > canvasWidth - edgePadding) {
-            bubbleCenterX = canvasWidth - edgePadding - halfW;
+        function num() { return parseFloat(tokens[i++]); }
+        function tx(x) { return offsetX + x * scaleX; }
+        function ty(y) { return offsetY + y * scaleY; }
+
+        while (i < tokens.length) {
+            const t = tokens[i];
+            let cmd;
+            if (/^[MLCSZmlcsz]$/.test(t)) { cmd = t; i++; } else { cmd = lastCmd; }
+            lastCmd = cmd;
+            switch (cmd) {
+                case 'M': cx = num(); cy = num(); startX = cx; startY = cy; c.moveTo(tx(cx), ty(cy)); prevControlX = null; break;
+                case 'm': cx += num(); cy += num(); startX = cx; startY = cy; c.moveTo(tx(cx), ty(cy)); prevControlX = null; break;
+                case 'L': cx = num(); cy = num(); c.lineTo(tx(cx), ty(cy)); prevControlX = null; break;
+                case 'l': cx += num(); cy += num(); c.lineTo(tx(cx), ty(cy)); prevControlX = null; break;
+                case 'C': {
+                    const x1 = num(), y1 = num(), x2 = num(), y2 = num(), x = num(), y = num();
+                    c.bezierCurveTo(tx(x1), ty(y1), tx(x2), ty(y2), tx(x), ty(y));
+                    prevControlX = x2; prevControlY = y2; cx = x; cy = y;
+                    break;
+                }
+                case 'c': {
+                    const x1 = cx + num(), y1 = cy + num(), x2 = cx + num(), y2 = cy + num(), x = cx + num(), y = cy + num();
+                    c.bezierCurveTo(tx(x1), ty(y1), tx(x2), ty(y2), tx(x), ty(y));
+                    prevControlX = x2; prevControlY = y2; cx = x; cy = y;
+                    break;
+                }
+                case 'S': {
+                    const x2 = num(), y2 = num(), x = num(), y = num();
+                    const x1 = (prevControlX !== null) ? (2 * cx - prevControlX) : cx;
+                    const y1 = (prevControlY !== null) ? (2 * cy - prevControlY) : cy;
+                    c.bezierCurveTo(tx(x1), ty(y1), tx(x2), ty(y2), tx(x), ty(y));
+                    prevControlX = x2; prevControlY = y2; cx = x; cy = y;
+                    break;
+                }
+                case 's': {
+                    const x2 = cx + num(), y2 = cy + num(), x = cx + num(), y = cy + num();
+                    const x1 = (prevControlX !== null) ? (2 * cx - prevControlX) : cx;
+                    const y1 = (prevControlY !== null) ? (2 * cy - prevControlY) : cy;
+                    c.bezierCurveTo(tx(x1), ty(y1), tx(x2), ty(y2), tx(x), ty(y));
+                    prevControlX = x2; prevControlY = y2; cx = x; cy = y;
+                    break;
+                }
+                case 'Z': case 'z': c.closePath(); cx = startX; cy = startY; prevControlX = null; break;
+                default: return; // unrecognized token -- stop rather than risk a bad draw
+            }
         }
+    }
 
-        const bubbleTop = anchorY - bubbleH;
+    // ------------------------------------------------------------------
+    // Shared engine for both bubble families: given the verbatim SVG def
+    // (SVG_SPEECH_BUBBLE or SVG_STARBURST_BUBBLE), the text, and where
+    // the tail should point, this wraps the text, then picks ONE UNIFORM
+    // scale (never separate X/Y stretch -- the geometry is never
+    // distorted) large enough that the wrapped text fits inside the
+    // shape's own safe interior region, translates the whole path so its
+    // built-in tail tip lands exactly on the anchor point, and fills
+    // /strokes it via drawSvgPathOnCanvas using the EXACT path string.
+    // ------------------------------------------------------------------
+    function drawSvgSpeechBubble(svgDef, anchorX, anchorY, text, canvasWidth, canvasHeight, popStartTime, opts) {
+        // Wait for ComicNeue-Bold to actually finish loading before
+        // measuring/wrapping ANY dialogue text -- see the DIALOGUE FONTS
+        // block near the top of the file. Skips drawing entirely for
+        // the (typically sub-second, local-file) window before it's
+        // ready, rather than measure with the wrong font metrics. Once
+        // ready this is permanently true for the rest of the session.
+        if (!isDialogueFontReady()) return;
 
-        ctx.fillStyle = "#fdf6e3";
-        ctx.strokeStyle = "#1a1a1a";
-        ctx.lineWidth = 2;
-        roundRect(ctx, bubbleCenterX - halfW, bubbleTop, bubbleW, bubbleH, 10);
-        ctx.fill();
-        ctx.stroke();
+        const options = opts || {};
+        // Bubble geometry is now FIXED (a single scale, never grown or
+        // shrunk to fit text) -- per "never alter/distort the SVG bubble
+        // geometry just to fit text." Only the font size adapts, via the
+        // auto-fit loop below.
+        const scale = options.scale;
+        const maxFontSize = options.maxFontSize;
+        const minFontSize = options.minFontSize;
+        const fontFamily = getDialogueFontFamily();
+        // uppercase/italic are opt-in per caller (see drawWorldBubble/
+        // drawBubble) -- both now set them, per the global typography
+        // rule, but the option plumbing stays generic. Uppercasing
+        // happens HERE, at render time only, on a local copy -- script.js's
+        // actual dialogue strings are never touched. Italic is NOT done
+        // via ctx.font's "italic" keyword (browsers synthesize their own
+        // oblique angle for a font with no real italic face, which can
+        // read as a much stronger slant than intended, and would also
+        // shift measureText's own width results during wrapping). It's
+        // applied instead as a small, fixed shear transform at DRAW time
+        // only, well after wrapping/measuring is done against the
+        // upright glyph widths -- see the fillText loop below -- so the
+        // lean is exactly as slight as CONFIG-tuned, on every browser.
+        const displayText = options.uppercase ? text.toUpperCase() : text;
 
-        // Tail still points at the actual speaker, even if the bubble body
-        // had to shift to stay on screen.
-        const tailX = Math.max(bubbleCenterX - halfW + 14, Math.min(bubbleCenterX + halfW - 14, anchorX));
+        const safeW = svgDef.safeRight - svgDef.safeLeft;
+        const safeH = svgDef.safeBottom - svgDef.safeTop;
+        const safeWidthPx = safeW * scale;
+        const safeHeightPx = safeH * scale;
+        // Padding INSIDE the already-inset safe rect (which itself
+        // already keeps clear of the outline/tail) -- this is the
+        // "generous padding" margin between the text and the edge of
+        // that safe rect.
+        const textPadding = Math.max(8, scale * 4);
+        const maxTextWidth = safeWidthPx - textPadding * 2;
+        const maxTextHeight = safeHeightPx - textPadding * 2;
+
+        // AUTO-FIT FONT SIZE -- try progressively smaller sizes until
+        // the wrapped text fits the fixed safe area, both width and
+        // height. ctx.font is set FIRST, before any ctx.measureText call
+        // (wrapBubbleText measures using whatever font is currently
+        // active on the context) -- using stale/default font metrics to
+        // wrap text and then drawing it in a different, larger font is
+        // exactly what caused text to overflow past the bubble edges
+        // before this fix. Now that isDialogueFontReady() has already
+        // gated on the font being genuinely loaded (above), these
+        // measurements are against ComicNeue-Bold's own real metrics,
+        // not a fallback.
+        let fontSize = maxFontSize;
+        let lines = [];
+        let lineHeight = 0;
+        let textBlockH = 0;
+        for (let fs = maxFontSize; fs >= minFontSize; fs -= 1) {
+            ctx.font = "bold " + fs + "px " + fontFamily; // always measured/drawn upright -- see the italic shear note above
+            lineHeight = Math.round(fs * (options.lineHeightMultiplier || 1.26));
+            lines = wrapBubbleText(displayText, maxTextWidth);
+            textBlockH = lines.length * lineHeight;
+            fontSize = fs;
+            if (textBlockH <= maxTextHeight) break; // fits -- stop shrinking, ctx.font/lines/lineHeight already correct for this size
+        }
+        // ctx.font is already set to `fontSize` from the loop above --
+        // reused as-is below for the actual fillText calls.
+
+        // Flip horizontally so the balloon body leans toward open screen
+        // space rather than off the edge, per "point/flip the finished
+        // SVG toward Bill or Bob as needed" -- the tail tip itself always
+        // lands exactly on the anchor either way; flipping only changes
+        // which side the body sits on relative to that fixed point.
+        const flip = (anchorX > canvasWidth / 2);
+        const scaleX = flip ? -scale : scale;
+        const scaleY = scale;
+
+        // Translate so the path's own built-in tail tip maps exactly
+        // onto (anchorX, anchorY) -- offsetX/offsetY solved from
+        // tx(tailTipX) = anchorX, ty(tailTipY) = anchorY.
+        let offsetX = anchorX - svgDef.tailTipX * scaleX;
+        let offsetY = anchorY - svgDef.tailTipY * scaleY;
+
+        // Clamp the FULL RENDERED BOUNDING BOX -- body, outline, and
+        // tail together -- fully inside the safe viewport, not just the
+        // anchor point. A bubble anchored high (e.g. building dialogue
+        // over a tall building) would otherwise have its body's TOP
+        // edge sitting well above the anchor itself, since the tail has
+        // real length; clamping only the anchor (the old approach) left
+        // the body free to poke up under the HUD. hudHeightPx mirrors
+        // the actual top-HUD panel's own responsive CSS height (see
+        // buildDom's hudPanel: clamp(68px, 18vw, 92px)) so "below the
+        // HUD" here matches what's really drawn on top of the canvas.
+        const edgeMargin = 10;
+        const hudHeightPx = Math.max(68, Math.min(92, canvasWidth * 0.18));
+        const minTopPx = hudHeightPx + edgeMargin;
+        const maxBottomPx = canvasHeight - edgeMargin;
+
+        const shapeLeft = offsetX + Math.min(0, svgDef.viewBoxW * scaleX);
+        const shapeRight = offsetX + Math.max(0, svgDef.viewBoxW * scaleX);
+        const shapeTop = offsetY + Math.min(0, svgDef.viewBoxH * scaleY);
+        const shapeBottom = offsetY + Math.max(0, svgDef.viewBoxH * scaleY);
+
+        if (shapeLeft < edgeMargin) offsetX += edgeMargin - shapeLeft;
+        else if (shapeRight > canvasWidth - edgeMargin) offsetX -= shapeRight - (canvasWidth - edgeMargin);
+
+        if (shapeTop < minTopPx) offsetY += minTopPx - shapeTop;
+        else if (shapeBottom > maxBottomPx) offsetY -= shapeBottom - maxBottomPx;
+
+        // Comic "pop" appear animation -- scales/rotates the whole shape
+        // as one unit around its own safe-region center, then settles;
+        // see getBubblePopTransform. No-op once the pop window elapses.
+        const pivotX = offsetX + ((svgDef.safeLeft + svgDef.safeRight) / 2) * scaleX;
+        const pivotY = offsetY + ((svgDef.safeTop + svgDef.safeBottom) / 2) * scaleY;
+        const pop = getBubblePopTransform(popStartTime, anchorX);
+
+        ctx.save();
+        if (typeof options.alpha === "number") ctx.globalAlpha = options.alpha;
+        ctx.translate(pivotX, pivotY);
+        ctx.rotate(pop.rotation);
+        ctx.scale(pop.scale, pop.scale);
+        ctx.translate(-pivotX, -pivotY);
+
+        // Hard offset shadow -- printed-comic-page depth.
+        ctx.save();
+        ctx.translate(3, 3);
+        ctx.fillStyle = "rgba(10,10,10,0.28)";
         ctx.beginPath();
-        ctx.moveTo(tailX - 7, anchorY);
-        ctx.lineTo(tailX + 7, anchorY);
-        ctx.lineTo(tailX, anchorY + 9);
-        ctx.closePath();
-        ctx.fillStyle = "#fdf6e3";
+        drawSvgPathOnCanvas(ctx, svgDef.d, offsetX, offsetY, scaleX, scaleY);
         ctx.fill();
+        ctx.restore();
+
+        ctx.beginPath();
+        drawSvgPathOnCanvas(ctx, svgDef.d, offsetX, offsetY, scaleX, scaleY);
+        ctx.fillStyle = "#fff";
+        ctx.fill();
+        ctx.strokeStyle = svgDef.stroke;
+        ctx.lineWidth = svgDef.strokeWidth;
+        ctx.lineJoin = svgDef.lineJoin;
         ctx.stroke();
 
-        ctx.fillStyle = "#1a1a1a";
+        // ctx.font is still set from the auto-fit loop above -- the
+        // exact font/size that was actually measured for wrapping is
+        // the same one used to draw, by construction.
+        ctx.fillStyle = "#141414";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        const textCenterX = offsetX + ((svgDef.safeLeft + svgDef.safeRight) / 2) * scaleX;
+        const textTop = pivotY - textBlockH / 2;
+        // Slight forward lean (see the note above) applied per line,
+        // around each line's own centered anchor point -- translating
+        // to (textCenterX, ly) first means the shear rotates the glyph
+        // shapes in place without shifting the line off-center.
+        const italicShear = options.italic ? -0.15 : 0;
         lines.forEach(function (line, i) {
-            const ly = bubbleTop + paddingY + lineHeight * i + lineHeight / 2;
-            ctx.fillText(line, bubbleCenterX, ly);
+            const ly = textTop + lineHeight * i + lineHeight / 2;
+            ctx.save();
+            ctx.translate(textCenterX, ly);
+            if (italicShear) ctx.transform(1, 0, italicShear, 1, 0, 0);
+            ctx.fillText(line, 0, 0);
+            ctx.restore();
         });
 
         ctx.restore();
     }
 
-    function roundRect(c, x, y, w, h, r) {
-        c.beginPath();
-        c.moveTo(x + r, y);
-        c.arcTo(x + w, y, x + w, y + h, r);
-        c.arcTo(x + w, y + h, x, y + h, r);
-        c.arcTo(x, y + h, x, y, r);
-        c.arcTo(x, y, x + w, y, r);
-        c.closePath();
+    // BILL & BOB -- the CodePen's "speech bubble" (classic smooth
+    // rounded balloon), verbatim geometry at a fixed scale -- SHAPE
+    // unchanged. See drawSvgSpeechBubble/SVG_SPEECH_BUBBLE above -- text
+    // auto-fits via font-size reduction, the bubble itself never grows/
+    // shrinks. Typography (uppercase/italic/font) now matches the same
+    // global rule as the electric/world bubble below -- see
+    // drawSvgSpeechBubble's uppercase/italic option handling.
+    function drawBubble(anchorX, anchorY, text, canvasWidth, canvasHeight, popStartTime) {
+        drawSvgSpeechBubble(SVG_SPEECH_BUBBLE, anchorX, anchorY, text, canvasWidth, canvasHeight, popStartTime, {
+            scale: (canvasWidth * 0.52) / SVG_SPEECH_BUBBLE.viewBoxW,
+            maxFontSize: Math.round(Math.max(16, Math.min(20, canvasWidth * 0.044))),
+            minFontSize: 12,
+            uppercase: true,
+            italic: false, // removed -- was too hard to read on mobile; upright Comic Neue Bold instead
+            lineHeightMultiplier: 1.3
+        });
     }
 
-    function drawDoorwayHintArrow(w, h) {
-        // Small, discoverable nudge -- only shown after shouldShowDoorwayHint()
-        // says the player has been waiting a bit. Points directly at the
-        // real doorway (see getDoorwayScreenRect) and gently bobs. Sits
-        // just above the doorway itself, well below the Serenity Prayer
-        // bubble (anchored up near the roofline), so the two never collide.
-        const rect = getDoorwayScreenRect(w, h);
-        const cx = (rect.left + rect.right) / 2;
-        const bob = Math.sin(doorwayWaitTimer * 4) * 4;
-        const tipY = rect.top - 10 + bob;
-
-        ctx.save();
-        ctx.fillStyle = "rgba(253,246,227,0.9)";
-        ctx.strokeStyle = "#1a1a1a";
-        ctx.lineWidth = 1.5;
-
-        ctx.beginPath();
-        ctx.moveTo(cx, tipY + 14);
-        ctx.lineTo(cx - 8, tipY);
-        ctx.lineTo(cx - 3, tipY);
-        ctx.lineTo(cx - 3, tipY - 16);
-        ctx.lineTo(cx + 3, tipY - 16);
-        ctx.lineTo(cx + 3, tipY);
-        ctx.lineTo(cx + 8, tipY);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
+    // CROWD / BUILDING / WORLD -- the CodePen's "electric" starburst
+    // balloon, verbatim geometry at a fixed scale, same font auto-fit
+    // approach. Both ambient-voice call sites in drawSpeechBubbles route
+    // through this one function, same as before.
+    function drawWorldBubble(anchorX, anchorY, text, canvasWidth, canvasHeight, alpha, popStartTime) {
+        drawSvgSpeechBubble(SVG_STARBURST_BUBBLE, anchorX, anchorY, text, canvasWidth, canvasHeight, popStartTime, {
+            alpha: alpha,
+            scale: (canvasWidth * 0.48) / SVG_STARBURST_BUBBLE.viewBoxW,
+            maxFontSize: Math.round(Math.max(15, Math.min(18, canvasWidth * 0.039))),
+            minFontSize: 10,
+            // Typography per the electric-bubble spec: ALL CAPS (render-
+            // time only -- script.js's actual strings are untouched), a
+            // touch more line spacing than the default for clear
+            // comic-book readability. Bill/Bob's drawBubble uses the
+            // same set (uppercase, upright, ComicNeue-Bold).
+            uppercase: true,
+            italic: false, // removed -- was too hard to read on mobile; upright Comic Neue Bold instead
+            lineHeightMultiplier: 1.32
+        });
     }
+
 
     function drawTransitionOverlay(w, h) {
         let alpha = 0;
@@ -5318,6 +7737,24 @@
             } else if (transitionPhase === "finishing") {
                 alpha = 1 - (transitionTimer / CONFIG.finishFadeDuration);
             }
+        } else if (state === STATE.CHANGING_STORE_EVENT && changingStorePhase === "hidden") {
+            // Quick comic-panel fade bracketing the SAME "hidden" window
+            // that already exists (Bill/Bob aren't drawn and the sprite
+            // swap already happens the instant it begins -- see
+            // updateChangingStoreEvent's "hidden" case). This only adds a
+            // fast fade-to-black/fade-back-in on top of that -- it does
+            // NOT change changingStoreTransformDelay (how long "hidden"
+            // itself lasts) or when the swap happens. A simple
+            // ramp-up/hold/ramp-down "trapezoid": alpha rises to 1 over
+            // the first changingStoreFadeDuration seconds, stays fully
+            // black through the middle, then eases back to 0 over the
+            // final changingStoreFadeDuration seconds -- right as the
+            // "emerging" phase (and its own doorway-exit visual) begins.
+            const elapsed = CONFIG.changingStoreTransformDelay - changingStoreTimer;
+            const remaining = changingStoreTimer;
+            const fadeIn = Math.min(1, Math.max(0, elapsed / CONFIG.changingStoreFadeDuration));
+            const fadeOut = Math.min(1, Math.max(0, remaining / CONFIG.changingStoreFadeDuration));
+            alpha = Math.min(fadeIn, fadeOut);
         }
 
         if (alpha > 0) {
@@ -5329,15 +7766,319 @@
     }
 
     function updateHud() {
+        if (livesHeartsEl) {
+            livesHeartsEl.textContent = "\u2665 ".repeat(lives).trim();
+        }
         if (livesDisplay) {
-            livesDisplay.textContent = "\u2665 ".repeat(lives).trim();
             livesDisplay.style.opacity = (livesFlashTimer > 0) ? "0.4" : "1";
         }
-        if (clockDisplay) {
-            clockDisplay.textContent = formatClock(clockMinutes);
+        if (countdownMainEl && countdownSecEl) {
+            const parts = formatFictionalClockParts(storyClockSecondsRemaining);
+            countdownMainEl.textContent = parts.main;
+            countdownSecEl.textContent = parts.sec;
         }
-        if (progressFill) {
-            progressFill.style.width = Math.round(computeLevelProgress() * 100) + "%";
+        if (progressSegmentEls.length > 0) {
+            const pct = computeLevelProgress();
+            const litCount = Math.round(pct * progressSegmentEls.length);
+            progressSegmentEls.forEach(function (segment, i) {
+                segment.style.background = (i < litCount) ? "#39ff14" : "#241f1d";
+                segment.style.boxShadow = (i < litCount) ? "0 0 4px rgba(57,255,20,0.65)" : "none";
+            });
+        }
+        if (actionButton && actionButtonHousing) {
+            updateActionButtonHud();
+        }
+    }
+
+    // Centralized per-frame sync for the action button: label, subtitle,
+    // visual (active/disabled) style, and one-time transition animations.
+    // Visual restyling and animations only fire on an ACTUAL state change
+    // (buttonState !== lastActionButtonState) -- see BUTTON_STATE /
+    // getActionButtonState -- so this is cheap to call every frame and
+    // never re-triggers a pop while sitting still in one state.
+    function updateActionButtonHud() {
+        const buttonState = getActionButtonState();
+        const stateChanged = (buttonState !== lastActionButtonState);
+
+        if (stateChanged) {
+            applyActionButtonVisualState(buttonState);
+
+            // One-time pop animations (requirement: "use one-time
+            // transition effects," never a continuous animation).
+            // FASTER re-appearing after DISABLED_MEETING deliberately gets
+            // NO animation here -- applyActionButtonVisualState above
+            // already restored the active green glow instantly, which is
+            // exactly the "let the glow return quickly" behavior asked
+            // for, without a bounce. Animates actionButtonHousing (the
+            // visible control) -- actionButton itself (the larger
+            // invisible tap target) is never animated.
+            let animName = null;
+            if (buttonState === BUTTON_STATE.FASTER && lastActionButtonState === BUTTON_STATE.START) {
+                animName = "hgButtonSnap";       // small snap: START -> FASTER
+            } else if (buttonState === BUTTON_STATE.ENTER) {
+                animName = "hgButtonPop";        // one noticeable pop: FASTER -> ENTER
+            } else if (buttonState === BUTTON_STATE.CONTINUE) {
+                animName = "hgButtonPopBig";      // stronger celebratory pop: LEVEL COMPLETE -> CONTINUE
+            }
+            if (animName) {
+                actionButtonHousing.style.animation = "none";
+                void actionButtonHousing.offsetWidth; // force reflow so the animation restarts cleanly
+                actionButtonHousing.style.animation = animName + " 0.32s ease-out";
+            }
+
+            lastActionButtonState = buttonState;
+        }
+    }
+
+    // Active (START/FASTER/ENTER/CONTINUE): neon green, thick black
+    // outline, hard drop shadow, pressable-looking. Disabled
+    // (DISABLED_MEETING/DISABLED_TRANSITION): gray/desaturated, darker
+    // border, no glow, recessed (inset shadow instead of a raised one) --
+    // "physically inactive," per spec -- and no symbol at all (there's no
+    // controller icon for "disabled," so the housing just goes dark/
+    // empty rather than showing a stale symbol). Only ever called on an
+    // actual state change (see updateActionButtonHud), never every
+    // frame, so it never fights with the transient press
+    // (setActionButtonPressed) or pop-animation transforms. Styles
+    // actionButtonHousing (the visible control), never actionButton
+    // itself (the larger invisible tap target).
+    function applyActionButtonVisualState(buttonState) {
+        if (!actionButton || !actionButtonHousing) return;
+        const active = (buttonState === BUTTON_STATE.START || buttonState === BUTTON_STATE.FASTER ||
+            buttonState === BUTTON_STATE.ENTER || buttonState === BUTTON_STATE.CONTINUE);
+
+        actionButtonHousing.style.transform = "translate(-50%, -50%)";
+        if (active) {
+            actionButtonHousing.style.border = "3px solid #0a0a0a";
+            actionButtonHousing.style.background = "linear-gradient(#2a2320, #14100d)";
+            actionButton.style.cursor = "pointer";
+        } else {
+            actionButtonHousing.style.border = "3px solid #3a3a3a";
+            actionButtonHousing.style.background = "linear-gradient(#3a3a3a, #232323)";
+            actionButtonHousing.style.boxShadow = "0 1px 0 #000, inset 0 3px 5px rgba(0,0,0,0.55)"; // recessed, not raised
+            actionButton.style.cursor = "default";
+        }
+
+        // Exactly one symbol (or none, for the disabled states) shown at
+        // a time -- no controller-style ambiguity about what pressing it
+        // does. No text labels anywhere, per spec.
+        if (actionButtonPlayEl) actionButtonPlayEl.style.display = (buttonState === BUTTON_STATE.START) ? "block" : "none";
+        if (actionButtonBoltEl) actionButtonBoltEl.style.display = (buttonState === BUTTON_STATE.FASTER) ? "block" : "none";
+        if (actionButtonChevronWrap) actionButtonChevronWrap.style.display = (buttonState === BUTTON_STATE.ENTER) ? "block" : "none";
+
+        // boxShadow for the ACTIVE case, and all fire-particle spawning,
+        // is owned entirely by updateActionButtonFireVisual/
+        // updateActionButtonFireParticles (see below) so the fire glow
+        // composes correctly with the base drop-shadow instead of the
+        // two fighting over the same style property.
+        updateActionButtonFireVisual();
+
+        // ENTER gets its own darker "screen" housing (matching the
+        // green-bordered chevron panel) instead of the ordinary active
+        // button background -- applied AFTER updateActionButtonFireVisual
+        // so it isn't overwritten by the FASTER-glow boxShadow logic above.
+        if (buttonState === BUTTON_STATE.ENTER) {
+            actionButtonHousing.style.border = "3px solid #145214";
+            actionButtonHousing.style.background = "linear-gradient(#141d10, #0a0f08)";
+            actionButtonHousing.style.boxShadow = "0 3px 0 #000, 0 5px 8px rgba(0,0,0,0.5), 0 0 12px rgba(57,255,20,0.35)";
+        }
+    }
+
+    // Blends the housing's base "active" drop-shadow with an additional
+    // glow layer that grows and shifts from green -> orange -> red as
+    // fasterSpeedLevel rises (see bumpFasterSpeedLevel), and re-colors
+    // the lightning-bolt symbol itself the same way (green -> hotter
+    // yellow/white at the top end), per spec ("visually transition from
+    // neon green toward a hotter yellow/white center at high speed").
+    // Called whenever fasterSpeedLevel changes AND whenever the button's
+    // active/disabled state changes (via applyActionButtonVisualState),
+    // so it's always correct regardless of which changed. The ACTUAL
+    // flame/ember particles are handled separately by
+    // updateActionButtonFireParticles (called every frame from the main
+    // update() loop, since particles need continuous per-frame motion,
+    // not just per-state-change restyling) -- this function only owns
+    // the glow/bolt color.
+    function updateActionButtonFireVisual() {
+        if (!actionButton || !actionButtonHousing) return;
+        const buttonState = getActionButtonState();
+        const active = (buttonState === BUTTON_STATE.START || buttonState === BUTTON_STATE.FASTER ||
+            buttonState === BUTTON_STATE.ENTER || buttonState === BUTTON_STATE.CONTINUE);
+
+        if (!active) {
+            actionButtonHousing.style.boxShadow = "0 1px 0 #000, inset 0 3px 5px rgba(0,0,0,0.55)";
+            return;
+        }
+
+        const levelFrac = fasterSpeedLevel / CONFIG.fasterSpeedMaxLevel; // 0..1
+        const baseDropShadow = "0 3px 0 #000, 0 5px 8px rgba(0,0,0,0.5)";
+        if (levelFrac <= 0) {
+            actionButtonHousing.style.boxShadow = baseDropShadow;
+        } else {
+            // Green (57,255,20) at level 0 -> hot orange-red (255,70,20) at
+            // max level. Glow blur/spread and opacity both grow with level
+            // too, so it reads as "hotter," not just "different color."
+            const r = Math.round(57 + (255 - 57) * levelFrac);
+            const g = Math.round(255 + (70 - 255) * levelFrac);
+            const b = Math.round(20 + (20 - 20) * levelFrac);
+            const blur = Math.round(10 + levelFrac * 26);
+            const spread = Math.round(1 + levelFrac * 5);
+            const glowAlpha = (0.35 + levelFrac * 0.55).toFixed(2);
+            const glow = "0 0 " + blur + "px " + spread + "px rgba(" + r + "," + g + "," + b + "," + glowAlpha + ")";
+            actionButtonHousing.style.boxShadow = baseDropShadow + ", " + glow;
+        }
+
+        // The lightning bolt ITSELF ramps from neon green toward a
+        // hotter yellow/white center as speed rises, per spec -- a
+        // different, brighter target than the housing's green->orange-red
+        // glow above (the bolt is meant to look like it's the thing
+        // catching fire, not just glowing hot).
+        if (actionButtonBoltEl) {
+            const br = Math.round(57 + (255 - 57) * levelFrac);
+            const bg = Math.round(255 + (250 - 255) * levelFrac);
+            const bb = Math.round(20 + (230 - 20) * levelFrac);
+            actionButtonBoltEl.style.background = "rgb(" + br + "," + bg + "," + bb + ")";
+            const boltBlur = Math.round(6 + levelFrac * 12);
+            const boltAlpha = (0.75 + levelFrac * 0.25).toFixed(2);
+            actionButtonBoltEl.style.filter = "drop-shadow(0 0 " + boltBlur + "px rgba(" + br + "," + bg + "," + bb + "," + boltAlpha + "))";
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // REAL PARTICLE FIRE -- spawns/updates/removes small DOM particle
+    // divs above the FASTER button every frame (called from the main
+    // update() loop, since organic rise/drift/shrink/fade needs
+    // continuous motion, not just per-state restyling). Fully replaces
+    // the old fixed 4-shape flame flicker. LOW levels (below
+    // fireParticleMinLevel) stay glow-only, exactly as before -- see
+    // updateActionButtonFireVisual. Spawning stops immediately the
+    // instant the button state changes away from an active FASTER/ENTER/
+    // etc. context; already-alive particles are simply told to decay
+    // fireParticleFastFadeMultiplier times faster so they clear almost
+    // immediately rather than lingering -- see the "active" branch below.
+    // Hard-capped at fireParticleMaxAlive so a long FASTER hold can never
+    // accumulate unbounded DOM nodes (performance/cleanup requirement).
+    // ------------------------------------------------------------------
+    function spawnFireParticle(isEmber) {
+        if (!actionButtonFireContainer) return;
+        if (fireParticles.length >= CONFIG.fireParticleMaxAlive) return;
+
+        const el = document.createElement("div");
+        el.style.position = "absolute";
+        el.style.left = "0px";
+        el.style.bottom = "0px";
+        el.style.borderRadius = "50%";
+        el.style.pointerEvents = "none";
+        el.style.background = isEmber
+            ? "radial-gradient(circle, #fff2b8 0%, #ffb23d 55%, rgba(255,90,30,0) 100%)"
+            : "radial-gradient(circle at 50% 65%, #fff6c2 0%, #ffcf4d 38%, #ff8a1e 70%, rgba(255,61,30,0) 100%)";
+        actionButtonFireContainer.appendChild(el);
+
+        const buttonWidth = actionButtonHousing ? actionButtonHousing.offsetWidth : 56;
+        const startX = billRandomRange(buttonWidth * 0.12, buttonWidth * 0.88) - buttonWidth / 2; // spread across the housing width, centered on 0
+        const life = isEmber ? CONFIG.fireEmberLifeSeconds : CONFIG.fireParticleLifeSeconds;
+
+        fireParticles.push({
+            el: el,
+            x: startX,
+            y: 0,
+            vx: billRandomRange(-14, 14),       // slight left/right drift
+            vy: billRandomRange(isEmber ? 60 : 40, isEmber ? 100 : 70), // px/sec upward -- embers rise faster/farther
+            life: life,
+            maxLife: life,
+            size: isEmber ? billRandomRange(2, 4) : billRandomRange(6, 11),
+            wobbleSeed: Math.random() * Math.PI * 2,
+            isEmber: !!isEmber
+        });
+    }
+
+    function updateActionButtonFireParticles(dt) {
+        if (!actionButton || !actionButtonHousing || !actionButtonFireContainer) return;
+
+        const buttonState = getActionButtonState();
+        const active = (buttonState === BUTTON_STATE.START || buttonState === BUTTON_STATE.FASTER ||
+            buttonState === BUTTON_STATE.ENTER || buttonState === BUTTON_STATE.CONTINUE);
+        const isFaster = (buttonState === BUTTON_STATE.FASTER);
+        const levelFrac = fasterSpeedLevel / CONFIG.fasterSpeedMaxLevel; // 0..1
+
+        // SPAWNING: only while actively FASTER-ing at or above
+        // fireParticleMinLevel. Any other state (including active-but-
+        // not-FASTER, e.g. START/ENTER/CONTINUE, and every disabled
+        // state) spawns nothing -- existing particles just finish out
+        // (see the fast-fade branch below).
+        if (isFaster && active && fasterSpeedLevel >= CONFIG.fireParticleMinLevel) {
+            const spawnInterval = CONFIG.fireParticleSpawnIntervalBase -
+                (CONFIG.fireParticleSpawnIntervalBase - CONFIG.fireParticleSpawnIntervalMax) * levelFrac;
+            fireSpawnTimer -= dt;
+            if (fireSpawnTimer <= 0) {
+                fireSpawnTimer = spawnInterval;
+                spawnFireParticle(false);
+                if (fasterSpeedLevel >= CONFIG.fireParticleEmberMinLevel && Math.random() < CONFIG.fireEmberChancePerSpawn) {
+                    spawnFireParticle(true);
+                }
+            }
+        } else {
+            fireSpawnTimer = 0;
+        }
+
+        // MAX-LEVEL "barely containing itself": a small continuous
+        // vibration, layered on top of whatever pop/snap one-shot
+        // animation may be running (harmless either way -- one-shots are
+        // brief and simply override this for their own short duration).
+        // Only while genuinely at max level AND actively FASTER-ing.
+        // Applied to actionButtonHousing (the visible control) --
+        // actionButton (the larger invisible tap target) never moves.
+        if (isFaster && active && fasterSpeedLevel >= CONFIG.fasterSpeedMaxLevel) {
+            const jitterX = Math.sin(billAnimElapsed * 47) * 0.6;
+            const jitterY = Math.cos(billAnimElapsed * 53) * 0.5;
+            actionButtonHousing.style.transform = "translate(-50%, -50%) translate(" + jitterX.toFixed(2) + "px," + jitterY.toFixed(2) + "px)";
+        } else if (actionButtonHousing.style.transform.indexOf("translate(-50%, -50%) translate(") === 0) {
+            actionButtonHousing.style.transform = "translate(-50%, -50%)";
+        }
+
+        // UPDATE + DRAW every existing particle, active or not -- once
+        // spawning stops, particles already in flight simply finish
+        // (faster, per fireParticleFastFadeMultiplier) rather than being
+        // yanked away instantly, which would look like popping rather
+        // than fire dying down.
+        const fadeRate = active ? 1 : CONFIG.fireParticleFastFadeMultiplier;
+        for (let i = fireParticles.length - 1; i >= 0; i--) {
+            const p = fireParticles[i];
+            p.life -= dt * fadeRate;
+            if (p.life <= 0) {
+                p.el.remove();
+                fireParticles.splice(i, 1);
+                continue;
+            }
+            const t = 1 - Math.max(0, p.life / p.maxLife); // 0 = just spawned, 1 = about to vanish
+            p.y += p.vy * dt;
+            p.x += (p.vx + Math.sin(billAnimElapsed * 5 + p.wobbleSeed) * 10) * dt;
+            const scale = Math.max(0.05, 1 - t); // shrinks as it rises
+            const alpha = p.isEmber ? (1 - t) * 0.85 : (1 - t * t); // embers fade linearly; main flame holds brighter longer then drops off
+            const size = p.size * scale;
+
+            p.el.style.width = size + "px";
+            p.el.style.height = size + "px";
+            p.el.style.opacity = Math.max(0, alpha).toFixed(2);
+            p.el.style.transform = "translate(" + p.x.toFixed(1) + "px, " + (-p.y).toFixed(1) + "px)";
+        }
+    }
+
+    // Small periodic upward "bump" on the whole button while the doorway
+    // chevrons are showing, reusing the existing hgButtonSnap keyframe
+    // (same one FASTER speed-bumps use) rather than adding a new one.
+    // Purely cosmetic -- getActionButtonState()/enterMeeting() untouched.
+    function updateChevronBump(dt) {
+        if (!actionButtonHousing) return;
+        if (getActionButtonState() !== BUTTON_STATE.ENTER) {
+            chevronBumpTimer = CONFIG.chevronBumpIntervalSeconds; // fresh countdown ready for next time ENTER appears
+            return;
+        }
+        chevronBumpTimer -= dt;
+        if (chevronBumpTimer <= 0) {
+            chevronBumpTimer = CONFIG.chevronBumpIntervalSeconds;
+            actionButtonHousing.style.animation = "none";
+            void actionButtonHousing.offsetWidth; // force reflow so it restarts cleanly
+            actionButtonHousing.style.animation = "hgButtonSnap 0.32s ease-out";
         }
     }
 
@@ -5397,14 +8138,15 @@
        ====================================================================== */
     function completeFinish() {
         state = STATE.FINISHED;
-        detachInput();
-
-        console.log("chapter1-gameplay complete - next story handler not connected yet");
-
-        const next = window.HalloweenGame.nextChapter;
-        if (next && typeof next.start === "function") {
-            next.start();
-        }
+        // Deliberately NOT calling detachInput() here -- the action button
+        // (now showing CONTINUE, see getActionButtonState) needs to stay
+        // pressable so the player can advance on their own. Every other
+        // input path is already inert in STATE.FINISHED (the movement
+        // switch in update() has no case for it, and onCanvasPointerDown
+        // only acts during STATE.WAITING_AT_DOOR), so leaving listeners
+        // attached is safe. Advancing to the next chapter now happens only
+        // via goToNextChapter(), triggered by that CONTINUE press -- not
+        // automatically, the moment the level ends.
     }
 
     function finish() {
@@ -5422,7 +8164,14 @@
        ====================================================================== */
     function startMusic() {
         try {
-            musicEl = new Audio(ASSETS.music);
+            // Same resolveAssetUrl() helper as the fonts above, for a
+            // consistent, explicit resolution against document.baseURI
+            // -- though ASSETS.music was already a plain relative string
+            // in the same "assets/..." convention every working image
+            // uses, so if this still 404s, the most likely explanation
+            // is that the mp3 file itself isn't present on disk yet
+            // rather than a path-resolution problem.
+            musicEl = new Audio(resolveAssetUrl(ASSETS.music));
             musicEl.loop = true;
             musicEl.volume = 0.6;
             musicFading = false;
@@ -5465,6 +8214,170 @@
         }, 80);
     }
 
+    // ------------------------------------------------------------------
+    // MEETING-DUCK / FRESH-THREADS-STING AUDIO SYSTEM
+    //
+    // Three conceptual states (see audioMode), and exactly one function
+    // that moves between them -- setAudioMode() -- so the mix can never
+    // get stuck half-transitioned:
+    //   "outside"    -- gameplay music at MUSIC_NORMAL_VOLUME, no chatter, no sting
+    //   "meeting"    -- gameplay music ducked to MUSIC_DUCKED_VOLUME, meeting-chatter.mp3 looping in foreground
+    //   "freshSting" -- gameplay music paused (position kept, not reset), fresh.mp3 playing alone
+    //
+    // Call sites: enterInsideMeeting() -> setAudioMode("meeting"),
+    // beginLeavingMeeting() -> setAudioMode("outside"), the
+    // "hidden"->"emerging" Fresh Threads transition in
+    // updateChangingStoreEvent() -> setAudioMode("freshSting"), and
+    // fresh.mp3's own "ended" event -> setAudioMode("outside"). None of
+    // those call sites' surrounding movement/timing logic is touched --
+    // this is purely an added function call at each point.
+    // ------------------------------------------------------------------
+    const MUSIC_NORMAL_VOLUME = 0.6;              // matches startMusic()'s existing default
+    const MUSIC_DUCKED_VOLUME = 0.6 * 0.2;        // ~20% of normal -- within the requested 15-25% duck range
+    const AUDIO_DUCK_FADE_MS = 450;               // "short smooth fade" for ducking/restoring
+    const AUDIO_FADE_STEP_MS = 80;
+
+    // Fades musicEl's volume toward targetVolume over durationMs.
+    // Clears any fade already in progress first, so rapid back-to-back
+    // calls (e.g. entering then immediately leaving a meeting) can never
+    // leave two fades fighting over the same element's volume.
+    function fadeMusicVolumeTo(targetVolume, durationMs) {
+        if (musicFadeIntervalId) {
+            clearInterval(musicFadeIntervalId);
+            musicFadeIntervalId = null;
+        }
+        if (!musicEl) return;
+        const steps = Math.max(1, Math.round(durationMs / AUDIO_FADE_STEP_MS));
+        const startVolume = musicEl.volume;
+        const delta = (targetVolume - startVolume) / steps;
+        let count = 0;
+        musicFadeIntervalId = setInterval(function () {
+            count++;
+            if (!musicEl) {
+                clearInterval(musicFadeIntervalId);
+                musicFadeIntervalId = null;
+                return;
+            }
+            musicEl.volume = Math.max(0, Math.min(1, startVolume + delta * count));
+            if (count >= steps) {
+                musicEl.volume = Math.max(0, Math.min(1, targetVolume));
+                clearInterval(musicFadeIntervalId);
+                musicFadeIntervalId = null;
+            }
+        }, AUDIO_FADE_STEP_MS);
+    }
+
+    // Singleton start -- if a previous instance is somehow still around
+    // (e.g. a scene transition firing twice), it's stopped and replaced
+    // rather than left running underneath the new one, per "only one
+    // meeting-chatter audio instance should exist at a time."
+    function startMeetingChatter() {
+        if (meetingChatterEl) {
+            try { meetingChatterEl.pause(); } catch (err) { /* ignore */ }
+            meetingChatterEl = null;
+        }
+        try {
+            meetingChatterEl = new Audio(resolveAssetUrl(ASSETS.meetingChatter));
+            meetingChatterEl.loop = true; // loops for the whole meeting if the clip is shorter than the scene, per spec
+            meetingChatterEl.volume = 0.85; // foreground/dominant, but still leaves a little headroom under 1.0
+            const playPromise = meetingChatterEl.play();
+            if (playPromise && typeof playPromise.catch === "function") {
+                playPromise.catch(function () { /* autoplay blocked or file missing -- continue silently */ });
+            }
+        } catch (err) {
+            meetingChatterEl = null;
+        }
+    }
+
+    function stopMeetingChatter() {
+        if (!meetingChatterEl) return;
+        try {
+            meetingChatterEl.pause();
+        } catch (err) { /* ignore */ }
+        meetingChatterEl = null;
+    }
+
+    // Singleton start, same reasoning as startMeetingChatter().
+    function startFreshThreadsSting() {
+        if (freshStingEl) {
+            try { freshStingEl.pause(); } catch (err) { /* ignore */ }
+            freshStingEl = null;
+        }
+        try {
+            freshStingEl = new Audio(resolveAssetUrl(ASSETS.freshThreadsSting));
+            freshStingEl.loop = false; // one-shot sting, not a loop
+            freshStingEl.volume = 1;
+            // The moment the sting finishes, hand the mix back to normal
+            // outdoor music -- this is what actually resumes the music,
+            // independent of whichever Fresh Threads visual phase the
+            // costume-change choreography happens to be in by then.
+            freshStingEl.addEventListener("ended", function () {
+                if (audioMode === "freshSting") {
+                    setAudioMode("outside");
+                }
+            });
+            const playPromise = freshStingEl.play();
+            if (playPromise && typeof playPromise.catch === "function") {
+                playPromise.catch(function () {
+                    // Autoplay blocked or file missing -- don't strand the
+                    // mix paused forever waiting for an "ended" event that
+                    // will never fire.
+                    if (audioMode === "freshSting") setAudioMode("outside");
+                });
+            }
+        } catch (err) {
+            freshStingEl = null;
+            if (audioMode === "freshSting") setAudioMode("outside");
+        }
+    }
+
+    // The single entry point for all three states -- every transition
+    // between "outside"/"meeting"/"freshSting" goes through here, so a
+    // given mode's cleanup (stopping whichever extra track was playing,
+    // restoring/pausing music appropriately) always happens before the
+    // next mode's setup starts. Re-entering the mode it's already in is
+    // a no-op, which is what makes the "don't double-start on a
+    // transition firing twice" guarantee work for meeting chatter too.
+    function setAudioMode(mode) {
+        if (mode === audioMode) return;
+        audioMode = mode;
+
+        if (mode === "meeting") {
+            fadeMusicVolumeTo(MUSIC_DUCKED_VOLUME, AUDIO_DUCK_FADE_MS);
+            startMeetingChatter();
+        } else if (mode === "freshSting") {
+            stopMeetingChatter(); // defensive -- chatter should never be active outdoors, but never let it survive into the sting
+            if (musicFadeIntervalId) {
+                clearInterval(musicFadeIntervalId);
+                musicFadeIntervalId = null;
+            }
+            if (musicEl) {
+                try { musicEl.pause(); } catch (err) { /* ignore */ } // paused, not stopped -- currentTime is left exactly where it was so it can resume from there
+            }
+            startFreshThreadsSting();
+        } else { // "outside"
+            stopMeetingChatter();
+            if (freshStingEl) {
+                try { freshStingEl.pause(); } catch (err) { /* ignore */ }
+                freshStingEl = null;
+            }
+            if (musicEl) {
+                // Resume from wherever it already was -- never restarts
+                // the track. Covers both "coming back from a duck" (music
+                // was already playing, just quiet) and "coming back from
+                // the Fresh sting" (music was paused, needs an explicit
+                // play() to continue).
+                if (musicEl.paused) {
+                    const playPromise = musicEl.play();
+                    if (playPromise && typeof playPromise.catch === "function") {
+                        playPromise.catch(function () { /* ignore */ });
+                    }
+                }
+                fadeMusicVolumeTo(MUSIC_NORMAL_VOLUME, AUDIO_DUCK_FADE_MS);
+            }
+        }
+    }
+
     /* ======================================================================
        RESIZE
        ====================================================================== */
@@ -5500,6 +8413,16 @@
         detachInput();
         detachResize();
         stopMusic();
+        stopMeetingChatter();
+        if (freshStingEl) {
+            try { freshStingEl.pause(); } catch (err) { /* ignore */ }
+            freshStingEl = null;
+        }
+        if (musicFadeIntervalId) {
+            clearInterval(musicFadeIntervalId);
+            musicFadeIntervalId = null;
+        }
+        audioMode = "outside";
 
         if (container) {
             container.innerHTML = "";
@@ -5508,16 +8431,32 @@
         canvas = null;
         ctx = null;
         livesDisplay = null;
+        livesHeartsEl = null;
         clockDisplay = null;
-        progressFill = null;
+        countdownDigitsEl = null;
+        countdownMainEl = null;
+        countdownSecEl = null;
+        countdownCaptionEl = null;
+        progressLabelEl = null;
+        progressSegmentEls = [];
         startPrompt = null;
         actionButton = null;
+        actionButtonHousing = null;
+        actionButtonPlayEl = null;
+        actionButtonBoltEl = null;
+        actionButtonWhooshEl = null;
+        actionButtonChevronWrap = null;
+        actionButtonChevronEls = [];
+        actionButtonFireContainer = null;
+        fireParticles = [];
         retryOverlay = null;
         retryButton = null;
+        debugAnchorButton = null;
 
         obstacles = [];
         dialogueQueue = [];
         activeBubble = null;
+        fadingWorldBubble = null;
         impactEffects = [];
         activeAmbientEvents = [];
 
