@@ -18,6 +18,42 @@ assets/audio/thud.mp3
 
 window.HalloweenGame = window.HalloweenGame || {};
 
+/* ==========================================================================
+   GAME FRAME -- shared 390x780 canonical portrait stage, identical block
+   in chapter0-intro.js/chapter1-story.js/chapter1-gameplay.js (guarded so
+   it only actually runs once no matter how many of those three include
+   it). Locks the #game element itself to a fixed 390x780 CSS box, then
+   scales that whole box up/down as one rigid unit (a single centered CSS
+   transform) to fit whatever the real window/device is -- so every
+   chapter composes against the exact same logical stage instead of a
+   wider screen revealing more world. See chapter1-gameplay.js's
+   resizeCanvas() for the matching fixed-resolution canvas half of this.
+   ========================================================================== */
+if (!window.HalloweenGame.gameFrameReady) {
+    window.HalloweenGame.gameFrameReady = true;
+    (function () {
+        var GAME_STAGE_WIDTH = 390;
+        var GAME_STAGE_HEIGHT = 780;
+        function applyGameFrame() {
+            var game = document.getElementById("game");
+            if (!game) return;
+            var scale = Math.min(window.innerWidth / GAME_STAGE_WIDTH, window.innerHeight / GAME_STAGE_HEIGHT);
+            game.style.position = "fixed";
+            game.style.left = "50%";
+            game.style.top = "50%";
+            game.style.width = GAME_STAGE_WIDTH + "px";
+            game.style.height = GAME_STAGE_HEIGHT + "px";
+            game.style.transformOrigin = "center center";
+            game.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
+            game.style.overflow = "hidden";
+            game.style.background = "#000";
+        }
+        applyGameFrame();
+        window.addEventListener("resize", applyGameFrame);
+        window.addEventListener("orientationchange", applyGameFrame);
+    })();
+}
+
 window.HalloweenGame.chapter0Intro = {
 
     name: "chapter0-intro",
@@ -32,8 +68,10 @@ window.HalloweenGame.chapter0Intro = {
     music: "assets/audio/chapter0-intro-music.mp3",
     splashAudio: "assets/audio/chapter0-intro-splash.mp3",
     thud: "assets/audio/thud.mp3",
+    uiClick: "assets/audio/click.mp3",
 
     mainMusic: null,
+    uiClickEl: null,
 
     /*
     DEVELOPMENT MENU
@@ -1161,6 +1199,8 @@ window.HalloweenGame.chapter0Intro = {
             "click",
             () => {
 
+                this.playUiClickSound();
+
                 this.tryToPlay();
 
             }
@@ -1245,6 +1285,37 @@ window.HalloweenGame.chapter0Intro = {
         console.error(
             "DEV MODE: chapter1-gameplay.js is not ready."
         );
+    },
+
+
+    /*
+    UI CLICK SFX
+
+    Intro/game-entry and story-navigation presses only (LET'S PLAY,
+    START THE STORY, START STORY OVER, the silent-film play/pause
+    toggle) -- short, responsive, plays immediately on press without
+    delaying the action attached to that button. A single reused
+    instance is fine since these presses are never rapid-fire/overlapping.
+    */
+    playUiClickSound() {
+
+        try {
+
+            if (!this.uiClickEl) {
+
+                this.uiClickEl =
+                    new Audio(this.uiClick);
+            }
+
+            this.uiClickEl.currentTime = 0;
+
+            this.uiClickEl
+                .play()
+                .catch(() => {});
+
+        } catch (error) {
+            // ignore
+        }
     },
 
 
@@ -1561,6 +1632,8 @@ window.HalloweenGame.chapter0Intro = {
             "click",
             () => {
 
+                this.playUiClickSound();
+
                 this.startStory();
 
             }
@@ -1802,6 +1875,8 @@ window.HalloweenGame.chapter0Intro = {
             "click",
             () => {
 
+                this.playUiClickSound();
+
                 this.restartTitleSequence();
 
             }
@@ -1837,6 +1912,8 @@ window.HalloweenGame.chapter0Intro = {
         pauseButton.addEventListener(
             "click",
             () => {
+
+                this.playUiClickSound();
 
                 this.toggleTitlePause();
 

@@ -47,6 +47,45 @@
     window.HalloweenGame = window.HalloweenGame || {};
 
     /* ======================================================================
+       GAME FRAME -- shared 390x780 canonical portrait stage, identical
+       block in chapter0-intro.js/chapter1-story.js/chapter1-gameplay.js
+       (guarded so it only actually runs once no matter how many of those
+       three include it). Locks the #game element itself to a fixed
+       390x780 CSS box, then scales that whole box up/down as one rigid
+       unit (a single centered CSS transform) to fit whatever the real
+       window/device is -- so every chapter composes against the exact
+       same logical stage, and a wider screen just shows the same
+       composition bigger instead of revealing more world. See
+       GAME_STAGE_WIDTH/GAME_STAGE_HEIGHT below and resizeCanvas() for the
+       other half of this (locking the CANVAS's own internal drawing
+       resolution to match, instead of the old container-relative sizing).
+       ====================================================================== */
+    const GAME_STAGE_WIDTH = 390;
+    const GAME_STAGE_HEIGHT = 780;
+    if (!window.HalloweenGame.gameFrameReady) {
+        window.HalloweenGame.gameFrameReady = true;
+        (function () {
+            function applyGameFrame() {
+                const game = document.getElementById("game");
+                if (!game) return;
+                const scale = Math.min(window.innerWidth / GAME_STAGE_WIDTH, window.innerHeight / GAME_STAGE_HEIGHT);
+                game.style.position = "fixed";
+                game.style.left = "50%";
+                game.style.top = "50%";
+                game.style.width = GAME_STAGE_WIDTH + "px";
+                game.style.height = GAME_STAGE_HEIGHT + "px";
+                game.style.transformOrigin = "center center";
+                game.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
+                game.style.overflow = "hidden";
+                game.style.background = "#000";
+            }
+            applyGameFrame();
+            window.addEventListener("resize", applyGameFrame);
+            window.addEventListener("orientationchange", applyGameFrame);
+        })();
+    }
+
+    /* ======================================================================
        CONFIG -- all gameplay tuning values live here
        ====================================================================== */
     const CONFIG = {
@@ -267,6 +306,10 @@ interiorPostDialoguePause: 0.5,
         get billOutdoorStrollFPS() { return 7 * getFasterSpeedMultiplier(); },     // OUTDOOR ONLY -- 4 * 1.25 base, now also scales with FASTER (see CONFIG.walkSpeed above) so the run cycle visibly quickens along with actual travel speed. Bill's actual travel speed (walkSpeed/dashSpeed) is a completely separate value, this only affects the animation.
         billRenderOffsetX: 0,        // px -- nudge sprite left/right without touching gameplay x
         billRenderOffsetY: 0,        // px -- nudge sprite up/down without touching gameplay/ground y
+
+        billFlossFPS: 6,              // the 5-frame floss cycle within each FLOSS window -- slowed from the original continuous-loop version so it reads clearly instead of frantic; see billFlossOnDuration/billFlossOffDuration
+        billFlossOnDuration: 1.4,     // seconds Bill spends flossing per cycle
+        billFlossOffDuration: 1.1,    // seconds Bill spends back in his normal costume2 idle pose per cycle, before flossing again
         billIdleBlipMinInterval: 4,  // seconds -- soonest an occasional idle variation (1->2->1 or 1->4->1) can happen after the last one
         billIdleBlipMaxInterval: 9,  // seconds -- latest it can happen; actual gap is randomized between these each time
         billIdleBlipHoldSeconds: 0.35, // how long frame 2/4 shows mid-blip before returning to the resting frame 1
@@ -670,6 +713,17 @@ interiorPostDialoguePause: 0.5,
         billSpriteBasicLevel1Costume2: "assets/players/basic-level1-bill2.png",
         bobSpriteBasicLevel1Costume2: "assets/players/basic-level1-bob2.png",
 
+        // SUPPLEMENTAL "funny" sheet -- Bill only, comedy animations (floss
+        // for now; more later, not integrated yet). Does NOT replace
+        // billSpriteBasicLevel1Costume2 above, which stays Bill's normal
+        // post-Fresh-Threads movement sheet, untouched. Already normalized
+        // to a clean 1280x1024, 5 cols x 4 rows, 256x256-per-cell grid --
+        // see BILL_FUNNY_SPRITE_COLS/ROWS and BILL_FLOSS_FRAMES above. A
+        // missing/failed file here just means the floss never plays --
+        // drawBillCharacter falls back to Bill's normal costume2 sprite,
+        // see the usingFunnySheet check there.
+        billSpriteFunny: "assets/players/basic-level1-bill-funny-1280x1024.png",
+
         // Optional final-art overrides for the five interactive buildings.
         // If any of these files are missing, drawBuilding() automatically
         // keeps the existing programmer-art building as the fallback.
@@ -698,14 +752,26 @@ interiorPostDialoguePause: 0.5,
         // assets/backgrounds/ -- corrected per explicit path confirmation.
         level1Visuals: "assets/players/level1-visuals.png",
 
-        music: "assets/audio/chapter1-gameplay-music.mp3",
+        music: "assets/audio/chapter1-gameplay-music.mp3", // beforeFreshThreads gameplay track -- retired for good once Fresh Threads' clothing-change sequence begins, see beginFreshThreadsMusicFadeOut()
+        musicAfterFresh: "assets/audio/chapter1-gameplay-music-fresh-to-meeting.mp3", // afterFreshThreads gameplay track -- becomes "the" gameplay music permanently partway through fresh.mp3, see startFreshToMeetingTrack()
         // Meeting-interior foreground chatter, and the Fresh Threads
         // costume-reveal-exit music sting -- see the AUDIO section near
-        // the bottom of the file (setAudioMode/duckMusicForMeeting/
-        // restoreMusicAfterMeeting/playFreshThreadsSting) for how these
-        // three tracks are coordinated so they never overlap incorrectly.
+        // the bottom of the file (setAudioMode/startMeetingChatter/
+        // startFreshThreadsSting/startFreshToMeetingTrack) for how these
+        // tracks are coordinated so they never overlap incorrectly.
         meetingChatter: "assets/audio/meeting-chatter.mp3",
-        freshThreadsSting: "assets/audio/fresh.mp3"
+        freshThreadsSting: "assets/audio/fresh.mp3",
+        uiClick: "assets/audio/click.mp3",   // intro/story-card/menu-style UI navigation only -- see playUiClickSound()
+
+        // Post-meeting travel-music progression for the back half of
+        // Level 1 -- see MEETING_EXIT_TRAVEL_ASSET/switchTravelTrack near
+        // the AUDIO section. Same "assets/audio/<name>.mp3" convention as
+        // every other track above; update these three paths if the actual
+        // project location differs.
+        grunge1: "assets/audio/grunge1.mp3", // travel music: CA -> GA
+        grunge2: "assets/audio/grunge2.mp3", // travel music: GA -> EA
+        grunge3: "assets/audio/grunge3.mp3", // travel music: EA -> CMA
+        grunge4: "assets/audio/grunge4.mp3"  // final Level 1 travel/end music, after CMA
     };
 
     /* ======================================================================
@@ -1250,6 +1316,17 @@ interiorPostDialoguePause: 0.5,
         ? [{ row: BILL_ROW_IDLE, col: 0 }, { row: BILL_ROW_IDLE, col: 1 }, { row: BILL_ROW_IDLE, col: 2 }, { row: BILL_ROW_EXCITED, col: 1 }] // 1 -> 2 -> 3 -> 20
         : [{ row: BILL_ROW_IDLE, col: 0 }, { row: BILL_ROW_IDLE, col: 1 }, { row: BILL_ROW_IDLE, col: 2 }]; // 1 -> 2 -> 3
 
+    // SUPPLEMENTAL "funny" sheet grid -- basic-level1-bill-funny-1280x1024.png.
+    // Completely independent grid from BILL_SPRITE_COLS/ROWS above (that's
+    // still the normal walk/idle/doorway sheet, untouched). This sheet is a
+    // clean, pre-normalized 1280x1024 image, 5 cols x 4 rows, exactly
+    // 256x256 per cell -- no inset/crop table needed, see the funny-sheet
+    // branch in drawBillCharacter, which reads cells directly.
+    const BILL_FUNNY_SPRITE_COLS = 5;
+    const BILL_FUNNY_SPRITE_ROWS = 4;
+    const BILL_FUNNY_ROW_FLOSS = 0; // row 0 = floss. Rows 1-3 (smoking, arms-crossed, shuffle) are reserved for later, not integrated yet.
+    const BILL_FLOSS_FRAMES = [0, 1, 2, 3, 4]; // all 5 cells of row 0, in order, looping
+
     // Per-frame horizontal recentering, measured directly from the actual
     // PNG's alpha bounds (native 256px cell space, before scaling). Every
     // frame's FEET already sit flush with its cell's bottom edge (verified
@@ -1580,16 +1657,25 @@ interiorPostDialoguePause: 0.5,
             // under the main sign -- not centered like the generic
             // default assumed. Top ~52% down to the ground.
             doorway: { xPercent: 0.35, bottomPercent: 1.0, widthPercent: 0.11, heightPercent: 0.30 },
-            // Bill/Bob's stopping spot here (off to the side, pointing at
-            // the CMA sign) is being KEPT as-is -- it reads as personality.
-            // Note: the "TAP DOOR" label that used to disambiguate this
-            // deliberately-offset pose was removed along with the doorway
-            // arrow/glow (per the controller-style pass) -- the chevron
-            // control is now the only doorway cue anywhere, including
-            // here. showTapDoorHint is left set (now inert/unused) rather
-            // than pulled out of this data, in case a future pass wants
-            // a different way to flag this meeting's offset pose.
-            showTapDoorHint: true
+            // CMA/Harrison Corner is Level 1's final destination, so
+            // arriving there should read as deliberate -- the old plain
+            // CONFIG.meetingStopDistance stop (Bill/Bob's old "off to the
+            // side, pointing at the sign" pose) left the building well off
+            // to one side of the viewport rather than framed. centerInViewport
+            // opts CMA into getLandmarkCenterStopOffset() instead (see
+            // getMeetingApproachStopDistance) -- the building's own
+            // horizontal CENTER lands at screen-center when they stop, no
+            // change to its world position or to the approach/deceleration
+            // logic itself, which is shared with every other meeting.
+            // Note: the "TAP DOOR" label that used to disambiguate the old
+            // off-center pose was removed along with the doorway arrow/glow
+            // (per the controller-style pass) -- the chevron control is now
+            // the only doorway cue anywhere, including here. showTapDoorHint
+            // is left set (still inert/unused) rather than pulled out of
+            // this data, in case a future pass wants a different way to
+            // flag this meeting.
+            showTapDoorHint: true,
+            centerInViewport: true
         }
     ];
 
@@ -1809,6 +1895,7 @@ interiorPostDialoguePause: 0.5,
     let fireSpawnTimer = 0;
     let actionButtonChevronEls = [];   // 3 chevron divs shown instead of "ENTER" -- see buildDom's chevron creation block and updateActionButtonHud
     let actionButtonChevronWrap = null; // their shared positioned container -- toggled visible only for BUTTON_STATE.ENTER, see applyActionButtonVisualState
+    let actionButtonChapter2Wrap = null; // "» CHAPTER 2 »" chevron+label group -- toggled visible only for BUTTON_STATE.CONTINUE, see applyActionButtonVisualState
     let chevronBumpTimer = 0;          // seconds until the next small upward bump while chevrons are showing -- see updateChevronBump
     let lastActionButtonState = null;  // previous frame's button state, so updateHud() can fire a one-time pop only on an actual transition
     let retryOverlay = null;
@@ -1862,7 +1949,7 @@ interiorPostDialoguePause: 0.5,
     // checkDryClubApproach / updateDryClubDialogue. Much smaller than the
     // changing store event: just approach, stop, play one dialogue point,
     // resume -- no doorway, no costume change.
-    let dryClubPhase = null;         // null | "dialogue"
+    let dryClubPhase = null;         // null | "approach" | "dialogue"
     let dryClubCompleted = false;    // true once played -- the club then behaves like ordinary scenery, see checkDryClubApproach
 
     // CURRENT APPEARANCE STATE -- read by drawBillCharacter/drawBobCharacter
@@ -1890,6 +1977,17 @@ interiorPostDialoguePause: 0.5,
     let freshStingEl = null;       // singleton -- same idea, see startFreshThreadsSting()
     let audioMode = "outside";     // "outside" | "meeting" | "freshSting" -- see setAudioMode()
     let musicFadeIntervalId = null; // single active volume-fade timer on musicEl at a time -- starting a new one always clears this first, so duck/restore/pause calls firing in quick succession can never fight each other
+
+    // Which gameplay background track counts as "the" current one --
+    // meeting enter/exit (setAudioMode) always operates on whatever
+    // musicEl currently points at, so this flag is bookkeeping only
+    // (never resolved back into an asset path once set); it flips
+    // permanently, once, at the Fresh Threads music handoff -- see
+    // startFreshToMeetingTrack(). Reset on every retry, see resetRuntimeState().
+    let currentGameplayTrack = "beforeFreshThreads"; // "beforeFreshThreads" | "afterFreshThreads"
+    let freshThreadsHalfwaySwapped = false; // guards the fresh.mp3-halfway handoff from firing more than once per playback, see startFreshThreadsSting()
+
+    let uiClickEl = null;          // reused instance for click.mp3 -- see playUiClickSound()
 
     let transitionTimer = 0;
     let transitionPhase = null;  // "in" | "finishing"
@@ -1945,6 +2043,9 @@ interiorPostDialoguePause: 0.5,
     let interiorImages = {};        // meeting id -> interior background image, see renderInsideMeeting
     let billSpriteImage = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 };
     let billSpriteImage2 = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 }; // costume2 -- see billAppearance
+    let billSpriteImageFunny = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 }; // supplemental "funny" sheet (floss, etc) -- see ASSETS.billSpriteFunny
+    let billFlossCyclePrevActive = false; // was isBillFlossActive() true last frame -- detects the entry edge so the FLOSS/IDLE cycle always restarts on FLOSS, see drawBillCharacter
+    let billFlossCycleStartAt = null;     // billAnimElapsed timestamp the current FLOSS/IDLE cycle window began
     let billAnimElapsed = 0;        // seconds, free-running animation clock -- never resets on state change, see drawBillCharacter
     let billIdleNextBlipAt = null;  // billAnimElapsed timestamp for the next occasional idle variation (1->2->1 or 1->4->1)
     let billIdleBlipEndAt = null;   // if an idle blip is currently showing, when it ends and Bill returns to resting on frame 1
@@ -2450,6 +2551,68 @@ interiorPostDialoguePause: 0.5,
             actionButtonChevronEls.push(chevron);
         });
 
+        // "» CHAPTER 2 »" CONTROL -- shown ONLY for BUTTON_STATE.CONTINUE,
+        // once Level 1 (through CMA) is actually finished. Real CSS
+        // chevrons (a rotated border-corner, same "no image/glyph"
+        // philosophy as the PLAY triangle/FASTER bolt above -- NOT the
+        // keyboard ">" character) flank a Courier-New digital-HUD label,
+        // matching the countdown clock's font so it reads as the same
+        // 1980s-arcade instrument panel rather than a generic web button.
+        // actionButton/actionButtonHousing are both widened specifically
+        // for this state (see applyActionButtonVisualState) since the
+        // compact 56px square used by every other state has no room for
+        // the label -- everything else about the housing (position,
+        // rivets, bevel, press feedback) is unchanged.
+        actionButtonChapter2Wrap = document.createElement("div");
+        actionButtonChapter2Wrap.style.position = "absolute";
+        actionButtonChapter2Wrap.style.left = "50%";
+        actionButtonChapter2Wrap.style.top = "50%";
+        actionButtonChapter2Wrap.style.transform = "translate(-50%, -50%)";
+        actionButtonChapter2Wrap.style.display = "none"; // toggled by applyActionButtonVisualState
+        actionButtonChapter2Wrap.style.alignItems = "center";
+        actionButtonChapter2Wrap.style.justifyContent = "center";
+        actionButtonChapter2Wrap.style.gap = "10px";
+        actionButtonChapter2Wrap.style.whiteSpace = "nowrap";
+        actionButtonHousing.appendChild(actionButtonChapter2Wrap);
+
+        function buildChapter2Chevron() {
+            // A small pair of glowing corner-chevrons ("›" shapes, tight
+            // together for a "»" read), built the same border-corner-
+            // rotated-45deg way real UI chevron icons are drawn -- not a
+            // font glyph, per spec ("proper visual/CSS chevrons," not
+            // keyboard characters slapped around text).
+            const group = document.createElement("div");
+            group.style.position = "relative";
+            group.style.width = "16px";
+            group.style.height = "16px";
+            [0, 6].forEach(function (offsetPx) {
+                const mark = document.createElement("div");
+                mark.style.position = "absolute";
+                mark.style.left = offsetPx + "px";
+                mark.style.top = "3px";
+                mark.style.width = "10px";
+                mark.style.height = "10px";
+                mark.style.borderTop = "3px solid #39ff14";
+                mark.style.borderRight = "3px solid #39ff14";
+                mark.style.transform = "rotate(45deg)";
+                mark.style.filter = "drop-shadow(0 0 4px rgba(57,255,20,0.9))";
+                mark.style.animation = "hgSymbolIdlePulse 1.8s ease-in-out infinite";
+                group.appendChild(mark);
+            });
+            return group;
+        }
+
+        const chapter2Label = document.createElement("div");
+        chapter2Label.textContent = "CHAPTER 2";
+        chapter2Label.style.font = "bold 17px 'Courier New', monospace"; // matches the HUD countdown clock's digital-LED font
+        chapter2Label.style.color = "#39ff14";
+        chapter2Label.style.letterSpacing = "2px";
+        chapter2Label.style.textShadow = "0 0 6px rgba(57,255,20,0.85), 0 0 14px rgba(57,255,20,0.5)";
+
+        actionButtonChapter2Wrap.appendChild(buildChapter2Chevron());
+        actionButtonChapter2Wrap.appendChild(chapter2Label);
+        actionButtonChapter2Wrap.appendChild(buildChapter2Chevron());
+
         // REAL PARTICLE FIRE (FASTER state) -- just an empty positioned
         // container here; actual particle divs are created/destroyed
         // dynamically by spawnFireParticle/updateActionButtonFireParticles
@@ -2685,6 +2848,8 @@ interiorPostDialoguePause: 0.5,
         changingStorePhase = null;
         changingStoreTimer = 0;
         changingStoreCompleted = false;
+        currentGameplayTrack = "beforeFreshThreads";
+        freshThreadsHalfwaySwapped = false;
         dryClubPhase = null;
         dryClubCompleted = false;
         crowdBubblePresetIndex = 0;
@@ -2696,6 +2861,8 @@ interiorPostDialoguePause: 0.5,
         billIdleBlipCol = null;
         billDoorwaySequenceStartAt = null;
         billWasInDoorwayState = false;
+        billFlossCyclePrevActive = false;
+        billFlossCycleStartAt = null;
         doorwayDustPuffs = [];
         doorwayDustSpawnTimer = 0;
         skidDustPuffs = [];
@@ -2917,6 +3084,7 @@ interiorPostDialoguePause: 0.5,
         bobSpriteImage = loadTrackedImage(ASSETS.bobSpriteBasicLevel1);
         billSpriteImage2 = loadTrackedImage(ASSETS.billSpriteBasicLevel1Costume2);
         bobSpriteImage2 = loadTrackedImage(ASSETS.bobSpriteBasicLevel1Costume2);
+        billSpriteImageFunny = loadTrackedImage(ASSETS.billSpriteFunny);
         level1VisualsImage = loadTrackedImage(ASSETS.level1Visuals);
     }
 
@@ -3341,9 +3509,19 @@ interiorPostDialoguePause: 0.5,
         e.preventDefault();
 
         const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX !== undefined) ? e.clientX - rect.left : rect.width * 0.8;
-        const y = (e.clientY !== undefined) ? e.clientY - rect.top : rect.height * 0.8;
-        if (isPointOnDoorway(x, y, rect.width, rect.height)) {
+        // Convert from the canvas's actual on-screen (CSS/visual) size --
+        // which can now be scaled to any physical size by the GAME FRAME
+        // transform -- back into the fixed 390x780 LOGICAL space every
+        // render/geometry calculation uses (see resizeCanvas). A raw
+        // clientX/clientY - rect.left is only correct when canvas.width
+        // happens to equal rect.width, which is no longer guaranteed.
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const clientX = (e.clientX !== undefined) ? e.clientX : rect.left + rect.width * 0.8;
+        const clientY = (e.clientY !== undefined) ? e.clientY : rect.top + rect.height * 0.8;
+        const x = (clientX - rect.left) * scaleX;
+        const y = (clientY - rect.top) * scaleY;
+        if (isPointOnDoorway(x, y, canvas.width, canvas.height)) {
             enterMeeting();
         }
     }
@@ -3490,6 +3668,29 @@ interiorPostDialoguePause: 0.5,
         return { x: x, groundY: groundY, displayWidth: 180, displayHeight: displayHeight, usingOverride: false };
     }
 
+    // Shared "put this building's/landmark's horizontal CENTER at
+    // screen-CENTER" stop offset -- used by CMA/Harrison Corner (see
+    // MEETINGS' cma entry, centerInViewport) and the Dry People's Club
+    // stop (see DRY_CLUB_STOP/checkDryClubApproach/updateDryClubDialogue).
+    // Both real meeting buildings and decorative landmarks are drawn
+    // CENTERED on their own "distance" value (see drawBuildingImage/
+    // drawDecorativeBuildings), so putting that center at screen-center
+    // (canvas.width * 0.5) just means solving for the gap between
+    // outdoorPrimaryX (where Bill/Bob always stand, well left of center)
+    // and that midpoint -- computed from the real canvas width, same
+    // "measure it, don't hardcode a guess" approach
+    // getMeetingApproachStopDistance already uses for EA below. Floors at
+    // the ordinary CONFIG.meetingStopDistance so a very narrow viewport
+    // never ends up with a near-zero (or negative) gap; falls back to
+    // that same floor if canvas isn't ready yet. This never changes the
+    // building's/landmark's actual world position (its "distance" value)
+    // -- only where Bill/Bob stop relative to it.
+    function getLandmarkCenterStopOffset() {
+        if (!canvas) return CONFIG.meetingStopDistance;
+        const w = canvas.width;
+        return Math.max(CONFIG.meetingStopDistance, (w * 0.5) - outdoorPrimaryX(w));
+    }
+
     // EA-ONLY doorway-aware approach stop (see the "alignStopToDoorway"
     // flag on EA's MEETINGS entry). The generic approach in updateApproach
     // stops Bill/Bob a fixed CONFIG.meetingStopDistance before the
@@ -3500,12 +3701,13 @@ interiorPostDialoguePause: 0.5,
     // CONFIG.meetingStopDistance in front of Bill -- using this building's
     // own real rendered width (via getBuildingRenderGeometry, so it's
     // correct at any canvas size, not a hardcoded guess) rather than
-    // duplicating that geometry logic. Every meeting WITHOUT the flag
-    // (including CMA, which has a similar offset but keeps its current,
-    // intentionally-off-center stop) returns the plain, unmodified
+    // duplicating that geometry logic. CMA uses centerInViewport instead
+    // (see getLandmarkCenterStopOffset above) -- every other meeting
+    // without either flag returns the plain, unmodified
     // CONFIG.meetingStopDistance -- this never changes global approach
     // behavior.
     function getMeetingApproachStopDistance(meeting) {
+        if (meeting.centerInViewport) return getLandmarkCenterStopOffset();
         if (!meeting.alignStopToDoorway || !canvas) return CONFIG.meetingStopDistance;
         const geo = getBuildingRenderGeometry(meeting, canvas.width, canvas.height, 0);
         const doorway = getMeetingDoorwayConfig(meeting);
@@ -3570,6 +3772,7 @@ interiorPostDialoguePause: 0.5,
     function onRetryButtonPointerDown(e) {
         if (state !== STATE.OUT_OF_LIVES) return;
         e.preventDefault();
+        playUiClickSound(); // retry-screen navigation -- see spec section 1
         retryLevel();
     }
 
@@ -3639,12 +3842,14 @@ interiorPostDialoguePause: 0.5,
 
         switch (buttonState) {
             case BUTTON_STATE.START:
+                playUiClickSound(); // game-entry press -- see spec section 1
                 beginWalking();
                 return;
             case BUTTON_STATE.ENTER:
                 enterMeeting(); // same function the doorway tap calls -- see onCanvasPointerDown
                 return;
             case BUTTON_STATE.CONTINUE:
+                playUiClickSound(); // chapter-handoff press -- see spec section 1
                 goToNextChapter();
                 return;
             case BUTTON_STATE.FASTER:
@@ -3696,18 +3901,30 @@ interiorPostDialoguePause: 0.5,
         }
     }
 
-    // Reuses the SAME chapter hand-off this project already wires up
-    // elsewhere (window.HalloweenGame.nextChapter -- see the public
-    // finish() API below) rather than inventing a second navigation
-    // system. Previously this fired automatically the instant Level 1
-    // finished (see completeFinish); it now only fires when the player
-    // deliberately presses CONTINUE.
+    // THE CHAPTER-2 HANDOFF -- follows the SAME pattern every other
+    // chapter handoff in this project already uses (chapter0-intro.js ->
+    // window.HalloweenGame.chapter1Story.start(), chapter1-story.js ->
+    // window.HalloweenGame.chapter1Gameplay.start()): each module exposes
+    // itself on window.HalloweenGame under its own camelCase name, and
+    // the module handing off calls that exact property directly -- there
+    // is no generic "next chapter" indirection anywhere else in the
+    // project. window.HalloweenGame.nextChapter (the old target here) was
+    // never actually set by anything, which is exactly why CONTINUE did
+    // nothing: this now points at window.HalloweenGame.chapter2Story,
+    // matching chapter2-story.js's expected export name under that
+    // convention. cleanup() runs first -- same full teardown start()/
+    // retryLevel() already rely on (stops the rAF loop, detaches the
+    // window resize listener, stops all Level 1 audio including grunge4,
+    // clears the #game container) -- so nothing from Level 1 keeps
+    // running or rendering behind Chapter 2, and Chapter 2 starts into a
+    // clean container exactly the way chapter1-gameplay.js always did.
     function goToNextChapter() {
-        const next = window.HalloweenGame.nextChapter;
+        const next = window.HalloweenGame.chapter2Story;
         if (next && typeof next.start === "function") {
+            cleanup();
             next.start();
         } else {
-            console.warn("CONTINUE pressed, but window.HalloweenGame.nextChapter isn't set -- nothing to advance to yet.");
+            console.warn("CONTINUE pressed, but window.HalloweenGame.chapter2Story isn't set -- nothing to advance to yet. Make sure chapter2-story.js is loaded on the page and exposes itself as window.HalloweenGame.chapter2Story with a start() method, the same way chapter1-story.js does.");
         }
     }
 
@@ -4614,6 +4831,13 @@ interiorPostDialoguePause: 0.5,
                     // instant they're both fully hidden, not after.
                     billAppearance = "costume2";
                     bobAppearance = "costume2";
+                    // The clothing-change sequence is now underway -- the
+                    // beforeFreshThreads gameplay track fades out and is
+                    // permanently retired here, per the Fresh Threads audio
+                    // spec ("as soon as ... the clothing-change sequence
+                    // begins"). See the AUDIO section near the bottom of
+                    // the file.
+                    beginFreshThreadsMusicFadeOut();
                     break;
                 }
                 const t = 1 - (distanceToStore / CONFIG.meetingStopDistance);
@@ -4633,7 +4857,7 @@ interiorPostDialoguePause: 0.5,
                 if (changingStoreTimer <= 0) {
                     changingStorePhase = "emerging";
                     changingStoreTimer = CONFIG.changingStoreEmergeStepDuration;
-                    setAudioMode("freshSting"); // pauses gameplay music, plays fresh.mp3 alone -- resumes automatically when the sting finishes, see the AUDIO section near the bottom of the file
+                    setAudioMode("freshSting"); // plays fresh.mp3 alone (beforeFreshThreads music is already gone for good, see beginFreshThreadsMusicFadeOut) -- afterFreshThreads music fades in partway through and carries on once the sting finishes, see the AUDIO section near the bottom of the file
                     // Reappear at the same spot they stood before entering
                     // -- render eases them visually out from the doorway
                     // from there (see the CHANGING_STORE_EVENT branch in
@@ -4705,9 +4929,17 @@ interiorPostDialoguePause: 0.5,
        DRY PEOPLE'S CLUB DIALOGUE STOP
 
        Small scripted beat at the existing decorative landmark: approach,
-       stop dead (player input already blocked -- see below), play
-       DryPeoplesClub-level1/pt1, resume normal control. See DRY_CLUB_STOP
-       for placement.
+       slow gradually (same easing curve updateApproach() uses for real
+       meeting doorways), stop with the club CENTERED in the viewport
+       (see getLandmarkCenterStopOffset -- the club's own world position/
+       DRY_CLUB_STOP.distance is untouched, only the stop point relative
+       to it), play DryPeoplesClub-level1/pt1, resume normal control. See
+       DRY_CLUB_STOP for placement.
+
+       Two phases under one STATE.DRY_CLUB_DIALOGUE (dryClubPhase --
+       "approach" then "dialogue"), the same "one state, an internal
+       phase string" pattern CHANGING_STORE_EVENT/changingStorePhase
+       already uses, rather than adding a whole new top-level STATE.
 
        Player input is blocked the same way it already is during every
        other non-WALKING/DASHING state: onCanvasPointerDown only acts
@@ -4722,12 +4954,9 @@ interiorPostDialoguePause: 0.5,
         const meeting = MEETINGS[meetingIndex];
         if (!meeting || meeting.id !== DRY_CLUB_STOP.section) return;
         const distanceToStop = DRY_CLUB_STOP.distance - distanceTraveled;
-        if (distanceToStop <= CONFIG.meetingStopDistance) {
+        if (distanceToStop <= CONFIG.meetingSlowDistance) {
             state = STATE.DRY_CLUB_DIALOGUE;
-            dryClubPhase = "dialogue";
-            currentSpeed = 0;
-            setDistanceTraveled(Math.max(0, DRY_CLUB_STOP.distance - CONFIG.meetingStopDistance));
-            loadDryClubDialogue("pt1");
+            dryClubPhase = "approach";
         }
     }
 
@@ -4745,6 +4974,33 @@ interiorPostDialoguePause: 0.5,
     }
 
     function updateDryClubDialogue(dt) {
+        if (dryClubPhase === "approach") {
+            // Gradual slow-and-stop, same easing curve updateApproach()
+            // uses for real meeting doorways (eased on distance to the
+            // landmark's own anchor -- matches the existing EA/CMA
+            // precedent, see getMeetingApproachStopDistance) -- instead of
+            // the old instant full-speed halt. Stops with the club
+            // CENTERED in the viewport (getLandmarkCenterStopOffset)
+            // rather than the old fixed 70px-before-anchor gap, which put
+            // Bill/Bob well past the club's visual center before the
+            // conversation began.
+            const distanceToClub = Math.max(0, DRY_CLUB_STOP.distance - distanceTraveled);
+            const stopOffset = getLandmarkCenterStopOffset();
+            if (distanceToClub <= stopOffset) {
+                currentSpeed = 0;
+                setDistanceTraveled(DRY_CLUB_STOP.distance - stopOffset);
+                dryClubPhase = "dialogue";
+                loadDryClubDialogue("pt1");
+                return;
+            }
+            const t = 1 - (distanceToClub / CONFIG.meetingSlowDistance);
+            const factor = Math.max(CONFIG.meetingApproachMinSpeedFactor, 1 - t);
+            currentSpeed = CONFIG.walkSpeed * factor;
+            advanceDistance(currentSpeed * dt);
+            return;
+        }
+
+        // dryClubPhase === "dialogue"
         currentSpeed = 0;
         if (dialogueQueue.length === 0 && !activeBubble) {
             dryClubCompleted = true;
@@ -5310,7 +5566,20 @@ interiorPostDialoguePause: 0.5,
     function beginLeavingMeeting() {
         state = STATE.LEAVING_MEETING;
         leaveFadeTimer = CONFIG.insideFadeDuration;
-        setAudioMode("outside"); // stops meeting-chatter.mp3, restores gameplay music -- see the AUDIO section near the bottom of the file
+
+        // Level 1 post-meeting travel-music progression: CA/GA/EA/CMA
+        // exits each switch permanently to a new travel track (see
+        // MEETING_EXIT_TRAVEL_ASSET/switchTravelTrack near the AUDIO
+        // section) before the music resumes below. Every other meeting
+        // exit (currently just AA) is left alone -- setAudioMode("outside")
+        // just resumes whatever track the meeting-entry fade-out paused,
+        // exactly as before.
+        const exitingTravelAsset = MEETING_EXIT_TRAVEL_ASSET[MEETINGS[meetingIndex].id];
+        if (exitingTravelAsset) {
+            switchTravelTrack(exitingTravelAsset);
+        }
+
+        setAudioMode("outside"); // stops meeting-chatter.mp3, restores/starts the current gameplay track -- see the AUDIO section near the bottom of the file
     }
 
     function updateLeavingMeeting(dt) {
@@ -5412,7 +5681,12 @@ interiorPostDialoguePause: 0.5,
         state = STATE.TRANSITIONING;
         transitionPhase = "finishing";
         transitionTimer = CONFIG.finishFadeDuration;
-        fadeOutMusic();
+        // Deliberately NOT calling fadeOutMusic() here anymore -- grunge4
+        // (the final Level 1 travel/end track, see MEETING_EXIT_TRAVEL_ASSET)
+        // is meant to keep playing through this fade AND the whole
+        // "» CHAPTER 2 »" screen, right up until goToNextChapter() tears
+        // Level 1 down for the handoff. See the Level 1 music-progression
+        // spec's note on grunge4.
     }
 
     /* ======================================================================
@@ -6774,17 +7048,69 @@ interiorPostDialoguePause: 0.5,
     //   scaleMultiplier  -- on-top multiplier applied over billScale (default 1)
     //   walkingOverride  -- if defined (true/false), forces walk/idle and
     //                       skips the outdoor doorway one-shot pose entirely
+    // Fresh Threads floss condition. Deliberately scoped to the two
+    // stationary CHANGING_STORE_EVENT phases where Bill has already
+    // walked clear of the door in his new outfit and stopped moving --
+    // "pauseBeforeDialogue2" (the brief comedic beat right after the
+    // reveal walk) and "dialogue2" (the post-store dialogue itself) --
+    // i.e. the earliest point Bill has reached his outside reveal/
+    // dialogue standing spot, per spec. Excludes "reveal" itself (still
+    // walking, world coordinates still advancing) and everything before
+    // it (hidden inside, or still in the old pre-costume outfit).
+    function isBillFlossActive() {
+        return state === STATE.CHANGING_STORE_EVENT &&
+            (changingStorePhase === "pauseBeforeDialogue2" || changingStorePhase === "dialogue2");
+    }
+
     function drawBillCharacter(x, groundY, canvasH, verticalOffset, renderOptions) {
         renderOptions = renderOptions || {};
         const scaleMultiplier = renderOptions.scaleMultiplier || 1;
         const useOverride = renderOptions.walkingOverride !== undefined;
 
+        // Fresh Threads floss override -- see isBillFlossActive(). Gates
+        // the whole FLOSS/IDLE comedy cycle below; independent of
+        // billAppearance/costume2 loading, only needs the funny sheet
+        // itself. Never active while useOverride is set (interior meeting
+        // cinematic), matching every other outdoor-only pose here.
+        const flossCycleActive = !useOverride && isBillFlossActive() && billSpriteImageFunny &&
+            billSpriteImageFunny.loaded && billSpriteImageFunny.naturalWidth > 0 && billSpriteImageFunny.naturalHeight > 0;
+
+        // FLOSS/IDLE alternation timer. Resets (so the cycle always
+        // starts on FLOSS, never IDLE) exactly on the entry edge --
+        // isBillFlossActive() going false->true -- same
+        // catch-the-entry-edge pattern billWasInDoorwayState already uses
+        // below. Left alone (not reset) every other frame so the cycle
+        // keeps running smoothly for as long as the dialogue lasts,
+        // however long that turns out to be -- this never touches
+        // dialogue timing itself, only reads billAnimElapsed against it.
+        let flossFrameActive = false;
+        let flossPosInCycle = 0;
+        if (flossCycleActive) {
+            if (!billFlossCyclePrevActive) {
+                billFlossCycleStartAt = billAnimElapsed;
+            }
+            billFlossCyclePrevActive = true;
+            const elapsedInCycle = billAnimElapsed - billFlossCycleStartAt;
+            const cycleLength = CONFIG.billFlossOnDuration + CONFIG.billFlossOffDuration;
+            flossPosInCycle = elapsedInCycle % cycleLength;
+            flossFrameActive = flossPosInCycle < CONFIG.billFlossOnDuration;
+        } else {
+            billFlossCyclePrevActive = false;
+            billFlossCycleStartAt = null;
+        }
+
         // Picks costume2 only once it's loaded; falls back to the normal
         // sheet (never to the flat placeholder) if costume2 is missing --
         // billAppearance itself never causes a fallback to the placeholder
-        // shape, only a missing/failed image file does.
-        const activeBillImage = (billAppearance === "costume2" && billSpriteImage2 && billSpriteImage2.loaded)
-            ? billSpriteImage2 : billSpriteImage;
+        // shape, only a missing/failed image file does. flossFrameActive
+        // (the FLOSS half of the cycle only) skips this entirely and goes
+        // straight to the funny sheet; the IDLE half of the cycle, and
+        // everything when flossCycleActive is false, falls through to
+        // this exactly as before -- so IDLE reuses Bill's normal
+        // costume2 idle pose/animation completely unchanged.
+        let activeBillImage = flossFrameActive
+            ? billSpriteImageFunny
+            : ((billAppearance === "costume2" && billSpriteImage2 && billSpriteImage2.loaded) ? billSpriteImage2 : billSpriteImage);
 
         const usingSprite = !!(activeBillImage && activeBillImage.loaded &&
             activeBillImage.naturalWidth > 0 && activeBillImage.naturalHeight > 0);
@@ -6799,7 +7125,19 @@ interiorPostDialoguePause: 0.5,
 
         let row, col;
 
-        if (isAtDoorway) {
+        if (flossFrameActive) {
+            // Row 0, cells 0-4, looping -- see BILL_FLOSS_FRAMES/
+            // CONFIG.billFlossFPS. Time-based against flossPosInCycle (0
+            // at the start of each FLOSS window), deliberately not tied
+            // to walkSpeed/FASTER -- this is its own idle/comedy
+            // animation, not movement. It's fine for the 5-frame sequence
+            // to loop more than once within one ~1.4s FLOSS window.
+            row = BILL_FUNNY_ROW_FLOSS;
+            const flossStep = Math.floor(flossPosInCycle * CONFIG.billFlossFPS) % BILL_FLOSS_FRAMES.length;
+            col = BILL_FLOSS_FRAMES[flossStep];
+            billWasInDoorwayState = false;
+            billDoorwaySequenceStartAt = null;
+        } else if (isAtDoorway) {
             // ONE-SHOT reaction: 1 -> 2 -> 3 [-> 20], then hold. Starts
             // fresh exactly once per doorway approach (billWasInDoorwayState
             // catches the entry edge), never loops.
@@ -6855,8 +7193,8 @@ interiorPostDialoguePause: 0.5,
             }
         }
 
-        const cellW = activeBillImage.naturalWidth / BILL_SPRITE_COLS;
-        const cellH = activeBillImage.naturalHeight / BILL_SPRITE_ROWS;
+        const cellW = flossFrameActive ? (activeBillImage.naturalWidth / BILL_FUNNY_SPRITE_COLS) : (activeBillImage.naturalWidth / BILL_SPRITE_COLS);
+        const cellH = flossFrameActive ? (activeBillImage.naturalHeight / BILL_FUNNY_SPRITE_ROWS) : (activeBillImage.naturalHeight / BILL_SPRITE_ROWS);
         const srcX = col * cellW;
         const srcY = row * cellH;
 
@@ -6877,8 +7215,13 @@ interiorPostDialoguePause: 0.5,
         // WHOLE silhouette, which visibly hops the body whenever an idle
         // blip/gesture changes arm position, or a walk cycle swings a
         // leg -- both confirmed live via the debug overlay).
+        // flossFrameActive skips the auto-measurement entirely -- the funny
+        // sheet is already a clean, pre-normalized programming grid (see
+        // BILL_FUNNY_SPRITE_COLS/ROWS above), so each cell is drawn as-is
+        // with no per-frame recentering, same spirit as skipping the
+        // inset table below.
         const billCacheKey = "bill-" + billAppearance;
-        const billOffsetX = getAutoFrameOffsetX(billCacheKey, activeBillImage.image, row, col, cellW, cellH, srcX, srcY);
+        const billOffsetX = flossFrameActive ? 0 : getAutoFrameOffsetX(billCacheKey, activeBillImage.image, row, col, cellW, cellH, srcX, srcY);
         const frameOffsetDisplay = billOffsetX * (displayWidth / cellW);
         const destX = x - displayWidth / 2 + frameOffsetDisplay + CONFIG.billRenderOffsetX;
         const destY = groundY - displayHeight + verticalOffset + CONFIG.billRenderOffsetY;
@@ -6893,7 +7236,10 @@ interiorPostDialoguePause: 0.5,
         // guard against the row-above bleed observed above Bill's head;
         // the bottom margin stays minimal so feet are never additionally
         // clipped by this inset itself.
-        const billInset = spriteInsetFor(billAppearance, row);
+        // flossFrameActive deliberately bypasses SPRITE_INSET/spriteInsetFor --
+        // per spec, none of the old Bill2 crop hacks apply to this new,
+        // already-normalized sheet. Full 256x256 cell, straight through.
+        const billInset = flossFrameActive ? { top: 0, bottom: 0, left: 0, right: 0 } : spriteInsetFor(billAppearance, row);
         const srcXi = srcX + billInset.left;
         const srcYi = srcY + billInset.top;
         const srcWi = cellW - billInset.left - billInset.right;
@@ -7847,6 +8193,25 @@ interiorPostDialoguePause: 0.5,
         const active = (buttonState === BUTTON_STATE.START || buttonState === BUTTON_STATE.FASTER ||
             buttonState === BUTTON_STATE.ENTER || buttonState === BUTTON_STATE.CONTINUE);
 
+        // CONTINUE ("» CHAPTER 2 »") is the one state that needs actual
+        // room for a text label -- every other state keeps the compact
+        // 56px square tap target/housing exactly as before. Both the
+        // visible housing AND the underlying actionButton tap target are
+        // resized together so the whole wider pill stays tappable, not
+        // just its center (actionButtonHousing has pointer-events:none;
+        // actionButton is what actually receives the press).
+        if (buttonState === BUTTON_STATE.CONTINUE) {
+            actionButton.style.width = "clamp(200px, 62vw, 260px)";
+            actionButton.style.height = "60px";
+            actionButtonHousing.style.width = "100%";
+            actionButtonHousing.style.height = "100%";
+        } else {
+            actionButton.style.width = "clamp(64px, 17vw, 76px)";
+            actionButton.style.height = "clamp(64px, 17vw, 76px)";
+            actionButtonHousing.style.width = "56px";
+            actionButtonHousing.style.height = "56px";
+        }
+
         actionButtonHousing.style.transform = "translate(-50%, -50%)";
         if (active) {
             actionButtonHousing.style.border = "3px solid #0a0a0a";
@@ -7861,10 +8226,13 @@ interiorPostDialoguePause: 0.5,
 
         // Exactly one symbol (or none, for the disabled states) shown at
         // a time -- no controller-style ambiguity about what pressing it
-        // does. No text labels anywhere, per spec.
+        // does. CONTINUE is the sole exception: it shows the
+        // "» CHAPTER 2 »" text+chevron group, since a bare symbol can't
+        // convey "go to the next chapter" the way it can for START/FASTER.
         if (actionButtonPlayEl) actionButtonPlayEl.style.display = (buttonState === BUTTON_STATE.START) ? "block" : "none";
         if (actionButtonBoltEl) actionButtonBoltEl.style.display = (buttonState === BUTTON_STATE.FASTER) ? "block" : "none";
         if (actionButtonChevronWrap) actionButtonChevronWrap.style.display = (buttonState === BUTTON_STATE.ENTER) ? "block" : "none";
+        if (actionButtonChapter2Wrap) actionButtonChapter2Wrap.style.display = (buttonState === BUTTON_STATE.CONTINUE) ? "flex" : "none";
 
         // boxShadow for the ACTIVE case, and all fire-particle spawning,
         // is owned entirely by updateActionButtonFireVisual/
@@ -7881,6 +8249,12 @@ interiorPostDialoguePause: 0.5,
             actionButtonHousing.style.border = "3px solid #145214";
             actionButtonHousing.style.background = "linear-gradient(#141d10, #0a0f08)";
             actionButtonHousing.style.boxShadow = "0 3px 0 #000, 0 5px 8px rgba(0,0,0,0.5), 0 0 12px rgba(57,255,20,0.35)";
+        } else if (buttonState === BUTTON_STATE.CONTINUE) {
+            // Same dark-screen/neon-border language as ENTER above, just
+            // on the wider pill housing set up earlier in this function.
+            actionButtonHousing.style.border = "3px solid #145214";
+            actionButtonHousing.style.background = "linear-gradient(#141d10, #0a0f08)";
+            actionButtonHousing.style.boxShadow = "0 3px 0 #000, 0 5px 8px rgba(0,0,0,0.5), 0 0 14px rgba(57,255,20,0.4)";
         }
     }
 
@@ -8162,6 +8536,39 @@ interiorPostDialoguePause: 0.5,
     /* ======================================================================
        AUDIO
        ====================================================================== */
+    // Permanently swaps musicEl to a new travel track -- used at the
+    // CA/GA/EA/CMA meeting exits (see MEETING_EXIT_TRAVEL_ASSET,
+    // beginLeavingMeeting). Whatever the meeting-entry fade-out already
+    // paused is done for good (per the Level 1 music-progression spec,
+    // each of these is a one-way switch, never resumed); this fully
+    // releases it and creates a fresh looping Audio for the new track,
+    // left paused/silent at volume 0. setAudioMode("outside") (always
+    // called right after this, from beginLeavingMeeting) already knows
+    // how to play()+fade-in whatever musicEl currently is, so no other
+    // audio code needs to change -- this function only ever swaps WHICH
+    // element musicEl points at.
+    const MEETING_EXIT_TRAVEL_ASSET = {
+        ca: "grunge1",  // CA -> GA
+        ga: "grunge2",  // GA -> EA
+        ea: "grunge3",  // EA -> CMA
+        cma: "grunge4"  // final Level 1 travel/end music
+        // "aa" deliberately has no entry here -- AA's post-meeting travel
+        // music is the existing Fresh Threads beforeFreshThreads/
+        // afterFreshThreads handoff, untouched, see beginLeavingMeeting.
+    };
+
+    function switchTravelTrack(assetKey) {
+        stopMusic(); // fully releases whatever the meeting-entry fade-out paused -- that track is retired for good
+        try {
+            musicEl = new Audio(resolveAssetUrl(ASSETS[assetKey]));
+            musicEl.loop = true;
+            musicEl.volume = 0;
+            musicFading = false;
+        } catch (err) {
+            musicEl = null;
+        }
+    }
+
     function startMusic() {
         try {
             // Same resolveAssetUrl() helper as the fonts above, for a
@@ -8220,28 +8627,31 @@ interiorPostDialoguePause: 0.5,
     // Three conceptual states (see audioMode), and exactly one function
     // that moves between them -- setAudioMode() -- so the mix can never
     // get stuck half-transitioned:
-    //   "outside"    -- gameplay music at MUSIC_NORMAL_VOLUME, no chatter, no sting
-    //   "meeting"    -- gameplay music ducked to MUSIC_DUCKED_VOLUME, meeting-chatter.mp3 looping in foreground
-    //   "freshSting" -- gameplay music paused (position kept, not reset), fresh.mp3 playing alone
+    //   "outside"    -- current gameplay track (musicEl) at MUSIC_NORMAL_VOLUME, no chatter, no sting
+    //   "meeting"    -- gameplay track fully faded out then paused (NOT ducked/quiet underneath), meeting-chatter.mp3 looping in foreground
+    //   "freshSting" -- fresh.mp3 playing alone at first; partway through, the afterFreshThreads track fades in underneath it (see startFreshToMeetingTrack) and becomes musicEl going forward
     //
     // Call sites: enterInsideMeeting() -> setAudioMode("meeting"),
     // beginLeavingMeeting() -> setAudioMode("outside"), the
-    // "hidden"->"emerging" Fresh Threads transition in
-    // updateChangingStoreEvent() -> setAudioMode("freshSting"), and
+    // "entering"->"hidden" Fresh Threads transition in
+    // updateChangingStoreEvent() -> beginFreshThreadsMusicFadeOut()
+    // (permanently retires the beforeFreshThreads track), the
+    // "hidden"->"emerging" transition -> setAudioMode("freshSting"), and
     // fresh.mp3's own "ended" event -> setAudioMode("outside"). None of
     // those call sites' surrounding movement/timing logic is touched --
     // this is purely an added function call at each point.
     // ------------------------------------------------------------------
     const MUSIC_NORMAL_VOLUME = 0.6;              // matches startMusic()'s existing default
-    const MUSIC_DUCKED_VOLUME = 0.6 * 0.2;        // ~20% of normal -- within the requested 15-25% duck range
-    const AUDIO_DUCK_FADE_MS = 450;               // "short smooth fade" for ducking/restoring
+    const AUDIO_DUCK_FADE_MS = 450;               // "short smooth fade" for the meeting fade-out/restore and the Fresh Threads fade-out
     const AUDIO_FADE_STEP_MS = 80;
 
-    // Fades musicEl's volume toward targetVolume over durationMs.
-    // Clears any fade already in progress first, so rapid back-to-back
-    // calls (e.g. entering then immediately leaving a meeting) can never
-    // leave two fades fighting over the same element's volume.
-    function fadeMusicVolumeTo(targetVolume, durationMs) {
+    // Fades musicEl's volume toward targetVolume over durationMs, then
+    // calls the optional onComplete callback once (e.g. to pause/stop
+    // the element once it's inaudible). Clears any fade already in
+    // progress first, so rapid back-to-back calls (e.g. entering then
+    // immediately leaving a meeting) can never leave two fades fighting
+    // over the same element's volume.
+    function fadeMusicVolumeTo(targetVolume, durationMs, onComplete) {
         if (musicFadeIntervalId) {
             clearInterval(musicFadeIntervalId);
             musicFadeIntervalId = null;
@@ -8263,6 +8673,7 @@ interiorPostDialoguePause: 0.5,
                 musicEl.volume = Math.max(0, Math.min(1, targetVolume));
                 clearInterval(musicFadeIntervalId);
                 musicFadeIntervalId = null;
+                if (typeof onComplete === "function") onComplete();
             }
         }, AUDIO_FADE_STEP_MS);
     }
@@ -8297,21 +8708,73 @@ interiorPostDialoguePause: 0.5,
         meetingChatterEl = null;
     }
 
-    // Singleton start, same reasoning as startMeetingChatter().
+    // ------------------------------------------------------------------
+    // UI CLICK SFX -- intro/game-entry (START) and chapter-handoff
+    // (CONTINUE) presses only, per spec section 1. Deliberately NOT used
+    // for the FASTER/dash press or the meeting-doorway ENTER press --
+    // those are gameplay movement controls, not menu/story navigation.
+    // A single reused instance is fine here since click.mp3 is a short,
+    // non-looping, non-overlapping-by-design sound (button presses aren't
+    // rapid-fire the way dash triggers can be).
+    // ------------------------------------------------------------------
+    function playUiClickSound() {
+        try {
+            if (!uiClickEl) {
+                uiClickEl = new Audio(resolveAssetUrl(ASSETS.uiClick));
+            }
+            uiClickEl.currentTime = 0;
+            const playPromise = uiClickEl.play();
+            if (playPromise && typeof playPromise.catch === "function") {
+                playPromise.catch(function () { /* autoplay blocked or file missing -- continue silently */ });
+            }
+        } catch (err) { /* ignore */ }
+    }
+
+    const FRESH_TO_MEETING_FADE_MS = 2500; // how long the afterFreshThreads track takes to fade in underneath fresh.mp3 once triggered -- keep this comfortably shorter than half of fresh.mp3's own length so the new track is fully up by the time fresh.mp3 ends
+
+    // Singleton start, same reasoning as startMeetingChatter(). Also
+    // arms the halfway-point handoff to the afterFreshThreads gameplay
+    // track (see startFreshToMeetingTrack()) -- fresh.mp3 itself is
+    // never cut short, the new track just starts fading in underneath
+    // it partway through.
     function startFreshThreadsSting() {
         if (freshStingEl) {
             try { freshStingEl.pause(); } catch (err) { /* ignore */ }
             freshStingEl = null;
         }
+        freshThreadsHalfwaySwapped = false;
         try {
             freshStingEl = new Audio(resolveAssetUrl(ASSETS.freshThreadsSting));
             freshStingEl.loop = false; // one-shot sting, not a loop
             freshStingEl.volume = 1;
+
+            // Fires repeatedly during playback -- the moment we cross the
+            // halfway point of fresh.mp3's own duration, start fading the
+            // new gameplay track in underneath it. Guarded by
+            // freshThreadsHalfwaySwapped so it can only ever fire once per
+            // sting playback.
+            freshStingEl.addEventListener("timeupdate", function () {
+                if (freshThreadsHalfwaySwapped) return;
+                if (!freshStingEl || !freshStingEl.duration || isNaN(freshStingEl.duration)) return;
+                if (freshStingEl.currentTime >= freshStingEl.duration / 2) {
+                    freshThreadsHalfwaySwapped = true;
+                    startFreshToMeetingTrack();
+                }
+            });
+
             // The moment the sting finishes, hand the mix back to normal
             // outdoor music -- this is what actually resumes the music,
             // independent of whichever Fresh Threads visual phase the
-            // costume-change choreography happens to be in by then.
+            // costume-change choreography happens to be in by then. By
+            // this point the afterFreshThreads track should already be
+            // playing (see the timeupdate handler above); the fallback
+            // here just guarantees it starts even if that never fired
+            // (e.g. a browser that never reports a usable duration).
             freshStingEl.addEventListener("ended", function () {
+                if (!freshThreadsHalfwaySwapped) {
+                    freshThreadsHalfwaySwapped = true;
+                    startFreshToMeetingTrack();
+                }
                 if (audioMode === "freshSting") {
                     setAudioMode("outside");
                 }
@@ -8322,13 +8785,62 @@ interiorPostDialoguePause: 0.5,
                     // Autoplay blocked or file missing -- don't strand the
                     // mix paused forever waiting for an "ended" event that
                     // will never fire.
+                    if (!freshThreadsHalfwaySwapped) {
+                        freshThreadsHalfwaySwapped = true;
+                        startFreshToMeetingTrack();
+                    }
                     if (audioMode === "freshSting") setAudioMode("outside");
                 });
             }
         } catch (err) {
             freshStingEl = null;
+            if (!freshThreadsHalfwaySwapped) {
+                freshThreadsHalfwaySwapped = true;
+                startFreshToMeetingTrack();
+            }
             if (audioMode === "freshSting") setAudioMode("outside");
         }
+    }
+
+    // Permanently promotes the afterFreshThreads track to "the" current
+    // gameplay background track -- fades it in from silence underneath
+    // whatever's still playing (fresh.mp3). From this point on, musicEl
+    // IS this track: meeting enter/exit (setAudioMode) and any later
+    // resume just keep operating on musicEl exactly as before, with no
+    // extra branching needed. The original beforeFreshThreads track was
+    // already faded out and fully stopped back when the clothing-change
+    // sequence began -- see beginFreshThreadsMusicFadeOut() -- and is
+    // never touched again.
+    function startFreshToMeetingTrack() {
+        currentGameplayTrack = "afterFreshThreads";
+        try {
+            musicEl = new Audio(resolveAssetUrl(ASSETS.musicAfterFresh));
+            musicEl.loop = true;
+            musicEl.volume = 0;
+            musicFading = false;
+            const playPromise = musicEl.play();
+            if (playPromise && typeof playPromise.catch === "function") {
+                playPromise.catch(function () { /* autoplay blocked or file missing -- continue silently */ });
+            }
+            fadeMusicVolumeTo(MUSIC_NORMAL_VOLUME, FRESH_TO_MEETING_FADE_MS);
+        } catch (err) {
+            musicEl = null;
+        }
+    }
+
+    // Fades OUT and permanently stops whichever gameplay track is
+    // currently playing (always beforeFreshThreads the one time this is
+    // called -- see the "entering" -> "hidden" transition in
+    // updateChangingStoreEvent, right as the clothing-change sequence
+    // begins). Uses stopMusic() (not a pause) so musicEl is fully torn
+    // down and nulled out -- nothing later in the file can accidentally
+    // resume it, satisfying "must NEVER resume after the Fresh Threads
+    // transition has happened."
+    function beginFreshThreadsMusicFadeOut() {
+        if (!musicEl) return;
+        fadeMusicVolumeTo(0, AUDIO_DUCK_FADE_MS, function () {
+            stopMusic();
+        });
     }
 
     // The single entry point for all three states -- every transition
@@ -8343,7 +8855,16 @@ interiorPostDialoguePause: 0.5,
         audioMode = mode;
 
         if (mode === "meeting") {
-            fadeMusicVolumeTo(MUSIC_DUCKED_VOLUME, AUDIO_DUCK_FADE_MS);
+            // Full fade-out-and-stop, not a duck -- the current gameplay
+            // track (whichever one musicEl currently points at) must not
+            // linger quietly underneath the meeting chatter. Paused (not
+            // stopMusic()'d) so beginLeavingMeeting()'s "outside" branch
+            // below can resume it from exactly where it left off.
+            fadeMusicVolumeTo(0, AUDIO_DUCK_FADE_MS, function () {
+                if (musicEl) {
+                    try { musicEl.pause(); } catch (err) { /* ignore */ }
+                }
+            });
             startMeetingChatter();
         } else if (mode === "freshSting") {
             stopMeetingChatter(); // defensive -- chatter should never be active outdoors, but never let it survive into the sting
@@ -8363,10 +8884,12 @@ interiorPostDialoguePause: 0.5,
             }
             if (musicEl) {
                 // Resume from wherever it already was -- never restarts
-                // the track. Covers both "coming back from a duck" (music
-                // was already playing, just quiet) and "coming back from
-                // the Fresh sting" (music was paused, needs an explicit
-                // play() to continue).
+                // the track. Covers both "coming back from a meeting"
+                // (musicEl was paused at fade-out, needs an explicit
+                // play() to continue) and "coming back from the Fresh
+                // sting" (musicEl is the afterFreshThreads track, already
+                // playing/fading in from startFreshToMeetingTrack -- this
+                // just makes sure it lands at normal volume).
                 if (musicEl.paused) {
                     const playPromise = musicEl.play();
                     if (playPromise && typeof playPromise.catch === "function") {
@@ -8396,10 +8919,25 @@ interiorPostDialoguePause: 0.5,
     }
 
     function resizeCanvas() {
-        if (!canvas || !container) return;
-        const rect = container.getBoundingClientRect();
-        canvas.width = Math.max(1, Math.floor(rect.width));
-        canvas.height = Math.max(1, Math.floor(rect.height));
+        if (!canvas) return;
+        // FIXED logical resolution -- see the GAME FRAME block near the
+        // top of this file. Every gameplay calculation that reads
+        // canvas.width/canvas.height (outdoorPrimaryX, worldToScreenX,
+        // getLandmarkCenterStopOffset, HUD layout, render(), etc.) now
+        // always sees the same 390x780 stage regardless of the real
+        // device/window size -- #game's own CSS transform is what
+        // actually scales this fixed-resolution canvas up/down to fit
+        // the screen; the canvas's own CSS width/height (still 100% of
+        // #game, unchanged) is what gets visually scaled. See
+        // onCanvasPointerDown for the matching pointer-coordinate
+        // conversion this requires. Guarded so a window "resize" event
+        // (which still calls this, unchanged) doesn't reassign -- and
+        // therefore clear -- the canvas every time when the logical
+        // resolution never actually changes.
+        if (canvas.width !== GAME_STAGE_WIDTH || canvas.height !== GAME_STAGE_HEIGHT) {
+            canvas.width = GAME_STAGE_WIDTH;
+            canvas.height = GAME_STAGE_HEIGHT;
+        }
     }
 
     /* ======================================================================
@@ -8423,6 +8961,8 @@ interiorPostDialoguePause: 0.5,
             musicFadeIntervalId = null;
         }
         audioMode = "outside";
+        currentGameplayTrack = "beforeFreshThreads";
+        freshThreadsHalfwaySwapped = false;
 
         if (container) {
             container.innerHTML = "";
@@ -8446,6 +8986,7 @@ interiorPostDialoguePause: 0.5,
         actionButtonBoltEl = null;
         actionButtonWhooshEl = null;
         actionButtonChevronWrap = null;
+        actionButtonChapter2Wrap = null;
         actionButtonChevronEls = [];
         actionButtonFireContainer = null;
         fireParticles = [];
