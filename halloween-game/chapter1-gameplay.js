@@ -310,6 +310,8 @@ interiorPostDialoguePause: 0.5,
         billFlossFPS: 6,              // the 5-frame floss cycle within each FLOSS window -- slowed from the original continuous-loop version so it reads clearly instead of frantic; see billFlossOnDuration/billFlossOffDuration
         billFlossOnDuration: 1.4,     // seconds Bill spends flossing per cycle
         billFlossOffDuration: 1.1,    // seconds Bill spends back in his normal costume2 idle pose per cycle, before flossing again
+        changingStoreArmsCrossedDuration: 1.3, // seconds for the whole end-of-Fresh-Threads punctuation beat (Row 2 transition + hold), see isBillArmsCrossedActive
+        billArmsCrossedFPS: 6,        // plays the 5 Row 2 transition frames in ~0.83s, leaving the rest of changingStoreArmsCrossedDuration as a held final pose
         billIdleBlipMinInterval: 4,  // seconds -- soonest an occasional idle variation (1->2->1 or 1->4->1) can happen after the last one
         billIdleBlipMaxInterval: 9,  // seconds -- latest it can happen; actual gap is randomized between these each time
         billIdleBlipHoldSeconds: 0.35, // how long frame 2/4 shows mid-blip before returning to the resting frame 1
@@ -336,6 +338,25 @@ interiorPostDialoguePause: 0.5,
         // or the artifact is still visible, nudge further (try -30 to -36)
         // before touching anything else.
         bobRenderOffsetY: -24,
+
+        // Separate, independently-tunable vertical correction for the
+        // FUNNY sheet only (coffee/donut/book/headScratch) -- never
+        // applied to bob2, never shared with bobRenderOffsetY above.
+        // Measured/confirmed via the [BOB FRAME DEBUG] console tool:
+        // bob2 idle destY sits ~358-361, funny-sheet frames sat ~380-386
+        // with zero correction -- a real, sustained ~20-25px "feet sink
+        // into the ground" for as long as the ambient action plays, not
+        // a one-frame flicker. -24 closes that measured gap. If feet
+        // still look low (or now look high), nudge this value alone --
+        // it can never affect bob2's own rendering.
+        bobFunnyRenderOffsetY: -24,
+
+        bobCoffeeFPS: 3.5,           // frame rate through BOB_COFFEE_FRAMES (holds the sip cell an extra tick) -- Fresh-Threads-eligible meetings only, ~1.5-2s total, see BOB_AMBIENT_ELIGIBLE_MEETINGS
+        bobDonutFPS: 3.5,            // BOB_DONUT_FRAMES -- ~1.5-2s, same hold-the-bite pacing as coffee's hold-the-sip
+        bobBookFPS: 2,               // BOB_BOOK_FRAMES -- deliberately slower/longer (~3-5s), the reading pose holds well past the transition frames
+        bobHeadScratchFPS: 3,        // BOB_HEADSCRATCH_FRAMES -- quick, ~1.5-2s, no held frame
+        bobAmbientTriggerChance: 0.5, // odds Bob's TWO selected ambient actions get a look-in at any one eligible idle stop -- keeps plain idle the common case, per spec
+        bobAmbientCooldown: 2,        // seconds after one ambient action ends before another can start -- avoids obvious back-to-back repetition
 
         // TEMPORARY DEBUG AID -- the destination-box rectangle described
         // in drawBillDebugOverlay (a cyan box + red crosshair drawn
@@ -683,6 +704,110 @@ interiorPostDialoguePause: 0.5,
         ctx.restore();
     }
 
+    /* ----------------------------------------------------------------------
+       TEMPORARY -- Bob supplemental-sheet vertical diagnostic.
+
+       Extends the SAME window.DEBUG_ANCHOR toggle above (Ctrl+D reveals the
+       button, tap it to turn on) rather than adding a separate debug
+       switch. The existing anchor debugger above only ever tracked
+       HORIZONTAL drift (visualAnchorX vs logical x) -- it has no vertical
+       information at all, so on its own it cannot diagnose "Bob drops
+       vertically when switching to a supplemental animation". This adds
+       exactly that, and only that, for Bob:
+
+       1. A full geometry dump to console.log, but only on an actual
+          identity change (sheet+action/appearance+row+col) -- not every
+          frame -- so switching normal -> coffee -> normal produces
+          exactly three log lines to compare side by side, not a flood.
+       2. A vertical alpha-bounds measurement of the CURRENT 256x256 source
+          cell (same offscreen-canvas alpha-scan technique
+          measureFrameAlphaCenterX already uses for horizontal centering,
+          just scanning top-to-bottom instead of left-to-right) -- this
+          directly answers "does the character artwork sit at a different
+          vertical position inside this cell than bob2's cells do", which
+          is a question about the ART ASSET, not the renderer, and no
+          amount of destX/destY math can answer it on its own.
+       3. The existing destination-box overlay (drawBillDebugOverlay,
+          already used elsewhere in this file) gets drawn for Bob too,
+          under this same toggle, so the box is visible without editing
+          CONFIG.debugShowBobBounds in code.
+
+       Delete this whole block (and the two call sites in drawBobCharacter)
+       once the supplemental-sheet vertical issue is confirmed diagnosed
+       and fixed -- it is not meant to be permanent.
+       ---------------------------------------------------------------------- */
+    let bobFrameDebugLastIdentity = null;
+    function debugLogBobFrameGeometry(params) {
+        const identity = params.sheetLabel + "|" + params.animName + "|" + params.row + "," + params.col;
+        if (bobFrameDebugLastIdentity === identity) return; // only log on an actual change, not every frame
+        bobFrameDebugLastIdentity = identity;
+
+        const vBounds = measureFrameAlphaVerticalBounds(params.image, params.srcX, params.srcY, params.cellW, params.cellH);
+        const alphaTopFracInCell = vBounds ? Number(vBounds.topFrac.toFixed(3)) : "n/a";
+        const alphaBottomFracInCell = vBounds ? Number(vBounds.bottomFrac.toFixed(3)) : "n/a";
+
+        // Flags whether the funny sheet's actual decoded pixel dimensions
+        // are exactly a clean 5x4 grid of whole-number cells. If not, srcY
+        // = row * cellH silently drifts by a fractional amount that
+        // MULTIPLIES with row index -- row 0 (srcY=0) can never show it,
+        // row 3 shows 3x whatever the per-row error is. That would explain
+        // a symptom that's absent on row 0 (coffee) but visible on lower
+        // rows (donut/book/headScratch): a sliver of the row above
+        // bleeding into frame, worse the further down the sheet you go.
+        const gridExact = (params.sheetLabel === "funny")
+            ? (Number.isInteger(params.image.naturalWidth / BOB_FUNNY_SPRITE_COLS) && Number.isInteger(params.image.naturalHeight / BOB_FUNNY_SPRITE_ROWS))
+            : "n/a";
+
+        // The critical values are printed directly in the message STRING
+        // (not just the object argument below) because Chrome/most
+        // consoles collapse a logged object by default -- "▶ {sheet:
+        // ..., ...}" -- so anything only inside that object is invisible
+        // until you click to expand every single line by hand. Putting
+        // destY and the alpha-bounds measurement in the string itself
+        // means they're readable straight off the console with no
+        // clicking, which is the whole point of this pass.
+        console.log(
+            "[BOB FRAME DEBUG] " + identity +
+            "  srcXY=(" + params.srcX + "," + params.srcY + ")" +
+            "  cellWH=" + params.cellW.toFixed(2) + "x" + params.cellH.toFixed(2) +
+            "  naturalWH=" + params.image.naturalWidth + "x" + params.image.naturalHeight +
+            "  gridExact=" + gridExact +
+            "  destY=" + params.destY.toFixed(1) +
+            "  destH=" + params.destH.toFixed(1) +
+            "  groundY=" + params.groundY.toFixed(1) +
+            "  bob2OffsetYApplied=" + params.bob2OffsetYApplied +
+            "  alphaTopFrac=" + alphaTopFracInCell +
+            "  alphaBottomFrac=" + alphaBottomFracInCell +
+            "  isolatedCanvas=" + params.usingIsolatedCanvas,
+        {
+            sheet: params.sheetLabel,
+            animation: params.animName,
+            row: params.row,
+            col: params.col,
+            srcX: params.srcX, srcY: params.srcY, srcW: params.cellW, srcH: params.cellH,
+            destX: Number(params.destX.toFixed(1)), destY: Number(params.destY.toFixed(1)),
+            destW: Number(params.destW.toFixed(1)), destH: Number(params.destH.toFixed(1)),
+            worldX: Number(params.worldX.toFixed(1)), groundY: Number(params.groundY.toFixed(1)),
+            meetingScaleMultiplier: params.scaleMultiplier,
+            finalDisplayHeight: Number(params.destH.toFixed(1)),
+            verticalOffsetParam: params.verticalOffset,
+            frameSpecificYOffsetPx: params.offsetYDisplay,
+            bob2RenderOffsetYApplied: params.bob2OffsetYApplied,
+            cropInsetApplied: params.cropInsetLabel,
+            usingIsolatedFrameCanvas: params.usingIsolatedCanvas,
+            naturalWidth: params.image.naturalWidth,
+            naturalHeight: params.image.naturalHeight,
+            // The key diagnostic: where the character's actual opaque
+            // pixels sit WITHIN this 256x256 source cell, as a fraction of
+            // cell height (0 = very top of cell, 1 = very bottom). If this
+            // differs meaningfully between bob2 idle and a funny-sheet
+            // action, the art itself is positioned differently inside the
+            // cell -- not a renderer bug.
+            alphaTopFracInCell: alphaTopFracInCell,
+            alphaBottomFracInCell: alphaBottomFracInCell
+        });
+    }
+
     const ASSETS = {
         bill: "assets/players/chapter1-bill.png",
         bob: "assets/players/chapter1-bob.png",
@@ -723,6 +848,17 @@ interiorPostDialoguePause: 0.5,
         // drawBillCharacter falls back to Bill's normal costume2 sprite,
         // see the usingFunnySheet check there.
         billSpriteFunny: "assets/players/basic-level1-bill-funny-1280x1024.png",
+
+        // SUPPLEMENTAL "funny" sheet -- Bob only, ambient meeting animations
+        // (coffee for now; donut/book/head-scratch reserved for later, not
+        // integrated yet). Does NOT replace bobSpriteBasicLevel1Costume2
+        // above, which stays Bob's normal movement sheet, untouched. Same
+        // normalized 1280x1024, 5 cols x 4 rows, 256x256-per-cell grid as
+        // Bill's funny sheet -- see BOB_FUNNY_SPRITE_COLS/ROWS and
+        // BOB_COFFEE_FRAMES below. A missing/failed file here just means
+        // the coffee animation never plays -- drawBobCharacter falls back
+        // to Bob's normal idle rendering, see the usingFunnySheet check.
+        bobSpriteFunny: "assets/players/basic-level1-bob-funny-1280x1024.png",
 
         // Optional final-art overrides for the five interactive buildings.
         // If any of these files are missing, drawBuilding() automatically
@@ -1241,6 +1377,49 @@ interiorPostDialoguePause: 0.5,
         if (minX === null) return null; // nothing found in this band -- e.g. a cell with no legs visible
         return (minX + maxX) / 2;
     }
+
+    // TEMPORARY -- Bob supplemental-sheet diagnostic (see debugLogBobFrameGeometry).
+    // Same offscreen-canvas alpha-scan as measureFrameAlphaCenterX above,
+    // just scanning top-to-bottom instead of left-to-right, over the FULL
+    // width of the cell. Returns where a frame's opaque pixels actually
+    // sit vertically WITHIN its own 256x256 source cell, as a fraction of
+    // cell height (topFrac near 0 = starts near the top of the cell;
+    // bottomFrac near 1 = extends to the very bottom of the cell). This is
+    // purely a measurement of the ART inside the cell -- it never touches
+    // gameplay position, groundY, or any renderer offset.
+    function measureFrameAlphaVerticalBounds(image, srcX, srcY, cellW, cellH) {
+        const w = Math.max(1, Math.round(cellW));
+        const h = Math.max(1, Math.round(cellH));
+        const off = document.createElement("canvas");
+        off.width = w;
+        off.height = h;
+        const offCtx = off.getContext("2d");
+        offCtx.imageSmoothingEnabled = false;
+        offCtx.drawImage(image, srcX, srcY, cellW, cellH, 0, 0, w, h);
+
+        let pixels;
+        try {
+            pixels = offCtx.getImageData(0, 0, w, h).data;
+        } catch (e) {
+            return null; // cross-origin or otherwise unreadable -- same fail-safe as measureFrameAlphaCenterX
+        }
+
+        let minY = null, maxY = null;
+        const ALPHA_THRESHOLD = 8;
+        for (let py = 0; py < h; py++) {
+            const rowStart = py * w;
+            for (let px = 0; px < w; px++) {
+                const alpha = pixels[(rowStart + px) * 4 + 3];
+                if (alpha > ALPHA_THRESHOLD) {
+                    if (minY === null) minY = py;
+                    maxY = py;
+                }
+            }
+        }
+        if (minY === null) return null; // fully transparent cell
+        return { topPx: minY, bottomPx: maxY, topFrac: minY / h, bottomFrac: maxY / h };
+    }
+
     // Returns how far (in native cell px) to shift the draw position so
     // this cell's TORSO lands on the same horizontal anchor every other
     // frame uses -- the single replacement for what
@@ -1304,6 +1483,127 @@ interiorPostDialoguePause: 0.5,
         return entry;
     }
 
+    // BOB FUNNY-SHEET ISOLATION CACHE -- same structural fix as
+    // getBobFrameCanvas/bobFrameCanvasCache above, applied to
+    // basic-level1-bob-funny-1280x1024.png instead of the normal sheet.
+    //
+    // The funny sheet used to be drawn straight from the shared
+    // 1280x1024 Image (see the old bobAmbientFrameActive branch in
+    // drawBobCharacter) on the assumption that it was already a clean,
+    // pre-normalized grid with nothing to crop. [BOB FRAME DEBUG]'s
+    // alphaTopFrac/alphaBottomFrac output is what actually decides that,
+    // not this comment -- if a cell's opaque pixels come nowhere near
+    // 0.0/1.0, there's nothing to isolate away and the 0-margin default
+    // below is correct as-is. But drawing directly from the big shared
+    // Image at a large scale-up factor is exactly the failure mode
+    // getBobFrameCanvas's own long comment documents for the normal
+    // sheet (some browsers' rasterizers can sample a sliver past a
+    // source rect's edge at large scale regardless of the smoothing
+    // flag) -- so the funny sheet gets the same one-time-crop-into-its-
+    // own-canvas treatment structurally, whether or not this particular
+    // art asset turns out to need a nonzero inset.
+    //
+    // Deliberately its own cache/table, NOT shared with
+    // bobFrameCanvasCache/BOB_CROP_INSET -- this is a different image,
+    // its own independent 5x4 grid, and any bleed direction/margin it
+    // turns out to have has nothing to do with bob2's measured margins.
+    // Keyed by animName (not appearance) since coffee/donut/book/
+    // headScratch are four different rows of the SAME sheet -- keying
+    // purely on row/col would still be safe here (they don't collide),
+    // but matching getBobFrameCanvas's "key everything that could ever
+    // matter" approach costs nothing and avoids ever having to revisit
+    // this if the funny sheet grows a second image later.
+    //
+    // Starts at a full, uninset 256x256 crop for every cell (0 margin on
+    // all sides) -- EXCEPT the four rows below, which are measured
+    // directly from the actual basic-level1-bob-funny-1280x1024.png file
+    // (pixel alpha-channel analysis, not a guess and not scaled/rendered
+    // -- the raw source PNG itself). Real, confirmed bleed: each row's
+    // OWN shoes (feet) extend past its nominal 256px bottom edge into
+    // the next row's cell -- exactly the same failure mode BOB_CROP_INSET
+    // already documents and corrects for bob2 above, just on a different
+    // sheet.
+    //
+    // IMPORTANT, learned the hard way: unlike bob2's own margins, this
+    // sheet's shoe-bleed does NOT end in a clean drop to zero alpha
+    // before the next row's real content (its cap) begins -- opaque
+    // pixel coverage just dips to a low point and rises again, so the
+    // last few rows of "shoe" and the first few rows of "cap" overlap
+    // rather than being cleanly separated. An earlier pass here cropped
+    // at each column's worst-case (latest) trough, which reliably
+    // removed all the shoe bleed but ALSO clipped a couple of rows of
+    // real cap content on headScratch specifically -- confirmed directly
+    // against gameplay screenshots (his hat looked flat-topped/cut).
+    // These margins instead use the EARLIEST trough across all 5
+    // columns, minus 1px -- biased toward NEVER touching Bob's own art,
+    // even if that leaves a faint sliver of shoe-bleed visible on
+    // whichever column's trough happens to be a row or two later than
+    // the others. A little residual bleed is far less noticeable than a
+    // visibly clipped hat.
+    //   row1 (donut):       per-column troughs 20-22px -> using 19px
+    //   row2 (book):        per-column troughs 24-25px -> using 23px
+    //   row3 (headScratch): per-column troughs 21-23px -> using 20px
+    //   row0 (coffee): no row above it -- measured clean, 0px, confirmed
+    // Re-measure and update this table if the funny sheet art is ever
+    // regenerated.
+    const BOB_FUNNY_CROP_INSET_BY_ROW = [
+        { top: 0, bottom: 0, left: 0, right: 0 },  // row0 -- coffee, no neighbor above, clean
+        { top: 19, bottom: 0, left: 0, right: 0 }, // row1 -- donut, row0's shoes bleed in
+        { top: 23, bottom: 0, left: 0, right: 0 }, // row2 -- book, row1's shoes bleed in
+        { top: 20, bottom: 0, left: 0, right: 0 }  // row3 -- headScratch, row2's shoes bleed in
+    ];
+    const bobFunnyFrameCanvasCache = {};
+    const BOB_FUNNY_CROP_INSET_OVERRIDES = {
+        // "coffee:0,0": { top: 6 } -- example only. Add a real entry
+        // here only if a SPECIFIC cell still needs more than its row's
+        // default above, once the debug alpha scan/HUD proves it.
+    };
+    function bobFunnyCropInset(animName, row, col) {
+        const base = BOB_FUNNY_CROP_INSET_BY_ROW[row] || { top: 0, bottom: 0, left: 0, right: 0 };
+        const override = BOB_FUNNY_CROP_INSET_OVERRIDES[animName + ":" + row + "," + col];
+        return override ? Object.assign({}, base, override) : base;
+    }
+
+    // appearanceKey here is the active ambient action name ("coffee",
+    // "donut", "book", "headScratch") -- see the key-collision note
+    // above. Structurally identical to getBobFrameCanvas otherwise: one
+    // 1:1 (no scaling) copy of exactly this cell into its own offscreen
+    // canvas, cached, so every subsequent draw of this (anim,row,col)
+    // scales ONLY that isolated canvas -- never the shared 1280x1024
+    // sheet -- and has no neighboring-cell pixels left anywhere inside
+    // it to bleed in at any scale factor.
+    function getBobFunnyFrameCanvas(animName, sourceImage, row, col, cellW, cellH, srcX, srcY) {
+        const key = animName + "," + row + "," + col;
+        const cached = bobFunnyFrameCanvasCache[key];
+        if (cached) return cached;
+
+        const inset = bobFunnyCropInset(animName, row, col);
+        const cropW = Math.max(1, cellW - inset.left - inset.right);
+        const cropH = Math.max(1, cellH - inset.top - inset.bottom);
+
+        const off = document.createElement("canvas");
+        off.width = Math.ceil(cropW);
+        off.height = Math.ceil(cropH);
+        const offCtx = off.getContext("2d");
+        offCtx.imageSmoothingEnabled = false;
+        // 1:1 pixel copy -- no scaling here, so there is nothing for the
+        // browser to interpolate/bleed between at crop time either.
+        offCtx.drawImage(sourceImage, srcX + inset.left, srcY + inset.top, cropW, cropH, 0, 0, off.width, off.height);
+
+        const entry = { canvas: off, width: off.width, height: off.height };
+        bobFunnyFrameCanvasCache[key] = entry;
+
+        if (DEBUG_BOB_SPRITE) {
+            console.log("[Bob funny sprite crop] anim=" + animName + " row=" + row + " col=" + col +
+                " cell=" + cellW + "x" + cellH +
+                " nominalSrc=(" + srcX + "," + srcY + ")" +
+                " croppedFrom=(" + (srcX + inset.left) + "," + (srcY + inset.top) + ") size=" + cropW + "x" + cropH +
+                " -> isolated canvas " + off.width + "x" + off.height);
+        }
+
+        return entry;
+    }
+
     const BILL_SPRITE_COLS = 6;
     const BILL_SPRITE_ROWS = 4;
     const BILL_ROW_IDLE = 0;
@@ -1324,8 +1624,10 @@ interiorPostDialoguePause: 0.5,
     // branch in drawBillCharacter, which reads cells directly.
     const BILL_FUNNY_SPRITE_COLS = 5;
     const BILL_FUNNY_SPRITE_ROWS = 4;
-    const BILL_FUNNY_ROW_FLOSS = 0; // row 0 = floss. Rows 1-3 (smoking, arms-crossed, shuffle) are reserved for later, not integrated yet.
+    const BILL_FUNNY_ROW_FLOSS = 0; // row 0 = floss
     const BILL_FLOSS_FRAMES = [0, 1, 2, 3, 4]; // all 5 cells of row 0, in order, looping
+    const BILL_FUNNY_ROW_ARMSCROSSED = 2; // row 2 = old-school arms-crossed pose. Row 1 (smoking) and row 3 (old-guy shuffle) remain reserved for later, not integrated yet.
+    const BILL_ARMSCROSSED_FRAMES = [0, 1, 2, 3, 4]; // played once, in order, then held on the last frame -- see isBillArmsCrossedActive
 
     // Per-frame horizontal recentering, measured directly from the actual
     // PNG's alpha bounds (native 256px cell space, before scaling). Every
@@ -1373,6 +1675,37 @@ interiorPostDialoguePause: 0.5,
         { row: BOB_ROW_D, col: 0 },  // cell 19
         { row: BOB_ROW_A, col: 5 }   // cell 6 -- held
     ];
+
+    // SUPPLEMENTAL "funny" sheet grid -- basic-level1-bob-funny-1280x1024.png.
+    // Completely independent grid from BOB_SPRITE_COLS/ROWS above (that's
+    // still the normal walk/idle/doorway sheet, untouched). Same clean,
+    // pre-normalized 1280x1024, 5 cols x 4 rows, 256x256-per-cell layout as
+    // Bill's funny sheet -- no inset/crop table, no isolated-canvas crop
+    // (see getBobFrameCanvas) needed, drawBobCharacter's coffee branch
+    // reads cells directly.
+    const BOB_FUNNY_SPRITE_COLS = 5;
+    const BOB_FUNNY_SPRITE_ROWS = 4;
+    const BOB_FUNNY_ROW_COFFEE = 0;      // row 0 = coffee
+    const BOB_FUNNY_ROW_DONUT = 1;       // row 1 = donut
+    const BOB_FUNNY_ROW_BOOK = 2;        // row 2 = reading blue recovery book
+    const BOB_FUNNY_ROW_HEADSCRATCH = 3; // row 3 = scratching head
+    const BOB_COFFEE_FRAMES = [0, 1, 2, 2, 3, 4]; // hold-raise-sip(x2)-lower-hold -- cell 2 (the sip) repeated once so it reads as a brief hold, not a rushed blip. Existing working timing, unchanged.
+    const BOB_DONUT_FRAMES = [0, 1, 2, 2, 3, 4]; // hold-raise-bite-chew(x2)-lower -- same hold-the-middle-frame shape as coffee
+    const BOB_BOOK_FRAMES = [0, 1, 2, 2, 2, 3, 2, 4]; // open-raise-settle into reading(held)-turn page-resume reading-lower/close -- deliberately the longest of the four, see CONFIG.bobBookFPS
+    const BOB_HEADSCRATCH_FRAMES = [0, 1, 2, 3, 4]; // confused-hand up-scratch-confused-hand down, quick, no held frame
+
+    // The four ambient actions Bob can be assigned for a given eligible
+    // meeting -- see pickTwoRandomBobAmbientActions/updateBobAmbientAction.
+    // Each entry's own frames/fps stays independently tunable (matching
+    // each action's own spec'd pacing) without touching the others.
+    const BOB_AMBIENT_ACTIONS = {
+        coffee: { row: BOB_FUNNY_ROW_COFFEE, frames: BOB_COFFEE_FRAMES, fps: CONFIG.bobCoffeeFPS },
+        donut: { row: BOB_FUNNY_ROW_DONUT, frames: BOB_DONUT_FRAMES, fps: CONFIG.bobDonutFPS },
+        book: { row: BOB_FUNNY_ROW_BOOK, frames: BOB_BOOK_FRAMES, fps: CONFIG.bobBookFPS },
+        headScratch: { row: BOB_FUNNY_ROW_HEADSCRATCH, frames: BOB_HEADSCRATCH_FRAMES, fps: CONFIG.bobHeadScratchFPS }
+    };
+    const BOB_AMBIENT_ACTION_NAMES = ["coffee", "donut", "book", "headScratch"];
+    const BOB_AMBIENT_ELIGIBLE_MEETINGS = ["ca", "ga", "ea", "cma"]; // AA is explicitly excluded -- Bob hasn't changed into costume2 yet at that point
 
     // Per-frame recentering, measured directly from the actual PNG's
     // alpha bounds (native 256px cell space, before scaling). Unlike
@@ -1941,7 +2274,7 @@ interiorPostDialoguePause: 0.5,
     // CHANGING STORE EVENT -- see CHANGING_STORE / checkChangingStoreApproach /
     // updateChangingStoreEvent. changingStorePhase is only meaningful while
     // state === STATE.CHANGING_STORE_EVENT.
-    let changingStorePhase = null;    // null | "approach" | "dialogue1" | "entering" | "hidden" | "emerging" | "reveal" | "pauseBeforeDialogue2" | "dialogue2"
+    let changingStorePhase = null;    // null | "approach" | "dialogue1" | "entering" | "hidden" | "emerging" | "reveal" | "pauseBeforeDialogue2" | "dialogue2" | "armsCrossedPose"
     let changingStoreTimer = 0;       // generic countdown/elapsed timer, meaning depends on changingStorePhase
     let changingStoreCompleted = false; // true once the whole event has played out once -- the store then behaves like ordinary scenery, see checkChangingStoreApproach
 
@@ -2069,12 +2402,18 @@ interiorPostDialoguePause: 0.5,
 
     let bobSpriteImage = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 };
     let bobSpriteImage2 = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 }; // costume2 -- see bobAppearance
+    let bobSpriteImageFunny = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 }; // supplemental "funny" sheet (coffee, etc) -- see ASSETS.bobSpriteFunny
     let level1VisualsImage = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 }; // ambient scenery sheet -- see AMBIENT_EVENTS
     let bobAnimElapsed = 0;         // seconds, free-running -- independent of billAnimElapsed
     let bobIdleNextBlipAt = null;   // billAnimElapsed-style timestamp (on bobAnimElapsed) for the next occasional 1->2->1 blip
     let bobIdleBlipEndAt = null;    // if the blip is currently showing, when it ends and Bob returns to resting on cell 1
     let bobDoorwaySequenceStartAt = null; // timestamp the one-shot 19->6 doorway reaction began
     let bobWasInDoorwayState = false;     // tracks entry into "Bob has caught up and Bill is at the doorway" so the sequence starts fresh exactly once
+    let bobAmbientSelectedActions = []; // the TWO action names locked in for the current eligible meeting -- see pickTwoRandomBobAmbientActions/enterInsideMeeting
+    let bobAmbientActiveAction = null;  // null | one of BOB_AMBIENT_ACTION_NAMES -- which ambient action is actually playing right now, if any
+    let bobAmbientElapsed = 0;          // seconds since bobAmbientActiveAction began, dt-accumulated so a mid-action cancel never leaves a stray offset
+    let bobAmbientLastAction = null;    // the most recently COMPLETED action -- used to avoid picking the exact same one immediately back-to-back
+    let bobAmbientCooldownRemaining = 0; // seconds until another ambient action is allowed to start -- see CONFIG.bobAmbientCooldown
     let sectionHouses = [];         // runtime house placements for the current meeting section
     let sectionDecorativeBuildings = []; // visual-only landmark placements for the current section
     let sectionStreetLamps = [];    // runtime lamp placements for the current meeting section
@@ -2575,31 +2914,32 @@ interiorPostDialoguePause: 0.5,
         actionButtonChapter2Wrap.style.whiteSpace = "nowrap";
         actionButtonHousing.appendChild(actionButtonChapter2Wrap);
 
-        function buildChapter2Chevron() {
-            // A small pair of glowing corner-chevrons ("›" shapes, tight
-            // together for a "»" read), built the same border-corner-
-            // rotated-45deg way real UI chevron icons are drawn -- not a
-            // font glyph, per spec ("proper visual/CSS chevrons," not
-            // keyboard characters slapped around text).
-            const group = document.createElement("div");
-            group.style.position = "relative";
-            group.style.width = "16px";
-            group.style.height = "16px";
-            [0, 6].forEach(function (offsetPx) {
-                const mark = document.createElement("div");
-                mark.style.position = "absolute";
-                mark.style.left = offsetPx + "px";
-                mark.style.top = "3px";
-                mark.style.width = "10px";
-                mark.style.height = "10px";
-                mark.style.borderTop = "3px solid #39ff14";
-                mark.style.borderRight = "3px solid #39ff14";
-                mark.style.transform = "rotate(45deg)";
-                mark.style.filter = "drop-shadow(0 0 4px rgba(57,255,20,0.9))";
-                mark.style.animation = "hgSymbolIdlePulse 1.8s ease-in-out infinite";
-                group.appendChild(mark);
-            });
-            return group;
+        function buildChapter2Triangle(direction) {
+            // Solid filled triangle -- "play/skip"-style arrow, same
+            // border-trick shape language as the START button's PLAY
+            // triangle elsewhere in this file, not a font glyph. Points
+            // INWARD toward the CHAPTER 2 label: the left-side triangle
+            // points right (▶), the right-side triangle points left (◀).
+            // Same neon-green + drop-shadow-glow language as every other
+            // active-state icon (PLAY triangle, FASTER bolt, ENTER
+            // chevrons) so this reads as part of the same instrument-
+            // panel family, just swapped from the old double-chevron
+            // mark to a single bold retro arcade arrow.
+            const tri = document.createElement("div");
+            tri.style.width = "0";
+            tri.style.height = "0";
+            tri.style.borderTop = "9px solid transparent";
+            tri.style.borderBottom = "9px solid transparent";
+            if (direction === "right") {
+                tri.style.borderLeft = "14px solid #39ff14";
+            } else {
+                tri.style.borderRight = "14px solid #39ff14";
+            }
+            tri.style.filter = "drop-shadow(0 0 4px rgba(57,255,20,0.9))";
+            // Subtle pulse -- same idle-pulse timing already used for
+            // every other button-family icon, just reused here.
+            tri.style.animation = "hgSymbolIdlePulse 1.8s ease-in-out infinite";
+            return tri;
         }
 
         const chapter2Label = document.createElement("div");
@@ -2609,9 +2949,9 @@ interiorPostDialoguePause: 0.5,
         chapter2Label.style.letterSpacing = "2px";
         chapter2Label.style.textShadow = "0 0 6px rgba(57,255,20,0.85), 0 0 14px rgba(57,255,20,0.5)";
 
-        actionButtonChapter2Wrap.appendChild(buildChapter2Chevron());
+        actionButtonChapter2Wrap.appendChild(buildChapter2Triangle("right"));
         actionButtonChapter2Wrap.appendChild(chapter2Label);
-        actionButtonChapter2Wrap.appendChild(buildChapter2Chevron());
+        actionButtonChapter2Wrap.appendChild(buildChapter2Triangle("left"));
 
         // REAL PARTICLE FIRE (FASTER state) -- just an empty positioned
         // container here; actual particle divs are created/destroyed
@@ -3085,6 +3425,7 @@ interiorPostDialoguePause: 0.5,
         billSpriteImage2 = loadTrackedImage(ASSETS.billSpriteBasicLevel1Costume2);
         bobSpriteImage2 = loadTrackedImage(ASSETS.bobSpriteBasicLevel1Costume2);
         billSpriteImageFunny = loadTrackedImage(ASSETS.billSpriteFunny);
+        bobSpriteImageFunny = loadTrackedImage(ASSETS.bobSpriteFunny);
         level1VisualsImage = loadTrackedImage(ASSETS.level1Visuals);
     }
 
@@ -4906,6 +5247,30 @@ interiorPostDialoguePause: 0.5,
             case "dialogue2": {
                 currentSpeed = 0;
                 if (dialogueQueue.length === 0 && !activeBubble) {
+                    // Straight into the brief arms-crossed punctuation beat
+                    // -- see isBillArmsCrossedActive/BILL_ARMSCROSSED_FRAMES
+                    // in drawBillCharacter -- rather than completing the
+                    // event outright. changingStoreCompleted/state/
+                    // currentSpeed are only set once THAT beat finishes,
+                    // below.
+                    changingStorePhase = "armsCrossedPose";
+                    changingStoreTimer = CONFIG.changingStoreArmsCrossedDuration;
+                }
+                break;
+            }
+
+            case "armsCrossedPose": {
+                // Bill remains exactly where he's standing -- same spot as
+                // the dialogue that just finished, world coordinates
+                // untouched -- while drawBillCharacter plays the Row 2
+                // arms-crossed transition and then holds the pose for the
+                // remainder of this short beat. Purely a visual punctuation
+                // mark on the Fresh Threads joke; nothing here can hold up
+                // gameplay since it's a fixed short timer, not tied to
+                // dialogue.
+                currentSpeed = 0;
+                changingStoreTimer -= dt;
+                if (changingStoreTimer <= 0) {
                     changingStoreCompleted = true;
                     changingStorePhase = null;
                     state = STATE.WALKING;
@@ -5198,6 +5563,17 @@ interiorPostDialoguePause: 0.5,
         interiorStepTimer = 0;
         billInteriorWalking = false;
         bobInteriorWalking = false;
+        bobAmbientActiveAction = null;
+        bobAmbientElapsed = 0;
+        bobAmbientLastAction = null;
+        bobAmbientCooldownRemaining = 0;
+        // Locked in once, right here, for the whole meeting -- see
+        // pickTwoRandomBobAmbientActions/updateBobAmbientAction. Empty for
+        // AA (and any other non-eligible meeting), which is what keeps
+        // Bob's supplemental actions out of AA entirely.
+        bobAmbientSelectedActions = BOB_AMBIENT_ELIGIBLE_MEETINGS.indexOf(meetingId) !== -1
+            ? pickTwoRandomBobAmbientActions()
+            : [];
     }
 
     function updateInsideMeeting(dt) {
@@ -5480,7 +5856,84 @@ interiorPostDialoguePause: 0.5,
         const isResting = (step.type === "wait" || step.type === "holdForScene" ||
             step.type === "dialoguePoint" || step.type === "waitMin");
         updateInteriorBob(dt, isResting);
+        updateBobAmbientAction(dt, step);
         updateInteriorCamera(dt);
+    }
+
+    // Picks Bob's two locked-in ambient actions for an eligible meeting --
+    // a simple partial Fisher-Yates shuffle of the 4-name pool, keeping
+    // just the first two. Guarantees both are different since the pool
+    // itself has no duplicates.
+    function pickTwoRandomBobAmbientActions() {
+        const pool = BOB_AMBIENT_ACTION_NAMES.slice();
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const tmp = pool[i];
+            pool[i] = pool[j];
+            pool[j] = tmp;
+        }
+        return pool.slice(0, 2);
+    }
+
+    // Ambient "Bob does one of his two selected meeting behaviors" one-shot
+    // -- see BOB_AMBIENT_ACTIONS and the ambient branch in drawBobCharacter.
+    // Extends the original single-action coffee implementation rather than
+    // replacing it: same "only during a settled dialoguePoint stop, never
+    // during entrance/exit/doorway/walking" gating, same NORMAL-GAMEPLAY-
+    // WINS cancel-on-any-frame-it-breaks behavior. What's new is that it
+    // can fire more than once per meeting (bobAmbientSelectedActions can
+    // both play out over the course of the meeting), each time rolling
+    // CONFIG.bobAmbientTriggerChance so plain idle stays the common case,
+    // preferring whichever of the two selections DIDN'T just play
+    // (bobAmbientLastAction) so it doesn't obviously repeat, and only ever
+    // rolling once per idle stop (step._ambientRolled) so a long dialogue
+    // doesn't get multiple chances at the same stop.
+    function updateBobAmbientAction(dt, step) {
+        if (bobAmbientCooldownRemaining > 0) {
+            bobAmbientCooldownRemaining = Math.max(0, bobAmbientCooldownRemaining - dt);
+        }
+
+        const settled = step && step.type === "dialoguePoint" && !bobInteriorWalking && !bobInteriorTurning;
+
+        if (bobAmbientActiveAction) {
+            if (!settled) {
+                // NORMAL GAMEPLAY WINS -- cancel immediately, mid-action if
+                // necessary. Never blocks advanceInteriorStep(); this only
+                // decides what Bob's sprite looks like.
+                bobAmbientActiveAction = null;
+                bobAmbientElapsed = 0;
+                bobAmbientCooldownRemaining = CONFIG.bobAmbientCooldown;
+                return;
+            }
+            bobAmbientElapsed += dt;
+            const totalDuration = BOB_AMBIENT_ACTIONS[bobAmbientActiveAction].frames.length /
+                BOB_AMBIENT_ACTIONS[bobAmbientActiveAction].fps;
+            if (bobAmbientElapsed >= totalDuration) {
+                bobAmbientLastAction = bobAmbientActiveAction;
+                bobAmbientActiveAction = null;
+                bobAmbientElapsed = 0;
+                bobAmbientCooldownRemaining = CONFIG.bobAmbientCooldown;
+            }
+            return;
+        }
+
+        if (!settled || step._ambientRolled) return;
+        step._ambientRolled = true; // one roll per idle stop, win or lose
+
+        if (bobAmbientCooldownRemaining > 0) return;
+        if (bobAmbientSelectedActions.length === 0) return; // not an eligible meeting -- see enterInsideMeeting()
+        if (Math.random() >= CONFIG.bobAmbientTriggerChance) return; // "maybe" -- plain idle stays the common case
+
+        // Prefer whichever selected action DIDN'T just play, so two
+        // triggers never obviously repeat back-to-back; falls back to the
+        // full pair if that would leave nothing to choose from.
+        let candidates = bobAmbientSelectedActions;
+        if (candidates.length > 1 && bobAmbientLastAction) {
+            const filtered = candidates.filter(function (name) { return name !== bobAmbientLastAction; });
+            if (filtered.length > 0) candidates = filtered;
+        }
+        bobAmbientActiveAction = candidates[Math.floor(Math.random() * candidates.length)];
+        bobAmbientElapsed = 0;
     }
 
     // Bob eases toward a spot behind Bill rather than snapping to a fixed
@@ -7062,6 +7515,15 @@ interiorPostDialoguePause: 0.5,
             (changingStorePhase === "pauseBeforeDialogue2" || changingStorePhase === "dialogue2");
     }
 
+    // Fresh Threads arms-crossed punctuation beat -- the short comedic
+    // "button" right after the floss/idle dialogue finishes, before normal
+    // gameplay resumes. See the "armsCrossedPose" case in
+    // updateChangingStoreEvent for the phase itself (a fixed
+    // CONFIG.changingStoreArmsCrossedDuration timer, not tied to dialogue).
+    function isBillArmsCrossedActive() {
+        return state === STATE.CHANGING_STORE_EVENT && changingStorePhase === "armsCrossedPose";
+    }
+
     function drawBillCharacter(x, groundY, canvasH, verticalOffset, renderOptions) {
         renderOptions = renderOptions || {};
         const scaleMultiplier = renderOptions.scaleMultiplier || 1;
@@ -7073,6 +7535,13 @@ interiorPostDialoguePause: 0.5,
         // itself. Never active while useOverride is set (interior meeting
         // cinematic), matching every other outdoor-only pose here.
         const flossCycleActive = !useOverride && isBillFlossActive() && billSpriteImageFunny &&
+            billSpriteImageFunny.loaded && billSpriteImageFunny.naturalWidth > 0 && billSpriteImageFunny.naturalHeight > 0;
+
+        // End-of-Fresh-Threads arms-crossed punctuation beat -- see
+        // isBillArmsCrossedActive(). Mutually exclusive with flossCycleActive
+        // by construction (different changingStorePhase values), same
+        // useOverride/funny-sheet-loaded gating.
+        const armsCrossedActive = !useOverride && isBillArmsCrossedActive() && billSpriteImageFunny &&
             billSpriteImageFunny.loaded && billSpriteImageFunny.naturalWidth > 0 && billSpriteImageFunny.naturalHeight > 0;
 
         // FLOSS/IDLE alternation timer. Resets (so the cycle always
@@ -7103,12 +7572,12 @@ interiorPostDialoguePause: 0.5,
         // sheet (never to the flat placeholder) if costume2 is missing --
         // billAppearance itself never causes a fallback to the placeholder
         // shape, only a missing/failed image file does. flossFrameActive
-        // (the FLOSS half of the cycle only) skips this entirely and goes
-        // straight to the funny sheet; the IDLE half of the cycle, and
-        // everything when flossCycleActive is false, falls through to
-        // this exactly as before -- so IDLE reuses Bill's normal
-        // costume2 idle pose/animation completely unchanged.
-        let activeBillImage = flossFrameActive
+        // (the FLOSS half of the cycle only) and armsCrossedActive both
+        // skip this entirely and go straight to the funny sheet; the IDLE
+        // half of the floss cycle, and everything else, falls through to
+        // this exactly as before -- so IDLE reuses Bill's normal costume2
+        // idle pose/animation completely unchanged.
+        let activeBillImage = (flossFrameActive || armsCrossedActive)
             ? billSpriteImageFunny
             : ((billAppearance === "costume2" && billSpriteImage2 && billSpriteImage2.loaded) ? billSpriteImage2 : billSpriteImage);
 
@@ -7125,7 +7594,23 @@ interiorPostDialoguePause: 0.5,
 
         let row, col;
 
-        if (flossFrameActive) {
+        if (armsCrossedActive) {
+            // Row 2, cells 0-4, played once in order then held on the last
+            // frame -- see BILL_ARMSCROSSED_FRAMES/CONFIG.billArmsCrossedFPS.
+            // Paced against updateChangingStoreEvent's own changingStoreTimer
+            // countdown (elapsed = total duration so far), not a separate
+            // clock, so this always stays in lockstep with the phase that's
+            // actually driving how long the beat lasts.
+            row = BILL_FUNNY_ROW_ARMSCROSSED;
+            const armsCrossedElapsed = Math.max(0, CONFIG.changingStoreArmsCrossedDuration - changingStoreTimer);
+            const armsCrossedStep = Math.min(
+                BILL_ARMSCROSSED_FRAMES.length - 1,
+                Math.floor(armsCrossedElapsed * CONFIG.billArmsCrossedFPS)
+            );
+            col = BILL_ARMSCROSSED_FRAMES[armsCrossedStep];
+            billWasInDoorwayState = false;
+            billDoorwaySequenceStartAt = null;
+        } else if (flossFrameActive) {
             // Row 0, cells 0-4, looping -- see BILL_FLOSS_FRAMES/
             // CONFIG.billFlossFPS. Time-based against flossPosInCycle (0
             // at the start of each FLOSS window), deliberately not tied
@@ -7193,8 +7678,8 @@ interiorPostDialoguePause: 0.5,
             }
         }
 
-        const cellW = flossFrameActive ? (activeBillImage.naturalWidth / BILL_FUNNY_SPRITE_COLS) : (activeBillImage.naturalWidth / BILL_SPRITE_COLS);
-        const cellH = flossFrameActive ? (activeBillImage.naturalHeight / BILL_FUNNY_SPRITE_ROWS) : (activeBillImage.naturalHeight / BILL_SPRITE_ROWS);
+        const cellW = (flossFrameActive || armsCrossedActive) ? (activeBillImage.naturalWidth / BILL_FUNNY_SPRITE_COLS) : (activeBillImage.naturalWidth / BILL_SPRITE_COLS);
+        const cellH = (flossFrameActive || armsCrossedActive) ? (activeBillImage.naturalHeight / BILL_FUNNY_SPRITE_ROWS) : (activeBillImage.naturalHeight / BILL_SPRITE_ROWS);
         const srcX = col * cellW;
         const srcY = row * cellH;
 
@@ -7221,7 +7706,7 @@ interiorPostDialoguePause: 0.5,
         // with no per-frame recentering, same spirit as skipping the
         // inset table below.
         const billCacheKey = "bill-" + billAppearance;
-        const billOffsetX = flossFrameActive ? 0 : getAutoFrameOffsetX(billCacheKey, activeBillImage.image, row, col, cellW, cellH, srcX, srcY);
+        const billOffsetX = (flossFrameActive || armsCrossedActive) ? 0 : getAutoFrameOffsetX(billCacheKey, activeBillImage.image, row, col, cellW, cellH, srcX, srcY);
         const frameOffsetDisplay = billOffsetX * (displayWidth / cellW);
         const destX = x - displayWidth / 2 + frameOffsetDisplay + CONFIG.billRenderOffsetX;
         const destY = groundY - displayHeight + verticalOffset + CONFIG.billRenderOffsetY;
@@ -7239,7 +7724,7 @@ interiorPostDialoguePause: 0.5,
         // flossFrameActive deliberately bypasses SPRITE_INSET/spriteInsetFor --
         // per spec, none of the old Bill2 crop hacks apply to this new,
         // already-normalized sheet. Full 256x256 cell, straight through.
-        const billInset = flossFrameActive ? { top: 0, bottom: 0, left: 0, right: 0 } : spriteInsetFor(billAppearance, row);
+        const billInset = (flossFrameActive || armsCrossedActive) ? { top: 0, bottom: 0, left: 0, right: 0 } : spriteInsetFor(billAppearance, row);
         const srcXi = srcX + billInset.left;
         const srcYi = srcY + billInset.top;
         const srcWi = cellW - billInset.left - billInset.right;
@@ -7330,12 +7815,25 @@ interiorPostDialoguePause: 0.5,
         const scaleMultiplier = renderOptions.scaleMultiplier || 1;
         const useOverride = renderOptions.walkingOverride !== undefined;
 
+        // Ambient action override -- see updateBobAmbientAction. Only ever
+        // true while bobAmbientActiveAction is set (meaning: eligible
+        // meeting, an actual dialoguePoint stop, Bob fully settled, and the
+        // random roll landed on one of his two selected actions this
+        // meeting), and only if the funny sheet itself actually loaded.
+        const bobAmbientFrameActive = !!bobAmbientActiveAction && bobSpriteImageFunny &&
+            bobSpriteImageFunny.loaded && bobSpriteImageFunny.naturalWidth > 0 && bobSpriteImageFunny.naturalHeight > 0;
+
         // Same pattern as drawBillCharacter's activeBillImage -- picks
         // costume2 only once it's actually loaded, otherwise stays on the
         // normal sheet (never falls to the flat placeholder just because
         // of an appearance switch, only a missing/failed file does that).
-        const activeBobImage = (bobAppearance === "costume2" && bobSpriteImage2 && bobSpriteImage2.loaded)
-            ? bobSpriteImage2 : bobSpriteImage;
+        // bobAmbientFrameActive skips this entirely and goes straight to
+        // the funny sheet; if that sheet fails to load, bobAmbientFrameActive
+        // is simply false (see above) and this picks the normal
+        // costume2/normal sheet exactly as before.
+        const activeBobImage = bobAmbientFrameActive
+            ? bobSpriteImageFunny
+            : ((bobAppearance === "costume2" && bobSpriteImage2 && bobSpriteImage2.loaded) ? bobSpriteImage2 : bobSpriteImage);
 
         const usingSprite = !!(activeBobImage && activeBobImage.loaded &&
             activeBobImage.naturalWidth > 0 && activeBobImage.naturalHeight > 0);
@@ -7351,7 +7849,22 @@ interiorPostDialoguePause: 0.5,
 
         let row, col;
 
-        if (isDoorway && !isCatchingUp) {
+        if (bobAmbientFrameActive) {
+            // Whichever action is active -- own row, own frames, own FPS,
+            // see BOB_AMBIENT_ACTIONS. Paced off bobAmbientElapsed
+            // (accumulated in updateBobAmbientAction, dt-based) rather than
+            // bobAnimElapsed, so a mid-action cancel/restart next time
+            // never inherits a stale phase.
+            const activeActionDef = BOB_AMBIENT_ACTIONS[bobAmbientActiveAction];
+            row = activeActionDef.row;
+            const ambientStep = Math.min(
+                activeActionDef.frames.length - 1,
+                Math.floor(bobAmbientElapsed * activeActionDef.fps)
+            );
+            col = activeActionDef.frames[ambientStep];
+            bobWasInDoorwayState = false;
+            bobDoorwaySequenceStartAt = null;
+        } else if (isDoorway && !isCatchingUp) {
             // ONE-SHOT: 19 -> 6, then hold. Only starts once Bob has
             // actually closed the gap and settled -- while he's still
             // hustling to catch up (isCatchingUp), he keeps walking below.
@@ -7404,8 +7917,8 @@ interiorPostDialoguePause: 0.5,
             }
         }
 
-        const cellW = activeBobImage.naturalWidth / BOB_SPRITE_COLS;
-        const cellH = activeBobImage.naturalHeight / BOB_SPRITE_ROWS;
+        const cellW = bobAmbientFrameActive ? (activeBobImage.naturalWidth / BOB_FUNNY_SPRITE_COLS) : (activeBobImage.naturalWidth / BOB_SPRITE_COLS);
+        const cellH = bobAmbientFrameActive ? (activeBobImage.naturalHeight / BOB_FUNNY_SPRITE_ROWS) : (activeBobImage.naturalHeight / BOB_SPRITE_ROWS);
         const srcX = col * cellW;
         const srcY = row * cellH;
 
@@ -7433,16 +7946,118 @@ interiorPostDialoguePause: 0.5,
         // bottom edge except cell 19, which that table already corrects
         // for.
         const bobCacheKey = "bob-" + bobAppearance;
-        const bobOffsetXRaw = getAutoFrameOffsetX(bobCacheKey, activeBobImage.image, row, col, cellW, cellH, srcX, srcY);
-        const bobOffsetYRaw = (bobAppearance === "costume2") ? 0 : bobFrameOffsetY(row, col);
+        // bobAmbientFrameActive skips the auto-measurement/Y-correction
+        // entirely -- the funny sheet is already a clean, pre-normalized
+        // programming grid (see BOB_FUNNY_SPRITE_COLS/ROWS above), same
+        // as Bill's floss handling.
+        const bobOffsetXRaw = bobAmbientFrameActive ? 0 : getAutoFrameOffsetX(bobCacheKey, activeBobImage.image, row, col, cellW, cellH, srcX, srcY);
+        const bobOffsetYRaw = bobAmbientFrameActive ? 0 : ((bobAppearance === "costume2") ? 0 : bobFrameOffsetY(row, col));
         const offsetXDisplay = bobOffsetXRaw * (displayWidth / cellW);
         const offsetYDisplay = bobOffsetYRaw * (displayHeight / cellH);
         const destX = x - displayWidth / 2 + offsetXDisplay + CONFIG.bobRenderOffsetX;
-        const destY = groundY - displayHeight + verticalOffset + offsetYDisplay + CONFIG.bobRenderOffsetY;
+        // CONFIG.bobRenderOffsetY (-24) is bob2-specific -- tuned to
+        // correct basic-level1-bob2.png's own irregular vertical spacing,
+        // never meant for the funny sheet. Confirmed via [BOB FRAME DEBUG]
+        // measurement that a bare bottom-anchor (0 correction) was the
+        // WRONG assumption for the funny sheet too, though for a different
+        // reason: bob2's own feet visually sit ~24px above a naive
+        // bottom-anchor (that's what its -24 is really compensating for),
+        // so zero-correction funny frames landed ~24px BELOW bob2's own
+        // baseline -- a sustained "feet sinking into the ground" for the
+        // whole duration of the animation, confirmed against actual
+        // gameplay video. CONFIG.bobFunnyRenderOffsetY is a separate,
+        // independently-tunable constant for exactly this -- see its
+        // definition above. It only ever affects the funny sheet; bob2's
+        // own rendering (the "costume2 | costume2" case above) is
+        // completely unchanged.
+        const destY = groundY - displayHeight + verticalOffset + offsetYDisplay +
+            (bobAmbientFrameActive ? CONFIG.bobFunnyRenderOffsetY : CONFIG.bobRenderOffsetY);
 
         if (typeof window !== "undefined" && window.DEBUG_ANCHOR) {
-            debugTrackAnchor("bob", row, col, bobAppearance, !!renderOptions.facingLeft, x, destX, displayWidth);
+            // NOTE: debugTrackAnchor's poseKey is "row,col,appearanceLabel,
+            // facingLeft" -- it has no idea which SHEET is active on its
+            // own. BOB_FUNNY_ROW_DONUT (1) and BOB_FUNNY_ROW_COFFEE (0) are
+            // the SAME row numbers as costume2's own walk row (1) and idle
+            // row (0), so passing plain bobAppearance here would make an
+            // [ANCHOR JUMP] on, say, "1,4,costume2,false" ambiguous --
+            // genuinely impossible to tell whether that's costume2's own
+            // walk-cycle frame 1,4 or a funny donut frame 1,4. Folding the
+            // active ambient action into the label removes that ambiguity.
+            const bobAnchorLabel = bobAmbientFrameActive ? ("funny-" + bobAmbientActiveAction) : bobAppearance;
+            debugTrackAnchor("bob", row, col, bobAnchorLabel, !!renderOptions.facingLeft, x, destX, displayWidth);
             debugDrawAnchorLine(x, groundY);
+            // TEMPORARY -- see debugLogBobFrameGeometry above. Draws the
+            // same destination-box overlay drawBillDebugOverlay already
+            // provides elsewhere, plus a full geometry dump on every
+            // normal<->funny identity change.
+            drawBillDebugOverlay(x, groundY, destX, destY, displayWidth, displayHeight);
+            debugLogBobFrameGeometry({
+                sheetLabel: bobAmbientFrameActive ? "funny" : bobAppearance,
+                animName: bobAmbientFrameActive ? bobAmbientActiveAction : bobAppearance,
+                row: row, col: col,
+                image: activeBobImage.image, srcX: srcX, srcY: srcY, cellW: cellW, cellH: cellH,
+                destX: destX, destY: destY, destW: displayWidth, destH: displayHeight,
+                worldX: x, groundY: groundY,
+                scaleMultiplier: scaleMultiplier,
+                verticalOffset: verticalOffset,
+                offsetYDisplay: offsetYDisplay,
+                bob2OffsetYApplied: bobAmbientFrameActive ? CONFIG.bobFunnyRenderOffsetY : CONFIG.bobRenderOffsetY,
+                cropInsetLabel: bobAmbientFrameActive ? JSON.stringify(bobFunnyCropInset(bobAmbientActiveAction, row, col)) : JSON.stringify(bobCropInset(bobAppearance, row, col)),
+                usingIsolatedCanvas: true
+            });
+        }
+
+        if (bobAmbientFrameActive) {
+            // Draw from this cell's own isolated, pre-cropped canvas (see
+            // getBobFunnyFrameCanvas) instead of the shared 1280x1024
+            // funny sheet Image -- same structural fix as the normal
+            // sheet's getBobFrameCanvas/bobFrameCanvasCache just above,
+            // now applied here too so neighboring-cell artwork (e.g. the
+            // row above bleeding in above Bob's head) has no pixels left
+            // to sample from once this canvas is what actually gets
+            // scaled. bobFunnyRenderOffsetY (vertical alignment) is
+            // completely separate from this and untouched -- this only
+            // changes WHERE the source pixels are read from, not where
+            // they're drawn on screen.
+            //
+            // Drawn at the SAME destX/destY/displayWidth/displayHeight
+            // every uncropped frame already uses -- deliberately NOT
+            // scaling the destination box down to match
+            // BOB_FUNNY_CROP_INSET_BY_ROW's (rows 1-3) top margin. An
+            // earlier pass here tried compensating for that (shrinking
+            // the box and shifting it down to preserve exact 1:1 scale),
+            // but that visibly cut Bob off on rows 1-3 -- confirmed
+            // directly against gameplay screenshots. Reverted to this
+            // simpler stretch-to-fill approach instead, which is exactly
+            // what getBobFrameCanvas/drawBobCharacter's own normal-sheet
+            // path already does for bob2's OWN row insets above (see
+            // BOB_CROP_INSET) -- a proven, already-shipped pattern. The
+            // trade-off is a small (single-digit-percent) vertical
+            // stretch on rows 1-3 specifically, same as bob2 already
+            // accepts for its own insets; that's a minor proportion
+            // difference, not a visible clipping bug.
+            const funnyFrame = getBobFunnyFrameCanvas(bobAmbientActiveAction, activeBobImage.image, row, col, cellW, cellH, srcX, srcY);
+            const wasSmoothingAmbient = ctx.imageSmoothingEnabled;
+            ctx.imageSmoothingEnabled = false;
+            let ambientScreenLeft;
+            if (renderOptions.facingLeft) {
+                ambientScreenLeft = 2 * x - destX - displayWidth;
+                ctx.save();
+                ctx.translate(x, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(funnyFrame.canvas, 0, 0, funnyFrame.width, funnyFrame.height, destX - x, destY, displayWidth, displayHeight);
+                ctx.restore();
+            } else {
+                ambientScreenLeft = destX;
+                ctx.drawImage(funnyFrame.canvas, 0, 0, funnyFrame.width, funnyFrame.height, destX, destY, displayWidth, displayHeight);
+            }
+            ctx.imageSmoothingEnabled = wasSmoothingAmbient;
+
+            if (DEBUG_BOB_SPRITE) {
+                drawBillDebugOverlay(x, groundY, destX, destY, displayWidth, displayHeight);
+            }
+
+            return { left: ambientScreenLeft, top: destY, width: displayWidth, height: displayHeight, centerX: ambientScreenLeft + displayWidth / 2 };
         }
 
         // The actual fix: draw from this cell's own isolated, pre-cropped
@@ -8249,13 +8864,14 @@ interiorPostDialoguePause: 0.5,
             actionButtonHousing.style.border = "3px solid #145214";
             actionButtonHousing.style.background = "linear-gradient(#141d10, #0a0f08)";
             actionButtonHousing.style.boxShadow = "0 3px 0 #000, 0 5px 8px rgba(0,0,0,0.5), 0 0 12px rgba(57,255,20,0.35)";
-        } else if (buttonState === BUTTON_STATE.CONTINUE) {
-            // Same dark-screen/neon-border language as ENTER above, just
-            // on the wider pill housing set up earlier in this function.
-            actionButtonHousing.style.border = "3px solid #145214";
-            actionButtonHousing.style.background = "linear-gradient(#141d10, #0a0f08)";
-            actionButtonHousing.style.boxShadow = "0 3px 0 #000, 0 5px 8px rgba(0,0,0,0.5), 0 0 14px rgba(57,255,20,0.4)";
         }
+        // CONTINUE ("▶ CHAPTER 2 ◀") deliberately does NOT get the ENTER
+        // panel's dark-screen/neon-glow-box treatment -- it keeps the
+        // same plain active-state housing (dark gradient pill, thick
+        // black outline, ordinary drop shadow) already applied above,
+        // same as START/FASTER. A simple retro control, not a lit-up
+        // screen -- only the triangle icons + label carry the neon-green
+        // arcade accent color now.
     }
 
     // Blends the housing's base "active" drop-shadow with an additional
