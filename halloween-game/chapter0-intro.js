@@ -1130,7 +1130,23 @@ window.HalloweenGame.chapter0Intro = {
                     id="dev-jump-level1"
                     type="button"
                 >
-                    JUMP TO GAMEPLAY
+                    JUMP TO CHAPTER 1 GAMEPLAY
+                </button>
+
+                <button
+                    class="chapter0-dev-button level1"
+                    id="dev-jump-chapter2-story"
+                    type="button"
+                >
+                    JUMP TO CHAPTER 2 STORY
+                </button>
+
+                <button
+                    class="chapter0-dev-button level1"
+                    id="dev-jump-chapter2-gameplay"
+                    type="button"
+                >
+                    JUMP TO CHAPTER 2 GAMEPLAY
                 </button>
 
             `;
@@ -1152,6 +1168,16 @@ window.HalloweenGame.chapter0Intro = {
             const jumpLevel1Button =
                 document.getElementById(
                     "dev-jump-level1"
+                );
+
+            const jumpChapter2StoryButton =
+                document.getElementById(
+                    "dev-jump-chapter2-story"
+                );
+
+            const jumpChapter2GameplayButton =
+                document.getElementById(
+                    "dev-jump-chapter2-gameplay"
                 );
 
 
@@ -1182,6 +1208,32 @@ window.HalloweenGame.chapter0Intro = {
                     () => {
 
                         this.jumpDirectlyToGameplay();
+
+                    }
+                );
+            }
+
+
+            if (jumpChapter2StoryButton) {
+
+                jumpChapter2StoryButton.addEventListener(
+                    "click",
+                    () => {
+
+                        this.jumpDirectlyToChapter2Story();
+
+                    }
+                );
+            }
+
+
+            if (jumpChapter2GameplayButton) {
+
+                jumpChapter2GameplayButton.addEventListener(
+                    "click",
+                    () => {
+
+                        this.jumpDirectlyToChapter2Gameplay();
 
                     }
                 );
@@ -1284,6 +1336,150 @@ window.HalloweenGame.chapter0Intro = {
 
         console.error(
             "DEV MODE: chapter1-gameplay.js is not ready."
+        );
+    },
+
+
+    jumpDirectlyToChapter2Story() {
+
+        console.log(
+            "DEV MODE: jumping directly to Chapter 2 story."
+        );
+
+
+        clearTimeout(
+            this.titleCardTimer
+        );
+
+        this.titleSequencePaused =
+            false;
+
+        this.titleTransitioning =
+            false;
+
+
+        if (this.mainMusic) {
+
+            try {
+
+                this.mainMusic.pause();
+
+                this.mainMusic.currentTime =
+                    0;
+
+            } catch (error) {
+
+                console.warn(
+                    "DEV MODE: could not stop intro music cleanly.",
+                    error
+                );
+            }
+        }
+
+
+        const game =
+            document.getElementById(
+                "game"
+            );
+
+
+        if (game) {
+
+            game.innerHTML = "";
+        }
+
+
+        if (
+            window.HalloweenGame &&
+            window.HalloweenGame.chapter2Story &&
+            typeof window.HalloweenGame
+                .chapter2Story
+                .start ===
+                "function"
+        ) {
+
+            window.HalloweenGame
+                .chapter2Story
+                .start();
+
+            return;
+        }
+
+
+        console.error(
+            "DEV MODE: chapter2-story.js is not ready."
+        );
+    },
+
+
+    jumpDirectlyToChapter2Gameplay() {
+
+        console.log(
+            "DEV MODE: jumping directly to Chapter 2 gameplay."
+        );
+
+
+        clearTimeout(
+            this.titleCardTimer
+        );
+
+        this.titleSequencePaused =
+            false;
+
+        this.titleTransitioning =
+            false;
+
+
+        if (this.mainMusic) {
+
+            try {
+
+                this.mainMusic.pause();
+
+                this.mainMusic.currentTime =
+                    0;
+
+            } catch (error) {
+
+                console.warn(
+                    "DEV MODE: could not stop intro music cleanly.",
+                    error
+                );
+            }
+        }
+
+
+        const game =
+            document.getElementById(
+                "game"
+            );
+
+
+        if (game) {
+
+            game.innerHTML = "";
+        }
+
+
+        if (
+            window.HalloweenGame &&
+            window.HalloweenGame.chapter2Gameplay &&
+            typeof window.HalloweenGame
+                .chapter2Gameplay
+                .start ===
+                "function"
+        ) {
+
+            window.HalloweenGame
+                .chapter2Gameplay
+                .start();
+
+            return;
+        }
+
+
+        console.error(
+            "DEV MODE: chapter2-gameplay.js is not ready yet."
         );
     },
 

@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Bill &amp; Bob Script Editor</title>
+<style>
+  :root{
+    --bg:#161a20; --card:#1f2530; --card2:#262d3a; --border:#333c4d;
+    --text:#eef1f6; --muted:#9aa5b8; --accent:#5aa9ff; --accent2:#3d7fd1;
+    --danger:#e2554c; --danger-dim:#5a2e2b; --ok:#4caf7d;
+    --bill:#5aa9ff; --bob:#f0a35a; --crowd:#9a8cff; --building:#4caf7d;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    padding-bottom:100px;}
+  header{position:sticky;top:0;z-index:20;background:#11141a;
+    border-bottom:1px solid var(--border);padding:10px 12px;}
+  header h1{font-size:16px;margin:0 0 8px 0;font-weight:700;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;}
+  button{font:inherit;}
+  .btn{border:1px solid var(--border);background:var(--card2);color:var(--text);
+    padding:9px 12px;border-radius:8px;font-size:13px;cursor:pointer;
+    min-height:38px;}
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:600;}
+  .btn-danger{background:var(--danger-dim);border-color:var(--danger);color:#ffd9d6;}
+  .btn-sm{padding:6px 9px;font-size:12px;min-height:32px;}
+  .btn-icon{padding:6px 10px;font-size:16px;line-height:1;min-height:32px;min-width:38px;}
+  main{max-width:720px;margin:0 auto;padding:12px;}
+  .info{background:var(--card2);border:1px solid var(--border);border-radius:10px;
+    padding:10px 12px;font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+  .section{background:var(--card);border:1px solid var(--border);border-radius:12px;
+    margin-bottom:12px;overflow:hidden;}
+  .section-head{display:flex;align-items:center;justify-content:space-between;
+    padding:12px 14px;cursor:pointer;user-select:none;}
+  .section-head:active{background:var(--card2);}
+  .section-title{display:flex;flex-direction:column;gap:2px;}
+  .section-name{font-weight:700;font-size:15px;}
+  .section-meta{font-size:11.5px;color:var(--muted);}
+  .chev{font-size:13px;color:var(--muted);transition:transform .15s;}
+  .chev.open{transform:rotate(90deg);}
+  .section-body{padding:0 14px 14px 14px;display:none;}
+  .section-body.open{display:block;}
+  .field-row{display:flex;gap:10px;margin:10px 0;flex-wrap:wrap;}
+  .field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px;}
+  .field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
+  .field input{background:var(--card2);border:1px solid var(--border);color:var(--text);
+    border-radius:8px;padding:8px 10px;font-size:14px;width:100%;}
+  .field input.bad{border-color:var(--danger);}
+  .hint{font-size:10.5px;color:var(--muted);margin-top:2px;}
+  .point{background:var(--card2);border:1px solid var(--border);border-radius:10px;
+    padding:10px;margin:10px 0;}
+  .point-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .point-label{font-weight:700;font-size:13px;color:var(--muted);}
+  .point-actions{display:flex;gap:6px;}
+  .line-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:8px;}
+  .line-row select{background:var(--card);border:1px solid var(--border);color:var(--text);
+    border-radius:8px;padding:8px 4px;font-size:12.5px;width:92px;flex-shrink:0;}
+  .line-row textarea{flex:1;background:var(--card);border:1px solid var(--border);color:var(--text);
+    border-radius:8px;padding:8px 10px;font-size:14px;resize:none;min-height:38px;
+    font-family:inherit;line-height:1.35;}
+  .line-controls{display:flex;flex-direction:column;gap:4px;}
+  .speaker-bill{border-left:4px solid var(--bill) !important;}
+  .speaker-bob{border-left:4px solid var(--bob) !important;}
+  .speaker-crowd{border-left:4px solid var(--crowd) !important;}
+  .speaker-building-dialogue{border-left:4px solid var(--building) !important;}
+  .add-line{width:100%;margin-top:2px;}
+  .add-point{width:100%;margin-top:4px;}
+  .warn{color:#f0c95a;font-size:10.5px;margin:2px 0 0 96px;}
+  details.raw{background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:10px 14px;margin-top:16px;}
+  details.raw summary{cursor:pointer;font-weight:600;font-size:13px;}
+  #rawPreview{width:100%;min-height:260px;background:#0d1015;color:#c9d1e0;
+    border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin-top:10px;white-space:pre;
+    overflow:auto;}
+  #importArea{width:100%;min-height:160px;background:var(--card2);color:var(--text);
+    border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin-top:8px;display:none;}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);
+    background:var(--ok);color:#06210f;font-weight:600;padding:10px 18px;border-radius:20px;
+    font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;}
+  .toast.show{opacity:1;}
+  input[type=file]{display:none;}
+  .empty{color:var(--muted);font-size:12.5px;font-style:italic;padding:6px 0;}
+  #gate{max-width:440px;margin:60px auto;background:var(--card);border:1px solid var(--border);
+    padding:26px;border-radius:12px;}
+  #gate p{color:var(--muted);font-size:13.5px;line-height:1.55;}
+  #gate label{display:block;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px;
+    text-transform:uppercase;letter-spacing:.03em;}
+  #gate input{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;
+    background:var(--card2);color:var(--text);}
+  #gate .btn{margin-top:12px;width:100%;}
+  #gateStatus{margin-top:10px;font-size:12.5px;}
+  #gateStatus.err{color:#ffb3ac;}
+  #gateStatus.ok{color:#8fe3b0;}
+  #gateSkip{display:block;text-align:center;margin-top:14px;font-size:12px;color:var(--muted);
+    text-decoration:underline;cursor:pointer;background:none;border:0;width:100%;}
+  #appWrap{display:none;}
+  #appWrap.shown{display:block;}
+  .conn-status{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+  .conn-status.live{color:#8fe3b0;}
+  .conn-status.offline{color:#f0c95a;}
+  .toolbar-group{display:flex;flex-wrap:wrap;gap:8px;}
+  .toolbar-label{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+    width:100%;margin:6px 0 -2px 0;}
+  #saveGithubBtn{background:var(--ok);border-color:var(--ok);color:#06210f;font-weight:700;}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <h1 style="font-size:16px;margin:0 0 4px 0;">&#127908; Bill &amp; Bob &mdash; Script Editor</h1>
+  <p><strong>Connect to GitHub</strong> to edit the live <code>halloween-game/script.js</code> file and
+  save straight back to <code>tacomike417/recoverymisfits-app</code>. Paste a GitHub fine-grained
+  Personal Access Token scoped to just that repo with <em>Contents: read and write</em>. It's kept only
+  in this browser (localStorage) and sent only to GitHub's API &mdash; never anywhere else. It's shared
+  with the site's other admin page, so if you've unlocked that one before, this one may unlock automatically.</p>
+  <label for="tokenInput">GitHub token</label>
+  <input type="password" id="tokenInput" placeholder="github_pat_...">
+  <button class="btn btn-primary" id="enterBtn">Unlock &amp; load from GitHub</button>
+  <button id="gateSkip">Skip &mdash; edit a local copy only (no auto-save)</button>
+  <div id="gateStatus"></div>
+</div>
+
+<div id="appWrap">
+<header>
+  <h1>&#127908; Bill &amp; Bob &mdash; Script Editor</h1>
+  <div class="conn-status" id="connStatus">Local copy only &mdash; not connected to GitHub.</div>
+  <div class="toolbar">
+    <button class="btn" id="saveGithubBtn" style="display:none;">&#9729; Save to GitHub</button>
+    <button class="btn" id="reloadGithubBtn" style="display:none;">&#8635; Reload from GitHub</button>
+  </div>
+  <div class="toolbar-label">Local backup</div>
+  <div class="toolbar">
+    <button class="btn btn-primary" id="downloadBtn">&#8681; Download script.js</button>
+    <button class="btn" id="copyBtn">&#128203; Copy text</button>
+    <button class="btn" id="loadBtn">&#128193; Load file</button>
+    <button class="btn" id="importToggleBtn">&#9998; Paste text</button>
+    <button class="btn btn-danger" id="resetBtn">&#8634; Reset</button>
+    <input type="file" id="fileInput" accept=".js,.txt,text/plain">
+  </div>
+</header>
+
+<main>
+  <div class="info">
+    This edits the dialogue file for the game. Tap a section to expand it. Use the dropdown on each
+    line to pick who's talking, edit the text, and use the arrows to reorder. New sections can't be
+    added here (the game code looks for these exact section names) &mdash; but you can add, delete,
+    edit and reorder anything <em>inside</em> a section freely. If you're connected to GitHub, tap
+    <strong>Save to GitHub</strong> to publish live &mdash; otherwise use <strong>Download script.js</strong>
+    and move the file into place yourself.
+  </div>
+
+  <div id="sections"></div>
+
+  <details class="raw">
+    <summary>Show raw script.js text</summary>
+    <textarea id="rawPreview" readonly></textarea>
+  </details>
+
+  <textarea id="importArea" placeholder="Paste full script.js text here, then tap &quot;Import pasted text&quot;."></textarea>
+  <button class="btn add-point" id="importBtn" style="display:none;margin-top:8px;">Import pasted text</button>
+</main>
+</div><!-- /appWrap -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SECTION_META = {
+    'Outside-level1': {type:'outdoor', label:'Outdoor walk'},
+    'AA-level1': {type:'meeting', label:'Meeting'},
+    'ChangingStore-level1': {type:'outdoor', label:'Store'},
+    'DryPeoplesClub-level1': {type:'outdoor', label:"Dry People's Club"},
+    'CA-level1': {type:'meeting', label:'Meeting'},
+    'GA-level1': {type:'meeting', label:'Meeting'},
+    'EA-level1': {type:'meeting', label:'Meeting'},
+    'CMA-level1': {type:'meeting', label:'Meeting'}
+  };
+
+  var SPEAKER_LABEL = {
+    'bill':'Bill', 'bob':'Bob', 'crowd':'Crowd', 'building-dialogue':'Building'
+  };
+
+  // ---------- GitHub API (same pattern as /admin, shares its token) ----------
+  var OWNER = 'tacomike417';
+  var REPO = 'recoverymisfits-app';
+  var BRANCH = 'main';
+  var FILE_PATH = 'halloween-game/script.js';
+  var API = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents';
+  var TOKEN_KEY = 'rm_admin_token';
+
+  var ghToken = localStorage.getItem(TOKEN_KEY) || '';
+  var ghSha = null;
+  var connected = false;
+
+  function b64EncodeUnicode(str){ return btoa(unicode_to_utf8(str)); }
+  function unicode_to_utf8(str){ return unescape(encodeURIComponent(str)); }
+  function b64DecodeUnicode(str){ return decodeURIComponent(escape(atob(str))); }
+
+  function ghGetFile(){
+    return fetch(API + '/' + FILE_PATH + '?ref=' + BRANCH, {
+      headers: { 'Authorization': 'Bearer ' + ghToken, 'Accept': 'application/vnd.github+json' }
+    }).then(function(res){
+      if(!res.ok) throw new Error('GET ' + FILE_PATH + ' failed: ' + res.status + ' ' + res.statusText);
+      return res.json();
+    }).then(function(data){
+      return { text: b64DecodeUnicode(data.content.replace(/\n/g,'')), sha: data.sha };
+    });
+  }
+
+  function ghPutFile(text, sha, message){
+    var body = {
+      message: message,
+      content: b64EncodeUnicode(text),
+      branch: BRANCH
+    };
+    if(sha) body.sha = sha;
+    return fetch(API + '/' + FILE_PATH, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + ghToken,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }).then(function(res){
+      if(!res.ok){
+        return res.text().then(function(t){ throw new Error('Save failed: ' + res.status + ' ' + t); });
+      }
+      return res.json();
+    });
+  }
+
+  var DEFAULT_SCRIPT = `// script.js -- plain-text dialogue for the game.
+//
+// This file is NOT run as JavaScript. The game loads it as plain text
+// and reads it top to bottom, so you can edit it freely without
+// worrying about quotes, commas, brackets, or any code syntax.
+//
+// HOW TO EDIT:
+//   - A line starting with // and a name, like "//Outside-level1",
+//     starts a new SECTION. Everything below it belongs to that
+//     section until the next "//SectionName" line.
+//   - A line like "scene-timer: 30" sets how many seconds that
+//     MEETING scene (AA-level1, CA-level1, GA-level1, EA-level1,
+//     CMA-level1) is allowed to run before Bill and Bob leave --
+//     30 means 30 seconds. It's config, not dialogue, so it can go
+//     anywhere under that section's "//SectionName" line (top of the
+//     section is clearest). If you don't add one, that meeting falls
+//     back to the game's default. Change the number any time you add
+//     or remove dialogue so the scene has time to finish.
+//   - A line like "clock: 20:35:00" sets the HUD "TIME LEFT ON
+//     EARTH" story clock the moment that section begins -- it's
+//     FICTIONAL story time, purely for the HUD display, and has
+//     nothing to do with real elapsed time or scene-timer above.
+//     Format is HH:MM:SS. If a section has no clock: line, the clock
+//     just keeps counting down from wherever it already was -- it's
+//     never reset automatically. You decide these times yourself.
+//   - A line like "//[pt1]" starts a new dialogue POINT inside the
+//     current section. You can add as many as you want: [pt1], [pt2],
+//     [pt3], [pt4]... there's no limit.
+//   - Dialogue lines look like:
+//         bill: whatever Bill says
+//         bob: whatever Bob says
+//         crowd: an anonymous meeting-room voice (not Bill, not Bob --
+//                someone else in the room). Renders as an unattached
+//                bubble somewhere in the meeting, not above either of
+//                them. Only meaningful inside a meeting section (AA-level1,
+//                CA-level1, etc.) -- there's no "crowd" outdoors.
+//         building-dialogue: a speech bubble from the current building
+//                itself (whichever meeting building is being approached
+//                outdoors, Fresh Threads during that event, or Dry
+//                People's Club during its stop) -- not Bill, not Bob,
+//                not crowd. It's a bubble anchored to the building/sign,
+//                not a character. Only works outdoors where an actual
+//                building is on screen; a building-dialogue line inside
+//                a meeting's own interior section (AA-level1 etc, which
+//                plays once you're already inside) has nothing to
+//                anchor to and is simply skipped.
+//     "bill:" / "Bill:" / "BILL:" all work the same way -- capitalization
+//     doesn't matter. Same for "crowd:" and "building-dialogue:".
+//   - The same character can talk multiple times in a row, e.g.:
+//         bill: first thing
+//         bill: second thing right after
+//         bob: my reply
+//   - Blank lines are just for readability -- add as many as you like.
+//   - About 2 seconds pass between each line (see DIALOGUE_GAP in the
+//     game code if that ever needs to change).
+//
+// To add a new dialogue point, just add a new "//[ptN]" block below
+// with your lines under it -- nothing else needs to change. Inside a
+// meeting, adding a new [ptN] also adds a new stop/wander beat to that
+// meeting's own cinematic automatically -- you don't need to touch any
+// game code for that either.
+//
+// SECTIONS IN THIS FILE:
+//   Outside-level1  -- plays on the street, one point per meeting
+//                      you're walking toward (pt1 before the AA meeting,
+//                      pt2 before CA, pt3 before GA, pt4 before EA,
+//                      pt5 before CMA/Harrison Corner).
+//   AA-level1, CA-level1, GA-level1, EA-level1, CMA-level1
+//                      -- each plays once you step inside that meeting.
+//                      pt1, pt2, pt3 each fire at their own stop as Bill
+//                      and Bob move around the room (walk -> stop ->
+//                      dialogue -> pause -> walk -> stop -> dialogue...).
+//   ChangingStore-level1
+//                      -- plays at the changing/clothing store (building6)
+//                      on the way to CA. pt1 plays while Bill and Bob are
+//                      still standing outside in their ORIGINAL clothes,
+//                      right before they zip inside. pt2 plays right
+//                      after they come back out in their NEW outfits.
+//   DryPeoplesClub-level1
+//                      -- plays once, automatically, when Bill and Bob
+//                      reach the Dry People's Club landmark on the way to
+//                      CA. Just a quick stop-and-talk beat -- no doorway,
+//                      no entering.
+//
+// Everything below pt1 in each meeting section, all of
+// ChangingStore-level1, and all of DryPeoplesClub-level1 is currently a
+// PLACEHOLDER -- swap in real lines whenever you're ready. Nothing else
+// in the file needs to change when you do.
+
+//Outside-level1
+clock: 24:00:00
+
+//[pt1]
+bill: Another twenty-four hours, dear friend.
+bob: Beats the alternative, bub.
+bill: Look at all these meetings!
+bob: Recovery got big.
+bill: Think they still put out candy bars?
+bob: Only one way to find out.
+
+
+//[pt2]
+bob: New duds, new men.
+bill: We look dope, buddy.
+bob: Extremely dope.
+bill: Another meeting?
+bob: Maybe this one's got candy.
+
+
+//[pt3]
+building-dialogue: WELCOME HOME
+bill: Another fellowship!
+bob: Another coffee pot.
+bill: Another shot at a candy bar.
+bob: Now you're focused.
+
+
+//[pt4]
+building-dialogue: MEETING TONIGHT 8 PM
+bill: Meeting number four.
+bob: Candy bar number zero.
+bill: Stay positive, dear friend.
+bob: I'm positive there's no candy.
+
+
+//[pt5]
+bill: Buddy, Akron's dry.
+bob: Candy-wise.
+bill: I heard there's a good meeting in Canton.
+bob: That's a long way for a Snickers.
+bill: Harrison Corner. Maybe they still do candy bars.
+bob: Get in the car, pal.
+
+
+//AA-level1
+clock: 21:45:00
+scene-timer: 105
+
+//[pt1]
+bill: Look at this crowd, dear friend.
+bob: Recovery sure got popular.
+bill: Beautiful thing.
+bob: Sure is, bub.
+
+//[pt2]
+crowd: Wait... is that THEM?
+crowd: It IS!
+bob: We've been made, pal.
+bill: So much for anonymity.
+
+//[pt3]
+crowd: Can we get a picture?
+bill: They're watching us instead of the meeting.
+bob: That's not why we're here.
+bill: No, buddy. This is their recovery.
+bob: New duds?
+bill: New duds.
+
+//[pt4]
+bill: We'll slip out and let them have their meeting.
+bob: Good call, bub.
+bill: Also...
+bob: No candy bars.
+bill: You noticed.
+bob: I always notice.
+
+
+//ChangingStore-level1
+clock: 20:18:00
+
+//[pt1]
+building-dialogue: FRESH THREADS CO.
+bill: Fresh Threads!
+bob: New duds, pal.
+bill: Let's get inconspicuous.
+bob: With your face? Good luck.
+
+//[pt2]
+bill: Buddy... we look dope.
+bob: Dope as hell, bub.
+bill: Is that how they say it?
+bob: No idea.
+bill: Perfect.
+bob: Let's hit another meeting.
+
+
+//DryPeoplesClub-level1
+clock: 19:35:00
+
+//[pt1]
+building-dialogue: DRY PEOPLE'S CLUB
+bill: Hey! They got a Dr. Bob's Double Burger!
+bob: Mmmmm... burgers.
+bill: It's named after you!
+bob: Then I want royalties.
+bill: We need candy.
+bob: I can have two dreams.
+
+
+//CA-level1
+clock: 17:48:00
+scene-timer: 80
+
+//[pt1]
+bob: Nobody recognized us.
+bill: Told you. Dope.
+bob: Don't wear it out.
+
+//[pt2]
+crowd: Keep coming back!
+bill: Same hope, different room.
+bob: Recovery's recovery, pal.
+
+//[pt3]
+bill: Candy?
+bob: Coffee.
+bill: Candy?
+bob: Sugar packets.
+bill: Again?!
+bob: We're two for two, bub.
+
+
+//GA-level1
+clock: 14:52:00
+scene-timer: 80
+
+//[pt1]
+bill: Nice place.
+bob: Don't start.
+bill: I didn't say anything.
+bob: Your eyes said candy.
+
+//[pt2]
+crowd: Just for today.
+bill: I like these folks.
+bob: Me too, pal.
+
+//[pt3]
+bill: Well?
+bob: Coffee. Creamer. Napkins.
+bill: Candy?
+bob: Nothing.
+bill: Three meetings?!
+bob: The plot thickens.
+
+
+//EA-level1
+clock: 11:40:00
+scene-timer: 80
+
+//[pt1]
+bill: Cozy.
+bob: Very.
+bill: Feels promising.
+bob: For recovery or candy?
+bill: Yes.
+
+//[pt2]
+crowd: You're not alone.
+bob: That's a good message.
+bill: Sure is, dear friend.
+
+//[pt3]
+bill: Well?
+bob: Nothing.
+bill: You looked?
+bob: Under the coffee table.
+bill: Four meetings. No candy.
+bob: Now I'm concerned.
+
+
+//CMA-level1
+clock: 07:55:00
+scene-timer: 90
+
+//[pt1]
+crowd: Welcome to Off the Bubble!
+bill: Canton, dear friend.
+bob: The promised land.
+bill: Don't get ahead of yourself.
+
+//[pt2]
+crowd: No matter what!
+crowd: Keep coming back!
+bill: Good meeting.
+bob: Real good meeting, bub.
+
+//[pt3]
+bill: All right. Where are they?
+bob: Coffee.
+bill: Bob.
+bob: Books.
+bill: Bob.
+bob: No candy bars.
+bill: IN CANTON?!
+bob: Not even Canton.
+bill: Where'd the candy bars go?!
+bob: I don't know, pal.
+bill: This is SERIOUS.
+bob: Five meetings. Two cities. Zero candy.
+bill: Something must be done.
+bob: Here we go.`;
+
+  // ---------- parsing ----------
+  function parseScript(text){
+    var lines = text.replace(/\r\n/g,'\n').split('\n');
+    var sectionHeaderRe = /^\s*\/\/([A-Za-z0-9_-]+)\s*$/;
+    var pointRe = /^\s*\/\/\[(.+)\]\s*$/;
+    var kvRe = /^\s*([A-Za-z0-9_-]+)\s*:\s*(.*)$/;
+    var dialogueSpeakers = ['bill','bob','crowd','building-dialogue'];
+
+    var i = 0;
+    var headerLines = [];
+    while(i < lines.length && !sectionHeaderRe.test(lines[i])){
+      headerLines.push(lines[i]);
+      i++;
+    }
+    var header = headerLines.join('\n').replace(/\s+$/,'');
+
+    var sections = [];
+    var current = null;
+    var currentPoint = null;
+
+    for(; i < lines.length; i++){
+      var line = lines[i];
+      var secM = line.match(sectionHeaderRe);
+      if(secM){
+        current = { name: secM[1], clock: null, sceneTimer: null, points: [] };
+        sections.push(current);
+        currentPoint = null;
+        continue;
+      }
+      var ptM = line.match(pointRe);
+      if(ptM){
+        if(!current) continue;
+        currentPoint = { lines: [] };
+        current.points.push(currentPoint);
+        continue;
+      }
+      if(!line.trim()) continue;
+      if(line.trim().slice(0,2) === '//') continue;
+      var kvM = line.match(kvRe);
+      if(kvM){
+        var key = kvM[1].toLowerCase();
+        var val = kvM[2].trim();
+        if(key === 'clock' && current){ current.clock = val; continue; }
+        if(key === 'scene-timer' && current){ current.sceneTimer = val; continue; }
+        if(dialogueSpeakers.indexOf(key) !== -1 && currentPoint){
+          currentPoint.lines.push({ speaker: key, text: val });
+          continue;
+        }
+      }
+      // unrecognized line: ignore silently
+    }
+    return { header: header, sections: sections };
+  }
+
+  function serializeScript(data){
+    var out = '';
+    if(data.header && data.header.trim()){
+      out += data.header.replace(/\s+$/,'') + '\n\n';
+    }
+    data.sections.forEach(function(sec, si){
+      if(si > 0) out += '\n\n';
+      out += '//' + sec.name + '\n';
+      if(sec.clock) out += 'clock: ' + sec.clock + '\n';
+      if(sec.sceneTimer !== null && sec.sceneTimer !== '' && sec.sceneTimer !== undefined){
+        out += 'scene-timer: ' + sec.sceneTimer + '\n';
+      }
+      sec.points.forEach(function(pt, pi){
+        out += '\n//[pt' + (pi+1) + ']\n';
+        pt.lines.forEach(function(l){
+          out += l.speaker + ': ' + l.text + '\n';
+        });
+      });
+    });
+    return out.replace(/\n{3,}$/,'\n') + '\n';
+  }
+
+  // ---------- state ----------
+  var state = parseScript(DEFAULT_SCRIPT);
+  var lastLoaded = DEFAULT_SCRIPT;
+  var openSections = {};
+
+  function meta(name){
+    return SECTION_META[name] || {type:'outdoor', label:''};
+  }
+
+  function allowedSpeakers(sectionName){
+    var t = meta(sectionName).type;
+    if(t === 'meeting') return ['bill','bob','crowd'];
+    return ['bill','bob','building-dialogue'];
+  }
+
+  // ---------- rendering ----------
+  var sectionsEl = document.getElementById('sections');
+  var rawPreview = document.getElementById('rawPreview');
+
+  function updatePreview(){
+    rawPreview.value = serializeScript(state);
+  }
+
+  function el(tag, cls, html){
+    var e = document.createElement(tag);
+    if(cls) e.className = cls;
+    if(html !== undefined) e.innerHTML = html;
+    return e;
+  }
+
+  function makeConfirmDelete(btn, onConfirm){
+    var armed = false;
+    var timer = null;
+    var originalText = btn.textContent;
+    btn.addEventListener('click', function(){
+      if(!armed){
+        armed = true;
+        btn.textContent = 'Tap again to delete';
+        btn.classList.add('btn-danger');
+        timer = setTimeout(function(){
+          armed = false;
+          btn.textContent = originalText;
+        }, 2800);
+      } else {
+        clearTimeout(timer);
+        onConfirm();
+      }
+    });
+  }
+
+  function render(){
+    sectionsEl.innerHTML = '';
+    state.sections.forEach(function(sec, sIdx){
+      sectionsEl.appendChild(renderSection(sec, sIdx));
+    });
+    updatePreview();
+  }
+
+  function renderSection(sec, sIdx){
+    var m = meta(sec.name);
+    var wrap = el('div','section');
+    wrap.dataset.name = sec.name;
+
+    var head = el('div','section-head');
+    var title = el('div','section-title');
+    title.appendChild(el('div','section-name', sec.name));
+    var metaTxt = m.label + (sec.clock ? ' &middot; clock ' + escapeHtml(sec.clock) : '') +
+      (sec.sceneTimer ? ' &middot; ' + escapeHtml(String(sec.sceneTimer)) + 's timer' : '') +
+      ' &middot; ' + sec.points.length + ' point' + (sec.points.length === 1 ? '' : 's');
+    title.appendChild(el('div','section-meta', metaTxt));
+    head.appendChild(title);
+    var chev = el('div','chev' + (openSections[sIdx] ? ' open' : ''), '&#9656;');
+    head.appendChild(chev);
+    wrap.appendChild(head);
+
+    var body = el('div','section-body' + (openSections[sIdx] ? ' open' : ''));
+
+    head.addEventListener('click', function(){
+      openSections[sIdx] = !openSections[sIdx];
+      body.classList.toggle('open', !!openSections[sIdx]);
+      chev.classList.toggle('open', !!openSections[sIdx]);
+    });
+
+    // clock / scene-timer fields
+    var row = el('div','field-row');
+
+    var clockField = el('div','field');
+    clockField.appendChild(el('label','', 'Clock (HH:MM:SS)'));
+    var clockInput = document.createElement('input');
+    clockInput.type = 'text';
+    clockInput.placeholder = 'e.g. 20:35:00';
+    clockInput.value = sec.clock || '';
+    clockInput.addEventListener('input', function(){
+      sec.clock = clockInput.value.trim() ? clockInput.value.trim() : null;
+      validateClock();
+      updatePreview();
+    });
+    function validateClock(){
+      var v = clockInput.value.trim();
+      clockInput.classList.toggle('bad', !!v && !/^\d{1,2}:\d{2}:\d{2}$/.test(v));
+    }
+    validateClock();
+    clockField.appendChild(clockInput);
+    clockField.appendChild(el('div','hint','Leave blank to keep counting down from before.'));
+    row.appendChild(clockField);
+
+    if(m.type === 'meeting'){
+      var timerField = el('div','field');
+      timerField.appendChild(el('label','', 'Scene timer (sec)'));
+      var timerInput = document.createElement('input');
+      timerInput.type = 'text';
+      timerInput.inputMode = 'numeric';
+      timerInput.placeholder = 'e.g. 90';
+      timerInput.value = sec.sceneTimer || '';
+      timerInput.addEventListener('input', function(){
+        sec.sceneTimer = timerInput.value.trim() ? timerInput.value.trim() : null;
+        timerInput.classList.toggle('bad', !!timerInput.value.trim() && !/^\d+$/.test(timerInput.value.trim()));
+        updatePreview();
+      });
+      timerField.appendChild(timerInput);
+      timerField.appendChild(el('div','hint','How long Bill & Bob stay before leaving.'));
+      row.appendChild(timerField);
+    }
+    body.appendChild(row);
+
+    // points
+    var pointsHolder = el('div','points');
+    sec.points.forEach(function(pt, pIdx){
+      pointsHolder.appendChild(renderPoint(sec, pt, pIdx));
+    });
+    if(sec.points.length === 0){
+      pointsHolder.appendChild(el('div','empty','No dialogue points yet.'));
+    }
+    body.appendChild(pointsHolder);
+
+    var addPointBtn = el('button','btn add-point', '+ Add dialogue point');
+    addPointBtn.type = 'button';
+    addPointBtn.addEventListener('click', function(){
+      sec.points.push({ lines: [{ speaker: allowedSpeakers(sec.name)[0], text: '' }] });
+      render();
+      openSections[sIdx] = true;
+      render();
+    });
+    body.appendChild(addPointBtn);
+
+    wrap.appendChild(body);
+    return wrap;
+
+    function rerenderPoints(){
+      // full re-render keeps numbering / labels correct
+      render();
+    }
+  }
+
+  function renderPoint(sec, pt, pIdx){
+    var card = el('div','point');
+    var head = el('div','point-head');
+    head.appendChild(el('div','point-label','[pt' + (pIdx+1) + ']'));
+    var actions = el('div','point-actions');
+
+    var upBtn = el('button','btn btn-icon','&#8593;');
+    upBtn.type='button'; upBtn.title='Move point up';
+    upBtn.disabled = pIdx === 0;
+    upBtn.addEventListener('click', function(){
+      if(pIdx === 0) return;
+      var arr = sec.points;
+      var tmp = arr[pIdx-1]; arr[pIdx-1] = arr[pIdx]; arr[pIdx] = tmp;
+      render();
+    });
+
+    var downBtn = el('button','btn btn-icon','&#8595;');
+    downBtn.type='button'; downBtn.title='Move point down';
+    downBtn.disabled = pIdx === sec.points.length - 1;
+    downBtn.addEventListener('click', function(){
+      if(pIdx === sec.points.length - 1) return;
+      var arr = sec.points;
+      var tmp = arr[pIdx+1]; arr[pIdx+1] = arr[pIdx]; arr[pIdx] = tmp;
+      render();
+    });
+
+    var delBtn = el('button','btn btn-sm','Delete point');
+    delBtn.type='button';
+    makeConfirmDelete(delBtn, function(){
+      sec.points.splice(pIdx,1);
+      render();
+    });
+
+    actions.appendChild(upBtn);
+    actions.appendChild(downBtn);
+    actions.appendChild(delBtn);
+    head.appendChild(actions);
+    card.appendChild(head);
+
+    var allowed = allowedSpeakers(sec.name);
+
+    pt.lines.forEach(function(ln, lIdx){
+      card.appendChild(renderLine(sec, pt, ln, lIdx, allowed));
+    });
+
+    if(pt.lines.length === 0){
+      card.appendChild(el('div','empty','No lines yet.'));
+    }
+
+    var addLineBtn = el('button','btn btn-sm add-line', '+ Add line');
+    addLineBtn.type = 'button';
+    addLineBtn.addEventListener('click', function(){
+      pt.lines.push({ speaker: allowed[0], text: '' });
+      render();
+    });
+    card.appendChild(addLineBtn);
+
+    return card;
+  }
+
+  function renderLine(sec, pt, ln, lIdx, allowed){
+    var row = el('div','line-row speaker-' + ln.speaker);
+
+    var select = document.createElement('select');
+    allowed.concat(allowed.indexOf(ln.speaker) === -1 ? [ln.speaker] : []).forEach(function(sp){
+      var opt = document.createElement('option');
+      opt.value = sp;
+      opt.textContent = SPEAKER_LABEL[sp] || sp;
+      if(sp === ln.speaker) opt.selected = true;
+      select.appendChild(opt);
+    });
+    select.addEventListener('change', function(){
+      ln.speaker = select.value;
+      row.className = 'line-row speaker-' + ln.speaker;
+      updatePreview();
+    });
+    row.appendChild(select);
+
+    var ta = document.createElement('textarea');
+    ta.value = ln.text;
+    ta.rows = 1;
+    autoGrow(ta);
+    ta.addEventListener('input', function(){
+      ln.text = ta.value;
+      autoGrow(ta);
+      updatePreview();
+    });
+    row.appendChild(ta);
+
+    var controls = el('div','line-controls');
+    var upBtn = el('button','btn btn-icon btn-sm','&#8593;');
+    upBtn.type='button';
+    upBtn.disabled = lIdx === 0;
+    upBtn.addEventListener('click', function(){
+      if(lIdx === 0) return;
+      var arr = pt.lines;
+      var tmp = arr[lIdx-1]; arr[lIdx-1] = arr[lIdx]; arr[lIdx] = tmp;
+      render();
+    });
+    var downBtn = el('button','btn btn-icon btn-sm','&#8595;');
+    downBtn.type='button';
+    downBtn.disabled = lIdx === pt.lines.length - 1;
+    downBtn.addEventListener('click', function(){
+      if(lIdx === pt.lines.length - 1) return;
+      var arr = pt.lines;
+      var tmp = arr[lIdx+1]; arr[lIdx+1] = arr[lIdx]; arr[lIdx] = tmp;
+      render();
+    });
+    var delBtn = el('button','btn btn-icon btn-sm','&#10005;');
+    delBtn.type='button';
+    delBtn.addEventListener('click', function(){
+      pt.lines.splice(lIdx,1);
+      render();
+    });
+    controls.appendChild(upBtn);
+    controls.appendChild(downBtn);
+    controls.appendChild(delBtn);
+    row.appendChild(controls);
+
+    return row;
+  }
+
+  function autoGrow(ta){
+    ta.style.height = 'auto';
+    ta.style.height = (ta.scrollHeight) + 'px';
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+
+  // ---------- toolbar actions ----------
+  document.getElementById('downloadBtn').addEventListener('click', function(){
+    var text = serializeScript(state);
+    var blob = new Blob([text], {type:'text/plain'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'script.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+    toast('Downloaded script.js');
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    var text = serializeScript(state);
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){
+        toast('Copied to clipboard');
+      }).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+    function fallbackCopy(){
+      rawPreview.style.display = 'block';
+      rawPreview.focus();
+      rawPreview.select();
+      try { document.execCommand('copy'); toast('Copied to clipboard'); }
+      catch(e){ toast('Could not copy - select text manually'); }
+    }
+  });
+
+  document.getElementById('loadBtn').addEventListener('click', function(){
+    document.getElementById('fileInput').click();
+  });
+
+  document.getElementById('fileInput').addEventListener('change', function(e){
+    var file = e.target.files && e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      lastLoaded = reader.result;
+      state = parseScript(lastLoaded);
+      openSections = {};
+      render();
+      toast('Loaded ' + file.name);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  var importArea = document.getElementById('importArea');
+  var importBtn = document.getElementById('importBtn');
+  document.getElementById('importToggleBtn').addEventListener('click', function(){
+    var showing = importArea.style.display === 'block';
+    importArea.style.display = showing ? 'none' : 'block';
+    importBtn.style.display = showing ? 'none' : 'block';
+  });
+  importBtn.addEventListener('click', function(){
+    if(!importArea.value.trim()){ toast('Paste some text first'); return; }
+    lastLoaded = importArea.value;
+    state = parseScript(lastLoaded);
+    openSections = {};
+    render();
+    importArea.style.display = 'none';
+    importBtn.style.display = 'none';
+    importArea.value = '';
+    toast('Imported pasted text');
+  });
+
+  var resetBtn = document.getElementById('resetBtn');
+  makeConfirmDelete(resetBtn, function(){
+    state = parseScript(lastLoaded);
+    openSections = {};
+    render();
+    resetBtn.textContent = '↺ Reset';
+    resetBtn.classList.remove('btn-danger');
+    toast('Reset to last loaded file');
+  });
+
+  // ---------- GitHub connect / save / reload ----------
+  var gateEl = document.getElementById('gate');
+  var appWrapEl = document.getElementById('appWrap');
+  var gateStatusEl = document.getElementById('gateStatus');
+  var connStatusEl = document.getElementById('connStatus');
+  var saveGithubBtn = document.getElementById('saveGithubBtn');
+  var reloadGithubBtn = document.getElementById('reloadGithubBtn');
+  var tokenInput = document.getElementById('tokenInput');
+
+  function setConnStatus(){
+    if(connected){
+      connStatusEl.textContent = 'Connected — ' + OWNER + '/' + REPO + ' (' + BRANCH + ') · ' + FILE_PATH;
+      connStatusEl.className = 'conn-status live';
+      saveGithubBtn.style.display = '';
+      reloadGithubBtn.style.display = '';
+    } else {
+      connStatusEl.textContent = 'Local copy only — not connected to GitHub. Use Download to save your work.';
+      connStatusEl.className = 'conn-status offline';
+      saveGithubBtn.style.display = 'none';
+      reloadGithubBtn.style.display = 'none';
+    }
+  }
+
+  function showApp(){
+    gateEl.style.display = 'none';
+    appWrapEl.classList.add('shown');
+    setConnStatus();
+  }
+
+  function loadFromGithub(){
+    gateStatusEl.className = '';
+    gateStatusEl.textContent = 'Loading script.js from GitHub…';
+    return ghGetFile().then(function(r){
+      lastLoaded = r.text;
+      ghSha = r.sha;
+      state = parseScript(r.text);
+      openSections = {};
+      connected = true;
+      localStorage.setItem(TOKEN_KEY, ghToken);
+      showApp();
+      render();
+      toast('Loaded live script.js from GitHub');
+    });
+  }
+
+  document.getElementById('enterBtn').addEventListener('click', function(){
+    var t = tokenInput.value.trim();
+    if(!t){ gateStatusEl.className = 'err'; gateStatusEl.textContent = 'Paste a token first.'; return; }
+    ghToken = t;
+    loadFromGithub().catch(function(err){
+      gateStatusEl.className = 'err';
+      gateStatusEl.textContent = err.message;
+    });
+  });
+
+  document.getElementById('gateSkip').addEventListener('click', function(){
+    connected = false;
+    showApp();
+    render();
+  });
+
+  saveGithubBtn.addEventListener('click', function(){
+    var text = serializeScript(state);
+    saveGithubBtn.disabled = true;
+    var original = saveGithubBtn.textContent;
+    saveGithubBtn.textContent = 'Saving…';
+    ghPutFile(text, ghSha, 'Edit halloween-game/script.js via phone admin').then(function(res){
+      ghSha = res.content.sha;
+      lastLoaded = text;
+      toast('Saved to GitHub — live on the site shortly');
+    }).catch(function(err){
+      toast(err.message);
+    }).then(function(){
+      saveGithubBtn.disabled = false;
+      saveGithubBtn.textContent = original;
+    });
+  });
+
+  makeConfirmDelete(reloadGithubBtn, function(){
+    reloadGithubBtn.textContent = '↻ Reload from GitHub';
+    loadFromGithub().catch(function(err){ toast(err.message); });
+  });
+
+  // auto-unlock if a token is already stored (shared with the site's other admin page)
+  if(ghToken){
+    tokenInput.value = ghToken;
+    loadFromGithub().catch(function(err){
+      gateStatusEl.className = 'err';
+      gateStatusEl.textContent = err.message;
+    });
+  }
+
+  // initial render (populates the raw preview even before the gate is resolved)
+  render();
+})();
+</script>
+</body>
+</html>
