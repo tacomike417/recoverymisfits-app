@@ -91,13 +91,12 @@
 clock: 24:00:00
 
 //[pt1]
-bill: Another twenty-four hours, dear friend.
+bill: XXXAnother twenty-four hours, dear friend.
 bob: Beats the alternative, bub.
 bill: Look at all these meetings!
 bob: Recovery got big.
 bill: Think they still put out candy bars?
 bob: Only one way to find out.
-
 
 //[pt2]
 bob: New duds, new men.
@@ -106,7 +105,6 @@ bob: Extremely dope.
 bill: Another meeting?
 bob: Maybe this one's got candy.
 
-
 //[pt3]
 building-dialogue: WELCOME HOME
 bill: Another fellowship!
@@ -114,14 +112,12 @@ bob: Another coffee pot.
 bill: Another shot at a candy bar.
 bob: Now you're focused.
 
-
 //[pt4]
 building-dialogue: MEETING TONIGHT 8 PM
 bill: Meeting number four.
 bob: Candy bar number zero.
 bill: Stay positive, dear friend.
 bob: I'm positive there's no candy.
-
 
 //[pt5]
 bill: Buddy, Akron's dry.
@@ -300,3 +296,4 @@ bill: This is SERIOUS.
 bob: Five meetings. Two cities. Zero candy.
 bill: Something must be done.
 bob: Here we go.
+
