@@ -81,35 +81,44 @@ window.HalloweenGame.chapter0Intro = {
     devMode: true,
 
     titleCards: [
+     {
+    text:
+        "&ldquo;One of the many doctors who had the opportunity of reading this book in manuscript form told us that the use of sweets was often helpful&hellip;<br><br>" +
+        "He thought all alcoholics should constantly have chocolate available&hellip;&rdquo;<br><br>" +
+        "<span style='font-size:15px; font-weight:normal;'>&mdash; Alcoholics Anonymous, Second Edition</span>",
+    duration: 11000
+},
+     {
+    text:
+        "<strong><em>And So Our Story Begins...</em></strong><br><br><br>" +
+        "For reasons nobody completely understands...<br><br>" +
+        "Our two old friends were given twenty-four hours back on Earth.",
+    duration: 9000
+},
+      {
+    text:
+        "The day they landed back on Earth seemed random at first.<br><br>" +
+        "Of course, it wasn't.<br><br>" +
+        "They got Halloween.",
+    duration: 8500
+},
         {
             text:
-                "For reasons nobody completely understands...<br><br>" +
-                "Our two old friends were given twenty-four hours back on Earth.",
-            duration: 7000
+                "They hadn't walked the earth for over half a century.<br><br>" +
+                "Recovery, meanwhile, had kept right on going.",
+            duration: 8500
         },
+      {
+    text:
+        "What they were about to find...<br><br>" +
+        "was millions of people trudging the same path they had once walked themselves.",
+    duration: 8500
+},
         {
             text:
-                "There were probably better days to choose.<br><br>" +
-                "They got Halloween.",
-            duration: 5500
-        },
-        {
-            text:
-                "They didn't know the world had changed.<br><br>" +
-                "They thought they'd find a few meetings still left.",
-            duration: 6500
-        },
-        {
-            text:
-                "What they did not expect...<br><br>" +
-                "was millions of people trudging the same road.",
-            duration: 6500
-        },
-        {
-            text:
-                "And so began one completely unnecessary 24 hours...<br><br>" +
+                "And so began one seemingly unnecessary 24 hours...<br><br>" +
                 "back among the living.",
-            duration: 6500
+            duration: 8500
         }
     ],
 
@@ -1127,6 +1136,14 @@ window.HalloweenGame.chapter0Intro = {
 
                 <button
                     class="chapter0-dev-button level1"
+                    id="dev-jump-chapter1-story"
+                    type="button"
+                >
+                    JUMP TO CHAPTER 1 STORY
+                </button>
+
+                <button
+                    class="chapter0-dev-button level1"
                     id="dev-jump-level1"
                     type="button"
                 >
@@ -1165,6 +1182,11 @@ window.HalloweenGame.chapter0Intro = {
                     "dev-play-normal"
                 );
 
+            const jumpChapter1StoryButton =
+                document.getElementById(
+                    "dev-jump-chapter1-story"
+                );
+
             const jumpLevel1Button =
                 document.getElementById(
                     "dev-jump-level1"
@@ -1195,6 +1217,19 @@ window.HalloweenGame.chapter0Intro = {
                         if (devBox) {
                             devBox.remove();
                         }
+
+                    }
+                );
+            }
+
+
+            if (jumpChapter1StoryButton) {
+
+                jumpChapter1StoryButton.addEventListener(
+                    "click",
+                    () => {
+
+                        this.jumpDirectlyToChapter1Story();
 
                     }
                 );
@@ -1256,6 +1291,80 @@ window.HalloweenGame.chapter0Intro = {
                 this.tryToPlay();
 
             }
+        );
+    },
+
+
+    jumpDirectlyToChapter1Story() {
+
+        console.log(
+            "DEV MODE: jumping directly to Chapter 1 story."
+        );
+
+
+        clearTimeout(
+            this.titleCardTimer
+        );
+
+
+        this.titleSequencePaused =
+            false;
+
+        this.titleTransitioning =
+            false;
+
+
+        if (this.mainMusic) {
+
+            try {
+
+                this.mainMusic.pause();
+
+                this.mainMusic.currentTime =
+                    0;
+
+            } catch (error) {
+
+                console.warn(
+                    "DEV MODE: could not stop intro music cleanly.",
+                    error
+                );
+            }
+        }
+
+
+        const game =
+            document.getElementById(
+                "game"
+            );
+
+
+        if (game) {
+
+            game.innerHTML = "";
+        }
+
+
+        if (
+            window.HalloweenGame &&
+            window.HalloweenGame.chapter1Story &&
+            typeof window.HalloweenGame
+                .chapter1Story
+                .start ===
+                "function"
+        ) {
+
+            window.HalloweenGame
+                .chapter1Story
+                .start();
+
+
+            return;
+        }
+
+
+        console.error(
+            "DEV MODE: chapter1-story.js is not ready."
         );
     },
 

@@ -242,7 +242,7 @@
         // dialogue
      // dialogue
 dialogueDefaultDelay: 0.6,
-dialogueDisplayDuration: 2.5,
+dialogueDisplayDuration: 5.5, // how many seconds each bubble stays on screen before the next line loads -- bumped +3s (was 2.5) so meeting dialogue is easier to read; see the matching scene-timer bumps in script.js, which give every meeting enough runway for the slower pace
 
 // pause after a meeting dialogue point finishes
 interiorPostDialoguePause: 0.5,
@@ -915,8 +915,20 @@ interiorPostDialoguePause: 0.5,
        start/retry -- there's nothing to redo on retry, so this runs
        exactly once when the script itself first loads), from local
        files only:
-           assets/fonts/ComicNeue-Bold.ttf  -- ALL speech-bubble dialogue
-               (Bill, Bob, meeting/crowd chatter, building chatter)
+           assets/fonts/RecoveryMisfits-Regular.ttf -- ALL speech-bubble
+               dialogue (Bill, Bob, meeting/crowd chatter, building
+               chatter). A custom font made for this project. Verified
+               (see the cmap/render check done before wiring this in) to
+               have genuine distinct mixed-case letterforms and full
+               punctuation coverage, unlike the two earlier attempts
+               (adam-warren-pro.regular.ttf and the file named
+               ComicNeue-Bold.ttf -- NOT the genuine open-source Comic
+               Neue -- both still sitting unused in assets/fonts, both
+               turned out to draw lowercase as small-caps lookalikes).
+               One real bug was found and fixed before use: the source
+               file's cmap never mapped U+0020 (space) to its own space
+               glyph, so spaces rendered as solid boxes -- patched here,
+               nothing else about the font's design was touched.
            assets/fonts/Bangers-Regular.ttf -- comic sound-effect/
                exclamation lettering only (currently just "SKRRRT!")
        No Google Fonts, no external URL, no @font-face pointed at
@@ -948,27 +960,27 @@ interiorPostDialoguePause: 0.5,
         }
     }
 
-    let comicNeueFontLoaded = false;
+    let dialogueFontLoaded = false;
     let bangersFontLoaded = false;
 
     function loadDialogueFonts() {
         if (typeof FontFace === "undefined" || !document.fonts) {
             // Very old browser without the FontFace API -- fall back to
             // the system comic-lettering stack rather than blocking
-            // dialogue forever. See isComicNeueReady()/isBangersReady().
-            comicNeueFontLoaded = "unsupported";
+            // dialogue forever. See isDialogueFontReady()/isBangersReady().
+            dialogueFontLoaded = "unsupported";
             bangersFontLoaded = "unsupported";
             return;
         }
 
-        const comicNeueUrl = resolveAssetUrl("assets/fonts/ComicNeue-Bold.ttf");
-        const comicNeue = new FontFace("ComicNeueBold", "url('" + comicNeueUrl + "')", { weight: "700", style: "normal" });
-        comicNeue.load().then(function (loadedFace) {
+        const dialogueFontUrl = resolveAssetUrl("assets/fonts/RecoveryMisfits-Regular.ttf");
+        const dialogueFont = new FontFace("RecoveryMisfits", "url('" + dialogueFontUrl + "')", { weight: "400", style: "normal" });
+        dialogueFont.load().then(function (loadedFace) {
             document.fonts.add(loadedFace);
-            comicNeueFontLoaded = true;
+            dialogueFontLoaded = true;
         }).catch(function (err) {
-            comicNeueFontLoaded = "unsupported"; // missing/failed load -- fall back rather than block dialogue forever
-            console.warn("chapter1-gameplay: ComicNeue-Bold failed to load from " + comicNeueUrl + " -- falling back to system font.", err);
+            dialogueFontLoaded = "unsupported"; // missing/failed load -- fall back rather than block dialogue forever
+            console.warn("chapter1-gameplay: RecoveryMisfits-Regular failed to load from " + dialogueFontUrl + " -- falling back to system font.", err);
         });
 
         const bangersUrl = resolveAssetUrl("assets/fonts/Bangers-Regular.ttf");
@@ -988,15 +1000,15 @@ interiorPostDialoguePause: 0.5,
     // FontFace API) uses the closest system comic-lettering fallback so
     // the game never blocks dialogue forever over a missing font file.
     function getDialogueFontFamily() {
-        if (comicNeueFontLoaded === "unsupported") return "'Comic Sans MS', 'Trebuchet MS', sans-serif";
-        return "'ComicNeueBold'";
+        if (dialogueFontLoaded === "unsupported") return "'Comic Sans MS', 'Trebuchet MS', sans-serif";
+        return "'RecoveryMisfits', 'Comic Sans MS', 'Trebuchet MS', sans-serif";
     }
     function getSkrrrtFontFamily() {
         if (bangersFontLoaded === "unsupported") return "'Comic Sans MS', 'Trebuchet MS', sans-serif";
         return "'BangersRegular'";
     }
     function isDialogueFontReady() {
-        return comicNeueFontLoaded === true || comicNeueFontLoaded === "unsupported";
+        return dialogueFontLoaded === true || dialogueFontLoaded === "unsupported";
     }
     function isSkrrrtFontReady() {
         return bangersFontLoaded === true || bangersFontLoaded === "unsupported";
@@ -3251,7 +3263,9 @@ interiorPostDialoguePause: 0.5,
         // Fictional HUD story clock -- anchor to script.js's "clock:" value
         // for the opening outdoor section if one is set, else the default
         // 24:00:00. Purely cosmetic; see CONFIG.storyClockDefaultSeconds.
-        const openingClock = getScriptClockSeconds("Outside-level1");
+        // meetingIndex is 0 here (just reset above), so this is always the
+        // walk-to-AA section -- see getOutsideSectionKey.
+        const openingClock = getScriptClockSeconds(getOutsideSectionKey(meetingIndex));
         storyClockSecondsRemaining = (typeof openingClock === "number") ? openingClock : CONFIG.storyClockDefaultSeconds;
 
         loadObstaclesForSection();
@@ -3466,8 +3480,10 @@ interiorPostDialoguePause: 0.5,
            //[pt2]
            ...
 
-       - "//SectionName" starts a new section (e.g. "Outside-level1",
-         later "AA-level1" etc for meetings).
+       - "//SectionName" starts a new section (e.g. "OutsideAA-level1"
+         for the walk up to a meeting, "AA-level1" for that meeting's
+         own interior -- see getOutsideSectionKey below for how the
+         outdoor names are derived).
        - "//[pt#]" starts a dialogue point within the current section.
          Any number of points, any names -- "pt1"/"pt2"/... is just this
          project's own convention, not something the parser requires.
@@ -3685,6 +3701,24 @@ interiorPostDialoguePause: 0.5,
         return (cfg && typeof cfg.clockSeconds === "number") ? cfg.clockSeconds : null;
     }
 
+    // Maps a meetingIndex (0-based, matching MEETINGS order: AA, CA, GA,
+    // EA, CMA) to the script.js SECTION NAME for the outdoor walk that
+    // leads up to that meeting -- e.g. index 0 (AA) -> "OutsideAA-level1".
+    // This is what lets script.js keep each outdoor walk's dialogue
+    // right next to that same meeting's interior dialogue (chronological,
+    // top-to-bottom story order for whoever is editing script.js), instead
+    // of every outdoor beat being crammed into one "Outside-level1"
+    // section keyed by pt1..pt5. Single source of truth for this mapping
+    // -- both the opening-clock lookup below and loadDialogueForSection's
+    // "which outdoor section plays right now" lookup go through this, so
+    // they can never drift out of sync with each other or with MEETINGS.
+    // Falls back to the old flat "Outside-level1" name if index is ever
+    // out of range (shouldn't happen -- defensive only).
+    function getOutsideSectionKey(index) {
+        const meeting = MEETINGS[index];
+        return meeting ? ("Outside" + meeting.label + "-level1") : "Outside-level1";
+    }
+
     // Fires immediately as soon as this file itself loads/parses -- well
     // before start() runs -- so script.js (a small text file) has the
     // best possible head start to finish loading before the very first
@@ -3703,15 +3737,16 @@ interiorPostDialoguePause: 0.5,
        same entry shape, so both load through this one helper.
 
        Both outdoor ("walking") and meeting ("inside") dialogue check
-       script.js FIRST -- section "Outside-level1" (points pt1, pt2, ...
-       one per outdoor section) for outdoor, and "<LABEL>-level1" / "pt1"
-       (e.g. "AA-level1") for each meeting's interior. If script.js
+       script.js FIRST -- "Outside<LABEL>-level1" / "pt1" for the outdoor
+       walk leading up to a meeting (e.g. "OutsideAA-level1" for the walk
+       to AA -- see getOutsideSectionKey), and "<LABEL>-level1" / "pt1"
+       for that meeting's own interior (e.g. "AA-level1"). If script.js
        hasn't loaded yet, or has nothing for that section/point, this
        falls straight back to the existing level1-dialogue.js table,
        completely unchanged.
        ------------------------------------------------------------------ */
     function loadDialogueForSection() {
-        const scriptEntries = getScriptDialogue("Outside-level1", "pt" + (meetingIndex + 1));
+        const scriptEntries = getScriptDialogue(getOutsideSectionKey(meetingIndex), "pt1");
         if (scriptEntries) {
             loadDialogueQueueFromScriptEntries(scriptEntries);
             return;
@@ -5717,8 +5752,8 @@ interiorPostDialoguePause: 0.5,
 
     // Loads ONE dialogue point (pt1, pt2, pt3, ...) for the current
     // meeting's script.js section, same lookup convention as
-    // loadDialogueForSection uses for the outdoor "Outside-level1"
-    // section. pt1 additionally falls back to the original
+    // loadDialogueForSection uses for the outdoor "Outside<LABEL>-level1"
+    // sections. pt1 additionally falls back to the original
     // level1-dialogue.js "inside" table if script.js has nothing yet, so
     // any meeting that hasn't been given script.js content still plays
     // its original placeholder pt1 line exactly as before. pt2+ simply
@@ -8136,7 +8171,8 @@ interiorPostDialoguePause: 0.5,
     //     never a duplicated/hardcoded position)
     //   - otherwise -> the meeting building currently being approached
     //     (MEETINGS[meetingIndex]), which covers the normal case of
-    //     building-dialogue lines inside Outside-level1's dialogue points
+    //     building-dialogue lines inside each "Outside<LABEL>-level1"
+    //     section's dialogue point
     // Returns null only while inside a meeting (renderInsideMeeting never
     // calls this -- there's no exterior building on screen there), in
     // which case drawSpeechBubbles skips a "building" bubble silently
@@ -8468,12 +8504,11 @@ interiorPostDialoguePause: 0.5,
     // /strokes it via drawSvgPathOnCanvas using the EXACT path string.
     // ------------------------------------------------------------------
     function drawSvgSpeechBubble(svgDef, anchorX, anchorY, text, canvasWidth, canvasHeight, popStartTime, opts) {
-        // Wait for ComicNeue-Bold to actually finish loading before
-        // measuring/wrapping ANY dialogue text -- see the DIALOGUE FONTS
-        // block near the top of the file. Skips drawing entirely for
-        // the (typically sub-second, local-file) window before it's
-        // ready, rather than measure with the wrong font metrics. Once
-        // ready this is permanently true for the rest of the session.
+        // Dialogue font is always ready immediately (Comic Sans MS is a
+        // system font -- see the DIALOGUE FONTS block near the top of the
+        // file), but this guard stays in place since drawSvgSpeechBubble
+        // is also reused for anything that might one day load a real
+        // custom font again.
         if (!isDialogueFontReady()) return;
 
         const options = opts || {};
@@ -8521,14 +8556,24 @@ interiorPostDialoguePause: 0.5,
         // exactly what caused text to overflow past the bubble edges
         // before this fix. Now that isDialogueFontReady() has already
         // gated on the font being genuinely loaded (above), these
-        // measurements are against ComicNeue-Bold's own real metrics,
-        // not a fallback.
+        // measurements are against Comic Sans MS's own real metrics
+        // (or its fallback stack -- see getDialogueFontFamily).
         let fontSize = maxFontSize;
         let lines = [];
         let lineHeight = 0;
         let textBlockH = 0;
         for (let fs = maxFontSize; fs >= minFontSize; fs -= 1) {
-            ctx.font = "bold " + fs + "px " + fontFamily; // always measured/drawn upright -- see the italic shear note above
+            // Not forced bold: RecoveryMisfits-Regular only ships a
+            // "regular" weight file (already plenty chunky -- it's a
+            // blocky comic-lettering style by design), so a "bold"
+            // keyword here would make the browser synthesize a fake bold
+            // face (uneven stroke smearing) on top of it instead of using
+            // the real designed glyphs. Comic Sans MS/Trebuchet MS (the
+            // fallback stack if the custom font fails to load) do ship a
+            // real bold face, but staying unbolded keeps this one rule
+            // simple and consistent across both cases -- fine either way
+            // since neither reads as noticeably thin at bubble sizes.
+            ctx.font = fs + "px " + fontFamily; // always measured/drawn upright -- see the italic shear note above
             lineHeight = Math.round(fs * (options.lineHeightMultiplier || 1.26));
             lines = wrapBubbleText(displayText, maxTextWidth);
             textBlockH = lines.length * lineHeight;
@@ -8648,8 +8693,8 @@ interiorPostDialoguePause: 0.5,
             scale: (canvasWidth * 0.52) / SVG_SPEECH_BUBBLE.viewBoxW,
             maxFontSize: Math.round(Math.max(16, Math.min(20, canvasWidth * 0.044))),
             minFontSize: 12,
-            uppercase: true,
-            italic: false, // removed -- was too hard to read on mobile; upright Comic Neue Bold instead
+            uppercase: false, // was true (ALL CAPS) -- turned off per readability feedback; genuine mixed-case RecoveryMisfits reads much faster
+            italic: false, // removed -- was too hard to read on mobile; upright RecoveryMisfits instead
             lineHeightMultiplier: 1.3
         });
     }
@@ -8664,13 +8709,13 @@ interiorPostDialoguePause: 0.5,
             scale: (canvasWidth * 0.48) / SVG_STARBURST_BUBBLE.viewBoxW,
             maxFontSize: Math.round(Math.max(15, Math.min(18, canvasWidth * 0.039))),
             minFontSize: 10,
-            // Typography per the electric-bubble spec: ALL CAPS (render-
-            // time only -- script.js's actual strings are untouched), a
-            // touch more line spacing than the default for clear
-            // comic-book readability. Bill/Bob's drawBubble uses the
-            // same set (uppercase, upright, ComicNeue-Bold).
-            uppercase: true,
-            italic: false, // removed -- was too hard to read on mobile; upright Comic Neue Bold instead
+            // Typography: mixed case (was ALL CAPS -- turned off per
+            // readability feedback), a touch more line spacing than the
+            // default for clear comic-book readability. Bill/Bob's
+            // drawBubble uses the same set (mixed case, upright,
+            // RecoveryMisfits).
+            uppercase: false,
+            italic: false, // removed -- was too hard to read on mobile; upright RecoveryMisfits instead
             lineHeightMultiplier: 1.32
         });
     }

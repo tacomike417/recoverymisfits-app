@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>Another Day Sober — Recovery Misfits</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="./icon-192.png">
+
+  <!-- iPhone PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <link rel="stylesheet" href="./assets/reading-widget.css">
+
+  <!--
+    WHY THIS PAGE EXISTS
+
+    Readings used to send Another Day Sober to ./index.html — the app's home
+    screen. It showed the right reading, but there was no way to CLOSE it:
+    every other reading on that page hands you a way out. On Awakening has
+    "← Back to Readings". Twenty-Four Hours a Day and Daily Reflections open
+    in a tab you can shut. This one dropped you on Home, and the only way
+    back was the phone's own back button.
+
+    So Another Day Sober gets a reading page like the others, with Done in
+    the top corner, exactly where reader.html puts it. Home stays home and
+    still shows today's reading; it just is not where Readings sends you any
+    more.
+  -->
+  <style>
+    :root{
+      /* Warm, to match the 🔥 it is listed under, and kept quiet so the
+         reading itself is still the loudest thing on the page. */
+      --ads:#8a3a12;
+      --adsTint:rgba(138,58,18,.06);
+      --adsBorder:rgba(138,58,18,.22);
+      --adsSpine:rgba(138,58,18,.55);
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family:Roboto,Arial,sans-serif;
+      background:#fff;
+      color:#111;
+      padding-bottom:120px;  /* sober bar + nav */
+      line-height:1.5;
+    }
+
+    /* Sticky, so Done is reachable at any point in a long reading rather
+       than only after scrolling back to the top. */
+    .adsHeader{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background:var(--adsTint);
+      border-bottom:1px solid var(--adsBorder);
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      backdrop-filter:saturate(180%) blur(6px);
+    }
+
+    .adsSpine{
+      width:6px;
+      align-self:stretch;
+      background:var(--adsSpine);
+      border-radius:3px;
+      flex:0 0 auto;
+    }
+
+    .adsHeaderText{
+      flex:1 1 auto;
+      min-width:0;
+    }
+
+    .adsEyebrow{
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--ads);
+      opacity:.75;
+    }
+
+    .adsTitle{
+      font-size:16px;
+      font-weight:1000;
+      color:#111;
+      margin-top:1px;
+    }
+
+    .adsBack{
+      flex:0 0 auto;
+      padding:10px 16px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.18);
+      background:#fff;
+      color:#111;
+      font-weight:900;
+      font-size:13px;
+      text-decoration:none;
+      white-space:nowrap;
+      min-height:40px;
+      display:inline-flex;
+      align-items:center;
+    }
+
+    .adsBody{
+      max-width:900px;
+      margin:0 auto;
+      padding:16px 14px 8px;
+    }
+
+    /* A second way out at the end, because after a long reading the thumb
+       is already at the bottom of the screen. Same as On Awakening. */
+    .backRow{
+      display:flex;
+      justify-content:center;
+      margin:18px 0 4px;
+    }
+
+    .backRow .btn{
+      padding:12px 18px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.18);
+      background:#fff;
+      color:#111;
+      font-weight:900;
+      text-decoration:none;
+      min-height:44px;
+      display:inline-flex;
+      align-items:center;
+    }
+  </style>
+</head>
+
+<!-- Tells nav.js which tab this page belongs under. It was opened from
+     Readings, so Readings is the tab that should look lit. -->
+<body data-rm-nav="readings.html">
+
+  <!-- Shared TOP BAR (injected by topbar.js) -->
+  <div id="rm-topbar"></div>
+  <script src="./topbar.js" defer></script>
+
+  <div class="adsHeader">
+    <div class="adsSpine"></div>
+    <div class="adsHeaderText">
+      <div class="adsEyebrow">Daily Step Study</div>
+      <div class="adsTitle">Another Day Sober</div>
+    </div>
+    <a class="adsBack" href="./readings.html">Done</a>
+  </div>
+
+  <div class="adsBody">
+    <!-- The same widget the home page mounts. One component, two places to
+         hang it — nothing about the reading itself is duplicated here. -->
+    <div id="dailyPostWidget"></div>
+
+    <div class="backRow">
+      <a class="btn" href="./readings.html">← Back to Readings</a>
+    </div>
+  </div>
+  <script src="./assets/reading-widget.js" defer></script>
+
+  <!-- Shared SOBER BAR + NAV (injected by nav.js) -->
+  <div id="rm-bottom-nav"></div>
+  <script src="./nav.js" defer></script>
+
+</body>
+</html>

@@ -73,6 +73,10 @@ window.HalloweenGame.chapter1Story = {
 
     currentCard: 0,
 
+    storyFrameRestore: null,
+
+    storyFrameResizeHandler: null,
+
     cards: [
 
         /*
@@ -93,9 +97,10 @@ window.HalloweenGame.chapter1Story = {
             image: "assets/cards/chapter1-story-1.png",
 
             lines: [
-                "“Hey... aren’t you guys...?”",
-                "“Uhhhh...”"
-            ]
+    "Our friends landed back on Earth smack dab in the middle of Akron, Ohio, where they had met years earlier.",
+      "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0────────────────────────",
+    "Crashing down in front of a meeting hall, they caught the attention of the few in the crowd whose attention wasn't otherwise occupied."
+]
         },
 
 
@@ -116,12 +121,20 @@ window.HalloweenGame.chapter1Story = {
         */
 
         {
-            image: "assets/cards/chapter1-story-2.png",
+    image: "assets/cards/chapter1-story-2.png",
 
-            lines: [
-                "“You guys need to see this.”"
-            ]
-        },
+lines: [
+    "“Hey, aren't you those guys...?”",
+    "“Uggghhh.....”",
+    "“So... where's the weekly meeting around here?”",
+    "“WEEKLY MEETING!? Ha! Man, you guys really have been gone awhile.”",
+    "“Here... you gotta see this.”",
+     "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0────────────────────────",
+    "",
+    "Quickly, not slowly, our friends caught up on roughly half a century of recovery."
+],
+    indentLines: [1, 2]
+},
 
 
         /*
@@ -139,14 +152,10 @@ window.HalloweenGame.chapter1Story = {
             image: "assets/cards/chapter1-story-3.png",
 
             lines: [
-                "“THIS... IS... AWESOME!”",
-
-                "“AA is bigger than ever! There’s Cocaine Anonymous, Gamblers Anonymous... there’s even Emotions Anonymous!”",
-
-                "“Whoa... and they’re using the Twelve Steps?”",
-
-                "“Yeah! Isn’t it great? So many people helping people!”"
-            ]
+    "One simple search pulled up thousands upon thousands of results — meetings from all kinds of fellowships, all over the world.",
+    "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0────────────────────────",
+    "Curious, the pair began to wonder just how much recovery had blossomed since the last time they'd sat in a meeting."
+]
         },
 
 
@@ -167,8 +176,13 @@ window.HalloweenGame.chapter1Story = {
             image: "assets/cards/chapter1-story-4.png",
 
             lines: [
-                // TODO - ADD STORY CARD 4 DIALOGUE
-            ]
+  
+"Alcoholics, cocaine addicts, even Juggalos... those looking for recovery could finally find their people.",
+
+    "They met in halls, church basements, living rooms, and now, even online.",
+
+
+]
         },
 
 
@@ -188,9 +202,16 @@ window.HalloweenGame.chapter1Story = {
         {
             image: "assets/cards/chapter1-story-5.png",
 
-            lines: [
-                // TODO - ADD STORY CARD 5 DIALOGUE
-            ]
+    lines: [
+    "Eager to see what recovery looked like nowadays, and with their own sobriety once again in play, the two did what they had always done...",
+
+    "They hit a meeting.",
+
+    "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0────────────────────────",
+
+    "What they were about to find would be QUITE DISTURBING..."
+]
+
         }
 
     ],
@@ -198,9 +219,11 @@ window.HalloweenGame.chapter1Story = {
 
     start() {
 
-        console.log("chapter1-story starting");
+        console.log("CHAPTER 1 STORY — NEW FILE IS LOADING!!!");
 
         this.injectStyles();
+
+        this.activateStoryFrame();
 
         this.currentCard = 0;
 
@@ -232,207 +255,454 @@ window.HalloweenGame.chapter1Story = {
         style.textContent = `
 
             /*
-            ==========================================
-            CHAPTER 1 STORY CARDS
-            VINTAGE COMIC PRESENTATION
-            ==========================================
-
-            Design rule:
-            The story art and gameplay get to be goofy.
-            The UI stays restrained and looks like an
-            old printed comic page.
-
-            Palette:
-            - Near-black page surround
-            - Warm aged comic paper
-            - Dark brown/black ink
-            - Small faded orange accent
+            ============================================================
+            CHAPTER 1 STORY — LAYOUT CORRECTION ONLY
+            ============================================================
+            One continuous 390x780 comic page.
+            No visible black strips above or below.
+            Masthead at top, navigation at bottom.
+            Artwork is proportional and never cropped.
             */
 
+            @font-face {
+                font-family: "RM Bangers";
+                src: url("assets/fonts/Bangers-Regular.ttf") format("truetype");
+                font-display: swap;
+            }
 
+            @font-face {
+                font-family: "RM Adam Warren";
+                src: url("assets/fonts/adam-warren-pro-regular.ttf") format("truetype");
+                font-display: swap;
+            }
+
+            @font-face {
+                font-family: "RM Comic Neue";
+                src: url("assets/fonts/ComicNeue-Bold.ttf") format("truetype");
+                font-display: swap;
+            }
+:root {
+                --comic-paper: #dfc987;
+                --comic-paper-light: #eedca2;
+                --comic-ink: #17130f;
+                --comic-red: #a8372b;
+                --comic-blue: #376d78;
+                --comic-yellow: #d3ad39;
+            }
+
+            /*
+            CRITICAL:
+            Occupy the complete 390x780 #game stage.
+            This removes the exposed black #game background.
+            */
             .chapter1-story-screen {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                min-height: 100%;
+                max-height: none;
+                margin: 0;
+                padding: 0;
+                position: absolute;
+                inset: 0;
 
                 width: 100%;
                 height: 100%;
+                min-height: 100%;
 
-                background:
-                    #0b0b0b;
+                margin: 0;
+                padding: 0;
+
+                box-sizing: border-box;
 
                 display: flex;
                 flex-direction: column;
 
                 overflow: hidden;
 
-                color: #17130f;
+                background:
+                    radial-gradient(
+                        circle at 16% 19%,
+                        rgba(73,48,23,0.15) 0 0.8px,
+                        transparent 1px
+                    ),
+                    radial-gradient(
+                        circle at 76% 63%,
+                        rgba(93,59,28,0.11) 0 0.65px,
+                        transparent 0.9px
+                    ),
+                    radial-gradient(
+                        circle at 54% 36%,
+                        rgba(255,240,182,0.23) 0 1px,
+                        transparent 1.3px
+                    ),
+                    var(--comic-paper);
+
+                background-size:
+                    19px 17px,
+                    29px 31px,
+                    37px 41px,
+                    auto;
+
+                color: var(--comic-ink);
 
                 font-family:
-                    "Trebuchet MS",
-                    Arial,
+                    "RM Comic Neue",
+                    "Comic Sans MS",
                     sans-serif;
 
-                animation:
-                    chapter1-story-page-in
-                    220ms
-                    ease-out;
+                transform-origin: center center;
+                isolation: isolate;
             }
 
+            .chapter1-story-screen::before {
+                content: "";
 
-            @keyframes chapter1-story-page-in {
+                position: absolute;
+                inset: 0;
 
-                from {
-                    opacity: 0;
-                    transform: scale(0.992);
-                }
+                z-index: 20;
 
-                to {
-                    opacity: 1;
-                    transform: scale(1);
-                }
+                pointer-events: none;
+
+                opacity: 0.09;
+
+                background-image:
+                    repeating-linear-gradient(
+                        0deg,
+                        rgba(36,26,18,0.09) 0,
+                        rgba(36,26,18,0.09) 1px,
+                        transparent 1px,
+                        transparent 4px
+                    ),
+                    radial-gradient(
+                        circle,
+                        rgba(31,23,16,0.22) 0 0.55px,
+                        transparent 0.8px
+                    );
+
+                background-size:
+                    auto,
+                    5px 5px;
+
+                mix-blend-mode: multiply;
+            }
+
+            .chapter1-story-screen::after {
+                content: none;
             }
 
 
             /*
-            ==========================================
-            COMIC IMAGE AREA
-            ==========================================
+            ============================================================
+            MASTHEAD — NATURAL HEIGHT, FLUSH TO TOP
+            ============================================================
             */
 
-            .chapter1-story-image-area {
-
-                height: 66%;
-
-                box-sizing: border-box;
-
-                padding:
-                    8px 8px 0 8px;
-
-                background:
-                    #0b0b0b;
-            }
-
-
-            .chapter1-story-image-frame {
+            .chapter1-story-masthead {
+                flex: 0 0 auto;
 
                 width: 100%;
-                height: 100%;
+
+                margin: 0;
+                padding: 5px 7px 4px;
 
                 box-sizing: border-box;
 
-                border:
-                    4px solid #17130f;
+                position: relative;
+                z-index: 3;
 
-                background:
-                    #000;
+                background: transparent;
+                border: 0;
+                box-shadow: none;
+            }
 
-                overflow: hidden;
+            .chapter1-story-masthead-top {
+                width: 100%;
+                min-width: 0;
 
                 display: flex;
+                align-items: center;
+                justify-content: space-between;
 
+                gap: 6px;
+
+                overflow: hidden;
+            }
+
+            .chapter1-story-logo {
+                flex: 0 0 auto;
+
+                font-family:
+                    "RM Bangers",
+                    Impact,
+                    sans-serif;
+
+                font-size: 30px;
+                line-height: 0.95;
+                letter-spacing: 0.35px;
+
+                color: var(--comic-red);
+
+                -webkit-text-stroke:
+                    1.1px
+                    var(--comic-ink);
+
+                paint-order: stroke fill;
+
+                text-shadow:
+                    2px 2px 0 var(--comic-ink),
+                    -1px 0 rgba(51,112,120,0.28);
+
+                transform:
+                    rotate(-1deg)
+                    skewX(-4deg);
+
+                white-space: nowrap;
+            }
+
+            .chapter1-story-publisher {
+                flex: 1 1 auto;
+                min-width: 0;
+
+                font-family:
+                    "RM Bangers",
+                    Impact,
+                    sans-serif;
+
+                color: var(--comic-ink);
+
+                font-size: 13px;
+                line-height: 1;
+                letter-spacing: 0.4px;
+
+                text-align: right;
+                white-space: nowrap;
+            }
+
+            .chapter1-story-issue {
+                width: 100%;
+                height: 21px;
+
+                margin-top: 3px;
+                padding: 1px 8px 0;
+
+                box-sizing: border-box;
+
+                display: flex;
                 align-items: center;
                 justify-content: center;
 
-                box-shadow:
-                    0 2px 0 #473b2b;
-            }
+                background:
+                    radial-gradient(
+                        circle,
+                        rgba(23,19,15,0.20) 0 0.5px,
+                        transparent 0.8px
+                    ),
+                    var(--comic-yellow);
 
+                background-size:
+                    5px 5px,
+                    auto;
 
-            .chapter1-story-image {
+                border: 0;
+                box-shadow: none;
 
-                width: 100%;
-                height: 100%;
+                font-family:
+                    "RM Adam Warren",
+                    "RM Comic Neue",
+                    sans-serif;
 
-                object-fit: cover;
+                font-size: 10px;
+                font-weight: 900;
+                letter-spacing: 0.5px;
 
-                display: block;
+                color: var(--comic-ink);
+
+                white-space: nowrap;
+                overflow: hidden;
             }
 
 
             /*
-            If an image isn't created yet,
-            this gives us something useful
-            instead of a broken-image icon.
+            ============================================================
+            ARTWORK — ~9PX PAPER MARGIN, FULL IMAGE, NO CROPPING
+            ============================================================
             */
 
-            .chapter1-story-placeholder {
+            .chapter1-story-image-area {
+                flex: 0 0 auto;
 
                 width: 100%;
-                height: 100%;
+
+                margin: 0;
+                padding: 0 9px;
+
+                box-sizing: border-box;
+
+                background: transparent;
+            }
+
+            .chapter1-story-image-frame {
+                width: 100%;
+                height: auto;
+
+                margin: 0;
+                padding: 0;
+
+                box-sizing: border-box;
+
+                position: relative;
+
+                overflow: hidden;
+
+                display: block;
+
+                background: transparent;
+
+                border:
+                    3px solid
+                    var(--comic-ink);
+
+                box-shadow: none;
+                transform: none;
+            }
+
+            .chapter1-story-image-frame::before {
+                content: "";
+
+                position: absolute;
+                inset: 0;
+
+                z-index: 2;
+
+                pointer-events: none;
+
+                opacity: 0.09;
+
+                background-image:
+                    radial-gradient(
+                        circle,
+                        rgba(20,16,12,0.46) 0 0.6px,
+                        transparent 0.9px
+                    );
+
+                background-size: 4px 4px;
+
+                mix-blend-mode: multiply;
+            }
+
+            .chapter1-story-image-frame::after {
+                content: none;
+            }
+
+            .chapter1-story-image {
+                width: 100%;
+                height: auto;
+                max-height: none;
+
+                margin: 0;
+                padding: 0;
+
+                object-fit: contain;
+                object-position: center center;
+
+                display: block;
+
+                filter:
+                    saturate(0.92)
+                    contrast(1.08)
+                    sepia(0.07);
+            }
+
+            .chapter1-story-placeholder {
+                width: 100%;
+                min-height: 260px;
 
                 display: flex;
-
                 align-items: center;
                 justify-content: center;
 
                 text-align: center;
 
-                padding: 30px;
-
                 box-sizing: border-box;
 
-                background:
-                    #26221d;
+                padding: 24px;
 
-                color:
-                    #b9aa87;
+                background: var(--comic-paper-light);
+                color: var(--comic-ink);
 
                 font-family:
-                    "Trebuchet MS",
-                    Arial,
+                    "RM Adam Warren",
+                    "RM Comic Neue",
                     sans-serif;
 
-                font-size: 14px;
-
-                line-height: 1.5;
+                font-size: 15px;
+                font-weight: 900;
+                line-height: 1.35;
             }
 
 
             /*
-            ==========================================
-            DIALOGUE / COMIC PAPER AREA
-            ==========================================
+            ============================================================
+            STORY BOX — FILLS THE REMAINING SPACE
+            ============================================================
             */
 
             .chapter1-story-text-area {
+                flex: 1 1 auto;
 
-                height: 27%;
+                width: calc(100% - 18px);
+                min-height: 0;
+
+                margin: 7px 9px 5px;
+                padding: 14px 15px 10px;
 
                 box-sizing: border-box;
-
-                padding:
-                    15px 20px 12px 20px;
 
                 position: relative;
 
                 overflow-y: auto;
 
                 display: flex;
-
-                align-items: center;
+                align-items: flex-start;
 
                 background:
-                    #e1cf9f;
+                    radial-gradient(
+                        circle at 12% 22%,
+                        rgba(88,58,27,0.12) 0 0.7px,
+                        transparent 0.95px
+                    ),
+                    radial-gradient(
+                        circle at 81% 70%,
+                        rgba(88,58,27,0.10) 0 0.65px,
+                        transparent 0.9px
+                    ),
+                    var(--comic-paper-light);
 
-                border-top:
-                    4px solid #17130f;
+                background-size:
+                    21px 23px,
+                    31px 29px,
+                    auto;
 
-                border-left:
-                    8px solid #0b0b0b;
-
-                border-right:
-                    8px solid #0b0b0b;
+                border:
+                    3px solid
+                    var(--comic-ink);
 
                 box-shadow:
-                    inset 0 1px 0 #f0dfb5,
-                    inset 0 -1px 0 #9e895f;
+                    1px 1px 0
+                    rgba(23,19,15,0.48);
+
+                transform: none;
+
+                scrollbar-width: thin;
+                scrollbar-color:
+                    rgba(23,19,15,0.36)
+                    transparent;
             }
 
-
-            /*
-            Very subtle old-paper grain.
-            */
-
             .chapter1-story-text-area::before {
-
                 content: "";
 
                 position: absolute;
@@ -440,323 +710,803 @@ window.HalloweenGame.chapter1Story = {
 
                 pointer-events: none;
 
-                opacity: 0.10;
+                opacity: 0.08;
 
                 background-image:
                     radial-gradient(
-                        circle at 18% 24%,
-                        #4b3b24 0 0.7px,
+                        circle,
+                        rgba(23,19,15,0.42) 0 0.55px,
                         transparent 0.8px
-                    ),
-                    radial-gradient(
-                        circle at 76% 68%,
-                        #4b3b24 0 0.6px,
-                        transparent 0.7px
                     );
 
-                background-size:
-                    31px 29px,
-                    43px 37px;
+                background-size: 6px 6px;
             }
-
-
-            /*
-            Restrained faded-orange printer's rule.
-            */
-
-            .chapter1-story-text-area::after {
-
-                content: "";
-
-                position: absolute;
-
-                left: 20px;
-                right: 20px;
-                top: 8px;
-
-                height: 3px;
-
-                background:
-                    #a94f25;
-
-                opacity: 0.85;
-
-                pointer-events: none;
-            }
-
 
             .chapter1-story-text {
-
                 width: 100%;
 
                 position: relative;
-
                 z-index: 1;
 
-                font-size:
-                    clamp(
-                        17px,
-                        4vw,
-                        24px
-                    );
+                font-family:
+                    "Courier New",
+                    Courier,
+                    monospace;
 
-                line-height: 1.32;
+                font-size: 19px;
+                line-height: 1.22;
 
-                color:
-                    #17130f;
+                color: var(--comic-ink);
 
                 text-align: left;
-
                 font-weight: 700;
-
-                letter-spacing:
-                    0.01em;
+                letter-spacing: 0.12px;
 
                 text-shadow:
-                    0 1px 0
-                    rgba(
-                        255,
-                        255,
-                        255,
-                        0.18
-                    );
+                    0.55px 0 rgba(169,55,43,0.13),
+                    -0.55px 0 rgba(55,109,120,0.12);
             }
-
 
             .chapter1-story-line {
-
-                margin:
-                    0 0 10px 0;
+                margin: 0 0 9px;
             }
 
-
             .chapter1-story-line:last-child {
-
                 margin-bottom: 0;
             }
 
+            .chapter1-story-line.dialogue-indent {
+                margin-left: 42px;
+                padding-left: 14px;
+                border-left: 4px solid var(--comic-ink);
+            }
+
 
             /*
-            ==========================================
-            NAVIGATION
-            ==========================================
+            ============================================================
+            NAVIGATION — NATURAL HEIGHT, FLUSH TO BOTTOM
+            ============================================================
             */
 
             .chapter1-story-nav {
+                flex: 0 0 50px;
 
-                height: 7%;
+                width: 100%;
+                height: 50px;
 
-                min-height: 48px;
+                margin: 0;
+                padding: 2px 8px 4px;
 
                 box-sizing: border-box;
 
-                display: flex;
+                display: grid;
 
-                align-items: center;
-                justify-content: space-between;
+                grid-template-columns:
+                    104px
+                    minmax(0, 1fr)
+                    104px;
 
-                padding:
-                    5px 14px;
+                align-items: end;
+                gap: 5px;
 
-                background:
-                    #11100e;
+                background: transparent;
+                border: 0;
 
-                border-top:
-                    3px solid #000;
-
-                font-family:
-                    "Trebuchet MS",
-                    Arial,
-                    sans-serif;
+                position: relative;
+                z-index: 3;
             }
 
-
             .chapter1-story-nav-button {
+                height: 42px;
 
                 border: 0;
 
-                background:
-                    transparent;
+                color: var(--comic-ink);
 
-                color:
-                    #e5d4aa;
+                font-family:
+                    "RM Bangers",
+                    Impact,
+                    sans-serif;
 
-                font-size: 15px;
-
-                font-weight: 800;
-
-                letter-spacing:
-                    0.035em;
+                font-size: 19px;
+                line-height: 1;
+                letter-spacing: 0.7px;
 
                 cursor: pointer;
 
-                padding:
-                    8px 10px;
+                padding: 1px 14px 0;
 
-                text-transform:
-                    uppercase;
+                text-transform: uppercase;
+
+                text-shadow:
+                    0.7px 0
+                    rgba(255,255,255,0.22);
+
+                box-shadow:
+                    2px 2px 0
+                    var(--comic-ink);
 
                 transition:
-                    color 120ms ease,
-                    transform 120ms ease;
-            }
+                    transform 90ms ease,
+                    filter 90ms ease;
 
+                clip-path:
+                    polygon(
+                        18% 0,
+                        100% 0,
+                        100% 100%,
+                        18% 100%,
+                        18% 78%,
+                        0 50%,
+                        18% 22%
+                    );
 
-            .chapter1-story-nav-button:hover {
+                background:
+                    radial-gradient(
+                        circle,
+                        rgba(23,19,15,0.22) 0 0.55px,
+                        transparent 0.8px
+                    ),
+                    var(--comic-blue);
 
-                color:
-                    #d66a32;
-            }
-
-
-            .chapter1-story-nav-button:active {
+                background-size:
+                    5px 5px,
+                    auto;
 
                 transform:
-                    translateY(1px);
+                    rotate(-1deg);
             }
 
+            .chapter1-story-nav-button:last-child {
+                clip-path:
+                    polygon(
+                        0 0,
+                        82% 0,
+                        82% 22%,
+                        100% 50%,
+                        82% 78%,
+                        82% 100%,
+                        0 100%
+                    );
+
+                background:
+                    radial-gradient(
+                        circle,
+                        rgba(23,19,15,0.22) 0 0.55px,
+                        transparent 0.8px
+                    ),
+                    var(--comic-red);
+
+                background-size:
+                    5px 5px,
+                    auto;
+
+                transform:
+                    rotate(1deg);
+            }
+
+            .chapter1-story-nav-button:hover {
+                filter: brightness(1.08);
+            }
+
+            .chapter1-story-nav-button:active {
+                transform:
+                    translate(2px, 2px)
+                    rotate(0deg);
+
+                box-shadow: none;
+            }
 
             .chapter1-story-nav-button:disabled {
-
                 opacity: 0.24;
-
                 cursor: default;
+                filter: grayscale(0.65);
             }
-
-
-            .chapter1-story-nav-button:disabled:hover {
-
-                color:
-                    #e5d4aa;
-            }
-
 
             .chapter1-story-counter {
+                min-width: 0;
 
-                color:
-                    #8c8067;
+                padding-bottom: 9px;
 
-                font-size: 12px;
+                color: var(--comic-ink);
 
                 font-family:
-                    "Trebuchet MS",
-                    Arial,
+                    "RM Adam Warren",
+                    "RM Comic Neue",
                     sans-serif;
 
-                font-weight: 700;
+                font-size: 12px;
+                font-weight: 900;
+                letter-spacing: 0.5px;
 
-                letter-spacing:
-                    0.08em;
+                text-align: center;
 
                 user-select: none;
+                white-space: nowrap;
             }
 
 
             /*
-            ==========================================
-            MOBILE
-            ==========================================
+            ============================================================
+            PAGE TRANSITIONS — PRESERVED
+            ============================================================
             */
+
+            .chapter1-story-screen.page-exit-next {
+                animation:
+                    chapter1-page-exit-next
+                    315ms
+                    cubic-bezier(.55,.06,.74,.42)
+                    forwards;
+
+                transform-origin: left center;
+            }
+
+            .chapter1-story-screen.page-enter-next {
+                animation:
+                    chapter1-page-enter-next
+                    365ms
+                    cubic-bezier(.19,.74,.22,1)
+                    forwards;
+
+                transform-origin: right center;
+            }
+
+            .chapter1-story-screen.page-exit-back {
+                animation:
+                    chapter1-page-exit-back
+                    315ms
+                    cubic-bezier(.55,.06,.74,.42)
+                    forwards;
+
+                transform-origin: right center;
+            }
+
+            .chapter1-story-screen.page-enter-back {
+                animation:
+                    chapter1-page-enter-back
+                    365ms
+                    cubic-bezier(.19,.74,.22,1)
+                    forwards;
+
+                transform-origin: left center;
+            }
+
+            @keyframes chapter1-page-exit-next {
+                0% {
+                    opacity: 1;
+
+                    transform:
+                        perspective(760px)
+                        translateX(0)
+                        rotateY(0deg);
+                }
+
+                100% {
+                    opacity: 0;
+
+                    transform:
+                        perspective(760px)
+                        translateX(-48%)
+                        rotateY(-17deg);
+                }
+            }
+
+            @keyframes chapter1-page-enter-next {
+                0% {
+                    opacity: 0;
+
+                    transform:
+                        perspective(760px)
+                        translateX(42%)
+                        rotateY(14deg);
+                }
+
+                100% {
+                    opacity: 1;
+
+                    transform:
+                        perspective(760px)
+                        translateX(0)
+                        rotateY(0deg);
+                }
+            }
+
+            @keyframes chapter1-page-exit-back {
+                0% {
+                    opacity: 1;
+
+                    transform:
+                        perspective(760px)
+                        translateX(0)
+                        rotateY(0deg);
+                }
+
+                100% {
+                    opacity: 0;
+
+                    transform:
+                        perspective(760px)
+                        translateX(48%)
+                        rotateY(17deg);
+                }
+            }
+
+            @keyframes chapter1-page-enter-back {
+                0% {
+                    opacity: 0;
+
+                    transform:
+                        perspective(760px)
+                        translateX(-42%)
+                        rotateY(-14deg);
+                }
+
+                100% {
+                    opacity: 1;
+
+                    transform:
+                        perspective(760px)
+                        translateX(0)
+                        rotateY(0deg);
+                }
+            }
+
+
+            .chapter1-story-screen.dense-dialogue
+            .chapter1-story-text {
+                font-family:
+                    "Courier New",
+                    Courier,
+                    monospace;
+
+                font-size: 17px;
+                line-height: 1.16;
+                letter-spacing: 0;
+            }
+
+            .chapter1-story-screen.dense-dialogue
+            .chapter1-story-line {
+                margin-bottom: 5px;
+            }
+
 
             @media (max-width: 500px) {
 
-                .chapter1-story-image-area {
-
+                .chapter1-story-masthead {
                     padding:
-                        5px 5px 0 5px;
+                        4px 6px 3px;
                 }
 
-
-                .chapter1-story-image-frame {
-
-                    border-width: 3px;
+                .chapter1-story-logo {
+                    font-size: 27px;
                 }
 
+                .chapter1-story-publisher {
+                    font-size: 12px;
+                }
+
+                .chapter1-story-issue {
+                    height: 20px;
+                    font-size: 9.2px;
+                }
+
+                .chapter1-story-image-area {
+                    padding:
+                        0 9px;
+                }
 
                 .chapter1-story-text-area {
+                    width:
+                        calc(100% - 18px);
+
+                    margin:
+                        6px 9px 4px;
 
                     padding:
-                        13px 14px 9px 14px;
-
-                    border-left-width: 5px;
-                    border-right-width: 5px;
+                        12px 13px 9px;
                 }
-
-
-                .chapter1-story-text-area::after {
-
-                    left: 14px;
-                    right: 14px;
-                    top: 7px;
-
-                    height: 2px;
-                }
-
 
                 .chapter1-story-text {
-
-                    font-size:
-                        clamp(
-                            16px,
-                            4.25vw,
-                            21px
-                        );
-
-                    line-height: 1.28;
+                    font-size: 18px;
                 }
 
+                .chapter1-story-screen.dense-dialogue
+                .chapter1-story-text {
+                    font-size: 16px;
+                }
 
                 .chapter1-story-nav {
+                    flex-basis: 49px;
+                    height: 49px;
+
+                    grid-template-columns:
+                        98px
+                        minmax(0, 1fr)
+                        98px;
 
                     padding:
-                        4px 8px;
+                        2px 5px 3px;
                 }
-
 
                 .chapter1-story-nav-button {
-
-                    font-size: 14px;
-
+                    height: 40px;
+                    font-size: 18px;
                     padding:
-                        8px 7px;
+                        1px 11px 0;
                 }
-
 
                 .chapter1-story-counter {
-
                     font-size: 11px;
+                    padding-bottom: 8px;
                 }
-
             }
 
-
-            /*
-            Respect reduced-motion settings.
-            */
 
             @media (
                 prefers-reduced-motion:
                 reduce
             ) {
 
-                .chapter1-story-screen {
-
-                    animation: none;
+                .chapter1-story-screen.page-exit-next,
+                .chapter1-story-screen.page-enter-next,
+                .chapter1-story-screen.page-exit-back,
+                .chapter1-story-screen.page-enter-back {
+                    animation-duration: 1ms;
                 }
-
 
                 .chapter1-story-nav-button {
-
                     transition: none;
                 }
-
             }
+
 
         `;
 
 
         document.head.appendChild(
             style
+        );
+    },
+
+
+    /*
+    ================================================================
+    STORY-ONLY OUTER FRAME
+    ================================================================
+    The normal game uses a rigid 390x780 stage with a black surround.
+    That is correct for gameplay, but on some viewport aspect ratios it
+    produces visible top/bottom letterboxing around this comic page.
+
+    While Chapter 1 Story is active, keep the logical width at 390px,
+    scale from the available viewport width, and expand the logical
+    story-stage height to consume the available portrait height.
+
+    Everything is restored before Chapter 1 gameplay begins.
+    */
+    activateStoryFrame() {
+
+        const game =
+            document.getElementById(
+                "game"
+            );
+
+
+        if (!game) {
+            return;
+        }
+
+
+        if (!this.storyFrameRestore) {
+
+            this.storyFrameRestore = {
+
+                gamePosition:
+                    game.style.position,
+
+                gameLeft:
+                    game.style.left,
+
+                gameTop:
+                    game.style.top,
+
+                gameWidth:
+                    game.style.width,
+
+                gameHeight:
+                    game.style.height,
+
+                gameTransformOrigin:
+                    game.style.transformOrigin,
+
+                gameTransform:
+                    game.style.transform,
+
+                gameOverflow:
+                    game.style.overflow,
+
+                gameBackground:
+                    game.style.background,
+
+                gameMargin:
+                    game.style.margin,
+
+                gamePadding:
+                    game.style.padding,
+
+                gameBorder:
+                    game.style.border,
+
+                gameBoxSizing:
+                    game.style.boxSizing,
+
+                htmlBackground:
+                    document.documentElement.style.background,
+
+                bodyBackground:
+                    document.body.style.background,
+
+                bodyMargin:
+                    document.body.style.margin,
+
+                bodyOverflow:
+                    document.body.style.overflow
+
+            };
+        }
+
+
+        const applyStoryFrame =
+            () => {
+
+                const LOGICAL_WIDTH =
+                    390;
+
+
+                /*
+                Scale from width on portrait/mobile-like viewports.
+                On wide desktop windows, cap against the normal 780
+                story height so the comic doesn't become enormous.
+                */
+                const widthScale =
+                    window.innerWidth /
+                    LOGICAL_WIDTH;
+
+
+                const normalHeightScale =
+                    window.innerHeight /
+                    780;
+
+
+                const portraitLike =
+                    window.innerHeight >=
+                    window.innerWidth;
+
+
+                const scale =
+                    portraitLike
+                        ? widthScale
+                        : Math.min(
+                            widthScale,
+                            normalHeightScale
+                        );
+
+
+                const safeScale =
+                    Math.max(
+                        0.01,
+                        scale
+                    );
+
+
+                const visibleLogicalHeight =
+                    Math.max(
+                        780,
+                        Math.round(
+                            window.innerHeight /
+                            safeScale
+                        )
+                    );
+
+
+                game.style.position =
+                    "fixed";
+
+                game.style.left =
+                    "50%";
+
+                game.style.top =
+                    "50%";
+
+                game.style.width =
+                    LOGICAL_WIDTH + "px";
+
+                game.style.height =
+                    visibleLogicalHeight + "px";
+
+                game.style.transformOrigin =
+                    "center center";
+
+                game.style.transform =
+                    "translate(-50%, -50%) scale(" +
+                    safeScale +
+                    ")";
+
+                game.style.overflow =
+                    "hidden";
+
+                game.style.background =
+                    "#dfc987";
+
+                game.style.margin =
+                    "0";
+
+                game.style.padding =
+                    "0";
+
+                game.style.border =
+                    "0";
+
+                game.style.boxSizing =
+                    "border-box";
+
+
+                document.documentElement.style.background =
+                    "#dfc987";
+
+                document.body.style.background =
+                    "#dfc987";
+
+                document.body.style.margin =
+                    "0";
+
+                document.body.style.overflow =
+                    "hidden";
+            };
+
+
+        applyStoryFrame();
+
+
+        if (this.storyFrameResizeHandler) {
+
+            window.removeEventListener(
+                "resize",
+                this.storyFrameResizeHandler
+            );
+
+            window.removeEventListener(
+                "orientationchange",
+                this.storyFrameResizeHandler
+            );
+        }
+
+
+        this.storyFrameResizeHandler =
+            applyStoryFrame;
+
+
+        window.addEventListener(
+            "resize",
+            this.storyFrameResizeHandler
+        );
+
+
+        window.addEventListener(
+            "orientationchange",
+            this.storyFrameResizeHandler
+        );
+    },
+
+
+    restoreNormalGameFrame() {
+
+        const game =
+            document.getElementById(
+                "game"
+            );
+
+
+        if (
+            this.storyFrameResizeHandler
+        ) {
+
+            window.removeEventListener(
+                "resize",
+                this.storyFrameResizeHandler
+            );
+
+            window.removeEventListener(
+                "orientationchange",
+                this.storyFrameResizeHandler
+            );
+
+
+            this.storyFrameResizeHandler =
+                null;
+        }
+
+
+        if (
+            !game ||
+            !this.storyFrameRestore
+        ) {
+
+            return;
+        }
+
+
+        const restore =
+            this.storyFrameRestore;
+
+
+        game.style.position =
+            restore.gamePosition;
+
+        game.style.left =
+            restore.gameLeft;
+
+        game.style.top =
+            restore.gameTop;
+
+        game.style.width =
+            restore.gameWidth;
+
+        game.style.height =
+            restore.gameHeight;
+
+        game.style.transformOrigin =
+            restore.gameTransformOrigin;
+
+        game.style.transform =
+            restore.gameTransform;
+
+        game.style.overflow =
+            restore.gameOverflow;
+
+        game.style.background =
+            restore.gameBackground;
+
+        game.style.margin =
+            restore.gameMargin;
+
+        game.style.padding =
+            restore.gamePadding;
+
+        game.style.border =
+            restore.gameBorder;
+
+        game.style.boxSizing =
+            restore.gameBoxSizing;
+
+
+        document.documentElement.style.background =
+            restore.htmlBackground;
+
+        document.body.style.background =
+            restore.bodyBackground;
+
+        document.body.style.margin =
+            restore.bodyMargin;
+
+        document.body.style.overflow =
+            restore.bodyOverflow;
+
+
+        this.storyFrameRestore =
+            null;
+
+
+        /*
+        Re-run the normal shared 390x780 frame immediately.
+        The shared frame's resize listener is still installed.
+        Dispatching resize restores the canonical gameplay geometry
+        before chapter1Gameplay.start() renders.
+        */
+        window.dispatchEvent(
+            new Event(
+                "resize"
+            )
         );
     },
 
@@ -829,7 +1579,7 @@ window.HalloweenGame.chapter1Story = {
     },
 
 
-    showCard() {
+    showCard(transitionDirection = null) {
 
         const game =
             document.getElementById(
@@ -874,6 +1624,47 @@ window.HalloweenGame.chapter1Story = {
 
         screen.className =
             "chapter1-story-screen";
+
+
+        if (
+            card.lines.length >= 4
+        ) {
+
+            screen.classList.add(
+                "dense-dialogue"
+            );
+        }
+
+
+        /*
+        COMIC MASTHEAD
+        */
+
+        const masthead =
+            document.createElement(
+                "div"
+            );
+
+
+        masthead.className =
+            "chapter1-story-masthead";
+
+
+        masthead.innerHTML = `
+            <div class="chapter1-story-masthead-top">
+                <div class="chapter1-story-logo">
+                    RECOVERY MISFITS
+                </div>
+
+                <div class="chapter1-story-publisher">
+                    — RULE 62 COMICS — FREE
+                </div>
+            </div>
+
+            <div class="chapter1-story-issue">
+                HALLOWEEN EDITION&nbsp;&nbsp;•&nbsp;&nbsp;VOL. 417&nbsp;&nbsp;•&nbsp;&nbsp;NO. 69
+            </div>
+        `;
 
 
         /*
@@ -981,7 +1772,7 @@ window.HalloweenGame.chapter1Story = {
 
 
         card.lines.forEach(
-            (line) => {
+            (line, lineIndex) => {
 
                 const paragraph =
                     document.createElement(
@@ -991,6 +1782,16 @@ window.HalloweenGame.chapter1Story = {
 
                 paragraph.className =
                     "chapter1-story-line";
+
+
+                if (
+                    Array.isArray(card.indentLines) &&
+                    card.indentLines.includes(lineIndex)
+                ) {
+                    paragraph.classList.add(
+                        "dialogue-indent"
+                    );
+                }
 
 
                 paragraph.textContent =
@@ -1069,7 +1870,7 @@ window.HalloweenGame.chapter1Story = {
 
 
         counter.textContent =
-            `${this.currentCard + 1} / ${this.cards.length}`;
+            `CARD ${this.currentCard + 1} OF ${this.cards.length}`;
 
 
         const nextButton =
@@ -1134,6 +1935,11 @@ window.HalloweenGame.chapter1Story = {
         */
 
         screen.appendChild(
+            masthead
+        );
+
+
+        screen.appendChild(
             imageArea
         );
 
@@ -1151,6 +1957,24 @@ window.HalloweenGame.chapter1Story = {
         game.appendChild(
             screen
         );
+
+
+        if (
+            transitionDirection === "next"
+        ) {
+
+            screen.classList.add(
+                "page-enter-next"
+            );
+
+        } else if (
+            transitionDirection === "back"
+        ) {
+
+            screen.classList.add(
+                "page-enter-back"
+            );
+        }
     },
 
 
@@ -1163,10 +1987,42 @@ window.HalloweenGame.chapter1Story = {
         }
 
 
+        const screen =
+            document.querySelector(
+                ".chapter1-story-screen"
+            );
+
+
+        if (screen) {
+
+            screen.classList.add(
+                "page-exit-back"
+            );
+
+
+            setTimeout(
+                () => {
+
+                    this.currentCard--;
+
+                    this.showCard(
+                        "back"
+                    );
+
+                },
+                300
+            );
+
+
+            return;
+        }
+
+
         this.currentCard--;
 
-
-        this.showCard();
+        this.showCard(
+            "back"
+        );
     },
 
 
@@ -1177,10 +2033,42 @@ window.HalloweenGame.chapter1Story = {
             this.cards.length - 1
         ) {
 
+            const screen =
+                document.querySelector(
+                    ".chapter1-story-screen"
+                );
+
+
+            if (screen) {
+
+                screen.classList.add(
+                    "page-exit-next"
+                );
+
+
+                setTimeout(
+                    () => {
+
+                        this.currentCard++;
+
+                        this.showCard(
+                            "next"
+                        );
+
+                    },
+                    300
+                );
+
+
+                return;
+            }
+
+
             this.currentCard++;
 
-
-            this.showCard();
+            this.showCard(
+                "next"
+            );
 
 
             return;
@@ -1201,6 +2089,9 @@ window.HalloweenGame.chapter1Story = {
         this.fadeOutMusic(
             1000
         );
+
+
+        this.restoreNormalGameFrame();
 
 
         /*

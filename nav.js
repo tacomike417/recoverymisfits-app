@@ -577,7 +577,14 @@
   const navLinks = document.createElement("div");
   navLinks.className = "rm-nav-links";
 
-  const cur = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+  // Which file we are on -- and, for a page that is really a child of one
+  // of the tabs, which tab it should light up instead. Another Day Sober is
+  // opened FROM Readings, so Readings is the tab that belongs lit while you
+  // are in it. Without this it lights nothing, and a bar with no tab lit
+  // reads as though you have left the app.
+  const file = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+  const declared = (document.body.getAttribute("data-rm-nav") || "").toLowerCase();
+  const cur = declared || file;
 
   items.forEach((it) => {
     const a = document.createElement("a");
