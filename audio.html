@@ -551,7 +551,7 @@
 
     let currentIdx = 0;
     let playMode = "single";
-    let isSeekingResume = false;
+    let lastSavedAt = 0;
 
     function loadResume(){
       try{
@@ -565,8 +565,19 @@
       }catch(e){ return null; }
     }
 
-    function saveResume(){
+    /* SAVING YOUR PLACE.
+       This used to be called from setTrack() as well, which is where the
+       resume bug lived: opening a book loads chapter 1 at zero seconds,
+       setTrack saved that, and thirty minutes of listening was gone before
+       the person even pressed play. A save only ever happens now when there
+       is something real to save -- while playing, on pause, on the way out
+       -- and NEVER just because a file was loaded.
+
+       `force` is for the moments where zero is the honest answer: choosing
+       a chapter deliberately, or finishing one. */
+    function saveResume(force){
       const t = player.currentTime || 0;
+      if(!force && t < 1) return;          /* nothing worth remembering yet */
       const obj = { idx: currentIdx, t: Math.floor(t), mode: playMode };
       try{ localStorage.setItem(getLSKey(), JSON.stringify(obj)); }catch(e){}
       renderResumeLine();
@@ -620,22 +631,43 @@
     function setTrack(idx, {autoplay=true, resumeTime=0} = {}){
       currentIdx = idx;
       const tr = TRACKS[idx];
-      player.src = tr.url;
+
+      /* IS THIS THE FILE WE ALREADY HAVE?
+         Opening a book loads chapter two, and then Play All asks for
+         chapter two again. Setting .src to the same address does NOT make
+         the browser announce loadedmetadata a second time -- so the seek
+         hung on an event that was never coming, and "resume" always started
+         at zero. Same file already loaded means seek right now; a different
+         file means wait for it to arrive. */
+      const alreadyLoaded = player.currentSrc === tr.url && player.readyState >= 1;
+      if(!alreadyLoaded) player.src = tr.url;
       setNowPlayingText(idx);
 
-      isSeekingResume = resumeTime > 0;
-
-      const onMeta = () => {
-        player.removeEventListener("loadedmetadata", onMeta);
-        if(isSeekingResume){
+      const seekThenPlay = () => {
+        if(resumeTime > 0){
           try{ player.currentTime = Math.min(resumeTime, (player.duration || resumeTime)); }catch(e){}
-          isSeekingResume = false;
         }
         if(autoplay) player.play().catch(()=>{});
       };
-      player.addEventListener("loadedmetadata", onMeta);
 
-      saveResume();
+      if(alreadyLoaded){
+        seekThenPlay();
+      } else {
+        const onMeta = () => {
+          player.removeEventListener("loadedmetadata", onMeta);
+          seekThenPlay();
+        };
+        player.addEventListener("loadedmetadata", onMeta);
+        /* A file that never loads leaves that listener sitting there
+           forever; the error handler below is what speaks up, and the next
+           setTrack replaces the src regardless. */
+      }
+
+      /* THE SAVE CLOCK RESTARTS WITH THE CHAPTER. It counts seconds played
+         and saves every ten -- and it used to carry the last chapter's
+         number across, so a fresh chapter starting at 0 waited for second
+         40 that never came. Everything after chapter one went unsaved. */
+      lastSavedAt = 0;
     }
 
     function playAll(){
@@ -643,29 +675,56 @@
       const r = loadResume();
       if(r && typeof r.idx === "number"){
         setTrack(r.idx, {autoplay:true, resumeTime:r.t || 0});
-        toast("Play All (resuming)");
+        toast(r.t > 5 ? "Picking up where you left off" : "Play All");
       } else {
         setTrack(0, {autoplay:true, resumeTime:0});
         toast("Play All");
       }
-      saveResume();
     }
 
     function playSingle(idx){
       playMode = "single";
       setTrack(idx, {autoplay:true, resumeTime:0});
-      saveResume();
+      saveResume(true);      /* they picked this chapter on purpose */
     }
 
-    function downloadTrack(idx){
+    /* DOWNLOAD, FOR REAL.
+       The download attribute is IGNORED on a file from another domain --
+       and these come from the CDN -- so the old version simply navigated
+       away to the raw mp3 and left somebody staring at a bare player with
+       the app gone. Fetching the file ourselves and handing the browser a
+       blob keeps the filename and keeps them on the page.
+
+       It is a whole chapter over a phone connection, so it says it is
+       working and it says when it is done. */
+    async function downloadTrack(idx){
       const tr = TRACKS[idx];
-      const a = document.createElement("a");
-      a.href = tr.url;
-      a.download = "";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      toast("Downloading…");
+      const name = tr.title.replace(/[\\/:*?"<>|]+/g, "").trim() + ".mp3";
+
+      toast("Getting that chapter…");
+      try{
+        const res = await fetch(tr.url);
+        if(!res.ok) throw new Error(String(res.status));
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url), 30000);
+        toast("Saved to your downloads");
+      }catch(e){
+        /* An iPhone cannot save a file from a web page anyway, so rather
+           than pretend, hand them the address to keep. */
+        try{
+          await navigator.clipboard.writeText(tr.url);
+          toast("Couldn't save it — link copied instead");
+        }catch(_){
+          toast("Couldn't download that one");
+        }
+      }
     }
 
     async function shareTrack(idx){
@@ -734,7 +793,9 @@
     function stopEverything(){
       try{ player.pause(); player.currentTime = 0; }catch(e){}
       setMp3UiState("READY");
-      ytFrame.src = "";
+      /* about:blank, not "". An empty src makes some browsers load THIS
+         page inside the frame -- the whole app, again, inside itself. */
+      ytFrame.src = "about:blank";
       clearChapterPlaying();
       toast("Stopped");
     }
@@ -745,6 +806,7 @@
       ytArea.style.display = "none";
       playerAreaTitle.textContent = "";
       playerAreaSub.textContent = "";
+      playerArea.style.display = "none";   /* an empty card is just clutter */
 
       // remove green when nothing is loaded
       setPlayerSelected(false);
@@ -759,9 +821,12 @@
       stopEverything();
       mp3Area.style.display = "none";
 
+      /* THE BAR SAYS WHAT IS LOADED. All three of these used to write an
+         empty string, so the strip above the player was blank no matter
+         what you had open. */
       setPlayerSelected(true);
-      playerAreaTitle.textContent = "";
-      playerAreaSub.textContent = "";
+      playerAreaTitle.textContent = title;
+      playerAreaSub.textContent = sub || "Video playlist";
 
       ytArea.style.display = "block";
 
@@ -804,13 +869,13 @@
     }
 
     function showMp3Book(bookKey){
-      ytFrame.src = "";
+      ytFrame.src = "about:blank";
       ytArea.style.display = "none";
 
       setPlayerSelected(true);
       mp3Area.style.display = "block";
-      playerAreaTitle.textContent = "";
-      playerAreaSub.textContent = "";
+      playerAreaTitle.textContent = BOOKS[bookKey].title;
+      playerAreaSub.textContent = BOOKS[bookKey].sub || "Audiobook";
 
       activeBookKey = bookKey;
       TRACKS = BOOKS[activeBookKey].tracks;
@@ -838,6 +903,30 @@
       showPlayerArea();
     }
 
+    /* WHEN THE FILE WILL NOT COME.
+       These live on a CDN, so one day one of them will 404 or the signal
+       will drop mid-chapter. It used to sit there reading "Now Playing"
+       with the badge on READY and nothing happening, which reads as "this
+       app is broken" or, worse, "I broke it". */
+    player.addEventListener("error", ()=>{
+      const tr = TRACKS[currentIdx];
+      setMp3UiState("PROBLEM");
+      nowPlaying.textContent = navigator.onLine === false
+        ? "You're offline — this chapter needs a connection."
+        : "That chapter wouldn't load. Try again, or pick another.";
+      if(tr) toast(navigator.onLine === false ? "No connection" : "Couldn't load that chapter");
+    });
+
+    player.addEventListener("stalled", ()=>{
+      if(!player.paused) setMp3UiState("LOADING");
+    });
+
+    player.addEventListener("waiting", ()=>{
+      if(!player.paused) setMp3UiState("LOADING");
+    });
+
+    player.addEventListener("playing", ()=>setMp3UiState("PLAYING"));
+
     player.addEventListener("play", ()=>{
       setMp3UiState("PLAYING");
       applyPlayingRow(currentIdx);
@@ -854,16 +943,25 @@
       const next = currentIdx + 1;
       if(next >= TRACKS.length){ toast("Finished"); return; }
       setTrack(next, {autoplay:true, resumeTime:0});
-      saveResume();
+      saveResume(true);      /* the new chapter, from its start */
     });
 
-    let lastSavedAt = 0;
     player.addEventListener("timeupdate", ()=>{
       const t = player.currentTime || 0;
       if(t - lastSavedAt >= 10){ lastSavedAt = t; saveResume(); }
     });
 
-    window.addEventListener("beforeunload", saveResume);
+    /* WRAPPED, NOT HANDED STRAIGHT OVER. addEventListener calls its handler
+       WITH THE EVENT, so passing saveResume itself made every page exit a
+       "forced" save -- chapter one at zero seconds, stamped over whatever
+       the person had really reached. A handler that takes arguments never
+       goes in here bare. */
+    window.addEventListener("beforeunload", () => saveResume());
+
+    /* And the one that actually fires on a phone. beforeunload is unreliable
+       on iOS: closing a tab or swiping the app away often skips it, while
+       pagehide is dependable. */
+    window.addEventListener("pagehide", () => saveResume());
     document.addEventListener("visibilitychange", ()=>{
       if(document.visibilityState === "hidden") saveResume();
     });
