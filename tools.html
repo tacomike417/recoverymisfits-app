@@ -41,8 +41,21 @@
   src:url("assets/fonts/caveat-600.woff2") format("woff2");
   font-weight:600;font-style:normal;font-display:swap;
 }
+/* THE HEADING FACE. Oswald is what the mockup's titles are set in -- a
+   condensed grotesk with open counters and a moderate weight. Anton was the
+   nearest thing already in the repo and it is visibly heavier and narrower,
+   which is the difference you can see between a title that matches the
+   drawing and one that only rhymes with it.
+
+   Anton stays behind it in the stack: if the Oswald file is ever missing,
+   the page still draws condensed caps instead of falling back to Arial. */
 @font-face{
   font-family:"RM Display";
+  src:url("assets/fonts/oswald-600.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"RM Display Fallback";
   src:url("assets/fonts/Anton-Regular.ttf") format("truetype");
   font-weight:400;font-style:normal;font-display:swap;
 }
@@ -64,7 +77,7 @@
   --radius:20px;
   --touch:44px;           /* nothing tappable is ever smaller */
   --shadow:0 12px 32px rgba(0,0,0,.35);
-  --display:"RM Display","Arial Narrow",Impact,sans-serif;
+  --display:"RM Display","RM Display Fallback","Arial Narrow",Impact,sans-serif;
   --type:"RM Type","Courier New",Courier,monospace;
   --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
 }
@@ -179,9 +192,13 @@ body::after{
    reader and for anybody who has to edit it later. */
 .card .t{
   font-family:var(--display);
-  font-size:23px;line-height:1;letter-spacing:.3px;
+  font-weight:600;
+  font-size:24px;line-height:1;letter-spacing:.2px;
   text-transform:uppercase;
-  color:#fff;margin:0;
+  /* ivory, not white: in the mockup the titles are printed in the same warm
+     ink as everything else on the page, and pure white reads as a different
+     material sitting on top of it */
+  color:#f4ecd8;margin:0;
 }
 .card .d{
   font-family:var(--type);
