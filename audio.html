@@ -1,1125 +1,1344 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits — Audio</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Listen — Recovery Misfits</title>
+<meta name="theme-color" content="#11110f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- The handwriting. If it never arrives the accents fall back to a system
+     cursive and the page reads exactly the same -- no layout depends on it. -->
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===========================================================================
+   LISTEN — the Audio page.
 
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000" />
-  <link rel="icon" href="./icon-192.png">
+   SCOPE, and it is a hard line: everything here lives between the top bar and
+   the bottom nav. topbar.js and nav.js are untouched, and so is the Sober Date
+   strip they draw. Nothing in this file styles anything outside <main>.
 
-  <!-- iPhone PWA support -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
-  <link rel="apple-touch-icon" href="./icon-192.png">
+   The look is a zine off the literature table: worn black paper, ivory ink,
+   gold that has been photocopied a few too many times. The texture is drawn
+   with CSS and one inline SVG -- no image files, nothing extra to download,
+   and it cannot smear the type because it sits under the text at 4% opacity.
+   ======================================================================== */
 
-  <style>
-    :root { --border: rgba(0,0,0,.12); --muted: rgba(0,0,0,.65); }
+:root{
+  --bg:#11110f;
+  --panel:#1b1b18;
+  --panel-soft:#22211d;
+  --ivory:#f1e7cf;
+  --gold:#d8b45b;
+  --gold-lit:#f0d68a;
+  --muted:#b7b0a2;
+  --line:rgba(216,180,91,.38);
+  --radius:18px;
+  --touch:44px;           /* nothing tappable is ever smaller */
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --hand:"Caveat", "Segoe Script", "Bradley Hand", cursive;
+}
 
-    body{
-      font-family:Roboto,Arial,sans-serif;
-      margin:0;
-      background:#fff;
-      color:#111;
-      line-height:1.35;
-      padding-bottom:120px;
-    }
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{-webkit-font-smoothing:antialiased}
+main{
+  position:relative;
+  max-width:560px;
+  margin:0 auto;
+  padding:18px 16px 26px;
+  color:var(--ivory);
+  font-family:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
 
-    main{max-width:860px;margin:0 auto;padding:14px;}
+/* THE GRAIN. One SVG noise filter, painted over the page and nothing else,
+   fixed so it does not swim while the page scrolls. pointer-events:none or it
+   would eat every tap on the page. */
+main::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+main > *{position:relative;z-index:1}
 
-    .pageTitle{
-      font-weight:1000;
-      font-size:18px;
-      margin:10px 4px 12px;
-      letter-spacing:.2px;
-      text-align:center;
-    }
+/* ---- the head ---------------------------------------------------------- */
+.head{
+  position:relative;
+  padding:6px 0 2px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 108px;
+  gap:10px;
+  align-items:start;
+}
+.head .words{min-width:0}
+.head h1{
+  margin:0;
+  font-size:clamp(42px,14.5vw,68px);
+  line-height:.86;
+  letter-spacing:-.02em;
+  font-weight:900;
+  color:var(--ivory);
+  /* print that did not quite register -- one soft ghost, nothing more */
+  text-shadow:2px 2px 0 rgba(216,180,91,.18);
+}
+.head .sub{
+  margin:10px 0 0;
+  font-size:15px;
+  letter-spacing:.01em;
+  color:var(--ivory);
+  font-family:var(--hand);
+  font-size:22px;
+}
+.head .rule{
+  width:min(280px,72%);
+  height:6px;
+  margin-top:6px;
+  color:var(--gold);
+}
+.searchBtn{
+  position:absolute;
+  top:2px;
+  right:0;
+  z-index:3;
+  width:var(--touch);
+  height:var(--touch);
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+  color:var(--ivory);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+}
+.searchBtn svg{width:20px;height:20px}
+.searchBtn[aria-expanded="true"]{background:var(--gold);color:#17150f;border-color:var(--gold)}
 
-    .card{
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:12px;
-      margin:12px 0;
-      box-shadow: 0 2px 10px rgba(0,0,0,.04);
-      background:#fff;
-    }
+/* the taped note, and the two margin scribbles */
+.tape{
+  width:104px;
+  margin:52px 0 0 auto;
+  padding:12px 8px 14px;
+  transform:rotate(3deg);
+  background:linear-gradient(180deg,#d9d2c2,#c9c1b0);
+  color:#241f17;
+  font-family:var(--hand);
+  font-size:17px;
+  line-height:1.15;
+  text-align:center;
+  box-shadow:0 8px 18px rgba(0,0,0,.45);
+}
+.tape::before,.tape::after{
+  content:"";
+  position:absolute;
+  width:46px;height:16px;
+  background:rgba(241,231,207,.22);
+  transform:rotate(-8deg);
+}
+.tape::before{top:-8px;left:-10px}
+.tape::after{bottom:-8px;right:-10px;transform:rotate(-6deg)}
 
-    /* ✅ Make the active PLAYER card sage green */
-    .card.mediaSelected{
-      border-color:#b7d3c2 !important;
-      background:#e8f3ec !important;
-      box-shadow: 0 2px 14px rgba(0,0,0,.06);
-    }
-    .card.mediaSelected .videoWrap{
-      border-color:#b7d3c2;
-      box-shadow:none;
-    }
-    .card.mediaSelected .btn{
-      border-color:#b7d3c2;
-    }
+.scribble{
+  font-family:var(--hand);
+  color:var(--muted);
+  font-size:15px;
+  line-height:1.05;
+  opacity:.85;
+  pointer-events:none;
+}
+.scribble.right{
+  margin:10px 0 0 auto;
+  width:100px;
+  text-align:center;
+  transform:rotate(-6deg);
+}
 
-    .btn{
-      appearance:none;
-      border:1px solid var(--border);
-      background:#fff;
-      color:#111;
-      padding:10px 12px;
-      border-radius:12px;
-      font-weight:800;
-      cursor:pointer;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      white-space:nowrap;
-      min-height:44px;
-      box-sizing:border-box;
-    }
-    .btn:active{transform:scale(.99)}
-    .btn.primary{
-      border-color: rgba(0,0,0,.25);
-      box-shadow: 0 2px 10px rgba(0,0,0,.06);
-    }
-    .btn.mini{
-      padding:8px 10px;
-      font-size:13px;
-      font-weight:900;
-      min-height:40px;
-    }
+/* A narrow phone gives the words the whole width and drops the note. */
+@media (max-width:359px){
+  .head{grid-template-columns:1fr}
+  .tape,.scribble.right{display:none}
+}
 
-    /* ===== Library sections ===== */
-    .sectionHeader{
-      margin:6px 2px 10px;
-      display:flex;
-      align-items:baseline;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .sectionHeaderTitle{
-      font-size:12px;
-      font-weight:1000;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      color:#666;
-    }
-    .sectionHeaderSub{
-      font-size:12px;
-      font-weight:900;
-      color:#888;
-      white-space:nowrap;
-    }
+/* ---- what do you want to play ------------------------------------------ */
+.ask{
+  margin:26px 0 12px;
+  font-size:clamp(22px,7.2vw,30px);
+  font-weight:900;
+  letter-spacing:-.01em;
+}
+.ask u{
+  display:block;
+  width:min(240px,62%);
+  height:5px;
+  margin-top:6px;
+  text-decoration:none;
+  background:linear-gradient(90deg,var(--gold),rgba(216,180,91,.15));
+  border-radius:4px;
+}
 
-    .library{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
+.choices{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.choice{
+  min-height:150px;
+  padding:16px 8px 14px;
+  border-radius:var(--radius);
+  border:1px solid var(--line);
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0)) ,
+    var(--panel);
+  color:var(--ivory);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:8px;
+  text-align:center;
+  cursor:pointer;
+  font:inherit;
+  box-shadow:var(--shadow);
+}
+.choice:active{transform:translateY(1px)}
+.choice .ico{width:46px;height:46px;color:var(--ivory)}
+.choice .ico svg{width:100%;height:100%}
+.choice b{font-size:15px;letter-spacing:.02em}
+.choice small{font-size:12px;line-height:1.3;color:var(--muted)}
+.choice[aria-pressed="true"]{
+  border-color:var(--gold);
+  background:linear-gradient(180deg,rgba(216,180,91,.16),rgba(216,180,91,.04)),var(--panel);
+}
 
-    /* Base row */
-    .rowCard{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px;
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:12px;
-      background:#fff;
-      transition: background .12s ease, border-color .12s ease, box-shadow .12s ease;
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
+/* ---- search ------------------------------------------------------------ */
+.searchWrap{margin-top:14px}
+.searchWrap[hidden]{display:none}
+.searchWrap input{
+  width:100%;
+  min-height:var(--touch);
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--ivory);
+  font-size:16px;              /* 16 or iOS zooms the whole page on focus */
+  outline:none;
+}
+.searchWrap input:focus{border-color:var(--gold)}
 
-    .titleWrap{min-width:0; flex:1; display:flex; gap:12px; align-items:center;}
-    .titleCol{min-width:0; flex:1;}
-    .title{font-weight:1000; font-size:14px; margin:0;}
-    .subtitle{font-size:12px; color:var(--muted); margin-top:3px; font-weight:900;}
+/* ---- continue listening ------------------------------------------------ */
+.continue{
+  margin-top:16px;
+  padding:14px;
+  border-radius:var(--radius);
+  border:1px solid var(--line);
+  background:var(--panel);
+  box-shadow:var(--shadow);
+}
+.continue[hidden]{display:none}
+.continue .kicker{
+  font-size:11px;
+  letter-spacing:.18em;
+  color:var(--gold);
+  font-weight:800;
+  margin-bottom:10px;
+}
+.continue .row{display:flex;align-items:center;gap:12px}
+.cover{
+  width:74px;
+  height:108px;
+  flex:none;
+  border-radius:8px;
+  border:1px solid var(--line);
+  object-fit:cover;
+  background:var(--panel-soft);
+  display:block;
+}
+.continue .meta{flex:1;min-width:0}
+.continue .t{font-size:17px;font-weight:800;line-height:1.2}
+.continue .s{font-size:13px;color:var(--muted);margin-top:2px}
+.bigPlay{
+  width:64px;height:64px;flex:none;
+  border-radius:50%;
+  border:0;
+  background:var(--gold);
+  color:#17150f;
+  display:grid;place-items:center;
+  cursor:pointer;
+  box-shadow:0 0 0 6px rgba(216,180,91,.14);
+}
+.bigPlay svg{width:26px;height:26px}
+.bar{
+  height:6px;
+  border-radius:4px;
+  background:rgba(241,231,207,.14);
+  margin-top:12px;
+  overflow:hidden;
+}
+.bar span{display:block;height:100%;background:var(--gold);width:0}
+.times{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  color:var(--muted);
+  margin-top:6px;
+}
 
-    /* Selected library item */
-    .rowCard.selected{
-      border-color:#b7d3c2;
-      background:#e8f3ec;
-      box-shadow: 0 2px 14px rgba(0,0,0,.06);
-    }
-    .rowCard.selected .btn{
-      background:#e8f3ec;
-      border-color:#b7d3c2;
-      box-shadow:none;
-    }
+/* ---- the switcher ------------------------------------------------------ */
+.seg{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  margin-top:18px;
+  padding:5px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--panel);
+}
+.seg button{
+  min-height:var(--touch);
+  border:0;
+  border-radius:999px;
+  background:transparent;
+  color:var(--muted);
+  font:inherit;
+  font-size:13.5px;
+  font-weight:900;
+  letter-spacing:.08em;
+  cursor:pointer;
+}
+.seg button[aria-selected="true"]{
+  background:linear-gradient(180deg,var(--gold-lit),var(--gold));
+  color:#17150f;
+}
 
-    /* ===== “Audiobook shelf” styling (clean, not cheesy) ===== */
-    .rowCard.audiobook{
-      border-color: rgba(0,0,0,.14);
-      box-shadow: 0 2px 14px rgba(0,0,0,.05);
-    }
-    .cover{
-      width:44px;
-      height:54px;
-      border-radius:10px;
-      border:1px solid rgba(0,0,0,.18);
-      background: linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.02));
-      position:relative;
-      flex:0 0 auto;
-      overflow:hidden;
-    }
-    .cover:after{
-      content:"";
-      position:absolute;
-      inset:0;
-      background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.9), rgba(255,255,255,0) 55%);
-      opacity:.55;
-    }
-    .badgeRow{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:6px;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-size:10px;
-      font-weight:1000;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      padding:4px 8px;
-      border-radius:999px;
-      border:1px solid rgba(0,0,0,.16);
-      background: rgba(0,0,0,.03);
-      color:#333;
-      white-space:nowrap;
-    }
-    .pill.video{
-      background: rgba(0,0,0,.02);
-      color:#444;
-    }
+/* ---- the list ---------------------------------------------------------- */
+.list{margin-top:14px;display:flex;flex-direction:column;gap:12px}
+.item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border-radius:var(--radius);
+  border:1px solid rgba(216,180,91,.22);
+  background:var(--panel);
+  cursor:pointer;
+}
+.item:active{border-color:var(--gold)}
+.item .thumb{
+  width:78px;height:106px;flex:none;border-radius:8px;overflow:hidden;
+  border:1px solid var(--line);background:var(--panel-soft);
+  display:grid;place-items:center;
+}
+.item .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.item.video .thumb{height:70px;width:110px}
+.item .txt{flex:1;min-width:0}
+.item .t{font-size:17px;font-weight:800;line-height:1.22}
+.item .s{font-size:13px;color:var(--muted);margin-top:3px}
+.item .len{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:12.5px;color:var(--muted);margin-top:7px;
+}
+.item .len svg{width:14px;height:14px}
+.playWrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
+.play{
+  width:52px;height:52px;border-radius:50%;
+  border:2px solid var(--gold);
+  background:transparent;color:var(--gold);
+  display:grid;place-items:center;cursor:pointer;
+}
+.play svg{width:20px;height:20px;margin-left:2px}
+.playWrap span{font-size:12px;color:var(--muted)}
 
-    /* Player areas */
-    .playerAreaTitle{
-      font-weight:1000;
-      margin-bottom:8px;
-    }
-    .now{font-size:13px;color:var(--muted);font-weight:900}
-    audio{width:100%}
+.empty{
+  padding:26px 14px;
+  text-align:center;
+  color:var(--muted);
+  font-size:15px;
+  border:1px dashed var(--line);
+  border-radius:var(--radius);
+}
 
-    .playerBox{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
+/* a quiet skeleton while the thumbs and lengths arrive */
+.skel{
+  border-radius:8px;
+  background:linear-gradient(90deg,rgba(241,231,207,.05),rgba(241,231,207,.12),rgba(241,231,207,.05));
+  background-size:200% 100%;
+  animation:sweep 1.6s linear infinite;
+}
+@keyframes sweep{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}}
 
-    /* Chapters list */
-    .list{margin-top:12px}
-    .row{
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-      padding:10px 0; border-top:1px solid rgba(0,0,0,.08);
-    }
-    .row:first-child{border-top:none}
-    .chapterTitle{
-      font-weight:900; font-size:14px; margin:0;
-      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-    }
-    .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
-    .rowActions{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      align-items:center;
-    }
-    .resumeLine{font-size:13px;color:var(--muted);margin-top:6px; display:none; font-weight:900;}
+/* ---- the player -------------------------------------------------------- */
+.player{
+  margin-top:20px;
+  padding:14px;
+  border-radius:var(--radius);
+  border:1px solid var(--gold);
+  background:var(--panel);
+  box-shadow:var(--shadow);
+}
+.player[hidden]{display:none}
+.player .top{display:flex;align-items:flex-start;gap:12px}
+.player .top .meta{flex:1;min-width:0}
+.player .t{font-size:18px;font-weight:900;line-height:1.2}
+.player .s{font-size:13px;color:var(--muted);margin-top:2px}
+.closeBtn{
+  width:var(--touch);height:var(--touch);flex:none;
+  border-radius:12px;border:1px solid var(--line);
+  background:transparent;color:var(--muted);
+  font-size:15px;cursor:pointer;
+}
+.closeBtn:active{color:var(--ivory)}
 
-    /* ===== SAGE GREEN "PLAYING" CHAPTER ROW ===== */
-    .playingRow{
-      outline:2px solid #b7d3c2;
-      border-radius:12px;
-      padding:10px;
-      margin:8px 0;
-      background:#e8f3ec;
-      box-shadow: 0 2px 14px rgba(0,0,0,.06);
-    }
-    .nowTag{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-size:11px;
-      font-weight:1000;
-      padding:4px 8px;
-      border-radius:999px;
-      border:1px solid #b7d3c2;
-      background:#e8f3ec;
-      white-space:nowrap;
-    }
+.nowRow{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-top:12px;flex-wrap:wrap;
+}
+.now{font-size:14px;color:var(--ivory);font-weight:700}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 10px;border-radius:999px;
+  border:1px solid var(--line);
+  font-size:11px;font-weight:900;letter-spacing:.14em;color:var(--muted);
+}
+.badge.playing{color:#17150f;background:var(--gold);border-color:var(--gold)}
+.badge.problem{color:#ffd9d2;border-color:rgba(255,120,100,.5)}
 
-    /* ===== MP3 "OBVIOUS PLAYING" UI ===== */
-    .playBadge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(0,0,0,.18);
-      background:rgba(0,0,0,.03);
-      font-weight:1000;
-      font-size:12px;
-      letter-spacing:.2px;
-    }
-    .playBadge .state{
-      padding:4px 8px;
-      border-radius:999px;
-      border:1px solid rgba(0,0,0,.18);
-      background:#fff;
-    }
-    .playBadge.playing{
-      border-color:#b7d3c2;
-      background:#e8f3ec;
-      box-shadow: 0 2px 14px rgba(0,0,0,.08);
-    }
+/* The real player, with its scrubber and its clock. It is the browser's own,
+   which means it keeps working with the screen off, on the lock screen, and
+   with a car stereo -- none of which a hand-built one would do. */
+/* The browser draws this control itself, and on both iOS and Android it
+   arrives as a white pill that shouts on a page this dark. There is no
+   supported way to restyle its insides, so it gets tinted as a whole and
+   sat on a panel -- the scrubber, the clock and the volume all still work,
+   which is the point of keeping the real one. */
+.audioWrap{
+  margin-top:12px;
+  padding:8px;
+  border-radius:14px;
+  background:var(--panel-soft);
+  border:1px solid rgba(216,180,91,.18);
+}
+audio{
+  width:100%;
+  display:block;
+  filter:invert(.92) hue-rotate(180deg) saturate(.75) contrast(1.05);
+}
 
-    .eq{
-      display:inline-flex;
-      align-items:flex-end;
-      gap:3px;
-      height:14px;
-      width:34px;
-    }
-    .eq span{
-      width:4px;
-      height:6px;
-      border-radius:3px;
-      background:rgba(0,0,0,.45);
-      opacity:.9;
-      transform-origin: bottom;
-    }
-    .playing .eq span{ animation: eqBounce .55s ease-in-out infinite; }
-    .playing .eq span:nth-child(2){ animation-delay:.08s; }
-    .playing .eq span:nth-child(3){ animation-delay:.16s; }
-    .playing .eq span:nth-child(4){ animation-delay:.24s; }
-    @keyframes eqBounce{
-      0%,100% { transform: scaleY(.4); opacity:.7; }
-      50%     { transform: scaleY(1.3); opacity:1; }
-    }
+.playerRow{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.btn{
+  min-height:var(--touch);
+  padding:10px 16px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--ivory);
+  font:inherit;font-size:14px;font-weight:800;
+  cursor:pointer;
+}
+.btn.primary{background:linear-gradient(180deg,var(--gold-lit),var(--gold));border-color:var(--gold);color:#17150f}
+.resumeLine{margin-top:10px;font-size:13px;color:var(--gold)}
+.resumeLine[hidden]{display:none}
 
-    /* YouTube embed */
-    .videoWrap{
-      position:relative;
-      padding-top:56.25%;
-      border-radius:14px;
-      overflow:hidden;
-      border:1px solid var(--border);
-      background: rgba(0,0,0,.02);
-    }
-    .videoWrap iframe{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      border:0;
-    }
+.chapHead{
+  margin:18px 0 8px;
+  font-size:12px;letter-spacing:.16em;font-weight:900;color:var(--muted);
+}
+.chapters{display:flex;flex-direction:column;gap:8px}
+.chap{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(216,180,91,.18);
+  background:var(--panel-soft);
+}
+.chap.playing{border-color:var(--gold);background:rgba(216,180,91,.1)}
+.chap .ct{flex:1;min-width:0;font-size:14.5px;line-height:1.3}
+.chap .nowTag{
+  display:inline-block;margin-left:8px;
+  font-size:10px;letter-spacing:.12em;font-weight:900;color:var(--gold);
+}
+.chapBtn{
+  width:var(--touch);height:var(--touch);flex:none;
+  border-radius:10px;border:1px solid var(--line);
+  background:transparent;color:var(--ivory);cursor:pointer;
+  display:grid;place-items:center;
+}
+.chapBtn svg{width:17px;height:17px}
 
-    .toolbar{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .toolbarLeft{ min-width:0; flex:1; }
+.videoWrap{
+  position:relative;width:100%;padding-top:56.25%;
+  margin-top:12px;border-radius:12px;overflow:hidden;background:#000;
+}
+.videoWrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 
-    .toast{
-      position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
-      background:#111; color:#fff; padding:10px 12px; border-radius:12px;
-      font-size:13px; opacity:0; pointer-events:none;
-      transition:opacity .18s ease;
-      max-width:92vw;
-      z-index:12000;
-    }
-    .toast.show{opacity:0.92}
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(150px + env(safe-area-inset-bottom));
+  z-index:60;
+  background:var(--ivory);color:#17150f;
+  padding:11px 18px;border-radius:999px;
+  font-size:14px;font-weight:800;
+  box-shadow:0 12px 30px rgba(0,0,0,.5);
+  max-width:86vw;text-align:center;
+}
+.toast[hidden]{display:none}
 
-    @media (max-width:520px){
-      .actions{justify-content:flex-start;}
-    }
-  </style>
+/* On a desktop this is the same column, centered. The page was drawn for a
+   phone and pretending otherwise would just stretch it. */
+@media (min-width:760px){
+  main{padding-top:26px}
+}
+</style>
 </head>
+<body data-rm-nav="audio.html">
 
-<body>
+<div id="rm-topbar"></div>
+<script src="./topbar.js" defer></script>
 
-  <div id="rm-topbar"></div>
-  <script src="./topbar.js" defer></script>
+<main>
 
-  <main>
-    <div class="pageTitle">Audio Library</div>
+  <!-- ===== the head ===== -->
+  <header class="head">
+    <div class="words">
+      <h1>LISTEN</h1>
+      <p class="sub">Take what you need. Leave the rest.</p>
+      <svg class="rule" viewBox="0 0 280 6" fill="none" aria-hidden="true">
+        <path d="M2 4.2C58 1.6 132 1.2 278 3.4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="notes">
 
-    <section class="card">
-      <div id="library"></div>
-    </section>
+    <button class="searchBtn" id="searchBtn" type="button" aria-expanded="false" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>
+      </svg>
+    </button>
 
-    <section class="card" id="playerArea" style="display:none;">
-      <div class="toolbar">
-        <div class="toolbarLeft">
-          <div class="playerAreaTitle" id="playerAreaTitle"></div>
-          <div class="now" id="playerAreaSub"></div>
-        </div>
-        <div class="actions">
-          <button class="btn mini" id="stopBtn" type="button">Stop</button>
-          <button class="btn mini" id="unloadBtn" type="button">Unload</button>
-        </div>
+      <div class="tape" aria-hidden="true">A sober<br>brighter<br>tomorrow</div>
+      <div class="scribble right" aria-hidden="true">progress<br>not<br>perfection</div>
+    </div>
+  </header>
+
+  <!-- ===== the question ===== -->
+  <h2 class="ask">WHAT DO YOU WANT TO PLAY?<u></u></h2>
+
+  <div class="choices">
+    <button class="choice" type="button" data-choice="books" aria-pressed="false">
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 33V20a13 13 0 0 1 26 0v13"/>
+          <rect x="7" y="29" width="7" height="11" rx="3"/>
+          <rect x="34" y="29" width="7" height="11" rx="3"/>
+          <path d="M18 24h12M18 29h12" opacity=".65"/>
+        </svg>
+      </span>
+      <b>AUDIOBOOKS</b>
+      <small>Stories you can listen to</small>
+    </button>
+
+    <button class="choice" type="button" data-choice="videos" aria-pressed="false">
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="17" width="26" height="18" rx="4"/>
+          <path d="M32 24l9-5v16l-9-5z"/>
+          <circle cx="14" cy="12" r="4"/><circle cx="24" cy="12" r="4"/>
+        </svg>
+      </span>
+      <b>VIDEOS</b>
+      <small>Speakers, talks &amp; playlists</small>
+    </button>
+
+    <button class="choice" type="button" data-choice="surprise">
+      <span class="ico" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round">
+          <rect x="6" y="18" width="18" height="18" rx="4"/>
+          <rect x="25" y="13" width="17" height="17" rx="4" transform="rotate(8 33 21)"/>
+          <circle cx="12" cy="24" r="1.6" fill="currentColor"/><circle cx="18" cy="30" r="1.6" fill="currentColor"/>
+          <circle cx="33" cy="18" r="1.6" fill="currentColor"/><circle cx="37" cy="25" r="1.6" fill="currentColor"/>
+        </svg>
+      </span>
+      <b>SURPRISE ME</b>
+      <small>Just press play</small>
+    </button>
+  </div>
+
+  <!-- ===== search ===== -->
+  <div class="searchWrap" id="searchWrap" hidden>
+    <input type="search" id="searchInput" placeholder="Search titles and speakers"
+           autocomplete="off" autocapitalize="none" aria-label="Search titles and speakers">
+  </div>
+
+  <!-- ===== continue listening ===== -->
+  <section class="continue" id="continueCard" hidden>
+    <div class="kicker">CONTINUE LISTENING</div>
+    <div class="row">
+      <img class="cover" id="contCover" alt="" width="74" height="108">
+      <div class="meta">
+        <div class="t" id="contTitle"></div>
+        <div class="s" id="contSub"></div>
+      </div>
+      <button class="bigPlay" id="contPlay" type="button" aria-label="Resume">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6L19 12z"/></svg>
+      </button>
+    </div>
+    <div class="bar"><span id="contBar"></span></div>
+    <div class="times"><span id="contElapsed"></span><span id="contLeft"></span></div>
+  </section>
+
+  <!-- ===== the switcher ===== -->
+  <div class="seg" role="tablist" aria-label="What to show">
+    <button role="tab" id="tabBooks" type="button" aria-selected="true">AUDIOBOOKS</button>
+    <button role="tab" id="tabVideos" type="button" aria-selected="false">SPEAKER PLAYLISTS</button>
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <!-- ===== the player ===== -->
+  <section class="player" id="playerArea" hidden aria-live="polite">
+    <div class="top">
+      <img class="cover" id="playerCover" alt="" width="74" height="108" hidden>
+      <div class="meta">
+        <div class="t" id="playerTitle"></div>
+        <div class="s" id="playerSub"></div>
+      </div>
+      <button class="closeBtn" id="closeBtn" type="button" aria-label="Close player">&#10005;</button>
+    </div>
+
+    <!-- MP3 side -->
+    <div id="mp3Area" hidden>
+      <div class="nowRow">
+        <div class="now" id="nowPlaying">Ready</div>
+        <span class="badge" id="badge">READY</span>
       </div>
 
-      <!-- MP3 area (used for BOTH audiobooks) -->
-      <div id="gorillaArea" style="display:none; margin-top:12px;">
-        <div class="toprow" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <button id="playAllBtn" class="btn primary" type="button">▶ Play All</button>
-          <button id="clearResumeBtn" class="btn" type="button">Reset Resume</button>
-        </div>
-        <div id="resumeLine" class="resumeLine"></div>
-
-        <div class="playerBox" style="margin-top:12px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-            <div class="now" id="nowPlaying">Not playing</div>
-
-            <div id="mp3Badge" class="playBadge">
-              <div class="eq" aria-hidden="true">
-                <span></span><span></span><span></span><span></span>
-              </div>
-              <span class="state" id="mp3State">READY</span>
-            </div>
-          </div>
-
-          <audio id="player" controls preload="metadata"></audio>
-        </div>
-
-        <div style="font-weight:1000;margin-top:14px;">Chapters</div>
-        <div id="chapterList" class="list"></div>
+      <div class="audioWrap">
+        <audio id="player" controls preload="metadata" playsinline></audio>
       </div>
 
-      <div id="ytArea" style="display:none; margin-top:12px;">
-        <div class="videoWrap" id="ytBox">
-          <iframe
-            id="ytFrame"
-            title="YouTube"
-            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen
-            referrerpolicy="origin-when-cross-origin"
-          ></iframe>
-        </div>
-        <div class="now" style="margin-top:10px;">
-          If YouTube glitches: hit <b>Unload</b>, then press Play again.
-        </div>
+      <div class="playerRow">
+        <button class="btn primary" id="playAllBtn" type="button">Play from here</button>
+        <button class="btn" id="clearResumeBtn" type="button">Start over</button>
       </div>
-    </section>
+      <div class="resumeLine" id="resumeLine" hidden></div>
 
-    <div id="toast" class="toast"></div>
-  </main>
+      <div class="chapHead">CHAPTERS</div>
+      <div class="chapters" id="chapterList"></div>
+    </div>
 
-  <div id="rm-bottom-nav"></div>
-  <script src="./nav.js" defer></script>
+    <!-- video side -->
+    <div id="ytArea" hidden>
+      <div class="videoWrap">
+        <iframe id="ytFrame" title="Speaker playlist"
+          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen referrerpolicy="origin-when-cross-origin" src="about:blank"></iframe>
+      </div>
+      <div class="playerRow">
+        <button class="btn" id="openYtBtn" type="button">Open in YouTube</button>
+      </div>
+    </div>
+  </section>
 
-  <script>
-    const toastEl = document.getElementById("toast");
-    function toast(msg){
-      toastEl.textContent = msg;
-      toastEl.classList.add("show");
-      setTimeout(()=>toastEl.classList.remove("show"), 1400);
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<div id="rm-bottom-nav"></div>
+<script src="./nav.js" defer></script>
+
+<script>
+/* ===========================================================================
+   LISTEN — behavior.
+
+   What carried over from the old page, unchanged in spirit and fixed in
+   detail: the two books and their chapter URLs, the YouTube playlists, the
+   resume-position store, and the browser's own <audio> element with its
+   scrubber, clock and lock-screen controls.
+
+   What is new: one obvious play action per row, a Continue Listening card
+   that only exists when there is something to continue, search, and chapter
+   lengths that the page measures once and remembers.
+   ======================================================================== */
+(function(){
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const toastEl = $("toast");
+  let toastTimer = null;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ toastEl.hidden = true; }, 1800);
+  }
+
+  /* ---- the shelf --------------------------------------------------------
+     Real titles, real URLs. The mockup's artwork was illustrative; none of
+     this was swapped to match it. */
+  const BOOKS = {
+    gorilla: {
+      title: "Alcoholism: The 500 Pound Gorilla",
+      sub: "Audiobook",
+      cover: "assets/audio/gorilla.webp",
+      lsKey: "rm_audio_resume_gorilla_v1",
+      tracks: [
+        { n: 1,  title: "1. So Here You Are", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/1.%20So%20Here%20You%20Are.mp3" },
+        { n: 2,  title: "2. The Rat Trap", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/2.%20The%20Rat%20Trap.mp3" },
+        { n: 3,  title: "3. My Off Switch is Broke", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/3.%20My%20Off%20Switch%20is%20Broke.mp3" },
+        { n: 4,  title: "4. The Screw It Button", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/4.%20The%20Screw%20It%20Button.mp3" },
+        { n: 5,  title: "5. The Disease Concept", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/5.%20The%20Disease%20Concept.mp3" },
+        { n: 6,  title: "6. The 500 Pound Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/6.%20The%20500%20Pound%20Gorilla%20.mp3" },
+        { n: 7,  title: "7. The Edge", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/7.%20The%20Edge.mp3" },
+        { n: 8,  title: "8. The Ultimate Sacrifice", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/8.%20The%20Ultimate%20Sacrifice.mp3" },
+        { n: 9,  title: "9. Fork in the Road", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/9.%20Fork%20in%20the%20Road.mp3" },
+        { n: 10, title: "10. No More Deals with the Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/10.%20No%20More%20Deals%20with%20the%20Gorilla.mp3" },
+        { n: 11, title: "11. The Excuse Machine", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/11.%20The%20Excuse%20Machine.mp3" },
+        { n: 12, title: "12. Debate Club is Over", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/12.%20Debate%20Club%20is%20Over.mp3" },
+        { n: 13, title: "13. Connection Is the Opposite of Addiction", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/13.%20Connection%20Is%20the%20Opposite%20of%20Addiction.mp3" },
+        { n: 14, title: "14. Change or Die", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/14.%20Change%20or%20Die.mp3" },
+        { n: 15, title: "15. Spirituality", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/15.%20Spirituality.mp3" },
+        { n: 16, title: "16. Credits", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/16.%20Credits.mp3" },
+        { n: 17, title: "17. With Gratitude", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/17.%20With%20Gratitude.mp3" }
+      ]
+    },
+    sweatpants: {
+      title: "Playing God in Sweatpants",
+      sub: "Coffee & Cleanup (Audio)",
+      cover: "assets/audio/sweatpants.webp",
+      lsKey: "rm_audio_resume_sweatpants_v1",
+      tracks: [
+        { n: 1,  title: "Introduction", url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Introduction.mp3" },
+        { n: 2,  title: "Preface",      url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Preface.mp3" },
+        { n: 3,  title: "Rule 1",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%201.mp3" },
+        { n: 4,  title: "Rule 2",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%202.mp3" },
+        { n: 5,  title: "Rule 3",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%203.mp3" },
+        { n: 6,  title: "Rule 4",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%204.mp3" },
+        { n: 7,  title: "Rule 5",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%205.mp3" },
+        { n: 8,  title: "Rule 6",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%206.mp3" },
+        { n: 9,  title: "Rule 7",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%207.mp3" },
+        { n: 10, title: "Rule 8",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%208.mp3" },
+        { n: 11, title: "Rule 9",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%209.mp3" },
+        { n: 12, title: "Rule 10",      url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%2010.mp3" },
+        { n: 13, title: "That’s It",    url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Thats%20it.mp3" }
+      ]
     }
+  };
 
-    // Player area
-    const playerArea = document.getElementById("playerArea");
-    const playerAreaTitle = document.getElementById("playerAreaTitle");
-    const playerAreaSub = document.getElementById("playerAreaSub");
-    const stopBtn = document.getElementById("stopBtn");
-    const unloadBtn = document.getElementById("unloadBtn");
+  const PLAYLISTS = [
+    { key:"joe",      title:"Joe & Charlie",          sub:"Big Book Study",               id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E", randomMax:50 },
+    { key:"martin",   title:"Father Martin",          sub:"Chalk Talks",                  id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf", randomMax:50 },
+    { key:"chuck",    title:"Chuck C",                sub:"A New Pair of Glasses",        id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA", randomMax:50 },
+    { key:"allen",    title:"Allen McGinnis",         sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE", randomMax:50 },
+    { key:"stepwork", title:"Danny's Big Book Study", sub:"YouTube Playlist",             id:"PLcWUlHHreIu63jNVOsrx1NiRPv25Q_BPn", randomMax:50 }
+  ];
 
-    const mp3Area = document.getElementById("gorillaArea"); // name kept, used for all MP3 books
-    const ytArea = document.getElementById("ytArea");
-    const ytFrame = document.getElementById("ytFrame");
+  /* ---- where we are ------------------------------------------------------ */
+  let tab = "books";
+  let activeBookKey = null;
+  let TRACKS = [];
+  let currentIdx = 0;
+  let playMode = "single";
+  let lastSavedAt = 0;
+  let query = "";
 
-    // MP3 player
-    const player = document.getElementById("player");
-    const nowPlaying = document.getElementById("nowPlaying");
-    const chapterList = document.getElementById("chapterList");
-    const playAllBtn = document.getElementById("playAllBtn");
-    const clearResumeBtn = document.getElementById("clearResumeBtn");
-    const resumeLine = document.getElementById("resumeLine");
+  const player = $("player");
+  const TAB_KEY = "rm_audio_tab_v1";
+  try { const t = sessionStorage.getItem(TAB_KEY); if (t === "videos" || t === "books") tab = t; } catch(e){}
 
-    // MP3 badge
-    const mp3Badge = document.getElementById("mp3Badge");
-    const mp3State = document.getElementById("mp3State");
-    function setMp3UiState(state){
-      mp3State.textContent = state;
-      mp3Badge.classList.toggle("playing", state === "PLAYING");
+  /* ---- chapter lengths, measured once ------------------------------------
+     Nothing in the data says how long anything is, and asking the person to
+     keep a list of run times up to date is how a list goes wrong. The page
+     asks each file for its length ONCE -- metadata only, a few KB -- and
+     remembers the answer. Add a chapter and it measures that one too. */
+  const LEN_KEY = "rm_audio_lengths_v1";
+  let lengths = {};
+  try { lengths = JSON.parse(localStorage.getItem(LEN_KEY) || "{}") || {}; } catch(e){ lengths = {}; }
+  function saveLengths(){ try{ localStorage.setItem(LEN_KEY, JSON.stringify(lengths)); }catch(e){} }
+
+  function measure(url){
+    return new Promise((resolve)=>{
+      if (lengths[url] != null) return resolve(lengths[url]);
+      const probe = new Audio();
+      probe.preload = "metadata";
+      let done = false;
+      const finish = (v) => {
+        if (done) return;
+        done = true;
+        probe.src = "";                     /* stop it holding the connection */
+        if (v > 0){ lengths[url] = Math.round(v); saveLengths(); }
+        resolve(v > 0 ? Math.round(v) : null);
+      };
+      probe.addEventListener("loadedmetadata", ()=>finish(probe.duration));
+      probe.addEventListener("error", ()=>finish(0));
+      setTimeout(()=>finish(0), 12000);     /* bad signal is not a hang */
+      probe.src = url;
+    });
+  }
+
+  /* One at a time, so seventeen chapters do not open seventeen connections on
+     somebody's phone data. */
+  async function measureBook(bookKey, onProgress){
+    const b = BOOKS[bookKey];
+    for (const tr of b.tracks){
+      await measure(tr.url);
+      if (onProgress) onProgress();
     }
+  }
 
-    function showPlayerArea(){
-      playerArea.style.display = "block";
-      playerArea.scrollIntoView({ behavior:"smooth", block:"start" });
+  function bookSeconds(bookKey){
+    const b = BOOKS[bookKey];
+    let total = 0, known = 0;
+    b.tracks.forEach(tr => { if (lengths[tr.url] != null){ total += lengths[tr.url]; known++; } });
+    return { total, known, of: b.tracks.length };
+  }
+
+  function longTime(sec){
+    sec = Math.max(0, Math.round(sec));
+    const h = Math.floor(sec/3600), m = Math.round((sec%3600)/60);
+    if (h && m) return h + "h " + m + "m";
+    if (h) return h + "h";
+    return Math.max(1, m) + "m";
+  }
+
+  function clock(sec){
+    sec = Math.max(0, Math.floor(sec));
+    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+    return (h ? h + ":" + String(m).padStart(2,"0") : String(m)) + ":" + String(s).padStart(2,"0");
+  }
+
+  /* ---- remembering the spot ---------------------------------------------
+     Three bugs lived in here before: opening a book wrote zero over the
+     saved position, the save clock carried across chapters so nothing after
+     chapter one was ever stored, and beforeunload handed its event object in
+     as a "save anyway" flag. All three are gone. */
+  function resumeFor(bookKey){
+    try{
+      const raw = localStorage.getItem(BOOKS[bookKey].lsKey);
+      if (!raw) return null;
+      const o = JSON.parse(raw);
+      if (typeof o?.idx !== "number" || typeof o?.t !== "number") return null;
+      if (o.idx < 0 || o.idx >= BOOKS[bookKey].tracks.length) return null;
+      return { idx:o.idx, t: Math.max(0, o.t), mode: o.mode || "single" };
+    }catch(e){ return null; }
+  }
+
+  function saveResume(force){
+    if (!activeBookKey) return;
+    const t = player.currentTime || 0;
+    if (!force && t < 1) return;          /* nothing worth remembering yet */
+    try{
+      localStorage.setItem(BOOKS[activeBookKey].lsKey,
+        JSON.stringify({ idx: currentIdx, t: Math.floor(t), mode: playMode }));
+    }catch(e){}
+    drawResumeLine();
+    drawContinue();
+  }
+
+  function clearResume(){
+    if (!activeBookKey) return;
+    try{ localStorage.removeItem(BOOKS[activeBookKey].lsKey); }catch(e){}
+    drawResumeLine();
+    drawContinue();
+    toast("Starting from the beginning");
+  }
+
+  /* The most recently touched book, which is what Continue Listening is for. */
+  function lastListened(){
+    let best = null;
+    Object.keys(BOOKS).forEach(key => {
+      const r = resumeFor(key);
+      if (!r) return;
+      const stamp = (r.idx * 100000) + r.t;
+      if (!best || stamp > best.stamp) best = { key, r, stamp };
+    });
+    return best;
+  }
+
+  /* ---- video thumbnails --------------------------------------------------
+     A playlist id alone does not give you a picture: that needs the YouTube
+     API and a key. oEmbed usually hands one over without either, so it is
+     asked once and the answer is kept. When it says no -- offline, blocked,
+     changed -- the row falls back to a lettered tile and nothing looks
+     broken. */
+  const THUMB_KEY = "rm_audio_thumbs_v1";
+  let thumbs = {};
+  try{ thumbs = JSON.parse(localStorage.getItem(THUMB_KEY) || "{}") || {}; }catch(e){ thumbs = {}; }
+
+  async function thumbFor(item){
+    if (thumbs[item.id] !== undefined) return thumbs[item.id];
+    try{
+      const url = "https://www.youtube.com/oembed?format=json&url=" +
+        encodeURIComponent("https://www.youtube.com/playlist?list=" + item.id);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("no");
+      const data = await res.json();
+      thumbs[item.id] = data.thumbnail_url || null;
+    }catch(e){
+      thumbs[item.id] = null;              /* remembered, so we ask once */
     }
+    try{ localStorage.setItem(THUMB_KEY, JSON.stringify(thumbs)); }catch(e){}
+    return thumbs[item.id];
+  }
 
-    // turn PLAYER card green when something is selected
-    function setPlayerSelected(isOn){
-      playerArea.classList.toggle("mediaSelected", !!isOn);
+  /* ---- drawing the list -------------------------------------------------- */
+  const listEl = $("list");
+  const ICON = {
+    play:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6L19 12z"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 1.8"/></svg>'
+  };
+
+  const matches = (t, s) => !query || (t + " " + (s||"")).toLowerCase().includes(query);
+
+  function drawList(){
+    listEl.innerHTML = "";
+
+    if (tab === "books"){
+      const keys = Object.keys(BOOKS).filter(k => matches(BOOKS[k].title, BOOKS[k].sub));
+      if (!keys.length) return drawEmpty(query ? "Nothing matched that search."
+                                               : "No audiobooks are available right now.");
+      keys.forEach(key => listEl.appendChild(bookRow(key)));
+    } else {
+      const items = PLAYLISTS.filter(p => matches(p.title, p.sub));
+      if (!items.length) return drawEmpty(query ? "Nothing matched that search."
+                                                : "No video playlists are available right now.");
+      items.forEach(item => listEl.appendChild(videoRow(item)));
     }
+  }
 
-    // Highlight selected library row
-    function selectLibraryRow(key){
-      document.querySelectorAll("[data-lib-row]").forEach(el=>{
-        el.classList.toggle("selected", el.dataset.key === key);
-      });
-    }
+  function drawEmpty(msg){
+    const d = document.createElement("div");
+    d.className = "empty";
+    d.textContent = msg;
+    listEl.appendChild(d);
+  }
 
-    function clearChapterPlaying(){
-      document.querySelectorAll("[data-track-row]").forEach(el=>{
-        el.classList.remove("playingRow");
-        const tag = el.querySelector(".nowTag");
-        if(tag) tag.remove();
-      });
-    }
+  function bookRow(key){
+    const b = BOOKS[key];
+    const row = document.createElement("div");
+    row.className = "item";
+    row.innerHTML =
+      '<div class="thumb"><img src="' + b.cover + '" alt="" loading="lazy" decoding="async"></div>' +
+      '<div class="txt">' +
+        '<div class="t"></div>' +
+        '<div class="s"></div>' +
+        '<div class="len" data-len>' + ICON.clock + '<span>' + lenLabel(key) + '</span></div>' +
+      '</div>' +
+      '<div class="playWrap">' +
+        '<button class="play" type="button" aria-label="Play ' + b.title + '">' + ICON.play + '</button>' +
+        '<span>Play</span>' +
+      '</div>';
+    row.querySelector(".t").textContent = b.title;
+    row.querySelector(".s").textContent = b.sub;
+    const open = () => openBook(key);
+    row.addEventListener("click", open);
+    row.querySelector(".play").addEventListener("click", (e)=>{ e.stopPropagation(); open(); });
+    return row;
+  }
 
-    // ===== BOOKS (MP3) =====
-    const BOOKS = {
-      gorilla: {
-        title: "Alcoholism: The 500 Pound Gorilla",
-        sub: "Audiobook",
-        lsKey: "rm_audio_resume_gorilla_v1",
-        tracks: [
-          { n: 1,  title: "1. So Here You Are", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/1.%20So%20Here%20You%20Are.mp3" },
-          { n: 2,  title: "2. The Rat Trap", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/2.%20The%20Rat%20Trap.mp3" },
-          { n: 3,  title: "3. My Off Switch is Broke", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/3.%20My%20Off%20Switch%20is%20Broke.mp3" },
-          { n: 4,  title: "4. The Screw It Button", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/4.%20The%20Screw%20It%20Button.mp3" },
-          { n: 5,  title: "5. The Disease Concept", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/5.%20The%20Disease%20Concept.mp3" },
-          { n: 6,  title: "6. The 500 Pound Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/6.%20The%20500%20Pound%20Gorilla%20.mp3" },
-          { n: 7,  title: "7. The Edge", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/7.%20The%20Edge.mp3" },
-          { n: 8,  title: "8. The Ultimate Sacrifice", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/8.%20The%20Ultimate%20Sacrifice.mp3" },
-          { n: 9,  title: "9. Fork in the Road", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/9.%20Fork%20in%20the%20Road.mp3" },
-          { n: 10, title: "10. No More Deals with the Gorilla", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/10.%20No%20More%20Deals%20with%20the%20Gorilla.mp3" },
-          { n: 11, title: "11. The Excuse Machine", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/11.%20The%20Excuse%20Machine.mp3" },
-          { n: 12, title: "12. Debate Club is Over", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/12.%20Debate%20Club%20is%20Over.mp3" },
-          { n: 13, title: "13. Connection Is the Opposite of Addiction", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/13.%20Connection%20Is%20the%20Opposite%20of%20Addiction.mp3" },
-          { n: 14, title: "14. Change or Die", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/14.%20Change%20or%20Die.mp3" },
-          { n: 15, title: "15. Spirituality", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/15.%20Spirituality.mp3" },
-          { n: 16, title: "16. Credits", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/16.%20Credits.mp3" },
-          { n: 17, title: "17. With Gratitude", url: "https://recovery-misfits-audio.b-cdn.net/gorilla-audiobook/17.%20With%20Gratitude.mp3" }
-        ]
-      },
+  function lenLabel(key){
+    const { total, known, of } = bookSeconds(key);
+    if (known === of) return longTime(total);
+    if (known === 0) return of + " chapters";
+    return of + " chapters · measuring…";
+  }
 
-      sweatpants: {
-        title: "Playing God in Sweatpants",
-        sub: "Coffee & Cleanup (Audio)",
-        lsKey: "rm_audio_resume_sweatpants_v1",
-        tracks: [
-          { n: 1,  title: "Introduction", url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Introduction.mp3" },
-          { n: 2,  title: "Preface",      url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Preface.mp3" },
-          { n: 3,  title: "Rule 1",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%201.mp3" },
-          { n: 4,  title: "Rule 2",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%202.mp3" },
-          { n: 5,  title: "Rule 3",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%203.mp3" },
-          { n: 6,  title: "Rule 4",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%204.mp3" },
-          { n: 7,  title: "Rule 5",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%205.mp3" },
-          { n: 8,  title: "Rule 6",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%206.mp3" },
-          { n: 9,  title: "Rule 7",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%207.mp3" },
-          { n: 10, title: "Rule 8",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%208.mp3" },
-          { n: 11, title: "Rule 9",       url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%209.mp3" },
-          { n: 12, title: "Rule 10",      url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Rule%2010.mp3" },
-          { n: 13, title: "That’s It",    url: "https://recovery-misfits-audio.b-cdn.net/god-in-sweatpants-audio/Thats%20it.mp3" }
-        ]
+  function videoRow(item){
+    const row = document.createElement("div");
+    row.className = "item video";
+    row.innerHTML =
+      '<div class="thumb skel" data-thumb></div>' +
+      '<div class="txt"><div class="t"></div><div class="s"></div></div>' +
+      '<div class="playWrap">' +
+        '<button class="play" type="button" aria-label="Watch ' + item.title + '">' + ICON.play + '</button>' +
+        '<span>Watch</span>' +
+      '</div>';
+    row.querySelector(".t").textContent = item.title;
+    row.querySelector(".s").textContent = item.sub;
+
+    thumbFor(item).then(src => {
+      const box = row.querySelector("[data-thumb]");
+      if (!box) return;
+      box.classList.remove("skel");
+      if (src){
+        const img = document.createElement("img");
+        img.src = src; img.alt = ""; img.loading = "lazy";
+        img.onerror = () => { box.textContent = item.title.slice(0,1); };
+        box.appendChild(img);
+      } else {
+        box.textContent = item.title.slice(0,1);
+        box.style.font = "900 26px Archivo, sans-serif";
+        box.style.color = "var(--gold)";
       }
+    });
+
+    const open = () => playPlaylist(item);
+    row.addEventListener("click", open);
+    row.querySelector(".play").addEventListener("click", (e)=>{ e.stopPropagation(); open(); });
+    return row;
+  }
+
+  /* ---- continue listening ------------------------------------------------ */
+  const contCard = $("continueCard");
+  function drawContinue(){
+    const last = lastListened();
+    if (!last){ contCard.hidden = true; return; }     /* no card rather than an empty one */
+
+    const b = BOOKS[last.key];
+    const tr = b.tracks[last.r.idx];
+    const chapterLen = lengths[tr.url] || null;
+
+    $("contCover").src = b.cover;
+    $("contTitle").textContent = b.title;
+    $("contSub").textContent = b.sub;
+
+    /* Elapsed counts the chapters already behind you, so the bar means the
+       book and not just this one chapter. Chapters we have not measured yet
+       simply do not count toward it -- better a short honest number than a
+       guessed one. */
+    let before = 0, measured = true;
+    for (let i = 0; i < last.r.idx; i++){
+      const L = lengths[b.tracks[i].url];
+      if (L == null){ measured = false; break; }
+      before += L;
+    }
+    const { total, known, of } = bookSeconds(last.key);
+    const elapsed = (measured ? before : 0) + last.r.t;
+
+    if (measured && known === of && total > 0){
+      $("contBar").style.width = Math.min(100, (elapsed / total) * 100).toFixed(1) + "%";
+      $("contElapsed").textContent = clock(elapsed) + " elapsed";
+      $("contLeft").textContent = "-" + clock(Math.max(0, total - elapsed)) + " remaining";
+    } else {
+      const pct = chapterLen ? (last.r.t / chapterLen) * 100 : 0;
+      $("contBar").style.width = Math.min(100, pct).toFixed(1) + "%";
+      $("contElapsed").textContent = tr.title;
+      $("contLeft").textContent = clock(last.r.t) + " in";
+    }
+
+    contCard.hidden = false;
+    contCard.dataset.key = last.key;
+  }
+
+  $("contPlay").addEventListener("click", ()=>{
+    const key = contCard.dataset.key;
+    if (!key) return;
+    openBook(key, { resume:true });
+  });
+
+  /* ---- the player -------------------------------------------------------- */
+  const playerArea = $("playerArea");
+  const mp3Area = $("mp3Area");
+  const ytArea = $("ytArea");
+  const ytFrame = $("ytFrame");
+  const badge = $("badge");
+  const nowPlaying = $("nowPlaying");
+  const chapterList = $("chapterList");
+  const resumeLine = $("resumeLine");
+
+  function setBadge(state){
+    badge.textContent = state;
+    badge.classList.toggle("playing", state === "PLAYING");
+    badge.classList.toggle("problem", state === "PROBLEM");
+  }
+
+  function showPlayer(){
+    playerArea.hidden = false;
+    playerArea.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+
+  /* EVERY SCREEN NEEDS A WAY OUT. The player is a panel, not a page, so the
+     close button puts you back on the shelf with nothing playing. */
+  function closePlayer(){
+    try{ player.pause(); }catch(e){}
+    saveResume();
+    ytFrame.src = "about:blank";
+    mp3Area.hidden = true;
+    ytArea.hidden = true;
+    playerArea.hidden = true;
+    $("playerCover").hidden = true;
+    activeBookKey = null;
+    setBadge("READY");
+  }
+  $("closeBtn").addEventListener("click", closePlayer);
+
+  function drawResumeLine(){
+    if (!activeBookKey){ resumeLine.hidden = true; return; }
+    const r = resumeFor(activeBookKey);
+    if (!r || r.t < 5){ resumeLine.hidden = true; return; }
+    resumeLine.hidden = false;
+    resumeLine.textContent = "Picks up at " + TRACKS[r.idx].title + " · " + clock(r.t);
+  }
+
+  function markPlayingRow(idx){
+    [...chapterList.querySelectorAll(".chap")].forEach(el => {
+      el.classList.remove("playing");
+      const tag = el.querySelector(".nowTag");
+      if (tag) tag.remove();
+    });
+    const row = chapterList.querySelector('[data-idx="' + idx + '"]');
+    if (!row) return;
+    row.classList.add("playing");
+    const t = row.querySelector(".ct");
+    if (t){
+      const tag = document.createElement("span");
+      tag.className = "nowTag";
+      tag.textContent = "NOW PLAYING";
+      t.appendChild(tag);
+    }
+  }
+
+  function setTrack(idx, opts){
+    opts = opts || {};
+    const autoplay = opts.autoplay !== false;
+    const resumeTime = opts.resumeTime || 0;
+    currentIdx = idx;
+    const tr = TRACKS[idx];
+
+    /* Same file already loaded? Then loadedmetadata will not fire again and
+       waiting for it is how resume used to land at zero. */
+    const loaded = player.currentSrc === tr.url && player.readyState >= 1;
+    if (!loaded) player.src = tr.url;
+    nowPlaying.textContent = tr.title;
+
+    const go = () => {
+      if (resumeTime > 0){
+        try{ player.currentTime = Math.min(resumeTime, player.duration || resumeTime); }catch(e){}
+      }
+      if (autoplay) player.play().catch(()=>{});
     };
-
-    let activeBookKey = "gorilla";
-    let TRACKS = BOOKS[activeBookKey].tracks;
-
-    function getLSKey(){
-      return BOOKS[activeBookKey].lsKey;
+    if (loaded) go();
+    else {
+      const onMeta = () => { player.removeEventListener("loadedmetadata", onMeta); go(); };
+      player.addEventListener("loadedmetadata", onMeta);
     }
 
-    // Library items
-    const LIBRARY = [
-      { type:"mp3_book", key:"gorilla",    title: BOOKS.gorilla.title,    sub: BOOKS.gorilla.sub },
-      { type:"mp3_book", key:"sweatpants", title: BOOKS.sweatpants.title, sub: BOOKS.sweatpants.sub },
+    lastSavedAt = 0;               /* the save clock belongs to this chapter */
+    markPlayingRow(idx);
+  }
 
-      { type:"yt_playlist", key:"joe",    title:"Joe & Charlie",  sub:"Big Book Study", id:"PLxb8I9B3VlNvAKFFZugCC8a7Pq6tkpF7E", randomMax:50 },
-      { type:"yt_playlist", key:"martin", title:"Father Martin",  sub:"Chalk Talks",    id:"PLvwn9cjv4shDAovzrlf_5k0pW9hF_P8Lf", randomMax:50 },
-      { type:"yt_playlist", key:"chuck",  title:"Chuck C",        sub:"A New Pair of Glasses", id:"PLxb8I9B3VlNvBfT34yoa_MU2zay5WTsiA", randomMax:50 },
-      { type:"yt_playlist", key:"allen",  title:"Allen McGinnis", sub:"Building a House of Sobriety", id:"PLxb8I9B3VlNv7NFjbYLO809xJBBhf7CuE", randomMax:50 },
-      { type:"yt_playlist", key:"stepwork", title:"Danny's Big Book Study", sub:"YouTube Playlist", id:"PLcWUlHHreIu63jNVOsrx1NiRPv25Q_BPn", randomMax:50 }
-    ];
-
-    const libraryHost = document.getElementById("library");
-
-    let currentIdx = 0;
-    let playMode = "single";
-    let lastSavedAt = 0;
-
-    function loadResume(){
-      try{
-        const raw = localStorage.getItem(getLSKey());
-        if(!raw) return null;
-        const obj = JSON.parse(raw);
-        if(typeof obj?.idx !== "number" || typeof obj?.t !== "number") return null;
-        if(obj.idx < 0 || obj.idx >= TRACKS.length) return null;
-        if(obj.t < 0) obj.t = 0;
-        return obj;
-      }catch(e){ return null; }
-    }
-
-    /* SAVING YOUR PLACE.
-       This used to be called from setTrack() as well, which is where the
-       resume bug lived: opening a book loads chapter 1 at zero seconds,
-       setTrack saved that, and thirty minutes of listening was gone before
-       the person even pressed play. A save only ever happens now when there
-       is something real to save -- while playing, on pause, on the way out
-       -- and NEVER just because a file was loaded.
-
-       `force` is for the moments where zero is the honest answer: choosing
-       a chapter deliberately, or finishing one. */
-    function saveResume(force){
-      const t = player.currentTime || 0;
-      if(!force && t < 1) return;          /* nothing worth remembering yet */
-      const obj = { idx: currentIdx, t: Math.floor(t), mode: playMode };
-      try{ localStorage.setItem(getLSKey(), JSON.stringify(obj)); }catch(e){}
-      renderResumeLine();
-    }
-
-    function clearResume(){
-      try{ localStorage.removeItem(getLSKey()); }catch(e){}
-      renderResumeLine();
-      toast("Resume cleared");
-    }
-
-    function fmtTime(sec){
-      sec = Math.max(0, Math.floor(sec));
-      const m = Math.floor(sec/60);
-      const s = sec % 60;
-      return `${m}:${String(s).padStart(2,"0")}`;
-    }
-
-    function renderResumeLine(){
-      const r = loadResume();
-      if(!r){
-        resumeLine.style.display = "none";
-        resumeLine.textContent = "";
-        return;
-      }
-      const tr = TRACKS[r.idx];
-      resumeLine.style.display = "block";
-      resumeLine.textContent = `Resuming: ${tr.title} (${fmtTime(r.t)})`;
-    }
-
-    function applyPlayingRow(idx){
-      clearChapterPlaying();
-      const rowEl = document.querySelector(`[data-track-row][data-idx="${idx}"]`);
-      if(!rowEl) return;
-      rowEl.classList.add("playingRow");
-
-      const titleEl = rowEl.querySelector(".chapterTitle");
-      if(titleEl){
-        const tag = document.createElement("span");
-        tag.className = "nowTag";
-        tag.textContent = "NOW PLAYING";
-        titleEl.appendChild(tag);
-      }
-    }
-
-    function setNowPlayingText(idx){
-      const tr = TRACKS[idx];
-      nowPlaying.textContent = `Now Playing: ${tr.title}`;
-    }
-
-    function setTrack(idx, {autoplay=true, resumeTime=0} = {}){
-      currentIdx = idx;
-      const tr = TRACKS[idx];
-
-      /* IS THIS THE FILE WE ALREADY HAVE?
-         Opening a book loads chapter two, and then Play All asks for
-         chapter two again. Setting .src to the same address does NOT make
-         the browser announce loadedmetadata a second time -- so the seek
-         hung on an event that was never coming, and "resume" always started
-         at zero. Same file already loaded means seek right now; a different
-         file means wait for it to arrive. */
-      const alreadyLoaded = player.currentSrc === tr.url && player.readyState >= 1;
-      if(!alreadyLoaded) player.src = tr.url;
-      setNowPlayingText(idx);
-
-      const seekThenPlay = () => {
-        if(resumeTime > 0){
-          try{ player.currentTime = Math.min(resumeTime, (player.duration || resumeTime)); }catch(e){}
-        }
-        if(autoplay) player.play().catch(()=>{});
-      };
-
-      if(alreadyLoaded){
-        seekThenPlay();
-      } else {
-        const onMeta = () => {
-          player.removeEventListener("loadedmetadata", onMeta);
-          seekThenPlay();
-        };
-        player.addEventListener("loadedmetadata", onMeta);
-        /* A file that never loads leaves that listener sitting there
-           forever; the error handler below is what speaks up, and the next
-           setTrack replaces the src regardless. */
-      }
-
-      /* THE SAVE CLOCK RESTARTS WITH THE CHAPTER. It counts seconds played
-         and saves every ten -- and it used to carry the last chapter's
-         number across, so a fresh chapter starting at 0 waited for second
-         40 that never came. Everything after chapter one went unsaved. */
-      lastSavedAt = 0;
-    }
-
-    function playAll(){
-      playMode = "all";
-      const r = loadResume();
-      if(r && typeof r.idx === "number"){
-        setTrack(r.idx, {autoplay:true, resumeTime:r.t || 0});
-        toast(r.t > 5 ? "Picking up where you left off" : "Play All");
-      } else {
-        setTrack(0, {autoplay:true, resumeTime:0});
-        toast("Play All");
-      }
-    }
-
-    function playSingle(idx){
-      playMode = "single";
-      setTrack(idx, {autoplay:true, resumeTime:0});
-      saveResume(true);      /* they picked this chapter on purpose */
-    }
-
-    /* DOWNLOAD, FOR REAL.
-       The download attribute is IGNORED on a file from another domain --
-       and these come from the CDN -- so the old version simply navigated
-       away to the raw mp3 and left somebody staring at a bare player with
-       the app gone. Fetching the file ourselves and handing the browser a
-       blob keeps the filename and keeps them on the page.
-
-       It is a whole chapter over a phone connection, so it says it is
-       working and it says when it is done. */
-    async function downloadTrack(idx){
-      const tr = TRACKS[idx];
-      const name = tr.title.replace(/[\\/:*?"<>|]+/g, "").trim() + ".mp3";
-
-      toast("Getting that chapter…");
-      try{
-        const res = await fetch(tr.url);
-        if(!res.ok) throw new Error(String(res.status));
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = name;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(()=>URL.revokeObjectURL(url), 30000);
-        toast("Saved to your downloads");
-      }catch(e){
-        /* An iPhone cannot save a file from a web page anyway, so rather
-           than pretend, hand them the address to keep. */
-        try{
-          await navigator.clipboard.writeText(tr.url);
-          toast("Couldn't save it — link copied instead");
-        }catch(_){
-          toast("Couldn't download that one");
-        }
-      }
-    }
-
-    async function shareTrack(idx){
-      const tr = TRACKS[idx];
-      const shareData = {
-        title: BOOKS[activeBookKey].title + " (Audio)",
-        text: tr.title + " — Pass it on if it helps.",
-        url: tr.url
-      };
-
-      if(navigator.share){
-        try{ await navigator.share(shareData); toast("Shared"); return; }catch(e){}
-      }
-      try{ await navigator.clipboard.writeText(tr.url); toast("Link copied"); }
-      catch(e){ window.prompt("Copy this link:", tr.url); }
-    }
-
-    function buildChapters(){
-      chapterList.innerHTML = "";
-      TRACKS.forEach((tr, idx)=>{
-        const row = document.createElement("div");
-        row.className = "row";
-        row.dataset.trackRow = "1";
-        row.dataset.idx = String(idx);
-
-        const left = document.createElement("div");
-        left.className = "titleWrap";
-        left.style.alignItems = "flex-start";
-
-        const title = document.createElement("div");
-        title.className = "chapterTitle";
-        title.textContent = tr.title;
-        left.appendChild(title);
-
-        const actions = document.createElement("div");
-        actions.className = "actions";
-
-        const playBtn = document.createElement("button");
-        playBtn.className = "btn mini";
-        playBtn.type = "button";
-        playBtn.textContent = "Play";
-        playBtn.addEventListener("click", ()=>playSingle(idx));
-
-        const dlBtn = document.createElement("button");
-        dlBtn.className = "btn mini";
-        dlBtn.type = "button";
-        dlBtn.textContent = "Download";
-        dlBtn.addEventListener("click", ()=>downloadTrack(idx));
-
-        const shareBtn = document.createElement("button");
-        shareBtn.className = "btn mini";
-        shareBtn.type = "button";
-        shareBtn.textContent = "Share";
-        shareBtn.addEventListener("click", ()=>shareTrack(idx));
-
-        actions.appendChild(playBtn);
-        actions.appendChild(dlBtn);
-        actions.appendChild(shareBtn);
-
-        row.appendChild(left);
-        row.appendChild(actions);
-        chapterList.appendChild(row);
-      });
-    }
-
-    function stopEverything(){
-      try{ player.pause(); player.currentTime = 0; }catch(e){}
-      setMp3UiState("READY");
-      /* about:blank, not "". An empty src makes some browsers load THIS
-         page inside the frame -- the whole app, again, inside itself. */
-      ytFrame.src = "about:blank";
-      clearChapterPlaying();
-      toast("Stopped");
-    }
-
-    function unloadEverything(){
-      stopEverything();
-      mp3Area.style.display = "none";
-      ytArea.style.display = "none";
-      playerAreaTitle.textContent = "";
-      playerAreaSub.textContent = "";
-      playerArea.style.display = "none";   /* an empty card is just clutter */
-
-      // remove green when nothing is loaded
-      setPlayerSelected(false);
-
-      toast("Unloaded");
-    }
-
-    stopBtn.addEventListener("click", stopEverything);
-    unloadBtn.addEventListener("click", unloadEverything);
-
-    function playYouTubePlaylist(title, sub, listId, index=0){
-      stopEverything();
-      mp3Area.style.display = "none";
-
-      /* THE BAR SAYS WHAT IS LOADED. All three of these used to write an
-         empty string, so the strip above the player was blank no matter
-         what you had open. */
-      setPlayerSelected(true);
-      playerAreaTitle.textContent = title;
-      playerAreaSub.textContent = sub || "Video playlist";
-
-      ytArea.style.display = "block";
-
-      const safeListId = encodeURIComponent(listId);
-      const safeIndex = Math.max(0, parseInt(index, 10) || 0);
-      ytFrame.src = `https://www.youtube.com/embed/videoseries?list=${safeListId}&index=${safeIndex}`;
-
-      showPlayerArea();
-      toast(safeIndex > 0 ? "Surprise loaded: " + title : "Playing: " + title);
-    }
-
-    function openYouTubePlaylist(listId, index=0){
-      const safeListId = encodeURIComponent(listId);
-      const safeIndex = Math.max(0, parseInt(index, 10) || 0);
-
-      // Opens YouTube itself, which gives your logged-in YouTube/Premium session the best chance to kick in.
-      const url = safeIndex > 0
-        ? `https://www.youtube.com/playlist?list=${safeListId}&index=${safeIndex}`
-        : `https://www.youtube.com/playlist?list=${safeListId}`;
-
-      window.open(url, "_blank", "noopener");
-    }
-
-    function randomPlaylistIndex(item){
-      // YouTube embeds don't expose playlist contents to this app without an API key.
-      // This uses a simple "random starting position" number.
-      // If a playlist has more/less than 50 videos, adjust randomMax on that LIBRARY item.
-      const max = Math.max(1, parseInt(item.randomMax || 50, 10));
-      return Math.floor(Math.random() * max);
-    }
-
-    function surpriseYouTubePlaylist(item){
-      const idx = randomPlaylistIndex(item);
-
-      // Load the random-ish starting spot in the embedded player.
-      playYouTubePlaylist(item.title, item.sub, item.id, idx);
-
-      // Also offer the clean YouTube app/site behavior from the toast.
-      toast("Surprise Me: " + item.title);
-    }
-
-    function showMp3Book(bookKey){
-      ytFrame.src = "about:blank";
-      ytArea.style.display = "none";
-
-      setPlayerSelected(true);
-      mp3Area.style.display = "block";
-      playerAreaTitle.textContent = BOOKS[bookKey].title;
-      playerAreaSub.textContent = BOOKS[bookKey].sub || "Audiobook";
-
-      activeBookKey = bookKey;
-      TRACKS = BOOKS[activeBookKey].tracks;
-
-      clearChapterPlaying();
-      buildChapters();
-      renderResumeLine();
-
-      const r = loadResume();
-      if(r){
-        currentIdx = r.idx;
-        playMode = r.mode || "single";
-        setTrack(r.idx, {autoplay:false, resumeTime:0});
-        try{ player.currentTime = 0; }catch(e){}
-        nowPlaying.textContent = "Ready: " + TRACKS[r.idx].title;
-      } else {
-        currentIdx = 0;
+  function buildChapters(){
+    chapterList.innerHTML = "";
+    TRACKS.forEach((tr, idx) => {
+      const row = document.createElement("div");
+      row.className = "chap";
+      row.dataset.idx = String(idx);
+      row.innerHTML =
+        '<div class="ct"></div>' +
+        '<button class="chapBtn" type="button" aria-label="Play ' + tr.title + '">' + ICON.play + '</button>';
+      row.querySelector(".ct").textContent = tr.title;
+      row.querySelector("button").addEventListener("click", ()=>{
         playMode = "single";
-        setTrack(0, {autoplay:false, resumeTime:0});
-        try{ player.currentTime = 0; }catch(e){}
-        nowPlaying.textContent = "Ready: " + TRACKS[0].title;
-      }
+        setTrack(idx, { autoplay:true, resumeTime:0 });
+        saveResume(true);
+      });
+      chapterList.appendChild(row);
+    });
+  }
 
-      setMp3UiState(player && !player.paused ? "PLAYING" : "READY");
-      showPlayerArea();
+  function openBook(key, opts){
+    opts = opts || {};
+    ytArea.hidden = true;
+    ytFrame.src = "about:blank";
+
+    activeBookKey = key;
+    TRACKS = BOOKS[key].tracks;
+
+    $("playerTitle").textContent = BOOKS[key].title;
+    $("playerSub").textContent = BOOKS[key].sub;
+    const cov = $("playerCover");
+    cov.src = BOOKS[key].cover;
+    cov.hidden = false;
+
+    mp3Area.hidden = false;
+    buildChapters();
+    drawResumeLine();
+
+    const r = resumeFor(key);
+    if (r){
+      currentIdx = r.idx;
+      playMode = r.mode || "single";
+      /* Opening a book NEVER starts the sound. It loads where you were and
+         waits -- the brief is firm about no autoplay, and so is anybody who
+         opened this in a meeting by accident. */
+      setTrack(r.idx, { autoplay: !!opts.resume, resumeTime: r.t });
+      if (!opts.resume) nowPlaying.textContent = "Ready · " + TRACKS[r.idx].title;
+    } else {
+      currentIdx = 0;
+      playMode = "single";
+      setTrack(0, { autoplay: !!opts.resume, resumeTime: 0 });
+      if (!opts.resume) nowPlaying.textContent = "Ready · " + TRACKS[0].title;
     }
 
-    /* WHEN THE FILE WILL NOT COME.
-       These live on a CDN, so one day one of them will 404 or the signal
-       will drop mid-chapter. It used to sit there reading "Now Playing"
-       with the badge on READY and nothing happening, which reads as "this
-       app is broken" or, worse, "I broke it". */
-    player.addEventListener("error", ()=>{
-      const tr = TRACKS[currentIdx];
-      setMp3UiState("PROBLEM");
-      nowPlaying.textContent = navigator.onLine === false
-        ? "You're offline — this chapter needs a connection."
-        : "That chapter wouldn't load. Try again, or pick another.";
-      if(tr) toast(navigator.onLine === false ? "No connection" : "Couldn't load that chapter");
+    setBadge(player.paused ? "READY" : "PLAYING");
+    showPlayer();
+
+    /* Measure this book's chapters in the background, then refresh the two
+       places that show a length. */
+    measureBook(key, ()=>{
+      const el = listEl.querySelector(".item [data-len] span");
+      if (el && tab === "books") drawList();
+      drawContinue();
     });
+  }
 
-    player.addEventListener("stalled", ()=>{
-      if(!player.paused) setMp3UiState("LOADING");
-    });
+  function playPlaylist(item, index){
+    closePlayer();
+    $("playerTitle").textContent = item.title;
+    $("playerSub").textContent = item.sub;
+    $("playerCover").hidden = true;
+    mp3Area.hidden = true;
+    ytArea.hidden = false;
+    playerArea.hidden = false;
 
-    player.addEventListener("waiting", ()=>{
-      if(!player.paused) setMp3UiState("LOADING");
-    });
+    const idx = Math.max(0, parseInt(index, 10) || 0);
+    ytFrame.src = "https://www.youtube.com/embed/videoseries?list=" +
+      encodeURIComponent(item.id) + (idx ? "&index=" + idx : "");
+    $("openYtBtn").onclick = () => {
+      /* Leaving the app is a choice, not a surprise. */
+      if (!confirm("Open this playlist in YouTube? You'll be leaving Recovery Misfits.")) return;
+      window.open("https://www.youtube.com/playlist?list=" + encodeURIComponent(item.id), "_blank", "noopener");
+    };
+    showPlayer();
+  }
 
-    player.addEventListener("playing", ()=>setMp3UiState("PLAYING"));
+  /* ---- what the audio element tells us ----------------------------------- */
+  player.addEventListener("play",    ()=>{ setBadge("PLAYING"); markPlayingRow(currentIdx); });
+  player.addEventListener("playing", ()=> setBadge("PLAYING"));
+  player.addEventListener("waiting", ()=>{ if(!player.paused) setBadge("LOADING"); });
+  player.addEventListener("stalled", ()=>{ if(!player.paused) setBadge("LOADING"); });
 
-    player.addEventListener("play", ()=>{
-      setMp3UiState("PLAYING");
-      applyPlayingRow(currentIdx);
-    });
+  player.addEventListener("pause", ()=>{
+    if (!player.ended) setBadge("PAUSED");
+    saveResume();
+  });
 
-    player.addEventListener("pause", ()=>{
-      if(!player.ended) setMp3UiState("PAUSED");
-      saveResume();
-    });
+  player.addEventListener("ended", ()=>{
+    setBadge("PAUSED");
+    if (playMode !== "all") return;
+    const next = currentIdx + 1;
+    if (next >= TRACKS.length){ toast("That's the end of the book"); return; }
+    setTrack(next, { autoplay:true, resumeTime:0 });
+    saveResume(true);
+  });
 
-    player.addEventListener("ended", ()=>{
-      setMp3UiState("PAUSED");
-      if(playMode !== "all") return;
-      const next = currentIdx + 1;
-      if(next >= TRACKS.length){ toast("Finished"); return; }
-      setTrack(next, {autoplay:true, resumeTime:0});
-      saveResume(true);      /* the new chapter, from its start */
-    });
+  /* A chapter that will not load has to say so, out loud. These live on a
+     CDN and one of them will 404 one day, or the signal will drop. */
+  player.addEventListener("error", ()=>{
+    setBadge("PROBLEM");
+    nowPlaying.textContent = (navigator.onLine === false)
+      ? "You're offline — this one needs a connection."
+      : "That wouldn't play. Try another one.";
+  });
 
-    player.addEventListener("timeupdate", ()=>{
-      const t = player.currentTime || 0;
-      if(t - lastSavedAt >= 10){ lastSavedAt = t; saveResume(); }
-    });
+  player.addEventListener("timeupdate", ()=>{
+    const t = player.currentTime || 0;
+    if (t - lastSavedAt >= 10){ lastSavedAt = t; saveResume(); }
+  });
 
-    /* WRAPPED, NOT HANDED STRAIGHT OVER. addEventListener calls its handler
-       WITH THE EVENT, so passing saveResume itself made every page exit a
-       "forced" save -- chapter one at zero seconds, stamped over whatever
-       the person had really reached. A handler that takes arguments never
-       goes in here bare. */
-    window.addEventListener("beforeunload", () => saveResume());
+  /* pagehide is the one that actually fires on an iPhone. */
+  window.addEventListener("beforeunload", ()=> saveResume());
+  window.addEventListener("pagehide",     ()=> saveResume());
+  document.addEventListener("visibilitychange", ()=>{
+    if (document.visibilityState === "hidden") saveResume();
+  });
 
-    /* And the one that actually fires on a phone. beforeunload is unreliable
-       on iOS: closing a tab or swiping the app away often skips it, while
-       pagehide is dependable. */
-    window.addEventListener("pagehide", () => saveResume());
-    document.addEventListener("visibilitychange", ()=>{
-      if(document.visibilityState === "hidden") saveResume();
-    });
-
-    playAllBtn.addEventListener("click", playAll);
-    clearResumeBtn.addEventListener("click", clearResume);
-
-    // ===== Build Library (grouped: Audiobooks / Videos) =====
-    function buildSection(title, sub){
-      const wrap = document.createElement("div");
-      const head = document.createElement("div");
-      head.className = "sectionHeader";
-      head.innerHTML = `
-        <div class="sectionHeaderTitle">${title}</div>
-        <div class="sectionHeaderSub">${sub}</div>
-      `;
-      wrap.appendChild(head);
-
-      const list = document.createElement("div");
-      list.className = "library";
-      wrap.appendChild(list);
-
-      return { wrap, list };
+  $("playAllBtn").addEventListener("click", ()=>{
+    if (!activeBookKey) return;
+    playMode = "all";
+    const r = resumeFor(activeBookKey);
+    if (r && r.t > 5){
+      setTrack(r.idx, { autoplay:true, resumeTime:r.t });
+      toast("Picking up where you left off");
+    } else {
+      setTrack(currentIdx, { autoplay:true, resumeTime:0 });
     }
+  });
 
-    function buildLibrary(){
-      libraryHost.innerHTML = "";
-
-      const books = LIBRARY.filter(x => x.type === "mp3_book");
-      const vids  = LIBRARY.filter(x => x.type === "yt_playlist");
-
-      const booksSection = buildSection("Audiobooks", `${books.length} title${books.length===1?"":"s"}`);
-      const vidsSection  = buildSection("Video playlists", `${vids.length} playlist${vids.length===1?"":"s"}`);
-
-      function addRow(item, listEl){
-        const row = document.createElement("div");
-        row.className = "rowCard";
-        row.dataset.libRow = "1";
-        row.dataset.key = item.key;
-
-        const left = document.createElement("div");
-        left.className = "titleWrap";
-
-        // Audiobook cover
-        if(item.type === "mp3_book"){
-          row.classList.add("audiobook");
-          const cover = document.createElement("div");
-          cover.className = "cover";
-          left.appendChild(cover);
-        }
-
-        const col = document.createElement("div");
-        col.className = "titleCol";
-
-        const t = document.createElement("div");
-        t.className = "title";
-        t.textContent = item.title;
-
-        const s = document.createElement("div");
-        s.className = "subtitle";
-        s.textContent = item.sub;
-
-        const badges = document.createElement("div");
-        badges.className = "badgeRow";
-        const pill = document.createElement("span");
-        pill.className = "pill " + (item.type === "yt_playlist" ? "video" : "");
-        pill.textContent = item.type === "yt_playlist" ? "VIDEO" : "AUDIOBOOK";
-        badges.appendChild(pill);
-
-        col.appendChild(t);
-        col.appendChild(s);
-        col.appendChild(badges);
-
-        left.appendChild(col);
-
-        const rowActions = document.createElement("div");
-        rowActions.className = "rowActions";
-
-        const playBtn = document.createElement("button");
-        playBtn.className = "btn primary";
-        playBtn.type = "button";
-        playBtn.textContent = item.type === "yt_playlist" ? "▶ Watch" : "▶ Listen";
-
-        const runSelectionAndPlay = ()=>{
-          selectLibraryRow(item.key);
-
-          if(item.type === "mp3_book"){
-            stopEverything();
-            showMp3Book(item.key);
-            toast("Opened");
-            return;
-          }
-
-          if(item.type === "yt_playlist"){
-            playYouTubePlaylist(item.title, item.sub, item.id);
-            return;
-          }
-        };
-
-        row.addEventListener("click", (e)=>{
-          if(e.target && e.target.closest && e.target.closest("button")) return;
-          runSelectionAndPlay();
-        });
-
-        playBtn.addEventListener("click", (e)=>{
-          e.stopPropagation();
-          runSelectionAndPlay();
-        });
-
-        rowActions.appendChild(playBtn);
-
-        if(item.type === "yt_playlist"){
-          const ytBtn = document.createElement("button");
-          ytBtn.className = "btn";
-          ytBtn.type = "button";
-          ytBtn.textContent = "YouTube";
-          ytBtn.addEventListener("click", (e)=>{
-            e.stopPropagation();
-            selectLibraryRow(item.key);
-            openYouTubePlaylist(item.id);
-          });
-
-          const randomBtn = document.createElement("button");
-          randomBtn.className = "btn";
-          randomBtn.type = "button";
-          randomBtn.textContent = "🎲 Surprise Me";
-          randomBtn.addEventListener("click", (e)=>{
-            e.stopPropagation();
-            selectLibraryRow(item.key);
-            surpriseYouTubePlaylist(item);
-          });
-
-          rowActions.appendChild(ytBtn);
-          rowActions.appendChild(randomBtn);
-        }
-
-        row.appendChild(left);
-        row.appendChild(rowActions);
-        listEl.appendChild(row);
-      }
-
-      books.forEach(item => addRow(item, booksSection.list));
-      vids.forEach(item => addRow(item, vidsSection.list));
-
-      libraryHost.appendChild(booksSection.wrap);
-      libraryHost.appendChild(vidsSection.wrap);
+  $("clearResumeBtn").addEventListener("click", ()=>{
+    clearResume();
+    if (activeBookKey){
+      playMode = "single";
+      setTrack(0, { autoplay:false, resumeTime:0 });
+      nowPlaying.textContent = "Ready · " + TRACKS[0].title;
     }
+  });
 
-    // Init
-    buildLibrary();
+  /* ---- the three choices -------------------------------------------------- */
+  function setTab(next, opts){
+    opts = opts || {};
+    tab = next;
+    try{ sessionStorage.setItem(TAB_KEY, tab); }catch(e){}
+    $("tabBooks").setAttribute("aria-selected", tab === "books" ? "true" : "false");
+    $("tabVideos").setAttribute("aria-selected", tab === "videos" ? "true" : "false");
+    document.querySelector('[data-choice="books"]').setAttribute("aria-pressed", tab === "books" ? "true":"false");
+    document.querySelector('[data-choice="videos"]').setAttribute("aria-pressed", tab === "videos" ? "true":"false");
+    drawList();
+    if (opts.scroll) listEl.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
 
-    // ✅ IMPORTANT: do NOT preselect Gorilla (no green on load)
-    selectLibraryRow("");
+  $("tabBooks").addEventListener("click", ()=>setTab("books"));
+  $("tabVideos").addEventListener("click", ()=>setTab("videos"));
 
-    // start with no media selected (player hidden until user taps)
-    setPlayerSelected(false);
-    setMp3UiState("READY");
-  </script>
+  document.querySelectorAll("[data-choice]").forEach(btn => {
+    btn.addEventListener("click", ()=>{
+      const what = btn.dataset.choice;
+      if (what === "books")  return setTab("books",  { scroll:true });
+      if (what === "videos") return setTab("videos", { scroll:true });
+      surprise();
+    });
+  });
+
+  /* SURPRISE ME. Everything on the shelf goes in the hat -- both books and
+     every playlist -- and whatever comes out starts here, in the app. */
+  function surprise(){
+    const pool = Object.keys(BOOKS).map(k => ({ kind:"book", key:k }))
+      .concat(PLAYLISTS.map(p => ({ kind:"list", item:p })));
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    if (pick.kind === "book"){
+      setTab("books");
+      openBook(pick.key, { resume:true });
+      toast("Surprise: " + BOOKS[pick.key].title);
+    } else {
+      setTab("videos");
+      const idx = Math.floor(Math.random() * Math.max(1, pick.item.randomMax || 50));
+      playPlaylist(pick.item, idx);
+      toast("Surprise: " + pick.item.title);
+    }
+  }
+
+  /* ---- search ------------------------------------------------------------- */
+  const searchWrap = $("searchWrap");
+  const searchInput = $("searchInput");
+  $("searchBtn").addEventListener("click", ()=>{
+    const open = searchWrap.hidden;
+    searchWrap.hidden = !open;
+    $("searchBtn").setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) searchInput.focus();
+    else { searchInput.value = ""; query = ""; drawList(); }
+  });
+  searchInput.addEventListener("input", ()=>{
+    query = searchInput.value.trim().toLowerCase();
+    drawList();
+  });
+  searchInput.addEventListener("keydown", (e)=>{
+    if (e.key === "Escape"){ searchInput.value = ""; query = ""; drawList(); searchInput.blur(); }
+  });
+
+  /* ---- open ---------------------------------------------------------------
+     Nothing plays on load, ever. The page shows what is here and waits. */
+  setTab(tab);
+  drawContinue();
+
+  /* If somebody has a book on the go, quietly get its lengths so the card can
+     show real numbers next time -- one file at a time, and only that book. */
+  const last = lastListened();
+  if (last) measureBook(last.key, ()=>{ drawContinue(); if (tab === "books") drawList(); });
+})();
+</script>
 
 </body>
 </html>
