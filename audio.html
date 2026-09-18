@@ -31,6 +31,14 @@
    Everything else is the system stack on purpose: the display type people
    actually read as "the look" is in the artwork, and a page that waits on
    four web fonts to draw its own list is a page that flashes. */
+/* The hand for the taped note. iPhones have Marker Felt and would manage
+   without it; Android mostly would not, and a handwritten note set in Times
+   is just a note. One small file, served from here. */
+@font-face{
+  font-family:"RM Hand";
+  src:url("assets/fonts/caveat-600.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
 @font-face{
   font-family:"RM Display";
   src:url("assets/fonts/Anton-Regular.ttf") format("truetype");
@@ -46,7 +54,7 @@
   --gold-lit:#f0d68a;
   --muted:#b7b0a2;
   --line:rgba(216,180,91,.38);
-  --radius:18px;
+  --radius:20px;
   --touch:44px;           /* nothing tappable is ever smaller */
   --shadow:0 12px 32px rgba(0,0,0,.35);
   --display:"RM Display","Arial Narrow",Impact,sans-serif;   /* the caps */
@@ -135,6 +143,32 @@ main > *{position:relative;z-index:1}
 }
 .zine-search:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 
+/* Sitting in the picture, in percentages, so it stays on the paper at every
+   width. The wobble is two degrees off true because nobody ever writes
+   square on a note stuck to a wall. */
+.zine-note{
+  position:absolute;
+  left:64.5%;
+  top:9.6%;
+  width:17.8%;
+  height:42.3%;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:.1em;
+  transform:rotate(-4deg);
+  text-align:center;
+  color:#22201c;
+  font-family:"RM Hand","Marker Felt","Noteworthy","Bradley Hand","Segoe Script",cursive;
+  font-size:clamp(13px, 4vw, 22px);
+  line-height:1.15;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+  pointer-events:none;
+}
+
 .sr-only{
   position:absolute;width:1px;height:1px;padding:0;margin:-1px;
   overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
@@ -203,9 +237,9 @@ main > *{position:relative;z-index:1}
 .continue .row{display:flex;align-items:center;gap:12px}
 .cover{
   width:74px;
-  height:108px;
+  height:104px;
   flex:none;
-  border-radius:8px;
+  border-radius:10px;
   border:1px solid var(--line);
   object-fit:cover;
   background:var(--panel-soft);
@@ -214,17 +248,24 @@ main > *{position:relative;z-index:1}
 .continue .meta{flex:1;min-width:0}
 .continue .t{font-family:var(--title);font-weight:400;font-size:17px;line-height:1.22}
 .continue .s{font-family:var(--ui);font-size:12.5px;color:var(--muted);margin-top:3px}
+/* THE BIG PLAY, off the mockup: a gold disc lit from the top left, with a
+   warm halo bleeding into the paper around it, and a near-black triangle.
+   The halo is what makes it read as the one thing on the card to press. */
 .bigPlay{
-  width:64px;height:64px;flex:none;
+  width:66px;height:66px;flex:none;
   border-radius:50%;
   border:0;
-  background:var(--gold);
-  color:#17150f;
+  background:radial-gradient(circle at 34% 30%, #f7e3ad 0%, #dfc079 42%, #c9a24a 100%);
+  color:#14120e;
   display:grid;place-items:center;
   cursor:pointer;
-  box-shadow:0 0 0 6px rgba(216,180,91,.14);
+  box-shadow:
+    0 0 26px rgba(216,180,91,.42),
+    0 0 9px rgba(216,180,91,.55),
+    inset 0 -2px 6px rgba(120,86,20,.35);
 }
-.bigPlay svg{width:26px;height:26px}
+.bigPlay svg{width:27px;height:27px;margin-left:3px}
+.bigPlay:active{transform:scale(.97)}
 .bar{
   height:6px;
   border-radius:4px;
@@ -275,20 +316,20 @@ main > *{position:relative;z-index:1}
   display:flex;
   align-items:center;
   gap:12px;
-  padding:12px;
-  border-radius:6px;
+  padding:13px;
+  border-radius:var(--radius);
   border:1px solid rgba(216,180,91,.22);
   background:var(--panel);
   cursor:pointer;
 }
 .item:active{border-color:var(--gold)}
 .item .thumb{
-  width:78px;height:106px;flex:none;border-radius:8px;overflow:hidden;
+  width:74px;height:104px;flex:none;border-radius:10px;overflow:hidden;
   border:1px solid var(--line);background:var(--panel-soft);
   display:grid;place-items:center;
 }
 .item .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.item.video .thumb{height:70px;width:110px}
+.item.video .thumb{height:72px;width:112px;border-radius:10px}
 .item .txt{flex:1;min-width:0}
 .item .t{font-family:var(--title);font-weight:400;font-size:17px;line-height:1.24}
 .item .s{font-family:var(--ui);font-size:12.5px;color:var(--muted);margin-top:4px}
@@ -298,14 +339,20 @@ main > *{position:relative;z-index:1}
 }
 .item .len svg{width:14px;height:14px}
 .playWrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
+/* THE ROW PLAY: a thin ring with nothing inside it, a gold triangle, and the
+   word under it in gold rather than gray -- in the mockup it reads as part of
+   the button, not as a caption. */
 .play{
-  width:52px;height:52px;border-radius:50%;
-  border:2px solid var(--gold);
+  width:56px;height:56px;border-radius:50%;
+  border:1.5px solid var(--gold);
   background:transparent;color:var(--gold);
   display:grid;place-items:center;cursor:pointer;
+  box-shadow:0 0 14px rgba(216,180,91,.22), inset 0 0 10px rgba(216,180,91,.08);
 }
-.play svg{width:20px;height:20px;margin-left:2px}
-.playWrap span{font-size:12px;color:var(--muted)}
+.play svg{width:22px;height:22px;margin-left:3px}
+.play:active{transform:scale(.96)}
+.playWrap{gap:6px}
+.playWrap span{font-size:13px;color:var(--gold-lit);letter-spacing:.01em}
 
 .empty{
   font-family:var(--ui);
@@ -326,6 +373,45 @@ main > *{position:relative;z-index:1}
 }
 @keyframes sweep{to{background-position:-200% 0}}
 @media (prefers-reduced-motion:reduce){.skel{animation:none}}
+
+
+/* ---- the surface every panel is printed on -------------------------------
+   In the mockup a card is not a flat gray box: it is a piece of the same
+   scuffed black stock, lighter where the light falls at the top, darker into
+   the corners, with grain over all of it and one hairline of gold around the
+   edge. Three layers in a pseudo-element, under the content and deaf to
+   taps. */
+.continue,.item,.player,.seg,.empty{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,0) 38%),
+    var(--panel);
+  border:1px solid rgba(216,180,91,.3);
+  box-shadow:0 14px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+}
+.continue::before,.item::before,.player::before,.seg::before,.empty::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.32;
+  background-image:
+    radial-gradient(120% 90% at 50% 120%, rgba(0,0,0,.55), transparent 62%),
+    radial-gradient(90% 70% at 18% -10%, rgba(241,231,207,.05), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)' opacity='.34'/%3E%3C/svg%3E");
+}
+.continue > *,.item > *,.player > *,.seg > *{position:relative;z-index:1}
+
+/* the covers carry the same gold hairline they do in the mockup */
+.cover,.item .thumb{
+  border:1px solid rgba(216,180,91,.55);
+  box-shadow:0 0 14px rgba(216,180,91,.14), 0 6px 16px rgba(0,0,0,.5);
+}
+
+/* the progress bar: gold, with the light on it */
+.bar{background:rgba(241,231,207,.12)}
+.bar span{background:linear-gradient(90deg,#c9a24a,#f0d68a)}
 
 /* ---- the player -------------------------------------------------------- */
 .player{
@@ -471,10 +557,18 @@ audio{
        button is a real button sitting exactly over the circle in the
        picture. -->
   <header class="zine">
-    <h1 class="sr-only">Listen — take what you need, leave the rest. What do you want to play?</h1>
-    <img class="zine-art" src="assets/audio/a-header.webp"
+    <h1 class="sr-only">Listen — take what you need, leave the rest. One day at a time. What do you want to play?</h1>
+    <img class="zine-art" src="assets/audio/a-header-blank.webp"
          alt="" width="887" height="312" fetchpriority="high" decoding="async">
     <button class="zine-search" id="searchBtn" type="button" aria-expanded="false" aria-label="Search"></button>
+
+    <!-- THE TAPED NOTE'S WORDS.
+         Everything else in the head is the mockup's own picture, but this is
+         the one line that wants to change, so the pen strokes were lifted off
+         the paper and the words put back as text. The paper, the torn edge
+         and the tape are still the artwork underneath. Change the words here
+         and they change on the page -- no slicing, no new file. -->
+    <p class="zine-note" aria-hidden="true">One day<br>at a<br>time</p>
   </header>
 
   <div class="choices">
@@ -499,7 +593,7 @@ audio{
   <section class="continue" id="continueCard" hidden>
     <div class="kicker">CONTINUE LISTENING</div>
     <div class="row">
-      <img class="cover" id="contCover" alt="" width="74" height="108">
+      <img class="cover" id="contCover" alt="" width="74" height="104">
       <div class="meta">
         <div class="t" id="contTitle"></div>
         <div class="s" id="contSub"></div>
@@ -523,7 +617,7 @@ audio{
   <!-- ===== the player ===== -->
   <section class="player" id="playerArea" hidden aria-live="polite">
     <div class="top">
-      <img class="cover" id="playerCover" alt="" width="74" height="108" hidden>
+      <img class="cover" id="playerCover" alt="" width="74" height="104" hidden>
       <div class="meta">
         <div class="t" id="playerTitle"></div>
         <div class="s" id="playerSub"></div>
