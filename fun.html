@@ -1,631 +1,366 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Fun — Recovery Misfits</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fun &amp; Games — Recovery Misfits</title>
+<meta name="theme-color" content="#11110f">
 
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000" />
-  <link rel="icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="./icon-192.png">
 
-  <!-- iPhone PWA support -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
-  <link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+/* ===========================================================================
+   FUN & GAMES — built to the approved mockup, same family as the rest.
 
-  <style>
+   SCOPE: between the top bar and the bottom nav. topbar.js and nav.js are
+   untouched, and so is the Sober Date strip.
 
-    *{
-      box-sizing:border-box;
-    }
+   THE REAL GAME ARTWORK STAYS. very-very-unofficial.png and
+   trudge-the-road.png are the actual covers and they are what the mockup
+   draws too -- nothing here replaces a picture of a game with a drawing of
+   one. Everything else (the wordmark, the note, the NEW tag, the hand-set
+   title, the taped MORE TO PLAY banner, the arrows and the marginalia) is
+   cut out of the mockup as transparent webp.
 
-    body{
-      margin:0;
-      font-family:Roboto,Arial,sans-serif;
-      background:#fff;
-      color:#111;
-      padding-bottom:120px;
-    }
+   Sizes are measured off the mockup: 887px wide describing a 393px phone,
+   so the scale is 0.4431.
+   ======================================================================== */
 
-    .wrap{
-      max-width:900px;
-      margin:0 auto;
-      padding:16px 14px 28px;
-    }
+@font-face{
+  font-family:"RM Display";
+  src:url("assets/fonts/oswald-600.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"RM Display Fallback";
+  src:url("assets/fonts/Anton-Regular.ttf") format("truetype");
+  font-weight:400;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"RM Type";
+  src:url("assets/fonts/special-elite-400.woff2") format("woff2");
+  font-weight:400;font-style:normal;font-display:swap;
+}
 
-    .title{
-      font-weight:1000;
-      font-size:18px;
-      text-align:center;
-      margin:10px 0 4px;
-    }
+:root{
+  --bg:#11110f;
+  --panel:#1b1b18;
+  --ivory:#f1e7cf;
+  --gold:#d8b45b;
+  --gold-lit:#f0d68a;
+  --muted:#b7b0a2;
+  --line:rgba(216,180,91,.38);
+  --radius:18px;
+  --touch:44px;
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --display:"RM Display","RM Display Fallback","Arial Narrow",Impact,sans-serif;
+  --type:"RM Type","Courier New",Courier,monospace;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
 
-    .sub{
-      text-align:center;
-      color:#666;
-      font-size:13px;
-      font-weight:800;
-      margin-bottom:16px;
-    }
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{-webkit-font-smoothing:antialiased}
 
-    .card{
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:14px;
-      padding:14px;
-      margin:12px 0;
-      background:#fff;
-      box-shadow:0 2px 8px rgba(0,0,0,.05);
-    }
+main{
+  position:relative;z-index:1;
+  max-width:560px;margin:0 auto;
+  padding:12px 16px 26px;
+  color:var(--ivory);
+  font-family:var(--ui);
+  overflow-x:clip;
+}
 
-    .card h3{
-      margin:0 0 6px;
-      font-size:15px;
-      font-weight:1000;
-      line-height:1.25;
-    }
+/* the same paper, grain and rings as every other screen */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.14;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:
+    radial-gradient(60% 40% at 10% 6%, rgba(216,180,91,.07), transparent 70%),
+    radial-gradient(45% 35% at 90% 40%, rgba(241,231,207,.05), transparent 70%),
+    radial-gradient(70% 45% at 50% 96%, rgba(216,180,91,.06), transparent 70%),
+    radial-gradient(circle at 6% 10%, transparent 34px, rgba(150,110,50,.13) 35px, rgba(150,110,50,.13) 39px, transparent 40px),
+    radial-gradient(circle at 92% 78%, transparent 44px, rgba(150,110,50,.13) 45px, rgba(150,110,50,.13) 50px, transparent 51px);
+}
 
-    /* FORCE STRIKETHROUGH */
-    .strike{
-      position:relative;
-      display:inline-block;
-    }
+/* ---- masthead ---------------------------------------------------------- */
+.head{position:relative;padding:2px 0 0;min-height:104px}
+.head .mark{display:block;width:260px;max-width:74%;height:auto;margin-left:6px}
+.head .rule{display:block;width:222px;height:auto;margin:0 0 0 22px}
+.head .sub{
+  font-family:var(--type);font-size:11.5px;color:var(--ivory);
+  margin:5px 0 0 2px;line-height:1.25;white-space:nowrap;
+}
+.head .note{position:absolute;top:1px;right:-6px;width:68px;height:auto;pointer-events:none}
+.head .smiley{position:absolute;top:56px;right:16px;width:28px;pointer-events:none}
+.head .st-l{position:absolute;top:22px;left:-12px;width:22px;pointer-events:none}
+.head .st-r{position:absolute;top:22px;right:78px;width:26px;pointer-events:none}
 
-    .strike::after{
-      content:"";
-      position:absolute;
-      left:-2px;
-      right:-2px;
-      top:50%;
-      height:2px;
-      background:#111;
-      transform:translateY(-50%);
-      pointer-events:none;
-    }
+/* ---- the featured game -------------------------------------------------
+   THE PICTURE IS THE POINT, so it gets the right-hand half at the size the
+   mockup gives it, and the hand-set title sits beside it rather than over
+   it -- nothing is printed on top of the artwork. */
+.feature{
+  position:relative;
+  margin:14px 0 0;
+  padding:16px 14px 16px;
+  border-radius:var(--radius);
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(241,231,207,.05), rgba(241,231,207,0) 46%), var(--panel);
+  box-shadow:var(--shadow);
+}
+.feature::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.15;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23c)'/%3E%3C/svg%3E");
+}
+.feature > *{position:relative;z-index:1}
 
-    .meta{
-      font-size:12px;
-      color:#666;
-      margin-bottom:10px;
-      font-weight:900;
-    }
+.feature .new{position:absolute;top:-10px;left:6px;width:62px;height:auto;z-index:3;pointer-events:none}
 
-    /* CLICKABLE GAME IMAGE */
+.feature .top{display:grid;grid-template-columns:1.06fr .94fr;gap:9px;align-items:start}
+.feature .ttl{display:block;width:100%;max-width:156px;height:auto;margin-top:16px}
+.feature .ttlrule{display:block;width:86px;height:auto;margin:3px 0 7px}
+.feature .tag{font-family:var(--type);font-size:9.8px;line-height:1.32;color:var(--ivory);margin:0}
+.feature .art{display:block;width:100%;height:auto;border-radius:10px;border:1px solid rgba(216,180,91,.34)}
 
-    .cover-link{
-      display:block;
-      text-decoration:none;
-      border-radius:12px;
-      -webkit-tap-highlight-color:transparent;
-    }
+.acts{display:grid;grid-template-columns:1.5fr 1fr;gap:9px;margin-top:13px}
 
-    .cover-link:active{
-      transform:scale(.99);
-    }
+/* THE GOLD STRIP, the same worn paper the Tools page uses. The mockup draws
+   this one as a rounded rectangle rather than a capsule; it is the same
+   printed gold either way and one asset beats two that nearly match. */
+.btn-gold{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:46px;padding:10px 12px;
+  border:0;border-radius:999px;
+  background:url("assets/pages/t-btn.webp") center/100% 100% no-repeat;
+  color:#17130b;
+  font-family:var(--ui);font-weight:700;font-size:13px;letter-spacing:1.4px;
+  text-transform:uppercase;text-decoration:none;white-space:nowrap;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-gold:active{transform:translateY(1px);filter:brightness(.94)}
+.btn-gold svg{width:14px;height:14px;fill:currentColor}
 
-    .cover{
-      display:block;
-      width:100%;
-      height:auto;
-      border-radius:12px;
-      border:1px solid rgba(0,0,0,.1);
-      margin-bottom:12px;
-    }
+.btn-ghost{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:46px;padding:10px 12px;
+  border-radius:999px;border:1.4px solid var(--gold);
+  background:transparent;color:#f0e2c2;
+  font-family:var(--ui);font-weight:800;font-size:11.5px;letter-spacing:1.3px;
+  text-transform:uppercase;white-space:nowrap;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-ghost:active{background:rgba(216,180,91,.12)}
+.btn-ghost svg{width:15px;height:15px;fill:none;stroke:var(--gold);stroke-width:1.9}
 
-    .badge{
-      display:inline-block;
-      font-size:11px;
-      font-weight:1000;
-      padding:4px 9px;
-      border-radius:8px;
-      background:#ffcc00;
-      color:#111;
-      margin-bottom:8px;
-      border:1px solid rgba(0,0,0,.12);
-    }
+.share-status{
+  min-height:16px;margin:7px 0 0;text-align:center;
+  font-family:var(--ui);font-size:11.5px;color:var(--muted);
+}
 
-    .dashed{
-      border:2px dashed rgba(0,0,0,.25);
-    }
+/* ---- more to play ------------------------------------------------------ */
+.moreto{position:relative;margin:22px 0 10px}
+.moreto img.banner{display:block;width:198px;height:auto}
+.moreto img.arrow{position:absolute;right:74px;top:12px;width:40px;pointer-events:none}
+.moreto img.same{position:absolute;right:8px;top:-6px;width:52px;pointer-events:none}
+.moreto img.heart{position:absolute;right:16px;top:56px;width:18px;pointer-events:none}
 
-    .actions{
-      display:flex;
-      gap:8px;
-      width:100%;
-    }
+.game{
+  position:relative;display:grid;
+  grid-template-columns:118px 1fr;gap:11px;align-items:center;
+  padding:10px 12px 10px 10px;
+  border-radius:var(--radius);
+  border:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(241,231,207,.05), rgba(241,231,207,0) 50%), var(--panel);
+  box-shadow:var(--shadow);
+}
+.game + .game{margin-top:12px}
+.game .art{display:block;width:118px;height:auto;border-radius:9px;border:1px solid rgba(216,180,91,.3)}
+.game .t{
+  font-family:var(--display);font-weight:600;
+  font-size:17px;line-height:1.05;letter-spacing:.2px;text-transform:uppercase;
+  color:#f6efdd;margin:0;
+}
+.game .d{font-family:var(--type);font-size:10.5px;line-height:1.3;color:var(--ivory);margin:4px 0 8px}
+.game .row{display:flex;gap:8px;align-items:stretch}
+.game .row > *{flex:1 1 0;min-width:0}
 
-    .btn{
-      min-height:48px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:11px 12px;
-      border-radius:12px;
-      font-size:14px;
-      font-weight:1000;
-      text-decoration:none;
-      border:2px solid #3f8e42;
-      background:#4CAF50;
-      color:#fff;
-      cursor:pointer;
-      font-family:inherit;
-      line-height:1.1;
-      -webkit-tap-highlight-color:transparent;
-    }
+/* A GAME THAT IS NOT FINISHED SAYS SO AND DOES NOTHING. It is not a button
+   dressed as a button: no tap target, no hover, no promise it cannot keep. */
+.soon{
+  display:flex;align-items:center;justify-content:center;
+  min-height:44px;padding:10px 12px;border-radius:999px;
+  border:1px dashed rgba(216,180,91,.5);background:rgba(241,231,207,.03);
+  font-family:var(--ui);font-weight:800;font-size:10.5px;letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--muted);white-space:nowrap;
+}
 
-    .btn:active{
-      transform:scale(.985);
-    }
+/* ---- the line at the bottom -------------------------------------------- */
+.closing{position:relative;margin:24px 0 0;text-align:center}
+.closing img.line{display:block;width:232px;max-width:94%;height:auto;margin:0 auto}
+.closing img.rule{display:block;width:206px;max-width:86%;height:auto;margin:1px auto 0}
+.closing img.arrow{position:absolute;left:-6px;top:-2px;width:38px;pointer-events:none}
 
-    .btn.play{
-      flex:1 1 auto;
-    }
+.tailroom{height:150px}
 
-    .btn.share{
-      flex:0 0 96px;
-    }
-
-    .btn.soon{
-      flex:1 1 auto;
-      background:#eee;
-      color:#777;
-      border-color:#ccc;
-      border-style:dashed;
-      cursor:default;
-    }
-
-    .share-status{
-      min-height:18px;
-      margin-top:6px;
-      font-size:11px;
-      text-align:right;
-      color:#666;
-      font-weight:800;
-    }
-
-
-    /* MOBILE */
-
-    @media (max-width:420px){
-
-      .wrap{
-        padding:12px 10px 28px;
-      }
-
-      .card{
-        padding:11px;
-        border-radius:12px;
-      }
-
-      .actions{
-        gap:7px;
-      }
-
-      .btn{
-        min-height:46px;
-        padding:10px 8px;
-        font-size:13px;
-      }
-
-      .btn.share{
-        flex-basis:86px;
-      }
-
-    }
-
-  </style>
+@media (max-width:359px){
+  .feature .top{grid-template-columns:1fr}
+  .feature .ttl{max-width:180px;margin-top:4px}
+  .game{grid-template-columns:96px 1fr}
+  .game .art{width:96px}
+  .head .sub{font-size:10.5px}
+}
+</style>
 </head>
-
 
 <body>
 
+<div id="rm-topbar"></div>
+<script src="./topbar.js" defer></script>
 
-  <!-- =====================================================
-       SHARED TOP BAR
-  ====================================================== -->
+<main>
 
-  <div id="rm-topbar"></div>
-  <script src="./topbar.js" defer></script>
+  <header class="head">
+    <img class="mark" src="assets/pages/f-wordmark.webp" alt="Fun &amp; Games" width="610" height="128">
+    <img class="rule" src="assets/pages/f-rule.webp" alt="" aria-hidden="true" width="508" height="34">
+    <p class="sub">Because sobriety doesn&rsquo;t have to feel like homework.</p>
+    <img class="note" src="assets/pages/f-note.webp" alt="We are allowed to laugh" width="154" height="128">
+    <img class="smiley" src="assets/pages/f-smiley.webp" alt="" aria-hidden="true">
+    <img class="st-l" src="assets/pages/f-star-l.webp" alt="" aria-hidden="true">
+    <img class="st-r" src="assets/pages/f-star-r.webp" alt="" aria-hidden="true">
+  </header>
 
+  <!-- THE FEATURED GAME -->
+  <section class="feature">
+    <img class="new" src="assets/pages/f-new.webp" alt="New" width="140" height="81">
 
-
-  <div class="wrap">
-
-
-    <div class="title">
-      Fun & Games
-    </div>
-
-    <div class="sub">
-      Because sobriety doesn’t have to feel like homework.
-    </div>
-
-
-
-    <!-- =====================================================
-         VERY VERY VERY UNOFFICIAL STORY
-    ====================================================== -->
-
-    <div class="card" id="very-very-unofficial">
-
-
-      <div class="badge">
-        NEW!
+    <div class="top">
+      <div>
+        <img class="ttl" src="assets/pages/f-title.webp"
+             alt="A Very Very Very Unofficial Story of How We Got Here" width="350" height="166">
+        <img class="ttlrule" src="assets/pages/f-titlerule.webp" alt="" aria-hidden="true" width="193" height="21">
+        <p class="tag">The truth. The laughs. The legacy.</p>
       </div>
-
-
-      <h3>
-        A Very Very
-        <span class="strike">Very</span>
-        Unofficial Story of How We Got Here
-      </h3>
-
-
-      <div class="meta">
-        The truth. The laughs. The legacy.
-      </div>
-
-
-      <!-- CLICKABLE GAME IMAGE -->
-
-      <a
-        class="cover-link"
-        href="https://recoverymisfits.org/unofficial-story.html"
-        aria-label="Play A Very Very Very Unofficial Story of How We Got Here"
-      >
-
-        <img
-          class="cover"
-          src="very-very-unofficial.png"
-          alt="A Very Very Very Unofficial Story of How We Got Here"
-        >
-
+      <a href="./unofficial-story.html"
+         aria-label="Play A Very Very Very Unofficial Story of How We Got Here">
+        <img class="art" src="very-very-unofficial.png"
+             alt="A Very Very Very Unofficial Story of How We Got Here">
       </a>
-
-
-      <div class="actions">
-
-
-        <a
-          class="btn play"
-          href="https://recoverymisfits.org/unofficial-story.html"
-        >
-          ▶ Play Now
-        </a>
-
-
-        <button
-          class="btn share"
-          type="button"
-          onclick="shareGame(
-            'A Very Very Very Unofficial Story of How We Got Here',
-            'Play the Recovery Misfits story game.',
-            'https://recoverymisfits.org/unofficial-story.html',
-            this
-          )"
-        >
-          ↗ Share
-        </button>
-
-
-      </div>
-
-
-      <div
-        class="share-status"
-        aria-live="polite"
-      ></div>
-
-
     </div>
 
-
-
-    <!-- =====================================================
-         TRUDGE THE ROAD
-    ====================================================== -->
-
-    <div class="card" id="trudge-the-road">
-
-
-      <h3>
-        Trudge the Road
-      </h3>
-
-
-      <div class="meta">
-        Go through the steps and avoid the traps!
-      </div>
-
-
-      <!-- CLICKABLE GAME IMAGE -->
-
-      <a
-        class="cover-link"
-        href="https://recoverymisfits.org/game.html"
-        aria-label="Play Trudge the Road"
-      >
-
-        <img
-          class="cover"
-          src="trudge-the-road.png"
-          alt="Trudge the Road"
-        >
-
+    <div class="acts">
+      <a class="btn-gold" href="./unofficial-story.html">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Play Now
       </a>
-
-
-      <div class="actions">
-
-
-        <a
-          class="btn play"
-          href="https://recoverymisfits.org/game.html"
-        >
-          ▶ Play Trudge The Road
-        </a>
-
-
-        <button
-          class="btn share"
-          type="button"
-          onclick="shareGame(
-            'Trudge the Road',
-            'Go through the steps and avoid the traps!',
-            'https://recoverymisfits.org/game.html',
-            this
-          )"
-        >
-          ↗ Share
-        </button>
-
-
-      </div>
-
-
-      <div
-        class="share-status"
-        aria-live="polite"
-      ></div>
-
-
+      <button class="btn-ghost" type="button"
+              data-share-title="A Very Very Very Unofficial Story of How We Got Here"
+              data-share-text="Play the Recovery Misfits story game."
+              data-share-url="https://recoverymisfits.org/unofficial-story.html">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>Share
+      </button>
     </div>
+    <p class="share-status" role="status" aria-live="polite"></p>
+  </section>
 
-
-
-    <!-- =====================================================
-         TRUDGE BROTHERS
-    ====================================================== -->
-
-    <div
-      class="card dashed"
-      id="trudge-brothers"
-    >
-
-
-      <div class="badge">
-        COMING SOON
-      </div>
-
-
-      <h3>
-        Trudge Brothers
-      </h3>
-
-
-      <div class="meta">
-        Help Bill & Bob make the meeting!
-      </div>
-
-
-      <!-- NOT CLICKABLE YET -->
-
-      <img
-        class="cover"
-        src="trudge-bros.png"
-        alt="Trudge Brothers"
-      >
-
-
-      <div class="actions">
-
-
-        <div class="btn soon">
-          Trudge Brothers — Coming Soon!
-        </div>
-
-
-        <button
-          class="btn share"
-          type="button"
-          onclick="shareGame(
-            'Trudge Brothers — Coming Soon',
-            'Help Bill & Bob make the meeting!',
-            'https://recoverymisfits.org/fun.html#trudge-brothers',
-            this
-          )"
-        >
-          ↗ Share
-        </button>
-
-
-      </div>
-
-
-      <div
-        class="share-status"
-        aria-live="polite"
-      ></div>
-
-
-    </div>
-
-
+  <!-- MORE TO PLAY -->
+  <div class="moreto">
+    <img class="banner" src="assets/pages/f-moreto.webp" alt="More to play" width="448" height="102">
+    <img class="arrow" src="assets/pages/f-arrow.webp" alt="" aria-hidden="true">
+    <img class="same" src="assets/pages/f-same.webp" alt="" aria-hidden="true">
+    <img class="heart" src="assets/pages/f-heart.webp" alt="" aria-hidden="true">
   </div>
 
-
-
-  <!-- =====================================================
-       SHARED BOTTOM NAV
-  ====================================================== -->
-
-  <div id="rm-bottom-nav"></div>
-  <script src="./nav.js" defer></script>
-
-
-
-  <!-- =====================================================
-       GAME SHARING
-
-       MOBILE:
-       Opens Android/iPhone native share menu.
-
-       DESKTOP:
-       Copies game URL to clipboard.
-  ====================================================== -->
-
-  <script>
-
-    async function shareGame(title, text, url, button){
-
-      const status =
-        button.closest('.card').querySelector('.share-status');
-
-
-      try{
-
-
-        /* ==============================
-           MOBILE NATIVE SHARE
-        ============================== */
-
-        if(navigator.share){
-
-          await navigator.share({
-
-            title: title,
-
-            text: text,
-
-            url: url
-
-          });
-
-
-          status.textContent = '';
-
-          return;
-
-        }
-
-
-
-        /* ==============================
-           DESKTOP COPY LINK
-        ============================== */
-
-        await navigator.clipboard.writeText(url);
-
-
-        status.textContent =
-          'Link copied!';
-
-
-        setTimeout(() => {
-
-          status.textContent = '';
-
-        }, 2200);
-
-
-      }
-
-
-      catch(err){
-
-
-        /* User closed share menu */
-
-        if(
-          err &&
-          err.name === 'AbortError'
-        ){
-
-          return;
-
-        }
-
-
-
-        /* ==============================
-           OLDER BROWSER FALLBACK
-        ============================== */
-
-        try{
-
-
-          const temp =
-            document.createElement('textarea');
-
-
-          temp.value = url;
-
-
-          temp.style.position =
-            'fixed';
-
-
-          temp.style.opacity =
-            '0';
-
-
-          document.body.appendChild(temp);
-
-
-          temp.focus();
-
-          temp.select();
-
-
-          document.execCommand('copy');
-
-
-          temp.remove();
-
-
-          status.textContent =
-            'Link copied!';
-
-
-          setTimeout(() => {
-
-            status.textContent = '';
-
-          }, 2200);
-
-
-        }
-
-
-        catch(copyErr){
-
-
-          status.textContent =
-            'Could not share this link.';
-
-
-        }
-
-
-      }
-
-
-    }
-
-  </script>
-
+  <article class="game">
+    <a href="./game.html" aria-label="Play Trudge the Road">
+      <img class="art" src="trudge-the-road.png" alt="Trudge the Road">
+    </a>
+    <div>
+      <h2 class="t">Trudge the Road</h2>
+      <p class="d">Go through the steps and avoid the traps!</p>
+      <div class="row">
+        <a class="btn-gold" href="./game.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Play
+        </a>
+        <button class="btn-ghost" type="button"
+                data-share-title="Trudge the Road"
+                data-share-text="Go through the steps and avoid the traps!"
+                data-share-url="https://recoverymisfits.org/game.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>Share
+        </button>
+      </div>
+      <p class="share-status" role="status" aria-live="polite"></p>
+    </div>
+  </article>
+
+  <!-- TRUDGE BROTHERS. Not in the mockup, but it is on the live page and it
+       is a real thing that is coming, so it stays until told otherwise. -->
+  <article class="game">
+    <img class="art" src="trudge-bros.png" alt="Trudge Brothers">
+    <div>
+      <h2 class="t">Trudge Brothers</h2>
+      <p class="d">Help Bill &amp; Bob make the meeting!</p>
+      <div class="row">
+        <span class="soon">Coming soon</span>
+        <button class="btn-ghost" type="button"
+                data-share-title="Trudge Brothers"
+                data-share-text="Help Bill &amp; Bob make the meeting! Coming soon from Recovery Misfits."
+                data-share-url="https://recoverymisfits.org/fun.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>Share
+        </button>
+      </div>
+      <p class="share-status" role="status" aria-live="polite"></p>
+    </div>
+  </article>
+
+  <div class="closing">
+    <img class="line" src="assets/pages/f-closing.webp" alt="Good people. Fun things. A brighter tomorrow." width="524" height="37">
+    <img class="rule" src="assets/pages/f-closerule.webp" alt="" aria-hidden="true" width="466" height="26">
+    <img class="arrow" src="assets/pages/f-arrow2.webp" alt="" aria-hidden="true">
+  </div>
+
+  <div class="tailroom"></div>
+</main>
+
+<div id="rm-bottom-nav"></div>
+<script src="./nav.js" defer></script>
+
+<script>
+/* SHARING, THE WAY THE PAGE ALREADY DID IT: the phone's own share sheet when
+   there is one, the clipboard when there is not, and a word on the card
+   either way so nothing happens silently. The details ride on the button
+   rather than in an onclick attribute, so a title with an apostrophe in it
+   cannot break the page. */
+document.addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-share-url]");
+  if (!btn) return;
+  var card = btn.closest(".feature, .game");
+  var status = card && card.querySelector(".share-status");
+  function say(msg) {
+    if (!status) return;
+    status.textContent = msg;
+    setTimeout(function () { if (status.textContent === msg) status.textContent = ""; }, 3000);
+  }
+  var title = btn.dataset.shareTitle, text = btn.dataset.shareText, url = btn.dataset.shareUrl;
+  if (navigator.share) {
+    navigator.share({ title: title, text: text, url: url })
+      .catch(function () { /* they backed out; nothing to report */ });
+    return;
+  }
+  var copy = navigator.clipboard && navigator.clipboard.writeText
+    ? navigator.clipboard.writeText(url) : Promise.reject();
+  copy.then(function () { say("Link copied."); }).catch(function () { say(url); });
+});
+
+if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js"); }
+</script>
 
 </body>
 </html>
