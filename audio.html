@@ -5,11 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Listen — Recovery Misfits</title>
 <meta name="theme-color" content="#11110f">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- The handwriting. If it never arrives the accents fall back to a system
-     cursive and the page reads exactly the same -- no layout depends on it. -->
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- THE FONTS ARE OURS, sitting in assets/fonts. This look IS the fonts, and
+     an app somebody opens in a basement with one bar of signal should not
+     have to ask Google whether it gets to look like itself. Every one falls
+     back to something sane if a file goes missing. -->
 <style>
 /* ===========================================================================
    LISTEN — the Audio page.
@@ -24,6 +23,20 @@
    and it cannot smear the type because it sits under the text at 4% opacity.
    ======================================================================== */
 
+/* ONE bundled face, the condensed caps the mockup sets its labels in. It is
+   already in the Shield's project, so it is a copy rather than a download,
+   and it is served from this repo -- no font CDN, nothing to fetch in a
+   basement with one bar of signal.
+
+   Everything else is the system stack on purpose: the display type people
+   actually read as "the look" is in the artwork, and a page that waits on
+   four web fonts to draw its own list is a page that flashes. */
+@font-face{
+  font-family:"RM Display";
+  src:url("assets/fonts/Anton-Regular.ttf") format("truetype");
+  font-weight:400;font-style:normal;font-display:swap;
+}
+
 :root{
   --bg:#11110f;
   --panel:#1b1b18;
@@ -36,7 +49,9 @@
   --radius:18px;
   --touch:44px;           /* nothing tappable is ever smaller */
   --shadow:0 12px 32px rgba(0,0,0,.35);
-  --hand:"Caveat", "Segoe Script", "Bradley Hand", cursive;
+  --display:"RM Display","Arial Narrow",Impact,sans-serif;   /* the caps */
+  --title:Georgia,"Times New Roman",serif;                   /* row titles */
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
 }
 
 *{box-sizing:border-box}
@@ -54,164 +69,103 @@ main{
 /* THE GRAIN. One SVG noise filter, painted over the page and nothing else,
    fixed so it does not swim while the page scrolls. pointer-events:none or it
    would eat every tap on the page. */
-main::before{
+/* THE PAPER, in three layers.
+   One flat noise is what "a bit of texture" looks like, and it reads as a
+   dirty screen. Real photocopied paper has three things going on: fine
+   grain, big soft blotches where the toner went thin, and a couple of rings
+   where a cup sat. They are all drawn here -- no image files -- and they sit
+   UNDER the text, never over it, so nothing they do can cost a word its
+   legibility. */
+body::before{
   content:"";
   position:fixed;
   inset:0;
   z-index:0;
   pointer-events:none;
-  opacity:.05;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.14;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:.5;
+  background-image:
+    /* toner blotches */
+    radial-gradient(60% 40% at 12% 8%, rgba(216,180,91,.07), transparent 70%),
+    radial-gradient(45% 35% at 88% 22%, rgba(241,231,207,.05), transparent 70%),
+    radial-gradient(70% 45% at 50% 96%, rgba(216,180,91,.06), transparent 70%),
+    /* the two coffee rings */
+    radial-gradient(circle at 78% 12%, transparent 44px, rgba(150,110,50,.13) 45px, rgba(150,110,50,.13) 49px, transparent 50px),
+    radial-gradient(circle at 16% 62%, transparent 30px, rgba(150,110,50,.10) 31px, rgba(150,110,50,.10) 34px, transparent 35px);
+  background-repeat:no-repeat;
+}
+
+/* THE GROUND. One picture of the mockup's own light and shade, blurred past
+   recognition, stretched to cover and never tiled -- a repeating tile is how
+   paper turns into wallpaper, which is exactly what it looked like when I
+   tried it. */
+html{
+  background:var(--bg) url("assets/audio/a-paper.webp") center / cover fixed no-repeat;
+}
+body{background:transparent}
+main{position:relative;z-index:1}
 main > *{position:relative;z-index:1}
 
-/* ---- the head ---------------------------------------------------------- */
-.head{
-  position:relative;
-  padding:6px 0 2px;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 108px;
-  gap:10px;
-  align-items:start;
-}
-.head .words{min-width:0}
-.head h1{
-  margin:0;
-  font-size:clamp(42px,14.5vw,68px);
-  line-height:.86;
-  letter-spacing:-.02em;
-  font-weight:900;
-  color:var(--ivory);
-  /* print that did not quite register -- one soft ghost, nothing more */
-  text-shadow:2px 2px 0 rgba(216,180,91,.18);
-}
-.head .sub{
-  margin:10px 0 0;
-  font-size:15px;
-  letter-spacing:.01em;
-  color:var(--ivory);
-  font-family:var(--hand);
-  font-size:22px;
-}
-.head .rule{
-  width:min(280px,72%);
-  height:6px;
-  margin-top:6px;
-  color:var(--gold);
-}
-.searchBtn{
+/* ---- the head, as artwork ------------------------------------------------
+   The picture is the page's own width, and the search button is placed on it
+   in PERCENTAGES -- the circle in the art is at a fixed spot in the picture,
+   so the button has to move with it at every screen size rather than sitting
+   at some pixel offset that is only right on one phone. */
+.zine{position:relative;margin:0 -16px}     /* art runs to both edges */
+.zine-art{display:block;width:100%;height:auto}
+.zine-search{
   position:absolute;
-  top:2px;
-  right:0;
-  z-index:3;
-  width:var(--touch);
-  height:var(--touch);
+  left:87%;
+  top:12.5%;
+  width:9.5%;
+  aspect-ratio:1;
+  border:0;
   border-radius:50%;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.03);
-  color:var(--ivory);
-  display:grid;
-  place-items:center;
+  background:transparent;
   cursor:pointer;
+  /* the circle is drawn in the picture; this is the part you can press */
 }
-.searchBtn svg{width:20px;height:20px}
-.searchBtn[aria-expanded="true"]{background:var(--gold);color:#17150f;border-color:var(--gold)}
+.zine-search:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 
-/* the taped note, and the two margin scribbles */
-.tape{
-  width:104px;
-  margin:52px 0 0 auto;
-  padding:12px 8px 14px;
-  transform:rotate(3deg);
-  background:linear-gradient(180deg,#d9d2c2,#c9c1b0);
-  color:#241f17;
-  font-family:var(--hand);
-  font-size:17px;
-  line-height:1.15;
-  text-align:center;
-  box-shadow:0 8px 18px rgba(0,0,0,.45);
-}
-.tape::before,.tape::after{
-  content:"";
-  position:absolute;
-  width:46px;height:16px;
-  background:rgba(241,231,207,.22);
-  transform:rotate(-8deg);
-}
-.tape::before{top:-8px;left:-10px}
-.tape::after{bottom:-8px;right:-10px;transform:rotate(-6deg)}
-
-.scribble{
-  font-family:var(--hand);
-  color:var(--muted);
-  font-size:15px;
-  line-height:1.05;
-  opacity:.85;
-  pointer-events:none;
-}
-.scribble.right{
-  margin:10px 0 0 auto;
-  width:100px;
-  text-align:center;
-  transform:rotate(-6deg);
-}
-
-/* A narrow phone gives the words the whole width and drops the note. */
-@media (max-width:359px){
-  .head{grid-template-columns:1fr}
-  .tape,.scribble.right{display:none}
-}
-
-/* ---- what do you want to play ------------------------------------------ */
-.ask{
-  margin:26px 0 12px;
-  font-size:clamp(22px,7.2vw,30px);
-  font-weight:900;
-  letter-spacing:-.01em;
-}
-.ask u{
-  display:block;
-  width:min(240px,62%);
-  height:5px;
-  margin-top:6px;
-  text-decoration:none;
-  background:linear-gradient(90deg,var(--gold),rgba(216,180,91,.15));
-  border-radius:4px;
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
 }
 
 .choices{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:10px;
+  gap:7px;
+  margin-top:-2px;
 }
 .choice{
-  min-height:150px;
-  padding:16px 8px 14px;
-  border-radius:var(--radius);
-  border:1px solid var(--line);
-  background:
-    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0)) ,
-    var(--panel);
-  color:var(--ivory);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-  gap:8px;
-  text-align:center;
-  cursor:pointer;
-  font:inherit;
-  box-shadow:var(--shadow);
+  padding:0;border:0;background:none;cursor:pointer;
+  border-radius:10px;
+  transition:transform .12s ease, filter .12s ease;
 }
-.choice:active{transform:translateY(1px)}
-.choice .ico{width:46px;height:46px;color:var(--ivory)}
-.choice .ico svg{width:100%;height:100%}
-.choice b{font-size:15px;letter-spacing:.02em}
-.choice small{font-size:12px;line-height:1.3;color:var(--muted)}
-.choice[aria-pressed="true"]{
-  border-color:var(--gold);
-  background:linear-gradient(180deg,rgba(216,180,91,.16),rgba(216,180,91,.04)),var(--panel);
-}
+.choice img{display:block;width:100%;height:auto;border-radius:10px}
+.choice:active{transform:translateY(1px) scale(.99)}
+/* Chosen shows as a warm lift rather than a box, so the taped-paper edges of
+   the artwork stay the shape of the thing. */
+.choice[aria-pressed="true"]{filter:brightness(1.18) saturate(1.05)}
+.choice:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+/* the two drawings that live in the margins */
+/* Behind the panels, peeking out of the gutter, exactly where somebody would
+   have scribbled in the margin of a handout. z-index 0 keeps them under every
+   card so they can never sit on a word. */
+.doodle{position:absolute;pointer-events:none;opacity:.9;z-index:0}
+.doodle.margin{left:-20px;bottom:120px;width:56px;height:auto}
+.doodle.skull{right:-14px;bottom:186px;width:46px;height:auto}
+@media (max-width:359px){ .doodle{display:none} }
 
 /* ---- search ------------------------------------------------------------ */
 .searchWrap{margin-top:14px}
@@ -240,10 +194,10 @@ main > *{position:relative;z-index:1}
 }
 .continue[hidden]{display:none}
 .continue .kicker{
-  font-size:11px;
-  letter-spacing:.18em;
+  font-family:var(--display);
+  font-size:13px;
+  letter-spacing:.2em;
   color:var(--gold);
-  font-weight:800;
   margin-bottom:10px;
 }
 .continue .row{display:flex;align-items:center;gap:12px}
@@ -258,8 +212,8 @@ main > *{position:relative;z-index:1}
   display:block;
 }
 .continue .meta{flex:1;min-width:0}
-.continue .t{font-size:17px;font-weight:800;line-height:1.2}
-.continue .s{font-size:13px;color:var(--muted);margin-top:2px}
+.continue .t{font-family:var(--title);font-weight:400;font-size:17px;line-height:1.22}
+.continue .s{font-family:var(--ui);font-size:12.5px;color:var(--muted);margin-top:3px}
 .bigPlay{
   width:64px;height:64px;flex:none;
   border-radius:50%;
@@ -282,9 +236,10 @@ main > *{position:relative;z-index:1}
 .times{
   display:flex;
   justify-content:space-between;
+  font-family:var(--ui);
   font-size:12px;
   color:var(--muted);
-  margin-top:6px;
+  margin-top:7px;
 }
 
 /* ---- the switcher ------------------------------------------------------ */
@@ -304,10 +259,9 @@ main > *{position:relative;z-index:1}
   border-radius:999px;
   background:transparent;
   color:var(--muted);
-  font:inherit;
-  font-size:13.5px;
-  font-weight:900;
-  letter-spacing:.08em;
+  font-family:var(--display);
+  font-size:16px;
+  letter-spacing:.06em;
   cursor:pointer;
 }
 .seg button[aria-selected="true"]{
@@ -322,7 +276,7 @@ main > *{position:relative;z-index:1}
   align-items:center;
   gap:12px;
   padding:12px;
-  border-radius:var(--radius);
+  border-radius:6px;
   border:1px solid rgba(216,180,91,.22);
   background:var(--panel);
   cursor:pointer;
@@ -336,11 +290,11 @@ main > *{position:relative;z-index:1}
 .item .thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .item.video .thumb{height:70px;width:110px}
 .item .txt{flex:1;min-width:0}
-.item .t{font-size:17px;font-weight:800;line-height:1.22}
-.item .s{font-size:13px;color:var(--muted);margin-top:3px}
+.item .t{font-family:var(--title);font-weight:400;font-size:17px;line-height:1.24}
+.item .s{font-family:var(--ui);font-size:12.5px;color:var(--muted);margin-top:4px}
 .item .len{
   display:inline-flex;align-items:center;gap:5px;
-  font-size:12.5px;color:var(--muted);margin-top:7px;
+  font-family:var(--ui);font-size:12.5px;color:var(--muted);margin-top:7px;
 }
 .item .len svg{width:14px;height:14px}
 .playWrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:none}
@@ -354,6 +308,7 @@ main > *{position:relative;z-index:1}
 .playWrap span{font-size:12px;color:var(--muted)}
 
 .empty{
+  font-family:var(--ui);
   padding:26px 14px;
   text-align:center;
   color:var(--muted);
@@ -384,8 +339,8 @@ main > *{position:relative;z-index:1}
 .player[hidden]{display:none}
 .player .top{display:flex;align-items:flex-start;gap:12px}
 .player .top .meta{flex:1;min-width:0}
-.player .t{font-size:18px;font-weight:900;line-height:1.2}
-.player .s{font-size:13px;color:var(--muted);margin-top:2px}
+.player .t{font-family:var(--title);font-weight:400;font-size:18px;line-height:1.22}
+.player .s{font-family:var(--ui);font-size:12.5px;color:var(--muted);margin-top:3px}
 .closeBtn{
   width:var(--touch);height:var(--touch);flex:none;
   border-radius:12px;border:1px solid var(--line);
@@ -431,8 +386,10 @@ audio{
 
 .playerRow{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
 .btn{
+  font-family:var(--display);
+  letter-spacing:.05em;
   min-height:var(--touch);
-  padding:10px 16px;
+  padding:10px 18px;
   border-radius:12px;
   border:1px solid var(--line);
   background:transparent;
@@ -446,7 +403,7 @@ audio{
 
 .chapHead{
   margin:18px 0 8px;
-  font-size:12px;letter-spacing:.16em;font-weight:900;color:var(--muted);
+  font-family:var(--display);font-size:14px;letter-spacing:.2em;color:var(--muted);
 }
 .chapters{display:flex;flex-direction:column;gap:8px}
 .chap{
@@ -502,68 +459,33 @@ audio{
 
 <main>
 
-  <!-- ===== the head ===== -->
-  <header class="head">
-    <div class="words">
-      <h1>LISTEN</h1>
-      <p class="sub">Take what you need. Leave the rest.</p>
-      <svg class="rule" viewBox="0 0 280 6" fill="none" aria-hidden="true">
-        <path d="M2 4.2C58 1.6 132 1.2 278 3.4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="notes">
+  <!-- ===== the head, and the three choices =====
+       THIS IS THE MOCKUP'S OWN ARTWORK, cut out of it: the worn type, the
+       taped note, the star, the scribble, the ink rays around each icon.
+       None of it is text that ever changes, so drawing it by hand in CSS
+       could only ever be an impression of it -- this is the thing itself.
+       Everything that DOES change (the shelf, the times, the player) is
+       live HTML underneath.
 
-    <button class="searchBtn" id="searchBtn" type="button" aria-expanded="false" aria-label="Search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>
-      </svg>
-    </button>
-
-      <div class="tape" aria-hidden="true">A sober<br>brighter<br>tomorrow</div>
-      <div class="scribble right" aria-hidden="true">progress<br>not<br>perfection</div>
-    </div>
+       The words in the art are repeated for screen readers, and the search
+       button is a real button sitting exactly over the circle in the
+       picture. -->
+  <header class="zine">
+    <h1 class="sr-only">Listen — take what you need, leave the rest. What do you want to play?</h1>
+    <img class="zine-art" src="assets/audio/a-header.webp"
+         alt="" width="887" height="312" fetchpriority="high" decoding="async">
+    <button class="zine-search" id="searchBtn" type="button" aria-expanded="false" aria-label="Search"></button>
   </header>
 
-  <!-- ===== the question ===== -->
-  <h2 class="ask">WHAT DO YOU WANT TO PLAY?<u></u></h2>
-
   <div class="choices">
-    <button class="choice" type="button" data-choice="books" aria-pressed="false">
-      <span class="ico" aria-hidden="true">
-        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M11 33V20a13 13 0 0 1 26 0v13"/>
-          <rect x="7" y="29" width="7" height="11" rx="3"/>
-          <rect x="34" y="29" width="7" height="11" rx="3"/>
-          <path d="M18 24h12M18 29h12" opacity=".65"/>
-        </svg>
-      </span>
-      <b>AUDIOBOOKS</b>
-      <small>Stories you can listen to</small>
+    <button class="choice" type="button" data-choice="books" aria-pressed="false" aria-label="Audiobooks — stories you can listen to">
+      <img src="assets/audio/a-card1.webp" alt="" width="275" height="288" decoding="async">
     </button>
-
-    <button class="choice" type="button" data-choice="videos" aria-pressed="false">
-      <span class="ico" aria-hidden="true">
-        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="6" y="17" width="26" height="18" rx="4"/>
-          <path d="M32 24l9-5v16l-9-5z"/>
-          <circle cx="14" cy="12" r="4"/><circle cx="24" cy="12" r="4"/>
-        </svg>
-      </span>
-      <b>VIDEOS</b>
-      <small>Speakers, talks &amp; playlists</small>
+    <button class="choice" type="button" data-choice="videos" aria-pressed="false" aria-label="Videos — speakers, talks and playlists">
+      <img src="assets/audio/a-card2.webp" alt="" width="271" height="288" decoding="async">
     </button>
-
-    <button class="choice" type="button" data-choice="surprise">
-      <span class="ico" aria-hidden="true">
-        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round">
-          <rect x="6" y="18" width="18" height="18" rx="4"/>
-          <rect x="25" y="13" width="17" height="17" rx="4" transform="rotate(8 33 21)"/>
-          <circle cx="12" cy="24" r="1.6" fill="currentColor"/><circle cx="18" cy="30" r="1.6" fill="currentColor"/>
-          <circle cx="33" cy="18" r="1.6" fill="currentColor"/><circle cx="37" cy="25" r="1.6" fill="currentColor"/>
-        </svg>
-      </span>
-      <b>SURPRISE ME</b>
-      <small>Just press play</small>
+    <button class="choice" type="button" data-choice="surprise" aria-label="Surprise me — just press play">
+      <img src="assets/audio/a-card3.webp" alt="" width="275" height="288" decoding="async">
     </button>
   </div>
 
@@ -642,6 +564,9 @@ audio{
       </div>
     </div>
   </section>
+
+  <img class="doodle margin" src="assets/audio/a-margin.webp" alt="" width="78" height="185" aria-hidden="true" loading="lazy">
+  <img class="doodle skull"  src="assets/audio/a-skull.webp"  alt="" width="69" height="80"  aria-hidden="true" loading="lazy">
 
 </main>
 
