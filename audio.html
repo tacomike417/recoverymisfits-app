@@ -245,6 +245,12 @@ main > *{position:relative;z-index:1}
   background:var(--panel-soft);
   display:block;
 }
+/* AND IT HAS TO BE ABLE TO GO AWAY. `display:block` on a class beats the
+   browser's own [hidden] rule, so `cover.hidden = true` in the script did
+   nothing at all -- a speaker playlist has no book cover, and the slot sat
+   there as an empty framed rectangle waiting for art that does not exist.
+   Every other thing on this page that hides has a line like this one. */
+.cover[hidden]{display:none}
 .continue .meta{flex:1;min-width:0}
 .continue .t{font-family:var(--title);font-weight:400;font-size:17px;line-height:1.22}
 .continue .s{font-family:var(--ui);font-size:12.5px;color:var(--muted);margin-top:3px}
