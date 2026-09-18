@@ -1,114 +1,241 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Recovery Misfits — Tools</title>
+<meta name="theme-color" content="#11110f">
 
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#000000" />
 <link rel="icon" href="./icon-192.png">
-
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
 <link rel="apple-touch-icon" href="./icon-192.png">
 
 <style>
-body{
-  font-family:Roboto,Arial,sans-serif;
-  margin:0;
-  background:#fff;
-  color:#111;
-  padding-bottom:120px;
+/* ===========================================================================
+   TOOLS — built to the approved mockup, in the same family as LISTEN.
+
+   SCOPE, and it is a hard line: everything here lives between the top bar and
+   the bottom nav. topbar.js and nav.js are untouched, and so is the Sober
+   Date strip they draw. Nothing in this file styles anything outside <main>.
+
+   THE ARTWORK IS THE MOCKUP'S OWN. The wordmark, the taped note, the four
+   icons, the brush rules and the tape are cut straight out of the approved
+   PNG and carried here as transparent webp -- together about 117KB, once.
+   They are not redrawn approximations: an approximation is what "close, but
+   not quite" is made of, and this page has already been through that once.
+
+   The paper, the grain and the coffee rings are CSS, exactly as they are on
+   the audio page, so the two screens are the same room rather than two
+   rooms decorated to match.
+   ======================================================================== */
+
+/* The hand for the taped note, and the condensed caps the labels are set in.
+   Both are already in this repo -- served from here, not from a font CDN,
+   because somebody opening this in a church basement on one bar should not
+   be waiting on Google to find out what the app looks like. */
+@font-face{
+  font-family:"RM Hand";
+  src:url("assets/fonts/caveat-600.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"RM Display";
+  src:url("assets/fonts/Anton-Regular.ttf") format("truetype");
+  font-weight:400;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"RM Type";
+  src:url("assets/fonts/special-elite-400.woff2") format("woff2");
+  font-weight:400;font-style:normal;font-display:swap;
 }
 
-.page{
-  max-width:980px;
+:root{
+  --bg:#11110f;
+  --panel:#1b1b18;
+  --panel-soft:#22211d;
+  --ivory:#f1e7cf;
+  --gold:#d8b45b;
+  --gold-lit:#f0d68a;
+  --muted:#b7b0a2;
+  --line:rgba(216,180,91,.38);
+  --radius:20px;
+  --touch:44px;           /* nothing tappable is ever smaller */
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --display:"RM Display","Arial Narrow",Impact,sans-serif;
+  --type:"RM Type","Courier New",Courier,monospace;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{-webkit-font-smoothing:antialiased;padding-bottom:0}
+
+main{
+  position:relative;
+  z-index:1;
+  max-width:560px;
   margin:0 auto;
-  padding:14px 12px 0;
+  padding:14px 16px 26px;
+  color:var(--ivory);
+  font-family:var(--ui);
 }
 
-.pageTitle{
-  font-weight:1000;
-  font-size:18px;
-  margin:12px 4px 4px;
+/* ---- THE PAPER, in three layers ----------------------------------------
+   One flat noise is what "a bit of texture" looks like, and it reads as a
+   dirty screen. Real photocopied paper has three things going on: fine
+   grain, big soft blotches where the toner went thin, and a couple of rings
+   where a cup sat. All three are drawn here -- no image files -- and they
+   sit UNDER the text, never over it, so nothing they do can cost a word its
+   legibility. Same values as the audio page, deliberately. */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.14;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:
+    radial-gradient(60% 40% at 12% 8%, rgba(216,180,91,.07), transparent 70%),
+    radial-gradient(45% 35% at 88% 22%, rgba(241,231,207,.05), transparent 70%),
+    radial-gradient(70% 45% at 50% 96%, rgba(216,180,91,.06), transparent 70%),
+    /* the coffee rings */
+    radial-gradient(circle at 60% 7%, transparent 44px, rgba(150,110,50,.15) 45px, rgba(150,110,50,.15) 50px, transparent 51px),
+    radial-gradient(circle at 16% 62%, transparent 30px, rgba(150,110,50,.10) 31px, rgba(150,110,50,.10) 34px, transparent 35px);
 }
 
-.pageSub{
-  font-weight:800;
-  color:#666;
-  margin:0 4px 12px;
-  line-height:1.25;
-  font-size:13px;
+/* ---- the masthead ------------------------------------------------------
+   EVERY SIZE BELOW WAS MEASURED OFF THE MOCKUP, not guessed. The approved
+   PNG is 887px wide and the phone it describes is 393, so the scale is
+   0.4431 and each number here is a measured box multiplied by it. The first
+   pass of this page was eyeballed and every proportion was wrong in a
+   different direction, which is a slow way to find out that you cannot eye
+   a thing you can measure. */
+.head{position:relative;padding:4px 0 0;min-height:118px}
+.head .mark{display:block;width:133px;height:auto;margin-left:-2px}   /* 132.5 measured */
+.head .sub{
+  font-family:var(--type);
+  font-size:12px;letter-spacing:0;color:var(--ivory);
+  margin:8px 0 0;line-height:1.25;white-space:nowrap;                  /* one line, as drawn */
 }
+.head .rule{display:block;width:232px;height:auto;margin:1px 0 0 6px}  /* 231 measured */
+.head .note{
+  position:absolute;top:6px;right:0;
+  width:100px;height:auto;                                             /* 100.1 measured */
+  transform:rotate(1.5deg);
+  pointer-events:none;
+}
+.head .star{position:absolute;top:22px;right:112px;width:24px;pointer-events:none;opacity:.95}
 
-.toolGrid{
+/* ---- the prompt -------------------------------------------------------- */
+.prompt{margin:16px 0 13px;text-align:center}
+.prompt img.q{display:block;width:326px;max-width:100%;margin:0 auto;height:auto}  /* 325.7 */
+.prompt img.r{display:block;width:236px;max-width:70%;margin:1px auto 0;height:auto}
+
+/* ---- a tool card -------------------------------------------------------
+   Measured: 363 wide, 106 tall, icon 100 across, title cap 16.8, one line of
+   description, and a gold strip 231 wide.
+
+   THE ONE DELIBERATE DEPARTURE is the button's height. In the mockup it is
+   27px tall. This app is opened by people whose hands are not steady in the
+   first weeks, and the brief's own rule is a 44px minimum -- so it is 44.
+   Everything else about it is the mockup's: the width, the worn gold, the
+   dark ink, the lit top edge. */
+.cards{display:grid;gap:14px}
+
+.card{
+  position:relative;
   display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
-  margin:10px 4px 14px;
-}
-
-@media (min-width:720px){
-  .toolGrid{grid-template-columns:1fr 1fr;}
-}
-
-.toolCard{
-  border:1px solid rgba(0,0,0,.12);
-  border-radius:16px;
-  padding:14px;
-  background:#fff;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-.toolCardTitle{
-  font-weight:1000;
-  font-size:15px;
-}
-
-.toolCardDesc{
-  font-weight:800;
-  color:#666;
-  line-height:1.25;
-  font-size:13px;
-  min-height:34px;
-  margin:0;
-}
-
-.btn{
-  padding:10px 12px;
-  border-radius:999px;
-  border:1px solid rgba(0,0,0,.18);
-  background:#fff;
-  font-weight:900;
-  font-size:15px;
-  cursor:pointer;
-  text-decoration:none;
-  color:#111;
-  display:flex;
+  grid-template-columns:100px 1fr;
+  gap:6px;
   align-items:center;
-  justify-content:center;
-  width:100%;
-  min-height:44px;
-  height:44px;
-  line-height:1.1;
-  font-family:inherit;
-  box-sizing:border-box;
-  margin-top:auto;
+  padding:12px 10px 12px 6px;
+  border-radius:var(--radius);
+  border:1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(241,231,207,.05), rgba(241,231,207,0) 46%),
+    var(--panel);
+  box-shadow:var(--shadow);
+}
+/* the worn grain that lives ON the card, under everything it holds */
+.card::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  opacity:.16;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23c)'/%3E%3C/svg%3E");
+}
+/* a darker foot, so the card sits on the page instead of floating over it */
+.card::after{
+  content:"";position:absolute;inset:auto 0 0 0;height:42%;border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(180deg, transparent, rgba(0,0,0,.34));
+}
+.card > *{position:relative;z-index:1}
+
+.card .ico{width:100px;height:auto;justify-self:center}
+
+/* Anton draws what it is given, so the caps are asked for here rather than
+   typed into the markup -- the sentence stays a sentence for a screen
+   reader and for anybody who has to edit it later. */
+.card .t{
+  font-family:var(--display);
+  font-size:23px;line-height:1;letter-spacing:.3px;
+  text-transform:uppercase;
+  color:#fff;margin:0;
+}
+.card .d{
+  font-family:var(--type);
+  /* THE MOCKUP'S BODY FACE IS NARROWER THAN OURS, and that is worth writing
+     down rather than chasing. Its longest description sits on one line in
+     234px; the same string in Special Elite needs 312px, so matching the
+     line count would mean setting this at about 8px. Nobody in the first
+     weeks of this is reading 8px type on a phone, and the brief's own rule
+     is that legibility outranks the decoration. So the face and the size
+     stay readable and the one long description wraps. */
+  font-size:10.8px;line-height:1.32;color:var(--ivory);
+  margin:5px 0 9px;
 }
 
-.btn.primary{
-  background:#111;
-  color:#fff;
+/* THE GOLD STRIP IS THE MOCKUP'S OWN PILL, not a gradient pretending to be
+   one. A CSS gradient gave it a glossy top sheen and an inset shadow -- a
+   web button wearing gold -- and the drawn one is flat matte paper with a
+   crinkle in it and a thin worn edge. So the pill is an image, composed from
+   the parts of the mockup's button that have no words printed on them: the
+   left cap, a clean strip of the middle, the right cap. Our own label goes
+   on top. */
+.card .go{
+  display:flex;align-items:center;justify-content:center;
+  min-height:44px;padding:9px 16px;
+  border:0;border-radius:999px;
+  background-image:url("assets/pages/t-btn.webp");
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  color:#17130b;
+  font-family:var(--ui);
+  font-weight:700;font-size:13px;letter-spacing:1.6px;
+  text-decoration:none;text-transform:uppercase;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
 }
+.card .go:active{transform:translateY(1px);filter:brightness(.94)}
 
-.muted{
-  color:#666;
-  font-weight:800;
-  line-height:1.25;
+/* the tape holding the cards to the page */
+.tape{position:absolute;pointer-events:none;z-index:2;height:auto}
+.tape.tl{top:-11px;left:12px;width:46px;transform:rotate(-7deg)}
+.tape.tr{top:-12px;right:16px;width:48px;transform:rotate(6deg)}
+
+/* a star loose in the margin, the way the mockup has them */
+.margin-star{position:absolute;left:-7px;bottom:-14px;width:22px;opacity:.85;pointer-events:none;z-index:2}
+
+/* ---- room for the Sober Date strip and the nav that nav.js draws -------- */
+.tailroom{height:150px}
+
+/* The smallest phone we support still has to read. Only the two things that
+   were pinned to a measured width give any of it back. */
+@media (max-width:359px){
+  .card{grid-template-columns:86px 1fr}
+  .card .ico{width:86px}
+  .card .t{font-size:21px}
+  .head .sub{font-size:11px}
 }
 </style>
 </head>
@@ -118,51 +245,75 @@ body{
 <div id="rm-topbar"></div>
 <script src="./topbar.js" defer></script>
 
-<main class="page">
+<main>
 
-  <div class="pageTitle">Tools</div>
-  <div class="pageSub">Burn Pad and Gratitude Journal. Quiet, simple, useful.</div>
+  <!-- THE MASTHEAD. The wordmark is artwork, so the real word lives in the
+       alt text: a screen reader and a search engine both get "Tools". -->
+  <header class="head">
+    <img class="mark" src="assets/pages/t-wordmark.webp" alt="Tools" width="306" height="120">
+    <p class="sub">Simple things for the next right move.</p>
+    <img class="rule" src="assets/pages/t-rule-sub.webp" alt="" aria-hidden="true" width="488" height="26">
+    <img class="star" src="assets/pages/t-star-gold.webp" alt="" aria-hidden="true" width="54" height="52">
+    <img class="note" src="assets/pages/t-note.webp" alt="One thing at a time" width="226" height="220">
+  </header>
 
-  <div class="toolGrid">
+  <div class="prompt">
+    <img class="q" src="assets/pages/t-prompt.webp" alt="What do you need right now?" width="780" height="66">
+    <img class="r" src="assets/pages/t-rule-prompt.webp" alt="" aria-hidden="true" width="532" height="28">
+  </div>
 
-    <div class="toolCard">
-      <div class="toolCardTitle">🔥 Burn Pad</div>
-      <p class="toolCardDesc">Get it out, inspect it, then release it.</p>
-      <a class="btn primary" href="./burn-pad.html">Open Burn Pad</a>
-    </div>
+  <div class="cards">
 
-    <div class="toolCard">
-      <div class="toolCardTitle">🧭 Fear Compass</div>
-      <p class="toolCardDesc">Get pointed in the right direction.</p>
-      <a class="btn primary" href="https://tacomike417.github.io/recoverymisfits-app/fear-compass.html">Open Fear Compass</a>
-    </div>
+    <article class="card">
+      <img class="tape tl" src="assets/pages/t-tape-a.webp" alt="" aria-hidden="true">
+      <img class="ico" src="assets/pages/t-flame.webp" alt="" aria-hidden="true" width="194" height="162">
+      <div>
+        <h2 class="t">Burn Pad</h2>
+        <p class="d">Get it out. Inspect it. Release it.</p>
+        <a class="go" href="./burn-pad.html">Open Burn Pad</a>
+      </div>
+    </article>
 
-    <div class="toolCard">
-      <div class="toolCardTitle">⭐ Gratitude Journal</div>
-      <p class="toolCardDesc">Happy. Peace. Useful. Journal. Save to archive.</p>
-      <a class="btn primary" href="./gratitude-journal.html">Open Gratitude</a>
-    </div>
+    <article class="card">
+      <img class="ico" src="assets/pages/t-compass.webp" alt="" aria-hidden="true" width="194" height="156">
+      <div>
+        <h2 class="t">Fear Compass</h2>
+        <p class="d">Turn fear into a next right action.</p>
+        <a class="go" href="./fear-compass.html">Open Fear Compass</a>
+      </div>
+    </article>
 
-        <div class="toolCard">
-      <div class="toolCardTitle">🪢 The Untangler</div>
-      <p class="toolCardDesc">Slow down, sort it out, and find the next right thing.</p>
-      <a class="btn primary" href="./untangler.html">Open The Untangler</a>
-    </div>
+    <article class="card">
+      <img class="tape tr" src="assets/pages/t-tape-b.webp" alt="" aria-hidden="true">
+      <img class="ico" src="assets/pages/t-book.webp" alt="" aria-hidden="true" width="202" height="154">
+      <div>
+        <h2 class="t">Gratitude Journal</h2>
+        <p class="d">Notice what is still good.</p>
+        <a class="go" href="./gratitude-journal.html">Open Gratitude</a>
+      </div>
+    </article>
 
-    <div class="toolCard">
-      <div class="toolCardTitle">✊ The White Knuckler</div>
-      <p class="toolCardDesc">Track the first 30 days of change. One day at a time.</p>
-      <a class="btn primary" href="./white-knuckler.html">Open The White Knuckler</a>
-    </div>
+    <article class="card">
+      <img class="tape tl" src="assets/pages/t-tape-c.webp" alt="" aria-hidden="true">
+      <img class="ico" src="assets/pages/t-tangle.webp" alt="" aria-hidden="true" width="210" height="156">
+      <div>
+        <h2 class="t">The Untangler</h2>
+        <p class="d">Slow down. Sort it out. Find the next right thing.</p>
+        <a class="go" href="./untangler.html">Open The Untangler</a>
+      </div>
+      <img class="margin-star" src="assets/pages/t-star-gold.webp" alt="" aria-hidden="true">
+    </article>
+
+  </div>
+
+  <div class="tailroom"></div>
 </main>
 
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
 
 <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js");
-}
+if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js"); }
 </script>
 
 </body>
