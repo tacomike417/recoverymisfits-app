@@ -275,6 +275,37 @@
         display: block;
       }
 
+      /* The code on WHITE, always. On the app's dark ground a QR does not
+         scan on half the phones out there, and "it works on mine" is how
+         that ships. 220px is about the floor for a phone reading it off
+         another phone at arm's length. */
+      .rm-qr-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin: 14px 0 4px;
+      }
+
+      .rm-qr {
+        width: 232px;
+        max-width: 72vw;
+        aspect-ratio: 1;
+        background: #fff;
+        border-radius: 16px;
+        padding: 12px;
+        box-sizing: border-box;
+        box-shadow: 0 10px 28px rgba(0,0,0,.45);
+      }
+
+      .rm-qr svg { width: 100%; height: 100%; display: block; }
+
+      .rm-qr-url {
+        font-size: 15px;
+        letter-spacing: .02em;
+        color: #f5f5f5;
+      }
+
       .rm-modal-backdrop {
         position: fixed;
         inset: 0;
@@ -458,7 +489,7 @@
     book: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3V4z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     audio: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M4 12V9a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 12v4a2 2 0 0 0 2 2h1v-6H8a2 2 0 0 0-2 2zm12 0v6h-1a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     fun: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M6 9h12a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2l-2 2H10l-2-2H6a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-    updates: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M2 10h4v12H2z" fill="currentColor"/><path d="M22 10a2 2 0 0 0-2-2h-6l1-5v-1a2 2 0 0 0-2-2l-1 1-5 8v11h11a2 2 0 0 0 2-2l1-7v-1z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+    share: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M4 12v7a1.6 1.6 0 0 0 1.6 1.6h12.8A1.6 1.6 0 0 0 20 19v-7" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M12 15.5V3.8M8 7.4l4-3.6 4 3.6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
   };
 
   const items = [
@@ -467,7 +498,10 @@
     { href: "./readings.html", label: "Readings", icon: ICONS.book },
     { href: "./audio.html", label: "Audio", icon: ICONS.audio },
     { href: "./fun.html", label: "Fun", icon: ICONS.fun },
-    { href: "./updates.html", label: "Updates", icon: ICONS.updates }
+    /* SHARE, NOT A PAGE. It opens the code sheet rather than going anywhere,
+       which is why it carries data-rm-share and a href that means "no
+       destination" -- the click handler below stops it. */
+    { href: "#share", label: "Share", icon: ICONS.share, share: true }
   ];
 
   injectStyles();
@@ -594,6 +628,7 @@
     const hrefFile = it.href.replace("./", "").toLowerCase();
     if (hrefFile === cur) a.classList.add("active");
 
+    if (it.share) a.setAttribute("data-rm-share", "");
     a.innerHTML = `<span class="ico">${it.icon}</span><span>${it.label}</span>`;
     navLinks.appendChild(a);
   });
@@ -610,4 +645,107 @@
 
   refreshSoberPanel();
   setInterval(refreshSoberPanel, 60000);
+
+  /* =======================================================================
+     SHARE — the code somebody points a phone at.
+
+     This replaced the Updates tab. Handing the app to somebody at a meeting
+     used to mean spelling out an address; now they point a camera at your
+     screen and they have it.
+
+     The code is DRAWN HERE, from RM_QR, rather than being a picture: it can
+     never go stale, it needs no network, and it still works in a church
+     basement with one bar of signal. The two buttons under it are for
+     somebody who is not standing in front of you.
+     ==================================================================== */
+  const SHARE_URL = "https://recoverymisfits.org/";
+  const SHARE_LABEL = "recoverymisfits.org";
+
+  /* THE ENCODER FETCHES ITSELF. nav.js is on every page of this app; adding
+     a second script tag to all of them by hand is fifteen chances to miss
+     one, and the miss shows up as a share sheet with a hole in it on the
+     one page nobody checked. It is asked for once, the first time somebody
+     opens the sheet, and never on a page load. */
+  let qrLoading = null;
+  function loadQR() {
+    if (window.RM_QR && window.RM_QR.svg) return Promise.resolve(true);
+    if (qrLoading) return qrLoading;
+    qrLoading = new Promise((resolve) => {
+      const tag = document.createElement("script");
+      tag.src = "/qr.js";
+      tag.onload = () => resolve(!!(window.RM_QR && window.RM_QR.svg));
+      tag.onerror = () => resolve(false);
+      document.head.appendChild(tag);
+    });
+    return qrLoading;
+  }
+
+  function ensureShareModal() {
+    let modal = document.getElementById("rmShareModal");
+    if (modal) return modal;
+
+    const code = (window.RM_QR && window.RM_QR.svg)
+      ? window.RM_QR.svg(SHARE_URL, { margin: 2, dark: "#111111", light: "#ffffff" })
+      : "";
+
+    modal = document.createElement("div");
+    modal.id = "rmShareModal";
+    modal.className = "rm-modal-backdrop";
+    modal.innerHTML = `
+      <div class="rm-modal" role="dialog" aria-modal="true" aria-labelledby="rmShareTitle">
+        <h3 id="rmShareTitle">Share the app</h3>
+        <p>Point a phone camera at the code.</p>
+        <div class="rm-qr-wrap">
+          ${code ? `<div class="rm-qr">${code}</div>` : ""}
+          <b class="rm-qr-url">${SHARE_LABEL}</b>
+        </div>
+        <div class="rm-modal-row">
+          <button type="button" class="rm-modal-cancel" id="rmShareClose">Close</button>
+          <button type="button" class="rm-modal-save" id="rmShareSend">Send link</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    const close = () => modal.classList.remove("show");
+    modal.querySelector("#rmShareClose").addEventListener("click", close);
+    /* Tapping the dark closes it too. A sheet with one way out is a trap
+       the first time somebody opens it by accident. */
+    modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal.classList.contains("show")) close();
+    });
+
+    const send = modal.querySelector("#rmShareSend");
+    send.addEventListener("click", async () => {
+      /* The phone's own share sheet where there is one, the clipboard
+         everywhere else -- and it says which happened, because a button
+         that silently did something gets pressed four times. */
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "Recovery Misfits", url: SHARE_URL });
+          return;
+        }
+      } catch (_) { return; }
+      try {
+        await navigator.clipboard.writeText(SHARE_URL);
+        const was = send.textContent;
+        send.textContent = "Link copied";
+        setTimeout(() => { send.textContent = was; }, 1800);
+      } catch (_) {}
+    });
+
+    return modal;
+  }
+
+  navLinks.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-rm-share]");
+    if (!btn) return;
+    e.preventDefault();
+    await loadQR();
+    /* NO SIGNAL, NO CODE -- but still a sheet. The address and the Send
+       Link button are the parts that matter on a phone with one bar, and a
+       dead tab would be worse than a sheet missing its picture. */
+    ensureShareModal().classList.add("show");
+  });
 })();

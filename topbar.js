@@ -60,60 +60,7 @@
         user-select:none;
       }
 
-      .rm-update-dot{
-        width:8px;
-        height:8px;
-        border-radius:50%;
-        background:#ff3b30;
-        display:inline-block;
-        vertical-align:middle;
-      }
-
-      .rm-update-banner{
-        max-width:980px;
-        margin:0 auto;
-        padding:10px 12px 12px;
-      }
-
-      .rm-update-banner-inner{
-        border:1px solid #f0d98c;
-        border-radius:14px;
-        background:#fff8cc;
-        padding:10px 12px;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:12px;
-      }
-
-      .rm-banner-text{
-        font-size:12px;
-        color:#333;
-        font-weight:900;
-        line-height:1.3;
-      }
-
-      .rm-banner-text small{
-        display:block;
-        font-size:10px;
-        color:#666;
-        font-weight:900;
-        letter-spacing:.05em;
-        text-transform:uppercase;
-      }
-
-      .rm-banner-close{
-        border:1px solid rgba(0,0,0,.2);
-        background:#111;
-        color:#fff;
-        border-radius:8px;
-        padding:6px 10px;
-        font-size:11px;
-        font-weight:1000;
-        cursor:pointer;
-      }
-
-      /* -------------------------
+/* -------------------------
          Install prompt (mobile only)
          Clipped to start right at the topbar's bottom edge so it
          unrolls out from underneath it — the topbar itself never moves.
@@ -233,29 +180,19 @@
   /* -------------------------
      Build top bar
   ------------------------- */
+  /* THE UPDATE BANNER IS GONE, and so is updates.html. It announced changes
+     to an app whose changes speak for themselves, and it cost every visitor
+     a fetch of a whole page on every load to find out there was nothing to
+     say. The Updates tab it fed became SHARE -- see nav.js. */
   mount.innerHTML = `
     <div class="rm-topbar-inner">
       <img class="rm-logo" src="/PWA-header.png" alt="Recovery Misfits" />
     </div>
-
-    <div class="rm-update-banner" id="rm-update-banner" style="display:none;">
-      <div class="rm-update-banner-inner">
-        <div class="rm-banner-text" id="rm-banner-text">
-          <small>update:</small>
-        </div>
-        <button class="rm-banner-close" id="rm-banner-close">Close</button>
-      </div>
-    </div>
   `;
-
-  const bannerWrap = document.getElementById("rm-update-banner");
-  const bannerText = document.getElementById("rm-banner-text");
-  const bannerClose = document.getElementById("rm-banner-close");
 
   /* -------------------------
      Keep the install sheet's top edge pinned exactly to the
-     topbar's real rendered height (varies with safe-area insets,
-     and grows when the update banner is showing).
+     topbar's real rendered height, which varies with safe-area insets.
   ------------------------- */
   function syncTopbarHeightVar() {
     const h = mount.getBoundingClientRect().height;
@@ -361,7 +298,7 @@
     const { scrim, wrap } = built;
 
     // Re-confirm the topbar height right before showing, in case the
-    // update banner rendered in between and grew the topbar.
+    // the topbar's height can settle a frame or two after first paint.
     syncTopbarHeightVar();
 
     // Slide in after a short delay so it feels intentional, not a flash-on-load.
@@ -396,66 +333,4 @@
   window.addEventListener("appinstalled", () => {
     if (window.gtag) window.gtag("event", "pwa_installed");
   });
-
-  /* -------------------------
-     Update loader
-  ------------------------- */
-  async function loadLatestUpdate() {
-    try {
-      const res = await fetch("./updates.html", { cache: "no-store" });
-      if (!res.ok) return null;
-      const html = await res.text();
-      const doc = new DOMParser().parseFromString(html, "text/html");
-      const marker = doc.getElementById("rm-update-marker");
-      if (!marker) return null;
-
-      return {
-        id: marker.getAttribute("data-update-id") || "",
-        title: marker.getAttribute("data-update-title") || "",
-        banner: marker.getAttribute("data-update-banner") || "",
-        date: marker.getAttribute("data-update-date") || ""
-      };
-    } catch {
-      return null;
-    }
-  }
-
-  (async function initUpdatesUI() {
-    const update = await loadLatestUpdate();
-    if (!update || !update.id) return;
-
-    const dismissedKey = "rm_dismissed_update_banner_id";
-    const dismissedId = localStorage.getItem(dismissedKey) || "";
-
-    if (dismissedId === update.id) return;
-
-    // Auto-expire the banner after 14 days from its posted date, even if
-    // nobody ever clicks Close, so it can't linger indefinitely.
-    const BANNER_EXPIRE_DAYS = 14;
-    if (update.date) {
-      const postedAt = new Date(update.date + "T00:00:00");
-      if (!isNaN(postedAt.getTime())) {
-        const elapsedDays = (Date.now() - postedAt.getTime()) / (1000 * 60 * 60 * 24);
-        if (elapsedDays > BANNER_EXPIRE_DAYS) return;
-      }
-    }
-
-    bannerText.innerHTML =
-      "<small>update:</small> " + (update.banner || update.title);
-
-    bannerWrap.style.display = "block";
-    syncTopbarHeightVar();
-
-    bannerClose.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      bannerWrap.style.display = "none";
-      localStorage.setItem(dismissedKey, update.id);
-    });
-
-    bannerWrap.addEventListener("click", (e) => {
-      if (e.target && e.target.id === "rm-banner-close") return;
-      window.location.href = "./updates.html";
-    });
-  })();
 })();
