@@ -92,8 +92,15 @@
         max-height:0;
         transition:max-height .32s cubic-bezier(.32,.72,0,1);
       }
+      /* THE WALKTHROUGH IS TALLER THAN THE OLD ONE-LINER, and 280px cut the
+         buttons clean off the bottom -- on the exact screen that is meant to
+         be the easiest in the app. It gets the screen below the topbar, and
+         scrolls inside itself on a short phone rather than hiding the way
+         out. */
       #rm-install-wrap.rm-open{
-        max-height:280px;
+        max-height:calc(100dvh - var(--rm-topbar-h, 64px));
+        overflow-y:auto;
+        -webkit-overflow-scrolling:touch;
       }
 
       #rm-install-sheet{
@@ -145,6 +152,86 @@
         align-items:center;
         gap:8px;
         margin-top:14px;
+      }
+
+      /* THE STEPS. Bigger type than the rest of this app on purpose: this
+         is read once, by somebody who may be shaky, tired, and holding the
+         phone at arm's length. Nothing here is decorative. */
+      .rm-steps{
+        list-style:none;
+        margin:14px 0 4px;
+        padding:0;
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+      }
+
+      .rm-steps li{
+        display:flex;
+        align-items:flex-start;
+        gap:11px;
+        font-size:15px;
+        line-height:1.45;
+        color:#f0f0f2;
+      }
+
+      .rm-step-n{
+        flex:0 0 auto;
+        width:26px;
+        height:26px;
+        border-radius:50%;
+        background:#d6b36a;
+        color:#111;
+        font-weight:1000;
+        font-size:14px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+
+      .rm-step-t{ flex:1 1 auto; }
+      .rm-step-t b{ color:#fff; }
+
+      /* The icon they are hunting for, inline in the sentence, at the size
+         it really appears. A name alone ("the Share icon") is no help to
+         somebody who has never gone looking for it. */
+      .rm-step-ico{
+        display:inline-flex;
+        vertical-align:-6px;
+        width:26px;
+        height:26px;
+        margin:0 2px;
+        padding:3px;
+        border-radius:7px;
+        background:rgba(255,255,255,.12);
+        color:#fff;
+      }
+      .rm-step-ico svg{ width:100%; height:100%; }
+
+      .rm-point{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        margin-top:12px;
+        color:#d6b36a;
+        font-size:13px;
+        font-weight:900;
+      }
+
+      .rm-point-arrow{
+        font-size:20px;
+        line-height:1;
+        animation:rm-nudge 1.6s ease-in-out infinite;
+      }
+
+      @keyframes rm-nudge{
+        0%,100%{ transform:translateY(0); }
+        50%{ transform:translateY(5px); }
+      }
+
+      @media (prefers-reduced-motion:reduce){
+        .rm-point-arrow{ animation:none; }
       }
 
       .rm-install-cta{
@@ -207,6 +294,17 @@
   const ua = navigator.userAgent || "";
   const isIOS = /iphone|ipad|ipod/i.test(ua);
   const isAndroid = /android/i.test(ua);
+
+  /* WHICH BROWSER MATTERS MORE THAN WHICH PHONE ON AN IPHONE.
+     Add to Home Screen exists ONLY in Safari. Chrome on an iPhone does not
+     have it. Neither does the browser inside Facebook, Instagram or
+     Messenger -- and a link shared in a group chat opens in exactly those.
+     Telling somebody to "tap Share, then Add to Home Screen" when the
+     option is not there is how a person decides the app is broken and
+     themselves along with it. So those get sent to Safari first. */
+  const iosInApp = isIOS && /fban|fbav|fb_iab|instagram|messenger|line\/|twitter|micromessenger|snapchat|tiktok/i.test(ua);
+  const iosOtherBrowser = isIOS && /crios|fxios|edgios|opt\/|duckduckgo|brave/i.test(ua);
+  const iosSafari = isIOS && !iosInApp && !iosOtherBrowser;
   const isStandalone =
     window.matchMedia("(display-mode: standalone)").matches ||
     window.navigator.standalone === true;
@@ -256,17 +354,80 @@
           <button class="rm-install-dismiss" id="rm-install-dismiss">Not now</button>
         </div>
       `;
-    } else if (isIOS) {
+    } else if (isIOS && !iosSafari) {
+      /* WRONG BROWSER. One job here: get them into Safari. Nothing about
+         home screens yet -- that instruction is useless until they are
+         somewhere it can work. */
       sheet.innerHTML = `
         <div class="rm-install-row">
           <img class="rm-install-icon" src="${APP_ICON_URL}" alt="" />
           <div class="rm-install-copy">
-            <div class="rm-install-title">Add Recovery Misfits to your Home Screen</div>
-            <div class="rm-install-sub">Tap the Share icon below, then "Add to Home Screen."</div>
+            <div class="rm-install-title">Open this in Safari first</div>
+            <div class="rm-install-sub">This browser can&rsquo;t save apps to your home screen. Safari can.</div>
           </div>
         </div>
+        <ol class="rm-steps">
+          <li><span class="rm-step-n">1</span><span class="rm-step-t"><b>Copy the link</b> with the button below.</span></li>
+          <li><span class="rm-step-n">2</span><span class="rm-step-t"><b>Open Safari</b> &mdash; the blue compass on your home screen.</span></li>
+          <li><span class="rm-step-n">3</span><span class="rm-step-t"><b>Paste it</b> in the bar at the top and go.</span></li>
+        </ol>
+        <div class="rm-install-actions">
+          <button class="rm-install-cta" id="rm-install-copy">Copy the link</button>
+          <button class="rm-install-dismiss" id="rm-install-dismiss">Not now</button>
+        </div>
+      `;
+    } else if (isIOS) {
+      /* THE WALKTHROUGH. Three steps, each with the icon they are hunting
+         for drawn right there, because "the Share icon" means nothing to
+         somebody who has never gone looking for it. The arrow at the foot
+         points at the real button, which on an iPhone lives at the bottom
+         of the screen. */
+      sheet.innerHTML = `
+        <div class="rm-install-row">
+          <img class="rm-install-icon" src="${APP_ICON_URL}" alt="" />
+          <div class="rm-install-copy">
+            <div class="rm-install-title">Put Recovery Misfits on your phone</div>
+            <div class="rm-install-sub">Takes about ten seconds. It&rsquo;s free, and it works with no signal.</div>
+          </div>
+        </div>
+
+        <ol class="rm-steps">
+          <li>
+            <span class="rm-step-n">1</span>
+            <span class="rm-step-t">Tap this button at the bottom of your screen
+              <span class="rm-step-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 15.5V3.5"/><path d="M8.2 7.1 12 3.3l3.8 3.8"/>
+                  <path d="M6 11.5H5a1.5 1.5 0 0 0-1.5 1.5v6.5A1.5 1.5 0 0 0 5 21h14a1.5 1.5 0 0 0 1.5-1.5V13a1.5 1.5 0 0 0-1.5-1.5h-1"/>
+                </svg>
+              </span>
+            </span>
+          </li>
+          <li>
+            <span class="rm-step-n">2</span>
+            <span class="rm-step-t">Scroll down the list and tap
+              <b>Add to Home Screen</b>
+              <span class="rm-step-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8.2v7.6M8.2 12h7.6"/>
+                </svg>
+              </span>
+            </span>
+          </li>
+          <li>
+            <span class="rm-step-n">3</span>
+            <span class="rm-step-t">Tap <b>Add</b> in the top corner. Done &mdash; it&rsquo;s on your home screen with the rest of your apps.</span>
+          </li>
+        </ol>
+
+        <div class="rm-point" aria-hidden="true">
+          <span class="rm-point-arrow">&darr;</span>
+          <span class="rm-point-text">the button is down there</span>
+        </div>
+
         <div class="rm-install-actions">
           <button class="rm-install-cta" id="rm-install-cta">Got it</button>
+          <button class="rm-install-dismiss" id="rm-install-dismiss">Not now</button>
         </div>
       `;
     } else {
@@ -288,10 +449,13 @@
     }, 350);
   }
 
-  function initInstallSheet() {
+  /* `force` is the Share tab asking for it by name. A no last Tuesday
+     silences the sheet that comes up on its own, never the one somebody
+     deliberately went looking for. */
+  function initInstallSheet(force) {
     if (isStandalone) return;
     if (!isAndroid && !isIOS) return;
-    if (recentlyDismissed()) return;
+    if (!force && recentlyDismissed()) return;
 
     const built = buildInstallSheet();
     if (!built) return;
@@ -321,6 +485,22 @@
       cta.addEventListener("click", () => closeInstallSheet(scrim, wrap));
     }
 
+    /* Wrong browser: hand them the address so there is nothing to type.
+       It says so on the button afterward, because a button that silently
+       did something gets pressed again and again. */
+    const copyBtn = document.getElementById("rm-install-copy");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", async () => {
+        const url = "https://recoverymisfits.org/";
+        try {
+          await navigator.clipboard.writeText(url);
+          copyBtn.textContent = "Copied \u2014 now open Safari";
+        } catch (_) {
+          copyBtn.textContent = url;
+        }
+      });
+    }
+
     if (dismissBtn) {
       dismissBtn.addEventListener("click", () => closeInstallSheet(scrim, wrap));
     }
@@ -329,6 +509,28 @@
   }
 
   initInstallSheet();
+
+  /* ASKED FOR BY NAME. The sheet comes up on its own once, then stays quiet
+     for a while -- but somebody who tapped "Not now" in the car park and
+     wants it later needs a way back to it. The Share tab calls this. */
+  window.RMInstall = {
+    open: function () {
+      if (isStandalone) return false;         /* already installed */
+      if (!isAndroid && !isIOS) return false; /* a desktop has no home screen */
+      const existing = document.getElementById("rm-install-wrap");
+      if (existing) {
+        existing.classList.add("rm-open");
+        const sc = document.getElementById("rm-install-scrim");
+        if (sc) sc.classList.add("rm-open");
+        return true;
+      }
+      initInstallSheet(true);
+      return true;
+    },
+    canInstall: function () {
+      return !isStandalone && (isAndroid || isIOS);
+    }
+  };
 
   window.addEventListener("appinstalled", () => {
     if (window.gtag) window.gtag("event", "pwa_installed");
