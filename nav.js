@@ -393,6 +393,140 @@
         border: 1px solid #d6b36a;
       }
 
+      /* =====================================================================
+         SHARE THE APP — built to the approved mockup.
+
+         EVERY RULE HERE IS SCOPED TO .rm-share-sheet. nav.js is loaded by
+         every page in the app and .rm-modal is also the Sober Date dialog;
+         restyling the shared class would have quietly redressed a screen
+         nobody asked me to touch.
+         ================================================================= */
+      /* THE TITLE IS IN THE ARTWORK, so the real words live here where only a
+         screen reader will find them. The dialog still has a name; it is just
+         not drawn twice. */
+      .rm-sr-only {
+        position: absolute !important;
+        width: 1px; height: 1px;
+        margin: -1px; padding: 0; border: 0;
+        clip: rect(0 0 0 0); clip-path: inset(50%);
+        overflow: hidden; white-space: nowrap;
+      }
+      .rm-share-sheet .rm-modal {
+        position: relative;
+        width: min(340px, 100%);
+        padding: 30px 16px 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(215,178,83,.45);
+        background:
+          linear-gradient(180deg, rgba(241,231,207,.05), rgba(241,231,207,0) 40%),
+          #14140f;
+        box-shadow: 0 20px 50px rgba(0,0,0,.6);
+        overflow: visible;
+        text-align: center;
+      }
+      /* the worn grain, under everything, never over the code */
+      .rm-share-sheet .rm-modal::before {
+        content: "";
+        position: absolute; inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        opacity: .16;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23s)'/%3E%3C/svg%3E");
+      }
+      .rm-share-sheet .rm-modal > * { position: relative; z-index: 1; }
+
+      /* THE BANNER CARRIES ITS OWN TAPE. It was cut out of the mockup with
+         the tape corners attached, so it hangs over the top edge of the
+         sheet the way it is drawn rather than sitting inside it. */
+      .rm-share-banner {
+        display: block;
+        width: 306px; max-width: 104%;
+        height: auto;
+        margin: -46px auto 2px;
+        pointer-events: none;
+      }
+      .rm-share-sheet .rm-share-lead {
+        font-family: "RM Type", "Courier New", Courier, monospace;
+        font-size: 12px; line-height: 1.35;
+        color: #eee6d5;
+        margin: 4px 0 12px;
+      }
+
+      .rm-share-code { position: relative; }
+      /* THE CODE ON WHITE WITH ITS QUIET ZONE. A phone camera needs the pale
+         margin around a code as much as the code itself; on the app's dark
+         ground a code with no border does not scan. */
+      .rm-share-sheet .rm-qr {
+        width: 164px; height: 164px;
+        margin: 0 auto;
+        padding: 10px;
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 6px 18px rgba(0,0,0,.45);
+      }
+      .rm-share-sheet .rm-qr svg { width: 100%; height: 100%; display: block; }
+      .rm-share-pass {
+        position: absolute; right: 4px; top: 10px;
+        width: 56px; height: auto; pointer-events: none;
+      }
+      .rm-share-stars {
+        position: absolute; left: 6px; bottom: 10px;
+        width: 42px; height: auto; pointer-events: none;
+      }
+
+      .rm-share-sheet .rm-qr-url {
+        display: block;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 16px; letter-spacing: .4px;
+        color: #f4ecd8;
+        margin: 12px 0 0;
+      }
+      .rm-share-rule { display: block; width: 150px; height: auto; margin: 1px auto 12px; }
+
+      .rm-share-sheet .rm-modal-row { display: flex; gap: 10px; margin: 0; }
+      .rm-share-sheet .rm-modal-row button {
+        flex: 1 1 0;
+        min-height: 46px;
+        border-radius: 10px;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        font-weight: 800; font-size: 13px; letter-spacing: 1.6px;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .rm-share-sheet .rm-modal-cancel {
+        border: 1.5px solid rgba(215,178,83,.75);
+        background: transparent;
+        color: #f4ecd8;
+      }
+      .rm-share-sheet .rm-modal-save {
+        border: 0;
+        background: linear-gradient(180deg, #ecce85 0%, #ddb765 52%, #cda44d 100%);
+        color: #17130b;
+      }
+      /* COPY LINK is the quiet third option, the way the mockup has it:
+         under the two buttons, no box around it, but still a real 44px
+         target because it is a real thing to tap. */
+      .rm-share-copy {
+        display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+        min-height: 44px; margin: 4px auto 0; padding: 8px 14px;
+        border: 0; background: none; cursor: pointer;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        font-weight: 700; font-size: 12.5px; letter-spacing: 1.4px;
+        text-transform: uppercase; color: #eee6d5;
+      }
+      .rm-share-copy svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+      .rm-share-copy:active { color: #d7b253; }
+      .rm-share-say {
+        min-height: 16px; margin: 2px 0 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        font-size: 11.5px; color: #aaa497;
+      }
+
+      @media (max-width: 340px) {
+        .rm-share-banner { width: 270px; margin-top: -40px; }
+        .rm-share-sheet .rm-qr { width: 146px; height: 146px; }
+      }
+
       @media (max-width: 900px) {
         body {
           padding-bottom: calc(172px + env(safe-area-inset-bottom, 0px));
@@ -680,6 +814,11 @@
     return qrLoading;
   }
 
+  /* WHERE FOCUS WAS WHEN THE SHEET OPENED, so it can be put back. A dialog
+     that swallows focus and never returns it strands anyone using a keyboard
+     or a screen reader on a page they cannot get back to. */
+  let shareOpener = null;
+
   function ensureShareModal() {
     let modal = document.getElementById("rmShareModal");
     if (modal) return modal;
@@ -690,30 +829,66 @@
 
     modal = document.createElement("div");
     modal.id = "rmShareModal";
-    modal.className = "rm-modal-backdrop";
+    modal.className = "rm-modal-backdrop rm-share-sheet";
     modal.innerHTML = `
       <div class="rm-modal" role="dialog" aria-modal="true" aria-labelledby="rmShareTitle">
-        <h3 id="rmShareTitle">Share the app</h3>
-        <p>Point a phone camera at the code.</p>
-        <div class="rm-qr-wrap">
+        <img class="rm-share-banner" src="/assets/pages/s-banner.webp" alt="" aria-hidden="true">
+        <h3 id="rmShareTitle" class="rm-sr-only">Share the app</h3>
+        <p class="rm-share-lead">Point a phone camera at the code.</p>
+
+        <div class="rm-share-code">
           ${code ? `<div class="rm-qr">${code}</div>` : ""}
-          <b class="rm-qr-url">${SHARE_LABEL}</b>
+          <img class="rm-share-pass" src="/assets/pages/s-passiton.webp" alt="" aria-hidden="true">
+          <img class="rm-share-stars" src="/assets/pages/s-stars.webp" alt="" aria-hidden="true">
         </div>
+
+        <b class="rm-qr-url">${SHARE_LABEL}</b>
+        <img class="rm-share-rule" src="/assets/pages/s-urlrule.webp" alt="" aria-hidden="true">
+
         <div class="rm-modal-row">
           <button type="button" class="rm-modal-cancel" id="rmShareClose">Close</button>
           <button type="button" class="rm-modal-save" id="rmShareSend">Send link</button>
         </div>
+        <button type="button" class="rm-share-copy" id="rmShareCopy">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round"/></svg>
+          Copy link
+        </button>
+        <p class="rm-share-say" id="rmShareSay" role="status" aria-live="polite"></p>
       </div>
     `;
     document.body.appendChild(modal);
 
-    const close = () => modal.classList.remove("show");
+    const say = (msg) => {
+      const el = modal.querySelector("#rmShareSay");
+      el.textContent = msg;
+      setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, 2600);
+    };
+
+    function close() {
+      modal.classList.remove("show");
+      /* Back where it came from, not to the top of the page. */
+      if (shareOpener && document.contains(shareOpener)) {
+        try { shareOpener.focus(); } catch (_) {}
+      }
+      shareOpener = null;
+    }
+    modal.rmClose = close;
+
     modal.querySelector("#rmShareClose").addEventListener("click", close);
     /* Tapping the dark closes it too. A sheet with one way out is a trap
        the first time somebody opens it by accident. */
     modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modal.classList.contains("show")) close();
+
+    /* ESCAPE CLOSES IT, AND TAB STAYS INSIDE IT. Both are the same listener
+       because both are about the sheet owning the keyboard while it is up. */
+    modal.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { e.preventDefault(); close(); return; }
+      if (e.key !== "Tab") return;
+      const focusable = modal.querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
 
     const send = modal.querySelector("#rmShareSend");
@@ -729,10 +904,19 @@
       } catch (_) { return; }
       try {
         await navigator.clipboard.writeText(SHARE_URL);
-        const was = send.textContent;
-        send.textContent = "Link copied";
-        setTimeout(() => { send.textContent = was; }, 1800);
-      } catch (_) {}
+        say("Link copied.");
+      } catch (_) { say(SHARE_URL); }
+    });
+
+    modal.querySelector("#rmShareCopy").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(SHARE_URL);
+        say("Link copied.");
+      } catch (_) {
+        /* No clipboard permission: show the address so it can be read out or
+           typed. Better than a button that appears to do nothing. */
+        say(SHARE_URL);
+      }
     });
 
     return modal;
@@ -746,6 +930,12 @@
     /* NO SIGNAL, NO CODE -- but still a sheet. The address and the Send
        Link button are the parts that matter on a phone with one bar, and a
        dead tab would be worse than a sheet missing its picture. */
-    ensureShareModal().classList.add("show");
+    shareOpener = btn;
+    const sheet = ensureShareModal();
+    sheet.classList.add("show");
+    /* Focus goes INTO the sheet so Escape and Tab reach it, and so a screen
+       reader starts reading the dialog rather than the page behind it. */
+    const firstBtn = sheet.querySelector("#rmShareClose");
+    if (firstBtn) { try { firstBtn.focus(); } catch (_) {} }
   });
 })();
