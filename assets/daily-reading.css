@@ -1,0 +1,197 @@
+/* ===========================================================================
+   THE DAILY READING — shared by the Home screen and by Another Day Sober.
+
+   THESE TWO SCREENS SHOW THE SAME THING. They did before as well, through the
+   old widget, and the moment the reading was redrawn they stopped matching --
+   the Home screen kept the white card while the reading page had been rebuilt
+   to the mockup. One stylesheet and one script now, so a change lands on both
+   at once and neither can drift behind the other again.
+
+   The only difference between the two pages is which tab stays lit.
+   ======================================================================== */
+
+/* ===========================================================================
+   ANOTHER DAY SOBER — the reading itself, built to the approved mockup.
+
+   WHAT IS GONE, ON PURPOSE, because the brief asks for it and says not to put
+   anything in their place: READ IT SLOW, TODAY'S READING, the progress bar,
+   and 1 OF 1.
+
+   WHAT IS KEPT: the wordmark bar, the publication's own name and line, A-/A+,
+   read aloud, the real date, the whole real reading, SHARE THIS READING, the
+   Sober Date strip and the nav.
+
+   THE READING COMES FROM /data/readings.json -- the same file, the same MM-DD
+   key and the same share URL the old widget used, so a link shared from here
+   is the same link as before and the text size somebody set still applies.
+   ======================================================================== */
+
+@font-face{
+  font-family:"RM Display";
+  src:url("fonts/oswald-600.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"RM Display Fallback";
+  src:url("fonts/Anton-Regular.ttf") format("truetype");
+  font-weight:400;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"RM Type";
+  src:url("fonts/special-elite-400.woff2") format("woff2");
+  font-weight:400;font-style:normal;font-display:swap;
+}
+
+:root{
+  --bg:#0e0e0d;
+  --paper:#171715;
+  --ivory:#eee6d5;
+  --gold:#d7b253;
+  --muted:#aaa497;
+  --line:rgba(215,178,83,.42);
+  --touch:44px;
+  --display:"RM Display","RM Display Fallback","Arial Narrow",Impact,sans-serif;
+  --type:"RM Type","Courier New",Courier,monospace;
+  --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{-webkit-font-smoothing:antialiased}
+
+/* the page's own worn paper, same three layers as the rest of the app */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.13;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+body::after{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55;
+  background-image:
+    radial-gradient(60% 34% at 14% 6%, rgba(215,178,83,.06), transparent 70%),
+    radial-gradient(60% 40% at 50% 98%, rgba(215,178,83,.05), transparent 70%),
+    /* the ring the mockup has sitting behind the masthead */
+    radial-gradient(circle at 84% 9%, transparent 52px, rgba(150,110,50,.20) 53px, rgba(150,110,50,.20) 60px, transparent 61px);
+}
+
+/* THE PAGE SITS INSIDE A TORN FRAME, and leaving it out was the mistake
+   that made everything else look oversized. Without the frame the words run
+   the full width of the phone, so every size has to grow to fill it; with
+   it the measure is 254px and the type sits where it is drawn.
+
+   Nine-patch: the corners never scale, the edges REPEAT (stretching a torn
+   edge smears it), and the middle is left out so the page shows through. */
+.sheet{
+  position:relative;
+  margin:0 auto;
+  max-width:560px;
+  /* Each side its own slice: the torn edges down the sides are twice as
+     deep as the ones at the top and foot. repeat, never stretch -- a
+     stretched torn edge smears into a smudge. */
+  border-style:solid;
+  border-color:transparent;
+  border-width:15px 27px 13px 27px;
+  border-image:url("pages/d-frame.webp") 34 60 30 60 repeat;
+  padding:6px 7px 10px;
+}
+
+main{
+  position:relative;z-index:1;
+  max-width:620px;margin:0 auto;
+  padding:6px 33px 20px;
+  color:var(--ivory);
+  font-family:var(--ui);
+}
+
+/* tape at the corners, over the frame */
+.tape{position:absolute;z-index:3;pointer-events:none;height:auto}
+.tape.tl{top:-20px;left:-22px;width:54px;transform:rotate(-3deg)}
+.tape.tr{top:-22px;right:-20px;width:58px;transform:rotate(4deg)}
+.tape.bl{bottom:-14px;left:-16px;width:40px;transform:rotate(3deg)}
+.tape.br{bottom:-18px;right:-16px;width:44px;transform:rotate(-4deg)}
+
+/* ---- the publication ----------------------------------------------------
+   Measured off the mockup: the drawing is 50px across, the name 187px wide,
+   the line under it 129. */
+.pub{display:grid;grid-template-columns:50px 1fr;gap:9px;align-items:start;padding-top:4px}
+.pub .art{width:50px;height:auto;margin-top:2px}
+.pub .name{
+  font-family:var(--serif);font-weight:700;
+  font-size:18px;line-height:1.1;letter-spacing:.1px;color:#fff;margin:0;
+}
+.pub .tag{font-family:var(--type);font-size:12px;letter-spacing:1.5px;color:var(--ivory);margin:3px 0 0}
+.pub .rule{display:block;width:129px;height:auto;margin:1px 0 0}
+
+/* ---- the three controls -------------------------------------------------
+   Drawn 22px tall. They are 44 here, which is the brief's own floor and the
+   one number on this page worth more than the drawing: the hands reaching
+   for these are often not steady. Everything else about them is the
+   mockup's -- the soft square, the hairline, the spacing. */
+.controls{display:flex;gap:9px;margin:11px 0 12px}
+.ctl{
+  min-width:var(--touch);min-height:var(--touch);
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:6px 14px;border-radius:11px;
+  border:1px solid rgba(238,230,213,.2);
+  background:rgba(238,230,213,.055);
+  color:var(--ivory);font-family:var(--ui);font-weight:700;font-size:15px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.ctl:active{background:rgba(238,230,213,.12)}
+.ctl svg{width:19px;height:19px;fill:currentColor}
+.ctl[aria-pressed="true"]{border-color:var(--gold);color:#12100b;background:var(--gold)}
+
+/* ---- the date, on its brush stroke -------------------------------------- */
+.dateline{position:relative;display:inline-block;margin:0 0 2px;padding:5px 11px 6px}
+.dateline img{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.dateline span{
+  position:relative;z-index:1;
+  font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.9px;
+  text-transform:uppercase;color:#1a1408;white-space:nowrap;
+}
+
+.title{
+  font-family:var(--display);font-weight:600;
+  font-size:25px;line-height:1.06;letter-spacing:.1px;
+  color:#fff;margin:1px 0 0;
+}
+.titlerule{display:block;width:206px;max-width:100%;height:auto;margin:0 0 10px}
+
+/* ---- the reading --------------------------------------------------------
+   The mockup sets this at about 12px over a 254px measure, which is how the
+   whole reading fits one screen there. That size is kept, and the leading is
+   opened a little past the drawing's own -- 1.19 is tight for a long serif
+   passage and this is the one screen whose only job is to be read. A- and
+   A+ are right above it and what they choose is remembered. */
+.reading{font-family:var(--serif);font-size:12px;line-height:1.5;color:var(--ivory)}
+.reading p{margin:0 0 12px}
+.reading p:last-child{margin-bottom:4px}
+
+.foot{margin-top:12px}
+.foot .rule{display:block;width:100%;height:auto;opacity:.95}
+.share{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:min(238px,100%);margin:9px auto 0;
+  min-height:44px;padding:10px 18px;
+  border-radius:999px;border:1.4px solid var(--gold);
+  background:transparent;color:var(--gold);
+  font-family:var(--ui);font-weight:800;font-size:10.5px;letter-spacing:1.3px;
+  /* NEVER TWO LINES. A label that wraps turns a button into a paragraph. */
+  white-space:nowrap;
+  text-transform:uppercase;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.share:active{background:rgba(215,178,83,.12)}
+.share svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9}
+
+.say{min-height:18px;margin:8px 0 0;text-align:center;
+  font-family:var(--ui);font-size:11.5px;color:var(--muted)}
+.state{font-family:var(--serif);font-size:13px;line-height:1.6;color:var(--muted)}
+
+.tailroom{height:150px}
+
+@media (max-width:359px){
+  .sheet{border-width:12px 20px 10px 20px}
+  .pub .name{font-size:17px}
+  .title{font-size:22px}
+}

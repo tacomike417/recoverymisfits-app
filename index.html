@@ -1,63 +1,93 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recovery Misfits</title>
+<meta name="theme-color" content="#0e0e0d">
+<link rel="canonical" href="https://recoverymisfits.org/">
+<meta name="description" content="Daily recovery readings for alcoholics — Another Day Sober, one day at a time.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Recovery Misfits">
+<meta property="og:description" content="Daily recovery readings for alcoholics — Another Day Sober, one day at a time.">
+<meta property="og:url" content="https://recoverymisfits.org/">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="./icon-192.png">
 
-  <link rel="canonical" href="https://recoverymisfits.org/">
-  <meta name="description" content="Daily recovery readings for alcoholics — Another Day Sober, one day at a time.">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Recovery Misfits">
-  <meta property="og:description" content="Daily recovery readings for alcoholics — Another Day Sober, one day at a time.">
-  <meta property="og:url" content="https://recoverymisfits.org/">
-
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000" />
-  <link rel="icon" href="./icon-192.png">
-
-  <!-- iPhone PWA support -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-
-  <link rel="stylesheet" href="./assets/reading-widget.css">
-
-  <style>
-    body{
-      margin:0;
-      font-family:Roboto,Arial,sans-serif;
-      background:#fff;
-      padding-bottom:120px; /* sober bar + nav */
-    }
-
-    /* ===== READING WIDGET WRAP ===== */
-    .frameWrap{
-      width:100%;
-      min-height:calc(100vh - 74px - 120px);
-      padding:16px;
-      box-sizing:border-box;
-      background:#fff;
-    }
-  </style>
+<!-- THE READING'S LOOK AND ITS BEHAVIOR, SHARED WITH Another Day Sober.
+     Both screens show the same reading and always did. Keeping two copies is
+     how the Home screen ended up still wearing the old white card after the
+     reading page had been rebuilt. One file each now. -->
+<link rel="stylesheet" href="./assets/daily-reading.css">
 </head>
 
 <body>
 
-  <!-- Shared TOP BAR (injected by topbar.js) -->
-  <div id="rm-topbar"></div>
-  <script src="./topbar.js" defer></script>
+<div id="rm-topbar"></div>
+<script src="./topbar.js" defer></script>
 
-  <!-- Today's reading -->
-  <div class="frameWrap">
-    <div id="dailyPostWidget"></div>
+<div class="sheet">
+<img class="tape tl" src="assets/pages/d-tape-tl.webp" alt="" aria-hidden="true">
+<img class="tape tr" src="assets/pages/d-tape-tr.webp" alt="" aria-hidden="true">
+<img class="tape bl" src="assets/pages/d-tape-bl.webp" alt="" aria-hidden="true">
+<img class="tape br" src="assets/pages/d-tape-br.webp" alt="" aria-hidden="true">
+
+<main>
+
+  <header class="pub">
+    <img class="art" src="assets/pages/d-book.webp" alt="" aria-hidden="true" width="122" height="111">
+    <div>
+      <h1 class="name">Another Day Sober</h1>
+      <p class="tag">one day at a time</p>
+      <img class="rule" src="assets/pages/d-rule.webp" alt="" aria-hidden="true" width="297" height="17">
+    </div>
+  </header>
+
+  <div class="controls">
+    <button class="ctl" id="smaller" type="button" aria-label="Make the text smaller">A&minus;</button>
+    <button class="ctl" id="bigger"  type="button" aria-label="Make the text bigger">A+</button>
+    <button class="ctl" id="speak"   type="button" aria-pressed="false" aria-label="Read this aloud">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2.2v2.1a7.8 7.8 0 0 1 0 15.4v2.1a9.9 9.9 0 0 0 0-19.6z"/></svg>
+    </button>
   </div>
-  <script src="./assets/reading-widget.js" defer></script>
 
-  <!-- Shared SOBER BAR + NAV (injected by nav.js) -->
-  <div id="rm-bottom-nav"></div>
-  <script src="./nav.js" defer></script>
+  <p class="dateline" id="dateline" hidden>
+    <img src="assets/pages/d-swash.webp" alt="" aria-hidden="true">
+    <span id="dateText"></span>
+  </p>
+
+  <h2 class="title" id="title">&nbsp;</h2>
+  <img class="titlerule" src="assets/pages/d-titlerule.webp" alt="" aria-hidden="true" width="471" height="20">
+
+  <article class="reading" id="reading">
+    <p class="state">Opening today&rsquo;s reading&hellip;</p>
+  </article>
+
+  <div class="foot">
+    <img class="rule" src="assets/pages/d-sharerule.webp" alt="" aria-hidden="true" width="676" height="8">
+    <button class="share" id="share" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Share this reading
+    </button>
+    <p class="say" id="say" role="status" aria-live="polite"></p>
+  </div>
+
+</main>
+</div>
+
+<div class="tailroom"></div>
+
+<div id="rm-bottom-nav"></div>
+<script src="./nav.js" defer></script>
+
+<script src="./assets/daily-reading.js" defer></script>
+<script>
+if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js"); }
+</script>
 
 </body>
 </html>
