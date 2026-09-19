@@ -759,6 +759,62 @@
       treatmentMusicSettings.smoothing;
   }
 
+  /* =====================================
+     SOUND EFFECTS — A FIXED POOL, NOT A NEW ELEMENT EVERY TAP
+     =====================================
+
+     THE BUG THIS REPLACES, because it is worth writing down.
+
+     This used to be:
+
+         const sound = new Audio(source);
+         sound.play().catch(() => {});
+
+     A brand new HTMLAudioElement on every single call, and nothing ever
+     released one. They were never paused, never emptied, never dropped.
+     Each one holds a live decoder, and a playing media element is not
+     something the garbage collector is free to take away.
+
+     On a desktop you get away with it. On an iPhone you do not: iOS gives
+     the whole page a small, shared pool of audio decoders, and once it is
+     full everything audio-adjacent starts stalling -- and because decode
+     stalls land on the main thread, the ANIMATION goes with it.
+
+     That is exactly the treatment minigame. RUN, HOT SHOWER, COLD BATH,
+     BELLADONNA -- it is the one screen built on tapping as fast as you can,
+     so it is the one screen that hits the ceiling. Every tap leaked another
+     decoder until the music dragged, the frame rate collapsed, and it
+     looked like the game had hung. It had not; it had run out of audio.
+
+     THE FIX. Three sounds exist in this game. Build a handful of elements
+     for each ONCE, and cycle through them. VOICES is how many of the same
+     sound can overlap -- four is plenty for a tap-spam game and is four
+     elements, not four hundred. Nothing is allocated after the first play
+     of each sound, so the hundredth tap costs exactly what the first did. */
+
+  const VOICES = 4;
+  const soundPools = new Map();
+
+  function getVoice(soundName, source) {
+    let pool = soundPools.get(soundName);
+
+    if (!pool) {
+      pool = { voices: [], next: 0 };
+
+      for (let i = 0; i < VOICES; i += 1) {
+        const voice = new Audio(source);
+        voice.preload = "auto";
+        pool.voices.push(voice);
+      }
+
+      soundPools.set(soundName, pool);
+    }
+
+    const voice = pool.voices[pool.next];
+    pool.next = (pool.next + 1) % VOICES;
+    return voice;
+  }
+
   function playSound(
     soundName,
     options = {}
@@ -771,7 +827,18 @@
     }
 
     const sound =
-      new Audio(source);
+      getVoice(soundName, source);
+
+    /* Rewind before reuse. Without this, the fifth tap finds this voice
+       still mid-sound and play() on an already-playing element does
+       nothing at all -- the tap would land silently. */
+    try {
+      sound.pause();
+      sound.currentTime = 0;
+    } catch (error) {
+      /* currentTime throws while a voice is still loading. Not worth
+         caring about: it plays from wherever it is, once. */
+    }
 
     sound.volume =
       options.volume ??
