@@ -1,3 +1,8 @@
+/* BUILD MARKER -- bumped on every change, read by test.html so it can show
+   which version of the GAME is actually live rather than which version of
+   the page is. */
+window.RecoveryBuild = "game2 v8 - preservesPitch off";
+
 (() => {
   "use strict";
 
@@ -2768,13 +2773,6 @@
      always, because browsers require a gesture before audio plays. */
   const jumpStraightIn =
     new URLSearchParams(window.location.search).get("jump") === "1";
-
-  /* The music elements are built with new Audio(), so they are never in the
-     DOM and the frame logger in gameflow.js cannot find them by query.
-     Hand it a reference, but only when the URL asked for logging. */
-  if (new URLSearchParams(window.location.search).get("perf") === "1") {
-    window.RecoveryDebugMusic = backgroundMusic;
-  }
 
   if (jumpStraightIn && chapterExists) {
     startGameplay();

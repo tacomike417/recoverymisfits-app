@@ -50,8 +50,12 @@
 <body>
 
 <header>
-  <h1>Test Bench <span class="ver">v3</span></h1>
+  <h1>Test Bench <span class="ver">v4</span></h1>
   <p class="sub">Diagnostics. Nothing here is linked from the app.<br>The three below drop straight into the treatment level.</p>
+<div id="build" style="border:1px solid #2b2a26;background:#131312;border-radius:10px;
+     padding:11px 13px;margin-bottom:18px;font:12px ui-monospace,Menlo,monospace;color:#8d877c">
+  checking what game code is live…
+</div>
 </header>
 
 <h2>Treatment level — frame rate</h2>
@@ -127,6 +131,20 @@
 </p>
 <script>
   const KEY = "rm-perf-log";
+
+  /* Read the build marker straight out of the deployed game file, so this
+     says what the GAME is running, not what this page is running. */
+  (async () => {
+    const el = document.getElementById("build");
+    try {
+      const t = await fetch("./game2.js?cb=" + Date.now(), { cache: "no-store" }).then(r => r.text());
+      const m = t.match(/window\.RecoveryBuild\s*=\s*"([^"]+)"/);
+      if (m) { el.style.color = "#7bc95f"; el.textContent = "live game code: " + m[1]; }
+      else   { el.style.color = "#e07a5f"; el.textContent = "live game code: OLD (no build marker yet)"; }
+    } catch (e) {
+      el.style.color = "#e07a5f"; el.textContent = "could not read game2.js";
+    }
+  })();
 
   function render() {
     const box = document.getElementById("results");
