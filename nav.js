@@ -362,6 +362,107 @@
         font-size: 12px;
         color: #d6b36a;
       }
+      /* ---- THE SOBER DATE WHEELS ---------------------------------------
+         Three columns you spin, the way a phone asks for a date, instead of
+         typing DD-MM-YYYY into a box and being told off for getting it
+         wrong. The date somebody is entering here is often the single most
+         important date in their life -- it should not be a form field with
+         a validation error hanging off it.
+
+         Scroll-snap does the work. Each column is an ordinary scroller whose
+         items snap to centre; the reading is taken from scrollTop once it
+         settles, so there is no drag maths to get wrong and it keeps native
+         momentum on a real phone. */
+      .rm-wheels {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.55fr 1fr 1.2fr;
+        gap: 2px;
+        margin: 4px 0 2px;
+        /* 5 rows of 40px. Odd number, so there IS a middle. */
+        height: 200px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,.10);
+        background: #0f0f0f;
+        overflow: hidden;
+      }
+
+      /* The lit band across the middle, under the numbers. */
+      .rm-wheels::before {
+        content: "";
+        position: absolute;
+        left: 6px; right: 6px; top: 80px; height: 40px;
+        border-top: 1px solid rgba(214,179,106,.45);
+        border-bottom: 1px solid rgba(214,179,106,.45);
+        background: rgba(214,179,106,.09);
+        border-radius: 8px;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      /* Fade top and bottom so the column reads as a wheel turning away
+         rather than a list that has been cut off. */
+      .rm-wheels::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 2;
+        background: linear-gradient(180deg,
+          #0f0f0f 0%, rgba(15,15,15,.72) 16%, rgba(15,15,15,0) 38%,
+          rgba(15,15,15,0) 62%, rgba(15,15,15,.72) 84%, #0f0f0f 100%);
+      }
+
+      .rm-wheel {
+        position: relative;
+        z-index: 3;
+        height: 100%;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        /* Nothing but the middle row is a hit target for the eye, so the
+           scrollbar would only be clutter. */
+        text-align: center;
+      }
+      .rm-wheel::-webkit-scrollbar { display: none; }
+
+      /* 80px of nothing above and below, so the first and last items can
+         reach the middle. */
+      .rm-wheel .pad { height: 80px; }
+
+      .rm-wheel .opt {
+        height: 40px;
+        line-height: 40px;
+        scroll-snap-align: center;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        font-size: 17px;
+        font-variant-numeric: tabular-nums;
+        color: rgba(255,255,255,.34);
+        white-space: nowrap;
+        transition: color .12s ease, transform .12s ease;
+        user-select: none;
+      }
+      .rm-wheel .opt.near { color: rgba(255,255,255,.58); }
+      .rm-wheel .opt.sel {
+        color: #f7efd9;
+        font-weight: 700;
+        transform: scale(1.06);
+      }
+      /* A day that does not exist in the chosen month is still in the column,
+         because a column that changes length under your thumb is worse. It
+         just cannot be landed on. */
+      .rm-wheel .opt.void { opacity: .18; }
+
+      .rm-wheel-read {
+        margin: 10px 0 0;
+        text-align: center;
+        font-size: 13px;
+        color: rgba(255,255,255,.74);
+      }
+      .rm-wheel-read b { color: #f7efd9; font-weight: 700; }
+      .rm-wheel-read .days { color: #d6b36a; font-weight: 700; }
+
 
       .rm-modal-row {
         display: flex;
@@ -677,6 +778,176 @@
     sub.textContent = `Since ${ymdToDisplayDMY(ymd)}`;
   }
 
+  /* ---- the sober date wheels ---------------------------------------------
+
+     Three scrollers, snapped to their middle row. The value of a wheel is
+     just round(scrollTop / 40) -- no drag handling, no velocity maths, and
+     the browser keeps its own momentum and rubber-banding, which is most of
+     what makes a picker feel right on a phone.
+
+     THE TWO THINGS THAT GO WRONG WITH A DATE PICKER, both handled here:
+
+       1. February. Thirty-one days are always on the day wheel, because a
+          column that grows and shrinks under your thumb is horrible. The
+          ones that do not exist this month are dimmed and cannot be landed
+          on -- land on one and it slides back to the last real day.
+
+       2. The future. This is a SOBER date. Tomorrow is not a valid answer,
+          and neither is next year, so anything past today is dimmed the
+          same way and the wheels walk themselves back to today.
+  */
+  const WHEEL_H = 40;
+  const MONTHS_LONG = ["January","February","March","April","May","June",
+                       "July","August","September","October","November","December"];
+  /* Far enough back for anybody. AA started in 1935. */
+  const YEAR_MIN = 1935;
+
+  let wheelEls = null;
+
+  function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+
+  function wheelIndex(el) {
+    return Math.round(el.scrollTop / WHEEL_H);
+  }
+
+  function wheelValues() {
+    if (!wheelEls) return null;
+    const now = new Date();
+    const yearMax = now.getFullYear();
+    const m = Math.min(11, Math.max(0, wheelIndex(wheelEls.m)));
+    const y = Math.min(yearMax, Math.max(YEAR_MIN, YEAR_MIN + wheelIndex(wheelEls.y)));
+    const d = Math.min(31, Math.max(1, wheelIndex(wheelEls.d) + 1));
+    return { y: y, m: m, d: d };
+  }
+
+  function wheelYMD() {
+    const v = wheelValues();
+    if (!v) return "";
+    const d = Math.min(v.d, daysInMonth(v.y, v.m));
+    return `${v.y}-${pad2(v.m + 1)}-${pad2(d)}`;
+  }
+
+  function scrollWheelTo(el, i, smooth) {
+    el.scrollTo({ top: i * WHEEL_H, behavior: smooth ? "smooth" : "auto" });
+  }
+
+  function setWheels(ymd) {
+    if (!wheelEls) return;
+    const parts = String(ymd || "").split("-");
+    const now = new Date();
+    let y = parseInt(parts[0], 10) || now.getFullYear();
+    let m = (parseInt(parts[1], 10) || now.getMonth() + 1) - 1;
+    let d = parseInt(parts[2], 10) || now.getDate();
+    y = Math.min(now.getFullYear(), Math.max(YEAR_MIN, y));
+    m = Math.min(11, Math.max(0, m));
+    d = Math.min(daysInMonth(y, m), Math.max(1, d));
+    scrollWheelTo(wheelEls.m, m, false);
+    scrollWheelTo(wheelEls.d, d - 1, false);
+    scrollWheelTo(wheelEls.y, y - YEAR_MIN, false);
+    paintWheels();
+  }
+
+  /* Which rows are dead right now, and the running total under the wheels. */
+  function paintWheels() {
+    if (!wheelEls) return;
+    const v = wheelValues();
+    if (!v) return;
+    const now = new Date();
+    const thisY = now.getFullYear(), thisM = now.getMonth(), thisD = now.getDate();
+    const dim = daysInMonth(v.y, v.m);
+
+    wheelEls.m.querySelectorAll(".opt").forEach((el, i) => {
+      el.classList.toggle("void", v.y === thisY && i > thisM);
+    });
+    wheelEls.d.querySelectorAll(".opt").forEach((el, i) => {
+      const day = i + 1;
+      const future = (v.y === thisY && v.m === thisM && day > thisD);
+      el.classList.toggle("void", day > dim || future);
+    });
+    wheelEls.y.querySelectorAll(".opt").forEach((el, i) => {
+      el.classList.toggle("void", YEAR_MIN + i > thisY);
+    });
+
+    [wheelEls.m, wheelEls.d, wheelEls.y].forEach((el) => {
+      const sel = wheelIndex(el);
+      el.querySelectorAll(".opt").forEach((o, i) => {
+        o.classList.toggle("sel", i === sel);
+        o.classList.toggle("near", Math.abs(i - sel) === 1);
+      });
+    });
+
+    const read = document.getElementById("rmWheelRead");
+    if (read) {
+      const ymd = wheelYMD();
+      const days = daysBetweenLocal(ymd, todayLocalYMD());
+      read.innerHTML = `<b>${MONTHS_LONG[v.m]} ${Math.min(v.d, dim)}, ${v.y}</b>` +
+        (days >= 0 ? ` &middot; <span class="days">${days.toLocaleString()} day${days === 1 ? "" : "s"}</span>` : "");
+    }
+  }
+
+  /* After a wheel settles, walk it back out of any dead row it landed in. */
+  function settleWheels() {
+    if (!wheelEls) return;
+    const now = new Date();
+    const thisY = now.getFullYear(), thisM = now.getMonth(), thisD = now.getDate();
+    let v = wheelValues();
+
+    if (v.y > thisY) { scrollWheelTo(wheelEls.y, thisY - YEAR_MIN, true); v.y = thisY; }
+    if (v.y === thisY && v.m > thisM) { scrollWheelTo(wheelEls.m, thisM, true); v.m = thisM; }
+    const dim = daysInMonth(v.y, v.m);
+    let maxD = dim;
+    if (v.y === thisY && v.m === thisM) maxD = Math.min(dim, thisD);
+    if (v.d > maxD) scrollWheelTo(wheelEls.d, maxD - 1, true);
+    paintWheels();
+  }
+
+  function buildWheels(modal) {
+    const m = modal.querySelector("#rmWheelM");
+    const d = modal.querySelector("#rmWheelD");
+    const y = modal.querySelector("#rmWheelY");
+    if (!m || !d || !y) return;
+    wheelEls = { m: m, d: d, y: y };
+
+    const fill = (el, labels) => {
+      el.innerHTML = '<div class="pad"></div>' +
+        labels.map((t) => `<div class="opt">${t}</div>`).join("") +
+        '<div class="pad"></div>';
+    };
+    fill(m, MONTHS_LONG);
+    fill(d, Array.from({ length: 31 }, (_, i) => String(i + 1)));
+    const thisY = new Date().getFullYear();
+    fill(y, Array.from({ length: thisY - YEAR_MIN + 1 }, (_, i) => String(YEAR_MIN + i)));
+
+    [m, d, y].forEach((el) => {
+      let t = null;
+      el.addEventListener("scroll", () => {
+        paintWheels();
+        clearTimeout(t);
+        /* scrollend is not everywhere yet, so this is the fallback that
+           actually runs on the phones this app is installed on. */
+        t = setTimeout(settleWheels, 130);
+      }, { passive: true });
+
+      /* Tapping a row is quicker than spinning to it, and a keyboard has to
+         work at all -- this is the one screen somebody might be filling in
+         with shaking hands. */
+      el.addEventListener("click", (e) => {
+        const opt = e.target.closest(".opt");
+        if (!opt || opt.classList.contains("void")) return;
+        const list = [...el.querySelectorAll(".opt")];
+        scrollWheelTo(el, list.indexOf(opt), true);
+        setTimeout(settleWheels, 220);
+      });
+      el.addEventListener("keydown", (e) => {
+        const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+        if (!step) return;
+        e.preventDefault();
+        scrollWheelTo(el, Math.max(0, wheelIndex(el) + step), true);
+        setTimeout(settleWheels, 220);
+      });
+    });
+  }
+
   function ensureModal() {
     let modal = document.getElementById("rmSoberDateModal");
     if (modal) return modal;
@@ -687,8 +958,13 @@
     modal.innerHTML = `
       <div class="rm-modal" role="dialog" aria-modal="true" aria-labelledby="rmSoberDateModalTitle">
         <h3 id="rmSoberDateModalTitle">Set Sober Date</h3>
-        <p>Enter your sober date as DD-MM-YYYY.</p>
-        <input id="rmSoberDateInput" type="text" inputmode="numeric" maxlength="10" placeholder="DD-MM-YYYY" />
+        <p>Spin to your date.</p>
+        <div class="rm-wheels" id="rmWheels">
+          <div class="rm-wheel" id="rmWheelM" role="listbox" aria-label="Month" tabindex="0"></div>
+          <div class="rm-wheel" id="rmWheelD" role="listbox" aria-label="Day" tabindex="0"></div>
+          <div class="rm-wheel" id="rmWheelY" role="listbox" aria-label="Year" tabindex="0"></div>
+        </div>
+        <p class="rm-wheel-read" id="rmWheelRead" role="status" aria-live="polite"></p>
         <div class="rm-modal-note">Saved only on this device.</div>
         <div class="rm-modal-row">
           <button type="button" class="rm-modal-cancel" id="rmSoberDateCancel">Cancel</button>
@@ -699,27 +975,17 @@
 
     document.body.appendChild(modal);
 
-    const input = modal.querySelector("#rmSoberDateInput");
     const cancel = modal.querySelector("#rmSoberDateCancel");
     const save = modal.querySelector("#rmSoberDateSave");
-
-    input.addEventListener("input", () => {
-      let v = input.value.replace(/[^\d]/g, "").slice(0, 8);
-      if (v.length > 4) v = `${v.slice(0, 2)}-${v.slice(2, 4)}-${v.slice(4)}`;
-      else if (v.length > 2) v = `${v.slice(0, 2)}-${v.slice(2)}`;
-      input.value = v;
-    });
+    buildWheels(modal);
 
     cancel.addEventListener("click", () => {
       modal.classList.remove("show");
     });
 
     save.addEventListener("click", () => {
-      const ymd = parseDMYToYMD(input.value);
-      if (!ymd) {
-        alert("Please enter a real past date in DD-MM-YYYY format.");
-        return;
-      }
+      const ymd = wheelYMD();
+      if (!ymd) return;
       localStorage.setItem(SOBER_KEY, ymd);
       modal.classList.remove("show");
       refreshSoberPanel();
@@ -734,12 +1000,12 @@
 
   function openSoberModal() {
     const modal = ensureModal();
-    const input = modal.querySelector("#rmSoberDateInput");
-    const current = getSoberDateYMD();
-
-    input.value = current ? ymdToDisplayDMY(current) : "";
     modal.classList.add("show");
-    setTimeout(() => input.focus(), 30);
+    /* Set the wheels AFTER the modal is displayed. A scroller inside
+       display:none has no height, so every scrollTop written to it is
+       silently thrown away and all three wheels open on January 1st of the
+       first year. */
+    requestAnimationFrame(() => setWheels(getSoberDateYMD() || todayLocalYMD()));
   }
 
   const navLinks = document.createElement("div");
