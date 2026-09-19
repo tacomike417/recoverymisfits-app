@@ -323,9 +323,30 @@
       viewportHeight / GAME_HEIGHT
     );
 
+    /* HOW MANY REAL PIXELS THE CANVAS IS DRAWN AT.
+
+       On a modern iPhone devicePixelRatio is 3, which makes the backing
+       canvas 1170 x 2340 -- about 2.7 million pixels, cleared and redrawn
+       sixty times a second, while it is only ever displayed at roughly
+       393 x 786. That is nine times the pixels actually shown.
+
+       Everything else in the game gets away with it. The treatment level
+       does not: it is the busiest screen, redrawing four scaled tile
+       images, blurred banner shadows and particles every frame on top of
+       the background.
+
+       ?dpr=N in the URL overrides it so the cost can be measured on a real
+       phone instead of argued about. ?dpr=2 is visually near-identical and
+       draws 55% fewer pixels; ?dpr=1 is the floor. */
+    const dprOverride = parseFloat(
+      new URLSearchParams(location.search).get("dpr") || ""
+    );
+
     const pixelRatio = Math.max(
       1,
-      window.devicePixelRatio || 1
+      (isFinite(dprOverride) && dprOverride > 0)
+        ? dprOverride
+        : (window.devicePixelRatio || 1)
     );
 
     /*
@@ -2687,7 +2708,24 @@
 
   resetBill();
 
-  if (gameState === "chapter1CutScene") {
+  /* ?jump=1 -- drop straight into gameplay, skipping the crawl, the title
+     screen and the story cards.
+
+     This exists for testing the treatment level, which normally sits
+     several taps deep: chapter 2 always opens with the shared crawl (see
+     usesSharedCrawl), then the title, then the story cards. Measuring a
+     frame rate three times over should not mean sitting through all of
+     that three times.
+
+     Nobody reaches this by accident -- it only happens when the URL asks
+     for it. The music still waits for the first real tap, the same as
+     always, because browsers require a gesture before audio plays. */
+  const jumpStraightIn =
+    new URLSearchParams(window.location.search).get("jump") === "1";
+
+  if (jumpStraightIn && chapterExists) {
+    startGameplay();
+  } else if (gameState === "chapter1CutScene") {
     startCutsceneMusic();
   }
 

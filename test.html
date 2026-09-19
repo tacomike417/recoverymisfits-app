@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Test Bench — Recovery Misfits</title>
+<meta name="theme-color" content="#0e0e0d">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin:0; background:#0e0e0d; color:#f4f1e8;
+         font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+         padding:18px 16px calc(28px + env(safe-area-inset-bottom,0px)); }
+  header { margin-bottom:6px; }
+  h1 { font-size:20px; margin:0; letter-spacing:.3px; }
+  .sub { color:#8d877c; font-size:13px; margin:2px 0 20px; }
+
+  h2 { font-size:12px; letter-spacing:1.3px; text-transform:uppercase;
+       color:#8d877c; margin:26px 0 10px; font-weight:700; }
+
+  a.item { display:block; text-decoration:none; color:inherit;
+           border:1px solid #2b2a26; background:#151513; border-radius:12px;
+           padding:15px 16px; margin-bottom:10px; }
+  a.item:active { background:#1f1e1b; }
+  a.item .t { font-size:16px; font-weight:600; display:flex; align-items:center; gap:8px; }
+  a.item .d { font-size:13px; color:#918b80; margin-top:3px; }
+  .tag { font:700 10px/1 ui-monospace,Menlo,monospace; letter-spacing:.5px;
+         padding:4px 6px; border-radius:5px; background:#2b2a26; color:#c9c3b6; }
+  .tag.now  { background:#3a2a22; color:#e0a07a; }
+  .tag.half { background:#2a3327; color:#9ec98a; }
+  .tag.low  { background:#27303a; color:#8ab4c9; }
+
+  .note { border:1px solid #2b2a26; background:#131312; border-radius:12px;
+          padding:14px 16px; font-size:13.5px; color:#b9b3a7; margin-top:6px; }
+  .note b { color:#f4f1e8; }
+  .note ul { margin:8px 0 0; padding-left:18px; }
+  .note li { margin-bottom:6px; }
+  code { font:600 12.5px ui-monospace,Menlo,monospace; color:#d8d2c4;
+         background:#201f1c; padding:2px 5px; border-radius:4px; }
+
+  .back { display:block; text-align:center; margin-top:28px; padding:14px;
+          border:1px solid #2b2a26; border-radius:12px; color:#9c968a;
+          text-decoration:none; font-size:14px; }
+  .back:active { background:#1f1e1b; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Test Bench</h1>
+  <p class="sub">Diagnostics. Nothing here is linked from the app.<br>The three below drop straight into the treatment level.</p>
+</header>
+
+<h2>Treatment level — frame rate</h2>
+
+<a class="item" href="./unofficial-story.html?chapter=2&amp;jump=1&amp;perf=1">
+  <span class="t">Run at full resolution <span class="tag now">dpr 3</span></span>
+  <span class="d">What the game does today. This is the baseline.</span>
+</a>
+
+<a class="item" href="./unofficial-story.html?chapter=2&amp;jump=1&amp;perf=1&amp;dpr=2">
+  <span class="t">Run at half the pixels <span class="tag half">dpr 2</span></span>
+  <span class="d">55% fewer pixels per frame. Should look near-identical.</span>
+</a>
+
+<a class="item" href="./unofficial-story.html?chapter=2&amp;jump=1&amp;perf=1&amp;dpr=1">
+  <span class="t">Run at the floor <span class="tag low">dpr 1</span></span>
+  <span class="d">Will look soft. Only here to show the ceiling.</span>
+</a>
+
+<div class="note">
+  <b>Play the treatment level on each one</b> and read the box top-left.
+  <ul>
+    <li><b>fps</b> — green above 50, amber in the 30s, red below.</li>
+    <li><b>update</b> vs <b>draw</b> — which one is eating the frame.</li>
+    <li><b>dpr</b> — confirms the override actually took.</li>
+  </ul>
+</div>
+
+<h2>Audio</h2>
+
+<a class="item" href="./audio-lag-test.html">
+  <span class="t">Music vs frame rate</span>
+  <span class="d">Four 10-second tests. Already run — came back innocent.</span>
+</a>
+
+<h2>The games</h2>
+
+<a class="item" href="./unofficial-story.html">
+  <span class="t">Recovery Misfits game</span>
+  <span class="d">Normal, no instruments.</span>
+</a>
+
+<a class="item" href="./halloween-game/halloween-game.html">
+  <span class="t">Halloween game</span>
+  <span class="d">Bill &amp; Bob. Meetings becoming cutscenes.</span>
+</a>
+
+<h2>Reference</h2>
+
+<div class="note">
+  Typed by hand: <code>?chapter=2</code> picks the level,
+  <code>&amp;jump=1</code> skips the crawl and story cards,
+  <code>&amp;perf=1</code> shows the readout,
+  <code>&amp;dpr=2</code> changes the pixel ratio.
+</div>
+
+<a class="back" href="./">← Back to Recovery Misfits</a>
+
+</body>
+</html>
