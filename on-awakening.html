@@ -1,337 +1,307 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>On Awakening — Recovery Misfits</title>
+<meta name="theme-color" content="#0e0e0d">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="./icon-192.png">
 
-  <title>On Awakening — Recovery Misfits</title>
+<!-- THE SAME STYLESHEET ANOTHER DAY SOBER USES, and that is the whole point
+     of this rewrite. This page was a white-and-beige article that happened
+     to live at the same address as the app -- its own colors, its own type,
+     its own buttons. Everything shared is now genuinely shared: change the
+     reading screen once and both change. -->
+<style>html{background:#0e0e0d}body{background:#0e0e0d;color:#eee6d5;margin:0}</style>
+<link rel="stylesheet" href="./assets/daily-reading.css">
 
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000" />
-  <link rel="icon" href="./icon-192.png">
+<style>
+  /* ---- what this page has that Another Day Sober does not ---------------
+     Two things, and only two, so the rest of the screen stays literally the
+     same stylesheet rather than a copy that will drift. */
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
-  <link rel="apple-touch-icon" href="./icon-192.png">
+  /* TODAY'S READING ---------------------------------- 1 OF 1 */
+  .prog{margin:2px 0 13px}
+  .prog-row{
+    display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    font-family:var(--ui);font-weight:800;font-size:9.5px;letter-spacing:1.9px;
+    text-transform:uppercase;color:var(--muted);
+  }
+  .prog-row .of{color:var(--gold)}
+  .prog-bar{
+    position:relative;height:3px;margin-top:7px;border-radius:2px;
+    background:rgba(238,230,213,.12);overflow:hidden;
+  }
+  .prog-bar i{
+    position:absolute;inset:0 0 0 0;border-radius:2px;
+    background:linear-gradient(90deg,var(--gold),#f0d68a);
+  }
+  /* The dot at the start, as the mockup draws it. */
+  .prog-bar::before{
+    content:"";position:absolute;left:0;top:50%;width:7px;height:7px;
+    margin-top:-3.5px;border-radius:50%;background:var(--gold);z-index:1;
+  }
 
-  <style>
-    :root{
-      --ink:#111111;
-      --muted:#656565;
-      --tan:#f5efe3;
-      --tanBorder:#dfd3bd;
-      --tanDeep:#e9ddc7;
-      --paper:#ffffff;
-    }
+  /* 1938 ORIGINAL MANUSCRIPT · PG 39-40 */
+  .source{
+    display:inline-block;margin:0 0 12px;padding:6px 12px;
+    border-radius:999px;border:1px solid rgba(215,178,83,.34);
+    background:rgba(215,178,83,.10);
+    font-family:var(--ui);font-weight:800;font-size:9.5px;letter-spacing:1.6px;
+    text-transform:uppercase;color:var(--gold);
+  }
 
-    *{ box-sizing:border-box; }
+  /* The reading sits in its own inset card on this page -- it is one long
+     historical passage rather than a short daily, and a card gives the eye
+     an edge to come back to when scrolling a thousand words on a phone. */
+  .card{
+    border:1px solid rgba(238,230,213,.10);border-radius:14px;
+    background:rgba(255,255,255,.018);
+    padding:14px 14px 10px;
+  }
+  /* Longer than a daily reading, so it gets more air and a bigger floor. */
+  .card .reading{font-size:13.5px;line-height:1.72}
+  .card .reading p{margin:0 0 15px}
+  /* NEVER BREAK A WORD IN HALF. The brief asks for it by name, and a
+     hyphenated "self-seek-ing" in the middle of a spiritual instruction
+     reads as a typo in the original rather than a browser doing its job. */
+  .card .reading p{overflow-wrap:normal;word-break:normal;hyphens:none}
 
-    body{
-      margin:0;
-      font-family:Roboto,Arial,sans-serif;
-      background:var(--paper);
-      color:var(--ink);
-      padding-bottom:120px;
-      line-height:1.5;
-    }
+  .note{
+    margin:14px 0 0;font-family:var(--ui);font-size:10.5px;line-height:1.5;
+    color:var(--muted);
+  }
+  .note b{color:var(--ivory);font-weight:700}
 
-    main{
-      max-width:760px;
-      margin:0 auto;
-      padding:16px 14px 32px;
-    }
-
-    .pageTitle{
-      font-weight:1000;
-      font-size:22px;
-      margin:10px 4px 4px;
-      letter-spacing:.2px;
-      text-align:center;
-      color:#000;
-    }
-
-    .pageSub{
-      margin:0 4px 16px;
-      color:var(--muted);
-      font-size:13px;
-      text-align:center;
-      font-weight:800;
-      line-height:1.35;
-    }
-
-    .readerCard{
-      background:var(--tan);
-      border:1px solid var(--tanBorder);
-      border-radius:14px;
-      padding:20px;
-      box-shadow:0 2px 10px rgba(0,0,0,.04);
-    }
-
-    .sourceLabel{
-      display:inline-block;
-      margin-bottom:10px;
-      padding:5px 9px;
-      border-radius:999px;
-      background:var(--tanDeep);
-      border:1px solid var(--tanBorder);
-      color:#000;
-      font-size:11px;
-      font-weight:1000;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-    }
-
-    .readerTitle{
-      margin:0 0 5px;
-      color:#000;
-      font-size:21px;
-      line-height:1.2;
-      font-weight:1000;
-    }
-
-    .readerMeta{
-      margin:0 0 18px;
-      color:#444;
-      font-size:12px;
-      font-weight:900;
-      line-height:1.4;
-    }
-
-    .divider{
-      height:1px;
-      background:var(--tanBorder);
-      margin:0 0 20px;
-    }
-
-    .passage{
-      background:#fff;
-      border:1px solid var(--tanBorder);
-      border-radius:12px;
-      padding:18px;
-      color:#111;
-      font-family:"Courier New", Courier, monospace;
-      font-size:17px;
-      line-height:1.7;
-      white-space:pre-line;
-    }
-
-    .passage p{
-      margin:0 0 1.2em;
-    }
-
-    .passage p:last-child{
-      margin-bottom:0;
-    }
-
-    .note{
-      margin-top:16px;
-      background:var(--tanDeep);
-      border:1px solid var(--tanBorder);
-      border-radius:12px;
-      padding:12px 13px;
-      color:#222;
-      font-size:12px;
-      line-height:1.45;
-    }
-
-    .backRow{
-      display:flex;
-      justify-content:center;
-      margin-top:16px;
-    }
-
-    .btn{
-      padding:10px 14px;
-      border-radius:999px;
-      border:1px solid #000;
-      background:#000;
-      color:#fff;
-      font-weight:900;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-height:44px;
-      line-height:1.1;
-    }
-
-    .btn:active{ transform:scale(.99); }
-
-    .geoState{
-      text-align:center;
-      color:var(--muted);
-      font-weight:800;
-      font-size:14px;
-      padding:48px 16px;
-    }
-
-    .geoBlockedCard{
-      background:var(--tan);
-      border:1px solid var(--tanBorder);
-      border-radius:14px;
-      padding:22px 18px;
-      text-align:center;
-    }
-
-    .geoBlockedCard h1{
-      margin:0 0 8px;
-      font-size:19px;
-      color:#000;
-    }
-
-    .geoBlockedCard p{
-      margin:0 0 16px;
-      color:#444;
-      font-size:14px;
-      line-height:1.5;
-    }
-
-    @media (max-width:520px){
-      .readerCard{ padding:16px; }
-
-      .passage{
-        padding:15px;
-        font-size:16px;
-        line-height:1.65;
-      }
-
-      .pageTitle{ font-size:20px; }
-    }
-  </style>
+  /* ---- the region check --------------------------------------------------
+     KEPT, DELIBERATELY. This reading is US-only for copyright reasons and
+     the redesign brief does not mention it, which is exactly how a
+     protection like this gets dropped in a repaint. It fails OPEN, the same
+     as before: a flaky lookup shows the reading rather than locking out a
+     real US visitor. */
+  .geo-wait{
+    font-family:var(--ui);font-size:12px;color:var(--muted);
+    padding:18px 2px;
+  }
+  .geo-no h2{
+    font-family:var(--serif);font-size:16px;color:#fff;margin:0 0 8px;
+  }
+  .geo-no p{font-family:var(--ui);font-size:12px;line-height:1.55;color:var(--muted);margin:0}
+</style>
 </head>
 
-<body>
+<!-- Opened from Readings, so Readings is the tab that stays lit. -->
+<body data-rm-nav="readings.html">
 
-  <div id="rm-topbar"></div>
-  <script src="./topbar.js" defer></script>
+<div id="rm-topbar"></div>
+<script src="./topbar.js" defer></script>
 
-  <main>
+<div class="sheet">
+<img class="tape tl" src="assets/pages/d-tape-tl.webp" alt="" aria-hidden="true">
+<img class="tape tr" src="assets/pages/d-tape-tr.webp" alt="" aria-hidden="true">
+<img class="tape bl" src="assets/pages/d-tape-bl.webp" alt="" aria-hidden="true">
+<img class="tape br" src="assets/pages/d-tape-br.webp" alt="" aria-hidden="true">
 
-    <div class="pageTitle">On Awakening</div>
+<main>
 
-    <div class="pageSub">
-      Morning directions from the original manuscript of Alcoholics Anonymous.
+  <header class="pub">
+    <img class="art" src="assets/pages/d-book.webp" alt="" aria-hidden="true" width="122" height="111">
+    <div>
+      <h1 class="name">On Awakening</h1>
+      <p class="tag">morning directions</p>
+      <img class="rule" src="assets/pages/d-rule.webp" alt="" aria-hidden="true" width="297" height="17">
     </div>
+  </header>
 
-    <!-- Shown while the US-only region check is running -->
-    <div class="geoState" id="geo-checking">Checking availability…</div>
+  <div class="controls">
+    <button class="ctl" id="smaller" type="button" aria-label="Make the text smaller">A&minus;</button>
+    <button class="ctl" id="bigger"  type="button" aria-label="Make the text bigger">A+</button>
+    <button class="ctl" id="speak"   type="button" aria-pressed="false" aria-label="Read this aloud">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2.2v2.1a7.8 7.8 0 0 1 0 15.4v2.1a9.9 9.9 0 0 0 0-19.6z"/></svg>
+    </button>
+  </div>
 
-    <!-- Shown if the visitor isn't in the US, or the region check fails -->
-    <div class="geoBlockedCard" id="geo-blocked" style="display:none;">
-      <h1>Not Available In Your Region</h1>
+  <div class="prog">
+    <div class="prog-row"><span>Today&rsquo;s reading</span><span class="of">1 of 1</span></div>
+    <div class="prog-bar"><i></i></div>
+  </div>
+
+  <div class="card">
+
+    <p class="geo-wait" id="geo-checking">Checking availability&hellip;</p>
+
+    <div class="geo-no" id="geo-blocked" hidden>
+      <h2>Not available in your region</h2>
       <p>This reading is limited to visitors in the United States for copyright reasons.</p>
-      <div class="backRow">
-        <a class="btn" href="./readings.html">← Back to Readings</a>
-      </div>
     </div>
 
-    <article class="readerCard" id="reader-content" style="display:none;">
-
-      <div class="sourceLabel">1938 Original Manuscript pg 39-40</div>
-
-      <h1 class="readerTitle">On Awakening</h1>
-
-      <div class="readerMeta">
-        Alcoholics Anonymous · Original Manuscript · 1938
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="passage" id="passage-target"></div>
-
-      <div class="note">
-        Source: <strong>Alcoholics Anonymous, 1938 Original Manuscript.</strong>
+    <div id="geo-ok" hidden>
+      <span class="source">1938 Original Manuscript &middot; pg 39&ndash;40</span>
+      <article class="reading" id="reading"></article>
+      <p class="note">
+        Source: <b>Alcoholics Anonymous, 1938 Original Manuscript.</b>
         Presented here as a historical recovery reading.
-      </div>
-
-    </article>
-
-    <div class="backRow" id="content-back-row" style="display:none;">
-      <a class="btn" href="./readings.html">← Back to Readings</a>
+      </p>
     </div>
 
-  </main>
+  </div>
 
-  <script>
-    (function () {
-      // The passage text lives here in JS, not in the static page markup,
-      // so it isn't just sitting in the page source for anyone who fetches
-      // the raw HTML — it only gets written into the page after we've
-      // confirmed the visitor is in the US.
-      var PASSAGE_HTML = `<p>
-Next, think about the twenty-four hours ahead. Consider your plans for the day. Before you begin, ask God to guide
-your thinking. Especially ask that it be divorced from self-pity, dishonest or self-seeking motives. Then go ahead and
-use your common sense. There is nothing hard or mysterious about this. God gave you brains to use. Clear your
-thinking of wrong motives. Your thought life will be placed on a much higher plane.
-In thinking through your day you may face indecision. You may not be able to determine which course to take. Here
-you ask God for inspiration, an intuitive thought or a decision. Relax and take it easy. Don't struggle. Ask God's help.
-You will be surprised how the right answers come after you have practiced a few days. What used to be the hunch or
-the occasional inspiration becomes a working part of your mind. Being still inexperienced and just making your contact
-with God, it is not probable that you are going to be divinely inspired all the time. That would be a large piece of
-conceit, for which you might pay in all sorts of absurd actions and ideas. Nevertheless you will find that your thinking
-will, as time passes, be more and more on the plane of inspiration and guidance. You will come to rely upon it. This is
-not weird or silly. Most psychologists pronounce these methods sound.
+  <div class="foot">
+    <img class="rule" src="assets/pages/d-sharerule.webp" alt="" aria-hidden="true" width="676" height="8">
+    <button class="share" id="share" type="button" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Share this reading
+    </button>
+    <p class="say" id="say" role="status" aria-live="polite"></p>
+    <a class="back" href="./readings.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back to Readings
+    </a>
+  </div>
 
-You might conclude the period of meditation with a prayer that you be shown all through the day what your next step is
-to be, that He give you whatever you need to take care of every situation. Ask especially for freedom from self-will. ^
-Be careful to make no request for yourself only. You may ask for yourself, however, if others will be helped. Never
-pray for your own selfish ends. People waste a lot of time doing that, and it doesn't work. You can easily see why.
-If curcumstances warrant, ^ ask your wife or a friend to join you in morning meditation. If you belong to a religious
-denomination which requires a definite morning devotion, be sure to attend to that also. If you are not a member of a
-religious body, you might select and memorize a few set prayers which emphasize the principles we have been
-discussing. There are many helpful books also. If you do not know of any, ask your priest, minister, or rabbi, for
-suggestions. Be quick to see where religious people are right. Make use of what they offer.
-As you go through the day, pause when agitated or doubtful. Be still and ask for the right thought or action. It will
-come. Remind yourself you are no longer running the show. Humbly say to yourself many times each day "Thy will be
-done." You will be in much less danger of excitement, fear, anger, worry, self-pity, or foolish decisions. You will
-become much more efficient. You will not tire easily, for you will not be burning up energy foolishly as you did when
-trying to arrange life to suit yourself.
+</main>
+</div>
 
-It works - it really does. Try it.
+<div class="tailroom"></div>
 
-We alcoholics are undisiplined. So let God discipline you in the simple way we have just outlined.
-But this is not all. There is action and more action. "Faith without works is dead." What works? We shall treat them in
-the next chapter which is entirely devoted to step twelve.
-</p>`;
+<div id="rm-bottom-nav"></div>
+<script src="./nav.js" defer></script>
 
-      var checkingEl = document.getElementById('geo-checking');
-      var blockedEl = document.getElementById('geo-blocked');
-      var contentEl = document.getElementById('reader-content');
-      var backRowEl = document.getElementById('content-back-row');
+<script>
+(function () {
+  "use strict";
 
-      function showBlocked() {
-        checkingEl.style.display = 'none';
-        blockedEl.style.display = 'block';
-      }
+  /* THE PASSAGE LIVES IN JS, NOT IN THE MARKUP, and that is not decoration:
+     it is why the region check is worth anything. Sitting in the static HTML
+     it would be in the page source for anyone who fetched the raw file,
+     checked or not. Same reasoning as the page this replaces. */
+  var PASSAGE_HTML = [
+    "<p>Next, think about the twenty-four hours ahead. Consider your plans for the day. Before you begin, ask God to guide your thinking. Especially ask that it be divorced from self-pity, dishonest or self-seeking motives. Then go ahead and use your common sense. There is nothing hard or mysterious about this. God gave you brains to use. Clear your thinking of wrong motives. Your thought life will be placed on a much higher plane. In thinking through your day you may face indecision. You may not be able to determine which course to take. Here you ask God for inspiration, an intuitive thought or a decision. Relax and take it easy. Don't struggle. Ask God's help. You will be surprised how the right answers come after you have practiced a few days. What used to be the hunch or the occasional inspiration becomes a working part of your mind. Being still inexperienced and just making your contact with God, it is not probable that you are going to be divinely inspired all the time. That would be a large piece of conceit, for which you might pay in all sorts of absurd actions and ideas. Nevertheless you will find that your thinking will, as time passes, be more and more on the plane of inspiration and guidance. You will come to rely upon it. This is not weird or silly. Most psychologists pronounce these methods sound.</p>",
+    "<p>You might conclude the period of meditation with a prayer that you be shown all through the day what your next step is to be, that He give you whatever you need to take care of every situation. Ask especially for freedom from self-will. ^ Be careful to make no request for yourself only. You may ask for yourself, however, if others will be helped. Never pray for your own selfish ends. People waste a lot of time doing that, and it doesn't work. You can easily see why. If curcumstances warrant, ^ ask your wife or a friend to join you in morning meditation. If you belong to a religious denomination which requires a definite morning devotion, be sure to attend to that also. If you are not a member of a religious body, you might select and memorize a few set prayers which emphasize the principles we have been discussing. There are many helpful books also. If you do not know of any, ask your priest, minister, or rabbi, for suggestions. Be quick to see where religious people are right. Make use of what they offer. As you go through the day, pause when agitated or doubtful. Be still and ask for the right thought or action. It will come. Remind yourself you are no longer running the show. Humbly say to yourself many times each day \"Thy will be done.\" You will be in much less danger of excitement, fear, anger, worry, self-pity, or foolish decisions. You will become much more efficient. You will not tire easily, for you will not be burning up energy foolishly as you did when trying to arrange life to suit yourself.</p>",
+    "<p>It works - it really does. Try it.</p>",
+    "<p>We alcoholics are undisiplined. So let God discipline you in the simple way we have just outlined. But this is not all. There is action and more action. \"Faith without works is dead.\" What works? We shall treat them in the next chapter which is entirely devoted to step twelve.</p>"
+  ].join("");
 
-      function showContent() {
-        document.getElementById('passage-target').innerHTML = PASSAGE_HTML;
-        checkingEl.style.display = 'none';
-        contentEl.style.display = 'block';
-        backRowEl.style.display = 'flex';
-      }
+  var readingEl  = document.getElementById("reading");
+  var sayEl      = document.getElementById("say");
+  var shareBtn   = document.getElementById("share");
+  var checkingEl = document.getElementById("geo-checking");
+  var blockedEl  = document.getElementById("geo-blocked");
+  var okEl       = document.getElementById("geo-ok");
 
-      fetch('https://get.geojs.io/v1/ip/country.json')
-        .then(function (res) {
-          if (!res.ok) throw new Error('geo lookup failed');
-          return res.json();
-        })
-        .then(function (data) {
-          if (data && data.country === 'US') {
-            showContent();
-          } else {
-            showBlocked();
-          }
-        })
-        .catch(function () {
-          // Fail open: if the region can't be verified, show the reading
-          // rather than risk blocking a real US visitor over a flaky
-          // lookup or network hiccup.
-          showContent();
-        });
-    })();
-  </script>
+  /* ---- text size ---------------------------------------------------------
+     THE SAME KEY ANOTHER DAY SOBER USES. Somebody who set their reading two
+     sizes bigger over there should not have to do it again here -- it is one
+     person reading one app, not two pages with two opinions. */
+  var SIZE_KEY = "dp_reading_size_px";
+  var MIN = 12, MAX = 24, STEP = 2, DEFAULT_SIZE = 14;
+
+  function savedSize() {
+    try {
+      var v = parseInt(localStorage.getItem(SIZE_KEY), 10);
+      if (!isNaN(v)) return Math.max(MIN, Math.min(MAX, v));
+    } catch (e) {}
+    return DEFAULT_SIZE;
+  }
+  function setSize(px) {
+    px = Math.max(MIN, Math.min(MAX, px));
+    readingEl.style.fontSize = px + "px";
+    try { localStorage.setItem(SIZE_KEY, String(px)); } catch (e) {}
+    return px;
+  }
+  setSize(savedSize());
+  document.getElementById("smaller").onclick = function () { setSize(savedSize() - STEP); };
+  document.getElementById("bigger").onclick  = function () { setSize(savedSize() + STEP); };
+
+  /* ---- read aloud --------------------------------------------------------
+     Started by a tap and by nothing else, and the button says which way it
+     is pointing so nobody presses it twice and gets two voices. */
+  var speakBtn = document.getElementById("speak");
+  var synth = window.speechSynthesis;
+  function stopSpeaking() {
+    try { synth.cancel(); } catch (e) {}
+    speakBtn.setAttribute("aria-pressed", "false");
+    speakBtn.setAttribute("aria-label", "Read this aloud");
+    if (/Reading aloud/.test(sayEl.textContent)) sayEl.textContent = "";
+  }
+  if (!synth) {
+    speakBtn.hidden = true;
+  } else {
+    speakBtn.onclick = function () {
+      if (synth.speaking || synth.paused) { stopSpeaking(); return; }
+      var words = readingEl.textContent.trim();
+      if (!words) { sayEl.textContent = "Nothing to read yet."; return; }
+      var u = new SpeechSynthesisUtterance(words);
+      u.rate = 0.95;
+      u.onend = stopSpeaking;
+      u.onerror = function () { stopSpeaking(); sayEl.textContent = "Read aloud is not available on this device."; };
+      synth.speak(u);
+      speakBtn.setAttribute("aria-pressed", "true");
+      speakBtn.setAttribute("aria-label", "Stop reading aloud");
+      sayEl.textContent = "Reading aloud. Tap the speaker again to stop.";
+    };
+    /* Leaving with a voice still going is how somebody ends up with the app
+       talking at them from a tab they thought they closed. */
+    window.addEventListener("pagehide", function () { try { synth.cancel(); } catch (e) {} });
+  }
+
+  /* ---- share ------------------------------------------------------------- */
+  var PAGE_URL = "https://recoverymisfits.org/on-awakening.html";
+  shareBtn.onclick = function () {
+    var text = "Check this out: On Awakening";
+    if (navigator.share) {
+      navigator.share({ title: "On Awakening — Recovery Misfits", text: text, url: PAGE_URL })
+        .catch(function () { /* they backed out; nothing to report */ });
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(PAGE_URL).then(function () {
+        sayEl.textContent = "Link copied.";
+      }, function () { sayEl.textContent = PAGE_URL; });
+      return;
+    }
+    sayEl.textContent = PAGE_URL;
+  };
+
+  /* ---- the region check --------------------------------------------------
+     Carried over from the page this replaces, behavior for behavior. US only
+     for copyright reasons, and it FAILS OPEN: if the lookup is down or the
+     signal is bad, show the reading rather than lock out somebody in Ohio
+     over a network hiccup. */
+  function showBlocked() {
+    checkingEl.hidden = true;
+    blockedEl.hidden = false;
+    shareBtn.hidden = true;
+  }
+  function showContent() {
+    readingEl.innerHTML = PASSAGE_HTML;
+    setSize(savedSize());
+    checkingEl.hidden = true;
+    okEl.hidden = false;
+    shareBtn.hidden = false;
+  }
+
+  fetch("https://get.geojs.io/v1/ip/country.json")
+    .then(function (res) {
+      if (!res.ok) throw new Error("geo lookup failed");
+      return res.json();
+    })
+    .then(function (data) {
+      if (data && data.country === "US") showContent();
+      else showBlocked();
+    })
+    .catch(showContent);
+})();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js"); }
+</script>
 
 </body>
 </html>
