@@ -413,6 +413,31 @@ interiorPostDialoguePause: 0.5,
         interiorPauseBeforeExit: 0.4,    // seconds paused back at the entrance before actually leaving
 
         // ====================================================================
+        // THE CANDY SEARCH -- the "look around the room" beat that replaces
+        // the old talk-at-you meeting scene. A meeting that has an entry in
+        // MEETING_SEARCH_SPOTS below hands the room over to the player:
+        // Bill strolls back and forth, the player taps the things in the
+        // room, and every one of them comes back NOT CANDY. Tap them all
+        // and they leave. A meeting with no entry there keeps the original
+        // dialogue-point choreography, unchanged.
+        // ====================================================================
+        searchPatrolLeftFrac: 0.12,       // Bill's browsing stroll turns around here...
+        searchPatrolRightFrac: 0.88,      // ...and here. Fractions of the full background width, same as every other interior position.
+        searchWalkSpeedMultiplier: 0.7,   // slower than a purposeful walk -- he's browsing, not going somewhere
+        searchHotspotRadiusFrac: 0.055,   // drawn "tap me" ring radius, as a fraction of CANVAS HEIGHT
+        searchHotspotTapPadding: 16,      // extra thumb-friendly padding (logical px) around the drawn ring -- same generosity as the doorway tap
+        searchRingPulseSpeed: 1.1,        // cycles/sec of the ring's breathing pulse
+        searchFoundPause: 0.4,            // beat after a reaction finishes before Bill starts strolling again
+        searchMaxDuration: 150,           // safety-net cap (seconds) for a SEARCH meeting with no scene-timer: set high on purpose, since the player controls the pace here, not the script
+        // A tapped object's reaction is a QUIP, not a scene, so it runs at
+        // its own much faster cadence instead of the meeting-dialogue pace
+        // (dialogueDisplayDuration 5.5s + DIALOGUE_GAP 2s = 7.5s a line,
+        // which is right for a conversation you're watching and far too
+        // slow for a punchline you just triggered yourself).
+        searchReactionDisplayDuration: 2.6,  // seconds a reaction bubble stays up
+        searchReactionGapSeconds: 0.7,       // seconds between two reaction lines
+
+        // ====================================================================
         // VISUAL POLISH PASS 2 -- 80s arcade + comic-book "juice" pass.
         // Everything below is purely additive/decorative: speed lines,
         // running foot dust, the bigger directional skid explosion, the
@@ -1119,6 +1144,68 @@ interiorPostDialoguePause: 0.5,
         // CMA/Harrison Corner -- most lively of the later meetings.
         cma: { pauseMultiplier: 0.75, walkSpeedMultiplier: 1.3, chatterOverlapChance: 0.32, reactionChance: 0.32 }
     };
+
+    /* ======================================================================
+       WHAT'S IN EACH ROOM -- the tappable objects for the candy search.
+
+       This is the ONLY place a meeting's searchable objects live. Each
+       spot is positioned as a fraction of that meeting's own background
+       art (xFrac across its full scrolled width, yFrac down the canvas),
+       exactly the same convention Bill/Bob's interior positions use, so
+       the spots stay put at any screen size.
+
+       The WORDS are not here -- each spot's reaction lines come from
+       script.js, as an ordinary dialogue point named after the spot's
+       id ("//[find1]" under "//AA-level1"). That means the reactions are
+       written and rewritten in plain text without touching this file.
+
+       A meeting with no entry here simply keeps its original
+       dialogue-point choreography -- nothing about it changes.
+
+       TO NUDGE A SPOT: open the game with the browser console up, type
+       DEBUG_SPOTS = true, and tap anywhere inside a meeting. The console
+       prints the exact xFrac/yFrac you tapped, ready to paste below.
+       ====================================================================== */
+    const MEETING_SEARCH_SPOTS = {
+        // AA -- bg-aa-meeting.png. Left to right across the room:
+        // the jack-o'-lantern on the side table (the one place candy
+        // SHOULD be), the secretary's table under the lamp, the big
+        // coffee urn under the "BUT FIRST... COFFEE" sign, and the
+        // literature rack in the far corner.
+        aa: [
+            { id: "find1", label: "the jack-o-lantern",    xFrac: 0.127, yFrac: 0.525 },
+            { id: "find2", label: "the secretary's table", xFrac: 0.545, yFrac: 0.485 },
+            { id: "find3", label: "the coffee urn",        xFrac: 0.795, yFrac: 0.469 },
+            { id: "find4", label: "the literature rack",   xFrac: 0.927, yFrac: 0.646 }
+        ]
+    };
+
+    // Every reaction needs SOMETHING to say even before script.js has
+    // been written for that spot, so a tap is never a dead tap. Used only
+    // when script.js has no "//[findN]" point for this spot yet.
+    const SEARCH_FALLBACK_REACTION = [
+        { speaker: "bob", text: "not candy." }
+    ];
+
+    function getMeetingSearchSpots(meetingId) {
+        const defs = MEETING_SEARCH_SPOTS[meetingId];
+        if (!defs || !defs.length) return [];
+        return defs.map(function (d) {
+            return {
+                id: d.id,
+                label: d.label,
+                xFrac: d.xFrac,
+                yFrac: d.yFrac,
+                radiusFrac: (d.radiusFrac !== undefined) ? d.radiusFrac : CONFIG.searchHotspotRadiusFrac,
+                found: false
+            };
+        });
+    }
+
+    function meetingHasSearch(meetingId) {
+        const defs = MEETING_SEARCH_SPOTS[meetingId];
+        return !!(defs && defs.length);
+    }
 
     // BILL SPRITE SHEET LAYOUT -- basic-level1-bill.png, verified against
     // the actual file on disk (1536x1024 -> exactly 6 cols x 4 rows of
@@ -2412,6 +2499,15 @@ interiorPostDialoguePause: 0.5,
     let activeInteriorConfig = null;       // this meeting's resolved getInteriorConfig() result, set fresh by enterInsideMeeting() -- see buildInteriorSequence/updateInteriorSequence's "walk" case/updateDialogue for where pauseMultiplier/walkSpeedMultiplier/chatterOverlapChance/reactionChance are actually used
     let fadingWorldBubble = null;          // { speaker, text, crowdPos, life, maxLife } | null -- the previous world-chatter bubble, briefly still fading out while a new one has already appeared, see updateDialogue/drawSpeechBubbles
 
+    // --- THE CANDY SEARCH (see MEETING_SEARCH_SPOTS) ---
+    let searchSpots = [];              // this meeting's live spot list, rebuilt fresh by enterInsideMeeting -- each entry gains a `found` flag as it's tapped
+    let searchPatrolDir = 1;           // which way Bill is currently browsing, +1 right / -1 left
+    let searchPulsePhase = 0;          // drives the "tap me" ring breathing, advanced in updateInteriorSequence's search case
+    let searchReactionActive = false;  // true while a tapped spot's reaction lines are still playing -- Bill holds still through it
+    let searchFoundPauseTimer = 0;     // the small beat after a reaction finishes, before he starts browsing again
+    let searchLastSpotRects = [];      // [{ spot, x, y, r }] in LOGICAL canvas space, rebuilt every frame by drawSearchHotspots and read by the tap handler -- the drawn ring and the tap target can never drift apart
+    let dialogueDisplayOverride = null; // seconds, or null for CONFIG.dialogueDisplayDuration -- set for the duration of one queue by loadDialogueQueueFromScriptEntries's fast mode, cleared the moment that queue is empty. Nothing else in the dialogue system changes.
+
     let bobSpriteImage = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 };
     let bobSpriteImage2 = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 }; // costume2 -- see bobAppearance
     let bobSpriteImageFunny = { image: null, loaded: false, naturalWidth: 0, naturalHeight: 0 }; // supplemental "funny" sheet (coffee, etc) -- see ASSETS.bobSpriteFunny
@@ -3537,21 +3633,46 @@ interiorPostDialoguePause: 0.5,
                 return;
             }
 
-            // //SectionName -- starts a new section. Requires NO space
-            // right after "//" (matches every section header the way
-            // this project actually writes them, e.g. "//AA-level1"),
-            // which is what tells a real section line apart from an
-            // ordinary "// explanatory comment" -- those almost always
-            // have a space after the slashes, and are handled by the
-            // plain-comment check just below instead of being mistaken
-            // for a (nonsense) section name.
-            const sectionMatch = line.match(/^\/\/(\S.*)$/);
+            // //SectionName -- starts a new section.
+            //
+            // A section name is recognized BY ITS SHAPE: a single word
+            // ending in "-level<number>", e.g. "AA-level1",
+            // "OutsideCA-level1", "ChangingStore-level1". The space after
+            // the slashes is optional, so "//AA-level1" and "// AA-level1"
+            // both work.
+            //
+            // That shape rule replaced an older "no space allowed after
+            // the slashes" rule, and the reason is worth keeping written
+            // down: under the old rule a single stray space turned a
+            // section header into an ordinary comment, the section was
+            // silently skipped, and every line under it got appended to
+            // whichever section WAS open -- which is exactly what happened
+            // here. Every header in script.js except one had that space,
+            // so the entire script collapsed into the AA meeting as four
+            // enormous dialogue points (about seven straight minutes of
+            // Bill and Bob talking in one room). A shape this specific
+            // can't be confused with prose -- no ordinary comment in this
+            // file looks like "Word-level1" and nothing else -- so a
+            // typo can never quietly swallow the rest of the story again.
+            const sectionMatch = line.match(/^\/\/\s*([A-Za-z][A-Za-z0-9_]*-level\d+)\s*$/i);
             if (sectionMatch) {
                 currentSection = sectionMatch[1].trim().toLowerCase();
                 currentPointKey = null;
                 if (!result[currentSection]) {
                     result[currentSection] = {};
                 }
+                return;
+            }
+
+            // Leftover git merge-conflict markers ("<<<<<<< HEAD",
+            // "=======", ">>>>>>> <sha> (message)"). These have been
+            // committed into this file before. Call them out loudly rather
+            // than warning about an "unrecognized speaker", because the
+            // real problem is that two versions of the script are both
+            // still sitting in the file.
+            if (/^(<{7}|={7}|>{7})/.test(line)) {
+                console.warn("script.js line " + (index + 1) + ": leftover git merge-conflict marker \"" +
+                    line.slice(0, 40) + "\" -- this file still has an unresolved merge in it.");
                 return;
             }
 
@@ -3795,11 +3916,17 @@ interiorPostDialoguePause: 0.5,
     // Same queue shape as loadDialogueQueue, but from script.js entries
     // (already just { speaker, text } pairs -- script.js has no per-line
     // delay concept, so every line uses the single DIALOGUE_GAP value).
-    function loadDialogueQueueFromScriptEntries(entries) {
+    function loadDialogueQueueFromScriptEntries(entries, fast) {
         activeBubble = null;
         dialogueTimer = 0;
 
-        const gapSeconds = DIALOGUE_GAP / 1000;
+        // `fast` is the candy search's quip cadence -- see
+        // searchReactionDisplayDuration. It lasts exactly as long as this
+        // one queue: clearing it is the first thing updateDialogue does
+        // once the queue drains, so no other dialogue anywhere is affected.
+        dialogueDisplayOverride = fast ? CONFIG.searchReactionDisplayDuration : null;
+
+        const gapSeconds = fast ? CONFIG.searchReactionGapSeconds : (DIALOGUE_GAP / 1000);
         dialogueQueue = entries.map(function (entry) {
             return { speaker: entry.speaker, text: entry.text, delay: gapSeconds };
         });
@@ -3881,7 +4008,7 @@ interiorPostDialoguePause: 0.5,
     }
 
     function onCanvasPointerDown(e) {
-        if (state !== STATE.WAITING_AT_DOOR) return;
+        if (state !== STATE.WAITING_AT_DOOR && state !== STATE.INSIDE_MEETING) return;
         e.preventDefault();
 
         const rect = canvas.getBoundingClientRect();
@@ -3897,8 +4024,52 @@ interiorPostDialoguePause: 0.5,
         const clientY = (e.clientY !== undefined) ? e.clientY : rect.top + rect.height * 0.8;
         const x = (clientX - rect.left) * scaleX;
         const y = (clientY - rect.top) * scaleY;
+
+        // Inside a meeting, the same tap that opens a door hunts for candy.
+        // It hit-tests against searchLastSpotRects, which drawSearchHotspots
+        // rebuilds every single frame from the ring it actually drew -- so
+        // the tap target can never drift away from what's on screen, the
+        // same guarantee getDoorwayScreenRect gives the doorway.
+        if (state === STATE.INSIDE_MEETING) {
+            onInsideMeetingTap(x, y);
+            return;
+        }
+
         if (isPointOnDoorway(x, y, canvas.width, canvas.height)) {
             enterMeeting();
+        }
+    }
+
+    function onInsideMeetingTap(x, y) {
+        // DEV AID -- type DEBUG_SPOTS = true in the browser console, then
+        // tap anywhere in a meeting to print that exact point as the
+        // xFrac/yFrac pair MEETING_SEARCH_SPOTS wants, ready to paste.
+        // Same spirit as the DEBUG_ANCHOR tool above: off unless asked for.
+        if (window.DEBUG_SPOTS && canvas) {
+            const scaledWidth = getInteriorBackgroundScaledWidth(canvas.width, canvas.height);
+            const xFrac = scaledWidth > 0 ? (x + interiorCameraFrac * scaledWidth) / scaledWidth : 0;
+            const yFrac = canvas.height > 0 ? y / canvas.height : 0;
+            console.log("[SPOT] " + MEETINGS[meetingIndex].label +
+                "  xFrac: " + xFrac.toFixed(3) + ", yFrac: " + yFrac.toFixed(3));
+        }
+
+        // Only live during the actual search step, and never while a
+        // reaction is still talking -- otherwise a fast tapper could stack
+        // two reactions on top of each other.
+        const step = interiorSequence[interiorStepIndex];
+        if (!step || step.type !== "search") return;
+        if (searchReactionActive) return;
+
+        const pad = CONFIG.searchHotspotTapPadding;
+        for (let i = 0; i < searchLastSpotRects.length; i++) {
+            const hit = searchLastSpotRects[i];
+            const dx = x - hit.x;
+            const dy = y - hit.y;
+            const reach = hit.r + pad;
+            if (dx * dx + dy * dy <= reach * reach) {
+                resolveSearchSpot(hit.spot);
+                return;
+            }
         }
     }
 
@@ -5568,9 +5739,13 @@ interiorPostDialoguePause: 0.5,
         // exit kicks in -- falls back to CONFIG.insideMeetingMaxDuration if
         // this section has no scene-timer configured yet.
         const configuredSceneTimer = getSceneTimer(getMeetingLabelById(meetingId) + "-level1");
+        // A SEARCH meeting falls back to the much longer searchMaxDuration
+        // rather than insideMeetingMaxDuration: in here the player sets the
+        // pace, so a 20-second cap would yank them out mid-hunt. An explicit
+        // scene-timer in script.js still wins either way.
         insideMeetingMaxDurationActive = (typeof configuredSceneTimer === "number")
             ? configuredSceneTimer
-            : CONFIG.insideMeetingMaxDuration;
+            : (meetingHasSearch(meetingId) ? CONFIG.searchMaxDuration : CONFIG.insideMeetingMaxDuration);
 
         // Fictional HUD story clock: re-anchor to this meeting's script.js
         // "clock:" value if one is set, completely independent of
@@ -5609,6 +5784,16 @@ interiorPostDialoguePause: 0.5,
         bobAmbientSelectedActions = BOB_AMBIENT_ELIGIBLE_MEETINGS.indexOf(meetingId) !== -1
             ? pickTwoRandomBobAmbientActions()
             : [];
+
+        // Fresh candy search for this room -- see MEETING_SEARCH_SPOTS.
+        // Empty for any meeting that doesn't have one, which is what keeps
+        // every other meeting's original choreography untouched.
+        searchSpots = getMeetingSearchSpots(meetingId);
+        searchPatrolDir = 1;
+        searchPulsePhase = 0;
+        searchReactionActive = false;
+        searchFoundPauseTimer = 0;
+        searchLastSpotRects = [];
     }
 
     function updateInsideMeeting(dt) {
@@ -5678,6 +5863,25 @@ interiorPostDialoguePause: 0.5,
     function buildInteriorSequence(meetingId) {
         const cfg = getInteriorConfig(meetingId);
         const label = getMeetingLabelById(meetingId);
+
+        // A SEARCH MEETING (one with an entry in MEETING_SEARCH_SPOTS) is
+        // deliberately short and hands the room to the player: one line on
+        // the way in, then the search itself -- which doesn't end on a
+        // timer, it ends when the player has tapped everything -- then the
+        // punchline on the way out. No walk/stop/talk waypoints at all,
+        // because in here the player decides the pace, not the script.
+        if (meetingHasSearch(meetingId)) {
+            return [
+                { type: "wait", duration: CONFIG.interiorPauseEntrance * cfg.pauseMultiplier },
+                { type: "dialoguePoint", point: "pt1" },   // "they're still doing the same twelve steps"
+                { type: "search" },                        // the player takes over
+                { type: "dialoguePoint", point: "verdict" }, // "there's no candy here. this is a problem."
+                { type: "walk", to: cfg.entranceFrac },
+                { type: "wait", duration: CONFIG.interiorPauseBeforeExit * cfg.pauseMultiplier },
+                { type: "exit" }
+            ];
+        }
+
         const pointCount = getMeetingDialoguePointCount(label);
         const waypointFracs = buildInteriorWaypointFracs(cfg, pointCount);
 
@@ -5774,6 +5978,113 @@ interiorPostDialoguePause: 0.5,
         dialogueQueue = [];
         activeBubble = null;
         dialogueTimer = 0;
+    }
+
+    /* ======================================================================
+       THE CANDY SEARCH
+
+       The whole beat, and it is deliberately small: Bill browses slowly
+       back and forth across the room, bouncing between
+       searchPatrolLeftFrac and searchPatrolRightFrac; every object in
+       MEETING_SEARCH_SPOTS that hasn't been tapped yet wears a soft
+       pulsing ring; tapping one stops him, plays that spot's reaction
+       lines, then he carries on. When the last one is tapped the step
+       ends and the sequence moves on to the punchline.
+
+       There is no timer in here on purpose. The player decides how long
+       this takes -- the only clock is the scene's outer safety net (see
+       updateInsideMeeting), which is set generously for search meetings.
+
+       Bob is not handled here at all: he keeps trailing Bill through the
+       same updateInteriorBob call every other step uses.
+       ====================================================================== */
+    function updateCandySearch(dt) {
+        searchPulsePhase += dt * CONFIG.searchRingPulseSpeed * Math.PI * 2;
+
+        // A tapped spot's reaction is playing -- everyone holds still and
+        // lets it finish, same "wait for the bubble" rule the dialoguePoint
+        // step uses, so reactions never get walked out from under.
+        if (searchReactionActive) {
+            billInteriorWalking = false;
+            billInteriorTurning = false;
+            const dialogueFullyPlayed = (dialogueQueue.length === 0 && !activeBubble);
+            if (dialogueFullyPlayed) {
+                searchReactionActive = false;
+                searchFoundPauseTimer = CONFIG.searchFoundPause;
+            }
+            return;
+        }
+
+        if (searchFoundPauseTimer > 0) {
+            billInteriorWalking = false;
+            searchFoundPauseTimer -= dt;
+            return;
+        }
+
+        // Everything found -- on to the punchline.
+        if (allSearchSpotsFound()) {
+            billInteriorWalking = false;
+            advanceInteriorStep();
+            return;
+        }
+
+        // The browsing stroll. Bounces between the two patrol edges, using
+        // the same turn beat the "walk" step uses so he never snaps around.
+        const left = CONFIG.searchPatrolLeftFrac;
+        const right = CONFIG.searchPatrolRightFrac;
+
+        if (searchPatrolDir !== billInteriorMoveDir) {
+            billInteriorMoveDir = searchPatrolDir;
+            billInteriorTurning = true;
+            billInteriorWalking = false;
+            interiorStepTimer += dt;
+            if (interiorStepTimer >= CONFIG.interiorTurnDuration) {
+                interiorStepTimer = 0;
+                billInteriorTurning = false;
+            }
+            return;
+        }
+        billInteriorTurning = false;
+
+        const speed = CONFIG.interiorWalkSpeedFrac * CONFIG.searchWalkSpeedMultiplier *
+            (activeInteriorConfig ? activeInteriorConfig.walkSpeedMultiplier : 1);
+        billInteriorWalking = true;
+        billInteriorFrac += searchPatrolDir * speed * dt;
+
+        if (billInteriorFrac >= right) {
+            billInteriorFrac = right;
+            searchPatrolDir = -1;
+        } else if (billInteriorFrac <= left) {
+            billInteriorFrac = left;
+            searchPatrolDir = 1;
+        }
+    }
+
+    function allSearchSpotsFound() {
+        if (!searchSpots.length) return true;
+        for (let i = 0; i < searchSpots.length; i++) {
+            if (!searchSpots[i].found) return false;
+        }
+        return true;
+    }
+
+    // Marks a spot found and plays its reaction. The words come from
+    // script.js as an ordinary dialogue point named after the spot's id
+    // ("//[find1]" under "//AA-level1") -- exactly the same lookup the
+    // dialoguePoint step uses, so bill:/bob:/crowd: all work in there with
+    // no new syntax to learn. Falls back to a single generic line if that
+    // point hasn't been written yet, so a tap is never a dead tap.
+    function resolveSearchSpot(spot) {
+        if (!spot || spot.found) return;
+        spot.found = true;
+
+        const meeting = MEETINGS[meetingIndex];
+        const entries = getScriptDialogue(meeting.label + "-level1", spot.id);
+        loadDialogueQueueFromScriptEntries(entries || SEARCH_FALLBACK_REACTION, true);
+
+        searchReactionActive = true;
+        billInteriorWalking = false;
+        playActionButtonWhoosh();
     }
 
     function advanceInteriorStep() {
@@ -5873,6 +6184,10 @@ interiorPostDialoguePause: 0.5,
                 }
                 break;
             }
+            case "search": {
+                updateCandySearch(dt);
+                break;
+            }
             case "exit": {
                 billInteriorWalking = false;
                 beginLeavingMeeting();
@@ -5889,7 +6204,8 @@ interiorPostDialoguePause: 0.5,
         // is decided later, once per frame, by updateCharacterFacing --
         // this only drives Bob's position.
         const isResting = (step.type === "wait" || step.type === "holdForScene" ||
-            step.type === "dialoguePoint" || step.type === "waitMin");
+            step.type === "dialoguePoint" || step.type === "waitMin" ||
+            (step.type === "search" && !billInteriorWalking));
         updateInteriorBob(dt, isResting);
         updateBobAmbientAction(dt, step);
         updateInteriorCamera(dt);
@@ -6391,7 +6707,12 @@ interiorPostDialoguePause: 0.5,
             if (fadingWorldBubble.life <= 0) fadingWorldBubble = null;
         }
 
-        if (dialogueQueue.length === 0) return;
+        if (dialogueQueue.length === 0) {
+            // Queue drained -- drop any fast-cadence override so the next
+            // ordinary dialogue point plays at the normal reading pace.
+            if (!activeBubble) dialogueDisplayOverride = null;
+            return;
+        }
         if (state === STATE.WAITING_TO_START) return;
         if (activeBubble) return; // one bubble at a time -- wait for it to clear
 
@@ -6401,7 +6722,7 @@ interiorPostDialoguePause: 0.5,
             activeBubble = {
                 speaker: entry.speaker,
                 text: entry.text,
-                timeRemaining: CONFIG.dialogueDisplayDuration,
+                timeRemaining: (dialogueDisplayOverride !== null) ? dialogueDisplayOverride : CONFIG.dialogueDisplayDuration,
                 // Only meaningful for "crowd" -- picked ONCE here (not
                 // per-frame in drawSpeechBubbles) so the bubble doesn't
                 // jitter between positions while it's on screen. See
@@ -6787,6 +7108,13 @@ interiorPostDialoguePause: 0.5,
         // building is on screen in here, so buildingAnchor is always null --
         // a stray "building-dialogue:" line inside a meeting section just
         // gets skipped silently (see drawSpeechBubbles).
+        // The candy search's "tap me" rings -- drawn AFTER Bill and Bob so
+        // a spot is never hidden behind whoever happens to be standing in
+        // front of it, and BEFORE the bubbles so a reaction always reads on
+        // top of everything. This call also rebuilds searchLastSpotRects,
+        // which is what the tap handler hit-tests against.
+        drawSearchHotspots(w, h);
+
         drawSpeechBubbles(billScreenX, bobScreenX, groundY, h, w, billBox, bobBox, null);
 
         // Floating dust motes -- drawn LAST, on top of everything, so they
@@ -6794,6 +7122,76 @@ interiorPostDialoguePause: 0.5,
         // the scene. See drawInteriorAmbientMotes for why coffee steam
         // specifically was left out this pass.
         drawInteriorAmbientMotes(w, h);
+    }
+
+    /* ------------------------------------------------------------------
+       THE "TAP ME" RINGS
+
+       One soft breathing ring per un-tapped object in this room, placed
+       from MEETING_SEARCH_SPOTS. Deliberately quiet -- a warm ring and a
+       small dot, no arrows, no labels, no HUD. The room's art is doing
+       the work; this only says "this one's touchable".
+
+       This function is also the single source of truth for where a spot
+       IS on screen: it stashes every ring it draws into
+       searchLastSpotRects, and the tap handler tests against that list
+       and nothing else. That's the same discipline drawBuilding and
+       getDoorwayScreenRect share outdoors -- one geometry, two readers,
+       so the target can't drift from the art.
+       ------------------------------------------------------------------ */
+    function drawSearchHotspots(w, h) {
+        searchLastSpotRects = [];
+        if (!searchSpots.length) return;
+
+        const step = interiorSequence[interiorStepIndex];
+        const searchLive = !!(step && step.type === "search");
+        if (!searchLive) return;
+
+        const scaledWidth = getInteriorBackgroundScaledWidth(w, h);
+        const cameraPx = interiorCameraFrac * scaledWidth;
+        const pulse = 0.5 + 0.5 * Math.sin(searchPulsePhase);
+
+        for (let i = 0; i < searchSpots.length; i++) {
+            const spot = searchSpots[i];
+            if (spot.found) continue;
+
+            const x = spot.xFrac * scaledWidth - cameraPx;
+            const y = spot.yFrac * h;
+            const r = spot.radiusFrac * h;
+
+            // Off-screen spots are simply not drawn AND not tappable --
+            // they come back into both as Bill's stroll brings the camera
+            // around to them, which is the whole reason he paces the room.
+            if (x < -r * 2 || x > w + r * 2) continue;
+
+            searchLastSpotRects.push({ spot: spot, x: x, y: y, r: r });
+
+            ctx.save();
+
+            // soft warm glow behind the ring, so it reads on dark art
+            const glow = ctx.createRadialGradient(x, y, 0, x, y, r * 1.35);
+            glow.addColorStop(0, "rgba(255, 196, 92, " + (0.16 + 0.10 * pulse).toFixed(3) + ")");
+            glow.addColorStop(1, "rgba(255, 196, 92, 0)");
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(x, y, r * 1.35, 0, Math.PI * 2);
+            ctx.fill();
+
+            // the breathing ring
+            ctx.strokeStyle = "rgba(255, 214, 138, " + (0.55 + 0.35 * pulse).toFixed(3) + ")";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y, r * (0.86 + 0.14 * pulse), 0, Math.PI * 2);
+            ctx.stroke();
+
+            // the small steady dot at dead center
+            ctx.fillStyle = "rgba(255, 236, 196, 0.85)";
+            ctx.beginPath();
+            ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
     }
 
     // ------------------------------------------------------------------

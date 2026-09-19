@@ -94,106 +94,69 @@
 //   OutsideCMA-level1   -- on the street, walking toward CMA/Harrison
 //                          Corner.
 //   CMA-level1          -- once you step inside the CMA meeting.
-// OutsideAA-level1
+//OutsideAA-level1
 clock: 24:00:00
 
-<<<<<<< HEAD
 //[pt1]
-bill: XXXAnother twenty-four hours, dear friend.
-bob: Beats the alternative, bub.
-bill: Look at all these meetings!
-bob: Recovery got big.
-bill: Think they still put out candy bars?
-bob: Only one way to find out.
-
-//[pt2]
-bob: New duds, new men.
-bill: We look dope, buddy.
-bob: Extremely dope.
-bill: Another meeting?
-bob: Maybe this one's got candy.
-
-//[pt3]
-building-dialogue: WELCOME HOME
-bill: Another fellowship!
-bob: Another coffee pot.
-bill: Another shot at a candy bar.
-bob: Now you're focused.
-
-//[pt4]
-building-dialogue: MEETING TONIGHT 8 PM
-bill: Meeting number four.
-bob: Candy bar number zero.
-bill: Stay positive, dear friend.
-bob: I'm positive there's no candy.
-
-//[pt5]
-bill: Buddy, Akron's dry.
-bob: Candy-wise.
-bill: I heard there's a good meeting in Canton.
-bob: That's a long way for a Snickers.
-bill: Harrison Corner. Maybe they still do candy bars.
-bob: Get in the car, pal.
-
-
-//AA-level1
-=======
-// [pt1]
 bill: Another twenty-four hours, dear friend.
 bob: Just like old times, bub.
 bill: A meeting in Akron. What could possibly have changed?
 bob: Probably nothing.
 bill: Exactly how I like it.
 
-// AA-level1
->>>>>>> 1f95f90 (Another Day Sober gets its own reading page with a way back)
+//AA-level1
 clock: 21:45:00
 scene-timer: 240
 
-// [pt1]
-bill: Same Serenity Prayer.
-bill: Same Twelve Steps.
-bill: Same coffee.
-bill: Same old drunks.
-bob: Not much has changed, pal.
-bill: All is fundamentally well.
+// This meeting is a SEARCH room -- the player taps the things in it.
+// [pt1] plays on the way in, each [findN] is one tapped object's
+// reaction, and [verdict] plays on the way out. Which object is which
+// number lives in MEETING_SEARCH_SPOTS in chapter1-gameplay.js:
+//   find1 = the jack-o-lantern      find3 = the coffee urn
+//   find2 = the secretary's table   find4 = the literature rack
 
-// [pt2]
-bill: Hold on a damn minute.
-bob: What is it?
-bill: Where are the chocolate bars?
-bob: I don't see any.
-bill: Check beside the coffee.
+//[pt1]
+bill: Same Serenity Prayer. Same Twelve Steps.
+bob: Not much has changed, pal.
+bill: Good. Now where do they keep the candy?
+
+//[find1]
+bill: A jack-o-lantern! Finally.
+bob: It's a candle, bub.
+bill: In a pumpkin. On Halloween. With nothing in it.
+bob: Somebody has some explaining to do.
+
+//[find2]
+bob: Meeting list. Chip basket. A lamp.
+bill: Look IN the chip basket.
+bob: Chips, pal. The metal kind.
+bill: You can't eat those.
+bob: Plenty of folks have tried.
+
+//[find3]
+bill: Now we're talking. The refreshment table.
 bob: Coffee. Creamer. Sugar packets.
 bill: And?
 bob: A suspicious amount of napkins.
-bill: Prayers, Steps, coffee—and NO chocolate?
-bob: Dry as a bone, bub.
-bill: Troubling.
+bill: Napkins for WHAT, Bob?
 
-// [pt3]
-crowd: Hey, look over there!
-crowd: Wait...is that...?
-crowd: IT IS!
-bob: We've been made, pal.
-bill: After all these years?
-bob: You’re wearing the exact same suit.
-bill: Let's get out of these old clothes.
+//[find4]
+bob: Books.
+bill: Behind the books.
+bob: More books.
+bill: Nobody hides candy behind books.
+bob: You did. For eleven years.
 
-// [pt4]
-crowd: Can we get a picture?
-crowd: Just one picture!
-bill: We seem to be causing a commotion.
-bob: That's not why we're here.
-bill: No. We came for spiritual growth.
-bob: And apparently chocolate.
-bill: We ought to get some new duds.
-bob: Heck yeah. New duds.
+//[verdict]
+bill: Prayers. Steps. Coffee. No candy.
+bob: Not one bar, bub.
+bill: Dear friend, this is a problem.
+bob: Here we go.
 
-// ChangingStore-level1
+//ChangingStore-level1
 clock: 20:18:00
 
-// [pt1]
+//[pt1]
 building-dialogue: FRESH THREADS CO. — WE CAN'T FIX YOU, BUT DAMN, YOU'LL LOOK GOOD!
 bill: Fresh Threads Company.
 bob: Nobody will recognize us after this.
@@ -202,7 +165,7 @@ bob: Same mission.
 bill: Another meeting?
 bob: Another shot at chocolate.
 
-// [pt2]
+//[pt2]
 bill: Buddy...we look so dope!
 bob: Fo' shizzle.
 bill: What's a shizzle?
@@ -210,10 +173,10 @@ bob: No idea.
 bill: Perfect. They'll never suspect us.
 bob: Let's hit another meeting, bub.
 
-// DryPeoplesClub-level1
+//DryPeoplesClub-level1
 clock: 19:35:00
 
-// [pt1]
+//[pt1]
 building-dialogue: DRY PEOPLE'S CLUB — "...ALL IS FUNDAMENTALLY WELL..."
 bill: Hey! They named a burger after you!
 bob: Dang. I haven't had a burger in decades.
@@ -223,9 +186,9 @@ bill: Fine. We'll grab a chocolate bar at the next meeting.
 bob: You sound awfully confident.
 bill: It's a recovery meeting. Of course they'll have chocolate.
 
-// OutsideCA-level1
+//OutsideCA-level1
 
-// [pt1]
+//[pt1]
 building-dialogue: WELCOME HOME — GOD, GRANT ME THE SERENITY...
 bob: New duds, new men.
 bill: We look extremely dope, buddy.
@@ -233,24 +196,24 @@ bob: Painfully dope.
 bill: Think they have chocolate?
 bob: Only one way to find out.
 
-// CA-level1
+//CA-level1
 clock: 17:48:00
 scene-timer: 125
 
-// [pt1]
+//[pt1]
 bob: We made it.
 bill: Good meeting right here.
 bob: Any meeting is a good meeting.
 bill: Especially one with refreshments.
 
-// [pt2]
+//[pt2]
 crowd: Keep coming back!
 bill: Same hope, different room.
 bob: Beautiful thing, isn't it?
 bill: Sure is. Now where are the chocolate bars?
 bob: Did you look over there?
 
-// [pt3]
+//[pt3]
 bill: Candy?
 bob: Coffee.
 bill: Candy?
@@ -263,9 +226,9 @@ bill: That’s not a coincidence.
 bob: It could absolutely be a coincidence.
 bill: That's what a coincidence wants you to think.
 
-// OutsideGA-level1
+//OutsideGA-level1
 
-// [pt1]
+//[pt1]
 building-dialogue: WELCOME HOME
 bill: Another fellowship.
 bob: Another coffee pot.
@@ -275,18 +238,18 @@ bill: Recovery first.
 bob: And chocolate?
 bill: A very close first-and-a-half.
 
-// GA-level1
+//GA-level1
 clock: 14:52:00
 scene-timer: 140
 
-// [pt1]
+//[pt1]
 bill: Nice place.
 bob: Don't start.
 bill: I didn't say anything.
 bob: Your eyes said chocolate.
 bill: My eyes are hungry.
 
-// [pt2]
+//[pt2]
 crowd: Just for today!
 bill: I like these folks.
 bob: Me too, pal.
@@ -294,7 +257,7 @@ bill: They seem trustworthy.
 bob: Why wouldn't they be?
 bill: We'll know when we see the snack table.
 
-// [pt3]
+//[pt3]
 bill: Well?
 bob: Coffee. Creamer. Napkins.
 bill: Chocolate?
@@ -311,9 +274,9 @@ bill: Precisely.
 bob: The plot thickens.
 bill: Unlike that coffee.
 
-// OutsideEA-level1
+//OutsideEA-level1
 
-// [pt1]
+//[pt1]
 building-dialogue: MEETING TONIGHT — 8 P.M.
 bill: Meeting number four.
 bob: Chocolate bar number zero.
@@ -323,18 +286,18 @@ bill: That's exactly the attitude Big Chocolate wants.
 bob: Who is Big Chocolate?
 bill: I don't know yet.
 
-// EA-level1
+//EA-level1
 clock: 11:40:00
 scene-timer: 150
 
-// [pt1]
+//[pt1]
 bill: Cozy.
 bob: Very.
 bill: Feels promising.
 bob: For recovery or chocolate?
 bill: Yes.
 
-// [pt2]
+//[pt2]
 crowd: You are not alone.
 bob: That's a good message.
 bill: Sure is, dear friend.
@@ -344,7 +307,7 @@ bob: What did they say?
 bill: Something about not being alone.
 bob: You got lucky.
 
-// [pt3]
+//[pt3]
 bill: Well?
 bob: Nothing.
 bill: You looked everywhere?
@@ -361,9 +324,9 @@ bill: Thank God. I was beginning to think I was alone.
 bob: You're not alone.
 bill: That was a good message.
 
-// OutsideCMA-level1
+//OutsideCMA-level1
 
-// [pt1]
+//[pt1]
 bill: Buddy, Akron's dry.
 bob: Candy-wise.
 bill: This goes deeper than we thought.
@@ -377,11 +340,11 @@ bob: What is it?
 bill: A crisis.
 bob: Tighten up the shoelace express, pal.
 
-// CMA-level1
+//CMA-level1
 clock: 07:55:00
 scene-timer: 200
 
-// [pt1]
+//[pt1]
 crowd: Welcome to Off the Bubble!
 bill: Canton, dear friend.
 bob: The promised land.
@@ -390,7 +353,7 @@ bob: I can almost smell the chocolate.
 bill: That's the coffee.
 bob: Damn.
 
-// [pt2]
+//[pt2]
 crowd: No matter what!
 crowd: Keep coming back!
 bill: Good meeting.
@@ -398,7 +361,7 @@ bob: Real good meeting, bub.
 bill: Old-school recovery.
 bob: This has to be the place.
 
-// [pt3]
+//[pt3]
 bill: All right. Where are they?
 bob: Coffee.
 bill: Bob.
@@ -409,15 +372,6 @@ bill: Chocolate bars, Bob.
 bob: No chocolate bars.
 bill: IN CANTON?!
 bob: Not even Canton.
-<<<<<<< HEAD
-bill: Where'd the candy bars go?!
-bob: I don't know, pal.
-bill: This is SERIOUS.
-bob: Five meetings. Two cities. Zero candy.
-bill: Something must be done.
-bob: Here we go.
-
-=======
 bill: Five meetings.
 bob: Two cities.
 bill: Countless pots of coffee.
@@ -434,4 +388,3 @@ bill: We find out who took it—
 bob: And?
 bill: We put the chocolate back in recovery.
 bob: Let's go, bub.
->>>>>>> 1f95f90 (Another Day Sober gets its own reading page with a way back)
