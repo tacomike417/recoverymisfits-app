@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Treatment Lag Test</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#0e0e0d; color:#f4f1e8;
+         font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+         padding:16px; padding-bottom:calc(24px + env(safe-area-inset-bottom,0px)); }
+  h1 { font-size:19px; margin:0 0 4px; letter-spacing:.3px; }
+  p.sub { margin:0 0 18px; color:#9c968a; font-size:13px; }
+  .test { border:1px solid #2b2a26; border-radius:12px; padding:14px; margin-bottom:12px; background:#151513; }
+  .test h2 { font-size:14px; margin:0 0 2px; letter-spacing:.4px; text-transform:uppercase; color:#d8d2c4; }
+  .test .why { font-size:12px; color:#8d877c; margin:0 0 10px; }
+  button { width:100%; padding:13px; font-size:15px; font-weight:600; border-radius:9px;
+           border:1px solid #3a3833; background:#23221f; color:#f4f1e8; }
+  button:active { background:#2e2c28; }
+  button[disabled] { opacity:.45; }
+  .fps { margin-top:10px; font:600 15px ui-monospace,Menlo,monospace; }
+  .bar { height:7px; border-radius:4px; background:#2b2a26; overflow:hidden; margin-top:6px; }
+  .bar i { display:block; height:100%; background:#6ab04c; width:0%; }
+  .verdict { margin-top:18px; padding:14px; border-radius:12px; background:#151513;
+             border:1px solid #2b2a26; font-size:14px; }
+  .good { color:#7bc95f; } .bad { color:#e07a5f; } .mid { color:#e0c05f; }
+  ol { padding-left:20px; margin:8px 0 0; font-size:13px; color:#b9b3a7; }
+</style>
+</head>
+<body>
+
+<h1>Treatment level — what's actually slow</h1>
+<p class="sub">Four tests, ten seconds each. Run them in order, on the phone that lags.
+Each one measures how many frames a second the page manages while the music plays a different way.</p>
+
+<div class="test" id="t0">
+  <h2>1 · No music</h2>
+  <p class="why">The baseline. This is the best your phone can do.</p>
+  <button>Run 10s</button>
+  <div class="fps">—</div><div class="bar"><i></i></div>
+</div>
+
+<div class="test" id="t1">
+  <h2>2 · Music at normal speed</h2>
+  <p class="why">Playing the real track at 1.0×. No pitch work involved.</p>
+  <button>Run 10s</button>
+  <div class="fps">—</div><div class="bar"><i></i></div>
+</div>
+
+<div class="test" id="t2">
+  <h2>3 · Music at 1.28× — pitch preserved</h2>
+  <p class="why">Exactly what the treatment level does today.</p>
+  <button>Run 10s</button>
+  <div class="fps">—</div><div class="bar"><i></i></div>
+</div>
+
+<div class="test" id="t3">
+  <h2>4 · Music at 1.28× — preservesPitch OFF</h2>
+  <p class="why">Same speed-up, but as a plain resample instead of time-stretching.
+     Sounds like a tape running fast.</p>
+  <button>Run 10s</button>
+  <div class="fps">—</div><div class="bar"><i></i></div>
+</div>
+
+<div class="verdict" id="verdict">
+  Run all four, then this will tell you what it found.
+</div>
+
+<script>
+const TRACK = "https://recoverymisfits.org/assets/audio/chapter1-gameplay-music.mp3";
+const results = {};
+let audio = null;
+
+function makeAudio() {
+  const a = new Audio(TRACK);
+  a.loop = true; a.volume = 0.35; a.preload = "auto";
+  return a;
+}
+
+/* Busy-ish animation so the main thread has real work to do, the way the
+   game does. Counts frames for `ms` and returns frames per second. */
+function measure(ms) {
+  return new Promise(resolve => {
+    let frames = 0;
+    const start = performance.now();
+    const c = document.createElement("canvas");
+    c.width = 260; c.height = 120;
+    const ctx = c.getContext("2d");
+    function step(now) {
+      frames++;
+      // a little drawing, so we are not measuring an idle page
+      ctx.clearRect(0,0,260,120);
+      for (let i=0;i<40;i++){
+        ctx.fillStyle = "hsl(" + ((now/10 + i*9)%360) + ",70%,50%)";
+        ctx.fillRect((i*7 + now/20)%260, 40+Math.sin(now/200+i)*30, 5, 22);
+      }
+      if (now - start < ms) requestAnimationFrame(step);
+      else resolve(Math.round(frames / ((now - start)/1000)));
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+async function run(id, setup) {
+  const box = document.getElementById(id);
+  const btn = box.querySelector("button");
+  const out = box.querySelector(".fps");
+  const bar = box.querySelector(".bar i");
+  document.querySelectorAll("button").forEach(b => b.disabled = true);
+  out.textContent = "measuring…";
+
+  if (audio) { try { audio.pause(); } catch(e){} audio = null; }
+  await setup();
+  const fps = await measure(10000);
+  if (audio) { try { audio.pause(); } catch(e){} audio = null; }
+
+  results[id] = fps;
+  const cls = fps >= 50 ? "good" : fps >= 35 ? "mid" : "bad";
+  out.innerHTML = '<span class="'+cls+'">' + fps + ' fps</span>';
+  bar.style.width = Math.min(100, fps/60*100) + "%";
+  bar.style.background = fps >= 50 ? "#6ab04c" : fps >= 35 ? "#c8a33c" : "#c0563c";
+  document.querySelectorAll("button").forEach(b => b.disabled = false);
+  verdict();
+}
+
+document.querySelector("#t0 button").onclick = () => run("t0", async () => {});
+document.querySelector("#t1 button").onclick = () => run("t1", async () => {
+  audio = makeAudio(); audio.playbackRate = 1.0; await audio.play().catch(()=>{});
+});
+document.querySelector("#t2 button").onclick = () => run("t2", async () => {
+  audio = makeAudio();
+  audio.playbackRate = 1.28;            // preservesPitch left at its default (true)
+  await audio.play().catch(()=>{});
+});
+document.querySelector("#t3 button").onclick = () => run("t3", async () => {
+  audio = makeAudio();
+  audio.preservesPitch = false;
+  audio.webkitPreservesPitch = false;   // older iOS
+  audio.mozPreservesPitch = false;
+  audio.playbackRate = 1.28;
+  await audio.play().catch(()=>{});
+});
+
+function verdict() {
+  const v = document.getElementById("verdict");
+  const { t0, t1, t2, t3 } = results;
+  if (t0 == null || t1 == null || t2 == null || t3 == null) {
+    const done = Object.keys(results).length;
+    v.textContent = done + " of 4 done — run the rest.";
+    return;
+  }
+  const lines = [];
+  lines.push("<b>Baseline " + t0 + " · normal " + t1 + " · stretched " + t2 + " · resampled " + t3 + "</b>");
+  const stretchCost = t1 - t2;
+  const resampleCost = t1 - t3;
+  if (stretchCost >= 8 && t3 - t2 >= 6) {
+    lines.push('<p class="good">Found it. Pitch-preserving time-stretch is the cost — ' +
+      "it drops " + stretchCost + " fps, and turning preservesPitch off wins " + (t3-t2) + " of them back. " +
+      "The fix is one line in game2.js.</p>");
+  } else if (stretchCost >= 8) {
+    lines.push('<p class="mid">The stretched rate does cost ' + stretchCost + ' fps, but turning ' +
+      "preservesPitch off did not win it back. The tempo ramp itself may need to go.</p>");
+  } else if (t1 - t0 >= 8) {
+    lines.push('<p class="mid">Just playing the track at all costs ' + (t1-t0) + ' fps, ' +
+      "regardless of speed. That points at the audio file — probably decode, not playback.</p>");
+  } else {
+    lines.push('<p class="bad">None of these is the problem — all four are close. ' +
+      "The lag is coming from somewhere other than the music, so it is worth measuring the drawing next.</p>");
+  }
+  v.innerHTML = lines.join("");
+}
+</script>
+</body>
+</html>
