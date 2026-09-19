@@ -2769,6 +2769,13 @@
   const jumpStraightIn =
     new URLSearchParams(window.location.search).get("jump") === "1";
 
+  /* The music elements are built with new Audio(), so they are never in the
+     DOM and the frame logger in gameflow.js cannot find them by query.
+     Hand it a reference, but only when the URL asked for logging. */
+  if (new URLSearchParams(window.location.search).get("perf") === "1") {
+    window.RecoveryDebugMusic = backgroundMusic;
+  }
+
   if (jumpStraightIn && chapterExists) {
     startGameplay();
   } else if (gameState === "chapter1CutScene") {

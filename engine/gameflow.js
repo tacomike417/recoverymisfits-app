@@ -288,44 +288,103 @@
       }
     }
 
-    /* ?perf=1 -- a frame-time readout, off unless asked for.
+    /* ?perf=1 -- FRAME LOGGER.
 
-       Nobody playing the game ever sees this; it only appears when the URL
-       carries perf=1. It splits the frame into update and draw so the cost
-       can be pinned to one of them instead of guessed at, and reports the
-       pixel ratio the canvas is actually running at. */
+       An on-screen readout was tried first and was a bad idea: it asked
+       somebody to read four numbers off a phone while failing a reflex
+       minigame. This writes to localStorage instead, once a second, and
+       test.html reads it back with a copy button.
+
+       It records more than frame rate, because frame rate alone never told
+       us anything: how long update and draw each took, the worst single
+       frame in the second, how many frames blew past 33ms, and the state
+       of the music element -- readyState and networkState are how a
+       starved audio decoder shows itself. */
     const PERF_ON = new URLSearchParams(location.search).get("perf") === "1";
-    let perfBox = null;
+    const PERF_KEY = "rm-perf-log";
+    const PERF_ENDPOINT =
+      "https://rrkyvcouxdmurwdyuugv.supabase.co/rest/v1/perf_logs";
+    const PERF_KEYSTR = "sb_publishable_SJEQDnQAEqCcIooFfDUjwg_jhYgUTe_";
+    let perfLastPost = 0;
+
+    let perfSamples = [];
     let perfFrames = 0;
     let perfUpdateMs = 0;
     let perfDrawMs = 0;
-    let perfLastReport = 0;
+    let perfWorstMs = 0;
+    let perfJank = 0;          // frames over 33ms -- a visible hitch
+    let perfWindowStart = 0;
+    let perfRunStart = 0;
 
-    function perfReport(now) {
-      if (!perfBox) {
-        perfBox = document.createElement("div");
-        perfBox.style.cssText =
-          "position:fixed;left:8px;top:8px;z-index:99999;" +
-          "font:600 12px/1.35 ui-monospace,Menlo,monospace;" +
-          "background:rgba(0,0,0,.78);color:#7bc95f;padding:7px 9px;" +
-          "border-radius:7px;white-space:pre;pointer-events:none";
-        document.body.appendChild(perfBox);
-      }
-      if (now - perfLastReport < 500) return;
+    function perfMusicState() {
+      const a = document.querySelector("audio") ||
+                (window.RecoveryDebugMusic || null);
+      if (!a) return null;
+      return {
+        paused: a.paused,
+        ready: a.readyState,      // 0 = nothing decoded, 4 = plenty
+        net: a.networkState,      // 2 = still loading, 3 = no source
+        rate: Number((a.playbackRate || 1).toFixed(3)),
+        t: Number((a.currentTime || 0).toFixed(1))
+      };
+    }
 
-      const secs = (now - perfLastReport) / 1000;
-      const fps = perfFrames / secs;
+    function perfFlush(now) {
+      const secs = (now - perfWindowStart) / 1000;
+      if (secs <= 0 || perfFrames === 0) return;
       const canvas = document.querySelector("canvas");
-      const dpr = canvas ? (canvas.width / 390).toFixed(2) : "?";
 
-      perfBox.style.color = fps >= 50 ? "#7bc95f" : fps >= 35 ? "#e0c05f" : "#e07a5f";
-      perfBox.textContent =
-        "fps    " + fps.toFixed(0) + "\n" +
-        "update " + (perfUpdateMs / perfFrames).toFixed(2) + " ms\n" +
-        "draw   " + (perfDrawMs / perfFrames).toFixed(2) + " ms\n" +
-        "dpr    " + dpr + "  (" + (canvas ? canvas.width + "x" + canvas.height : "?") + ")";
+      perfSamples.push({
+        at: Math.round((now - perfRunStart) / 1000),        // seconds into the run
+        fps: Math.round(perfFrames / secs),
+        upd: Number((perfUpdateMs / perfFrames).toFixed(2)),
+        draw: Number((perfDrawMs / perfFrames).toFixed(2)),
+        worst: Math.round(perfWorstMs),
+        jank: perfJank,
+        state: getGameState(),
+        music: perfMusicState()
+      });
 
-      perfFrames = 0; perfUpdateMs = 0; perfDrawMs = 0; perfLastReport = now;
+      const payload = {
+        when: new Date().toISOString(),
+        url: location.search,
+        dpr: window.devicePixelRatio,
+        canvas: canvas ? canvas.width + "x" + canvas.height : null,
+        ua: navigator.userAgent.slice(0, 90),
+        samples: perfSamples.slice(-90)
+      };
+
+      /* SEND IT SOMEWHERE READABLE.
+
+         The log is generated on a phone and read on a desktop, so keeping
+         it in localStorage was useless. Every 5 seconds the run so far is
+         posted to a throwaway perf_logs table. keepalive lets the last one
+         survive the page being closed. Failures are ignored on purpose --
+         a diagnostic that breaks the thing it is diagnosing is worse than
+         no diagnostic. */
+      if (now - perfLastPost > 5000) {
+        perfLastPost = now;
+        try {
+          fetch(PERF_ENDPOINT, {
+            method: "POST",
+            keepalive: true,
+            headers: {
+              "Content-Type": "application/json",
+              apikey: PERF_KEYSTR,
+              Authorization: "Bearer " + PERF_KEYSTR,
+              Prefer: "return=minimal"
+            },
+            body: JSON.stringify({ tag: location.search || "(no flags)", payload })
+          }).catch(() => {});
+        } catch (e) { /* ignore */ }
+      }
+
+      try {
+        localStorage.setItem(PERF_KEY, JSON.stringify(payload));
+      } catch (e) { /* private mode, full quota -- not worth failing over */ }
+
+      perfFrames = 0; perfUpdateMs = 0; perfDrawMs = 0;
+      perfWorstMs = 0; perfJank = 0; perfWindowStart = now;
     }
 
     function gameLoop(now) {
@@ -336,17 +395,22 @@
         return;
       }
 
+      if (!perfRunStart) { perfRunStart = now; perfWindowStart = now; }
+
       const a = performance.now();
       update(now);
       const b = performance.now();
       draw(now);
       const c = performance.now();
 
+      const frameMs = c - a;
       perfFrames++;
       perfUpdateMs += b - a;
       perfDrawMs += c - b;
-      if (!perfLastReport) perfLastReport = now;
-      perfReport(now);
+      if (frameMs > perfWorstMs) perfWorstMs = frameMs;
+      if (frameMs > 33) perfJank++;
+
+      if (now - perfWindowStart >= 1000) perfFlush(now);
 
       requestAnimationFrame(gameLoop);
     }
