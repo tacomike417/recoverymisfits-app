@@ -531,8 +531,24 @@
     endRate: 1.28,
     baseVolume: 0.3,
     activeTileBoost: 0.018,
-    smoothing: 0.08
+    smoothing: 0.08,
+
+    /* HOW OFTEN THE RATE IS ACTUALLY WRITTEN TO THE AUDIO ELEMENT.
+
+       See updateTreatmentMusic for the whole story. Short version: the
+       smoothed rate is now kept in a plain number and only pushed to
+       backgroundMusic.playbackRate about eight times a second, and only
+       when it has moved far enough to hear. It used to be written every
+       animation frame. */
+    writeIntervalMs: 120,   // ~8 writes a second instead of ~60
+    writeMinStep: 0.015     // ignore changes too small to notice
   };
+
+  // The smoothed rate lives here, NOT on the media element -- see
+  // updateTreatmentMusic. Reset by resetTreatmentGame.
+  let treatmentMusicRate = treatmentMusicSettings.startRate;
+  let treatmentRateLastWriteAt = 0;
+  let treatmentRateLastWritten = treatmentMusicSettings.startRate;
 
   function playAudio(audio) {
     return audio.play()
@@ -754,9 +770,52 @@
       progressRate + activeTiles * treatmentMusicSettings.activeTileBoost
     );
 
-    backgroundMusic.playbackRate +=
-      (targetRate - backgroundMusic.playbackRate) *
-      treatmentMusicSettings.smoothing;
+    /* THE BUG THIS REPLACES, because it is worth writing down too.
+
+       This used to be:
+
+           backgroundMusic.playbackRate +=
+             (targetRate - backgroundMusic.playbackRate) * smoothing;
+
+       updateTreatmentMusic is called from gameLoop, so that ran on EVERY
+       animation frame -- about sixty times a second. And because an eased
+       approach closes a fraction of the remaining gap each time, it never
+       actually arrives: there was always a little more to go, so a brand
+       new fractional playbackRate was written to the media element every
+       frame, for the entire level, forever.
+
+       Setting playbackRate is not a free assignment. It reconfigures the
+       audio pipeline's resampler, and on iOS that work lands on the main
+       thread -- the same thread drawing the game. So the music dragged and
+       took the frame rate down with it, which is exactly what it looked
+       like: everything slowing down together, getting worse the longer you
+       played, on the one screen built for tapping fast.
+
+       It only ever happened here because of the isTreatmentLevel gate at
+       the top of this function. Nothing else in the game writes to a media
+       element per frame.
+
+       THE FIX. Smooth in a plain number, and push it to the element only
+       every writeIntervalMs, and only when it has moved by at least
+       writeMinStep. Eight writes a second is indistinguishable to the ear
+       from sixty; it is just fifty-two fewer resampler reconfigurations
+       per second. */
+    treatmentMusicRate +=
+      (targetRate - treatmentMusicRate) * treatmentMusicSettings.smoothing;
+
+    if (now - treatmentRateLastWriteAt < treatmentMusicSettings.writeIntervalMs) {
+      return;
+    }
+    if (
+      Math.abs(treatmentMusicRate - treatmentRateLastWritten) <
+      treatmentMusicSettings.writeMinStep
+    ) {
+      return;
+    }
+
+    treatmentRateLastWriteAt = now;
+    treatmentRateLastWritten = treatmentMusicRate;
+    backgroundMusic.playbackRate = treatmentMusicRate;
   }
 
   /* =====================================
@@ -1274,6 +1333,12 @@
     treatmentParticles.length = 0;
     treatmentOverloadTriggered = false;
     treatmentNextCueAt = now + (treatmentAttempt === 1 ? 500 : 650);
+
+    // Start the music rate back at the bottom of the ramp along with
+    // everything else, so a retry does not inherit the last run's tempo.
+    treatmentMusicRate = treatmentMusicSettings.startRate;
+    treatmentRateLastWriteAt = 0;
+    treatmentRateLastWritten = treatmentMusicSettings.startRate;
 
     for (const slot of treatmentSlots) {
       slot.active = false;
