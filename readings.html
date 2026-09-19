@@ -172,6 +172,7 @@ body::after{
 .stackrule{display:block;width:207px;height:auto;margin:2px 0 13px 4px}
 
 .rows{display:grid;gap:11px;position:relative}
+.stack{display:grid;gap:11px;position:relative}
 
 /* THE WHOLE ROW IS THE LINK. The mockup's OPEN pill is 21px tall, which is
    half of what anything tappable is allowed to be -- so the pill stays the
@@ -218,22 +219,53 @@ body::after{
 }
 .pill svg{width:15px;height:9px;stroke:var(--gold);fill:none;stroke-width:1.8}
 
-/* ---- the Big Book's chapters ------------------------------------------- */
-/* THE MOCKUP DRAWS BIG BOOK AS ONE ROW, and the live page has sixteen PDF
-   links under it. Neither gets thrown away: the row is the row, and what was
-   a wall of buttons is now behind it, opened on purpose. */
-.chapters{margin:-2px 0 0;padding:0}
-.chapters summary{
-  list-style:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  min-height:var(--touch);padding:10px;
+/* ---- the Big Book ------------------------------------------------------ */
+/* IT IS NOT PART OF THE DAILY STACK AND SHOULD NOT LOOK LIKE IT.
+   The other five rows are today's reading -- a thing you do each morning.
+   The Big Book is the reference underneath all of them, and it was sitting
+   in the same gold as the dailies, in the same run, reading as the sixth
+   thing to do today. So: a rule and a gap above it to end the stack, and
+   the row itself in the deep blue rather than the panel brown. */
+.stack-end{
+  display:block;height:1px;margin:22px 4px 16px;border:0;
+  background:linear-gradient(90deg,
+    rgba(216,180,91,0) 0%, rgba(216,180,91,.34) 22%,
+    rgba(216,180,91,.34) 78%, rgba(216,180,91,0) 100%);
+}
+
+.bigbook{margin:0;padding:0}
+.bigbook > summary{list-style:none;cursor:pointer}
+.bigbook > summary::-webkit-details-marker{display:none}
+
+.row-bb{
+  /* Deep navy, and the gradient keeps the same lit-from-above feel the other
+     rows have so it still belongs to the page. */
+  background:linear-gradient(180deg, rgba(150,190,255,.10), rgba(150,190,255,0) 55%), #14243c;
+  border-color:rgba(138,178,240,.34);
+}
+.row-bb .txt{border-left-color:rgba(138,178,240,.4)}
+.row-bb .d{color:#9fb4d4}
+.row-bb .pill{border-color:rgba(160,196,255,.62);color:#dbe8ff}
+.row-bb .pill svg{stroke:#a9c6ff}
+.row-bb:active{border-color:#8ab2f0}
+
+/* The chevron says which way this goes, and turns when it has gone. */
+.pill .chev{width:13px;height:13px;stroke-width:3;transition:transform .18s ease}
+.bigbook[open] .pill .chev{transform:rotate(180deg)}
+
+/* A HEADING, NOT A BUTTON. It used to be the <summary> and it was the only
+   way to reach the chapters; now the row above opens them and this just
+   names what appeared. */
+.chaphead{
+  margin:12px 4px 8px;
   font-family:var(--ui);font-weight:800;font-size:11.5px;letter-spacing:1.5px;
   text-transform:uppercase;color:var(--gold);
 }
-.chapters summary::-webkit-details-marker{display:none}
-.chapters[open] summary{color:var(--gold-lit)}
+
+.chapters{margin:-2px 0 0;padding:0}
+.links{display:flex;flex-wrap:wrap;gap:7px;padding:2px 4px 10px}
 .chapters .links{display:flex;flex-wrap:wrap;gap:7px;padding:2px 4px 10px}
-.chapters .links a{
+.links a{
   flex:1 1 auto;min-height:var(--touch);
   display:inline-flex;align-items:center;justify-content:center;
   padding:9px 12px;border-radius:999px;
@@ -241,7 +273,7 @@ body::after{
   font-family:var(--ui);font-size:12px;font-weight:700;color:var(--ivory);
   text-decoration:none;text-align:center;
 }
-.chapters .links a:active{border-color:var(--gold)}
+.links a:active{border-color:var(--gold)}
 .shelfhead{
   font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:1px;
   text-transform:uppercase;color:var(--ivory);margin:16px 0 8px 2px;
@@ -308,6 +340,13 @@ body::after{
 
   <div class="rows">
 
+    <!-- The four dailies, in their own box. The margin notes are positioned
+         against THIS rather than against everything below it -- anchored to
+         the bottom of the whole list they landed on the Big Book row the
+         moment it moved down, which is the smudge the note above the
+         .m-progress rule warns about. -->
+    <div class="stack">
+
     <a class="row" href="./on-awakening.html">
       <img class="ico" src="assets/pages/r-ico-sun.webp" alt="" aria-hidden="true" width="124" height="78">
       <span class="txt"><span class="t">On Awakening</span><span class="d">Start the day with intention.</span></span>
@@ -332,14 +371,29 @@ body::after{
       <span class="pill">Open <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </a>
 
-    <div class="row" style="cursor:default">
-      <img class="ico" src="assets/pages/r-ico-bb.webp" alt="" aria-hidden="true" width="124" height="82">
-      <span class="txt"><span class="t">Big Book</span><span class="d">The foundation. Always here.</span></span>
-      <span class="pill" aria-hidden="true">Open <svg viewBox="0 0 24 12"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    </div>
+    <img class="m-progress" src="assets/pages/r-m-progress.webp" alt="" aria-hidden="true">
+    <img class="m-belong" src="assets/pages/r-m-belong.webp" alt="" aria-hidden="true">
 
-    <details class="chapters">
-      <summary>Chapters &amp; forewords <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:3"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+    </div><!-- /.stack -->
+
+    <!-- The daily stack ends here. What is below it is reference, not a
+         thing to do today. -->
+    <hr class="stack-end">
+
+    <!-- BIG BOOK OPENS THE BIG BOOK.
+         The row used to be a dead <div> -- an OPEN pill that did nothing,
+         with the real way in sitting underneath it as a separate
+         "Chapters & forewords" toggle. Two controls, one of which lied.
+         Now the row IS the control: it is the <summary>, so the whole
+         58px of it opens the chapters, and "Chapters & forewords" goes
+         back to being what it reads as, a heading over the list. -->
+    <details class="bigbook">
+      <summary class="row row-bb">
+        <img class="ico" src="assets/pages/r-ico-bb.webp" alt="" aria-hidden="true" width="124" height="82">
+        <span class="txt"><span class="t">Big Book</span><span class="d">The foundation. Always here.</span></span>
+        <span class="pill">Open <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </summary>
+      <p class="chaphead">Chapters &amp; forewords</p>
       <div class="links">
         <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_preface.pdf" target="_blank" rel="noopener">Preface</a>
         <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_forewordfirstedition.pdf" target="_blank" rel="noopener">Foreword — First Edition</a>
@@ -358,9 +412,6 @@ body::after{
         <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt11.pdf" target="_blank" rel="noopener">Ch 11 — A Vision For You</a>
       </div>
     </details>
-
-    <img class="m-progress" src="assets/pages/r-m-progress.webp" alt="" aria-hidden="true">
-    <img class="m-belong" src="assets/pages/r-m-belong.webp" alt="" aria-hidden="true">
   </div>
 
   <!-- THE BOOK SHELF IS ON THE LIVE PAGE and the mockup never saw it. Taking
