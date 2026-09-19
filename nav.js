@@ -35,6 +35,42 @@
     return Math.floor((e.getTime() - s.getTime()) / msPerDay);
   }
 
+  /* ---- ASK THE BROWSER TO KEEP IT -----------------------------------------
+
+     WHY THE SOBER DATE KEEPS DISAPPEARING.
+
+     By default a site's storage is "best-effort", which means exactly what it
+     sounds like. Two things throw it away and neither is the user clearing
+     anything:
+
+       * Safari deletes script-written storage after SEVEN DAYS with no tap
+         on the site. Not low disk, not a cache clear -- just not opening the
+         app for a week. Somebody who checks their day count every morning is
+         fine; somebody who opens it when things are hard loses their date
+         precisely because things were not hard for a while. That is the
+         worst possible failure for this particular number.
+
+       * Any browser under storage pressure drops the least recently used
+         origins, and it takes ALL of an origin's data at once.
+
+     navigator.storage.persist() moves the site to "persistent", where data
+     is only removed if the person deletes it themselves. Chrome and Safari
+     decide silently from how much you use the site; Firefox asks. Installed
+     web apps are treated far more generously than a tab.
+
+     It is one call, it has no downside, and this app had never made it.
+     It does NOT survive somebody clearing site data by hand -- nothing on
+     the device does. That needs an account, which is a bigger conversation. */
+  async function keepStorage() {
+    try {
+      if (!navigator.storage || !navigator.storage.persist) return null;
+      if (await navigator.storage.persisted()) return true;
+      return await navigator.storage.persist();
+    } catch (e) {
+      return null;
+    }
+  }
+
   function getSoberDateYMD() {
     const v = localStorage.getItem(SOBER_KEY);
     return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
@@ -987,6 +1023,10 @@
       const ymd = wheelYMD();
       if (!ymd) return;
       localStorage.setItem(SOBER_KEY, ymd);
+      /* Asked HERE as well as on load, because saving a sober date is the
+         strongest signal this person means it -- and Chrome and Safari both
+         decide whether to grant persistence from engagement. */
+      keepStorage();
       modal.classList.remove("show");
       refreshSoberPanel();
     });
@@ -1045,6 +1085,11 @@
 
   refreshSoberPanel();
   setInterval(refreshSoberPanel, 60000);
+
+  /* Asked again on every load, for everybody who already has a date saved
+     from before this existed. persisted() is checked first so a browser that
+     has already said yes is never asked twice. */
+  if (getSoberDateYMD()) keepStorage();
 
   /* =======================================================================
      SHARE — the code somebody points a phone at.
