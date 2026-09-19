@@ -581,7 +581,7 @@ audio{
     <button class="choice" type="button" data-choice="books" aria-pressed="false" aria-label="Audiobooks — stories you can listen to">
       <img src="assets/audio/a-card1.webp" alt="" width="275" height="288" decoding="async">
     </button>
-    <button class="choice" type="button" data-choice="videos" aria-pressed="false" aria-label="Videos — speakers, talks and playlists">
+    <button class="choice" type="button" data-choice="videos" aria-pressed="false" aria-label="Videos — speaker tapes and talks">
       <img src="assets/audio/a-card2.webp" alt="" width="271" height="288" decoding="async">
     </button>
     <button class="choice" type="button" data-choice="surprise" aria-label="Surprise me — just press play">
@@ -613,9 +613,13 @@ audio{
   </section>
 
   <!-- ===== the switcher ===== -->
+  <!-- SPEAKER TAPES FIRST, and selected on arrival. "Tapes" is what people
+       in the rooms call these, and it is what the page should call them --
+       the audiobooks are two titles, the tapes are where people actually
+       spend their time here. Audiobooks are one tap right, not gone. -->
   <div class="seg" role="tablist" aria-label="What to show">
-    <button role="tab" id="tabBooks" type="button" aria-selected="true">AUDIOBOOKS</button>
-    <button role="tab" id="tabVideos" type="button" aria-selected="false">SPEAKER PLAYLISTS</button>
+    <button role="tab" id="tabVideos" type="button" aria-selected="true">SPEAKER TAPES</button>
+    <button role="tab" id="tabBooks" type="button" aria-selected="false">AUDIOBOOKS</button>
   </div>
 
   <div class="list" id="list"></div>
@@ -655,7 +659,7 @@ audio{
     <!-- video side -->
     <div id="ytArea" hidden>
       <div class="videoWrap">
-        <iframe id="ytFrame" title="Speaker playlist"
+        <iframe id="ytFrame" title="Speaker tape"
           allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowfullscreen referrerpolicy="origin-when-cross-origin" src="about:blank"></iframe>
       </div>
@@ -762,7 +766,9 @@ audio{
   ];
 
   /* ---- where we are ------------------------------------------------------ */
-  let tab = "books";
+  /* Opens on the playlists. Anything already chosen this session still wins
+     -- see TAB_KEY below -- so nobody gets yanked off what they were on. */
+  let tab = "videos";
   let activeBookKey = null;
   let TRACKS = [];
   let currentIdx = 0;
@@ -929,7 +935,7 @@ audio{
     } else {
       const items = PLAYLISTS.filter(p => matches(p.title, p.sub));
       if (!items.length) return drawEmpty(query ? "Nothing matched that search."
-                                                : "No video playlists are available right now.");
+                                                : "No speaker tapes are available right now.");
       items.forEach(item => listEl.appendChild(videoRow(item)));
     }
   }
@@ -1224,7 +1230,7 @@ audio{
       encodeURIComponent(item.id) + (idx ? "&index=" + idx : "");
     $("openYtBtn").onclick = () => {
       /* Leaving the app is a choice, not a surprise. */
-      if (!confirm("Open this playlist in YouTube? You'll be leaving Recovery Misfits.")) return;
+      if (!confirm("Open this tape on YouTube? You'll be leaving Recovery Misfits.")) return;
       window.open("https://www.youtube.com/playlist?list=" + encodeURIComponent(item.id), "_blank", "noopener");
     };
     showPlayer();
