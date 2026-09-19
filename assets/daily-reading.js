@@ -46,7 +46,26 @@
      shared from this page and a link shared from the old one are one link. */
   var MONTHS = ["january","february","march","april","may","june","july",
                 "august","september","october","november","december"];
-  var LEADING_DATE = new RegExp("^(" + MONTHS.join("|") + ")\\s+\\d{1,2}\\s*[-–—]\\s*", "i");
+  /* THE DATE ON THE FRONT OF A TITLE, however it was typed.
+     The stored titles are "September 19 — The Amends..." and the date has to
+     come off, because both screens print the date separately. The first
+     version of this demanded a full month name, a day, and a dash -- and
+     five real days in the file do not look like that:
+
+       "Dec 23 — Selfish vs. Self-Seeking"     abbreviated month
+       "Dec 24 — Long Day"
+       "Dec 25 — Grace: The Greatest Gift"
+       "August 9, 2026 - All"                  carries a year
+
+     Those five printed their own date as the headline. So: three letters of
+     a month is enough, an optional full ending, an optional trailing dot,
+     and an optional year. Checked against all 365 by tools/title-strip-test.mjs.
+
+     Two more are simply typed wrong in data/readings.json and no regex should
+     paper over them -- "Jsnusty 11" and "ly 8". They need fixing in the data. */
+  var MONTHS3 = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+  var LEADING_DATE = new RegExp(
+    "^(" + MONTHS3.join("|") + ")[a-z]*\\.?\\s+\\d{1,2}(?:,?\\s*\\d{4})?\\s*[-\u2013\u2014]\\s*", "i");
 
   function slugify(t) {
     var s = String(t || "").replace(LEADING_DATE, "").trim() || String(t || "");

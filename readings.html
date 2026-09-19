@@ -131,7 +131,12 @@ body::after{
 .today .k{
   font-family:var(--display);font-weight:600;
   font-size:20px;letter-spacing:.3px;text-transform:uppercase;
-  color:var(--ink);margin:0;line-height:1;
+  color:var(--ink);margin:0;
+  /* WAS line-height:1, WHICH WAS FINE FOR TWO WORDS. It holds a real title
+     now, and the longest in the file is "Not Regretting the Past—Or Shutting
+     the Door on It" -- three lines on a narrow phone, and at 1.0 they touched.
+     balance keeps a wrapped title from leaving one word stranded. */
+  line-height:1.1;text-wrap:balance;
 }
 .today .krule{display:block;width:124px;height:3px;margin:5px 0 9px;
   background:linear-gradient(90deg,#b98f33,#e0bd6a 60%,rgba(224,189,106,0));border-radius:2px}
@@ -283,7 +288,10 @@ body::after{
        drift away from what OPEN TODAY actually shows. -->
   <section class="today">
     <img class="bookart" src="assets/pages/r-book.webp" alt="" aria-hidden="true" width="216" height="184">
-    <h2 class="k">Today&rsquo;s Reading</h2>
+    <!-- Says "Today's Reading" until the real one lands, and stays saying it
+         if the fetch fails. A heading that empties itself is worse than a
+         heading that is a little generic. -->
+    <h2 class="k" id="todayTitle">Today&rsquo;s Reading</h2>
     <span class="krule"></span>
     <p class="date" id="todayDate">&nbsp;</p>
     <p class="quote" id="todayQuote">Opening today&rsquo;s reading&hellip;</p>
@@ -382,6 +390,7 @@ body::after{
 (function () {
   var dateEl = document.getElementById("todayDate");
   var quoteEl = document.getElementById("todayQuote");
+  var titleEl = document.getElementById("todayTitle");
   var d = new Date();
   var MONTHS = ["January","February","March","April","May","June","July",
                 "August","September","October","November","December"];
@@ -395,6 +404,37 @@ body::after{
     .then(function (all) {
       var entry = all[key];
       if (!entry) { quoteEl.hidden = true; return; }
+
+      /* THE READING'S OWN NAME, where the card used to just say "Today's
+         Reading". Same words the reading page puts at the top, arrived at the
+         same way: the stored title carries its own date -- "September 19 —
+         The Amends That Cannot Be Made Directly" -- and the date is already
+         on its own line right underneath this. Printing the title raw put
+         September 19 on the card twice. This is the same regex
+         assets/daily-reading.js uses, so the two screens cannot drift. */
+  /* THE DATE ON THE FRONT OF A TITLE, however it was typed.
+         The stored titles are "September 19 — The Amends..." and the date has to
+         come off, because both screens print the date separately. The first
+         version of this demanded a full month name, a day, and a dash -- and
+         five real days in the file do not look like that:
+
+           "Dec 23 — Selfish vs. Self-Seeking"     abbreviated month
+           "Dec 24 — Long Day"
+           "Dec 25 — Grace: The Greatest Gift"
+           "August 9, 2026 - All"                  carries a year
+
+         Those five printed their own date as the headline. So: three letters of
+         a month is enough, an optional full ending, an optional trailing dot,
+         and an optional year. Checked against all 365 by tools/title-strip-test.mjs.
+
+         Two more are simply typed wrong in data/readings.json and no regex should
+         paper over them -- "Jsnusty 11" and "ly 8". They need fixing in the data. */
+      var MONTHS3 = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+      var LEADING_DATE = new RegExp(
+        "^(" + MONTHS3.join("|") + ")[a-z]*\\.?\\s+\\d{1,2}(?:,?\\s*\\d{4})?\\s*[-\u2013\u2014]\\s*", "i");
+      var rawTitle = String(entry.title || "").trim();
+      var shownTitle = rawTitle.replace(LEADING_DATE, "").trim() || rawTitle;
+      if (shownTitle) titleEl.textContent = shownTitle;
       /* The first sentence of the real body. Long ones are cut at a word so
          the card keeps its shape whatever the day's reading opens with. */
       var body = String(entry.body || "").trim();
