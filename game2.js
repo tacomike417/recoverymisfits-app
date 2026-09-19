@@ -547,6 +547,10 @@
 
   let audioUnlocked = false;
 
+  // See startBackgroundMusicForGameplay -- load() is a full re-decode, so it
+  // happens once and never again.
+  let backgroundMusicLoadedOnce = false;
+
   const treatmentMusicSettings = {
     startRate: 0.9,
     endRate: 1.28,
@@ -577,7 +581,22 @@
       .catch(() => false);
   }
 
+  /* One fade at a time per audio element.
+
+     Every call used to start its own requestAnimationFrame loop with no
+     way to stop an earlier one, so two fades on the same track would both
+     run, both write .volume every frame, and fight over the result -- each
+     easing from a different startVolume. Restarting the level triggers a
+     fresh fade, and this level gets restarted a lot.
+
+     Each fade now takes a ticket. When a newer fade starts, the older loop
+     sees its ticket is stale on its next frame and stops. */
+  const fadeTickets = new WeakMap();
+
   function fadeAudio(audio, targetVolume, duration = MUSIC_FADE_MS, pauseWhenSilent = false) {
+    const ticket = (fadeTickets.get(audio) || 0) + 1;
+    fadeTickets.set(audio, ticket);
+
     const clampVolume = (value) => Math.max(0, Math.min(1, value));
     const safeTargetVolume = clampVolume(targetVolume);
     const startVolume = clampVolume(audio.volume);
@@ -585,6 +604,9 @@
     const startedAt = performance.now();
 
     function step(now) {
+      // A newer fade on this same element has taken over -- stand down.
+      if (fadeTickets.get(audio) !== ticket) return;
+
       // A requestAnimationFrame timestamp can occasionally be slightly earlier
       // than performance.now() from the frame in which it was scheduled.
       // Clamp progress on both ends so the calculated volume never goes negative.
@@ -744,11 +766,35 @@
       ? treatmentMusicSettings.startRate
       : 1;
 
-    /*
-      Calling load() here gives Chrome a fresh playback attempt after the
-      user's final TAP TO CONTINUE action.
-    */
-    backgroundMusic.load();
+    /* THE RETRY DEATH SPIRAL, because this one cost a whole evening.
+
+       This used to call backgroundMusic.load() unconditionally, every
+       single time gameplay started. The original reason was fair -- it
+       gave Chrome a clean playback attempt after the final TAP TO
+       CONTINUE. The problem is where else startGameplay() is called from:
+       failing the treatment level and tapping to retry (see gameflow.js,
+       the "treatmentFailed" branch).
+
+       load() does not rewind. It discards the current media resource and
+       re-fetches and re-decodes the file from scratch. chapter2.mp3 is
+       3 MB. So every retry meant a 3 MB decode on the main thread, and it
+       fed itself:
+
+         lag -> you miss a cue -> you fail -> you tap retry
+           -> 3 MB re-decode stalls the frame -> more lag -> fail sooner
+
+       Worse, each load() abandons the previous decoder, and iOS gives the
+       whole page a small shared pool of them. After enough retries the
+       pool is gone and the music stops entirely and does not come back --
+       which is exactly what it did.
+
+       Rewinding is all that was ever needed; currentTime = 0 above already
+       did it. load() now happens once, on the first gameplay start only,
+       so the original Chrome behaviour is kept and the spiral is not. */
+    if (!backgroundMusicLoadedOnce) {
+      backgroundMusicLoadedOnce = true;
+      backgroundMusic.load();
+    }
 
     playAudio(backgroundMusic).then((started) => {
       if (!started) {
