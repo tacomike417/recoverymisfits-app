@@ -49,28 +49,44 @@
 
   /* 1938 ORIGINAL MANUSCRIPT · PG 39-40 */
   .source{
-    display:inline-block;margin:0 0 12px;padding:6px 12px;
+    display:inline-block;margin:0 0 14px;padding:6px 12px;
     border-radius:999px;border:1px solid rgba(215,178,83,.34);
     background:rgba(215,178,83,.10);
-    font-family:var(--ui);font-weight:800;font-size:9.5px;letter-spacing:1.6px;
-    text-transform:uppercase;color:var(--gold);
+    font-family:var(--ui);font-weight:800;text-transform:uppercase;color:var(--gold);
+    /* ONE LINE, ALWAYS. Wrapped, it stranded "40" on a line of its own under
+       a pill, which reads as a mistake rather than a label. Sized off the
+       viewport so it still fits at 320px without being tiny at 430. */
+    font-size:clamp(8px, 2.45vw, 9.5px);
+    letter-spacing:clamp(.9px, .38vw, 1.6px);
+    white-space:nowrap;
   }
 
-  /* The reading sits in its own inset card on this page -- it is one long
-     historical passage rather than a short daily, and a card gives the eye
-     an edge to come back to when scrolling a thousand words on a phone. */
-  .card{
-    border:1px solid rgba(238,230,213,.10);border-radius:14px;
-    background:rgba(255,255,255,.018);
-    padding:14px 14px 10px;
-  }
-  /* Longer than a daily reading, so it gets more air and a bigger floor. */
-  .card .reading{font-size:13.5px;line-height:1.72}
-  .card .reading p{margin:0 0 15px}
+  /* ---- THE TEXT SITS ON THE PAPER --------------------------------------
+     There WAS a card here, and it was a mistake. Three nested insets had
+     stacked up on a 393px phone:
+
+         27px  torn border, each side
+        + 7px  the sheet's own padding
+        +33px  main's padding, shared with Another Day Sober
+        +15px  the card's border and padding
+
+     ...which left 229px of text on a 393px screen. Fifty-eight per cent.
+     A thousand words of 1938 manuscript down a column that narrow is a
+     chore to read and it looked like a receipt.
+
+     So: no card, and this page takes its own side padding rather than the
+     shared 33px. The reading runs on the paper itself and still stops well
+     clear of the torn edge -- the tear ends at 27px and the text starts at
+     50px, so there is a 23px margin of plain paper between the words and
+     anything ragged. Another Day Sober keeps the narrower measure it was
+     drawn with; it is a short daily, not this. */
+  main{padding:6px 16px 20px}
+  .reading{font-size:14px;line-height:1.7}
+  .reading p{margin:0 0 15px}
   /* NEVER BREAK A WORD IN HALF. The brief asks for it by name, and a
      hyphenated "self-seek-ing" in the middle of a spiritual instruction
      reads as a typo in the original rather than a browser doing its job. */
-  .card .reading p{overflow-wrap:normal;word-break:normal;hyphens:none}
+  .reading p{overflow-wrap:normal;word-break:normal;hyphens:none}
 
   .note{
     margin:14px 0 0;font-family:var(--ui);font-size:10.5px;line-height:1.5;
@@ -131,7 +147,7 @@
     <div class="prog-bar"><i></i></div>
   </div>
 
-  <div class="card">
+  <div class="body">
 
     <p class="geo-wait" id="geo-checking">Checking availability&hellip;</p>
 
