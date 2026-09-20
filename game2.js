@@ -1,7 +1,7 @@
 /* BUILD MARKER -- bumped on every change, read by test.html so it can show
    which version of the GAME is actually live rather than which version of
    the page is. */
-window.RecoveryBuild = "game2 v10 - sfx on Web Audio";
+window.RecoveryBuild = "game2 v11 - Web Audio + pre-scaled tiles";
 
 (() => {
   "use strict";
@@ -1912,6 +1912,64 @@ window.RecoveryBuild = "game2 v10 - sfx on Web Audio";
     return false;
   }
 
+  /* PRE-SCALED COPIES, BECAUSE THE SOURCE ART IS ENORMOUS.
+
+     The treatment tile images are 1448x1086 -- 1.6 megapixels, 1.8MB of
+     PNG each -- and they are drawn into slots about 170x110. That is a
+     21x downscale, per tile, per frame. With four tiles on screen the
+     browser was resampling roughly six megapixels of source art every
+     frame, and five decoded images of that size is about 31MB of bitmap
+     held on a phone.
+
+     drawImage returning quickly hid this: the ctx call measured under a
+     millisecond while single frames still took 143ms, because the real
+     work is downstream of the call, in the compositor.
+
+     So each image is scaled ONCE into an offscreen canvas at the size it
+     is actually used (x2, so it stays sharp on a retina canvas and when a
+     tile grows), and from then on the per-frame draw is a 1:1 blit. The
+     cache is keyed by the target size, so a tile that animates its size
+     does not thrash it -- sizes are rounded into buckets first.
+
+     None of the art files change. This is purely how they are drawn. */
+  const scaledImageCache = new Map();
+
+  function getPreScaled(image, targetWidth, targetHeight) {
+    // round to 16px buckets so a growing/shrinking tile reuses one copy
+    const bw = Math.max(16, Math.ceil(targetWidth  * 2 / 16) * 16);
+    const bh = Math.max(16, Math.ceil(targetHeight * 2 / 16) * 16);
+
+    const key = (image.src || "") + "|" + bw + "x" + bh;
+    const hit = scaledImageCache.get(key);
+    if (hit) return hit;
+
+    // only worth it when we are actually shrinking, and by a lot
+    if (image.naturalWidth <= bw * 1.5 && image.naturalHeight <= bh * 1.5) {
+      scaledImageCache.set(key, image);
+      return image;
+    }
+
+    let off;
+    try {
+      off = document.createElement("canvas");
+      off.width = bw;
+      off.height = bh;
+      const octx = off.getContext("2d");
+      const scale = Math.max(bw / image.naturalWidth, bh / image.naturalHeight);
+      const dw = image.naturalWidth * scale;
+      const dh = image.naturalHeight * scale;
+      octx.imageSmoothingEnabled = true;
+      octx.imageSmoothingQuality = "high";
+      octx.drawImage(image, (bw - dw) / 2, (bh - dh) / 2, dw, dh);
+    } catch (e) {
+      scaledImageCache.set(key, image);
+      return image;
+    }
+
+    scaledImageCache.set(key, off);
+    return off;
+  }
+
   function drawImageCoverInRect(image, x, y, targetWidth, targetHeight) {
     if (
       !image ||
@@ -1922,12 +1980,16 @@ window.RecoveryBuild = "game2 v10 - sfx on Web Audio";
       return false;
     }
 
+    const src = getPreScaled(image, targetWidth, targetHeight);
+    const srcW = src.naturalWidth || src.width;
+    const srcH = src.naturalHeight || src.height;
+
     const scale = Math.max(
-      targetWidth / image.naturalWidth,
-      targetHeight / image.naturalHeight
+      targetWidth / srcW,
+      targetHeight / srcH
     );
-    const drawWidth = image.naturalWidth * scale;
-    const drawHeight = image.naturalHeight * scale;
+    const drawWidth = srcW * scale;
+    const drawHeight = srcH * scale;
     const drawX = x + (targetWidth - drawWidth) / 2;
     const drawY = y + (targetHeight - drawHeight) / 2;
 
@@ -1936,7 +1998,7 @@ window.RecoveryBuild = "game2 v10 - sfx on Web Audio";
     ctx.rect(x, y, targetWidth, targetHeight);
     ctx.clip();
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+    ctx.drawImage(src, drawX, drawY, drawWidth, drawHeight);
     ctx.restore();
     return true;
   }
