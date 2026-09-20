@@ -53,18 +53,33 @@ ASSETS = os.path.join(REPO, "assets")
 # Longest-side cap per folder. Anything not listed uses DEFAULT_CAP.
 # These are deliberately generous -- roughly double what the canvas can
 # show -- so nothing softens visibly.
+# Longest-side cap per folder.
+#
+# CHOSEN BY MEASURING, not guessing. The canvas is 390x780 logical and
+# 780x1560 on a retina phone, and full-screen art is drawn to COVER, so
+# the scale is max(780/w, 1560/h).
+#
+# The cards and character art are 1536x1024 -- LANDSCAPE on a PORTRAIT
+# canvas -- which means cover already scales them UP by about 1.5x. They
+# are not oversized at all; they are under-sized for the way they are
+# used, and shrinking them would visibly soften them. Same for
+# chapter5-background.png at 887x1774.
+#
+# So only the genuinely small stuff gets a small cap: things drawn into
+# little slots, where the source is many times larger than the space.
+# Everything else is capped at 1800, which is above what anything here
+# actually is -- it is a safety net against some future 4000px import,
+# not a resize of what exists today.
+#
+# The real win on the big files is not their dimensions, it is that they
+# are PNGs of photographic art. That is a separate job -- see the note
+# printed at the end of a dry run.
 CAPS = {
     "treatment":   500,    # drawn into ~170x110 slots
     "collectibles": 600,   # small pickups
     "obstacles":   700,    # sprites
-    "splash":     1600,
-    "title":      1600,
-    "backgrounds":1600,
-    "cards":      1600,    # full-screen story cards
-    "slides":     1600,
-    "players":     900,    # character sprites
 }
-DEFAULT_CAP = 1600
+DEFAULT_CAP = 1800
 
 SKIP_DIRS = {"fonts", "sounds", "audio", "pages"}   # not game art
 
@@ -213,6 +228,30 @@ def main():
         print( "  to undo  : cp -r '<that folder>'/* assets/")
     else:
         print("\n  Nothing was written. Add --apply to do it for real.")
+    # Point at the files where resizing is the wrong tool.
+    big = []
+    for full, rel in items:
+        sz = os.path.getsize(full)
+        if sz > 1_000_000:
+            try:
+                with Image.open(full) as im:
+                    w, h = im.size
+                if max(w, h) <= cap_for(rel):
+                    big.append((rel, sz, w, h))
+            except Exception:
+                pass
+    if big:
+        big.sort(key=lambda x: -x[1])
+        total = sum(x[1] for x in big)
+        print(f"\n  {len(big)} files over 1MB are already the right DIMENSIONS")
+        print(f"  ({human(total)} total). Resizing cannot help these -- they are")
+        print( "  big because they are PNGs of painted art. Converting them to")
+        print( "  JPEG or WebP, or running pngquant, is the job for these:")
+        for rel, sz, w, h in big[:8]:
+            print(f"   {human(sz):>9}  {w}x{h}  {rel}")
+        if len(big) > 8:
+            print(f"   ... and {len(big)-8} more")
+
     if problems:
         print("\n  PROBLEM FILES (restored from backup):")
         for p in problems:
