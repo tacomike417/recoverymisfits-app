@@ -2,6 +2,22 @@
   const mount = document.getElementById("rm-topbar");
   if (!mount) return;
 
+  /* =======================================================================
+     TEMPORARY -- THE BUILD BADGE.  Delete this block, the .rm-ver rules in
+     the stylesheet below, and the <span> in mount.innerHTML to remove it.
+     Three places, all marked "TEMPORARY".
+
+     It is here so there is a way to tell, standing in a parking lot with a
+     phone, whether you are looking at today's deploy or a copy the browser
+     kept from twenty minutes ago. That question cost us a round trip this
+     morning.
+
+     Bump RM_VERSION on any deploy worth telling apart. Tapping the badge
+     reloads the page past the cache, which is the other half of the same
+     problem.
+     ==================================================================== */
+  const RM_VERSION = "v417";
+
   /* -------------------------
      Google Analytics (GA4)
   ------------------------- */
@@ -52,6 +68,24 @@
         align-items:center;
         justify-content:center;
       }
+
+      /* TEMPORARY -- the build badge. Delete with the block at the top. */
+      .rm-ver{
+        position:absolute;
+        top:calc(6px + env(safe-area-inset-top, 0px));
+        right:8px;
+        z-index:2;
+        padding:3px 7px;
+        border-radius:6px;
+        border:1px solid rgba(215,178,83,.34);
+        background:rgba(215,178,83,.10);
+        color:#d7b253;
+        font:700 10px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+        letter-spacing:.6px;
+        cursor:pointer;
+        -webkit-tap-highlight-color:transparent;
+      }
+      .rm-ver:active{background:rgba(215,178,83,.22)}
 
       .rm-logo{
         width:min(80%, 320px);
@@ -275,7 +309,21 @@
     <div class="rm-topbar-inner">
       <img class="rm-logo" src="/PWA-header.png" alt="Recovery Misfits" />
     </div>
+    <!-- TEMPORARY -- the build badge. Delete with the block at the top. -->
+    <button class="rm-ver" type="button" id="rmVer"
+            title="Tap to reload past the cache">${RM_VERSION}</button>
   `;
+
+  /* TEMPORARY -- the build badge. A cache-busting query on the reload, so
+     the badge is also the answer to "am I actually seeing the new one". */
+  const verBtn = document.getElementById("rmVer");
+  if (verBtn) {
+    verBtn.addEventListener("click", () => {
+      const u = new URL(location.href);
+      u.searchParams.set("v", Date.now().toString(36));
+      location.replace(u.toString());
+    });
+  }
 
   /* -------------------------
      Keep the install sheet's top edge pinned exactly to the
