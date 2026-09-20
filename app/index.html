@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recovery Misfits — another path onto the broad highway</title>
+<meta name="description" content="Daily recovery readings, speaker tapes, gratitude and inventory tools, and something to do while the hard minute passes. Free, no account, works on any phone.">
+<link rel="canonical" href="https://recoverymisfits.org/app/">
+<meta name="theme-color" content="#0e0e0d">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Recovery Misfits">
+<meta property="og:title" content="Recovery Misfits">
+<meta property="og:description" content="Another path onto the broad highway. Daily readings, speaker tapes and tools — free, no account.">
+<meta property="og:url" content="https://recoverymisfits.org/app/">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<!-- PAINT DARK IMMEDIATELY. This is the page a QR code drops somebody on,
+     usually on a phone in a parking lot, and a white flash before the
+     stylesheet lands is the first thing they would see. -->
+<style>html{background:#0e0e0d}body{background:#0e0e0d;color:#eee6d5;margin:0}</style>
+
+<!-- THE SAME STYLESHEET THE READING SCREENS USE, for the same reason On
+     Awakening uses it: the torn sheet, the tape, the type and the buttons
+     are the app's, not this page's. Somebody arriving here off a QR code
+     and then installing should not feel like they changed products. -->
+<link rel="stylesheet" href="/assets/daily-reading.css">
+
+<style>
+  /* ---- what this page has that the reading screens do not --------------- */
+
+  @font-face{
+    font-family:"RM Hand";
+    src:url("/assets/fonts/permanent-marker-400.woff2") format("woff2");
+    font-weight:400;font-style:normal;font-display:swap;
+  }
+
+  main{padding:6px 18px 20px}
+
+  /* the masthead, a size up from a reading screen -- this is the cover */
+  .pub{align-items:center}
+  .pub .name{font-size:27px;line-height:1.05}
+  .tag{
+    font-family:var(--type);color:var(--ivory);margin:6px 0 0;
+    /* sized off the viewport so it stays on one line from 320 up */
+    font-size:clamp(9px, 2.85vw, 11.5px);
+    letter-spacing:clamp(.5px, .26vw, 1.1px);
+    white-space:nowrap;
+  }
+  .rule.masthead{display:block;width:100%;max-width:297px;height:auto;margin:3px 0 0}
+
+  /* ---- the two things to do -------------------------------------------- */
+  .acts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0 0}
+  .acts.stack{grid-template-columns:1fr;gap:10px;margin-top:18px}
+  .act{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    min-height:var(--touch);padding:11px 12px;
+    border-radius:999px;border:1.4px solid var(--gold);
+    background:transparent;color:var(--gold);
+    font-family:var(--ui);font-weight:800;letter-spacing:1.1px;
+    /* ONE LINE AT 320px. "OPEN RECOVERY MISFITS" across half a small phone
+       wraps into two lines and stops looking like a button. */
+    font-size:clamp(9.5px, 2.9vw, 11px);
+    text-transform:uppercase;text-decoration:none;white-space:nowrap;
+    cursor:pointer;-webkit-tap-highlight-color:transparent;
+  }
+  .act:active{background:rgba(215,178,83,.12)}
+  .act.solid{background:var(--gold);color:#12100b;border-color:var(--gold)}
+  .act.solid:active{background:#e6c877}
+  .act svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9}
+
+  /* ---- WHAT'S INSIDE ---- ALWAYS FREE ----------------------------------- */
+  .prog{margin:16px 0 4px}
+  .prog-row{
+    display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    font-family:var(--ui);font-weight:800;font-size:9.5px;letter-spacing:1.9px;
+    text-transform:uppercase;color:var(--muted);
+  }
+  .prog-row .of{color:var(--gold)}
+  .prog-bar{
+    position:relative;height:3px;margin-top:7px;border-radius:2px;
+    background:rgba(238,230,213,.12);overflow:hidden;
+  }
+  .prog-bar i{position:absolute;inset:0;border-radius:2px;
+    background:linear-gradient(90deg,var(--gold),#f0d68a)}
+  .prog-bar::before{
+    content:"";position:absolute;left:0;top:50%;width:7px;height:7px;
+    margin-top:-3.5px;border-radius:50%;background:var(--gold);z-index:1;
+  }
+
+  /* ---- the quote -------------------------------------------------------- */
+  .quote{
+    margin:18px 0 0;padding:0;
+    font-family:var(--serif);font-size:15px;line-height:1.55;
+    color:#fff;text-align:center;
+  }
+  .quote p{margin:0 0 8px}
+  .quote cite{
+    display:block;font-family:var(--ui);font-style:normal;
+    font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold);
+  }
+
+  /* ---- a thing the app does --------------------------------------------- */
+  .feat{margin:22px 0 0}
+  .feat h2{
+    font-family:var(--display);font-weight:600;font-size:20px;line-height:1.1;
+    color:var(--gold);margin:0 0 5px;
+  }
+  .feat p{
+    font-family:var(--ui);font-size:13.5px;line-height:1.5;
+    color:var(--ivory);margin:0;
+  }
+  /* Tapping the picture goes where the picture is about. It is aria-hidden
+     and out of the tab order on purpose: the text link underneath is the
+     one a screen reader and a keyboard should find, and two links to the
+     same place announced twice is worse than one. */
+  .feat .artlink{display:block;text-decoration:none}
+  .feat img.art{
+    display:block;width:100%;height:auto;margin:11px 0 0;
+    /* the artwork is cut out on transparency; a little lift stops it
+       floating flat on the paper */
+    filter:drop-shadow(0 6px 14px rgba(0,0,0,.55));
+  }
+  .feat .go{
+    display:inline-flex;align-items:center;gap:8px;
+    min-height:var(--touch);margin-top:4px;
+    font-family:var(--ui);font-weight:800;font-size:10.5px;letter-spacing:1.2px;
+    text-transform:uppercase;color:var(--gold);text-decoration:none;
+  }
+  .feat .go svg{width:26px;height:26px;flex:none}
+  .feat .go .ring{fill:none;stroke:currentColor;stroke-width:1.5}
+  .feat .go .tri{fill:currentColor;stroke:none}
+
+  /* the notepad sits beside the opening lines rather than under them */
+  /* The slogan sits level with the middle of the notepad rather than at the
+     top of an empty column -- start-aligned it left a hand-sized hole of
+     nothing under three words. */
+  .openers{display:grid;grid-template-columns:1fr 108px;gap:12px;align-items:center;margin-top:14px}
+  .openers img{
+    display:block;width:100%;height:auto;
+    filter:drop-shadow(0 5px 12px rgba(0,0,0,.5));
+  }
+  .openers .slog{margin:0;font-size:17px}
+
+  /* ---- the slogans, in the margin --------------------------------------- */
+  .slog{
+    font-family:"RM Hand","Permanent Marker",var(--type),cursive;
+    color:#d8c08a;opacity:.82;
+    font-size:15px;line-height:1.15;letter-spacing:.4px;
+    margin:12px 0 0;
+  }
+  .slog.right{text-align:right}
+  .slog i{display:block;font-style:normal;transform:rotate(-3.2deg);transform-origin:left center}
+  .slog.right i{transform:rotate(2.6deg);transform-origin:right center}
+
+  /* ---- how to save it on an iPhone -------------------------------------- */
+  .howto{
+    margin:12px 0 0;padding:13px 14px;
+    border-radius:var(--radius, 14px);
+    border:1px solid rgba(215,178,83,.34);
+    background:rgba(215,178,83,.07);
+  }
+  .howto h3{
+    font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.6px;
+    text-transform:uppercase;color:var(--gold);margin:0 0 7px;
+  }
+  .howto ol{margin:0;padding-left:18px}
+  .howto li{
+    font-family:var(--ui);font-size:13px;line-height:1.55;color:var(--ivory);
+    margin:0 0 4px;
+  }
+  .howto li:last-child{margin-bottom:0}
+  .howto .ico{
+    display:inline-block;vertical-align:-3px;width:15px;height:15px;
+    fill:none;stroke:currentColor;stroke-width:1.8;
+  }
+  .howto p{font-family:var(--ui);font-size:11.5px;color:var(--muted);margin:8px 0 0}
+
+  @media (max-width:359px){
+    .pub .name{font-size:24px}
+    .openers{grid-template-columns:1fr 96px;gap:10px}
+    .acts{grid-template-columns:1fr}
+  }
+</style>
+</head>
+
+<!-- HOME is the tab that stays lit: this page is the front door, and a bar
+     with nothing lit reads as though you have fallen out of the app. -->
+<body data-rm-nav="index.html">
+
+<div id="rm-topbar"></div>
+<script src="/topbar.js" defer></script>
+
+<div class="sheet">
+<img class="tape tl" src="/assets/pages/d-tape-tl.webp" alt="" aria-hidden="true">
+<img class="tape tr" src="/assets/pages/d-tape-tr.webp" alt="" aria-hidden="true">
+<img class="tape bl" src="/assets/pages/d-tape-bl.webp" alt="" aria-hidden="true">
+<img class="tape br" src="/assets/pages/d-tape-br.webp" alt="" aria-hidden="true">
+
+<main>
+
+  <!-- THE TAGLINE RUNS UNDER THE WHOLE MASTHEAD, not beside the book.
+       Squeezed into the column next to a 50px drawing it has 256px on a
+       390px phone, and "another path onto the broad highway" wraps onto a
+       second line mid-phrase. Full width it lands on one. -->
+  <header class="pub">
+    <img class="art" src="/assets/pages/d-book.webp" alt="" aria-hidden="true" width="122" height="111">
+    <div><h1 class="name">Recovery Misfits</h1></div>
+  </header>
+  <p class="tag">another path onto the broad highway</p>
+  <img class="rule masthead" src="/assets/pages/d-rule.webp" alt="" aria-hidden="true" width="297" height="17">
+
+  <div class="acts">
+    <a class="act solid" href="/index.html">Open the App</a>
+    <button class="act" type="button" id="saveTop">Save to Phone</button>
+  </div>
+
+  <div class="prog">
+    <div class="prog-row"><span>What&rsquo;s Inside</span><span class="of">Always Free</span></div>
+    <div class="prog-bar"><i></i></div>
+  </div>
+
+  <!-- ===================================================================
+       THE KID ROCK QUOTE GOES HERE.
+
+       It is song lyrics, so it has to be pasted in by hand rather than
+       copied across for you. Take it from the old Blogger page's HTML at
+       recoverymisfits.blogspot.com/p/app.html, drop it into the <p> below,
+       and DELETE THE WORD hidden from the <blockquote> tag so it shows.
+
+       Left hidden on purpose: an empty quote block with a dangling
+       attribution on a live page looks worse than no quote at all.
+       =============================================================== -->
+  <blockquote class="quote" hidden>
+    <p></p>
+    <cite>&mdash; Kid Rock</cite>
+  </blockquote>
+
+  <div class="openers">
+    <p class="slog"><i>Easy does it</i></p>
+    <img src="/assets/app/a-onedayatatime.webp" alt="A desk calendar reading: one day at a time" width="360" height="454">
+  </div>
+
+  <section class="feat">
+    <h2>The Daily Stack</h2>
+    <p>Daily recovery readings together in one place.</p>
+    <a class="artlink" href="/readings.html" tabindex="-1" aria-hidden="true"><img class="art" src="/assets/app/a-daily-stack.webp" alt="Three worn reading books stacked together" width="780" height="524" loading="lazy" decoding="async"></a>
+    <a class="go" href="/readings.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="10.6"/><path class="tri" d="M9.6 7.4v9.2L17 12z"/></svg>
+      Open the readings
+    </a>
+  </section>
+
+  <section class="feat">
+    <h2>Speaker Tapes &amp; Old Wisdom</h2>
+    <p>Big Book studies, recovery talks, and voices that have been there.</p>
+    <a class="artlink" href="/audio.html" tabindex="-1" aria-hidden="true"><img class="art" src="/assets/app/a-speaker-tapes.webp" alt="A cassette tape labeled Speaker Tapes, with headphones" width="780" height="559" loading="lazy" decoding="async"></a>
+    <a class="go" href="/audio.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="10.6"/><path class="tri" d="M9.6 7.4v9.2L17 12z"/></svg>
+      Start listening
+    </a>
+    <p class="slog right"><i>Keep it simple</i></p>
+  </section>
+
+  <section class="feat">
+    <h2>Life on Life&rsquo;s Terms</h2>
+    <p>Gratitude, fears, inventories, and practical tools.</p>
+    <a class="artlink" href="/tools.html" tabindex="-1" aria-hidden="true"><img class="art" src="/assets/app/a-inventory.webp" alt="A checklist on lined paper: gratitude, fears, inventory" width="700" height="431" loading="lazy" decoding="async"></a>
+    <a class="go" href="/tools.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="10.6"/><path class="tri" d="M9.6 7.4v9.2L17 12z"/></svg>
+      Open the tools
+    </a>
+  </section>
+
+  <section class="feat">
+    <h2>Instead of Freaking Out</h2>
+    <p>Games, little distractions, and something to do while the hard minute passes.</p>
+    <a class="artlink" href="/game.html" tabindex="-1" aria-hidden="true"><img class="art" src="/assets/app/a-unofficial.webp" alt="A phone showing the game: A Very Very Very Unofficial Story of How We Got Here" width="640" height="786" loading="lazy" decoding="async"></a>
+    <a class="go" href="/game.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="10.6"/><path class="tri" d="M9.6 7.4v9.2L17 12z"/></svg>
+      Play the story
+    </a>
+  </section>
+
+  <div class="acts stack">
+    <a class="act solid" href="/index.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Open Recovery Misfits
+    </a>
+    <button class="act" type="button" id="saveBottom">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 19h2" stroke-linecap="round"/></svg>
+      Save it to your phone
+    </button>
+  </div>
+
+  <!-- Filled in and shown by the script below, only on a phone that needs
+       it. An iPhone has no install button to press, so the only honest
+       thing to give somebody is the three taps. -->
+  <div class="howto" id="howto" hidden>
+    <h3 id="howtoTitle">Save it to your phone</h3>
+    <ol id="howtoSteps"></ol>
+    <p id="howtoNote" hidden></p>
+  </div>
+
+</main>
+</div>
+
+<div class="tailroom"></div>
+
+<div id="rm-bottom-nav"></div>
+<script src="/nav.js" defer></script>
+
+<script>
+/* ===========================================================================
+   SAVE IT TO YOUR PHONE.
+
+   Three different platforms, three different truths, and the page has to
+   tell each one the truth rather than showing everybody the same button and
+   hoping.
+
+     Chrome/Edge on Android   a real install prompt, once the browser offers
+                              us one. Until it does, the button explains
+                              rather than doing nothing.
+     iPhone and iPad          no prompt exists at all. Safari's Share sheet
+                              is the only way in, so we say so in three
+                              steps and name the icon.
+     Instagram/Facebook/etc   an in-app browser cannot install anything. The
+                              honest answer is "open this in Safari first",
+                              not a dead button.
+
+   And if the app is ALREADY installed, both buttons stop offering to install
+   it and turn into a way in. Nothing is worse than an app asking you to
+   install it while you are standing inside it.
+   ======================================================================== */
+(function () {
+  "use strict";
+
+  var top = document.getElementById("saveTop");
+  var bottom = document.getElementById("saveBottom");
+  var box = document.getElementById("howto");
+  var title = document.getElementById("howtoTitle");
+  var steps = document.getElementById("howtoSteps");
+  var note = document.getElementById("howtoNote");
+
+  var ua = navigator.userAgent || "";
+  var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+              (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var inApp = /FBAN|FBAV|Instagram|Line\/|Twitter|Snapchat|Pinterest|TikTok/i.test(ua);
+  var standalone = (window.matchMedia &&
+                    window.matchMedia("(display-mode: standalone)").matches) ||
+                   navigator.standalone === true;
+
+  var deferred = null;
+
+  function show(head, lines, footnote) {
+    title.textContent = head;
+    steps.innerHTML = "";
+    lines.forEach(function (line) {
+      var li = document.createElement("li");
+      li.innerHTML = line;
+      steps.appendChild(li);
+    });
+    if (footnote) { note.textContent = footnote; note.hidden = false; }
+    else { note.hidden = true; }
+    box.hidden = false;
+    box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  /* ALREADY INSTALLED: stop asking. */
+  if (standalone) {
+    [top, bottom].forEach(function (b) {
+      if (!b) return;
+      var a = document.createElement("a");
+      a.className = b.className;
+      a.href = "/index.html";
+      a.innerHTML = b.innerHTML;
+      b.parentNode.replaceChild(a, b);
+    });
+    return;
+  }
+
+  window.addEventListener("beforeinstallprompt", function (e) {
+    /* Held onto rather than allowed to fire on its own, so the install
+       happens when somebody asks for it and not as a pop-up over the page. */
+    e.preventDefault();
+    deferred = e;
+  });
+
+  window.addEventListener("appinstalled", function () {
+    show("It's on your phone",
+         ["Look for the Recovery Misfits icon on your home screen."]);
+  });
+
+  function save() {
+    if (deferred) {
+      deferred.prompt();
+      deferred.userChoice.then(function () { deferred = null; });
+      return;
+    }
+
+    if (inApp) {
+      show("Open this in your browser first",
+        ['Tap the <b>&hellip;</b> or <b>&#8226;&#8226;&#8226;</b> menu in the corner of this screen.',
+         'Choose <b>Open in Safari</b>, <b>Open in Chrome</b>, or <b>Open in browser</b>.',
+         'Then tap <b>Save it to your phone</b> again.'],
+        "Apps like Instagram and Facebook open links in their own little browser, and that browser is not allowed to install anything.");
+      return;
+    }
+
+    if (isIOS) {
+      show("Three taps on an iPhone",
+        ['Tap the <b>Share</b> button &mdash; the square with an arrow coming out of the top, at the bottom of Safari.',
+         'Scroll down and tap <b>Add to Home Screen</b>.',
+         'Tap <b>Add</b>. The icon goes on your home screen like any other app.'],
+        "There is no install button on an iPhone. Apple only offers this through the Share sheet.");
+      return;
+    }
+
+    show("Save it to your phone",
+      ['Open your browser&rsquo;s menu &mdash; the <b>&#8942;</b> or <b>&hellip;</b> in the corner.',
+       'Look for <b>Install app</b>, <b>Add to Home screen</b>, or <b>Install Recovery Misfits</b>.',
+       'Confirm, and the icon goes on your home screen.'],
+      "Your browser has not offered a one-tap install on this visit. The menu route always works.");
+  }
+
+  [top, bottom].forEach(function (b) { if (b) b.addEventListener("click", save); });
+})();
+</script>
+
+</body>
+</html>
