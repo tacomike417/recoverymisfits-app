@@ -108,6 +108,21 @@
     return `${month} ${day}${ordinalSuffix(day)}, ${Number(m[1])}`;
   }
 
+  /* THE RAIL SAYS IT SHORT.
+
+     The date well in the plate is about eighty pixels of usable room, so the
+     spoken-out-loud version ("September 15th, 2018") does not fit and gets
+     chopped by the ellipsis. The rail gets the short form instead -- same
+     date, same order, three-letter month. The long form is still what the
+     rest of the app uses. */
+  function ymdToRail(ymd) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || ""));
+    if (!m) return "";
+    const month = MONTH_NAMES_LONG[Number(m[2]) - 1];
+    if (!month) return "";
+    return `${month.slice(0, 3).toUpperCase()} ${Number(m[3])}, ${Number(m[1])}`;
+  }
+
   function parseDMYToYMD(value) {
     const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(String(value || "").trim());
     if (!m) return "";
@@ -151,8 +166,13 @@
         overflow-x: hidden;
       }
 
+      /* ROOM FOR THE WHOLE STACK, INCLUDING THE PART THAT IS NOT ALWAYS
+         THERE. Greeting 34 + rail 71 + nav 66 + 10 = 181, and the greeting
+         only exists for somebody signed in -- so the padding has to be sized
+         for the tallest case or the last row of a page hides under the bar
+         the moment you make an account. */
       body {
-        padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(186px + env(safe-area-inset-bottom, 0px));
       }
 
       /* THE BAR BRINGS ITS OWN TYPE.
@@ -231,10 +251,8 @@
         border:1px solid rgba(255,255,255,.08);
         backdrop-filter:blur(10px);
         -webkit-backdrop-filter:blur(10px);
-        font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
         font-size:12px;letter-spacing:.2px;line-height:1;
         color:#aaa497;
-        /* a long made-up name must not push the pill off the screen */
         max-width:calc(100% - 8px);
       }
       .rm-greet span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -242,98 +260,130 @@
       .rm-greet svg{width:13px;height:13px;flex:none;fill:none;
         stroke:#d6b36a;stroke-width:2;opacity:.9}
 
-      .rm-sober-panel {
-        flex: 0 0 310px;
-        min-width: 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 10px 12px;
-        border-radius: 16px;
-        background: linear-gradient(180deg, #181818 0%, #0f0f0f 100%);
-        color: #f5f5f5;
-        border: 1px solid rgba(214,179,106,.18);
-        border-left: 4px solid #d6b36a;
-        box-sizing: border-box;
+      /* ---- THE SOBER RAIL -------------------------------------------------
+         THE PLATE IS ARTWORK, NOT CSS. An earlier pass drew this -- gradients,
+         box-shadows, a hand-rolled screw -- and it was never going to be the
+         beaten brass placard in the drawing. It is one PNG now, with the
+         wear, the screws, the brass edge and the four sunken wells baked in.
+
+         EVERYTHING LIVE SITS ON TOP OF IT, positioned by percentage against
+         the wells that are painted into the plate. The date changes, the
+         count changes every night, and a screen reader has to read both --
+         none of that can be part of a picture.
+
+         THE NUMBERS COME FROM THE ART TOO. The wells were measured off the
+         delivered plate rather than guessed:
+
+             date well     x  21.0 ..  114.7   of 390
+             counter well  x 123.0 ..  274.7
+             share well    x 283.0 ..  326.7
+             account well  x 335.0 ..  380.7
+             all of them   y  10   ..   53.7   of 64
+
+         Change the plate and those four numbers have to change with it.
+      */
+      /* THE RAIL'S LETTERING IS OSWALD LIGHT.
+
+         The approved mockup uses a thin condensed all-caps face for every
+         word on the plate -- SOBER SINCE, the date, DAYS, SHARE, ACCOUNT.
+         That is Oswald, and the app already ships the 600 cut for its
+         headlines; this is the 300. It is self-hosted like the rest, so the
+         rail still draws with no network. */
+      @font-face{
+        font-family:"RM Rail";
+        src:url("/assets/fonts/oswald-300.woff2") format("woff2");
+        font-weight:300;font-style:normal;font-display:swap;
       }
 
-      .rm-sober-copy {
-        min-width: 0;
-        flex: 1 1 auto;
+      .rm-rail {
+        position:relative;
+        height:64px;
+        margin:0 0 7px;
+        color:#eee4cf;
+        background-image:url("/assets/rail/rail-plate.webp");
+        background-size:100% 100%;
+        background-repeat:no-repeat;
+        font-family:"RM Rail",Oswald,"Avenir Next Condensed","Roboto Condensed",
+                    "Arial Narrow",system-ui,sans-serif;
+        font-weight:300;
+        /* the plate carries its own edge, so nothing is drawn around it */
+      }
+      .rm-rail button,.rm-rail a{
+        color:inherit;font-family:inherit;font-weight:inherit;
+        text-decoration:none;border:0;background:transparent;padding:0;
+        -webkit-tap-highlight-color:transparent;
+      }
+      .rm-rail button:focus-visible,.rm-rail a:focus-visible{
+        outline:2px solid #f0d27d;outline-offset:2px;border-radius:4px}
+
+      /* the four wells, laid over the four wells in the picture */
+      .rm-rail-date,.rm-rail-count,.rm-rail-act{
+        position:absolute;top:10px;height:44px;
+        display:flex;align-items:center;
+      }
+      .rm-rail-date {left:5.385%;width:24.03%;
+        flex-direction:column;justify-content:center;align-items:flex-start;
+        gap:3px;padding-left:7px;cursor:pointer;text-align:left}
+      .rm-rail-count{left:31.538%;width:38.9%;justify-content:center;gap:1px}
+      .rm-rail-act.rm-share  {left:72.564%;width:11.21%}
+      .rm-rail-act.rm-account{left:85.897%;width:11.72%}
+
+      .rm-rail-date:active,.rm-rail-act:active{filter:brightness(1.35)}
+
+      .rm-rail-date .k{
+        color:#d9ab4e;font-size:9.5px;line-height:1;font-weight:300;
+        letter-spacing:.11em;text-transform:uppercase;white-space:nowrap;
+        text-shadow:0 1px 0 #000;
+      }
+      .rm-rail-date .v{
+        max-width:100%;overflow:hidden;color:#f4ecdb;
+        font-size:12.5px;line-height:1;font-weight:300;letter-spacing:.055em;
+        text-transform:uppercase;white-space:nowrap;text-overflow:clip;
+        text-shadow:0 1px 0 #000;
       }
 
-      .rm-sober-kicker {
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-        color: #d6b36a;
-        margin-bottom: 2px;
-        line-height: 1;
-      }
+      /* THE TILES GROW AND SHRINK WITH THE COUNT.
 
-      .rm-sober-main {
-        font-size: 14px;
-        font-weight: 900;
-        line-height: 1.1;
-        color: #fff;
-        margin-bottom: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+         There is one well and the number in it can be one digit or six, so
+         the tiles are sized per length: as big as the well allows, then
+         stepped down only as far as each extra digit forces. Two days is
+         not a reason to draw a small number. */
+      .rm-rail-tile{width:26px;height:35px;display:block;flex:none}
+      .rm-rail-count.d4 .rm-rail-tile{width:23px;height:31px}
+      .rm-rail-count.d5 .rm-rail-tile{width:19px;height:25px}
+      .rm-rail-count.d6 .rm-rail-tile{width:16px;height:21px}
 
-      .rm-sober-sub {
-        font-size: 11px;
-        color: rgba(255,255,255,.72);
-        line-height: 1.15;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+      .rm-rail-days{
+        margin-left:8px;color:#efe3c6;font-size:12.5px;font-weight:300;
+        letter-spacing:.09em;line-height:1;flex:none;text-transform:uppercase;
+        text-shadow:0 1px 0 #000;
       }
+      .rm-rail-count.d5 .rm-rail-days{margin-left:7px;font-size:11.5px}
+      .rm-rail-count.d6 .rm-rail-days{margin-left:6px;font-size:10.5px}
 
-      .rm-sober-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        flex: 0 0 auto;
+      .rm-rail-act{
+        flex-direction:column;justify-content:center;gap:3px;
+        cursor:pointer;font-size:9px;font-weight:300;letter-spacing:.08em;
+        text-transform:uppercase;white-space:nowrap;
+        text-shadow:0 1px 0 #000;
       }
+      .rm-rail-act img{width:19px;height:19px;display:block;flex:none}
 
-      .rm-sober-btn {
-        appearance: none;
-        border-radius: 10px;
-        padding: 6px 8px;
-        text-decoration: none;
-        cursor: pointer;
-        font-size: 9px;
-        font-weight: 900;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        line-height: 1;
-        white-space: nowrap;
-        border: 1px solid rgba(255,255,255,.12);
-        transition: transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
-      }
+      /* No date yet: the counter has nothing honest to show, so the well
+         painted into the plate simply stays empty and the date block asks. */
+      .rm-rail.no-date .rm-rail-count{display:none}
 
-      .rm-sober-btn:hover {
-        transform: translateY(-1px);
-      }
-
-      .rm-sober-btn:active {
-        transform: scale(.98);
-      }
-
-      .rm-sober-btn.rm-set {
-        background: #d6b36a;
-        color: #111;
-        border-color: #d6b36a;
-      }
-
-      .rm-sober-btn.rm-alt {
-        background: transparent;
-        color: #f5f5f5;
-        border-color: rgba(255,255,255,.16);
+      @media (max-width:359px){
+        .rm-rail-act span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+        .rm-rail-act img{width:21px;height:21px}
+        .rm-rail-tile{width:23px;height:31px}
+        .rm-rail-count.d4 .rm-rail-tile{width:20px;height:27px}
+        .rm-rail-count.d5 .rm-rail-tile{width:16px;height:21px}
+        .rm-rail-count.d6 .rm-rail-tile{width:14px;height:19px}
+        .rm-rail-days{margin-left:6px;font-size:11px}
+        .rm-rail-count.d5 .rm-rail-days{font-size:10px}
+        .rm-rail-count.d6 .rm-rail-days{font-size:9px}
+        .rm-rail-date .v{font-size:11px;letter-spacing:.03em}
       }
 
       .rm-nav-links {
@@ -748,16 +798,11 @@
 
       @media (max-width: 900px) {
         body {
-          padding-bottom: calc(172px + env(safe-area-inset-bottom, 0px));
+          padding-bottom: calc(186px + env(safe-area-inset-bottom, 0px));
         }
 
         #rmAppBar {
           flex-direction: column;
-        }
-
-        .rm-sober-panel {
-          flex: 1 1 auto;
-          width: 100%;
         }
 
         .rm-nav-links {
@@ -773,7 +818,7 @@
 
       @media (max-width: 640px) {
         body {
-          padding-bottom: calc(170px + env(safe-area-inset-bottom, 0px));
+          padding-bottom: calc(186px + env(safe-area-inset-bottom, 0px));
         }
 
         #rm-bottom-nav .rm-nav-wrap {
@@ -785,30 +830,6 @@
           padding: 6px;
           gap: 6px;
           border-radius: 16px;
-        }
-
-        .rm-sober-panel {
-          padding: 8px 9px;
-          border-radius: 13px;
-        }
-
-        .rm-sober-main {
-          font-size: 13px;
-        }
-
-        .rm-sober-sub {
-          font-size: 10px;
-        }
-
-        .rm-sober-actions {
-          flex-direction: row;
-          gap: 5px;
-        }
-
-        .rm-sober-btn {
-          padding: 6px 7px;
-          font-size: 8px;
-          border-radius: 8px;
         }
 
         .rm-nav-links {
@@ -876,48 +897,79 @@
   appBar.id = "rmAppBar";
 
   const soberPanel = document.createElement("div");
-  soberPanel.className = "rm-sober-panel";
+  soberPanel.className = "rm-rail";
+  soberPanel.setAttribute("aria-label", "Sobriety counter");
   soberPanel.innerHTML = `
-    <div class="rm-sober-copy">
-      <div class="rm-sober-kicker">Sober Date</div>
-      <div class="rm-sober-main" id="rmSoberBarText">None</div>
-      <div class="rm-sober-sub" id="rmSoberBarSub">Home feeling ---</div>
-    </div>
-    <div class="rm-sober-actions">
-      <button type="button" class="rm-sober-btn rm-set" id="rmSetSoberDateBtn">Set</button>
-      <a class="rm-sober-btn rm-alt" id="rmShareSoberDateBtn" href="/sober-date.html">Share</a>
-      <a class="rm-sober-btn rm-alt" id="rmAccountBtn" href="/account.html">Account</a>
-    </div>
+    <button type="button" class="rm-rail-date" id="rmSetSoberDateBtn"
+            aria-label="Set or change your sober date">
+      <span class="k">Sober Since</span>
+      <span class="v" id="rmSoberBarText">Set Date</span>
+    </button>
+
+    <div class="rm-rail-count" id="rmRailCount" aria-live="polite"></div>
+
+    <a class="rm-rail-act rm-share" id="rmShareSoberDateBtn" href="/sober-date.html"
+       aria-label="Share your sober date">
+      <img src="/assets/rail/icon-share.webp" alt="" width="19" height="19">
+      <span>Share</span>
+    </a>
+
+    <a class="rm-rail-act rm-account" id="rmAccountBtn" href="/account.html"
+       aria-label="Your anonymous account">
+      <img src="/assets/rail/icon-account.webp" alt="" width="19" height="19">
+      <span>Account</span>
+    </a>
   `;
+
+  /* ---- THE COUNTER ------------------------------------------------------
+     One <img> per digit, straight off the ten delivered tiles. They
+     were drawn once at 3x; nothing here redraws them.
+
+     Every digit is preloaded on the first count, because the tiles change at
+     midnight and on the day 2,929 becomes 2,930 the phone should not be
+     fetching a "3" for the first time while somebody is looking at it. */
+  let tilesWarmed = false;
+  function warmTiles() {
+    if (tilesWarmed) return;
+    tilesWarmed = true;
+    for (let d = 0; d <= 9; d++) new Image().src = "/assets/rail/tile-" + d + ".webp";
+  }
+
+  function drawCount(n) {
+    const box = soberPanel.querySelector("#rmRailCount");
+    if (!box) return;
+    const text = String(Math.max(0, Math.round(Number(n))));
+    let html = "";
+    for (const ch of text) {
+      html += '<img class="rm-rail-tile" src="/assets/rail/tile-' + ch + '.webp" alt="">';
+    }
+    html += '<span class="rm-rail-days">Days</span>';
+    box.innerHTML = html;
+    box.className = "rm-rail-count" + (text.length >= 4 ? " d" + Math.min(6, text.length) : "");
+    /* The tiles carry no thousands separator, but the screen reader gets the
+       grouped number, because "fourteen thousand eight hundred seventy one"
+       is what a person says. */
+    box.setAttribute("aria-label", Number(n).toLocaleString("en-US") + " days sober");
+    warmTiles();
+  }
 
   function refreshSoberPanel() {
     const main = soberPanel.querySelector("#rmSoberBarText");
-    const sub = soberPanel.querySelector("#rmSoberBarSub");
-    const setBtnEl = soberPanel.querySelector("#rmSetSoberDateBtn");
-
     const days = computeSoberDays();
     const ymd = getSoberDateYMD();
 
     if (!ymd || days === null) {
-      main.textContent = "None";
-      sub.textContent = "Set your sober date";
-      if (setBtnEl) setBtnEl.style.display = "";
+      /* NO COUNT WHEN THERE IS NO DATE. A zero on the tiles would be a
+         number this app invented, and on this counter that is not a
+         harmless placeholder. */
+      soberPanel.classList.add("no-date");
+      main.textContent = "Set Date";
       return;
     }
 
-    main.textContent = `${days.toLocaleString()} days`;
-    sub.textContent = `Since ${ymdToDisplayLong(ymd)}`;
-
-    /* SET HAS DONE ITS JOB, SO IT STOPS TAKING UP THE BAR.
-
-       It is hidden, not removed, and the difference matters: sober-date.html's
-       "Change my sober date" button works by reaching over and clicking THIS
-       button, and .click() still fires on an element with display:none. Delete
-       it and that screen's only way to change the date quietly stops working.
-
-       So the way back in is still there -- it just lives on the Share screen
-       now instead of sitting on the bar forever. */
-    if (setBtnEl) setBtnEl.style.display = "none";
+    soberPanel.classList.remove("no-date");
+    main.textContent = ymdToRail(ymd);
+    drawCount(days);
   }
 
   /* ---- the sober date wheels ---------------------------------------------
@@ -1196,7 +1248,12 @@
     } catch (e) { return ""; }
   })();
 
-  appBar.appendChild(soberPanel);
+  /* THE RAIL IS ITS OWN ROW ABOVE THE BAR, not a panel inside it.
+
+     #rmAppBar is a flex row that becomes a column on a phone, so a child of
+     it sat beside the nav on a wide screen and under it on a narrow one.
+     The rail is meant to span the full width directly above the nav on
+     every size, which is what the approved layout shows. */
   appBar.appendChild(navLinks);
 
   /* ABOVE THE BAR, NOT INSIDE IT. #rmAppBar is a flex row that turns into a
@@ -1216,6 +1273,7 @@
     wrapper.appendChild(greet);
   }
 
+  wrapper.appendChild(soberPanel);
   wrapper.appendChild(appBar);
   mount.replaceChildren(wrapper);
 
