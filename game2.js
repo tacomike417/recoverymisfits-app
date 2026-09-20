@@ -1,7 +1,7 @@
 /* BUILD MARKER -- bumped on every change, read by test.html so it can show
    which version of the GAME is actually live rather than which version of
    the page is. */
-window.RecoveryBuild = "game2 v13 - no needless music reload";
+window.RecoveryBuild = "game2 v14 - crawl music + share button";
 
 (() => {
   "use strict";
@@ -662,6 +662,47 @@ window.RecoveryBuild = "game2 v13 - no needless music reload";
     }
 
     requestAnimationFrame(step);
+  }
+
+  /* WHY THE CRAWL WAS SILENT ON MOST CHAPTERS.
+
+     Moving between chapters sets window.location.href (see story.js), so
+     every chapter after the first is a FRESH PAGE LOAD that opens straight
+     onto the crawl -- and chapters past 1 begin there by design, see
+     usesSharedCrawl. A fresh page has had no user gesture yet, and no
+     browser will start audio without one, so play() was rejected and the
+     crawl ran in silence.
+
+     Chapter 1 was the exception, and only by accident: its crawl comes
+     after the opening splash, which you have to tap. That tap unlocked
+     the audio. And the later chapters sometimes worked because Safari
+     starts allowing autoplay on a site once you have interacted with it
+     enough times in a session, which is exactly why this looked random.
+
+     So: try immediately (works if audio is already unlocked), and if it
+     did not take, start it on the very first touch anywhere. The listener
+     is passive and in the capture phase -- it reads the gesture, it never
+     consumes it, so the tap still does whatever it was going to do. It
+     removes itself once the music is playing or the crawl is over. */
+  function armCrawlMusicRetry() {
+    const tryStart = () => {
+      if (gameState !== "chapter1CutScene") { stopListening(); return; }
+      startCutsceneMusic();
+      if (!cutsceneMusic.paused) stopListening();
+    };
+
+    const stopListening = () => {
+      document.removeEventListener("pointerdown", tryStart, true);
+      document.removeEventListener("touchstart", tryStart, true);
+      document.removeEventListener("click", tryStart, true);
+      document.removeEventListener("keydown", tryStart, true);
+    };
+
+    const opts = { capture: true, passive: true };
+    document.addEventListener("pointerdown", tryStart, opts);
+    document.addEventListener("touchstart", tryStart, opts);
+    document.addEventListener("click", tryStart, opts);
+    document.addEventListener("keydown", tryStart, opts);
   }
 
   function startCutsceneMusic() {
@@ -3066,6 +3107,7 @@ window.RecoveryBuild = "game2 v13 - no needless music reload";
     startGameplay();
   } else if (gameState === "chapter1CutScene") {
     startCutsceneMusic();
+    armCrawlMusicRetry();
   }
 
   gameFlow.start();

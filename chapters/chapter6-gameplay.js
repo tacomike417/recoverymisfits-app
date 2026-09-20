@@ -137,6 +137,43 @@
 
     const imageCache = new Map();
 
+    /* THE SHARE TAP, on click rather than pointerdown -- see shareGame.
+       Uses the same 390x780 conversion the rest of the input does, and the
+       same rectangle the button is drawn with, so the target can never
+       drift from the art. */
+    let shareClickInstalled = false;
+
+    function isOnShareButton(event) {
+      const canvas = ctx && ctx.canvas;
+      if (!canvas) return false;
+
+      const slide = slides[slideIndex];
+      if (!slide || slide.type !== "keepComingBack") return false;
+
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return false;
+
+      const x = (event.clientX - rect.left) * (390 / rect.width);
+      const y = (event.clientY - rect.top) * (780 / rect.height);
+
+      const b = getShareButtonRect(getWidth(), getHeight());
+      return x >= b.x && x <= b.x + b.width &&
+             y >= b.y && y <= b.y + b.height;
+    }
+
+    function installShareClick() {
+      if (shareClickInstalled) return;
+      const canvas = ctx && ctx.canvas;
+      if (!canvas) return;
+      shareClickInstalled = true;
+
+      canvas.addEventListener("click", (event) => {
+        if (!SHARE_URL) return;
+        if (!isOnShareButton(event)) return;
+        shareGame();
+      });
+    }
+
     const soundtrack = new Audio("assets/slides/chapter6-slides.mp3");
     soundtrack.preload = "auto";
     soundtrack.volume = 0.72;
@@ -240,6 +277,7 @@
       }
 
       unlockSoundtrackSilently();
+      installShareClick();
     }
 
     function advance() {
@@ -252,6 +290,24 @@
       shareStatusUntil = performance.now() + duration;
     }
 
+    /* WHY THE SHARE BUTTON NEEDED SEVERAL TAPS.
+
+       Everything in this game is driven from `pointerdown`, which is right
+       for a game -- it is the earliest and most responsive signal. But
+       Safari will not open the share sheet from a pointerdown handler. It
+       grants the permission navigator.share() needs on `click` (and
+       touchend), not on pointerdown, so the call threw NotAllowedError --
+       straight into the catch below, which assumed any failure meant the
+       user had cancelled. So it looked like nothing happened.
+
+       Tapping repeatedly sometimes worked because a stray click does get
+       through in some sequences, which is exactly the "hit it a few times"
+       behaviour.
+
+       The fix is a real click listener on the canvas, added below, that
+       hit-tests the same button rectangle and shares from there. The
+       pointerdown path no longer tries to share at all -- it just gives
+       the press its click sound, so the button still feels instant. */
     async function shareGame() {
       const shareData = {
         title: SHARE_TITLE,
@@ -263,7 +319,12 @@
         try {
           await navigator.share(shareData);
         } catch (err) {
-          // User canceled the native share sheet -- not an error.
+          // AbortError genuinely is the user closing the sheet. Anything
+          // else is a real failure and should not be silently eaten.
+          if (err && err.name !== "AbortError") {
+            console.warn("[share] native share failed:", err && err.name, err);
+            showShareStatus("COULDN'T OPEN SHARE");
+          }
         }
         return;
       }
@@ -308,10 +369,11 @@
           clientY <= button.y + button.height;
 
         if (inside && SHARE_URL) {
+          // The press feedback happens here so the button feels instant.
+          // The share itself fires from the click listener -- see shareGame.
           if (typeof playClickFeedback === "function") {
             playClickFeedback();
           }
-          shareGame();
         }
       }
 
