@@ -58,7 +58,74 @@ SKIP_PLAYLIST_IDS = {
 
 # Personal. Never goes on the site, whatever it gets renamed to next.
 # Matched against playlist AND video titles.
-SKIP_TITLE_RE = re.compile(r'crossing\s*bridges', re.IGNORECASE)
+#
+# "500 Pound Gorilla" is here for a different reason: one chapter of that
+# audiobook got uploaded to the channel on its own, filename and all, and the
+# whole book is already on audio.html under AUDIOBOOKS. It does not need a
+# second home in the tape list. The match is on the book, not the filename,
+# so if the other sixteen chapters ever go up they stay out too.
+SKIP_TITLE_RE = re.compile(
+    r'crossing\s*bridges|500\s*pound\s*gorilla', re.IGNORECASE)
+
+# ---------------------------------------------------------------------------
+# SERIES. A talk given in thirteen parts is one tape, not thirteen.
+#
+# The 12 & 12 went up as thirteen separate uploads and Sandy Beach's 12 Steps
+# & Stories as twelve, and loose on the page they drowned everything else.
+# Neither is a playlist on the channel, so YouTube cannot tell us they belong
+# together -- their titles have to.
+#
+# The rule is deliberately narrow: strip a trailing part number, and if three
+# or more titles are identical once it is gone, they are a series. Checked
+# against all 106 loose videos -- it catches those two and nothing else.
+# Titles that merely share a speaker are NOT a series and stay separate.
+# ---------------------------------------------------------------------------
+SERIES_TAIL_RE = re.compile(
+    r'[\s\-\u2013\u2014_:,.()\[\]]*'
+    r'(?:\b(?:part|pt|talk|step|session|tape|disc|cd|vol|volume|chapter|ch|no|number|episode|ep)\b'
+    r'[\s\-\u2013\u2014_#.]*)?'
+    r'#?\s*(\d{1,3})\s*(?:\s*(?:of|/|-)\s*\d{1,3})?\s*'
+    r'[\s\-\u2013\u2014_:,.()\[\]]*$',
+    re.IGNORECASE)
+
+SERIES_MIN = 3
+
+
+def series_stem(title):
+    """('AA Twelve Steps & Twelve Traditions', 5) or (None, 0).
+
+    Strips at most two trailing numbers, because "12 Steps & Stories - Talk 5
+    of 12" carries one in the name itself and one at the end."""
+    stem = re.sub(r'\.mp3$', '', title.strip(), flags=re.IGNORECASE).strip()
+    first = 0
+    for _ in range(2):
+        m = SERIES_TAIL_RE.search(stem)
+        if not m:
+            break
+        if not first:
+            first = int(m.group(1))
+        stem = stem[:m.start()].strip()
+    if not first or len(normalize(stem)) < 6:
+        return None, 0
+    return stem, first
+
+
+def short_part(title, stem, n):
+    """'AA ... Traditions-Step-5' under the stem 'AA ... Traditions' -> 'Step 5'."""
+    t = re.sub(r'\.mp3$', '', title.strip(), flags=re.IGNORECASE).strip()
+    if t.lower().startswith(stem.lower()):
+        rest = t[len(stem):].strip(' \t-\u2013\u2014_:,.|')
+        # "Step-5" is a filename talking, not a person. "Step 5" is the person.
+        rest = re.sub(r'(?<=[A-Za-z])[-_](?=\d)', ' ', rest)
+        rest = re.sub(r'\s+', ' ', rest).strip()
+        if rest:
+            return rest
+    return t or ('Part %d' % n)
+
+
+def normalize(s):
+    s = s.lower().replace('\u2019', '').replace("'", '').replace('"', '')
+    return re.sub(r'[^a-z0-9]+', ' ', s).strip()
 
 
 def api(endpoint, **params):
@@ -114,12 +181,21 @@ def main():
         # Every video inside a playlist is spoken for, even when the playlist
         # itself is skipped -- otherwise skipping the duplicate Joe & Charlie
         # would dump its 34 videos onto the page as loose tapes.
+        #
+        # The children are kept as well as counted: the page opens a playlist
+        # into this list so somebody can pick one talk instead of starting at
+        # the top of fourteen.
+        children = []
         try:
-            for it in paged('playlistItems', part='contentDetails',
+            for it in paged('playlistItems', part='snippet,contentDetails',
                             playlistId=pid, maxResults=50):
                 vid = it.get('contentDetails', {}).get('videoId')
-                if vid:
-                    in_a_playlist.add(vid)
+                if not vid:
+                    continue
+                in_a_playlist.add(vid)
+                name = (it.get('snippet', {}).get('title') or '').strip()
+                if name and name not in ('Private video', 'Deleted video'):
+                    children.append({'id': vid, 'title': name})
         except urllib.error.HTTPError as e:
             print('  ! could not read playlist %s (%s)' % (pid, e.code), file=sys.stderr)
 
@@ -137,6 +213,7 @@ def main():
             'sub': '%d video%s' % (count, '' if count == 1 else 's'),
             'count': count,
             'thumb': best_thumb(pl['snippet']),
+            'videos': children,
         })
 
     # ---- every video on the channel --------------------------------------
@@ -169,11 +246,50 @@ def main():
             continue
         loose.append(v)
 
+    # ---- the series ------------------------------------------------------
+    stems = {}
+    for v in loose:
+        stem, n = series_stem(v['title'])
+        if not stem:
+            continue
+        stems.setdefault(normalize(stem), {'label': stem, 'members': []})\
+             ['members'].append((n, v))
+
+    groups, spoken_for = [], set()
+    for g in stems.values():
+        if len(g['members']) < SERIES_MIN:
+            continue
+        g['members'].sort(key=lambda pair: pair[0])      # part 1, 2, 3 ...
+        kids = [pair[1] for pair in g['members']]
+        for v in kids:
+            spoken_for.add(v['id'])
+        groups.append({
+            'kind': 'group',
+            'id': 'grp_' + re.sub(r'[^a-z0-9]+', '-', normalize(g['label']))[:48],
+            'title': g['label'],
+            'sub': '%d parts' % len(kids),
+            'count': len(kids),
+            'thumb': kids[0]['thumb'],
+            # INSIDE A CONTAINER CALLED "AA Twelve Steps & Twelve Traditions",
+            # thirteen rows that each begin "AA Twelve Steps & Twelve
+            # Traditions - " tell you nothing. The shared stem comes off and
+            # what is left -- "Step 1", "Step 2" -- is the part you are
+            # actually choosing between.
+            'videos': [{'id': k['id'], 'title': short_part(k['title'], g['label'], i + 1)}
+                       for i, k in enumerate(kids)],
+        })
+        print('  + series: %s (%d parts)' % (g['label'], len(kids)))
+
+    groups.sort(key=lambda g: g['title'].lower())
+    loose = [v for v in loose if v['id'] not in spoken_for]
     loose.sort(key=lambda v: v['at'], reverse=True)
 
     # ---- how long each one runs ------------------------------------------
     durations = {}
     ids = [v['id'] for v in loose]
+    for holder in groups + playlists:                 # the children too
+        ids.extend(k['id'] for k in holder.get('videos', []))
+    ids = list(dict.fromkeys(ids))                    # de-duped, order kept
     for i in range(0, len(ids), 50):
         for d in api('videos', part='contentDetails',
                      id=','.join(ids[i:i + 50]), maxResults=50).get('items', []):
@@ -188,7 +304,14 @@ def main():
         'thumb': v['thumb'],
     } for v in loose]
 
-    items = playlists + videos
+    # Every child gets its run time too, so the opened list reads the same
+    # as the outer one.
+    for holder in groups + playlists:
+        for k in holder.get('videos', []):
+            k['sub'] = durations.get(k['id']) or ''
+
+    # Playlists first, then the series, then the single talks newest first.
+    items = playlists + groups + videos
 
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
     payload = {
@@ -201,8 +324,8 @@ def main():
         json.dump(payload, f, ensure_ascii=False, indent=1)
         f.write(';\n')
 
-    print('Wrote %s: %d playlists + %d loose videos = %d tapes.'
-          % (OUT_PATH, len(playlists), len(videos), len(items)))
+    print('Wrote %s: %d playlists + %d series + %d single talks = %d rows.'
+          % (OUT_PATH, len(playlists), len(groups), len(videos), len(items)))
 
 
 if __name__ == '__main__':

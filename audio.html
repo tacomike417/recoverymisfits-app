@@ -370,6 +370,79 @@ main > *{position:relative;z-index:1}
   border-radius:var(--radius);
 }
 
+/* ---- a holder: a playlist, or a talk given in parts ---------------------
+   DARKER THAN A SINGLE TALK, because it does not behave like one. Tapping a
+   single talk starts it; tapping one of these opens it. Same shape, same
+   size, different depth -- so the difference is visible before you touch it
+   rather than a surprise afterwards.
+
+   The chevron is the other half of that promise: it points down when the
+   thing is shut and up when it is open, and turning it back is the way out
+   of an opened holder. */
+.item.holder{
+  /* A real step down from the #1b1b18 of a single talk -- at one shade
+     apart it read as a rendering artifact on a phone in daylight. */
+  background:#121009;
+  border-color:rgba(216,180,91,.3);
+  box-shadow:inset 0 1px 0 rgba(0,0,0,.35);
+}
+.item.holder.open{border-color:var(--gold);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.chev{
+  width:44px;height:44px;flex:none;
+  display:grid;place-items:center;
+  border:0;background:transparent;color:var(--gold-lit);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.chev svg{
+  width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;
+  transition:transform .18s ease;
+}
+.item.holder.open .chev svg{transform:rotate(180deg)}
+
+/* what is inside a holder once it is open */
+.kids{
+  border:1px solid var(--gold);
+  border-top:0;
+  border-radius:0 0 var(--radius) var(--radius);
+  background:rgba(0,0,0,.26);
+  overflow:hidden;
+}
+.playAll{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:calc(100% - 24px);margin:12px;
+  min-height:var(--touch);padding:10px 16px;
+  border-radius:999px;border:1.4px solid var(--gold);
+  background:transparent;color:var(--gold);
+  font-family:var(--ui);font-weight:800;font-size:11px;letter-spacing:1.3px;
+  text-transform:uppercase;white-space:nowrap;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.playAll:active{background:rgba(216,180,91,.12)}
+.playAll svg{width:15px;height:15px;fill:currentColor}
+.kid{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 13px;min-height:var(--touch);
+  border-top:1px solid rgba(216,180,91,.12);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.kid:active{background:rgba(216,180,91,.09)}
+.kid .n{
+  flex:none;width:24px;text-align:right;
+  font-family:var(--ui);font-size:12px;font-weight:800;color:var(--gold-lit);
+  font-variant-numeric:tabular-nums;
+}
+.kid .kt{
+  flex:1;min-width:0;
+  font-family:var(--ui);font-size:13.5px;line-height:1.35;color:#efe7d6;
+}
+.kid .kd{
+  flex:none;font-family:var(--ui);font-size:12px;color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+
+/* a holder and its opened list are one block, so the gap goes */
+.holderWrap{display:flex;flex-direction:column}
+
 /* ---- the pager ----------------------------------------------------------
    TEN AT A TIME. The channel is at 178 videos and climbing, and a page that
    prints all of them is a page nobody reaches the bottom of. The arrows are
@@ -824,13 +897,15 @@ audio{
   function channelTapes(){
     const data = (typeof window !== "undefined" && window.RM_TAPES) || null;
     if (!data || !Array.isArray(data.items)) return [];
+    const KIND = { video:"video", group:"group", playlist:"playlist" };
     return data.items.filter(it => it && it.id && it.title).map(it => ({
-      key: (it.kind === "video" ? "v_" : "p_") + it.id,
-      kind: it.kind === "video" ? "video" : "playlist",
+      key: String(it.kind || "p").slice(0,1) + "_" + it.id,
+      kind: KIND[it.kind] || "playlist",
       title: String(it.title),
       sub: String(it.sub || ""),
       id: String(it.id),
       thumb: it.thumb || null,
+      videos: Array.isArray(it.videos) ? it.videos : [],
       randomMax: Number(it.count) > 0 ? Number(it.count) : 50
     }));
   }
@@ -1003,7 +1078,9 @@ audio{
   const listEl = $("list");
   const ICON = {
     play:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6L19 12z"/></svg>',
-    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 1.8"/></svg>'
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l3 1.8"/></svg>',
+    chev:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    stack: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6L19 12z"/></svg>'
   };
 
   const matches = (t, s) => !query || (t + " " + (s||"")).toLowerCase().includes(query);
@@ -1098,19 +1175,9 @@ audio{
     return of + " chapters · measuring…";
   }
 
-  function videoRow(item){
-    const row = document.createElement("div");
-    row.className = "item video";
-    row.innerHTML =
-      '<div class="thumb skel" data-thumb></div>' +
-      '<div class="txt"><div class="t"></div><div class="s"></div></div>' +
-      '<div class="playWrap">' +
-        '<button class="play" type="button" aria-label="Watch ' + item.title + '">' + ICON.play + '</button>' +
-        '<span>Watch</span>' +
-      '</div>';
-    row.querySelector(".t").textContent = item.title;
-    row.querySelector(".s").textContent = item.sub;
+  const kids = (item) => Array.isArray(item.videos) ? item.videos : [];
 
+  function paintThumb(row, item){
     thumbFor(item).then(src => {
       const box = row.querySelector("[data-thumb]");
       if (!box) return;
@@ -1126,11 +1193,97 @@ audio{
         box.style.color = "var(--gold)";
       }
     });
+  }
+
+  function videoRow(item){
+    /* A PLAYLIST, OR A TALK GIVEN IN PARTS, IS A HOLDER, NOT A TAPE.
+       Thirteen rows for one 12 & 12 drowned everything else on the page, so
+       anything that carries its own list of videos collapses into one row
+       that opens. A single talk still behaves exactly as it always did. */
+    if (kids(item).length) return holderRow(item);
+
+    const row = document.createElement("div");
+    row.className = "item video";
+    row.innerHTML =
+      '<div class="thumb skel" data-thumb></div>' +
+      '<div class="txt"><div class="t"></div><div class="s"></div></div>' +
+      '<div class="playWrap">' +
+        '<button class="play" type="button" aria-label="Watch ' + item.title + '">' + ICON.play + '</button>' +
+        '<span>Watch</span>' +
+      '</div>';
+    row.querySelector(".t").textContent = item.title;
+    row.querySelector(".s").textContent = item.sub;
+
+    paintThumb(row, item);
 
     const open = () => playTape(item);
     row.addEventListener("click", open);
     row.querySelector(".play").addEventListener("click", (e)=>{ e.stopPropagation(); open(); });
     return row;
+  }
+
+  /* ---- a holder, opened --------------------------------------------------
+     PLAY ALL first, because it is what most people want, and the parts under
+     it for the one person who wants Step Seven and nothing else.
+
+     A real YouTube playlist plays as a playlist. A series we spotted
+     ourselves is not one -- it is a handful of separate uploads -- so PLAY
+     ALL hands the embed the first video and the rest as a queue, which is
+     YouTube's own way of playing an ad-hoc run of videos back to back. */
+  function holderRow(item){
+    const wrap = document.createElement("div");
+    wrap.className = "holderWrap";
+
+    const row = document.createElement("div");
+    row.className = "item video holder";
+    row.setAttribute("aria-expanded", "false");
+    row.innerHTML =
+      '<div class="thumb skel" data-thumb></div>' +
+      '<div class="txt"><div class="t"></div><div class="s"></div></div>' +
+      '<button class="chev" type="button" tabindex="-1" aria-hidden="true">' + ICON.chev + '</button>';
+    row.querySelector(".t").textContent = item.title;
+    row.querySelector(".s").textContent = item.sub;
+    paintThumb(row, item);
+
+    const list = document.createElement("div");
+    list.className = "kids";
+    list.hidden = true;
+
+    const all = document.createElement("button");
+    all.className = "playAll";
+    all.type = "button";
+    all.innerHTML = ICON.stack + "<span>Play all &middot; " + kids(item).length + "</span>";
+    all.addEventListener("click", (e)=>{ e.stopPropagation(); playTape(item); });
+    list.appendChild(all);
+
+    kids(item).forEach((k, i) => {
+      const kid = document.createElement("div");
+      kid.className = "kid";
+      kid.setAttribute("role", "button");
+      kid.setAttribute("tabindex", "0");
+      kid.innerHTML = '<span class="n"></span><span class="kt"></span><span class="kd"></span>';
+      kid.querySelector(".n").textContent = (i + 1) + ".";
+      kid.querySelector(".kt").textContent = k.title;
+      kid.querySelector(".kd").textContent = k.sub || "";
+      const go = (e) => {
+        e.stopPropagation();
+        playTape({ kind:"video", id:k.id, title:k.title, sub:item.title });
+      };
+      kid.addEventListener("click", go);
+      kid.addEventListener("keydown", (e)=>{ if (e.key === "Enter" || e.key === " ") go(e); });
+      list.appendChild(kid);
+    });
+
+    const toggle = () => {
+      const open = row.classList.toggle("open");
+      row.setAttribute("aria-expanded", open ? "true" : "false");
+      list.hidden = !open;
+    };
+    row.addEventListener("click", toggle);
+
+    wrap.appendChild(row);
+    wrap.appendChild(list);
+    return wrap;
   }
 
   /* ---- continue listening ------------------------------------------------ */
@@ -1350,16 +1503,29 @@ audio{
     playerArea.hidden = false;
 
     const single = item.kind === "video";
+    /* A SERIES IS NOT A PLAYLIST. We worked out that those thirteen uploads
+       belong together; YouTube never did, so there is no list id to hand it.
+       Instead the first video is the embed and the rest ride along in the
+       playlist parameter, which is how YouTube plays a run of loose videos
+       back to back. */
+    const group = item.kind === "group" && kids(item).length;
     const idx = Math.max(0, parseInt(index, 10) || 0);
 
-    ytFrame.src = single
-      ? "https://www.youtube.com/embed/" + encodeURIComponent(item.id)
-      : "https://www.youtube.com/embed/videoseries?list=" +
-        encodeURIComponent(item.id) + (idx ? "&index=" + idx : "");
-
-    const away = single
-      ? "https://www.youtube.com/watch?v=" + encodeURIComponent(item.id)
-      : "https://www.youtube.com/playlist?list=" + encodeURIComponent(item.id);
+    let src, away;
+    if (single){
+      src  = "https://www.youtube.com/embed/" + encodeURIComponent(item.id);
+      away = "https://www.youtube.com/watch?v=" + encodeURIComponent(item.id);
+    } else if (group){
+      const ids = kids(item).map(k => k.id);
+      src = "https://www.youtube.com/embed/" + encodeURIComponent(ids[0]) +
+            (ids.length > 1 ? "?playlist=" + ids.slice(1).join(",") : "");
+      away = "https://www.youtube.com/watch?v=" + encodeURIComponent(ids[0]);
+    } else {
+      src  = "https://www.youtube.com/embed/videoseries?list=" +
+             encodeURIComponent(item.id) + (idx ? "&index=" + idx : "");
+      away = "https://www.youtube.com/playlist?list=" + encodeURIComponent(item.id);
+    }
+    ytFrame.src = src;
 
     $("openYtBtn").onclick = () => {
       /* Leaving the app is a choice, not a surprise. */
