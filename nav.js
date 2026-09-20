@@ -1292,13 +1292,21 @@
       const here = getSoberDateYMD();
       const there = remote.data.soberDate;
 
+      /* A date on this phone that a DIFFERENT account signed is not this
+         person's, so it never travels up to their account. account.html
+         takes it off the phone the moment they sign in; until then this
+         just refuses to spread it. */
+      const mine = !window.RMAccount.localIsMine ||
+                   window.RMAccount.localIsMine();
+
       if (there && !here) {
         /* This phone has nothing. Fill it in and say so on the bar. */
         window.RMAccount.apply(remote.data);
         refreshSoberPanel();
-      } else if (here && !there) {
+      } else if (here && !there && mine) {
         /* The account has nothing. Send this phone's copy up. */
         await window.RMAccount.push(Object.assign({}, remote.data, { soberDate: here }));
+        if (window.RMAccount.claimLocal) window.RMAccount.claimLocal();
       }
       /* here && there && different -> left alone on purpose. account.html asks. */
     } catch (e) { /* best effort, always */ }
@@ -1311,6 +1319,8 @@
     try {
       const d = getSoberDateYMD();
       if (!d) return;
+      /* They just typed it in on this phone, so it is theirs by definition. */
+      if (window.RMAccount.claimLocal) window.RMAccount.claimLocal();
       const remote = await window.RMAccount.pull();
       const base = (remote && remote.data) || {};
       if (base.soberDate === d) return;

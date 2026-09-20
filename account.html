@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Your Account — Recovery Misfits</title>
+<title>Your Anonymous Account — Recovery Misfits</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0e0e0d">
 <link rel="manifest" href="/manifest.json">
@@ -26,7 +26,10 @@
 
   main{padding:6px 18px 20px}
   .pub{align-items:center}
-  .pub .name{font-size:23px;line-height:1.05}
+  /* "Your Anonymous Account" is a long heading next to a 50px drawing.
+     Two lines at 390px reads fine; at 320px it broke to three and started
+     crowding the rule under it, so it scales down a little on the way. */
+  .pub .name{font-size:clamp(19px, 5.9vw, 23px);line-height:1.05}
 
   /* ---- the two ways in --------------------------------------------------- */
   .seg{
@@ -183,7 +186,7 @@
 
   <header class="pub">
     <img class="art" src="/assets/pages/d-book.webp" alt="" aria-hidden="true" width="122" height="111">
-    <div><h1 class="name">Your Account</h1></div>
+    <div><h1 class="name">Your Anonymous Account</h1></div>
   </header>
   <img class="rule" src="/assets/pages/d-rule.webp" alt="" aria-hidden="true"
        width="297" height="17" style="display:block;width:100%;max-width:297px;margin:6px 0 0">
@@ -467,20 +470,34 @@
      number the whole app is built around and picking wrong would be the
      worst thing this feature could do. */
   async function settle(isNew) {
-    var local = A.local();
+    /* WHAT IS ALREADY ON THIS PHONE, AND WHETHER IT IS YOURS.
+
+       A date nobody has claimed belongs to whoever is signing in -- that is
+       the person who set a date before they ever made an account, and they
+       keep it. A date signed by a DIFFERENT account is not theirs to take,
+       so it comes off the phone before anything else happens. Without this,
+       making a second account on the same phone quietly inherited the first
+       one's sober date. */
+    var mine = A.localIsMine();
+    var local = mine ? A.local() : {};
+    if (!mine) A.forgetLocal();
+
     var remote = await A.pull();
 
     if (isNew || !remote || !remote.data || !Object.keys(remote.data).length) {
-      if (Object.keys(local).length) await A.push(local);
+      if (Object.keys(local).length) { await A.push(local); A.claimLocal(); }
       return;
     }
 
     var ld = local.soberDate, rd = remote.data.soberDate;
 
-    /* The account's copy lands on this phone either way. */
+    /* The account's copy lands on this phone either way, signed as theirs. */
     A.apply(remote.data);
 
-    if (ld && rd && ld !== rd) {
+    /* The undo is only offered when the old date was actually this person's
+       to keep. A date left behind by another account is not something to
+       offer them back. */
+    if (mine && ld && rd && ld !== rd) {
       $("clashText").textContent =
         "This phone had " + pretty(ld) + " saved. Your account says " +
         pretty(rd) + ", so that's the one in use now.";
@@ -491,6 +508,7 @@
            than the other way round. */
         var merged = Object.assign({}, remote.data, { soberDate: ld });
         A.apply(merged);
+        A.claimLocal();
         await A.push(merged);
         $("clash").hidden = true;
         say($("say2"), "Back to " + pretty(ld) + ".", "good");
@@ -501,6 +519,7 @@
     /* Nothing to argue about: anything this phone has that the account is
        missing goes up. */
     var merged = Object.assign({}, remote.data, local);
+    A.claimLocal();
     if (JSON.stringify(merged) !== JSON.stringify(remote.data)) await A.push(merged);
   }
 

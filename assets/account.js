@@ -43,6 +43,21 @@
   var TOKEN_KEY = "rm_account_v1";
   var SOBER_KEY = "rm_sober_date";          /* the same key nav.js uses */
 
+  /* WHOSE DATE IS THAT.
+
+     Signing out leaves the date on the phone on purpose -- it is still your
+     date and this app does not take it off your device. But the phone alone
+     cannot tell "a date somebody set before they ever made an account" from
+     "a date the last account left behind", and those two want opposite
+     things: the first should be adopted by a new account, the second must
+     never be.
+
+     So whenever an account writes the date, it signs it. No signature means
+     nobody has claimed it and a new account may take it. A signature that
+     is not yours means it is not yours, and signing in swaps the phone over
+     to your own. */
+  var OWNER_KEY = "rm_sober_owner";
+
   /* ---- what we hold on to ------------------------------------------------ */
   var session = null;                        /* {access, refresh, expires, uid, name} */
   try {
@@ -278,7 +293,35 @@
     try {
       if (data.soberDate && /^\d{4}-\d{2}-\d{2}$/.test(data.soberDate)) {
         localStorage.setItem(SOBER_KEY, data.soberDate);
+        claimLocal();
       }
+    } catch (e) {}
+  }
+
+  function uid() { return (session && session.uid) || ""; }
+
+  function localOwner() {
+    try { return localStorage.getItem(OWNER_KEY) || ""; } catch (e) { return ""; }
+  }
+
+  /* Unclaimed, or claimed by whoever is signed in right now. */
+  function localIsMine() {
+    var o = localOwner();
+    return !o || o === uid();
+  }
+
+  function claimLocal() {
+    try {
+      if (uid()) localStorage.setItem(OWNER_KEY, uid());
+    } catch (e) {}
+  }
+
+  /* Somebody else's date, on this phone. Taken off rather than shown to the
+     wrong person under their own name. */
+  function forgetLocal() {
+    try {
+      localStorage.removeItem(SOBER_KEY);
+      localStorage.removeItem(OWNER_KEY);
     } catch (e) {}
   }
 
@@ -292,6 +335,10 @@
     push: push,
     local: localSettings,
     apply: applySettings,
+    uid: uid,
+    localIsMine: localIsMine,
+    claimLocal: claimLocal,
+    forgetLocal: forgetLocal,
     nameProblem: nameProblem,
     passwordProblem: passwordProblem
   };
