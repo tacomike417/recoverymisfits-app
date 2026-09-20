@@ -72,7 +72,12 @@
   }
 
   function getSoberDateYMD() {
-    const v = localStorage.getItem(SOBER_KEY);
+    /* Reading storage THROWS in iOS private browsing and wherever site data
+       is blocked -- it does not quietly return null. Unguarded, that took
+       the whole counter down mid-render on those phones. No stored date is
+       the honest answer there. */
+    let v = null;
+    try { v = localStorage.getItem(SOBER_KEY); } catch (e) { return ""; }
     return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
   }
 
@@ -308,11 +313,19 @@
          below. 374 wide is an iPhone 15; a small Android comes out at 0.81
          and a Pro Max at 1.11, and the proportions are identical in all
          three. */
+      /* NARROWER THAN THE BAR IT SITS ON.
+
+         The rail and the nav below it were the same 374px, but the nav
+         insets its contents by 8px and rounds its corners, so the rail's
+         artwork ran edge to edge past it and read like an umbrella over the
+         top. At 90% it tucks inside the bar's footprint. The scale factor
+         is measured from this box, so the whole picture just comes down
+         with it -- nothing inside needed touching. */
       .rm-rail-fit{
         position:relative;
-        width:100%;
+        width:90%;
+        margin:0 auto 7px;
         height:calc(64px * var(--rm-rail-s, 1));
-        margin:0 0 7px;
         overflow:hidden;
       }
       .rm-rail {
@@ -900,7 +913,19 @@
     book: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3V4z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     audio: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M4 12V9a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 12v4a2 2 0 0 0 2 2h1v-6H8a2 2 0 0 0-2 2zm12 0v6h-1a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     fun: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M6 9h12a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2l-2 2H10l-2-2H6a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-    share: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M4 12v7a1.6 1.6 0 0 0 1.6 1.6h12.8A1.6 1.6 0 0 0 20 19v-7" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M12 15.5V3.8M8 7.4l4-3.6 4 3.6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+    /* A QR CODE, NOT THE SHARE GLYPH.
+
+       This tab opens a QR code. It used to draw the box-with-an-up-arrow --
+       which is the exact icon our own iPhone install instructions tell
+       people to look for in Safari. Two different buttons, same picture, on
+       a screen where one of them is how you install the app. A QR code
+       looks like what it does. */
+    share: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true">
+      <rect x="3.2" y="3.2" width="7.4" height="7.4" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.3"/>
+      <rect x="13.4" y="3.2" width="7.4" height="7.4" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.3"/>
+      <rect x="3.2" y="13.4" width="7.4" height="7.4" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.3"/>
+      <path d="M13.4 13.4h3.3v3.3h-3.3zM17.5 13.4h3.3v3.3h-3.3zM13.4 17.5h3.3v3.3h-3.3zM17.5 17.5h3.3v3.3h-3.3z" fill="currentColor"/>
+    </svg>`
   };
 
   /* ROOT-ABSOLUTE, NOT "./".
@@ -1223,7 +1248,10 @@
     save.addEventListener("click", () => {
       const ymd = wheelYMD();
       if (!ymd) return;
-      localStorage.setItem(SOBER_KEY, ymd);
+      /* Same story writing. Somebody in private browsing can still set a
+         date and see it on this screen; it just will not be here tomorrow,
+         which is exactly what an account is for. */
+      try { localStorage.setItem(SOBER_KEY, ymd); } catch (e) {}
       /* Asked HERE as well as on load, because saving a sober date is the
          strongest signal this person means it -- and Chrome and Safari both
          decide whether to grant persistence from engagement. */
@@ -1337,8 +1365,13 @@
      past phone size and the rail centers in whatever is left. */
   const RAIL_MAX_S = 1.15;
   function fitRail() {
-    const w = railFit.getBoundingClientRect().width;
-    if (!w) return;
+    /* A hidden tab, a backgrounded home-screen app and the moment before
+       first layout all measure zero. Falling back to the viewport keeps the
+       rail from painting once at its unscaled 374px on a 320px phone before
+       the observer catches up. */
+    let w = railFit.getBoundingClientRect().width;
+    if (!w) w = Math.min(window.innerWidth || 0, RAIL_W) - 16;
+    if (w <= 0) return;
     const scale = Math.min(w / RAIL_W, RAIL_MAX_S);
     const root = document.documentElement.style;
     root.setProperty("--rm-rail-s", String(scale));
