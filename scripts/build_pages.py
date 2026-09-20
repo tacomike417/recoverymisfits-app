@@ -98,7 +98,7 @@ PAGE_TEMPLATE = """<!doctype html>
           <button class="dp-tabbtn" id="dp-text-bigger" type="button" aria-label="Make text bigger">A+</button>
           <button class="dp-tabbtn dp-tabbtn-secondary" id="dp-text-reset" type="button" aria-label="Reset text size">&#8634;</button>
         </div>
-        <div class="dp-title" id="dp-title">{title}</div>
+        <h1 class="dp-title" id="dp-title" style="margin:0;font:inherit;color:inherit">{title}</h1>
       </div>
       <div class="dp-readingwrap">
         <div class="dp-content" id="dp-content">
