@@ -306,6 +306,7 @@
       "https://rrkyvcouxdmurwdyuugv.supabase.co/rest/v1/perf_logs";
     const PERF_KEYSTR = "sb_publishable_SJEQDnQAEqCcIooFfDUjwg_jhYgUTe_";
     let perfLastPost = 0;
+    let perfLastSfx = 0;
 
     let perfSamples = [];
     let perfFrames = 0;
@@ -334,9 +335,15 @@
       if (secs <= 0 || perfFrames === 0) return;
       const canvas = document.querySelector("canvas");
 
+      // how many sound effects fired in this one second -- see playSound
+      const sfxNow = window.RecoverySfxCount || 0;
+      const sfxThisSecond = sfxNow - perfLastSfx;
+      perfLastSfx = sfxNow;
+
       perfSamples.push({
         at: Math.round((now - perfRunStart) / 1000),        // seconds into the run
         fps: Math.round(perfFrames / secs),
+        sfx: sfxThisSecond,
         upd: Number((perfUpdateMs / perfFrames).toFixed(2)),
         draw: Number((perfDrawMs / perfFrames).toFixed(2)),
         worst: Math.round(perfWorstMs),

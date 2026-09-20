@@ -1,7 +1,7 @@
 /* BUILD MARKER -- bumped on every change, read by test.html so it can show
    which version of the GAME is actually live rather than which version of
    the page is. */
-window.RecoveryBuild = "game2 v8 - preservesPitch off";
+window.RecoveryBuild = "game2 v9 - sfx + music preservesPitch off";
 
 (() => {
   "use strict";
@@ -580,6 +580,19 @@ window.RecoveryBuild = "game2 v8 - preservesPitch off";
   let treatmentRateLastWriteAt = 0;
   let treatmentRateLastWritten = treatmentMusicSettings.startRate;
 
+  /* The music is the other thing that changes playbackRate -- the treatment
+     level ramps 0.9 to 1.28 and is never at 1.0. Same reasoning as the
+     voices above. ?pitch=1 restores the pitch-corrected version. */
+  function applyPitchPreference(audio) {
+    const keepPitch =
+      new URLSearchParams(window.location.search).get("pitch") === "1";
+    try {
+      audio.preservesPitch = keepPitch;
+      audio.webkitPreservesPitch = keepPitch;
+      audio.mozPreservesPitch = keepPitch;
+    } catch (e) { /* unsupported here -- nothing to do */ }
+  }
+
   function playAudio(audio) {
     return audio.play()
       .then(() => true)
@@ -767,6 +780,7 @@ window.RecoveryBuild = "game2 v8 - preservesPitch off";
     backgroundMusic.muted = false;
     backgroundMusic.currentTime = 0;
     backgroundMusic.volume = 0;
+    applyPitchPreference(backgroundMusic);
     backgroundMusic.playbackRate = isTreatmentLevel
       ? treatmentMusicSettings.startRate
       : 1;
@@ -935,6 +949,31 @@ window.RecoveryBuild = "game2 v8 - preservesPitch off";
       for (let i = 0; i < VOICES; i += 1) {
         const voice = new Audio(source);
         voice.preload = "auto";
+
+        /* THE ONE THAT ACTUALLY MATTERED.
+
+           playPickupFeedback gives every tap its own playbackRate (0.82 to
+           1.015 -- deliberately never exactly 1.0, so repeated taps do not
+           sound identical). By default a media element PRESERVES PITCH when
+           its rate changes, and that means a continuous real-time
+           time-stretch per voice.
+
+           In a tap-as-fast-as-you-can minigame that is constant churn of
+           stretched streams, and on a phone the work starves the frame loop
+           from outside the JS thread. It measured as 1-3 fps while update
+           was 0.03ms and draw was 2.3ms -- the game doing essentially
+           nothing and the frames simply not arriving, with the music
+           silent the whole run.
+
+           Off, a rate change is an ordinary resample: pitch moves with the
+           rate, which for a tap effect is the point of varying it anyway.
+           Set once per voice when it is built, never per play. */
+        try {
+          voice.preservesPitch = false;
+          voice.webkitPreservesPitch = false;
+          voice.mozPreservesPitch = false;
+        } catch (e) { /* unsupported here -- nothing to do */ }
+
         pool.voices.push(voice);
       }
 
@@ -950,6 +989,10 @@ window.RecoveryBuild = "game2 v8 - preservesPitch off";
     soundName,
     options = {}
   ) {
+    // Counted so the frame log lines sound effects up against frame rate
+    // instead of us guessing which way the causation runs.
+    window.RecoverySfxCount = (window.RecoverySfxCount || 0) + 1;
+
     const source =
       soundFiles[soundName];
 
