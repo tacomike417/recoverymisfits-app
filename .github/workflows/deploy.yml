@@ -4,6 +4,16 @@ on:
   push:
     branches: [main]
   workflow_dispatch: {}
+  # ONCE A DAY, so the speaker tapes pick up whatever went on the YouTube
+  # channel since yesterday. There is nothing to commit -- the tape list is
+  # written straight into the build folder -- so a scheduled run is simply a
+  # deploy of the same site with a fresher list.
+  #
+  # 09:20 UTC is about 5:20am Eastern. GitHub turns scheduled workflows off
+  # in a repo with no pushes for 60 days; if the tapes ever go stale, that is
+  # the first thing to check.
+  schedule:
+    - cron: '20 9 * * *'
 
 permissions:
   contents: read
@@ -38,6 +48,17 @@ jobs:
         env:
           ADS_OUT_ROOT: ${{ github.workspace }}/_site
         run: python3 scripts/build_pages.py
+
+      # The speaker tapes off the YouTube channel. This step is ALLOWED TO
+      # FAIL QUIETLY: no key, spent quota or a YouTube outage and the script
+      # writes nothing and exits 0, so the deploy carries on and audio.html
+      # falls back to its five hand-kept tapes. A tape list is not worth
+      # taking the site down for.
+      - name: Pull the latest speaker tapes off the YouTube channel
+        env:
+          ADS_OUT_ROOT: ${{ github.workspace }}/_site
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: python3 scripts/fetch_tapes.py
 
       - uses: actions/configure-pages@v5
 

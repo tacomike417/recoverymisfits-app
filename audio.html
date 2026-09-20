@@ -370,6 +370,34 @@ main > *{position:relative;z-index:1}
   border-radius:var(--radius);
 }
 
+/* ---- the pager ----------------------------------------------------------
+   TEN AT A TIME. The channel is at 178 videos and climbing, and a page that
+   prints all of them is a page nobody reaches the bottom of. The arrows are
+   the same shape as the ones on the reading calendar on purpose -- two
+   screens in one app should not have two ideas about what "next" looks
+   like. It hides itself when everything already fits on one page. */
+.pager{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  margin-top:16px;
+}
+.pager button{
+  min-width:var(--touch);min-height:var(--touch);
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--gold-lit);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.pager button:active{transform:scale(.96)}
+.pager button[disabled]{opacity:.3;cursor:default;transform:none}
+.pager button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.1}
+.pager .count{
+  font-family:var(--ui);font-size:13px;color:var(--muted);
+  letter-spacing:.03em;font-variant-numeric:tabular-nums;
+  min-width:128px;text-align:center;
+}
+
 /* a quiet skeleton while the thumbs and lengths arrive */
 .skel{
   border-radius:8px;
@@ -624,6 +652,16 @@ audio{
 
   <div class="list" id="list"></div>
 
+  <div class="pager" id="pager" hidden>
+    <button type="button" id="pagePrev" aria-label="Previous page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span class="count" id="pageCount" role="status" aria-live="polite"></span>
+    <button type="button" id="pageNext" aria-label="Next page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
   <!-- ===== the player ===== -->
   <section class="player" id="playerArea" hidden aria-live="polite">
     <div class="top">
@@ -678,6 +716,16 @@ audio{
 
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
+
+<!-- THE TAPES OFF THE YOUTUBE CHANNEL, written by scripts/fetch_tapes.py at
+     deploy time and refreshed once a day. Loaded plainly and synchronously
+     rather than fetched, so the list below can be built in one pass.
+
+     IT IS ALLOWED TO BE MISSING. No API key, a dead quota, YouTube having a
+     bad morning -- any of those and this file simply is not there, the
+     console notes a 404, and the page falls back to the five tapes it has
+     always had. Nothing else notices. -->
+<script src="./data/tapes.js"></script>
 
 <script>
 /* ===========================================================================
@@ -765,6 +813,31 @@ audio{
     { key:"stepwork", title:"Danny's Big Book Study", sub:"YouTube Playlist",             id:"PLcWUlHHreIu63jNVOsrx1NiRPv25Q_BPn", randomMax:50 }
   ];
 
+  /* THE FIVE ABOVE NEVER MOVE. They are hand-kept, in that order, and the
+     channel's tapes are appended after them -- never merged in, never
+     re-sorted. Anything on the channel that is already one of those five is
+     dropped by scripts/fetch_tapes.py before it ever reaches this file, so
+     nothing prints twice.
+
+     RM_TAPES may not exist. That is a normal state, not an error: see the
+     script tag above. Everything here is written to cope with it. */
+  function channelTapes(){
+    const data = (typeof window !== "undefined" && window.RM_TAPES) || null;
+    if (!data || !Array.isArray(data.items)) return [];
+    return data.items.filter(it => it && it.id && it.title).map(it => ({
+      key: (it.kind === "video" ? "v_" : "p_") + it.id,
+      kind: it.kind === "video" ? "video" : "playlist",
+      title: String(it.title),
+      sub: String(it.sub || ""),
+      id: String(it.id),
+      thumb: it.thumb || null,
+      randomMax: Number(it.count) > 0 ? Number(it.count) : 50
+    }));
+  }
+
+  const TAPES = PLAYLISTS.map(p => Object.assign({ kind: "playlist" }, p))
+                         .concat(channelTapes());
+
   /* ---- where we are ------------------------------------------------------ */
   /* Opens on the playlists. Anything already chosen this session still wins
      -- see TAB_KEY below -- so nobody gets yanked off what they were on. */
@@ -775,6 +848,11 @@ audio{
   let playMode = "single";
   let lastSavedAt = 0;
   let query = "";
+  /* Ten at a time, and back to the first page whenever the list underneath
+     changes -- a new search or the other tab. Leaving somebody on page 6 of
+     a list that now has two rows is how a page looks broken. */
+  const PER_PAGE = 10;
+  let page = 0;
 
   const player = $("player");
   const TAB_KEY = "rm_audio_tab_v1";
@@ -900,10 +978,16 @@ audio{
   try{ thumbs = JSON.parse(localStorage.getItem(THUMB_KEY) || "{}") || {}; }catch(e){ thumbs = {}; }
 
   async function thumbFor(item){
+    /* The channel's tapes arrive with a picture already attached, straight
+       from the API at build time. No round trip, no waiting, no skeleton --
+       only the five hand-kept tapes still have to ask. */
+    if (item.thumb) return item.thumb;
     if (thumbs[item.id] !== undefined) return thumbs[item.id];
     try{
       const url = "https://www.youtube.com/oembed?format=json&url=" +
-        encodeURIComponent("https://www.youtube.com/playlist?list=" + item.id);
+        (item.kind === "video"
+          ? encodeURIComponent("https://www.youtube.com/watch?v=" + item.id)
+          : encodeURIComponent("https://www.youtube.com/playlist?list=" + item.id));
       const res = await fetch(url);
       if (!res.ok) throw new Error("no");
       const data = await res.json();
@@ -926,6 +1010,7 @@ audio{
 
   function drawList(){
     listEl.innerHTML = "";
+    pagerEl.hidden = true;          /* shown again only if the tapes need it */
 
     if (tab === "books"){
       const keys = Object.keys(BOOKS).filter(k => matches(BOOKS[k].title, BOOKS[k].sub));
@@ -933,12 +1018,48 @@ audio{
                                                : "No audiobooks are available right now.");
       keys.forEach(key => listEl.appendChild(bookRow(key)));
     } else {
-      const items = PLAYLISTS.filter(p => matches(p.title, p.sub));
-      if (!items.length) return drawEmpty(query ? "Nothing matched that search."
-                                                : "No speaker tapes are available right now.");
-      items.forEach(item => listEl.appendChild(videoRow(item)));
+      const items = TAPES.filter(p => matches(p.title, p.sub));
+      if (!items.length){
+        return drawEmpty(query ? "Nothing matched that search."
+                               : "No speaker tapes are available right now.");
+      }
+
+      const pages = Math.max(1, Math.ceil(items.length / PER_PAGE));
+      if (page > pages - 1) page = pages - 1;      /* the list shrank under us */
+      const start = page * PER_PAGE;
+      items.slice(start, start + PER_PAGE)
+           .forEach(item => listEl.appendChild(videoRow(item)));
+      drawPager(items.length, pages);
     }
   }
+
+  /* ---- the pager --------------------------------------------------------- */
+  const pagerEl = $("pager");
+  const pageCountEl = $("pageCount");
+  const pagePrevBtn = $("pagePrev");
+  const pageNextBtn = $("pageNext");
+
+  function drawPager(total, pages){
+    if (tab !== "videos" || pages <= 1){ pagerEl.hidden = true; return; }
+    pagerEl.hidden = false;
+    const from = page * PER_PAGE + 1;
+    const to = Math.min(total, (page + 1) * PER_PAGE);
+    pageCountEl.textContent = from + "\u2013" + to + " of " + total;
+    pagePrevBtn.disabled = page === 0;
+    pageNextBtn.disabled = page >= pages - 1;
+  }
+
+  function goToPage(next){
+    page = Math.max(0, next);
+    drawList();
+    /* Back to the top of the list, not the top of the page -- the tabs and
+       the search box stay where your thumb left them. */
+    const y = listEl.getBoundingClientRect().top + window.scrollY - 90;
+    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  }
+
+  pagePrevBtn.addEventListener("click", ()=> goToPage(page - 1));
+  pageNextBtn.addEventListener("click", ()=> goToPage(page + 1));
 
   function drawEmpty(msg){
     const d = document.createElement("div");
@@ -1006,7 +1127,7 @@ audio{
       }
     });
 
-    const open = () => playPlaylist(item);
+    const open = () => playTape(item);
     row.addEventListener("click", open);
     row.querySelector(".play").addEventListener("click", (e)=>{ e.stopPropagation(); open(); });
     return row;
@@ -1216,7 +1337,10 @@ audio{
     });
   }
 
-  function playPlaylist(item, index){
+  /* A PLAYLIST AND A SINGLE TALK ARE NOT THE SAME EMBED, and getting it
+     wrong is silent: /embed/videoseries?list= with a video id just shows a
+     black box. So the row says which it is and this reads it. */
+  function playTape(item, index){
     closePlayer();
     $("playerTitle").textContent = item.title;
     $("playerSub").textContent = item.sub;
@@ -1225,16 +1349,28 @@ audio{
     ytArea.hidden = false;
     playerArea.hidden = false;
 
+    const single = item.kind === "video";
     const idx = Math.max(0, parseInt(index, 10) || 0);
-    ytFrame.src = "https://www.youtube.com/embed/videoseries?list=" +
-      encodeURIComponent(item.id) + (idx ? "&index=" + idx : "");
+
+    ytFrame.src = single
+      ? "https://www.youtube.com/embed/" + encodeURIComponent(item.id)
+      : "https://www.youtube.com/embed/videoseries?list=" +
+        encodeURIComponent(item.id) + (idx ? "&index=" + idx : "");
+
+    const away = single
+      ? "https://www.youtube.com/watch?v=" + encodeURIComponent(item.id)
+      : "https://www.youtube.com/playlist?list=" + encodeURIComponent(item.id);
+
     $("openYtBtn").onclick = () => {
       /* Leaving the app is a choice, not a surprise. */
       if (!confirm("Open this tape on YouTube? You'll be leaving Recovery Misfits.")) return;
-      window.open("https://www.youtube.com/playlist?list=" + encodeURIComponent(item.id), "_blank", "noopener");
+      window.open(away, "_blank", "noopener");
     };
     showPlayer();
   }
+
+  /* The old name, kept because other things on this page still call it. */
+  const playPlaylist = playTape;
 
   /* ---- what the audio element tells us ----------------------------------- */
   player.addEventListener("play",    ()=>{ setBadge("PLAYING"); markPlayingRow(currentIdx); });
@@ -1301,6 +1437,7 @@ audio{
   /* ---- the three choices -------------------------------------------------- */
   function setTab(next, opts){
     opts = opts || {};
+    if (next !== tab) page = 0;     /* the other tab always opens at the top */
     tab = next;
     try{ sessionStorage.setItem(TAB_KEY, tab); }catch(e){}
     $("tabBooks").setAttribute("aria-selected", tab === "books" ? "true" : "false");
@@ -1327,7 +1464,7 @@ audio{
      every playlist -- and whatever comes out starts here, in the app. */
   function surprise(){
     const pool = Object.keys(BOOKS).map(k => ({ kind:"book", key:k }))
-      .concat(PLAYLISTS.map(p => ({ kind:"list", item:p })));
+      .concat(TAPES.map(p => ({ kind:"list", item:p })));
     const pick = pool[Math.floor(Math.random() * pool.length)];
     if (pick.kind === "book"){
       setTab("books");
@@ -1335,6 +1472,9 @@ audio{
       toast("Surprise: " + BOOKS[pick.key].title);
     } else {
       setTab("videos");
+      /* A three-video playlist asked to start at number 40 opens on nothing.
+         randomMax is the real count now, so the hat cannot reach past the
+         end of what it pulled out. */
       const idx = Math.floor(Math.random() * Math.max(1, pick.item.randomMax || 50));
       playPlaylist(pick.item, idx);
       toast("Surprise: " + pick.item.title);
@@ -1349,14 +1489,15 @@ audio{
     searchWrap.hidden = !open;
     $("searchBtn").setAttribute("aria-expanded", open ? "true" : "false");
     if (open) searchInput.focus();
-    else { searchInput.value = ""; query = ""; drawList(); }
+    else { searchInput.value = ""; query = ""; page = 0; drawList(); }
   });
   searchInput.addEventListener("input", ()=>{
     query = searchInput.value.trim().toLowerCase();
+    page = 0;
     drawList();
   });
   searchInput.addEventListener("keydown", (e)=>{
-    if (e.key === "Escape"){ searchInput.value = ""; query = ""; drawList(); searchInput.blur(); }
+    if (e.key === "Escape"){ searchInput.value = ""; query = ""; page = 0; drawList(); searchInput.blur(); }
   });
 
   /* ---- open ---------------------------------------------------------------
