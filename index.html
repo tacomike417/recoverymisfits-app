@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Recovery Misfits</title>
+<title>Another Day Sober &mdash; Daily Recovery Reading | Recovery Misfits</title>
 <meta name="theme-color" content="#0e0e0d">
 <link rel="canonical" href="https://recoverymisfits.org/">
-<meta name="description" content="Daily recovery readings for alcoholics — Another Day Sober, one day at a time.">
+<meta name="description" content="Another Day Sober — a daily recovery reading for alcoholics, one for every day of the year. Free, no sign-up, one day at a time.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Recovery Misfits">
-<meta property="og:description" content="Daily recovery readings for alcoholics — Another Day Sober, one day at a time.">
+<meta property="og:title" content="Another Day Sober — Daily Recovery Reading">
+<meta property="og:description" content="Another Day Sober — a daily recovery reading for alcoholics, one for every day of the year. Free, no sign-up, one day at a time.">
 <meta property="og:url" content="https://recoverymisfits.org/">
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon-192.png">
@@ -68,11 +68,41 @@
   </p>
 
   <h2 class="title" id="title">&nbsp;</h2>
+  <!-- #title and #reading are filled in at build time by scripts/build_pages.py
+       with whatever reading the build day landed on, so this page has real
+       words in it for a crawler instead of "Opening today's reading...".
+       data-for says which day was baked; the guard below throws it away if
+       the reader's own date has moved on. -->
   <img class="titlerule" src="assets/pages/d-titlerule.webp" alt="" aria-hidden="true" width="471" height="20">
 
-  <article class="reading" id="reading">
+  <article class="reading" id="reading" data-for="">
     <p class="state">Opening today&rsquo;s reading&hellip;</p>
   </article>
+
+  <!-- NOBODY IS EVER SHOWN THE WRONG DAY'S READING.
+
+       The build bakes one day in and the site rebuilds each morning, so
+       between midnight and the build the baked copy is yesterday's. This
+       runs before daily-reading.js and clears it the instant the dates
+       disagree -- a placeholder for half a second beats reading the wrong
+       page on the wrong morning. Crawlers render the page, so they still
+       see the correct reading either way. -->
+  <script>
+  (function () {
+    var t = document.getElementById("title"),
+        r = document.getElementById("reading");
+    if (!t || !r) return;
+    var baked = r.getAttribute("data-for");
+    if (!baked) return;
+    var d = new Date(),
+        today = ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+    if (baked === today) return;
+    t.innerHTML = "&nbsp;";
+    r.innerHTML = '<p class="state">Opening today\u2019s reading\u2026</p>';
+    var dl = document.getElementById("dateline");
+    if (dl) dl.hidden = true;
+  })();
+  </script>
 
   <div class="foot">
     <img class="rule" src="assets/pages/d-sharerule.webp" alt="" aria-hidden="true" width="676" height="8">
@@ -82,6 +112,27 @@
     </button>
     <p class="say" id="say" role="status" aria-live="polite"></p>
   </div>
+
+  <!-- ===================================================================
+       THE CALENDAR IS WRITTEN IN HERE AT BUILD TIME.
+
+       Same generated block as another-day-sober.html: twelve months of real
+       <a href>, one per reading. It is on the front page because this is the
+       page everything else points at, and a crawler that lands here should
+       be one link from all 365 rather than none. Do not edit between the
+       markers by hand -- the next deploy overwrites it.
+
+       The plain archive link is what stands here if the build does not run,
+       so the way through is never missing.
+       ================================================================ -->
+  <!-- CALENDAR:START -->
+    <nav class="cal" aria-label="Every reading, by date">
+      <a class="back" href="/another-day-sober/" style="margin-top:0">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg>
+        Every Reading
+      </a>
+    </nav>
+  <!-- CALENDAR:END -->
 
 </main>
 </div>

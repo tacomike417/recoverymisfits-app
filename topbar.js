@@ -3,20 +3,37 @@
   if (!mount) return;
 
   /* =======================================================================
-     TEMPORARY -- THE BUILD BADGE.  Delete this block, the .rm-ver rules in
-     the stylesheet below, and the <span> in mount.innerHTML to remove it.
-     Three places, all marked "TEMPORARY".
+     THE BUILD BADGE -- OFF BY DEFAULT, AND SWITCHED ON FROM THE PHONE.
 
-     It is here so there is a way to tell, standing in a parking lot with a
-     phone, whether you are looking at today's deploy or a copy the browser
-     kept from twenty minutes ago. That question cost us a round trip this
-     morning.
+     It answers one question: standing in a parking lot with a phone, am I
+     looking at today's deploy or a copy the browser kept from twenty
+     minutes ago. Nobody using the app needs that, so it stays hidden.
 
-     Bump RM_VERSION on any deploy worth telling apart. Tapping the badge
-     reloads the page past the cache, which is the other half of the same
-     problem.
+     The catch is that you need it exactly when shipping a change to bring
+     it back is the slow part. So it is not deleted, it is switched:
+
+         recoverymisfits.org/?ver=1     turn it on, and it stays on
+         recoverymisfits.org/?ver=0     turn it off again
+
+     The switch lives in this browser's own storage, so it is on for that
+     one phone and invisible to everybody else -- including you on a
+     different device. Bump RM_VERSION on any deploy worth telling apart;
+     tapping the badge reloads past the cache.
      ==================================================================== */
-  const RM_VERSION = "v430";
+  const RM_VERSION = "v432";
+
+  const SHOW_VER = (function () {
+    try {
+      const q = new URLSearchParams(location.search);
+      if (q.get("ver") === "1") localStorage.setItem("rm_show_ver", "1");
+      if (q.get("ver") === "0") localStorage.removeItem("rm_show_ver");
+      return localStorage.getItem("rm_show_ver") === "1";
+    } catch (e) {
+      /* private mode, storage blocked -- the badge is a debugging nicety
+         and is not worth throwing on somebody's phone over. */
+      return false;
+    }
+  })();
 
   /* -------------------------
      Google Analytics (GA4)
@@ -69,7 +86,7 @@
         justify-content:center;
       }
 
-      /* TEMPORARY -- the build badge. Delete with the block at the top. */
+      /* The build badge -- see the switch at the top of this file. */
       .rm-ver{
         position:absolute;
         top:calc(6px + env(safe-area-inset-top, 0px));
@@ -309,13 +326,12 @@
     <div class="rm-topbar-inner">
       <img class="rm-logo" src="/PWA-header.png" alt="Recovery Misfits" />
     </div>
-    <!-- TEMPORARY -- the build badge. Delete with the block at the top. -->
-    <button class="rm-ver" type="button" id="rmVer"
-            title="Tap to reload past the cache">${RM_VERSION}</button>
+    ${SHOW_VER ? `<button class="rm-ver" type="button" id="rmVer"
+            title="Tap to reload past the cache">${RM_VERSION}</button>` : ""}
   `;
 
-  /* TEMPORARY -- the build badge. A cache-busting query on the reload, so
-     the badge is also the answer to "am I actually seeing the new one". */
+  /* A cache-busting query on the reload, so the badge is also the answer to
+     "am I actually seeing the new one". Absent unless the switch is on. */
   const verBtn = document.getElementById("rmVer");
   if (verBtn) {
     verBtn.addEventListener("click", () => {

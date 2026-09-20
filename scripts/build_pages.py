@@ -23,7 +23,7 @@ the site's pages soft 404s. These 365 pages carry the same readings with the
 words already IN the HTML. That is the whole point, and it is why the
 template below must never be "improved" into fetching its own content.
 """
-import json, re, os, html
+import json, re, os, html, datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 READINGS_PATH = os.path.join(ROOT, 'data', 'readings.json')
@@ -347,6 +347,82 @@ INDEX_TEMPLATE = """<!doctype html>
 """
 
 
+def bake_homepage(out_root, readings):
+    """Put a real reading in the front page's HTML.
+
+    The homepage fetched its reading in the browser, which meant a crawler
+    saw a title of "Recovery Misfits", no H1 worth the name and the words
+    "Opening today's reading..." -- about fifteen words on the single page
+    the whole site points at. Google indexed it accordingly.
+
+    So the build writes that day's reading straight into the file. The
+    workflow runs once a morning, so the baked copy is at most a few hours
+    behind; the inline guard in index.html throws it out the moment the
+    reader's own date disagrees, and daily-reading.js puts the right one up
+    as it always did. Nobody sees the wrong day. A crawler sees a page with
+    a reading on it.
+    """
+    path = os.path.join(out_root, 'index.html')
+    if not os.path.exists(path):
+        print('  ! index.html not found; homepage not baked')
+        return False
+
+    today = datetime.datetime.utcnow().strftime('%m-%d')
+    r = readings.get(today)
+    if r is None:                      # Feb 29 in a year without one
+        return False
+
+    raw = str(r.get('title', '')).strip()
+    body = str(r.get('body', ''))
+    title = headline(raw)
+    slug = slugify(raw)
+    line = dateline(raw, today)
+    desc = meta_description(body)
+
+    with open(path, encoding='utf-8') as f:
+        page = f.read()
+
+    def sub(pattern, repl, why):
+        # re.S because the article and its paragraphs span lines
+        new, n = re.subn(pattern, lambda m: repl, page, count=1, flags=re.S)
+        if not n:
+            print('  ! homepage: could not set %s' % why)
+        return new
+
+    page = sub(r'<title>.*?</title>',
+               '<title>%s &mdash; Another Day Sober | Recovery Misfits</title>'
+               % html.escape(title), 'title')
+    page = sub(r'<meta name="description" content="[^"]*">',
+               '<meta name="description" content="%s">' % html.escape(desc, quote=True),
+               'description')
+    page = sub(r'<meta property="og:title" content="[^"]*">',
+               '<meta property="og:title" content="%s &mdash; Another Day Sober">'
+               % html.escape(title, quote=True), 'og:title')
+    page = sub(r'<meta property="og:description" content="[^"]*">',
+               '<meta property="og:description" content="%s">'
+               % html.escape(desc, quote=True), 'og:description')
+    page = sub(r'<h2 class="title" id="title">.*?</h2>',
+               '<h2 class="title" id="title">%s</h2>' % html.escape(title), 'h2')
+    page = sub(r'<article class="reading" id="reading" data-for="[^"]*">.*?</article>',
+               '<article class="reading" id="reading" data-for="%s">\n%s\n  </article>'
+               % (today, body_html(body, '    ')), 'reading body')
+    if line:
+        page = sub(r'<p class="dateline" id="dateline"[^>]*>',
+                   '<p class="dateline" id="dateline">', 'dateline wrapper')
+        page = sub(r'<span id="dateText">.*?</span>',
+                   '<span id="dateText">%s</span>' % html.escape(line), 'dateline text')
+
+    """A CANONICAL THAT POINTS AT THE READING'S OWN PAGE WOULD BE WRONG.
+       The homepage is a different thing that happens to show the same words
+       today -- tomorrow it shows other words. It stays canonical to itself
+       and the reading page stays canonical to itself."""
+
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(page)
+    print('Homepage baked with %s (%s).' % (today, title))
+    return True
+
+
 def main():
     with open(READINGS_PATH, encoding='utf-8') as f:
         readings = json.load(f)
@@ -399,10 +475,14 @@ def main():
     # the readings ended up as orphans in the first place.
     urls.append('%s/app/' % SITE_URL)
 
+    # lastmod on every entry. The readings themselves are perpetual, but the
+    # site is rebuilt each morning and a sitemap with no dates gives a crawler
+    # no reason to come back and look.
+    stamp = datetime.date.today().isoformat()
     sitemap = ['<?xml version="1.0" encoding="UTF-8"?>',
                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for u in urls:
-        sitemap.append('  <url><loc>%s</loc></url>' % u)
+        sitemap.append('  <url><loc>%s</loc><lastmod>%s</lastmod></url>' % (u, stamp))
     sitemap.append('</urlset>')
     with open(os.path.join(OUT_ROOT, 'sitemap.xml'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(sitemap))
@@ -410,8 +490,15 @@ def main():
     if os.path.abspath(OUT_ROOT) == os.path.abspath(ROOT):
         print('Local preview: leaving another-day-sober.html alone '
               '(the calendar is injected into the build copy only).')
-    elif inject_calendar(os.path.join(OUT_ROOT, 'another-day-sober.html'), cal):
-        print('Calendar injected into another-day-sober.html.')
+    else:
+        if inject_calendar(os.path.join(OUT_ROOT, 'another-day-sober.html'), cal):
+            print('Calendar injected into another-day-sober.html.')
+        # The front page gets the same 365 links. It is the page everything
+        # else points at, so a crawler landing there should be one hop from
+        # every reading rather than none.
+        if inject_calendar(os.path.join(OUT_ROOT, 'index.html'), cal):
+            print('Calendar injected into index.html.')
+        bake_homepage(OUT_ROOT, readings)
 
     print('Generated %d reading pages, an archive index, and sitemap.xml with %d URLs.'
           % (len(readings), len(urls)))
