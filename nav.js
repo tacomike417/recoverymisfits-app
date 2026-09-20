@@ -338,20 +338,40 @@
       .rm-rail button:focus-visible,.rm-rail a:focus-visible{
         outline:2px solid #f0d27d;outline-offset:2px;border-radius:4px}
 
-      /* the four wells, laid over the four wells in the picture */
+      /* THE PLATE IS ONLY A PLATE.
+
+         Everything that used to be painted into the picture -- the four
+         wells, the brass dividers -- is drawn here instead, laid out by
+         flexbox. That is the whole point: a well drawn in code sits exactly
+         where its content sits, so it cannot drift off the art, and the
+         underlay becomes a piece of metal with nothing on it to line up
+         with. Swap the plate for a different one and none of this moves. */
+      .rm-rail{display:flex;align-items:center;padding:0 8px}
+
       .rm-rail-date,.rm-rail-count,.rm-rail-act{
-        position:absolute;top:10px;height:44px;
-        display:flex;align-items:center;
+        height:44px;display:flex;align-items:center;
+        border-radius:5px;
+        background:linear-gradient(180deg,rgba(0,0,0,.62),rgba(0,0,0,.40));
+        box-shadow:inset 0 1px 2px rgba(0,0,0,.85),
+                   inset 0 0 0 1px rgba(215,178,83,.12),
+                   0 1px 0 rgba(255,255,255,.05);
       }
+      /* the thin brass hairlines between the sections */
+      .rm-rail-sep{
+        flex:0 0 1px;height:34px;margin:0 5px;
+        background:linear-gradient(180deg,transparent,
+                   rgba(215,178,83,.45) 18%,rgba(215,178,83,.45) 82%,transparent);
+      }
+
       /* Both lines are centered in the well, the way they are in the
          mockup -- they are nearly the same width, so centering reads as one
          stacked block rather than two left-hung lines. */
-      .rm-rail-date {left:5.385%;width:24.03%;
-        flex-direction:column;justify-content:center;align-items:center;
-        gap:3px;padding:0 4px;cursor:pointer;text-align:center}
-      .rm-rail-count{left:31.538%;width:38.9%;justify-content:center;gap:1px}
-      .rm-rail-act.rm-share  {left:72.564%;width:11.21%}
-      .rm-rail-act.rm-account{left:85.897%;width:11.72%}
+      .rm-rail-date{flex:0 0 76px;
+        flex-direction:column;justify-content:center;
+        gap:3px;padding:0 3px;cursor:pointer;text-align:center}
+      .rm-rail-count{flex:1 1 auto;min-width:0;justify-content:center;gap:1px}
+      .rm-rail-act.rm-share  {flex:0 0 46px}
+      .rm-rail-act.rm-account{flex:0 0 54px}
 
       .rm-rail-date:active,.rm-rail-act:active{filter:brightness(1.35)}
 
@@ -374,9 +394,9 @@
          stepped down only as far as each extra digit forces. Two days is
          not a reason to draw a small number. */
       .rm-rail-tile{width:26px;height:35px;display:block;flex:none}
-      .rm-rail-count.d4 .rm-rail-tile{width:23px;height:31px}
-      .rm-rail-count.d5 .rm-rail-tile{width:19px;height:25px}
-      .rm-rail-count.d6 .rm-rail-tile{width:16px;height:21px}
+      .rm-rail-count.d4 .rm-rail-tile{width:24px;height:32px}
+      .rm-rail-count.d5 .rm-rail-tile{width:20px;height:27px}
+      .rm-rail-count.d6 .rm-rail-tile{width:17px;height:23px}
 
       .rm-rail-days{
         margin-left:8px;color:#efe3c6;font-size:12.5px;font-weight:500;
@@ -394,9 +414,9 @@
       }
       .rm-rail-act img{width:19px;height:19px;display:block;flex:none}
 
-      /* No date yet: the counter has nothing honest to show, so the well
-         painted into the plate simply stays empty and the date block asks. */
-      .rm-rail.no-date .rm-rail-count{display:none}
+      /* No date yet: the counter has nothing honest to show, so its well
+         stays empty rather than showing a number this app invented. */
+      .rm-rail.no-date .rm-rail-count > *{visibility:hidden}
 
       /* No small-screen overrides: the whole rail is scaled by --rm-rail-s,
          so a 320px phone gets the same picture at 81%, not a different
@@ -923,13 +943,19 @@
       <span class="v" id="rmSoberBarText">Set Date</span>
     </button>
 
+    <i class="rm-rail-sep" aria-hidden="true"></i>
+
     <div class="rm-rail-count" id="rmRailCount" aria-live="polite"></div>
+
+    <i class="rm-rail-sep" aria-hidden="true"></i>
 
     <a class="rm-rail-act rm-share" id="rmShareSoberDateBtn" href="/sober-date.html"
        aria-label="Share your sober date">
       <img src="/assets/rail/icon-share.webp" alt="" width="19" height="19">
       <span>Share</span>
     </a>
+
+    <i class="rm-rail-sep" aria-hidden="true"></i>
 
     <a class="rm-rail-act rm-account" id="rmAccountBtn" href="/account.html"
        aria-label="Your anonymous account">
