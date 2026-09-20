@@ -1,7 +1,7 @@
 /* BUILD MARKER -- bumped on every change, read by test.html so it can show
    which version of the GAME is actually live rather than which version of
    the page is. */
-window.RecoveryBuild = "game2 v9 - sfx + music preservesPitch off";
+window.RecoveryBuild = "game2 v10 - sfx on Web Audio";
 
 (() => {
   "use strict";
@@ -715,6 +715,10 @@ window.RecoveryBuild = "game2 v9 - sfx + music preservesPitch off";
   function unlockAudioFromUserGesture() {
     audioUnlocked = true;
 
+    // iOS only lets an AudioContext start inside a genuine gesture, so the
+    // sound effects are decoded from here. See primeSfx.
+    primeSfx();
+
     /*
       Start only the audible splash sound inside the first real tap.
       Starting a second audio track at the same moment can cause some
@@ -761,6 +765,7 @@ window.RecoveryBuild = "game2 v9 - sfx + music preservesPitch off";
 
   function startBackgroundMusicForGameplay() {
     audioUnlocked = true;
+    primeSfx();
 
     /*
       Stop every earlier-screen track immediately before gameplay begins.
@@ -985,6 +990,116 @@ window.RecoveryBuild = "game2 v9 - sfx + music preservesPitch off";
     return voice;
   }
 
+  /* ==================================================================
+     SOUND EFFECTS ON THE WEB AUDIO API
+
+     WHY THIS REPLACED HTMLAudioElement, with the measurements, because
+     three earlier attempts at this bug were wrong and the reason matters.
+
+     Logged on an iPhone, one second at a time, sound effects played in
+     that second against the frame rate of that second:
+
+         0 sfx -> 61 fps        3 sfx -> 30 fps
+         1 sfx -> 47 fps        4 sfx ->  2 fps
+         2 sfx -> 42 fps        6 sfx ->  4 fps
+
+     Frame rate is a straight function of how many sounds played. During
+     all of it update was 0.02ms and draw was 1.09ms -- the game itself was
+     using one millisecond of a sixteen millisecond budget and the frames
+     were simply not being delivered. The cost was never in this code.
+
+     An HTMLAudioElement is built for a song: one long stream, started
+     once. Every .play() re-primes a whole media pipeline. That is fine
+     twice a minute and ruinous four times a second, which is what a
+     tap-as-fast-as-you-can minigame asks for. Pooling the elements and
+     turning off preservesPitch both helped and neither could fix it,
+     because the problem was the mechanism, not the settings.
+
+     Web Audio is what games use. Each of these three files (7KB, 39KB,
+     38KB) is fetched and decoded ONCE into memory, and firing one is
+     building a source node and calling start() -- microseconds, off the
+     main thread, with no pipeline to prime. Overlapping is free, so the
+     voice pool below is no longer needed for this path.
+
+     playbackRate on a buffer source is a plain resample, so the per-tap
+     pitch variation in playPickupFeedback keeps working and sounds the
+     same as it does now.
+
+     The old element path is kept as a fallback for anything without Web
+     Audio, and for the moment before decoding finishes.
+     ================================================================== */
+  let sfxContext = null;
+  const sfxBuffers = new Map();
+  const sfxDecoding = new Set();
+
+  function getSfxContext() {
+    if (sfxContext) return sfxContext;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    try { sfxContext = new Ctx(); } catch (e) { sfxContext = null; }
+    return sfxContext;
+  }
+
+  /* Must be called from inside a real user gesture -- iOS will not let an
+     AudioContext start otherwise. Decoding is idempotent and cheap to
+     re-request, so calling this more than once is fine. */
+  function primeSfx() {
+    const ctx = getSfxContext();
+    if (!ctx) return;
+
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+
+    Object.keys(soundFiles).forEach((name) => {
+      if (sfxBuffers.has(name) || sfxDecoding.has(name)) return;
+      sfxDecoding.add(name);
+
+      fetch(soundFiles[name])
+        .then((r) => r.arrayBuffer())
+        .then((bytes) => new Promise((resolve, reject) => {
+          // the callback form, because older Safari does not return a promise
+          const done = ctx.decodeAudioData(bytes, resolve, reject);
+          if (done && typeof done.then === "function") done.then(resolve, reject);
+        }))
+        .then((buffer) => {
+          sfxBuffers.set(name, buffer);
+          sfxDecoding.delete(name);
+        })
+        .catch(() => { sfxDecoding.delete(name); });
+    });
+  }
+
+  function playSoundViaWebAudio(soundName, options) {
+    const ctx = sfxContext;
+    if (!ctx || ctx.state !== "running") return false;
+
+    const buffer = sfxBuffers.get(soundName);
+    if (!buffer) return false;
+
+    try {
+      const node = ctx.createBufferSource();
+      node.buffer = buffer;
+      node.playbackRate.value = options.playbackRate ?? 1;
+
+      const gain = ctx.createGain();
+      gain.gain.value =
+        options.volume ?? soundVolumes[soundName] ?? 0.6;
+
+      node.connect(gain);
+      gain.connect(ctx.destination);
+      node.start();
+
+      // let the graph go as soon as it has finished
+      node.onended = () => {
+        try { node.disconnect(); gain.disconnect(); } catch (e) {}
+      };
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function playSound(
     soundName,
     options = {}
@@ -997,6 +1112,12 @@ window.RecoveryBuild = "game2 v9 - sfx + music preservesPitch off";
       soundFiles[soundName];
 
     if (!source) {
+      return;
+    }
+
+    // The fast path. Falls through to the old element pool only when Web
+    // Audio is unavailable or this sound has not finished decoding yet.
+    if (playSoundViaWebAudio(soundName, options)) {
       return;
     }
 
