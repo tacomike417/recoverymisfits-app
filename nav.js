@@ -155,7 +155,33 @@
         padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
       }
 
+      /* THE BAR BRINGS ITS OWN TYPE.
+
+         Almost nothing inside this bar declared a font, so every word in it
+         was inherited from whatever page it happened to be sitting on --
+         and this app's pages do not agree. The ones on daily-reading.css
+         handed it a serif; the ones with their own :root handed it
+         something else; a page with neither fell through to Times New
+         Roman. Same bar, different face, depending which tab you were on.
+
+         One declaration here and the whole bar inherits from the bar
+         instead of from the page. The explicit line-height is the other
+         half: without it the panel's height moved with the inherited
+         metrics, which is why the bar stood 143px tall on Home and 129px
+         on Tools. */
+      /* A <button> does not inherit font-family from its parent -- browsers
+         hand form controls their own UI font unless told otherwise -- so
+         pinning it on the bar alone left every button in here in Arial
+         while the text around it was system-ui. */
+      #rm-bottom-nav button,
+      #rm-bottom-nav a,
+      #rm-bottom-nav input,
+      .rm-modal-backdrop button,
+      .rm-modal-backdrop input { font-family: inherit; }
+
       #rm-bottom-nav {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        line-height: 1.2;
         position: fixed;
         left: 0;
         right: 0;
@@ -298,13 +324,13 @@
         transform: scale(.98);
       }
 
-      .rm-sober-btn.set {
+      .rm-sober-btn.rm-set {
         background: #d6b36a;
         color: #111;
         border-color: #d6b36a;
       }
 
-      .rm-sober-btn.share {
+      .rm-sober-btn.rm-alt {
         background: transparent;
         color: #f5f5f5;
         border-color: rgba(255,255,255,.16);
@@ -394,7 +420,11 @@
         color: #f5f5f5;
       }
 
+      /* Same reasoning as the bar: these are appended to <body>, so they
+         inherit from the page unless told otherwise. */
       .rm-modal-backdrop {
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        line-height: 1.2;
         position: fixed;
         inset: 0;
         z-index: 10001;
@@ -854,9 +884,9 @@
       <div class="rm-sober-sub" id="rmSoberBarSub">Home feeling ---</div>
     </div>
     <div class="rm-sober-actions">
-      <button type="button" class="rm-sober-btn set" id="rmSetSoberDateBtn">Set</button>
-      <a class="rm-sober-btn share" id="rmShareSoberDateBtn" href="/sober-date.html">Share</a>
-      <a class="rm-sober-btn share" id="rmAccountBtn" href="/account.html">Account</a>
+      <button type="button" class="rm-sober-btn rm-set" id="rmSetSoberDateBtn">Set</button>
+      <a class="rm-sober-btn rm-alt" id="rmShareSoberDateBtn" href="/sober-date.html">Share</a>
+      <a class="rm-sober-btn rm-alt" id="rmAccountBtn" href="/account.html">Account</a>
     </div>
   `;
 
