@@ -1,7 +1,7 @@
 /* BUILD MARKER -- bumped on every change, read by test.html so it can show
    which version of the GAME is actually live rather than which version of
    the page is. */
-window.RecoveryBuild = "game2 v12 - art warmed before play";
+window.RecoveryBuild = "game2 v13 - no needless music reload";
 
 (() => {
   "use strict";
@@ -825,7 +825,23 @@ window.RecoveryBuild = "game2 v12 - art warmed before play";
        Rewinding is all that was ever needed; currentTime = 0 above already
        did it. load() now happens once, on the first gameplay start only,
        so the original Chrome behaviour is kept and the spiral is not. */
-    if (!backgroundMusicLoadedOnce) {
+    /* AND THE LAST OF IT.
+
+       The element is created with preload = "auto", so the browser starts
+       fetching this 3MB track the moment the page loads and has usually
+       finished long before anyone reaches gameplay. load() DISCARDS all of
+       that and starts over -- so calling it here threw away a completed
+       download and re-decoded 3MB at the exact moment the level began.
+
+       It showed up as the opening seconds reading 37 and 36 fps while the
+       worst single frame was 2ms: two dozen frames a second simply never
+       scheduled, because the main thread was busy decoding audio nobody
+       needed decoded again.
+
+       readyState 0 means genuinely nothing is buffered, which is the only
+       case the original call was ever protecting against. Rewinding is
+       handled by currentTime = 0 above. */
+    if (!backgroundMusicLoadedOnce && backgroundMusic.readyState === 0) {
       backgroundMusicLoadedOnce = true;
       backgroundMusic.load();
     }
