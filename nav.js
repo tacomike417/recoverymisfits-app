@@ -1136,7 +1136,25 @@
 
   const setBtn = soberPanel.querySelector("#rmSetSoberDateBtn");
   if (setBtn) {
-    setBtn.addEventListener("click", openSoberModal);
+    setBtn.addEventListener("click", () => {
+      /* A DATE SET FROM HERE ON OUT GETS SOMEWHERE TO LIVE.
+
+         Somebody with no date and no account is about to type in the most
+         important number in this app, and on this phone alone it survives
+         exactly as long as the browser feels like keeping it. So they go to
+         the account screen first and come straight back to these wheels.
+
+         NOBODY WHO ALREADY HAS A DATE IS SENT ANYWHERE. They set theirs
+         before any of this existed and they are not being made to sign up
+         to change it -- their date stays exactly where it is, and the
+         account is offered, never demanded. */
+      if (!getSoberDateYMD() && !hasAccountToken() &&
+          !/\/account\.html/.test(location.pathname)) {
+        location.href = "/account.html?next=set";
+        return;
+      }
+      openSoberModal();
+    });
   }
 
   refreshSoberPanel();

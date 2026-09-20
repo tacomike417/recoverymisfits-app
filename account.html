@@ -47,6 +47,27 @@
   .warn p:last-child{margin-bottom:0}
   .warn b{color:#fff}
 
+  .lede{
+    margin:14px 0 0;font-family:var(--ui);font-size:13.5px;line-height:1.55;
+    color:var(--ivory);
+  }
+
+  .creds{margin:4px 0 0}
+  .creds div{
+    display:flex;align-items:baseline;gap:12px;
+    padding:9px 0;border-bottom:1px solid rgba(238,230,213,.12);
+  }
+  .creds div:last-child{border-bottom:0}
+  .creds span{
+    flex:none;width:74px;
+    font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.4px;
+    text-transform:uppercase;color:var(--muted);
+  }
+  .creds b{
+    font-family:var(--ui);font-weight:700;font-size:17px;color:#fff;
+    word-break:break-all;
+  }
+
   /* ---- the form ---------------------------------------------------------- */
   form{margin:16px 0 0}
   .field{margin:0 0 13px}
@@ -147,15 +168,16 @@
   <!-- ============ SIGNED OUT ============ -->
   <div id="out" hidden>
 
-    <div class="warn">
-      <h2>This account is yours alone</h2>
-      <p>No email. No phone number. No real name. Nobody knows you&rsquo;re here &mdash;
-         not us, not anybody. All that exists is a row on a computer in a rack
-         somewhere that says your made-up name and <b>absolutely nothing else about you</b>.</p>
-      <p>Which is also why there&rsquo;s no &ldquo;forgot password&rdquo; email.
-         There&rsquo;s nowhere to send it.</p>
-      <p><b>Remember your password. Lose it and you start over.</b></p>
-    </div>
+    <!-- ONE LINE BEFORE, EVERYTHING AFTER.
+
+         The full explanation used to sit here, above the form -- five
+         sentences to read before you could type anything. The person this
+         screen is for may be drunk at two in the morning. They get one line
+         now, and the whole story once they are through, on a card with
+         their name and password on it, which is the moment it actually
+         means something. -->
+    <p class="lede">So your sober date can follow you to a new phone.<br>
+       No email, no real name, nobody knows you&rsquo;re here.</p>
 
     <div class="seg" role="tablist" aria-label="Create an account or sign in">
       <button type="button" role="tab" id="tabNew" aria-selected="true">Create One</button>
@@ -164,7 +186,7 @@
 
     <form id="form" novalidate>
       <div class="field">
-        <label for="nm">Name</label>
+        <label for="nm">Anonymous Name</label>
         <div class="box">
           <input id="nm" name="username" type="text" autocomplete="username"
                  autocapitalize="none" autocorrect="off" spellcheck="false"
@@ -176,27 +198,41 @@
       <div class="field">
         <label for="pw">Password</label>
         <div class="box">
-          <input id="pw" name="password" type="password" autocomplete="current-password"
+          <!-- VISIBLE BY DEFAULT, on purpose. There is no password reset here,
+               so a typo is permanent -- and being able to see what you typed
+               catches that better than a second box asking you to type it
+               again, which people paste into anyway. -->
+          <input id="pw" name="password" type="text" autocomplete="current-password"
                  autocapitalize="none" autocorrect="off" spellcheck="false">
-          <button class="peek" type="button" id="peek" aria-label="Show password">Show</button>
+          <button class="peek" type="button" id="peek" aria-label="Hide password">Hide</button>
         </div>
         <p class="hint" id="pwHint">At least 8 characters.</p>
       </div>
 
-      <!-- ONLY ON SIGN-UP, and it earns its place: there is no reset, so a
-           typo here is not an inconvenience, it is a locked door forever. -->
-      <div class="field" id="pw2Field">
-        <label for="pw2">Password again</label>
-        <div class="box">
-          <input id="pw2" type="password" autocomplete="new-password"
-                 autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-        <p class="hint">Typed twice because there is no way to reset it.</p>
-      </div>
-
-      <button class="go" type="submit" id="submit">Create My Account</button>
+      <button class="go" type="submit" id="submit">Create My Anonymous Account</button>
       <p class="say" id="say" role="status" aria-live="polite"></p>
     </form>
+  </div>
+
+  <!-- ============ JUST MADE ONE ============
+       Shown once, immediately after sign-up, and it is the only screen in
+       this app somebody is asked to copy something off. -->
+  <div id="fresh" hidden>
+    <div class="warn">
+      <h2>Write this down before you close this</h2>
+      <div class="creds">
+        <div><span>Anon Name</span><b id="freshName"></b></div>
+        <div><span>Password</span><b id="freshPw"></b></div>
+      </div>
+      <button class="go" type="button" id="copyCreds" style="margin:12px 0 0">Copy Both</button>
+      <a class="go" id="textCreds" href="#" style="background:transparent;color:var(--gold);margin-top:8px">Text It To Myself</a>
+      <p style="font-family:var(--ui);font-size:12.5px;line-height:1.6;color:var(--ivory);margin:13px 0 0">
+        There is no &ldquo;forgot password&rdquo; email, because there&rsquo;s no email.
+        Nobody can look this up for you &mdash; not us, not anybody.
+        <b style="color:#fff">Lose it and you start over.</b>
+      </p>
+    </div>
+    <button class="go" type="button" id="freshDone" style="margin-top:14px">I&rsquo;ve Got It Saved</button>
   </div>
 
   <!-- ============ SIGNED IN ============ -->
@@ -207,11 +243,20 @@
       <p class="sub" id="whoSub">Your sober date follows you to any phone you sign in on.</p>
     </div>
 
+    <!-- THE ACCOUNT WINS, AND SAYS SO.
+
+         Signing in is somebody deliberately saying "this account is me", so
+         its date is the one that counts from that moment. No question, no
+         two buttons to weigh up at two in the morning -- it just happens.
+
+         But it happens OUT LOUD. If the phone said something different, the
+         old date is still right here, one tap away, for as long as this
+         screen is open. Silently replacing the number this whole app is
+         built around is the one thing worth a line of copy. -->
     <div class="clash" id="clash" hidden>
-      <h2>Two different dates</h2>
+      <h2>Your account&rsquo;s date is now in use</h2>
       <p id="clashText"></p>
-      <button class="pick" type="button" id="pickLocal"><b id="pickLocalT"></b><span>This phone</span></button>
-      <button class="pick" type="button" id="pickRemote"><b id="pickRemoteT"></b><span>Your account</span></button>
+      <button class="pick" type="button" id="pickLocal"><b id="pickLocalT"></b><span>Use this instead</span></button>
     </div>
 
     <button class="go" type="button" id="out2"
@@ -249,19 +294,26 @@
     el.className = "say" + (kind ? " " + kind : "");
   }
 
-  function paint() {
-    $("out").hidden = A.signedIn();
-    $("in").hidden = !A.signedIn();
-    if (A.signedIn()) $("who").textContent = A.name();
+  /* Three states, one at a time: the form, the card you get once after
+     signing up, and the signed-in screen. */
+  function paint(showFresh) {
+    var inAcct = A.signedIn();
+    $("out").hidden = inAcct;
+    $("fresh").hidden = !showFresh;
+    $("in").hidden = !inAcct || !!showFresh;
+    if (inAcct) $("who").textContent = A.name();
   }
+
+  /* Where they were headed before this screen got in the way. SET on the
+     sober bar sends people here when they have no date and no account. */
+  var next = new URLSearchParams(location.search).get("next");
 
   /* ---- create / sign in ------------------------------------------------- */
   function setMode(next) {
     mode = next;
     $("tabNew").setAttribute("aria-selected", next === "new" ? "true" : "false");
     $("tabOld").setAttribute("aria-selected", next === "old" ? "true" : "false");
-    $("pw2Field").hidden = next !== "new";
-    $("submit").textContent = next === "new" ? "Create My Account" : "Sign In";
+    $("submit").textContent = next === "new" ? "Create My Anonymous Account" : "Sign In";
     $("pw").setAttribute("autocomplete", next === "new" ? "new-password" : "current-password");
     $("nmHint").hidden = next !== "new";
     $("pwHint").hidden = next !== "new";
@@ -273,7 +325,6 @@
   $("peek").addEventListener("click", function () {
     var showing = $("pw").type === "text";
     $("pw").type = showing ? "password" : "text";
-    if (!$("pw2Field").hidden) $("pw2").type = showing ? "password" : "text";
     this.textContent = showing ? "Show" : "Hide";
     this.setAttribute("aria-label", showing ? "Show password" : "Hide password");
   });
@@ -283,10 +334,6 @@
     if (busy) return;
 
     var name = $("nm").value, pw = $("pw").value;
-
-    if (mode === "new" && pw !== $("pw2").value) {
-      return say($("say"), "Those two passwords don't match.", "bad");
-    }
 
     busy = true;
     $("submit").disabled = true;
@@ -300,9 +347,39 @@
     if (!res.ok) return say($("say"), res.error, "bad");
 
     say($("say"), "");
-    paint();
+
+    if (mode === "new") {
+      /* The one and only time this app shows somebody a password. */
+      $("freshName").textContent = A.name();
+      $("freshPw").textContent = pw;
+      var msg = "Recovery Misfits\nname: " + A.name() + "\npassword: " + pw;
+      $("textCreds").href = "sms:?&body=" + encodeURIComponent(msg);
+      $("copyCreds").onclick = function () {
+        var done = function () { $("copyCreds").textContent = "Copied"; };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(msg).then(done, function () {});
+        }
+      };
+      paint(true);
+    } else {
+      paint(false);
+    }
+
     await settle(mode === "new");
   });
+
+  $("freshDone").addEventListener("click", function () {
+    paint(false);
+    if (next === "set") goSetDate();
+  });
+
+  /* Straight into the date wheels, which is what they were trying to do when
+     this screen appeared. nav.js owns that modal and its SET button is on
+     every page, so clicking it is how we ask for it. */
+  function goSetDate() {
+    var b = document.getElementById("rmSetSoberDateBtn");
+    if (b) b.click();
+  }
 
   /* ---- bringing the two copies together ---------------------------------
      A brand new account has nothing in it, so whatever is on this phone
@@ -321,30 +398,29 @@
 
     var ld = local.soberDate, rd = remote.data.soberDate;
 
+    /* The account's copy lands on this phone either way. */
+    A.apply(remote.data);
+
     if (ld && rd && ld !== rd) {
       $("clashText").textContent =
-        "This phone and your account remember different sober dates. Which one is right?";
+        "This phone had " + pretty(ld) + " saved. Your account says " +
+        pretty(rd) + ", so that's the one in use now.";
       $("pickLocalT").textContent = pretty(ld);
-      $("pickRemoteT").textContent = pretty(rd);
       $("clash").hidden = false;
-
       $("pickLocal").onclick = async function () {
-        var merged = Object.assign({}, remote.data, local);
+        /* They kept their own. Now the account agrees with the phone rather
+           than the other way round. */
+        var merged = Object.assign({}, remote.data, { soberDate: ld });
+        A.apply(merged);
         await A.push(merged);
         $("clash").hidden = true;
-        say($("say2"), "Kept " + pretty(ld) + ".", "good");
-      };
-      $("pickRemote").onclick = async function () {
-        A.apply(remote.data);
-        $("clash").hidden = true;
-        say($("say2"), "Kept " + pretty(rd) + ".", "good");
+        say($("say2"), "Back to " + pretty(ld) + ".", "good");
       };
       return;
     }
 
-    /* No disagreement: the account's copy fills in anything this phone is
-       missing, and anything this phone has that the account does not goes up. */
-    A.apply(remote.data);
+    /* Nothing to argue about: anything this phone has that the account is
+       missing goes up. */
     var merged = Object.assign({}, remote.data, local);
     if (JSON.stringify(merged) !== JSON.stringify(remote.data)) await A.push(merged);
   }
@@ -369,12 +445,16 @@
     A.signOut();
     paint();
     setMode("new");
-    $("nm").value = ""; $("pw").value = ""; $("pw2").value = "";
+    $("nm").value = ""; $("pw").value = "";
   });
 
-  setMode("new");
-  paint();
-  if (A.signedIn()) settle(false);
+  /* Somebody sent here by SET who already has an account just needs to sign
+     in, so that is the tab that opens. */
+  setMode(next === "set" && A.signedIn() ? "old" : "new");
+  paint(false);
+  if (A.signedIn()) {
+    settle(false).then(function () { if (next === "set") goSetDate(); });
+  }
 })();
 </script>
 
