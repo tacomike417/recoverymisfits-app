@@ -392,6 +392,13 @@ def main():
             site=SITE_URL, items='\n'.join(index_items), count=len(readings)))
     urls.append('%s/another-day-sober/' % SITE_URL)
 
+    # THE LANDING PAGE THE QR CODES POINT AT. It is the only page on the site
+    # outside these readings whose words are actually in the HTML rather than
+    # painted in by JavaScript afterwards, so it is the only other one worth
+    # a crawler's time -- and nothing on the site links to it, which is how
+    # the readings ended up as orphans in the first place.
+    urls.append('%s/app/' % SITE_URL)
+
     sitemap = ['<?xml version="1.0" encoding="UTF-8"?>',
                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for u in urls:
