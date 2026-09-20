@@ -830,6 +830,7 @@
     <div class="rm-sober-actions">
       <button type="button" class="rm-sober-btn set" id="rmSetSoberDateBtn">Set</button>
       <a class="rm-sober-btn share" id="rmShareSoberDateBtn" href="/sober-date.html">Share</a>
+      <a class="rm-sober-btn share" id="rmAccountBtn" href="/account.html">Account</a>
     </div>
   `;
 
@@ -1078,6 +1079,10 @@
       keepStorage();
       modal.classList.remove("show");
       refreshSoberPanel();
+      /* And up to the account, if there is one. Fire and forget -- the date
+         is already saved on this phone, so a failed push costs nothing but
+         a later sync. */
+      pushSoberDate();
     });
 
     modal.addEventListener("click", (e) => {
@@ -1136,6 +1141,81 @@
 
   refreshSoberPanel();
   setInterval(refreshSoberPanel, 60000);
+
+  /* ---- THE ACCOUNT, IF THERE IS ONE -------------------------------------
+
+     account.js fetches itself, the same way the QR encoder does and for the
+     same reason: this bar is on every page of the app, and adding a script
+     tag to all of them by hand is fifteen chances to miss one.
+
+     EVERYTHING BELOW IS ALLOWED TO FAIL. No account, no signal, server
+     having a bad morning -- localStorage is still the source of truth and
+     every screen reads it exactly as it did before any of this existed. A
+     sync feature must never be able to take the app down, and the way you
+     guarantee that is by never letting it be the thing the app depends on.
+
+     THE DATE ONLY EVER MOVES FORWARD INTO A PHONE THAT HAS NONE. If this
+     phone and the account disagree, this does nothing at all and leaves it
+     to account.html to ask the person which is right -- quietly overwriting
+     somebody's sober date because a server said so is the single worst
+     thing this code could do. */
+  let accountLoading = null;
+  function loadAccount() {
+    if (window.RMAccount) return Promise.resolve(true);
+    if (accountLoading) return accountLoading;
+    accountLoading = new Promise((resolve) => {
+      const tag = document.createElement("script");
+      tag.src = "/assets/account.js";
+      tag.onload = () => resolve(!!window.RMAccount);
+      tag.onerror = () => resolve(false);
+      document.head.appendChild(tag);
+    });
+    return accountLoading;
+  }
+
+  /* Only bothers the network for somebody who actually has an account --
+     the token is in localStorage, so this costs one read for everybody else. */
+  function hasAccountToken() {
+    try { return !!localStorage.getItem("rm_account_v1"); } catch (e) { return false; }
+  }
+
+  async function syncFromAccount() {
+    if (!hasAccountToken()) return;
+    if (!(await loadAccount())) return;
+    try {
+      const remote = await window.RMAccount.pull();
+      if (!remote || !remote.data) return;
+
+      const here = getSoberDateYMD();
+      const there = remote.data.soberDate;
+
+      if (there && !here) {
+        /* This phone has nothing. Fill it in and say so on the bar. */
+        window.RMAccount.apply(remote.data);
+        refreshSoberPanel();
+      } else if (here && !there) {
+        /* The account has nothing. Send this phone's copy up. */
+        await window.RMAccount.push(Object.assign({}, remote.data, { soberDate: here }));
+      }
+      /* here && there && different -> left alone on purpose. account.html asks. */
+    } catch (e) { /* best effort, always */ }
+  }
+
+  /* When somebody sets their date on this phone, the account hears about it. */
+  async function pushSoberDate() {
+    if (!hasAccountToken()) return;
+    if (!(await loadAccount())) return;
+    try {
+      const d = getSoberDateYMD();
+      if (!d) return;
+      const remote = await window.RMAccount.pull();
+      const base = (remote && remote.data) || {};
+      if (base.soberDate === d) return;
+      await window.RMAccount.push(Object.assign({}, base, { soberDate: d }));
+    } catch (e) {}
+  }
+
+  syncFromAccount();
 
   /* Asked again on every load, for everybody who already has a date saved
      from before this existed. persisted() is checked first so a browser that

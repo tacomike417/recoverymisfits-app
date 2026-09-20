@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your Account — Recovery Misfits</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0e0e0d">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>html{background:#0e0e0d}body{background:#0e0e0d;color:#eee6d5;margin:0}</style>
+<link rel="stylesheet" href="/assets/daily-reading.css">
+
+<style>
+  main{padding:6px 18px 20px}
+  .pub{align-items:center}
+  .pub .name{font-size:23px;line-height:1.05}
+
+  /* ---- the two ways in --------------------------------------------------- */
+  .seg{
+    display:grid;grid-template-columns:1fr 1fr;gap:6px;
+    margin:16px 0 0;padding:5px;border-radius:999px;
+    border:1px solid var(--line);background:rgba(0,0,0,.25);
+  }
+  .seg button{
+    min-height:var(--touch);border:0;border-radius:999px;background:transparent;
+    color:var(--muted);font-family:var(--ui);font-weight:800;font-size:11px;
+    letter-spacing:1.1px;text-transform:uppercase;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .seg button[aria-selected="true"]{background:var(--gold);color:#12100b}
+
+  /* ---- the warning, which is the most important thing on this page ------- */
+  .warn{
+    margin:16px 0 0;padding:15px 16px;border-radius:14px;
+    border:1px solid rgba(215,178,83,.34);background:rgba(215,178,83,.07);
+  }
+  .warn h2{
+    font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.7px;
+    text-transform:uppercase;color:var(--gold);margin:0 0 9px;
+  }
+  .warn p{font-family:var(--ui);font-size:13px;line-height:1.6;color:var(--ivory);margin:0 0 9px}
+  .warn p:last-child{margin-bottom:0}
+  .warn b{color:#fff}
+
+  /* ---- the form ---------------------------------------------------------- */
+  form{margin:16px 0 0}
+  .field{margin:0 0 13px}
+  .field label{
+    display:block;margin:0 0 6px;
+    font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.5px;
+    text-transform:uppercase;color:var(--muted);
+  }
+  .field .box{position:relative;display:flex}
+  .field input{
+    flex:1;min-width:0;min-height:var(--touch);
+    padding:11px 13px;border-radius:12px;
+    border:1px solid rgba(238,230,213,.22);
+    background:rgba(238,230,213,.05);color:#fff;
+    font-family:var(--ui);font-size:16px;   /* 16px or iOS zooms on focus */
+    -webkit-appearance:none;appearance:none;
+  }
+  .field input:focus{outline:none;border-color:var(--gold)}
+  .field .peek{
+    flex:none;width:52px;border:0;background:transparent;color:var(--muted);
+    font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1px;
+    text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  }
+  .field .hint{
+    margin:6px 0 0;font-family:var(--ui);font-size:11.5px;line-height:1.45;color:var(--muted);
+  }
+
+  .go{
+    display:flex;align-items:center;justify-content:center;
+    width:100%;min-height:var(--touch);margin:4px 0 0;padding:12px 16px;
+    border-radius:999px;border:1.4px solid var(--gold);
+    background:var(--gold);color:#12100b;
+    font-family:var(--ui);font-weight:800;font-size:11.5px;letter-spacing:1.3px;
+    text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  }
+  .go[disabled]{opacity:.55;cursor:default}
+  .go:active:not([disabled]){background:#e6c877}
+
+  .say{
+    min-height:20px;margin:11px 0 0;
+    font-family:var(--ui);font-size:13px;line-height:1.5;text-align:center;
+  }
+  .say.bad{color:#f0a5a5}
+  .say.good{color:var(--gold)}
+
+  /* ---- signed in --------------------------------------------------------- */
+  .who{
+    margin:16px 0 0;padding:16px;border-radius:14px;
+    border:1px solid rgba(215,178,83,.34);background:rgba(215,178,83,.07);
+    text-align:center;
+  }
+  .who .kick{
+    font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.7px;
+    text-transform:uppercase;color:var(--gold);margin:0 0 6px;
+  }
+  .who .nm{font-family:var(--display);font-size:26px;color:#fff;margin:0}
+  .who .sub{font-family:var(--ui);font-size:12.5px;color:var(--muted);margin:7px 0 0}
+
+  /* ---- the one question we ever ask -------------------------------------- */
+  .clash{margin:16px 0 0;padding:15px 16px;border-radius:14px;
+    border:1px solid var(--gold);background:rgba(215,178,83,.09)}
+  .clash h2{font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.7px;
+    text-transform:uppercase;color:var(--gold);margin:0 0 8px}
+  .clash p{font-family:var(--ui);font-size:13px;line-height:1.55;color:var(--ivory);margin:0 0 12px}
+  .clash .pick{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    width:100%;min-height:var(--touch);margin:0 0 8px;padding:12px 14px;
+    border-radius:12px;border:1px solid var(--line);
+    background:transparent;color:var(--ivory);cursor:pointer;text-align:left;
+    font-family:var(--ui);font-size:14px;-webkit-tap-highlight-color:transparent;
+  }
+  .clash .pick:active{background:rgba(215,178,83,.12)}
+  .clash .pick b{color:#fff;font-weight:700}
+  .clash .pick span{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold)}
+</style>
+</head>
+
+<body data-rm-nav="tools.html">
+
+<div id="rm-topbar"></div>
+<script src="/topbar.js" defer></script>
+
+<div class="sheet">
+<img class="tape tl" src="/assets/pages/d-tape-tl.webp" alt="" aria-hidden="true">
+<img class="tape tr" src="/assets/pages/d-tape-tr.webp" alt="" aria-hidden="true">
+<img class="tape bl" src="/assets/pages/d-tape-bl.webp" alt="" aria-hidden="true">
+<img class="tape br" src="/assets/pages/d-tape-br.webp" alt="" aria-hidden="true">
+
+<main>
+
+  <header class="pub">
+    <img class="art" src="/assets/pages/d-book.webp" alt="" aria-hidden="true" width="122" height="111">
+    <div><h1 class="name">Your Account</h1></div>
+  </header>
+  <img class="rule" src="/assets/pages/d-rule.webp" alt="" aria-hidden="true"
+       width="297" height="17" style="display:block;width:100%;max-width:297px;margin:6px 0 0">
+
+  <!-- ============ SIGNED OUT ============ -->
+  <div id="out" hidden>
+
+    <div class="warn">
+      <h2>This account is yours alone</h2>
+      <p>No email. No phone number. No real name. Nobody knows you&rsquo;re here &mdash;
+         not us, not anybody. All that exists is a row on a computer in a rack
+         somewhere that says your made-up name and <b>absolutely nothing else about you</b>.</p>
+      <p>Which is also why there&rsquo;s no &ldquo;forgot password&rdquo; email.
+         There&rsquo;s nowhere to send it.</p>
+      <p><b>Remember your password. Lose it and you start over.</b></p>
+    </div>
+
+    <div class="seg" role="tablist" aria-label="Create an account or sign in">
+      <button type="button" role="tab" id="tabNew" aria-selected="true">Create One</button>
+      <button type="button" role="tab" id="tabOld" aria-selected="false">I Have One</button>
+    </div>
+
+    <form id="form" novalidate>
+      <div class="field">
+        <label for="nm">Name</label>
+        <div class="box">
+          <input id="nm" name="username" type="text" autocomplete="username"
+                 autocapitalize="none" autocorrect="off" spellcheck="false"
+                 inputmode="text" placeholder="something you made up">
+        </div>
+        <p class="hint" id="nmHint">Not your real name. Letters, numbers, dots, dashes, underscores.</p>
+      </div>
+
+      <div class="field">
+        <label for="pw">Password</label>
+        <div class="box">
+          <input id="pw" name="password" type="password" autocomplete="current-password"
+                 autocapitalize="none" autocorrect="off" spellcheck="false">
+          <button class="peek" type="button" id="peek" aria-label="Show password">Show</button>
+        </div>
+        <p class="hint" id="pwHint">At least 8 characters.</p>
+      </div>
+
+      <!-- ONLY ON SIGN-UP, and it earns its place: there is no reset, so a
+           typo here is not an inconvenience, it is a locked door forever. -->
+      <div class="field" id="pw2Field">
+        <label for="pw2">Password again</label>
+        <div class="box">
+          <input id="pw2" type="password" autocomplete="new-password"
+                 autocapitalize="none" autocorrect="off" spellcheck="false">
+        </div>
+        <p class="hint">Typed twice because there is no way to reset it.</p>
+      </div>
+
+      <button class="go" type="submit" id="submit">Create My Account</button>
+      <p class="say" id="say" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+
+  <!-- ============ SIGNED IN ============ -->
+  <div id="in" hidden>
+    <div class="who">
+      <p class="kick">Signed in as</p>
+      <p class="nm" id="who"></p>
+      <p class="sub" id="whoSub">Your sober date follows you to any phone you sign in on.</p>
+    </div>
+
+    <div class="clash" id="clash" hidden>
+      <h2>Two different dates</h2>
+      <p id="clashText"></p>
+      <button class="pick" type="button" id="pickLocal"><b id="pickLocalT"></b><span>This phone</span></button>
+      <button class="pick" type="button" id="pickRemote"><b id="pickRemoteT"></b><span>Your account</span></button>
+    </div>
+
+    <button class="go" type="button" id="out2"
+            style="background:transparent;color:var(--gold);margin-top:16px">Sign Out</button>
+    <p class="say" id="say2" role="status" aria-live="polite"></p>
+    <p class="hint" style="text-align:center;font-family:var(--ui);font-size:11.5px;color:var(--muted);margin:10px 0 0">
+      Signing out stops the syncing. It does not erase anything on this phone.
+    </p>
+  </div>
+
+  <a class="back" href="/tools.html" style="margin-top:20px">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Back to Tools
+  </a>
+
+</main>
+</div>
+
+<div class="tailroom"></div>
+<div id="rm-bottom-nav"></div>
+<script src="/nav.js" defer></script>
+<script src="/assets/account.js"></script>
+
+<script>
+(function () {
+  "use strict";
+  var A = window.RMAccount;
+  var $ = function (id) { return document.getElementById(id); };
+
+  var mode = "new";
+  var busy = false;
+
+  function say(el, msg, kind) {
+    el.textContent = msg || "";
+    el.className = "say" + (kind ? " " + kind : "");
+  }
+
+  function paint() {
+    $("out").hidden = A.signedIn();
+    $("in").hidden = !A.signedIn();
+    if (A.signedIn()) $("who").textContent = A.name();
+  }
+
+  /* ---- create / sign in ------------------------------------------------- */
+  function setMode(next) {
+    mode = next;
+    $("tabNew").setAttribute("aria-selected", next === "new" ? "true" : "false");
+    $("tabOld").setAttribute("aria-selected", next === "old" ? "true" : "false");
+    $("pw2Field").hidden = next !== "new";
+    $("submit").textContent = next === "new" ? "Create My Account" : "Sign In";
+    $("pw").setAttribute("autocomplete", next === "new" ? "new-password" : "current-password");
+    $("nmHint").hidden = next !== "new";
+    $("pwHint").hidden = next !== "new";
+    say($("say"), "");
+  }
+  $("tabNew").addEventListener("click", function () { setMode("new"); });
+  $("tabOld").addEventListener("click", function () { setMode("old"); });
+
+  $("peek").addEventListener("click", function () {
+    var showing = $("pw").type === "text";
+    $("pw").type = showing ? "password" : "text";
+    if (!$("pw2Field").hidden) $("pw2").type = showing ? "password" : "text";
+    this.textContent = showing ? "Show" : "Hide";
+    this.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+  });
+
+  $("form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    if (busy) return;
+
+    var name = $("nm").value, pw = $("pw").value;
+
+    if (mode === "new" && pw !== $("pw2").value) {
+      return say($("say"), "Those two passwords don't match.", "bad");
+    }
+
+    busy = true;
+    $("submit").disabled = true;
+    say($("say"), mode === "new" ? "Creating it…" : "Signing in…");
+
+    var res = mode === "new" ? await A.signUp(name, pw) : await A.signIn(name, pw);
+
+    busy = false;
+    $("submit").disabled = false;
+
+    if (!res.ok) return say($("say"), res.error, "bad");
+
+    say($("say"), "");
+    paint();
+    await settle(mode === "new");
+  });
+
+  /* ---- bringing the two copies together ---------------------------------
+     A brand new account has nothing in it, so whatever is on this phone
+     simply becomes the account's. An existing one might disagree, and when
+     it disagrees about the sober date we ask rather than guess -- it is the
+     number the whole app is built around and picking wrong would be the
+     worst thing this feature could do. */
+  async function settle(isNew) {
+    var local = A.local();
+    var remote = await A.pull();
+
+    if (isNew || !remote || !remote.data || !Object.keys(remote.data).length) {
+      if (Object.keys(local).length) await A.push(local);
+      return;
+    }
+
+    var ld = local.soberDate, rd = remote.data.soberDate;
+
+    if (ld && rd && ld !== rd) {
+      $("clashText").textContent =
+        "This phone and your account remember different sober dates. Which one is right?";
+      $("pickLocalT").textContent = pretty(ld);
+      $("pickRemoteT").textContent = pretty(rd);
+      $("clash").hidden = false;
+
+      $("pickLocal").onclick = async function () {
+        var merged = Object.assign({}, remote.data, local);
+        await A.push(merged);
+        $("clash").hidden = true;
+        say($("say2"), "Kept " + pretty(ld) + ".", "good");
+      };
+      $("pickRemote").onclick = async function () {
+        A.apply(remote.data);
+        $("clash").hidden = true;
+        say($("say2"), "Kept " + pretty(rd) + ".", "good");
+      };
+      return;
+    }
+
+    /* No disagreement: the account's copy fills in anything this phone is
+       missing, and anything this phone has that the account does not goes up. */
+    A.apply(remote.data);
+    var merged = Object.assign({}, remote.data, local);
+    if (JSON.stringify(merged) !== JSON.stringify(remote.data)) await A.push(merged);
+  }
+
+  var MONTHS = ["January","February","March","April","May","June","July",
+                "August","September","October","November","December"];
+  function ord(n){
+    if (n % 100 >= 11 && n % 100 <= 13) return "th";
+    if (n % 10 === 1) return "st";
+    if (n % 10 === 2) return "nd";
+    if (n % 10 === 3) return "rd";
+    return "th";
+  }
+  function pretty(ymd){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || ""));
+    if (!m) return ymd || "";
+    var d = Number(m[3]);
+    return MONTHS[Number(m[2]) - 1] + " " + d + ord(d) + ", " + Number(m[1]);
+  }
+
+  $("out2").addEventListener("click", function () {
+    A.signOut();
+    paint();
+    setMode("new");
+    $("nm").value = ""; $("pw").value = ""; $("pw2").value = "";
+  });
+
+  setMode("new");
+  paint();
+  if (A.signedIn()) settle(false);
+})();
+</script>
+
+</body>
+</html>
