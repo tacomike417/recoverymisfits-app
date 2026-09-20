@@ -1,7 +1,7 @@
 /* BUILD MARKER -- bumped on every change, read by test.html so it can show
    which version of the GAME is actually live rather than which version of
    the page is. */
-window.RecoveryBuild = "game2 v11 - Web Audio + pre-scaled tiles";
+window.RecoveryBuild = "game2 v12 - art warmed before play";
 
 (() => {
   "use strict";
@@ -469,11 +469,21 @@ window.RecoveryBuild = "game2 v11 - Web Audio + pre-scaled tiles";
 
   for (const slot of treatmentSlots) {
     const image = new Image();
+    /* Scale it the moment it arrives, so the work is never waiting to
+       ambush the first few seconds of play -- see warmTreatmentArt. If the
+       canvas is not sized yet this does nothing and resetTreatmentGame
+       catches it on the way in. */
+    image.addEventListener("load", () => {
+      try { warmTreatmentArt(); } catch (e) { /* not ready yet -- fine */ }
+    });
     image.src = slot.imagePath;
     treatmentImages.set(slot.label, image);
   }
 
   const treatmentRestartImage = new Image();
+  treatmentRestartImage.addEventListener("load", () => {
+    try { warmTreatmentArt(); } catch (e) { /* not ready yet -- fine */ }
+  });
   treatmentRestartImage.src =
     "assets/treatment/treatment-restart-required.png";
 
@@ -1570,6 +1580,9 @@ window.RecoveryBuild = "game2 v11 - Web Audio + pre-scaled tiles";
     treatmentOverloadTriggered = false;
     treatmentNextCueAt = now + (treatmentAttempt === 1 ? 500 : 650);
 
+    // Scale the tile art now, not during the first few seconds of play.
+    warmTreatmentArt();
+
     // Start the music rate back at the bottom of the ramp along with
     // everything else, so a retry does not inherit the last run's tempo.
     treatmentMusicRate = treatmentMusicSettings.startRate;
@@ -1732,6 +1745,39 @@ window.RecoveryBuild = "game2 v11 - Web Audio + pre-scaled tiles";
       width: slotWidth,
       height: slotHeight
     }));
+  }
+
+  /* DO THE EXPENSIVE PART BEFORE THE CLOCK STARTS.
+
+     getPreScaled builds its small copy the first time a tile is drawn,
+     which means the cost landed in the opening seconds of play. Logged on
+     an iPhone it read:
+
+         60, 58, 57, 37, 54, 59, 59, 48, 54, 52, 53, 52, 53, then 60 flat
+
+     Choppy while it warmed up, then a solid 60 for the rest of the run
+     and never a dip again. That is a warm-up cost sitting in the worst
+     possible place -- the first few seconds of a reflex minigame.
+
+     So every tile is scaled up front, at the exact layout size it will be
+     drawn at, before gameplay begins. Nothing is drawn here; the cache is
+     simply filled. Safe to call more than once -- getPreScaled returns the
+     existing copy -- and images that have not finished loading are skipped
+     and picked up on the next call. */
+  function warmTreatmentArt() {
+    const layout = getTreatmentLayout();
+    const inset = 8;
+
+    layout.forEach((item) => {
+      const image = treatmentImages.get(item.slot.label);
+      if (!image || !image.complete || image.naturalWidth <= 0) return;
+      getPreScaled(image, item.width - inset * 2, item.height - inset * 2);
+    });
+
+    if (treatmentRestartImage && treatmentRestartImage.complete &&
+        treatmentRestartImage.naturalWidth > 0) {
+      getPreScaled(treatmentRestartImage, width, height);
+    }
   }
 
   function activateTreatmentCue(now) {
