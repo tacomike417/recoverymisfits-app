@@ -81,17 +81,32 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Back to Readings
     </a>
-
-    <!-- The archive of all 366 readings. This link is why it exists:
-         the pages were in the sitemap but nothing on the site pointed at
-         them, so Google discovered them and never crawled them. A real
-         link from a real page is what turns them from orphans into
-         part of the site. -->
-    <a class="back" href="/another-day-sober/">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg>
-      All 366 Readings
-    </a>
   </div>
+
+  <!-- ===================================================================
+       THE CALENDAR IS WRITTEN IN HERE AT BUILD TIME.
+
+       scripts/build_pages.py replaces everything between these two markers
+       with twelve months of real <a href>, one per reading. Do not edit
+       between them by hand -- the next deploy will overwrite it.
+
+       It has to be generated rather than drawn in the browser because a
+       crawler does not run JavaScript: this page is the ONLY thing on the
+       site that points at the 365 readings, and a link a crawler cannot see
+       is not a link. That is what left them sitting in Search Console as
+       "Discovered -- currently not indexed" for months.
+
+       What stands here in the meantime is a plain link to the archive, so
+       the way through is never missing even if the build does not run.
+       ================================================================ -->
+  <!-- CALENDAR:START -->
+    <nav class="cal" aria-label="Every reading, by date">
+      <a class="back" href="/another-day-sober/" style="margin-top:0">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke-linecap="round"/></svg>
+        Every Reading
+      </a>
+    </nav>
+  <!-- CALENDAR:END -->
 
 </main>
 </div>

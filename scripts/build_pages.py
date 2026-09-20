@@ -5,15 +5,25 @@ Generates static, crawlable pages for every reading in data/readings.json:
     /another-day-sober/MM-DD/<slug>/index.html
 
 Also regenerates:
-    /another-day-sober/index.html   (archive/index of every reading)
+    /another-day-sober/index.html   (a plain archive list of every reading)
     /sitemap.xml                    (all reading URLs + homepage)
 
+...and injects the reading calendar into another-day-sober.html, between the
+CALENDAR:START / CALENDAR:END markers that file carries.
+
 Run manually with:  python3 scripts/build_pages.py
-Also runs automatically via .github/workflows/build-readings.yml on every
-push to main that touches data/readings.json (i.e. every admin panel save).
+Runs automatically in .github/workflows/deploy.yml on every push to main,
+with ADS_OUT_ROOT pointed at the throwaway _site folder.
+
+WHY THESE PAGES EXIST AT ALL, since it is easy to forget and then "simplify"
+it away: another-day-sober.html paints its reading with JavaScript after the
+page has loaded. A crawler does not wait for that, so to Google that screen
+is nineteen words and an empty box -- which is why Search Console was calling
+the site's pages soft 404s. These 365 pages carry the same readings with the
+words already IN the HTML. That is the whole point, and it is why the
+template below must never be "improved" into fetching its own content.
 """
 import json, re, os, html
-from datetime import datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 READINGS_PATH = os.path.join(ROOT, 'data', 'readings.json')
@@ -25,15 +35,28 @@ OUT_ROOT = os.environ.get('ADS_OUT_ROOT', ROOT)
 OUT_DIR = os.path.join(OUT_ROOT, 'another-day-sober')
 SITE_URL = 'https://recoverymisfits.org'
 
-MONTHS = ['january','february','march','april','may','june','july',
-          'august','september','october','november','december']
+MONTH_NAMES = ['January','February','March','April','May','June',
+               'July','August','September','October','November','December']
+
+# THE SAME LEADING-DATE RULE assets/daily-reading.js USES, character for
+# character. It has to be: that file builds the share link by slugifying the
+# title in the browser, and this file builds the folder that link has to land
+# in. When the two disagreed, the two days whose titles say "Dec 24" and
+# "Dec 25" instead of "December 24" got a share link that 404'd -- the browser
+# stripped the abbreviation and made "long-day", this script kept it and made
+# "dec-24-long-day". Three letters of a month, an optional rest of the word,
+# an optional dot, an optional year, then the dash.
+MONTHS3 = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
 LEADING_DATE_RE = re.compile(
-    r'^(' + '|'.join(MONTHS) + r')\s+\d{1,2}\s*[-–—]\s*',
+    r'^(' + '|'.join(MONTHS3) + r')[a-z]*\.?\s+\d{1,2}(?:,?\s*\d{4})?\s*[-–—]\s*',
     re.IGNORECASE
 )
 
+DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+
 def slugify(title):
-    # strip a leading "Month Day – " prefix so the slug isn't redundant
+    # strip a leading "Month Day - " prefix so the slug isn't redundant
     # with the /MM-DD/ path segment it'll sit under
     stripped = LEADING_DATE_RE.sub('', title).strip()
     if not stripped:
@@ -44,90 +67,232 @@ def slugify(title):
     s = re.sub(r'-+', '-', s).strip('-')
     return s or 'reading'
 
+
+def headline(title):
+    """The title with its own date prefix taken off."""
+    return LEADING_DATE_RE.sub('', title).strip() or title
+
+
+def dateline(title, label):
+    """The words that go on the brush stroke above the headline.
+
+    Normally it is the date the title already carries -- "September 15". Five
+    of the readings do not carry one, and rather than leave the stroke empty
+    the date is built from the MM-DD the reading is filed under, so all 365
+    look the same."""
+    m = LEADING_DATE_RE.match(title)
+    if m:
+        return re.sub(r'\s*[-–—]\s*$', '', m.group(0)).strip()
+    mm, _, dd = label.partition('-')
+    try:
+        return '%s %d' % (MONTH_NAMES[int(mm) - 1], int(dd))
+    except (ValueError, IndexError):
+        return ''
+
+
 def meta_description(body):
     text = re.sub(r'\s+', ' ', body).strip()
     if len(text) > 155:
         text = text[:152].rsplit(' ', 1)[0] + '...'
     return text
 
-def body_html(body):
+
+def body_html(body, indent='    '):
     paragraphs = body.split('\n\n')
     return '\n'.join(
-        f'<p>{html.escape(p).replace(chr(10), "<br>")}</p>' for p in paragraphs if p.strip()
+        '%s<p>%s</p>' % (indent, html.escape(p.strip()).replace('\n', '<br>'))
+        for p in paragraphs if p.strip()
     )
+
+
+# ===========================================================================
+# THE CALENDAR
+#
+# Every day cell is a REAL <a href>, written into the HTML here rather than
+# drawn by JavaScript in the browser. That is the only reason the calendar is
+# generated at all: a picker built in JS is invisible to a crawler, and these
+# 365 pages had already spent months in Search Console as "Discovered --
+# currently not indexed" precisely because nothing linked to them.
+#
+# All twelve months are in the markup at once and CSS shows one at a time, so
+# every reading is one real link away from every other. It gzips to almost
+# nothing -- the same forty characters over and over.
+#
+# NO WEEKDAY PADDING IS WRITTEN HERE, on purpose. These readings are
+# perpetual: "September 15" is not tied to a year, so there is no correct
+# weekday to bake in. The browser pads the grid for the year it is actually
+# being read in; with JavaScript off it stays a tidy seven-wide run of dates,
+# which is all a crawler needs anyway.
+# ===========================================================================
+
+CAL_DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+
+
+def calendar_html(readings):
+    months = []
+    for mi in range(12):
+        mm = '%02d' % (mi + 1)
+        cells = []
+        for day in range(1, DAYS_IN_MONTH[mi] + 1):
+            label = '%s-%02d' % (mm, day)
+            entry = readings.get(label)
+            if not entry:
+                # A date with no reading filed under it is still drawn, so the
+                # month keeps its shape -- it just is not a link.
+                cells.append('        <span class="cal-day is-empty" aria-hidden="true">%d</span>' % day)
+                continue
+            title = headline(str(entry.get('title', '')).strip())
+            href = '/another-day-sober/%s/%s/' % (label, slugify(str(entry.get('title', ''))))
+            cells.append(
+                '        <a class="cal-day" href="%s" data-day="%d" title="%s">%d</a>'
+                % (href, day, html.escape(title, quote=True), day)
+            )
+        months.append(
+            '      <div class="cal-grid" data-month="%d"%s role="grid">\n%s\n      </div>'
+            % (mi + 1, '' if mi == 0 else ' hidden', '\n'.join(cells))
+        )
+
+    dow = ''.join('<span>%s</span>' % d for d in CAL_DOW)
+    return """    <nav class="cal" id="cal" aria-label="Every reading, by date">
+      <div class="cal-head">
+        <button class="cal-arrow" id="calPrev" type="button" aria-label="Previous month">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <h2 class="cal-month" id="calMonth">January</h2>
+        <button class="cal-arrow" id="calNext" type="button" aria-label="Next month">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="cal-dow" aria-hidden="true">%s</div>
+%s
+    </nav>""" % (dow, '\n'.join(months))
+
+
+CAL_START = '<!-- CALENDAR:START -->'
+CAL_END = '<!-- CALENDAR:END -->'
+
+
+def inject_calendar(path, cal):
+    """Drop the generated calendar between the markers in a hand-written page.
+
+    Only ever run against the BUILD copy. When OUT_ROOT is ROOT -- somebody
+    running this locally to preview -- the source file is left alone, because
+    writing 365 generated links into a file that is under version control is
+    how generated output ends up committed."""
+    if not os.path.exists(path):
+        print('  ! %s not found; calendar not injected' % os.path.basename(path))
+        return False
+    with open(path, encoding='utf-8') as f:
+        page = f.read()
+    if CAL_START not in page or CAL_END not in page:
+        print('  ! %s has no CALENDAR markers; calendar not injected'
+              % os.path.basename(path))
+        return False
+    head, _, rest = page.partition(CAL_START)
+    _, _, tail = rest.partition(CAL_END)
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(head + CAL_START + '\n' + cal + '\n    ' + CAL_END + tail)
+    return True
+
 
 PAGE_TEMPLATE = """<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title} | Another Day Sober | Recovery Misfits</title>
 <meta name="description" content="{description}">
 <link rel="canonical" href="{canonical}">
+<meta name="theme-color" content="#0e0e0d">
 <meta property="og:type" content="article">
-<meta property="og:title" content="{title} | Another Day Sober">
+<meta property="og:site_name" content="Recovery Misfits">
+<meta property="og:title" content="{title}">
 <meta property="og:description" content="{description}">
 <meta property="og:url" content="{canonical}">
-<meta name="theme-color" content="#000000">
-<link rel="manifest" href="/manifest.json">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="/icon-192.png">
-<link rel="stylesheet" href="/assets/reading-widget.css">
-<style>
-  body{{margin:0;font-family:Roboto,Arial,sans-serif;background:#fff;padding-bottom:120px;}}
-  .frameWrap{{width:100%;padding:16px;box-sizing:border-box;background:#fff;}}
-  .adsp-nav{{max-width:560px;margin:0 auto 10px;font-size:13px;}}
-  .adsp-nav a{{color:#8a2b2b;text-decoration:none;font-weight:700;}}
-  .adsp-nav a:hover{{text-decoration:underline;}}
-</style>
-</head>
-<body>
-  <div id="rm-topbar"></div>
-  <script src="/topbar.js" defer></script>
+<link rel="apple-touch-icon" href="/icon-192.png">
 
-  <div class="frameWrap">
-    <div class="adsp-nav"><a href="/another-day-sober/">&larr; All readings</a></div>
-    <div id="dp-card" class="dp-card">
-      <div class="dp-header" id="dp-header">
-        <div class="dp-brandblock">
-          <div class="dp-brandtitle">\U0001F4D6 Another Day Sober</div>
-          <div class="dp-subtitle">one day at a time</div>
-          <div class="dp-divider"></div>
-        </div>
-        <div class="dp-texttab" id="dp-textsize">
-          <button class="dp-tabbtn" id="dp-text-smaller" type="button" aria-label="Make text smaller">A&minus;</button>
-          <button class="dp-tabbtn" id="dp-text-bigger" type="button" aria-label="Make text bigger">A+</button>
-          <button class="dp-tabbtn dp-tabbtn-secondary" id="dp-text-reset" type="button" aria-label="Reset text size">&#8634;</button>
-        </div>
-        <h1 class="dp-title" id="dp-title" style="margin:0;font:inherit;color:inherit">{title}</h1>
-      </div>
-      <div class="dp-readingwrap">
-        <div class="dp-content" id="dp-content">
-{body}
-        </div>
-      </div>
-      <div class="dp-pass" id="dp-pass">
-        <div class="dp-pass-label">PASS IT ON</div>
-        <div class="dp-actions" id="dp-actions">
-          <a class="dp-btn" id="dp-fb" href="https://www.facebook.com/sharer/sharer.php?u={canonical_enc}" target="_blank" rel="noopener">Facebook</a>
-          <button class="dp-btn" id="dp-sms" type="button">Text</button>
-          <button class="dp-btn dp-btn-secondary" id="dp-copy" type="button">Copy link</button>
-          <button class="dp-btn dp-btn-ig" id="dp-image" type="button"><img src="/snapshot-icon.png" alt="" class="dp-btn-icon">Take Snapshot</button>
-          <span class="dp-copied" id="dp-copied" style="display:none;"></span>
-        </div>
-      </div>
+<!-- PAINT SOMETHING IMMEDIATELY, same as the app screen: an external
+     stylesheet blocks the first paint, and a white flash on the way into a
+     dark page is the cheapest thing on the site to get rid of. -->
+<style>html{{background:#0e0e0d}}body{{background:#0e0e0d;color:#eee6d5;margin:0}}</style>
+<link rel="stylesheet" href="/assets/daily-reading.css">
+</head>
+
+<!-- data-prerendered is the one that matters: it tells daily-reading.js the
+     reading is ALREADY on the page and it must not fetch or repaint it.
+     data-rm-nav lights the Readings tab, the same as the app screen. -->
+<body data-rm-nav="readings.html" data-reading="{label}" data-prerendered>
+
+<div id="rm-topbar"></div>
+<script src="/topbar.js" defer></script>
+
+<div class="sheet">
+<img class="tape tl" src="/assets/pages/d-tape-tl.webp" alt="" aria-hidden="true">
+<img class="tape tr" src="/assets/pages/d-tape-tr.webp" alt="" aria-hidden="true">
+<img class="tape bl" src="/assets/pages/d-tape-bl.webp" alt="" aria-hidden="true">
+<img class="tape br" src="/assets/pages/d-tape-br.webp" alt="" aria-hidden="true">
+
+<main>
+
+  <header class="pub">
+    <img class="art" src="/assets/pages/d-book.webp" alt="" aria-hidden="true" width="122" height="111">
+    <div>
+      <p class="name">Another Day Sober</p>
+      <p class="tag">one day at a time</p>
+      <img class="rule" src="/assets/pages/d-rule.webp" alt="" aria-hidden="true" width="297" height="17">
     </div>
+  </header>
+
+  <div class="controls">
+    <button class="ctl" id="smaller" type="button" aria-label="Make the text smaller">A&minus;</button>
+    <button class="ctl" id="bigger"  type="button" aria-label="Make the text bigger">A+</button>
+    <button class="ctl" id="speak"   type="button" aria-pressed="false" aria-label="Read this aloud">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2.2v2.1a7.8 7.8 0 0 1 0 15.4v2.1a9.9 9.9 0 0 0 0-19.6z"/></svg>
+    </button>
   </div>
 
-  <div id="rm-bottom-nav"></div>
-  <script src="/nav.js" defer></script>
-  <script>
-    window.__ADS_STATIC_PAGE__ = {{
-      title: {title_json},
-      url: {canonical_json},
-      label: {label_json}
-    }};
-  </script>
-  <script src="/assets/reading-page.js" defer></script>
+  <p class="dateline" id="dateline"{dateline_hidden}>
+    <img src="/assets/pages/d-swash.webp" alt="" aria-hidden="true">
+    <span id="dateText">{dateline}</span>
+  </p>
+
+  <!-- THE READING'S OWN NAME IS THE h1 ON THIS PAGE, not the publication's.
+       On the app screen the masthead is the h1, because that screen is the
+       publication. This page is one reading, and a search result for it
+       should be headed by the reading. -->
+  <h1 class="title" id="title">{title}</h1>
+  <img class="titlerule" src="/assets/pages/d-titlerule.webp" alt="" aria-hidden="true" width="471" height="20">
+
+  <article class="reading" id="reading">
+{body}
+  </article>
+
+  <div class="foot">
+    <img class="rule" src="/assets/pages/d-sharerule.webp" alt="" aria-hidden="true" width="676" height="8">
+    <button class="share" id="share" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Share this reading
+    </button>
+    <p class="say" id="say" role="status" aria-live="polite"></p>
+    <a class="back" href="/readings.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back to Readings
+    </a>
+  </div>
+
+{calendar}
+
+</main>
+</div>
+
+<div class="tailroom"></div>
+
+<div id="rm-bottom-nav"></div>
+<script src="/nav.js" defer></script>
+<script src="/assets/daily-reading.js" defer></script>
+
 </body>
 </html>
 """
@@ -136,87 +301,114 @@ INDEX_TEMPLATE = """<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>All Readings | Another Day Sober | Recovery Misfits</title>
 <meta name="description" content="Every Another Day Sober daily recovery reading, browsable by date.">
 <link rel="canonical" href="{site}/another-day-sober/">
-<link rel="stylesheet" href="/assets/reading-widget.css">
+<meta name="theme-color" content="#0e0e0d">
+<link rel="icon" href="/icon-192.png">
+<style>html{{background:#0e0e0d}}body{{background:#0e0e0d;color:#eee6d5;margin:0}}</style>
+<link rel="stylesheet" href="/assets/daily-reading.css">
 <style>
-  body{{margin:0;font-family:Roboto,Arial,sans-serif;background:#fff;padding-bottom:120px;}}
-  .wrap{{max-width:680px;margin:0 auto;padding:20px 16px;}}
-  h1{{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;margin:0 0 4px;}}
-  .sub{{color:#666;font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px;}}
-  ul{{list-style:none;padding:0;margin:0;}}
-  li{{border-bottom:1px solid #eee;padding:12px 0;}}
-  li a{{color:#1f1f1f;text-decoration:none;font-weight:700;font-size:15px;}}
-  li a:hover{{text-decoration:underline;}}
-  li .d{{color:#999;font-size:12px;margin-right:10px;font-weight:700;}}
+  .wrap{{max-width:620px;margin:0 auto;padding:22px 20px 0;position:relative;z-index:1}}
+  .wrap h1{{font-family:var(--display);font-weight:600;font-size:28px;line-height:1.06;
+           color:#fff;margin:0 0 3px}}
+  .wrap .sub{{font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.9px;
+             text-transform:uppercase;color:var(--gold);margin:0 0 18px}}
+  .wrap ul{{list-style:none;padding:0;margin:0}}
+  .wrap li{{border-bottom:1px solid rgba(238,230,213,.1)}}
+  .wrap li a{{display:flex;gap:12px;align-items:baseline;min-height:44px;padding:11px 2px;
+             color:var(--ivory);text-decoration:none;font-family:var(--ui);
+             font-weight:600;font-size:14px;line-height:1.3}}
+  .wrap li a:active{{background:rgba(238,230,213,.06)}}
+  .wrap li .d{{flex:0 0 auto;color:var(--gold);font-size:11px;font-weight:800;
+              letter-spacing:.9px;font-variant-numeric:tabular-nums}}
 </style>
 </head>
-<body>
+<body data-rm-nav="readings.html">
   <div id="rm-topbar"></div>
   <script src="/topbar.js" defer></script>
   <div class="wrap">
-    <h1>\U0001F4D6 Another Day Sober</h1>
-    <div class="sub">All readings</div>
+    <h1>Another Day Sober</h1>
+    <p class="sub">All {count} readings</p>
     <ul>
 {items}
     </ul>
+    <a class="back" href="/readings.html" style="margin:22px auto 0">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back to Readings
+    </a>
   </div>
+  <div class="tailroom"></div>
   <div id="rm-bottom-nav"></div>
   <script src="/nav.js" defer></script>
 </body>
 </html>
 """
 
+
 def main():
     with open(READINGS_PATH, encoding='utf-8') as f:
         readings = json.load(f)
 
     os.makedirs(OUT_DIR, exist_ok=True)
-    urls = [f'{SITE_URL}/']
+    urls = ['%s/' % SITE_URL]
     index_items = []
+    cal = calendar_html(readings)
 
     for label in sorted(readings.keys()):
         r = readings[label]
-        title = r['title']
-        body = r['body']
-        slug = slugify(title)
+        raw = str(r.get('title', '')).strip()
+        body = str(r.get('body', ''))
+        title = headline(raw)
+        slug = slugify(raw)
+        line = dateline(raw, label)
         page_dir = os.path.join(OUT_DIR, label, slug)
         os.makedirs(page_dir, exist_ok=True)
-        canonical = f'{SITE_URL}/another-day-sober/{label}/{slug}/'
+        canonical = '%s/another-day-sober/%s/%s/' % (SITE_URL, label, slug)
 
         html_out = PAGE_TEMPLATE.format(
             title=html.escape(title),
             description=html.escape(meta_description(body)),
             canonical=canonical,
-            canonical_enc=canonical.replace(':', '%3A').replace('/', '%2F'),
-            canonical_json=json.dumps(canonical),
-            title_json=json.dumps(title),
-            label_json=json.dumps(label),
+            label=label,
+            dateline=html.escape(line),
+            dateline_hidden='' if line else ' hidden',
             body=body_html(body),
+            calendar=cal,
         )
         with open(os.path.join(page_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html_out)
 
         urls.append(canonical)
         index_items.append(
-            f'      <li><a href="/another-day-sober/{label}/{slug}/"><span class="d">{label}</span>{html.escape(title)}</a></li>'
+            '      <li><a href="/another-day-sober/%s/%s/">'
+            '<span class="d">%s</span><span>%s</span></a></li>'
+            % (label, slug, label, html.escape(title))
         )
 
     with open(os.path.join(OUT_DIR, 'index.html'), 'w', encoding='utf-8') as f:
-        f.write(INDEX_TEMPLATE.format(site=SITE_URL, items='\n'.join(index_items)))
-    urls.append(f'{SITE_URL}/another-day-sober/')
+        f.write(INDEX_TEMPLATE.format(
+            site=SITE_URL, items='\n'.join(index_items), count=len(readings)))
+    urls.append('%s/another-day-sober/' % SITE_URL)
 
     sitemap = ['<?xml version="1.0" encoding="UTF-8"?>',
                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for u in urls:
-        sitemap.append(f'  <url><loc>{u}</loc></url>')
+        sitemap.append('  <url><loc>%s</loc></url>' % u)
     sitemap.append('</urlset>')
     with open(os.path.join(OUT_ROOT, 'sitemap.xml'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(sitemap))
 
-    print(f'Generated {len(readings)} reading pages, an archive index, and sitemap.xml with {len(urls)} URLs.')
+    if os.path.abspath(OUT_ROOT) == os.path.abspath(ROOT):
+        print('Local preview: leaving another-day-sober.html alone '
+              '(the calendar is injected into the build copy only).')
+    elif inject_calendar(os.path.join(OUT_ROOT, 'another-day-sober.html'), cal):
+        print('Calendar injected into another-day-sober.html.')
+
+    print('Generated %d reading pages, an archive index, and sitemap.xml with %d URLs.'
+          % (len(readings), len(urls)))
+
 
 if __name__ == '__main__':
     main()

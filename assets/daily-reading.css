@@ -218,3 +218,100 @@ main{
   .pub .name{font-size:17px}
   .title{font-size:22px}
 }
+
+/* ===========================================================================
+   THE CALENDAR — every reading, by date.
+
+   This replaced a button that said "All 366 Readings" (which was also a lie;
+   there are 365). A button is a thing you have to decide to press. A calendar
+   is a thing you read -- you can see your sober date, or a birthday, or
+   tomorrow, and go straight to it.
+
+   IT IS ALSO THE SITE'S CRAWL PATH. Every day cell is a real link written
+   into the HTML by scripts/build_pages.py, not drawn here by JavaScript,
+   because a crawler does not run JavaScript and 365 pages spent months in
+   Search Console as orphans for exactly that reason. All twelve months are
+   in the markup; this file shows one at a time.
+
+   BUILT FOR A PHONE. The grid breaks out of the page's 33px gutter so seven
+   columns still land near the 44px touch floor on a 390px screen -- inside
+   the gutter they come out at 36px, which is a cell you miss.
+   ======================================================================== */
+.cal{
+  position:relative;z-index:1;
+  margin:22px -30px 0;
+  padding:12px 6px 10px;
+  border-radius:18px;
+  background:rgba(23,23,21,.9);
+  border:1px solid rgba(238,230,213,.09);
+}
+
+.cal-head{
+  display:grid;grid-template-columns:var(--touch) 1fr var(--touch);
+  align-items:center;margin-bottom:6px;
+}
+.cal-month{
+  margin:0;text-align:center;
+  font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:.3px;
+  color:#fff;
+}
+.cal-arrow{
+  width:var(--touch);height:var(--touch);
+  display:inline-flex;align-items:center;justify-content:center;
+  border:0;border-radius:50%;background:transparent;color:var(--ivory);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.cal-arrow:active{background:rgba(238,230,213,.1)}
+.cal-arrow svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.1}
+
+.cal-dow{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:2px;
+  margin-bottom:3px;
+}
+.cal-dow span{
+  text-align:center;
+  font-family:var(--ui);font-weight:800;font-size:9.5px;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--muted);
+}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+/* The month that is not showing. Needs the !important because display:grid
+   above would otherwise win over the hidden attribute's own rule. */
+.cal-grid[hidden]{display:none !important}
+
+.cal-day{
+  display:flex;align-items:center;justify-content:center;
+  aspect-ratio:1;border-radius:50%;
+  font-family:var(--ui);font-weight:600;font-size:13px;
+  font-variant-numeric:tabular-nums;
+  color:var(--ivory);text-decoration:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.cal-day:active{background:rgba(238,230,213,.12)}
+
+/* A date with no reading filed under it -- and the blanks the browser adds
+   in front of the 1st to line the month up with the week. Both are there to
+   hold the shape of the grid and neither is a link. */
+.cal-day.is-empty,
+.cal-pad{
+  display:flex;align-items:center;justify-content:center;
+  aspect-ratio:1;color:rgba(238,230,213,.2);
+  font-family:var(--ui);font-size:13px;
+}
+
+/* TODAY, and THE ONE YOU ARE READING. On the app screen those are the same
+   day and only one circle is drawn. On a reading you reached from a search
+   result they are usually different, so today gets the gold ring and the one
+   you are on gets the filled circle -- the filled one always wins. */
+.cal-day.is-today{box-shadow:inset 0 0 0 1.4px var(--gold);color:#fff}
+.cal-day.is-current{background:var(--gold);color:#12100b;font-weight:800;box-shadow:none}
+
+/* On anything wider than a phone the grid stops growing -- seven columns
+   across a 620px page gives you 88px buttons, which looks like a mistake. */
+@media (min-width:430px){
+  .cal{max-width:356px;margin-left:auto;margin-right:auto}
+}
+@media (max-width:359px){
+  .cal{margin-left:-22px;margin-right:-22px}
+  .cal-day,.cal-day.is-empty,.cal-pad{font-size:12px}
+}

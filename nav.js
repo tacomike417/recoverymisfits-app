@@ -82,6 +82,32 @@
     return `${m[3]}-${m[2]}-${m[1]}`;
   }
 
+  /* THE BAR SAYS THE DATE THE WAY A PERSON SAYS IT OUT LOUD.
+
+     "15-09-2018" reads as a part number. This is the one screen whose whole
+     job is to make that date feel like yours, so it says "September 15th,
+     2018" -- which is also how everybody actually says it in a meeting. */
+  const MONTH_NAMES_LONG = ["January","February","March","April","May","June",
+                            "July","August","September","October","November","December"];
+
+  function ordinalSuffix(n) {
+    /* 11th, 12th and 13th are the three that break the tidy rule. */
+    if (n % 100 >= 11 && n % 100 <= 13) return "th";
+    if (n % 10 === 1) return "st";
+    if (n % 10 === 2) return "nd";
+    if (n % 10 === 3) return "rd";
+    return "th";
+  }
+
+  function ymdToDisplayLong(ymd) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymd || ""));
+    if (!m) return "";
+    const month = MONTH_NAMES_LONG[Number(m[2]) - 1];
+    if (!month) return "";
+    const day = Number(m[3]);
+    return `${month} ${day}${ordinalSuffix(day)}, ${Number(m[1])}`;
+  }
+
   function parseDMYToYMD(value) {
     const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(String(value || "").trim());
     if (!m) return "";
@@ -763,12 +789,22 @@
     share: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M4 12v7a1.6 1.6 0 0 0 1.6 1.6h12.8A1.6 1.6 0 0 0 20 19v-7" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M12 15.5V3.8M8 7.4l4-3.6 4 3.6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
   };
 
+  /* ROOT-ABSOLUTE, NOT "./".
+
+     This bar is on every page of the app, and "./readings.html" only means
+     the right thing on a page that sits at the top of the site. The 366
+     generated reading pages live three folders down, at
+     /another-day-sober/09-15/some-title/ -- and from there "./readings.html"
+     asks for a file inside that folder, which does not exist. Every tab on
+     the bar was a 404 on all 366 of them.
+
+     A leading slash means the same thing from any depth. */
   const items = [
-    { href: "./index.html", label: "Home", icon: ICONS.home },
-    { href: "./tools.html", label: "Tools", icon: ICONS.tools },
-    { href: "./readings.html", label: "Readings", icon: ICONS.book },
-    { href: "./audio.html", label: "Audio", icon: ICONS.audio },
-    { href: "./fun.html", label: "Fun", icon: ICONS.fun },
+    { href: "/index.html", label: "Home", icon: ICONS.home },
+    { href: "/tools.html", label: "Tools", icon: ICONS.tools },
+    { href: "/readings.html", label: "Readings", icon: ICONS.book },
+    { href: "/audio.html", label: "Audio", icon: ICONS.audio },
+    { href: "/fun.html", label: "Fun", icon: ICONS.fun },
     /* SHARE, NOT A PAGE. It opens the code sheet rather than going anywhere,
        which is why it carries data-rm-share and a href that means "no
        destination" -- the click handler below stops it. */
@@ -793,13 +829,14 @@
     </div>
     <div class="rm-sober-actions">
       <button type="button" class="rm-sober-btn set" id="rmSetSoberDateBtn">Set</button>
-      <a class="rm-sober-btn share" id="rmShareSoberDateBtn" href="./sober-date.html">Share</a>
+      <a class="rm-sober-btn share" id="rmShareSoberDateBtn" href="/sober-date.html">Share</a>
     </div>
   `;
 
   function refreshSoberPanel() {
     const main = soberPanel.querySelector("#rmSoberBarText");
     const sub = soberPanel.querySelector("#rmSoberBarSub");
+    const setBtnEl = soberPanel.querySelector("#rmSetSoberDateBtn");
 
     const days = computeSoberDays();
     const ymd = getSoberDateYMD();
@@ -807,11 +844,23 @@
     if (!ymd || days === null) {
       main.textContent = "None";
       sub.textContent = "Set your sober date";
+      if (setBtnEl) setBtnEl.style.display = "";
       return;
     }
 
     main.textContent = `${days.toLocaleString()} days`;
-    sub.textContent = `Since ${ymdToDisplayDMY(ymd)}`;
+    sub.textContent = `Since ${ymdToDisplayLong(ymd)}`;
+
+    /* SET HAS DONE ITS JOB, SO IT STOPS TAKING UP THE BAR.
+
+       It is hidden, not removed, and the difference matters: sober-date.html's
+       "Change my sober date" button works by reaching over and clicking THIS
+       button, and .click() still fires on an element with display:none. Delete
+       it and that screen's only way to change the date quietly stops working.
+
+       So the way back in is still there -- it just lives on the Share screen
+       now instead of sitting on the bar forever. */
+    if (setBtnEl) setBtnEl.style.display = "none";
   }
 
   /* ---- the sober date wheels ---------------------------------------------
@@ -1065,7 +1114,9 @@
     a.className = "navItem";
     a.href = it.href;
 
-    const hrefFile = it.href.replace("./", "").toLowerCase();
+    /* Strips "./" or a leading "/" alike, so the tab still lights up now
+       that the hrefs above are root-absolute. */
+    const hrefFile = it.href.replace(/^\.?\//, "").toLowerCase();
     if (hrefFile === cur) a.classList.add("active");
 
     if (it.share) a.setAttribute("data-rm-share", "");

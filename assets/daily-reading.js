@@ -67,6 +67,16 @@
   var LEADING_DATE = new RegExp(
     "^(" + MONTHS3.join("|") + ")[a-z]*\\.?\\s+\\d{1,2}(?:,?\\s*\\d{4})?\\s*[-\u2013\u2014]\\s*", "i");
 
+  var MONTHS_TITLE = ["January","February","March","April","May","June","July",
+                      "August","September","October","November","December"];
+
+  function labelToDate(lbl) {
+    var m = /^(\d{2})-(\d{2})$/.exec(String(lbl || ""));
+    if (!m) return "";
+    var name = MONTHS_TITLE[Number(m[1]) - 1];
+    return name ? name + " " + Number(m[2]) : "";
+  }
+
   function slugify(t) {
     var s = String(t || "").replace(LEADING_DATE, "").trim() || String(t || "");
     return s.toLowerCase().replace(/[’'"]/g, "").replace(/[^a-z0-9]+/g, "-")
@@ -75,11 +85,44 @@
 
   var now = new Date();
   var params = new URLSearchParams(location.search);
-  var label = params.get("reading") ||
+  var bodyEl = document.body;
+
+  /* WHICH DAY THIS PAGE IS, in the order the answer is most certain.
+
+     data-reading is on the 365 generated pages under /another-day-sober/,
+     each of which IS one particular day and stays that day forever. The
+     ?reading= parameter is the old way of opening a past day on the app
+     screen. With neither, it is today. */
+  var label = bodyEl.getAttribute("data-reading") || params.get("reading") ||
     (String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0"));
 
   var postTitle = "", postUrl = "", spoken = "";
 
+  /* THE GENERATED PAGES ARRIVE WITH THE READING ALREADY IN THEM.
+
+     Those 365 pages exist so a crawler can read the words without running
+     any JavaScript -- that is the entire reason they are built. So on them
+     this file does NOT fetch anything and does NOT touch the reading. It
+     picks up the title and the paragraphs that are already on the page, so
+     that read-aloud and share have something to work with, and stops.
+
+     It matters that it does not fetch: a failed fetch calls fail(), and
+     fail() empties the reading area. On a page that came out of the oven
+     with its reading in it, a flaky signal would wipe words that were
+     already there and sitting in front of somebody. */
+  if (bodyEl.hasAttribute("data-prerendered")) {
+    postTitle = (titleEl.textContent || "").trim();
+    var already = readingEl.querySelectorAll("p");
+    var lines = [];
+    for (var pi = 0; pi < already.length; pi++) {
+      var t = (already[pi].textContent || "").trim();
+      if (t) lines.push(t);
+    }
+    spoken = postTitle + ". " + lines.join(" ");
+    /* The page's own address IS the share link here -- no need to rebuild it
+       from a slug and hope the two agree. */
+    postUrl = location.origin + location.pathname;
+  } else
   fetch(DATA_URL, { cache: "no-store" })
     .then(function (r) { return r.json(); })
     .then(function (all) {
@@ -92,7 +135,12 @@
          headline, which is how the mockup sets it. */
       var m = raw.match(LEADING_DATE);
       postTitle = raw.replace(LEADING_DATE, "").trim() || raw;
-      var shown = m ? m[0].replace(/\s*[-–—]\s*$/, "").trim() : "";
+      /* Five of the readings do not carry a date in their title. Rather
+         than leave the brush stroke empty on those, the date is built from
+         the MM-DD the reading is filed under, so all 365 look the same --
+         and so this screen matches the generated pages, which do the same
+         thing in scripts/build_pages.py. */
+      var shown = m ? m[0].replace(/\s*[-–—]\s*$/, "").trim() : labelToDate(label);
       if (shown) { dateText.textContent = shown; dateWrap.hidden = false; }
 
       titleEl.textContent = postTitle;
@@ -175,4 +223,109 @@
         .catch(function () { sayEl.textContent = postUrl; });
     setTimeout(function () { if (sayEl.textContent === "Link copied.") sayEl.textContent = ""; }, 3000);
   };
+})();
+
+/* ===========================================================================
+   THE CALENDAR — the behavior only.
+
+   The links themselves are NOT built here. scripts/build_pages.py writes all
+   twelve months of real <a href> into the HTML, because a crawler does not
+   run this file, and a calendar drawn in JavaScript would put all 365
+   readings straight back to being orphans. Everything below is for the
+   person holding the phone: which month is showing, the arrows, lining the
+   grid up with the week, and the two circles.
+   ======================================================================== */
+(function () {
+  "use strict";
+
+  var cal = document.getElementById("cal");
+  if (!cal) return;
+
+  var grids = cal.querySelectorAll(".cal-grid");
+  var monthEl = document.getElementById("calMonth");
+  var prevBtn = document.getElementById("calPrev");
+  var nextBtn = document.getElementById("calNext");
+  if (!grids.length || !monthEl) return;
+
+  var NAMES = ["January","February","March","April","May","June","July",
+               "August","September","October","November","December"];
+
+  var today = new Date();
+  var year = today.getFullYear();
+  var leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+
+  /* ---- line each month up with the week ---------------------------------
+     The readings are perpetual -- "September 15" belongs to no particular
+     year -- so there is no correct weekday to bake into the HTML, and none
+     is. The grid is padded HERE, for whatever year it is being read in, and
+     re-padded if somebody leaves the app open across New Year. With this
+     file blocked it stays a plain seven-wide run of dates, which still
+     reads fine and is all the crawler ever needed. */
+  function padGrids() {
+    for (var i = 0; i < grids.length; i++) {
+      var grid = grids[i];
+      var old = grid.querySelectorAll(".cal-pad");
+      for (var k = 0; k < old.length; k++) old[k].remove();
+
+      var first = new Date(year, i, 1).getDay();
+      for (var d = 0; d < first; d++) {
+        var pad = document.createElement("span");
+        pad.className = "cal-pad";
+        pad.setAttribute("aria-hidden", "true");
+        grid.insertBefore(pad, grid.firstChild);
+      }
+
+      /* February 29th is in the markup so the month keeps its shape in a
+         leap year. In every other year it is not a date and is taken out. */
+      if (i === 1) {
+        var cells = grid.querySelectorAll(".cal-day");
+        var last = cells[cells.length - 1];
+        if (last && last.textContent.trim() === "29") last.hidden = !leap;
+      }
+    }
+  }
+
+  /* ---- the two circles --------------------------------------------------
+     Today gets a ring. The reading you are actually looking at gets the
+     filled circle. On the app screen those are the same day and you see one
+     circle; on a reading you opened from a search result they are usually
+     different, and the filled one is the one that wins. */
+  function mark() {
+    var mm = String(today.getMonth() + 1).padStart(2, "0");
+    var dd = String(today.getDate()).padStart(2, "0");
+    var todayHref = "/another-day-sober/" + mm + "-" + dd + "/";
+    var here = location.pathname;
+
+    var all = cal.querySelectorAll(".cal-day");
+    for (var i = 0; i < all.length; i++) {
+      var a = all[i];
+      var href = a.getAttribute("href") || "";
+      a.classList.toggle("is-today", href.indexOf(todayHref) === 0);
+      a.classList.toggle("is-current", !!href && href === here);
+      if (href && href === here) a.setAttribute("aria-current", "page");
+    }
+  }
+
+  /* ---- which month is showing ------------------------------------------ */
+  var shown = 0;
+
+  function show(i) {
+    shown = (i + grids.length) % grids.length;
+    for (var k = 0; k < grids.length; k++) grids[k].hidden = (k !== shown);
+    monthEl.textContent = NAMES[shown];
+  }
+
+  if (prevBtn) prevBtn.addEventListener("click", function () { show(shown - 1); });
+  if (nextBtn) nextBtn.addEventListener("click", function () { show(shown + 1); });
+
+  padGrids();
+  mark();
+
+  /* Opens on the month of the reading you are on -- or on this month, which
+     is the same thing on the app screen. Landing on January when you are
+     reading September is a calendar you have to operate before it is any
+     use. */
+  var own = (document.body.getAttribute("data-reading") || "").slice(0, 2);
+  var start = Number(own);
+  show(start >= 1 && start <= 12 ? start - 1 : today.getMonth());
 })();
