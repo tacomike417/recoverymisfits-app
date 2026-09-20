@@ -172,7 +172,7 @@
          for the tallest case or the last row of a page hides under the bar
          the moment you make an account. */
       body {
-        padding-bottom: calc(186px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(186px + var(--rm-rail-extra, 0px) + env(safe-area-inset-bottom, 0px));
       }
 
       /* THE BAR BRINGS ITS OWN TYPE.
@@ -287,25 +287,47 @@
          The approved mockup uses a thin condensed all-caps face for every
          word on the plate -- SOBER SINCE, the date, DAYS, SHARE, ACCOUNT.
          That is Oswald, and the app already ships the 600 cut for its
-         headlines; this is the 300. It is self-hosted like the rest, so the
-         rail still draws with no network. */
+         headlines; this is the 500. Measured off the mockup, the strokes on
+         the plate are about a sixth of the cap height -- Medium, not Light.
+         It is self-hosted like the rest, so the rail draws with no network. */
       @font-face{
         font-family:"RM Rail";
-        src:url("/assets/fonts/oswald-300.woff2") format("woff2");
-        font-weight:300;font-style:normal;font-display:swap;
+        src:url("/assets/fonts/oswald-500.woff2") format("woff2");
+        font-weight:500;font-style:normal;font-display:swap;
       }
 
-      .rm-rail {
+      /* ONE PICTURE, DRAWN AT ONE SIZE, SCALED AS A WHOLE.
+
+         The rail is laid out at exactly 374 x 64 -- the size the artwork was
+         drawn for -- and then the entire thing, plate and lettering and
+         tiles together, is scaled by one number to fit whatever phone it
+         landed on. Nothing inside is ever resized on its own, so the picture
+         cannot stretch and the wells cannot drift off the art.
+
+         --rm-rail-s is that number, set from the real measured width just
+         below. 374 wide is an iPhone 15; a small Android comes out at 0.81
+         and a Pro Max at 1.11, and the proportions are identical in all
+         three. */
+      .rm-rail-fit{
         position:relative;
-        height:64px;
+        width:100%;
+        height:calc(64px * var(--rm-rail-s, 1));
         margin:0 0 7px;
+        overflow:hidden;
+      }
+      .rm-rail {
+        position:absolute;top:0;left:var(--rm-rail-x, 0px);
+        width:374px;
+        height:64px;
+        transform-origin:top left;
+        transform:scale(var(--rm-rail-s, 1));
         color:#eee4cf;
         background-image:url("/assets/rail/rail-plate.webp");
         background-size:100% 100%;
         background-repeat:no-repeat;
         font-family:"RM Rail",Oswald,"Avenir Next Condensed","Roboto Condensed",
                     "Arial Narrow",system-ui,sans-serif;
-        font-weight:300;
+        font-weight:500;
         /* the plate carries its own edge, so nothing is drawn around it */
       }
       .rm-rail button,.rm-rail a{
@@ -321,9 +343,12 @@
         position:absolute;top:10px;height:44px;
         display:flex;align-items:center;
       }
+      /* Both lines are centered in the well, the way they are in the
+         mockup -- they are nearly the same width, so centering reads as one
+         stacked block rather than two left-hung lines. */
       .rm-rail-date {left:5.385%;width:24.03%;
-        flex-direction:column;justify-content:center;align-items:flex-start;
-        gap:3px;padding-left:7px;cursor:pointer;text-align:left}
+        flex-direction:column;justify-content:center;align-items:center;
+        gap:3px;padding:0 4px;cursor:pointer;text-align:center}
       .rm-rail-count{left:31.538%;width:38.9%;justify-content:center;gap:1px}
       .rm-rail-act.rm-share  {left:72.564%;width:11.21%}
       .rm-rail-act.rm-account{left:85.897%;width:11.72%}
@@ -331,13 +356,13 @@
       .rm-rail-date:active,.rm-rail-act:active{filter:brightness(1.35)}
 
       .rm-rail-date .k{
-        color:#d9ab4e;font-size:9.5px;line-height:1;font-weight:300;
+        color:#d9ab4e;font-size:9.5px;line-height:1;font-weight:500;
         letter-spacing:.11em;text-transform:uppercase;white-space:nowrap;
         text-shadow:0 1px 0 #000;
       }
       .rm-rail-date .v{
         max-width:100%;overflow:hidden;color:#f4ecdb;
-        font-size:12.5px;line-height:1;font-weight:300;letter-spacing:.055em;
+        font-size:12.5px;line-height:1;font-weight:500;letter-spacing:.045em;
         text-transform:uppercase;white-space:nowrap;text-overflow:clip;
         text-shadow:0 1px 0 #000;
       }
@@ -354,8 +379,8 @@
       .rm-rail-count.d6 .rm-rail-tile{width:16px;height:21px}
 
       .rm-rail-days{
-        margin-left:8px;color:#efe3c6;font-size:12.5px;font-weight:300;
-        letter-spacing:.09em;line-height:1;flex:none;text-transform:uppercase;
+        margin-left:8px;color:#efe3c6;font-size:12.5px;font-weight:500;
+        letter-spacing:.07em;line-height:1;flex:none;text-transform:uppercase;
         text-shadow:0 1px 0 #000;
       }
       .rm-rail-count.d5 .rm-rail-days{margin-left:7px;font-size:11.5px}
@@ -363,7 +388,7 @@
 
       .rm-rail-act{
         flex-direction:column;justify-content:center;gap:3px;
-        cursor:pointer;font-size:9px;font-weight:300;letter-spacing:.08em;
+        cursor:pointer;font-size:9px;font-weight:500;letter-spacing:.055em;
         text-transform:uppercase;white-space:nowrap;
         text-shadow:0 1px 0 #000;
       }
@@ -373,18 +398,10 @@
          painted into the plate simply stays empty and the date block asks. */
       .rm-rail.no-date .rm-rail-count{display:none}
 
-      @media (max-width:359px){
-        .rm-rail-act span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-        .rm-rail-act img{width:21px;height:21px}
-        .rm-rail-tile{width:23px;height:31px}
-        .rm-rail-count.d4 .rm-rail-tile{width:20px;height:27px}
-        .rm-rail-count.d5 .rm-rail-tile{width:16px;height:21px}
-        .rm-rail-count.d6 .rm-rail-tile{width:14px;height:19px}
-        .rm-rail-days{margin-left:6px;font-size:11px}
-        .rm-rail-count.d5 .rm-rail-days{font-size:10px}
-        .rm-rail-count.d6 .rm-rail-days{font-size:9px}
-        .rm-rail-date .v{font-size:11px;letter-spacing:.03em}
-      }
+      /* No small-screen overrides: the whole rail is scaled by --rm-rail-s,
+         so a 320px phone gets the same picture at 81%, not a different
+         layout. The only thing that still changes inside the rail is the
+         tile size, and that is driven by how many digits there are. */
 
       .rm-nav-links {
         flex: 1 1 auto;
@@ -798,7 +815,7 @@
 
       @media (max-width: 900px) {
         body {
-          padding-bottom: calc(186px + env(safe-area-inset-bottom, 0px));
+          padding-bottom: calc(186px + var(--rm-rail-extra, 0px) + env(safe-area-inset-bottom, 0px));
         }
 
         #rmAppBar {
@@ -818,7 +835,7 @@
 
       @media (max-width: 640px) {
         body {
-          padding-bottom: calc(186px + env(safe-area-inset-bottom, 0px));
+          padding-bottom: calc(186px + var(--rm-rail-extra, 0px) + env(safe-area-inset-bottom, 0px));
         }
 
         #rm-bottom-nav .rm-nav-wrap {
@@ -1273,9 +1290,45 @@
     wrapper.appendChild(greet);
   }
 
-  wrapper.appendChild(soberPanel);
+  /* THE RAIL GOES IN A BOX THAT MEASURES ITSELF.
+
+     The rail itself is always 374 x 64. This box is whatever the phone
+     gives it, and the ratio between the two is the scale factor for the
+     whole picture. Watched with a ResizeObserver so a rotation or a
+     split-screen resize is picked up the same as a fresh load; browsers
+     without one fall back to the resize event, which covers both. */
+  const railFit = document.createElement("div");
+  railFit.className = "rm-rail-fit";
+  railFit.appendChild(soberPanel);
+
+  wrapper.appendChild(railFit);
   wrapper.appendChild(appBar);
   mount.replaceChildren(wrapper);
+
+  const RAIL_W = 374, RAIL_H = 64;
+  /* On a phone the rail fills the width. On a laptop that same sum would
+     make it 185px tall, which is a billboard, so the scale stops a little
+     past phone size and the rail centers in whatever is left. */
+  const RAIL_MAX_S = 1.15;
+  function fitRail() {
+    const w = railFit.getBoundingClientRect().width;
+    if (!w) return;
+    const scale = Math.min(w / RAIL_W, RAIL_MAX_S);
+    const root = document.documentElement.style;
+    root.setProperty("--rm-rail-s", String(scale));
+    root.setProperty("--rm-rail-x", ((w - RAIL_W * scale) / 2).toFixed(2) + "px");
+    /* The page's bottom padding was written for a 64px rail. Hand it the
+       difference so the last line of a reading never ends up under the bar
+       on a big phone, and no dead space opens up on a small one. */
+    root.setProperty("--rm-rail-extra", (RAIL_H * (scale - 1)).toFixed(2) + "px");
+  }
+  fitRail();
+  if (typeof ResizeObserver === "function") {
+    new ResizeObserver(fitRail).observe(railFit);
+  } else {
+    window.addEventListener("resize", fitRail);
+    window.addEventListener("orientationchange", fitRail);
+  }
 
   const setBtn = soberPanel.querySelector("#rmSetSoberDateBtn");
   if (setBtn) {
