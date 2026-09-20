@@ -190,6 +190,32 @@
         box-sizing: border-box;
       }
 
+      /* GLAD YOU ARE HERE, <name>.
+
+         Sits across the top of the bar and only exists for somebody signed
+         in. The name is read straight out of the stored session -- no
+         network and no account.js, just one localStorage read on a page
+         that was going to read localStorage anyway. */
+      .rm-greet {
+        display:inline-flex;align-items:center;gap:7px;
+        margin:0 0 7px 4px;
+        padding:6px 12px;
+        border-radius:999px;
+        background:rgba(10,10,10,.92);
+        border:1px solid rgba(255,255,255,.08);
+        backdrop-filter:blur(10px);
+        -webkit-backdrop-filter:blur(10px);
+        font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+        font-size:12px;letter-spacing:.2px;line-height:1;
+        color:#aaa497;
+        /* a long made-up name must not push the pill off the screen */
+        max-width:calc(100% - 8px);
+      }
+      .rm-greet span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .rm-greet b{color:#d6b36a;font-weight:800}
+      .rm-greet svg{width:13px;height:13px;flex:none;fill:none;
+        stroke:#d6b36a;stroke-width:2;opacity:.9}
+
       .rm-sober-panel {
         flex: 0 0 310px;
         min-width: 0;
@@ -1129,8 +1155,37 @@
     navLinks.appendChild(a);
   });
 
+  /* THE GREETING, IF THERE IS SOMEBODY TO GREET. Signed out, it is simply
+     not in the DOM. */
+  const greetName = (function () {
+    try {
+      const raw = localStorage.getItem("rm_account_v1");
+      if (!raw) return "";
+      const j = JSON.parse(raw);
+      return (j && typeof j.name === "string") ? j.name : "";
+    } catch (e) { return ""; }
+  })();
+
   appBar.appendChild(soberPanel);
   appBar.appendChild(navLinks);
+
+  /* ABOVE THE BAR, NOT INSIDE IT. #rmAppBar is a flex row that turns into a
+     column on a phone, so a third child lands either beside the nav or
+     underneath it depending on the width. Its own strip above the bar is
+     the same thing on every screen. */
+  if (greetName) {
+    const greet = document.createElement("div");
+    greet.className = "rm-greet";
+    greet.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+      '<path d="M20 7.5L10 17l-5-4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '<span>Glad you&rsquo;re here, <b></b></span>';
+    /* textContent, not innerHTML: that name came out of a box somebody typed
+       into, and it is about to appear on every page of the app. */
+    greet.querySelector("b").textContent = greetName;
+    wrapper.appendChild(greet);
+  }
+
   wrapper.appendChild(appBar);
   mount.replaceChildren(wrapper);
 

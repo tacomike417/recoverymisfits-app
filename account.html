@@ -52,6 +52,15 @@
     color:var(--ivory);
   }
 
+  .dsDate{
+    font-family:var(--display);font-size:27px;line-height:1.1;color:#fff;
+    margin:4px 0 0;
+  }
+  .dsDays{
+    font-family:var(--ui);font-weight:800;font-size:11px;letter-spacing:1.6px;
+    text-transform:uppercase;color:var(--gold);margin:7px 0 0;
+  }
+
   .creds{margin:4px 0 0}
   .creds div{
     display:flex;align-items:baseline;gap:12px;
@@ -235,6 +244,29 @@
     <button class="go" type="button" id="freshDone" style="margin-top:14px">I&rsquo;ve Got It Saved</button>
   </div>
 
+  <!-- ============ ONE MORE THING ============
+       Straight after the account, because an account with nothing in it is
+       a chore somebody just did for no reason they can see. Picking the
+       date here is the moment it pays off -- and then they are sent home,
+       not left on a settings screen. -->
+  <div id="datestep" hidden>
+    <div class="warn" style="text-align:center">
+      <h2 id="dsKick">One more thing</h2>
+      <p id="dsAsk" style="text-align:center">When did you get sober?<br>
+         <span style="color:var(--muted)">This is the part that follows you to a new phone.</span></p>
+      <div id="dsDone" hidden>
+        <p class="dsDate" id="dsDate"></p>
+        <p class="dsDays" id="dsDays"></p>
+      </div>
+    </div>
+    <button class="go" type="button" id="dsPick" style="margin-top:14px">Pick My Sober Date</button>
+    <a class="go" id="dsHome" href="/index.html" hidden
+       style="margin-top:14px;text-decoration:none">Take Me Home</a>
+    <button class="go" type="button" id="dsSkip"
+            style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:8px">
+      Not Right Now</button>
+  </div>
+
   <!-- ============ SIGNED IN ============ -->
   <div id="in" hidden>
     <div class="who">
@@ -296,13 +328,72 @@
 
   /* Three states, one at a time: the form, the card you get once after
      signing up, and the signed-in screen. */
-  function paint(showFresh) {
-    var inAcct = A.signedIn();
-    $("out").hidden = inAcct;
-    $("fresh").hidden = !showFresh;
-    $("in").hidden = !inAcct || !!showFresh;
-    if (inAcct) $("who").textContent = A.name();
+  var STEP = { form:"out", fresh:"fresh", date:"datestep", done:"in" };
+  function paint(step) {
+    Object.keys(STEP).forEach(function (k) {
+      $(STEP[k]).hidden = (k !== step);
+    });
+    if (A.signedIn()) $("who").textContent = A.name();
   }
+
+  function soberDate() {
+    try {
+      var d = localStorage.getItem("rm_sober_date");
+      return d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : "";
+    } catch (e) { return ""; }
+  }
+
+  function daysSince(ymd) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+    if (!m) return null;
+    var start = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.max(0, Math.floor((today - start) / 86400000) + 1);
+  }
+
+  /* ---- the date step -----------------------------------------------------
+     nav.js owns the wheels and its SET button is on every page, so asking
+     for them is a click on that button. There is no event when somebody
+     saves, so this watches localStorage for a few seconds instead -- cheap,
+     and it stops the moment it sees one. */
+  var watching = null;
+  function showDateStep() {
+    var d = soberDate();
+    if (d) {
+      $("dsKick").textContent = "You're all set";
+      $("dsAsk").hidden = true;
+      $("dsDone").hidden = false;
+      $("dsDate").textContent = pretty(d);
+      var n = daysSince(d);
+      $("dsDays").textContent = n === null ? "" : n.toLocaleString() + (n === 1 ? " day" : " days");
+      $("dsPick").hidden = true;
+      $("dsSkip").hidden = true;
+      $("dsHome").hidden = false;
+    } else {
+      $("dsKick").textContent = "One more thing";
+      $("dsAsk").hidden = false;
+      $("dsDone").hidden = true;
+      $("dsPick").hidden = false;
+      $("dsSkip").hidden = false;
+      $("dsHome").hidden = true;
+    }
+    paint("date");
+  }
+
+  $("dsPick").addEventListener("click", function () {
+    var b = document.getElementById("rmSetSoberDateBtn");
+    if (!b) return;
+    b.click();
+    clearInterval(watching);
+    var tries = 0;
+    watching = setInterval(function () {
+      if (soberDate()) { clearInterval(watching); showDateStep(); }
+      else if (++tries > 240) clearInterval(watching);   /* two minutes, then give up */
+    }, 500);
+  });
+
+  $("dsSkip").addEventListener("click", function () { location.href = "/index.html"; });
 
   /* Where they were headed before this screen got in the way. SET on the
      sober bar sends people here when they have no date and no account. */
@@ -360,26 +451,16 @@
           navigator.clipboard.writeText(msg).then(done, function () {});
         }
       };
-      paint(true);
-    } else {
-      paint(false);
+      paint("fresh");
+      await settle(true);
+      return;
     }
 
-    await settle(mode === "new");
+    await settle(false);
+    showDateStep();
   });
 
-  $("freshDone").addEventListener("click", function () {
-    paint(false);
-    if (next === "set") goSetDate();
-  });
-
-  /* Straight into the date wheels, which is what they were trying to do when
-     this screen appeared. nav.js owns that modal and its SET button is on
-     every page, so clicking it is how we ask for it. */
-  function goSetDate() {
-    var b = document.getElementById("rmSetSoberDateBtn");
-    if (b) b.click();
-  }
+  $("freshDone").addEventListener("click", showDateStep);
 
   /* ---- bringing the two copies together ---------------------------------
      A brand new account has nothing in it, so whatever is on this phone
@@ -443,17 +524,21 @@
 
   $("out2").addEventListener("click", function () {
     A.signOut();
-    paint();
+    paint("form");
     setMode("new");
     $("nm").value = ""; $("pw").value = "";
   });
 
   /* Somebody sent here by SET who already has an account just needs to sign
      in, so that is the tab that opens. */
-  setMode(next === "set" && A.signedIn() ? "old" : "new");
-  paint(false);
+  setMode("new");
   if (A.signedIn()) {
-    settle(false).then(function () { if (next === "set") goSetDate(); });
+    paint(soberDate() ? "done" : "date");
+    settle(false).then(function () {
+      if (!soberDate() || next === "set") showDateStep();
+    });
+  } else {
+    paint("form");
   }
 })();
 </script>

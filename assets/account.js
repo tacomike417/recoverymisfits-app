@@ -66,11 +66,30 @@
     return String(name || "").trim().toLowerCase();
   }
 
+  /* THE TWO THINGS PEOPLE TYPE HERE OUT OF HABIT.
+
+     Every sign-up form they have ever filled in wanted an email, so some
+     of them will put one here without thinking. A phone number is the other
+     reflex. Both would be the one thing this app promises not to hold, and
+     the charset rule would have caught them -- but "letters and numbers
+     only" does not tell somebody WHY, and being told why is the whole point
+     of this screen. So they get named, before anything else is checked. */
   function nameProblem(name) {
+    var raw = String(name || "").trim();
     var n = cleanName(name);
+
+    if (raw.indexOf("@") !== -1 || /\.(com|net|org|edu|gov|co|io|me)\b/i.test(raw)) {
+      return "Please don't use your email. Nothing here needs one — " +
+             "make up a name instead.";
+    }
+    if (/\d[\d\s().-]{6,}/.test(raw)) {
+      return "Please don't use your phone number. Make up a name instead.";
+    }
     if (n.length < 3) return "Pick a name at least 3 characters long.";
     if (n.length > 32) return "That name is too long.";
-    if (!/^[a-z0-9._-]+$/.test(n)) return "Letters, numbers, dots, dashes and underscores only.";
+    if (!/^[a-z0-9._-]+$/.test(n)) {
+      return "Letters, numbers, dots, dashes and underscores only.";
+    }
     return null;
   }
 
@@ -150,7 +169,12 @@
   }
 
   async function signIn(name, password) {
+    var raw = String(name || "").trim();
+    if (raw.indexOf("@") !== -1) {
+      return { ok: false, error: "That's an email. Your name here is the one you made up." };
+    }
     var bad = nameProblem(name);
+    /* Anything else stays deliberately vague -- see readError. */
     if (bad) return { ok: false, error: "That name or password isn't right." };
     try {
       var res = await post("/auth/v1/token?grant_type=password",
