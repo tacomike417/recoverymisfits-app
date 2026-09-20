@@ -234,8 +234,14 @@
   }
 
   function signOut() {
-    /* Local only, and deliberately: the settings stay on this phone exactly
-       as they are. Signing out is "stop syncing", not "erase my date". */
+    /* SIGN THE DATE ON THE WAY OUT.
+
+       The date stays on this phone -- signing out is "stop syncing", not
+       "erase my date". But it has to leave with a signature on it, or the
+       next account to be made on this phone finds an unsigned date and
+       quite reasonably takes it for its own. That is exactly how a new
+       account ended up wearing somebody else's sober time. */
+    claimLocal();
     remember(null);
   }
 
@@ -325,6 +331,25 @@
     } catch (e) {}
   }
 
+  /* HEAL WHAT WAS ALREADY THERE.
+
+     Every date set before this file learned about signatures is unsigned,
+     including the ones that plainly belong to somebody's account. If there
+     is a session and an unsigned date sitting next to it, that date is
+     theirs -- they are the only account that has touched this phone. Sign
+     it now, once, so the next account cannot mistake it for unclaimed.
+
+     Runs on every page because account.js is fetched by nav.js, and it
+     costs one localStorage read when there is nothing to do. */
+  (function healUnsignedDate() {
+    try {
+      if (!session || !session.uid) return;
+      if (localStorage.getItem(OWNER_KEY)) return;
+      var d = localStorage.getItem(SOBER_KEY);
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) claimLocal();
+    } catch (e) {}
+  })();
+
   window.RMAccount = {
     signedIn: function () { return !!session; },
     name: function () { return (session && session.name) || ""; },
@@ -336,6 +361,7 @@
     local: localSettings,
     apply: applySettings,
     uid: uid,
+    localOwner: localOwner,
     localIsMine: localIsMine,
     claimLocal: claimLocal,
     forgetLocal: forgetLocal,

@@ -270,6 +270,27 @@
     <button class="go" type="button" id="freshDone" style="margin-top:14px">I&rsquo;ve Got It Saved</button>
   </div>
 
+  <!-- ============ WHOSE DATE IS THIS ============
+       Only ever appears for a BRAND NEW account that found a sober date on
+       the phone with no signature on it -- which now means one thing only:
+       it was set before this app had accounts at all.
+
+       It used to be adopted silently, and that is how a new account could
+       end up wearing somebody else's sober time. Nothing is worth guessing
+       about here, so it asks. After today this screen should be close to
+       extinct, because every date set from here on is signed. -->
+  <div id="claimask" hidden>
+    <div class="warn">
+      <h2>One question first</h2>
+      <p style="text-align:center">There&rsquo;s already a sober date saved on this phone:</p>
+      <p class="dsDate" id="caDate" style="text-align:center"></p>
+      <p style="text-align:center;margin-top:10px">Is that yours?</p>
+    </div>
+    <button class="go" type="button" id="caYes" style="margin-top:14px">Yes, That&rsquo;s Mine</button>
+    <button class="go" type="button" id="caNo"
+            style="background:transparent;color:var(--gold);margin-top:8px">No, Start Fresh</button>
+  </div>
+
   <!-- ============ ONE MORE THING ============
        Straight after the account, because an account with nothing in it is
        a chore somebody just did for no reason they can see. Picking the
@@ -329,7 +350,7 @@
      signing up, and the one screen you land on whenever you are signed in
      -- which asks for your sober date if it does not have one and shows it
      if it does. There is no separate settings page to get stranded on. */
-  var STEP = { form:"out", fresh:"fresh", date:"datestep" };
+  var STEP = { form:"out", fresh:"fresh", claim:"claimask", date:"datestep" };
   function paint(step) {
     Object.keys(STEP).forEach(function (k) {
       $(STEP[k]).hidden = (k !== step);
@@ -461,7 +482,30 @@
     showDateStep();
   });
 
-  $("freshDone").addEventListener("click", showDateStep);
+  /* After the password card: if this phone is carrying an unsigned date, ask
+     whose it is before anything adopts it. Otherwise straight to the date. */
+  $("freshDone").addEventListener("click", function () {
+    var d = soberDate();
+    if (d && !A.localOwner()) {
+      $("caDate").textContent = pretty(d);
+      paint("claim");
+      return;
+    }
+    showDateStep();
+  });
+
+  $("caYes").addEventListener("click", async function () {
+    A.claimLocal();
+    await A.push(Object.assign({}, A.local()));
+    showDateStep();
+  });
+
+  $("caNo").addEventListener("click", function () {
+    /* Not theirs. Off the phone, so nobody is shown a stranger's sober time
+       under their own name. */
+    A.forgetLocal();
+    showDateStep();
+  });
 
   /* ---- bringing the two copies together ---------------------------------
      A brand new account has nothing in it, so whatever is on this phone
@@ -484,7 +528,15 @@
 
     var remote = await A.pull();
 
-    if (isNew || !remote || !remote.data || !Object.keys(remote.data).length) {
+    /* A BRAND NEW ACCOUNT ADOPTS NOTHING BY ITSELF.
+
+       Whatever is on this phone was put there by somebody, and a new
+       account has no way of knowing it was the same somebody. If there is
+       an unsigned date here, the screen asks before anything is taken --
+       see #claimask. Until they answer, the account stays empty. */
+    if (isNew) return;
+
+    if (!remote || !remote.data || !Object.keys(remote.data).length) {
       if (Object.keys(local).length) { await A.push(local); A.claimLocal(); }
       return;
     }

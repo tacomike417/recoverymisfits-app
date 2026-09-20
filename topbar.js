@@ -16,7 +16,7 @@
      reloads the page past the cache, which is the other half of the same
      problem.
      ==================================================================== */
-  const RM_VERSION = "v418";
+  const RM_VERSION = "v419";
 
   /* -------------------------
      Google Analytics (GA4)
