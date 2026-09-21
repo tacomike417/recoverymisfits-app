@@ -385,6 +385,57 @@ body::after{
   .erow.justmoved{animation:none}
 }
 
+/* ---- A PRAYER IN THE STACK ----------------------------------------------
+   It is a button, not a link -- the words open here rather than somewhere
+   else -- so it has to be told to look like the rows either side of it. */
+.row-prayer{
+  width:100%;text-align:left;font:inherit;color:inherit;
+  border:1px solid rgba(216,180,91,.3);cursor:pointer;
+  grid-template-columns:54px 1fr auto;
+}
+.row-prayer .words{grid-column:1/-1;display:block;padding:12px 4px 4px}
+/* The drawn mark, in the same gold line as everything else on the page. */
+.ico-drawn{
+  width:44px;height:44px;justify-self:center;
+  stroke:var(--gold);fill:none;stroke-width:1.8;opacity:.9;
+}
+.row-prayer[aria-expanded="true"] .pill svg{transform:rotate(90deg)}
+.row-prayer .pill svg{transition:transform .2s ease}
+.row-prayer .ln{
+  display:block;font-family:var(--display);font-weight:400;
+  font-size:15px;line-height:1.55;color:#f2e9d4;
+}
+.row-prayer .gap{display:block;height:10px}
+.row-prayer .src{
+  display:block;margin-top:12px;padding-top:9px;
+  border-top:1px solid rgba(216,180,91,.22);
+  font-family:var(--ui);font-size:10.5px;line-height:1.4;color:var(--muted);
+}
+
+/* ---- THE PRAYERS DRAWER IN THE PICKER ------------------------------------
+   Four prayers loose in "Not shown" would bury the readings somebody
+   actually took off, and it only gets worse as more are added. One row that
+   opens. */
+.grp{border:1px solid rgba(216,180,91,.3);border-radius:var(--radius);overflow:hidden}
+.grphead{
+  width:100%;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;
+  min-height:56px;padding:0 12px;border:0;background:transparent;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.grphead .gt{
+  font-family:var(--display);font-weight:600;font-size:15px;
+  text-transform:uppercase;color:#f6efdd;text-align:left;
+}
+.grphead .gn{
+  min-width:24px;height:24px;border-radius:999px;padding:0 7px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(216,180,91,.18);border:1px solid rgba(216,180,91,.4);
+  font-family:var(--ui);font-weight:800;font-size:11px;color:#f0e2c2;
+}
+.gchev{width:20px;height:20px;color:var(--gold);transition:transform .2s ease}
+.grp.open .gchev{transform:rotate(180deg)}
+.grpbody{display:grid;gap:9px;padding:0 9px 10px}
+
 .emptynote{
   margin:0;padding:12px 4px;font-family:var(--ui);font-size:11.5px;
   line-height:1.45;color:var(--muted);
@@ -763,7 +814,87 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     { id: "reflections", t: "Daily Reflections",       d: "Experience, strength and hope.", ico: "assets/pages/r-ico-sprout.webp" },
     { id: "anotherday",  t: "Another Day Sober",       d: "Daily step study.",              ico: "assets/pages/r-ico-road.webp" }
   ];
+  /* ---- THE PRAYERS -------------------------------------------------------
+     Each one is a row you can add to your stack, and tapping it opens the
+     words right there rather than sending you somewhere.
+
+     WHAT IS IN HERE AND WHY. Only prayers whose text we can carry honestly:
+
+       St Francis  -- first printed anonymously in 1912 and in the public
+                      domain. This is the traditional English wording, NOT
+                      the rendering in the Twelve and Twelve, which is a
+                      1952 book and is not ours to copy.
+       Serenity    -- the short form, as it is said in every room and
+                      printed on AA's own material.
+
+     THE TWO BIG BOOK PRAYERS ARE HERE WITH NO WORDS IN THEM ON PURPOSE.
+     The Third Step and Seventh Step prayers come off pages 63 and 76. The
+     1939 first edition is the one this project decided to use and the
+     modern editions are not -- and the wording is not identical between
+     them. Typing them from memory would most likely put the copyrighted
+     wording in the app, which is the one thing we said we would not do.
+
+     A prayer with no text is not offered in the picker at all, so nothing
+     here is broken or half-shown. Paste the 1939 wording into `text` and
+     the row appears on its own. */
+  /* A MARK OF THEIR OWN. Handing a prayer one of the dailies' icons made
+     St Francis turn up wearing the 24 Hours calendar, which reads as a bug
+     rather than as a placeholder. This is drawn in the same gold line as
+     the rest of the page and shared by all of them, which also says they
+     are a set. Swap in real art per prayer whenever it exists. */
+  var PRAY_ICO =
+    '<svg class="ico ico-drawn" viewBox="0 0 48 48" aria-hidden="true">' +
+      '<path d="M24 6v9M24 33v9M6 24h9M33 24h9" stroke-linecap="round"/>' +
+      '<path d="M24 15c2.6 4.6 4.4 6.4 9 9-4.6 2.6-6.4 4.4-9 9-2.6-4.6-4.4-6.4-9-9 4.6-2.6 6.4-4.4 9-9z"/>' +
+    '</svg>';
+
+  var PRAYERS = [
+    { id: "pr-serenity", t: "The Serenity Prayer", d: "The one we say together.",
+      src: "The short form, as it is said in meetings.",
+      text: [
+        "God, grant me the serenity to accept the things I cannot change,",
+        "the courage to change the things I can,",
+        "and the wisdom to know the difference."
+      ] },
+
+    { id: "pr-step3", t: "Third Step Prayer", d: "Offering yourself.",
+      src: "Alcoholics Anonymous, 1st edition (1939), p. 63.",
+      text: [] },                       /* awaiting the 1939 wording */
+
+    { id: "pr-step7", t: "Seventh Step Prayer", d: "Asking for them to be removed.",
+      src: "Alcoholics Anonymous, 1st edition (1939), p. 76.",
+      text: [] },                       /* awaiting the 1939 wording */
+
+    { id: "pr-francis", t: "Prayer of St. Francis", d: "An instrument of peace.",
+      src: "Traditional. First printed anonymously in 1912; public domain.",
+      text: [
+        "Lord, make me an instrument of Thy peace.",
+        "Where there is hatred, let me sow love;",
+        "where there is injury, pardon;",
+        "where there is doubt, faith;",
+        "where there is despair, hope;",
+        "where there is darkness, light;",
+        "and where there is sadness, joy.",
+        "",
+        "O Divine Master, grant that I may not so much seek",
+        "to be consoled as to console;",
+        "to be understood as to understand;",
+        "to be loved as to love.",
+        "",
+        "For it is in giving that we receive;",
+        "it is in pardoning that we are pardoned;",
+        "and it is in dying that we are born to eternal life."
+      ] }
+  ];
+
+  /* A prayer with nothing to say is not offered. */
+  var READY = PRAYERS.filter(function (p) { return p.text && p.text.length; });
+  READY.forEach(function (p) { p.kind = "prayer"; ITEMS.push(p); });
+
+  /* The four dailies are the default stack. A prayer is something you go and
+     add, so it starts off the stack rather than on it. */
   var DEFAULT_ORDER = ITEMS.map(function (i) { return i.id; });
+  var DEFAULT_OFF = READY.map(function (p) { return p.id; });
 
   var byId = function (id) {
     for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i];
@@ -777,7 +908,8 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      is still read and quietly upgraded, so nobody who used the editor
      yesterday loses what they chose. */
   var order = DEFAULT_ORDER.slice();
-  var off = [];
+  var off = DEFAULT_OFF.slice();
+  var touched = false;        /* have they ever opened the editor and chosen? */
 
   function normalize() {
     /* Only ids we know, no duplicates, and anything new in ITEMS appended --
@@ -797,10 +929,20 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
       var raw = localStorage.getItem(KEY);
       if (!raw) return;
       var v = JSON.parse(raw);
-      if (Array.isArray(v)) { off = v; }                    /* the old shape */
+      if (Array.isArray(v)) { off = v.concat(DEFAULT_OFF); touched = true; }  /* the old shape */
       else if (v && typeof v === "object") {
         if (Array.isArray(v.order)) order = v.order;
         if (Array.isArray(v.off)) off = v.off;
+        touched = true;
+        /* A PRAYER THE SAVED SETTING NEVER HEARD OF STAYS OFF. Somebody who
+           arranged their stack last week must not open the app today and
+           find four prayers in it they never asked for. Only a setting that
+           mentions a prayer gets to say it is on. */
+        var known = {};
+        (v.order || []).forEach(function (id) { known[id] = 1; });
+        DEFAULT_OFF.forEach(function (id) {
+          if (!known[id] && off.indexOf(id) === -1) off.push(id);
+        });
       }
     } catch (e) { /* private browsing: the default stack is the right answer */ }
     normalize();
@@ -831,12 +973,43 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      belongs in the HTML. They are re-inserted BEFORE the two hand-drawn
      margin notes so those stay last in the box and keep sitting where they
      were drawn to sit. */
+  /* A PRAYER'S ROW IS BUILT, NOT FOUND. The four dailies are in the HTML
+     because they have always been there and they carry their own artwork.
+     A prayer is something somebody added, so its row is made the first time
+     it is needed and then kept. */
+  function prayerRow(box, it) {
+    var row = box.querySelector('.row[data-stack="' + it.id + '"]');
+    if (row) return row;
+    row = document.createElement("button");
+    row.type = "button";
+    row.className = "row row-prayer";
+    row.setAttribute("data-stack", it.id);
+    row.setAttribute("data-prayer", it.id);
+    row.setAttribute("aria-expanded", "false");
+    row.innerHTML =
+      icoHTML(it) +
+      '<span class="txt"><span class="t">' + esc(it.t) + '</span>' +
+      '<span class="d">' + esc(it.d) + '</span></span>' +
+      '<span class="pill">Read <svg viewBox="0 0 24 12" aria-hidden="true">' +
+        '<path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
+      '<span class="words" hidden>' +
+        it.text.map(function (line) {
+          return line ? '<span class="ln">' + esc(line) + '</span>' : '<span class="gap"></span>';
+        }).join("") +
+        '<span class="src">' + esc(it.src) + '</span>' +
+      '</span>';
+    return row;
+  }
+
   function paintStack() {
     var box = document.querySelector(".stack");
     if (!box) return;
     var firstNote = box.querySelector(".m-progress");
     shown().forEach(function (id) {
-      var row = box.querySelector('.row[data-stack="' + id + '"]');
+      var it = byId(id);
+      var row = (it && it.kind === "prayer")
+        ? prayerRow(box, it)
+        : box.querySelector('.row[data-stack="' + id + '"]');
       if (!row) return;
       row.hidden = false;
       if (firstNote) box.insertBefore(row, firstNote);
@@ -851,6 +1024,13 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
   /* ---- the editor ------------------------------------------------------ */
   var UP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6M6 12l6-6 6 6"/></svg>';
 
+  /* A built-in carries a drawn file; a prayer carries the shared mark. */
+  function icoHTML(it) {
+    return it.ico
+      ? '<img class="ico" src="' + it.ico + '" alt="" aria-hidden="true">'
+      : PRAY_ICO;
+  }
+
   function esc(x) {
     return String(x).replace(/[&<>"]/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
@@ -864,7 +1044,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
         '<button class="mv" type="button" data-move="up" data-id="' + it.id + '"' +
           (first ? ' disabled' : '') + ' aria-label="Move ' + esc(it.t) + ' up one">' + UP + '</button>' +
       '</div>' +
-      '<img class="ico" src="' + it.ico + '" alt="" aria-hidden="true">' +
+      icoHTML(it) +
       '<span class="txt"><span class="t">' + esc(it.t) + '</span>' +
       '<span class="d">' + esc(it.d) + '</span></span>' +
       '<button class="toggle" type="button" data-take="' + it.id + '"' +
@@ -874,7 +1054,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 
   function offRow(it) {
     return '<div class="erow isoff" data-row-id="' + it.id + '">' +
-      '<img class="ico" src="' + it.ico + '" alt="" aria-hidden="true">' +
+      icoHTML(it) +
       '<span class="txt"><span class="t">' + esc(it.t) + '</span>' +
       '<span class="d">' + esc(it.d) + '</span></span>' +
       '<button class="toggle" type="button" data-add="' + it.id + '"' +
@@ -927,13 +1107,41 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     });
   }
 
+  /* PRAYERS GATHER UNDER ONE HEADING. Four prayers loose in "Not shown"
+     would bury the readings somebody actually took off, and it only gets
+     worse as more are added. One row that opens, so the list underneath is
+     as long as it likes and the screen never is. */
+  var prayersOpen = false;
+
+  function prayerGroupHTML(list) {
+    if (!list.length) return "";
+    return '<div class="grp' + (prayersOpen ? " open" : "") + '">' +
+      '<button class="grphead" type="button" data-prayers aria-expanded="' +
+        (prayersOpen ? "true" : "false") + '">' +
+        '<span class="gt">Prayers</span>' +
+        '<span class="gn">' + list.length + '</span>' +
+        '<svg class="gchev" viewBox="0 0 24 24" aria-hidden="true">' +
+          '<path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" ' +
+          'stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '</button>' +
+      '<div class="grpbody"' + (prayersOpen ? "" : " hidden") + '>' +
+        list.map(function (id) { return offRow(byId(id)); }).join("") +
+      '</div></div>';
+  }
+
   function paintEditor() {
     var on = shown();
     var setAside = order.filter(function (id) { return isOff(id); });
+    var prayers = setAside.filter(function (id) {
+      var it = byId(id); return it && it.kind === "prayer";
+    });
+    var plain = setAside.filter(function (id) { return prayers.indexOf(id) === -1; });
+
     document.getElementById("stackOn").innerHTML =
       on.map(function (id, i) { return onRow(byId(id), i); }).join("");
     document.getElementById("stackOff").innerHTML =
-      setAside.map(function (id) { return offRow(byId(id)); }).join("");
+      plain.map(function (id) { return offRow(byId(id)); }).join("") +
+      prayerGroupHTML(prayers);
     document.getElementById("stackOnEmpty").hidden = on.length > 0;
     document.getElementById("stackOffEmpty").hidden = setAside.length > 0;
   }
@@ -999,6 +1207,31 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
   document.addEventListener("click", function (e) {
     if (e.target.closest("#stackEdit")) { openSheet(); return; }
     if (e.target.closest("[data-stack-close]")) { closeSheet(); return; }
+
+    /* The Prayers heading. Opening it is not a history step -- it is a
+       drawer inside a panel, and Back has to keep meaning "close the
+       editor" or it stops being predictable. */
+    var grp = e.target.closest("[data-prayers]");
+    if (grp) {
+      prayersOpen = !prayersOpen;
+      var b0 = marks();
+      paintEditor();
+      travel(b0, null);
+      return;
+    }
+
+    /* TAPPING A PRAYER IN THE STACK OPENS THE WORDS, right there. It is
+       four lines, not a page -- sending somebody somewhere to read four
+       lines and then find their way back is the thing this whole morning
+       has been about. */
+    var pray = e.target.closest("[data-prayer]");
+    if (pray && !e.target.closest("[data-edit-box]")) {
+      var open = pray.getAttribute("aria-expanded") === "true";
+      pray.setAttribute("aria-expanded", open ? "false" : "true");
+      var w = pray.querySelector(".words");
+      if (w) w.hidden = open;
+      return;
+    }
 
     var mv = e.target.closest("[data-move]");
     if (mv && !mv.disabled) { move(mv.getAttribute("data-id"), mv.getAttribute("data-move")); return; }
