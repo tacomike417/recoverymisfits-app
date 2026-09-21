@@ -173,6 +173,12 @@ body::after{
 
 .rows{display:grid;gap:11px;position:relative}
 .stack{display:grid;gap:11px;position:relative}
+/* A ROW TAKEN OFF THE STACK HAS TO ACTUALLY GO.
+   .row is display:grid, and an explicit display beats the browser's own
+   [hidden] rule -- so setting .hidden in JS marked the row hidden and left
+   it sitting on the page in full view. The attribute needs saying out loud
+   here or the whole editor does nothing visible. */
+.row[hidden]{display:none}
 
 /* THE WHOLE ROW IS THE LINK. The mockup's OPEN pill is 21px tall, which is
    half of what anything tappable is allowed to be -- so the pill stays the
@@ -218,6 +224,90 @@ body::after{
   color:#f0e2c2;text-transform:uppercase;white-space:nowrap;
 }
 .pill svg{width:15px;height:9px;stroke:var(--gold);fill:none;stroke-width:1.8}
+
+/* ---- THE EDIT PILL ------------------------------------------------------
+   The heading is a drawn image, so this sits beside it. 44px of tap target
+   even though the pill reads small -- it is the only way into the editor
+   and a thumb has to land on it first time. */
+.stackhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.editpill{
+  flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;
+  min-height:44px;padding:0 14px;border-radius:999px;
+  border:1.4px solid var(--gold);background:transparent;
+  font-family:var(--ui);font-weight:800;font-size:11px;letter-spacing:1.2px;
+  color:#f0e2c2;text-transform:uppercase;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.editpill svg{width:14px;height:14px;stroke:var(--gold);fill:none;stroke-width:1.8}
+.editpill:active{background:rgba(216,180,91,.12)}
+
+/* ---- THE EDITOR ---------------------------------------------------------
+   Slides up over the list rather than being a page of its own, so the stack
+   is right underneath and a change is visible the moment it closes. Anchored
+   to the bottom because that is where a thumb already is.
+
+   THE PHONE'S BACK BUTTON CLOSES IT. Opening pushes a history entry and Back
+   pops it -- there is no on-screen back arrow anywhere in here on purpose.
+   Every way out (the X, the dimmed page behind it, Escape, Back) goes
+   through one closing path, so what is on screen and the history stack
+   cannot drift apart. */
+.sheetwrap{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center}
+.sheetwrap[hidden]{display:none}
+.sheetdim{position:absolute;inset:0;background:rgba(0,0,0,.72)}
+.sheetbox{
+  position:relative;width:100%;max-width:520px;max-height:86vh;overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  background:var(--panel);border:1px solid rgba(216,180,91,.34);
+  border-radius:18px 18px 0 0;
+  padding:14px 14px calc(16px + env(safe-area-inset-bottom));
+  box-shadow:0 -14px 46px rgba(0,0,0,.72);
+}
+.sheettop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.sheettop h2{
+  margin:0;font-family:var(--display);font-weight:600;font-size:17px;
+  letter-spacing:.3px;text-transform:uppercase;color:#f6efdd;
+}
+.sheetx{
+  width:44px;height:44px;border-radius:50%;
+  border:1px solid rgba(216,180,91,.34);background:transparent;
+  color:var(--muted);font-size:17px;line-height:1;cursor:pointer;
+}
+.sheetnote{
+  margin:0 0 12px;font-family:var(--ui);font-size:11.5px;line-height:1.45;color:var(--muted);
+}
+.grouphead{
+  margin:14px 0 8px;font-family:var(--ui);font-weight:800;
+  font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);
+}
+.editrows{display:grid;gap:9px}
+/* The same row the stack uses, minus the link. It has to LOOK like the thing
+   being edited or nobody connects the two. */
+.erow{
+  display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;
+  min-height:56px;padding:7px 10px 7px 6px;border-radius:var(--radius);
+  border:1px solid rgba(216,180,91,.3);background:var(--panel2, rgba(241,231,207,.03));
+}
+.erow .ico{width:42px;height:auto;justify-self:center}
+.erow .txt{border-left:1px solid rgba(216,180,91,.35);padding-left:10px;min-width:0}
+.erow .t{
+  display:block;font-family:var(--display);font-weight:600;font-size:14px;
+  line-height:1.08;text-transform:uppercase;color:#f6efdd;
+}
+.erow .d{display:block;font-family:var(--ui);font-size:11px;line-height:1.25;color:var(--muted);margin:2px 0 0}
+/* OFF rather than gone. Dimmed in the lower group so it reads as something
+   set aside, not something lost. */
+.editrows.off .erow{opacity:.62}
+.toggle{
+  flex:0 0 auto;width:44px;height:44px;border-radius:50%;
+  border:1.4px solid var(--gold);background:transparent;
+  color:#f0e2c2;font-size:21px;line-height:1;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.toggle:active{background:rgba(216,180,91,.12)}
+.emptynote{
+  margin:0;padding:12px 4px;font-family:var(--ui);font-size:11.5px;
+  line-height:1.45;color:var(--muted);
+}
 
 /* ---- the Big Book ------------------------------------------------------ */
 /* IT IS NOT PART OF THE DAILY STACK AND SHOULD NOT LOOK LIKE IT.
@@ -335,6 +425,13 @@ body::after{
 
   <div class="stackhead">
     <img src="assets/pages/r-stackhead.webp" alt="Your daily stack" width="521" height="61">
+    <!-- THE HEADING IS ARTWORK, so the pill sits beside it rather than
+         inside it. 44px tall even though it is drawn small: it is a real
+         control and a thumb has to land on it first time. -->
+    <button class="editpill" type="button" id="stackEdit" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18 10l-4-4L4 16z"/><path d="M14 6l4 4"/></svg>
+      Edit
+    </button>
   </div>
   <img class="stackrule" src="assets/pages/r-rule-stack.webp" alt="" aria-hidden="true" width="473" height="15">
 
@@ -347,25 +444,25 @@ body::after{
          .m-progress rule warns about. -->
     <div class="stack">
 
-    <a class="row" href="./on-awakening.html">
+    <a class="row" data-stack="awakening" href="./on-awakening.html">
       <img class="ico" src="assets/pages/r-ico-sun.webp" alt="" aria-hidden="true" width="124" height="78">
       <span class="txt"><span class="t">On Awakening</span><span class="d">Start the day with intention.</span></span>
       <span class="pill">Open <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </a>
 
-    <a class="row" href="https://www.hazeldenbettyford.org/thought-for-the-day" target="_blank" rel="noopener">
+    <a class="row" data-stack="hours24" href="https://www.hazeldenbettyford.org/thought-for-the-day" target="_blank" rel="noopener">
       <img class="ico" src="assets/pages/r-ico-cal.webp" alt="" aria-hidden="true" width="124" height="78">
       <span class="txt"><span class="t">Twenty-Four Hours a Day</span><span class="d">A thought for today.</span></span>
       <span class="pill">Open <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </a>
 
-    <a class="row" href="https://www.aa.org/daily-reflections" target="_blank" rel="noopener">
+    <a class="row" data-stack="reflections" href="https://www.aa.org/daily-reflections" target="_blank" rel="noopener">
       <img class="ico" src="assets/pages/r-ico-sprout.webp" alt="" aria-hidden="true" width="124" height="78">
       <span class="txt"><span class="t">Daily Reflections</span><span class="d">Experience, strength and hope.</span></span>
       <span class="pill">Open <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </a>
 
-    <a class="row" href="./another-day-sober.html">
+    <a class="row" data-stack="anotherday" href="./another-day-sober.html">
       <img class="ico" src="assets/pages/r-ico-road.webp" alt="" aria-hidden="true" width="124" height="78">
       <span class="txt"><span class="t">Another Day Sober</span><span class="d">Daily step study.</span></span>
       <span class="pill">Open <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -509,5 +606,211 @@ body::after{
 if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js"); }
 </script>
 
+
+<!-- ===================================================================
+     THE STACK EDITOR. Markup lives here rather than being built in JS so
+     it is in the page for a screen reader and for anybody reading the
+     source, and so its styling cannot drift from the rows it mirrors.
+     ================================================================ -->
+<div class="sheetwrap" id="stackSheet" hidden>
+  <div class="sheetdim" data-stack-close></div>
+  <div class="sheetbox" role="dialog" aria-modal="true" aria-labelledby="stackSheetTitle">
+    <div class="sheettop">
+      <h2 id="stackSheetTitle">Your Daily Stack</h2>
+      <button class="sheetx" type="button" data-stack-close aria-label="Close">&#10005;</button>
+    </div>
+    <p class="sheetnote">Take off anything you don&rsquo;t read. Nothing is deleted &mdash;
+       it drops to the bottom and you can put it back any morning.</p>
+
+    <p class="grouphead">In your stack</p>
+    <div class="editrows" id="stackOn"></div>
+    <p class="emptynote" id="stackOnEmpty" hidden>Nothing in your stack right now.
+       Everything is waiting below.</p>
+
+    <p class="grouphead">Not shown</p>
+    <div class="editrows off" id="stackOff"></div>
+    <p class="emptynote" id="stackOffEmpty" hidden>Nothing set aside &mdash; you&rsquo;re reading all of them.</p>
+  </div>
+</div>
+
+<script>
+/* ======================================================================
+   YOUR DAILY STACK, AS A CHOICE
+
+   The four dailies were four hard-coded rows. They still are -- the markup
+   and the artwork are untouched -- but which of them SHOW is now a setting,
+   and the editor is the same rows again with a + or a - on the end.
+
+   WHERE THE CHOICE LIVES. The same settings blob the account already syncs
+   (assets/account.js pull/push), mirrored into localStorage. So:
+     signed out -> it works, on this phone
+     signed in  -> it follows them to the next phone
+   and no new storage of any kind had to be invented.
+
+   NOTHING IS EVER DELETED. Taking a reading off moves it to "Not shown" and
+   it sits there waiting. That is the whole point: somebody who is not
+   reading the 24 Hours book this month should be able to take it off
+   without feeling like they threw it away.
+   ================================================================== */
+(function () {
+  "use strict";
+
+  var KEY = "rm_stack";
+
+  /* THE ORDER OF THIS LIST IS THE ORDER OF THE STACK. Both groups in the
+     editor are drawn from it, so a reading put back lands where it always
+     was rather than at the bottom. */
+  var ITEMS = [
+    { id: "awakening",   t: "On Awakening",           d: "Start the day with intention.", ico: "assets/pages/r-ico-sun.webp" },
+    { id: "hours24",     t: "Twenty-Four Hours a Day", d: "A thought for today.",          ico: "assets/pages/r-ico-cal.webp" },
+    { id: "reflections", t: "Daily Reflections",       d: "Experience, strength and hope.", ico: "assets/pages/r-ico-sprout.webp" },
+    { id: "anotherday",  t: "Another Day Sober",       d: "Daily step study.",             ico: "assets/pages/r-ico-road.webp" }
+  ];
+
+  /* Storage THROWS in private browsing -- it does not return null, it
+     raises -- so every read and write is wrapped and falls back to the
+     default, which is everything on. */
+  function readOff() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return [];
+      var v = JSON.parse(raw);
+      return Array.isArray(v) ? v.filter(function (id) {
+        return ITEMS.some(function (i) { return i.id === id; });
+      }) : [];
+    } catch (e) { return []; }
+  }
+
+  function writeOff(off) {
+    try { localStorage.setItem(KEY, JSON.stringify(off)); } catch (e) {}
+    /* And up to the account, if there is one. Merged into whatever else is
+       in the blob rather than replacing it -- the sober date lives there. */
+    try {
+      var A = window.RMAccount;
+      if (A && A.signedIn && A.signedIn() && A.pull && A.push) {
+        A.pull().then(function (remote) {
+          var data = (remote && remote.data) || {};
+          data.stackOff = off;
+          A.push(data);
+        }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+
+  var off = readOff();
+  var isOff = function (id) { return off.indexOf(id) !== -1; };
+
+  /* ---- the stack itself ------------------------------------------------ */
+  function paintStack() {
+    ITEMS.forEach(function (it) {
+      var row = document.querySelector('.row[data-stack="' + it.id + '"]');
+      if (row) row.hidden = isOff(it.id);
+    });
+  }
+
+  /* ---- the editor ------------------------------------------------------ */
+  function rowHTML(it, on) {
+    return '<div class="erow">' +
+      '<img class="ico" src="' + it.ico + '" alt="" aria-hidden="true">' +
+      '<span class="txt"><span class="t">' + it.t + '</span>' +
+      '<span class="d">' + it.d + '</span></span>' +
+      '<button class="toggle" type="button" data-stack-toggle="' + it.id + '" ' +
+      'aria-label="' + (on ? "Take " + it.t + " off your stack" : "Put " + it.t + " back on your stack") + '">' +
+      (on ? "&minus;" : "+") + '</button></div>';
+  }
+
+  function paintEditor() {
+    var onEls = ITEMS.filter(function (i) { return !isOff(i.id); });
+    var offEls = ITEMS.filter(function (i) { return isOff(i.id); });
+    document.getElementById("stackOn").innerHTML =
+      onEls.map(function (i) { return rowHTML(i, true); }).join("");
+    document.getElementById("stackOff").innerHTML =
+      offEls.map(function (i) { return rowHTML(i, false); }).join("");
+    document.getElementById("stackOnEmpty").hidden = onEls.length > 0;
+    document.getElementById("stackOffEmpty").hidden = offEls.length > 0;
+  }
+
+  /* ---- opening and closing --------------------------------------------
+     THE PHONE'S BACK BUTTON IS THE WAY OUT, so opening pushes an entry and
+     Back pops it. There is no on-screen back arrow in here on purpose --
+     nobody looks for one, and an arrow that is missed is worse than none.
+     Every deliberate close goes through closeSheet, which calls
+     history.back(), so there is ONE closing path and the stack of entries
+     cannot drift out of step with what is on the screen. */
+  var wrap = document.getElementById("stackSheet");
+  var pushed = false;
+
+  function openSheet() {
+    paintEditor();
+    wrap.hidden = false;
+    document.body.style.overflow = "hidden";
+    if (!pushed) {
+      pushed = true;
+      try { history.pushState({ rmStack: 1 }, "", location.href); }
+      catch (e) { pushed = false; }   /* no history API: the X still works */
+    }
+  }
+
+  function hideSheet() {
+    wrap.hidden = true;
+    document.body.style.overflow = "";
+    pushed = false;
+  }
+
+  function closeSheet() {
+    if (pushed) { try { history.back(); return; } catch (e) {} }
+    hideSheet();
+  }
+
+  window.addEventListener("popstate", function () {
+    if (!wrap.hidden) hideSheet();
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !wrap.hidden) closeSheet();
+  });
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#stackEdit")) { openSheet(); return; }
+    if (e.target.closest("[data-stack-close]")) { closeSheet(); return; }
+
+    var t = e.target.closest("[data-stack-toggle]");
+    if (!t) return;
+    var id = t.getAttribute("data-stack-toggle");
+    if (isOff(id)) off = off.filter(function (x) { return x !== id; });
+    else off = off.concat([id]);
+    writeOff(off);
+    paintEditor();
+    paintStack();     /* the list behind the sheet changes as they tap */
+  });
+
+  /* ---- what the account says ------------------------------------------
+     A choice made on their last phone. Applied when it arrives, which is
+     after the page has already drawn from whatever this phone had -- so
+     the page is never waiting on the network to show a stack. */
+  function adopt(remote) {
+    if (!remote || !remote.data || !Array.isArray(remote.data.stackOff)) return;
+    off = remote.data.stackOff.filter(function (id) {
+      return ITEMS.some(function (i) { return i.id === id; });
+    });
+    try { localStorage.setItem(KEY, JSON.stringify(off)); } catch (e) {}
+    paintStack();
+    if (!wrap.hidden) paintEditor();
+  }
+
+  function askAccount(tries) {
+    var A = window.RMAccount;
+    if (!A || !A.signedIn || !A.pull) {
+      if (tries < 40) return setTimeout(function () { askAccount(tries + 1); }, 250);
+      return;                                  /* ten seconds, then let it be */
+    }
+    if (!A.signedIn()) return;
+    A.pull().then(adopt).catch(function () {});
+  }
+
+  paintStack();
+  askAccount(0);
+})();
+</script>
 </body>
 </html>
