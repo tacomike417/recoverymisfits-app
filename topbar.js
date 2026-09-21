@@ -20,7 +20,7 @@
      different device. Bump RM_VERSION on any deploy worth telling apart;
      tapping the badge reloads past the cache.
      ==================================================================== */
-  const RM_VERSION = "v433";
+  const RM_VERSION = "v434";
 
   const SHOW_VER = (function () {
     try {

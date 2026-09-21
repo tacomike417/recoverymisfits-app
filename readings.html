@@ -273,8 +273,9 @@ body::after{
   color:var(--muted);font-size:17px;line-height:1;cursor:pointer;
 }
 .sheetnote{
-  margin:0 0 12px;font-family:var(--ui);font-size:11.5px;line-height:1.45;color:var(--muted);
+  margin:0 0 12px;font-family:var(--ui);font-size:11.5px;line-height:1.5;color:var(--muted);
 }
+.sheetnote b{color:#e8d6a8;font-weight:800}
 .grouphead{
   margin:14px 0 8px;font-family:var(--ui);font-weight:800;
   font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);
@@ -283,27 +284,83 @@ body::after{
 /* The same row the stack uses, minus the link. It has to LOOK like the thing
    being edited or nobody connects the two. */
 .erow{
-  display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;
-  min-height:56px;padding:7px 10px 7px 6px;border-radius:var(--radius);
+  display:grid;grid-template-columns:44px 44px 1fr 44px;align-items:center;gap:8px;
+  min-height:104px;padding:8px 8px 8px 6px;border-radius:var(--radius);
   border:1px solid rgba(216,180,91,.3);background:var(--panel2, rgba(241,231,207,.03));
+  /* The row slides to its new place rather than jumping. transform only --
+     it is the one thing a phone can move without repainting the row. */
+  will-change:transform;
 }
 .erow .ico{width:42px;height:auto;justify-self:center}
-.erow .txt{border-left:1px solid rgba(216,180,91,.35);padding-left:10px;min-width:0}
-.erow .t{
-  display:block;font-family:var(--display);font-weight:600;font-size:14px;
-  line-height:1.08;text-transform:uppercase;color:#f6efdd;
+
+/* ---- MOVING IT: GOLD CIRCLES DOWN THE LEFT EDGE --------------------------
+   Up at the top of the container, down at the bottom, so the button is
+   physically where the row is going. Filled gold with a dark arrow: the
+   only solid controls on the screen, so they read as "press me" at a glance
+   and never get confused with the outlined + and - on the right, which mean
+   something else entirely. */
+.movecol{
+  grid-column:1;grid-row:1;align-self:stretch;
+  display:flex;flex-direction:column;justify-content:space-between;align-items:center;
 }
-.erow .d{display:block;font-family:var(--ui);font-size:11px;line-height:1.25;color:var(--muted);margin:2px 0 0}
-/* OFF rather than gone. Dimmed in the lower group so it reads as something
-   set aside, not something lost. */
-.editrows.off .erow{opacity:.62}
-.toggle{
-  flex:0 0 auto;width:44px;height:44px;border-radius:50%;
-  border:1.4px solid var(--gold);background:transparent;
-  color:#f0e2c2;font-size:21px;line-height:1;cursor:pointer;
+.mv{
+  width:44px;height:44px;border-radius:50%;flex:0 0 auto;
+  border:0;background:var(--gold);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 0 rgba(0,0,0,.35);
   -webkit-tap-highlight-color:transparent;
 }
-.toggle:active{background:rgba(216,180,91,.12)}
+.mv svg{width:22px;height:22px;stroke:#1a1408;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.mv:active{transform:translateY(1px);box-shadow:none}
+/* DIMMED IN PLACE, never removed -- a missing button leaves a hole and makes
+   the top row look unlike every row under it for no visible reason. */
+.mv[disabled]{opacity:.22;cursor:default;box-shadow:none}
+
+/* THE TITLE AND THE LINE UNDER IT. These are spans, so they have to be
+   told to stack -- without this they run together into one sentence
+   ("On AwakeningStart the day with intention") and the row stops looking
+   like the row it is editing. Same type as the stack itself, on purpose. */
+.erow .txt{
+  grid-column:3;min-width:0;
+  border-left:1px solid rgba(216,180,91,.35);padding-left:10px;
+}
+.erow .t,.erow .d{display:block}
+.erow .t{
+  font-family:var(--display);font-weight:600;
+  font-size:14px;line-height:1.1;letter-spacing:.1px;text-transform:uppercase;
+  color:#f6efdd;margin:0;
+}
+.erow .d{
+  font-family:var(--ui);font-size:11px;line-height:1.3;color:var(--muted);margin:3px 0 0;
+}
+.erow .toggle{grid-column:4}
+
+/* THE ROW THAT JUST MOVED SAYS SO. A short gold breath, so on a small
+   screen it is obvious WHICH one went where. */
+@keyframes rmNudge{
+  0%{box-shadow:0 0 0 0 rgba(216,180,91,.55)}
+  100%{box-shadow:0 0 0 14px rgba(216,180,91,0)}
+}
+.erow.justmoved{animation:rmNudge .5s ease-out}
+
+.toggle{
+  width:44px;height:44px;border-radius:50%;justify-self:center;
+  border:1.6px solid var(--gold);background:transparent;
+  color:#f0e2c2;font-size:23px;line-height:1;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.toggle:active{background:rgba(216,180,91,.14)}
+/* A set-aside reading has nowhere to move to, so it carries only the + */
+.erow.isoff{grid-template-columns:44px 1fr 44px;min-height:76px}
+.erow.isoff .txt{grid-column:2}
+.erow.isoff .toggle{grid-column:3}
+
+/* SOMEBODY WHO ASKED FOR LESS MOTION GETS LESS MOTION. */
+@media (prefers-reduced-motion: reduce){
+  .erow{transition:none !important}
+  .erow.justmoved{animation:none}
+}
+
 .emptynote{
   margin:0;padding:12px 4px;font-family:var(--ui);font-size:11.5px;
   line-height:1.45;color:var(--muted);
@@ -619,8 +676,12 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
       <h2 id="stackSheetTitle">Your Daily Stack</h2>
       <button class="sheetx" type="button" data-stack-close aria-label="Close">&#10005;</button>
     </div>
-    <p class="sheetnote">Take off anything you don&rsquo;t read. Nothing is deleted &mdash;
-       it drops to the bottom and you can put it back any morning.</p>
+    <!-- It says what the buttons do, in the same words the buttons use.
+         Somebody who reads nothing else on this screen still knows what UP
+         and TAKE OFF are going to do before they press one. -->
+    <p class="sheetnote">Tap <b>Up</b> or <b>Down</b> to put them in the order you read them.
+       <b>Take off</b> anything you don&rsquo;t &mdash; nothing is deleted, it waits below
+       and goes back where it was whenever you want it.</p>
 
     <p class="grouphead">In your stack</p>
     <div class="editrows" id="stackOn"></div>
@@ -635,54 +696,91 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 
 <script>
 /* ======================================================================
-   YOUR DAILY STACK, AS A CHOICE
+   YOUR DAILY STACK, AS A CHOICE AND AN ORDER
 
-   The four dailies were four hard-coded rows. They still are -- the markup
-   and the artwork are untouched -- but which of them SHOW is now a setting,
-   and the editor is the same rows again with a + or a - on the end.
+   The four dailies were four hard-coded rows. The markup and the artwork
+   are untouched -- but WHICH of them show, and in WHAT ORDER, is a setting
+   now, and the editor is the same rows again with the controls spelled out
+   in words underneath.
+
+   WHO THIS IS FOR, because it decided the whole design. People in early
+   recovery, often rattled, often not at their sharpest. Drag and drop was
+   tried here before and it did not work. So: taps, never a gesture; every
+   control says what it does in words rather than trusting an arrow on its
+   own; nothing is ever deleted, only set aside; and a button that cannot be
+   used is dimmed in place rather than vanishing, because a row that looks
+   different from the row above it is a question nobody should have to ask.
+
+   WHAT A NEW ACCOUNT STARTS WITH. All four, in the order below. There is no
+   separate seeding step and no row written into the database at signup --
+   an empty setting MEANS this list, so somebody who has never opened the
+   editor and somebody who just made an account get the same stack. One less
+   thing that can be missed, and nothing to backfill for the people who
+   already have accounts.
 
    WHERE THE CHOICE LIVES. The same settings blob the account already syncs
-   (assets/account.js pull/push), mirrored into localStorage. So:
-     signed out -> it works, on this phone
-     signed in  -> it follows them to the next phone
-   and no new storage of any kind had to be invented.
-
-   NOTHING IS EVER DELETED. Taking a reading off moves it to "Not shown" and
-   it sits there waiting. That is the whole point: somebody who is not
-   reading the 24 Hours book this month should be able to take it off
-   without feeling like they threw it away.
+   (assets/account.js pull/push), mirrored into localStorage. Signed out it
+   works on this phone; signed in it follows them to the next one.
    ================================================================== */
 (function () {
   "use strict";
 
   var KEY = "rm_stack";
 
-  /* THE ORDER OF THIS LIST IS THE ORDER OF THE STACK. Both groups in the
-     editor are drawn from it, so a reading put back lands where it always
-     was rather than at the bottom. */
+  /* THE DEFAULT STACK. This order is what a new account gets, and it is the
+     order the page has always shown them in. */
   var ITEMS = [
-    { id: "awakening",   t: "On Awakening",           d: "Start the day with intention.", ico: "assets/pages/r-ico-sun.webp" },
-    { id: "hours24",     t: "Twenty-Four Hours a Day", d: "A thought for today.",          ico: "assets/pages/r-ico-cal.webp" },
+    { id: "awakening",   t: "On Awakening",            d: "Start the day with intention.",  ico: "assets/pages/r-ico-sun.webp" },
+    { id: "hours24",     t: "Twenty-Four Hours a Day", d: "A thought for today.",           ico: "assets/pages/r-ico-cal.webp" },
     { id: "reflections", t: "Daily Reflections",       d: "Experience, strength and hope.", ico: "assets/pages/r-ico-sprout.webp" },
-    { id: "anotherday",  t: "Another Day Sober",       d: "Daily step study.",             ico: "assets/pages/r-ico-road.webp" }
+    { id: "anotherday",  t: "Another Day Sober",       d: "Daily step study.",              ico: "assets/pages/r-ico-road.webp" }
   ];
+  var DEFAULT_ORDER = ITEMS.map(function (i) { return i.id; });
 
-  /* Storage THROWS in private browsing -- it does not return null, it
-     raises -- so every read and write is wrapped and falls back to the
-     default, which is everything on. */
-  function readOff() {
-    try {
-      var raw = localStorage.getItem(KEY);
-      if (!raw) return [];
-      var v = JSON.parse(raw);
-      return Array.isArray(v) ? v.filter(function (id) {
-        return ITEMS.some(function (i) { return i.id === id; });
-      }) : [];
-    } catch (e) { return []; }
+  var byId = function (id) {
+    for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i];
+    return null;
+  };
+
+  /* ---- the setting ------------------------------------------------------
+     { order: [ids, newest arrangement], off: [ids set aside] }
+
+     An earlier version stored a bare array of the ones set aside. That shape
+     is still read and quietly upgraded, so nobody who used the editor
+     yesterday loses what they chose. */
+  var order = DEFAULT_ORDER.slice();
+  var off = [];
+
+  function normalize() {
+    /* Only ids we know, no duplicates, and anything new in ITEMS appended --
+       so adding a fifth reading later shows up for everybody rather than
+       only for people who have never touched the editor. */
+    var seen = {}, clean = [];
+    order.forEach(function (id) {
+      if (byId(id) && !seen[id]) { seen[id] = 1; clean.push(id); }
+    });
+    DEFAULT_ORDER.forEach(function (id) { if (!seen[id]) { seen[id] = 1; clean.push(id); } });
+    order = clean;
+    off = off.filter(function (id, i, a) { return byId(id) && a.indexOf(id) === i; });
   }
 
-  function writeOff(off) {
-    try { localStorage.setItem(KEY, JSON.stringify(off)); } catch (e) {}
+  function read() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return;
+      var v = JSON.parse(raw);
+      if (Array.isArray(v)) { off = v; }                    /* the old shape */
+      else if (v && typeof v === "object") {
+        if (Array.isArray(v.order)) order = v.order;
+        if (Array.isArray(v.off)) off = v.off;
+      }
+    } catch (e) { /* private browsing: the default stack is the right answer */ }
+    normalize();
+  }
+
+  function write() {
+    var payload = { order: order, off: off };
+    try { localStorage.setItem(KEY, JSON.stringify(payload)); } catch (e) {}
     /* And up to the account, if there is one. Merged into whatever else is
        in the blob rather than replacing it -- the sober date lives there. */
     try {
@@ -690,53 +788,156 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
       if (A && A.signedIn && A.signedIn() && A.pull && A.push) {
         A.pull().then(function (remote) {
           var data = (remote && remote.data) || {};
-          data.stackOff = off;
+          data.stack = payload;
           A.push(data);
         }).catch(function () {});
       }
     } catch (e) {}
   }
 
-  var off = readOff();
   var isOff = function (id) { return off.indexOf(id) !== -1; };
+  var shown = function () { return order.filter(function (id) { return !isOff(id); }); };
 
-  /* ---- the stack itself ------------------------------------------------ */
+  /* ---- the stack on the page -------------------------------------------
+     The rows are moved, not rebuilt -- they carry artwork and copy that
+     belongs in the HTML. They are re-inserted BEFORE the two hand-drawn
+     margin notes so those stay last in the box and keep sitting where they
+     were drawn to sit. */
   function paintStack() {
-    ITEMS.forEach(function (it) {
-      var row = document.querySelector('.row[data-stack="' + it.id + '"]');
-      if (row) row.hidden = isOff(it.id);
+    var box = document.querySelector(".stack");
+    if (!box) return;
+    var firstNote = box.querySelector(".m-progress");
+    shown().forEach(function (id) {
+      var row = box.querySelector('.row[data-stack="' + id + '"]');
+      if (!row) return;
+      row.hidden = false;
+      if (firstNote) box.insertBefore(row, firstNote);
+      else box.appendChild(row);
+    });
+    off.forEach(function (id) {
+      var row = box.querySelector('.row[data-stack="' + id + '"]');
+      if (row) row.hidden = true;
     });
   }
 
   /* ---- the editor ------------------------------------------------------ */
-  function rowHTML(it, on) {
-    return '<div class="erow">' +
+  var UP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6M6 12l6-6 6 6"/></svg>';
+  var DOWN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v13M6 12l6 6 6-6"/></svg>';
+
+  function esc(x) {
+    return String(x).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  function onRow(it, i, total) {
+    var first = i === 0, last = i === total - 1;
+    return '<div class="erow" data-row-id="' + it.id + '">' +
+      '<div class="movecol">' +
+        '<button class="mv" type="button" data-move="up" data-id="' + it.id + '"' +
+          (first ? ' disabled' : '') + ' aria-label="Move ' + esc(it.t) + ' up">' + UP + '</button>' +
+        '<button class="mv" type="button" data-move="down" data-id="' + it.id + '"' +
+          (last ? ' disabled' : '') + ' aria-label="Move ' + esc(it.t) + ' down">' + DOWN + '</button>' +
+      '</div>' +
       '<img class="ico" src="' + it.ico + '" alt="" aria-hidden="true">' +
-      '<span class="txt"><span class="t">' + it.t + '</span>' +
-      '<span class="d">' + it.d + '</span></span>' +
-      '<button class="toggle" type="button" data-stack-toggle="' + it.id + '" ' +
-      'aria-label="' + (on ? "Take " + it.t + " off your stack" : "Put " + it.t + " back on your stack") + '">' +
-      (on ? "&minus;" : "+") + '</button></div>';
+      '<span class="txt"><span class="t">' + esc(it.t) + '</span>' +
+      '<span class="d">' + esc(it.d) + '</span></span>' +
+      '<button class="toggle" type="button" data-take="' + it.id + '"' +
+        ' aria-label="Take ' + esc(it.t) + ' off your stack">&minus;</button>' +
+      '</div>';
+  }
+
+  function offRow(it) {
+    return '<div class="erow isoff" data-row-id="' + it.id + '">' +
+      '<img class="ico" src="' + it.ico + '" alt="" aria-hidden="true">' +
+      '<span class="txt"><span class="t">' + esc(it.t) + '</span>' +
+      '<span class="d">' + esc(it.d) + '</span></span>' +
+      '<button class="toggle" type="button" data-add="' + it.id + '"' +
+        ' aria-label="Put ' + esc(it.t) + ' back on your stack">+</button>' +
+      '</div>';
+  }
+
+  /* ---- MAKING THE MOVE VISIBLE ------------------------------------------
+     The list is redrawn, so without this a row would simply BE somewhere
+     else the next frame -- which on a phone reads as the screen glitching
+     rather than as the thing you asked for happening.
+
+     First / Last / Invert / Play: note where every row is, redraw, then put
+     each one back where it started with a transform and let it travel to
+     its real place. Only transforms move, so it stays smooth on an old
+     phone, and anybody who has asked their phone for less motion gets the
+     redraw with no travel at all. */
+  var QUIET = false;
+  try {
+    QUIET = window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch (e) {}
+
+  function marks() {
+    var m = {};
+    document.querySelectorAll("#stackOn [data-row-id], #stackOff [data-row-id]")
+      .forEach(function (el) { m[el.getAttribute("data-row-id")] = el.getBoundingClientRect().top; });
+    return m;
+  }
+
+  function travel(before, nudgeId) {
+    var moved = [];
+    document.querySelectorAll("#stackOn [data-row-id], #stackOff [data-row-id]")
+      .forEach(function (el) {
+        var id = el.getAttribute("data-row-id");
+        if (id === nudgeId) el.classList.add("justmoved");
+        if (QUIET || !(id in before)) return;
+        var d = before[id] - el.getBoundingClientRect().top;
+        if (!d) return;
+        el.style.transition = "none";
+        el.style.transform = "translateY(" + d + "px)";
+        moved.push(el);
+      });
+    if (!moved.length) return;
+    requestAnimationFrame(function () {
+      moved.forEach(function (el) {
+        el.style.transition = "transform .28s cubic-bezier(.2,.8,.2,1)";
+        el.style.transform = "translateY(0)";
+      });
+    });
   }
 
   function paintEditor() {
-    var onEls = ITEMS.filter(function (i) { return !isOff(i.id); });
-    var offEls = ITEMS.filter(function (i) { return isOff(i.id); });
+    var on = shown();
+    var setAside = order.filter(function (id) { return isOff(id); });
     document.getElementById("stackOn").innerHTML =
-      onEls.map(function (i) { return rowHTML(i, true); }).join("");
+      on.map(function (id, i) { return onRow(byId(id), i, on.length); }).join("");
     document.getElementById("stackOff").innerHTML =
-      offEls.map(function (i) { return rowHTML(i, false); }).join("");
-    document.getElementById("stackOnEmpty").hidden = onEls.length > 0;
-    document.getElementById("stackOffEmpty").hidden = offEls.length > 0;
+      setAside.map(function (id) { return offRow(byId(id)); }).join("");
+    document.getElementById("stackOnEmpty").hidden = on.length > 0;
+    document.getElementById("stackOffEmpty").hidden = setAside.length > 0;
   }
 
-  /* ---- opening and closing --------------------------------------------
+  /* MOVING IS AMONG THE ONES THAT SHOW. "Up" means above the reading above
+     it on the screen -- not above something set aside and invisible, which
+     would look like the tap did nothing. */
+  function move(id, dir) {
+    var on = shown();
+    var at = on.indexOf(id);
+    var to = at + (dir === "up" ? -1 : 1);
+    if (at < 0 || to < 0 || to >= on.length) return;
+    var a = order.indexOf(on[at]), b = order.indexOf(on[to]);
+    order[a] = on[to]; order[b] = on[at];
+    var before = marks();
+    write(); paintEditor(); paintStack();
+    travel(before, id);
+    /* Keep the thumb on the same button it just pressed, so a second tap
+       does not need aiming. The row moved; the finger did not. */
+    var again = document.querySelector('[data-move="' + dir + '"][data-id="' + id + '"]');
+    if (again && !again.disabled) { try { again.focus({ preventScroll: true }); } catch (e) {} }
+  }
+
+  /* ---- opening and closing ---------------------------------------------
      THE PHONE'S BACK BUTTON IS THE WAY OUT, so opening pushes an entry and
      Back pops it. There is no on-screen back arrow in here on purpose --
-     nobody looks for one, and an arrow that is missed is worse than none.
-     Every deliberate close goes through closeSheet, which calls
-     history.back(), so there is ONE closing path and the stack of entries
-     cannot drift out of step with what is on the screen. */
+     nobody looks for one, and an arrow that gets missed is worse than none.
+     Every deliberate close goes through closeSheet, so there is ONE closing
+     path and the history cannot drift out of step with the screen. */
   var wrap = document.getElementById("stackSheet");
   var pushed = false;
 
@@ -747,7 +948,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     if (!pushed) {
       pushed = true;
       try { history.pushState({ rmStack: 1 }, "", location.href); }
-      catch (e) { pushed = false; }   /* no history API: the X still works */
+      catch (e) { pushed = false; }       /* no history API: the X still works */
     }
   }
 
@@ -774,26 +975,45 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     if (e.target.closest("#stackEdit")) { openSheet(); return; }
     if (e.target.closest("[data-stack-close]")) { closeSheet(); return; }
 
-    var t = e.target.closest("[data-stack-toggle]");
-    if (!t) return;
-    var id = t.getAttribute("data-stack-toggle");
-    if (isOff(id)) off = off.filter(function (x) { return x !== id; });
-    else off = off.concat([id]);
-    writeOff(off);
-    paintEditor();
-    paintStack();     /* the list behind the sheet changes as they tap */
+    var mv = e.target.closest("[data-move]");
+    if (mv && !mv.disabled) { move(mv.getAttribute("data-id"), mv.getAttribute("data-move")); return; }
+
+    var take = e.target.closest("[data-take]");
+    if (take) {
+      var t = take.getAttribute("data-take");
+      if (!isOff(t)) off.push(t);
+      var b1 = marks();
+      write(); paintEditor(); paintStack();
+      travel(b1, t);
+      return;
+    }
+
+    var add = e.target.closest("[data-add]");
+    if (add) {
+      var a = add.getAttribute("data-add");
+      off = off.filter(function (x) { return x !== a; });
+      var b2 = marks();
+      write(); paintEditor(); paintStack();
+      travel(b2, a);
+      return;
+    }
   });
 
   /* ---- what the account says ------------------------------------------
-     A choice made on their last phone. Applied when it arrives, which is
-     after the page has already drawn from whatever this phone had -- so
-     the page is never waiting on the network to show a stack. */
+     A stack arranged on their last phone. Applied when it arrives, which is
+     after the page has already drawn from whatever this phone had -- so the
+     page never waits on the network to show a stack. */
   function adopt(remote) {
-    if (!remote || !remote.data || !Array.isArray(remote.data.stackOff)) return;
-    off = remote.data.stackOff.filter(function (id) {
-      return ITEMS.some(function (i) { return i.id === id; });
-    });
-    try { localStorage.setItem(KEY, JSON.stringify(off)); } catch (e) {}
+    var d = remote && remote.data;
+    if (!d) return;
+    var v = d.stack;
+    if (Array.isArray(d.stackOff)) { off = d.stackOff; }     /* the old shape */
+    else if (v && typeof v === "object") {
+      if (Array.isArray(v.order)) order = v.order;
+      if (Array.isArray(v.off)) off = v.off;
+    } else { return; }
+    normalize();
+    try { localStorage.setItem(KEY, JSON.stringify({ order: order, off: off })); } catch (e) {}
     paintStack();
     if (!wrap.hidden) paintEditor();
   }
@@ -802,12 +1022,13 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     var A = window.RMAccount;
     if (!A || !A.signedIn || !A.pull) {
       if (tries < 40) return setTimeout(function () { askAccount(tries + 1); }, 250);
-      return;                                  /* ten seconds, then let it be */
+      return;                                   /* ten seconds, then let it be */
     }
     if (!A.signedIn()) return;
     A.pull().then(adopt).catch(function () {});
   }
 
+  read();
   paintStack();
   askAccount(0);
 })();
