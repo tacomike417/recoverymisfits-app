@@ -1320,7 +1320,13 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      things you go and add -- so they start off the stack rather than on it.
      Nothing new ever turns itself on in somebody's morning. */
   var DEFAULT_ORDER = ITEMS.map(function (i) { return i.id; });
-  var DEFAULT_OFF = READY.map(function (p) { return p.id; }).concat(["absolute", "evening", "meme"]);
+  /* MEME OF THE DAY IS THE ONE EXCEPTION to the rule below it, decided on
+     purpose. Everything else added after launch starts off the stack so
+     nobody opens the app to readings they never asked for. This one is meant
+     to be passed around, and a feature nobody can see does not get passed
+     around -- so it is on for everybody, and anyone who does not want it can
+     take it off in the editor like any other row. */
+  var DEFAULT_OFF = READY.map(function (p) { return p.id; }).concat(["absolute", "evening"]);
 
   var byId = function (id) {
     for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i];
