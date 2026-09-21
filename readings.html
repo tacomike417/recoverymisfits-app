@@ -251,7 +251,18 @@ body::after{
    Every way out (the X, the dimmed page behind it, Escape, Back) goes
    through one closing path, so what is on screen and the history stack
    cannot drift apart. */
-.sheetwrap{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center}
+/* ABOVE THE BOTTOM NAV, WHICH IS THE WHOLE POINT.
+   nav.js pins the sober-date rail and the nav bar to the bottom of every
+   page at z-index 9999. This sheet was at 70, so the rail sat ON TOP of it
+   and covered the bottom ~186px -- which is exactly where "Not shown"
+   lives, so the one thing you open the editor to reach was the one thing
+   you could not get to.
+
+   10001 is the layer this app already uses for a modal (the share sheet),
+   so the editor sits where every other modal here sits. The dim then covers
+   the rail too, which is right: while the editor is open, the editor is the
+   screen. */
+.sheetwrap{position:fixed;inset:0;z-index:10001;display:flex;align-items:flex-end;justify-content:center}
 .sheetwrap[hidden]{display:none}
 .sheetdim{position:absolute;inset:0;background:rgba(0,0,0,.72)}
 .sheetbox{
@@ -259,7 +270,9 @@ body::after{
   -webkit-overflow-scrolling:touch;
   background:var(--panel);border:1px solid rgba(216,180,91,.34);
   border-radius:18px 18px 0 0;
-  padding:14px 14px calc(16px + env(safe-area-inset-bottom));
+  /* Room at the bottom for a thumb and the home bar, so the last row is
+     never the thing sitting under the edge of the screen. */
+  padding:14px 14px calc(26px + env(safe-area-inset-bottom));
   box-shadow:0 -14px 46px rgba(0,0,0,.72);
 }
 .sheettop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
@@ -285,7 +298,7 @@ body::after{
    being edited or nobody connects the two. */
 .erow{
   display:grid;grid-template-columns:44px 44px 1fr 44px;align-items:center;gap:8px;
-  min-height:104px;padding:8px 8px 8px 6px;border-radius:var(--radius);
+  min-height:72px;padding:8px 8px 8px 6px;border-radius:var(--radius);
   border:1px solid rgba(216,180,91,.3);background:var(--panel2, rgba(241,231,207,.03));
   /* The row slides to its new place rather than jumping. transform only --
      it is the one thing a phone can move without repainting the row. */
@@ -293,15 +306,18 @@ body::after{
 }
 .erow .ico{width:42px;height:auto;justify-self:center}
 
-/* ---- MOVING IT: GOLD CIRCLES DOWN THE LEFT EDGE --------------------------
-   Up at the top of the container, down at the bottom, so the button is
-   physically where the row is going. Filled gold with a dark arrow: the
-   only solid controls on the screen, so they read as "press me" at a glance
-   and never get confused with the outlined + and - on the right, which mean
-   something else entirely. */
+/* ---- MOVING IT: ONE CIRCLE, NOT TWO -------------------------------------
+   There was an up AND a down stacked down the left edge, and together they
+   read as a block of furniture on every row rather than as two controls.
+   The down one was never earning its space: moving a reading down is the
+   same act as moving the one below it up, and that is the move people
+   actually reach for -- "I want this one first", not "I want this one
+   lower".
+
+   So: one circle per row on the left, one on the right. Filled gold means
+   move, outlined means on or off. Two shapes, two jobs, nothing stacked. */
 .movecol{
-  grid-column:1;grid-row:1;align-self:stretch;
-  display:flex;flex-direction:column;justify-content:space-between;align-items:center;
+  grid-column:1;display:flex;align-items:center;justify-content:center;
 }
 .mv{
   width:44px;height:44px;border-radius:50%;flex:0 0 auto;
@@ -312,9 +328,17 @@ body::after{
 }
 .mv svg{width:22px;height:22px;stroke:#1a1408;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 .mv:active{transform:translateY(1px);box-shadow:none}
-/* DIMMED IN PLACE, never removed -- a missing button leaves a hole and makes
-   the top row look unlike every row under it for no visible reason. */
-.mv[disabled]{opacity:.22;cursor:default;box-shadow:none}
+/* IF YOU CAN SEE A GOLD CIRCLE, YOU CAN PRESS IT. Nothing else.
+
+   These were dimmed in place instead, on the theory that a missing button
+   leaves a hole. Wrong theory: a faded gold circle still reads as a button,
+   so every row became a puzzle about which of its two circles was the real
+   one. Now the top reading simply has no UP and the bottom one has no DOWN
+   -- there is nothing to work out, because there is nothing there.
+
+   visibility, not display: the space is held, so the rows stay the same
+   height and the list does not jump as things move. */
+.mv[disabled]{visibility:hidden}
 
 /* THE TITLE AND THE LINE UNDER IT. These are spans, so they have to be
    told to stack -- without this they run together into one sentence
@@ -679,9 +703,13 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     <!-- It says what the buttons do, in the same words the buttons use.
          Somebody who reads nothing else on this screen still knows what UP
          and TAKE OFF are going to do before they press one. -->
-    <p class="sheetnote">Tap <b>Up</b> or <b>Down</b> to put them in the order you read them.
-       <b>Take off</b> anything you don&rsquo;t &mdash; nothing is deleted, it waits below
-       and goes back where it was whenever you want it.</p>
+    <!-- It names the two circles by what they LOOK like, because that is
+         what somebody is staring at when they read this. To move a reading
+         DOWN you move the one under it up -- said plainly here so nobody
+         hunts for a second arrow that is not there. -->
+    <p class="sheetnote">The gold arrow moves a reading up. To move one down,
+       move the one under it up. <b>&minus;</b> takes a reading off &mdash; nothing is
+       deleted, it waits below, and <b>+</b> puts it back where it was.</p>
 
     <p class="grouphead">In your stack</p>
     <div class="editrows" id="stackOn"></div>
@@ -822,7 +850,6 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 
   /* ---- the editor ------------------------------------------------------ */
   var UP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6M6 12l6-6 6 6"/></svg>';
-  var DOWN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v13M6 12l6 6 6-6"/></svg>';
 
   function esc(x) {
     return String(x).replace(/[&<>"]/g, function (c) {
@@ -830,14 +857,12 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     });
   }
 
-  function onRow(it, i, total) {
-    var first = i === 0, last = i === total - 1;
+  function onRow(it, i) {
+    var first = i === 0;
     return '<div class="erow" data-row-id="' + it.id + '">' +
       '<div class="movecol">' +
         '<button class="mv" type="button" data-move="up" data-id="' + it.id + '"' +
-          (first ? ' disabled' : '') + ' aria-label="Move ' + esc(it.t) + ' up">' + UP + '</button>' +
-        '<button class="mv" type="button" data-move="down" data-id="' + it.id + '"' +
-          (last ? ' disabled' : '') + ' aria-label="Move ' + esc(it.t) + ' down">' + DOWN + '</button>' +
+          (first ? ' disabled' : '') + ' aria-label="Move ' + esc(it.t) + ' up one">' + UP + '</button>' +
       '</div>' +
       '<img class="ico" src="' + it.ico + '" alt="" aria-hidden="true">' +
       '<span class="txt"><span class="t">' + esc(it.t) + '</span>' +
@@ -906,7 +931,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     var on = shown();
     var setAside = order.filter(function (id) { return isOff(id); });
     document.getElementById("stackOn").innerHTML =
-      on.map(function (id, i) { return onRow(byId(id), i, on.length); }).join("");
+      on.map(function (id, i) { return onRow(byId(id), i); }).join("");
     document.getElementById("stackOff").innerHTML =
       setAside.map(function (id) { return offRow(byId(id)); }).join("");
     document.getElementById("stackOnEmpty").hidden = on.length > 0;
