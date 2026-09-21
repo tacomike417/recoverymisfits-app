@@ -544,6 +544,46 @@ body::after{
   text-decoration:none;text-align:center;
 }
 .links a:active{border-color:var(--gold)}
+/* ---- the absolute of the day -------------------------------------------
+   Quieter than the reading card at the top and plainer than the stack: one
+   word, one question, and what to try today. The word carries it, so it is
+   set large and everything else stays out of its way. */
+.absolute{margin:34px 0 0}
+.abshead{
+  font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--ivory);margin:0 0 9px 2px;
+}
+.absbox{
+  border:1px solid rgba(216,180,91,.28);border-radius:var(--radius);
+  background:linear-gradient(180deg, rgba(216,180,91,.07), rgba(216,180,91,.015) 60%);
+  padding:17px 16px 15px;
+}
+.absname{
+  margin:0;font-family:var(--display);font-weight:700;
+  /* UNSELFISHNESS is thirteen characters and cannot be broken. At 31px it
+     runs past the edge of the box on a 320px phone, so the word sets its own
+     size against the screen and only reaches 31px when there is room. */
+  font-size:clamp(24px, 8vw, 31px);line-height:1.05;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--gold);
+}
+.absask{
+  margin:9px 0 0;font-family:var(--display);font-weight:400;font-style:italic;
+  font-size:17px;line-height:1.35;color:#f2e9d4;
+}
+.absbody{
+  margin:13px 0 0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.72);
+}
+/* Four marks, today's one filled. It says "one of four, and this is where
+   you are" without a word of explanation or a number anybody has to read. */
+.absdots{
+  margin:15px 0 0;display:flex;gap:7px;
+}
+.absdots i{
+  width:7px;height:7px;border-radius:50%;
+  border:1px solid rgba(216,180,91,.5);background:transparent;
+}
+.absdots i.on{background:var(--gold);border-color:var(--gold)}
+
 /* ---- the book shelf ----------------------------------------------------
    Drawn as a shelf and set well clear of the stack, because the Big Book row
    used to sit under the four dailies in the same shape and size and read as
@@ -675,6 +715,26 @@ body::after{
 
   </div>
 
+  <!-- THE ABSOLUTE OF THE DAY.
+       Honesty, purity, unselfishness, love -- the Oxford Group's four, which
+       came into AA through its founders. One a day, in that order, starting
+       over on the 1st of every month.
+
+       It sits between the stack and the shelf on purpose: the stack is what
+       you do this morning, the shelf is what you reach for when you want it,
+       and this is the one thing you carry around in between. Not part of the
+       stack, so it cannot be added or taken off -- it is the same for
+       everybody on the same day, which is the point of it. -->
+  <section class="absolute">
+    <h2 class="abshead">Absolute of the Day</h2>
+    <div class="absbox">
+      <p class="absname" id="absName"></p>
+      <p class="absask" id="absAsk"></p>
+      <p class="absbody" id="absBody"></p>
+      <p class="absdots" id="absDots" aria-hidden="true"></p>
+    </div>
+  </section>
+
   <!-- THE BOOK SHELF IS A ROOM OF ITS OWN, and the Big Book lives in it.
 
        The Big Book row used to sit directly under the four dailies, in the
@@ -733,6 +793,77 @@ body::after{
 
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
+
+<script>
+/* ----------------------------------------------------------------------
+   THE ABSOLUTE OF THE DAY
+
+   Four of them, one a day, starting over on the 1st of every month. The
+   1st is honesty every month without fail -- which is the whole reason it
+   resets rather than running off a continuous count: somebody can look at a
+   calendar and know which one it is, and two people on the phone are always
+   on the same one.
+
+   The cycle is deliberately not tied to the day of the week or a running
+   total since some start date. Months are not multiples of four, so the
+   sequence breaks at the end of every month -- a 31-day month ends on
+   unselfishness and the next one still begins on honesty. That is on
+   purpose. The reset is the rule; the run is just what happens in between.
+   ---------------------------------------------------------------------- */
+(function () {
+  var ABSOLUTES = [
+    { name: "Honesty",
+      ask:  "Is it true or is it false?",
+      body: "Today I will try to tell the complete truth. I will try not to " +
+            "rationalize, exaggerate, or omit facts." },
+
+    { name: "Purity",
+      ask:  "Is it right or is it wrong?",
+      body: "Today I will try to keep my motives completely pure. I will try " +
+            "not to have hidden agendas." },
+
+    { name: "Unselfishness",
+      ask:  "How will this affect the other person?",
+      body: "Today I will try to ask myself if I am acting out of self-interest " +
+            "or concern for others. I will try to be willing to help someone " +
+            "else without expecting anything in return." },
+
+    { name: "Love",
+      ask:  "Is it ugly or is it beautiful?",
+      body: "Today I will try to keep my actions and words centered in kindness, " +
+            "connection, and care instead of resentment and malice." }
+  ];
+
+  var nameEl = document.getElementById("absName");
+  if (!nameEl) return;
+
+  function paint() {
+    /* Local time, off this phone's clock -- the same clock the reading card
+       above it reads, so the two can never disagree about what day it is. */
+    var day = new Date().getDate();
+    var i = (day - 1) % ABSOLUTES.length;
+    var a = ABSOLUTES[i];
+
+    nameEl.textContent = a.name;
+    document.getElementById("absAsk").textContent = a.ask;
+    document.getElementById("absBody").textContent = a.body;
+    document.getElementById("absDots").innerHTML =
+      ABSOLUTES.map(function (_, n) {
+        return '<i' + (n === i ? ' class="on"' : '') + '></i>';
+      }).join("");
+  }
+
+  paint();
+
+  /* A PHONE LEFT OPEN OVERNIGHT IS THE NORMAL CASE, not the odd one -- this
+     app lives on a bedside table. Coming back to it in the morning has to
+     show today's absolute, not yesterday's, without anybody knowing to
+     refresh. */
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") paint();
+  });
+})();
+</script>
 
 <script>
 /* TODAY'S CARD READS THE SAME FILE THE READING ITSELF READS.
@@ -953,7 +1084,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 (function () {
   "use strict";
 
-  var BUILD = "b12 - 21 Sep 2026";
+  var BUILD = "b13 - 21 Sep 2026";
   var CACHE = "rm_stack";      /* a photograph of what the account said */
   var TOKEN_KEY = "rm_account_v1";
 
