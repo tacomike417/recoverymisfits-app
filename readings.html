@@ -545,6 +545,36 @@ body::after{
   text-decoration:none;text-align:center;
 }
 .links a:active{border-color:var(--gold)}
+/* ---- the evening review, inside the lightbox ---------------------------
+   The line first and largest, because that is the thing being sat with. The
+   questions are a short list under it, not a wall of them -- two is a thing
+   somebody actually answers at the end of a long day. */
+.evcount{
+  margin:0 0 9px;font-family:var(--ui);font-size:10.5px;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);opacity:.75;
+}
+.evline{
+  margin:0;font-family:var(--display);font-weight:400;
+  font-size:20px;line-height:1.45;color:#f4ecda;
+}
+.evqs{
+  margin:18px 0 0;padding:0;list-style:none;
+  display:grid;gap:11px;
+}
+.evqs li{
+  position:relative;padding-left:17px;
+  font-size:15px;line-height:1.55;color:rgba(255,255,255,.8);
+}
+.evqs li::before{
+  content:"";position:absolute;left:0;top:9px;
+  width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.75;
+}
+.evcloser{
+  margin:17px 0 2px;padding-top:13px;
+  border-top:1px solid rgba(216,180,91,.22);
+  font-size:15px;line-height:1.55;color:rgba(255,255,255,.62);font-style:italic;
+}
+
 /* ---- the absolute of the day, inside the lightbox -----------------------
    One word, one question, and what to try today. The word carries it, so it
    is set large and everything else stays out of its way. */
@@ -983,7 +1013,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 (function () {
   "use strict";
 
-  var BUILD = "b15 - 21 Sep 2026";
+  var BUILD = "b17 - 21 Sep 2026";
   var CACHE = "rm_stack";      /* a photograph of what the account said */
   var TOKEN_KEY = "rm_account_v1";
 
@@ -1144,6 +1174,115 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     return { i: i, a: ABSOLUTES[i] };
   }
 
+  /* ---- THE MORNING INTENTION ---------------------------------------------
+     Twelve mornings. One line of the prayer, two things to try, and the same
+     closing line every day.
+
+     This grew out of an EVENING review -- a booklet that pairs each line of
+     the prayer with a Tradition, two page ranges in two books, and eight to
+     fourteen questions to answer at bedtime. Almost nobody does it. Partly
+     that is the length, and partly it is the hour: a question at the end of
+     the day can only tell you what you already know. "Was I an instrument of
+     peace today?" answered at eleven at night is a verdict on a day you
+     already spent, delivered too late to spend it any differently.
+
+     So the questions were turned around and moved to the front of the day.
+     Same lines, same twelve, but as things to try rather than things to
+     grade. Going into the day with a direction beats going in blind and
+     adding it up afterward.
+
+     Everything else from the booklet is gone on purpose: the Traditions, the
+     readings, the page ranges. They can be their own add-on if they are ever
+     wanted; none of them is what makes this useful at seven in the morning.
+
+     THE WORDING HERE IS WRITTEN, not lifted. The prayer lines are the 1912
+     original, which is public domain, and the twelve intentions are this
+     app's own words. The credit at the bottom is a thank-you for where the
+     practice came from, not a reproduction of anybody's booklet. */
+  var MORNING = [
+    { line: "Lord, make me an instrument of Thy peace.",
+      qs: ["Today I will try to be a peaceful presence wherever I go.",
+           "Today I will try to leave a room calmer than I found it."] },
+
+    { line: "Where there is hatred, let me bring love.",
+      qs: ["Today I will try to meet hostility without returning it.",
+           "Today I will try to do one thing that helps somebody."] },
+
+    { line: "Where there is wrong, let me bring the spirit of forgiveness.",
+      qs: ["Today I will try to let go of something I have been holding onto.",
+           "Today I will try to forgive before I am asked to."] },
+
+    { line: "Where there is discord, let me bring harmony.",
+      qs: ["Today I will try not to push my opinion or my will on anyone.",
+           "Today I will try to let someone else be right."] },
+
+    { line: "Where there is error, let me bring truth.",
+      qs: ["Today I will try to say only what is true, even when it costs me.",
+           "Today I will try not to shade the truth to be liked."] },
+
+    { line: "Where there is doubt, let me bring faith.",
+      qs: ["Today I will try to act even where I am afraid.",
+           "Today I will try to trust somebody a little further than is comfortable."] },
+
+    { line: "Where there is despair, let me bring hope.",
+      qs: ["Today I will try to notice what is going right.",
+           "Today I will try to say an encouraging word to someone who needs it."] },
+
+    { line: "Where there is shadow, let me bring light.",
+      qs: ["Today I will try to look for the good in everyone I deal with.",
+           "Today I will try to keep gossip out of my mouth."] },
+
+    { line: "Where there is sadness, let me bring joy.",
+      qs: ["Today I will try to carry my mood rather than hand it to someone else.",
+           "Today I will try to bring some lightness into somebody's day."] },
+
+    { line: "May I seek more to comfort, than to be comforted.",
+      qs: ["Today I will try to ask someone how they are, and mean it.",
+           "Today I will try to stay out of my own stuff long enough to notice theirs."] },
+
+    { line: "May I seek more to understand, than to be understood.",
+      qs: ["Today I will try to listen all the way through before I answer.",
+           "Today I will try to be tolerant of people who are hard to be around."] },
+
+    { line: "May I seek more to love, than to be loved.",
+      qs: ["Today I will try to be kind, especially to the ones I do not like.",
+           "Today I will try to let someone know that they matter."] }
+  ];
+
+  /* THE SAME LAST LINE EVERY MORNING. It closes nearly every page of the
+     booklet it came from, turned around the same way as the rest. A line you
+     meet twelve mornings running is one you start saying to yourself without
+     opening anything. */
+  var MORNING_CLOSER = "Today I will try to live up to my own ideals.";
+
+  /* A thank-you, not a citation. Nothing of theirs is reproduced here -- the
+     words are this app's and the prayer is public domain -- but the practice
+     came from somewhere and saying so costs nothing. No individual is named:
+     a group can be thanked, a member cannot. */
+  var MORNING_THANKS =
+    "With thanks to the Afternoon Alkies, Akron, Ohio, whose evening " +
+    "review this grew out of.";
+
+  function todayIntention() {
+    var i = (new Date().getDate() - 1) % MORNING.length;
+    return { i: i, e: MORNING[i] };
+  }
+
+  /* A sun coming up over the line, for the one thing here you do first. */
+  var EVE_ICO =
+    '<svg class="ico ico-drawn" viewBox="0 0 48 48" aria-hidden="true">' +
+      '<path d="M8 34h32" stroke-linecap="round"/>' +
+      '<path d="M16 34a8 8 0 0 1 16 0" stroke-linejoin="round"/>' +
+      '<path d="M24 12v5M13 17l3 3M35 17l-3 3" stroke-linecap="round"/>' +
+    '</svg>';
+
+  ITEMS.push({
+    id: "evening", kind: "evening",
+    t: "Morning Intention",
+    d: "A line of the prayer, and two things to try.",
+    icoHTML: EVE_ICO
+  });
+
   /* A compass needle, not the prayers' star -- this one is about which way
      you are pointed today. */
   var ABS_ICO =
@@ -1163,7 +1302,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      things you go and add -- so they start off the stack rather than on it.
      Nothing new ever turns itself on in somebody's morning. */
   var DEFAULT_ORDER = ITEMS.map(function (i) { return i.id; });
-  var DEFAULT_OFF = READY.map(function (p) { return p.id; }).concat(["absolute"]);
+  var DEFAULT_OFF = READY.map(function (p) { return p.id; }).concat(["absolute", "evening"]);
 
   var byId = function (id) {
     for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i];
@@ -1388,7 +1527,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      row you tap to read something that opens over the page. Same shape, same
      "Read" pill, same door. Only what is behind the door differs. */
   var opensOver = function (it) {
-    return it && (it.kind === "prayer" || it.kind === "absolute");
+    return it && (it.kind === "prayer" || it.kind === "absolute" || it.kind === "evening");
   };
 
   function prayerRow(box, it) {
@@ -1658,6 +1797,19 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
             return '<i' + (n === t.i ? ' class="on"' : '') + '></i>';
           }).join("") +
         '</p>');
+      return;
+    }
+
+    if (it.kind === "evening") {
+      var n = todayIntention();
+      showOver("Morning Intention",
+        '<p class="evcount">Day ' + (n.i + 1) + ' of ' + MORNING.length + '</p>' +
+        '<p class="evline">' + esc(n.e.line) + '</p>' +
+        '<ul class="evqs">' +
+          n.e.qs.map(function (q) { return '<li>' + esc(q) + '</li>'; }).join("") +
+        '</ul>' +
+        '<p class="evcloser">' + esc(MORNING_CLOSER) + '</p>',
+        MORNING_THANKS);
       return;
     }
 
