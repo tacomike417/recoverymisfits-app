@@ -308,7 +308,7 @@
       </div>
     </div>
     <button class="go" type="button" id="dsPick" style="margin-top:14px">Pick My Sober Date</button>
-    <a class="go" id="dsHome" href="/index.html" hidden
+    <a class="go" id="dsHome" href="/index.html" data-return hidden
        style="margin-top:14px;text-decoration:none">Take Me Home</a>
     <button class="go" type="button" id="dsSkip"
             style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:8px">
@@ -391,6 +391,8 @@
       $("dsDays").textContent = n === null ? "" : n.toLocaleString() + (n === 1 ? " day" : " days");
       $("dsPick").hidden = true;
       $("dsSkip").hidden = true;
+      $("dsHome").href = RETURN_TO;
+      $("dsHome").textContent = next === "readings" ? "Back to Readings" : $("dsHome").textContent;
       $("dsHome").hidden = false;
     } else {
       $("dsKick").textContent = "One more thing";
@@ -415,11 +417,18 @@
     }, 500);
   });
 
-  $("dsSkip").addEventListener("click", function () { location.href = "/index.html"; });
+  $("dsSkip").addEventListener("click", function () { location.href = RETURN_TO; });
 
   /* Where they were headed before this screen got in the way. SET on the
      sober bar sends people here when they have no date and no account. */
   var next = new URLSearchParams(location.search).get("next");
+
+  /* AND BACK WHERE THEY CAME FROM. Somebody sent here by the EDIT pill on
+     Readings wants to arrange their stack, not land on the home page and
+     have to find their way back to what they were already doing. Only
+     pages this app knows by name -- never a URL handed to it. */
+  var BACKS = { readings: "/readings.html", set: "/index.html" };
+  var RETURN_TO = BACKS[next] || "/index.html";
 
   /* ---- create / sign in ------------------------------------------------- */
   function setMode(next) {

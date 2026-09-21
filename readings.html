@@ -187,6 +187,24 @@ body::after{
    attribute, so the next block with a display on it is not a third bug. */
 [hidden]{display:none !important}
 
+.sheetbox.is-ask{padding-bottom:26px}
+.sheetnote.dim{color:rgba(255,255,255,.45)}
+.askrow{display:grid;gap:10px;margin-top:18px}
+.askgo,.asknot{
+  display:flex;align-items:center;justify-content:center;min-height:52px;
+  border-radius:var(--radius);font-size:16px;font-weight:700;
+  letter-spacing:.02em;text-decoration:none;cursor:pointer;
+}
+.askgo{background:var(--gold);color:#17130b;border:0}
+.asknot{background:transparent;color:rgba(255,255,255,.6);
+  border:1px solid rgba(255,255,255,.2);font-weight:600}
+
+.buildline{
+  margin:16px 2px 0;font-size:11px;letter-spacing:.04em;
+  color:rgba(255,255,255,.28);text-align:center;
+}
+.buildline b{font-weight:600;color:rgba(216,180,91,.55)}
+
 /* THE WHOLE ROW IS THE LINK. The mockup's OPEN pill is 21px tall, which is
    half of what anything tappable is allowed to be -- so the pill stays the
    size it is drawn and the ROW around it carries the tap, at 58px. Nobody
@@ -751,6 +769,30 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      it is in the page for a screen reader and for anybody reading the
      source, and so its styling cannot drift from the rows it mirrors.
      ================================================================ -->
+<!-- ARRANGING THE STACK NEEDS AN ACCOUNT, because an arrangement that lives
+     only on one phone is not really theirs -- it is gone with a cleared
+     browser or a new phone, and it does not follow them between the app and
+     Chrome. So signed out, EDIT explains itself instead of opening. It is
+     still a real door with a real way out, not a wall. -->
+<div class="sheetwrap" id="stackAsk" hidden>
+  <div class="sheetdim" data-ask-close></div>
+  <div class="sheetbox is-ask" role="dialog" aria-modal="true" aria-labelledby="stackAskTitle">
+    <div class="sheettop">
+      <h2 id="stackAskTitle">Sign in to arrange your stack</h2>
+      <button class="sheetx" type="button" data-ask-close aria-label="Close">&#10005;</button>
+    </div>
+    <p class="sheetnote">Your readings are kept with your account, so they
+       follow you &mdash; the app, the web, a new phone. Without one they would
+       only ever live on this phone, and vanish with it.</p>
+    <p class="sheetnote dim">It takes a name and a password. No email, nothing
+       else, and you can keep reading all four either way.</p>
+    <div class="askrow">
+      <a class="askgo" href="/account.html?next=readings">Sign in or create one</a>
+      <button class="asknot" type="button" data-ask-close>Not now</button>
+    </div>
+  </div>
+</div>
+
 <div class="sheetwrap" id="stackSheet" hidden>
   <div class="sheetdim" data-stack-close></div>
   <div class="sheetbox" role="dialog" aria-modal="true" aria-labelledby="stackSheetTitle">
@@ -777,6 +819,14 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     <p class="grouphead">Not shown</p>
     <div class="editrows off" id="stackOff"></div>
     <p class="emptynote" id="stackOffEmpty" hidden>Nothing set aside &mdash; you&rsquo;re reading all of them.</p>
+
+    <!-- THE PAGE VOUCHES FOR ITSELF. The version badge in the top bar lives
+         in topbar.js -- a different file, which a phone can update while
+         still serving a months-old copy of THIS page. That is exactly what
+         happened on 21 Sep 2026 and it cost an afternoon. This line is part
+         of the page, so it can only ever be telling the truth about the
+         page you are looking at. -->
+    <p class="buildline" id="stackBuild"></p>
   </div>
 </div>
 
@@ -811,7 +861,22 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 (function () {
   "use strict";
 
+  var BUILD = "b8 - 21 Sep 2026";
   var KEY = "rm_stack";
+  var TOKEN_KEY = "rm_account_v1";
+
+  /* WHO IS SIGNED IN, WITHOUT WAITING FOR ANYTHING. The token is already in
+     localStorage, so this is one synchronous read -- no network, no script
+     to fetch first. It decides whether EDIT opens the editor, and it keys
+     the local copy so two people sharing a phone never inherit each other's
+     stack. */
+  function myUid() {
+    try {
+      var a = JSON.parse(localStorage.getItem(TOKEN_KEY) || "null");
+      return (a && a.uid) || "";
+    } catch (e) { return ""; }
+  }
+  function signedIn() { return !!myUid(); }
 
   /* THE DEFAULT STACK. This order is what a new account gets, and it is the
      order the page has always shown them in. */
@@ -956,6 +1021,12 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
       var raw = localStorage.getItem(KEY);
       if (!raw) return;
       var v = JSON.parse(raw);
+      /* A COPY LEFT BY A DIFFERENT ACCOUNT IS NOT THEIRS. Signing out and
+         somebody else signing in on the same phone must not hand them the
+         last person's readings while the real one is still coming down. */
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        if ((v.uid || "") !== myUid()) return;
+      }
       if (Array.isArray(v)) { off = v.concat(DEFAULT_OFF); }  /* the old shape */
       else if (v && typeof v === "object") {
         if (Array.isArray(v.order)) order = v.order;
@@ -971,7 +1042,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 
   /* Stamped. If this phone and the account disagree, the later arrangement
      is the one they meant. */
-  function payload() { return { order: order, off: off, at: savedAt }; }
+  function payload() { return { order: order, off: off, at: savedAt, uid: myUid() }; }
 
   function write() {
     mine = true;
@@ -1215,6 +1286,12 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
       kinds.map(function (k) { return groupHTML(k, boxed[k]); }).join("");
     document.getElementById("stackOnEmpty").hidden = on.length > 0;
     document.getElementById("stackOffEmpty").hidden = setAside.length > 0;
+
+    /* Which build, and where this stack is actually being kept. Both of
+       those have been guesses for two days. */
+    document.getElementById("stackBuild").innerHTML =
+      "<b>" + BUILD + "</b> &middot; " +
+      (signedIn() ? "saved to your account" : "saved on this phone only");
   }
 
   /* MOVING IS AMONG THE ONES THAT SHOW. "Up" means above the reading above
@@ -1243,11 +1320,15 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      Every deliberate close goes through closeSheet, so there is ONE closing
      path and the history cannot drift out of step with the screen. */
   var wrap = document.getElementById("stackSheet");
+  var askWrap = document.getElementById("stackAsk");
   var pushed = false;
+  var openBox = null;            /* the one overlay showing, if any */
 
-  function openSheet() {
-    paintEditor();
-    wrap.hidden = false;
+  function openLayer(box, before) {
+    if (openBox) return;
+    if (before) before();
+    openBox = box;
+    box.hidden = false;
     document.body.style.overflow = "hidden";
     if (!pushed) {
       pushed = true;
@@ -1257,7 +1338,8 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
   }
 
   function hideSheet() {
-    wrap.hidden = true;
+    if (openBox) openBox.hidden = true;
+    openBox = null;
     document.body.style.overflow = "";
     pushed = false;
   }
@@ -1267,17 +1349,27 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     hideSheet();
   }
 
+  var openSheet = function () { openLayer(wrap, paintEditor); };
+  var openAsk = function () { openLayer(askWrap, null); };
+
   window.addEventListener("popstate", function () {
-    if (!wrap.hidden) hideSheet();
+    if (openBox) hideSheet();
   });
 
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && !wrap.hidden) closeSheet();
+    if (e.key === "Escape" && openBox) closeSheet();
   });
 
   document.addEventListener("click", function (e) {
-    if (e.target.closest("#stackEdit")) { openSheet(); return; }
+    /* The pill stays visible signed out -- somebody has to be able to find
+       out the stack can be arranged at all -- but it explains itself instead
+       of opening onto changes that would not survive the week. */
+    if (e.target.closest("#stackEdit")) {
+      if (signedIn()) openSheet(); else openAsk();
+      return;
+    }
     if (e.target.closest("[data-stack-close]")) { closeSheet(); return; }
+    if (e.target.closest("[data-ask-close]")) { closeSheet(); return; }
 
     /* The Prayers heading. Opening it is not a history step -- it is a
        drawer inside a panel, and Back has to keep meaning "close the
@@ -1361,19 +1453,34 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     if (!wrap.hidden) paintEditor();
   }
 
-  function askAccount(tries) {
-    var A = window.RMAccount;
-    if (!A || !A.signedIn || !A.pull) {
-      if (tries < 40) return setTimeout(function () { askAccount(tries + 1); }, 250);
-      return;                                   /* ten seconds, then let it be */
-    }
-    if (!A.signedIn()) return;
-    A.pull().then(adopt).catch(function () {});
+  /* THIS PAGE FETCHES THE ACCOUNT SCRIPT ITSELF. It used to sit and poll for
+     ten seconds hoping nav.js had got round to loading it -- which worked
+     most of the time and silently did nothing the rest, and "most of the
+     time" is not a foundation for somebody's readings. The browser has the
+     file cached after the first page, so asking for it again costs nothing.
+     Only for somebody signed in: everybody else needs no network at all. */
+  function loadAccount() {
+    if (window.RMAccount) return Promise.resolve(true);
+    return new Promise(function (done) {
+      var t = document.createElement("script");
+      t.src = "/assets/account.js";
+      t.onload = function () { done(!!window.RMAccount); };
+      t.onerror = function () { done(false); };
+      document.head.appendChild(t);
+    });
+  }
+
+  function askAccount() {
+    if (!signedIn()) return;
+    loadAccount().then(function (ok) {
+      if (!ok || !window.RMAccount.pull) return;
+      return window.RMAccount.pull().then(adopt);
+    }).catch(function () {});
   }
 
   read();
   paintStack();
-  askAccount(0);
+  askAccount();
 })();
 </script>
 </body>
