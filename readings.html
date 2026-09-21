@@ -909,7 +909,14 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      yesterday loses what they chose. */
   var order = DEFAULT_ORDER.slice();
   var off = DEFAULT_OFF.slice();
-  var touched = false;        /* have they ever opened the editor and chosen? */
+  /* THE PHONE IN THEIR HAND WINS. The moment they add, remove or move
+     anything, this turns on and the account stops being allowed to
+     overwrite them. The account's copy arrives a second or two after the
+     page draws, and without this it lands on top of the change they just
+     made -- which is exactly the "it adds it back but it doesn't stick"
+     they saw. */
+  var mine = false;
+  var savedAt = 0;            /* when this phone last saved an arrangement */
 
   function normalize() {
     /* Only ids we know, no duplicates, and anything new in ITEMS appended --
@@ -924,46 +931,88 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     off = off.filter(function (id, i, a) { return byId(id) && a.indexOf(id) === i; });
   }
 
+  /* A READING THE SAVED SETTING NEVER HEARD OF STAYS OFF. Somebody who
+     arranged their stack last week must not open the app today and find
+     prayers in it they never asked for -- whether that arrangement came off
+     this phone or down from their account. Only a setting that mentions a
+     reading gets to say it is on. */
+  function keepNewOnesOff(savedOrder) {
+    var known = {};
+    (savedOrder || []).forEach(function (id) { known[id] = 1; });
+    DEFAULT_OFF.forEach(function (id) {
+      if (!known[id] && off.indexOf(id) === -1) off.push(id);
+    });
+  }
+
   function read() {
     try {
       var raw = localStorage.getItem(KEY);
       if (!raw) return;
       var v = JSON.parse(raw);
-      if (Array.isArray(v)) { off = v.concat(DEFAULT_OFF); touched = true; }  /* the old shape */
+      if (Array.isArray(v)) { off = v.concat(DEFAULT_OFF); }  /* the old shape */
       else if (v && typeof v === "object") {
         if (Array.isArray(v.order)) order = v.order;
         if (Array.isArray(v.off)) off = v.off;
-        touched = true;
-        /* A PRAYER THE SAVED SETTING NEVER HEARD OF STAYS OFF. Somebody who
-           arranged their stack last week must not open the app today and
-           find four prayers in it they never asked for. Only a setting that
-           mentions a prayer gets to say it is on. */
-        var known = {};
-        (v.order || []).forEach(function (id) { known[id] = 1; });
-        DEFAULT_OFF.forEach(function (id) {
-          if (!known[id] && off.indexOf(id) === -1) off.push(id);
-        });
+        if (typeof v.at === "number") savedAt = v.at;
+        keepNewOnesOff(v.order);
       }
     } catch (e) { /* private browsing: the default stack is the right answer */ }
     normalize();
   }
 
+  var pushTimer = null;
+
+  /* Stamped. If this phone and the account disagree, the later arrangement
+     is the one they meant. */
+  function payload() { return { order: order, off: off, at: savedAt }; }
+
   function write() {
-    var payload = { order: order, off: off };
-    try { localStorage.setItem(KEY, JSON.stringify(payload)); } catch (e) {}
+    mine = true;
+    savedAt = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(payload())); } catch (e) {}
+
     /* And up to the account, if there is one. Merged into whatever else is
-       in the blob rather than replacing it -- the sober date lives there. */
-    try {
-      var A = window.RMAccount;
-      if (A && A.signedIn && A.signedIn() && A.pull && A.push) {
+       in the blob rather than replacing it -- the sober date lives there.
+
+       Held for a moment first. Somebody tapping the up arrow four times in
+       a row is one arrangement, not four, and four round trips racing each
+       other is how the third one lands after the fourth and puts the stack
+       back where it was. The stack is read at PUSH time, never captured
+       here, so what goes up is always the arrangement on the screen. */
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(function () {
+      pushTimer = null;
+      try {
+        var A = window.RMAccount;
+        if (!(A && A.signedIn && A.signedIn() && A.pull && A.push)) return;
         A.pull().then(function (remote) {
           var data = (remote && remote.data) || {};
-          data.stack = payload;
+          data.stack = payload();
           A.push(data);
         }).catch(function () {});
-      }
+      } catch (e) {}
+    }, 600);
+  }
+
+  /* A held push must not die with the page. Putting the phone down a
+     half-second after the last tap is the normal way to leave. */
+  function flush() {
+    if (!pushTimer) return;
+    clearTimeout(pushTimer); pushTimer = null;
+    try {
+      var A = window.RMAccount;
+      if (!(A && A.signedIn && A.signedIn() && A.pull && A.push)) return;
+      A.pull().then(function (remote) {
+        var data = (remote && remote.data) || {};
+        data.stack = payload();
+        A.push(data);
+      }).catch(function () {});
     } catch (e) {}
   }
+  window.addEventListener("pagehide", flush);
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") flush();
+  });
 
   var isOff = function (id) { return off.indexOf(id) !== -1; };
   var shown = function () { return order.filter(function (id) { return !isOff(id); }); };
@@ -1262,16 +1311,29 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      after the page has already drawn from whatever this phone had -- so the
      page never waits on the network to show a stack. */
   function adopt(remote) {
+    if (mine) return;              /* they have already arranged it here today */
     var d = remote && remote.data;
     if (!d) return;
     var v = d.stack;
     if (Array.isArray(d.stackOff)) { off = d.stackOff; }     /* the old shape */
     else if (v && typeof v === "object") {
-      if (Array.isArray(v.order)) order = v.order;
-      if (Array.isArray(v.off)) off = v.off;
+      /* An empty order is not an arrangement, it is a blank. Taking it would
+         rebuild the stack from the defaults and switch on readings they
+         never asked for. */
+      var hasOrder = Array.isArray(v.order) && v.order.length;
+      var hasOff = Array.isArray(v.off);
+      if (!hasOrder && !hasOff) return;
+      /* Arranged here AFTER the account's copy was made -- which happens
+         when they change the stack and shut the app before it reaches the
+         network. Theirs is the later word, so it stands. */
+      var theirAt = typeof v.at === "number" ? v.at : 0;
+      if (savedAt && savedAt > theirAt) return;
+      if (hasOrder) order = v.order;
+      if (hasOff) off = v.off;
+      keepNewOnesOff(v.order);
     } else { return; }
     normalize();
-    try { localStorage.setItem(KEY, JSON.stringify({ order: order, off: off })); } catch (e) {}
+    try { localStorage.setItem(KEY, JSON.stringify(payload())); } catch (e) {}
     paintStack();
     if (!wrap.hidden) paintEditor();
   }
