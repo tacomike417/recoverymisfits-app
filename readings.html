@@ -461,6 +461,7 @@ body::after{
 }
 .praywords .ln:last-child{margin-bottom:0}
 .praywords .gap{display:block;height:12px}
+.praysrc[hidden]{display:none}
 .praysrc{
   margin:16px 0 0;padding-top:11px;
   border-top:1px solid rgba(216,180,91,.22);
@@ -544,22 +545,11 @@ body::after{
   text-decoration:none;text-align:center;
 }
 .links a:active{border-color:var(--gold)}
-/* ---- the absolute of the day -------------------------------------------
-   Quieter than the reading card at the top and plainer than the stack: one
-   word, one question, and what to try today. The word carries it, so it is
-   set large and everything else stays out of its way. */
-.absolute{margin:34px 0 0}
-.abshead{
-  font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:1px;
-  text-transform:uppercase;color:var(--ivory);margin:0 0 9px 2px;
-}
-.absbox{
-  border:1px solid rgba(216,180,91,.28);border-radius:var(--radius);
-  background:linear-gradient(180deg, rgba(216,180,91,.07), rgba(216,180,91,.015) 60%);
-  padding:17px 16px 15px;
-}
+/* ---- the absolute of the day, inside the lightbox -----------------------
+   One word, one question, and what to try today. The word carries it, so it
+   is set large and everything else stays out of its way. */
 .absname{
-  margin:0;font-family:var(--display);font-weight:700;
+  margin:2px 0 0;font-family:var(--display);font-weight:700;
   /* UNSELFISHNESS is thirteen characters and cannot be broken. At 31px it
      runs past the edge of the box on a 320px phone, so the word sets its own
      size against the screen and only reaches 31px when there is room. */
@@ -576,7 +566,7 @@ body::after{
 /* Four marks, today's one filled. It says "one of four, and this is where
    you are" without a word of explanation or a number anybody has to read. */
 .absdots{
-  margin:15px 0 0;display:flex;gap:7px;
+  margin:18px 0 2px;display:flex;gap:7px;
 }
 .absdots i{
   width:7px;height:7px;border-radius:50%;
@@ -715,26 +705,6 @@ body::after{
 
   </div>
 
-  <!-- THE ABSOLUTE OF THE DAY.
-       Honesty, purity, unselfishness, love -- the Oxford Group's four, which
-       came into AA through its founders. One a day, in that order, starting
-       over on the 1st of every month.
-
-       It sits between the stack and the shelf on purpose: the stack is what
-       you do this morning, the shelf is what you reach for when you want it,
-       and this is the one thing you carry around in between. Not part of the
-       stack, so it cannot be added or taken off -- it is the same for
-       everybody on the same day, which is the point of it. -->
-  <section class="absolute">
-    <h2 class="abshead">Absolute of the Day</h2>
-    <div class="absbox">
-      <p class="absname" id="absName"></p>
-      <p class="absask" id="absAsk"></p>
-      <p class="absbody" id="absBody"></p>
-      <p class="absdots" id="absDots" aria-hidden="true"></p>
-    </div>
-  </section>
-
   <!-- THE BOOK SHELF IS A ROOM OF ITS OWN, and the Big Book lives in it.
 
        The Big Book row used to sit directly under the four dailies, in the
@@ -793,77 +763,6 @@ body::after{
 
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
-
-<script>
-/* ----------------------------------------------------------------------
-   THE ABSOLUTE OF THE DAY
-
-   Four of them, one a day, starting over on the 1st of every month. The
-   1st is honesty every month without fail -- which is the whole reason it
-   resets rather than running off a continuous count: somebody can look at a
-   calendar and know which one it is, and two people on the phone are always
-   on the same one.
-
-   The cycle is deliberately not tied to the day of the week or a running
-   total since some start date. Months are not multiples of four, so the
-   sequence breaks at the end of every month -- a 31-day month ends on
-   unselfishness and the next one still begins on honesty. That is on
-   purpose. The reset is the rule; the run is just what happens in between.
-   ---------------------------------------------------------------------- */
-(function () {
-  var ABSOLUTES = [
-    { name: "Honesty",
-      ask:  "Is it true or is it false?",
-      body: "Today I will try to tell the complete truth. I will try not to " +
-            "rationalize, exaggerate, or omit facts." },
-
-    { name: "Purity",
-      ask:  "Is it right or is it wrong?",
-      body: "Today I will try to keep my motives completely pure. I will try " +
-            "not to have hidden agendas." },
-
-    { name: "Unselfishness",
-      ask:  "How will this affect the other person?",
-      body: "Today I will try to ask myself if I am acting out of self-interest " +
-            "or concern for others. I will try to be willing to help someone " +
-            "else without expecting anything in return." },
-
-    { name: "Love",
-      ask:  "Is it ugly or is it beautiful?",
-      body: "Today I will try to keep my actions and words centered in kindness, " +
-            "connection, and care instead of resentment and malice." }
-  ];
-
-  var nameEl = document.getElementById("absName");
-  if (!nameEl) return;
-
-  function paint() {
-    /* Local time, off this phone's clock -- the same clock the reading card
-       above it reads, so the two can never disagree about what day it is. */
-    var day = new Date().getDate();
-    var i = (day - 1) % ABSOLUTES.length;
-    var a = ABSOLUTES[i];
-
-    nameEl.textContent = a.name;
-    document.getElementById("absAsk").textContent = a.ask;
-    document.getElementById("absBody").textContent = a.body;
-    document.getElementById("absDots").innerHTML =
-      ABSOLUTES.map(function (_, n) {
-        return '<i' + (n === i ? ' class="on"' : '') + '></i>';
-      }).join("");
-  }
-
-  paint();
-
-  /* A PHONE LEFT OPEN OVERNIGHT IS THE NORMAL CASE, not the odd one -- this
-     app lives on a bedside table. Coming back to it in the morning has to
-     show today's absolute, not yesterday's, without anybody knowing to
-     refresh. */
-  document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === "visible") paint();
-  });
-})();
-</script>
 
 <script>
 /* TODAY'S CARD READS THE SAME FILE THE READING ITSELF READS.
@@ -1084,7 +983,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 (function () {
   "use strict";
 
-  var BUILD = "b13 - 21 Sep 2026";
+  var BUILD = "b14 - 21 Sep 2026";
   var CACHE = "rm_stack";      /* a photograph of what the account said */
   var TOKEN_KEY = "rm_account_v1";
 
@@ -1203,10 +1102,68 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
   var READY = PRAYERS.filter(function (p) { return p.text && p.text.length; });
   READY.forEach(function (p) { p.kind = "prayer"; ITEMS.push(p); });
 
-  /* The four dailies are the default stack. A prayer is something you go and
-     add, so it starts off the stack rather than on it. */
+  /* ---- THE ABSOLUTE OF THE DAY ------------------------------------------
+     Honesty, purity, unselfishness, love -- the Oxford Group's four, which
+     came into AA through its founders. One a day, in that order, starting
+     over on the 1st of every month.
+
+     The 1st is honesty every month without fail, which is the whole reason
+     it resets rather than running off a continuous count: somebody can look
+     at a calendar and know which one it is, and two people on the phone are
+     always on the same one. Months are not multiples of four, so the run
+     breaks at the end of every month -- a 31-day month ends on unselfishness
+     and the next one still begins on honesty. The reset is the rule; the run
+     is only what happens in between. */
+  var ABSOLUTES = [
+    { name: "Honesty",
+      ask:  "Is it true or is it false?",
+      body: "Today I will try to tell the complete truth. I will try not to " +
+            "rationalize, exaggerate, or omit facts." },
+
+    { name: "Purity",
+      ask:  "Is it right or is it wrong?",
+      body: "Today I will try to keep my motives completely pure. I will try " +
+            "not to have hidden agendas." },
+
+    { name: "Unselfishness",
+      ask:  "How will this affect the other person?",
+      body: "Today I will try to ask myself if I am acting out of self-interest " +
+            "or concern for others. I will try to be willing to help someone " +
+            "else without expecting anything in return." },
+
+    { name: "Love",
+      ask:  "Is it ugly or is it beautiful?",
+      body: "Today I will try to keep my actions and words centered in kindness, " +
+            "connection, and care instead of resentment and malice." }
+  ];
+
+  function todayAbsolute() {
+    /* Local time, off this phone's clock -- the same clock the reading card
+       at the top reads, so the two can never disagree about the day. */
+    var i = (new Date().getDate() - 1) % ABSOLUTES.length;
+    return { i: i, a: ABSOLUTES[i] };
+  }
+
+  /* A compass needle, not the prayers' star -- this one is about which way
+     you are pointed today. */
+  var ABS_ICO =
+    '<svg class="ico ico-drawn" viewBox="0 0 48 48" aria-hidden="true">' +
+      '<circle cx="24" cy="24" r="16"/>' +
+      '<path d="M30 18l-4 10-10 4 4-10z" stroke-linejoin="round"/>' +
+    '</svg>';
+
+  ITEMS.push({
+    id: "absolute", kind: "absolute",
+    t: "Absolute of the Day",
+    d: "Honesty, purity, unselfishness, love.",
+    icoHTML: ABS_ICO
+  });
+
+  /* The four dailies are the default stack. A prayer, and the absolute, are
+     things you go and add -- so they start off the stack rather than on it.
+     Nothing new ever turns itself on in somebody's morning. */
   var DEFAULT_ORDER = ITEMS.map(function (i) { return i.id; });
-  var DEFAULT_OFF = READY.map(function (p) { return p.id; });
+  var DEFAULT_OFF = READY.map(function (p) { return p.id; }).concat(["absolute"]);
 
   var byId = function (id) {
     for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i];
@@ -1427,6 +1384,13 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      because they have always been there and they carry their own artwork.
      A prayer is something somebody added, so its row is made the first time
      it is needed and then kept. */
+  /* A PRAYER AND THE ABSOLUTE ARE THE SAME KIND OF THING on this screen: a
+     row you tap to read something that opens over the page. Same shape, same
+     "Read" pill, same door. Only what is behind the door differs. */
+  var opensOver = function (it) {
+    return it && (it.kind === "prayer" || it.kind === "absolute");
+  };
+
   function prayerRow(box, it) {
     var row = box.querySelector('.row[data-stack="' + it.id + '"]');
     if (row) return row;
@@ -1453,7 +1417,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     var firstNote = box.querySelector(".m-progress");
     shown().forEach(function (id) {
       var it = byId(id);
-      var row = (it && it.kind === "prayer")
+      var row = opensOver(it)
         ? prayerRow(box, it)
         : box.querySelector('.row[data-stack="' + id + '"]');
       if (!row) return;
@@ -1472,9 +1436,8 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 
   /* A built-in carries a drawn file; a prayer carries the shared mark. */
   function icoHTML(it) {
-    return it.ico
-      ? '<img class="ico" src="' + it.ico + '" alt="" aria-hidden="true">'
-      : PRAY_ICO;
+    if (it.ico) return '<img class="ico" src="' + it.ico + '" alt="" aria-hidden="true">';
+    return it.icoHTML || PRAY_ICO;
   }
 
   function esc(x) {
@@ -1668,18 +1631,40 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
   var offWrap = document.getElementById("stackOff2");
   var prayWrap = document.getElementById("prayBox");
 
-  function openPrayer(id) {
-    var it = byId(id);
-    if (!it || !it.text || !it.text.length) return;
-    document.getElementById("prayTitle").textContent = it.t;
-    document.getElementById("prayWords").innerHTML = it.text.map(function (line) {
-      return line ? '<span class="ln">' + esc(line) + '</span>' : '<span class="gap"></span>';
-    }).join("");
-    document.getElementById("praySrc").textContent = it.src || "";
+  function showOver(title, inner, src) {
+    document.getElementById("prayTitle").textContent = title;
+    document.getElementById("prayWords").innerHTML = inner;
+    var srcEl = document.getElementById("praySrc");
+    srcEl.textContent = src || "";
+    srcEl.hidden = !src;
     openLayer(prayWrap, null);
     /* Opened from a tap, so the words themselves are what should be under
        the reader's eye -- not the close button. */
     try { prayWrap.querySelector(".sheetbox").scrollTop = 0; } catch (e) {}
+  }
+
+  function openOver(id) {
+    var it = byId(id);
+    if (!it) return;
+
+    if (it.kind === "absolute") {
+      var t = todayAbsolute();
+      showOver("Absolute of the Day",
+        '<p class="absname">' + esc(t.a.name) + '</p>' +
+        '<p class="absask">' + esc(t.a.ask) + '</p>' +
+        '<p class="absbody">' + esc(t.a.body) + '</p>' +
+        '<p class="absdots" aria-hidden="true">' +
+          ABSOLUTES.map(function (_, n) {
+            return '<i' + (n === t.i ? ' class="on"' : '') + '></i>';
+          }).join("") +
+        '</p>');
+      return;
+    }
+
+    if (!it.text || !it.text.length) return;
+    showOver(it.t, it.text.map(function (line) {
+      return line ? '<span class="ln">' + esc(line) + '</span>' : '<span class="gap"></span>';
+    }).join(""), it.src);
   }
   var openSheet = function () { say(""); openLayer(wrap, paintEditor); };
   var openAsk = function () { openLayer(askWrap, null); };
@@ -1726,7 +1711,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
        looking at, which is the rule this whole page is built on. */
     var pray = e.target.closest("[data-prayer]");
     if (pray && !e.target.closest("[data-edit-box]")) {
-      openPrayer(pray.getAttribute("data-prayer"));
+      openOver(pray.getAttribute("data-prayer"));
       return;
     }
 
