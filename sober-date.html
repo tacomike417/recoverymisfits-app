@@ -51,7 +51,11 @@
     font-size:clamp(9px,2.7vw,12px);letter-spacing:.18em;
     text-transform:uppercase;color:var(--gold);margin:0 0 4%;
   }
-  .mark{width:clamp(74px,22%,120px);height:auto;margin:0 auto 4%;display:block}
+  /* THE COIN IS THE CARD'S CENTERPIECE, so it is drawn much bigger than the
+     wordmark it replaced. Falls back to the logo for anyone with no sober
+     date set -- there is no coin to show yet and inventing one would be a
+     lie on the one card whose whole job is being true. */
+  .mark{width:clamp(112px,37%,204px);height:auto;margin:0 auto 4%;display:block}
   .lede{
     font-family:var(--display);font-weight:600;
     font-size:clamp(15px,5.2vw,25px);letter-spacing:.06em;
@@ -263,8 +267,49 @@
       el.dataset.cleaned = "1";   /* leave it as it is; do not try again */
     }
   }
-  if ($("mark").complete) cleanMark();
-  else $("mark").addEventListener("load", cleanMark, { once: true });
+  /* ---- THE COIN GOES WHERE THE LOGO WAS ---------------------------------
+     coins.js works out which coin this person has earned; this just puts it
+     in the frame. Two things matter here:
+
+       * cleanMark() MUST NOT RUN ON A COIN. It turns dark pixels
+         transparent, which is right for white artwork on a black square and
+         catastrophic for a coin whose art is full of dark rust and shadow --
+         it would eat holes straight through it. Coins arrive with real
+         transparency already, so there is nothing to strip.
+
+       * NO COIN, NO SWAP. Somebody who has not set a sober date has not
+         earned one, and the logo stays. */
+  function useCoin() {
+    var el = $("mark");
+    if (!el) return false;
+    var api = window.RMCoins;
+    var coin = api && api.current && api.current();
+    if (!coin) return false;
+
+    el.dataset.cleaned = "1";           /* hands off, cleanMark */
+    el.dataset.coin = "1";
+    el.alt = "Your " + coin.label + " coin";
+    el.addEventListener("error", function once() {
+      el.removeEventListener("error", once);
+      /* the six-month coin may not be drawn yet */
+      if (coin.fallback) el.src = api.src({ file: coin.fallback });
+      else { delete el.dataset.coin; el.src = "./icon-512.png"; }
+    });
+    el.src = api.src(coin);
+    return true;
+  }
+
+  /* coins.js is loaded by nav.js with defer, so it may land after this
+     script runs. A few cheap tries, then give up and keep the logo. */
+  (function coinWhenReady(n) {
+    if (useCoin()) return;
+    if (n > 24) {
+      if ($("mark").complete) cleanMark();
+      else $("mark").addEventListener("load", cleanMark, { once: true });
+      return;
+    }
+    setTimeout(function () { coinWhenReady(n + 1); }, 120);
+  })(0);
 
   /* ---- the picture ------------------------------------------------------
      Drawn on a canvas rather than screenshotting the page. A screenshot
@@ -316,8 +361,11 @@
        up into the headline and struck through it. Baselines are absolute
        now, so nothing can climb into anything else. */
     var Y_SITE  = 0.128;
-    var Y_MARK  = 0.175;   /* top of the logo */
-    var H_MARK  = 0.185;   /* how tall it is drawn */
+    /* THE COIN IS DRAWN AS BIG AS THE GAP ALLOWS. The headline's baseline is
+       at 0.470 and its type is 0.062 tall, so anything below about 0.40
+       starts climbing into it. 0.150 to 0.395 fills the space and stops. */
+    var Y_MARK  = 0.145;   /* top of the coin */
+    var H_MARK  = 0.265;   /* how tall it is drawn */
     var Y_LEDE  = 0.470;
     var Y_COUNT = 0.660;
     var Y_UNIT  = 0.745;

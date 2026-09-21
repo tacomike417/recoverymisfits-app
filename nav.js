@@ -6,6 +6,25 @@
   const SOBER_KEY = "rm_sober_date";
   const STYLE_ID = "rm-nav-styles";
 
+  /* ---- THE COINS ---------------------------------------------------------
+     coins.js owns everything to do with sobriety coins: the one on the rail
+     where the share icon used to be, the reveal when somebody earns a new
+     one, and the picture the share card draws. It is loaded from here rather
+     than added to fifteen separate pages, because this file is already on
+     every one of them.
+
+     It drives itself -- it finds the rail, repaints when the count changes,
+     and needs nothing called from in here. If it fails to load, the rail
+     keeps its original share icon and nothing else notices. */
+  (function loadCoins() {
+    if (document.getElementById("rm-coins-js")) return;
+    const c = document.createElement("script");
+    c.id = "rm-coins-js";
+    c.src = "/coins.js";
+    c.defer = true;
+    document.head.appendChild(c);
+  })();
+
   function pad2(n) {
     return String(n).padStart(2, "0");
   }
