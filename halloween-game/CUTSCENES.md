@@ -92,33 +92,88 @@ Bill notices a kid's paper pumpkin taped to the wall.
 
 ---
 
-## Runway constraints — read before burning credits
+## PARKED — 21 Sep 2026
 
-- **It cannot do reliable lip-synced dialogue. Do not try to make it talk.**
-  Generate the PHYSICAL comedy — the room turning, the pot dropping, Bob's
-  face at the snack table, the walk-out. Every line above gets delivered
-  through the game's existing speech-bubble system or a voiceover.
-- **9:16 vertical.** The game canvas is a fixed 390x780 phone frame. A 16:9
-  clip letterboxes into a strip.
-- **3-6 seconds, 540p or 720p, H.264.** A few hundred KB each. The game
-  already carries ~44 MB of audio and 1.7-3.3 MB background PNGs; full-quality
-  clips would double the download on a phone.
-- **One shot per clip.** No cuts inside a generation — Runway drifts.
+Tried Runway for real. Got ONE usable clip out of about two hours and 550
+credits, then killed the subscription. The six-scene script above is good and
+stays exactly as written. What follows is what the tool actually did, so
+nobody relearns it from scratch.
 
-## Build side, not started yet
+**What survives:** `cs1-bill-recognized.mp4` — five seconds, 720x1280, Bill
+alone in the doorway, grin drops, eyes go wide, eyes close. That is CS1's
+whole beat and it works. Start frame was made in ChatGPT, not Runway.
 
-- `engine/cutscene.js` is an empty 0-byte file already sitting there for this.
-- iOS will not autoplay video with sound without a user gesture. The game
-  already has `unlockAudioFromUserGesture`; a cutscene could either start from
-  a tap or begin muted.
-- The candy-search code added 19 Sep (MEETING_SEARCH_SPOTS, the `search` step,
-  drawSearchHotspots) is now superseded and could come back out of
-  chapter1-gameplay.js.
-- What SURVIVES from that work and matters: the `script.js` parser fix. Every
-  section header had a stray space after the slashes, so the whole game's
-  dialogue was collapsing into the AA meeting as four enormous blocks. Headers
-  are now matched by shape (`Name-levelN`), space or no space.
+---
 
-## Monday, first thing
+## What Runway can and cannot do
 
-Turn CS1-CS6 into six Runway prompts, 9:16, one shot each.
+**The one that killed us: two similar characters in one frame will merge.**
+Bill and Bob standing shoulder to shoulder, Bill walks, and Bill leaves a
+duplicate of himself behind wearing Bob's clothes. It is not a prompt problem.
+The model cannot tell where one man ends and the other begins once either of
+them moves. ONE character per shot, or nobody moves at all.
+
+**Undrawn background figures become copies of your hero.** The crowd in the
+start frame was dark faceless shapes. Told to stand up, the model had to
+invent people, and it reached for the only fully-drawn human it had — a
+front-row silhouette grew a fedora and a brown suit. If a background figure
+has to move, it has to already be drawn as a person in the start frame.
+
+**One motion per clip. It picks its favorite and drops the rest.** "Camera
+pushes in, heads turn, one man half rises" produced only the man rising —
+who then walked into the middle of the shot and blocked the lead. Write like
+a camera operator, not a screenwriter.
+
+**Text in frame garbles.** EXIT came back as EXIF, EXST DAO, EXT. Ask for no
+lettering anywhere and pick the generations that have none.
+
+**An unused reference still bleeds.** Bob's reference sat loaded but
+unmentioned in the prompt, and Bill came out with Bob's glasses. Only load
+the references that shot needs. (And check which tile you are deleting —
+removed Bill by accident, got four stills of Bob in a fedora.)
+
+**Text-to-video is 16:9 only.** Vertical 9:16 exists only on image-to-video,
+and every Gen-4 video generation needs an input image anyway. So the real
+unit of work is a START FRAME plus a motion prompt — never a prompt alone.
+
+**The frame does the heavy lifting.** Runway's own guidance: once you hand it
+a frame, the prompt should be almost entirely motion. Restating the look is
+what makes it drift.
+
+**Make the frames somewhere else.** ChatGPT made visibly better panels than
+Gen-4 Image, and Runway will animate any uploaded picture. Frames there,
+motion here.
+
+**There is no continuity between clips.** Every generation is a fresh roll.
+Bill is a slightly different Bill in every one — height, face, room. Six clips
+will not cut together like a cartoon. Do not plan as if they will.
+
+---
+
+## The shot that works
+
+One fully-drawn character. One small motion. Everything else dead still.
+
+Face acting is the sweet spot: a grin dropping reads better than a room full
+of people reacting, costs the same, and cannot melt. The room going quiet is
+something a speech bubble and a sound cue sell better than five seconds of
+generated motion ever will.
+
+## Costs, for planning
+
+- Gen-4 Image: 8 credits at 1080p, 5 at 720p
+- Gen-4 Turbo video: 5 credits/second — draft everything here
+- Gen-4 / Gen-4.5 video: 12 credits/second — only for keepers
+- Real-world: ~550 credits and two hours for one usable 5-second clip
+
+## If this restarts
+
+The structure that survived contact with reality, for CS1:
+
+1. Bill alone, gets recognized — Runway clip (DONE)
+2. Cut to black, door slam — game audio, no video needed
+3. "HOLY SHIT IT'S THE GUYS" — game speech bubbles
+4. Outside, Bill and Bob decide to go change — one held two-shot, almost no
+   motion, bubbles carry it
+
+Character reference art cut for this is in `halloween-game/runway-refs/`.
