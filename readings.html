@@ -180,6 +180,13 @@ body::after{
    here or the whole editor does nothing visible. */
 .row[hidden]{display:none}
 
+/* AND EVERY OTHER ONE OF THEM. The rule above was written for .row and then
+   the same trap caught .grpbody (display:grid) and .words (display:block) --
+   the Prayers drawer rendered wide open because "hidden" quietly lost to an
+   explicit display. Said once here for anything that ever carries the
+   attribute, so the next block with a display on it is not a third bug. */
+[hidden]{display:none !important}
+
 /* THE WHOLE ROW IS THE LINK. The mockup's OPEN pill is 21px tall, which is
    half of what anything tappable is allowed to be -- so the pill stays the
    size it is drawn and the ROW around it carries the tap, at 58px. Nobody
@@ -1160,20 +1167,26 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      would bury the readings somebody actually took off, and it only gets
      worse as more are added. One row that opens, so the list underneath is
      as long as it likes and the screen never is. */
-  var prayersOpen = false;
+  var groupOpen = {};              /* kind -> is its drawer open right now */
 
-  function prayerGroupHTML(list) {
+  /* What each drawer is called. A reading with a kind that is not named here
+     is not put in a drawer at all -- it sits loose in Not shown, which is
+     the right answer for the four that have always been there. */
+  var GROUPS = { prayer: "Prayers" };
+
+  function groupHTML(kind, list) {
     if (!list.length) return "";
-    return '<div class="grp' + (prayersOpen ? " open" : "") + '">' +
-      '<button class="grphead" type="button" data-prayers aria-expanded="' +
-        (prayersOpen ? "true" : "false") + '">' +
-        '<span class="gt">Prayers</span>' +
+    var open = !!groupOpen[kind];
+    return '<div class="grp' + (open ? " open" : "") + '">' +
+      '<button class="grphead" type="button" data-group="' + kind + '" aria-expanded="' +
+        (open ? "true" : "false") + '">' +
+        '<span class="gt">' + GROUPS[kind] + '</span>' +
         '<span class="gn">' + list.length + '</span>' +
         '<svg class="gchev" viewBox="0 0 24 24" aria-hidden="true">' +
           '<path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" ' +
           'stroke-linecap="round" stroke-linejoin="round"/></svg>' +
       '</button>' +
-      '<div class="grpbody"' + (prayersOpen ? "" : " hidden") + '>' +
+      '<div class="grpbody"' + (open ? "" : " hidden") + '>' +
         list.map(function (id) { return offRow(byId(id)); }).join("") +
       '</div></div>';
   }
@@ -1181,16 +1194,25 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
   function paintEditor() {
     var on = shown();
     var setAside = order.filter(function (id) { return isOff(id); });
-    var prayers = setAside.filter(function (id) {
-      var it = byId(id); return it && it.kind === "prayer";
+
+    /* Loose ones first, then a drawer per kind. Somebody who just took
+       Daily Reflections off sees it straight away instead of hunting past
+       a stack of drawers for it. */
+    var loose = [], boxed = {}, kinds = [];
+    setAside.forEach(function (id) {
+      var it = byId(id);
+      var k = it && it.kind;
+      if (k && GROUPS[k]) {
+        if (!boxed[k]) { boxed[k] = []; kinds.push(k); }
+        boxed[k].push(id);
+      } else { loose.push(id); }
     });
-    var plain = setAside.filter(function (id) { return prayers.indexOf(id) === -1; });
 
     document.getElementById("stackOn").innerHTML =
       on.map(function (id, i) { return onRow(byId(id), i); }).join("");
     document.getElementById("stackOff").innerHTML =
-      plain.map(function (id) { return offRow(byId(id)); }).join("") +
-      prayerGroupHTML(prayers);
+      loose.map(function (id) { return offRow(byId(id)); }).join("") +
+      kinds.map(function (k) { return groupHTML(k, boxed[k]); }).join("");
     document.getElementById("stackOnEmpty").hidden = on.length > 0;
     document.getElementById("stackOffEmpty").hidden = setAside.length > 0;
   }
@@ -1260,9 +1282,10 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     /* The Prayers heading. Opening it is not a history step -- it is a
        drawer inside a panel, and Back has to keep meaning "close the
        editor" or it stops being predictable. */
-    var grp = e.target.closest("[data-prayers]");
+    var grp = e.target.closest("[data-group]");
     if (grp) {
-      prayersOpen = !prayersOpen;
+      var gk = grp.getAttribute("data-group");
+      groupOpen[gk] = !groupOpen[gk];
       var b0 = marks();
       paintEditor();
       travel(b0, null);
