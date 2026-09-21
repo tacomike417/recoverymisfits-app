@@ -728,6 +728,12 @@ body::after{
       <span class="pill">Open <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </a>
 
+    <a class="row" data-stack="meme" href="./meme.html">
+      <svg class="ico ico-drawn" viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="26" rx="3"/><path d="M7 28l8-7 6 5 7-8 9 9" stroke-linejoin="round"/><circle cx="17" cy="17" r="2.6"/><path d="M17 35v4M31 35v4M14 39h20" stroke-linecap="round"/></svg>
+      <span class="txt"><span class="t">Meme of the Day</span><span class="d">One a day. Made to be shared.</span></span>
+      <span class="pill">Open <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </a>
+
     <img class="m-progress" src="assets/pages/r-m-progress.webp" alt="" aria-hidden="true">
     <img class="m-belong" src="assets/pages/r-m-belong.webp" alt="" aria-hidden="true">
 
@@ -1038,6 +1044,18 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     { id: "reflections", t: "Daily Reflections",       d: "Experience, strength and hope.", ico: "assets/pages/r-ico-sprout.webp" },
     { id: "anotherday",  t: "Another Day Sober",       d: "Daily step study.",              ico: "assets/pages/r-ico-road.webp" }
   ];
+  /* MEME OF THE DAY. A door, not a drawer -- it opens ./meme.html, where the
+     share button lives. Pushed here rather than written into the list above
+     so the four dailies stay the four dailies. */
+  var MEME_ICO =
+    '<svg class="ico ico-drawn" viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="26" rx="3"/><path d="M7 28l8-7 6 5 7-8 9 9" stroke-linejoin="round"/><circle cx="17" cy="17" r="2.6"/><path d="M17 35v4M31 35v4M14 39h20" stroke-linecap="round"/></svg>';
+  ITEMS.push({
+    id: "meme",
+    t: "Meme of the Day",
+    d: "One a day. Made to be shared.",
+    icoHTML: MEME_ICO
+  });
+
   /* ---- THE PRAYERS -------------------------------------------------------
      Each one is a row you can add to your stack, and tapping it opens the
      words right there rather than sending you somewhere.
@@ -1302,7 +1320,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      things you go and add -- so they start off the stack rather than on it.
      Nothing new ever turns itself on in somebody's morning. */
   var DEFAULT_ORDER = ITEMS.map(function (i) { return i.id; });
-  var DEFAULT_OFF = READY.map(function (p) { return p.id; }).concat(["absolute", "evening"]);
+  var DEFAULT_OFF = READY.map(function (p) { return p.id; }).concat(["absolute", "evening", "meme"]);
 
   var byId = function (id) {
     for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i];
