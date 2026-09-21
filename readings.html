@@ -428,23 +428,43 @@ body::after{
   border:1px solid rgba(216,180,91,.3);cursor:pointer;
   grid-template-columns:54px 1fr auto;
 }
-.row-prayer .words{grid-column:1/-1;display:block;padding:12px 4px 4px}
 /* The drawn mark, in the same gold line as everything else on the page. */
 .ico-drawn{
   width:44px;height:44px;justify-self:center;
   stroke:var(--gold);fill:none;stroke-width:1.8;opacity:.9;
 }
-.row-prayer[aria-expanded="true"] .pill svg{transform:rotate(90deg)}
-.row-prayer .pill svg{transition:transform .2s ease}
-.row-prayer .ln{
-  display:block;font-family:var(--display);font-weight:400;
-  font-size:15px;line-height:1.55;color:#f2e9d4;
+
+/* ---- A PRAYER, ON ITS OWN -----------------------------------------------
+   Centered rather than anchored to the bottom like the editor is. The editor
+   is a thing you reach into and fiddle with, so it belongs under the thumb;
+   a prayer is a thing you read, so it belongs in the middle of the screen
+   where the eye already is. */
+.sheetwrap.is-light{align-items:center;padding:20px 14px}
+/* Darker behind a prayer than behind the editor. The editor wants the stack
+   still half-visible underneath so a change reads as a change; a prayer
+   wants the rest of the screen to get out of the way. */
+.sheetwrap.is-light .sheetdim{background:rgba(0,0,0,.88)}
+.sheetbox.is-pray{
+  border-radius:18px;
+  padding:16px 18px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 18px 60px rgba(0,0,0,.76);
+  max-height:82vh;
 }
-.row-prayer .gap{display:block;height:10px}
-.row-prayer .src{
-  display:block;margin-top:12px;padding-top:9px;
+.sheetbox.is-pray .sheettop h2{font-size:17px;line-height:1.25}
+
+/* Bigger and looser than the row ever allowed. This is the one place on the
+   page where somebody is meant to slow down. */
+.praywords{margin-top:6px}
+.praywords .ln{
+  display:block;font-family:var(--display);font-weight:400;
+  font-size:18px;line-height:1.62;color:#f4ecda;margin-bottom:11px;
+}
+.praywords .ln:last-child{margin-bottom:0}
+.praywords .gap{display:block;height:12px}
+.praysrc{
+  margin:16px 0 0;padding-top:11px;
   border-top:1px solid rgba(216,180,91,.22);
-  font-family:var(--ui);font-size:10.5px;line-height:1.4;color:var(--muted);
+  font-family:var(--ui);font-size:10.5px;line-height:1.45;color:var(--muted);
 }
 
 /* ---- THE PRAYERS DRAWER IN THE PICKER ------------------------------------
@@ -804,6 +824,26 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      browser or a new phone, and it does not follow them between the app and
      Chrome. So signed out, EDIT explains itself instead of opening. It is
      still a real door with a real way out, not a wall. -->
+<!-- A PRAYER GETS THE SCREEN TO ITSELF.
+     It used to unfold inside its own row in the stack, which was fine when
+     it was four short lines. The Third Step prayer is not four short lines,
+     and a prayer wedged between two other rows, with the nav bar underneath
+     and the rest of the list crowding in, is not something anybody is going
+     to actually stop and read. So: everything else goes dark and the words
+     are the only thing on the screen. Back, the X, Escape and the dark all
+     close it, the same as every other layer on this page. -->
+<div class="sheetwrap is-light" id="prayBox" hidden>
+  <div class="sheetdim" data-pray-close></div>
+  <div class="sheetbox is-pray" role="dialog" aria-modal="true" aria-labelledby="prayTitle">
+    <div class="sheettop">
+      <h2 id="prayTitle"></h2>
+      <button class="sheetx" type="button" data-pray-close aria-label="Close">&#10005;</button>
+    </div>
+    <div class="praywords" id="prayWords"></div>
+    <p class="praysrc" id="praySrc"></p>
+  </div>
+</div>
+
 <!-- NO CONNECTION, SAID IN PLAIN WORDS. The readings themselves are in this
      page and open fine without a signal. It is only rearranging them that
      has to ask the network, so that is the only thing this stops. -->
@@ -913,7 +953,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 (function () {
   "use strict";
 
-  var BUILD = "b11 - 21 Sep 2026";
+  var BUILD = "b12 - 21 Sep 2026";
   var CACHE = "rm_stack";      /* a photograph of what the account said */
   var TOKEN_KEY = "rm_account_v1";
 
@@ -1264,19 +1304,15 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     row.className = "row row-prayer";
     row.setAttribute("data-stack", it.id);
     row.setAttribute("data-prayer", it.id);
-    row.setAttribute("aria-expanded", "false");
+    /* The words are not in here any more -- they open over the page. The row
+       is a door, and a door does not need the room printed on it. */
+    row.setAttribute("aria-haspopup", "dialog");
     row.innerHTML =
       icoHTML(it) +
       '<span class="txt"><span class="t">' + esc(it.t) + '</span>' +
       '<span class="d">' + esc(it.d) + '</span></span>' +
       '<span class="pill">Read <svg viewBox="0 0 24 12" aria-hidden="true">' +
-        '<path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
-      '<span class="words" hidden>' +
-        it.text.map(function (line) {
-          return line ? '<span class="ln">' + esc(line) + '</span>' : '<span class="gap"></span>';
-        }).join("") +
-        '<span class="src">' + esc(it.src) + '</span>' +
-      '</span>';
+        '<path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
     return row;
   }
 
@@ -1499,6 +1535,21 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
   }
 
   var offWrap = document.getElementById("stackOff2");
+  var prayWrap = document.getElementById("prayBox");
+
+  function openPrayer(id) {
+    var it = byId(id);
+    if (!it || !it.text || !it.text.length) return;
+    document.getElementById("prayTitle").textContent = it.t;
+    document.getElementById("prayWords").innerHTML = it.text.map(function (line) {
+      return line ? '<span class="ln">' + esc(line) + '</span>' : '<span class="gap"></span>';
+    }).join("");
+    document.getElementById("praySrc").textContent = it.src || "";
+    openLayer(prayWrap, null);
+    /* Opened from a tap, so the words themselves are what should be under
+       the reader's eye -- not the close button. */
+    try { prayWrap.querySelector(".sheetbox").scrollTop = 0; } catch (e) {}
+  }
   var openSheet = function () { say(""); openLayer(wrap, paintEditor); };
   var openAsk = function () { openLayer(askWrap, null); };
   var openOffline = function () { openLayer(offWrap, null); };
@@ -1524,6 +1575,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     if (e.target.closest("[data-stack-close]")) { closeSheet(); return; }
     if (e.target.closest("[data-ask-close]")) { closeSheet(); return; }
     if (e.target.closest("[data-off-close]")) { closeSheet(); return; }
+    if (e.target.closest("[data-pray-close]")) { closeSheet(); return; }
 
     /* The Prayers heading. Opening it is not a history step -- it is a
        drawer inside a panel, and Back has to keep meaning "close the
@@ -1538,16 +1590,12 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
       return;
     }
 
-    /* TAPPING A PRAYER IN THE STACK OPENS THE WORDS, right there. It is
-       four lines, not a page -- sending somebody somewhere to read four
-       lines and then find their way back is the thing this whole morning
-       has been about. */
+    /* TAPPING A PRAYER OPENS IT OVER THE PAGE. Still not a trip to another
+       screen -- Back brings them straight back to the stack they were
+       looking at, which is the rule this whole page is built on. */
     var pray = e.target.closest("[data-prayer]");
     if (pray && !e.target.closest("[data-edit-box]")) {
-      var open = pray.getAttribute("aria-expanded") === "true";
-      pray.setAttribute("aria-expanded", open ? "false" : "true");
-      var w = pray.querySelector(".words");
-      if (w) w.hidden = open;
+      openPrayer(pray.getAttribute("data-prayer"));
       return;
     }
 
