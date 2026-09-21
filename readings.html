@@ -199,6 +199,16 @@ body::after{
 .asknot{background:transparent;color:rgba(255,255,255,.6);
   border:1px solid rgba(255,255,255,.2);font-weight:600}
 
+.saynote{
+  margin:14px 0 0;padding:11px 13px;border-radius:var(--radius);
+  background:rgba(196,86,60,.14);border:1px solid rgba(196,86,60,.4);
+  color:#f0c9bd;font-size:14px;line-height:1.45;
+}
+.saynote.is-busy{
+  background:rgba(216,180,91,.1);border-color:rgba(216,180,91,.32);
+  color:rgba(255,255,255,.62);
+}
+
 .buildline{
   margin:16px 2px 0;font-size:11px;letter-spacing:.04em;
   color:rgba(255,255,255,.28);text-align:center;
@@ -774,6 +784,27 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      browser or a new phone, and it does not follow them between the app and
      Chrome. So signed out, EDIT explains itself instead of opening. It is
      still a real door with a real way out, not a wall. -->
+<!-- NO CONNECTION, SAID IN PLAIN WORDS. The readings themselves are in this
+     page and open fine without a signal. It is only rearranging them that
+     has to ask the network, so that is the only thing this stops. -->
+<div class="sheetwrap" id="stackOff2" hidden>
+  <div class="sheetdim" data-off-close></div>
+  <div class="sheetbox is-ask" role="dialog" aria-modal="true" aria-labelledby="stackOffTitle">
+    <div class="sheettop">
+      <h2 id="stackOffTitle">No signal right now</h2>
+      <button class="sheetx" type="button" data-off-close aria-label="Close">&#10005;</button>
+    </div>
+    <p class="sheetnote">Your phone is not connected, so we cannot get to
+       your readings list to change it.</p>
+    <p class="sheetnote">Nothing is lost. Your stack is still yours &mdash; you can
+       read all of it right now, and you can move things around once you have
+       bars again.</p>
+    <div class="askrow">
+      <button class="askgo" type="button" data-off-close>Okay</button>
+    </div>
+  </div>
+</div>
+
 <div class="sheetwrap" id="stackAsk" hidden>
   <div class="sheetdim" data-ask-close></div>
   <div class="sheetbox is-ask" role="dialog" aria-modal="true" aria-labelledby="stackAskTitle">
@@ -826,6 +857,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
          happened on 21 Sep 2026 and it cost an afternoon. This line is part
          of the page, so it can only ever be telling the truth about the
          page you are looking at. -->
+    <p class="saynote" id="stackSay" hidden></p>
     <p class="buildline" id="stackBuild"></p>
   </div>
 </div>
@@ -861,8 +893,8 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 (function () {
   "use strict";
 
-  var BUILD = "b8 - 21 Sep 2026";
-  var KEY = "rm_stack";
+  var BUILD = "b9 - 21 Sep 2026";
+  var CACHE = "rm_stack";      /* a photograph of what the account said */
   var TOKEN_KEY = "rm_account_v1";
 
   /* WHO IS SIGNED IN, WITHOUT WAITING FOR ANYTHING. The token is already in
@@ -979,16 +1011,39 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
      An earlier version stored a bare array of the ones set aside. That shape
      is still read and quietly upgraded, so nobody who used the editor
      yesterday loses what they chose. */
+  /* ======================================================================
+     THE DATABASE IS THE ONLY PLACE THIS LIVES.
+
+     For two days this file kept two copies of somebody's stack -- one on the
+     phone, one in their account -- and a set of rules about which copy won
+     when they disagreed. Every bug came out of that. A leftover "stackOff"
+     key in an old account blob beat everything else on every load, so a
+     reading added at breakfast was gone by the time the page refreshed, and
+     no amount of fixing the phone's copy could ever have touched it.
+
+     So there is no argument to arbitrate any more. The account decides. The
+     phone keeps a photograph of what the account last said, and that
+     photograph exists for exactly one reason: to put the right readings on
+     the screen in the first frame instead of making somebody watch the
+     stack rearrange itself after the network answers. It never votes.
+
+     The cost, taken deliberately: arranging the stack needs a connection.
+     Reading does not -- the readings are in this page. Only rearranging
+     them asks the network, and if the network is not there it says so in
+     plain words instead of pretending the change took.
+     ====================================================================== */
   var order = DEFAULT_ORDER.slice();
   var off = DEFAULT_OFF.slice();
-  /* THE PHONE IN THEIR HAND WINS. The moment they add, remove or move
-     anything, this turns on and the account stops being allowed to
-     overwrite them. The account's copy arrives a second or two after the
-     page draws, and without this it lands on top of the change they just
-     made -- which is exactly the "it adds it back but it doesn't stick"
-     they saw. */
-  var mine = false;
-  var savedAt = 0;            /* when this phone last saved an arrangement */
+
+  /* The last arrangement the account confirmed. A save that fails comes
+     back to this, so a failed tap leaves the screen honest. */
+  var lastGood = null;
+
+  function snapshot() { return { order: order.slice(), off: off.slice() }; }
+  function restore(snap) {
+    if (!snap) return;
+    order = snap.order.slice(); off = snap.off.slice(); normalize();
+  }
 
   function normalize() {
     /* Only ids we know, no duplicates, and anything new in ITEMS appended --
@@ -1003,10 +1058,9 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     off = off.filter(function (id, i, a) { return byId(id) && a.indexOf(id) === i; });
   }
 
-  /* A READING THE SAVED SETTING NEVER HEARD OF STAYS OFF. Somebody who
+  /* A READING THE SAVED ARRANGEMENT NEVER HEARD OF STAYS OFF. Somebody who
      arranged their stack last week must not open the app today and find
-     prayers in it they never asked for -- whether that arrangement came off
-     this phone or down from their account. Only a setting that mentions a
+     prayers in it they never asked for. Only an arrangement that mentions a
      reading gets to say it is on. */
   function keepNewOnesOff(savedOrder) {
     var known = {};
@@ -1016,81 +1070,142 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     });
   }
 
-  function read() {
+  /* ---- the photograph ---------------------------------------------------
+     Stamped with whose it is, so signing out and somebody else signing in on
+     the same phone never hands them the last person's readings. */
+  function cacheRead() {
+    if (!signedIn()) return;
     try {
-      var raw = localStorage.getItem(KEY);
-      if (!raw) return;
-      var v = JSON.parse(raw);
-      /* A COPY LEFT BY A DIFFERENT ACCOUNT IS NOT THEIRS. Signing out and
-         somebody else signing in on the same phone must not hand them the
-         last person's readings while the real one is still coming down. */
-      if (v && typeof v === "object" && !Array.isArray(v)) {
-        if ((v.uid || "") !== myUid()) return;
-      }
-      if (Array.isArray(v)) { off = v.concat(DEFAULT_OFF); }  /* the old shape */
-      else if (v && typeof v === "object") {
-        if (Array.isArray(v.order)) order = v.order;
-        if (Array.isArray(v.off)) off = v.off;
-        if (typeof v.at === "number") savedAt = v.at;
-        keepNewOnesOff(v.order);
-      }
+      var v = JSON.parse(localStorage.getItem(CACHE) || "null");
+      if (!v || typeof v !== "object" || Array.isArray(v)) return;
+      if ((v.uid || "") !== myUid()) return;
+      if (Array.isArray(v.order) && v.order.length) order = v.order;
+      if (Array.isArray(v.off)) off = v.off;
+      keepNewOnesOff(v.order);
+      normalize();
     } catch (e) { /* private browsing: the default stack is the right answer */ }
-    normalize();
   }
 
-  var pushTimer = null;
-
-  /* Stamped. If this phone and the account disagree, the later arrangement
-     is the one they meant. */
-  function payload() { return { order: order, off: off, at: savedAt, uid: myUid() }; }
-
-  function write() {
-    mine = true;
-    savedAt = Date.now();
-    try { localStorage.setItem(KEY, JSON.stringify(payload())); } catch (e) {}
-
-    /* And up to the account, if there is one. Merged into whatever else is
-       in the blob rather than replacing it -- the sober date lives there.
-
-       Held for a moment first. Somebody tapping the up arrow four times in
-       a row is one arrangement, not four, and four round trips racing each
-       other is how the third one lands after the fourth and puts the stack
-       back where it was. The stack is read at PUSH time, never captured
-       here, so what goes up is always the arrangement on the screen. */
-    if (pushTimer) clearTimeout(pushTimer);
-    pushTimer = setTimeout(function () {
-      pushTimer = null;
-      try {
-        var A = window.RMAccount;
-        if (!(A && A.signedIn && A.signedIn() && A.pull && A.push)) return;
-        A.pull().then(function (remote) {
-          var data = (remote && remote.data) || {};
-          data.stack = payload();
-          A.push(data);
-        }).catch(function () {});
-      } catch (e) {}
-    }, 600);
-  }
-
-  /* A held push must not die with the page. Putting the phone down a
-     half-second after the last tap is the normal way to leave. */
-  function flush() {
-    if (!pushTimer) return;
-    clearTimeout(pushTimer); pushTimer = null;
+  function cacheWrite() {
     try {
-      var A = window.RMAccount;
-      if (!(A && A.signedIn && A.signedIn() && A.pull && A.push)) return;
-      A.pull().then(function (remote) {
-        var data = (remote && remote.data) || {};
-        data.stack = payload();
-        A.push(data);
-      }).catch(function () {});
+      localStorage.setItem(CACHE, JSON.stringify({
+        order: order, off: off, uid: myUid()
+      }));
     } catch (e) {}
   }
-  window.addEventListener("pagehide", flush);
-  document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === "hidden") flush();
-  });
+
+  /* ---- reading the account ---------------------------------------------- */
+  function takeFromAccount(blob) {
+    var v = blob && blob.stack;
+    var changed = false;
+
+    if (v && typeof v === "object" && Array.isArray(v.order) && v.order.length) {
+      order = v.order.slice();
+      off = Array.isArray(v.off) ? v.off.slice() : [];
+      keepNewOnesOff(v.order);
+      changed = true;
+    } else if (blob && Array.isArray(blob.stackOff)) {
+      /* THE OLD SHAPE, READ ONCE AND THEN RETIRED. It only ever said which
+         readings were off, never the order. Taken at face value here, and
+         the save that follows writes it back in the new shape and drops the
+         old key for good -- see saveToAccount. */
+      order = DEFAULT_ORDER.slice();
+      off = blob.stackOff.slice();
+      keepNewOnesOff(null);
+      changed = true;
+    }
+
+    if (changed) normalize();
+    lastGood = snapshot();
+    return changed;
+  }
+
+  /* ---- writing to the account -------------------------------------------
+     Saves are put in a line rather than fired off together, so four taps on
+     the arrow arrive in the order they were made and the last one is what
+     the account ends up holding. */
+  var chain = Promise.resolve();
+
+  /* A READ THAT STARTED BEFORE A WRITE IS OUT OF DATE BY THE TIME IT LANDS.
+     The first read of the page can take a second or two; somebody who taps
+     the arrow at half a second has already moved past whatever that read is
+     carrying. Counting the writes is how a late read knows to keep quiet.
+     This is not the phone winning an argument -- it is throwing away an
+     answer to a question that is no longer the question. */
+  var writes = 0;
+
+  function saveToAccount() {
+    var A = window.RMAccount;
+    if (!A || !A.push || !A.pull) return Promise.resolve(false);
+    writes++;
+
+    chain = chain.then(function () {
+      /* Read at send time, never captured earlier, so what goes up is the
+         arrangement on the screen right now. */
+      var want = { order: order.slice(), off: off.slice() };
+      return A.pull().then(function (remote) {
+        var data = (remote && remote.data) || {};
+        data.stack = want;
+        delete data.stackOff;        /* the key that caused all this, gone */
+        return A.push(data);
+      }).then(function (ok) {
+        if (ok === false) return false;
+        lastGood = snapshot();
+        cacheWrite();
+        return true;
+      });
+    }).catch(function () { return false; });
+
+    return chain;
+  }
+
+  /* EVERY CHANGE GOES THROUGH HERE. The screen moves first, because a tap
+     that does nothing for half a second feels broken. Then it is saved. If
+     it cannot be saved, the screen goes back to the last thing the account
+     confirmed and says so -- it never leaves somebody looking at a change
+     that is not real. */
+  function change(work, focusId) {
+    var wasGood = lastGood || snapshot();
+    work();
+    var b = marks();
+    paintEditor(); paintStack();
+    travel(b, focusId);
+
+    if (!navigator.onLine) { undo(wasGood, "offline"); return; }
+
+    saving(true);
+    saveToAccount().then(function (ok) {
+      saving(false);
+      if (!ok) undo(wasGood, "failed");
+    });
+  }
+
+  function undo(snap, why) {
+    restore(snap);
+    var b = marks();
+    paintEditor(); paintStack();
+    travel(b, null);
+    saving(false);
+    trouble(why);
+  }
+
+  /* Plain words, no jargon, and they clear themselves the moment the next
+     thing works -- an error that stays on screen after the problem is gone
+     is its own kind of lie. */
+  var sayBox = document.getElementById("stackSay");
+
+  function say(text, busy) {
+    if (!sayBox) return;
+    sayBox.textContent = text || "";
+    sayBox.hidden = !text;
+    sayBox.className = "saynote" + (busy ? " is-busy" : "");
+  }
+  function saving(on) { if (on) say("Saving\u2026", true); else if (sayBox && sayBox.classList.contains("is-busy")) say(""); }
+  function trouble(why) {
+    say(why === "offline"
+      ? "No signal, so that did not save. Your stack is back the way it was. Try again when you have bars."
+      : "That did not save. Your stack is back the way it was \u2014 give it another go in a minute.");
+  }
 
   var isOff = function (id) { return off.indexOf(id) !== -1; };
   var shown = function () { return order.filter(function (id) { return !isOff(id); }); };
@@ -1303,10 +1418,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     var to = at + (dir === "up" ? -1 : 1);
     if (at < 0 || to < 0 || to >= on.length) return;
     var a = order.indexOf(on[at]), b = order.indexOf(on[to]);
-    order[a] = on[to]; order[b] = on[at];
-    var before = marks();
-    write(); paintEditor(); paintStack();
-    travel(before, id);
+    change(function () { order[a] = on[to]; order[b] = on[at]; }, id);
     /* Keep the thumb on the same button it just pressed, so a second tap
        does not need aiming. The row moved; the finger did not. */
     var again = document.querySelector('[data-move="' + dir + '"][data-id="' + id + '"]');
@@ -1349,8 +1461,10 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     hideSheet();
   }
 
-  var openSheet = function () { openLayer(wrap, paintEditor); };
+  var offWrap = document.getElementById("stackOff2");
+  var openSheet = function () { say(""); openLayer(wrap, paintEditor); };
   var openAsk = function () { openLayer(askWrap, null); };
+  var openOffline = function () { openLayer(offWrap, null); };
 
   window.addEventListener("popstate", function () {
     if (openBox) hideSheet();
@@ -1365,11 +1479,14 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
        out the stack can be arranged at all -- but it explains itself instead
        of opening onto changes that would not survive the week. */
     if (e.target.closest("#stackEdit")) {
-      if (signedIn()) openSheet(); else openAsk();
+      if (!signedIn()) openAsk();
+      else if (!navigator.onLine) openOffline();
+      else openSheet();
       return;
     }
     if (e.target.closest("[data-stack-close]")) { closeSheet(); return; }
     if (e.target.closest("[data-ask-close]")) { closeSheet(); return; }
+    if (e.target.closest("[data-off-close]")) { closeSheet(); return; }
 
     /* The Prayers heading. Opening it is not a history step -- it is a
        drawer inside a panel, and Back has to keep meaning "close the
@@ -1403,54 +1520,37 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     var take = e.target.closest("[data-take]");
     if (take) {
       var t = take.getAttribute("data-take");
-      if (!isOff(t)) off.push(t);
-      var b1 = marks();
-      write(); paintEditor(); paintStack();
-      travel(b1, t);
+      change(function () { if (!isOff(t)) off.push(t); }, t);
       return;
     }
 
     var add = e.target.closest("[data-add]");
     if (add) {
       var a = add.getAttribute("data-add");
-      off = off.filter(function (x) { return x !== a; });
-      var b2 = marks();
-      write(); paintEditor(); paintStack();
-      travel(b2, a);
+      change(function () {
+        off = off.filter(function (x) { return x !== a; });
+      }, a);
       return;
     }
   });
 
-  /* ---- what the account says ------------------------------------------
-     A stack arranged on their last phone. Applied when it arrives, which is
-     after the page has already drawn from whatever this phone had -- so the
-     page never waits on the network to show a stack. */
+  /* ---- what the account says, which is what it is --------------------
+     Arrives a moment after the page has already drawn from the photograph,
+     so nobody waits on the network to see a stack. Whatever it says is now
+     the answer -- there is nothing here to weigh it against. */
   function adopt(remote) {
-    if (mine) return;              /* they have already arranged it here today */
-    var d = remote && remote.data;
-    if (!d) return;
-    var v = d.stack;
-    if (Array.isArray(d.stackOff)) { off = d.stackOff; }     /* the old shape */
-    else if (v && typeof v === "object") {
-      /* An empty order is not an arrangement, it is a blank. Taking it would
-         rebuild the stack from the defaults and switch on readings they
-         never asked for. */
-      var hasOrder = Array.isArray(v.order) && v.order.length;
-      var hasOff = Array.isArray(v.off);
-      if (!hasOrder && !hasOff) return;
-      /* Arranged here AFTER the account's copy was made -- which happens
-         when they change the stack and shut the app before it reaches the
-         network. Theirs is the later word, so it stands. */
-      var theirAt = typeof v.at === "number" ? v.at : 0;
-      if (savedAt && savedAt > theirAt) return;
-      if (hasOrder) order = v.order;
-      if (hasOff) off = v.off;
-      keepNewOnesOff(v.order);
-    } else { return; }
-    normalize();
-    try { localStorage.setItem(KEY, JSON.stringify(payload())); } catch (e) {}
+    var blob = remote && remote.data;
+    if (!blob) return;
+
+    var hadOldShape = !!(blob && Array.isArray(blob.stackOff));
+    takeFromAccount(blob);
+    cacheWrite();
     paintStack();
-    if (!wrap.hidden) paintEditor();
+    if (openBox === wrap) paintEditor();
+
+    /* An account still carrying the retired key gets written back in the
+       new shape right now, so it can never come back and win again. */
+    if (hadOldShape) saveToAccount();
   }
 
   /* THIS PAGE FETCHES THE ACCOUNT SCRIPT ITSELF. It used to sit and poll for
@@ -1472,15 +1572,24 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
 
   function askAccount() {
     if (!signedIn()) return;
+    var asOf = writes;
     loadAccount().then(function (ok) {
       if (!ok || !window.RMAccount.pull) return;
-      return window.RMAccount.pull().then(adopt);
+      return window.RMAccount.pull().then(function (remote) {
+        if (writes !== asOf) return;      /* they have changed it since */
+        adopt(remote);
+      });
     }).catch(function () {});
   }
 
-  read();
+  cacheRead();          /* the photograph, so the first frame is right */
+  lastGood = snapshot();
   paintStack();
-  askAccount();
+  askAccount();         /* then the account, which is the actual answer */
+
+  /* Back on a signal: quietly clear a stale complaint and ask the account
+     what it holds, in case something was changed on another phone. */
+  window.addEventListener("online", function () { say(""); askAccount(); });
 })();
 </script>
 </body>
