@@ -15,11 +15,23 @@
    including caches it did not create. After one load, any older worker's
    leftovers are gone.
 
-   It deliberately does NOT register a fetch handler. A worker with no fetch
-   handler is skipped entirely by the browser, which is faster and safer than
-   one that intercepts every request to do nothing with it. */
+   IT NOW DOES ONE MORE THING: it makes sure a page request gets the page
+   that is actually on the server.
 
-const VERSION = "reset-2026-09-18";
+   21 Sep 2026. A fix went live, the server had it, and the phone kept
+   showing the old page through refresh after refresh. GitHub Pages tells
+   browsers an .html file is good for ten minutes, so a refresh inside that
+   window is answered out of the phone's own cache without ever asking. The
+   scripts around it had already updated, which is the worst version of this
+   -- the page looks current and is not, and there is no way to tell from
+   the outside.
+
+   So page requests now go to the network, every time. Asset requests are
+   left alone. If the network is slow or gone, it falls straight back to
+   normal browser behavior after four seconds, so this can never be the
+   reason somebody is staring at a blank screen. */
+
+const VERSION = "fresh-pages-2026-09-21";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -44,5 +56,28 @@ self.addEventListener("activate", (event) => {
       const clients = await self.clients.matchAll({ type: "window" });
       clients.forEach((c) => c.postMessage({ type: "rm-sw-reset", version: VERSION }));
     } catch (e) {}
+  })());
+});
+
+/* PAGES COME FROM THE NETWORK. Only navigations -- images, scripts and CSS
+   are fingerprinted or rarely changed and are better off cached. */
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  if (req.mode !== "navigate") return;      /* not a page: browser handles it */
+
+  event.respondWith((async () => {
+    try {
+      /* cache: "reload" is the part that matters -- it tells the browser to
+         skip its own copy and go ask the server. */
+      return await Promise.race([
+        fetch(req, { cache: "reload" }),
+        new Promise((_, no) => setTimeout(function () { no(new Error("slow")); }, 4000))
+      ]);
+    } catch (e) {
+      /* Offline, or a bad signal. Hand it back to the browser and let it do
+         whatever it would have done -- including serving its own copy, which
+         is the right answer when there is no network to check against. */
+      try { return await fetch(req); } catch (e2) { return Response.error(); }
+    }
   })());
 });
