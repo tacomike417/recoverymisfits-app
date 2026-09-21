@@ -90,10 +90,25 @@
      56 years has earned better than a broken image. */
   var MAX_YEARS = 55;
 
+  /* NO DATE, NO ACCOUNT -- a question mark, not an empty space. It is still
+     a real coin so the bar looks the same for everybody, and tapping it goes
+     to the account page instead of the share card, because the thing they
+     need first is somewhere to put their date.
+
+     It is marked `silent` so the reveal never fires on it. Nobody has
+     earned anything yet and a celebration would be a lie. */
+  var NO_DATE = {
+    file: "coin-no-date.webp",
+    label: "no sober date set",
+    fallback: null,
+    href: "/account.html",
+    silent: true
+  };
+
   function coinFor(ymd) {
-    if (!ymd) return null;
+    if (!ymd) return NO_DATE;
     var d = daysSober(ymd);
-    if (d === null || d < 0) return null;
+    if (d === null || d < 0) return NO_DATE;
 
     var y = fullYears(ymd);
     if (y >= 1) {
@@ -150,39 +165,37 @@
       "}",
       ".rm-rail .rm-rail-act.rm-share span{display:none}",  /* the word SHARE goes */
 
-      /* WHY -22px. The overhang is measured from the top of the PLATE, but
-         the coin is positioned against its button, and that button is 44px
-         tall sitting centered in a 64px plate -- so it already starts 10px
-         down. An eighth of an inch is 12 CSS pixels, so the coin has to
-         climb 12 + 10 = 22 to clear the plate's top edge by an eighth.
-         The whole rail is then scaled to fit the phone, and the overhang
-         scales with it, which is what we want. */
+      /* THE COIN IS CENTERED ON THE PLATE, NOT ON ITS BUTTON, and it is
+         bigger than the plate is tall -- so it breaks the top edge and the
+         bottom edge by the same amount and sits proud of the bar on every
+         side.
+
+         THE ARITHMETIC, because -13px looks arbitrary and is not: the plate
+         is 64 tall, the button inside it is 44 and therefore starts 10 down.
+         A 70px coin centered on the PLATE wants to start at (64-70)/2 = -3,
+         which against its button is -3 - 10 = -13. Change the diameter and
+         this number changes with it: top = (64 - D)/2 - 10.
+
+         At 70 it also runs wider than its 58px well, which is the point --
+         it crosses the brass dividers on both sides. z-index lifts it over
+         them; without it the divider after the coin paints on top. */
       ".rm-rail .rm-rail-act img.rm-coin-rail{",
-        "position:absolute;left:50%;top:-22px;",     /* see the note below */
-        "width:60px;height:60px;margin-left:-30px;",
+        "position:absolute;left:50%;top:-13px;z-index:3;",
+        "width:70px;height:70px;margin-left:-35px;",
         "display:block;flex:none;",
-        "filter:drop-shadow(0 3px 5px rgba(0,0,0,.75))",
-                " drop-shadow(0 0 7px rgba(215,178,83,.34));",
+        "filter:drop-shadow(0 3px 6px rgba(0,0,0,.8))",
+                " drop-shadow(0 0 8px rgba(215,178,83,.34));",
         "transition:transform .14s ease",
       "}",
       ".rm-rail .rm-rail-act.rm-share:active img.rm-coin-rail{transform:scale(.93)}",
       ".rm-rail .rm-rail-act.rm-share:active{filter:none}",  /* no brightness flash */
 
-      /* No date, no coin. The old share icon comes back rather than this
-         app inventing a milestone nobody reached. */
-      ".rm-rail.no-date .rm-rail-act img.rm-coin-rail{display:none}",
-      ".rm-rail.no-date .rm-rail-act.rm-share{",
-        "flex:0 0 46px;gap:3px;",
-        "background:linear-gradient(180deg,rgba(0,0,0,.62),rgba(0,0,0,.40));",
-        "box-shadow:inset 0 1px 2px rgba(0,0,0,.85),",
-                   "inset 0 0 0 1px rgba(215,178,83,.12),",
-                   "0 1px 0 rgba(255,255,255,.05)",
-      "}",
-      ".rm-rail.no-date .rm-rail-act.rm-share span{display:block}",
+      /* THE SHARE ICON IS GONE FOR GOOD. There is a coin for every state
+         now, including "no date yet", so the well never falls back to the
+         old graphic. The original <img> stays in nav.js's markup and is
+         simply never shown -- deleting it there would mean editing two
+         files to change one thing. */
       ".rm-rail .rm-rail-act.rm-share img.rm-coin-fallback{display:none}",
-      ".rm-rail.no-date .rm-rail-act.rm-share img.rm-coin-fallback{",
-        "display:block;width:19px;height:19px;flex:none",
-      "}",
 
       /* ---- the reveal ----------------------------------------------------
          NO CONTAINER, on purpose. A card around the coin makes it a
@@ -310,7 +323,22 @@
       else img.removeAttribute("data-fallback");
       img.src = want;
     }
-    btn.setAttribute("aria-label", "Your " + coin.label + " coin — share your sober date");
+
+    /* WHERE THE COIN GOES depends on which coin it is. An earned coin opens
+       the share card. The question mark opens the account page, because
+       somebody with no date does not want to share one -- they want
+       somewhere to put it. nav.js's own href is the default. */
+    if (coin.href) {
+      if (!btn.getAttribute("data-home")) {
+        btn.setAttribute("data-home", btn.getAttribute("href") || "/sober-date.html");
+      }
+      btn.setAttribute("href", coin.href);
+      btn.setAttribute("aria-label", "Set your sober date");
+    } else {
+      var home = btn.getAttribute("data-home");
+      if (home) btn.setAttribute("href", home);
+      btn.setAttribute("aria-label", "Your " + coin.label + " coin — share your sober date");
+    }
   }
   api.paintRail = paintRail;
 
@@ -452,7 +480,7 @@
      not an accident. Set rm_coin_seen at install time to skip it. */
   function maybeReveal() {
     var coin = coinFor(soberYMD());
-    if (!coin) return;
+    if (!coin || coin.silent) return;
     if (seen() === coin.file) return;
     show(coin);
   }
@@ -465,8 +493,9 @@
   document.addEventListener("keydown", function (e) {
     if (e.ctrlKey && e.altKey && (e.key === "w" || e.key === "W")) {
       e.preventDefault();
-      if (openEl) close();
-      else show();
+      if (openEl) { close(); return; }
+      var c = coinFor(soberYMD());
+      if (c && !c.silent) show(c);
     }
   });
 
