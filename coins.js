@@ -105,8 +105,46 @@
     silent: true
   };
 
+  /* ---- SIGNED OUT, WITH SOMEBODY'S DATE STILL ON THE PHONE ----------------
+
+     account.js keeps the date on sign-out on purpose -- signing out is
+     "stop syncing", not "erase my sober time" -- and it signs the date with
+     the account's id so the next person to sign up here cannot inherit it.
+
+     THE COIN IS AN ACCOUNT THING, so a signed-out person does not get to
+     wear one. The counter goes quiet at the same time (see lockRail below),
+     because a question mark sitting next to "2,929 DAYS" reads as a bug.
+
+     THE TEST IS DELIBERATELY NARROW. It is not "are they signed in" -- this
+     app has always let somebody set a date without ever making an account,
+     and those people must keep their counter. It is "does this date belong
+     to an account that is not signed in right now", which is a signature on
+     the date plus no session. Never-had-an-account is untouched.
+
+     READ OFF STORAGE, NOT OFF RMAccount. nav.js only fetches account.js when
+     there is a token to use it with, so a signed-out person never has
+     window.RMAccount at all -- asking it whether they are signed in gets a
+     confident "no idea" every time. Both facts live in localStorage and cost
+     one read each:
+
+        rm_account_v1   the session. Present = signed in.
+        rm_sober_owner  the signature account.js puts on the date. Present =
+                        this date belongs to an account.
+
+     Signature and no session is the one state we are looking for. */
+  var TOKEN_KEY = "rm_account_v1";
+  var OWNER_KEY = "rm_sober_owner";
+
+  function signedOutOwner() {
+    try {
+      var token = localStorage.getItem(TOKEN_KEY);
+      var owner = localStorage.getItem(OWNER_KEY);
+      return !token && !!owner;
+    } catch (e) { return false; }
+  }
   function coinFor(ymd) {
     if (!ymd) return NO_DATE;
+    if (signedOutOwner()) return NO_DATE;
     var d = daysSober(ymd);
     if (d === null || d < 0) return NO_DATE;
 
@@ -133,6 +171,7 @@
   var api = window.RMCoins = window.RMCoins || {};
   api.current = function () { return coinFor(soberYMD()); };
   api.src = function (c) { return c ? BASE + c.file : ""; };
+  api.locked = signedOutOwner;
 
   /* ---- styles -------------------------------------------------------------
      Injected rather than shipped in a stylesheet so this file is the only
@@ -196,6 +235,11 @@
          simply never shown -- deleting it there would mean editing two
          files to change one thing. */
       ".rm-rail .rm-rail-act.rm-share img.rm-coin-fallback{display:none}",
+
+      /* SIGNED OUT: the tiles go quiet the same way they do when there is no
+         date at all. Hidden rather than removed, so the plate keeps its
+         shape and nothing on the bar moves. */
+      ".rm-rail.rm-coins-locked .rm-rail-count > *{visibility:hidden}",
 
       /* ---- the reveal ----------------------------------------------------
          NO CONTAINER, on purpose. A card around the coin makes it a
@@ -285,6 +329,18 @@
     if (!btn) return;
 
     var coin = coinFor(soberYMD());
+
+    /* THE WHOLE BAR TELLS ONE STORY. nav.js repaints the rail whenever the
+       count changes and will happily write the date back over this, which is
+       why it is re-applied here on every paint rather than once at start.
+       Writing only when it differs keeps the observer from chasing itself. */
+    var rail = document.querySelector(".rm-rail");
+    var locked = !!soberYMD() && signedOutOwner();
+    if (rail) rail.classList.toggle("rm-coins-locked", locked);
+    var label = document.getElementById("rmSoberBarText");
+    if (label && locked && label.textContent !== "Signed Out") {
+      label.textContent = "Signed Out";
+    }
 
     /* Keep the original share icon in the markup, hidden, so the no-date
        state has something honest to fall back to. */
