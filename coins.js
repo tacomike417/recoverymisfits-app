@@ -105,46 +105,33 @@
     silent: true
   };
 
-  /* ---- SIGNED OUT, WITH SOMEBODY'S DATE STILL ON THE PHONE ----------------
+  /* ---- NO ACCOUNT, NO COIN ------------------------------------------------
 
-     account.js keeps the date on sign-out on purpose -- signing out is
-     "stop syncing", not "erase my sober time" -- and it signs the date with
-     the account's id so the next person to sign up here cannot inherit it.
-
-     THE COIN IS AN ACCOUNT THING, so a signed-out person does not get to
-     wear one. The counter goes quiet at the same time (see lockRail below),
-     because a question mark sitting next to "2,929 DAYS" reads as a bug.
-
-     THE TEST IS DELIBERATELY NARROW. It is not "are they signed in" -- this
-     app has always let somebody set a date without ever making an account,
-     and those people must keep their counter. It is "does this date belong
-     to an account that is not signed in right now", which is a signature on
-     the date plus no session. Never-had-an-account is untouched.
+     THE RULE, AS OF 21 SEP 2026: you have an account and you get the app, or
+     you do not and you get the default site. The coin and the day count are
+     both account things. Signed out, never signed up -- same answer either
+     way, because from the bar's point of view they are the same state.
 
      READ OFF STORAGE, NOT OFF RMAccount. nav.js only fetches account.js when
-     there is a token to use it with, so a signed-out person never has
-     window.RMAccount at all -- asking it whether they are signed in gets a
-     confident "no idea" every time. Both facts live in localStorage and cost
-     one read each:
+     there is a token to use it with, so somebody without an account never
+     has window.RMAccount at all -- asking it whether they are signed in gets
+     a confident "no idea" every time. The session is one localStorage read:
 
-        rm_account_v1   the session. Present = signed in.
-        rm_sober_owner  the signature account.js puts on the date. Present =
-                        this date belongs to an account.
+        rm_account_v1   present = signed in.
 
-     Signature and no session is the one state we are looking for. */
+     WORTH KNOWING WHEN THE REST CATCHES UP: nav.js still reads the sober
+     date out of localStorage, so a date set without an account is still
+     sitting on those phones. This hides it rather than deleting it -- when
+     the date moves to the account for real, this test does not change. */
   var TOKEN_KEY = "rm_account_v1";
-  var OWNER_KEY = "rm_sober_owner";
 
-  function signedOutOwner() {
-    try {
-      var token = localStorage.getItem(TOKEN_KEY);
-      var owner = localStorage.getItem(OWNER_KEY);
-      return !token && !!owner;
-    } catch (e) { return false; }
+  function noAccount() {
+    try { return !localStorage.getItem(TOKEN_KEY); } catch (e) { return true; }
   }
+
   function coinFor(ymd) {
     if (!ymd) return NO_DATE;
-    if (signedOutOwner()) return NO_DATE;
+    if (noAccount()) return NO_DATE;
     var d = daysSober(ymd);
     if (d === null || d < 0) return NO_DATE;
 
@@ -171,7 +158,7 @@
   var api = window.RMCoins = window.RMCoins || {};
   api.current = function () { return coinFor(soberYMD()); };
   api.src = function (c) { return c ? BASE + c.file : ""; };
-  api.locked = signedOutOwner;
+  api.locked = noAccount;
 
   /* ---- styles -------------------------------------------------------------
      Injected rather than shipped in a stylesheet so this file is the only
@@ -188,6 +175,9 @@
          rail fits its box exactly, so letting it show costs nothing. */
       ".rm-rail-fit{overflow:visible}",
       ".rm-rail{overflow:visible}",
+      /* nav.js hides the well's contents when it has no date of its own.
+         The zeros are ours and are meant to be seen, so they win. */
+      ".rm-rail.no-date.rm-coins-locked .rm-rail-count > *{visibility:visible}",
 
       /* THE COIN IS THE BUTTON. The well behind it is turned off -- a coin
          sitting in a sunken rectangle reads as a picture of a button, and
@@ -236,10 +226,15 @@
          files to change one thing. */
       ".rm-rail .rm-rail-act.rm-share img.rm-coin-fallback{display:none}",
 
-      /* SIGNED OUT: the tiles go quiet the same way they do when there is no
-         date at all. Hidden rather than removed, so the plate keeps its
-         shape and nothing on the bar moves. */
-      ".rm-rail.rm-coins-locked .rm-rail-count > *{visibility:hidden}",
+      /* NO ACCOUNT: the counter reads 000, not nothing.
+
+         A blank well is easy to look past. Three zeros are not -- they are
+         a number, they are YOUR number, and they are wrong. That itch is
+         the whole point: it is the difference between noticing the bar and
+         doing something about it. The tiles are the same artwork the real
+         count uses, dimmed a little so it reads as inactive rather than as
+         somebody genuinely on day zero. */
+      ".rm-rail.rm-coins-locked .rm-rail-count{opacity:.55}",
 
       /* ---- the reveal ----------------------------------------------------
          NO CONTAINER, on purpose. A card around the coin makes it a
@@ -324,6 +319,29 @@
 
   function railBtn() { return document.getElementById("rmShareSoberDateBtn"); }
 
+  /* THREE ZEROS, drawn with nav.js's own tiles so it is plainly the same
+     counter rather than a different thing wearing its clothes. Three because
+     it fills the well at the size the tiles are drawn at -- one lonely 0
+     reads as a rendering fault, and six looks like a bug.
+
+     nav.js repaints this well whenever the count changes and will write the
+     real number straight back over it, which is why this runs on every paint
+     rather than once. It writes only when the markup differs, so the
+     observer watching the bar cannot chase its own tail. */
+  var ZEROS = '<img class="rm-rail-tile" src="/assets/rail/tile-0.webp" alt="">'
+            + '<img class="rm-rail-tile" src="/assets/rail/tile-0.webp" alt="">'
+            + '<img class="rm-rail-tile" src="/assets/rail/tile-0.webp" alt="">'
+            + '<span class="rm-rail-days">Days</span>';
+
+  function zeroCount() {
+    var box = document.getElementById("rmRailCount");
+    if (!box) return;
+    if (box.innerHTML === ZEROS) return;
+    box.innerHTML = ZEROS;
+    box.className = "rm-rail-count";
+    box.setAttribute("aria-label", "No sober date — sign in to start counting");
+  }
+
   function paintRail() {
     var btn = railBtn();
     if (!btn) return;
@@ -335,11 +353,16 @@
        why it is re-applied here on every paint rather than once at start.
        Writing only when it differs keeps the observer from chasing itself. */
     var rail = document.querySelector(".rm-rail");
-    var locked = !!soberYMD() && signedOutOwner();
+    var locked = noAccount();
     if (rail) rail.classList.toggle("rm-coins-locked", locked);
+    if (locked) zeroCount();
+
+    /* SIGN IN, not "signed out" -- it reads the same to somebody who just
+       signed out and to somebody who never had an account, and it says what
+       to do rather than what happened. Tapping the coin goes there. */
     var label = document.getElementById("rmSoberBarText");
-    if (label && locked && label.textContent !== "Signed Out") {
-      label.textContent = "Signed Out";
+    if (label && locked && label.textContent !== "Sign In") {
+      label.textContent = "Sign In";
     }
 
     /* Keep the original share icon in the markup, hidden, so the no-date
