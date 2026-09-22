@@ -32,6 +32,26 @@ from datetime import datetime, timezone
 API = 'https://www.googleapis.com/youtube/v3/'
 CHANNEL_ID = 'UCAZjyq3s1M2j0Hp_m9jgHOg'          # @tacomike417
 
+# ---------------------------------------------------------------------------
+# THE TWO LIMITS. Both exist because of one true story, 22 Sep 2026: a
+# library playlist was about to go from six tapes to seven hundred.
+# ---------------------------------------------------------------------------
+
+# How many of a playlist's talks get written into data/tapes.js. The count on
+# the row is always the real one -- this only caps the list that opens under
+# it. Seven hundred children is about 63KB of names and ids in a file EVERY
+# visitor downloads, on the Listen page and now on the home screen too, for a
+# list nobody scrolls to the bottom of. The row still opens the whole playlist
+# on YouTube.
+MAX_CHILDREN = 150
+
+# How many loose talks can ever reach the feed. Nothing here should trip this
+# -- there are about eighty and they only grow one upload at a time. It is a
+# stop on the one failure that actually matters: a playlist the API cannot
+# see, whose videos then arrive as hundreds of separate rows. If this trips,
+# something is wrong upstream and the message below says where to look.
+MAX_LOOSE = 150
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_ROOT = os.environ.get('ADS_OUT_ROOT', ROOT)
 OUT_PATH = os.path.join(OUT_ROOT, 'data', 'tapes.js')
@@ -186,18 +206,34 @@ def main():
         # into this list so somebody can pick one talk instead of starting at
         # the top of fourteen.
         children = []
+        seen_child = set()
         try:
             for it in paged('playlistItems', part='snippet,contentDetails',
                             playlistId=pid, maxResults=50):
                 vid = it.get('contentDetails', {}).get('videoId')
                 if not vid:
                     continue
+                # EVERY video in the playlist is spoken for, however many
+                # there are -- this set is what keeps them out of the feed,
+                # so it is filled before any cap is applied.
                 in_a_playlist.add(vid)
+                if vid in seen_child:
+                    # The same talk added to the playlist twice. It happens,
+                    # and it printed twice in the opened list.
+                    continue
+                seen_child.add(vid)
+                if len(children) >= MAX_CHILDREN:
+                    continue
                 name = (it.get('snippet', {}).get('title') or '').strip()
                 if name and name not in ('Private video', 'Deleted video'):
                     children.append({'id': vid, 'title': name})
         except urllib.error.HTTPError as e:
             print('  ! could not read playlist %s (%s)' % (pid, e.code), file=sys.stderr)
+
+        if len(seen_child) > MAX_CHILDREN:
+            print('  . %s has %d talks; writing the first %d into the file, '
+                  'the row opens all of them on YouTube.'
+                  % (title, len(seen_child), MAX_CHILDREN))
 
         if pid in ALREADY_ON_THE_PAGE or pid in SKIP_PLAYLIST_IDS:
             print('  - skipping playlist: %s' % title)
@@ -245,6 +281,22 @@ def main():
             print('  - skipping video (personal): %s' % v['title'])
             continue
         loose.append(v)
+
+    # THE GUARD. If this trips, a playlist has gone missing rather than a
+    # hundred tapes having been uploaded one at a time.
+    #
+    # THE API ONLY LISTS A CHANNEL'S *PUBLIC* PLAYLISTS. An unlisted or
+    # private playlist is invisible here, so its videos are never marked as
+    # spoken for and every one of them arrives as its own row -- which is
+    # exactly what a library playlist set to Unlisted would do to the feed.
+    # The fix is on YouTube, not in this file: set the playlist to Public.
+    if len(loose) > MAX_LOOSE:
+        print('  ! %d loose talks, which is more than the %d this expects.\n'
+              '    A playlist is probably set to Unlisted or Private -- the API\n'
+              '    cannot see those, so their videos land in the feed one by one.\n'
+              '    Keeping the newest %d and dropping the rest for now.'
+              % (len(loose), MAX_LOOSE, MAX_LOOSE), file=sys.stderr)
+        loose = loose[:MAX_LOOSE]
 
     # ---- the series ------------------------------------------------------
     stems = {}
