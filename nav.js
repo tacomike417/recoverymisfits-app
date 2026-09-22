@@ -1429,19 +1429,25 @@
   const setBtn = soberPanel.querySelector("#rmSetSoberDateBtn");
   if (setBtn) {
     setBtn.addEventListener("click", () => {
-      /* A DATE SET FROM HERE ON OUT GETS SOMEWHERE TO LIVE.
+      /* NO ACCOUNT, NO WHEELS. THE BUTTON GOES WHERE IT SAYS IT GOES.
 
-         Somebody with no date and no account is about to type in the most
-         important number in this app, and on this phone alone it survives
-         exactly as long as the browser feels like keeping it. So they go to
-         the account screen first and come straight back to these wheels.
+         Signed out, this button reads SIGN IN and the rail beside it reads
+         000 DAYS -- and it was still opening the date picker, because the
+         old test here also asked whether a date happened to be sitting in
+         localStorage. Anybody who set a date on this phone before accounts
+         existed still has one there, so they pressed SIGN IN and got a set
+         of date wheels. Two different answers from one button depending on
+         a value nobody can see is how a screen stops being trusted.
 
-         NOBODY WHO ALREADY HAS A DATE IS SENT ANYWHERE. They set theirs
-         before any of this existed and they are not being made to sign up
-         to change it -- their date stays exactly where it is, and the
-         account is offered, never demanded. */
-      if (!getSoberDateYMD() && !hasAccountToken() &&
-          !/\/account\.html/.test(location.pathname)) {
+         THE RULE, AS OF 21 SEP 2026: you have an account and you get the
+         app, or you do not and you get the default site. The date, the
+         counter and the coin are all account things, so the picker is one
+         too. No token, no picker -- they go to the account screen and come
+         straight back to these wheels afterwards.
+
+         The old date is not touched. It is still on the phone and it is
+         still theirs; signing in is what puts it back on the rail. */
+      if (!hasAccountToken() && !/\/account\.html/.test(location.pathname)) {
         location.href = "/account.html?next=set";
         return;
       }
