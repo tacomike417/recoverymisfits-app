@@ -27,6 +27,10 @@
                       "top-right", "top", "mid-left", "mid-right"
                 wait  ms after the panel lands before this balloon pops.
                       Default staggers them automatically.
+                clear true wipes the balloons already up just before this
+                      one lands. Starts a new beat on the same picture --
+                      use it when a panel holds more than two lines, or the
+                      last line gets read against the first.
 
    THE RULE FROM CUTSCENES.md: the gag gets SHORTER every time it repeats.
    CS1 runs long on purpose. CS4 and CS5 should be two or three panels.
@@ -37,12 +41,26 @@ window.HalloweenCutscenes = {
     title: "AA — the recognition",
     panels: [
 
+      /* TWO BEATS ON ONE PICTURE. `clear` wipes the first exchange before
+         the second lands, so four lines fit on one held shot without the
+         sky filling up with balloons. They get to sound like two men who
+         have not seen each other in a very long time and are genuinely
+         glad to be walking somewhere together. */
       { img: "cs1-p1-walking-up.webp",
         sound: "cs1-steps.mp3",
-        hold: 700,
+        hold: 900,
         lines: [
           { who: "bill", text: "Dear friend. After all these years.", at: "top-left" },
-          { who: "bob",  text: "Let's see if they kept the place up.", at: "top-right", wait: 1100 }
+          { who: "bob",  text: "Far too long.", at: "top-right" },
+
+          { who: "bill", text: "Man, it's been way too long. I can't wait to get to a meeting!",
+            at: "top-left", clear: true },
+          /* BOB IS THE DOCTOR AND HE HAS THE NUMBER. He has been gone since
+             November 1950, so on Halloween 2026 it is seventy-five years --
+             he turns seventy-six about two weeks later. The precision is
+             the joke; a round "forever" is not funny, an exact figure
+             delivered flat is. */
+          { who: "bob",  text: "I have needed a meeting for seventy-five years.", at: "top-right" }
         ] },
 
       /* THE CUT THAT DOES THE WORK. No transition, no easing -- the room is

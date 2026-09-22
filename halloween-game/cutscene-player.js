@@ -32,6 +32,13 @@
    Put `secs: 4` on a panel in cutscenes.js to override the timing, or
    `autoplay: false` on the scene to go back to tap-only.
 
+   A PANEL CAN HOLD A CONVERSATION. Balloons stack, so four lines on one
+   picture would fill the sky and the last two would be read against the
+   first two. Put `clear: true` on a line and the balloons already up are
+   wiped just before it lands -- the picture holds, the talk moves on. That
+   is a held shot with two beats in it, and it buys a back-and-forth without
+   a second piece of art.
+
    GETTING OUT. No on-screen back button -- those get missed and they clutter
    a panel. Instead the scene is a history entry, so the phone's own back
    button and the iPhone edge swipe close it and land you exactly where you
@@ -157,21 +164,51 @@
        lands as you finish the first, so erring long costs nothing and
        erring short means somebody misses a joke. */
     var MS_PER_WORD = 220;
+
+    /* WHEN EACH BALLOON LANDS -- worked out in one place, because the
+       player needs it twice: once to schedule the pops, once to know how
+       long the panel runs. Two copies of this drifted apart the first time.
+
+       A line marked `clear` starts a new beat, so it waits for the beat
+       before it to be READ, not just shown -- otherwise the wipe lands on
+       top of words nobody has finished. */
+    function lineTimes(lines) {
+        var out = [], t = 360, beatStart = 0, beatWords = 0;
+        (lines || []).forEach(function (ln, i) {
+            var words = String(ln.text || "").split(/\s+/).filter(Boolean).length;
+            if (ln.clear && i > 0) {
+                t = beatStart + beatWords * MS_PER_WORD + 700;   /* read, then wipe */
+                beatStart = t;
+                beatWords = words;
+            } else {
+                if (i > 0) t += 1100;
+                if (i === 0) beatWords = words; else beatWords += words;
+            }
+            if (ln.wait != null) t = ln.wait;
+            out.push(t);
+        });
+        return out;
+    }
     function panelMs(p) {
         if (p.secs != null) return p.secs * 1000;          /* hand-set wins */
         var lines = p.lines || [];
-        var lastPop = 0, words = 0;
+        var times = lineTimes(lines);
+        /* EACH LINE NEEDS READING TIME FROM WHEN IT APPEARS, not from when
+           the panel started -- so the panel ends when the slowest line has
+           had its own words' worth of time on screen. Totting up every word
+           on the panel instead double-counts: a line that waits for the
+           previous beat to be read already has that reading time inside its
+           pop time, and a four-line panel came out at eleven seconds. */
+        var readUntil = 0;
         lines.forEach(function (ln, i) {
-            var w = ln.wait == null ? (360 + i * 1100) : ln.wait;
-            if (w > lastPop) lastPop = w;
-            words += String(ln.text || "").split(/\s+/).filter(Boolean).length;
+            var words = String(ln.text || "").split(/\s+/).filter(Boolean).length;
+            var done = times[i] + words * MS_PER_WORD;
+            if (done > readUntil) readUntil = done;
         });
-        var read = words * MS_PER_WORD;
         var hold = p.hold == null ? 1400 : p.hold;
-        var total = lastPop + read + hold;
         /* A wordless panel still needs a beat to register -- the coffee pot
            is the whole joke and it cannot be gone before it is seen. */
-        return Math.max(lines.length ? 1800 : 1500, total);
+        return Math.max(lines.length ? 1800 : 1500, readUntil + hold);
     }
 
     var styled = false;
@@ -297,9 +334,91 @@
             if (b.done) return;
             b.done = true;
         }
+        /* LAY OUT WHATEVER IS ON SCREEN RIGHT NOW.
+           Runs on every panel, and again each time a balloon arrives or a
+           beat gets wiped, because both change what has to fit.
+
+           Two jobs:
+
+           1. THE CROWD BALLOON CANNOT GROW, SO THE WORDS SHRINK. An ordinary
+              bubble stretches to hold its line. The zigzag one is a fixed
+              shape with a measured hole in it, so a long shout comes down to
+              meet the hole instead. Floor at 11px -- past that the line is
+              too long for a crowd bubble and wants rewriting, not more
+              shrinking.
+
+           2. KEEP TWO BALLOONS OFF EACH OTHER. "top-left" and "top-right"
+              only stay apart while both lines are short; one long line and
+              the reply lands on top of it. Rather than hand-tuning a
+              position per line -- which breaks the moment you reword it --
+              each balloon is measured in order and pushed below anything it
+              lands on. offsetWidth/offsetHeight are layout boxes and ignore
+              the pop animation's transform, which is why they are used here
+              and getBoundingClientRect is not. Each pass resets `top` first,
+              so a balloon that was pushed down to clear a beat that has
+              since been wiped comes back up. */
+        function layoutBalloons() {
+            [].slice.call(stage.querySelectorAll(".rmcs-b.crowd > span")).forEach(function (sp) {
+                var fs = parseFloat(getComputedStyle(sp.parentNode).fontSize) || 20;
+                for (var guard = 0; guard < 14; guard++) {
+                    if (sp.scrollHeight <= sp.clientHeight && sp.scrollWidth <= sp.clientWidth) break;
+                    fs -= 1;
+                    if (fs < 11) { fs = 11; sp.style.fontSize = fs + "px"; break; }
+                    sp.style.fontSize = fs + "px";
+                }
+            });
+
+            var placed = [];
+            [].slice.call(stage.querySelectorAll(".rmcs-b.pop")).forEach(function (el) {
+                el.style.top = ""; el.style.bottom = "";
+                var box = { l: el.offsetLeft, t: el.offsetTop,
+                            r: el.offsetLeft + el.offsetWidth,
+                            b: el.offsetTop + el.offsetHeight };
+                var moved = true, guard = 0;
+                while (moved && guard++ < 8) {
+                    moved = false;
+                    placed.forEach(function (o) {
+                        if (box.l < o.r && box.r > o.l && box.t < o.b && box.b > o.t) {
+                            var h = box.b - box.t;
+                            box.t = o.b + 10;
+                            box.b = box.t + h;
+                            moved = true;
+                        }
+                    });
+                }
+                if (box.t !== el.offsetTop) {
+                    el.style.top = box.t + "px";
+                    el.style.bottom = "auto";
+                }
+                placed.push(box);
+            });
+        }
+
+        /* ONLY WHAT IS ON SCREEN. Every balloon on the panel is put in the
+           DOM up front and sits there invisible until its moment, so a wipe
+           that took ".rmcs-b" deleted the lines that had not been said yet
+           and the beat ended after one line. `.pop` is the "has been shown"
+           mark, so that is what gets cleared. */
+        function wipeBalloons(except) {
+            [].slice.call(stage.querySelectorAll(".rmcs-b.pop")).forEach(function (e) {
+                if (e !== except) e.parentNode.removeChild(e);
+            });
+        }
+
+        /* AN IMPATIENT THUMB SKIPS TO THE LAST BEAT, not to all four lines at
+           once. Showing a wiped beat and the one that replaced it together
+           is the exact pile-up `clear` exists to prevent. */
         function flushBalloons() {
+            var lastClear = -1;
+            pending.forEach(function (b, i) { if (b.clear) lastClear = i; });
+            if (lastClear >= 0) {
+                wipeBalloons(null);
+                pending = pending.slice(lastClear);
+                pending.forEach(function (b) { stage.appendChild(b.el); });
+            }
             pending.forEach(showBalloon);
             pending = [];
+            layoutBalloons();   /* after showBalloon, so they count as on screen */
         }
 
         function panel(n) {
@@ -341,6 +460,7 @@
             nudge.classList.remove("on");
 
             var lines = p.lines || [];
+            var times = lineTimes(lines);
             lines.forEach(function (ln, i) {
                 var el = document.createElement("div");
                 el.className = "rmcs-b " + (ln.who || "bill") + " at-" + (ln.at || "top-left");
@@ -354,64 +474,24 @@
                     el.textContent = ln.text;
                 }
                 stage.appendChild(el);
-                var b = { el: el, done: false };
+                var b = { el: el, done: false, clear: !!ln.clear };
                 pending.push(b);
-                var wait = ln.wait == null ? (360 + i * 1100) : ln.wait;
                 later(function () {
+                    /* a new beat wipes the last one -- the picture holds, the
+                       talk moves on */
+                    if (b.clear) wipeBalloons(el);
                     showBalloon(b);
+                    /* RE-LAY OUT ON EVERY ARRIVAL. What has to fit changes
+                       each time a balloon lands or a beat gets wiped, so the
+                       pass cannot run once at the top of the panel -- do
+                       that and the second line of a beat sits on top of the
+                       first. */
+                    layoutBalloons();
                     pending = pending.filter(function (x) { return x !== b; });
-                }, wait);
+                }, times[i]);
             });
 
-            /* THE CROWD BALLOON CANNOT GROW, SO THE WORDS SHRINK.
-               An ordinary bubble stretches to hold its line. This one is a
-               fixed shape with a measured hole in it, so a long shout has to
-               come down to meet the hole instead. Step it down until it
-               fits, floor at 11px -- past that the line is too long for a
-               crowd bubble and wants rewriting, not more shrinking. */
-            [].slice.call(stage.querySelectorAll(".rmcs-b.crowd > span")).forEach(function (sp) {
-                var fs = parseFloat(getComputedStyle(sp.parentNode).fontSize) || 20;
-                for (var guard = 0; guard < 14; guard++) {
-                    if (sp.scrollHeight <= sp.clientHeight && sp.scrollWidth <= sp.clientWidth) break;
-                    fs -= 1;
-                    if (fs < 11) { fs = 11; sp.style.fontSize = fs + "px"; break; }
-                    sp.style.fontSize = fs + "px";
-                }
-            });
-
-            /* KEEP TWO BALLOONS OFF EACH OTHER.
-               "top-left" and "top-right" only stay apart while both lines
-               are short. Bill saying "Dear friend. After all these years."
-               takes the whole width, and Bob's reply landed on top of it.
-               Rather than hand-tuning a position per line -- which breaks
-               again the moment the wording changes -- each balloon is
-               measured in order and pushed below anything it lands on.
-               offsetWidth/offsetHeight are used because they are layout
-               boxes and ignore the pop animation's transform. */
-            var placed = [];
-            [].slice.call(stage.querySelectorAll(".rmcs-b")).forEach(function (el) {
-                var box = { l: el.offsetLeft, t: el.offsetTop,
-                            r: el.offsetLeft + el.offsetWidth,
-                            b: el.offsetTop + el.offsetHeight };
-                var moved = true, guard = 0;
-                while (moved && guard++ < 8) {
-                    moved = false;
-                    placed.forEach(function (o) {
-                        var hit = box.l < o.r && box.r > o.l && box.t < o.b && box.b > o.t;
-                        if (hit) {
-                            var h = box.b - box.t;
-                            box.t = o.b + 10;
-                            box.b = box.t + h;
-                            moved = true;
-                        }
-                    });
-                }
-                if (box.t !== el.offsetTop) {
-                    el.style.top = box.t + "px";
-                    el.style.bottom = "auto";
-                }
-                placed.push(box);
-            });
+            layoutBalloons();
 
             var last = lines.length ? Math.max.apply(null, lines.map(function (ln, i) {
                 return ln.wait == null ? (360 + i * 1100) : ln.wait;
