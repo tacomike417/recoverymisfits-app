@@ -296,6 +296,48 @@ def main():
             'videos': children,
         })
 
+    # ---- hand-placed playlists that live on SOMEBODY ELSE'S channel -------
+    #
+    # The loop above walks THIS channel's playlists, so it can only ever fill
+    # in the hand-placed rows that we own. Two of the five are other people's
+    # work sitting on their own channels -- Father Martin's chalk talks and
+    # Danny's Big Book Study -- so the loop never saw them, they got no
+    # children, and on the page they rendered as one row that fired the whole
+    # playlist into the embed instead of opening a list of talks.
+    #
+    # Fetching by playlist id works for any playlist the key can read,
+    # whatever channel it is on. Titles and subtitles still come from
+    # audio.html: his wording wins, YouTube's is only used for the list.
+    for pid in ALREADY_ON_THE_PAGE:
+        if pid in kept:
+            continue                      # already filled in by the loop above
+        children = []
+        seen_child = set()
+        try:
+            for it in paged('playlistItems', part='snippet,contentDetails',
+                            playlistId=pid, maxResults=50):
+                vid = it.get('contentDetails', {}).get('videoId')
+                if not vid or vid in seen_child:
+                    continue
+                seen_child.add(vid)
+                in_a_playlist.add(vid)
+                if len(children) >= MAX_CHILDREN:
+                    continue
+                name = (it.get('snippet', {}).get('title') or '').strip()
+                if name and name not in ('Private video', 'Deleted video'):
+                    children.append({'id': vid, 'title': name})
+        except urllib.error.HTTPError as e:
+            # The playlist went private or was deleted on the other channel.
+            # Not fatal: the row still works, it just opens on YouTube the way
+            # it did before. Say which one so it can be replaced.
+            print('  ! hand-placed playlist %s could not be read (%s) -- the '
+                  'row will open on YouTube instead of listing talks'
+                  % (pid, e.code), file=sys.stderr)
+            continue
+        kept[pid] = {'count': len(seen_child), 'videos': children}
+        print('  = hand-placed playlist off-channel: %s (%d talks sent along '
+              'for the list)' % (pid, len(children)))
+
     # ---- the ones that are kept out by name -------------------------------
     # Fetched by id rather than found by browsing, which is the only way to
     # read an unlisted playlist. Nothing is published from these -- the point
