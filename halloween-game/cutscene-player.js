@@ -17,6 +17,21 @@
    it. Either way it runs exactly once, so whatever comes next can just be
    put in there without guarding.
 
+   IT RUNS ITSELF. Panels advance on their own, like a movie -- nobody has
+   to tap through a story to see it. How long a panel stays up is worked out
+   from what is actually on it: how long the balloons take to pop, plus
+   reading time for the words in them, plus the panel's own beat. A silent
+   panel is short. A panel with two lines of dialogue waits long enough to
+   read them twice.
+
+   Tapping still works and still means "I am ready" -- mid-balloons it
+   brings them all in at once, after that it jumps to the next panel. So a
+   fast reader never waits and a slow one is never rushed, which is the same
+   deal as before; the difference is that doing nothing now also works.
+
+   Put `secs: 4` on a panel in cutscenes.js to override the timing, or
+   `autoplay: false` on the scene to go back to tap-only.
+
    GETTING OUT. No on-screen back button -- those get missed and they clutter
    a panel. Instead the scene is a history entry, so the phone's own back
    button and the iPhone edge swipe close it and land you exactly where you
@@ -90,12 +105,21 @@
         ".rmcs-b.at-mid-left{left:5%;top:38%}",
         ".rmcs-b.at-mid-right{right:5%;top:38%}",
         /* the nudge -- appears only once the panel has had its moment */
-        ".rmcs-next{position:absolute;right:16px;bottom:16px;",
+        ".rmcs-next{position:absolute;right:16px;bottom:18px;",
           "font-family:'BangersCS','Comic Sans MS',sans-serif;font-size:14px;",
           "letter-spacing:1.5px;color:#fff;opacity:0;transition:opacity .3s ease;",
           "text-shadow:0 2px 6px #000;pointer-events:none}",
         ".rmcs-next.on{opacity:.8;animation:rmcs-blink 1.6s ease-in-out infinite}",
         "@keyframes rmcs-blink{0%,100%{opacity:.85}50%{opacity:.35}}",
+        /* THE TIMER LINE. A panel that moves on by itself needs to say so,
+           or the first one feels like the app skipped. A hairline creeping
+           across the bottom is enough -- you stop noticing it by panel two,
+           which is exactly right. */
+        ".rmcs-timer{position:absolute;left:0;bottom:0;height:3px;width:100%;",
+          "background:rgba(255,255,255,.1)}",
+        ".rmcs-timer i{display:block;height:100%;width:0;background:#e9c46a;",
+          "box-shadow:0 0 8px rgba(233,196,106,.6)}",
+        ".rmcs-timer i.run{transition:width linear}",
         /* progress pips, so nobody wonders how much is left */
         ".rmcs-pips{position:absolute;left:16px;bottom:20px;display:flex;gap:6px}",
         ".rmcs-pip{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.28)}",
@@ -104,6 +128,35 @@
           ".rmcs-art.play,.rmcs-b.pop,.rmcs-b.crowd.pop{animation-duration:.01ms}",
           ".rmcs-next.on{animation:none}}"
     ].join("");
+
+    /* HOW LONG A PANEL STAYS UP.
+       Guessing one number for every panel is what makes auto-advancing
+       cutscenes feel wrong -- the silent ones drag and the talky ones clip.
+       So it is measured instead: the beat after the art lands, the time the
+       last balloon takes to arrive, reading time for every word on the
+       panel, and then the panel's own hold.
+
+       220ms a word is deliberately generous. Comfortable adult reading is
+       nearer 200 and these are five-word balloons where the last word
+       lands as you finish the first, so erring long costs nothing and
+       erring short means somebody misses a joke. */
+    var MS_PER_WORD = 220;
+    function panelMs(p) {
+        if (p.secs != null) return p.secs * 1000;          /* hand-set wins */
+        var lines = p.lines || [];
+        var lastPop = 0, words = 0;
+        lines.forEach(function (ln, i) {
+            var w = ln.wait == null ? (360 + i * 1100) : ln.wait;
+            if (w > lastPop) lastPop = w;
+            words += String(ln.text || "").split(/\s+/).filter(Boolean).length;
+        });
+        var read = words * MS_PER_WORD;
+        var hold = p.hold == null ? 1400 : p.hold;
+        var total = lastPop + read + hold;
+        /* A wordless panel still needs a beat to register -- the coffee pot
+           is the whole joke and it cannot be gone before it is seen. */
+        return Math.max(lines.length ? 1800 : 1500, total);
+    }
 
     var styled = false;
     function injectCss() {
@@ -195,8 +248,17 @@
 
         var nudge = document.createElement("div");
         nudge.className = "rmcs-next";
-        nudge.textContent = "TAP";
+        nudge.textContent = "TAP TO SKIP";
         stage.appendChild(nudge);
+
+        var timer = document.createElement("div");
+        timer.className = "rmcs-timer";
+        var timerFill = document.createElement("i");
+        timer.appendChild(timerFill);
+        stage.appendChild(timer);
+
+        var autoplay = scene.autoplay !== false;
+        if (!autoplay) timer.style.display = "none";
 
         root.appendChild(stage);
         document.body.appendChild(root);
@@ -314,12 +376,51 @@
             var last = lines.length ? Math.max.apply(null, lines.map(function (ln, i) {
                 return ln.wait == null ? (360 + i * 1100) : ln.wait;
             })) : 0;
-            later(function () { nudge.classList.add("on"); }, last + (p.hold == null ? 1400 : p.hold));
+
+            /* THE PANEL RUNS ITSELF. The line across the bottom is the panel's
+               own clock, driven by one CSS transition rather than a
+               requestAnimationFrame loop -- the browser runs it on the
+               compositor, so it stays smooth while the art is still decoding
+               and it costs nothing on an old phone. */
+            var ms = panelMs(p);
+            if (autoplay) {
+                timerFill.classList.remove("run");
+                timerFill.style.transitionDuration = "0s";
+                timerFill.style.width = "0%";
+                void timerFill.offsetWidth;
+                timerFill.classList.add("run");
+                timerFill.style.transitionDuration = ms + "ms";
+                timerFill.style.width = "100%";
+                later(advance, ms);
+                later(function () { nudge.classList.add("on"); }, Math.min(1200, ms * 0.35));
+            } else {
+                later(function () { nudge.classList.add("on"); }, last + (p.hold == null ? 1400 : p.hold));
+            }
         }
 
-        function advance() {
+        /* `byHand` is set when a tap caused this, so the auto-advance timer
+           can call the same function without being mistaken for a tap. */
+        function advance(byHand) {
             if (closed) return;
-            if (pending.length) { flushBalloons(); return; }   /* impatient thumb */
+            if (byHand && pending.length) {
+                /* impatient thumb: bring the rest of the balloons in now and
+                   give the panel a short beat to read them, instead of
+                   jumping off the words that just appeared */
+                flushBalloons();
+                if (autoplay) {
+                    clearTimers();
+                    var rest = 1500;
+                    timerFill.classList.remove("run");
+                    timerFill.style.transitionDuration = "0s";
+                    void timerFill.offsetWidth;
+                    timerFill.classList.add("run");
+                    timerFill.style.transitionDuration = rest + "ms";
+                    timerFill.style.width = "100%";
+                    later(advance, rest);
+                }
+                return;
+            }
+            pending = [];
             if (idx >= scene.panels.length - 1) { finish(); return; }
             idx += 1;
             panel(idx);
@@ -367,7 +468,7 @@
         function onKey(e) {
             if (e.key === "Escape") { e.preventDefault(); finish(); }
             else if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") {
-                e.preventDefault(); advance();
+                e.preventDefault(); advance(true);
             }
         }
 
@@ -376,7 +477,7 @@
         try { history.pushState({ rmcs: sceneId }, ""); } catch (e) {}
         window.addEventListener("popstate", onPop);
         document.addEventListener("keydown", onKey, true);
-        root.addEventListener("click", function (e) { e.preventDefault(); advance(); });
+        root.addEventListener("click", function (e) { e.preventDefault(); advance(true); });
 
         advance();   /* first panel */
     }

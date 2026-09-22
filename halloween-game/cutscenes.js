@@ -12,9 +12,13 @@
      img      picture file in assets/cutscenes/<scene id>/
      sound    a file in assets/audio/, or leave it out for silence
      bed      a quiet sound that loops UNDER the panel (room tone)
-     hold     milliseconds before the "tap to continue" nudge appears.
-              Default is 1400. Make it longer for a panel with a lot of
-              reading, shorter for a punchline.
+     hold     extra milliseconds the panel sits there AFTER the words have
+              been read. The player already works out reading time from the
+              text itself, so this is only the beat on top -- the pause
+              before the cut. Default 1400. Short for a punchline, longer
+              when you want it to land.
+     secs     override the whole thing: "this panel is up for 4 seconds",
+              full stop. Use it when the math gets something wrong.
      lines    who says what, in order. Each line:
                 who   "bill" | "bob" | "crowd" | "world"
                 text  the words. Keep them short -- these are balloons on a
@@ -35,10 +39,10 @@ window.HalloweenCutscenes = {
 
       { img: "cs1-p1-walking-up.webp",
         sound: "cs1-steps.mp3",
-        hold: 2200,
+        hold: 700,
         lines: [
           { who: "bill", text: "Dear friend. After all these years.", at: "top-left" },
-          { who: "bob",  text: "Let's see if they kept the place up.", at: "top-right" }
+          { who: "bob",  text: "Let's see if they kept the place up.", at: "top-right", wait: 1100 }
         ] },
 
       /* THE CUT THAT DOES THE WORK. No transition, no easing -- the room is
@@ -46,27 +50,27 @@ window.HalloweenCutscenes = {
          built around, so it gets the gasp. */
       { img: "cs1-p2-the-room.webp",
         sound: "cs1-gasp.mp3",
-        hold: 1600,
+        hold: 900,
         lines: [
           { who: "crowd", text: "...HOLY SHIT, IT'S THE GUYS.", at: "top" }
         ] },
 
       { img: "cs1-p3-coffee-pot.webp",
         sound: "cs1-glass.mp3",
-        hold: 900,
+        hold: 600,
         lines: [] },            /* no words. it is a coffee pot exploding. */
 
       /* SILENCE HERE IS THE JOKE. Right after the crash, nothing. Do not
          put a sound on this panel. */
       { img: "cs1-p4-green-guy.webp",
-        hold: 1500,
+        hold: 800,
         lines: [
           { who: "world", text: "I think I'm going to throw up.", at: "top" }
         ] },
 
       { img: "cs1-p5-we-could-go.webp",
         bed: "cs1-murmur.mp3",
-        hold: 2400,
+        hold: 1300,
         lines: [
           { who: "bill", text: "We could go.",     at: "top-left"  },
           { who: "bob",  text: "We could go now.", at: "top-right", wait: 1500 }
