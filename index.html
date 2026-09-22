@@ -645,6 +645,192 @@ body::after{
 .m-progress{position:absolute;left:-15px;bottom:-4px;width:48px;opacity:.85;pointer-events:none;z-index:0}
 .m-belong{position:absolute;right:-13px;bottom:-10px;width:32px;opacity:.85;pointer-events:none;z-index:0}
 
+/* ---- YOUR CORNER --------------------------------------------------------
+   The personal strip, under the shelf and above the sober rail. Built out of
+   this page's own tokens rather than its own palette, so it reads as the same
+   screen and not as a widget somebody dropped in.
+
+   PHONE FIRST, at 393. The milestone card is full width; the stack and the
+   coin case are halves beside each other and fall into a column under 360,
+   where two of them are 150px each and the words start breaking.
+   --------------------------------------------------------------------- */
+.corner{margin:34px 0 0;position:relative}
+
+/* The tear runs the full width of the screen, past the page's own gutter --
+   a torn edge that stops short of the sides is a rectangle. */
+.corner-tear{
+  display:block;width:100vw;height:14px;
+  margin:0 0 18px calc(50% - 50vw);
+  fill:#d8ccb2;opacity:.85;
+}
+
+.corner-head{position:relative;padding-right:112px}
+.corner-title{
+  margin:0;font-family:var(--display);font-weight:600;
+  font-size:34px;line-height:.98;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--ivory);
+}
+.corner-rule{
+  display:block;width:196px;height:4px;margin:7px 0 0;border-radius:3px;
+  background:linear-gradient(90deg,#8a6a24,#e0bd6a 45%,rgba(224,189,106,0));
+}
+/* The note is handwriting on a page, so it sits at an angle and overlaps the
+   rule a little. Marked aria-hidden: it is a mood, not information, and a
+   screen reader announcing "same day brighter tomorrow" between a heading and
+   a milestone is noise. */
+.corner-note{
+  position:absolute;right:26px;top:-2px;margin:0;
+  font-family:"RM Hand","Bradley Hand","Segoe Script",cursive;font-size:15px;line-height:1.12;
+  color:var(--ivory);opacity:.92;transform:rotate(-7deg);text-align:left;
+}
+.corner-star{
+  position:absolute;right:76px;top:30px;width:34px;height:34px;
+  fill:none;stroke:var(--gold);stroke-width:4;
+  stroke-linecap:round;stroke-linejoin:round;opacity:.9;
+  transform:rotate(-8deg);
+}
+
+.corner-cards{display:grid;gap:11px;margin-top:16px}
+.corner-pair{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+
+.ccard{
+  position:relative;overflow:hidden;
+  display:grid;grid-template-columns:62px 1px 1fr;align-items:center;gap:0 13px;
+  min-height:var(--touch);padding:14px 15px;
+  border-radius:15px;
+  border:1px solid rgba(184,132,39,.5);
+  background:rgba(31,31,27,.82);
+  text-decoration:none;color:var(--ivory);
+  font:inherit;text-align:left;-webkit-tap-highlight-color:transparent;
+  cursor:pointer;
+}
+/* The faint sweep of light across the cards in the mockup. Pointer-events off
+   so it never eats a tap. */
+.ccard::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(104deg,rgba(255,255,255,0) 38%,
+             rgba(255,255,255,.05) 47%,rgba(255,255,255,0) 56%);
+}
+.ccard:active{border-color:var(--gold)}
+.ccard:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.ccard-ico{display:grid;place-items:center}
+.ccard-ico svg{width:100%;height:auto;max-height:56px;fill:none;
+  stroke:var(--gold);stroke-linecap:round;stroke-linejoin:round}
+.ccard-cut{align-self:stretch;background:rgba(216,180,91,.3);min-height:42px}
+
+.ccard-k{
+  display:block;font-family:var(--display);font-weight:600;
+  font-size:14px;letter-spacing:1.1px;text-transform:uppercase;
+  color:var(--muted);
+}
+.ccard-big{
+  display:block;font-family:var(--display);font-weight:600;
+  font-size:27px;line-height:1.02;letter-spacing:.4px;
+  text-transform:uppercase;color:#fff;text-wrap:balance;
+}
+/* SET YOUR SOBER DATE is four words where 3,000 DAYS is two. It gets the
+   smaller size rather than three lines and a card that changes height the
+   moment somebody signs in. */
+.ccard-big.is-cta{font-size:19px;line-height:1.1}
+.ccard-sub{
+  display:block;font-family:var(--ui);font-weight:700;
+  font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* ---- the milestone card ----
+   THE BAR IS UNDER THE NUMBER, not beside it. Side by side is how the mockup
+   draws it and it does not survive a real phone: "3,000 DAYS" at 27px and
+   "71 DAYS TO GO" cannot both have room on 393px, so the to-go broke over two
+   lines and squeezed the bar to a stub. Stacked, the bar also gets the full
+   width of the card, which is the one thing on this card worth looking at. */
+.ms-body{display:block}
+.ms-right{display:block;margin-top:5px}
+.ms-track{
+  display:block;height:9px;margin-top:6px;border-radius:5px;
+  background:rgba(238,230,213,.14);
+  box-shadow:inset 0 0 0 1px rgba(238,230,213,.08);
+  overflow:hidden;
+}
+.ms-track i{
+  display:block;height:100%;width:0;border-radius:5px;
+  background:linear-gradient(90deg,#c79a33,#f0cd72);
+  transition:width .5s ease;
+}
+
+/* ---- the halves ----
+   THE ICON SITS ON TOP HERE, not to the left. A half card on a 393px phone is
+   about 170px wide, and an icon beside the text leaves roughly 90px for
+   "3 OF 5 OPENED" and a row of check dots -- which clipped the words and
+   pushed the last dot out through the border. The stack can also grow: these
+   dots are one per row in YOUR stack, and somebody who has added three
+   prayers has eight of them. Icon on top, text full width, dots allowed to
+   wrap, and it holds at any number. */
+.corner-pair .ccard{display:block;padding:13px 13px 14px}
+.corner-pair .ccard-ico{display:block;width:42px;margin:0 0 9px}
+.corner-pair .ccard-ico svg{max-height:38px}
+/* Their own coin, dropped in by corner.js, standing in for the drawing. A
+   little bigger than the line icon beside it because it is a photograph of a
+   thing rather than three strokes, and at 42px the lettering on it is mud. */
+.ccard-ico .coin-real{display:none;width:54px;height:54px;
+  filter:drop-shadow(0 4px 9px rgba(0,0,0,.55))}
+.corner-pair .ccard-ico.has-coin{width:54px;margin-bottom:7px}
+.ccard-ico.has-coin svg{display:none}
+.ccard-ico.has-coin .coin-real{display:block}
+.corner-pair .ccard-cut{display:none}
+.corner-pair .ccard-k{font-size:14px;letter-spacing:.6px;color:var(--ivory)}
+.corner-pair .ccard-sub{font-size:10.5px;letter-spacing:1.1px;margin-top:3px}
+
+.cdots{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.cdot{
+  width:16px;height:16px;border-radius:50%;
+  border:1.6px solid rgba(216,180,91,.55);
+  display:grid;place-items:center;
+  font-size:9.5px;font-weight:900;color:#12100b;line-height:1;
+}
+.cdot.on{background:var(--gold);border-color:var(--gold)}
+
+/* ---- the share card ----
+   MAKE CARD GOES UNDERNEATH THE WORDS. Beside them it took the width the
+   heading needed, and "Share Your Sober Date" came down the card one word per
+   line with the sentence under it in a column two characters wide. */
+.ccard-share{grid-template-columns:52px 1px 1fr;padding-right:56px}
+.ccard-share .ccard-ico svg{stroke:var(--ivory);max-height:38px}
+.ccard-share .ccard-k{color:var(--ivory);font-size:15px}
+.ccard-share .ccard-sub{
+  text-transform:none;letter-spacing:0;font-weight:400;font-size:12px;
+  font-family:var(--type);margin-top:3px;
+}
+.make{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  min-height:40px;padding:8px 18px;margin:11px 0 1px;
+  border-radius:999px;border:1.4px solid var(--gold);
+  font-family:var(--ui);font-weight:800;font-size:12px;letter-spacing:1.4px;
+  text-transform:uppercase;color:#f0e2c2;white-space:nowrap;
+}
+.make svg{width:16px;height:10px;stroke:var(--gold);fill:none;stroke-width:2}
+.carry{
+  position:absolute;right:4px;top:50%;margin:0;transform:translateY(-50%) rotate(-8deg);
+  font-family:"RM Hand","Bradley Hand","Segoe Script",cursive;font-size:12px;line-height:1.1;
+  color:var(--ivory);opacity:.85;text-align:center;
+}
+
+/* SIGNED OUT. The cards are all there and all empty, which is the whole
+   point -- a 0 somebody can see is a reason to sign up and a hidden section
+   is not. Dimmed the same amount the day counter dims. */
+.corner.is-locked .ms-track,
+.corner.is-locked .cdots,
+.corner.is-locked .ccard-sub{opacity:.55}
+
+@media (max-width:359px){
+  .corner-pair{grid-template-columns:1fr}
+  .corner-title{font-size:29px}
+  .corner-head{padding-right:98px}
+  .ccard-big{font-size:23px}
+  .ccard-share{grid-template-columns:44px 1px 1fr;padding-right:46px}
+}
+
 .tailroom{height:150px}
 
 @media (max-width:359px){
@@ -832,6 +1018,126 @@ body::after{
     </div>
   </section>
 
+  <!-- ===================================================================
+       YOUR CORNER.
+
+       The personal strip: how far to the next milestone, how much of today's
+       stack is done, and how many coins are in the case. It sits here, at the
+       bottom, on purpose -- everything above it is what the app is FOR, and
+       this is the bit about you. It is the reward for scrolling, not the toll
+       for arriving.
+
+       EVERY ICON IS DRAWN IN THE FILE rather than fetched. Six more requests
+       on the front page for six small line drawings is a bad trade at any
+       signal strength, and inline is also the only version of them that shows
+       up when there is no signal at all.
+
+       The numbers are filled in by /corner.js off the account. Drawn empty,
+       which is what somebody without an account sees and is meant to see.
+       ================================================================ -->
+  <section class="corner" id="your-corner" aria-labelledby="cornerTitle">
+
+    <svg class="corner-tear" viewBox="0 0 1200 30" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 17 52 14l36 3 45-8 44 7 55-3 48 5 53-11 61 9 55-4 53 6 60-10 50 8 70-5 48 7 50-12 62 10 55-4 60 6 49-9 66 8 45-5 50 5 49-9 71 8 70-4 44 6 47-6 38 3v7H0Z"/>
+    </svg>
+
+    <div class="corner-head">
+      <h2 class="corner-title" id="cornerTitle">Your Corner</h2>
+      <span class="corner-rule"></span>
+      <p class="corner-note" aria-hidden="true">Same day<br>brighter<br>tomorrow</p>
+      <svg class="corner-star" viewBox="0 0 90 90" aria-hidden="true">
+        <path d="m46 6 8 27 27-8-22 18 18 22-27-10-10 28-1-30-30 4 27-14L18 18l22 17 6-29Z"/>
+      </svg>
+    </div>
+
+    <div class="corner-cards">
+
+      <!-- NEXT MILESTONE. Href is rewritten by corner.js: the share card for
+           somebody who has a date, the sign-up page for somebody who does not,
+           because the thing they need first is somewhere to put the date. -->
+      <a class="ccard" id="cardMilestone" href="./sober-date.html">
+        <span class="ccard-ico">
+          <svg viewBox="0 0 112 112" aria-hidden="true">
+            <path d="M11 88 38 55l12 14 17-23 34 42" stroke-width="6"/>
+            <path d="M44 64 29 88M67 47 57 88M40 55V20" stroke-width="4"/>
+            <path d="M42 21c13 0 18 5 29 8-11 3-16 8-29 8V21Z" fill="#d8a94a" stroke-width="2"/>
+          </svg>
+        </span>
+        <span class="ccard-cut" aria-hidden="true"></span>
+        <span class="ms-body">
+          <span class="ccard-k">Next Milestone</span>
+          <span class="ccard-big" id="msLabel">&mdash;</span>
+          <span class="ms-right">
+            <span class="ccard-sub" id="msToGo">&nbsp;</span>
+            <span class="ms-track"><i id="msBar"></i></span>
+          </span>
+        </span>
+      </a>
+
+      <div class="corner-pair">
+
+        <!-- TODAY'S STACK. A button, not a link: it scrolls back up to the
+             stack itself, which is already on this page. -->
+        <button class="ccard" id="cardStack" type="button">
+          <span class="ccard-ico">
+            <svg viewBox="0 0 128 112" aria-hidden="true">
+              <path d="M16 33c19-9 35-6 48 7 13-13 29-16 48-7v58c-19-6-35-2-48 10-13-12-29-16-48-10V33Z" stroke-width="5"/>
+              <path d="M64 34v58" stroke-width="3"/>
+              <path d="M22 12 17 4M46 10l2-9M104 13l7-8" stroke-width="5"/>
+            </svg>
+          </span>
+          <span class="ccard-cut" aria-hidden="true"></span>
+          <span>
+            <span class="ccard-k">Today&rsquo;s Stack</span>
+            <span class="ccard-sub" id="stackCopy">0 of 0 opened</span>
+            <span class="cdots" id="stackDots"></span>
+          </span>
+        </button>
+
+        <!-- THE COIN CASE. -->
+        <a class="ccard" id="cardCoins" href="./coins.html">
+          <span class="ccard-ico">
+            <svg viewBox="0 0 112 112" aria-hidden="true">
+              <ellipse cx="56" cy="30" rx="36" ry="13" stroke-width="6"/>
+              <path d="M20 30v20c0 7 16 13 36 13s36-6 36-13V30" stroke-width="6"/>
+              <path d="M20 58v20c0 7 16 13 36 13s36-6 36-13V58" stroke-width="6"/>
+            </svg>
+          </span>
+          <span class="ccard-cut" aria-hidden="true"></span>
+          <span>
+            <span class="ccard-k">Your Coins</span>
+            <span class="ccard-sub" id="coinCopy">0 earned</span>
+          </span>
+        </a>
+
+      </div>
+
+      <!-- SHARE YOUR SOBER DATE. The one already built, in sober-date.html --
+           this is a door to it, not a second copy of it. -->
+      <a class="ccard ccard-share" href="./sober-date.html">
+        <span class="ccard-ico">
+          <svg viewBox="0 0 96 96" aria-hidden="true">
+            <path d="M31 38H17v43h62V38H65" stroke-width="5"/>
+            <path d="M48 61V10M32 25l16-15 16 15" stroke-width="5"/>
+          </svg>
+        </span>
+        <span class="ccard-cut" aria-hidden="true"></span>
+        <span>
+          <span class="ccard-k">Share Your Sober Date</span>
+          <span class="ccard-sub">No name. Just the date and the days.</span>
+          <!-- Inside the text column on purpose. As a fourth child of the card
+               it became a fourth grid cell, which wrapped onto a new row under
+               the icon. -->
+          <span class="make">Make Card
+            <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </span>
+        <p class="carry" aria-hidden="true">Carry<br>the<br>message</p>
+      </a>
+
+    </div>
+  </section>
+
   <!-- EVERY READING. The archive at /another-day-sober/ lists all 365 as real
        links, so the front page is one hop from every one of them. -->
   <nav class="archive" aria-label="Every reading, by date">
@@ -846,6 +1152,7 @@ body::after{
 
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
+<script src="./corner.js" defer></script>
 
 <script>
 /* TODAY'S CARD READS THE SAME FILE THE READING ITSELF READS.

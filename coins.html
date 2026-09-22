@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your Coins &mdash; Recovery Misfits</title>
+<meta name="theme-color" content="#11110f">
+<meta name="robots" content="noindex, follow">
+
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="./icon-192.png">
+
+<style>html{background:#11110f}body{background:#11110f;color:#f1e7cf;margin:0}</style>
+
+<style>
+/* ===========================================================================
+   THE COIN CASE.
+
+   Every coin already earned, newest at the top, with the next one still
+   behind glass above them. Opened from YOUR COINS on the home screen.
+
+   BUILT FOR A PHONE, at 393. Two across, which makes each coin about 160px
+   -- big enough to actually look at, which is the entire point of a case.
+   Three across would fit and would turn it into a list of icons.
+
+   NO BACK BUTTON ON THE SCREEN, by the rule: the phone's own back button and
+   the iPhone edge swipe are how people leave, and this page is an ordinary
+   navigation so both of them already work. The lit Home tab on the bar is
+   the other way out.
+
+   WHAT IS LOADED. Only the coins earned, plus the one coming. Somebody at
+   eight years pulls fourteen images, not sixty. Everything past the next one
+   is a line of text at the bottom, because a wall of locked grey discs is a
+   list of things you have not done, and this screen is not for that.
+   ======================================================================== */
+@font-face{
+  font-family:"RM Display";
+  src:url("assets/fonts/oswald-600.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"RM Hand";
+  src:url("assets/fonts/caveat-600.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
+
+:root{
+  --bg:#11110f;
+  --ivory:#f1e7cf;
+  --gold:#d8b45b;
+  --muted:#b7b0a2;
+  --touch:44px;
+  --display:"RM Display","Arial Narrow",Impact,sans-serif;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{-webkit-font-smoothing:antialiased}
+
+main{max-width:620px;margin:0 auto;padding:18px 20px 0}
+
+.head{position:relative;padding-right:104px;margin:4px 0 14px}
+h1{
+  margin:0;font-family:var(--display);font-weight:600;
+  font-size:34px;line-height:1;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--ivory);
+}
+.rule{
+  display:block;width:170px;height:4px;margin:7px 0 0;border-radius:3px;
+  background:linear-gradient(90deg,#8a6a24,#e0bd6a 45%,rgba(224,189,106,0));
+}
+.count{
+  margin:11px 0 0;font-family:var(--ui);font-weight:800;
+  font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);
+}
+.note{
+  position:absolute;right:6px;top:2px;margin:0;
+  font-family:"RM Hand","Bradley Hand","Segoe Script",cursive;
+  font-size:15px;line-height:1.12;color:var(--ivory);opacity:.9;
+  transform:rotate(-7deg);
+}
+
+.case{
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+  margin:6px 0 0;padding:0;list-style:none;
+}
+.coin{
+  position:relative;
+  display:flex;flex-direction:column;align-items:center;gap:9px;
+  padding:16px 10px 15px;
+  border-radius:16px;
+  border:1px solid rgba(184,132,39,.42);
+  background:rgba(31,31,27,.82);
+  text-align:center;
+}
+.coin img{
+  width:100%;max-width:142px;height:auto;display:block;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.55));
+}
+.coin .k{
+  font-family:var(--display);font-weight:600;
+  font-size:15px;letter-spacing:.9px;text-transform:uppercase;color:#fff;
+}
+.coin .d{
+  font-family:var(--ui);font-weight:700;font-size:10px;letter-spacing:1.3px;
+  text-transform:uppercase;color:var(--muted);margin-top:-5px;
+}
+
+/* THE ONE STILL COMING. Behind glass: desaturated and dimmed rather than
+   hidden, because a coin you can see the shape of is a reason to come back
+   and a blank square is not. It spans both columns at the top so it reads as
+   what is next rather than as another one already in the case. */
+.coin.next{
+  grid-column:1/-1;
+  border-style:dashed;border-color:rgba(184,132,39,.34);
+  background:rgba(31,31,27,.5);
+}
+.coin.next img{filter:grayscale(1) brightness(.62);opacity:.7;max-width:124px}
+.coin.next .k{color:var(--muted)}
+.coin.next .d{color:var(--gold)}
+
+/* NO ACCOUNT, OR NO DATE. The question-mark coin and a way to fix it --
+   the same answer the sober rail gives, so the two screens agree. */
+.empty{
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  padding:30px 16px 8px;text-align:center;
+}
+.empty img{width:170px;height:auto;filter:drop-shadow(0 6px 14px rgba(0,0,0,.55))}
+.empty p{
+  margin:0;font-family:var(--ui);font-size:14px;line-height:1.5;
+  color:var(--muted);max-width:270px;
+}
+.go{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  min-height:var(--touch);padding:11px 24px;
+  border-radius:999px;border:1.5px solid var(--gold);background:#14120e;
+  font-family:var(--ui);font-weight:800;font-size:13px;letter-spacing:1.8px;
+  text-transform:uppercase;color:#f0e2c2;text-decoration:none;
+}
+
+.after{
+  margin:20px 2px 0;
+  font-family:var(--ui);font-size:12px;line-height:1.6;color:var(--muted);
+  text-align:center;
+}
+
+.tailroom{height:150px}
+
+@media (max-width:359px){
+  h1{font-size:29px}
+  .head{padding-right:92px}
+  .case{gap:11px}
+}
+</style>
+</head>
+
+<!-- Opened from the home screen, so Home is the tab that stays lit -- and
+     that lit tab is one of the ways back out of here. -->
+<body data-rm-nav="index.html">
+
+<div id="rm-topbar"></div>
+<script src="./topbar.js" defer></script>
+
+<main>
+
+  <div class="head">
+    <h1>Your Coins</h1>
+    <span class="rule"></span>
+    <p class="count" id="count">&nbsp;</p>
+    <p class="note" aria-hidden="true">One<br>at a<br>time</p>
+  </div>
+
+  <ul class="case" id="case"></ul>
+  <p class="after" id="after" hidden></p>
+
+  <div class="tailroom"></div>
+</main>
+
+<div id="rm-bottom-nav"></div>
+<script src="./nav.js" defer></script>
+<script src="./corner.js" defer></script>
+
+<script>
+/* THE LADDER IS NOT IN THIS FILE. corner.js owns it and exports it as
+   window.RMCorner -- one list of milestones for the whole app, so the card on
+   the home screen and this case can never disagree about what comes next. */
+(function () {
+  "use strict";
+
+  var BASE = "/assets/coins/";
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  /* The 6 month coin may not exist yet; coins.js has the same fallback. An
+     <img> that 404s is a broken picture, and somebody who just earned a coin
+     has not earned a broken picture. */
+  function coinImg(file, alt, fallback) {
+    var img = new Image();
+    img.src = BASE + file;
+    img.alt = alt;
+    img.loading = "lazy";
+    img.decoding = "async";
+    if (fallback) {
+      img.addEventListener("error", function once() {
+        img.removeEventListener("error", once);
+        img.src = BASE + fallback;
+      });
+    }
+    return img;
+  }
+
+  function card(rung, isNext, toGo, C) {
+    var li = el("li", "coin" + (isNext ? " next" : ""));
+    li.appendChild(coinImg(rung.file, rung.label.toLowerCase() + " coin",
+                           rung.file === "coin-06-months.webp" ? "coin-90-days.webp" : null));
+    li.appendChild(el("span", "k", rung.label));
+    li.appendChild(el("span", "d", isNext
+      ? C.comma(toGo) + (toGo === 1 ? " day to go" : " days to go")
+      : "earned"));
+    return li;
+  }
+
+  function empty(why) {
+    var box = el("div", "empty");
+    var img = new Image();
+    img.src = BASE + "coin-no-date.webp";
+    img.alt = "no sober date set";
+    box.appendChild(img);
+    box.appendChild(el("p", null, why));
+    var a = el("a", "go", "Set My Date");
+    a.href = "/account.html?next=set";
+    box.appendChild(a);
+    return box;
+  }
+
+  function draw() {
+    var C = window.RMCorner;
+    if (!C) return false;
+
+    var caseEl = document.getElementById("case");
+    var countEl = document.getElementById("count");
+    var afterEl = document.getElementById("after");
+
+    if (C.noAccount()) {
+      caseEl.replaceWith(empty(
+        "Your coins live on your account. Make one — no email, no name — " +
+        "and every one you have already earned shows up here."));
+      countEl.textContent = "Nothing in the case yet";
+      return true;
+    }
+
+    var ymd = C.soberYMD();
+    var st = ymd ? C.standing(ymd) : null;
+    if (!st) {
+      caseEl.replaceWith(empty(
+        "Set your sober date and the case fills itself in — every coin from " +
+        "24 hours forward."));
+      countEl.textContent = "Nothing in the case yet";
+      return true;
+    }
+
+    var n = st.earned.length;
+    countEl.textContent = n === 1 ? "1 coin earned" : n + " coins earned";
+
+    /* NEXT ONE FIRST, then the case newest to oldest. The coin somebody is
+       working toward belongs at the top, and under it the one they are
+       wearing right now -- not January of the first year. */
+    if (st.nextCoin) {
+      caseEl.appendChild(card(st.nextCoin, true, st.nextCoin.days - st.days, C));
+    }
+    st.earned.slice().reverse().forEach(function (r) {
+      caseEl.appendChild(card(r, false, 0, C));
+    });
+
+    /* What is past the next one, in words rather than sixty grey discs. */
+    if (st.nextCoin) {
+      var rungs = C.ladder(ymd).filter(function (r) {
+        return r.coin && r.days > st.nextCoin.days;
+      }).slice(0, 3);
+      if (rungs.length) {
+        afterEl.textContent = "After that: " +
+          rungs.map(function (r) { return r.label.toLowerCase(); }).join(", ") + ".";
+        afterEl.hidden = false;
+      }
+    }
+    return true;
+  }
+
+  /* corner.js is deferred, so it is normally there by the time this runs --
+     but "normally" is not a thing to build on when the answer is an empty
+     screen. Ask until it turns up, then stop. */
+  var tries = 0;
+  (function go() {
+    if (draw()) return;
+    if (++tries > 40) return;
+    setTimeout(go, 100);
+  })();
+})();
+
+if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js"); }
+</script>
+
+</body>
+</html>
