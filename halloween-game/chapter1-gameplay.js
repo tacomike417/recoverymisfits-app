@@ -1024,16 +1024,39 @@ interiorPostDialoguePause: 0.5,
     // (true) uses the real local font; "unsupported" (load failed or no
     // FontFace API) uses the closest system comic-lettering fallback so
     // the game never blocks dialogue forever over a missing font file.
+    /* SPEECH BALLOONS ARE LETTERED IN BANGERS. 22 Sep 2026.
+       RecoveryMisfits-Regular was a custom font built for this project and
+       it is only 86 glyphs. Printed next to the others the problems are
+       plain: the advance widths are uneven, so a line of caps gets gaps you
+       could park a car in; there is no real lowercase, just caps at two
+       heights; and the comma and question mark came from a different hand
+       than the letters. It is fine for a logo -- four words, spacing hand-
+       fixed once -- and wrong for a paragraph.
+
+       Bangers is a complete comic-lettering face and it was already sitting
+       in assets/fonts, loaded, used for nothing but "SKRRRT!". It is also
+       18% narrower than RecoveryMisfits at the same size, so the auto-fit
+       loop below settles on a BIGGER font size for the same bubble -- the
+       text gets easier to read, not harder.
+
+       RecoveryMisfits still loads. Nothing draws with it right now; it is
+       kept for title and logo work where its spacing does not bite. */
     function getDialogueFontFamily() {
-        if (dialogueFontLoaded === "unsupported") return "'Comic Sans MS', 'Trebuchet MS', sans-serif";
-        return "'RecoveryMisfits', 'Comic Sans MS', 'Trebuchet MS', sans-serif";
+        if (bangersFontLoaded === "unsupported") return "'Comic Sans MS', 'Trebuchet MS', sans-serif";
+        return "'BangersRegular', 'Comic Sans MS', 'Trebuchet MS', sans-serif";
     }
     function getSkrrrtFontFamily() {
         if (bangersFontLoaded === "unsupported") return "'Comic Sans MS', 'Trebuchet MS', sans-serif";
         return "'BangersRegular'";
     }
+    /* GATES ON BANGERS NOW, because that is what the balloons draw with.
+       This matters more than it looks: wrapBubbleText measures against
+       whatever font is live on the canvas context, so drawing before the
+       real face has loaded wraps with the fallback's metrics and then
+       renders in a different one -- which is exactly the overflow bug the
+       note in drawSvgSpeechBubble describes. Gate on the drawn font. */
     function isDialogueFontReady() {
-        return dialogueFontLoaded === true || dialogueFontLoaded === "unsupported";
+        return bangersFontLoaded === true || bangersFontLoaded === "unsupported";
     }
     function isSkrrrtFontReady() {
         return bangersFontLoaded === true || bangersFontLoaded === "unsupported";
@@ -9089,10 +9112,18 @@ interiorPostDialoguePause: 0.5,
     function drawBubble(anchorX, anchorY, text, canvasWidth, canvasHeight, popStartTime) {
         drawSvgSpeechBubble(SVG_SPEECH_BUBBLE, anchorX, anchorY, text, canvasWidth, canvasHeight, popStartTime, {
             scale: (canvasWidth * 0.52) / SVG_SPEECH_BUBBLE.viewBoxW,
-            maxFontSize: Math.round(Math.max(16, Math.min(20, canvasWidth * 0.044))),
+            // Ceiling raised with the move to Bangers (22 Sep 2026): it is
+            // 18% narrower than the old font, so the auto-fit loop below can
+            // start bigger and still land inside the balloon. The loop only
+            // ever shrinks, so a higher ceiling cannot overflow anything.
+            maxFontSize: Math.round(Math.max(18, Math.min(23, canvasWidth * 0.050))),
             minFontSize: 12,
-            uppercase: false, // was true (ALL CAPS) -- turned off per readability feedback; genuine mixed-case RecoveryMisfits reads much faster
-            italic: false, // removed -- was too hard to read on mobile; upright RecoveryMisfits instead
+            // Left mixed-case on purpose. Bangers has no true lowercase --
+            // it draws small caps -- so mixed case comes out as big-cap /
+            // small-cap, which is how comics have always lettered. Forcing
+            // uppercase would flatten that and gain nothing.
+            uppercase: false,
+            italic: false, // upright -- sheared text is hard to read on a phone
             lineHeightMultiplier: 1.3
         });
     }
@@ -9105,7 +9136,7 @@ interiorPostDialoguePause: 0.5,
         drawSvgSpeechBubble(SVG_STARBURST_BUBBLE, anchorX, anchorY, text, canvasWidth, canvasHeight, popStartTime, {
             alpha: alpha,
             scale: (canvasWidth * 0.48) / SVG_STARBURST_BUBBLE.viewBoxW,
-            maxFontSize: Math.round(Math.max(15, Math.min(18, canvasWidth * 0.039))),
+            maxFontSize: Math.round(Math.max(17, Math.min(21, canvasWidth * 0.045))),
             minFontSize: 10,
             // Typography: mixed case (was ALL CAPS -- turned off per
             // readability feedback), a touch more line spacing than the
