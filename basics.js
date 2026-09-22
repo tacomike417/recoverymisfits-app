@@ -23,7 +23,6 @@
   "use strict";
 
   var SRC = "/data/recovery-basics.json";
-  var TOTAL = 43;
   var DAY = 86400000;
 
   var root = null, cards = null;
@@ -186,12 +185,6 @@
     void root.offsetWidth;                   /* restart the swap animation */
     root.querySelector("[data-basic-title]").textContent = card.title;
     root.querySelector("[data-basic-body]").textContent = card.body;
-    /* The catalogue number off the approved plate. It is the card's own id,
-       two digits, out of the 43 that exist. */
-    var count = root.querySelector("[data-basic-count]");
-    if (count) {
-      count.textContent = (card.id < 10 ? "0" : "") + card.id + " / " + TOTAL;
-    }
     root.classList.add("is-changing");
     lastId = card.id;
     try {
