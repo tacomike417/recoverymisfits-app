@@ -647,63 +647,63 @@ body::after{
 
 /* ---- YOUR CORNER --------------------------------------------------------
    The personal strip, under the shelf and above the sober rail, built to the
-   approved mockup and in this page's own tokens rather than a palette of its
-   own -- so it reads as the same screen and not as a widget dropped in.
+   approved mockup.
 
-   EVERY NUMBER BELOW IS MEASURED OFF THE MOCKUP, not guessed. It is 853px
-   wide describing a 393px phone, so the scale is 0.4607 and these are its
-   boxes times that: card 358, icon column 67, the milestone number 106, the
-   days-to-go column 138, the MAKE CARD button 94. That is the whole reason
-   the type is as small as it is -- at any larger size the milestone number
-   and its progress bar cannot share a line on a real phone, which is what
-   happened the first time this was built by eye.
+   THE MOCKUP IS A 426px PHONE, NOT A 393. It is 853px wide at 2x, which is a
+   Pro Max and not the 393 this page is designed against -- which is exactly
+   why the first build of this wrapped everywhere the mockup does not. So the
+   numbers here are the mockup's boxes times 393/426: card 358, icon column
+   62, the milestone number 106, the days-to-go column 138, the MAKE CARD
+   button 94, the share card's words 152. On a phone the size of the one the
+   mockup was drawn on, everything below has room to spare.
    --------------------------------------------------------------------- */
-.corner{margin:34px 0 0;position:relative}
+.corner{margin:36px 0 0;position:relative}
 
 /* The tear runs the full width of the screen, past the page's own gutter --
    a torn edge that stops short of the sides is a rectangle. */
 .corner-tear{
-  display:block;width:100vw;height:14px;
-  margin:0 0 18px calc(50% - 50vw);
-  fill:#d8ccb2;opacity:.85;
+  display:block;width:100vw;height:auto;
+  margin:0 0 20px calc(50% - 50vw);
+  opacity:.95;
 }
 
-.corner-head{position:relative;padding-right:116px}
-/* 33px, because the mockup gives YOUR CORNER 193px and this face at 36 runs
-   to 227 -- which put the R up against the star. */
-.corner-title{
-  margin:0;font-family:var(--display);font-weight:600;
-  font-size:33px;line-height:.98;letter-spacing:.6px;
-  text-transform:uppercase;color:var(--ivory);
-}
-.corner-rule{
-  display:block;width:228px;height:4px;margin:6px 0 0;border-radius:3px;
-  background:linear-gradient(90deg,#8a6a24,#e0bd6a 42%,rgba(224,189,106,0));
-}
-/* The note is handwriting on a page, so it sits at an angle and overlaps the
-   rule a little. aria-hidden: it is a mood, not information, and a screen
-   reader announcing "same day brighter tomorrow" between a heading and a
+.corner-head{position:relative;padding-right:120px;margin-bottom:4px}
+/* THE WORDMARK IS A PICTURE, like READINGS at the top of this page and every
+   other heading on it. Anton with the ink worn off it -- live text in the
+   same face is clean and machine-cut next to the rest of the screen. */
+.corner-title{margin:0;line-height:0}
+.corner-mark{display:block;width:216px;max-width:100%;height:auto}
+.corner-rule{display:block;width:212px;max-width:100%;height:auto;margin:5px 0 0}
+
+/* Handwriting on a page: set at an angle, in caps the way the mockup letters
+   it, stepping down to the right. aria-hidden -- it is a mood, not
+   information, and a screen reader announcing it between a heading and a
    milestone is noise. */
 .corner-note{
-  position:absolute;right:4px;top:-4px;margin:0;
+  position:absolute;right:2px;top:-2px;margin:0;
   font-family:"RM Hand","Bradley Hand","Segoe Script",cursive;
-  font-size:16px;line-height:1.1;
+  font-size:15px;line-height:1.16;letter-spacing:.4px;
+  text-transform:uppercase;
   color:var(--ivory);opacity:.93;transform:rotate(-7deg);text-align:left;
 }
 .corner-star{
-  position:absolute;right:64px;top:34px;width:35px;height:35px;
+  position:absolute;right:86px;top:40px;width:36px;height:36px;
   fill:none;stroke:var(--gold);stroke-width:4;
   stroke-linecap:round;stroke-linejoin:round;opacity:.92;
-  transform:rotate(-8deg);
+  transform:rotate(-9deg);
 }
 
-.corner-cards{display:grid;gap:11px;margin-top:17px}
-.corner-pair{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.corner-cards{display:grid;gap:11px;margin-top:14px}
+/* SIDE BY SIDE AT EVERY WIDTH. These two are a pair -- "3 of 5 opened" and
+   "13 earned" are the same kind of fact and belong on one line together.
+   They used to fall into a column under 360, which turned two small facts
+   into two more full-width cards and pushed the share card off the screen. */
+.corner-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
 .ccard{
   position:relative;overflow:hidden;
-  display:grid;grid-template-columns:60px 1px 1fr;align-items:center;gap:0 12px;
-  min-height:var(--touch);padding:14px 14px;
+  display:grid;grid-template-columns:62px 1px 1fr;align-items:center;gap:0 11px;
+  min-height:var(--touch);padding:13px;
   border-radius:14px;
   border:1px solid rgba(184,132,39,.5);
   background:rgba(31,31,27,.82);
@@ -722,9 +722,10 @@ body::after{
 .ccard:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
 .ccard-ico{display:grid;place-items:center}
-.ccard-ico svg{width:100%;height:auto;max-height:54px;fill:none;
+.ccard-ico svg{width:100%;height:auto;max-height:58px;fill:none;
   stroke:var(--gold);stroke-linecap:round;stroke-linejoin:round}
-.ccard-cut{align-self:stretch;background:rgba(216,180,91,.3);min-height:46px}
+.ccard-cut{align-self:stretch;background:rgba(216,180,91,.3);min-height:48px}
+.ccard-body{display:block;min-width:0}
 
 .ccard-k{
   display:block;font-family:var(--display);font-weight:600;
@@ -733,7 +734,7 @@ body::after{
 }
 .ccard-big{
   display:block;font-family:var(--display);font-weight:600;
-  font-size:24px;line-height:1.04;letter-spacing:.2px;
+  font-size:25px;line-height:1.04;letter-spacing:.2px;
   text-transform:uppercase;color:#fff;white-space:nowrap;
 }
 /* SET YOUR SOBER DATE is four words where 3,000 DAYS is two. It gets the
@@ -741,30 +742,32 @@ body::after{
 .ccard-big.is-cta{font-size:17px;line-height:1.12;white-space:normal}
 .ccard-sub{
   display:block;font-family:var(--ui);font-weight:700;
-  font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;
+  font-size:11px;letter-spacing:1.3px;text-transform:uppercase;
   color:var(--muted);
 }
 
 /* ---- the milestone card ----
-   Number on the left, days-to-go and the bar on the right, the way the mockup
-   draws it. The right column is a fixed 138 and the number is 24px, which is
-   what makes those two survive the same line on a 393px screen. */
+   Number on the left, days-to-go and the bar on the right, as drawn. The
+   number takes exactly the width it needs and the bar column takes the rest:
+   a fixed 138 for the bar is right on the mockup's phone and nine pixels too
+   wide on a 393, which is enough to break "3,000 DAYS" onto two lines. */
 .ms-body{
-  display:grid;grid-template-columns:1fr 138px;column-gap:12px;
-  align-items:end;
+  display:grid;grid-template-columns:auto minmax(104px,1fr);column-gap:12px;
+  align-items:end;min-width:0;
 }
-.ms-body .ccard-k{grid-column:1/-1;margin-bottom:1px}
+.ms-body .ccard-k{grid-column:1/-1;margin-bottom:2px}
 .ms-body .ccard-big{align-self:center}
-.ms-right{display:block;padding-bottom:1px}
+.ms-right{display:block;min-width:0;padding-bottom:2px}
 .ms-track{
-  display:block;height:9px;margin-top:7px;border-radius:5px;
-  background:rgba(238,230,213,.14);
-  box-shadow:inset 0 0 0 1px rgba(238,230,213,.08);
+  display:block;height:12px;margin-top:8px;border-radius:7px;
+  background:rgba(238,230,213,.13);
+  box-shadow:inset 0 0 0 1px rgba(238,230,213,.09);
   overflow:hidden;
 }
 .ms-track i{
-  display:block;height:100%;width:0;border-radius:5px;
-  background:linear-gradient(90deg,#c79a33,#f0cd72);
+  display:block;height:100%;width:0;border-radius:7px;
+  background:linear-gradient(180deg,#f0cd72,#c79a33);
+  box-shadow:0 0 0 1px rgba(0,0,0,.25) inset;
   transition:width .5s ease;
 }
 /* The whole right column steps under the number when SET YOUR SOBER DATE is
@@ -774,18 +777,15 @@ body::after{
 .corner.is-locked .ms-right{margin-top:5px}
 
 /* ---- the halves ----
-   Icon left, rule, text right, as drawn. A half card is about 170px wide on a
+   Icon left, rule, text right, as drawn. A half card is about 166px wide on a
    393px phone, so the type steps down and the check dots come down to 13px:
    five of them plus their gaps is 81px, which is what the text column
    actually has. They are also allowed to wrap, because the dots are one per
    row in YOUR stack and somebody who has added three prayers has eight. */
-.corner-pair .ccard{grid-template-columns:40px 1px 1fr;gap:0 9px;padding:13px 11px}
-.corner-pair .ccard-ico svg{max-height:38px}
+.corner-pair .ccard{grid-template-columns:38px 1px 1fr;gap:0 9px;padding:13px 11px}
+.corner-pair .ccard-ico svg{max-height:36px}
 .corner-pair .ccard-cut{min-height:40px}
 .corner-pair .ccard-k{font-size:13px;letter-spacing:.5px;color:#fff}
-/* 9px with almost no tracking. The text column in a half card is 89px and
-   "3 OF 5 OPENED" at 9.5/.9 measures 92 -- which is one line in the mockup
-   and two on the phone. */
 .corner-pair .ccard-sub{font-size:9px;letter-spacing:.5px;margin-top:3px}
 
 .cdots{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
@@ -800,30 +800,29 @@ body::after{
 /* Their own coin, dropped in by corner.js, standing in for the drawing. The
    rail at the bottom of this same screen has already loaded that exact file,
    so it costs nothing and it turns a stock card into theirs. */
-.ccard-ico .coin-real{display:none;width:44px;height:44px;
+.ccard-ico .coin-real{display:none;width:42px;height:42px;
   filter:drop-shadow(0 4px 9px rgba(0,0,0,.55))}
 .ccard-ico.has-coin svg{display:none}
 .ccard-ico.has-coin .coin-real{display:block}
 
 /* ---- the share card ----
-   One row: mark, rule, the words, then MAKE CARD -- and the handwritten note
-   hanging off the right edge. The button is deliberately small (the mockup
-   gives it 94px) because the words beside it are the thing being read. */
-.ccard-share{grid-template-columns:30px 1px 1fr auto;gap:0 9px;padding:13px 14px;padding-right:46px}
-.ccard-share .ccard-ico svg{stroke:var(--ivory);max-height:30px;stroke-width:5}
-/* 12.5px keeps SHARE YOUR SOBER DATE on one line in the 141px this column
-   has, which is the shape the mockup draws. The sentence under it runs to two
-   lines here and one there, because the mockup's button is smaller than any
-   button with MAKE CARD actually written in it. */
-.ccard-share .ccard-k{color:#fff;font-size:11.5px;letter-spacing:.3px}
-.ccard-share .ccard-sub{
-  text-transform:none;letter-spacing:0;font-weight:400;font-size:10px;
-  font-family:var(--type);color:var(--muted);margin-top:3px;line-height:1.38;
+   One row: mark, rule, the words, MAKE CARD -- and the handwritten note
+   hanging off the right edge. Everything is small because all four of them
+   have to hold that line; the mockup gives the button 94px and the words 152,
+   and every pixel the button takes past 94 comes out of the heading. */
+.ccard-share{
+  grid-template-columns:26px 1px 1fr auto;gap:0 8px;
+  padding:12px;padding-right:38px;
 }
-/* SMALL ON PURPOSE. The mockup gives this button 94px, and every pixel it
-   takes past that comes straight out of the words beside it -- at 118 the
-   heading broke over two lines. It is still 38 tall, so it is still a thumb
-   target. */
+.ccard-share .ccard-ico svg{stroke:var(--ivory);max-height:28px;stroke-width:5}
+.ccard-share .ccard-k{color:#fff;font-size:12px;letter-spacing:.3px}
+/* A PLAIN SANS, not the typewriter face. In the mockup this line is set in
+   the same UI face as everything else; Special Elite is a good deal wider and
+   put the sentence onto two lines on its own. */
+.ccard-share .ccard-sub{
+  text-transform:none;letter-spacing:-.05px;font-weight:400;font-size:9px;
+  font-family:var(--ui);color:var(--muted);margin-top:3px;line-height:1.4;
+}
 .make{
   display:inline-flex;align-items:center;justify-content:center;gap:5px;
   min-height:38px;padding:8px 9px;margin:0 0 0 7px;
@@ -833,10 +832,10 @@ body::after{
 }
 .make svg{width:12px;height:8px;stroke:var(--gold);fill:none;stroke-width:2}
 .carry{
-  position:absolute;right:4px;top:50%;margin:0;
+  position:absolute;right:3px;top:50%;margin:0;
   transform:translateY(-50%) rotate(-8deg);
   font-family:"RM Hand","Bradley Hand","Segoe Script",cursive;
-  font-size:9.5px;line-height:1.06;
+  font-size:9.5px;line-height:1.08;letter-spacing:.3px;text-transform:uppercase;
   color:var(--ivory);opacity:.85;text-align:center;
 }
 
@@ -847,22 +846,34 @@ body::after{
 .corner.is-locked .cdots,
 .corner.is-locked .ccard-sub{opacity:.55}
 
-/* Below 360 the two halves go one above the other and MAKE CARD steps under
-   the words -- there is no width left to hold either of them side by side. */
+/* Small phones. The pair stays side by side -- only the share card gives up
+   its one-line shape, because four things cannot share 320px. */
 @media (max-width:359px){
-  .corner-pair{grid-template-columns:1fr}
-  .corner-title{font-size:30px}
-  .ms-body{grid-template-columns:1fr}
-  .ms-right{margin-top:5px}
-  .ccard-share{grid-template-columns:30px 1px 1fr;padding-right:44px}
+  .corner-mark{width:186px}
+  .corner-rule{width:182px}
+  .corner-head{padding-right:100px}
+  .corner-note{font-size:13px}
+  .corner-star{right:76px;top:30px;width:31px;height:31px}
+  .ccard{grid-template-columns:52px 1px 1fr;padding:12px 11px}
+  .ccard-big{font-size:22px}
+  .ccard-k{font-size:13px;letter-spacing:.9px}
+  /* 195px of card between the icon and the edge, and the number wants 97 of
+     it. Everything on this line is measured against what is left. */
+  .ms-body{grid-template-columns:auto minmax(80px,1fr);column-gap:9px}
+  .ms-right .ccard-sub{font-size:8.5px;letter-spacing:.2px}
+  .ms-track{height:10px;margin-top:6px}
+  .corner-pair{gap:8px}
+  .corner-pair .ccard{grid-template-columns:32px 1px 1fr;gap:0 7px;padding:12px 9px}
+  .corner-pair .ccard-k{font-size:10.5px;letter-spacing:.2px}
+  .corner-pair .ccard-sub{font-size:8px;letter-spacing:.2px}
+  .cdots{gap:3px;margin-top:6px}
+  .cdot{width:11px;height:11px;font-size:7px}
+  .ccard-share{grid-template-columns:26px 1px 1fr;padding-right:36px}
   /* WITHOUT THE COLUMN IT LANDS UNDER THE ICON. MAKE CARD is the card's
      fourth child; take the fourth column away and it wraps to the next row
-     in column ONE, which is 30px wide -- the button came out as a circle
+     in column ONE, which is 26px wide -- the button came out as a circle
      with the words spilling out of both sides of it. */
   .make{grid-column:3;justify-self:start;margin:10px 0 1px}
-  .corner-star{right:52px;top:29px;width:31px;height:31px}
-  .corner-note{font-size:14px}
-  .corner-head{padding-right:96px}
 }
 .tailroom{height:150px}
 
@@ -1060,24 +1071,33 @@ body::after{
        this is the bit about you. It is the reward for scrolling, not the toll
        for arriving.
 
-       EVERY ICON IS DRAWN IN THE FILE rather than fetched. Six more requests
-       on the front page for six small line drawings is a bad trade at any
-       signal strength, and inline is also the only version of them that shows
-       up when there is no signal at all.
+       THE HEADING IS ARTWORK, like every other heading on this page. The
+       torn strip, the wordmark and the gold stroke under it are generated by
+       scripts/make_corner_art.py and carry the same wear the READINGS
+       wordmark does -- live text with a CSS gradient under it read as a
+       different screen bolted onto this one.
+
+       THE CARD ICONS ARE DRAWN IN THE FILE rather than fetched. Four more
+       requests on the front page for four small line drawings is a bad trade
+       at any signal strength, and inline is the only version of them that
+       shows up when there is no signal at all.
 
        The numbers are filled in by /corner.js off the account. Drawn empty,
        which is what somebody without an account sees and is meant to see.
        ================================================================ -->
   <section class="corner" id="your-corner" aria-labelledby="cornerTitle">
 
-    <svg class="corner-tear" viewBox="0 0 1200 30" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M0 17 52 14l36 3 45-8 44 7 55-3 48 5 53-11 61 9 55-4 53 6 60-10 50 8 70-5 48 7 50-12 62 10 55-4 60 6 49-9 66 8 45-5 50 5 49-9 71 8 70-4 44 6 47-6 38 3v7H0Z"/>
-    </svg>
+    <img class="corner-tear" src="assets/pages/c-tear.webp" alt="" aria-hidden="true"
+         width="1500" height="52">
 
     <div class="corner-head">
-      <h2 class="corner-title" id="cornerTitle">Your Corner</h2>
-      <span class="corner-rule"></span>
-      <p class="corner-note" aria-hidden="true">Same day<br>brighter<br>tomorrow</p>
+      <h2 class="corner-title" id="cornerTitle">
+        <img class="corner-mark" src="assets/pages/c-wordmark.webp" alt="Your Corner"
+             width="963" height="190">
+      </h2>
+      <img class="corner-rule" src="assets/pages/c-rule.webp" alt="" aria-hidden="true"
+           width="900" height="32">
+      <p class="corner-note" aria-hidden="true">Same<br>day<br>brighter<br>tomorrow</p>
       <svg class="corner-star" viewBox="0 0 90 90" aria-hidden="true">
         <path d="m46 6 8 27 27-8-22 18 18 22-27-10-10 28-1-30-30 4 27-14L18 18l22 17 6-29Z"/>
       </svg>
@@ -1094,6 +1114,7 @@ body::after{
             <path d="M11 88 38 55l12 14 17-23 34 42" stroke-width="6"/>
             <path d="M44 64 29 88M67 47 57 88M40 55V20" stroke-width="4"/>
             <path d="M42 21c13 0 18 5 29 8-11 3-16 8-29 8V21Z" fill="#d8a94a" stroke-width="2"/>
+            <path d="m17 87 19-8 7 9M56 88l13-15 13 15" stroke-width="3" opacity=".8"/>
           </svg>
         </span>
         <span class="ccard-cut" aria-hidden="true"></span>
@@ -1115,29 +1136,31 @@ body::after{
           <span class="ccard-ico">
             <svg viewBox="0 0 128 112" aria-hidden="true">
               <path d="M16 33c19-9 35-6 48 7 13-13 29-16 48-7v58c-19-6-35-2-48 10-13-12-29-16-48-10V33Z" stroke-width="5"/>
+              <path d="M25 24c16-5 29-1 39 9 10-10 23-14 39-9v56c-16-3-29 1-39 12-10-11-23-15-39-12V24Z" stroke-width="4"/>
               <path d="M64 34v58" stroke-width="3"/>
               <path d="M22 12 17 4M46 10l2-9M104 13l7-8" stroke-width="5"/>
             </svg>
           </span>
           <span class="ccard-cut" aria-hidden="true"></span>
-          <span>
+          <span class="ccard-body">
             <span class="ccard-k">Today&rsquo;s Stack</span>
             <span class="ccard-sub" id="stackCopy">0 of 0 opened</span>
             <span class="cdots" id="stackDots"></span>
           </span>
         </button>
 
-        <!-- THE COIN CASE. -->
+        <!-- THE COIN CASE. corner.js swaps the drawing for their own coin. -->
         <a class="ccard" id="cardCoins" href="./coins.html">
           <span class="ccard-ico">
             <svg viewBox="0 0 112 112" aria-hidden="true">
-              <ellipse cx="56" cy="30" rx="36" ry="13" stroke-width="6"/>
-              <path d="M20 30v20c0 7 16 13 36 13s36-6 36-13V30" stroke-width="6"/>
-              <path d="M20 58v20c0 7 16 13 36 13s36-6 36-13V58" stroke-width="6"/>
+              <ellipse cx="56" cy="31" rx="35" ry="13" stroke-width="6"/>
+              <path d="M21 31v19c0 7 16 13 35 13s35-6 35-13V31" stroke-width="6"/>
+              <path d="M21 57v19c0 7 16 13 35 13s35-6 35-13V57" stroke-width="6"/>
+              <path d="M13 16 6 7M40 11l1-9M99 17l8-9" stroke-width="5"/>
             </svg>
           </span>
           <span class="ccard-cut" aria-hidden="true"></span>
-          <span>
+          <span class="ccard-body">
             <span class="ccard-k">Your Coins</span>
             <span class="ccard-sub" id="coinCopy">0 earned</span>
           </span>
@@ -1155,7 +1178,7 @@ body::after{
           </svg>
         </span>
         <span class="ccard-cut" aria-hidden="true"></span>
-        <span>
+        <span class="ccard-body">
           <span class="ccard-k">Share Your Sober Date</span>
           <span class="ccard-sub">No name. Just the date and the days.</span>
         </span>
