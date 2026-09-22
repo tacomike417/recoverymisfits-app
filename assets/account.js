@@ -95,13 +95,13 @@
 
     if (raw.indexOf("@") !== -1 || /\.(com|net|org|edu|gov|co|io|me)\b/i.test(raw)) {
       return "Please don't use your email. Nothing here needs one — " +
-             "make up a name instead.";
+             "pick a username instead.";
     }
     if (/\d[\d\s().-]{6,}/.test(raw)) {
-      return "Please don't use your phone number. Make up a name instead.";
+      return "Please don't use your phone number. Pick a username instead.";
     }
-    if (n.length < 3) return "Pick a name at least 3 characters long.";
-    if (n.length > 32) return "That name is too long.";
+    if (n.length < 3) return "Your username needs at least 3 characters.";
+    if (n.length > 32) return "That username is too long.";
     if (!/^[a-z0-9._-]+$/.test(n)) {
       return "Letters, numbers, dots, dashes and underscores only.";
     }
@@ -186,7 +186,7 @@
   async function signIn(name, password) {
     var raw = String(name || "").trim();
     if (raw.indexOf("@") !== -1) {
-      return { ok: false, error: "That's an email. Your name here is the one you made up." };
+      return { ok: false, error: "That's an email. Sign in with your username." };
     }
     var bad = nameProblem(name);
     /* Anything else stays deliberately vague -- see readError. */
