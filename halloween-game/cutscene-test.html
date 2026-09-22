@@ -1,0 +1,37 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cutscene test</title>
+<!-- A BENCH, NOT A SCREEN IN THE GAME. Open this on your phone to watch a
+     scene on its own without walking the whole level to reach it. Delete it
+     any time; nothing depends on it. -->
+<style>
+  html,body{margin:0;height:100%;background:#14110f;color:#f3e9d2;
+    font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;
+    display:flex;align-items:center;justify-content:center}
+  .wrap{text-align:center;padding:24px}
+  h1{font-size:19px;letter-spacing:2px;margin:0 0 6px;text-transform:uppercase}
+  p{opacity:.65;margin:0 0 22px;font-size:14px}
+  button{font:inherit;font-weight:700;letter-spacing:1px;padding:15px 28px;
+    border:2px solid #e9c46a;border-radius:12px;background:#e9c46a;color:#14110f;
+    box-shadow:3px 4px 0 rgba(0,0,0,.6);cursor:pointer}
+  button:active{transform:translate(2px,3px);box-shadow:1px 1px 0 rgba(0,0,0,.6)}
+  .done{margin-top:18px;font-size:13px;opacity:0;transition:opacity .3s}
+  .done.on{opacity:.75}
+</style>
+<div class="wrap">
+  <h1>CS1 — AA, the recognition</h1>
+  <p>Five panels. Tap to move.</p>
+  <button id="go" type="button">PLAY SCENE</button>
+  <div class="done" id="done">scene finished — the game would carry on here</div>
+</div>
+<script src="cutscenes.js"></script>
+<script src="cutscene-player.js"></script>
+<script>
+  document.getElementById("go").addEventListener("click", function () {
+    document.getElementById("done").classList.remove("on");
+    HalloweenGame.playCutscene("cs1", function () {
+      document.getElementById("done").classList.add("on");
+    });
+  });
+</script>
