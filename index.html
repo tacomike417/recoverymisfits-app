@@ -658,6 +658,96 @@ body::after{
 .m-belong{position:absolute;right:-13px;bottom:-10px;width:32px;opacity:.85;pointer-events:none;z-index:0}
 
 
+/* ---- SPEAKER TAPES ------------------------------------------------------
+   The last ten off the channel, as a rail you drag sideways. Built like the
+   one on the meme page and bled past the page's 16px gutter on both sides,
+   so the row is visibly cut off at the screen edge -- which is the only
+   honest way to say "there is more this way" without drawing an arrow
+   nobody presses.
+
+   IT IS NOT ON THE PAGE UNTIL THERE IS SOMETHING IN IT. data/tapes.js is
+   written at deploy time by scripts/fetch_tapes.py and that script is
+   allowed to fail quietly -- no key, spent quota, YouTube having a morning.
+   When it has not run there is no window.RM_TAPES, the section stays hidden
+   and the page closes up around it. A heading over an empty strip is worse
+   than no heading.
+   --------------------------------------------------------------------- */
+.tapes{margin:24px 0 0}
+.tapes[hidden]{display:none}
+.tapehead{
+  display:flex;align-items:baseline;gap:9px;margin:0 2px 9px;
+}
+.tapehead .k{
+  font-family:var(--display);font-weight:600;
+  font-size:15px;letter-spacing:1.1px;text-transform:uppercase;color:var(--ivory);
+}
+.tapehead .all{
+  margin-left:auto;
+  font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.4px;
+  text-transform:uppercase;color:var(--gold);text-decoration:none;
+  white-space:nowrap;
+}
+.tapehead .all:active{color:var(--gold-lit)}
+
+.tapestrip{
+  display:flex;gap:10px;
+  overflow-x:auto;overflow-y:hidden;
+  /* scroll-padding, OR THE SNAP EATS THE GUTTER. The strip is bled 16px past
+     the page's edge and padded 16 back in; without this the browser snaps the
+     first chip to the padding box and scrolls the strip 16 to do it, so the
+     rail arrives already nudged sideways with the first thumbnail cut off at
+     the screen edge. */
+  scroll-snap-type:x proximity;
+  scroll-padding-left:16px;
+  -webkit-overflow-scrolling:touch;
+  margin:0 -16px;padding:2px 16px 4px;
+  scrollbar-width:none;
+}
+.tapestrip::-webkit-scrollbar{display:none}
+
+.tapechip{
+  flex:0 0 auto;width:152px;
+  display:block;text-decoration:none;color:var(--ivory);
+  scroll-snap-align:start;-webkit-tap-highlight-color:transparent;
+}
+.tapeshot{
+  position:relative;display:block;
+  width:152px;height:86px;border-radius:10px;overflow:hidden;
+  background:#141412;border:1px solid rgba(215,178,83,.26);
+}
+.tapeshot img{width:100%;height:100%;object-fit:cover;display:block}
+/* The play badge. A thumbnail with nothing on it reads as a picture; with
+   this it reads as a thing you press. */
+.tapeshot::after{
+  content:"";position:absolute;left:50%;top:50%;
+  width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;
+  background:rgba(12,11,9,.72) url("data:image/svg+xml;charset=utf-8,\
+%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E\
+%3Cpath d='M9 6.5v11l9-5.5z' fill='%23f1e7cf'/%3E%3C/svg%3E") center/16px no-repeat;
+  box-shadow:0 0 0 1.4px rgba(215,178,83,.6);
+}
+.tapechip:active .tapeshot{border-color:var(--gold)}
+.tapechip:focus-visible .tapeshot{outline:2px solid var(--gold);outline-offset:2px}
+
+.tapechip .t{
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;
+  margin:7px 1px 0;
+  font-family:var(--ui);font-weight:700;font-size:11.5px;line-height:1.28;
+  color:var(--ivory);
+}
+.tapechip .s{
+  display:block;margin:3px 1px 0;
+  font-family:var(--ui);font-weight:700;font-size:9.5px;letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--muted);
+}
+
+@media (max-width:359px){
+  .tapechip,.tapeshot{width:132px}
+  .tapeshot{height:75px}
+  .tapehead .k{font-size:13.5px}
+}
+
 /* ---- RECOVERY BASICS ----------------------------------------------------
    The battered plate between the daily stack and Your Corner.
 
@@ -749,14 +839,7 @@ body::after{
 }
 .rm-basic .topline .hr{
   flex:1 1 auto;height:1px;min-width:10px;
-  background:linear-gradient(90deg,rgba(207,158,59,.7),rgba(207,158,59,.28));
-}
-/* The catalogue number. It is a part number off a shop manual, which is why
-   it is set in the body face rather than the display one. */
-.rm-basic .count{
-  flex:0 0 auto;color:#8b8579;
-  font-family:var(--b-display);font-weight:400;font-size:10.5px;line-height:1;
-  letter-spacing:.3px;font-variant-numeric:tabular-nums;
+  background:linear-gradient(90deg,rgba(207,158,59,.7),rgba(207,158,59,.12));
 }
 /* The cream hairline under the whole header, as drawn. */
 .rm-basic .headrule{
@@ -775,9 +858,6 @@ body::after{
   transform:rotate(-1.5deg);box-shadow:0 2px 5px rgba(0,0,0,.45);
 }
 .rm-basic.is-seasonal .flag{display:inline-block}
-/* With a stamp in the row there is no room for the number as well, and the
-   stamp is the thing somebody needs that week. */
-.rm-basic.is-seasonal .count{display:none}
 
 /* ---- mascot and copy ---- */
 .rm-basic .body{
@@ -872,7 +952,7 @@ body::after{
   .rm-basic .body{padding-left:60px}
   .rm-basic .topline{padding-left:56px}
   .rm-basic .mark{width:76px;left:-24px;top:-26px}
-  .rm-basic .kicker,.rm-basic .count{font-size:11.5px}
+  .rm-basic .kicker{font-size:11.5px}
   .rm-basic .d{font-size:11.5px}
   .rm-basic .again{width:94px;height:24px}
 }
@@ -881,7 +961,7 @@ body::after{
   .rm-basic .body{padding-left:45px}
   .rm-basic .topline{padding-left:42px}
   .rm-basic .mark{width:58px;left:-18px;top:-20px}
-  .rm-basic .kicker,.rm-basic .count{font-size:9.5px;letter-spacing:.3px}
+  .rm-basic .kicker{font-size:9.5px;letter-spacing:.3px}
   .rm-basic .t{font-size:clamp(14px,4.9vw,17px)}
   .rm-basic .d{font-size:9.5px}
   .rm-basic .foot .n{font-size:6.5px;letter-spacing:.1px}
@@ -1252,49 +1332,20 @@ body::after{
   </div>
 
   <!-- ===================================================================
-       RECOVERY BASICS.
+       SPEAKER TAPES.
 
-       One of the 43, between the stack and Your Corner. Plain enough to read
-       at two in the morning, which is the hour it was written for.
+       The last ten off the channel. Tapping one opens it in the player on
+       the Audio page rather than throwing somebody out to YouTube -- that is
+       what the #tape= on the link is for, and audio.html reads it.
 
-       THE PLATE IS THE APPROVED ARTWORK, CUT UP. The frame, the screws, the
-       tape, the red mark and the sign panel on the button are pieces of
-       reference/APPROVED-RECOVERY-BASICS-UI.png, not CSS impressions of it.
-       See the stylesheet before replacing any of them with a gradient.
-
-       STARTS HIDDEN. /basics.js shows it once the cards are in hand. With no
-       signal there is no card, and an empty battered frame with nothing in it
-       is worse than no frame -- so the page closes up around it.
+       Hidden until data/tapes.js has something in it. See the stylesheet.
        ================================================================ -->
-  <section class="rm-basic" id="rm-basic" aria-labelledby="basicTitle" hidden>
-    <span class="screw tl" aria-hidden="true"></span>
-    <span class="screw tr" aria-hidden="true"></span>
-    <span class="screw bl" aria-hidden="true"></span>
-    <span class="screw br" aria-hidden="true"></span>
-    <span class="tape" aria-hidden="true"></span>
-
-    <div class="topline">
-      <span class="kicker">Recovery Basics</span>
-      <span class="hr" aria-hidden="true"></span>
-      <span class="flag">Holiday Watch</span>
-      <span class="count" data-basic-count>&nbsp;</span>
+  <section class="tapes" id="rm-tapes" aria-labelledby="tapesTitle" hidden>
+    <div class="tapehead">
+      <h2 class="k" id="tapesTitle">Speaker Tapes</h2>
+      <a class="all" href="./audio.html">All Tapes &rarr;</a>
     </div>
-    <div class="headrule" aria-hidden="true"></div>
-
-    <div class="body">
-      <img class="mark" src="assets/basics/basics-mark.webp" alt="" aria-hidden="true"
-           width="342" height="327">
-      <div class="copy">
-        <h2 class="t" id="basicTitle" data-basic-title>&nbsp;</h2>
-        <p class="d" data-basic-body>&nbsp;</p>
-      </div>
-    </div>
-
-    <div class="foot">
-      <span class="hr" aria-hidden="true"></span>
-      <button class="again" type="button" data-basic-next><span>Another One</span></button>
-      <span class="n">Practical. Simple. One day at a time.</span>
-    </div>
+    <div class="tapestrip" id="tapeStrip"></div>
   </section>
 
   <!-- ===================================================================
@@ -1495,6 +1546,54 @@ body::after{
        the way to it. It was a row of small print under the Book Shelf that
        nobody was ever going to press. -->
 
+  <!-- ===================================================================
+       RECOVERY BASICS.
+
+       One of the 43, and it is the LAST THING ON THE PAGE on purpose --
+       after the stack, after Your Corner, after the shelf. A parting shot on
+       the way out rather than another thing to get past on the way in. Plain
+       enough to read at two in the morning, which is the hour it was written
+       for.
+
+       THE PLATE IS THE APPROVED ARTWORK, CUT UP. The frame, the screws, the
+       tape, the red mark and the sign panel on the button are pieces of
+       reference/APPROVED-RECOVERY-BASICS-UI.png, not CSS impressions of it.
+       See the stylesheet before replacing any of them with a gradient.
+
+       STARTS HIDDEN. /basics.js shows it once the cards are in hand. With no
+       signal there is no card, and an empty battered frame with nothing in it
+       is worse than no frame -- so the page closes up around it.
+       ================================================================ -->
+  <section class="rm-basic" id="rm-basic" aria-labelledby="basicTitle" hidden>
+    <span class="screw tl" aria-hidden="true"></span>
+    <span class="screw tr" aria-hidden="true"></span>
+    <span class="screw bl" aria-hidden="true"></span>
+    <span class="screw br" aria-hidden="true"></span>
+    <span class="tape" aria-hidden="true"></span>
+
+    <div class="topline">
+      <span class="kicker">Recovery Basics</span>
+      <span class="hr" aria-hidden="true"></span>
+      <span class="flag">Holiday Watch</span>
+    </div>
+    <div class="headrule" aria-hidden="true"></div>
+
+    <div class="body">
+      <img class="mark" src="assets/basics/basics-mark.webp" alt="" aria-hidden="true"
+           width="342" height="327">
+      <div class="copy">
+        <h2 class="t" id="basicTitle" data-basic-title>&nbsp;</h2>
+        <p class="d" data-basic-body>&nbsp;</p>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span class="hr" aria-hidden="true"></span>
+      <button class="again" type="button" data-basic-next><span>Another One</span></button>
+      <span class="n">Practical. Simple. One day at a time.</span>
+    </div>
+  </section>
+
   <div class="tailroom"></div>
 </main>
 
@@ -1502,6 +1601,80 @@ body::after{
 <script src="./nav.js" defer></script>
 <script src="./corner.js" defer></script>
 <script src="./basics.js" defer></script>
+<!-- THE TAPES OFF THE CHANNEL, written by scripts/fetch_tapes.py at deploy
+     time. It is ALLOWED TO BE MISSING: no key, spent quota or a YouTube
+     outage and the script writes nothing, this 404s, RM_TAPES is undefined
+     and the rail above simply never appears. -->
+<script src="./data/tapes.js"></script>
+<script>
+/* THE LAST TEN, NEWEST FIRST.
+
+   fetch_tapes.py hands over playlists, then the series it worked out, then
+   the loose talks newest first. For a rail that says "the last ten" it is
+   the loose talks that matter -- a playlist somebody built in 2022 is not
+   news. So singles first in the order they arrived, and the series and
+   playlists only fill in behind them if there are not ten yet.
+
+   THE KEY MATCHES THE ONE audio.html BUILDS, first letter of the kind and
+   the id. If that ever changes there, it changes here. */
+(function () {
+  "use strict";
+
+  var MAX = 10;
+  var sec = document.getElementById("rm-tapes");
+  if (!sec) return;
+
+  var data = window.RM_TAPES;
+  if (!data || !Array.isArray(data.items) || !data.items.length) return;
+
+  var ok = data.items.filter(function (t) { return t && t.id && t.title; });
+  var rank = { video: 0, group: 1, playlist: 2 };
+  var pick = ok.slice().sort(function (a, b) {
+    return (rank[a.kind] === undefined ? 3 : rank[a.kind]) -
+           (rank[b.kind] === undefined ? 3 : rank[b.kind]);
+  }).slice(0, MAX);
+  if (!pick.length) return;
+
+  var strip = document.getElementById("tapeStrip");
+  pick.forEach(function (t) {
+    var key = String(t.kind || "p").slice(0, 1) + "_" + t.id;
+
+    var a = document.createElement("a");
+    a.className = "tapechip";
+    a.href = "./audio.html#tape=" + encodeURIComponent(key);
+
+    var shot = document.createElement("span");
+    shot.className = "tapeshot";
+    if (t.thumb) {
+      var img = new Image();
+      img.src = t.thumb;
+      img.alt = "";
+      img.setAttribute("aria-hidden", "true");
+      img.loading = "lazy";
+      img.decoding = "async";
+      /* A thumbnail that will not load leaves the dark box and the play
+         badge, which still reads as a tape. Better than a broken picture. */
+      img.addEventListener("error", function () { img.remove(); });
+      shot.appendChild(img);
+    }
+
+    var ttl = document.createElement("span");
+    ttl.className = "t";
+    ttl.textContent = t.title;
+
+    var sub = document.createElement("span");
+    sub.className = "s";
+    sub.textContent = t.sub || "Speaker tape";
+
+    a.appendChild(shot);
+    a.appendChild(ttl);
+    a.appendChild(sub);
+    strip.appendChild(a);
+  });
+
+  sec.hidden = false;
+})();
+</script>
 
 <script>
 /* TODAY'S CARD READS THE SAME FILE THE READING ITSELF READS.

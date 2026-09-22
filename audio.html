@@ -1675,6 +1675,31 @@ audio{
      show real numbers next time -- one file at a time, and only that book. */
   const last = lastListened();
   if (last) measureBook(last.key, ()=>{ drawContinue(); if (tab === "books") drawList(); });
+
+  /* ---- A LINK STRAIGHT TO ONE TAPE ---------------------------------------
+
+     The rail on the home screen sends people here with #tape=<key>. Without
+     this they arrived at the top of a list of everything and had to find
+     again the thing they had just pressed.
+
+     STILL NOTHING PLAYS ON ITS OWN. This opens the player on that tape the
+     same way pressing its row does -- the embed loads and waits. Following a
+     link is not consent to have sound come out of a phone.
+
+     An id that is not on the channel any more just does nothing, which is
+     the right answer: they get the page they asked for. */
+  (function () {
+    var m = /(?:^|[#&])tape=([^&]+)/.exec(location.hash || "");
+    if (!m) return;
+    var want = decodeURIComponent(m[1]);
+    var item = null;
+    for (var i = 0; i < TAPES.length; i++) {
+      if (TAPES[i].key === want || TAPES[i].id === want) { item = TAPES[i]; break; }
+    }
+    if (!item) return;
+    setTab("videos");
+    try { playTape(item, 0); } catch (e) { if (window.console) console.error(e); }
+  })();
 })();
 </script>
 

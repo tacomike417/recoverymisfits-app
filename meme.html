@@ -107,7 +107,13 @@
   .strip{
     display:flex;gap:10px;
     overflow-x:auto;overflow-y:hidden;
+    /* scroll-padding, OR THE SNAP EATS THE GUTTER. The strip is bled 16px
+       past the page edge and padded 16 back in; without this the browser
+       aligns the first chip to the padding box and scrolls the strip 16 to
+       do it, so the rail arrives already nudged sideways with today's
+       thumbnail clipped at the screen edge. */
     scroll-snap-type:x proximity;
+    scroll-padding-left:16px;
     -webkit-overflow-scrolling:touch;
     margin:0 -16px;padding:2px 16px 4px;
     scrollbar-width:none;
