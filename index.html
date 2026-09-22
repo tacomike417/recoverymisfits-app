@@ -59,6 +59,18 @@
   src:url("assets/fonts/Anton-Regular.ttf") format("truetype");
   font-weight:400;font-style:normal;font-display:swap;
 }
+/* ANTON, AS WOFF2, FOR THE RECOVERY BASICS PLATE.
+
+   The approved plate is lettered in Anton and Oswald is noticeably wider --
+   RECOVERY BASIC came out 40% longer than the artwork and the headline broke
+   onto two lines where the plate has one. The same file is already in here as
+   a 157KB .ttf that nothing downloads because it is only ever a fallback;
+   this is the identical face at 55KB, which is what it should have been. */
+@font-face{
+  font-family:"RM Slab";
+  src:url("assets/fonts/anton-400.woff2") format("woff2");
+  font-weight:400 900;font-style:normal;font-display:swap;
+}
 @font-face{
   font-family:"RM Type";
   src:url("assets/fonts/special-elite-400.woff2") format("woff2");
@@ -645,6 +657,234 @@ body::after{
 .m-progress{position:absolute;left:-15px;bottom:-4px;width:48px;opacity:.85;pointer-events:none;z-index:0}
 .m-belong{position:absolute;right:-13px;bottom:-10px;width:32px;opacity:.85;pointer-events:none;z-index:0}
 
+
+/* ---- RECOVERY BASICS ----------------------------------------------------
+   The battered plate between the daily stack and Your Corner.
+
+   THE FRAME, THE SCREWS, THE TAPE, THE RED MARK AND THE BUTTON ARE CUT OUT
+   OF THE APPROVED ARTWORK. Not approximations of it -- the actual pixels,
+   harvested from reference/APPROVED-RECOVERY-BASICS-UI.png by
+   scripts/make_basics_art.py. CSS cannot make a screw with a cross slot and
+   the light coming off the dome, or gold bars with rust blooming through
+   them, or a sign panel with the paint chipped off it. Every attempt to do
+   that in gradients came out looking like a dashboard, which is the one
+   thing this card must never look like.
+
+   THE FRAME IS A NINE-SLICE, so the plate can be any height the copy needs
+   and the corners stay corners. Its middle is transparent and is never
+   drawn; the dark inside comes from the gradients below, with the grain and
+   scratch layers over them.
+
+   WHAT IS STILL LIVE HTML: the label, the counter, the seasonal stamp, the
+   title, the body, the footer note, and the button -- which is a real
+   <button> wearing the artwork, with its words underneath for anything that
+   reads the page aloud.
+   --------------------------------------------------------------------- */
+.rm-basic{
+  --b-cream:#eee4ce;
+  --b-gold:#d5a23b;
+  --b-display:"RM Slab","RM Display Fallback","RM Display",Impact,sans-serif;
+
+  position:relative;isolation:isolate;
+  width:100%;margin:26px 0 0;
+  color:var(--b-cream);
+  /* THE BLACK IS CUT FROM THE PLATE, not mixed in CSS. Three stacked
+     gradients were a good impression of battered metal and still read as a
+     gradient; this is a 96px patch of the artwork's own surface, mirrored
+     into a seamless tile with the large-scale drift flattened out of it so
+     the repeat never shows. The grain and scratch overlays came off at the
+     same time -- that wear is already in these pixels, and they were two
+     more files for something the surface already had. */
+  background:url("assets/basics/plate.webp") repeat;
+  background-size:96px;
+  /* The nine-slice. Widths are the source slices times the scale the card
+     ends up at on a phone -- thicken them and the gold bars get fat, thin
+     them and the rust disappears. */
+  border-style:solid;
+  border-width:8px 7px 7px 6px;
+  border-image:url("assets/basics/frame.webp") 46 36 38 32 round;
+  font-family:var(--ui);
+}
+.rm-basic[hidden]{display:none}
+
+/* The corners of a real plate are darker than the middle of it. One shadow
+   over the surface rather than another texture file. */
+.rm-basic::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  box-shadow:inset 0 0 26px 6px rgba(0,0,0,.72);
+}
+
+/* FOUR SCREWS, ONE FILE, TURNED DIFFERENT WAYS. They hold the plate to the
+   page and they are the first thing that reads as real. */
+.rm-basic .screw{
+  position:absolute;z-index:3;width:9px;height:9px;
+  background:url("assets/basics/screw.webp") center/contain no-repeat;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.8));
+}
+.rm-basic .screw.tl{top:-5px;left:-4px}
+.rm-basic .screw.tr{top:-5px;right:-4px;transform:rotate(34deg)}
+.rm-basic .screw.bl{bottom:-4px;left:-4px;transform:rotate(-27deg)}
+.rm-basic .screw.br{bottom:-4px;right:-4px;transform:rotate(61deg)}
+
+/* Taped to the top edge, hanging over the frame. */
+.rm-basic .tape{
+  position:absolute;z-index:4;top:-14px;left:50%;
+  width:76px;height:19px;margin-left:-32px;
+  background:url("assets/basics/tape.webp") center/100% 100% no-repeat;
+  transform:rotate(-1.5deg);
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.55));
+  pointer-events:none;
+}
+
+/* ---- the header row ---- */
+.rm-basic .topline{
+  position:relative;z-index:1;
+  display:flex;align-items:center;gap:6px;
+  padding:2px 6px 2px 11px;
+}
+.rm-basic .kicker{
+  display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;
+  font-family:var(--b-display);font-weight:400;font-size:10.5px;line-height:1;
+  letter-spacing:.6px;text-transform:uppercase;color:var(--b-cream);
+}
+/* The red mark, cut from the artwork -- speckled, not a red square. */
+.rm-basic .kicker::before{
+  content:"";width:11px;height:11px;flex:0 0 11px;
+  background:url("assets/basics/redmark.webp") center/contain no-repeat;
+}
+.rm-basic .topline .hr{
+  flex:1 1 auto;height:1px;min-width:10px;
+  background:linear-gradient(90deg,rgba(207,158,59,.7),rgba(207,158,59,.28));
+}
+/* The catalogue number. It is a part number off a shop manual, which is why
+   it is set in the body face rather than the display one. */
+.rm-basic .count{
+  flex:0 0 auto;color:#8b8579;
+  font-family:var(--b-display);font-weight:400;font-size:10.5px;line-height:1;
+  letter-spacing:.3px;font-variant-numeric:tabular-nums;
+}
+/* The cream hairline under the whole header, as drawn. */
+.rm-basic .headrule{
+  position:relative;z-index:1;height:1px;margin:0 2px;
+  background:linear-gradient(90deg,rgba(238,228,206,.5),rgba(238,228,206,.62) 70%,rgba(238,228,206,.18));
+}
+
+/* ---- the seasonal stamp ---- */
+.rm-basic .flag{
+  display:none;flex:0 0 auto;
+  padding:2px 5px 3px;border-radius:2px 4px 2px 3px;
+  background:#8f2e27;color:#f0dfc8;
+  border:1px solid rgba(255,220,186,.26);
+  font-family:var(--b-display);font-weight:400;font-size:8px;line-height:1;
+  letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;
+  transform:rotate(-1.5deg);box-shadow:0 2px 5px rgba(0,0,0,.45);
+}
+.rm-basic.is-seasonal .flag{display:inline-block}
+/* With a stamp in the row there is no room for the number as well, and the
+   stamp is the thing somebody needs that week. */
+.rm-basic.is-seasonal .count{display:none}
+
+/* ---- mascot and copy ---- */
+.rm-basic .body{
+  position:relative;z-index:1;
+  display:block;padding:2px 8px 2px 72px;
+}
+/* THE MASCOT IS TAKEN OUT OF THE FLOW. In a grid column it was the tallest
+   thing in the card and it set the height of the whole row -- 54px of art
+   holding open a row that only needed 35px of words. Lifted out, it hangs
+   across the footer rule exactly the way the comet tail does on the plate,
+   and the card is a third shorter for it. */
+.rm-basic .mark{
+  position:absolute;z-index:1;left:6px;top:19px;
+  width:58px;height:auto;object-fit:contain;
+  filter:drop-shadow(2px 3px 0 rgba(0,0,0,.6));
+  pointer-events:none;
+}
+.rm-basic .copy{min-width:0}
+.rm-basic .t{
+  margin:0;color:var(--b-cream);
+  font-family:var(--b-display);font-weight:400;
+  font-size:clamp(15.5px,5.05vw,20px);line-height:.96;
+  letter-spacing:.2px;text-transform:uppercase;text-wrap:balance;
+  text-shadow:1px 1px 0 #080806,1px 2px 0 rgba(0,0,0,.5);
+}
+.rm-basic .d{
+  margin:3px 0 0;color:#e5ddce;
+  font-family:var(--ui);font-size:10.5px;font-weight:450;line-height:1.22;
+  text-wrap:pretty;
+}
+
+/* ---- footer ---- */
+/* THE RULE SITS ABOVE THE NOTE, not beside it. On the plate the hairline
+   runs across under the mascot and the stamped line hangs below it, with the
+   sign panel standing over both. */
+.rm-basic .foot{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+  gap:0 8px;padding:0 2px 1px 72px;
+}
+/* The stamped line is in the plate's own condensed face, not the UI one. In
+   the UI face it ran half again as long as the artwork's. */
+.rm-basic .foot .n{
+  display:block;color:#8f897d;white-space:nowrap;
+  font-family:var(--b-display);font-weight:400;
+  font-size:7.5px;letter-spacing:.4px;text-transform:uppercase;
+  line-height:1.15;
+}
+.rm-basic .foot .hr{
+  display:block;height:1px;margin:0 0 3px -68px;
+  background:linear-gradient(90deg,rgba(238,228,206,.5),rgba(238,228,206,.58) 62%,rgba(238,228,206,.07));
+}
+/* THE BUTTON IS THE ARTWORK'S OWN SIGN PANEL. Its words are printed on it,
+   so the live label underneath is for screen readers and for anybody who has
+   images turned off -- it is still a real button either way. */
+.rm-basic .again{
+  grid-row:1/3;grid-column:2;position:relative;
+  appearance:none;-webkit-appearance:none;border:0;padding:0;
+  width:86px;height:22px;
+  background:url("assets/basics/button.webp") center/100% 100% no-repeat;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  filter:drop-shadow(1px 2px 0 rgba(0,0,0,.55));
+}
+.rm-basic .again span{
+  position:absolute;width:1px;height:1px;margin:-1px;padding:0;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+.rm-basic .again:active{transform:translate(1px,1px);filter:brightness(.94)}
+.rm-basic .again:focus-visible{outline:3px solid #fff0c3;outline-offset:2px}
+
+.rm-basic.is-changing .copy{animation:rmBasicSwap 180ms ease both}
+@keyframes rmBasicSwap{
+  0%{opacity:.2;transform:translateY(4px) rotate(.2deg)}
+  100%{opacity:1;transform:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .rm-basic.is-changing .copy{animation:none}
+}
+
+/* Wider than a phone it stays a plate, not a feature card. */
+@media (min-width:430px){
+  .rm-basic{border-width:9px 8px 8px 7px}
+  .rm-basic .body{padding-left:80px}
+  .rm-basic .foot{padding-left:80px}
+  .rm-basic .foot .hr{margin-left:-76px}
+  .rm-basic .mark{width:66px;top:21px}
+  .rm-basic .kicker,.rm-basic .count{font-size:11.5px}
+  .rm-basic .d{font-size:11.5px}
+  .rm-basic .again{width:94px;height:24px}
+}
+@media (max-width:359px){
+  .rm-basic{border-width:7px 6px 6px 5px}
+  .rm-basic .body{padding-left:60px}
+  .rm-basic .foot{padding-left:60px}
+  .rm-basic .foot .hr{margin-left:-56px}
+  .rm-basic .mark{width:50px;left:5px;top:16px}
+  .rm-basic .kicker,.rm-basic .count{font-size:9.5px;letter-spacing:.3px}
+  .rm-basic .t{font-size:clamp(14px,4.9vw,17px)}
+  .rm-basic .d{font-size:9.5px}
+  .rm-basic .foot .n{font-size:6.5px;letter-spacing:.1px}
+  .rm-basic .again{width:74px;height:19px}
+}
 /* ---- YOUR CORNER --------------------------------------------------------
    The personal strip, under the shelf and above the sober rail, built to the
    approved mockup.
@@ -1010,6 +1250,52 @@ body::after{
   </div>
 
   <!-- ===================================================================
+       RECOVERY BASICS.
+
+       One of the 43, between the stack and Your Corner. Plain enough to read
+       at two in the morning, which is the hour it was written for.
+
+       THE PLATE IS THE APPROVED ARTWORK, CUT UP. The frame, the screws, the
+       tape, the red mark and the sign panel on the button are pieces of
+       reference/APPROVED-RECOVERY-BASICS-UI.png, not CSS impressions of it.
+       See the stylesheet before replacing any of them with a gradient.
+
+       STARTS HIDDEN. /basics.js shows it once the cards are in hand. With no
+       signal there is no card, and an empty battered frame with nothing in it
+       is worse than no frame -- so the page closes up around it.
+       ================================================================ -->
+  <section class="rm-basic" id="rm-basic" aria-labelledby="basicTitle" hidden>
+    <span class="screw tl" aria-hidden="true"></span>
+    <span class="screw tr" aria-hidden="true"></span>
+    <span class="screw bl" aria-hidden="true"></span>
+    <span class="screw br" aria-hidden="true"></span>
+    <span class="tape" aria-hidden="true"></span>
+
+    <div class="topline">
+      <span class="kicker">Recovery Basics</span>
+      <span class="hr" aria-hidden="true"></span>
+      <span class="flag">Holiday Watch</span>
+      <span class="count" data-basic-count>&nbsp;</span>
+    </div>
+    <div class="headrule" aria-hidden="true"></div>
+
+    <div class="body">
+      <img class="mark" src="assets/basics/basics-mark.webp" alt="" aria-hidden="true"
+           width="360" height="360">
+      <div class="copy">
+        <h2 class="t" id="basicTitle" data-basic-title>&nbsp;</h2>
+        <p class="d" data-basic-body>&nbsp;</p>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span class="hr" aria-hidden="true"></span>
+      <button class="again" type="button" data-basic-next><span>Another One</span></button>
+      <span class="n">Practical. Simple. One day at a time.</span>
+    </div>
+  </section>
+
+  <!-- ===================================================================
        YOUR CORNER.
 
        The personal strip: how far to the next milestone, how much of today's
@@ -1213,6 +1499,7 @@ body::after{
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
 <script src="./corner.js" defer></script>
+<script src="./basics.js" defer></script>
 
 <script>
 /* TODAY'S CARD READS THE SAME FILE THE READING ITSELF READS.
