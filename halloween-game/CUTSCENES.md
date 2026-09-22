@@ -203,7 +203,7 @@ cut carries the beat.
 **Panels snap in.** This game is already a comic book — halftone, thick ink,
 offset shadows, balloon dialogue. So the panels deal onto the screen the way
 a comic reads: one at a time, snapping, balloons popping after the art
-lands. All CSS and canvas already in chapter1-gameplay.js.
+lands.
 
 **The 3-frame flip.** Where something genuinely needs to move: generate the
 same picture three times with ONE thing changed — mouth open, mouth closed,
@@ -216,10 +216,11 @@ works, and three stills buys a character who is alive.
 chair scraping, a cup breaking. A still picture plus a gasp beats a mediocre
 animated clip every time. Audio comes off Pixabay.
 
-**Tap to advance.** The player drives. Nobody sits back reading and nobody
-waits on a timer — fast readers blow through, slow ones take their time, and
-the scene can never get stuck. It feels like a game while being four
-pictures.
+**It runs itself, and a tap skips.** Panels advance on their own, timed off
+what is on them — how long the balloons take to arrive, reading time for the
+words, plus the beat after. Nobody has to tap through a story to see it. A
+tap still means "I am ready": mid-balloons it brings them all in, after that
+it jumps ahead. Fast reader never waits, slow reader never gets rushed.
 
 ## What this fixes
 
@@ -234,6 +235,16 @@ Four to six panels for the first meeting; the later ones are two or three,
 because the gag gets shorter each time it repeats (long → faster → fastest →
 long again for the last turn). Call it thirty pictures for all six scenes.
 
+## Where it lives
+
+    cutscenes.js         the story — panels, pictures, sounds, who says what
+    cutscene-player.js   the machine that shows it
+    cutscene-test.html   a bench for watching one scene on its own
+
+Wiring a scene into the game is one line:
+
+    HalloweenGame.playCutscene("cs1", function () { /* what happens next */ });
+
 ## Before generating anything
 
 Make ONE Bill & Bob reference sheet and feed it back into every single
@@ -242,3 +253,27 @@ that is the mistake that wasted the Runway month.
 
 `cs1-bill-recognized.mp4` still exists and is already paid for. It can drop
 in as a single panel if it fits. Nothing depends on it.
+
+---
+
+## THE ANONYMITY RULE — applies to every meeting picture, forever
+
+**Nobody attending a meeting is ever shown from the front.** Backs of heads
+and shoulders only. No faces, no profiles, not even a face turned
+three-quarters away. This holds for invented people too — the fact that
+nobody in the picture is real does not make it okay to draw a roomful of
+identifiable faces in an AA meeting.
+
+The only faces in this game belong to our two.
+
+It costs nothing. A room going quiet reads better from behind anyway: ten
+heads craned toward a doorway with our two lit up in it says more than ten
+drawn expressions, and it puts the camera where the audience already is.
+Body language carries the rest — a man doubled forward with his hand up to
+his mouth is unmistakable from behind.
+
+Put this line in every meeting prompt:
+
+> Nobody attending a meeting is ever shown from the front. Backs of heads
+> and shoulders only. No faces, no profiles, not even a face turned
+> three-quarters away.

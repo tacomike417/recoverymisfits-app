@@ -52,7 +52,7 @@ window.HalloweenCutscenes = {
         sound: "cs1-gasp.mp3",
         hold: 900,
         lines: [
-          { who: "crowd", text: "...HOLY SHIT, IT'S THE GUYS.", at: "top" }
+          { who: "crowd", text: "...HOLY SHIT, IT'S THE GUYS!", at: "top" }
         ] },
 
       { img: "cs1-p3-coffee-pot.webp",
@@ -73,7 +73,10 @@ window.HalloweenCutscenes = {
         hold: 1300,
         lines: [
           { who: "bill", text: "We could go.",     at: "top-left"  },
-          { who: "bob",  text: "We could go now.", at: "top-right", wait: 1500 }
+          /* BILL HEDGES, BOB DOES NOT. "Could" is the soft version and
+             Bob has no use for it -- he corrects Bill, and the correction
+             is the button on the scene. */
+          { who: "bob",  text: "We should go.", at: "top-right", wait: 1500 }
         ] }
     ]
   }

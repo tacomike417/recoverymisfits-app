@@ -42,6 +42,10 @@
 (function () {
     "use strict";
 
+    /* The zigzag balloon, lifted verbatim from chapter1-gameplay.js's
+       SVG_STARBURST_BUBBLE so the two never drift apart. */
+    var STARBURST = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20300%20150%22%3E%3Cpath%20d%3D%22M32.7%2C18.3c11%2C5%2C33.3%2C3.3%2C37-11.3%20c11.7%2C8.7%2C40%2C11.3%2C54.7%2C0c7.3%2C10%2C36.7%2C13.3%2C46%2C0c0.3%2C8%2C29%2C16.7%2C39.3%2C11.7C202.3%2C27%2C212%2C40.7%2C229%2C42c-11.7%2C6-7.7%2C28.3%2C0%2C32.7%20c-11%2C1-14.3%2C12.3-14.3%2C12.3l34.7%2C25.3l-12.7%2C2.3l36.7%2C21l-52.9-12.6l6.2-6.4l-28.3-16.3c0%2C0-14.7%2C14-14.3%2C19.3%20c-10-5-36%2C3.7-44.3%2C13.3c-9.7-13.7-40.3-12.7-56-2c-7-10.3-37.7-11.7-48.7-10.7c7.2-9.7-9.3-31.7-27-35c14-5%2C19.7-34.3%2C6.7-40.7%20C30.3%2C43.3%2C39.7%2C28%2C32.7%2C18.3z%22%20fill%3D%22%23fff3c4%22%20stroke%3D%22%23231F20%22%20stroke-width%3D%224%22%20stroke-linejoin%3D%22miter%22%2F%3E%3C%2Fsvg%3E";
+
     var ASSET_IMG = "assets/cutscenes/";
     var ASSET_SND = "assets/audio/";
 
@@ -86,22 +90,34 @@
           "60%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}",
         ".rmcs-b.pop{animation:rmcs-pop .22s ease-out both}",
         ".rmcs-b.bob{background:#eaf2ff}",
-        /* the crowd gets the jagged one -- it is a room shouting, not a person */
-        ".rmcs-b.crowd{background:#fff3c4;border-width:4px;transform:rotate(-1.5deg) scale(.7);",
-          "clip-path:polygon(0 8%,6% 0,18% 7%,32% 1%,46% 8%,60% 1%,74% 8%,88% 1%,100% 9%,",
-          "96% 26%,100% 44%,95% 62%,100% 80%,90% 92%,76% 86%,62% 96%,48% 88%,34% 97%,",
-          "20% 88%,8% 96%,0 82%,5% 62%,0 44%,5% 26%);padding:20px 24px;max-width:78%;",
-          "box-shadow:none;border:0;outline:0}",
-        "@keyframes rmcs-pop-crowd{0%{opacity:0;transform:rotate(-1.5deg) scale(.7)}",
-          "60%{opacity:1;transform:rotate(-1.5deg) scale(1.08)}",
-          "100%{opacity:1;transform:rotate(-1.5deg) scale(1)}}",
-        ".rmcs-b.crowd.pop{animation:rmcs-pop-crowd .24s ease-out both}",
+        /* THE CROWD GETS THE GAME'S OWN ZIGZAG BALLOON.
+           This is not a lookalike drawn in CSS -- it is the exact path out
+           of chapter1-gameplay.js's SVG_STARBURST_BUBBLE, the same shape the
+           game already draws on canvas for crowd and building voices, so a
+           room shouting in a cutscene and a room shouting in the level look
+           like the same room.
+
+           The text sits inside safeLeft/safeTop/safeRight/safeBottom from
+           that same definition (42,26 -> 180,114 of a 300x150 box), which
+           was measured against the real curve rather than guessed from
+           padding -- this outline is spiky, so a rectangle eyeballed from
+           percentages lands in a notch and clips. Those numbers as
+           percentages are the 14%/17.33%/46%/58.67% below. The lightning
+           tail lives out past x=195 and is deliberately left empty. */
+        ".rmcs-b.crowd{background:url('" + STARBURST + "') center/100% 100% no-repeat;",
+          "border:0;box-shadow:none;padding:0;width:96%;max-width:96%;aspect-ratio:300/150;",
+          "transform:rotate(-1.5deg) scale(.7);transform-origin:50% 50%}",
+        ".rmcs-b.crowd > span{position:absolute;left:14%;top:17.33%;width:46%;height:58.67%;",
+          "display:flex;align-items:center;justify-content:center;text-align:center;",
+          "line-height:1.06}",
+        "@supports not (aspect-ratio:1/1){.rmcs-b.crowd{height:0;padding-bottom:48%}}",
         ".rmcs-b.world{background:#111;color:#fff;border-color:#fff;box-shadow:4px 5px 0 rgba(255,255,255,.25)}",
         /* placements, in percentages of the stage */
         ".rmcs-b.at-top-left{left:5%;top:5%}",
         ".rmcs-b.at-top-right{right:5%;top:5%}",
         ".rmcs-b.at-top{left:50%;top:6%;transform-origin:50% 0;margin-left:-39%}",
-        ".rmcs-b.at-top.crowd{margin-left:-39%}",
+        ".rmcs-b.crowd.at-top,.rmcs-b.crowd.at-top-left,.rmcs-b.crowd.at-top-right{",
+          "left:2%;right:auto;top:4%;margin-left:0}",
         ".rmcs-b.at-mid-left{left:5%;top:38%}",
         ".rmcs-b.at-mid-right{right:5%;top:38%}",
         /* the nudge -- appears only once the panel has had its moment */
@@ -328,7 +344,15 @@
             lines.forEach(function (ln, i) {
                 var el = document.createElement("div");
                 el.className = "rmcs-b " + (ln.who || "bill") + " at-" + (ln.at || "top-left");
-                el.textContent = ln.text;
+                if ((ln.who || "") === "crowd") {
+                    /* the words go in the measured safe box, not the whole
+                       balloon -- the spikes and the tail are not text space */
+                    var inner = document.createElement("span");
+                    inner.textContent = ln.text;
+                    el.appendChild(inner);
+                } else {
+                    el.textContent = ln.text;
+                }
                 stage.appendChild(el);
                 var b = { el: el, done: false };
                 pending.push(b);
@@ -337,6 +361,22 @@
                     showBalloon(b);
                     pending = pending.filter(function (x) { return x !== b; });
                 }, wait);
+            });
+
+            /* THE CROWD BALLOON CANNOT GROW, SO THE WORDS SHRINK.
+               An ordinary bubble stretches to hold its line. This one is a
+               fixed shape with a measured hole in it, so a long shout has to
+               come down to meet the hole instead. Step it down until it
+               fits, floor at 11px -- past that the line is too long for a
+               crowd bubble and wants rewriting, not more shrinking. */
+            [].slice.call(stage.querySelectorAll(".rmcs-b.crowd > span")).forEach(function (sp) {
+                var fs = parseFloat(getComputedStyle(sp.parentNode).fontSize) || 20;
+                for (var guard = 0; guard < 14; guard++) {
+                    if (sp.scrollHeight <= sp.clientHeight && sp.scrollWidth <= sp.clientWidth) break;
+                    fs -= 1;
+                    if (fs < 11) { fs = 11; sp.style.fontSize = fs + "px"; break; }
+                    sp.style.fontSize = fs + "px";
+                }
             });
 
             /* KEEP TWO BALLOONS OFF EACH OTHER.
