@@ -740,17 +740,12 @@ body::after{
 .rm-basic .topline{
   position:relative;z-index:1;
   display:flex;align-items:center;gap:6px;
-  padding:2px 6px 2px 11px;
+  padding:2px 6px 2px 48px;
 }
 .rm-basic .kicker{
   display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;
   font-family:var(--b-display);font-weight:400;font-size:10.5px;line-height:1;
   letter-spacing:.6px;text-transform:uppercase;color:var(--b-cream);
-}
-/* The red mark, cut from the artwork -- speckled, not a red square. */
-.rm-basic .kicker::before{
-  content:"";width:11px;height:11px;flex:0 0 11px;
-  background:url("assets/basics/redmark.webp") center/contain no-repeat;
 }
 .rm-basic .topline .hr{
   flex:1 1 auto;height:1px;min-width:10px;
@@ -787,17 +782,26 @@ body::after{
 /* ---- mascot and copy ---- */
 .rm-basic .body{
   position:relative;z-index:1;
-  display:block;padding:2px 8px 2px 72px;
+  display:block;padding:2px 8px 2px 52px;
 }
-/* THE MASCOT IS TAKEN OUT OF THE FLOW. In a grid column it was the tallest
-   thing in the card and it set the height of the whole row -- 54px of art
-   holding open a row that only needed 35px of words. Lifted out, it hangs
-   across the footer rule exactly the way the comet tail does on the plate,
-   and the card is a third shorter for it. */
+/* THE MASCOT IS PINNED OVER THE TOP-LEFT CORNER, the same trick the coin
+   plays on the sober rail: it sits in front of the frame rather than inside
+   it, so the plate reads as something a badge was stuck onto.
+
+   IT IS ALSO OUT OF THE FLOW, which is what keeps the card short. In a grid
+   column it was the tallest thing here and set the height of the whole row
+   -- 54px of art holding open a row that only needed 35px of words.
+
+   It covers the top-left screw, and that is fine: a badge pinned over a
+   corner covers what is under it. The other three still show. */
+/* OFFSETS ARE MEASURED FROM THE PADDING BOX, not the outside of the card --
+   left:-10 with a 6px border only cleared the edge by four pixels, which
+   looked like the badge had slipped rather than been pinned over the corner.
+   These hang it about fourteen past the frame on both sides. */
 .rm-basic .mark{
-  position:absolute;z-index:1;left:6px;top:19px;
-  width:58px;height:auto;object-fit:contain;
-  filter:drop-shadow(2px 3px 0 rgba(0,0,0,.6));
+  position:absolute;z-index:5;left:-21px;top:-23px;
+  width:67px;height:auto;object-fit:contain;
+  filter:drop-shadow(2px 3px 2px rgba(0,0,0,.75));
   pointer-events:none;
 }
 .rm-basic .copy{min-width:0}
@@ -821,7 +825,7 @@ body::after{
 .rm-basic .foot{
   position:relative;z-index:1;
   display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
-  gap:0 8px;padding:0 2px 1px 72px;
+  gap:0 8px;padding:0 2px 1px 11px;
 }
 /* The stamped line is in the plate's own condensed face, not the UI one. In
    the UI face it ran half again as long as the artwork's. */
@@ -832,7 +836,7 @@ body::after{
   line-height:1.15;
 }
 .rm-basic .foot .hr{
-  display:block;height:1px;margin:0 0 3px -68px;
+  display:block;height:1px;margin:0 0 3px -7px;
   background:linear-gradient(90deg,rgba(238,228,206,.5),rgba(238,228,206,.58) 62%,rgba(238,228,206,.07));
 }
 /* THE BUTTON IS THE ARTWORK'S OWN SIGN PANEL. Its words are printed on it,
@@ -865,20 +869,18 @@ body::after{
 /* Wider than a phone it stays a plate, not a feature card. */
 @media (min-width:430px){
   .rm-basic{border-width:9px 8px 8px 7px}
-  .rm-basic .body{padding-left:80px}
-  .rm-basic .foot{padding-left:80px}
-  .rm-basic .foot .hr{margin-left:-76px}
-  .rm-basic .mark{width:66px;top:21px}
+  .rm-basic .body{padding-left:60px}
+  .rm-basic .topline{padding-left:56px}
+  .rm-basic .mark{width:76px;left:-24px;top:-26px}
   .rm-basic .kicker,.rm-basic .count{font-size:11.5px}
   .rm-basic .d{font-size:11.5px}
   .rm-basic .again{width:94px;height:24px}
 }
 @media (max-width:359px){
   .rm-basic{border-width:7px 6px 6px 5px}
-  .rm-basic .body{padding-left:60px}
-  .rm-basic .foot{padding-left:60px}
-  .rm-basic .foot .hr{margin-left:-56px}
-  .rm-basic .mark{width:50px;left:5px;top:16px}
+  .rm-basic .body{padding-left:45px}
+  .rm-basic .topline{padding-left:42px}
+  .rm-basic .mark{width:58px;left:-18px;top:-20px}
   .rm-basic .kicker,.rm-basic .count{font-size:9.5px;letter-spacing:.3px}
   .rm-basic .t{font-size:clamp(14px,4.9vw,17px)}
   .rm-basic .d{font-size:9.5px}
@@ -1281,7 +1283,7 @@ body::after{
 
     <div class="body">
       <img class="mark" src="assets/basics/basics-mark.webp" alt="" aria-hidden="true"
-           width="360" height="360">
+           width="342" height="327">
       <div class="copy">
         <h2 class="t" id="basicTitle" data-basic-title>&nbsp;</h2>
         <p class="d" data-basic-body>&nbsp;</p>
