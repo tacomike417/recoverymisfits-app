@@ -177,3 +177,68 @@ The structure that survived contact with reality, for CS1:
    motion, bubbles carry it
 
 Character reference art cut for this is in `halloween-game/runway-refs/`.
+
+---
+
+# THE WAY WE'RE ACTUALLY DOING IT — comic panels
+
+*Decided 22 Sep 2026. This replaces the Runway plan above. The six-scene
+script at the top of this file is unchanged and still the story — only how it
+gets on screen has changed.*
+
+**No video tool. None.** The animation was never what told the story anyway.
+The cut is. A guy walks in, the room goes quiet — you never see heads turn in
+smooth motion. You see a door, then faces, then a dropped coffee cup. Three
+pictures. The brain does the rest. That is not a budget compromise, that is
+how it has always been done.
+
+## The four moving parts
+
+**Stills from ChatGPT.** The part that already works. Panels, not frames —
+they are meant to be looked at one at a time, not tweened between.
+
+**Hard cuts.** One picture replaces the next. No transition, no easing. The
+cut carries the beat.
+
+**Panels snap in.** This game is already a comic book — halftone, thick ink,
+offset shadows, balloon dialogue. So the panels deal onto the screen the way
+a comic reads: one at a time, snapping, balloons popping after the art
+lands. All CSS and canvas already in chapter1-gameplay.js.
+
+**The 3-frame flip.** Where something genuinely needs to move: generate the
+same picture three times with ONE thing changed — mouth open, mouth closed,
+arms up. Play them fast. That is how every paper-puppet cartoon ever made
+works, and three stills buys a character who is alive.
+
+## The two things that make it not lame
+
+**Sound.** More than half the work, for free. A gasp, a record scratch, a
+chair scraping, a cup breaking. A still picture plus a gasp beats a mediocre
+animated clip every time. Audio comes off Pixabay.
+
+**Tap to advance.** The player drives. Nobody sits back reading and nobody
+waits on a timer — fast readers blow through, slow ones take their time, and
+the scene can never get stuck. It feels like a game while being four
+pictures.
+
+## What this fixes
+
+The continuity problem that killed the Runway plan does not exist here.
+Stills are generated against a reference sheet, so Bill is the same Bill in
+every meeting. Panels are SUPPOSED to be discrete — comics cut between
+angles constantly. The medium wants what we can afford.
+
+## Scale
+
+Four to six panels for the first meeting; the later ones are two or three,
+because the gag gets shorter each time it repeats (long → faster → fastest →
+long again for the last turn). Call it thirty pictures for all six scenes.
+
+## Before generating anything
+
+Make ONE Bill & Bob reference sheet and feed it back into every single
+generation. Skip this and they drift into different guys meeting to meeting —
+that is the mistake that wasted the Runway month.
+
+`cs1-bill-recognized.mp4` still exists and is already paid for. It can drop
+in as a single panel if it fits. Nothing depends on it.
