@@ -8,8 +8,9 @@ Also regenerates:
     /another-day-sober/index.html   (a plain archive list of every reading)
     /sitemap.xml                    (all reading URLs + homepage)
 
-...and injects the reading calendar into another-day-sober.html, between the
-CALENDAR:START / CALENDAR:END markers that file carries.
+...injects the reading calendar into another-day-sober.html, between the
+CALENDAR:START / CALENDAR:END markers that file carries, and bakes today's
+reading into the TODAY card on the home page.
 
 Run manually with:  python3 scripts/build_pages.py
 Runs automatically in .github/workflows/deploy.yml on every push to main,
@@ -222,8 +223,8 @@ PAGE_TEMPLATE = """<!doctype html>
 
 <!-- data-prerendered is the one that matters: it tells daily-reading.js the
      reading is ALREADY on the page and it must not fetch or repaint it.
-     data-rm-nav lights the Readings tab, the same as the app screen. -->
-<body data-rm-nav="readings.html" data-reading="{label}" data-prerendered>
+     data-rm-nav lights the Home tab, the same as the app screen. -->
+<body data-rm-nav="index.html" data-reading="{label}" data-prerendered>
 
 <div id="rm-topbar"></div>
 <script src="/topbar.js" defer></script>
@@ -276,7 +277,7 @@ PAGE_TEMPLATE = """<!doctype html>
       Share this reading
     </button>
     <p class="say" id="say" role="status" aria-live="polite"></p>
-    <a class="back" href="/readings.html">
+    <a class="back" href="/">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Back to Readings
     </a>
@@ -325,7 +326,7 @@ INDEX_TEMPLATE = """<!doctype html>
               letter-spacing:.9px;font-variant-numeric:tabular-nums}}
 </style>
 </head>
-<body data-rm-nav="readings.html">
+<body data-rm-nav="index.html">
   <div id="rm-topbar"></div>
   <script src="/topbar.js" defer></script>
   <div class="wrap">
@@ -334,7 +335,7 @@ INDEX_TEMPLATE = """<!doctype html>
     <ul>
 {items}
     </ul>
-    <a class="back" href="/readings.html" style="margin:22px auto 0">
+    <a class="back" href="/" style="margin:22px auto 0">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Back to Readings
     </a>
@@ -462,20 +463,46 @@ def write_moved_js(out_root):
     return True
 
 
+def excerpt(body):
+    """The reading's own first sentence, cut at a word if it runs long.
+
+    Same rule, same length, as the script at the bottom of index.html that
+    fills this card in the browser -- so the baked copy and the fetched copy
+    are the same words and the card never appears to change under somebody
+    the moment their signal comes back.
+
+    NO LOOKBEHIND in the regex, for the same reason the browser copy has
+    none: Safari could not parse one until 16.4 and it is a syntax error, not
+    a runtime one. Python does not care, but the two have to stay identical
+    or this note stops being true."""
+    body = str(body).strip()
+    m = re.match(r'[\s\S]*?[.!?](?=\s|$)', body)
+    first = (m.group(0) if m else body).strip()
+    if len(first) > 96:
+        first = re.sub(r'\s+\S*$', '', first[:93]) + '\u2026'
+    return first
+
+
 def bake_homepage(out_root, readings):
-    """Put a real reading in the front page's HTML.
+    """Put today's real reading on the front page's TODAY card.
 
-    The homepage fetched its reading in the browser, which meant a crawler
-    saw a title of "Recovery Misfits", no H1 worth the name and the words
-    "Opening today's reading..." -- about fifteen words on the single page
-    the whole site points at. Google indexed it accordingly.
+    The home page is the Readings screen, and the card at the top of it is
+    filled in by a fetch in the browser. A crawler does not wait for that, and
+    neither does a phone with no signal: both of them got the words "Opening
+    today's reading..." on the one page the whole site points at.
 
-    So the build writes that day's reading straight into the file. The
-    workflow runs once a morning, so the baked copy is at most a few hours
-    behind; the inline guard in index.html throws it out the moment the
-    reader's own date disagrees, and daily-reading.js puts the right one up
-    as it always did. Nobody sees the wrong day. A crawler sees a page with
-    a reading on it.
+    So the build writes that day's heading, date and opening sentence straight
+    into the file, and stamps the section with data-for. The workflow runs once
+    a morning, so the baked copy is at most a few hours behind; the inline
+    guard in index.html throws it out the moment the reader's own date
+    disagrees, and the fetch puts the right one up as it always did. Nobody
+    sees the wrong day. A crawler sees a page with a reading on it.
+
+    THE FULL TEXT IS NOT BAKED IN HERE ON PURPOSE. This is a card that opens
+    the reading, not the reading. The words themselves live on
+    another-day-sober.html and on the 366 generated pages, each of which is
+    canonical to itself -- baking the whole reading onto the front page as
+    well would put the same text at two URLs every single day.
     """
     path = os.path.join(out_root, 'index.html')
     if not os.path.exists(path):
@@ -490,15 +517,17 @@ def bake_homepage(out_root, readings):
     raw = str(r.get('title', '')).strip()
     body = str(r.get('body', ''))
     title = headline(raw)
-    slug = slugify(raw)
-    line = dateline(raw, today)
     desc = meta_description(body)
+    first = excerpt(body)
+
+    mi, dd = int(today[:2]), int(today[3:])
+    datetext = '%s %d' % (MONTH_NAMES[mi - 1], dd)
 
     with open(path, encoding='utf-8') as f:
         page = f.read()
 
     def sub(pattern, repl, why):
-        # re.S because the article and its paragraphs span lines
+        # re.S because some of these span lines
         new, n = re.subn(pattern, lambda m: repl, page, count=1, flags=re.S)
         if not n:
             print('  ! homepage: could not set %s' % why)
@@ -516,25 +545,27 @@ def bake_homepage(out_root, readings):
     page = sub(r'<meta property="og:description" content="[^"]*">',
                '<meta property="og:description" content="%s">'
                % html.escape(desc, quote=True), 'og:description')
-    page = sub(r'<h2 class="title" id="title">.*?</h2>',
-               '<h2 class="title" id="title">%s</h2>' % html.escape(title), 'h2')
-    page = sub(r'<article class="reading" id="reading" data-for="[^"]*">.*?</article>',
-               '<article class="reading" id="reading" data-for="%s">\n%s\n  </article>'
-               % (today, body_html(body, '    ')), 'reading body')
-    if line:
-        page = sub(r'<p class="dateline" id="dateline"[^>]*>',
-                   '<p class="dateline" id="dateline">', 'dateline wrapper')
-        page = sub(r'<span id="dateText">.*?</span>',
-                   '<span id="dateText">%s</span>' % html.escape(line), 'dateline text')
+
+    page = sub(r'<section class="today" data-for="[^"]*">',
+               '<section class="today" data-for="%s">' % today, 'today stamp')
+    page = sub(r'<h2 class="k" id="todayTitle">.*?</h2>',
+               '<h2 class="k" id="todayTitle">%s</h2>' % html.escape(title),
+               'today heading')
+    page = sub(r'<p class="date" id="todayDate">.*?</p>',
+               '<p class="date" id="todayDate">%s</p>' % html.escape(datetext),
+               'today date')
+    page = sub(r'<p class="quote" id="todayQuote">.*?</p>',
+               '<p class="quote" id="todayQuote">%s</p>' % html.escape(first),
+               'today excerpt')
 
     """A CANONICAL THAT POINTS AT THE READING'S OWN PAGE WOULD BE WRONG.
-       The homepage is a different thing that happens to show the same words
-       today -- tomorrow it shows other words. It stays canonical to itself
+       The homepage is a different thing that happens to quote the same words
+       today -- tomorrow it quotes other words. It stays canonical to itself
        and the reading page stays canonical to itself."""
 
     with open(path, 'w', encoding='utf-8') as f:
         f.write(page)
-    print('Homepage baked with %s (%s).' % (today, title))
+    print('Homepage TODAY card baked with %s (%s).' % (today, title))
     return True
 
 
@@ -608,11 +639,14 @@ def main():
     else:
         if inject_calendar(os.path.join(OUT_ROOT, 'another-day-sober.html'), cal):
             print('Calendar injected into another-day-sober.html.')
-        # The front page gets the same 365 links. It is the page everything
-        # else points at, so a crawler landing there should be one hop from
-        # every reading rather than none.
-        if inject_calendar(os.path.join(OUT_ROOT, 'index.html'), cal):
-            print('Calendar injected into index.html.')
+        # NO CALENDAR ON THE FRONT PAGE. It used to get one, back when the
+        # front page was the reading itself and already loaded
+        # daily-reading.css and daily-reading.js -- which is where the
+        # calendar's 90 lines of CSS and 110 of behavior live. The Readings
+        # screen loads neither, and copying both into it is how two versions
+        # of the same thing start drifting apart. The front page links to
+        # /another-day-sober/ instead, which lists all 365 as real links, so a
+        # crawler is still one hop from every reading.
         bake_homepage(OUT_ROOT, readings)
         write_moved_js(OUT_ROOT)
 

@@ -932,6 +932,13 @@
     book: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3V4z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     audio: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M4 12V9a8 8 0 0 1 16 0v3" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 12v4a2 2 0 0 0 2 2h1v-6H8a2 2 0 0 0-2 2zm12 0v6h-1a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     fun: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M6 9h12a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2l-2 2H10l-2-2H6a3 3 0 0 1-3-3v-2a3 3 0 0 1 3-3z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    /* A FRAMED PICTURE, because that is what a meme is.
+
+       Same drawing as the Meme of the Day row on the home screen -- frame,
+       hill, sun -- minus the little legs it stands on there. At 24px those
+       legs are three grey smudges under the box and read as damage. */
+    meme: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M3.4 15.6l4.6-4.3 3.4 3.1 4-4.6 5.2 5.4" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8.9" cy="9.3" r="1.5" fill="currentColor"/></svg>`,
+
     /* A QR CODE, NOT THE SHARE GLYPH.
 
        This tab opens a QR code. It used to draw the box-with-an-up-arrow --
@@ -949,18 +956,28 @@
 
   /* ROOT-ABSOLUTE, NOT "./".
 
-     This bar is on every page of the app, and "./readings.html" only means
+     This bar is on every page of the app, and "./tools.html" only means
      the right thing on a page that sits at the top of the site. The 366
      generated reading pages live three folders down, at
-     /another-day-sober/09-15/some-title/ -- and from there "./readings.html"
+     /another-day-sober/09-15/some-title/ -- and from there "./tools.html"
      asks for a file inside that folder, which does not exist. Every tab on
      the bar was a 404 on all 366 of them.
 
      A leading slash means the same thing from any depth. */
+  /* HOME IS THE READINGS PAGE. 22 Sep 2026.
+
+     It used to be the daily reading itself and Readings was its own tab, which
+     meant the first screen of the app was one reading and the way to everything
+     else was a tab down at the bottom. Turning that around -- the stack, the
+     prayers and the shelf on the front door, with today's reading on a card at
+     the top of it -- freed the Readings tab, and Meme of the Day took it.
+
+     /readings.html still exists and sends people here, for bookmarks and for
+     whatever Google already has. */
   const items = [
     { href: "/index.html", label: "Home", icon: ICONS.home },
     { href: "/tools.html", label: "Tools", icon: ICONS.tools },
-    { href: "/readings.html", label: "Readings", icon: ICONS.book },
+    { href: "/meme.html", label: "Memes", icon: ICONS.meme },
     { href: "/audio.html", label: "Audio", icon: ICONS.audio },
     { href: "/fun.html", label: "Fun", icon: ICONS.fun },
     /* SHARE, NOT A PAGE. It opens the code sheet rather than going anywhere,
@@ -1304,10 +1321,11 @@
   navLinks.className = "rm-nav-links";
 
   // Which file we are on -- and, for a page that is really a child of one
-  // of the tabs, which tab it should light up instead. Another Day Sober is
-  // opened FROM Readings, so Readings is the tab that belongs lit while you
-  // are in it. Without this it lights nothing, and a bar with no tab lit
-  // reads as though you have left the app.
+  // of the tabs, which tab it could light up instead. Another Day Sober and
+  // the 366 generated reading pages are all opened FROM the home screen, so
+  // Home is the tab that belongs lit while you are in one of them. They say
+  // so with data-rm-nav="index.html". Without this they light nothing, and a
+  // bar with no tab lit reads as though you have left the app.
   const file = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
   const declared = (document.body.getAttribute("data-rm-nav") || "").toLowerCase();
   const cur = declared || file;
