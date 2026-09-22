@@ -713,29 +713,13 @@ audio{
     <div class="times"><span id="contElapsed"></span><span id="contLeft"></span></div>
   </section>
 
-  <!-- ===== the switcher ===== -->
-  <!-- SPEAKER TAPES FIRST, and selected on arrival. "Tapes" is what people
-       in the rooms call these, and it is what the page should call them --
-       the audiobooks are two titles, the tapes are where people actually
-       spend their time here. Audiobooks are one tap right, not gone. -->
-  <div class="seg" role="tablist" aria-label="What to show">
-    <button role="tab" id="tabVideos" type="button" aria-selected="true">SPEAKER TAPES</button>
-    <button role="tab" id="tabBooks" type="button" aria-selected="false">AUDIOBOOKS</button>
-  </div>
-
-  <div class="list" id="list"></div>
-
-  <div class="pager" id="pager" hidden>
-    <button type="button" id="pagePrev" aria-label="Previous page">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <span class="count" id="pageCount" role="status" aria-live="polite"></span>
-    <button type="button" id="pageNext" aria-label="Next page">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-  </div>
-
-  <!-- ===== the player ===== -->
+  <!-- ===== the player =====
+       IT SITS ABOVE THE SHELF ON PURPOSE. It used to live at the bottom of
+       the page, so picking a tape threw you past everything to the very end
+       and the list you were browsing was gone off the top of the screen.
+       Playing is the thing you just asked for, so it opens at the top and
+       the shelf stays where it was, one thumb-scroll down, ready for the
+       next pick. -->
   <section class="player" id="playerArea" hidden aria-live="polite">
     <div class="top">
       <img class="cover" id="playerCover" alt="" width="74" height="104" hidden>
@@ -779,6 +763,28 @@ audio{
       </div>
     </div>
   </section>
+
+  <!-- ===== the switcher ===== -->
+  <!-- SPEAKER TAPES FIRST, and selected on arrival. "Tapes" is what people
+       in the rooms call these, and it is what the page should call them --
+       the audiobooks are two titles, the tapes are where people actually
+       spend their time here. Audiobooks are one tap right, not gone. -->
+  <div class="seg" role="tablist" aria-label="What to show">
+    <button role="tab" id="tabVideos" type="button" aria-selected="true">SPEAKER TAPES</button>
+    <button role="tab" id="tabBooks" type="button" aria-selected="false">AUDIOBOOKS</button>
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <div class="pager" id="pager" hidden>
+    <button type="button" id="pagePrev" aria-label="Previous page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span class="count" id="pageCount" role="status" aria-live="polite"></span>
+    <button type="button" id="pageNext" aria-label="Next page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
 
   <img class="doodle margin" src="assets/audio/a-margin.webp" alt="" width="78" height="185" aria-hidden="true" loading="lazy">
   <img class="doodle skull"  src="assets/audio/a-skull.webp"  alt="" width="69" height="80"  aria-hidden="true" loading="lazy">
@@ -1378,6 +1384,11 @@ audio{
 
   function showPlayer(){
     playerArea.hidden = false;
+    /* The Continue Listening card and the player would otherwise stack up on
+       each other at the top of the page. Continue is an offer to pick
+       something back up; once something IS playing the offer is answered, so
+       it steps aside and comes back when the player closes. */
+    if (contCard) contCard.hidden = true;
     playerArea.scrollIntoView({ behavior:"smooth", block:"start" });
   }
 
@@ -1391,6 +1402,9 @@ audio{
     ytArea.hidden = true;
     playerArea.hidden = true;
     $("playerCover").hidden = true;
+    /* Back to the shelf, and Continue comes back with whatever you just
+       listened to, in the spot the player was using. */
+    try { drawContinue(); } catch (e) {}
     activeBookKey = null;
     setBadge("READY");
   }
