@@ -646,13 +646,17 @@ body::after{
 .m-belong{position:absolute;right:-13px;bottom:-10px;width:32px;opacity:.85;pointer-events:none;z-index:0}
 
 /* ---- YOUR CORNER --------------------------------------------------------
-   The personal strip, under the shelf and above the sober rail. Built out of
-   this page's own tokens rather than its own palette, so it reads as the same
-   screen and not as a widget somebody dropped in.
+   The personal strip, under the shelf and above the sober rail, built to the
+   approved mockup and in this page's own tokens rather than a palette of its
+   own -- so it reads as the same screen and not as a widget dropped in.
 
-   PHONE FIRST, at 393. The milestone card is full width; the stack and the
-   coin case are halves beside each other and fall into a column under 360,
-   where two of them are 150px each and the words start breaking.
+   EVERY NUMBER BELOW IS MEASURED OFF THE MOCKUP, not guessed. It is 853px
+   wide describing a 393px phone, so the scale is 0.4607 and these are its
+   boxes times that: card 358, icon column 67, the milestone number 106, the
+   days-to-go column 138, the MAKE CARD button 94. That is the whole reason
+   the type is as small as it is -- at any larger size the milestone number
+   and its progress bar cannot share a line on a real phone, which is what
+   happened the first time this was built by eye.
    --------------------------------------------------------------------- */
 .corner{margin:34px 0 0;position:relative}
 
@@ -664,40 +668,43 @@ body::after{
   fill:#d8ccb2;opacity:.85;
 }
 
-.corner-head{position:relative;padding-right:112px}
+.corner-head{position:relative;padding-right:116px}
+/* 33px, because the mockup gives YOUR CORNER 193px and this face at 36 runs
+   to 227 -- which put the R up against the star. */
 .corner-title{
   margin:0;font-family:var(--display);font-weight:600;
-  font-size:34px;line-height:.98;letter-spacing:.5px;
+  font-size:33px;line-height:.98;letter-spacing:.6px;
   text-transform:uppercase;color:var(--ivory);
 }
 .corner-rule{
-  display:block;width:196px;height:4px;margin:7px 0 0;border-radius:3px;
-  background:linear-gradient(90deg,#8a6a24,#e0bd6a 45%,rgba(224,189,106,0));
+  display:block;width:228px;height:4px;margin:6px 0 0;border-radius:3px;
+  background:linear-gradient(90deg,#8a6a24,#e0bd6a 42%,rgba(224,189,106,0));
 }
 /* The note is handwriting on a page, so it sits at an angle and overlaps the
-   rule a little. Marked aria-hidden: it is a mood, not information, and a
-   screen reader announcing "same day brighter tomorrow" between a heading and
-   a milestone is noise. */
+   rule a little. aria-hidden: it is a mood, not information, and a screen
+   reader announcing "same day brighter tomorrow" between a heading and a
+   milestone is noise. */
 .corner-note{
-  position:absolute;right:26px;top:-2px;margin:0;
-  font-family:"RM Hand","Bradley Hand","Segoe Script",cursive;font-size:15px;line-height:1.12;
-  color:var(--ivory);opacity:.92;transform:rotate(-7deg);text-align:left;
+  position:absolute;right:4px;top:-4px;margin:0;
+  font-family:"RM Hand","Bradley Hand","Segoe Script",cursive;
+  font-size:16px;line-height:1.1;
+  color:var(--ivory);opacity:.93;transform:rotate(-7deg);text-align:left;
 }
 .corner-star{
-  position:absolute;right:76px;top:30px;width:34px;height:34px;
+  position:absolute;right:64px;top:34px;width:35px;height:35px;
   fill:none;stroke:var(--gold);stroke-width:4;
-  stroke-linecap:round;stroke-linejoin:round;opacity:.9;
+  stroke-linecap:round;stroke-linejoin:round;opacity:.92;
   transform:rotate(-8deg);
 }
 
-.corner-cards{display:grid;gap:11px;margin-top:16px}
+.corner-cards{display:grid;gap:11px;margin-top:17px}
 .corner-pair{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 
 .ccard{
   position:relative;overflow:hidden;
-  display:grid;grid-template-columns:62px 1px 1fr;align-items:center;gap:0 13px;
-  min-height:var(--touch);padding:14px 15px;
-  border-radius:15px;
+  display:grid;grid-template-columns:60px 1px 1fr;align-items:center;gap:0 12px;
+  min-height:var(--touch);padding:14px 14px;
+  border-radius:14px;
   border:1px solid rgba(184,132,39,.5);
   background:rgba(31,31,27,.82);
   text-decoration:none;color:var(--ivory);
@@ -715,9 +722,9 @@ body::after{
 .ccard:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
 .ccard-ico{display:grid;place-items:center}
-.ccard-ico svg{width:100%;height:auto;max-height:56px;fill:none;
+.ccard-ico svg{width:100%;height:auto;max-height:54px;fill:none;
   stroke:var(--gold);stroke-linecap:round;stroke-linejoin:round}
-.ccard-cut{align-self:stretch;background:rgba(216,180,91,.3);min-height:42px}
+.ccard-cut{align-self:stretch;background:rgba(216,180,91,.3);min-height:46px}
 
 .ccard-k{
   display:block;font-family:var(--display);font-weight:600;
@@ -726,29 +733,31 @@ body::after{
 }
 .ccard-big{
   display:block;font-family:var(--display);font-weight:600;
-  font-size:27px;line-height:1.02;letter-spacing:.4px;
-  text-transform:uppercase;color:#fff;text-wrap:balance;
+  font-size:24px;line-height:1.04;letter-spacing:.2px;
+  text-transform:uppercase;color:#fff;white-space:nowrap;
 }
 /* SET YOUR SOBER DATE is four words where 3,000 DAYS is two. It gets the
-   smaller size rather than three lines and a card that changes height the
-   moment somebody signs in. */
-.ccard-big.is-cta{font-size:19px;line-height:1.1}
+   smaller size and permission to wrap, rather than running off the card. */
+.ccard-big.is-cta{font-size:17px;line-height:1.12;white-space:normal}
 .ccard-sub{
   display:block;font-family:var(--ui);font-weight:700;
-  font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+  font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;
   color:var(--muted);
 }
 
 /* ---- the milestone card ----
-   THE BAR IS UNDER THE NUMBER, not beside it. Side by side is how the mockup
-   draws it and it does not survive a real phone: "3,000 DAYS" at 27px and
-   "71 DAYS TO GO" cannot both have room on 393px, so the to-go broke over two
-   lines and squeezed the bar to a stub. Stacked, the bar also gets the full
-   width of the card, which is the one thing on this card worth looking at. */
-.ms-body{display:block}
-.ms-right{display:block;margin-top:5px}
+   Number on the left, days-to-go and the bar on the right, the way the mockup
+   draws it. The right column is a fixed 138 and the number is 24px, which is
+   what makes those two survive the same line on a 393px screen. */
+.ms-body{
+  display:grid;grid-template-columns:1fr 138px;column-gap:12px;
+  align-items:end;
+}
+.ms-body .ccard-k{grid-column:1/-1;margin-bottom:1px}
+.ms-body .ccard-big{align-self:center}
+.ms-right{display:block;padding-bottom:1px}
 .ms-track{
-  display:block;height:9px;margin-top:6px;border-radius:5px;
+  display:block;height:9px;margin-top:7px;border-radius:5px;
   background:rgba(238,230,213,.14);
   box-shadow:inset 0 0 0 1px rgba(238,230,213,.08);
   overflow:hidden;
@@ -758,79 +767,103 @@ body::after{
   background:linear-gradient(90deg,#c79a33,#f0cd72);
   transition:width .5s ease;
 }
+/* The whole right column steps under the number when SET YOUR SOBER DATE is
+   showing -- that headline needs two lines and there is nothing beside it
+   worth crowding. */
+.corner.is-locked .ms-body{grid-template-columns:1fr}
+.corner.is-locked .ms-right{margin-top:5px}
 
 /* ---- the halves ----
-   THE ICON SITS ON TOP HERE, not to the left. A half card on a 393px phone is
-   about 170px wide, and an icon beside the text leaves roughly 90px for
-   "3 OF 5 OPENED" and a row of check dots -- which clipped the words and
-   pushed the last dot out through the border. The stack can also grow: these
-   dots are one per row in YOUR stack, and somebody who has added three
-   prayers has eight of them. Icon on top, text full width, dots allowed to
-   wrap, and it holds at any number. */
-.corner-pair .ccard{display:block;padding:13px 13px 14px}
-.corner-pair .ccard-ico{display:block;width:42px;margin:0 0 9px}
+   Icon left, rule, text right, as drawn. A half card is about 170px wide on a
+   393px phone, so the type steps down and the check dots come down to 13px:
+   five of them plus their gaps is 81px, which is what the text column
+   actually has. They are also allowed to wrap, because the dots are one per
+   row in YOUR stack and somebody who has added three prayers has eight. */
+.corner-pair .ccard{grid-template-columns:40px 1px 1fr;gap:0 9px;padding:13px 11px}
 .corner-pair .ccard-ico svg{max-height:38px}
-/* Their own coin, dropped in by corner.js, standing in for the drawing. A
-   little bigger than the line icon beside it because it is a photograph of a
-   thing rather than three strokes, and at 42px the lettering on it is mud. */
-.ccard-ico .coin-real{display:none;width:54px;height:54px;
-  filter:drop-shadow(0 4px 9px rgba(0,0,0,.55))}
-.corner-pair .ccard-ico.has-coin{width:54px;margin-bottom:7px}
-.ccard-ico.has-coin svg{display:none}
-.ccard-ico.has-coin .coin-real{display:block}
-.corner-pair .ccard-cut{display:none}
-.corner-pair .ccard-k{font-size:14px;letter-spacing:.6px;color:var(--ivory)}
-.corner-pair .ccard-sub{font-size:10.5px;letter-spacing:1.1px;margin-top:3px}
+.corner-pair .ccard-cut{min-height:40px}
+.corner-pair .ccard-k{font-size:13px;letter-spacing:.5px;color:#fff}
+/* 9px with almost no tracking. The text column in a half card is 89px and
+   "3 OF 5 OPENED" at 9.5/.9 measures 92 -- which is one line in the mockup
+   and two on the phone. */
+.corner-pair .ccard-sub{font-size:9px;letter-spacing:.5px;margin-top:3px}
 
-.cdots{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.cdots{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
 .cdot{
-  width:16px;height:16px;border-radius:50%;
-  border:1.6px solid rgba(216,180,91,.55);
+  width:13px;height:13px;border-radius:50%;
+  border:1.5px solid rgba(216,180,91,.55);
   display:grid;place-items:center;
-  font-size:9.5px;font-weight:900;color:#12100b;line-height:1;
+  font-size:8px;font-weight:900;color:#12100b;line-height:1;
 }
 .cdot.on{background:var(--gold);border-color:var(--gold)}
 
+/* Their own coin, dropped in by corner.js, standing in for the drawing. The
+   rail at the bottom of this same screen has already loaded that exact file,
+   so it costs nothing and it turns a stock card into theirs. */
+.ccard-ico .coin-real{display:none;width:44px;height:44px;
+  filter:drop-shadow(0 4px 9px rgba(0,0,0,.55))}
+.ccard-ico.has-coin svg{display:none}
+.ccard-ico.has-coin .coin-real{display:block}
+
 /* ---- the share card ----
-   MAKE CARD GOES UNDERNEATH THE WORDS. Beside them it took the width the
-   heading needed, and "Share Your Sober Date" came down the card one word per
-   line with the sentence under it in a column two characters wide. */
-.ccard-share{grid-template-columns:52px 1px 1fr;padding-right:56px}
-.ccard-share .ccard-ico svg{stroke:var(--ivory);max-height:38px}
-.ccard-share .ccard-k{color:var(--ivory);font-size:15px}
+   One row: mark, rule, the words, then MAKE CARD -- and the handwritten note
+   hanging off the right edge. The button is deliberately small (the mockup
+   gives it 94px) because the words beside it are the thing being read. */
+.ccard-share{grid-template-columns:30px 1px 1fr auto;gap:0 9px;padding:13px 14px;padding-right:46px}
+.ccard-share .ccard-ico svg{stroke:var(--ivory);max-height:30px;stroke-width:5}
+/* 12.5px keeps SHARE YOUR SOBER DATE on one line in the 141px this column
+   has, which is the shape the mockup draws. The sentence under it runs to two
+   lines here and one there, because the mockup's button is smaller than any
+   button with MAKE CARD actually written in it. */
+.ccard-share .ccard-k{color:#fff;font-size:11.5px;letter-spacing:.3px}
 .ccard-share .ccard-sub{
-  text-transform:none;letter-spacing:0;font-weight:400;font-size:12px;
-  font-family:var(--type);margin-top:3px;
+  text-transform:none;letter-spacing:0;font-weight:400;font-size:10px;
+  font-family:var(--type);color:var(--muted);margin-top:3px;line-height:1.38;
 }
+/* SMALL ON PURPOSE. The mockup gives this button 94px, and every pixel it
+   takes past that comes straight out of the words beside it -- at 118 the
+   heading broke over two lines. It is still 38 tall, so it is still a thumb
+   target. */
 .make{
-  display:inline-flex;align-items:center;justify-content:center;gap:9px;
-  min-height:40px;padding:8px 18px;margin:11px 0 1px;
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  min-height:38px;padding:8px 9px;margin:0 0 0 7px;
   border-radius:999px;border:1.4px solid var(--gold);
-  font-family:var(--ui);font-weight:800;font-size:12px;letter-spacing:1.4px;
+  font-family:var(--ui);font-weight:800;font-size:9.5px;letter-spacing:.6px;
   text-transform:uppercase;color:#f0e2c2;white-space:nowrap;
 }
-.make svg{width:16px;height:10px;stroke:var(--gold);fill:none;stroke-width:2}
+.make svg{width:12px;height:8px;stroke:var(--gold);fill:none;stroke-width:2}
 .carry{
-  position:absolute;right:4px;top:50%;margin:0;transform:translateY(-50%) rotate(-8deg);
-  font-family:"RM Hand","Bradley Hand","Segoe Script",cursive;font-size:12px;line-height:1.1;
+  position:absolute;right:4px;top:50%;margin:0;
+  transform:translateY(-50%) rotate(-8deg);
+  font-family:"RM Hand","Bradley Hand","Segoe Script",cursive;
+  font-size:9.5px;line-height:1.06;
   color:var(--ivory);opacity:.85;text-align:center;
 }
 
-/* SIGNED OUT. The cards are all there and all empty, which is the whole
-   point -- a 0 somebody can see is a reason to sign up and a hidden section
-   is not. Dimmed the same amount the day counter dims. */
+/* SIGNED OUT. Every card still draws, and draws empty -- which is the point.
+   A 0 somebody can see is a reason to make an account; a hidden section is
+   not. Dimmed by the same amount the day counter dims. */
 .corner.is-locked .ms-track,
 .corner.is-locked .cdots,
 .corner.is-locked .ccard-sub{opacity:.55}
 
+/* Below 360 the two halves go one above the other and MAKE CARD steps under
+   the words -- there is no width left to hold either of them side by side. */
 @media (max-width:359px){
   .corner-pair{grid-template-columns:1fr}
-  .corner-title{font-size:29px}
-  .corner-head{padding-right:98px}
-  .ccard-big{font-size:23px}
-  .ccard-share{grid-template-columns:44px 1px 1fr;padding-right:46px}
+  .corner-title{font-size:30px}
+  .ms-body{grid-template-columns:1fr}
+  .ms-right{margin-top:5px}
+  .ccard-share{grid-template-columns:30px 1px 1fr;padding-right:44px}
+  /* WITHOUT THE COLUMN IT LANDS UNDER THE ICON. MAKE CARD is the card's
+     fourth child; take the fourth column away and it wraps to the next row
+     in column ONE, which is 30px wide -- the button came out as a circle
+     with the words spilling out of both sides of it. */
+  .make{grid-column:3;justify-self:start;margin:10px 0 1px}
+  .corner-star{right:52px;top:29px;width:31px;height:31px}
+  .corner-note{font-size:14px}
+  .corner-head{padding-right:96px}
 }
-
 .tailroom{height:150px}
 
 @media (max-width:359px){
@@ -1125,12 +1158,12 @@ body::after{
         <span>
           <span class="ccard-k">Share Your Sober Date</span>
           <span class="ccard-sub">No name. Just the date and the days.</span>
-          <!-- Inside the text column on purpose. As a fourth child of the card
-               it became a fourth grid cell, which wrapped onto a new row under
-               the icon. -->
-          <span class="make">Make Card
-            <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
+        </span>
+        <!-- The fourth cell in the card's grid, beside the words rather than
+             under them, as drawn. Under 360px the stylesheet drops it to its
+             own line, where there is no longer width for both. -->
+        <span class="make">Make Card
+          <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
         <p class="carry" aria-hidden="true">Carry<br>the<br>message</p>
       </a>
