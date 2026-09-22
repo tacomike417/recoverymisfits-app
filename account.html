@@ -260,7 +260,24 @@
         <div><span>Password</span><b id="freshPw"></b></div>
       </div>
       <button class="go" type="button" id="copyCreds" style="margin:12px 0 0">Copy Both</button>
-      <a class="go" id="textCreds" href="#" style="background:transparent;color:var(--gold);margin-top:8px">Text It To Myself</a>
+      <!-- THIS USED TO BE "TEXT IT TO MYSELF" AND IT WAS AN sms: LINK.
+
+           It did not work. Reported from an Android phone on 22 Sep 2026 and
+           there is no version of it that would have: an sms: URL with a body
+           and NO recipient is handled differently by every Android messaging
+           app there is -- some open an empty compose and throw the message
+           away, some refuse to open at all -- and the one here was malformed
+           on top of that ("sms:?&body="). A button that works on some phones
+           is worse than no button, because the people it fails are the ones
+           who most needed to keep these words.
+
+           The share sheet does the same job and is a real, tested API: it
+           opens Messages, or Notes, or email, or whatever they actually use.
+           It is HIDDEN unless the browser has it, so nobody is ever shown a
+           button that cannot do anything. Copy Both is the answer everywhere
+           else and always was. -->
+      <button class="go" type="button" id="sendCreds" hidden
+              style="background:transparent;color:var(--gold);margin-top:8px">Send It To Myself</button>
       <p style="font-family:var(--ui);font-size:12.5px;line-height:1.6;color:var(--ivory);margin:13px 0 0">
         There is no &ldquo;forgot password&rdquo; email, because there&rsquo;s no email.
         Nobody can look this up for you &mdash; not us, not anybody.
@@ -427,8 +444,8 @@
      Readings wants to arrange their stack, not land on the home page and
      have to find their way back to what they were already doing. Only
      pages this app knows by name -- never a URL handed to it. */
-  var BACKS = { readings: "/", set: "/" };
-  var RETURN_TO = BACKS[next] || "/";
+  var BACKS = { readings: "/readings.html", set: "/index.html" };
+  var RETURN_TO = BACKS[next] || "/index.html";
 
   /* ---- create / sign in ------------------------------------------------- */
   function setMode(next) {
@@ -475,7 +492,16 @@
       $("freshName").textContent = A.name();
       $("freshPw").textContent = pw;
       var msg = "Recovery Misfits\nname: " + A.name() + "\npassword: " + pw;
-      $("textCreds").href = "sms:?&body=" + encodeURIComponent(msg);
+      /* Only offered where it exists. Desktop Firefox has no share sheet,
+         and the button simply is not there rather than doing nothing. */
+      if (navigator.share) {
+        var send = $("sendCreds");
+        send.hidden = false;
+        send.onclick = function () {
+          navigator.share({ title: "Recovery Misfits", text: msg })
+            .catch(function () { /* backing out of the sheet is not an error */ });
+        };
+      }
       $("copyCreds").onclick = function () {
         var done = function () { $("copyCreds").textContent = "Copied"; };
         if (navigator.clipboard && navigator.clipboard.writeText) {
