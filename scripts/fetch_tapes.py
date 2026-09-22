@@ -76,6 +76,33 @@ SKIP_PLAYLIST_IDS = {
     'PLxb8I9B3VlNuEQmNzgbORIyaB3QZv2s7M',   # "Joe & Charlie Big Book Study"
 }
 
+# ---------------------------------------------------------------------------
+# PLAYLISTS THAT STAY OFF THE SITE, INCLUDING EVERY VIDEO IN THEM.
+#
+# SKIP_PLAYLIST_IDS above is not enough for these, and the difference matters.
+# That list drops the playlist's ROW; the loop that reads it has already put
+# its videos into in_a_playlist, so they stay out of the feed. But that loop
+# only ever sees the channel's PUBLIC playlists -- listing playlists by
+# channel is blind to anything unlisted or private. An unlisted playlist is
+# therefore never read at all, so its videos are never spoken for, and every
+# one of them arrives in the feed as its own row.
+#
+# Naming one here fixes that: the script fetches its contents DIRECTLY by id,
+# which does work for an unlisted playlist, marks every video in it as spoken
+# for, and then publishes nothing. The playlist's visibility on YouTube is
+# not touched and does not need to be.
+#
+# It does NOT work for a private playlist -- those need the owner signed in,
+# and an API key is not that. A private one has to be left to the series
+# grouping further down, or set to unlisted.
+# ---------------------------------------------------------------------------
+HIDDEN_PLAYLIST_IDS = {
+    # Crossing Bridges Retreat - Oct 2025. Unlisted, 45 talks, and staying
+    # that way: people spoke at a retreat, not on the internet. Read here only
+    # so that none of them can leak into the feed one at a time.
+    'PLxb8I9B3VlNuQMaNi35rWlZi7PIRuhqXS',
+}
+
 # Personal. Never goes on the site, whatever it gets renamed to next.
 # Matched against playlist AND video titles.
 #
@@ -192,6 +219,18 @@ def main():
     # ---- the playlists ----------------------------------------------------
     playlists = []
     in_a_playlist = set()
+    # THE FIVE HAND-PLACED PLAYLISTS GET THEIR CONTENTS BACK.
+    #
+    # They are skipped below so audio.html can keep them at the top in its own
+    # order with its own wording -- "Chuck C / A New Pair of Glasses" rather
+    # than whatever the playlist is called on YouTube. But skipping them threw
+    # their video lists away too, so on the page they were one row that
+    # launched the whole playlist into the embed. No way to pick the talk you
+    # wanted out of thirty-five.
+    #
+    # Their children ride along here instead, keyed by playlist id. The page
+    # keeps its own title, subtitle and position and gains the list.
+    kept = {}
     for pl in paged('playlists', part='snippet,contentDetails',
                     channelId=CHANNEL_ID, maxResults=50):
         pid = pl['id']
@@ -235,7 +274,12 @@ def main():
                   'the row opens all of them on YouTube.'
                   % (title, len(seen_child), MAX_CHILDREN))
 
-        if pid in ALREADY_ON_THE_PAGE or pid in SKIP_PLAYLIST_IDS:
+        if pid in ALREADY_ON_THE_PAGE:
+            kept[pid] = {'count': count, 'videos': children}
+            print('  = hand-placed playlist: %s (%d talks sent along for the '
+                  'list)' % (title, len(children)))
+            continue
+        if pid in SKIP_PLAYLIST_IDS:
             print('  - skipping playlist: %s' % title)
             continue
         if SKIP_TITLE_RE.search(title):
@@ -251,6 +295,29 @@ def main():
             'thumb': best_thumb(pl['snippet']),
             'videos': children,
         })
+
+    # ---- the ones that are kept out by name -------------------------------
+    # Fetched by id rather than found by browsing, which is the only way to
+    # read an unlisted playlist. Nothing is published from these -- the point
+    # is purely to learn which videos are inside them.
+    for pid in HIDDEN_PLAYLIST_IDS:
+        n = 0
+        try:
+            for it in paged('playlistItems', part='contentDetails',
+                            playlistId=pid, maxResults=50):
+                vid = it.get('contentDetails', {}).get('videoId')
+                if vid:
+                    in_a_playlist.add(vid)
+                    n += 1
+        except urllib.error.HTTPError as e:
+            # 404 means it is private, not unlisted, and an API key cannot
+            # read it. Say so plainly rather than failing the build.
+            print('  ! could not read hidden playlist %s (%s) -- if it is '
+                  'private the API cannot see it at all' % (pid, e.code),
+                  file=sys.stderr)
+            continue
+        print('  - holding back %d video%s from playlist %s'
+              % (n, '' if n == 1 else 's', pid))
 
     # ---- every video on the channel --------------------------------------
     ch = api('channels', part='contentDetails', id=CHANNEL_ID)
@@ -341,6 +408,8 @@ def main():
     ids = [v['id'] for v in loose]
     for holder in groups + playlists:                 # the children too
         ids.extend(k['id'] for k in holder.get('videos', []))
+    for block in kept.values():                       # and the hand-placed five
+        ids.extend(k['id'] for k in block.get('videos', []))
     ids = list(dict.fromkeys(ids))                    # de-duped, order kept
     for i in range(0, len(ids), 50):
         for d in api('videos', part='contentDetails',
@@ -361,6 +430,9 @@ def main():
     for holder in groups + playlists:
         for k in holder.get('videos', []):
             k['sub'] = durations.get(k['id']) or ''
+    for block in kept.values():
+        for k in block.get('videos', []):
+            k['sub'] = durations.get(k['id']) or ''
 
     # Playlists first, then the series, then the single talks newest first.
     items = playlists + groups + videos
@@ -369,6 +441,9 @@ def main():
     payload = {
         'generated': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'items': items,
+        # Not rows of their own -- the contents of the five audio.html places
+        # by hand, so those rows can open into a list like every other one.
+        'kept': kept,
     }
     with open(OUT_PATH, 'w', encoding='utf-8') as f:
         f.write('/* Generated by scripts/fetch_tapes.py -- do not edit by hand. */\n')
@@ -376,8 +451,10 @@ def main():
         json.dump(payload, f, ensure_ascii=False, indent=1)
         f.write(';\n')
 
-    print('Wrote %s: %d playlists + %d series + %d single talks = %d rows.'
-          % (OUT_PATH, len(playlists), len(groups), len(videos), len(items)))
+    print('Wrote %s: %d playlists + %d series + %d single talks = %d rows, '
+          'plus contents for %d hand-placed playlists.'
+          % (OUT_PATH, len(playlists), len(groups), len(videos), len(items),
+             len(kept)))
 
 
 if __name__ == '__main__':

@@ -910,7 +910,33 @@ audio{
     }));
   }
 
-  const TAPES = PLAYLISTS.map(p => Object.assign({ kind: "playlist" }, p))
+  /* THE FIVE ABOVE OPEN INTO A LIST NOW, like every other playlist row.
+
+     They were one row that launched the whole thing into the embed, because
+     they are hand-placed here and scripts/fetch_tapes.py skipped them -- and
+     skipping them threw their contents away with them. Thirty-five Joe &
+     Charlie talks and no way to pick the one you were on.
+
+     The script sends those contents along separately now, keyed by playlist
+     id. The wording and the order on this page stay exactly as they are
+     written above; all that arrives from outside is the list. If it has not
+     arrived -- no key, no signal, script never ran -- each row falls back to
+     what it always did, which still works. */
+  function keptVideos(id){
+    var k = (window.RM_TAPES && window.RM_TAPES.kept) || {};
+    var block = k[id];
+    return (block && Array.isArray(block.videos)) ? block.videos : [];
+  }
+  function keptCount(id){
+    var k = (window.RM_TAPES && window.RM_TAPES.kept) || {};
+    var block = k[id];
+    return (block && Number(block.count) > 0) ? Number(block.count) : 0;
+  }
+
+  const TAPES = PLAYLISTS.map(p => Object.assign({ kind: "playlist" }, p, {
+                           videos: keptVideos(p.id),
+                           randomMax: keptCount(p.id) || p.randomMax
+                         }))
                          .concat(channelTapes());
 
   /* ---- where we are ------------------------------------------------------ */
