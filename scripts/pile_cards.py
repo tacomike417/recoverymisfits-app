@@ -109,6 +109,7 @@ def art_key(filename):
     stem = os.path.splitext(os.path.basename(filename))[0].lower()
     # "066-Route-66.png" -> 066, "Survival-Pile-1000.png" -> 1000:
     # the first part of the name that is all digits is the card number.
+    stem = re.sub(r'^survival-pile-', '', stem)   # "Survival-Pile-New-Years" -> new-years
     m = re.search(r'(?:^|-)(\d+)(?=-|$)', stem)
     if m:
         stem = m.group(1)
