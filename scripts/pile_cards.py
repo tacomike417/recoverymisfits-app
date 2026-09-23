@@ -110,6 +110,8 @@ def art_key(filename):
     # "066-Route-66.png" -> 066, "Survival-Pile-1000.png" -> 1000:
     # the first part of the name that is all digits is the card number.
     stem = re.sub(r'^survival-pile-', '', stem)   # "Survival-Pile-New-Years" -> new-years
+    if stem in HOLIDAYS or stem == 'misfitversary':   # july-4 is a holiday, not card 4
+        return stem
     m = re.search(r'(?:^|-)(\d+)(?=-|$)', stem)
     if m:
         stem = m.group(1)
