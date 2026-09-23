@@ -107,7 +107,9 @@ def read_sheet(path):
 
 def art_key(filename):
     stem = os.path.splitext(os.path.basename(filename))[0].lower()
-    m = re.match(r'^(\d+)-', stem)           # "066-Route-66.png" -> 066
+    # "066-Route-66.png" -> 066, "Survival-Pile-1000.png" -> 1000:
+    # the first part of the name that is all digits is the card number.
+    m = re.search(r'(?:^|-)(\d+)(?=-|$)', stem)
     if m:
         stem = m.group(1)
     if stem.isdigit():                      # 0.png / 000.png -> 000; 002.png -> 2
@@ -121,9 +123,9 @@ def build_art(folder):
     for f in sorted(glob.glob(os.path.join(folder, '*'))):
         if not f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
             continue
-        key = art_key(f)
-        if key.endswith('preview'):
+        if 'preview' in os.path.basename(f).lower():   # 000-share-preview.png is not a card
             continue
+        key = art_key(f)
         im = Image.open(f).convert('RGB')
         big = im.resize((750, round(750 * im.height / im.width)), Image.LANCZOS)
         big.save(os.path.join(ART, key + '.webp'), 'WEBP', quality=86, method=6)
