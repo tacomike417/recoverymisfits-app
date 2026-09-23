@@ -370,10 +370,12 @@
     { key: "big",     title: "Your Big Numbers" },
     { key: "ymd",     title: "Your Angel Anniversaries" },
     { key: "holiday", title: "Your Holidays" },
+    { key: "aa",      title: "Your AA History" },
     { key: "misfit",  title: "Your Misfitversaries" }
   ];
   function sectionOf(c) {
     if (c.kind === "start") return "start";
+    if (c.kind === "holiday" && /^(big-book|founders-day|dr-bob)$/.test(c.holiday)) return "aa";   /* AA history days */
     if (c.kind === "holiday") return "holiday";
     if (c.kind === "misfitversary") return "misfit";
     if (c.kind === "ymd") return "ymd";   /* 111, 123, 222 ... the Angel Anniversaries */
