@@ -242,6 +242,7 @@
        quite reasonably takes it for its own. That is exactly how a new
        account ended up wearing somebody else's sober time. */
     claimLocal();
+    try { localStorage.removeItem("rm_joined_date"); } catch (e) {}   /* the Misfitversary is the account's */
     remember(null);
   }
 

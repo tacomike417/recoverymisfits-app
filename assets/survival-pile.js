@@ -186,6 +186,9 @@
      ever opened the app (topbar.js writes it). */
   function joinedYMD() {
     try {
+      /* The account's join date (copied here by nav.js). */
+      var jd = localStorage.getItem("rm_joined_date") || "";
+      if (/^\d{4}-\d{2}-\d{2}$/.test(jd)) return jd;
       var ms = +localStorage.getItem("rm_first_seen_at");
       if (!ms) return "";
       var d = new Date(ms), p = function (x) { return (x < 10 ? "0" : "") + x; };

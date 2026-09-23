@@ -1502,6 +1502,26 @@
       const remote = await window.RMAccount.pull();
       if (!remote || !remote.data) return;
 
+      /* THE MISFITVERSARY LIVES ON THE ACCOUNT (data.joinedDate), so it
+         follows the person to any phone. An account without one gets
+         today, saved once. The phone keeps a copy in rm_joined_date for
+         the Survival Pile to read. */
+      try {
+        let jd = remote.data.joinedDate;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(jd || "")) {
+          const t = new Date();
+          jd = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" +
+               String(t.getDate()).padStart(2, "0");
+          if (window.RMAccount.update) {
+            await window.RMAccount.update(function (data) {
+              if (!data.joinedDate) data.joinedDate = jd;
+              return data;
+            });
+          }
+        }
+        localStorage.setItem("rm_joined_date", jd);
+      } catch (e) { /* best effort */ }
+
       const here = getSoberDateYMD();
       const there = remote.data.soberDate;
 
