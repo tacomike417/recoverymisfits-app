@@ -25,6 +25,18 @@
     document.head.appendChild(c);
   })();
 
+  /* THE SURVIVAL PILE REVEAL -- the newest card, big, once, with sparkles.
+     Loaded from here for the same reason as the coins: this file is on
+     every page. It waits for a coin reveal to close before it shows. */
+  (function loadPileReveal() {
+    if (document.getElementById("rm-pile-reveal-js")) return;
+    const c = document.createElement("script");
+    c.id = "rm-pile-reveal-js";
+    c.src = "/assets/pile-reveal.js";
+    c.defer = true;
+    document.head.appendChild(c);
+  })();
+
   function pad2(n) {
     return String(n).padStart(2, "0");
   }
