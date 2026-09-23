@@ -570,31 +570,46 @@ def bake_homepage(out_root, readings):
 
 
 # ===========================================================================
-# MEME OF THE DAY -- ONE PAGE PER DAY, EACH WITH ITS OWN LINK PREVIEW
+# MEME OF THE DAY
 #
-#     /meme/MM-DD/index.html
+#   /data/meme-days.json   which meme runs on which date (written every build)
+#   /meme/<id>/index.html  one page per MEME, e.g. /meme/051/
 #
-# WHY. Somebody shares a meme link on Facebook or in a text. For that link to
-# show up as the meme -- and not as a gray bar with a web address on it --
-# the page it points at has to carry that meme in its og:image, written into
-# the HTML, because Facebook's previewer does not run JavaScript. And for the
-# friend who taps it to see the meme they were sent, not today's, the page
-# has to know which day it is. So: one copy of meme.html per day, with the
-# day and the preview baked in. Same trick as the reading pages above.
+# ONE PAGE PER MEME, NOT PER DATE. There will be hundreds of these -- more
+# than there are days in a year -- so a date cannot own a meme. A meme owns
+# its own address instead, forever. Somebody shares /meme/051/ on Facebook,
+# it shows up as that meme (the og:image is baked into the HTML, because
+# Facebook's previewer does not run JavaScript), and whoever taps it next
+# week or next year sees the same meme they were sent.
 #
-# THE PREVIEW PICTURE IS A 1200x630 CARD, not the meme. Facebook draws link
-# previews wide and crops a square picture to fit -- which on a meme takes
-# off the top line and the punchline. The card puts the whole square in the
-# middle of a dark wide frame so nothing gets cut. The cards are made by
-# scripts/make_meme_thumbs.py and committed, same as the thumbnails.
+# WHICH MEME RUNS TODAY is worked out here from data/memes.json, by walking
+# forward one day at a time from the start date:
 #
-# THESE ARE NOT IN THE SITEMAP on purpose. A page that is one picture and no
-# words is exactly what Search Console calls a soft 404, and that fight has
-# already been had once on this site.
+#   * a meme can only run on or after the day it was added, so adding memes
+#     never changes a day that has already happened -- today's meme is
+#     today's meme, full stop;
+#   * brand-new memes go in every other day, mixed with older ones, so a
+#     batch made as one series does not run as a solid block;
+#   * once everything has run, it goes around again, oldest first.
+#
+# The same walk from the same file always gives the same answer, so there is
+# nothing to store and nothing to commit. The browser reads the result.
+#
+# THE PREVIEW PICTURE IS A 1200x630 CARD, not the meme: Facebook crops a
+# square to a wide strip and takes the punchline with it. The cards are made
+# by scripts/make_meme_thumbs.py and committed alongside the thumbnails.
+#
+# NOT IN THE SITEMAP on purpose. A page that is one picture and no words is
+# what Search Console calls a soft 404, and that fight was already had once.
 # ===========================================================================
 
 MEMES_PATH = os.path.join(ROOT, 'data', 'memes.json')
 OG_W, OG_H = 1200, 630
+MEME_GAP_DAYS = 60      # an old meme only cuts in ahead of a new one if it has
+                        # not run for this long
+MEME_DAYS_BACK = 40     # how much history meme-days.json carries (rails show 20)
+MEME_DAYS_AHEAD = 400   # and how far ahead -- a year of cover if the daily
+                        # deploy ever stops running
 
 
 def meme_card(src, dst):
@@ -612,51 +627,102 @@ def meme_card(src, dst):
     card.save(dst, 'JPEG', quality=86, optimize=True, progressive=True)
 
 
-def build_memes(out_root):
+def meme_id(name):
+    return os.path.splitext(name)[0]
+
+
+def local_today():
+    """Today in Ohio, which is when the daily deploy runs and who it is for."""
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.datetime.now(ZoneInfo('America/New_York')).date()
+    except Exception:
+        return (datetime.datetime.utcnow() - datetime.timedelta(hours=4)).date()
+
+
+def meme_schedule(data, until):
+    """{date: file} for every day from the start date through `until`."""
+    memes = [m for m in data.get('memes', []) if m.get('file')]
+    start = datetime.date.fromisoformat(data.get('start', '2026-09-01'))
+    rank = {m['file']: i for i, m in enumerate(memes)}
+    added = {m['file']: datetime.date.fromisoformat(m.get('added') or data.get('start'))
+             for m in memes}
+    last, out = {}, {}
+    day, n = start, 0
+    while day <= until:
+        ready = [m['file'] for m in memes if added[m['file']] <= day]
+        fresh = [f for f in ready if f not in last]
+        seen = sorted((f for f in ready if f in last), key=lambda f: (last[f], rank[f]))
+        pick = None
+        if seen and (not fresh or (n % 2 == 1 and (day - last[seen[0]]).days >= MEME_GAP_DAYS)):
+            pick = seen[0]
+        elif fresh:
+            pick = fresh[0]
+        if pick:
+            out[day.isoformat()] = pick
+            last[pick] = day
+        day += datetime.timedelta(days=1)
+        n += 1
+    return out
+
+
+def build_memes(out_root, pages=True):
+    """pages=False is a local preview: write the schedule so meme.html works
+    when opened off this computer, but leave meme.html and /meme/ alone --
+    generated pages written into the source folder end up committed."""
     src_page = os.path.join(out_root, 'meme.html')
-    if not os.path.exists(MEMES_PATH) or not os.path.exists(src_page):
-        print('  ! memes.json or meme.html missing; meme pages not built')
+    if not os.path.exists(MEMES_PATH):
+        print('  ! data/memes.json missing; memes not built')
         return 0
     with open(MEMES_PATH, encoding='utf-8') as f:
-        dates = json.load(f).get('dates', {})
+        data = json.load(f)
+    files = [m['file'] for m in data.get('memes', []) if m.get('file')]
+
+    today = local_today()
+    sched = meme_schedule(data, today + datetime.timedelta(days=MEME_DAYS_AHEAD))
+    lo = (today - datetime.timedelta(days=MEME_DAYS_BACK)).isoformat()
+    days = {k: v for k, v in sched.items() if k >= lo}
+    os.makedirs(os.path.join(out_root, 'data'), exist_ok=True)
+    with open(os.path.join(out_root, 'data', 'meme-days.json'), 'w', encoding='utf-8') as f:
+        json.dump({'note': 'GENERATED by scripts/build_pages.py from data/memes.json -- '
+                           'do not edit. Which meme runs on which date.',
+                   'days': days}, f, separators=(',', ':'))
+    print('meme-days.json written (%d days, %d memes in rotation).' % (len(days), len(files)))
+    if not pages:
+        return 0
+
+    if not os.path.exists(src_page):
+        print('  ! meme.html missing; meme pages not built')
+        return 0
     with open(src_page, encoding='utf-8') as f:
         template = f.read()
 
-    # One card per meme FILE, not per date -- the same meme sits on several
-    # dates until there are 366 of them.
-    #
-    # THE CARDS ARE COMMITTED, made by scripts/make_meme_thumbs.py alongside
-    # the thumbnails -- so the deploy does not need Pillow. A meme added
-    # without re-running that script gets its card drawn here if Pillow
-    # happens to be around, and otherwise falls back to the square meme.
+    # Cards: committed ones are used as-is; a meme added without running
+    # make_meme_thumbs.py gets one drawn here if Pillow is around, otherwise
+    # it falls back to the square meme.
     og_dir = os.path.join(out_root, 'assets', 'memes', 'og')
-    cards, drawn, missing = {}, 0, 0
-    for name in sorted(set(dates.values())):
+    cards, missing = {}, 0
+    for name in files:
         dst = os.path.join(og_dir, name)
         if not os.path.exists(dst):
-            src = os.path.join(ROOT, 'assets', 'memes', name)
             try:
                 os.makedirs(og_dir, exist_ok=True)
-                meme_card(src, dst)
-                drawn += 1
+                meme_card(os.path.join(ROOT, 'assets', 'memes', name), dst)
             except Exception:
                 missing += 1
                 continue
         cards[name] = ('/assets/memes/og/%s' % name, OG_W, OG_H)
-    print('Meme preview cards: %d ready (%d drawn at build).' % (len(cards), drawn))
     if missing:
         print('  ! %d memes have no preview card -- run scripts/make_meme_thumbs.py' % missing)
 
     def preview(name):
         return cards.get(name) or ('/assets/memes/%s' % name, 1080, 1080)
 
-    def bake(page, day, name, url):
+    def bake(page, name, url, title, alt):
         img, w, h = preview(name)
-        label = '%s %d' % (MONTH_NAMES[int(day[:2]) - 1], int(day[3:]))
-        title = 'Recovery Meme of the Day — %s' % label
         swaps = [
             (r'<title>.*?</title>',
-             '<title>%s | Recovery Misfits</title>' % html.escape(title)),
+             '<title>%s</title>' % html.escape(title)),
             (r'<link rel="canonical" href="[^"]*">',
              '<link rel="canonical" href="%s">' % url),
             (r'<meta property="og:title" content="[^"]*">',
@@ -668,40 +734,35 @@ def build_memes(out_root):
              '<meta property="og:image:width" content="%d">\n'
              '<meta property="og:image:height" content="%d">' % (SITE_URL, img, w, h)),
             (r'<meta property="og:image:alt" content="[^"]*">',
-             '<meta property="og:image:alt" content="%s">'
-             % html.escape('Recovery Misfits meme for ' + label, quote=True)),
+             '<meta property="og:image:alt" content="%s">' % html.escape(alt, quote=True)),
         ]
         for pat, repl in swaps:
             page, n = re.subn(pat, lambda m: repl, page, count=1, flags=re.S)
             if not n:
-                print('  ! meme page %s: could not set %s' % (day, pat[:30]))
+                print('  ! meme page: could not set %s' % pat[:30])
         return page
 
     count = 0
-    for day, name in sorted(dates.items()):
-        if not re.match(r'^\d\d-\d\d$', day):
-            continue
-        url = '%s/meme/%s/' % (SITE_URL, day)
-        page = bake(template, day, name, url)
-        page = page.replace('data-meme-day=""', 'data-meme-day="%s"' % day, 1)
-        d = os.path.join(out_root, 'meme', day)
+    for name in files:
+        mid = meme_id(name)
+        url = '%s/meme/%s/' % (SITE_URL, mid)
+        page = bake(template, name, url,
+                    'Recovery Meme of the Day — Recovery Misfits',
+                    'A Recovery Misfits meme')
+        page = page.replace('data-meme-id=""', 'data-meme-id="%s"' % html.escape(name, quote=True), 1)
+        d = os.path.join(out_root, 'meme', mid)
         os.makedirs(d, exist_ok=True)
         with open(os.path.join(d, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(page)
         count += 1
 
-    # /meme.html ITSELF gets today's preview, so the plain link shows a
-    # picture too. The workflow runs every morning, so this is at most a few
-    # hours behind; its canonical stays /meme.html because it is "today's",
-    # not any one day's.
-    today = datetime.datetime.utcnow().strftime('%m-%d')
-    if today in dates:
-        page = bake(template, today, dates[today], '%s/meme.html' % SITE_URL)
-        page = re.sub(r'<title>.*?</title>',
-                      '<title>Meme of the Day — Recovery Misfits</title>', page, count=1)
-        page = re.sub(r'<meta property="og:title" content="[^"]*">',
-                      '<meta property="og:title" content="Recovery Meme of the Day — Recovery Misfits">',
-                      page, count=1)
+    # /meme.html ITSELF carries today's picture, so the plain link has one
+    # too. Its canonical stays /meme.html -- it is "today's", not one meme.
+    t = sched.get(today.isoformat())
+    if t:
+        page = bake(template, t, '%s/meme.html' % SITE_URL,
+                    'Recovery Meme of the Day — Recovery Misfits',
+                    'Today’s Recovery Misfits meme')
         with open(src_page, 'w', encoding='utf-8') as f:
             f.write(page)
 
@@ -776,6 +837,7 @@ def main():
     if os.path.abspath(OUT_ROOT) == os.path.abspath(ROOT):
         print('Local preview: leaving another-day-sober.html alone '
               '(the calendar is injected into the build copy only).')
+        build_memes(OUT_ROOT, pages=False)
     else:
         if inject_calendar(os.path.join(OUT_ROOT, 'another-day-sober.html'), cal):
             print('Calendar injected into another-day-sober.html.')

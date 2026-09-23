@@ -17,7 +17,7 @@
      picture on it gets tapped, a gray one gets scrolled past.
 
      scripts/build_pages.py fills these in at deploy time: once for this page
-     with TODAY's meme, and once for every /meme/MM-DD/ page with that day's.
+     with TODAY's meme, and once for every /meme/<id>/ page with its own.
      The og:image is not the meme file itself but a 1200x630 card with the
      whole meme on it, because Facebook crops a square picture to a wide strip
      and takes the top and bottom caption off with it. The values written here
@@ -118,7 +118,7 @@
     font-family:var(--ui);font-weight:700;font-size:12.5px;color:var(--gold);
   }
 
-  /* ---- THE LAST TEN DAYS ------------------------------------------------
+  /* ---- THE LAST TWENTY DAYS-----------------------------------------------
      A rail you drag sideways, bled out past the page's 16px gutter on both
      sides so the row is visibly cut off at the screen edge -- which is the
      only honest way to say "there is more this way" without drawing an arrow
@@ -191,11 +191,11 @@
 </head>
 
 <!-- Lives in the daily stack, so Readings is the tab that stays lit. -->
-<!-- data-meme-day IS EMPTY ON /meme.html, which shows today. On the
-     /meme/MM-DD/ pages the build writes that day into it, so a link somebody
-     shared last Tuesday opens last Tuesday's meme -- the one they laughed
-     at -- and not whatever today's happens to be. -->
-<body data-rm-nav="meme.html" data-meme-day="">
+<!-- data-meme-id IS EMPTY ON /meme.html, which shows today's. On each
+     /meme/<id>/ page the build writes that meme's file into it, so a link
+     somebody shared opens on the meme they shared -- next week, next year --
+     and not on whatever today's happens to be. -->
+<body data-rm-nav="meme.html" data-meme-id="">
 
 <div id="rm-topbar"></div>
 <script src="/topbar.js" defer></script>
@@ -238,7 +238,7 @@
   <!-- The last ten days, plus today at the front so there is always one tap
        back to it. Built by the script below; empty until then. -->
   <section class="rail" id="rail" hidden>
-    <p class="railhead" id="railhead">The last ten days</p>
+    <p class="railhead" id="railhead">The last twenty days</p>
     <div class="strip" id="strip"></div>
   </section>
 
@@ -282,42 +282,39 @@
   }
 
   /* THE DATE IS READ OFF THIS PHONE'S CLOCK, same as every other daily in
-     the app, and the key is MM-DD rather than a day number. Day numbers slide
-     by one after February in a leap year, which would quietly shift the whole
-     year's memes every fourth year. MM-DD cannot. */
+     the app. Which meme belongs to which date is decided at deploy time and
+     written to /data/meme-days.json (see scripts/build_pages.py) -- once a
+     day has had its meme it keeps it, however many memes get added later. */
   var now = new Date();
   var pad = function (n) { return (n < 10 ? "0" : "") + n; };
-  var todayKey = pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+  function dayKey(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  var todayKey = dayKey(now);
 
   var MONTHS = ["January","February","March","April","May","June","July",
                 "August","September","October","November","December"];
+  function idOf(file) { return String(file).replace(/\.[a-z]+$/i, ""); }
 
-  /* A /meme/MM-DD/ PAGE OPENS ON ITS OWN DAY. The build writes the day into
-     data-meme-day; /meme.html leaves it empty and gets today. */
-  var fixed = (document.body.getAttribute("data-meme-day") || "").trim();
-  var key = /^\d\d-\d\d$/.test(fixed) ? fixed : todayKey;
+  /* A /meme/<id>/ PAGE OPENS ON ITS OWN MEME. The build writes the file
+     into data-meme-id; /meme.html leaves it empty and gets today's. */
+  var fixed = (document.body.getAttribute("data-meme-id") || "").trim();
 
-  function labelFor(k) {
-    return MONTHS[parseInt(k.slice(0, 2), 10) - 1] + " " + parseInt(k.slice(3), 10);
-  }
   /* EVERY MEME HAS ITS OWN ADDRESS, and that is the one that gets shared.
      It carries that meme's picture as its link preview and opens on that
      meme, so the friend who taps it sees the thing they were sent. */
-  function linkFor(k) { return ORIGIN + "/meme/" + k + "/"; }
+  function linkFor(id) { return ORIGIN + "/meme/" + id + "/"; }
 
-  when.textContent = labelFor(key);
-
-  /* WHAT IS SHOWING RIGHT NOW. It starts as today and changes when somebody
-     picks one off the rail -- the share button, the filename and the date
-     line all read from here rather than from the clock, so sharing an old one
+  /* WHAT IS SHOWING RIGHT NOW. It starts as today's (or this page's own) and
+     changes when somebody picks one off the rail -- the share button, the
+     filename and the date line all read from here, so sharing an old one
      shares the old one and does not quietly send today's instead. */
-  var cur = { key: key, file: null, label: labelFor(key) };
-  var DAYS_BACK = 10;
+  var cur = { key: "", file: null, label: "" };
+  var DAYS_BACK = 19;
 
   function show(item) {
     cur = item;
-    when.textContent = item.label;
-    shot.alt = "Recovery Misfits meme for " + item.label;
+    when.innerHTML = item.label === "Today"
+      ? MONTHS[now.getMonth()] + " " + now.getDate() : (item.label || "&nbsp;");
+    shot.alt = "Recovery Misfits meme" + (item.label ? " for " + item.label : "");
     frame.classList.remove("ready");
     btn.disabled = true;
     tell("");
@@ -328,29 +325,30 @@
        pushState: flipping through the rail is not a trail of pages, and back
        still goes where the person came from. */
     try { history.replaceState(null, "", "/meme/" + item.key + "/"); } catch (e) {}
+    mark();
+  }
 
+  function mark() {
     var chips = document.querySelectorAll("#strip .chip");
     for (var i = 0; i < chips.length; i++) {
-      var mine = chips[i].getAttribute("data-key") === item.key;
+      var mine = chips[i].getAttribute("data-key") === cur.key;
       chips[i].setAttribute("aria-pressed", mine ? "true" : "false");
     }
   }
 
-  /* Today first, then the ten days behind it. Today is in the rail on purpose:
+  /* Today first, then the days behind it. Today is in the rail on purpose:
      once somebody has opened a Tuesday from last week they need one obvious
      tap back, and a rail with a gap where today should be is a puzzle. */
-  function buildRail(dates) {
+  function buildRail(days) {
     var strip = document.getElementById("strip");
-    var out = [], seen = {};
+    var out = [];
     for (var i = 0; i <= DAYS_BACK; i++) {
       var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-      var k = pad(d.getMonth() + 1) + "-" + pad(d.getDate());
-      var f = dates[k];
-      if (!f || seen[k]) continue;         /* Feb 29 in a common year */
-      seen[k] = 1;
+      var f = days[dayKey(d)];
+      if (!f) continue;
       out.push({
-        key: k, file: f,
-        label: MONTHS[d.getMonth()] + " " + d.getDate(),
+        key: idOf(f), file: f,
+        label: i === 0 ? "Today" : MONTHS[d.getMonth()] + " " + d.getDate(),
         short: i === 0 ? "Today" : MONTHS[d.getMonth()].slice(0, 3) + " " + d.getDate()
       });
     }
@@ -362,12 +360,11 @@
       b.type = "button";
       b.className = "chip";
       b.setAttribute("data-key", it.key);
-      b.setAttribute("aria-pressed", it.key === cur.key ? "true" : "false");
       b.setAttribute("aria-label", "Show the meme for " + it.label);
 
       var img = new Image();
       /* The thumbnail, not the meme. 28KB against 330. */
-      img.src = "/assets/memes/thumbs/" + it.file.replace(/\.jpg$/i, ".webp");
+      img.src = "/assets/memes/thumbs/" + it.key + ".webp";
       img.alt = "";
       img.setAttribute("aria-hidden", "true");
       img.loading = "lazy";
@@ -383,21 +380,38 @@
       b.addEventListener("click", function () { show(it); });
       strip.appendChild(b);
     });
+    mark();
     document.getElementById("rail").hidden = false;
   }
 
-  fetch("/data/memes.json", { cache: "no-cache" })
-    .then(function (r) { if (!r.ok) throw new Error("memes.json " + r.status); return r.json(); })
-    .then(function (data) {
-      var dates = data.dates || {};
-      var first = dates[key];
-      if (!first) throw new Error("no meme set for " + key);
-      cur.file = first;
-      shot.alt = "Recovery Misfits meme for " + cur.label;
-      shot.src = "/assets/memes/" + first;
-      buildRail(dates);
-    })
+  /* The date line for a meme opened off its own link: the last day it ran,
+     if that was recently -- otherwise nothing, rather than a wrong date. */
+  function lastRan(days, file) {
+    for (var i = 0; i <= 40; i++) {
+      var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      if (days[dayKey(d)] === file) return i === 0 ? "Today" : MONTHS[d.getMonth()] + " " + d.getDate();
+    }
+    return "";
+  }
+
+  function start(days) {
+    var file = fixed || days[todayKey];
+    if (!file) throw new Error("no meme for " + todayKey);
+    cur = { key: idOf(file), file: file, label: fixed ? lastRan(days, file) : "Today" };
+    when.innerHTML = cur.label ? (cur.label === "Today"
+      ? MONTHS[now.getMonth()] + " " + now.getDate() : cur.label) : "&nbsp;";
+    shot.alt = "Recovery Misfits meme";
+    shot.src = "/assets/memes/" + file;
+    buildRail(days);
+  }
+
+  fetch("/data/meme-days.json", { cache: "no-cache" })
+    .then(function (r) { if (!r.ok) throw new Error("meme-days.json " + r.status); return r.json(); })
+    .then(function (data) { start((data && data.days) || {}); })
     .catch(function (e) {
+      /* A meme page still has its own meme even if the schedule will not
+         load -- only today's needs the schedule. */
+      if (fixed) { try { start({}); return; } catch (e2) {} }
       frame.classList.add("ready");
       shot.remove();
       tell("Could not load today's meme. Check back in a minute.", true);

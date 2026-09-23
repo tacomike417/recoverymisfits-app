@@ -659,7 +659,7 @@ body::after{
 
 
 /* ---- MEME RAIL ----------------------------------------------------------
-   Today's meme and the nine days behind it, as a rail you drag sideways.
+   Today's meme and the nineteen days behind it, as a rail you drag sideways.
    This spot used to be the speaker tapes. The memes took it because they are
    the thing people actually react to -- "I love the memes" -- and the tapes
    already have a whole screen on the Audio tab with all of them and the
@@ -670,7 +670,7 @@ body::after{
    honest way to say "there is more this way" without an arrow nobody presses.
 
    THUMBNAILS, NOT MEMES. 28KB each out of assets/memes/thumbs/ rather than
-   330KB each. EACH ONE IS A REAL LINK to that day's own page, /meme/MM-DD/,
+   330KB each. EACH ONE IS A REAL LINK to that meme's own page, /meme/<id>/,
    which opens on that meme -- so the phone's back button comes straight back
    here, and a long-press "copy link" copies the right one.
 
@@ -1333,7 +1333,7 @@ body::after{
   <!-- ===================================================================
        MEME OF THE DAY RAIL.
 
-       Where the speaker tapes used to be. Today first, then nine days
+       Where the speaker tapes used to be. Today first, then nineteen days
        back; every thumbnail is a link to that day's own meme page. The
        tapes are all on the Audio tab.
 
@@ -1601,13 +1601,14 @@ body::after{
 <script src="./corner.js" defer></script>
 <script src="./basics.js" defer></script>
 <script>
-/* THE MEME RAIL. Today and the nine days behind it, keyed MM-DD off this
-   phone's clock -- the same rule meme.html uses, so the chip that says TODAY
-   is the meme the Memes tab opens on. */
+/* THE MEME RAIL. Today and the nineteen days behind it, dated off this
+   phone's clock and looked up in /data/meme-days.json -- the same file and
+   the same rule meme.html uses, so the chip that says TODAY is the meme the
+   Memes tab opens on. Each chip links to that meme's own page. */
 (function () {
   "use strict";
 
-  var DAYS = 10;
+  var DAYS = 20;
   var sec = document.getElementById("rm-memes");
   var strip = document.getElementById("memeStrip");
   if (!sec || !strip) return;
@@ -1616,27 +1617,27 @@ body::after{
   var pad = function (n) { return (n < 10 ? "0" : "") + n; };
   var now = new Date();
 
-  fetch("/data/memes.json", { cache: "no-cache" })
-    .then(function (r) { if (!r.ok) throw new Error("memes.json " + r.status); return r.json(); })
+  fetch("/data/meme-days.json", { cache: "no-cache" })
+    .then(function (r) { if (!r.ok) throw new Error("meme-days.json " + r.status); return r.json(); })
     .then(function (data) {
-      var dates = (data && data.dates) || {};
-      var seen = {}, n = 0;
-      for (var i = 0; i < DAYS + 2 && n < DAYS; i++) {
+      var days = (data && data.days) || {};
+      var n = 0;
+      for (var i = 0; i < DAYS; i++) {
         var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-        var k = pad(d.getMonth() + 1) + "-" + pad(d.getDate());
-        var f = dates[k];
-        if (!f || seen[k]) continue;          /* Feb 29 in a common year */
-        seen[k] = 1; n++;
+        var f = days[d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())];
+        if (!f) continue;
+        var id = f.replace(/\.[a-z]+$/i, "");
+        n++;
 
         var a = document.createElement("a");
         a.className = "memechip" + (i === 0 ? " is-today" : "");
-        a.href = "/meme/" + k + "/";
+        a.href = "/meme/" + id + "/";
         a.setAttribute("aria-label", "Meme for " + MON[d.getMonth()] + " " + d.getDate());
 
         var box = document.createElement("span");
         box.className = "memeshot";
         var img = new Image();
-        img.src = "/assets/memes/thumbs/" + f.replace(/\.jpg$/i, ".webp");
+        img.src = "/assets/memes/thumbs/" + id + ".webp";
         img.alt = "";
         img.setAttribute("aria-hidden", "true");
         img.loading = "lazy";
