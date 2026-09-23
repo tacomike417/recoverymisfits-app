@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Survival Pile — Recovery Misfits</title>
+<meta name="theme-color" content="#0e0e0d">
+<meta name="robots" content="noindex, follow">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<style>html{background:#0e0e0d}body{background:#0e0e0d;color:#eee6d5;margin:0}</style>
+<link rel="stylesheet" href="/assets/daily-reading.css">
+
+<style>
+/* ===========================================================================
+   THE SURVIVAL PILE -- "Little milestones between the big coins."
+
+   BUILT FOR A PHONE, and reviewed at 393 wide. Phone wins when the two
+   disagree; a desktop gets the same column, centered.
+
+   ONLY THE CARDS THEY HAVE. Same rule as the coin case: a wall of locked
+   cards is a list of things you have not done yet, and this screen is not
+   for that. What is coming is ONE line -- how many days until the next
+   card -- and never which card. They can guess.
+
+   THE CARD IS THE CLIFF NOTES; THIS PAGE IS THE BACK OF THE CARD. Tap one
+   and it opens big, with the day it was earned and the story behind it
+   (the "Back of Card" column in survival-pile-cards.xlsx).
+
+   NO BACK BUTTON ON THE SCREEN, by the rule. The open card is one step of
+   history, so the phone's back button and the iPhone edge swipe close it
+   and leave them right where they were.
+   ======================================================================== */
+
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 0}
+
+.head{text-align:center;margin:4px 0 14px}
+.head h1{
+  font-family:var(--display);font-weight:600;text-transform:uppercase;
+  font-size:clamp(30px,9vw,42px);line-height:.95;letter-spacing:.6px;
+  color:var(--ivory);margin:0;
+}
+.head .tag{
+  margin:6px 0 0;font-family:var(--ui);font-weight:700;font-size:clamp(9.5px,2.9vw,12px);
+  letter-spacing:1px;text-transform:uppercase;color:var(--gold);white-space:nowrap;
+}
+.head .rule{height:2px;width:120px;margin:12px auto 0;background:#9b2b24;border-radius:2px}
+
+.status{
+  display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  margin:0 2px 12px;font-family:var(--ui);font-size:12.5px;color:var(--muted);
+}
+.status b{color:var(--ivory);font-weight:800}
+.status > span{white-space:nowrap}
+.coming{color:var(--gold);font-weight:700;text-align:right}
+
+/* ---- the pile ------------------------------------------------------------
+   Three across at 393 -- each card about 115 wide, big enough to read the
+   number, and a pile is meant to look like a lot of cards. */
+/* minmax(0,1fr), not 1fr: a long date under one card was stretching its
+   whole column wider than the other two. */
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{
+  position:relative;display:block;padding:0;border:0;background:transparent;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:left;
+}
+.tile .face{
+  position:relative;display:block;aspect-ratio:5/7;border-radius:8px;overflow:hidden;
+  box-shadow:0 4px 14px rgba(0,0,0,.55);background:#16140f;
+}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile:active .face{transform:scale(.97)}
+.tile .when{
+  display:block;margin:5px 1px 0;font-family:var(--ui);font-weight:700;font-size:9.5px;
+  letter-spacing:1px;text-transform:uppercase;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.tile.newest .face{box-shadow:0 0 0 2px var(--gold),0 4px 14px rgba(0,0,0,.55)}
+.tile.newest .when{color:var(--gold)}
+
+/* A card whose art has not come back from ChatGPT yet still shows up --
+   drawn in the same colors, number and name on it -- so nobody's pile has
+   holes in it while the art catches up. */
+.blank{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;padding:10px;text-align:center;
+  background:
+    linear-gradient(180deg,rgba(215,178,83,.07),rgba(0,0,0,0) 40%),
+    #16140f;
+  border:1.5px solid rgba(215,178,83,.55);border-radius:inherit;
+}
+.blank .no{font-family:var(--display);font-weight:600;color:var(--ivory);font-size:26px;line-height:1}
+.blank .nm{font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--gold);line-height:1.25}
+.blank .ft{position:absolute;bottom:7px;left:0;right:0;font-family:var(--ui);font-size:7px;
+  letter-spacing:1.2px;text-transform:uppercase;color:rgba(238,230,213,.4)}
+
+/* The year stamp on holiday cards and the count on the Misfitversary,
+   written by the app into the round spot the art leaves empty. */
+.badge{
+  position:absolute;top:5%;right:6%;width:24%;aspect-ratio:1;border-radius:50%;
+  display:grid;place-items:center;background:#9b2b24;color:#f6ecd6;
+  border:2px solid var(--gold);font-family:var(--display);font-weight:600;
+  font-size:9px;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+.count{
+  position:absolute;top:6px;left:6px;padding:2px 6px;border-radius:999px;
+  background:rgba(14,14,13,.85);color:var(--gold);font-family:var(--ui);font-weight:800;font-size:10px;
+}
+
+.empty{
+  margin:30px 4px 0;padding:20px 18px;border-radius:14px;text-align:center;
+  border:1px solid rgba(215,178,83,.3);background:rgba(215,178,83,.06);
+}
+.empty p{margin:0 0 12px;font-family:var(--ui);font-size:14.5px;line-height:1.5;color:var(--ivory)}
+.empty a{display:inline-block;padding:12px 20px;border-radius:999px;background:var(--gold);
+  color:#17130b;font-family:var(--ui);font-weight:800;font-size:13px;letter-spacing:1.2px;
+  text-transform:uppercase;text-decoration:none}
+
+/* ---- one card, big ------------------------------------------------------ */
+.sheet{position:fixed;inset:0;z-index:10050;display:flex;flex-direction:column;
+  background:rgba(8,8,7,.94);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet[hidden]{display:none}
+.sheetin{width:100%;max-width:440px;margin:0 auto;padding:18px 20px 40px;box-sizing:border-box}
+.sheetx{position:sticky;top:0;margin-left:auto;display:grid;place-items:center;width:44px;height:44px;
+  border-radius:50%;border:1px solid rgba(215,178,83,.45);background:rgba(14,14,13,.9);
+  color:var(--ivory);font-size:18px;cursor:pointer;z-index:2}
+.big{position:relative;width:78%;margin:0 auto;aspect-ratio:5/7;border-radius:14px;overflow:hidden;
+  box-shadow:0 18px 50px rgba(0,0,0,.7)}
+.big img{width:100%;height:100%;object-fit:cover;display:block}
+.big .badge{font-size:17px}
+.big .blank .no{font-size:48px}
+.big .blank .nm{font-size:14px}
+.big .blank .ft{font-size:9px;bottom:12px}
+.dname{margin:18px 0 0;text-align:center;font-family:var(--display);font-weight:600;
+  text-transform:uppercase;font-size:26px;line-height:1.05;color:var(--ivory)}
+.dtag{margin:6px 0 0;text-align:center;font-family:var(--ui);font-style:italic;font-size:14px;color:var(--muted)}
+.dwhen{margin:14px 0 0;text-align:center;font-family:var(--ui);font-weight:800;font-size:11px;
+  letter-spacing:1.6px;text-transform:uppercase;color:var(--gold)}
+.dback{margin:14px 0 0;padding:14px 16px;border-radius:12px;background:rgba(215,178,83,.07);
+  border:1px solid rgba(215,178,83,.22);font-family:var(--ui);font-size:15px;line-height:1.55;color:#ece2cb}
+.dback[hidden]{display:none}
+.dyears{margin:12px 0 0;text-align:center;font-family:var(--ui);font-size:12px;color:var(--muted)}
+.dshare{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:52px;
+  margin:18px 0 0;border:0;border-radius:999px;background:var(--gold);color:#17130b;cursor:pointer;
+  font-family:var(--ui);font-weight:800;font-size:14.5px;letter-spacing:1.4px;text-transform:uppercase}
+.dshare[hidden]{display:none}
+.dshare svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9}
+.dsay{margin:10px 0 0;min-height:16px;text-align:center;font-family:var(--ui);font-size:12px;color:var(--muted)}
+</style>
+</head>
+
+<body data-rm-nav="index.html">
+
+<div id="rm-topbar"></div>
+<script src="/topbar.js" defer></script>
+
+<div class="wrap">
+  <header class="head">
+    <h1>The Survival Pile</h1>
+    <p class="tag">Little milestones between the big coins</p>
+    <div class="rule"></div>
+  </header>
+
+  <div class="status" id="status" hidden>
+    <span id="have"></span>
+    <span class="coming" id="coming"></span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="empty" id="empty" hidden>
+    <p>Your pile starts with the night you decided. Put in your sober date and it's yours.</p>
+    <a href="/sober-date.html">Set my sober date</a>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="dname">
+  <div class="sheetin">
+    <button class="sheetx" type="button" id="sheetx" aria-label="Close">&#10005;</button>
+    <div class="big" id="big"></div>
+    <h2 class="dname" id="dname"></h2>
+    <p class="dtag" id="dtag"></p>
+    <p class="dwhen" id="dwhen"></p>
+    <div class="dback" id="dback"></div>
+    <p class="dyears" id="dyears"></p>
+    <button class="dshare" type="button" id="dshare" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="dshareLabel">Share this card</span>
+    </button>
+    <p class="dsay" id="dsay" role="status" aria-live="polite"></p>
+  </div>
+</div>
+
+<div class="tailroom"></div>
+<div id="rm-bottom-nav"></div>
+<script src="/nav.js" defer></script>
+<script src="/assets/survival-pile.js"></script>
+
+<script>
+(function () {
+  "use strict";
+  var P = window.RMPile;
+  var $ = function (id) { return document.getElementById(id); };
+  var ART = "/assets/survival-pile/cards/";
+  var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  function esc(x) {
+    return String(x == null ? "" : x).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+  function short(ymd) { var p = ymd.split("-"); return MON[+p[1] - 1] + " " + (+p[2]) + ", " + p[0]; }
+  function title(c) { return c.name || (c.kind === "days" || c.kind === "ymd" ? c.code : c.code); }
+
+  /* ---- one tile per card ---------------------------------------------------
+     A holiday earned five years running is five editions but ONE card in the
+     pile, wearing the newest year, with "x5" in the corner. */
+  function group(list) {
+    var by = {}, order = [];
+    list.forEach(function (e) {
+      var k = e.card.code;
+      if (!by[k]) { by[k] = { card: e.card, all: [] }; order.push(k); }
+      by[k].all.push(e);
+    });
+    return order.map(function (k) { var g = by[k]; g.top = g.all[0]; return g; });
+  }
+
+  function face(g, big) {
+    var c = g.card, h = "";
+    if (c.art) {
+      h += '<img src="' + ART + esc(c.code) + (big ? ".webp" : "-thumb.webp") +
+           '" alt="' + esc(title(c)) + '" loading="lazy" decoding="async">';
+    } else {
+      h += '<span class="blank"><span class="no">' + esc(c.kind === "holiday" || c.kind === "misfitversary" ? "★" : c.code) +
+           '</span><span class="nm">' + esc(c.name || "") + '</span><span class="ft">Survival Pile</span></span>';
+    }
+    if (c.kind === "holiday") h += '<span class="badge">' + g.top.edition + '</span>';
+    if (c.kind === "misfitversary") h += '<span class="badge">' + g.top.years + '</span>';
+    if (!big && g.all.length > 1) h += '<span class="count">&times;' + g.all.length + '</span>';
+    return h;
+  }
+
+  function whenLine(g) {
+    var c = g.card, e = g.top;
+    if (c.kind === "start") return "The night you decided · " + P.fmt(e.date);
+    if (c.kind === "holiday") return e.edition + " edition · " + P.fmt(e.date);
+    if (c.kind === "misfitversary") return e.years + (e.years === 1 ? " year" : " years") + " a Misfit · " + P.fmt(e.date);
+    return (c.unlocks || "") + " · " + P.fmt(e.date);
+  }
+
+  var groups = [];
+
+  function paint(cards) {
+    var sober = P.soberYMD(), today = P.todayYMD(), joined = P.joinedYMD();
+    if (!sober) { $("empty").hidden = false; return; }
+
+    groups = group(P.earned(cards, sober, today, joined));
+    var nx = P.next(cards, sober, today, joined);
+
+    $("have").innerHTML = "<b>" + groups.length + "</b> " + (groups.length === 1 ? "card" : "cards") + " in your pile";
+    $("coming").textContent = !nx ? "" :
+      nx.days === 1 ? "Something's coming tomorrow." : "Something's coming in " + nx.days + " days.";
+    $("status").hidden = false;
+
+    $("grid").innerHTML = groups.map(function (g, i) {
+      return '<button class="tile' + (i === 0 ? " newest" : "") + '" type="button" data-i="' + i + '">' +
+               '<span class="face">' + face(g, false) + '</span>' +
+               '<span class="when">' + (i === 0 ? "Newest · " : "") + esc(short(g.top.date)) + '</span>' +
+             '</button>';
+    }).join("");
+  }
+
+  /* ---- the open card ---------------------------------------------------- */
+  var open = null, pushed = false;
+
+  function show(i) {
+    var g = groups[i]; if (!g) return;
+    open = g;
+    var c = g.card;
+    $("big").innerHTML = face(g, true);
+    $("dname").textContent = title(c);
+    $("dtag").textContent = c.tagline || "";
+    $("dwhen").textContent = whenLine(g);
+    $("dback").textContent = c.back || "";
+    $("dback").hidden = !c.back;
+    $("dyears").textContent = g.all.length > 1
+      ? "Your editions: " + g.all.map(function (e) { return e.edition || e.years; }).reverse().join(" · ")
+      : "";
+    $("dshare").hidden = !c.art;
+    $("dshareLabel").textContent = navigator.share ? "Share this card" : "Save the picture";
+    $("dsay").textContent = "";
+    $("sheet").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("sheet").scrollTop = 0;
+    try { history.pushState({ pile: 1 }, ""); pushed = true; } catch (e) { pushed = false; }
+  }
+  function hide() {
+    $("sheet").hidden = true;
+    document.body.style.overflow = "";
+    open = null; pushed = false;
+  }
+  function close() { if (pushed) { try { history.back(); return; } catch (e) {} } hide(); }
+
+  $("grid").addEventListener("click", function (e) {
+    var t = e.target.closest(".tile"); if (t) show(+t.getAttribute("data-i"));
+  });
+  $("sheetx").addEventListener("click", close);
+  $("sheet").addEventListener("click", function (e) { if (e.target === $("sheet")) close(); });
+  window.addEventListener("popstate", function () { if (open) hide(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && open) close(); });
+
+  /* ---- sharing: the Misfits presenting the card ----------------------------
+     The card is laid into the gold frame on the share background at the
+     exact spot measured off the art (assets/survival-pile/share-bg.json).
+     One square picture, 1080 x 1080, nothing for Instagram to crop. */
+  var SLOT = { x: 304, y: 174, w: 472, h: 664, r: 18 };
+  function img(src) {
+    return new Promise(function (ok, no) {
+      var i = new Image(); i.onload = function () { ok(i); }; i.onerror = no; i.src = src;
+    });
+  }
+  function rounded(g, x, y, w, h, r) {
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  }
+  function picture(grp) {
+    return Promise.all([img("/assets/survival-pile/share-bg.jpg"), img(ART + grp.card.code + ".webp")])
+      .then(function (a) {
+        var c = document.createElement("canvas"); c.width = c.height = 1080;
+        var g = c.getContext("2d");
+        g.drawImage(a[0], 0, 0, 1080, 1080);
+        var w = SLOT.w, h = Math.round(w * a[1].height / a[1].width);
+        var y = SLOT.y + Math.round((SLOT.h - h) / 2);
+        g.save(); rounded(g, SLOT.x, y, w, h, SLOT.r); g.clip();
+        g.drawImage(a[1], SLOT.x, y, w, h); g.restore();
+        var stamp = grp.card.kind === "holiday" ? grp.top.edition : grp.card.kind === "misfitversary" ? grp.top.years : null;
+        if (stamp) {
+          var bx = SLOT.x + w * 0.82, by = y + w * 0.17, br = w * 0.12;
+          g.beginPath(); g.arc(bx, by, br, 0, Math.PI * 2); g.fillStyle = "#9b2b24"; g.fill();
+          g.lineWidth = 4; g.strokeStyle = "#d7b253"; g.stroke();
+          g.fillStyle = "#f6ecd6"; g.textAlign = "center"; g.textBaseline = "middle";
+          g.font = "700 " + Math.round(br * 0.75) + "px system-ui, Arial, sans-serif";
+          g.fillText(String(stamp), bx, by + 1);
+        }
+        return new Promise(function (ok, no) { c.toBlob(function (b) { b ? ok(b) : no(new Error("blank")); }, "image/jpeg", 0.9); });
+      });
+  }
+  $("dshare").addEventListener("click", function () {
+    if (!open) return;
+    var grp = open, say = $("dsay");
+    say.textContent = "Getting it ready…";
+    picture(grp).then(function (blob) {
+      var name = "survival-pile-" + grp.card.code + ".jpg";
+      var f = new File([blob], name, { type: "image/jpeg" });
+      var can = false;
+      try { can = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [f] })); } catch (e) {}
+      if (can) {
+        return navigator.share({ files: [f], text: "The Survival Pile — recoverymisfits.org" })
+          .then(function () { say.textContent = ""; },
+                function (err) {
+                  if (err && err.name === "AbortError") { say.textContent = ""; return; }
+                  if (err && err.name === "NotAllowedError") { say.textContent = "Ready — tap share again."; return; }
+                  say.textContent = "Could not open sharing. Try again in a second.";
+                });
+      }
+      var u = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+      say.textContent = "Saved to your downloads.";
+    }).catch(function () { say.textContent = "Could not build the picture. Try again in a second."; });
+  });
+
+  P.load().then(paint).catch(function () {
+    $("have").textContent = "Could not load your pile. Check back in a minute.";
+    $("status").hidden = false;
+  });
+})();
+</script>
+</body>
+</html>
