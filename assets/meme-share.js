@@ -195,9 +195,17 @@
       });
   }
 
+  /* FACEBOOK, FOR A DESKTOP. No share sheet there, so this opens Facebook's
+     own share box with the meme's link -- it posts with the meme on it. */
+  function facebook(o) {
+    window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(linkFor(o.id)),
+                "fbshare", "width=640,height=560,noopener");
+  }
+
   window.RMMemeShare = {
     picture: picture,
     link: link,
+    facebook: facebook,
     warm: function (o) { try { blobFor(o); } catch (e) {} },
     linkFor: linkFor,
     hasSheet: !!navigator.share

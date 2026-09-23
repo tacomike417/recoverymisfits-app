@@ -23,10 +23,10 @@
    BUILT FOR A PHONE, and reviewed at 393 wide. Phone wins when the two
    disagree; a desktop gets the same column, centered.
 
-   ONLY THE CARDS THEY HAVE. Same rule as the coin case: a wall of locked
-   cards is a list of things you have not done yet, and this screen is not
-   for that. What is coming is ONE line -- how many days until the next
-   card -- and never which card. They can guess.
+   THE WHOLE DECK BY DEFAULT, the ones not earned yet face-down -- no
+   number, no name, so what is coming stays a surprise. Compact folds it
+   into drop-downs. What is coming next is ONE line -- how many days until
+   the next card -- and never which card. They can guess.
 
    THE CARD IS THE CLIFF NOTES; THIS PAGE IS THE BACK OF THE CARD. Tap one
    and it opens big, with the day it was earned and the story behind it
@@ -192,8 +192,16 @@
   border:1px solid rgba(215,178,83,.22);font-family:var(--ui);font-size:15px;line-height:1.55;color:#ece2cb}
 .dback[hidden]{display:none}
 .dyears{margin:12px 0 0;text-align:center;font-family:var(--ui);font-size:12px;color:var(--muted)}
+.dacts{display:flex;flex-direction:column;gap:10px;margin:18px 0 0}
+.dacts[hidden]{display:none}
+.dalt{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:52px;
+  border-radius:999px;background:transparent;color:var(--ivory);border:1.4px solid rgba(215,178,83,.5);cursor:pointer;
+  font-family:var(--ui);font-weight:800;font-size:14.5px;letter-spacing:1.4px;text-transform:uppercase}
+.dalt[hidden]{display:none}
+.dalt svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9}
+.dalt .fb{fill:currentColor;stroke:none}
 .dshare{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:52px;
-  margin:18px 0 0;border:0;border-radius:999px;background:var(--gold);color:#17130b;cursor:pointer;
+  margin:0;border:0;border-radius:999px;background:var(--gold);color:#17130b;cursor:pointer;
   font-family:var(--ui);font-weight:800;font-size:14.5px;letter-spacing:1.4px;text-transform:uppercase}
 .dshare[hidden]{display:none}
 .dshare svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9}
@@ -244,10 +252,24 @@
     <p class="dwhen" id="dwhen"></p>
     <div class="dback" id="dback"></div>
     <p class="dyears" id="dyears"></p>
-    <button class="dshare" type="button" id="dshare" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span id="dshareLabel">Share this card</span>
-    </button>
+    <!-- THE SAME WAYS OUT AS A MEME: the picture, and the card's own link
+         (/pile/<card>/, which shows the card on Facebook). A desktop has no
+         share sheet, so there the picture saves, the link copies, and
+         Facebook gets its own button. -->
+    <div class="dacts" id="dacts" hidden>
+      <button class="dshare" type="button" id="dshare">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="dshareLabel">Share this card</span>
+      </button>
+      <button class="dalt" type="button" id="dlink">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="dlinkLabel">Share the link</span>
+      </button>
+      <button class="dalt" type="button" id="dfb" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="fb" d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.6 1.6-1.6h1.7V4.3c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.4H7.4V14h2.8v8h3.3z"/></svg>
+        <span>Post to Facebook</span>
+      </button>
+    </div>
     <p class="dsay" id="dsay" role="status" aria-live="polite"></p>
   </div>
 </div>
@@ -421,8 +443,10 @@
     $("dback").textContent = got ? (c.back || "") : "";
     $("dback").hidden = !got || !c.back;
     $("dyears").textContent = "";
-    $("dshare").hidden = !got || !c.art;
+    $("dacts").hidden = !got || !c.art;
     $("dshareLabel").textContent = navigator.share ? "Share this card" : "Save the picture";
+    $("dlinkLabel").textContent = navigator.share ? "Share the link" : "Copy the link";
+    $("dfb").hidden = !!navigator.share;
     $("dsay").textContent = "";
     $("sheet").hidden = false;
     document.body.style.overflow = "hidden";
@@ -480,6 +504,31 @@
         return new Promise(function (ok, no) { c.toBlob(function (b) { b ? ok(b) : no(new Error("blank")); }, "image/jpeg", 0.9); });
       });
   }
+  /* THE CARD'S OWN LINK. Nothing personal in it -- no date, no name --
+     just the card, so it is safe to post anywhere. */
+  function linkFor(c) { return "https://recoverymisfits.org/pile/" + encodeURIComponent(c.code) + "/"; }
+  function copyText(t, say) {
+    var ok = function () { say.textContent = "Link copied."; };
+    var bad = function () { say.textContent = "The link is " + t; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, bad);
+    else bad();
+  }
+  $("dlink").addEventListener("click", function () {
+    if (!open) return;
+    var url = linkFor(open.card), say = $("dsay");
+    if (!navigator.share) { copyText(url, say); return; }
+    navigator.share({ title: "The Survival Pile — Recovery Misfits", url: url })
+      .then(function () { say.textContent = ""; }, function (err) {
+        if (err && (err.name === "AbortError" || err.name === "NotAllowedError")) { say.textContent = ""; return; }
+        copyText(url, say);
+      });
+  });
+  $("dfb").addEventListener("click", function () {
+    if (!open) return;
+    window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(linkFor(open.card)),
+                "fbshare", "width=640,height=560,noopener");
+  });
+
   $("dshare").addEventListener("click", function () {
     if (!open) return;
     var grp = open, say = $("dsay");
@@ -501,7 +550,7 @@
       var u = URL.createObjectURL(blob), a = document.createElement("a");
       a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
-      say.textContent = "Saved to your downloads.";
+      say.textContent = "Saved to your downloads. That is the one for Instagram.";
     }).catch(function () { say.textContent = "Could not build the picture. Try again in a second."; });
   });
 
