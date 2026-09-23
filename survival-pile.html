@@ -75,8 +75,12 @@
 }
 .tile img{width:100%;height:100%;object-fit:cover;display:block}
 .tile:active .face{transform:scale(.97)}
+.tile .ms{
+  display:block;margin:7px 2px 0;text-align:center;font-family:var(--ui);font-weight:800;
+  font-size:12.5px;line-height:1.2;color:var(--ivory);
+}
 .tile .when{
-  display:block;margin:5px 1px 0;font-family:var(--ui);font-weight:700;font-size:9.5px;
+  display:block;margin:3px 1px 0;text-align:center;font-family:var(--ui);font-weight:700;font-size:9.5px;
   letter-spacing:1px;text-transform:uppercase;color:var(--muted);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
@@ -347,9 +351,8 @@
   var SECTIONS = [
     { key: "start",   title: "Your First Week" },
     { key: "first90", title: "Your First 100 Days" },
-    { key: "angel",   title: "Your Angel Anniversaries" },
     { key: "big",     title: "Your Big Numbers" },
-    { key: "ymd",     title: "Your Years, Months, Days" },
+    { key: "ymd",     title: "Your Angel Anniversaries" },
     { key: "holiday", title: "Your Holidays" },
     { key: "misfit",  title: "Your Misfitversaries" }
   ];
@@ -357,10 +360,9 @@
     if (c.kind === "start") return "start";
     if (c.kind === "holiday") return "holiday";
     if (c.kind === "misfitversary") return "misfit";
-    if (c.kind === "ymd") return "ymd";
-    if (c.n <= 7) return "start";   /* day 7 still counts as your first week */
-    if (c.n > 100 && /^(\d)\1+$/.test(String(c.n))) return "angel";   /* 111, 222 ... 9999 */
-    return c.n <= 100 ? "first90" : "big";   /* 99 and 100 live in the first 100 days */
+    if (c.kind === "ymd") return "ymd";   /* 111, 123, 222 ... the Angel Anniversaries */
+    if (c.n <= 7) return "start";          /* day 7 still counts as your first week */
+    return c.n <= 100 ? "first90" : "big"; /* 99 and 100 live in the first 100 days */
   }
 
   /* WHICH VIEW. "all" unless they picked Compact on this phone before. */
@@ -369,6 +371,13 @@
 
   var tiles = [], newest = null;
 
+  /* Under each card: the milestone (easy to read), then the date. */
+  function milestone(g) {
+    var c = g.card, e = g.top;
+    if (c.kind === "start") return "The night you decided";
+    if (c.kind === "misfitversary") return e.years + (e.years === 1 ? " year" : " years") + " a Misfit";
+    return c.unlocks || "";
+  }
   function tileHtml(g, i) {
     if (!g.top) {
       return '<button class="tile locked" type="button" data-i="' + i + '">' +
@@ -379,6 +388,7 @@
     var isNew = g === newest;
     return '<button class="tile' + (isNew ? " newest" : "") + '" type="button" data-i="' + i + '">' +
              '<span class="face">' + face(g, false) + '</span>' +
+             '<span class="ms">' + esc(milestone(g)) + '</span>' +
              '<span class="when">' + (isNew ? "Newest · " : "") + esc(short(g.top.date)) + '</span>' +
            '</button>';
   }
