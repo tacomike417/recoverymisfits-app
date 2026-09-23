@@ -1518,7 +1518,13 @@
         refreshSoberPanel();
       } else if (here && !there && mine) {
         /* The account has nothing. Send this phone's copy up. */
-        await window.RMAccount.push(Object.assign({}, remote.data, { soberDate: here }));
+        /* update(), not push(): it re-reads the account first, so nothing
+           saved since the pull above gets put back. */
+        if (window.RMAccount.update) {
+          await window.RMAccount.update(function (data) { data.soberDate = here; return data; });
+        } else {
+          await window.RMAccount.push(Object.assign({}, remote.data, { soberDate: here }));
+        }
         if (window.RMAccount.claimLocal) window.RMAccount.claimLocal();
       }
       /* here && there && different -> left alone on purpose. account.html asks. */
@@ -1534,6 +1540,14 @@
       if (!d) return;
       /* They just typed it in on this phone, so it is theirs by definition. */
       if (window.RMAccount.claimLocal) window.RMAccount.claimLocal();
+      if (window.RMAccount.update) {
+        await window.RMAccount.update(function (data) {
+          if (data.soberDate === d) return data;
+          data.soberDate = d;
+          return data;
+        });
+        return;
+      }
       const remote = await window.RMAccount.pull();
       const base = (remote && remote.data) || {};
       if (base.soberDate === d) return;

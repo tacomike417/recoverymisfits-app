@@ -538,7 +538,11 @@
 
   $("caYes").addEventListener("click", async function () {
     A.claimLocal();
-    await A.push(Object.assign({}, A.local()));
+    /* update(), so only the sober date changes and nothing else on the
+       account is replaced. */
+    var mine = A.local();
+    if (A.update) await A.update(function (data) { return Object.assign(data, mine); });
+    else await A.push(Object.assign({}, mine));
     showDateStep();
   });
 

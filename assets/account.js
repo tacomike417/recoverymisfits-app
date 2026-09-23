@@ -284,6 +284,31 @@
     } catch (e) { return false; }
   }
 
+  /* ---- update: THE ONLY SAFE WAY TO CHANGE ONE THING ---------------------
+     push() replaces the WHOLE blob. So anything that pulled a copy earlier,
+     changed its one key and pushed it back later was quietly putting every
+     OTHER key back the way it was when it pulled. That is exactly how the
+     reading stack kept vanishing: Your Corner pulled on page load, the stack
+     was saved, then opening a reading pushed Your Corner's old copy over it.
+
+     update(fn) reads the account FRESH, hands the blob to fn to change its
+     own key, and writes it straight back. Every caller goes through one
+     line, one at a time, so two parts of the app saving at once cannot step
+     on each other either. fn changes the blob in place (or returns a new
+     one). Resolves true when it saved, false when it did not. */
+  var line = Promise.resolve();
+  function update(fn) {
+    var run = line.then(async function () {
+      var remote = await pull();
+      if (!remote) return false;          /* no read, no write -- never guess */
+      var data = remote.data || {};
+      var next = fn(data);
+      return push(next && typeof next === "object" ? next : data);
+    }).catch(function () { return false; });
+    line = run.then(function () {}, function () {});
+    return run;
+  }
+
   /* ---- what this app actually keeps -------------------------------------- */
   function localSettings() {
     var out = {};
@@ -358,6 +383,7 @@
     signOut: signOut,
     pull: pull,
     push: push,
+    update: update,
     local: localSettings,
     apply: applySettings,
     uid: uid,

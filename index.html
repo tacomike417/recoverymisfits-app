@@ -2461,12 +2461,23 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
       /* Read at send time, never captured earlier, so what goes up is the
          arrangement on the screen right now. */
       var want = { order: order.slice(), off: off.slice() };
-      return A.pull().then(function (remote) {
-        var data = (remote && remote.data) || {};
-        data.stack = want;
-        delete data.stackOff;        /* the key that caused all this, gone */
-        return A.push(data);
-      }).then(function (ok) {
+      /* update() reads the account fresh and writes back in one step, in
+         the same line as every other save in the app -- so Your Corner or
+         the sober date saving a moment later cannot put an old stack back. */
+      var saved = A.update
+        ? A.update(function (data) {
+            data.stack = want;
+            delete data.stackOff;    /* the key that caused all this, gone */
+            return data;
+          })
+        : A.pull().then(function (remote) {
+            if (!remote) return false;
+            var data = remote.data || {};
+            data.stack = want;
+            delete data.stackOff;
+            return A.push(data);
+          });
+      return saved.then(function (ok) {
         if (ok === false) return false;
         lastGood = snapshot();
         cacheWrite();

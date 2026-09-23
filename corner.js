@@ -156,14 +156,26 @@
 
   function account() { return window.RMAccount || null; }
 
+  /* ONLY "opened" GOES UP. This used to push its whole copy of the blob --
+     the copy it pulled when the page loaded -- which put back anything saved
+     since: a stack edited a minute ago vanished the moment a reading was
+     opened. update() reads the account fresh and changes just this key. */
+  function send() {
+    var a = account();
+    if (!a || !blob) return;
+    var opened = blob.opened;
+    if (a.update) {
+      a.update(function (data) { data.opened = opened; return data; });
+    }
+  }
+
   function savePresently() {
     if (pushTimer) clearTimeout(pushTimer);
     /* TWO SECONDS, because opening three rows in a row is one thought, not
        three, and it has no business being three round trips. */
     pushTimer = setTimeout(function () {
       pushTimer = null;
-      var a = account();
-      if (a && blob) a.push(blob);
+      send();
     }, 2000);
   }
 
@@ -172,8 +184,7 @@
   function saveNow() {
     if (!pushTimer) return;
     clearTimeout(pushTimer); pushTimer = null;
-    var a = account();
-    if (a && blob) a.push(blob);
+    send();
   }
 
   function todayKey() {
