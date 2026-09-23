@@ -128,7 +128,7 @@
         /* THE NIGHT THEY DECIDED -- the day before the sober date. */
         out.push({ card: c, n: S - 1 });
       } else if (c.kind === "days") {
-        at = S + c.n;
+        at = S + c.n - 1;   /* the sober date is day one */
         if (at <= T) out.push({ card: c, n: at });
       } else if (c.kind === "ymd") {
         at = addYMD(s, c.ymd[0], c.ymd[1], c.ymd[2]);
@@ -160,7 +160,7 @@
     function consider(at) { if (at > T && (best === null || at < best)) best = at; }
     var tYear = parse(todayS || todayYMD())[0];
     cards.forEach(function (c) {
-      if (c.kind === "days") consider(S + c.n);
+      if (c.kind === "days") consider(S + c.n - 1);
       else if (c.kind === "ymd") consider(addYMD(s, c.ymd[0], c.ymd[1], c.ymd[2]));
       else if (c.kind === "holiday" && HOLIDAY[c.holiday]) {
         for (var y = tYear - 1; y <= tYear + 1; y++) {
