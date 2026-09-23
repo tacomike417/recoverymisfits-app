@@ -74,6 +74,21 @@
   box-shadow:0 4px 14px rgba(0,0,0,.55);background:#16140f;
 }
 .tile img{width:100%;height:100%;object-fit:cover;display:block}
+/* COINS IN THE PILE. Same size slot as a card so the rows line up, but no
+   card box around it -- a coin is a coin. Only earned coins and the NEXT one
+   show; the next one is face-down like a card. */
+.tile.coin .face{background:transparent;box-shadow:none;overflow:visible;display:grid;place-items:center}
+.tile.coin .face img{width:92%;height:auto;aspect-ratio:1/1;object-fit:contain;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+.tile.coin.locked .face img{filter:grayscale(1) brightness(.1) contrast(.8) blur(1px)}
+.tile.coin .cq{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--display);font-weight:600;font-size:34px;color:rgba(215,178,83,.55);
+  text-shadow:0 2px 8px rgba(0,0,0,.9)}
+.big.iscoin{aspect-ratio:1/1;width:90%;box-shadow:none;border-radius:0;overflow:visible}
+.big.iscoin img{object-fit:contain;filter:drop-shadow(0 14px 30px rgba(0,0,0,.7))}
+.big.iscoin.locked img{filter:grayscale(1) brightness(.1) contrast(.8) blur(3px)}
+.big.iscoin .cq{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--display);font-weight:600;font-size:80px;color:rgba(215,178,83,.55)}
 .tile:active .face{transform:scale(.97)}
 .tile .ms{
   display:block;margin:7px 2px 0;text-align:center;font-family:var(--ui);font-weight:800;
@@ -293,6 +308,7 @@
 <div id="rm-bottom-nav"></div>
 <script src="/nav.js" defer></script>
 <script src="/assets/survival-pile.js"></script>
+<script src="/corner.js"></script>
 
 <script>
 (function () {
@@ -378,7 +394,69 @@
     if (c.kind === "misfitversary") return e.years + (e.years === 1 ? " year" : " years") + " a Misfit";
     return c.unlocks || "";
   }
+  /* ---- coins -------------------------------------------------------------
+     The ladder comes from corner.js (window.RMCorner) -- the same one the
+     coin case uses, so the two can never disagree. Earned coins plus the
+     next one, nothing further out. */
+  var COINS = "/assets/coins/";
+  function addDays(ymd, n) {
+    var p = ymd.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2] + n);
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+  }
+  function nice(label) { return label.toLowerCase().replace(/\b\w/g, function (m) { return m.toUpperCase(); }); }
+  function coinImg(r) {
+    var fb = r.file === "coin-06-months.webp"
+      ? ' onerror="this.onerror=null;this.src=\'' + COINS + 'coin-90-days.webp\'"' : "";
+    return '<img src="' + COINS + esc(r.file) + '" alt="' + esc(nice(r.label)) + ' coin" loading="lazy" decoding="async"' + fb + '>';
+  }
+  function coinTiles(sober) {
+    var C = window.RMCorner;
+    if (!C || (C.noAccount && C.noAccount())) return [];
+    var st = C.standing(sober); if (!st) return [];
+    var out = st.earned.map(function (r) {
+      return { isCoin: true, rung: r, card: { kind: "coin", n: r.days, code: "coin-" + r.days },
+               top: { date: addDays(sober, r.days) }, all: [] };
+    });
+    if (st.nextCoin) {
+      var r = st.nextCoin;
+      out.push({ isCoin: true, rung: r, card: { kind: "coin", n: r.days, code: "coin-" + r.days },
+                 top: null, all: [], toGo: r.days - st.days });
+    }
+    return out;
+  }
+  /* Each coin goes in front of the first day-count card that comes after it,
+     so the pile reads 000, 24 hours, 2, 3 ... in the order they were earned. */
+  function mixCoins(list, coins) {
+    coins.forEach(function (k) {
+      var at = -1, last = -1;
+      for (var j = 0; j < list.length; j++) {
+        var c = list[j].card;
+        if (c.kind === "days" || c.kind === "coin") {
+          last = j;
+          if (at === -1 && c.n > k.card.n) at = j;
+        }
+      }
+      list.splice(at !== -1 ? at : last + 1, 0, k);
+    });
+    return list;
+  }
+  function coinTileHtml(g, i) {
+    if (!g.top) {
+      return '<button class="tile coin locked" type="button" data-i="' + i + '">' +
+               '<span class="face">' + coinImg(g.rung) + '<span class="cq">?</span></span>' +
+               '<span class="ms">Next coin</span>' +
+               '<span class="when">' + g.toGo + (g.toGo === 1 ? " day to go" : " days to go") + '</span>' +
+             '</button>';
+    }
+    return '<button class="tile coin" type="button" data-i="' + i + '">' +
+             '<span class="face">' + coinImg(g.rung) + '</span>' +
+             '<span class="ms">' + esc(nice(g.rung.label)) + ' coin</span>' +
+             '<span class="when">' + esc(short(g.top.date)) + '</span>' +
+           '</button>';
+  }
+
   function tileHtml(g, i) {
+    if (g.isCoin) return coinTileHtml(g, i);
     if (!g.top) {
       return '<button class="tile locked" type="button" data-i="' + i + '">' +
                '<span class="face">' + backFace(g.card, false) + '</span>' +
@@ -412,11 +490,11 @@
     $("grid").innerHTML = SECTIONS.map(function (sec) {
       var mine = tiles.filter(function (g) { return sectionOf(g.card) === sec.key; });
       if (!mine.length) return "";
-      var have = mine.filter(function (g) { return g.top; }).length;
+      var have = mine.filter(function (g) { return g.top && !g.isCoin; }).length;
       var isOpen = mine.indexOf(newest) !== -1;
       return '<details class="sec"' + (isOpen ? " open" : "") + '>' +
                '<summary><span class="st">' + sec.title + '</span>' +
-               '<span class="sn">' + have + ' / ' + mine.length + '</span>' +
+               '<span class="sn">' + have + ' / ' + mine.filter(function (g) { return !g.isCoin; }).length + '</span>' +
                '<svg class="sv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
                '</summary><div class="grid">' +
                mine.map(function (g) { return tileHtml(g, tiles.indexOf(g)); }).join("") +
@@ -436,6 +514,7 @@
     var byCode = {};
     earned.forEach(function (g) { byCode[g.card.code] = g; });
     tiles = cards.map(function (c) { return byCode[c.code] || { card: c, all: [], top: null }; });
+    tiles = mixCoins(tiles, coinTiles(sober));
     newest = earned[0] || null;                 /* earned() is newest first */
     var nx = P.next(cards, sober, today, joined);
 
@@ -462,6 +541,22 @@
     var g = tiles[i]; if (!g) return;
     open = g;
     var c = g.card, got = !!g.top;
+    $("big").className = "big" + (g.isCoin ? " iscoin" + (got ? "" : " locked") : "");
+    if (g.isCoin) {
+      $("big").innerHTML = coinImg(g.rung) + (got ? "" : '<span class="cq">?</span>');
+      $("dname").textContent = got ? nice(g.rung.label) + " Coin" : "Your Next Coin";
+      $("dtag").textContent = got ? "Keep coming back!" : g.toGo + (g.toGo === 1 ? " day to go." : " days to go.") + " Keep coming back.";
+      $("dwhen").textContent = got ? "Earned " + P.fmt(g.top.date) : "";
+      $("dback").textContent = ""; $("dback").hidden = true;
+      $("dyears").textContent = "";
+      $("dacts").hidden = true;
+      $("dsay").textContent = "";
+      $("sheet").hidden = false;
+      document.body.style.overflow = "hidden";
+      $("sheet").scrollTop = 0;
+      try { history.pushState({ pile: 1 }, ""); pushed = true; } catch (e) { pushed = false; }
+      return;
+    }
     $("big").innerHTML = got ? face(g, true) : backFace(c, true);
     $("dname").textContent = got ? title(c) : "Still in the deck";
     $("dtag").textContent = got ? (c.tagline || "") : "Keep coming back. It'll turn up.";
