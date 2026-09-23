@@ -97,7 +97,7 @@
   }
 
   var HOLIDAY = {
-    "new-years":     function (y) { return num(y, 12, 31); },
+    "new-years":     function (y) { return num(y, 1, 1); },
     "super-bowl":    superBowl,
     "valentines":    function (y) { return num(y, 2, 14); },
     "st-patricks":   function (y) { return num(y, 3, 17); },
@@ -135,11 +135,11 @@
         if (at <= T) out.push({ card: c, n: at });
       } else if (c.kind === "holiday" && HOLIDAY[c.holiday]) {
         /* Every year they were sober for it, from the sober date on. It lands
-           the MORNING AFTER -- "you made it through" -- and the edition is
+           ON the holiday itself, and the edition is
            the year of that morning, so New Year's Eve 2026 is the 2027 card. */
         for (var y = s[0]; y <= tYear; y++) {
           var h = HOLIDAY[c.holiday](y);
-          if (h >= S && h + 1 <= T) out.push({ card: c, n: h + 1, edition: parse(ymd(h + 1))[0] });
+          if (h >= S && h <= T) out.push({ card: c, n: h, edition: parse(ymd(h))[0] });
         }
       } else if (c.kind === "misfitversary" && J !== null) {
         var j = parse(joinedS), k = 1;
@@ -165,7 +165,7 @@
       else if (c.kind === "holiday" && HOLIDAY[c.holiday]) {
         for (var y = tYear - 1; y <= tYear + 1; y++) {
           var h = HOLIDAY[c.holiday](y);
-          if (h >= S) consider(h + 1);
+          if (h >= S) consider(h);
         }
       } else if (c.kind === "misfitversary" && joinedS) {
         var j = parse(joinedS);
