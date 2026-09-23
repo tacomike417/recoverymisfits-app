@@ -174,6 +174,10 @@
 
   <div class="grid" id="grid"></div>
 
+  <div class="empty" id="soon" hidden>
+    <p>The Survival Pile is on its way &mdash; little milestones between the big coins. Hang in there.</p>
+  </div>
+
   <div class="empty" id="empty" hidden>
     <p>Your pile starts with the night you decided. Put in your sober date and it's yours.</p>
     <a href="/sober-date.html">Set my sober date</a>
@@ -257,6 +261,8 @@
   var groups = [];
 
   function paint(cards) {
+    /* OFF UNTIL MIKE SAYS SO. See isOn() in survival-pile.js. */
+    if (!P.isOn(cards)) { $("soon").hidden = false; return; }
     var sober = P.soberYMD(), today = P.todayYMD(), joined = P.joinedYMD();
     if (!sober) { $("empty").hidden = false; return; }
 
