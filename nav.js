@@ -976,10 +976,10 @@
      whatever Google already has. */
   const items = [
     { href: "/index.html", label: "Home", icon: ICONS.home },
-    { href: "/tools.html", label: "Tools", icon: ICONS.tools },
     { href: "/meme.html", label: "Memes", icon: ICONS.meme },
     { href: "/audio.html", label: "Audio", icon: ICONS.audio },
     { href: "/fun.html", label: "Fun", icon: ICONS.fun },
+    { href: "/tools.html", label: "Tools", icon: ICONS.tools },
     /* SHARE, NOT A PAGE. It opens the code sheet rather than going anywhere,
        which is why it carries data-rm-share and a href that means "no
        destination" -- the click handler below stops it. */
