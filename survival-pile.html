@@ -113,6 +113,25 @@
   background:rgba(14,14,13,.85);color:var(--gold);font-family:var(--ui);font-weight:800;font-size:10px;
 }
 
+/* ---- the drop-downs --------------------------------------------------------
+   One per series, in the order you earn them: the night you decided, the
+   first 90 days, 99 and 100, big numbers, years-months-days, holidays, the
+   Misfitversary. Inside each, oldest first -- zero up to now. Only series
+   with at least one card in them show up at all. */
+.sec{margin:0 0 10px;border:1px solid rgba(215,178,83,.28);border-radius:14px;
+  background:rgba(215,178,83,.04);overflow:hidden}
+.sec > summary{
+  list-style:none;display:flex;align-items:center;gap:10px;min-height:52px;padding:0 14px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.sec > summary::-webkit-details-marker{display:none}
+.sec .st{flex:1;font-family:var(--display);font-weight:600;text-transform:uppercase;
+  font-size:16px;letter-spacing:.5px;color:var(--ivory)}
+.sec .sn{font-family:var(--ui);font-weight:800;font-size:12px;color:var(--gold)}
+.sec .sv{width:18px;height:18px;fill:none;stroke:var(--gold);stroke-width:2;transition:transform .2s}
+.sec[open] .sv{transform:rotate(180deg)}
+.sec .grid{padding:4px 12px 14px}
+
 .empty{
   margin:30px 4px 0;padding:20px 18px;border-radius:14px;text-align:center;
   border:1px solid rgba(215,178,83,.3);background:rgba(215,178,83,.06);
@@ -172,7 +191,7 @@
     <span class="coming" id="coming"></span>
   </div>
 
-  <div class="grid" id="grid"></div>
+  <div id="grid"></div>
 
   <div class="empty" id="soon" hidden>
     <p>The Survival Pile is on its way &mdash; little milestones between the big coins. Hang in there.</p>
@@ -223,8 +242,10 @@
   function title(c) { return c.name || (c.kind === "days" || c.kind === "ymd" ? c.code : c.code); }
 
   /* ---- one tile per card ---------------------------------------------------
-     A holiday earned five years running is five editions but ONE card in the
-     pile, wearing the newest year, with "x5" in the corner. */
+     A holiday is ONE card in the pile. Every year they are sober for it, this
+     year's replaces last year's -- the card just wears the newest year. Miss
+     one (not sober for it yet) and the first year they are is when it turns
+     up; from then on it rolls forward. Same for the Misfitversary. */
   function group(list) {
     var by = {}, order = [];
     list.forEach(function (e) {
@@ -246,7 +267,6 @@
     }
     if (c.kind === "holiday") h += '<span class="badge">' + g.top.edition + '</span>';
     if (c.kind === "misfitversary") h += '<span class="badge">' + g.top.years + '</span>';
-    if (!big && g.all.length > 1) h += '<span class="count">&times;' + g.all.length + '</span>';
     return h;
   }
 
@@ -260,12 +280,31 @@
 
   var groups = [];
 
+  var SECTIONS = [
+    { key: "start",   title: "The Night You Decided" },
+    { key: "first90", title: "The First 90 Days" },
+    { key: "pair",    title: "99 & 100" },
+    { key: "big",     title: "Big Numbers" },
+    { key: "ymd",     title: "Years, Months, Days" },
+    { key: "holiday", title: "Holidays" },
+    { key: "misfit",  title: "Misfitversary" }
+  ];
+  function sectionOf(c) {
+    if (c.kind === "start") return "start";
+    if (c.kind === "holiday") return "holiday";
+    if (c.kind === "misfitversary") return "misfit";
+    if (c.kind === "ymd") return "ymd";
+    if (c.n === 99 || c.n === 100) return "pair";
+    return c.n < 99 ? "first90" : "big";
+  }
+
   function paint(cards) {
     /* OFF UNTIL MIKE SAYS SO. See isOn() in survival-pile.js. */
     if (!P.isOn(cards)) { $("soon").hidden = false; return; }
     var sober = P.soberYMD(), today = P.todayYMD(), joined = P.joinedYMD();
     if (!sober) { $("empty").hidden = false; return; }
 
+    cards.forEach(function (c, i) { c.order = i; });
     groups = group(P.earned(cards, sober, today, joined));
     var nx = P.next(cards, sober, today, joined);
 
@@ -274,12 +313,33 @@
       nx.days === 1 ? "Something's coming tomorrow." : "Something's coming in " + nx.days + " days.";
     $("status").hidden = false;
 
-    $("grid").innerHTML = groups.map(function (g, i) {
-      return '<button class="tile' + (i === 0 ? " newest" : "") + '" type="button" data-i="' + i + '">' +
-               '<span class="face">' + face(g, false) + '</span>' +
-               '<span class="when">' + (i === 0 ? "Newest · " : "") + esc(short(g.top.date)) + '</span>' +
-             '</button>';
+    /* groups[0] is the newest card overall (earned() is newest first). It
+       keeps its gold edge, and its drop-down is the one that starts open. */
+    var newest = groups[0];
+    var html = SECTIONS.map(function (sec) {
+      var mine = groups.filter(function (g) { return sectionOf(g.card) === sec.key; });
+      if (!mine.length) return "";
+      /* Zero up to now. Holidays go in calendar order instead -- January to
+         December reads like a year, and they all carry this year's stamp. */
+      mine.sort(sec.key === "holiday"
+        ? function (a, b) { return a.card.order - b.card.order; }
+        : function (a, b) { return a.top.n - b.top.n; });
+      var isOpen = mine.indexOf(newest) !== -1;
+      return '<details class="sec"' + (isOpen ? " open" : "") + '>' +
+               '<summary><span class="st">' + sec.title + '</span>' +
+               '<span class="sn">' + mine.length + '</span>' +
+               '<svg class="sv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+               '</summary><div class="grid">' +
+               mine.map(function (g) {
+                 var i = groups.indexOf(g), isNew = g === newest;
+                 return '<button class="tile' + (isNew ? " newest" : "") + '" type="button" data-i="' + i + '">' +
+                          '<span class="face">' + face(g, false) + '</span>' +
+                          '<span class="when">' + (isNew ? "Newest · " : "") + esc(short(g.top.date)) + '</span>' +
+                        '</button>';
+               }).join("") +
+             '</div></details>';
     }).join("");
+    $("grid").innerHTML = html;
   }
 
   /* ---- the open card ---------------------------------------------------- */
@@ -295,9 +355,7 @@
     $("dwhen").textContent = whenLine(g);
     $("dback").textContent = c.back || "";
     $("dback").hidden = !c.back;
-    $("dyears").textContent = g.all.length > 1
-      ? "Your editions: " + g.all.map(function (e) { return e.edition || e.years; }).reverse().join(" · ")
-      : "";
+    $("dyears").textContent = "";
     $("dshare").hidden = !c.art;
     $("dshareLabel").textContent = navigator.share ? "Share this card" : "Save the picture";
     $("dsay").textContent = "";

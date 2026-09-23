@@ -22,7 +22,8 @@
    own clock is only asked one thing: what is today's date.
 
    window.RMPile = {
-     load()                         -> Promise of the card list
+     load()                         -> Promise of the card list (.live = the switch)
+     isOn(cards)                    -> false until Mike turns awarding on
      earned(cards, sober, today, joined) -> every card earned, newest first
      next(cards, sober, today, joined)   -> { days } until the next one, or null
      todayYMD(), soberYMD(), joinedYMD()
@@ -202,13 +203,33 @@
     if (!cache) {
       cache = fetch("/data/survival-pile.json", { cache: "no-cache" })
         .then(function (r) { if (!r.ok) throw new Error("survival-pile.json " + r.status); return r.json(); })
-        .then(function (d) { return (d && d.cards) || []; });
+        .then(function (d) {
+          var cards = (d && d.cards) || [];
+          cards.live = !!(d && d.live);
+          return cards;
+        });
       cache.catch(function () { cache = null; });
     }
     return cache;
   }
 
+  /* THE SWITCH. Nothing is awarded -- no pile, no popup, nothing -- until
+     "live" is true in data/survival-pile.json. The one exception is a
+     preview: open the page once with ?preview=1 and this phone shows the
+     real pile from then on (?preview=0 turns it back off). Nobody else is
+     affected by it. */
+  function isOn(cards) {
+    try {
+      var q = new URLSearchParams(location.search).get("preview");
+      if (q === "1") localStorage.setItem("rm_pile_preview", "1");
+      if (q === "0") localStorage.removeItem("rm_pile_preview");
+      if (localStorage.getItem("rm_pile_preview") === "1") return true;
+    } catch (e) {}
+    return !!(cards && cards.live);
+  }
+
   var api = {
+    isOn: isOn,
     load: load, earned: earned, next: next,
     todayYMD: todayYMD, soberYMD: soberYMD, joinedYMD: joinedYMD, fmt: fmt,
     _addYMD: addYMD, _holiday: HOLIDAY, _num: num, _ymd: ymd
