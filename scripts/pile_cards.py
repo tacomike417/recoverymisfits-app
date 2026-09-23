@@ -107,6 +107,9 @@ def read_sheet(path):
 
 def art_key(filename):
     stem = os.path.splitext(os.path.basename(filename))[0].lower()
+    m = re.match(r'^(\d+)-', stem)           # "066-Route-66.png" -> 066
+    if m:
+        stem = m.group(1)
     if stem.isdigit():                      # 0.png / 000.png -> 000; 002.png -> 2
         return stem.lstrip('0') or '000'
     return stem
