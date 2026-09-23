@@ -347,6 +347,7 @@
   var SECTIONS = [
     { key: "start",   title: "Your First Week" },
     { key: "first90", title: "The First 100 Days" },
+    { key: "angel",   title: "Angel Anniversaries" },
     { key: "big",     title: "Big Numbers" },
     { key: "ymd",     title: "Years, Months, Days" },
     { key: "holiday", title: "Holidays" },
@@ -358,6 +359,7 @@
     if (c.kind === "misfitversary") return "misfit";
     if (c.kind === "ymd") return "ymd";
     if (c.n <= 7) return "start";   /* day 7 still counts as your first week */
+    if (c.n > 100 && /^(\d)\1+$/.test(String(c.n))) return "angel";   /* 111, 222 ... 9999 */
     return c.n <= 100 ? "first90" : "big";   /* 99 and 100 live in the first 100 days */
   }
 
