@@ -5,20 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Meme of the Day — Recovery Misfits</title>
 <meta name="theme-color" content="#0e0e0d">
-<link rel="manifest" href="./manifest.json">
-<link rel="icon" href="./icon-192.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
 
+<!-- THE LINK PREVIEW. This is what Facebook, Messenger and a text message
+     draw when somebody pastes a link to this page -- and a link with a
+     picture on it gets tapped, a gray one gets scrolled past.
+
+     scripts/build_pages.py fills these in at deploy time: once for this page
+     with TODAY's meme, and once for every /meme/MM-DD/ page with that day's.
+     The og:image is not the meme file itself but a 1200x630 card with the
+     whole meme on it, because Facebook crops a square picture to a wide strip
+     and takes the top and bottom caption off with it. The values written here
+     are only what a local copy shows before a build has run. -->
+<link rel="canonical" href="https://recoverymisfits.org/meme.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Recovery Misfits">
 <meta property="og:title" content="Recovery Meme of the Day — Recovery Misfits">
 <meta property="og:description" content="A new one every day. Free, no account, nothing to sign up for.">
 <meta property="og:url" content="https://recoverymisfits.org/meme.html">
+<meta property="og:image" content="https://recoverymisfits.org/icon-512.png">
+<meta property="og:image:alt" content="Recovery Misfits meme of the day">
 <meta name="twitter:card" content="summary_large_image">
 
 <style>html{background:#0e0e0d}body{background:#0e0e0d;color:#eee6d5;margin:0}</style>
-<link rel="stylesheet" href="./assets/daily-reading.css">
+<link rel="stylesheet" href="/assets/daily-reading.css">
 
 <style>
   /* ---- MEME OF THE DAY ---------------------------------------------------
@@ -86,6 +101,22 @@
     font-family:var(--ui);font-size:12px;color:var(--muted);
   }
   .say.bad{color:#e2a08f}
+
+  .door{
+    display:block;margin:12px 0 0;padding:13px 16px;border-radius:14px;
+    text-decoration:none;text-align:center;
+    background:rgba(215,178,83,.08);border:1px solid rgba(215,178,83,.3);
+  }
+  .door[hidden]{display:none}
+  .door:active{background:rgba(215,178,83,.16)}
+  .door-q{
+    display:block;font-family:var(--display);font-weight:600;font-size:17px;
+    letter-spacing:.6px;text-transform:uppercase;color:var(--ivory);
+  }
+  .door-a{
+    display:block;margin-top:3px;
+    font-family:var(--ui);font-weight:700;font-size:12.5px;color:var(--gold);
+  }
 
   /* ---- THE LAST TEN DAYS ------------------------------------------------
      A rail you drag sideways, bled out past the page's 16px gutter on both
@@ -160,10 +191,14 @@
 </head>
 
 <!-- Lives in the daily stack, so Readings is the tab that stays lit. -->
-<body data-rm-nav="meme.html">
+<!-- data-meme-day IS EMPTY ON /meme.html, which shows today. On the
+     /meme/MM-DD/ pages the build writes that day into it, so a link somebody
+     shared last Tuesday opens last Tuesday's meme -- the one they laughed
+     at -- and not whatever today's happens to be. -->
+<body data-rm-nav="meme.html" data-meme-day="">
 
 <div id="rm-topbar"></div>
-<script src="./topbar.js" defer></script>
+<script src="/topbar.js" defer></script>
 
 <div class="wrap">
 <main>
@@ -185,11 +220,20 @@
     </button>
     <button class="btn btn-alt" id="copy" type="button">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Copy the link
+      <span id="copyLabel">Share the link</span>
     </button>
   </div>
 
   <p class="say" id="say" role="status" aria-live="polite"></p>
+
+  <!-- ONE DOOR, NOT A PITCH. Somebody who got here off a friend's link has
+       seen a meme and nothing else. The thing people keep telling Mike they
+       love is the coin, so this points at it -- once, quietly, and only to
+       somebody who has not put a date in yet. Hidden for everyone else. -->
+  <a class="door" id="door" href="/sober-date.html" hidden>
+    <span class="door-q">Got a sober date?</span>
+    <span class="door-a">Put it in and the app hands you your coin &rarr;</span>
+  </a>
 
   <!-- The last ten days, plus today at the front so there is always one tap
        back to it. Built by the script below; empty until then. -->
@@ -199,9 +243,10 @@
   </section>
 
   <p class="note">
-    The copy that gets shared has <b>recoverymisfits.org</b> printed along the
-    bottom, because a picture is all that travels &mdash; Instagram and Facebook
-    do not carry a link with it.
+    <b>Share this one</b> sends the picture, with <b>recoverymisfits.org</b>
+    printed along the bottom &mdash; best for Instagram and texts.
+    <b>Share the link</b> is the one for Facebook: it shows up as the meme, and
+    a tap on it lands right back here.
   </p>
 
 </main>
@@ -212,14 +257,14 @@
 <div class="tailroom"></div>
 
 <div id="rm-bottom-nav"></div>
-<script src="./nav.js" defer></script>
+<script src="/nav.js" defer></script>
 
 <script>
 (function () {
   "use strict";
 
   var SITE  = "recoverymisfits.org";
-  var LINK  = "https://recoverymisfits.org/meme.html";
+  var ORIGIN = "https://recoverymisfits.org";
   var BAND  = 90;                       /* the strip under the art, in art pixels */
 
   var shot  = document.getElementById("shot");
@@ -229,6 +274,7 @@
   var btn   = document.getElementById("share");
   var lab   = document.getElementById("shareLabel");
   var cpy   = document.getElementById("copy");
+  var cpyLab = document.getElementById("copyLabel");
 
   function tell(msg, bad) {
     say.textContent = msg || "";
@@ -241,17 +287,31 @@
      year's memes every fourth year. MM-DD cannot. */
   var now = new Date();
   var pad = function (n) { return (n < 10 ? "0" : "") + n; };
-  var key = pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+  var todayKey = pad(now.getMonth() + 1) + "-" + pad(now.getDate());
 
   var MONTHS = ["January","February","March","April","May","June","July",
                 "August","September","October","November","December"];
-  when.textContent = MONTHS[now.getMonth()] + " " + now.getDate();
+
+  /* A /meme/MM-DD/ PAGE OPENS ON ITS OWN DAY. The build writes the day into
+     data-meme-day; /meme.html leaves it empty and gets today. */
+  var fixed = (document.body.getAttribute("data-meme-day") || "").trim();
+  var key = /^\d\d-\d\d$/.test(fixed) ? fixed : todayKey;
+
+  function labelFor(k) {
+    return MONTHS[parseInt(k.slice(0, 2), 10) - 1] + " " + parseInt(k.slice(3), 10);
+  }
+  /* EVERY MEME HAS ITS OWN ADDRESS, and that is the one that gets shared.
+     It carries that meme's picture as its link preview and opens on that
+     meme, so the friend who taps it sees the thing they were sent. */
+  function linkFor(k) { return ORIGIN + "/meme/" + k + "/"; }
+
+  when.textContent = labelFor(key);
 
   /* WHAT IS SHOWING RIGHT NOW. It starts as today and changes when somebody
      picks one off the rail -- the share button, the filename and the date
      line all read from here rather than from the clock, so sharing an old one
      shares the old one and does not quietly send today's instead. */
-  var cur = { key: key, file: null, label: MONTHS[now.getMonth()] + " " + now.getDate() };
+  var cur = { key: key, file: null, label: labelFor(key) };
   var DAYS_BACK = 10;
 
   function show(item) {
@@ -261,7 +321,13 @@
     frame.classList.remove("ready");
     btn.disabled = true;
     tell("");
-    shot.src = "./assets/memes/" + item.file;
+    shot.src = "/assets/memes/" + item.file;
+
+    /* The address bar follows along, so the phone's own share button and a
+       copied address both point at the meme on the screen. replaceState, not
+       pushState: flipping through the rail is not a trail of pages, and back
+       still goes where the person came from. */
+    try { history.replaceState(null, "", "/meme/" + item.key + "/"); } catch (e) {}
 
     var chips = document.querySelectorAll("#strip .chip");
     for (var i = 0; i < chips.length; i++) {
@@ -301,7 +367,7 @@
 
       var img = new Image();
       /* The thumbnail, not the meme. 28KB against 330. */
-      img.src = "./assets/memes/thumbs/" + it.file.replace(/\.jpg$/i, ".webp");
+      img.src = "/assets/memes/thumbs/" + it.file.replace(/\.jpg$/i, ".webp");
       img.alt = "";
       img.setAttribute("aria-hidden", "true");
       img.loading = "lazy";
@@ -320,15 +386,15 @@
     document.getElementById("rail").hidden = false;
   }
 
-  fetch("./data/memes.json", { cache: "no-cache" })
+  fetch("/data/memes.json", { cache: "no-cache" })
     .then(function (r) { if (!r.ok) throw new Error("memes.json " + r.status); return r.json(); })
     .then(function (data) {
       var dates = data.dates || {};
-      var today = dates[key];
-      if (!today) throw new Error("no meme set for " + key);
-      cur.file = today;
+      var first = dates[key];
+      if (!first) throw new Error("no meme set for " + key);
+      cur.file = first;
       shot.alt = "Recovery Misfits meme for " + cur.label;
-      shot.src = "./assets/memes/" + today;
+      shot.src = "/assets/memes/" + first;
       buildRail(dates);
     })
     .catch(function (e) {
@@ -430,7 +496,10 @@
       if (canSendFiles(f)) {
         return navigator.share({
           files: [f],
-          text: "Recovery Misfits — " + SITE
+          /* Texts and Messenger keep this line and turn it into a link.
+             Facebook and Instagram drop it -- which is why the address is
+             printed on the picture as well. */
+          text: "Recovery Misfits \u2014 " + linkFor(cur.key)
         }).then(function () { tell(""); })
           .catch(function (err) {
             /* Backing out of the share sheet is not an error worth shouting about. */
@@ -455,27 +524,53 @@
     lab.textContent = "Save the image";
   }
 
-  cpy.addEventListener("click", function () {
+  /* SHARE THE LINK. On a phone this opens the share sheet with the meme's
+     own address, which is the best way onto Facebook: it lands as a post with
+     the meme on it that somebody can tap straight through. On a desktop there
+     is no share sheet, so it copies the address instead and says so. */
+  var canShareLink = !!navigator.share;
+  if (!canShareLink) cpyLab.textContent = "Copy the link";
+
+  function copyLink(link) {
     var done = function () { tell("Link copied."); };
-    var fail = function () { tell("Could not copy — the address is " + LINK, true); };
+    var fail = function () { tell("Could not copy \u2014 the address is " + link, true); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(LINK).then(done).catch(fail);
+      navigator.clipboard.writeText(link).then(done).catch(fail);
     } else {
       try {
         var t = document.createElement("textarea");
-        t.value = LINK; t.setAttribute("readonly", "");
+        t.value = link; t.setAttribute("readonly", "");
         t.style.position = "absolute"; t.style.left = "-9999px";
         document.body.appendChild(t); t.select();
         document.execCommand("copy"); t.remove(); done();
       } catch (e) { fail(); }
     }
+  }
+
+  cpy.addEventListener("click", function () {
+    var link = linkFor(cur.key);
+    if (!canShareLink) { copyLink(link); return; }
+    navigator.share({ title: "Recovery Misfits \u2014 Meme of the Day", url: link })
+      .then(function () { tell(""); })
+      .catch(function (err) {
+        if (err && (err.name === "AbortError" || err.name === "NotAllowedError")) { tell(""); return; }
+        copyLink(link);
+      });
   });
+
+  /* THE COIN DOOR shows only to somebody with no sober date on this phone.
+     Same key nav.js and the sober date screen use. Storage that throws
+     (private mode) counts as "no date", which is the right guess for a
+     stranger arriving off a link. */
+  try {
+    if (!localStorage.getItem("rm_sober_date")) document.getElementById("door").hidden = false;
+  } catch (e) { document.getElementById("door").hidden = false; }
 
 })();
 </script>
 
 <script>
-if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js"); }
+if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/sw.js"); }
 </script>
 
 </body>

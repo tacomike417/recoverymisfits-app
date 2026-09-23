@@ -658,38 +658,43 @@ body::after{
 .m-belong{position:absolute;right:-13px;bottom:-10px;width:32px;opacity:.85;pointer-events:none;z-index:0}
 
 
-/* ---- SPEAKER TAPES ------------------------------------------------------
-   The last ten off the channel, as a rail you drag sideways. Built like the
-   one on the meme page and bled past the page's 16px gutter on both sides,
-   so the row is visibly cut off at the screen edge -- which is the only
-   honest way to say "there is more this way" without drawing an arrow
-   nobody presses.
+/* ---- MEME RAIL ----------------------------------------------------------
+   Today's meme and the nine days behind it, as a rail you drag sideways.
+   This spot used to be the speaker tapes. The memes took it because they are
+   the thing people actually react to -- "I love the memes" -- and the tapes
+   already have a whole screen on the Audio tab with all of them and the
+   player. Ten of 178 on the front page was a teaser for a page one tap away.
 
-   IT IS NOT ON THE PAGE UNTIL THERE IS SOMETHING IN IT. data/tapes.js is
-   written at deploy time by scripts/fetch_tapes.py and that script is
-   allowed to fail quietly -- no key, spent quota, YouTube having a morning.
-   When it has not run there is no window.RM_TAPES, the section stays hidden
-   and the page closes up around it. A heading over an empty strip is worse
-   than no heading.
+   Built like the rail on the meme page and bled past the page's 16px gutter
+   on both sides, so the row is visibly cut off at the screen edge -- the
+   honest way to say "there is more this way" without an arrow nobody presses.
+
+   THUMBNAILS, NOT MEMES. 28KB each out of assets/memes/thumbs/ rather than
+   330KB each. EACH ONE IS A REAL LINK to that day's own page, /meme/MM-DD/,
+   which opens on that meme -- so the phone's back button comes straight back
+   here, and a long-press "copy link" copies the right one.
+
+   IT IS NOT ON THE PAGE UNTIL THERE IS SOMETHING IN IT. If memes.json does
+   not load the section stays hidden and the page closes up around it.
    --------------------------------------------------------------------- */
-.tapes{margin:24px 0 0}
-.tapes[hidden]{display:none}
-.tapehead{
+.memes{margin:24px 0 0}
+.memes[hidden]{display:none}
+.memehead{
   display:flex;align-items:baseline;gap:9px;margin:0 2px 9px;
 }
-.tapehead .k{
+.memehead .k{
   font-family:var(--display);font-weight:600;
   font-size:15px;letter-spacing:1.1px;text-transform:uppercase;color:var(--ivory);
 }
-.tapehead .all{
+.memehead .all{
   margin-left:auto;
   font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.4px;
   text-transform:uppercase;color:var(--gold);text-decoration:none;
   white-space:nowrap;
 }
-.tapehead .all:active{color:var(--gold-lit)}
+.memehead .all:active{color:var(--gold-lit)}
 
-.tapestrip{
+.memestrip{
   display:flex;gap:10px;
   overflow-x:auto;overflow-y:hidden;
   /* scroll-padding, OR THE SNAP EATS THE GUTTER. The strip is bled 16px past
@@ -703,49 +708,32 @@ body::after{
   margin:0 -16px;padding:2px 16px 4px;
   scrollbar-width:none;
 }
-.tapestrip::-webkit-scrollbar{display:none}
+.memestrip::-webkit-scrollbar{display:none}
 
-.tapechip{
-  flex:0 0 auto;width:152px;
-  display:block;text-decoration:none;color:var(--ivory);
+.memechip{
+  flex:0 0 auto;width:118px;
+  display:block;text-decoration:none;
   scroll-snap-align:start;-webkit-tap-highlight-color:transparent;
 }
-.tapeshot{
-  position:relative;display:block;
-  width:152px;height:86px;border-radius:10px;overflow:hidden;
-  background:#141412;border:1px solid rgba(215,178,83,.26);
+.memeshot{
+  display:block;width:118px;height:118px;border-radius:11px;overflow:hidden;
+  background:#141412;border:1.5px solid rgba(215,178,83,.26);
 }
-.tapeshot img{width:100%;height:100%;object-fit:cover;display:block}
-/* The play badge. A thumbnail with nothing on it reads as a picture; with
-   this it reads as a thing you press. */
-.tapeshot::after{
-  content:"";position:absolute;left:50%;top:50%;
-  width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;
-  background:rgba(12,11,9,.72) url("data:image/svg+xml;charset=utf-8,\
-%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E\
-%3Cpath d='M9 6.5v11l9-5.5z' fill='%23f1e7cf'/%3E%3C/svg%3E") center/16px no-repeat;
-  box-shadow:0 0 0 1.4px rgba(215,178,83,.6);
-}
-.tapechip:active .tapeshot{border-color:var(--gold)}
-.tapechip:focus-visible .tapeshot{outline:2px solid var(--gold);outline-offset:2px}
-
-.tapechip .t{
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-  overflow:hidden;
-  margin:7px 1px 0;
-  font-family:var(--ui);font-weight:700;font-size:11.5px;line-height:1.28;
-  color:var(--ivory);
-}
-.tapechip .s{
-  display:block;margin:3px 1px 0;
-  font-family:var(--ui);font-weight:700;font-size:9.5px;letter-spacing:1.1px;
+.memeshot img{width:100%;height:100%;object-fit:cover;display:block}
+.memechip.is-today .memeshot{border-color:var(--gold);box-shadow:0 0 0 2px rgba(215,178,83,.28)}
+.memechip:active .memeshot{border-color:var(--gold)}
+.memechip:focus-visible .memeshot{outline:2px solid var(--gold);outline-offset:2px}
+.memechip .d{
+  display:block;margin-top:6px;text-align:center;
+  font-family:var(--ui);font-weight:700;font-size:9.5px;letter-spacing:1.2px;
   text-transform:uppercase;color:var(--muted);
 }
+.memechip.is-today .d{color:var(--gold)}
 
 @media (max-width:359px){
-  .tapechip,.tapeshot{width:132px}
-  .tapeshot{height:75px}
-  .tapehead .k{font-size:13.5px}
+  .memechip,.memeshot{width:104px}
+  .memeshot{height:104px}
+  .memehead .k{font-size:13.5px}
 }
 
 /* ---- RECOVERY BASICS ----------------------------------------------------
@@ -1343,20 +1331,20 @@ body::after{
   </div>
 
   <!-- ===================================================================
-       SPEAKER TAPES.
+       MEME OF THE DAY RAIL.
 
-       The last ten off the channel. Tapping one opens it in the player on
-       the Audio page rather than throwing somebody out to YouTube -- that is
-       what the #tape= on the link is for, and audio.html reads it.
+       Where the speaker tapes used to be. Today first, then nine days
+       back; every thumbnail is a link to that day's own meme page. The
+       tapes are all on the Audio tab.
 
-       Hidden until data/tapes.js has something in it. See the stylesheet.
+       Hidden until data/memes.json has loaded. See the stylesheet.
        ================================================================ -->
-  <section class="tapes" id="rm-tapes" aria-labelledby="tapesTitle" hidden>
-    <div class="tapehead">
-      <h2 class="k" id="tapesTitle">Speaker Tapes</h2>
-      <a class="all" href="./audio.html">All Tapes &rarr;</a>
+  <section class="memes" id="rm-memes" aria-labelledby="memesTitle" hidden>
+    <div class="memehead">
+      <h2 class="k" id="memesTitle">Meme of the Day</h2>
+      <a class="all" href="/meme.html">Open Today &rarr;</a>
     </div>
-    <div class="tapestrip" id="tapeStrip"></div>
+    <div class="memestrip" id="memeStrip"></div>
   </section>
 
   <!-- ===================================================================
@@ -1612,78 +1600,61 @@ body::after{
 <script src="./nav.js" defer></script>
 <script src="./corner.js" defer></script>
 <script src="./basics.js" defer></script>
-<!-- THE TAPES OFF THE CHANNEL, written by scripts/fetch_tapes.py at deploy
-     time. It is ALLOWED TO BE MISSING: no key, spent quota or a YouTube
-     outage and the script writes nothing, this 404s, RM_TAPES is undefined
-     and the rail above simply never appears. -->
-<script src="./data/tapes.js"></script>
 <script>
-/* THE LAST TEN, NEWEST FIRST.
-
-   fetch_tapes.py hands over playlists, then the series it worked out, then
-   the loose talks newest first. For a rail that says "the last ten" it is
-   the loose talks that matter -- a playlist somebody built in 2022 is not
-   news. So singles first in the order they arrived, and the series and
-   playlists only fill in behind them if there are not ten yet.
-
-   THE KEY MATCHES THE ONE audio.html BUILDS, first letter of the kind and
-   the id. If that ever changes there, it changes here. */
+/* THE MEME RAIL. Today and the nine days behind it, keyed MM-DD off this
+   phone's clock -- the same rule meme.html uses, so the chip that says TODAY
+   is the meme the Memes tab opens on. */
 (function () {
   "use strict";
 
-  var MAX = 10;
-  var sec = document.getElementById("rm-tapes");
-  if (!sec) return;
+  var DAYS = 10;
+  var sec = document.getElementById("rm-memes");
+  var strip = document.getElementById("memeStrip");
+  if (!sec || !strip) return;
 
-  var data = window.RM_TAPES;
-  if (!data || !Array.isArray(data.items) || !data.items.length) return;
+  var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+  var now = new Date();
 
-  var ok = data.items.filter(function (t) { return t && t.id && t.title; });
-  var rank = { video: 0, group: 1, playlist: 2 };
-  var pick = ok.slice().sort(function (a, b) {
-    return (rank[a.kind] === undefined ? 3 : rank[a.kind]) -
-           (rank[b.kind] === undefined ? 3 : rank[b.kind]);
-  }).slice(0, MAX);
-  if (!pick.length) return;
+  fetch("/data/memes.json", { cache: "no-cache" })
+    .then(function (r) { if (!r.ok) throw new Error("memes.json " + r.status); return r.json(); })
+    .then(function (data) {
+      var dates = (data && data.dates) || {};
+      var seen = {}, n = 0;
+      for (var i = 0; i < DAYS + 2 && n < DAYS; i++) {
+        var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        var k = pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+        var f = dates[k];
+        if (!f || seen[k]) continue;          /* Feb 29 in a common year */
+        seen[k] = 1; n++;
 
-  var strip = document.getElementById("tapeStrip");
-  pick.forEach(function (t) {
-    var key = String(t.kind || "p").slice(0, 1) + "_" + t.id;
+        var a = document.createElement("a");
+        a.className = "memechip" + (i === 0 ? " is-today" : "");
+        a.href = "/meme/" + k + "/";
+        a.setAttribute("aria-label", "Meme for " + MON[d.getMonth()] + " " + d.getDate());
 
-    var a = document.createElement("a");
-    a.className = "tapechip";
-    a.href = "./audio.html#tape=" + encodeURIComponent(key);
+        var box = document.createElement("span");
+        box.className = "memeshot";
+        var img = new Image();
+        img.src = "/assets/memes/thumbs/" + f.replace(/\.jpg$/i, ".webp");
+        img.alt = "";
+        img.setAttribute("aria-hidden", "true");
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.width = 118; img.height = 118;
+        box.appendChild(img);
 
-    var shot = document.createElement("span");
-    shot.className = "tapeshot";
-    if (t.thumb) {
-      var img = new Image();
-      img.src = t.thumb;
-      img.alt = "";
-      img.setAttribute("aria-hidden", "true");
-      img.loading = "lazy";
-      img.decoding = "async";
-      /* A thumbnail that will not load leaves the dark box and the play
-         badge, which still reads as a tape. Better than a broken picture. */
-      img.addEventListener("error", function () { img.remove(); });
-      shot.appendChild(img);
-    }
+        var cap = document.createElement("span");
+        cap.className = "d";
+        cap.textContent = i === 0 ? "Today" : MON[d.getMonth()] + " " + d.getDate();
 
-    var ttl = document.createElement("span");
-    ttl.className = "t";
-    ttl.textContent = t.title;
-
-    var sub = document.createElement("span");
-    sub.className = "s";
-    sub.textContent = t.sub || "Speaker tape";
-
-    a.appendChild(shot);
-    a.appendChild(ttl);
-    a.appendChild(sub);
-    strip.appendChild(a);
-  });
-
-  sec.hidden = false;
+        a.appendChild(box);
+        a.appendChild(cap);
+        strip.appendChild(a);
+      }
+      if (n) sec.hidden = false;
+    })
+    .catch(function (e) { if (window.console) console.warn(e); });
 })();
 </script>
 

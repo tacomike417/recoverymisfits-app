@@ -516,10 +516,27 @@
   /* `force` is the Share tab asking for it by name. A no last Tuesday
      silences the sheet that comes up on its own, never the one somebody
      deliberately went looking for. */
+  /* NOT ON SOMEBODY'S VERY FIRST VISIT. A friend taps a meme link on
+     Facebook, and before they have even read the meme a sheet slides up
+     asking them to install something. That is the moment the tab gets
+     closed. So the first visit is theirs: the meme, the app, no ask. The
+     sheet comes up on its own from the second visit on, and the Share tab
+     can still open it by name any time. */
+  const FIRST_SEEN_KEY = "rm_first_seen_at";
+  function isFirstVisit() {
+    try {
+      if (localStorage.getItem(FIRST_SEEN_KEY)) return false;
+      localStorage.setItem(FIRST_SEEN_KEY, String(Date.now()));
+      return true;
+    } catch (e) { return false; }
+  }
+  const firstVisit = isFirstVisit();
+
   function initInstallSheet(force) {
     if (isStandalone) return;
     if (!isAndroid && !isIOS) return;
     if (!force && recentlyDismissed()) return;
+    if (!force && firstVisit) return;
 
     const built = buildInstallSheet();
     if (!built) return;
@@ -555,7 +572,10 @@
     const copyBtn = document.getElementById("rm-install-copy");
     if (copyBtn) {
       copyBtn.addEventListener("click", async () => {
-        const url = "https://recoverymisfits.org/";
+        /* The page they are ON, not the front door -- somebody who came in
+           on a meme link lands back on that meme in Safari. */
+        const url = location.origin === "https://recoverymisfits.org"
+          ? location.href : "https://recoverymisfits.org/";
         try {
           await navigator.clipboard.writeText(url);
           copyBtn.textContent = "Copied \u2014 now open Safari";

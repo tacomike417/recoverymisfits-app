@@ -569,6 +569,146 @@ def bake_homepage(out_root, readings):
     return True
 
 
+# ===========================================================================
+# MEME OF THE DAY -- ONE PAGE PER DAY, EACH WITH ITS OWN LINK PREVIEW
+#
+#     /meme/MM-DD/index.html
+#
+# WHY. Somebody shares a meme link on Facebook or in a text. For that link to
+# show up as the meme -- and not as a gray bar with a web address on it --
+# the page it points at has to carry that meme in its og:image, written into
+# the HTML, because Facebook's previewer does not run JavaScript. And for the
+# friend who taps it to see the meme they were sent, not today's, the page
+# has to know which day it is. So: one copy of meme.html per day, with the
+# day and the preview baked in. Same trick as the reading pages above.
+#
+# THE PREVIEW PICTURE IS A 1200x630 CARD, not the meme. Facebook draws link
+# previews wide and crops a square picture to fit -- which on a meme takes
+# off the top line and the punchline. The card puts the whole square in the
+# middle of a dark wide frame so nothing gets cut. The cards are made by
+# scripts/make_meme_thumbs.py and committed, same as the thumbnails.
+#
+# THESE ARE NOT IN THE SITEMAP on purpose. A page that is one picture and no
+# words is exactly what Search Console calls a soft 404, and that fight has
+# already been had once on this site.
+# ===========================================================================
+
+MEMES_PATH = os.path.join(ROOT, 'data', 'memes.json')
+OG_W, OG_H = 1200, 630
+
+
+def meme_card(src, dst):
+    """The wide link-preview card: the whole meme, centered on the app's black,
+    with the same gold hairline the app puts around it."""
+    from PIL import Image, ImageDraw
+    im = Image.open(src).convert('RGB')
+    side = OG_H - 40                          # 20px of black above and below
+    im = im.resize((side, side), Image.LANCZOS)
+    card = Image.new('RGB', (OG_W, OG_H), (14, 14, 13))
+    x, y = (OG_W - side) // 2, 20
+    card.paste(im, (x, y))
+    d = ImageDraw.Draw(card)
+    d.rectangle([x - 2, y - 2, x + side + 1, y + side + 1], outline=(150, 126, 64), width=2)
+    card.save(dst, 'JPEG', quality=86, optimize=True, progressive=True)
+
+
+def build_memes(out_root):
+    src_page = os.path.join(out_root, 'meme.html')
+    if not os.path.exists(MEMES_PATH) or not os.path.exists(src_page):
+        print('  ! memes.json or meme.html missing; meme pages not built')
+        return 0
+    with open(MEMES_PATH, encoding='utf-8') as f:
+        dates = json.load(f).get('dates', {})
+    with open(src_page, encoding='utf-8') as f:
+        template = f.read()
+
+    # One card per meme FILE, not per date -- the same meme sits on several
+    # dates until there are 366 of them.
+    #
+    # THE CARDS ARE COMMITTED, made by scripts/make_meme_thumbs.py alongside
+    # the thumbnails -- so the deploy does not need Pillow. A meme added
+    # without re-running that script gets its card drawn here if Pillow
+    # happens to be around, and otherwise falls back to the square meme.
+    og_dir = os.path.join(out_root, 'assets', 'memes', 'og')
+    cards, drawn, missing = {}, 0, 0
+    for name in sorted(set(dates.values())):
+        dst = os.path.join(og_dir, name)
+        if not os.path.exists(dst):
+            src = os.path.join(ROOT, 'assets', 'memes', name)
+            try:
+                os.makedirs(og_dir, exist_ok=True)
+                meme_card(src, dst)
+                drawn += 1
+            except Exception:
+                missing += 1
+                continue
+        cards[name] = ('/assets/memes/og/%s' % name, OG_W, OG_H)
+    print('Meme preview cards: %d ready (%d drawn at build).' % (len(cards), drawn))
+    if missing:
+        print('  ! %d memes have no preview card -- run scripts/make_meme_thumbs.py' % missing)
+
+    def preview(name):
+        return cards.get(name) or ('/assets/memes/%s' % name, 1080, 1080)
+
+    def bake(page, day, name, url):
+        img, w, h = preview(name)
+        label = '%s %d' % (MONTH_NAMES[int(day[:2]) - 1], int(day[3:]))
+        title = 'Recovery Meme of the Day — %s' % label
+        swaps = [
+            (r'<title>.*?</title>',
+             '<title>%s | Recovery Misfits</title>' % html.escape(title)),
+            (r'<link rel="canonical" href="[^"]*">',
+             '<link rel="canonical" href="%s">' % url),
+            (r'<meta property="og:title" content="[^"]*">',
+             '<meta property="og:title" content="%s">' % html.escape(title, quote=True)),
+            (r'<meta property="og:url" content="[^"]*">',
+             '<meta property="og:url" content="%s">' % url),
+            (r'<meta property="og:image" content="[^"]*">',
+             '<meta property="og:image" content="%s%s">\n'
+             '<meta property="og:image:width" content="%d">\n'
+             '<meta property="og:image:height" content="%d">' % (SITE_URL, img, w, h)),
+            (r'<meta property="og:image:alt" content="[^"]*">',
+             '<meta property="og:image:alt" content="%s">'
+             % html.escape('Recovery Misfits meme for ' + label, quote=True)),
+        ]
+        for pat, repl in swaps:
+            page, n = re.subn(pat, lambda m: repl, page, count=1, flags=re.S)
+            if not n:
+                print('  ! meme page %s: could not set %s' % (day, pat[:30]))
+        return page
+
+    count = 0
+    for day, name in sorted(dates.items()):
+        if not re.match(r'^\d\d-\d\d$', day):
+            continue
+        url = '%s/meme/%s/' % (SITE_URL, day)
+        page = bake(template, day, name, url)
+        page = page.replace('data-meme-day=""', 'data-meme-day="%s"' % day, 1)
+        d = os.path.join(out_root, 'meme', day)
+        os.makedirs(d, exist_ok=True)
+        with open(os.path.join(d, 'index.html'), 'w', encoding='utf-8') as f:
+            f.write(page)
+        count += 1
+
+    # /meme.html ITSELF gets today's preview, so the plain link shows a
+    # picture too. The workflow runs every morning, so this is at most a few
+    # hours behind; its canonical stays /meme.html because it is "today's",
+    # not any one day's.
+    today = datetime.datetime.utcnow().strftime('%m-%d')
+    if today in dates:
+        page = bake(template, today, dates[today], '%s/meme.html' % SITE_URL)
+        page = re.sub(r'<title>.*?</title>',
+                      '<title>Meme of the Day — Recovery Misfits</title>', page, count=1)
+        page = re.sub(r'<meta property="og:title" content="[^"]*">',
+                      '<meta property="og:title" content="Recovery Meme of the Day — Recovery Misfits">',
+                      page, count=1)
+        with open(src_page, 'w', encoding='utf-8') as f:
+            f.write(page)
+
+    print('Generated %d meme pages under /meme/.' % count)
+    return count
+
+
 def main():
     with open(READINGS_PATH, encoding='utf-8') as f:
         readings = json.load(f)
@@ -649,6 +789,7 @@ def main():
         # crawler is still one hop from every reading.
         bake_homepage(OUT_ROOT, readings)
         write_moved_js(OUT_ROOT)
+        build_memes(OUT_ROOT)
 
     print('Generated %d reading pages, an archive index, and sitemap.xml with %d URLs.'
           % (len(readings), len(urls)))
