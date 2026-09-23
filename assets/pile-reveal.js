@@ -9,8 +9,10 @@
        the pile for them to find.
      * Under the card: the milestone, then the date. An X to close. That is
        all -- they can screenshot it, or save it properly from the pile.
-     * A coin on the same day goes first. This waits until the coin is
-       closed, then shows the card.
+     * COINS OWN THEIR DAY. If a coin popped up today, the card waits until
+       they open the app on a later day. The two never share a moment.
+     * CARD 000 NEVER POPS. Day one belongs to the 24 Hours coin -- "That
+       night..." just sits in the pile waiting for them.
      * Account only, and off until the pile is switched on (or previewed),
        exactly like the pile page itself.
 
@@ -27,6 +29,25 @@
 
   var ART = "/assets/survival-pile/cards/";
   var SEEN_KEY = "rm_pile_seen";
+  var COIN_DAY_KEY = "rm_coin_day";   /* the last day a coin popped up on this phone */
+
+  function todayLocal() {
+    var d = new Date(), p = function (x) { return (x < 10 ? "0" : "") + x; };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  }
+  function coinToday() { try { return localStorage.getItem(COIN_DAY_KEY) === todayLocal(); } catch (e) { return false; } }
+  function noteCoin() { try { localStorage.setItem(COIN_DAY_KEY, todayLocal()); } catch (e) {} }
+
+  /* Watch for a coin popping up at any moment on any page -- on load, or
+     right after somebody saves their date -- and remember the day. */
+  (function watchCoins() {
+    if (document.querySelector(".rm-coin-reveal")) noteCoin();
+    try {
+      new MutationObserver(function () {
+        if (document.querySelector(".rm-coin-reveal")) noteCoin();
+      }).observe(document.documentElement, { childList: true, subtree: true });
+    } catch (e) {}
+  })();
 
   function signedIn() {
     try { return !!localStorage.getItem("rm_account_v1"); } catch (e) { return false; }
@@ -167,11 +188,12 @@
   /* ---- when it fires ----------------------------------------------------------- */
   function coinOpen() { return !!document.querySelector(".rm-coin-reveal"); }
 
-  function whenCoinDone(fn) {
-    /* Give coins.js its moment first, then wait for its reveal to close. */
-    setTimeout(function tick() {
-      if (coinOpen()) { setTimeout(tick, 400); return; }
-      setTimeout(fn, 500);
+  function afterCoinCheck(fn) {
+    /* Give coins.js its moment first. A coin today means no card today. */
+    setTimeout(function () {
+      if (coinOpen()) noteCoin();
+      if (coinToday()) return;
+      fn();
     }, 1500);
   }
 
@@ -188,8 +210,11 @@
         if (!e || !e.card || !e.card.art) return;
         var key = e.card.code + "@" + e.date;
         if (seen() === key) return;
-        whenCoinDone(function () {
-          if (openEl || seen() === key) return;
+        /* Card 000 never pops -- mark it seen and leave it in the pile. */
+        if (e.card.kind === "start") { markSeen(key); return; }
+        if (coinToday()) return;
+        afterCoinCheck(function () {
+          if (openEl || seen() === key || coinToday() || coinOpen()) return;
           markSeen(key);
           show(e, P);
         });
