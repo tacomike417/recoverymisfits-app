@@ -104,8 +104,8 @@ def read_sheet(path):
 
 def art_key(filename):
     stem = os.path.splitext(os.path.basename(filename))[0].lower()
-    if stem in ('0', '00'):
-        return '000'
+    if stem.isdigit():                      # 0.png / 000.png -> 000; 002.png -> 2
+        return stem.lstrip('0') or '000'
     return stem
 
 

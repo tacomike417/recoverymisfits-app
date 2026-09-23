@@ -52,7 +52,7 @@
 .head .rule{height:2px;width:120px;margin:12px auto 0;background:#9b2b24;border-radius:2px}
 
 .status{
-  display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 10px;
   margin:0 2px 12px;font-family:var(--ui);font-size:12.5px;color:var(--muted);
 }
 .status b{color:var(--ivory);font-weight:800}
@@ -132,6 +132,33 @@
 .sec[open] .sv{transform:rotate(180deg)}
 .sec .grid{padding:4px 12px 14px}
 
+/* ---- All / Compact ------------------------------------------------------
+   All is the default: every card in the deck, in order, the ones not earned
+   yet face-down. Compact folds them into the drop-downs. */
+.view{display:flex;gap:4px;margin:0 0 14px;padding:4px;border-radius:999px;
+  border:1px solid rgba(215,178,83,.3);background:rgba(215,178,83,.05)}
+.view[hidden]{display:none}
+.view button{flex:1;min-height:40px;border:0;border-radius:999px;background:transparent;cursor:pointer;
+  font-family:var(--ui);font-weight:800;font-size:12.5px;letter-spacing:1.3px;text-transform:uppercase;
+  color:var(--muted);-webkit-tap-highlight-color:transparent}
+.view button[aria-pressed="true"]{background:var(--gold);color:#17130b}
+
+/* A card not earned yet: face-down. No number, no name -- the surprise is
+   the point. */
+.back{
+  position:absolute;inset:0;display:grid;place-items:center;border-radius:inherit;
+  background:
+    repeating-linear-gradient(45deg,rgba(215,178,83,.06) 0 6px,rgba(0,0,0,0) 6px 12px),
+    #121110;
+  border:1.5px solid rgba(215,178,83,.28);
+}
+.back .q{font-family:var(--display);font-weight:600;font-size:30px;color:rgba(215,178,83,.5);line-height:1}
+.back .ft{position:absolute;bottom:7px;left:0;right:0;text-align:center;font-family:var(--ui);font-size:7px;
+  letter-spacing:1.2px;text-transform:uppercase;color:rgba(238,230,213,.3)}
+.big .back .q{font-size:64px}
+.big .back .ft{font-size:9px;bottom:12px}
+.tile.locked .when{color:rgba(238,230,213,.3)}
+
 .empty{
   margin:30px 4px 0;padding:20px 18px;border-radius:14px;text-align:center;
   border:1px solid rgba(215,178,83,.3);background:rgba(215,178,83,.06);
@@ -189,6 +216,11 @@
   <div class="status" id="status" hidden>
     <span id="have"></span>
     <span class="coming" id="coming"></span>
+  </div>
+
+  <div class="view" id="view" role="group" aria-label="How to show the pile" hidden>
+    <button type="button" data-view="all" aria-pressed="true">All <span id="allN"></span></button>
+    <button type="button" data-view="compact" aria-pressed="false">Compact</button>
   </div>
 
   <div id="grid"></div>
@@ -278,7 +310,6 @@
     return (c.unlocks || "") + " · " + P.fmt(e.date);
   }
 
-  var groups = [];
 
   var SECTIONS = [
     { key: "start",   title: "The Night You Decided" },
@@ -298,65 +329,99 @@
     return c.n < 99 ? "first90" : "big";
   }
 
+  /* WHICH VIEW. "all" unless they picked Compact on this phone before. */
+  var view = "all";
+  try { if (localStorage.getItem("rm_pile_view") === "compact") view = "compact"; } catch (e) {}
+
+  var tiles = [], newest = null;
+
+  function tileHtml(g, i) {
+    if (!g.top) {
+      return '<button class="tile locked" type="button" data-i="' + i + '">' +
+               '<span class="face">' + backFace() + '</span>' +
+               '<span class="when">Not yet</span>' +
+             '</button>';
+    }
+    var isNew = g === newest;
+    return '<button class="tile' + (isNew ? " newest" : "") + '" type="button" data-i="' + i + '">' +
+             '<span class="face">' + face(g, false) + '</span>' +
+             '<span class="when">' + (isNew ? "Newest · " : "") + esc(short(g.top.date)) + '</span>' +
+           '</button>';
+  }
+  function backFace() {
+    return '<span class="back"><span class="q">?</span><span class="ft">Survival Pile</span></span>';
+  }
+
+  function draw() {
+    document.querySelectorAll("#view button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-view") === view ? "true" : "false");
+    });
+    if (view === "all") {
+      /* THE WHOLE DECK, in order: the night you decided, then up from there. */
+      $("grid").innerHTML = '<div class="grid">' + tiles.map(tileHtml).join("") + '</div>';
+      return;
+    }
+    $("grid").innerHTML = SECTIONS.map(function (sec) {
+      var mine = tiles.filter(function (g) { return sectionOf(g.card) === sec.key; });
+      if (!mine.length) return "";
+      var have = mine.filter(function (g) { return g.top; }).length;
+      var isOpen = mine.indexOf(newest) !== -1;
+      return '<details class="sec"' + (isOpen ? " open" : "") + '>' +
+               '<summary><span class="st">' + sec.title + '</span>' +
+               '<span class="sn">' + have + ' / ' + mine.length + '</span>' +
+               '<svg class="sv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+               '</summary><div class="grid">' +
+               mine.map(function (g) { return tileHtml(g, tiles.indexOf(g)); }).join("") +
+             '</div></details>';
+    }).join("");
+  }
+
   function paint(cards) {
     /* OFF UNTIL MIKE SAYS SO. See isOn() in survival-pile.js. */
     if (!P.isOn(cards)) { $("soon").hidden = false; return; }
     var sober = P.soberYMD(), today = P.todayYMD(), joined = P.joinedYMD();
     if (!sober) { $("empty").hidden = false; return; }
 
-    cards.forEach(function (c, i) { c.order = i; });
-    groups = group(P.earned(cards, sober, today, joined));
+    /* One tile per card in the deck, catalog order. The ones earned carry
+       their newest earning (g.top); the rest are face-down. */
+    var earned = group(P.earned(cards, sober, today, joined));
+    var byCode = {};
+    earned.forEach(function (g) { byCode[g.card.code] = g; });
+    tiles = cards.map(function (c) { return byCode[c.code] || { card: c, all: [], top: null }; });
+    newest = earned[0] || null;                 /* earned() is newest first */
     var nx = P.next(cards, sober, today, joined);
 
-    $("have").innerHTML = "<b>" + groups.length + "</b> " + (groups.length === 1 ? "card" : "cards") + " in your pile";
+    $("have").innerHTML = "<b>" + earned.length + "</b> of " + cards.length + " cards in your pile";
     $("coming").textContent = !nx ? "" :
       nx.days === 1 ? "Something's coming tomorrow." : "Something's coming in " + nx.days + " days.";
     $("status").hidden = false;
-
-    /* groups[0] is the newest card overall (earned() is newest first). It
-       keeps its gold edge, and its drop-down is the one that starts open. */
-    var newest = groups[0];
-    var html = SECTIONS.map(function (sec) {
-      var mine = groups.filter(function (g) { return sectionOf(g.card) === sec.key; });
-      if (!mine.length) return "";
-      /* Zero up to now. Holidays go in calendar order instead -- January to
-         December reads like a year, and they all carry this year's stamp. */
-      mine.sort(sec.key === "holiday"
-        ? function (a, b) { return a.card.order - b.card.order; }
-        : function (a, b) { return a.top.n - b.top.n; });
-      var isOpen = mine.indexOf(newest) !== -1;
-      return '<details class="sec"' + (isOpen ? " open" : "") + '>' +
-               '<summary><span class="st">' + sec.title + '</span>' +
-               '<span class="sn">' + mine.length + '</span>' +
-               '<svg class="sv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-               '</summary><div class="grid">' +
-               mine.map(function (g) {
-                 var i = groups.indexOf(g), isNew = g === newest;
-                 return '<button class="tile' + (isNew ? " newest" : "") + '" type="button" data-i="' + i + '">' +
-                          '<span class="face">' + face(g, false) + '</span>' +
-                          '<span class="when">' + (isNew ? "Newest · " : "") + esc(short(g.top.date)) + '</span>' +
-                        '</button>';
-               }).join("") +
-             '</div></details>';
-    }).join("");
-    $("grid").innerHTML = html;
+    $("allN").textContent = cards.length;
+    $("view").hidden = false;
+    draw();
   }
+
+  $("view").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    view = b.getAttribute("data-view");
+    try { localStorage.setItem("rm_pile_view", view); } catch (e2) {}
+    draw();
+  });
 
   /* ---- the open card ---------------------------------------------------- */
   var open = null, pushed = false;
 
   function show(i) {
-    var g = groups[i]; if (!g) return;
+    var g = tiles[i]; if (!g) return;
     open = g;
-    var c = g.card;
-    $("big").innerHTML = face(g, true);
-    $("dname").textContent = title(c);
-    $("dtag").textContent = c.tagline || "";
-    $("dwhen").textContent = whenLine(g);
-    $("dback").textContent = c.back || "";
-    $("dback").hidden = !c.back;
+    var c = g.card, got = !!g.top;
+    $("big").innerHTML = got ? face(g, true) : backFace();
+    $("dname").textContent = got ? title(c) : "Still in the deck";
+    $("dtag").textContent = got ? (c.tagline || "") : "Keep coming back. It'll turn up.";
+    $("dwhen").textContent = got ? whenLine(g) : "";
+    $("dback").textContent = got ? (c.back || "") : "";
+    $("dback").hidden = !got || !c.back;
     $("dyears").textContent = "";
-    $("dshare").hidden = !c.art;
+    $("dshare").hidden = !got || !c.art;
     $("dshareLabel").textContent = navigator.share ? "Share this card" : "Save the picture";
     $("dsay").textContent = "";
     $("sheet").hidden = false;
