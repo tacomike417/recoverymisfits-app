@@ -145,8 +145,17 @@
   color:var(--muted);-webkit-tap-highlight-color:transparent}
 .view button[aria-pressed="true"]{background:var(--gold);color:#17130b}
 
-/* A card not earned yet: face-down. No number, no name -- the surprise is
-   the point. */
+/* A card not earned yet: its art, gray and nearly black, with a ? over
+   it -- you can tell there is something there, not what it is. A card
+   whose art isn't in yet just gets the plain back. */
+.shade{position:absolute;inset:0;border-radius:inherit;overflow:hidden;background:#0b0b0a}
+.shade img{width:100%;height:100%;object-fit:cover;display:block;
+  filter:grayscale(1) brightness(.08) contrast(.8) blur(1px)}
+.shade .q{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--display);font-weight:600;font-size:34px;line-height:1;
+  color:rgba(215,178,83,.55);text-shadow:0 2px 8px rgba(0,0,0,.9)}
+.big .shade .q{font-size:80px}
+.big .shade img{filter:grayscale(1) brightness(.08) contrast(.8) blur(3px)}
 .back{
   position:absolute;inset:0;display:grid;place-items:center;border-radius:inherit;
   background:
@@ -362,7 +371,7 @@
   function tileHtml(g, i) {
     if (!g.top) {
       return '<button class="tile locked" type="button" data-i="' + i + '">' +
-               '<span class="face">' + backFace() + '</span>' +
+               '<span class="face">' + backFace(g.card, false) + '</span>' +
                '<span class="when">Not yet</span>' +
              '</button>';
     }
@@ -372,7 +381,11 @@
              '<span class="when">' + (isNew ? "Newest · " : "") + esc(short(g.top.date)) + '</span>' +
            '</button>';
   }
-  function backFace() {
+  function backFace(c, big) {
+    if (c && c.art) {
+      return '<span class="shade"><img src="' + ART + esc(c.code) + (big ? ".webp" : "-thumb.webp") +
+             '" alt="" loading="lazy" decoding="async"><span class="q">?</span></span>';
+    }
     return '<span class="back"><span class="q">?</span><span class="ft">Survival Pile</span></span>';
   }
 
@@ -438,7 +451,7 @@
     var g = tiles[i]; if (!g) return;
     open = g;
     var c = g.card, got = !!g.top;
-    $("big").innerHTML = got ? face(g, true) : backFace();
+    $("big").innerHTML = got ? face(g, true) : backFace(c, true);
     $("dname").textContent = got ? title(c) : "Still in the deck";
     $("dtag").textContent = got ? (c.tagline || "") : "Keep coming back. It'll turn up.";
     $("dwhen").textContent = got ? whenLine(g) : "";
