@@ -594,6 +594,17 @@
         outline: none;
       }
 
+      .rm-modal-warn {
+        margin-top: 10px;
+        padding: 9px 11px;
+        border-radius: 10px;
+        border: 1px solid rgba(215,178,83,.45);
+        background: rgba(215,178,83,.08);
+        font-size: 13px;
+        line-height: 1.35;
+        color: #f1e6cf;
+      }
+      .rm-modal-warn[hidden] { display: none; }
       .rm-modal-note {
         margin-top: 10px;
         font-size: 12px;
@@ -1264,6 +1275,7 @@
         </div>
         <p class="rm-wheel-read" id="rmWheelRead" role="status" aria-live="polite"></p>
         <div class="rm-modal-note">Saved only on this device.</div>
+        <div class="rm-modal-warn" id="rmSoberWarn" hidden>Heads up &mdash; moving your date later starts your coins and your Survival Pile over from the new date.</div>
         <div class="rm-modal-row">
           <button type="button" class="rm-modal-cancel" id="rmSoberDateCancel">Cancel</button>
           <button type="button" class="rm-modal-save" id="rmSoberDateSave">Save</button>
@@ -1284,6 +1296,17 @@
     save.addEventListener("click", () => {
       const ymd = wheelYMD();
       if (!ymd) return;
+      /* THE RESET HEADS-UP. Moving the date more than a week LATER starts
+         the coins and the Survival Pile over. Say so once, in the picker,
+         and let the second tap save it. A few days either way is a typo fix
+         and saves straight through. */
+      const was = getSoberDateYMD();
+      if (was && ymd > was && (Date.parse(ymd) - Date.parse(was)) / 86400000 > 7 && !save.dataset.ok) {
+        modal.querySelector("#rmSoberWarn").hidden = false;
+        save.textContent = "Yes, save it";
+        save.dataset.ok = "1";
+        return;
+      }
       /* Same story writing. Somebody in private browsing can still set a
          date and see it on this screen; it just will not be here tomorrow,
          which is exactly what an account is for. */
@@ -1310,6 +1333,9 @@
   function openSoberModal() {
     const modal = ensureModal();
     modal.classList.add("show");
+    const w = modal.querySelector("#rmSoberWarn"), sv = modal.querySelector("#rmSoberDateSave");
+    if (w) w.hidden = true;
+    if (sv) { sv.textContent = "Save"; sv.dataset.ok = ""; }
     /* Set the wheels AFTER the modal is displayed. A scroller inside
        display:none has no height, so every scrollTop written to it is
        silently thrown away and all three wheels open on January 1st of the

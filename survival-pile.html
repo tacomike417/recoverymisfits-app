@@ -51,6 +51,11 @@
 }
 .head .rule{height:2px;width:120px;margin:12px auto 0;background:#9b2b24;border-radius:2px}
 
+/* After a reset: one kind line, only they see it, gone after 30 days. */
+.fresh{margin:0 0 12px;padding:12px 14px;border-radius:12px;text-align:center;
+  border:1px solid rgba(215,178,83,.45);background:rgba(215,178,83,.08);
+  font-family:var(--ui);font-size:14px;line-height:1.35;color:var(--ivory)}
+.fresh[hidden]{display:none}
 .status{
   display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 10px;
   margin:0 2px 12px;font-family:var(--ui);font-size:12.5px;color:var(--muted);
@@ -251,6 +256,7 @@
     <div class="rule"></div>
   </header>
 
+  <p class="fresh" id="fresh" hidden>Your pile starts again from your new date. Welcome back.</p>
   <div class="status" id="status" hidden>
     <span id="have"></span>
     <span class="coming" id="coming"></span>
@@ -509,6 +515,19 @@
     if (!P.isOn(cards)) { $("soon").hidden = false; return; }
     var sober = P.soberYMD(), today = P.todayYMD(), joined = P.joinedYMD();
     if (!sober) { $("empty").hidden = false; return; }
+
+    /* DID THEY START OVER? This phone remembers the date it last drew the
+       pile with. A date more than a week later than that is a reset: say
+       welcome back for the first 30 days of the new date. */
+    try {
+      var last = localStorage.getItem("rm_pile_last_sober") || "";
+      if (last && sober > last && (Date.parse(sober) - Date.parse(last)) / 86400000 > 7) {
+        localStorage.setItem("rm_pile_reset_for", sober);
+      }
+      localStorage.setItem("rm_pile_last_sober", sober);
+      $("fresh").hidden = !(localStorage.getItem("rm_pile_reset_for") === sober &&
+                            (Date.parse(today) - Date.parse(sober)) / 86400000 < 30);
+    } catch (e) {}
 
     /* One tile per card in the deck, catalog order. The ones earned carry
        their newest earning (g.top); the rest are face-down. */
