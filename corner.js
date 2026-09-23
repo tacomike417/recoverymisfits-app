@@ -229,6 +229,22 @@
   /* ---- painting ---------------------------------------------------------- */
   function $(id) { return document.getElementById(id); }
 
+  /* THE SURVIVAL PILE DOOR. Once the pile is switched on (or previewed on
+     this phone), the milestone card is titled Your Survival Pile and opens
+     it. Until then it is the old Next Milestone card, untouched. */
+  var PILE_ON = false;
+  function pileOn() {
+    try { if (localStorage.getItem("rm_pile_preview") === "1") return true; } catch (e) {}
+    return PILE_ON;
+  }
+  function pileDoor() {
+    var card = $("cardMilestone"), key = $("msKey");
+    if (!card || !pileOn()) return;
+    if (/account\.html/.test(card.getAttribute("href") || "")) return;  /* no date yet: sign-up first */
+    card.setAttribute("href", "/survival-pile.html");
+    if (key) key.textContent = "Your Survival Pile";
+  }
+
   function paint() {
     var root = $("your-corner");
     if (!root) return;
@@ -267,6 +283,8 @@
       bar.style.width = "0%";
       card.setAttribute("href", "./account.html?next=set");
     }
+
+    pileDoor();
 
     /* ---- today's stack ---- */
     var rows = stackRows();
@@ -372,6 +390,10 @@
 
     wire();
     paint();
+    fetch("/data/survival-pile.json", { cache: "no-cache" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { PILE_ON = !!(d && d.live); paint(); })
+      .catch(function () {});
 
     /* PAINT AGAIN A FEW TIMES. coins.js is fetched by nav.js and arrives when
        it arrives -- the first paint usually happens before it, and the coin
