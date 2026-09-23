@@ -271,6 +271,45 @@ body::after{
 }
 .row .d{font-family:var(--ui);font-size:11px;line-height:1.25;color:var(--muted);margin:2px 0 0}
 
+/* ---- THE MEME OF THE DAY ROW ------------------------------------------
+   Same box as every other row, laid out differently: the picture and the
+   words are one link, the two share buttons sit to the right of it. The
+   buttons are 42px round -- drawn small, but a thumb lands on them first
+   time. */
+.row-meme{grid-template-columns:1fr auto;padding:6px 8px 6px 6px}
+.row-meme:active{border-color:rgba(216,180,91,.3)}
+.memego{
+  display:grid;grid-template-columns:54px 1fr;align-items:center;gap:8px;
+  min-width:0;color:inherit;text-decoration:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.memethumb{
+  position:relative;display:grid;place-items:center;
+  width:52px;height:52px;justify-self:center;
+}
+.memethumb .ico{width:52px;height:auto}
+.memethumb img{
+  position:absolute;inset:0;width:52px;height:52px;object-fit:cover;
+  border-radius:9px;border:1.4px solid rgba(216,180,91,.55);background:#141412;
+}
+.memego:active .memethumb img{border-color:var(--gold)}
+.memeacts{display:flex;gap:7px;align-items:center}
+.memebtn{
+  display:grid;place-items:center;width:42px;height:42px;padding:0;
+  border-radius:50%;border:1.4px solid var(--gold);background:transparent;
+  color:#f0e2c2;cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.memebtn:active{background:rgba(216,180,91,.18)}
+.memebtn[disabled]{opacity:.4}
+.memebtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9}
+/* What the buttons have to say ("Link copied", "Ready -- tap share again")
+   goes on its own line under the row rather than into a popup. */
+.memesay{
+  grid-column:1 / -1;margin:2px 4px 0;text-align:right;
+  font-family:var(--ui);font-size:11px;color:var(--muted);
+}
+.memesay.bad{color:#e2a08f}
+
 .pill{
   display:inline-flex;align-items:center;justify-content:center;gap:9px;
   padding:6px 11px;border-radius:999px;
@@ -482,6 +521,28 @@ body::after{
 .praywords .ln:last-child{margin-bottom:0}
 .praywords .gap{display:block;height:12px}
 .praysrc[hidden]{display:none}
+/* The (i) sits at the end of the credit line, and what it opens drops down
+   right under it, in the same small type -- a footnote, not a second page.
+   The circle is drawn at 20px but the button around it is 40px tall so a
+   thumb finds it. */
+.infobtn{
+  display:inline-grid;place-items:center;vertical-align:middle;
+  width:40px;height:40px;margin:-12px -10px -12px 0;padding:0;
+  border:0;background:transparent;cursor:pointer;
+  font:italic 700 12px/1 Georgia,"Times New Roman",serif;color:var(--gold);
+  -webkit-tap-highlight-color:transparent;
+}
+.infobtn::before{
+  content:"";position:absolute;width:19px;height:19px;border-radius:50%;
+  border:1.3px solid rgba(216,180,91,.7);
+}
+.infobtn{position:relative}
+.infobtn[aria-expanded="true"]::before{background:rgba(216,180,91,.18)}
+.prayinfo{
+  margin:8px 0 0;padding:11px 13px;border-radius:10px;
+  background:rgba(216,180,91,.08);border:1px solid rgba(216,180,91,.25);
+  font-family:var(--ui);font-size:13px;line-height:1.5;color:#e9dfc8;
+}
 .praysrc{
   margin:16px 0 0;padding-top:11px;
   border-top:1px solid rgba(216,180,91,.22);
@@ -1317,11 +1378,30 @@ body::after{
       <span class="pill">Open <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </a>
 
-    <a class="row" data-stack="meme" href="./meme.html">
-      <svg class="ico ico-drawn" viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="26" rx="3"/><path d="M7 28l8-7 6 5 7-8 9 9" stroke-linejoin="round"/><circle cx="17" cy="17" r="2.6"/><path d="M17 35v4M31 35v4M14 39h20" stroke-linecap="round"/></svg>
-      <span class="txt"><span class="t">Meme of the Day</span><span class="d">One a day. Made to be shared.</span></span>
-      <span class="pill">Open <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    </a>
+    <!-- MEME OF THE DAY, RIGHT IN THE STACK. Today's meme as a small picture
+         you tap to open, and the two share buttons beside it -- so sharing it
+         is one tap from the home page, not a trip to another screen first.
+         A <div>, not an <a> like the rows above: buttons cannot live inside a
+         link, so the picture and words are the link and the buttons sit
+         next to it. The drawn icon shows until today's picture arrives. -->
+    <div class="row row-meme" data-stack="meme">
+      <a class="memego" href="/meme.html" aria-label="Open today's meme">
+        <span class="memethumb">
+          <svg class="ico ico-drawn" viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="9" width="34" height="26" rx="3"/><path d="M7 28l8-7 6 5 7-8 9 9" stroke-linejoin="round"/><circle cx="17" cy="17" r="2.6"/><path d="M17 35v4M31 35v4M14 39h20" stroke-linecap="round"/></svg>
+          <img id="memeRowImg" alt="" hidden width="52" height="52">
+        </span>
+        <span class="txt"><span class="t">Meme of the Day</span><span class="d">Tap to see it. Made to be shared.</span></span>
+      </a>
+      <span class="memeacts">
+        <button class="memebtn" type="button" data-meme-share="picture" aria-label="Share today's meme" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="memebtn" type="button" data-meme-share="link" aria-label="Share the link to today's meme" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </span>
+      <span class="memesay" id="memeRowSay" role="status" aria-live="polite" hidden></span>
+    </div>
 
     <img class="m-progress" src="assets/pages/r-m-progress.webp" alt="" aria-hidden="true">
     <img class="m-belong" src="assets/pages/r-m-belong.webp" alt="" aria-hidden="true">
@@ -1331,18 +1411,19 @@ body::after{
   </div>
 
   <!-- ===================================================================
-       MEME OF THE DAY RAIL.
+       RECENT MEMES RAIL.
 
-       Where the speaker tapes used to be. Today first, then nineteen days
-       back; every thumbnail is a link to that day's own meme page. The
-       tapes are all on the Audio tab.
+       Where the speaker tapes used to be. The nineteen days BEFORE today --
+       today's meme is not in here on purpose. It sits in the stack above
+       with its share buttons, and somebody taps that to see it. Every
+       thumbnail is a link to that meme's own page. The tapes are all on the
+       Audio tab.
 
        Hidden until data/memes.json has loaded. See the stylesheet.
        ================================================================ -->
   <section class="memes" id="rm-memes" aria-labelledby="memesTitle" hidden>
     <div class="memehead">
-      <h2 class="k" id="memesTitle">Meme of the Day</h2>
-      <a class="all" href="/meme.html">Open Today &rarr;</a>
+      <h2 class="k" id="memesTitle">Recent Memes</h2>
     </div>
     <div class="memestrip" id="memeStrip"></div>
   </section>
@@ -1598,17 +1679,21 @@ body::after{
 
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
+<script src="/assets/meme-share.js"></script>
 <script src="./corner.js" defer></script>
 <script src="./basics.js" defer></script>
 <script>
-/* THE MEME RAIL. Today and the nineteen days behind it, dated off this
-   phone's clock and looked up in /data/meme-days.json -- the same file and
-   the same rule meme.html uses, so the chip that says TODAY is the meme the
-   Memes tab opens on. Each chip links to that meme's own page. */
+/* THE MEME RAIL, AND TODAY'S ROW IN THE STACK. Both read /data/meme-days.json
+   off this phone's clock -- the same file and the same rule meme.html uses,
+   so the meme in the stack is the one the Memes tab opens on.
+
+   The rail is the nineteen days before today. Today is left out of it on
+   purpose: it is in the stack, with its share buttons, and that is where
+   somebody taps to see it. Each chip links to that meme's own page. */
 (function () {
   "use strict";
 
-  var DAYS = 20;
+  var DAYS = 19;
   var sec = document.getElementById("rm-memes");
   var strip = document.getElementById("memeStrip");
   if (!sec || !strip) return;
@@ -1617,12 +1702,49 @@ body::after{
   var pad = function (n) { return (n < 10 ? "0" : "") + n; };
   var now = new Date();
 
+  /* THE STACK ROW. Its picture is the 28KB thumbnail; the full meme is only
+     fetched if somebody actually shares it, and the share helper starts
+     that on touch-down so it is usually ready by the time the finger
+     lifts. */
+  function memeRow(id, file) {
+    var row = document.querySelector('.row-meme');
+    if (!row) return;
+    var img = document.getElementById("memeRowImg");
+    var sayEl = document.getElementById("memeRowSay");
+    var ico = row.querySelector(".memethumb .ico");
+    img.onload = function () { img.hidden = false; if (ico) ico.style.visibility = "hidden"; };
+    img.src = "/assets/memes/thumbs/" + id + ".webp";
+    row.querySelector(".memego").href = "/meme/" + id + "/";
+
+    function tell(msg, bad) {
+      sayEl.textContent = msg || "";
+      sayEl.hidden = !msg;
+      sayEl.className = "memesay" + (bad ? " bad" : "");
+    }
+    var o = { id: id, file: file, tell: tell };
+    row.querySelectorAll("[data-meme-share]").forEach(function (b) {
+      b.disabled = false;
+      if (b.getAttribute("data-meme-share") === "picture") {
+        if (!window.RMMemeShare || !RMMemeShare.hasSheet) b.setAttribute("aria-label", "Save today's meme");
+        b.addEventListener("pointerdown", function () { if (window.RMMemeShare) RMMemeShare.warm(o); });
+        b.addEventListener("click", function () { if (window.RMMemeShare) RMMemeShare.picture(o); });
+      } else {
+        b.addEventListener("click", function () { if (window.RMMemeShare) RMMemeShare.link(o); });
+      }
+    });
+  }
+
   fetch("/data/meme-days.json", { cache: "no-cache" })
     .then(function (r) { if (!r.ok) throw new Error("meme-days.json " + r.status); return r.json(); })
     .then(function (data) {
       var days = (data && data.days) || {};
       var n = 0;
-      for (var i = 0; i < DAYS; i++) {
+
+      /* Today's goes to the stack row, not the rail. */
+      var t0 = days[now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate())];
+      if (t0) memeRow(t0.replace(/\.[a-z]+$/i, ""), t0);
+
+      for (var i = 1; i <= DAYS; i++) {
         var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
         var f = days[d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())];
         if (!f) continue;
@@ -1630,7 +1752,7 @@ body::after{
         n++;
 
         var a = document.createElement("a");
-        a.className = "memechip" + (i === 0 ? " is-today" : "");
+        a.className = "memechip";
         a.href = "/meme/" + id + "/";
         a.setAttribute("aria-label", "Meme for " + MON[d.getMonth()] + " " + d.getDate());
 
@@ -1647,7 +1769,7 @@ body::after{
 
         var cap = document.createElement("span");
         cap.className = "d";
-        cap.textContent = i === 0 ? "Today" : MON[d.getMonth()] + " " + d.getDate();
+        cap.textContent = i === 1 ? "Yesterday" : MON[d.getMonth()] + " " + d.getDate();
 
         a.appendChild(box);
         a.appendChild(cap);
@@ -1765,7 +1887,8 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
       <button class="sheetx" type="button" data-pray-close aria-label="Close">&#10005;</button>
     </div>
     <div class="praywords" id="prayWords"></div>
-    <p class="praysrc" id="praySrc"></p>
+    <p class="praysrc" id="praySrc"><span id="praySrcText"></span><button class="infobtn" type="button" id="prayInfoBtn" aria-expanded="false" aria-controls="prayInfo" aria-label="About this" hidden>i</button></p>
+    <div class="prayinfo" id="prayInfo" hidden></div>
   </div>
 </div>
 
@@ -2139,6 +2262,14 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
   var MORNING_THANKS =
     "With thanks to the Afternoon Alkies, Akron, Ohio, whose evening " +
     "review this grew out of.";
+
+  /* WHAT THE (i) BESIDE THE THANK-YOU SAYS. Mike's own words, about why one
+     line a day. */
+  var MORNING_STORY =
+    "Bill W. suggested we read the Prayer of St. Francis slowly for our " +
+    "meditation. Well, one line a day is pretty damn slow. There\u2019s a " +
+    "little group in Akron that all agreed to do this together and see how " +
+    "our days go. It\u2019s been working for me for a while now.";
 
   function todayIntention() {
     var i = (new Date().getDate() - 1) % MORNING.length;
@@ -2653,12 +2784,21 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
   var offWrap = document.getElementById("stackOff2");
   var prayWrap = document.getElementById("prayBox");
 
-  function showOver(title, inner, src) {
+  function showOver(title, inner, src, info) {
     document.getElementById("prayTitle").textContent = title;
     document.getElementById("prayWords").innerHTML = inner;
     var srcEl = document.getElementById("praySrc");
-    srcEl.textContent = src || "";
+    document.getElementById("praySrcText").textContent = src || "";
     srcEl.hidden = !src;
+    /* THE LITTLE (i). Only some things have a story behind the credit; when
+       one does, the circle shows and tapping it drops the story open right
+       under the credit. Closed again every time the sheet opens. */
+    var infoBtn = document.getElementById("prayInfoBtn");
+    var infoBox = document.getElementById("prayInfo");
+    infoBox.textContent = info || "";
+    infoBox.hidden = true;
+    infoBtn.hidden = !info;
+    infoBtn.setAttribute("aria-expanded", "false");
     openLayer(prayWrap, null);
     /* Opened from a tap, so the words themselves are what should be under
        the reader's eye -- not the close button. */
@@ -2692,7 +2832,7 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
           n.e.qs.map(function (q) { return '<li>' + esc(q) + '</li>'; }).join("") +
         '</ul>' +
         '<p class="evcloser">' + esc(MORNING_CLOSER) + '</p>',
-        MORNING_THANKS);
+        MORNING_THANKS, MORNING_STORY);
       return;
     }
 
@@ -2727,6 +2867,13 @@ if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");
     if (e.target.closest("[data-ask-close]")) { closeSheet(); return; }
     if (e.target.closest("[data-off-close]")) { closeSheet(); return; }
     if (e.target.closest("[data-pray-close]")) { closeSheet(); return; }
+    if (e.target.closest("#prayInfoBtn")) {
+      var ib = document.getElementById("prayInfoBtn");
+      var box = document.getElementById("prayInfo");
+      box.hidden = !box.hidden;
+      ib.setAttribute("aria-expanded", box.hidden ? "false" : "true");
+      return;
+    }
 
     /* The Prayers heading. Opening it is not a history step -- it is a
        drawer inside a panel, and Back has to keep meaning "close the
