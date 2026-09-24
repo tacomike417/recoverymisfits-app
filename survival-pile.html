@@ -425,6 +425,7 @@
       return { isCoin: true, rung: r, card: { kind: "coin", n: r.days, code: "coin-" + r.days },
                top: { date: addDays(sober, r.days) }, all: [] };
     });
+    if (out.length) out[out.length - 1].newestCoin = true;   /* the coin they are wearing now */
     if (st.nextCoin) {
       var r = st.nextCoin;
       out.push({ isCoin: true, rung: r, card: { kind: "coin", n: r.days, code: "coin-" + r.days },
@@ -560,6 +561,8 @@
 
   function show(i) {
     var g = tiles[i]; if (!g) return;
+    /* Their newest coin goes to its share page, the same one the rail coin opens. */
+    if (g.isCoin && g.newestCoin) { location.href = "/sober-date.html"; return; }
     open = g;
     var c = g.card, got = !!g.top;
     $("big").className = "big" + (g.isCoin ? " iscoin" + (got ? "" : " locked") : "");
