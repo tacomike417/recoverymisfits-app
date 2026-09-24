@@ -242,7 +242,7 @@
     if (!card || !pileOn()) return;
     if (/account\.html/.test(card.getAttribute("href") || "")) return;  /* no date yet: sign-up first */
     card.setAttribute("href", "/survival-pile.html");
-    if (key) key.textContent = "Your Survival Pile";
+    if (key) key.innerHTML = "Up<br>Next";
   }
 
   function paint() {
