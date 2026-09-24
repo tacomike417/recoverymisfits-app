@@ -688,6 +688,24 @@
     g.fillText("LITTLE MILESTONES BETWEEN THE BIG COINS", L, Math.min(last + 40, BAND.y + BAND.h - 8));
   }
 
+  /* THE DATE PILL, under the card: the day THEY hit this milestone, so a
+     friend seeing "44 days sober" today doesn't think they reset. */
+  function datePill(g, text, cardBottom) {
+    var FONT = "px 'RM Share', 'Arial Narrow', Impact, sans-serif";
+    var s = 24, padX = 22, h = 44;
+    g.font = "600 " + s + FONT;
+    var w = g.measureText(text).width + padX * 2;
+    var max = 520;
+    while (w > max && s > 16) { s -= 1; g.font = "600 " + s + FONT; w = g.measureText(text).width + padX * 2; }
+    var cx = 540, x = cx - w / 2, y = Math.min(cardBottom + 12, 910 - h - 8);
+    rounded(g, x, y, w, h, h / 2);
+    g.fillStyle = "#11100e"; g.fill();
+    g.lineWidth = 3; g.strokeStyle = "#c79e4f"; g.stroke();
+    g.fillStyle = "#f1e6cf"; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(text, cx, y + h / 2 + 1);
+    g.textAlign = "left"; g.textBaseline = "alphabetic";
+  }
+
   function picture(grp) {
     return Promise.all([img("/assets/survival-pile/share-bg.jpg"), img(ART + grp.card.code + ".webp"), loadShareFont()])
       .then(function (a) {
@@ -710,6 +728,7 @@
           g.font = "700 " + Math.round(ph * 0.62) + "px system-ui, Arial, sans-serif";
           g.fillText(String(stamp), px + pw / 2, py + 1);
         }
+        datePill(g, "MILESTONE ACHIEVED ON " + P.fmt(grp.top.date).toUpperCase(), y + h);
         banner(g, grp);
         return new Promise(function (ok, no) { c.toBlob(function (b) { b ? ok(b) : no(new Error("blank")); }, "image/jpeg", 0.9); });
       });
