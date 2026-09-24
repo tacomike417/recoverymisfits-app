@@ -243,6 +243,7 @@
     if (/account\.html/.test(card.getAttribute("href") || "")) return;  /* no date yet: sign-up first */
     card.setAttribute("href", "/survival-pile.html");
     if (key) key.innerHTML = "Up<br>Next";
+    card.classList.add("is-up");
   }
 
   function paint() {
