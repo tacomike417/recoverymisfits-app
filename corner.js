@@ -244,6 +244,15 @@
     card.setAttribute("href", "/survival-pile.html");
     if (key) key.innerHTML = "Up<br>Next";
     card.classList.add("is-up");
+    var title = $("msTitle");
+    if (title) title.hidden = false;
+    var ico = card.querySelector(".ccard-ico");
+    if (ico && !ico.querySelector(".pile-fan")) {
+      ico.innerHTML = '<span class="pile-fan" aria-hidden="true">' +
+        '<img src="/assets/survival-pile/cards/2-thumb.webp" alt="">' +
+        '<img src="/assets/survival-pile/cards/44-thumb.webp" alt="">' +
+        '<img src="/assets/survival-pile/cards/777-thumb.webp" alt=""></span>';
+    }
   }
 
   function paint() {
