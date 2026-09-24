@@ -249,9 +249,9 @@
     var ico = card.querySelector(".ccard-ico");
     if (ico && !ico.querySelector(".pile-fan")) {
       ico.innerHTML = '<span class="pile-fan" aria-hidden="true">' +
-        '<img src="/assets/survival-pile/cards/2-thumb.webp" alt="">' +
-        '<img src="/assets/survival-pile/cards/44-thumb.webp" alt="">' +
-        '<img src="/assets/survival-pile/cards/777-thumb.webp" alt=""></span>';
+        '<img src="/assets/survival-pile/cards/1111-thumb.webp" alt="">' +
+        '<img src="/assets/survival-pile/cards/222-thumb.webp" alt="">' +
+        '<img src="/assets/survival-pile/cards/new-years-thumb.webp" alt=""></span>';
     }
   }
 
