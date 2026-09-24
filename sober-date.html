@@ -89,6 +89,11 @@
     color:var(--muted);margin:5% 0 0;
   }
 
+  /* Once the picture is ready, the square simply IS the picture. */
+  .square.has-art{padding:0;border-color:rgba(215,178,83,.45)}
+  .square.has-art > div,.square.has-art::before{display:none}
+  #coinPreview{display:block;width:100%;height:100%;object-fit:cover}
+  #coinPreview[hidden]{display:none}
   .acts{display:grid;gap:10px;margin:16px 0 0}
   .go{
     display:flex;align-items:center;justify-content:center;gap:10px;
@@ -116,6 +121,7 @@
 <div class="wrap">
 
   <section class="square" id="square">
+    <img id="coinPreview" alt="Your coin share picture" hidden>
     <div>
       <p class="site">recoverymisfits.org</p>
       <img class="mark" id="mark" src="./icon-512.png" alt="Recovery Misfits" width="512" height="512">
@@ -214,12 +220,13 @@
        choose one, but a date saved before that picker existed might be. */
     if (start > end) start = end;
 
-    var days = Math.max(0, daysBetween(start, end));
+    var days = Math.max(0, daysBetween(start, end)) + 1;   /* the sober date is day one, same as the rail */
     var b = breakdown(start, end);
 
     state.has = true;
     state.days = days;
     state.broke = [plural(b.y, "year"), plural(b.m, "month"), plural(b.d, "day")].join("  ·  ");
+    state.since = start.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
     sq.classList.remove("empty");
     $("saySet").hidden = true;
@@ -228,6 +235,7 @@
     $("unit").textContent = days === 1 ? "day" : "days";
     $("broke").textContent = state.broke;
     $("shareBtn").disabled = false;
+    refreshPreview();
   }
 
   /* ---- the logo, with its black square taken off ------------------------
@@ -328,109 +336,92 @@
     return px;
   }
 
-  function drawCard() {
+  /* ---- THE STAGE ----------------------------------------------------------
+     The coin share picture is drawn onto Mike's stage art
+     (assets/coins/share-bg.jpg): the coin in the round spot, the day count in
+     the banner, and the date in the band along the bottom. The blank spots
+     were measured off the art. */
+  var STAGE = {
+    coin:   { x: 538, y: 464, d: 566 },
+    banner: { x: 207, y: 788, w: 664, h: 64 },
+    band:   { x: 28,  y: 904, w: 828, h: 150 }
+  };
+  var bgPromise = null;
+  function loadBg() {
+    if (!bgPromise) {
+      bgPromise = new Promise(function (ok, no) {
+        var i = new Image();
+        i.onload = function () { ok(i); };
+        i.onerror = function () { bgPromise = null; no(new Error("background")); };
+        i.src = "./assets/coins/share-bg.jpg";
+      });
+    }
+    return bgPromise;
+  }
+
+  function drawCard(bg) {
     var c = document.createElement("canvas");
     c.width = SIDE; c.height = SIDE;
     var x = c.getContext("2d");
-    var mid = SIDE / 2;
-    var pad = SIDE * 0.085;
-    var inner = SIDE - pad * 2;
-
+    var k = SIDE / 1080;
     var DISPLAY = '"RM Display","RM Display Fallback",Impact,sans-serif';
-    var UI = 'system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif';
-    var GOLD = "#d7b253", IVORY = "#eee6d5", MUTED = "#aaa497";
+    var GOLD = "#e4bd63", IVORY = "#f3ead5", MUTED = "#c9bfa8";
 
-    /* background: the same warm-centred dark the square has on screen */
-    var g = x.createRadialGradient(mid, SIDE * 0.26, SIDE * 0.05, mid, SIDE * 0.26, SIDE * 0.95);
-    g.addColorStop(0, "#1b1a16");
-    g.addColorStop(0.55, "#121210");
-    g.addColorStop(1, "#0c0c0a");
-    x.fillStyle = g;
-    x.fillRect(0, 0, SIDE, SIDE);
+    x.drawImage(bg, 0, 0, SIDE, SIDE);
 
-    /* hairline frame */
-    x.strokeStyle = "rgba(215,178,83,.34)";
-    x.lineWidth = 3;
-    x.strokeRect(pad * 0.42, pad * 0.42, SIDE - pad * 0.84, SIDE - pad * 0.84);
-
-    x.textAlign = "center";
-
-    /* LAID OUT AT FIXED FRACTIONS OF THE SQUARE, not by adding gaps as it
-       goes. The first attempt walked down the card guessing a gap after each
-       line, and the number -- which is by far the tallest thing here -- grew
-       up into the headline and struck through it. Baselines are absolute
-       now, so nothing can climb into anything else. */
-    var Y_SITE  = 0.128;
-    /* THE COIN IS DRAWN AS BIG AS THE GAP ALLOWS. The headline's baseline is
-       at 0.470 and its type is 0.062 tall, so anything below about 0.40
-       starts climbing into it. 0.150 to 0.395 fills the space and stops. */
-    var Y_MARK  = 0.145;   /* top of the coin */
-    var H_MARK  = 0.265;   /* how tall it is drawn */
-    var Y_LEDE  = 0.470;
-    var Y_COUNT = 0.660;
-    var Y_UNIT  = 0.745;
-    var Y_RULE  = 0.800;
-    var Y_BROKE = 0.878;
-
-    /* recoverymisfits.org */
-    x.fillStyle = GOLD;
-    x.font = "800 " + Math.round(SIDE * 0.026) + "px " + UI;
-    x.letterSpacing = Math.round(SIDE * 0.0055) + "px";
-    x.fillText("RECOVERYMISFITS.ORG", mid, SIDE * Y_SITE);
-    x.letterSpacing = "0px";
-
-    /* The skulls. Already knocked out of their black square by cleanMark(),
-       so this is an ordinary draw. */
+    /* the coin, in the round spot */
     var markEl = $("mark");
-    if (markEl && markEl.complete && markEl.naturalWidth) {
-      var mh = SIDE * H_MARK;
-      var mw = mh * (markEl.naturalWidth / markEl.naturalHeight);
-      x.drawImage(markEl, mid - mw / 2, SIDE * Y_MARK, mw, mh);
+    if (markEl && markEl.dataset.coin && markEl.complete && markEl.naturalWidth) {
+      var d = STAGE.coin.d * k;
+      x.save();
+      x.shadowColor = "rgba(0,0,0,.6)"; x.shadowBlur = 30 * k; x.shadowOffsetY = 10 * k;
+      x.drawImage(markEl, STAGE.coin.x * k - d / 2, STAGE.coin.y * k - d / 2, d, d);
+      x.restore();
     }
 
-    /* I'VE BEEN SOBER */
-    x.fillStyle = IVORY;
-    var lede = "I\u2019VE BEEN SOBER";
-    var lp = fitText(x, lede, DISPLAY, "600", Math.round(SIDE * 0.062), inner);
-    x.font = "600 " + lp + "px " + DISPLAY;
-    x.letterSpacing = Math.round(SIDE * 0.004) + "px";
-    x.fillText(lede, mid, SIDE * Y_LEDE);
-    x.letterSpacing = "0px";
+    x.textAlign = "center"; x.textBaseline = "middle";
 
-    /* the number */
+    /* the banner: 2,932 DAYS SOBER */
+    var b = STAGE.banner;
+    var line = state.days.toLocaleString() + (state.days === 1 ? " DAY SOBER" : " DAYS SOBER");
+    var bp = fitText(x, line, DISPLAY, "600", Math.round(54 * k), (b.w - 60) * k);
+    x.font = "600 " + bp + "px " + DISPLAY;
     x.fillStyle = GOLD;
-    var n = state.days.toLocaleString();
-    var np = fitText(x, n, DISPLAY, "600", Math.round(SIDE * 0.185), inner);
-    x.font = "600 " + np + "px " + DISPLAY;
-    x.fillText(n, mid, SIDE * Y_COUNT);
+    x.letterSpacing = Math.round(2 * k) + "px";
+    x.fillText(line, (b.x + b.w / 2) * k, (b.y + b.h / 2 + 2) * k);
 
-    /* DAYS */
+    /* the band: SOBER SINCE ... and the years / months / days */
+    var n = STAGE.band, cx = (n.x + n.w / 2) * k;
+    var since = "SOBER SINCE " + state.since.toUpperCase();
+    var sp = fitText(x, since, DISPLAY, "600", Math.round(50 * k), (n.w - 60) * k);
+    x.font = "600 " + sp + "px " + DISPLAY;
     x.fillStyle = IVORY;
-    x.font = "600 " + Math.round(SIDE * 0.048) + "px " + DISPLAY;
-    x.letterSpacing = Math.round(SIDE * 0.009) + "px";
-    x.fillText(state.days === 1 ? "DAY" : "DAYS", mid, SIDE * Y_UNIT);
-    x.letterSpacing = "0px";
-
-    /* the rule */
-    var rw = SIDE * 0.42;
-    var rg = x.createLinearGradient(mid - rw / 2, 0, mid + rw / 2, 0);
-    rg.addColorStop(0, "rgba(215,178,83,0)");
-    rg.addColorStop(0.5, "rgba(215,178,83,.85)");
-    rg.addColorStop(1, "rgba(215,178,83,0)");
-    x.fillStyle = rg;
-    x.fillRect(mid - rw / 2, SIDE * Y_RULE, rw, 3);
-
-    /* 8 years / 0 months / 4 days */
-    x.fillStyle = MUTED;
+    x.fillText(since, cx, (n.y + 58) * k);
     var bt = state.broke.toUpperCase();
-    var bp = fitText(x, bt, UI, "700", Math.round(SIDE * 0.032), inner);
-    x.font = "700 " + bp + "px " + UI;
-    x.letterSpacing = Math.round(SIDE * 0.002) + "px";
-    x.fillText(bt, mid, SIDE * Y_BROKE);
+    var tp = fitText(x, bt, DISPLAY, "600", Math.round(30 * k), (n.w - 80) * k);
+    x.font = "600 " + tp + "px " + DISPLAY;
+    x.fillStyle = MUTED;
+    x.letterSpacing = Math.round(3 * k) + "px";
+    x.fillText(bt, cx, (n.y + 110) * k);
     x.letterSpacing = "0px";
-
     return c;
   }
+
+  /* THE SQUARE ON THE PAGE IS THE PICTURE. Once there is a date and a coin,
+     the preview is the very image that gets shared, not a lookalike. */
+  function refreshPreview() {
+    var sq = $("square"), pv = $("coinPreview");
+    if (!state.has || !pv) { if (pv) pv.hidden = true; if (sq) sq.classList.remove("has-art"); return; }
+    var markEl = $("mark");
+    if (!markEl || !markEl.dataset.coin || !markEl.complete || !markEl.naturalWidth) return;
+    Promise.all([loadBg(), document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()])
+      .then(function (a) {
+        pv.src = drawCard(a[0]).toDataURL("image/jpeg", 0.88);
+        pv.hidden = false;
+        sq.classList.add("has-art");
+      }).catch(function () {});
+  }
+  $("mark").addEventListener("load", refreshPreview);
 
   function toBlob(canvas) {
     return new Promise(function (resolve) {
@@ -446,7 +437,7 @@
       /* The fonts have to be IN before the canvas draws, or the picture goes
          out in Arial while the screen shows Oswald. */
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
-      var canvas = drawCard();
+      var canvas = drawCard(await loadBg());
       var blob = await toBlob(canvas);
       if (!blob) { msg.textContent = "This browser cannot make the image."; return; }
 
