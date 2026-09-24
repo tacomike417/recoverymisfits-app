@@ -585,7 +585,7 @@
     $("dback").textContent = got ? (c.back || "") : "";
     $("dback").hidden = !got || !c.back;
     $("dyears").textContent = "";
-    $("dacts").hidden = !got || !c.art;
+    $("dacts").hidden = !got || !c.art || c.kind === "start";   /* card 000 is never shared */
     $("dshareLabel").textContent = navigator.share ? "Share this card" : "Save the picture";
     $("dlinkLabel").textContent = navigator.share ? "Share the link" : "Copy the link";
     $("dfb").hidden = !!navigator.share;
@@ -624,8 +624,69 @@
     g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
     g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
   }
+  /* THE MILESTONE, BIG. Paints over the art's own "SURVIVAL PILE" band and
+     says what they did, in the site's heading font (Oswald, "RM Display"),
+     so the picture reads at a glance: this person hit a milestone. */
+  var BAND = { x: 20, y: 910, w: 842, h: 140 };
+  var shareFont = null;
+  function loadShareFont() {
+    if (shareFont) return shareFont;
+    shareFont = (window.FontFace
+      ? new FontFace("RM Share", "url(/assets/fonts/oswald-600.woff2)", { weight: "600" }).load()
+          .then(function (f) { document.fonts.add(f); })
+      : Promise.resolve()).catch(function () {});
+    return shareFont;
+  }
+  function fitFont(g, text, max, min, width) {
+    for (var s = max; s > min; s -= 2) {
+      g.font = "600 " + s + "px 'RM Share', 'Arial Narrow', Impact, sans-serif";
+      if (g.measureText(text).width <= width) return s;
+    }
+    g.font = "600 " + min + "px 'RM Share', 'Arial Narrow', Impact, sans-serif";
+    return min;
+  }
+  function shareLine(grp) {
+    var c = grp.card, e = grp.top;
+    if (c.kind === "start") return "That night...";
+    if (c.kind === "misfitversary") return e.years + (e.years === 1 ? " year" : " years") + " a Misfit";
+    if (c.kind === "holiday") return (c.unlocks || c.name || "") + " " + e.edition;
+    return c.unlocks || c.name || "";
+  }
+  function banner(g, grp) {
+    var text = shareLine(grp).toUpperCase();
+    var L = BAND.x + 26, W = BAND.w - 52, top = BAND.y + 14;
+    var FONT = "px 'RM Share', 'Arial Narrow', Impact, sans-serif";
+    g.fillStyle = "#11100e";
+    g.fillRect(BAND.x, BAND.y, BAND.w, BAND.h);
+    g.textAlign = "left"; g.textBaseline = "alphabetic";
+    g.fillStyle = "#c79e4f";
+    var s = fitFont(g, text, 88, 40, W), last;
+    if (s >= 60) {
+      last = top + g.measureText(text).actualBoundingBoxAscent;
+      g.fillText(text, L, last);
+    } else {
+      /* Too long for one line at a good size: split it into two, evenly. */
+      var words = text.split(" "), best = null;
+      for (var i = 1; i < words.length; i++) {
+        var a = words.slice(0, i).join(" "), b = words.slice(i).join(" ");
+        var worst = Math.max(g.measureText(a).width, g.measureText(b).width);
+        if (!best || worst < best.w) best = { a: a, b: b };
+        if (best.a === a) best.w = worst;
+      }
+      var longer = g.measureText(best.a).width > g.measureText(best.b).width ? best.a : best.b;
+      var s2 = fitFont(g, longer, 48, 28, W);
+      var asc = g.measureText(best.a).actualBoundingBoxAscent;
+      g.fillText(best.a, L, top - 2 + asc);
+      last = top - 2 + asc + s2 * 1.02;
+      g.fillText(best.b, L, last);
+    }
+    g.fillStyle = "#f1e6cf";
+    fitFont(g, "LITTLE MILESTONES BETWEEN THE BIG COINS", 28, 18, W);
+    g.fillText("LITTLE MILESTONES BETWEEN THE BIG COINS", L, Math.min(last + 40, BAND.y + BAND.h - 8));
+  }
+
   function picture(grp) {
-    return Promise.all([img("/assets/survival-pile/share-bg.jpg"), img(ART + grp.card.code + ".webp")])
+    return Promise.all([img("/assets/survival-pile/share-bg.jpg"), img(ART + grp.card.code + ".webp"), loadShareFont()])
       .then(function (a) {
         var c = document.createElement("canvas"); c.width = c.height = 1080;
         var g = c.getContext("2d");
@@ -646,6 +707,7 @@
           g.font = "700 " + Math.round(ph * 0.62) + "px system-ui, Arial, sans-serif";
           g.fillText(String(stamp), px + pw / 2, py + 1);
         }
+        banner(g, grp);
         return new Promise(function (ok, no) { c.toBlob(function (b) { b ? ok(b) : no(new Error("blank")); }, "image/jpeg", 0.9); });
       });
   }
