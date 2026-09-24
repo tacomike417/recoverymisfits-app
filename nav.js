@@ -16,6 +16,23 @@
      It drives itself -- it finds the rail, repaints when the count changes,
      and needs nothing called from in here. If it fails to load, the rail
      keeps its original share icon and nothing else notices. */
+  /* THE WELCOME DECK goes first. Flag it before coins.js can pop anything,
+     so a brand-new account sees the tour, then its first coin. */
+  (function loadWelcome() {
+    try {
+      if (localStorage.getItem("rm_account_v1") && !localStorage.getItem("rm_welcome_seen")) {
+        window.__rmWelcomePending = true;
+        setTimeout(function () { if (!document.querySelector(".rm-welcome")) window.__rmWelcomePending = false; }, 8000);
+      }
+    } catch (e) {}
+    if (document.getElementById("rm-welcome-js")) return;
+    const w = document.createElement("script");
+    w.id = "rm-welcome-js";
+    w.src = "/assets/welcome.js";
+    w.onerror = function () { window.__rmWelcomePending = false; };
+    document.head.appendChild(w);
+  })();
+
   (function loadCoins() {
     if (document.getElementById("rm-coins-js")) return;
     const c = document.createElement("script");

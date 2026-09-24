@@ -108,6 +108,12 @@
   box-shadow:0 4px 14px rgba(0,0,0,.55);background:#16140f;
 }
 .tile img{width:100%;height:100%;object-fit:cover;display:block}
+/* THE WELCOME DECK: three cards in a little stack. */
+.tile.wdeck .face{overflow:visible;background:transparent;box-shadow:none}
+.tile.wdeck .face img{position:absolute;inset:0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.55)}
+.tile.wdeck .face img:nth-child(1){transform:rotate(-7deg) translate(-7%,2%)}
+.tile.wdeck .face img:nth-child(2){transform:rotate(6deg) translate(6%,1%)}
+.tile.wdeck .when{white-space:normal;overflow:visible}
 /* COINS IN THE PILE. Same size slot as a card so the rows line up, but no
    card box around it -- a coin is a coin. Only earned coins and the NEXT one
    show; the next one is face-down like a card. */
@@ -428,6 +434,7 @@
     if (c.kind === "start") return "start";
     if (c.kind === "holiday" && /^(big-book|founders-day|dr-bob)$/.test(c.holiday)) return "aa";   /* AA history days */
     if (c.kind === "holiday") return "holiday";
+    if (c.kind === "welcome") return "misfit";
     if (c.kind === "misfitversary") return "misfit";
     if (c.kind === "ymd") return "ymd";   /* 111, 123, 222 ... the Angel Anniversaries */
     if (c.n <= 7) return "start";          /* day 7 still counts as your first week */
@@ -509,7 +516,21 @@
            '</button>';
   }
 
+  function welcomeTileHtml(g, i) {
+    var j = P.joinedYMD();
+    return '<button class="tile wdeck" type="button" data-i="' + i + '">' +
+             '<span class="face">' +
+               '<img src="/assets/survival-pile/welcome/welcome-03-thumb.webp" alt="">' +
+               '<img src="/assets/survival-pile/welcome/welcome-02-thumb.webp" alt="">' +
+               '<img src="/assets/survival-pile/welcome/welcome-01-thumb.webp" alt="The welcome deck">' +
+             '</span>' +
+             '<span class="ms">Welcome Deck</span>' +
+             '<span class="when">' + (j ? "Joined " + esc(short(j)) : "Tap to look around") + '</span>' +
+           '</button>';
+  }
+
   function tileHtml(g, i) {
+    if (g.isWelcome) return welcomeTileHtml(g, i);
     if (g.isCoin) return coinTileHtml(g, i);
     if (!g.top) {
       return '<button class="tile locked" type="button" data-i="' + i + '">' +
@@ -548,7 +569,7 @@
       var isOpen = mine.indexOf(newest) !== -1;
       return '<details class="sec"' + (isOpen ? " open" : "") + '>' +
                '<summary><span class="st">' + sec.title + '</span>' +
-               '<span class="sn">' + have + ' / ' + mine.filter(function (g) { return !g.isCoin; }).length + '</span>' +
+               '<span class="sn">' + have + ' / ' + mine.filter(function (g) { return !g.isCoin && !g.isWelcome; }).length + '</span>' +
                '<svg class="sv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
                '</summary><div class="grid">' +
                mine.map(function (g) { return tileHtml(g, tiles.indexOf(g)); }).join("") +
@@ -582,6 +603,8 @@
     earned.forEach(function (g) { byCode[g.card.code] = g; });
     tiles = cards.map(function (c) { return byCode[c.code] || { card: c, all: [], top: null }; });
     tiles = mixCoins(tiles, coinTiles(sober));
+    /* THE WELCOME DECK: always there, never counted, never shared. */
+    tiles.push({ isWelcome: true, card: { kind: "welcome", code: "welcome" }, top: null, all: [] });
     newest = earned[0] || null;                 /* earned() is newest first */
     var nx = P.next(cards, sober, today, joined);
 
@@ -628,6 +651,7 @@
     var g = tiles[i]; if (!g) return;
     /* Their newest coin goes to its share page, the same one the rail coin opens. */
     if (g.isCoin && g.newestCoin) { location.href = "/sober-date.html"; return; }
+    if (g.isWelcome) { if (window.RMWelcome) window.RMWelcome.open(0); return; }
     open = g;
     var c = g.card, got = !!g.top;
     $("big").className = "big" + (g.isCoin ? " iscoin" + (got ? "" : " locked") : "");

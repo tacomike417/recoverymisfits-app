@@ -468,6 +468,11 @@
 
   function show(coin) {
     if (openEl) return;
+    /* The welcome deck goes first; the coin waits until it is closed. */
+    if (window.__rmWelcomePending || document.querySelector(".rm-welcome")) {
+      setTimeout(function () { show(coin); }, 500);
+      return;
+    }
     coin = coin || coinFor(soberYMD());
     if (!coin) return;
 

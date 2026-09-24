@@ -209,6 +209,13 @@
         var e = list[0];
         if (!e || !e.card || !e.card.art) return;
         var key = e.card.code + "@" + e.date;
+        try {
+          if (localStorage.getItem("rm_welcome_skip")) {
+            localStorage.removeItem("rm_welcome_skip");
+            markSeen(key);
+            return;
+          }
+        } catch (err) {}
         if (seen() === key) return;
         /* Card 000 never pops -- mark it seen and leave it in the pile. */
         if (e.card.kind === "start") { markSeen(key); return; }
