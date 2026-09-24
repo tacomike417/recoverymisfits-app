@@ -244,6 +244,8 @@ def build_pages(cards):
     for c in cards:
         if not c['art']:
             continue
+        if c['kind'] == 'start':          # card 000 is never shared -- no public page
+            continue
         og_card(c['code'])
         d = os.path.join(root, c['code'])
         os.makedirs(d, exist_ok=True)
