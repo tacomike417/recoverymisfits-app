@@ -180,6 +180,46 @@ Character reference art cut for this is in `halloween-game/runway-refs/`.
 
 ---
 
+# WHERE THIS STOPPED — 22 Sep 2026
+
+**Parked on purpose, not abandoned.** CS1 is finished and works. The other
+five are not started, and that was a deliberate call rather than running out
+of steam — the attention was needed on getting people to the app, and five
+more scenes done badly is worse than five not done.
+
+**Done:** CS1, all five panels, art and sound, playing hands-off in about
+seventeen seconds. The player, the scene file and the test bench are all
+built and committed.
+
+**Not started:** CS2 through CS6. The script for all of them is further down
+this file and has not changed.
+
+**To start again, in this order:**
+
+1. Open `halloween-game/cutscene-test.html` and watch CS1. That is the bar
+   and the format, and two minutes with it beats reading any of this.
+2. Write the panel prompts for CS2 — the Fresh Threads costume swap. Copy the
+   shape of the CS1 prompt sheet: one prompt per panel, both character refs
+   attached to every one, no text in any picture, vertical 9:16.
+3. Generate, drop the pictures in `assets/cutscenes/cs2/`, add a `cs2` block
+   to `cutscenes.js` next to `cs1`.
+
+**Remember these three things, because they cost real time to learn:**
+
+- Attach both character reference pictures to EVERY prompt or the two of them
+  drift into different men from scene to scene.
+- Nobody in a meeting shows their face — see the anonymity rule at the end of
+  this file. It is not a style note.
+- The gag gets SHORTER every repeat. CS4 and CS5 are two or three panels, not
+  five. Matching CS1's length is the way to kill the joke.
+
+**And the thing worth knowing about the player:** a panel can hold a
+conversation now. `clear: true` on a line wipes the balloons already up, so
+one picture carries two beats. CS3's candy bar rant is five lines on one
+picture — that is what it is for.
+
+---
+
 # THE WAY WE'RE ACTUALLY DOING IT — comic panels
 
 *Decided 22 Sep 2026. This replaces the Runway plan above. The six-scene

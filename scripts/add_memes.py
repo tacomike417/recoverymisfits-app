@@ -86,8 +86,25 @@ def find_images():
     for dirpath, dirnames, filenames in os.walk(INBOX):
         dirnames[:] = [d for d in dirnames if d != '_added']
         for f in filenames:
-            if f.lower().endswith(IMAGE_EXT) and not f.startswith('.'):
-                found.append(os.path.join(dirpath, f))
+            if not f.lower().endswith(IMAGE_EXT) or f.startswith('.'):
+                continue
+            # CONTACT SHEETS ARE NOT MEMES. The ChatGPT zips carry a
+            # CONTACT-SHEET.jpg of the whole set, and one of them went into
+            # the rotation as meme 075 (caught 25 Sep 2026 before it ran).
+            if 'contact' in f.lower():
+                continue
+            full = os.path.join(dirpath, f)
+            # A BROKEN FILE STAYS OUT TOO. Five PNGs in the 061-126 zips were
+            # cut off partway (bottom of the picture missing). Anything that
+            # does not load completely is reported and left in new/.
+            try:
+                with Image.open(full) as test:
+                    test.load()
+            except Exception:
+                print('  ! skipped %s -- the file is damaged (cut off). Get a fresh copy.'
+                      % os.path.relpath(full, INBOX))
+                continue
+            found.append(full)
     return sorted(found)
 
 

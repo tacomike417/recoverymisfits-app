@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>All the Memes — Recovery Misfits</title>
+<link rel="icon" href="/icon-192.png">
+<!--
+  THE MEME MASTER PAGE -- Mike's eyes only (25 Sep 2026)
+
+  Every meme in the rotation on one page: its number, the thumbnail, and
+  when it ran or when it is going to run. Click one to see it full size.
+
+  THE PASSWORD IS A CURTAIN, NOT A LOCK. Mike: "Don't make it too secure.
+  It's just for me. I don't really care if people get in there." It keeps
+  a stranger from wandering in; anybody who reads this file can see it.
+  Change PASSWORD below to change it. Once typed, this browser remembers it.
+
+  COMPUTER WINS (Mike's call): a wide grid for scanning lots at once. On a
+  phone it simply becomes fewer columns.
+
+  WHEN A MEME RUNS is worked out right here from data/memes.json, with the
+  same walk scripts/build_pages.py does (meme_schedule). If one of them ever
+  changes, change the other -- otherwise this page shows dates the live site
+  does not use.
+
+  Not linked from anywhere, not in the sitemap, noindex.
+-->
+<style>
+  :root{
+    --ink:#0e0e0d; --panel:#171714; --panel2:#1f1e1a; --line:#2e2c25;
+    --text:#eee6d5; --dim:#a39a86; --gold:#d8b25a; --gold-dim:#967e40; --red:#c8412e;
+  }
+  @font-face{font-family:"RM Display";src:url("/assets/fonts/oswald-600.woff2") format("woff2");font-weight:600;font-display:swap}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--ink);color:var(--text);font:15px/1.4 system-ui,-apple-system,Segoe UI,sans-serif}
+  button{font:inherit;cursor:pointer}
+
+  /* ---- the curtain ---- */
+  .gate{min-height:100vh;display:grid;place-items:center;padding:24px}
+  .gate[hidden],.wrap[hidden]{display:none}
+  .gate form{width:min(360px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;display:grid;gap:12px;text-align:center}
+  .gate h1{margin:0;font:600 26px/1.1 "RM Display",Oswald,Impact,sans-serif;letter-spacing:.04em;text-transform:uppercase}
+  .gate input{height:46px;border-radius:10px;border:1px solid var(--line);background:var(--ink);color:var(--text);padding:0 14px;font-size:16px}
+  .gate button{height:46px;border:0;border-radius:10px;background:var(--gold);color:#16130b;font-weight:800;letter-spacing:.06em}
+  .gate .bad{color:#e07a66;min-height:1.2em;margin:0;font-size:13px}
+
+  /* ---- the page ---- */
+  .wrap{max-width:1500px;margin:0 auto;padding:22px 24px 60px}
+  header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:14px}
+  header h1{margin:0;font:600 34px/1 "RM Display",Oswald,Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase}
+  header h1 b{color:var(--gold);font-weight:600}
+  .facts{display:flex;flex-wrap:wrap;gap:8px 20px;color:var(--dim);font-size:14px}
+  .facts b{color:var(--text)}
+  .bar{position:sticky;top:0;z-index:5;background:#0e0e0de8;backdrop-filter:blur(8px);display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+    padding:10px 0;margin-bottom:14px;border-bottom:1px solid var(--line)}
+  .chip{height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--dim);font-weight:700;font-size:13px}
+  .chip.on{background:var(--panel2);border-color:var(--gold-dim);color:var(--text)}
+  .chip i{font-style:normal;color:var(--gold);margin-left:6px}
+  .bar .gap{flex:1}
+  .bar input{height:34px;width:120px;border-radius:999px;border:1px solid var(--line);background:var(--ink);color:var(--text);padding:0 14px;font-size:13px}
+  .lock{border:0;background:none;color:var(--dim);font-size:13px;text-decoration:underline}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}
+  .tile{background:none;border:0;padding:0;text-align:left;color:inherit}
+  .tile .pic{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--panel);border:1px solid var(--line)}
+  .tile img{width:100%;height:100%;object-fit:cover;display:block}
+  .tile:hover .pic,.tile:focus-visible .pic{border-color:var(--gold-dim);outline:none}
+  .tile .meta{display:flex;justify-content:space-between;gap:6px;padding:6px 2px 0;font-size:12.5px;color:var(--dim)}
+  .tile .meta b{color:var(--text);font-weight:800}
+  .tile.today .pic{border:2px solid var(--gold)}
+  .tile.today .when{color:var(--gold);font-weight:800}
+  .tile.new .pic::after{content:'NEW';position:absolute;top:6px;left:6px;padding:2px 6px;border-radius:5px;background:var(--red);color:#fff;font:800 10px/1.4 system-ui;letter-spacing:.08em}
+  .empty{color:var(--dim);padding:40px 0;text-align:center}
+
+  /* ---- one meme, big ---- */
+  .big{position:fixed;inset:0;z-index:20;background:#000000e6;display:grid;grid-template-columns:70px 1fr 70px;align-items:center}
+  .big[hidden]{display:none}
+  .big figure{margin:0;display:grid;justify-items:center;gap:12px;max-height:100vh;padding:20px 0}
+  .big img{max-width:min(88vw,calc(100vh - 110px));max-height:calc(100vh - 110px);border-radius:8px;box-shadow:0 20px 60px #000}
+  .big figcaption{color:var(--dim);font-size:14px;text-align:center}
+  .big figcaption b{color:var(--text)}
+  .big figcaption a{color:var(--gold)}
+  .big .nav{height:100%;border:0;background:none;color:#fff8;font-size:44px}
+  .big .nav:hover{color:#fff}
+  .big .x{position:absolute;top:12px;right:16px;width:42px;height:42px;border-radius:50%;border:0;background:#ffffff14;color:#fff;font-size:24px}
+  @media (max-width:600px){
+    .wrap{padding:16px 12px 50px}
+    header h1{font-size:26px}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+    .big{grid-template-columns:40px 1fr 40px}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate" hidden>
+  <form id="gateForm" autocomplete="off">
+    <h1>All the Memes</h1>
+    <input type="password" id="pw" placeholder="Password" autofocus>
+    <button type="submit">OPEN</button>
+    <p class="bad" id="bad"></p>
+  </form>
+</div>
+
+<div class="wrap" id="page" hidden>
+  <header>
+    <h1>All the <b>Memes</b></h1>
+    <div class="facts" id="facts">Loading…</div>
+  </header>
+  <div class="bar" id="bar">
+    <button class="chip on" data-show="all">All</button>
+    <button class="chip" data-show="ran">Already ran</button>
+    <button class="chip" data-show="coming">Coming up</button>
+    <button class="chip" data-show="new">Newest batch</button>
+    <span class="gap"></span>
+    <input type="search" id="find" placeholder="Find #" inputmode="numeric">
+    <button class="chip on" data-sort="run">By run date</button>
+    <button class="chip" data-sort="num">By number</button>
+    <button class="lock" id="lock" title="Forget the password on this browser">Lock</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="big" id="big" hidden>
+  <button class="nav" data-step="-1" aria-label="Previous">&#8249;</button>
+  <figure><img id="bigImg" alt=""><figcaption id="bigCap"></figcaption></figure>
+  <button class="nav" data-step="1" aria-label="Next">&#8250;</button>
+  <button class="x" id="bigX" aria-label="Close">&times;</button>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const PASSWORD = 'tacomike';          // change it here
+  const KEY = 'rm_memes_pw';
+
+  /* Same numbers as scripts/build_pages.py. */
+  const MEME_GAP_DAYS = 60;
+  const DAYS_AHEAD = 400;
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (m) =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  /* ---------------- the curtain ---------------- */
+  function unlocked(){ try { return localStorage.getItem(KEY) === PASSWORD; } catch(_){ return false; } }
+  function showGate(){ $('gate').hidden = false; $('page').hidden = true; setTimeout(() => $('pw').focus(), 0); }
+  $('gateForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if ($('pw').value.trim() !== PASSWORD) { $('bad').textContent = 'Nope.'; $('pw').select(); return; }
+    try { localStorage.setItem(KEY, PASSWORD); } catch(_){}
+    $('gate').hidden = true;
+    start();
+  });
+  $('lock').addEventListener('click', () => {
+    try { localStorage.removeItem(KEY); } catch(_){}
+    $('pw').value = ''; $('bad').textContent = '';
+    showGate();
+  });
+
+  /* ---------------- dates, in Ohio ---------------- */
+  function todayOhio(){
+    const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date());
+    return p;                                   // YYYY-MM-DD
+  }
+  const toDate = (s) => { const [y,m,d] = s.split('-').map(Number); return new Date(Date.UTC(y, m-1, d)); };
+  const iso = (d) => d.toISOString().slice(0,10);
+  const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
+  const daysBetween = (a, b) => Math.round((b - a) / 864e5);
+  const pretty = (s) => toDate(s).toLocaleDateString('en-US', { timeZone:'UTC', month:'short', day:'numeric', year: s.slice(0,4) === todayOhio().slice(0,4) ? undefined : 'numeric' });
+
+  /* The same walk as meme_schedule() in scripts/build_pages.py. */
+  function schedule(data, until){
+    const memes = (data.memes || []).filter(m => m.file);
+    const start = toDate(data.start || '2026-09-01');
+    const rank = {}; memes.forEach((m, i) => rank[m.file] = i);
+    const added = {}; memes.forEach(m => added[m.file] = toDate(m.added || data.start));
+    const last = {}, out = {};
+    let day = start, n = 0;
+    while (day <= until) {
+      const ready = memes.filter(m => added[m.file] <= day).map(m => m.file);
+      const fresh = ready.filter(f => !(f in last));
+      const seen = ready.filter(f => f in last).sort((a, b) => (last[a] - last[b]) || (rank[a] - rank[b]));
+      let pick = null;
+      if (seen.length && (!fresh.length || (n % 2 === 1 && daysBetween(last[seen[0]], day) >= MEME_GAP_DAYS))) pick = seen[0];
+      else if (fresh.length) pick = fresh[0];
+      if (pick) { out[iso(day)] = pick; last[pick] = day; }
+      day = addDays(day, 1); n++;
+    }
+    return out;
+  }
+
+  /* ---------------- the page ---------------- */
+  let all = [], view = [], show = 'all', sortBy = 'run', find = '', open = -1;
+
+  async function start(){
+    $('page').hidden = false;
+    if (all.length) { draw(); return; }
+    let data;
+    try {
+      const r = await fetch('/data/memes.json?t=' + Date.now(), { cache: 'no-store' });
+      data = await r.json();
+    } catch (_) { $('facts').textContent = 'Could not load data/memes.json.'; return; }
+
+    const today = todayOhio();
+    const sched = schedule(data, addDays(toDate(today), DAYS_AHEAD));
+    const runs = {};                              // file -> [dates]
+    Object.keys(sched).sort().forEach(d => (runs[sched[d]] = runs[sched[d]] || []).push(d));
+    const newest = (data.memes || []).reduce((a, m) => (m.added > a ? m.added : a), '');
+
+    all = (data.memes || []).filter(m => m.file).map(m => {
+      const id = m.file.replace(/\.[^.]+$/, '');
+      const dates = runs[m.file] || [];
+      const past = dates.filter(d => d <= today);
+      const next = dates.find(d => d > today) || null;
+      return {
+        id, file: m.file, added: m.added,
+        isToday: past.length && past[past.length - 1] === today,
+        ranOn: past.length ? past[past.length - 1] : null,
+        firstRan: past[0] || null,
+        next, isNew: m.added === newest
+      };
+    });
+
+    const ranCount = all.filter(m => m.ranOn).length;
+    const todays = all.find(m => m.isToday);
+    // the day every meme will have had its first turn
+    const firsts = {}; Object.keys(sched).sort().forEach(d => { if (!(sched[d] in firsts)) firsts[sched[d]] = d; });
+    const lastDebut = Object.values(firsts).sort().pop();
+    $('facts').innerHTML =
+      `<span><b>${all.length}</b> in rotation</span>` +
+      `<span><b>${ranCount}</b> have run</span>` +
+      (todays ? `<span>Today: <b>#${esc(todays.id)}</b></span>` : '') +
+      (lastDebut ? `<span>Every one has had a turn by <b>${esc(pretty(lastDebut))}</b></span>` : '');
+    const counts = { all: all.length, ran: ranCount, coming: all.length - ranCount + (todays ? 1 : 0),
+                     new: all.filter(m => m.isNew).length };
+    document.querySelectorAll('[data-show]').forEach(b => b.insertAdjacentHTML('beforeend', `<i>${counts[b.dataset.show]}</i>`));
+    draw();
+  }
+
+  function draw(){
+    view = all.filter(m =>
+      show === 'all' ? true :
+      show === 'ran' ? !!m.ranOn :
+      show === 'coming' ? (m.isToday || !m.ranOn) :
+      m.isNew);
+    if (find) view = view.filter(m => m.id.includes(find));
+    view.sort(sortBy === 'num' ? (a, b) => a.id.localeCompare(b.id, undefined, { numeric: true })
+      : (a, b) => {
+          // today first, then what is coming soonest, then what already ran (newest first)
+          const ra = a.isToday ? -1 : a.next && !a.ranOn ? 0 : 1, rb = b.isToday ? -1 : b.next && !b.ranOn ? 0 : 1;
+          if (ra !== rb) return ra - rb;
+          if (ra === 0) return a.next.localeCompare(b.next);
+          return (b.ranOn || '').localeCompare(a.ranOn || '');
+        });
+    $('grid').innerHTML = view.length ? view.map((m, i) => {
+      const when = m.isToday ? 'TODAY' : m.ranOn ? 'Ran ' + pretty(m.ranOn) : m.next ? 'Runs ' + pretty(m.next) : '—';
+      return `<button class="tile${m.isToday ? ' today' : ''}${m.isNew ? ' new' : ''}" data-i="${i}" title="#${esc(m.id)}">
+        <div class="pic"><img loading="lazy" decoding="async" src="/assets/memes/thumbs/${esc(m.id)}.webp" alt="Meme ${esc(m.id)}"></div>
+        <div class="meta"><b>#${esc(m.id)}</b><span class="when">${esc(when)}</span></div></button>`;
+    }).join('') : '<div class="empty">Nothing here.</div>';
+  }
+
+  $('bar').addEventListener('click', (e) => {
+    const s = e.target.closest('[data-show]'), o = e.target.closest('[data-sort]');
+    if (s) { show = s.dataset.show; document.querySelectorAll('[data-show]').forEach(b => b.classList.toggle('on', b === s)); draw(); }
+    if (o) { sortBy = o.dataset.sort; document.querySelectorAll('[data-sort]').forEach(b => b.classList.toggle('on', b === o)); draw(); }
+  });
+  $('find').addEventListener('input', (e) => { find = e.target.value.replace(/\D/g, ''); draw(); });
+
+  /* ---------------- one meme, big ----------------
+     It covers the screen, so it is one step back: the browser's Back (or
+     the phone's) closes it, as do Esc, the X and clicking the dark. */
+  function paintBig(){
+    const m = view[open]; if (!m) return;
+    $('bigImg').src = '/assets/memes/' + m.file;
+    const when = m.isToday ? 'running <b>today</b>' : m.ranOn ? 'ran <b>' + esc(pretty(m.ranOn)) + '</b>' : m.next ? 'runs <b>' + esc(pretty(m.next)) + '</b>' : '';
+    $('bigCap').innerHTML = `<b>#${esc(m.id)}</b> &middot; ${when}${m.ranOn && m.next ? ' &middot; again ' + esc(pretty(m.next)) : ''}
+      &middot; added ${esc(pretty(m.added))} &middot; <a href="/meme/${esc(m.id)}/" target="_blank" rel="noopener">its page &#8599;</a>
+      &middot; ${open + 1} of ${view.length}`;
+  }
+  function openBig(i){
+    const was = open;
+    open = i; paintBig(); $('big').hidden = false;
+    if (was < 0) history.pushState({ big: 1 }, '', location.href);
+  }
+  function closeBig(fromPop){
+    if (open < 0) return;
+    open = -1; $('big').hidden = true; $('bigImg').removeAttribute('src');
+    if (!fromPop) history.back();
+  }
+  function step(d){ if (open < 0 || !view.length) return; open = (open + d + view.length) % view.length; paintBig(); }
+
+  $('grid').addEventListener('click', (e) => { const t = e.target.closest('.tile'); if (t) openBig(+t.dataset.i); });
+  $('big').addEventListener('click', (e) => {
+    const s = e.target.closest('[data-step]');
+    if (s) { step(+s.dataset.step); return; }
+    if (e.target.id === 'bigX' || e.target === $('big') || e.target.tagName === 'FIGURE') closeBig(false);
+  });
+  window.addEventListener('popstate', () => { if (open >= 0) closeBig(true); });
+  document.addEventListener('keydown', (e) => {
+    if (open < 0) return;
+    if (e.key === 'Escape') closeBig(false);
+    else if (e.key === 'ArrowRight') step(1);
+    else if (e.key === 'ArrowLeft') step(-1);
+  });
+
+  if (unlocked()) start(); else showGate();
+})();
+</script>
+</body>
+</html>
