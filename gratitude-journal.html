@@ -478,6 +478,22 @@ main.bp{
 .whyText p{margin:0 0 12px;font-size:16px;line-height:1.5;color:var(--ivory)}
 .whyText b{color:var(--gold-lit)}
 
+.chipNote{flex:1 0 100%;text-align:right;font-size:12px;color:var(--muted);margin-top:-2px}
+
+.gjGood{
+  display:block;width:100%;margin-top:16px;min-height:48px;
+  border-radius:14px;border:1px solid var(--line);background:transparent;
+  color:var(--gold-lit);font:inherit;font-size:15px;font-weight:700;cursor:pointer;
+}
+.goodItem{
+  background:var(--panel);border-radius:16px;padding:14px 16px;margin-bottom:10px;
+  animation:bpIn .3s ease-out both;
+}
+.goodItem .goodText{font-size:18px;line-height:1.4;color:var(--ivory);white-space:pre-wrap}
+.goodItem .goodMeta{margin-top:6px;font-size:12px;color:var(--muted)}
+.goodItem .goodMeta b{color:var(--gold);font-weight:700}
+.goodEmpty{color:var(--muted);font-size:16px;line-height:1.5}
+
 .gjSplit{
   display:flex;align-items:center;gap:12px;
   margin:30px 0 8px;
@@ -529,6 +545,8 @@ main.bp{
     </button>
   </div>
   <div class="bpUnder">Saves as you go.</div>
+
+  <button class="gjGood" id="gjGood" type="button">⭐ Read my good stuff</button>
 
   <details class="gjPast" id="gjPast">
     <summary>Past days <span class="gjCount" id="gjCount">0</span></summary>
@@ -585,6 +603,17 @@ main.bp{
 
     <div class="gjViewBtns">
       <button class="bigBtn" id="gjWhyGo" type="button">Let’s go</button>
+    </div>
+  </div>
+</div>
+
+<!-- their own good stuff, pulled at random from past days -->
+<div class="bpRelease gjView" id="gjGoodView" hidden role="dialog" aria-modal="true" aria-label="My good stuff">
+  <div class="gjViewInner">
+    <div class="gjViewDate">My good stuff</div>
+    <div id="gjGoodBody"></div>
+    <div class="gjViewBtns">
+      <button class="bigBtn" id="gjGoodMore" type="button">Show me more</button>
     </div>
   </div>
 </div>
@@ -677,7 +706,23 @@ main.bp{
   let busy = false;
   let toastTimer = null, toastUndo = null;
 
-  function blank(){ return { date:TODAY, happy:"", peace:"", useful:"", journal:"", step:0, done:false }; }
+  function blank(){ return { date:TODAY, happy:"", peace:"", useful:"", journal:"", lists:{}, step:0, done:false }; }
+
+  /* Each question can take several answers. They live in e.lists[key] as an
+     array; e[key] keeps them joined by new lines so Copy, the past-day view
+     and older entries all keep working. */
+  function items(e, key){
+    if (e && e.lists && Array.isArray(e.lists[key])) return e.lists[key];
+    const t = ((e && e[key]) || "").trim();
+    return t ? [t] : [];
+  }
+  function addItem(key, text){
+    const arr = items(E, key).slice();
+    arr.push(text);
+    E.lists = E.lists || {};
+    E.lists[key] = arr;
+    E[key] = arr.join("\n");
+  }
 
   function loadToday(){
     const e = readDay(TODAY);
@@ -752,8 +797,13 @@ main.bp{
     for (let i = 0; i < Math.min(E.step, QUESTIONS.length); i++){
       const Q = QUESTIONS[i];
       bubble("them", Q.q, false);
-      const a = (E[Q.key] || "").trim();
-      a ? bubble("me", a, false) : bubble("me", "Skip", false, "skip");
+      const list = items(E, Q.key);
+      list.length ? list.forEach(a => bubble("me", a, false)) : bubble("me", "Skip", false, "skip");
+    }
+    // the question they're partway through
+    if (!E.done && E.step < QUESTIONS.length){
+      const Q = QUESTIONS[E.step], list = items(E, Q.key);
+      if (list.length){ bubble("them", Q.q, false); list.forEach(a => bubble("me", a, false)); }
     }
     if (E.done) bubble("them", "Saved. See you tomorrow. ⭐", false);
   }
@@ -790,6 +840,11 @@ main.bp{
   function setChips(list){
     chipsEl.innerHTML = "";
     list.forEach(c => {
+      if (c.note){
+        const n = document.createElement("div");
+        n.className = "chipNote"; n.textContent = c.note;
+        chipsEl.appendChild(n); return;
+      }
       if (c.cta){
         const w = document.createElement("div"); w.className = "bpCta";
         const b = document.createElement("button");
@@ -809,8 +864,19 @@ main.bp{
 
   function showStepChips(){
     if (busy) return setChips([]);
-    if (E.done) return setChips([{ label:"Copy today", cls:"quiet", onTap: () => copyDay(E, TODAY) }]);
-    if (E.step < QUESTIONS.length) return setChips([{ label:"Skip", cls:"quiet", onTap: () => answer("", true) }]);
+    if (E.done) return setChips([
+      { label:"Add more", onTap: addMore },
+      { label:"Copy today", cls:"quiet", onTap: () => copyDay(E, TODAY) }
+    ]);
+    if (E.step < QUESTIONS.length){
+      const n = items(E, QUESTIONS[E.step].key).length;
+      if (!n) return setChips([{ label:"Skip", cls:"quiet", onTap: skipQ }]);
+      const last = E.step === QUESTIONS.length - 1;
+      return setChips([
+        { label: last ? "That’s all →" : "Next →", cls:"go", onTap: nextQ },
+        { note:"Or keep typing to add another." }
+      ]);
+    }
     return setChips([{ cta:true, label:"Done for today ⭐", sub:"It’s already saved. This just closes out the day.", onTap: finishDay }]);
   }
 
@@ -832,19 +898,40 @@ main.bp{
       incoming(INTRO, () => { splitLine(); incoming([QUESTIONS[0].q], showStepChips); });
       return;
     }
-    if (E.step < QUESTIONS.length) incoming([QUESTIONS[E.step].q], showStepChips);
+    if (E.step < QUESTIONS.length){
+      // already partway through this one (a reload): don't ask it twice
+      if (items(E, QUESTIONS[E.step].key).length) return showStepChips();
+      incoming([QUESTIONS[E.step].q], showStepChips);
+    }
     else showStepChips();
   }
 
-  function answer(text, skipped){
-    const Q = QUESTIONS[E.step];
-    E[Q.key] = text;
-    skipped ? bubble("me", "Skip", true, "skip") : bubble("me", text, true);
+  // an answer adds to the current question; they move on with Next
+  function answer(text){
+    addItem(QUESTIONS[E.step].key, text);
+    bubble("me", text, true);
+    saveToday();
+    showStepChips();
+    scrollDown();
+    syncSend();
+  }
+  function nextQ(){
     E.step++;
     saveToday();
-    scrollDown();
     askNext();
     syncSend();
+  }
+  function skipQ(){
+    bubble("me", "Skip", true, "skip");
+    nextQ();
+  }
+  // reopen a finished day: back onto the God winks question
+  function addMore(){
+    E.done = false;
+    E.step = QUESTIONS.length - 1;
+    saveToday();
+    syncSend();
+    incoming(["What else?"], showStepChips);
   }
 
   function send(){
@@ -953,12 +1040,53 @@ main.bp{
     history.pushState({ gj:"view" }, "");
   }
   function closeView(){ viewEl.hidden = true; viewing = null; }
+  /* ---------- read my good stuff ---------- */
+  const LABEL = { happy:"Happy", peace:"At peace", useful:"Useful", journal:"God wink" };
+  const goodEl = $("gjGoodView"), goodBody = $("gjGoodBody");
+  function allGood(){
+    const out = [];
+    readIndex().forEach(d => {
+      const e = (d === TODAY) ? E : readDay(d);
+      if (!e) return;
+      QUESTIONS.forEach(Q => items(e, Q.key).forEach(t => out.push({ d, key:Q.key, t })));
+    });
+    return out;
+  }
+  function dealGood(){
+    const pool = allGood();
+    goodBody.innerHTML = "";
+    if (!pool.length){
+      const p = document.createElement("div");
+      p.className = "goodEmpty";
+      p.textContent = "Nothing here yet. Once you’ve written a few days, your good stuff shows up here.";
+      goodBody.appendChild(p);
+      $("gjGoodMore").hidden = true;
+      return;
+    }
+    // shuffle, deal five
+    for (let i = pool.length - 1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    pool.slice(0, 5).forEach((g, i) => {
+      const box = document.createElement("div"); box.className = "goodItem";
+      box.style.animationDelay = (i * 0.06) + "s";
+      const t = document.createElement("div"); t.className = "goodText"; t.textContent = g.t;
+      const m = document.createElement("div"); m.className = "goodMeta";
+      const b = document.createElement("b"); b.textContent = LABEL[g.key];
+      m.append(b, document.createTextNode(" · " + (g.d === TODAY ? "Today" : shortDay(g.d))));
+      box.append(t, m); goodBody.appendChild(box);
+    });
+    $("gjGoodMore").hidden = pool.length <= 5;
+    goodEl.scrollTop = 0;
+  }
+  $("gjGood").onclick = () => { dealGood(); goodEl.hidden = false; history.pushState({ gj:"good" }, ""); };
+  $("gjGoodMore").onclick = dealGood;
+
   const whyEl = $("gjWhy");
   $("gjInfo").onclick = () => { whyEl.hidden = false; whyEl.scrollTop = 0; history.pushState({ gj:"why" }, ""); };
   $("gjWhyGo").onclick = () => history.back();
   window.addEventListener("popstate", () => {
     if (!viewEl.hidden) closeView();
     if (!whyEl.hidden) whyEl.hidden = true;
+    if (!goodEl.hidden) goodEl.hidden = true;
   });
 
   $("gjCopy").onclick = () => { if (viewing) copyDay(readDay(viewing), viewing); };
