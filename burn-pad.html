@@ -1,291 +1,331 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Recovery Misfits — Burn Pad</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recovery Misfits — Burn Pad</title>
+<meta name="theme-color" content="#11110f">
 
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#ffffff" />
-  <link rel="icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="./icon-192.png">
 
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Recovery Misfits">
-  <link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+/* ===========================================================================
+   BURN PAD — a text you never send.
 
-  <style>
-    body{
-      font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
-      margin:0;
-      background:#fff;
-      color:#111;
-      padding-bottom:120px;
-    }
+   Built phone-first (phone wins). It looks like starting a brand-new text:
+   a To: line at the top, a thread in the middle, the typing bar at the
+   bottom. You vent, then the questions come in as incoming texts and you
+   answer them like texting back. Release burns the thread.
 
-    .page{
-      max-width:980px;
-      margin:0 auto;
-      padding:14px 12px 24px;
-    }
+   NOTHING LEAVES THE PHONE. There is no network call anywhere in this
+   file. The thread is kept in this phone's own storage only so a slip of
+   the back button doesn't throw away what somebody wrote -- releasing it
+   (or Start over) wipes it.
 
-    .pageTitle{
-      font-weight:1000;
-      font-size:18px;
-      margin:12px 4px 4px;
-    }
+   Scope: everything lives inside <main>. topbar.js and nav.js are untouched.
+   ======================================================================== */
 
-    .pageSub{
-      font-weight:800;
-      color:#666;
-      margin:0 4px 12px;
-      line-height:1.25;
-      font-size:13px;
-    }
+@font-face{
+  font-family:"RM Display";
+  src:url("assets/fonts/oswald-600.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
 
-    input{
-      width:100%;
-      padding:10px;
-      border-radius:12px;
-      border:1px solid rgba(0,0,0,.18);
-      margin-top:8px;
-      font-weight:800;
-      box-sizing:border-box;
-      font-size:16px;
-    }
+:root{
+  --bg:#11110f;
+  --panel:#1b1b18;
+  --panel-soft:#22211d;
+  --bubble-in:#26251f;
+  --ivory:#f1e7cf;
+  --gold:#d8b45b;
+  --gold-lit:#f0d68a;
+  --on-gold:#1a1507;
+  --muted:#b7b0a2;
+  --line:rgba(216,180,91,.38);
+  --display:"RM Display","Arial Narrow",Impact,sans-serif;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
 
-    textarea{
-      width:100%;
-      padding:10px;
-      border-radius:12px;
-      border:1px solid rgba(0,0,0,.18);
-      margin-top:8px;
-      font-weight:800;
-      box-sizing:border-box;
-      font-size:16px;
-      line-height:1.35;
-      resize:vertical;
-      min-height:88px;
-      font-family:inherit;
-    }
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{-webkit-font-smoothing:antialiased}
 
-    .row{
-      display:flex;
-      gap:10px;
-      margin-top:10px;
-      flex-wrap:wrap;
-    }
+main.bp{
+  max-width:560px;
+  margin:0 auto;
+  padding:10px 14px 16px;
+  color:var(--ivory);
+  font-family:var(--ui);
+  /* fill the screen between the top bar and the bottom nav, so the typing
+     bar sits low like a real texting screen even on an empty thread */
+  min-height:calc(100dvh - 272px);
+  display:flex;
+  flex-direction:column;
+}
 
-    .btn{
-      padding:9px 12px;
-      border-radius:999px;
-      border:1px solid rgba(0,0,0,.18);
-      background:#fff;
-      font-weight:900;
-      cursor:pointer;
-      text-decoration:none;
-      color:#111;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      box-sizing:border-box;
-      min-height:44px;
-      line-height:1.1;
-      font-family:inherit;
-    }
+/* ---- header: the "New Message" line ---------------------------------- */
+.bpHead{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:4px 2px 8px;
+}
+.bpTitle{
+  font-family:var(--display);font-weight:600;
+  font-size:24px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ivory);margin:0;
+}
+.bpTitle span{color:var(--gold)}
+.bpStartOver{
+  background:none;border:none;color:var(--gold);
+  font:inherit;font-weight:700;font-size:15px;
+  padding:10px 2px;min-height:44px;cursor:pointer;
+}
+.bpStartOver[hidden]{display:none}
 
-    .btn.primary{
-      background:#111;
-      color:#fff;
-      border-color:rgba(0,0,0,.18);
-    }
+.bpTo{
+  display:flex;align-items:center;gap:8px;
+  border-top:1px solid rgba(255,255,255,.08);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:6px 2px;
+}
+.bpTo label{color:var(--muted);font-size:16px}
+.bpTo input{
+  flex:1;min-width:0;background:transparent;border:none;outline:none;
+  color:var(--ivory);font:inherit;font-size:16px;padding:8px 0;
+}
+.bpTo input::placeholder{color:rgba(183,176,162,.6)}
 
-    .muted{
-      color:#666;
-      font-weight:800;
-      line-height:1.25;
-    }
+/* ---- the promise ------------------------------------------------------ */
+.bpPromise{
+  margin:14px auto 6px;
+  max-width:330px;
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;line-height:1.4;
+}
+.bpPromise b{color:var(--gold-lit);font-weight:700}
+.bpPromise .lock{display:block;font-size:18px;margin-bottom:4px}
 
-    .qLabel{
-      margin-top:12px;
-      font-weight:1000;
-      letter-spacing:.2px;
-    }
+/* ---- the thread ------------------------------------------------------- */
+.bpThread{
+  flex:1;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  gap:4px;
+  padding:10px 0 6px;
+}
+.bpFrom{
+  font-size:11px;color:var(--muted);margin:8px 0 0 12px;
+}
+.msg{
+  max-width:78%;
+  padding:9px 13px;
+  border-radius:19px;
+  font-size:16px;line-height:1.35;
+  white-space:pre-wrap;overflow-wrap:anywhere;
+  animation:bpIn .28s cubic-bezier(.2,.8,.2,1) both;
+}
+.msg.me{
+  align-self:flex-end;
+  background:var(--gold);color:var(--on-gold);
+  border-bottom-right-radius:6px;
+}
+.msg.them{
+  align-self:flex-start;
+  background:var(--bubble-in);color:var(--ivory);
+  border-bottom-left-radius:6px;
+}
+.msg.me + .msg.me{margin-top:-1px}
+.msg.them + .msg.them{margin-top:-1px}
+.msg.skip{opacity:.55;font-style:italic}
+.bpNotSent{
+  align-self:flex-end;
+  font-size:11px;color:var(--muted);
+  margin:2px 4px 6px 0;
+}
+@keyframes bpIn{
+  from{opacity:0;transform:translateY(16px) scale(.97)}
+  to{opacity:1;transform:none}
+}
 
-    .divider{
-      height:1px;
-      background:rgba(0,0,0,.10);
-      margin:12px 0;
-    }
+/* typing dots */
+.typing{
+  align-self:flex-start;
+  background:var(--bubble-in);
+  border-radius:19px;border-bottom-left-radius:6px;
+  padding:12px 14px;display:flex;gap:5px;
+  animation:bpIn .2s ease-out both;
+}
+.typing i{
+  width:7px;height:7px;border-radius:50%;background:var(--muted);
+  animation:dot 1s infinite ease-in-out;
+}
+.typing i:nth-child(2){animation-delay:.15s}
+.typing i:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
 
-    .stepWrap{display:none;}
-    .stepWrap.active{display:block;}
+/* burning the thread on release */
+.bpThread.burning .msg,
+.bpThread.burning .bpNotSent,
+.bpThread.burning .bpFrom{
+  animation:burnAway .9s ease-in forwards;
+}
+@keyframes burnAway{
+  0%{opacity:1;filter:none;transform:none}
+  40%{filter:sepia(1) saturate(4) hue-rotate(-20deg) brightness(1.2)}
+  100%{opacity:0;filter:blur(6px) sepia(1) saturate(4);transform:translateY(-40px) scale(.9)}
+}
 
-    .chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:8px;
-    }
+/* ---- quick replies (the tap-to-pick bubbles) --------------------------- */
+.bpChips{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;
+  padding:6px 0 10px;
+}
+.bpChips[hidden]{display:none}
+.chip{
+  min-height:40px;
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:transparent;color:var(--gold-lit);
+  font:inherit;font-size:15px;font-weight:600;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.chip.on{background:var(--gold);color:var(--on-gold);border-color:var(--gold)}
+.chip.go{background:var(--gold);color:var(--on-gold);border-color:var(--gold);font-weight:800}
+.chip.quiet{border-color:rgba(255,255,255,.14);color:var(--muted)}
 
-    .chipBtn{
-      border:1px solid rgba(0,0,0,.18);
-      border-radius:999px;
-      padding:7px 10px;
-      background:#fff;
-      font-weight:1000;
-      cursor:pointer;
-      user-select:none;
-      font-size:13px;
-    }
+/* ---- the typing bar ---------------------------------------------------- */
+.bpBar{
+  display:flex;align-items:flex-end;gap:8px;
+  padding:6px 0 0;
+}
+.bpInput{
+  flex:1;min-width:0;
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:20px;
+  color:var(--ivory);
+  font:inherit;font-size:16px;line-height:1.35;
+  padding:9px 14px;
+  resize:none;outline:none;
+  max-height:40vh;
+  min-height:40px;
+}
+.bpInput:focus{border-color:var(--line)}
+.bpInput::placeholder{color:rgba(183,176,162,.6)}
+.bpSend{
+  flex:none;
+  width:40px;height:40px;border-radius:50%;
+  border:none;background:var(--gold);color:var(--on-gold);
+  display:grid;place-items:center;cursor:pointer;
+  transition:opacity .15s, transform .1s;
+}
+.bpSend:disabled{opacity:.3;cursor:default}
+.bpSend:not(:disabled):active{transform:scale(.92)}
+.bpSend svg{width:20px;height:20px}
+.bpUnder{
+  text-align:center;font-size:11px;color:var(--muted);
+  margin-top:8px;
+}
 
-    .chipBtn.active{
-      background:#111;
-      color:#fff;
-      border-color:rgba(0,0,0,.18);
-    }
+/* ---- release: 30 seconds, then the prayer -------------------------------
+   Full screen, and it is one history step: the phone's back button or the
+   iPhone edge swipe closes it. */
+.bpRelease{
+  position:fixed;inset:0;z-index:10050;
+  background:rgba(8,8,7,.97);
+  display:flex;align-items:center;justify-content:center;
+  padding:calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+  color:var(--ivory);font-family:var(--ui);
+  animation:fadeIn .35s ease-out both;
+}
+.bpRelease[hidden]{display:none}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.bpReleaseInner{max-width:420px;width:100%;text-align:center}
+.medText{
+  font-family:var(--display);font-weight:600;
+  font-size:26px;line-height:1.25;letter-spacing:.02em;
+}
+.medTimer{
+  margin:22px auto 6px;
+  width:96px;height:96px;border-radius:50%;
+  border:2px solid var(--line);
+  display:grid;place-items:center;
+  font-size:38px;font-weight:800;color:var(--gold-lit);
+  font-variant-numeric:tabular-nums;
+}
+.medSub{color:var(--muted);font-size:14px}
+.prayer{
+  margin-top:26px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:var(--panel);
+  padding:18px 16px;
+  text-align:left;
+  animation:bpIn .4s ease-out both;
+}
+.prayer[hidden]{display:none}
+.prayer h2{
+  margin:0 0 10px;
+  font-family:var(--display);font-weight:600;
+  font-size:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);
+}
+.prayer p{margin:0;font-size:17px;line-height:1.5}
+.bigBtn{
+  margin-top:18px;width:100%;min-height:48px;
+  border:none;border-radius:999px;
+  background:var(--gold);color:var(--on-gold);
+  font:inherit;font-size:17px;font-weight:800;cursor:pointer;
+}
+.textBtn{
+  margin-top:14px;background:none;border:none;
+  color:var(--muted);font:inherit;font-size:14px;
+  min-height:44px;padding:0 10px;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;
+}
 
-    .burnHeaderLine{
-      margin-top:6px;
-      font-weight:900;
-      color:#666;
-      line-height:1.25;
-    }
+/* stars on release */
+.star{
+  position:fixed;pointer-events:none;z-index:10060;
+  font-size:18px;opacity:0;
+  animation:starFly .85s ease-out forwards;
+}
+@keyframes starFly{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.9)}
+  10%{opacity:1}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15)}
+}
 
-    .tinyLink{
-      background:none;
-      border:none;
-      padding:0;
-      margin:0;
-      color:#111;
-      font-weight:1000;
-      cursor:pointer;
-      text-decoration:underline;
-      text-underline-offset:3px;
-      font-family:inherit;
-      font-size:inherit;
-    }
+/* small message at the bottom (Start over -> Undo, restored, paused) */
+.bpToast{
+  position:fixed;left:50%;
+  bottom:calc(200px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  background:var(--panel-soft);color:var(--ivory);
+  border:1px solid var(--line);
+  border-radius:999px;padding:10px 16px;
+  font-family:var(--ui);font-weight:600;font-size:14px;
+  display:flex;align-items:center;gap:14px;
+  z-index:10040;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  max-width:calc(100% - 32px);white-space:nowrap;
+}
+.bpToast[hidden]{display:none}
+.bpToast button{
+  background:none;border:none;color:var(--gold-lit);
+  font:inherit;font-weight:800;cursor:pointer;padding:6px 2px;
+}
+.bpToast button[hidden]{display:none}
 
-    .burstWrap{
-      position:relative;
-      display:inline-flex;
-    }
-
-    .star{
-      position:absolute;
-      left:50%;
-      top:50%;
-      transform:translate(-50%,-50%);
-      pointer-events:none;
-      will-change:transform,opacity;
-      font-size:16px;
-      opacity:0;
-      animation:starFly .85s ease-out forwards;
-      filter: drop-shadow(0 2px 2px rgba(0,0,0,.10));
-    }
-
-    @keyframes starFly{
-      0%{opacity:0;transform:translate(-50%,-50%) scale(.9);}
-      10%{opacity:1;}
-      100%{opacity:0;transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15);}
-    }
-
-    .prayerBox{
-      margin-top:10px;
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-      font-weight:900;
-      line-height:1.45;
-    }
-
-    .card{
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:16px;
-      padding:14px;
-      background:#fff;
-      margin:10px 4px 14px;
-    }
-
-    #burnDoneSheet .doneWrap{
-      margin-top:12px;
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:16px;
-      padding:14px;
-      background:#fff;
-    }
-
-    .burnMeditationBox{
-      margin-top:0;
-      background:#111;
-      color:#fff;
-      border-radius:16px;
-      padding:18px 16px;
-      text-align:center;
-      border:1px solid rgba(0,0,0,.18);
-    }
-
-    .burnMeditationText{
-      font-size:19px;
-      line-height:1.35;
-      font-weight:1000;
-    }
-
-    .burnMeditationTimer{
-      margin-top:14px;
-      font-size:34px;
-      line-height:1;
-      font-weight:1000;
-      letter-spacing:.03em;
-    }
-
-    .burnMeditationSub{
-      margin-top:10px;
-      font-size:13px;
-      color:rgba(255,255,255,.78);
-      font-weight:900;
-    }
-
-    .burnDoneBtnRow{
-      margin-top:12px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .burnDoneBtnRow .btn{
-      width:100%;
-    }
-
-    @media (max-width:720px){
-      .row .btn{width:100%;}
-    }
-
-    /* "Write something first" nudge */
-    .burnNudge{margin-top:6px;font-weight:900;color:#b3261e;display:none;}
-    .burnNudge.show{display:block;}
-
-    /* Saved / cleared message, with Undo when it can be undone */
-    .burnToast{
-      position:fixed;left:50%;
-      bottom:calc(96px + env(safe-area-inset-bottom));
-      transform:translateX(-50%);
-      background:#111;color:#fff;
-      border-radius:999px;padding:10px 16px;
-      font-weight:900;display:flex;align-items:center;gap:14px;
-      z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.25);
-      max-width:calc(100% - 32px);box-sizing:border-box;
-    }
-    .burnToast[hidden]{display:none;}
-    .burnToast button{
-      background:none;border:none;color:#ffb4a8;
-      font-weight:1000;font-family:inherit;font-size:inherit;
-      cursor:pointer;padding:6px 2px;
-    }
-    .burnToast button[hidden]{display:none;}
-  </style>
+@media (prefers-reduced-motion:reduce){
+  .msg,.typing,.prayer,.bpRelease{animation:none}
+  .bpThread.burning .msg,.bpThread.burning .bpNotSent,.bpThread.burning .bpFrom{animation:none;opacity:0}
+}
+</style>
 </head>
 
 <body>
@@ -293,433 +333,441 @@
 <div id="rm-topbar"></div>
 <script src="./topbar.js" defer></script>
 
-<main class="page">
-  <div class="pageTitle">Burn Pad 🔥</div>
-  <div class="pageSub">Get it out, inspect it, then release it.</div>
-
-  <div class="card">
-    <div class="stepWrap active" id="burnStep1">
-      <div class="burnHeaderLine">Write out the text that won’t be sent</div>
-
-      <div class="qLabel">Name</div>
-      <input id="burnName" type="text" placeholder="Who is this about? (optional)">
-
-      <textarea id="burnDraft"
-        placeholder="This isn’t for replaying the struggle. It’s for getting it out and moving on."
-        style="min-height:160px;"></textarea>
-      <div class="burnNudge" id="burnNudge">Write something first. Even one line counts.</div>
-
-      <div class="row" style="margin-top:12px;">
-        <button class="btn primary" id="burnNext" type="button">Next</button>
-        <button class="btn" id="burnClear1" type="button">Clear</button>
-      </div>
-    </div>
-
-    <div class="stepWrap" id="burnStep2">
-      <div class="muted" style="margin-top:6px;">
-        Strong reactions usually mean something important got touched.
-      </div>
-
-      <div style="margin-top:10px;">
-        <button class="tinyLink" id="burnToggleSimple" type="button">Show fewer questions</button>
-      </div>
-
-      <div class="qLabel">Right now I’m:</div>
-      <div class="chips" id="burnStateChips">
-        <button class="chipBtn" type="button" data-v="angry">Angry</button>
-        <button class="chipBtn" type="button" data-v="scared">Scared</button>
-        <button class="chipBtn" type="button" data-v="hurt">Hurt</button>
-        <button class="chipBtn" type="button" data-v="embarrassed">Embarrassed</button>
-        <button class="chipBtn" type="button" data-v="tired">Tired</button>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="qLabel">Where was my mistake?</div>
-      <textarea id="burnMistake" placeholder="Self-seeking… lied… held onto anger too long… passive aggressive… withheld a loving attitude…"></textarea>
-
-      <div class="qLabel">Where did I make it worse?</div>
-      <textarea id="burnFlames"></textarea>
-
-      <div class="qLabel">What was I trying to control, change, or force?</div>
-      <textarea id="burnControl"></textarea>
-
-      <div id="burnAdvanced">
-        <div class="qLabel">What’s actually threatened here?</div>
-        <div class="chips" id="burnThreatChips">
-          <button class="chipBtn" type="button" data-v="ego">Ego</button>
-          <button class="chipBtn" type="button" data-v="fear">Fear</button>
-          <button class="chipBtn" type="button" data-v="comfort">Comfort</button>
-          <button class="chipBtn" type="button" data-v="image">Image</button>
-          <button class="chipBtn" type="button" data-v="security">Security</button>
-        </div>
-
-        <div class="qLabel">What’s the next right move — if any?</div>
-        <textarea id="burnNextMove" placeholder="Sometimes the move is to do nothing and let things cool."></textarea>
-
-        <div class="qLabel">Who could help me see this more clearly?</div>
-        <textarea id="burnWho"></textarea>
-      </div>
-
-      <label style="display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:900;color:#444;user-select:none;">
-        <input id="burnNotReady" type="checkbox" style="width:auto;margin:0;transform:scale(1.1);">
-        I’m not ready to let this go yet.
-      </label>
-
-      <div class="muted" id="burnNotReadyHint" style="margin-top:6px;display:none;">
-        That’s honest. Pause it and it stays saved on this phone until you come back.
-      </div>
-
-      <div class="muted" style="margin-top:12px;">
-        Probably not a bad idea to talk this through with someone in recovery.
-      </div>
-
-      <div class="muted" style="margin-top:10px;">
-        Feelings usually shift if we give them a little time.
-      </div>
-
-      <div class="row" style="margin-top:12px;">
-        <span class="burstWrap">
-          <button class="btn primary" id="burnRelease" type="button">Release it</button>
-        </span>
-        <button class="btn" id="burnBack" type="button">Back</button>
-        <button class="btn" id="burnClear2" type="button">Clear</button>
-      </div>
-    </div>
+<main class="bp">
+  <div class="bpHead">
+    <h1 class="bpTitle">Burn <span>Pad</span></h1>
+    <button class="bpStartOver" id="bpStartOver" type="button" hidden>Start over</button>
   </div>
 
-  <div class="card" id="burnDoneSheet" style="display:none;">
-    <div class="doneWrap">
-      <div class="burnMeditationBox" id="burnMeditationBox">
-        <div class="burnMeditationText">This is a spiritually sick situation, how can I be helpful?</div>
-        <div class="burnMeditationTimer" id="burnMeditationTimer">30</div>
-        <div class="burnMeditationSub">Take 30 seconds.</div>
-      </div>
-
-      <div class="burnDoneBtnRow">
-        <button class="btn primary" id="burnDoneClose" type="button">Close Burn Pad</button>
-      </div>
-    </div>
+  <div class="bpTo">
+    <label for="bpTo">To:</label>
+    <input id="bpTo" type="text" autocomplete="off" placeholder="Who’s it for? (optional)">
   </div>
 
-  <div class="card" id="prayerSheet" style="display:none;">
-    <h3 id="prayerTitle" style="margin:0;">Sick Man’s Prayer</h3>
-
-    <div class="prayerBox" style="margin-top:12px;">
-      This is a sick man. How can I be helpful to him?<br>
-      God save me from being angry.<br>
-      Thy will be done.
-    </div>
-
-    <div class="row" style="margin-top:14px;">
-      <button class="btn primary" id="prayerDone" type="button">Let it go</button>
-    </div>
+  <div class="bpPromise">
+    <span class="lock" aria-hidden="true">🔒</span>
+    <b>This never sends.</b> Nobody sees it. Not them, not us.
+    Get it out without replaying the misery.
   </div>
+
+  <div class="bpThread" id="bpThread" aria-live="polite"></div>
+
+  <div class="bpChips" id="bpChips" hidden></div>
+
+  <div class="bpBar">
+    <textarea class="bpInput" id="bpInput" rows="1"
+      placeholder="Get it out…" aria-label="Your message"></textarea>
+    <button class="bpSend" id="bpSend" type="button" aria-label="Send (it won’t)" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/>
+      </svg>
+    </button>
+  </div>
+  <div class="bpUnder">Get it out, inspect it, then release it.</div>
 </main>
 
-<div class="burnToast" id="burnToast" role="status" aria-live="polite" hidden>
-  <span id="burnToastText"></span>
-  <button type="button" id="burnToastUndo">Undo</button>
+<div class="bpRelease" id="bpRelease" hidden role="dialog" aria-modal="true" aria-label="Release">
+  <div class="bpReleaseInner">
+    <div class="medText">This is a spiritually sick situation.<br>How can I be helpful?</div>
+    <div class="medTimer" id="medTimer">30</div>
+    <div class="medSub" id="medSub">Take 30 seconds.</div>
+
+    <div class="prayer" id="prayer" hidden>
+      <h2>Sick Man’s Prayer</h2>
+      <p>This is a sick man. How can I be helpful to him?<br>
+      God save me from being angry.<br>
+      Thy will be done.</p>
+      <button class="bigBtn" id="letGo" type="button">Let it go</button>
+    </div>
+
+    <button class="textBtn" id="skipWait" type="button">Skip the wait</button>
+  </div>
+</div>
+
+<div class="bpToast" id="bpToast" role="status" aria-live="polite" hidden>
+  <span id="bpToastText"></span>
+  <button type="button" id="bpToastUndo">Undo</button>
 </div>
 
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
 
 <script>
+(function(){
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
   const $ = (id) => document.getElementById(id);
+  const thread = $("bpThread"), chipsEl = $("bpChips");
+  const input = $("bpInput"), sendBtn = $("bpSend"), toInput = $("bpTo");
+  const startOverBtn = $("bpStartOver");
+  const releaseEl = $("bpRelease"), medTimer = $("medTimer"), medSub = $("medSub");
+  const prayerEl = $("prayer"), letGoBtn = $("letGo"), skipBtn = $("skipWait");
+  const toastEl = $("bpToast"), toastText = $("bpToastText"), toastUndoBtn = $("bpToastUndo");
 
-  // ---------- elements ----------
-  const burnCard = $("burnStep1").closest(".card");
+  const SAVE_KEY = "rm_burn_pad_v2";
+  const OLD_KEY  = "rm_burn_pad_paused_v1";
 
-  const burnStep1 = $("burnStep1");
-  const burnStep2 = $("burnStep2");
+  /* The questions, in order. `pick` = tap-to-pick bubbles (more than one
+     allowed); `hint` = what the typing bar says while that question is up. */
+  const QUESTIONS = [
+    { lead: "Strong reactions usually mean something important got touched.",
+      q: "Right now I’m…", pick: ["Angry","Scared","Hurt","Embarrassed","Tired"] },
+    { q: "Where was my mistake?",
+      hint: "Self-seeking… lied… held on too long… passive aggressive…" },
+    { q: "Where did I make it worse?" },
+    { q: "What was I trying to control, change, or force?" },
+    { q: "What’s actually threatened here?", pick: ["Ego","Fear","Comfort","Image","Security"] },
+    { q: "What’s the next right move, if any?",
+      hint: "Sometimes the move is to do nothing and let things cool." },
+    { q: "Who could help me see this more clearly?" }
+  ];
+  const CLOSING = [
+    "Probably not a bad idea to talk this through with someone in recovery.",
+    "Feelings usually shift if we give them a little time.",
+    "Ready to let it go?"
+  ];
 
-  const burnName = $("burnName");
-  const burnDraft = $("burnDraft");
-  const burnNudge = $("burnNudge");
-  const burnMistake = $("burnMistake");
-  const burnFlames = $("burnFlames");
-  const burnControl = $("burnControl");
-  const burnNextMove = $("burnNextMove");
-  const burnWho = $("burnWho");
+  /* state: phase = "vent" | "q" | "end"
+     msgs  = [{who:"me"|"them", text, skip?}] */
+  let S = fresh();
+  let picks = [];          // chips selected for the current question
+  let busy = false;        // an incoming text is "typing"
+  let timer = null, toastTimer = null, toastUndo = null;
 
-  const burnThreatChips = $("burnThreatChips");
-  const burnStateChips = $("burnStateChips");
-  const burnAdvanced = $("burnAdvanced");
-  const burnToggleSimple = $("burnToggleSimple");
+  function fresh(){ return { to:"", phase:"vent", qi:0, msgs:[], draft:"" }; }
 
-  const burnNotReady = $("burnNotReady");
-  const burnNotReadyHint = $("burnNotReadyHint");
-  const burnReleaseBtn = $("burnRelease");
+  /* ---------- storage (this phone only) ---------- */
+  function save(){
+    S.to = toInput.value; S.draft = input.value;
+    try {
+      if (S.msgs.length || S.to.trim() || S.draft.trim())
+        localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+      else localStorage.removeItem(SAVE_KEY);
+    } catch(e){}
+  }
+  function load(){
+    try { return JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch(e){ return null; }
+  }
+  function wipeSaved(){
+    try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(OLD_KEY); } catch(e){}
+  }
 
-  const burnDoneSheet = $("burnDoneSheet");
-  const burnDoneCloseBtn = $("burnDoneClose");
-  const burnMeditationTimer = $("burnMeditationTimer");
+  /* ---------- drawing ---------- */
+  function bubble(m, animate){
+    const lastEl = thread.lastElementChild;
+    // "not sent" tag only ever sits under the newest of my vent texts
+    const tag = thread.querySelector(".bpNotSent");
+    if (tag) tag.remove();
 
-  const prayerSheet = $("prayerSheet");
-  const prayerDone = $("prayerDone");
+    if (m.who === "them" && !(lastEl && lastEl.classList.contains("them"))){
+      const from = document.createElement("div");
+      from.className = "bpFrom";
+      from.textContent = "Recovery Misfits";
+      thread.appendChild(from);
+    }
+    const el = document.createElement("div");
+    el.className = "msg " + m.who + (m.skip ? " skip" : "");
+    el.textContent = m.text;
+    if (!animate) el.style.animation = "none";
+    thread.appendChild(el);
 
-  const burnToast = $("burnToast");
-  const burnToastText = $("burnToastText");
-  const burnToastUndo = $("burnToastUndo");
-
-  const SAVE_KEY = "rm_burn_pad_paused_v1";
-  const textFields = { name: burnName, draft: burnDraft, mistake: burnMistake,
-    flames: burnFlames, control: burnControl, nextMove: burnNextMove, who: burnWho };
-  const step1Fields = ["name", "draft"];
-  const step2Fields = ["mistake", "flames", "control", "nextMove", "who"];
-
-  let burnSimple = false;
-  let burnMeditationInterval = null;
-  let toastTimer = null;
-  let toastUndo = null;
-
-  // ---------- stars ----------
-  function burstStars(onButtonEl){
-    const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
-    if(!wrap) return;
-    const emojis = ["⭐","✨","🌟"];
-    for(let i=0;i<14;i++){
-      const s = document.createElement("span");
-      s.className = "star";
-      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-      s.style.setProperty("--dx", (Math.random()*90 - 45).toFixed(0) + "px");
-      s.style.setProperty("--dy", (Math.random()*-80 - 20).toFixed(0) + "px");
-      s.style.setProperty("--rot", (Math.random()*220 - 110).toFixed(0) + "deg");
-      s.style.animationDelay = (Math.random()*0.08).toFixed(2) + "s";
-      wrap.appendChild(s);
-      setTimeout(() => s.remove(), 950);
+    if (m.who === "me" && m.vent){
+      const t = document.createElement("div");
+      t.className = "bpNotSent";
+      t.textContent = "Not sent. Never will be.";
+      if (!animate) t.style.animation = "none";
+      thread.appendChild(t);
     }
   }
 
-  // ---------- chips (more than one can be picked) ----------
-  function chipValues(group){
-    return [...group.querySelectorAll(".chipBtn.active")].map(b => b.getAttribute("data-v"));
+  function drawAll(){
+    thread.innerHTML = "";
+    S.msgs.forEach(m => bubble(m, false));
   }
-  function setChips(group, values){
-    group.querySelectorAll(".chipBtn").forEach(b =>
-      b.classList.toggle("active", (values || []).includes(b.getAttribute("data-v"))));
+
+  function scrollDown(){
+    requestAnimationFrame(() =>
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" }));
   }
-  [burnStateChips, burnThreatChips].forEach(group => {
-    group.addEventListener("click", (e) => {
-      const btn = e.target.closest(".chipBtn");
-      if(!btn) return;
-      btn.classList.toggle("active");
-      btn.setAttribute("aria-pressed", btn.classList.contains("active"));
+
+  function say(m){
+    S.msgs.push(m);
+    bubble(m, true);
+    save();
+    scrollDown();
+  }
+
+  function incoming(lines, then){
+    busy = true; setChips([]); syncSend();
+    let i = 0;
+    const next = () => {
+      if (i >= lines.length){ busy = false; syncSend(); then && then(); return; }
+      const dots = document.createElement("div");
+      dots.className = "typing";
+      dots.innerHTML = "<i></i><i></i><i></i>";
+      thread.appendChild(dots);
+      scrollDown();
+      setTimeout(() => {
+        dots.remove();
+        say({ who:"them", text: lines[i++] });
+        setTimeout(next, 250);
+      }, 650);
+    };
+    next();
+  }
+
+  /* ---------- the quick-reply bubbles ---------- */
+  function setChips(list){
+    chipsEl.innerHTML = "";
+    list.forEach(c => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + (c.cls ? " " + c.cls : "");
+      b.textContent = c.label;
+      if (c.toggle) b.setAttribute("aria-pressed", "false");
+      b.onclick = () => c.onTap(b);
+      chipsEl.appendChild(b);
     });
+    chipsEl.hidden = !list.length;
+    if (list.length) scrollDown();
+  }
+
+  function showStepChips(){
+    if (busy) return setChips([]);
+    if (S.phase === "vent"){
+      if (!S.msgs.some(m => m.vent)) return setChips([]);
+      return setChips([{ label:"That’s it, I got it out", cls:"go", onTap: startQuestions }]);
+    }
+    if (S.phase === "q"){
+      const Q = QUESTIONS[S.qi];
+      picks = [];
+      const list = [];
+      (Q.pick || []).forEach(p => list.push({
+        label:p, toggle:true,
+        onTap:(b) => {
+          const on = !b.classList.contains("on");
+          b.classList.toggle("on", on);
+          b.setAttribute("aria-pressed", String(on));
+          picks = on ? picks.concat(p) : picks.filter(x => x !== p);
+          syncSend();
+        }
+      }));
+      list.push({ label:"Skip", cls:"quiet", onTap: () => answer("", true) });
+      return setChips(list);
+    }
+    if (S.phase === "end"){
+      return setChips([
+        { label:"Not yet", cls:"quiet", onTap: notYet },
+        { label:"Release it 🔥", cls:"go", onTap: release }
+      ]);
+    }
+  }
+
+  /* ---------- flow ---------- */
+  function hintFor(){
+    if (S.phase === "vent") return S.msgs.some(m => m.vent) ? "Keep going, or tap below when you’re done…" : "Get it out…";
+    if (S.phase === "q") return QUESTIONS[S.qi].hint || (QUESTIONS[S.qi].pick ? "Pick some, or say it your way…" : "Text back…");
+    return "Anything else to get out?";
+  }
+
+  function syncSend(){
+    input.placeholder = hintFor();
+    const has = input.value.trim().length > 0 || (S.phase === "q" && picks.length > 0);
+    sendBtn.disabled = busy || !has;
+    startOverBtn.hidden = !(S.msgs.length || toInput.value.trim());
+  }
+
+  function autoGrow(){
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight + 2, window.innerHeight * 0.4) + "px";
+  }
+
+  function askCurrent(){
+    const Q = QUESTIONS[S.qi];
+    incoming(Q.lead ? [Q.lead, Q.q] : [Q.q], showStepChips);
+  }
+
+  function startQuestions(){
+    S.phase = "q"; S.qi = 0; save();
+    askCurrent();
+  }
+
+  function answer(text, skipped){
+    const parts = [];
+    if (picks.length) parts.push(picks.join(", "));
+    if (text) parts.push(text);
+    say(skipped && !parts.length ? { who:"me", text:"Skip", skip:true }
+                                 : { who:"me", text: parts.join(" — ") });
+    picks = [];
+    S.qi++;
+    if (S.qi < QUESTIONS.length){ save(); askCurrent(); }
+    else { S.phase = "end"; save(); incoming(CLOSING, showStepChips); }
+  }
+
+  function send(){
+    const text = input.value.trim();
+    if (busy) return;
+    if (S.phase === "q"){
+      if (!text && !picks.length) return;
+      input.value = ""; autoGrow();
+      answer(text, false);
+    } else {
+      if (!text) return;
+      input.value = ""; autoGrow();
+      say({ who:"me", text, vent:true });
+      showStepChips();
+    }
+    syncSend();
+    input.focus({ preventScroll:true });
+  }
+
+  function notYet(){
+    save();
+    say({ who:"me", text:"Not yet." });
+    incoming(["That’s honest. It’ll stay right here on this phone until you’re ready."], showStepChips);
+    toast("Kept on this phone. Come back anytime.");
+  }
+
+  /* ---------- release ---------- */
+  function stars(fromEl){
+    const r = fromEl.getBoundingClientRect();
+    const x = r.left + r.width/2, y = r.top + r.height/2;
+    const e = ["⭐","✨","🌟","🔥"];
+    for (let i=0;i<16;i++){
+      const s = document.createElement("span");
+      s.className = "star";
+      s.textContent = e[Math.floor(Math.random()*e.length)];
+      s.style.left = x + "px"; s.style.top = y + "px";
+      s.style.setProperty("--dx", (Math.random()*140 - 70).toFixed(0) + "px");
+      s.style.setProperty("--dy", (Math.random()*-120 - 30).toFixed(0) + "px");
+      s.style.setProperty("--rot", (Math.random()*220 - 110).toFixed(0) + "deg");
+      s.style.animationDelay = (Math.random()*0.08).toFixed(2) + "s";
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 1000);
+    }
+  }
+
+  function release(){
+    const btn = chipsEl.querySelector(".go");
+    if (btn) stars(btn);
+    setChips([]);
+    busy = true; syncSend();
+    thread.classList.add("burning");
+    // It's released: wipe it now, not after the prayer. If they close the
+    // app during the 30 seconds, it's still gone.
+    wipeSaved();
+    setTimeout(() => {
+      history.pushState({ burn:"release" }, "");
+      openRelease();
+    }, 950);
+  }
+
+  function openRelease(){
+    releaseEl.hidden = false;
+    prayerEl.hidden = true;
+    skipBtn.hidden = false;
+    medSub.textContent = "Take 30 seconds.";
+    let n = 30;
+    medTimer.textContent = n;
+    clearInterval(timer);
+    timer = setInterval(() => {
+      n--; medTimer.textContent = Math.max(0, n);
+      if (n <= 0) showPrayer();
+    }, 1000);
+  }
+
+  function showPrayer(){
+    clearInterval(timer); timer = null;
+    medTimer.textContent = "0";
+    medSub.textContent = "";
+    skipBtn.hidden = true;
+    prayerEl.hidden = false;
+    setTimeout(() => letGoBtn.focus({ preventScroll:true }), 150);
+  }
+
+  // Back to a clean pad.
+  function resetPad(){
+    clearInterval(timer); timer = null;
+    releaseEl.hidden = true;
+    thread.classList.remove("burning");
+    S = fresh(); picks = []; busy = false;
+    toInput.value = ""; input.value = ""; autoGrow();
+    drawAll(); showStepChips(); syncSend();
+    wipeSaved();
+    window.scrollTo({ top:0 });
+  }
+
+  letGoBtn.onclick = () => {
+    if (history.state && history.state.burn === "release") history.back();
+    else resetPad();
+  };
+  skipBtn.onclick = showPrayer;
+
+  // The release screen is one step: phone back / edge swipe closes it,
+  // and since the thread is already burned, you land on a fresh pad.
+  window.addEventListener("popstate", () => {
+    if (!releaseEl.hidden) resetPad();
   });
 
-  // ---------- snapshot / restore ----------
-  function snapshot(){
-    const snap = { states: chipValues(burnStateChips), threats: chipValues(burnThreatChips),
-      notReady: burnNotReady.checked, simple: burnSimple };
-    for (const k in textFields) snap[k] = textFields[k].value;
-    return snap;
-  }
-  function applySnapshot(snap){
-    for (const k in textFields) textFields[k].value = snap[k] || "";
-    setChips(burnStateChips, snap.states);
-    setChips(burnThreatChips, snap.threats);
-    burnNotReady.checked = !!snap.notReady;
-    syncNotReadyUI();
-    setSimple(!!snap.simple);
-  }
-  function hasWriting(snap){
-    return Object.keys(textFields).some(k => (snap[k] || "").trim());
-  }
-
-  // ---------- saved-on-this-phone (only when paused) ----------
-  function readSaved(){
-    try { return JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch(e){ return null; }
-  }
-  function writeSaved(snap){
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(snap)); return true; } catch(e){ return false; }
-  }
-  function dropSaved(){
-    try { localStorage.removeItem(SAVE_KEY); } catch(e){}
-  }
-
-  // ---------- small helpers ----------
-  function syncNotReadyUI(){
-    burnReleaseBtn.textContent = burnNotReady.checked ? "Pause it" : "Release it";
-    burnNotReadyHint.style.display = burnNotReady.checked ? "block" : "none";
-  }
-  function setSimple(on){
-    burnSimple = on;
-    burnAdvanced.style.display = on ? "none" : "";
-    burnToggleSimple.textContent = on ? "Show all questions" : "Show fewer questions";
-  }
-  function showToast(text, undoFn){
+  /* ---------- start over, with Undo ---------- */
+  function toast(text, undo){
     clearTimeout(toastTimer);
-    burnToastText.textContent = text;
-    toastUndo = undoFn || null;
-    burnToastUndo.hidden = !undoFn;
-    burnToast.hidden = false;
-    toastTimer = setTimeout(hideToast, undoFn ? 7000 : 4000);
+    toastText.textContent = text;
+    toastUndo = undo || null;
+    toastUndoBtn.hidden = !undo;
+    toastEl.hidden = false;
+    toastTimer = setTimeout(() => { toastEl.hidden = true; toastUndo = null; }, undo ? 7000 : 3500);
   }
-  function hideToast(){
-    burnToast.hidden = true;
-    toastUndo = null;
-  }
-  burnToastUndo.onclick = () => {
-    const fn = toastUndo;
-    hideToast();
+  toastUndoBtn.onclick = () => {
+    const fn = toastUndo; toastEl.hidden = true; toastUndo = null;
     if (fn) fn();
   };
 
-  // ---------- screens ----------
-  // Which screen is showing lives in the browser history, so the phone's own
-  // back button (and the iPhone edge swipe) steps back one screen at a time
-  // instead of leaving the page and losing what was written.
-  function currentScreen(){
-    const st = history.state && history.state.burn;
-    return st === 2 || st === "done" ? st : 1;
-  }
-
-  function render(){
-    const screen = currentScreen();
-    const inDone = screen === "done";
-
-    burnCard.style.display = inDone ? "none" : "";
-    burnStep1.classList.toggle("active", screen === 1);
-    burnStep2.classList.toggle("active", screen === 2);
-
-    if (inDone){
-      if (burnDoneSheet.style.display !== "block"){
-        burnDoneSheet.style.display = "block";
-        prayerSheet.style.display = "none";
-        startBurnMeditationCountdown();
-      }
-    } else {
-      stopCountdown();
-      burnDoneSheet.style.display = "none";
-      prayerSheet.style.display = "none";
-    }
-  }
-
-  function goTo(screen){
-    history.pushState({ burn: screen }, "");
-    render();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  window.addEventListener("popstate", () => {
-    hideToast();
-    render();
-  });
-
-  // ---------- 30 seconds, then the prayer ----------
-  function stopCountdown(){
-    if (burnMeditationInterval){
-      clearInterval(burnMeditationInterval);
-      burnMeditationInterval = null;
-    }
-  }
-  function startBurnMeditationCountdown(){
-    stopCountdown();
-    let seconds = 30;
-    burnMeditationTimer.textContent = String(seconds);
-    burnMeditationInterval = setInterval(() => {
-      seconds -= 1;
-      burnMeditationTimer.textContent = String(Math.max(0, seconds));
-      if (seconds <= 0){
-        stopCountdown();
-        openPrayer();
-      }
-    }, 1000);
-  }
-  function openPrayer(){
-    prayerSheet.style.display = "block";
-    prayerSheet.scrollIntoView({ behavior: "smooth", block: "start" });
-    setTimeout(() => prayerDone.focus({ preventScroll: true }), 120);
-  }
-
-  // Released and done: wipe it, forget it, and step back to a fresh pad.
-  function finishBurn(){
-    for (const k in textFields) textFields[k].value = "";
-    setChips(burnStateChips, []);
-    setChips(burnThreatChips, []);
-    burnNotReady.checked = false;
-    syncNotReadyUI();
-    setSimple(false);
-    dropSaved();
-
-    const depth = currentScreen() === "done" ? 2 : currentScreen() === 2 ? 1 : 0;
-    if (depth) history.go(-depth); else render();
-    window.scrollTo({ top: 0 });
-  }
-
-  // ---------- buttons ----------
-  $("burnNext").onclick = () => {
-    if (!burnDraft.value.trim()){
-      burnNudge.classList.add("show");
-      burnDraft.focus();
-      return;
-    }
-    goTo(2);
-    setTimeout(() => burnMistake.focus({ preventScroll: true }), 80);
-  };
-  burnDraft.addEventListener("input", () => burnNudge.classList.remove("show"));
-
-  $("burnBack").onclick = () => {
-    if (currentScreen() === 2) history.back(); else render();
-    setTimeout(() => burnDraft.focus({ preventScroll: true }), 80);
-  };
-
-  function clearWithUndo(keys, alsoAnswers){
-    const before = snapshot();
-    const hadSaved = readSaved();
-    keys.forEach(k => textFields[k].value = "");
-    if (alsoAnswers){
-      setChips(burnStateChips, []);
-      setChips(burnThreatChips, []);
-      burnNotReady.checked = false;
-      syncNotReadyUI();
-    }
-    burnNudge.classList.remove("show");
-    dropSaved();
-    showToast("Cleared.", () => {
-      applySnapshot(before);
-      if (hadSaved) writeSaved(hadSaved);
+  startOverBtn.onclick = () => {
+    save();
+    const before = JSON.parse(JSON.stringify(S));
+    resetPad();
+    toast("Started over.", () => {
+      S = before;
+      toInput.value = S.to || ""; input.value = S.draft || ""; autoGrow();
+      drawAll(); showStepChips(); syncSend(); save();
     });
-  }
-  $("burnClear1").onclick = () => clearWithUndo(step1Fields, false);
-  $("burnClear2").onclick = () => clearWithUndo(step2Fields, true);
-
-  burnToggleSimple.onclick = () => setSimple(!burnSimple);
-
-  burnNotReady.addEventListener("change", syncNotReadyUI);
-
-  burnReleaseBtn.onclick = () => {
-    if (burnNotReady.checked){
-      const ok = writeSaved(snapshot());
-      showToast(ok ? "Paused. It’s saved on this phone for when you’re ready."
-                   : "Couldn’t save on this phone. Keep this page open.");
-      return;
-    }
-    burstStars(burnReleaseBtn);
-    dropSaved();
-    setTimeout(() => goTo("done"), 450);
   };
 
-  burnDoneCloseBtn.onclick = finishBurn;
-  prayerDone.onclick = finishBurn;
+  /* ---------- wiring ---------- */
+  sendBtn.onclick = send;
+  input.addEventListener("input", () => { autoGrow(); syncSend(); save(); });
+  // Phone: Return is a new line, like texting. Keyboard: Ctrl/Cmd+Enter sends.
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); send(); }
+  });
+  toInput.addEventListener("input", () => { syncSend(); save(); });
 
-  // ---------- start up ----------
-  // A reload keeps the history entry; if it was the 30-second screen,
-  // drop back to the questions rather than restarting the timer blind.
-  if (currentScreen() === "done") history.replaceState({ burn: 2 }, "");
+  /* ---------- start up ---------- */
+  // A reload on the release screen: the thread was already wiped.
+  if (history.state && history.state.burn === "release") history.replaceState(null, "");
 
-  const saved = readSaved();
-  if (saved && hasWriting(saved)){
-    applySnapshot(saved);
-    showToast("Picked up where you left off.");
-  } else if (currentScreen() === 2){
-    history.replaceState(null, "");
+  const saved = load();
+  if (saved && Array.isArray(saved.msgs) && (saved.msgs.length || (saved.draft||"").trim())){
+    S = Object.assign(fresh(), saved);
+    toInput.value = S.to || "";
+    input.value = S.draft || "";
+    drawAll();
+    // if it was mid-"typing" when they left, re-ask the question
+    const last = S.msgs[S.msgs.length - 1];
+    if (S.phase === "q" && (!last || last.who === "me")) askCurrent();
+    else if (S.phase === "end" && (!last || last.who === "me")) incoming(CLOSING, showStepChips);
+    else showStepChips();
+    toast("Picked up where you left off.");
+    setTimeout(scrollDown, 60);
+  } else {
+    try { localStorage.removeItem(OLD_KEY); } catch(e){}
+    showStepChips();
   }
-  render();
+  autoGrow();
+  syncSend();
+})();
 </script>
 
 </body>
