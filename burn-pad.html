@@ -509,7 +509,7 @@ main.bp{
   function save(){
     S.to = toInput.value; S.draft = input.value;
     try {
-      if (S.msgs.length || S.to.trim() || S.draft.trim())
+      if (S.msgs.some(m => m.who === "me") || S.to.trim() || S.draft.trim())
         localStorage.setItem(SAVE_KEY, JSON.stringify(S));
       else localStorage.removeItem(SAVE_KEY);
     } catch(e){}
@@ -668,7 +668,7 @@ main.bp{
     input.placeholder = hintFor();
     const has = input.value.trim().length > 0 || (S.phase === "q" && picks.length > 0);
     sendBtn.disabled = busy || !has;
-    startOverBtn.hidden = !(S.msgs.length || toInput.value.trim());
+    startOverBtn.hidden = !(S.msgs.some(m => m.who === "me") || toInput.value.trim());
   }
 
   function autoGrow(){
@@ -789,7 +789,12 @@ main.bp{
     drawAll(); showStepChips(); syncSend();
     wipeSaved();
     window.scrollTo({ top:0 });
+    openWithQuestion();
   }
+
+  // Every fresh pad opens with the one question, like a text coming in.
+  const OPENER = "What’s burning you up right now?";
+  function openWithQuestion(){ incoming([OPENER], showStepChips); }
 
   letGoBtn.onclick = () => {
     if (history.state && history.state.burn === "release") history.back();
@@ -822,9 +827,14 @@ main.bp{
     const before = JSON.parse(JSON.stringify(S));
     resetPad();
     toast("Started over.", () => {
-      S = before;
-      toInput.value = S.to || ""; input.value = S.draft || ""; autoGrow();
-      drawAll(); showStepChips(); syncSend(); save();
+      // let the opener finish "typing" before putting the old thread back
+      const put = () => {
+        if (busy) return setTimeout(put, 120);
+        S = before;
+        toInput.value = S.to || ""; input.value = S.draft || ""; autoGrow();
+        drawAll(); showStepChips(); syncSend(); save();
+      };
+      put();
     });
   };
 
@@ -842,7 +852,7 @@ main.bp{
   if (history.state && history.state.burn === "release") history.replaceState(null, "");
 
   const saved = load();
-  if (saved && Array.isArray(saved.msgs) && (saved.msgs.length || (saved.draft||"").trim())){
+  if (saved && Array.isArray(saved.msgs) && (saved.msgs.some(m => m.who === "me") || (saved.to||"").trim() || (saved.draft||"").trim())){
     S = Object.assign(fresh(), saved);
     toInput.value = S.to || "";
     input.value = S.draft || "";
@@ -851,12 +861,13 @@ main.bp{
     const last = S.msgs[S.msgs.length - 1];
     if (S.phase === "q" && (!last || last.who === "me")) askCurrent();
     else if (S.phase === "end" && (!last || last.who === "me")) incoming(CLOSING, showStepChips);
+    else if (!S.msgs.length) openWithQuestion();
     else showStepChips();
     toast("Picked up where you left off.");
     setTimeout(scrollDown, 60);
   } else {
     try { localStorage.removeItem(OLD_KEY); } catch(e){}
-    showStepChips();
+    openWithQuestion();
   }
   autoGrow();
   syncSend();
