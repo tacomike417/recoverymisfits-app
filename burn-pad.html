@@ -267,23 +267,24 @@ main.bp{
   margin-top:8px;
 }
 
-/* ---- the fine print ------------------------------------------------------ */
-.bpFine{
-  margin-top:26px;padding-top:14px;
-  border-top:1px solid rgba(255,255,255,.08);
-  color:var(--muted);font-size:12px;line-height:1.5;
+/* ---- fine print: one line up front, the rest folded away ------------------
+   The 988 line never goes inside the fold -- nobody in a bad spot should have
+   to open anything to find the crisis number. */
+.bpFine{margin-top:22px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);color:var(--muted);font-size:12px;line-height:1.5}
+.bpCrisisLine{margin:0;font-size:13px;color:var(--ivory);text-align:center}
+.bpCrisisLine a{color:var(--gold-lit);font-weight:800}
+.bpAbout{margin-top:2px;text-align:center}
+.bpAbout summary{
+  display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;
+  cursor:pointer;color:var(--muted);font-size:12px;list-style:none;
+  text-decoration:underline;text-underline-offset:3px;
 }
-.bpFine p{margin:0 0 10px}
-.bpFine b{color:var(--ivory);font-weight:700}
-.bpFine a{color:var(--gold-lit);font-weight:700}
-.bpCrisis{color:var(--ivory)}
-.bpCrisisBtns{display:flex;gap:10px;margin-top:4px}
-.crisisBtn{
-  flex:1;min-height:44px;border-radius:999px;
-  border:1px solid var(--line);
-  display:flex;align-items:center;justify-content:center;
-  color:var(--gold-lit);font-size:14px;font-weight:700;text-decoration:none;
-}
+.bpAbout summary::-webkit-details-marker{display:none}
+.bpAbout summary::after{content:"▾";text-decoration:none}
+.bpAbout[open] summary::after{content:"▴"}
+.bpAbout p{margin:0 0 10px;text-align:left}
+.bpAbout b{color:var(--ivory);font-weight:700}
+.bpAbout a{color:var(--gold-lit);font-weight:700}
 
 /* ---- release: 30 seconds, then the prayer -------------------------------
    Full screen, and it is one history step: the phone's back button or the
@@ -419,20 +420,20 @@ main.bp{
   <div class="bpUnder">Get it out, inspect it, then release it.</div>
 
   <footer class="bpFine">
-    <p><b>About the Burn Pad.</b> This is a private writing exercise and nothing more.
-    It is not AI, and no person or program reads or responds to what you write. The
-    questions are prewritten and the same for everyone. What you type stays on this
-    device and is never sent anywhere.</p>
-    <p>The Burn Pad is not counseling, therapy, or medical or professional advice, and
-    it is not a substitute for your program, your sponsor, or professional care.
-    Recovery Misfits is not a treatment provider.</p>
-    <p class="bpCrisis">If you are in crisis or thinking about harming yourself, call or
-    text <a href="tel:988">988</a> (Suicide &amp; Crisis Lifeline, US), any time, day or night.
-    In an emergency, call <a href="tel:911">911</a>.</p>
-    <div class="bpCrisisBtns">
-      <a class="crisisBtn" href="tel:988">Call 988</a>
-      <a class="crisisBtn" href="sms:988">Text 988</a>
-    </div>
+    <p class="bpCrisisLine">Not AI. Not therapy. In crisis? <a href="tel:988">Call</a> or <a href="sms:988">text</a> <a href="tel:988">988</a>.</p>
+    <details class="bpAbout">
+      <summary>About this tool</summary>
+      <p><b>About the Burn Pad.</b> This is a private writing exercise and nothing more.
+      It is not AI, and no person or program reads or responds to what you write. The
+      questions are prewritten and the same for everyone. What you type stays on this
+      device and is never sent anywhere.</p>
+      <p>The Burn Pad is not counseling, therapy, or medical or professional advice, and
+      it is not a substitute for your program, your sponsor, or professional care.
+      Recovery Misfits is not a treatment provider.</p>
+      <p>If you are in crisis or thinking about harming yourself, call or text
+      <a href="tel:988">988</a> (Suicide &amp; Crisis Lifeline, US), any time, day or night.
+      In an emergency, call <a href="tel:911">911</a>.</p>
+    </details>
   </footer>
 </main>
 
