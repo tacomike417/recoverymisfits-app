@@ -1,549 +1,883 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gratitude Journal — Recovery Misfits</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recovery Misfits — Gratitude Journal</title>
+<meta name="theme-color" content="#11110f">
 
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#ffffff" />
-  <link rel="icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="./icon-192.png">
 
-  <style>
-    body{
-      font-family:Roboto,Arial,sans-serif;
-      margin:0;
-      background:#fff;
-      color:#111;
-    }
+<style>
+/* ===========================================================================
+   GRATITUDE JOURNAL — four questions a day, answered like texting back.
 
-    header{
-      position:sticky;
-      top:0;
-      z-index:9000;
-      background:#fff;
-      border-bottom:1px solid rgba(0,0,0,.12);
-      padding:12px;
-      text-align:center;
-    }
-    .brand{font-weight:900;font-size:16px;}
+   Built phone-first (phone wins), in the same texting layout as the Burn Pad
+   and the Fear Compass. Every answer saves the moment it's sent -- there is
+   no Save button to forget. One entry per day, kept in the SAME storage keys
+   the old page used, so past days carry over.
 
-    .wrap{
-      max-width:980px;
-      margin:0 auto;
-      padding:14px 12px 120px;
-      box-sizing:border-box;
-    }
+   NOTHING LEAVES THE PHONE. No network calls.
 
-    .hero{
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:18px;
-      padding:14px;
-      background:#fff;
-    }
+   Scope: everything lives inside <main>. topbar.js and nav.js are untouched.
+   ======================================================================== */
 
-    .big{
-      font-size:22px;
-      font-weight:1000;
-      margin:0;
-    }
+@font-face{
+  font-family:"RM Display";
+  src:url("assets/fonts/oswald-600.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
 
-    .muted{
-      color:#666;
-      font-weight:800;
-      line-height:1.35;
-    }
+:root{
+  --bg:#11110f;
+  --panel:#1b1b18;
+  --panel-soft:#22211d;
+  --bubble-in:#26251f;
+  --ivory:#f1e7cf;
+  --gold:#d8b45b;
+  --gold-lit:#f0d68a;
+  --on-gold:#1a1507;
+  --muted:#b7b0a2;
+  --line:rgba(216,180,91,.38);
+  --display:"RM Display","Arial Narrow",Impact,sans-serif;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
 
-    .tinyMeta{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-      font-weight:900;
-      color:#666;
-      font-size:12px;
-    }
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{-webkit-font-smoothing:antialiased}
 
-    .chip{
-      font-size:12px;
-      font-weight:1000;
-      border:1px solid rgba(0,0,0,.14);
-      border-radius:999px;
-      padding:3px 8px;
-      color:#444;
-      background:#fff;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-    }
+main.bp{
+  max-width:560px;
+  margin:0 auto;
+  padding:10px 14px 16px;
+  color:var(--ivory);
+  font-family:var(--ui);
+  /* fill the screen between the top bar and the bottom nav, so the typing
+     bar sits low like a real texting screen even on an empty thread */
+  min-height:calc(100dvh - 272px);
+  display:flex;
+  flex-direction:column;
+}
 
-    .divider{
-      height:1px;
-      background:rgba(0,0,0,.10);
-      margin:14px 0;
-    }
+/* ---- header: the "New Message" line ---------------------------------- */
+.bpHead{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:4px 2px 8px;
+}
+.bpTitle{
+  font-family:var(--display);font-weight:600;
+  font-size:24px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ivory);margin:0;
+}
+.bpTitle span{color:var(--gold)}
+.bpStartOver{
+  background:none;border:none;color:var(--gold);
+  font:inherit;font-weight:700;font-size:15px;
+  padding:10px 2px;min-height:44px;cursor:pointer;
+}
+.bpStartOver[hidden]{display:none}
 
-    .card{
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:18px;
-      padding:14px;
-      background:#fff;
-      margin-top:12px;
-    }
+.bpTo{
+  display:flex;align-items:center;gap:8px;
+  border-top:1px solid rgba(255,255,255,.08);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:6px 2px;
+}
+.bpTo label{color:var(--muted);font-size:16px}
+.bpTo input{
+  flex:1;min-width:0;background:transparent;border:none;outline:none;
+  color:var(--ivory);font:inherit;font-size:16px;padding:8px 0;
+}
+.bpTo input::placeholder{color:rgba(183,176,162,.6)}
 
-    .qLabel{
-      margin-top:12px;
-      font-weight:1000;
-      letter-spacing:.2px;
-    }
-    .qLabel:first-child{margin-top:0;}
+/* ---- the promise ------------------------------------------------------ */
+.bpPromise{
+  margin:14px auto 6px;
+  max-width:330px;
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;line-height:1.4;
+}
+.bpPromise b{color:var(--gold-lit);font-weight:700}
+.bpPromise .lock{display:block;font-size:18px;margin-bottom:4px}
 
-    textarea{
-      width:100%;
-      padding:10px;
-      border-radius:12px;
-      border:1px solid rgba(0,0,0,.18);
-      margin-top:8px;
-      font-weight:800;
-      box-sizing:border-box;
-      font-size:16px;
-      line-height:1.35;
-      resize:vertical;
-      min-height:88px;
-      font-family:inherit;
-      background:#fff;
-      color:#111;
-    }
+/* ---- the thread ------------------------------------------------------- */
+.bpThread{
+  flex:1;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  gap:4px;
+  padding:10px 0 6px;
+}
+.bpFrom{
+  font-size:11px;color:var(--muted);margin:8px 0 0 12px;
+}
+.msg{
+  max-width:78%;
+  padding:9px 13px;
+  border-radius:19px;
+  font-size:16px;line-height:1.35;
+  white-space:pre-wrap;overflow-wrap:anywhere;
+  animation:bpIn .28s cubic-bezier(.2,.8,.2,1) both;
+}
+.msg.me{
+  align-self:flex-end;
+  background:var(--gold);color:var(--on-gold);
+  border-bottom-right-radius:6px;
+}
+.msg.them{
+  align-self:flex-start;
+  background:var(--bubble-in);color:var(--ivory);
+  border-bottom-left-radius:6px;
+}
+.msg.me + .msg.me{margin-top:-1px}
+.msg.them + .msg.them{margin-top:-1px}
+.msg.skip{opacity:.55;font-style:italic}
+.bpNotSent{
+  align-self:flex-end;
+  font-size:11px;color:var(--muted);
+  margin:2px 4px 6px 0;
+}
+@keyframes bpIn{
+  from{opacity:0;transform:translateY(16px) scale(.97)}
+  to{opacity:1;transform:none}
+}
 
-    input{
-      width:100%;
-      padding:10px;
-      border-radius:12px;
-      border:1px solid rgba(0,0,0,.18);
-      margin-top:8px;
-      font-weight:800;
-      box-sizing:border-box;
-      font-size:16px;
-      background:#fff;
-      color:#111;
-    }
+/* typing dots */
+.typing{
+  align-self:flex-start;
+  background:var(--bubble-in);
+  border-radius:19px;border-bottom-left-radius:6px;
+  padding:12px 14px;display:flex;gap:5px;
+  animation:bpIn .2s ease-out both;
+}
+.typing i{
+  width:7px;height:7px;border-radius:50%;background:var(--muted);
+  animation:dot 1s infinite ease-in-out;
+}
+.typing i:nth-child(2){animation-delay:.15s}
+.typing i:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
 
-    .row{
-      display:flex;
-      gap:10px;
-      margin-top:12px;
-      flex-wrap:wrap;
-    }
+/* burning the thread on release */
+.bpThread.burning .msg,
+.bpThread.burning .bpNotSent,
+.bpThread.burning .bpFrom{
+  animation:burnAway .9s ease-in forwards;
+}
+@keyframes burnAway{
+  0%{opacity:1;filter:none;transform:none}
+  40%{filter:sepia(1) saturate(4) hue-rotate(-20deg) brightness(1.2)}
+  100%{opacity:0;filter:blur(6px) sepia(1) saturate(4);transform:translateY(-40px) scale(.9)}
+}
 
-    .btn{
-      padding:9px 12px;
-      border-radius:999px;
-      border:1px solid rgba(0,0,0,.18);
-      background:#fff;
-      font-weight:900;
-      cursor:pointer;
-      text-decoration:none;
-      color:#111;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      box-sizing:border-box;
-      min-height:44px;
-      line-height:1.1;
-    }
-    .btn.primary{background:#111;color:#fff;border-color:rgba(0,0,0,.18);}
-    .btn:active{transform:scale(.98);}
+/* ---- quick replies (the tap-to-pick bubbles) --------------------------- */
+.bpChips{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;
+  padding:6px 0 10px;
+}
+.bpChips[hidden]{display:none}
+.chip{
+  min-height:40px;
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:transparent;color:var(--gold-lit);
+  font:inherit;font-size:15px;font-weight:600;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.chip.on{background:var(--gold);color:var(--on-gold);border-color:var(--gold)}
+.chip.go{background:var(--gold);color:var(--on-gold);border-color:var(--gold);font-weight:800}
+.chip.quiet{border-color:rgba(255,255,255,.14);color:var(--muted)}
 
-    .archiveHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      cursor:pointer;
-      user-select:none;
-      padding:10px 12px;
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:14px;
-      margin-top:12px;
-      background:#fff;
-    }
+/* THE CALL TO ACTION. Not a bubble: full width, centered, set off from the
+   thread by a rule, with a line under it saying what it does -- so nobody
+   mistakes it for another text. */
+.bpCta{
+  flex:1 0 100%;
+  margin-top:8px;padding-top:14px;
+  border-top:1px dashed rgba(216,180,91,.35);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.bpCta .ctaBtn{
+  width:100%;min-height:52px;
+  border-radius:14px;
+  border:2px solid var(--gold);
+  background:linear-gradient(180deg,#e3c46f,#c9a449);
+  color:var(--on-gold);
+  font:inherit;font-size:17px;font-weight:800;letter-spacing:.01em;
+  cursor:pointer;
+  box-shadow:0 0 0 0 rgba(216,180,91,.55);
+  animation:ctaPulse 2.2s ease-out 3;
+  -webkit-tap-highlight-color:transparent;
+}
+.bpCta .ctaBtn:active{transform:scale(.98)}
+.bpCta .ctaSub{font-size:12px;color:var(--muted);text-align:center}
+.bpCta .ctaAlt{
+  background:none;border:none;color:var(--muted);
+  font:inherit;font-size:15px;min-height:44px;padding:0 12px;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;
+}
+@keyframes ctaPulse{
+  0%{box-shadow:0 0 0 0 rgba(216,180,91,.55)}
+  70%{box-shadow:0 0 0 12px rgba(216,180,91,0)}
+  100%{box-shadow:0 0 0 0 rgba(216,180,91,0)}
+}
 
-    .archiveList{
-      display:none;
-      margin-top:8px;
-      border:1px solid rgba(0,0,0,.12);
-      border-radius:14px;
-      overflow:hidden;
-      max-height:260px;
-      overflow:auto;
-      background:#fff;
-    }
-    .archiveList.open{display:block;}
+/* ---- the typing bar ---------------------------------------------------- */
+.bpBar{
+  display:flex;align-items:flex-end;gap:8px;
+  padding:6px 0 0;
+}
+.bpInput{
+  flex:1;min-width:0;
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:20px;
+  color:var(--ivory);
+  font:inherit;font-size:16px;line-height:1.35;
+  padding:9px 14px;
+  resize:none;outline:none;
+  max-height:40vh;
+  min-height:40px;
+}
+.bpInput:focus{border-color:var(--line)}
+.bpInput::placeholder{color:rgba(183,176,162,.6)}
+.bpSend{
+  flex:none;
+  width:40px;height:40px;border-radius:50%;
+  border:none;background:var(--gold);color:var(--on-gold);
+  display:grid;place-items:center;cursor:pointer;
+  transition:opacity .15s, transform .1s;
+}
+.bpSend:disabled{opacity:.3;cursor:default}
+.bpSend:not(:disabled):active{transform:scale(.92)}
+.bpSend svg{width:20px;height:20px}
+.bpUnder{
+  text-align:center;font-size:11px;color:var(--muted);
+  margin-top:8px;
+}
 
-    .archiveItem{
-      padding:10px 12px;
-      border-bottom:1px solid rgba(0,0,0,.08);
-      cursor:pointer;
-      font-weight:900;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      background:#fff;
-    }
-    .archiveItem:last-child{border-bottom:none;}
-    .archiveItem:active{background:#f5f5f5;}
+/* ---- fine print: one line up front, the rest folded away ------------------
+   The 988 line never goes inside the fold -- nobody in a bad spot should have
+   to open anything to find the crisis number. */
+.bpFine{margin-top:22px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);color:var(--muted);font-size:12px;line-height:1.5}
+.bpCrisisLine{margin:0;font-size:13px;color:var(--ivory);text-align:center}
+.bpCrisisLine a{color:var(--gold-lit);font-weight:800}
+.bpAbout{margin-top:2px;text-align:center}
+.bpAbout summary{
+  display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;
+  cursor:pointer;color:var(--muted);font-size:12px;list-style:none;
+  text-decoration:underline;text-underline-offset:3px;
+}
+.bpAbout summary::-webkit-details-marker{display:none}
+.bpAbout summary::after{content:"▾";text-decoration:none}
+.bpAbout[open] summary::after{content:"▴"}
+.bpAbout p{margin:0 0 10px;text-align:left}
+.bpAbout b{color:var(--ivory);font-weight:700}
+.bpAbout a{color:var(--gold-lit);font-weight:700}
 
-    .bottomBar{
-      position:fixed;
-      left:0;right:0;bottom:0;
-      background:#fff;
-      border-top:1px solid rgba(0,0,0,.12);
-      padding:10px 10px calc(10px + env(safe-area-inset-bottom));
-      z-index:9999;
-    }
+/* ---- release: 30 seconds, then the prayer -------------------------------
+   Full screen, and it is one history step: the phone's back button or the
+   iPhone edge swipe closes it. */
+.bpRelease{
+  position:fixed;inset:0;z-index:10050;
+  background:#0b0b0a;
+  display:flex;align-items:center;justify-content:center;
+  padding:calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+  color:var(--ivory);font-family:var(--ui);
+  animation:fadeIn .35s ease-out both;
+}
+.bpRelease[hidden]{display:none}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.bpReleaseInner{max-width:420px;width:100%;text-align:center}
+.medText{
+  font-family:var(--display);font-weight:600;
+  font-size:26px;line-height:1.25;letter-spacing:.02em;
+}
+.medTimer{
+  margin:22px auto 6px;
+  width:96px;height:96px;border-radius:50%;
+  border:2px solid var(--line);
+  display:grid;place-items:center;
+  font-size:38px;font-weight:800;color:var(--gold-lit);
+  font-variant-numeric:tabular-nums;
+}
+.medSub{color:var(--muted);font-size:14px}
+.prayer{
+  margin-top:26px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:var(--panel);
+  padding:18px 16px;
+  text-align:left;
+  animation:bpIn .4s ease-out both;
+}
+.prayer[hidden]{display:none}
+.prayer h2{
+  margin:0 0 10px;
+  font-family:var(--display);font-weight:600;
+  font-size:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);
+}
+.prayer p{margin:0;font-size:17px;line-height:1.5}
+.bigBtn{
+  margin-top:18px;width:100%;min-height:48px;
+  border:none;border-radius:999px;
+  background:var(--gold);color:var(--on-gold);
+  font:inherit;font-size:17px;font-weight:800;cursor:pointer;
+}
+.textBtn{
+  margin-top:14px;background:none;border:none;
+  color:var(--muted);font:inherit;font-size:14px;
+  min-height:44px;padding:0 10px;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;
+}
 
-    .bottomInner{
-      max-width:980px;
-      margin:0 auto;
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-      align-items:stretch;
-    }
+/* stars on release */
+.star{
+  position:fixed;pointer-events:none;z-index:10060;
+  font-size:18px;opacity:0;
+  animation:starFly .85s ease-out forwards;
+}
+@keyframes starFly{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.9)}
+  10%{opacity:1}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15)}
+}
 
-    .pill{
-      border:1px solid rgba(0,0,0,.18);
-      border-radius:16px;
-      padding:10px 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      user-select:none;
-      background:#fff;
-    }
+/* small message at the bottom (Start over -> Undo, restored, paused) */
+.bpToast{
+  position:fixed;left:50%;
+  bottom:calc(200px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  background:var(--panel-soft);color:var(--ivory);
+  border:1px solid var(--line);
+  border-radius:999px;padding:10px 16px;
+  font-family:var(--ui);font-weight:600;font-size:14px;
+  display:flex;align-items:center;gap:14px;
+  z-index:10040;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  max-width:calc(100% - 32px);white-space:nowrap;
+}
+.bpToast[hidden]{display:none}
+.bpToast button{
+  background:none;border:none;color:var(--gold-lit);
+  font:inherit;font-weight:800;cursor:pointer;padding:6px 2px;
+}
+.bpToast button[hidden]{display:none}
 
-    .label{font-size:12px;font-weight:900;opacity:.7;}
-    .value{font-size:14px;font-weight:1000;}
-    .hint{font-size:12px;font-weight:900;color:#666;}
+@media (prefers-reduced-motion:reduce){
+  .msg,.typing,.prayer,.bpRelease{animation:none}
+  .bpThread.burning .msg,.bpThread.burning .bpNotSent,.bpThread.burning .bpFrom{animation:none;opacity:0}
+}
 
-    .burstWrap{position:relative; display:inline-flex;}
-    .star{
-      position:absolute;
-      left:50%;
-      top:50%;
-      transform:translate(-50%,-50%);
-      pointer-events:none;
-      will-change:transform,opacity;
-      font-size:16px;
-      opacity:0;
-      animation:starFly .85s ease-out forwards;
-      filter: drop-shadow(0 2px 2px rgba(0,0,0,.10));
-    }
-    @keyframes starFly{
-      0%{opacity:0;transform:translate(-50%,-50%) scale(.9);}
-      10%{opacity:1;}
-      100%{opacity:0;transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15);}
-    }
+/* ===========================================================================
+   FEAR COMPASS additions. Everything above is shared with the Burn Pad so
+   the two tools are the same room.
+   ======================================================================== */
 
-    @media (max-width:640px){
-      .bottomInner{
-        grid-template-columns:1fr;
-      }
-    }
-  </style>
+/* option cards: a pick that needs a line of explanation under it */
+.optList{
+  flex:1 0 100%;
+  display:flex;flex-direction:column;gap:8px;
+}
+.optCard{
+  width:100%;text-align:left;
+  border:1px solid var(--line);border-radius:16px;
+  background:transparent;color:var(--ivory);
+  padding:11px 14px;min-height:48px;
+  font:inherit;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.optCard strong{display:block;color:var(--gold-lit);font-size:16px;font-weight:700}
+.optCard small{display:block;color:var(--muted);font-size:14px;line-height:1.35;margin-top:2px}
+.optCard.on{background:var(--gold);border-color:var(--gold)}
+.optCard.on strong,.optCard.on small{color:var(--on-gold)}
+
+/* the summary arrives as one bigger incoming text */
+.msg.sum{max-width:92%;padding:12px 14px}
+.sumRow{padding:6px 0;border-top:1px solid rgba(255,255,255,.07)}
+.sumRow:first-child{border-top:none;padding-top:0}
+.sumLabel{
+  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:2px;
+}
+.sumVal{font-size:15px;line-height:1.4}
+
+/* the Big Book line */
+.msg.quote{font-style:italic}
+.msg.quote .cite{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:6px}
+
+/* wrap-up screen */
+.wrapMark{font-size:40px;line-height:1;margin-bottom:10px}
+.wrapSub{color:var(--muted);font-size:15px;margin-top:8px}
+.nextBox{
+  margin:20px auto 0;
+  border:1px solid var(--line);border-radius:16px;
+  background:var(--panel);
+  padding:12px 14px;text-align:left;
+}
+.nextBox .sumLabel{margin-bottom:4px}
+.nextBox div:last-child{font-size:17px;line-height:1.4}
+
+/* ===========================================================================
+   GRATITUDE JOURNAL additions
+   ======================================================================== */
+.gjDate{color:var(--muted);font-size:13px;margin:-4px 2px 6px}
+
+.gjPast{margin-top:16px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:var(--panel)}
+.gjPast summary{
+  list-style:none;cursor:pointer;min-height:48px;padding:0 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  color:var(--ivory);font-weight:700;font-size:15px;
+}
+.gjPast summary::-webkit-details-marker{display:none}
+.gjPast summary::after{content:"▾";color:var(--gold)}
+.gjPast[open] summary::after{content:"▴"}
+.gjCount{
+  margin-left:8px;margin-right:auto;
+  font-size:12px;font-weight:800;color:var(--on-gold);background:var(--gold);
+  border-radius:999px;padding:1px 8px;
+}
+.gjList{border-top:1px solid rgba(255,255,255,.08);max-height:300px;overflow:auto}
+.gjRow{
+  display:block;width:100%;text-align:left;
+  min-height:46px;padding:0 14px;
+  background:none;border:none;border-bottom:1px solid rgba(255,255,255,.06);
+  color:var(--gold-lit);font:inherit;font-size:15px;cursor:pointer;
+}
+.gjRow:last-child{border-bottom:none}
+.gjEmpty{padding:14px;color:var(--muted);font-size:14px}
+
+/* a past day, full screen */
+.bpRelease.gjView{align-items:flex-start;overflow:auto}
+.gjViewInner{max-width:480px;width:100%;margin:0 auto;padding-top:8px}
+.gjViewDate{
+  font-family:var(--display);font-weight:600;font-size:24px;letter-spacing:.03em;
+  color:var(--ivory);margin-bottom:14px;
+}
+.gjViewInner .sumRow{padding:12px 0}
+.gjViewInner .sumLabel{text-transform:none;letter-spacing:0;font-size:13px}
+.gjViewInner .sumVal{font-size:17px;white-space:pre-wrap}
+.gjViewBtns{text-align:center;margin-top:10px}
+</style>
 </head>
+
 <body>
 
-<header>
-  <div class="brand">Recovery Misfits</div>
-</header>
+<div id="rm-topbar"></div>
+<script src="./topbar.js" defer></script>
 
-<div class="wrap">
+<main class="bp">
+  <div class="bpHead">
+    <h1 class="bpTitle">Gratitude <span>Journal</span> ⭐</h1>
+    <button class="bpStartOver" id="bpStartOver" type="button" hidden>Start over</button>
+  </div>
+  <div class="gjDate" id="gjDate"></div>
 
-  <div class="hero">
-    <h1 class="big">⭐ Gratitude Journal</h1>
-    <div class="muted" style="margin-top:8px;">
-      Slow down, tell the truth, and write down what was good. Nothing fancy.
-    </div>
-
-    <div class="tinyMeta">
-      <span id="gratViewing">Viewing: —</span>
-      <span class="chip" id="gratStatus" style="display:none;">Saved</span>
-    </div>
+  <div class="bpPromise">
+    <span class="lock" aria-hidden="true">🔒</span>
+    <b>This stays on your phone.</b> Slow down, tell the truth,
+    and write down what was good. Nothing fancy.
   </div>
 
-  <div class="card">
-    <div class="qLabel">Where have I been happy today?</div>
-    <textarea id="gratHappy"></textarea>
+  <div class="bpThread" id="bpThread" aria-live="polite"></div>
 
-    <div class="qLabel">Where have I been at peace today?</div>
-    <textarea id="gratPeace"></textarea>
+  <div class="bpChips" id="bpChips" hidden></div>
 
-    <div class="qLabel">Where have I been useful to other people today?</div>
-    <textarea id="gratUseful"></textarea>
-
-    <div class="qLabel">Gratitude Journal</div>
-    <textarea id="gratJournal" placeholder="God shots, good moments, things you noticed happening for you…"></textarea>
-
-    <div class="row" style="margin-top:14px;">
-      <span class="burstWrap">
-        <button class="btn primary" id="gratSave" type="button">Save</button>
-      </span>
-      <button class="btn" id="gratClear" type="button">Clear</button>
-      <button class="btn" id="gratToday" type="button">Today</button>
-      <button class="btn" id="gratCopy" type="button">Copy</button>
-    </div>
-
-    <div class="archiveHeader" id="archiveToggle" role="button" aria-expanded="false">
-      <div style="font-weight:1000;">Archive <span id="archiveCount" class="chip">0</span></div>
-      <div style="font-weight:1000;" id="archiveCaret">▾</div>
-    </div>
-    <div class="archiveList" id="archiveList"></div>
+  <div class="bpBar">
+    <textarea class="bpInput" id="bpInput" rows="1" aria-label="Your answer"></textarea>
+    <button class="bpSend" id="bpSend" type="button" aria-label="Send" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/>
+      </svg>
+    </button>
   </div>
+  <div class="bpUnder">Saves as you go.</div>
 
-</div>
+  <details class="gjPast" id="gjPast">
+    <summary>Past days <span class="gjCount" id="gjCount">0</span></summary>
+    <div class="gjList" id="gjList"></div>
+  </details>
 
-<div class="bottomBar">
-  <div class="bottomInner">
-    <div class="pill">
-      <div>
-        <div class="label">GRATITUDE</div>
-        <div class="value" id="bottomDate">—</div>
-      </div>
-      <div class="hint">Current entry</div>
-    </div>
+  <footer class="bpFine">
+    <p class="bpCrisisLine">Not AI. Not therapy. In crisis? <a href="tel:988">Call</a> or <a href="sms:988">text</a> <a href="tel:988">988</a>.</p>
+    <details class="bpAbout">
+      <summary>About this tool</summary>
+      <p><b>About the Gratitude Journal.</b> This is a private journaling exercise and
+      nothing more. It is not AI, and no person or program reads or responds to what you
+      write. The questions are prewritten and the same for everyone. What you type stays
+      on this device and is never sent anywhere.</p>
+      <p>The Gratitude Journal is not counseling, therapy, or medical or professional
+      advice, and it is not a substitute for your program, your sponsor, or professional
+      care. Recovery Misfits is not a treatment provider.</p>
+      <p>If you are in crisis or thinking about harming yourself, call or text
+      <a href="tel:988">988</a> (Suicide &amp; Crisis Lifeline, US), any time, day or night.
+      In an emergency, call <a href="tel:911">911</a>.</p>
+    </details>
+  </footer>
+</main>
 
-    <div class="pill">
-      <div>
-        <div class="label">ARCHIVE</div>
-        <div class="value" id="bottomCount">0 saved</div>
-      </div>
-      <div class="hint">Stored on this device</div>
+<!-- a past day, full screen; the phone's back button closes it -->
+<div class="bpRelease gjView" id="gjView" hidden role="dialog" aria-modal="true" aria-label="Past entry">
+  <div class="gjViewInner">
+    <div class="gjViewDate" id="gjViewDate"></div>
+    <div id="gjViewBody"></div>
+    <div class="gjViewBtns">
+      <button class="bigBtn" id="gjCopy" type="button">Copy</button>
+      <button class="textBtn" id="gjDelete" type="button">Delete this day</button>
     </div>
   </div>
 </div>
+
+<div class="bpToast" id="bpToast" role="status" aria-live="polite" hidden>
+  <span id="bpToastText"></span>
+  <button type="button" id="bpToastUndo">Undo</button>
+</div>
+
+<div id="rm-bottom-nav"></div>
+<script src="./nav.js" defer></script>
 
 <script>
-  const GRAT_INDEX_KEY = "rm_grat_index";
-  const gratViewing = document.getElementById("gratViewing");
-  const gratStatus = document.getElementById("gratStatus");
+(function(){
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
-  const gratHappy = document.getElementById("gratHappy");
-  const gratPeace = document.getElementById("gratPeace");
-  const gratUseful = document.getElementById("gratUseful");
-  const gratJournal = document.getElementById("gratJournal");
+  const $ = (id) => document.getElementById(id);
+  const thread = $("bpThread"), chipsEl = $("bpChips");
+  const input = $("bpInput"), sendBtn = $("bpSend");
+  const startOverBtn = $("bpStartOver");
+  const toastEl = $("bpToast"), toastText = $("bpToastText"), toastUndoBtn = $("bpToastUndo");
+  const pastEl = $("gjPast"), listEl = $("gjList"), countEl = $("gjCount");
+  const viewEl = $("gjView");
 
-  const archiveToggle = document.getElementById("archiveToggle");
-  const archiveList = document.getElementById("archiveList");
-  const archiveCount = document.getElementById("archiveCount");
-  const archiveCaret = document.getElementById("archiveCaret");
-  const bottomDate = document.getElementById("bottomDate");
-  const bottomCount = document.getElementById("bottomCount");
+  /* Storage is the SAME shape the old page used, so nobody's archive is lost:
+       rm_grat_index        -> ["2026-09-26", ...] newest first
+       rm_grat_YYYY-MM-DD   -> { date, happy, peace, useful, journal }
+     New fields: step (how far through today's questions) and done. */
+  const INDEX_KEY = "rm_grat_index";
+  const dayKey = (d) => "rm_grat_" + d;
 
-  let currentGratDate = null;
+  const QUESTIONS = [
+    { key:"happy",   q:"Where have I been happy today?" },
+    { key:"peace",   q:"Where have I been at peace today?" },
+    { key:"useful",  q:"Where have I been useful to other people today?" },
+    { key:"journal", q:"Any God shots today? Good moments, things that happened for you." }
+  ];
 
-  function getTodayISO(){
-    return new Date().toISOString().slice(0,10);
+  // Local date, not UTC -- the old page used UTC, so anything written after
+  // 8pm Eastern landed on tomorrow.
+  function todayISO(){
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
   }
-
-  function gratKey(dateISO){
-    return "rm_grat_" + dateISO;
+  function pretty(iso){
+    const [y,m,d] = iso.split("-").map(Number);
+    return new Date(y, m-1, d).toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" });
+  }
+  function shortDay(iso){
+    const [y,m,d] = iso.split("-").map(Number);
+    return new Date(y, m-1, d).toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric", year:"numeric" });
   }
 
   function readIndex(){
-    try{
-      const raw = localStorage.getItem(GRAT_INDEX_KEY);
-      const arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr : [];
-    }catch(e){
-      return [];
+    try { const a = JSON.parse(localStorage.getItem(INDEX_KEY) || "[]"); return Array.isArray(a) ? a : []; } catch(e){ return []; }
+  }
+  function writeIndex(a){ try { localStorage.setItem(INDEX_KEY, JSON.stringify(a)); } catch(e){} }
+  function readDay(d){ try { return JSON.parse(localStorage.getItem(dayKey(d)) || "null"); } catch(e){ return null; } }
+  function hasWords(e){ return !!e && QUESTIONS.some(q => (e[q.key] || "").trim()); }
+
+  function writeDay(d, e){
+    try {
+      let idx = readIndex().filter(x => x !== d);
+      if (hasWords(e)){
+        localStorage.setItem(dayKey(d), JSON.stringify(e));
+        idx.unshift(d);
+        idx.sort().reverse();
+      } else {
+        localStorage.removeItem(dayKey(d));   // no words, no entry
+      }
+      writeIndex(idx);
+    } catch(e2){}
+  }
+
+  /* ---------- today ---------- */
+  let TODAY = todayISO();
+  let E = null;          // today's entry
+  let busy = false;
+  let toastTimer = null, toastUndo = null;
+
+  function blank(){ return { date:TODAY, happy:"", peace:"", useful:"", journal:"", step:0, done:false }; }
+
+  function loadToday(){
+    const e = readDay(TODAY);
+    if (!e){ E = blank(); return; }
+    E = Object.assign(blank(), e);
+    // entries from the old page have no step: treat them as finished
+    if (typeof e.step !== "number"){ E.step = QUESTIONS.length; E.done = true; }
+  }
+  function saveToday(){ writeDay(TODAY, E); renderPast(); }
+
+  /* ---------- drawing the thread ---------- */
+  function bubble(who, text, animate, extra){
+    const lastEl = thread.lastElementChild;
+    if (who === "them" && !(lastEl && lastEl.classList.contains("them"))){
+      const from = document.createElement("div");
+      from.className = "bpFrom"; from.textContent = "Gratitude Journal";
+      thread.appendChild(from);
     }
+    const el = document.createElement("div");
+    el.className = "msg " + who + (extra ? " " + extra : "");
+    el.textContent = text;
+    if (!animate) el.style.animation = "none";
+    thread.appendChild(el);
   }
 
-  function writeIndex(arr){
-    localStorage.setItem(GRAT_INDEX_KEY, JSON.stringify(arr));
-  }
-
-  function saveEntry(dateISO, data){
-    localStorage.setItem(gratKey(dateISO), JSON.stringify(data));
-    let idx = readIndex();
-
-    if(!idx.includes(dateISO)){
-      idx.unshift(dateISO);
-    } else {
-      idx = [dateISO].concat(idx.filter(d => d !== dateISO));
+  function drawToday(){
+    thread.innerHTML = "";
+    for (let i = 0; i < Math.min(E.step, QUESTIONS.length); i++){
+      const Q = QUESTIONS[i];
+      bubble("them", Q.q, false);
+      const a = (E[Q.key] || "").trim();
+      a ? bubble("me", a, false) : bubble("me", "Skip", false, "skip");
     }
-
-    writeIndex(idx);
+    if (E.done) bubble("them", "Saved. See you tomorrow. ⭐", false);
   }
 
-  function loadEntry(dateISO){
-    const raw = localStorage.getItem(gratKey(dateISO));
-    if(!raw) return null;
-    try{
-      return JSON.parse(raw);
-    }catch(e){
-      return null;
-    }
-  }
-
-  function setStatusSaved(text = "Saved"){
-    gratStatus.style.display = "inline-flex";
-    gratStatus.textContent = text;
-    setTimeout(() => gratStatus.style.display = "none", 1000);
-  }
-
-  function updateBottomMeta(){
-    bottomDate.textContent = currentGratDate || "—";
-    const count = readIndex().length;
-    bottomCount.textContent = count + (count === 1 ? " saved" : " saved");
-  }
-
-  function fillFields(entry){
-    gratHappy.value = entry?.happy || "";
-    gratPeace.value = entry?.peace || "";
-    gratUseful.value = entry?.useful || "";
-    gratJournal.value = entry?.journal || "";
-  }
-
-  function openGrat(dateISO){
-    currentGratDate = dateISO || getTodayISO();
-    gratViewing.textContent = "Viewing: " + currentGratDate;
-
-    const entry = loadEntry(currentGratDate);
-    fillFields(entry);
-    renderArchive();
-    updateBottomMeta();
-  }
-
-  function renderArchive(){
-    const idx = readIndex();
-    archiveCount.textContent = String(idx.length);
-    archiveList.innerHTML = "";
-
-    if(idx.length === 0){
-      const empty = document.createElement("div");
-      empty.className = "archiveItem";
-      empty.style.cursor = "default";
-      empty.innerHTML = `<span style="opacity:.7;font-weight:900;">No saved entries yet</span><span class="chip">—</span>`;
-      archiveList.appendChild(empty);
-      updateBottomMeta();
-      return;
-    }
-
-    idx.forEach(dateISO => {
-      const row = document.createElement("div");
-      row.className = "archiveItem";
-      const isToday = (dateISO === getTodayISO());
-      const isViewing = (dateISO === currentGratDate);
-
-      row.innerHTML = `
-        <span>${dateISO}</span>
-        <span class="chip">${isViewing ? "open" : (isToday ? "today" : "view")}</span>
-      `;
-
-      row.onclick = () => {
-        openGrat(dateISO);
-      };
-
-      archiveList.appendChild(row);
+  function scrollDown(){
+    requestAnimationFrame(() => {
+      const under = document.querySelector(".bpUnder");
+      const nav = document.getElementById("rm-bottom-nav");
+      const navH = nav ? nav.getBoundingClientRect().height : 0;
+      const y = window.scrollY + under.getBoundingClientRect().bottom - (window.innerHeight - navH - 12);
+      window.scrollTo({ top: Math.max(0, y), behavior:"smooth" });
     });
-
-    updateBottomMeta();
   }
 
-  function burstStars(onButtonEl){
-    const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
-    if(!wrap) return;
-
-    const emojis = ["⭐","✨","🌟"];
-    const count = 14;
-
-    for(let i = 0; i < count; i++){
-      const s = document.createElement("span");
-      s.className = "star";
-      s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      s.style.setProperty("--dx", (Math.random()*90 - 45).toFixed(0) + "px");
-      s.style.setProperty("--dy", (Math.random()*-80 - 20).toFixed(0) + "px");
-      s.style.setProperty("--rot", (Math.random()*220 - 110).toFixed(0) + "deg");
-      s.style.animationDelay = (Math.random()*0.08).toFixed(2) + "s";
-      wrap.appendChild(s);
-      setTimeout(() => s.remove(), 950);
-    }
-  }
-
-  function buildCopyText(){
-    return [
-      "Recovery Misfits — Gratitude Journal",
-      "Date: " + (currentGratDate || getTodayISO()),
-      "",
-      "Where have I been happy today?",
-      gratHappy.value.trim() || "—",
-      "",
-      "Where have I been at peace today?",
-      gratPeace.value.trim() || "—",
-      "",
-      "Where have I been useful to other people today?",
-      gratUseful.value.trim() || "—",
-      "",
-      "Gratitude Journal",
-      gratJournal.value.trim() || "—"
-    ].join("\n");
-  }
-
-  archiveToggle.onclick = () => {
-    const isOpen = archiveList.classList.toggle("open");
-    archiveToggle.setAttribute("aria-expanded", String(isOpen));
-    archiveCaret.textContent = isOpen ? "▴" : "▾";
-  };
-
-  document.getElementById("gratSave").onclick = () => {
-    const dateISO = currentGratDate || getTodayISO();
-
-    const payload = {
-      date: dateISO,
-      happy: gratHappy.value.trim(),
-      peace: gratPeace.value.trim(),
-      useful: gratUseful.value.trim(),
-      journal: gratJournal.value.trim()
+  function incoming(lines, then){
+    busy = true; setChips([]); syncSend();
+    let i = 0;
+    const next = () => {
+      if (i >= lines.length){ busy = false; syncSend(); then && then(); return; }
+      const dots = document.createElement("div");
+      dots.className = "typing"; dots.innerHTML = "<i></i><i></i><i></i>";
+      thread.appendChild(dots); scrollDown();
+      setTimeout(() => {
+        dots.remove();
+        bubble("them", lines[i++], true);
+        scrollDown();
+        setTimeout(next, 250);
+      }, 600);
     };
+    next();
+  }
 
-    try{
-      saveEntry(dateISO, payload);
-      setStatusSaved("Saved");
-      burstStars(document.getElementById("gratSave"));
-      renderArchive();
-      openGrat(dateISO);
-    }catch(e){
-      setStatusSaved("Couldn’t save");
+  /* ---------- quick replies ---------- */
+  function setChips(list){
+    chipsEl.innerHTML = "";
+    list.forEach(c => {
+      if (c.cta){
+        const w = document.createElement("div"); w.className = "bpCta";
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "ctaBtn go"; b.textContent = c.label;
+        b.onclick = () => c.onTap(b); w.appendChild(b);
+        if (c.sub){ const d = document.createElement("div"); d.className = "ctaSub"; d.textContent = c.sub; w.appendChild(d); }
+        chipsEl.appendChild(w); return;
+      }
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip" + (c.cls ? " " + c.cls : "");
+      b.textContent = c.label; b.onclick = () => c.onTap(b);
+      chipsEl.appendChild(b);
+    });
+    chipsEl.hidden = !list.length;
+    if (list.length) scrollDown();
+  }
+
+  function showStepChips(){
+    if (busy) return setChips([]);
+    if (E.done) return setChips([{ label:"Copy today", cls:"quiet", onTap: () => copyDay(E, TODAY) }]);
+    if (E.step < QUESTIONS.length) return setChips([{ label:"Skip", cls:"quiet", onTap: () => answer("", true) }]);
+    return setChips([{ cta:true, label:"Done for today ⭐", sub:"It’s already saved. This just closes out the day.", onTap: finishDay }]);
+  }
+
+  /* ---------- flow ---------- */
+  function syncSend(){
+    const open = !E.done && E.step < QUESTIONS.length;
+    input.disabled = !open;
+    sendBtn.disabled = busy || !open || !input.value.trim();
+    startOverBtn.hidden = !(E.step > 0 || hasWords(E));
+  }
+  function autoGrow(){
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight + 2, window.innerHeight * 0.4) + "px";
+  }
+
+  function askNext(){
+    if (E.step < QUESTIONS.length) incoming([QUESTIONS[E.step].q], showStepChips);
+    else showStepChips();
+  }
+
+  function answer(text, skipped){
+    const Q = QUESTIONS[E.step];
+    E[Q.key] = text;
+    skipped ? bubble("me", "Skip", true, "skip") : bubble("me", text, true);
+    E.step++;
+    saveToday();
+    scrollDown();
+    askNext();
+    syncSend();
+  }
+
+  function send(){
+    if (busy) return;
+    const t = input.value.trim();
+    if (!t || E.done || E.step >= QUESTIONS.length) return;
+    input.value = ""; autoGrow();
+    answer(t, false);
+    input.focus({ preventScroll:true });
+  }
+
+  function stars(fromEl){
+    const r = fromEl.getBoundingClientRect();
+    const x = r.left + r.width/2, y = r.top + r.height/2;
+    const e = ["⭐","✨","🌟"];
+    for (let i=0;i<16;i++){
+      const s = document.createElement("span");
+      s.className = "star"; s.textContent = e[Math.floor(Math.random()*e.length)];
+      s.style.left = x + "px"; s.style.top = y + "px";
+      s.style.setProperty("--dx", (Math.random()*140 - 70).toFixed(0) + "px");
+      s.style.setProperty("--dy", (Math.random()*-120 - 30).toFixed(0) + "px");
+      s.style.setProperty("--rot", (Math.random()*220 - 110).toFixed(0) + "deg");
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 1000);
     }
+  }
+
+  function finishDay(btn){
+    stars(btn);
+    E.done = true;
+    saveToday();
+    incoming(["Saved. See you tomorrow. ⭐"], showStepChips);
+  }
+
+  /* ---------- copy ---------- */
+  function copyText(e, d){
+    const lines = ["Recovery Misfits — Gratitude Journal", pretty(d), ""];
+    QUESTIONS.forEach(Q => { lines.push(Q.q, (e[Q.key] || "").trim() || "—", ""); });
+    return lines.join("\n").trim();
+  }
+  async function copyDay(e, d){
+    try { await navigator.clipboard.writeText(copyText(e, d)); toast("Copied."); }
+    catch(err){ toast("Couldn’t copy on this phone."); }
+  }
+
+  /* ---------- toast with Undo ---------- */
+  function toast(text, undo){
+    clearTimeout(toastTimer);
+    toastText.textContent = text;
+    toastUndo = undo || null;
+    toastUndoBtn.hidden = !undo;
+    toastEl.hidden = false;
+    toastTimer = setTimeout(() => { toastEl.hidden = true; toastUndo = null; }, undo ? 7000 : 3000);
+  }
+  toastUndoBtn.onclick = () => { const fn = toastUndo; toastEl.hidden = true; toastUndo = null; if (fn) fn(); };
+
+  // Start over = wipe TODAY only, with Undo.
+  startOverBtn.onclick = () => {
+    if (busy) return;
+    const before = JSON.parse(JSON.stringify(E));
+    E = blank(); saveToday();
+    input.value = ""; autoGrow();
+    drawToday(); askNext(); syncSend();
+    window.scrollTo({ top:0 });
+    toast("Started today over.", () => {
+      const put = () => {
+        if (busy) return setTimeout(put, 120);
+        E = before; saveToday(); drawToday(); askNext(); syncSend(); scrollDown();
+      };
+      put();
+    });
   };
 
-  document.getElementById("gratClear").onclick = () => {
-    gratHappy.value = "";
-    gratPeace.value = "";
-    gratUseful.value = "";
-    gratJournal.value = "";
-  };
-
-  document.getElementById("gratToday").onclick = () => {
-    openGrat(getTodayISO());
-  };
-
-  document.getElementById("gratCopy").onclick = async () => {
-    try{
-      await navigator.clipboard.writeText(buildCopyText());
-      setStatusSaved("Copied");
-    }catch(e){
-      setStatusSaved("Copy failed");
+  /* ---------- past days ---------- */
+  function renderPast(){
+    const idx = readIndex().filter(d => d !== TODAY);
+    countEl.textContent = String(idx.length);
+    listEl.innerHTML = "";
+    if (!idx.length){
+      const p = document.createElement("div");
+      p.className = "gjEmpty"; p.textContent = "Nothing here yet. Days you finish show up here.";
+      listEl.appendChild(p); return;
     }
+    idx.forEach(d => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "gjRow";
+      b.textContent = shortDay(d);
+      b.onclick = () => openView(d);
+      listEl.appendChild(b);
+    });
+  }
+
+  let viewing = null;
+  function openView(d){
+    const e = readDay(d); if (!e) return;
+    viewing = d;
+    $("gjViewDate").textContent = pretty(d);
+    const body = $("gjViewBody"); body.innerHTML = "";
+    QUESTIONS.forEach(Q => {
+      const r = document.createElement("div"); r.className = "sumRow";
+      const l = document.createElement("div"); l.className = "sumLabel"; l.textContent = Q.q;
+      const v = document.createElement("div"); v.className = "sumVal"; v.textContent = (e[Q.key] || "").trim() || "—";
+      r.append(l, v); body.appendChild(r);
+    });
+    viewEl.hidden = false;
+    history.pushState({ gj:"view" }, "");
+  }
+  function closeView(){ viewEl.hidden = true; viewing = null; }
+  window.addEventListener("popstate", () => { if (!viewEl.hidden) closeView(); });
+
+  $("gjCopy").onclick = () => { if (viewing) copyDay(readDay(viewing), viewing); };
+  $("gjDelete").onclick = () => {
+    const d = viewing, e = readDay(d);
+    if (!e) return;
+    writeDay(d, {});                 // removes it
+    renderPast();
+    history.back();                  // closes the view
+    toast("Deleted " + shortDay(d) + ".", () => { writeDay(d, e); renderPast(); });
   };
 
-  (function init(){
-    openGrat(getTodayISO());
-  })();
+  /* ---------- wiring ---------- */
+  sendBtn.onclick = send;
+  input.addEventListener("input", () => { autoGrow(); syncSend(); });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); send(); }
+  });
+
+  // If the page is left open past midnight, roll over to the new day.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && todayISO() !== TODAY && !busy) start();
+  });
+
+  function start(){
+    TODAY = todayISO();
+    $("gjDate").textContent = pretty(TODAY);
+    loadToday();
+    drawToday();
+    renderPast();
+    askNext();
+    syncSend();
+    if (E.step > 0) setTimeout(scrollDown, 60);
+  }
+
+  if (history.state && history.state.gj === "view") history.replaceState(null, "");
+  start();
+  autoGrow();
+})();
 </script>
 
 </body>
