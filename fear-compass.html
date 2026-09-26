@@ -517,32 +517,7 @@ main.bp{
   const nextText = $("nextText"), doneBtn = $("doneBtn"), skipBtn = $("skipWait");
   const toastEl = $("bpToast"), toastText = $("bpToastText"), toastUndoBtn = $("bpToastUndo");
 
-  const SAVE_KEY = "rm_fear_compass_v2";
-
-  /* ---------- the content (unchanged from the original page) ---------- */
-  const CATEGORIES = {
-    "Me and other people": ["Fear of Being Rejected","Fear of Being Alone","Fear of Being Abandoned","Fear of Getting Close to People","Fear of Losing a Wife","Fear of Losing a Husband","Fear of Losing a Child","Fear of Men","Fear of Women","Fear of My Parents","Fear of People in General","Fear of Hurting Others","Fear of People Being Disappointed in Me","Fear of People Talking About Me","Fear of Being Judged","Fear of Not Being Good Enough","Fear of Not Being Approved By Others"],
-    "How I feel": ["Fear of Not Feeling Secure","Fear of Expressing Myself","Fear of Failure","Fear of Success","Fear of Responsibility","Fear of Feeling My Feelings","Fear of Crying","Fear of Being Found Out","Fear of Writing Inventory","Fear of Looking Stupid","Fear of Facing Reality","Fear of Being Wrong"],
-    "Body and health": ["Fear of Dying","Fear of Insanity","Fear of Losing My Mind","Fear of Disease","Fear of Serious Illness","Fear of Physical Pain","Fear of Hospitals","Fear of Doctors","Fear of Getting Old","Fear of Losing My Health","Fear of Becoming Disabled","Fear of Not Being Able to Take Care of Myself"],
-    "Drinking and using": ["Fear of Alcohol","Fear of Drugs","Fear of Relapse","Fear of Sobriety","Fear of Running Into My Old Drinking Crowd","Fear of Making New Sober Friends","Fear of Being Boring Without Alcohol","Fear of Temptation","Fear of Hitting Another Rock Bottom","Fear of Going Back to My Old Life"],
-    "Authority stuff": ["Fear of Authority","Fear of Police","Fear of Jail","Fear of Government","Fear of Gangs","Fear of Creditors","Fear of Being Accused of Stealing","Fear of Becoming Desperate Enough to Steal"],
-    "Life falling apart": ["Fear of Being Unemployable","Fear of Employment","Fear of Wealthy People","Fear of Change","Fear of Losing My Job","Fear of Becoming Homeless","Fear of Not Having Enough Money","Fear of Being Broke","Fear of My Life Falling Apart Again"],
-    "God and spiritual stuff": ["Fear of God","Fear of Doing Something Spiritually Wrong","Fear of Not Being Forgiven","Fear of Being Judged by God","Fear of Turning My Will Over to God","Fear of Letting God Down"],
-    "Physical danger": ["Fear of Heights","Fear of Animals","Fear of Insects","Fear of Drowning","Fear of Violence","Fear of Guns","Fear of Physical Confrontation"]
-  };
-  const UNDERNEATH = [
-    { label:"Rejection",   desc:"I might not be accepted." },
-    { label:"Abandonment", desc:"They might move on without me and I’m all alone." },
-    { label:"Neglect",     desc:"I feel like I’m on my own and nobody’s there for me." },
-    { label:"Unknown",     desc:"I feel like I have no control or idea of what happens next." }
-  ];
-  const COSTING = ["Avoiding certain people","Spending time with loved ones","Earning money","Sleep","Peace of mind","Showing up for work","Asking for help","Trying new things","Speaking up","Going places I need to go","Doing what I know I should do"];
-  const REACTIONS = [
-    { label:"Selfish",       desc:"I’m putting my wants ahead of everything else." },
-    { label:"Self-seeking",  desc:"I want my way / More attention than I deserve." },
-    { label:"Self-reliant",  desc:"I am not asking for help." },
-    { label:"Self-centered", desc:"I’m making it all about me again." }
-  ];
+  const SAVE_KEY = "rm_fear_compass_v3";
 
   /* The questions, in order.
      type: text   = typed answer (required)
@@ -550,28 +525,16 @@ main.bp{
            cards1 = tap one card (label + explanation) and it sends
            many   = pick any number, then send; Skip allowed
      key: where the answer is kept for the summary. */
+  // Three texts, on purpose. The old version was ten questions and a
+  // pick-your-fear list, and it felt like homework. Shorter gets finished.
   const QUESTIONS = [
     { key:"fear", type:"text",
-      lines:["What fear is bothering you right now?","Type it out plain and honest. No perfect wording needed."] },
-    { key:"category", type:"one", options:Object.keys(CATEGORIES),
-      lines:["Let’s take it further.","What’s the nature of this fear?"],
-      again:["No problem. What kind of fear is it?"] },
-    { key:"named", type:"one", options:(a) => CATEGORIES[a.category] || [], back:"← Different kind",
-      lines:["Which one fits best?"] },
-    { key:"heldBack", type:"text",
-      lines:["What has this fear held you back from doing?"] },
-    { key:"costing", type:"many", options:COSTING,
-      lines:["Fear usually costs us something.","What has this one been costing you?"] },
-    { key:"underneath", type:"cards1", options:UNDERNEATH,
-      lines:["Is this fear feeling like one of these?"] },
-    { key:"ifTrue", type:"text",
-      lines:["If this fear actually came true… what would happen?"] },
-    { key:"reactions", type:"many", cards:true, options:REACTIONS,
-      lines:["Where did I get the ball rolling on this fear?"] },
-    { key:"summary", type:"summary",
-      lines:["Here’s what you came up with."] },
+      lines:["What are you afraid of?"] },
+    { key:"replay", type:"one",
+      options:["Rejection","Abandonment","Neglect","The unknown","Not sure"],
+      lines:["Is this an old fear replaying?"] },
     { key:"next", type:"text", quote:true,
-      lines:["What’s the next right thing to do without this fear running the show?"] }
+      lines:["What’s the next right thing?"] }
   ];
   const QUOTE = { text:"“We ask Him to remove our fear and direct our attention to what He would have us be.”",
                   cite:"Alcoholics Anonymous, p. 68" };
@@ -718,7 +681,6 @@ main.bp{
 
   function showStepChips(){
     if (busy) return setChips([]);
-    if (S.phase === "q" && QUESTIONS[S.qi].type === "summary"){ S.qi++; save(); return askCurrent(); }
     if (S.phase === "end"){
       return setChips([{ cta:true, label:"Wrap this up 🧭",
         sub:"Thirty quiet seconds with your next right thing.", onTap: wrapUp }]);
@@ -728,7 +690,6 @@ main.bp{
     const opts = optionsFor(Q);
     if (Q.type === "one"){
       const list = opts.map(o => ({ label:o, onTap: () => answer(o) }));
-      if (Q.back) list.push({ label:Q.back, cls:"quiet", onTap: differentKind });
       return setChips(list);
     }
     if (Q.type === "cards1") return setChips([cardList(opts, false)]);
@@ -762,26 +723,9 @@ main.bp{
     input.style.height = Math.min(input.scrollHeight + 2, window.innerHeight * 0.4) + "px";
   }
 
-  function summaryRows(){
-    const a = S.ans, none = "Nothing picked.";
-    return [
-      ["The fear bothering you", a.fear || "—"],
-      ["What you were really afraid of", a.named || "—"],
-      ["What it held you back from", a.heldBack || "—"],
-      ["What it’s been costing you", a.costing || none],
-      ["What it feels like underneath", a.underneath || "—"],
-      ["If it came true", a.ifTrue || "—"],
-      ["Where you got the ball rolling", a.reactions || none]
-    ];
-  }
-
   function askCurrent(useAgain){
     const Q = QUESTIONS[S.qi];
     const lines = (useAgain && Q.again) ? Q.again : Q.lines;
-    if (Q.type === "summary"){
-      incoming(lines.concat([{ sum: summaryRows() }]), () => { S.qi++; save(); askCurrent(); });
-      return;
-    }
     const items = Q.quote ? [{ quote:true, text:QUOTE.text, cite:QUOTE.cite }].concat(lines) : lines;
     incoming(items, showStepChips);
   }
@@ -795,21 +739,11 @@ main.bp{
     if (skipped && !value) say({ who:"me", text:"Skip", skip:true });
     else say({ who:"me", text:value });
     S.ans[Q.key] = value;
-    // a new kind of fear means the old pick no longer applies
-    if (Q.key === "category") delete S.ans.named;
     picks = [];
     S.qi++;
     if (S.qi < QUESTIONS.length){ save(); askCurrent(); }
     else { S.phase = "end"; save(); showStepChips(); }
     syncSend();
-  }
-
-  function differentKind(){
-    say({ who:"me", text:"Different kind" });
-    delete S.ans.category; delete S.ans.named;
-    S.qi = QUESTIONS.findIndex(q => q.key === "category");
-    save();
-    askCurrent(true);
   }
 
   function send(){
