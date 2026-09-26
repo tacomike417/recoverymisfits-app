@@ -454,6 +454,30 @@ main.bp{
 .gjRow:last-child{border-bottom:none}
 .gjEmpty{padding:14px;color:var(--muted);font-size:14px}
 
+/* the "i" button and the why-this-matters screen */
+.gjTitleRow{display:flex;align-items:center;gap:6px}
+.infoBtn{
+  width:44px;height:44px;flex:none;
+  display:grid;place-items:center;
+  background:none;border:none;padding:0;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.infoBtn span{
+  width:26px;height:26px;border-radius:50%;
+  border:2px solid var(--gold);color:var(--gold-lit);
+  display:grid;place-items:center;
+  font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700;font-size:15px;line-height:1;
+}
+.infoBtn:active span{background:var(--gold);color:var(--on-gold)}
+.bbQuote{
+  margin:6px 0 18px;padding:14px 16px;
+  border-left:3px solid var(--gold);background:var(--panel);border-radius:0 14px 14px 0;
+  font-size:18px;line-height:1.45;font-style:italic;color:var(--ivory);
+}
+.bbQuote cite{display:block;margin-top:8px;font-style:normal;font-size:13px;color:var(--muted)}
+.whyText p{margin:0 0 12px;font-size:16px;line-height:1.5;color:var(--ivory)}
+.whyText b{color:var(--gold-lit)}
+
 /* a past day, full screen */
 .bpRelease.gjView{align-items:flex-start;overflow:auto}
 .gjViewInner{max-width:480px;width:100%;margin:0 auto;padding-top:8px}
@@ -475,7 +499,10 @@ main.bp{
 
 <main class="bp">
   <div class="bpHead">
-    <h1 class="bpTitle">Gratitude <span>Journal</span> ⭐</h1>
+    <div class="gjTitleRow">
+      <h1 class="bpTitle">Gratitude <span>Journal</span> ⭐</h1>
+      <button class="infoBtn" id="gjInfo" type="button" aria-label="Why gratitude?"><span>i</span></button>
+    </div>
     <button class="bpStartOver" id="bpStartOver" type="button" hidden>Start over</button>
   </div>
   <div class="gjDate" id="gjDate"></div>
@@ -518,6 +545,42 @@ main.bp{
     </details>
   </footer>
 </main>
+
+<!-- why this matters, full screen; the phone's back button closes it -->
+<div class="bpRelease gjView" id="gjWhy" hidden role="dialog" aria-modal="true" aria-label="Why gratitude">
+  <div class="gjViewInner">
+    <div class="gjViewDate">The part nobody talks about</div>
+
+    <blockquote class="bbQuote">
+      “I was to know happiness, peace, and usefulness, in a way of life that is
+      incredibly more wonderful as time passes.”
+      <cite>Bill W., Alcoholics Anonymous, p. 8</cite>
+    </blockquote>
+
+    <div class="whyText">
+      <p>Sure, recovery means looking at where we were wrong. Inventory matters.</p>
+      <p>But the old-timers weren’t only digging up the bad stuff. They were asking
+      something else, too: <b>Where was I happy today? Where was I at peace? Where was
+      I useful?</b></p>
+      <p>That part’s tucked right there in the Big Book, and hardly anybody sees it.
+      It’s the stuff that gets you here:</p>
+    </div>
+
+    <blockquote class="bbQuote">
+      “We have found much of heaven and we have been rocketed into a fourth
+      dimension of existence of which we had not even dreamed.”
+      <cite>Alcoholics Anonymous, p. 25</cite>
+    </blockquote>
+
+    <div class="whyText">
+      <p>That’s a grateful mindset. That’s what we’re about to look at.</p>
+    </div>
+
+    <div class="gjViewBtns">
+      <button class="bigBtn" id="gjWhyGo" type="button">Let’s go</button>
+    </div>
+  </div>
+</div>
 
 <!-- a past day, full screen; the phone's back button closes it -->
 <div class="bpRelease gjView" id="gjView" hidden role="dialog" aria-modal="true" aria-label="Past entry">
@@ -834,7 +897,13 @@ main.bp{
     history.pushState({ gj:"view" }, "");
   }
   function closeView(){ viewEl.hidden = true; viewing = null; }
-  window.addEventListener("popstate", () => { if (!viewEl.hidden) closeView(); });
+  const whyEl = $("gjWhy");
+  $("gjInfo").onclick = () => { whyEl.hidden = false; whyEl.scrollTop = 0; history.pushState({ gj:"why" }, ""); };
+  $("gjWhyGo").onclick = () => history.back();
+  window.addEventListener("popstate", () => {
+    if (!viewEl.hidden) closeView();
+    if (!whyEl.hidden) whyEl.hidden = true;
+  });
 
   $("gjCopy").onclick = () => { if (viewing) copyDay(readDay(viewing), viewing); };
   $("gjDelete").onclick = () => {
@@ -869,7 +938,7 @@ main.bp{
     if (E.step > 0) setTimeout(scrollDown, 60);
   }
 
-  if (history.state && history.state.gj === "view") history.replaceState(null, "");
+  if (history.state && history.state.gj) history.replaceState(null, "");
   start();
   autoGrow();
 })();
