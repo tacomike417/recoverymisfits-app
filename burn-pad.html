@@ -16,7 +16,7 @@
 
   <style>
     body{
-      font-family:Roboto,Arial,sans-serif;
+      font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
       margin:0;
       background:#fff;
       color:#111;
@@ -262,6 +262,29 @@
     @media (max-width:720px){
       .row .btn{width:100%;}
     }
+
+    /* "Write something first" nudge */
+    .burnNudge{margin-top:6px;font-weight:900;color:#b3261e;display:none;}
+    .burnNudge.show{display:block;}
+
+    /* Saved / cleared message, with Undo when it can be undone */
+    .burnToast{
+      position:fixed;left:50%;
+      bottom:calc(96px + env(safe-area-inset-bottom));
+      transform:translateX(-50%);
+      background:#111;color:#fff;
+      border-radius:999px;padding:10px 16px;
+      font-weight:900;display:flex;align-items:center;gap:14px;
+      z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.25);
+      max-width:calc(100% - 32px);box-sizing:border-box;
+    }
+    .burnToast[hidden]{display:none;}
+    .burnToast button{
+      background:none;border:none;color:#ffb4a8;
+      font-weight:1000;font-family:inherit;font-size:inherit;
+      cursor:pointer;padding:6px 2px;
+    }
+    .burnToast button[hidden]{display:none;}
   </style>
 </head>
 
@@ -284,6 +307,7 @@
       <textarea id="burnDraft"
         placeholder="This isn’t for replaying the struggle. It’s for getting it out and moving on."
         style="min-height:160px;"></textarea>
+      <div class="burnNudge" id="burnNudge">Write something first. Even one line counts.</div>
 
       <div class="row" style="margin-top:12px;">
         <button class="btn primary" id="burnNext" type="button">Next</button>
@@ -343,7 +367,7 @@
       </label>
 
       <div class="muted" id="burnNotReadyHint" style="margin-top:6px;display:none;">
-        That’s honest. You can still pause it and come back when you’re ready.
+        That’s honest. Pause it and it stays saved on this phone until you come back.
       </div>
 
       <div class="muted" style="margin-top:12px;">
@@ -393,18 +417,71 @@
   </div>
 </main>
 
+<div class="burnToast" id="burnToast" role="status" aria-live="polite" hidden>
+  <span id="burnToastText"></span>
+  <button type="button" id="burnToastUndo">Undo</button>
+</div>
+
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
 
 <script>
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
 
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- elements ----------
+  const burnCard = $("burnStep1").closest(".card");
+
+  const burnStep1 = $("burnStep1");
+  const burnStep2 = $("burnStep2");
+
+  const burnName = $("burnName");
+  const burnDraft = $("burnDraft");
+  const burnNudge = $("burnNudge");
+  const burnMistake = $("burnMistake");
+  const burnFlames = $("burnFlames");
+  const burnControl = $("burnControl");
+  const burnNextMove = $("burnNextMove");
+  const burnWho = $("burnWho");
+
+  const burnThreatChips = $("burnThreatChips");
+  const burnStateChips = $("burnStateChips");
+  const burnAdvanced = $("burnAdvanced");
+  const burnToggleSimple = $("burnToggleSimple");
+
+  const burnNotReady = $("burnNotReady");
+  const burnNotReadyHint = $("burnNotReadyHint");
+  const burnReleaseBtn = $("burnRelease");
+
+  const burnDoneSheet = $("burnDoneSheet");
+  const burnDoneCloseBtn = $("burnDoneClose");
+  const burnMeditationTimer = $("burnMeditationTimer");
+
+  const prayerSheet = $("prayerSheet");
+  const prayerDone = $("prayerDone");
+
+  const burnToast = $("burnToast");
+  const burnToastText = $("burnToastText");
+  const burnToastUndo = $("burnToastUndo");
+
+  const SAVE_KEY = "rm_burn_pad_paused_v1";
+  const textFields = { name: burnName, draft: burnDraft, mistake: burnMistake,
+    flames: burnFlames, control: burnControl, nextMove: burnNextMove, who: burnWho };
+  const step1Fields = ["name", "draft"];
+  const step2Fields = ["mistake", "flames", "control", "nextMove", "who"];
+
+  let burnSimple = false;
+  let burnMeditationInterval = null;
+  let toastTimer = null;
+  let toastUndo = null;
+
+  // ---------- stars ----------
   function burstStars(onButtonEl){
     const wrap = onButtonEl.closest(".burstWrap") || onButtonEl.parentElement;
     if(!wrap) return;
     const emojis = ["⭐","✨","🌟"];
-    const count = 14;
-    for(let i=0;i<count;i++){
+    for(let i=0;i<14;i++){
       const s = document.createElement("span");
       s.className = "star";
       s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
@@ -417,236 +494,232 @@
     }
   }
 
-  const burnStep1 = document.getElementById("burnStep1");
-  const burnStep2 = document.getElementById("burnStep2");
+  // ---------- chips (more than one can be picked) ----------
+  function chipValues(group){
+    return [...group.querySelectorAll(".chipBtn.active")].map(b => b.getAttribute("data-v"));
+  }
+  function setChips(group, values){
+    group.querySelectorAll(".chipBtn").forEach(b =>
+      b.classList.toggle("active", (values || []).includes(b.getAttribute("data-v"))));
+  }
+  [burnStateChips, burnThreatChips].forEach(group => {
+    group.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chipBtn");
+      if(!btn) return;
+      btn.classList.toggle("active");
+      btn.setAttribute("aria-pressed", btn.classList.contains("active"));
+    });
+  });
 
-  const burnName = document.getElementById("burnName");
-  const burnDraft = document.getElementById("burnDraft");
-  const burnMistake = document.getElementById("burnMistake");
-  const burnFlames = document.getElementById("burnFlames");
-  const burnControl = document.getElementById("burnControl");
-  const burnNextMove = document.getElementById("burnNextMove");
-  const burnWho = document.getElementById("burnWho");
+  // ---------- snapshot / restore ----------
+  function snapshot(){
+    const snap = { states: chipValues(burnStateChips), threats: chipValues(burnThreatChips),
+      notReady: burnNotReady.checked, simple: burnSimple };
+    for (const k in textFields) snap[k] = textFields[k].value;
+    return snap;
+  }
+  function applySnapshot(snap){
+    for (const k in textFields) textFields[k].value = snap[k] || "";
+    setChips(burnStateChips, snap.states);
+    setChips(burnThreatChips, snap.threats);
+    burnNotReady.checked = !!snap.notReady;
+    syncNotReadyUI();
+    setSimple(!!snap.simple);
+  }
+  function hasWriting(snap){
+    return Object.keys(textFields).some(k => (snap[k] || "").trim());
+  }
 
-  const burnThreatChips = document.getElementById("burnThreatChips");
-  const burnStateChips = document.getElementById("burnStateChips");
-  const burnAdvanced = document.getElementById("burnAdvanced");
-  const burnToggleSimple = document.getElementById("burnToggleSimple");
+  // ---------- saved-on-this-phone (only when paused) ----------
+  function readSaved(){
+    try { return JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch(e){ return null; }
+  }
+  function writeSaved(snap){
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(snap)); return true; } catch(e){ return false; }
+  }
+  function dropSaved(){
+    try { localStorage.removeItem(SAVE_KEY); } catch(e){}
+  }
 
-  const burnNotReady = document.getElementById("burnNotReady");
-  const burnNotReadyHint = document.getElementById("burnNotReadyHint");
-  const burnReleaseBtn = document.getElementById("burnRelease");
+  // ---------- small helpers ----------
+  function syncNotReadyUI(){
+    burnReleaseBtn.textContent = burnNotReady.checked ? "Pause it" : "Release it";
+    burnNotReadyHint.style.display = burnNotReady.checked ? "block" : "none";
+  }
+  function setSimple(on){
+    burnSimple = on;
+    burnAdvanced.style.display = on ? "none" : "";
+    burnToggleSimple.textContent = on ? "Show all questions" : "Show fewer questions";
+  }
+  function showToast(text, undoFn){
+    clearTimeout(toastTimer);
+    burnToastText.textContent = text;
+    toastUndo = undoFn || null;
+    burnToastUndo.hidden = !undoFn;
+    burnToast.hidden = false;
+    toastTimer = setTimeout(hideToast, undoFn ? 7000 : 4000);
+  }
+  function hideToast(){
+    burnToast.hidden = true;
+    toastUndo = null;
+  }
+  burnToastUndo.onclick = () => {
+    const fn = toastUndo;
+    hideToast();
+    if (fn) fn();
+  };
 
-  const burnDoneSheet = document.getElementById("burnDoneSheet");
-  const burnDoneCloseBtn = document.getElementById("burnDoneClose");
-  const burnMeditationTimer = document.getElementById("burnMeditationTimer");
+  // ---------- screens ----------
+  // Which screen is showing lives in the browser history, so the phone's own
+  // back button (and the iPhone edge swipe) steps back one screen at a time
+  // instead of leaving the page and losing what was written.
+  function currentScreen(){
+    const st = history.state && history.state.burn;
+    return st === 2 || st === "done" ? st : 1;
+  }
 
-  const prayerSheet = document.getElementById("prayerSheet");
-  const prayerDone = document.getElementById("prayerDone");
+  function render(){
+    const screen = currentScreen();
+    const inDone = screen === "done";
 
-  let burnThreat = "";
-  let burnState = "";
-  let burnSimple = false;
-  let burnMeditationInterval = null;
+    burnCard.style.display = inDone ? "none" : "";
+    burnStep1.classList.toggle("active", screen === 1);
+    burnStep2.classList.toggle("active", screen === 2);
 
-  function showBurnStep(n){
-    if(n === 1){
-      burnStep1.classList.add("active");
-      burnStep2.classList.remove("active");
+    if (inDone){
+      if (burnDoneSheet.style.display !== "block"){
+        burnDoneSheet.style.display = "block";
+        prayerSheet.style.display = "none";
+        startBurnMeditationCountdown();
+      }
     } else {
-      burnStep1.classList.remove("active");
-      burnStep2.classList.add("active");
+      stopCountdown();
+      burnDoneSheet.style.display = "none";
+      prayerSheet.style.display = "none";
     }
   }
 
-  function resetNotReadyUI(){
-    burnNotReady.checked = false;
-    burnNotReadyHint.style.display = "none";
-    burnReleaseBtn.textContent = "Release it";
+  function goTo(screen){
+    history.pushState({ burn: screen }, "");
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function resetSimpleUI(){
-    burnSimple = false;
-    if (burnAdvanced) burnAdvanced.style.display = "";
-    if (burnToggleSimple) burnToggleSimple.textContent = "Show fewer questions";
-  }
+  window.addEventListener("popstate", () => {
+    hideToast();
+    render();
+  });
 
-  function clearBurnAll(){
-    burnName.value = "";
-    burnDraft.value = "";
-    burnMistake.value = "";
-    burnFlames.value = "";
-    burnControl.value = "";
-    if (burnNextMove) burnNextMove.value = "";
-    if (burnWho) burnWho.value = "";
-    burnThreat = "";
-    burnState = "";
-
-    if (burnThreatChips) {
-      burnThreatChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
-    }
-    if (burnStateChips) {
-      burnStateChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
-    }
-
-    resetNotReadyUI();
-    resetSimpleUI();
-    showBurnStep(1);
-  }
-
-  function startBurnMeditationCountdown(){
-    if (burnMeditationInterval) {
+  // ---------- 30 seconds, then the prayer ----------
+  function stopCountdown(){
+    if (burnMeditationInterval){
       clearInterval(burnMeditationInterval);
       burnMeditationInterval = null;
     }
-
+  }
+  function startBurnMeditationCountdown(){
+    stopCountdown();
     let seconds = 30;
     burnMeditationTimer.textContent = String(seconds);
-
     burnMeditationInterval = setInterval(() => {
       seconds -= 1;
       burnMeditationTimer.textContent = String(Math.max(0, seconds));
-
-      if (seconds <= 0) {
-        clearInterval(burnMeditationInterval);
-        burnMeditationInterval = null;
+      if (seconds <= 0){
+        stopCountdown();
+        openPrayer();
       }
     }, 1000);
   }
-
-  document.getElementById("burnNext").onclick = () => {
-    showBurnStep(2);
-    setTimeout(() => burnMistake.focus({preventScroll:true}), 80);
-  };
-
-  document.getElementById("burnBack").onclick = () => {
-    showBurnStep(1);
-    setTimeout(() => burnName.focus({preventScroll:true}), 80);
-  };
-
-  document.getElementById("burnClear1").onclick = () => {
-    burnName.value = "";
-    burnDraft.value = "";
-  };
-
-  document.getElementById("burnClear2").onclick = () => {
-    burnMistake.value = "";
-    burnFlames.value = "";
-    burnControl.value = "";
-    if (burnNextMove) burnNextMove.value = "";
-    if (burnWho) burnWho.value = "";
-    burnThreat = "";
-    burnState = "";
-
-    if (burnThreatChips) {
-      burnThreatChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
-    }
-    if (burnStateChips) {
-      burnStateChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
-    }
-
-    resetNotReadyUI();
-    resetSimpleUI();
-  };
-
-  if (burnThreatChips){
-    burnThreatChips.addEventListener("click", (e) => {
-      const btn = e.target.closest(".chipBtn");
-      if(!btn) return;
-      const v = btn.getAttribute("data-v") || "";
-      const isActive = btn.classList.contains("active");
-
-      burnThreatChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
-
-      if(!isActive){
-        btn.classList.add("active");
-        burnThreat = v;
-      } else {
-        burnThreat = "";
-      }
-    });
-  }
-
-  if (burnStateChips){
-    burnStateChips.addEventListener("click", (e) => {
-      const btn = e.target.closest(".chipBtn");
-      if(!btn) return;
-      const v = btn.getAttribute("data-v") || "";
-      const isActive = btn.classList.contains("active");
-
-      burnStateChips.querySelectorAll(".chipBtn").forEach(b => b.classList.remove("active"));
-
-      if(!isActive){
-        btn.classList.add("active");
-        burnState = v;
-      } else {
-        burnState = "";
-      }
-    });
-  }
-
-  if (burnToggleSimple){
-    burnToggleSimple.onclick = () => {
-      burnSimple = !burnSimple;
-      if (burnAdvanced) burnAdvanced.style.display = burnSimple ? "none" : "";
-      burnToggleSimple.textContent = burnSimple ? "Show all questions" : "Show fewer questions";
-    };
-  }
-
-  burnNotReady.addEventListener("change", () => {
-    if (burnNotReady.checked){
-      burnReleaseBtn.textContent = "Pause it";
-      burnNotReadyHint.style.display = "block";
-    } else {
-      burnReleaseBtn.textContent = "Release it";
-      burnNotReadyHint.style.display = "none";
-    }
-  });
-
-  function openBurnDone(){
-    burnDoneSheet.style.display = "block";
-    startBurnMeditationCountdown();
-    burnDoneSheet.scrollIntoView({behavior:"smooth", block:"start"});
-    setTimeout(() => burnDoneCloseBtn.focus({preventScroll:true}), 220);
-  }
-
-  function closeBurnDone(){
-    burnDoneSheet.style.display = "none";
-
-    if (burnMeditationInterval) {
-      clearInterval(burnMeditationInterval);
-      burnMeditationInterval = null;
-    }
-  }
-
   function openPrayer(){
     prayerSheet.style.display = "block";
-    prayerSheet.scrollIntoView({behavior:"smooth", block:"start"});
-    setTimeout(() => prayerDone.focus({preventScroll:true}), 120);
+    prayerSheet.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => prayerDone.focus({ preventScroll: true }), 120);
   }
 
-  function closePrayer(){
-    prayerSheet.style.display = "none";
+  // Released and done: wipe it, forget it, and step back to a fresh pad.
+  function finishBurn(){
+    for (const k in textFields) textFields[k].value = "";
+    setChips(burnStateChips, []);
+    setChips(burnThreatChips, []);
+    burnNotReady.checked = false;
+    syncNotReadyUI();
+    setSimple(false);
+    dropSaved();
+
+    const depth = currentScreen() === "done" ? 2 : currentScreen() === 2 ? 1 : 0;
+    if (depth) history.go(-depth); else render();
+    window.scrollTo({ top: 0 });
   }
 
-  prayerDone.onclick = closePrayer;
-
-  burnReleaseBtn.onclick = () => {
-    burstStars(burnReleaseBtn);
-
-    if (burnNotReady.checked){
+  // ---------- buttons ----------
+  $("burnNext").onclick = () => {
+    if (!burnDraft.value.trim()){
+      burnNudge.classList.add("show");
+      burnDraft.focus();
       return;
     }
+    goTo(2);
+    setTimeout(() => burnMistake.focus({ preventScroll: true }), 80);
+  };
+  burnDraft.addEventListener("input", () => burnNudge.classList.remove("show"));
 
-    openBurnDone();
+  $("burnBack").onclick = () => {
+    if (currentScreen() === 2) history.back(); else render();
+    setTimeout(() => burnDraft.focus({ preventScroll: true }), 80);
   };
 
-  burnDoneCloseBtn.onclick = () => {
-    clearBurnAll();
-    closeBurnDone();
+  function clearWithUndo(keys, alsoAnswers){
+    const before = snapshot();
+    const hadSaved = readSaved();
+    keys.forEach(k => textFields[k].value = "");
+    if (alsoAnswers){
+      setChips(burnStateChips, []);
+      setChips(burnThreatChips, []);
+      burnNotReady.checked = false;
+      syncNotReadyUI();
+    }
+    burnNudge.classList.remove("show");
+    dropSaved();
+    showToast("Cleared.", () => {
+      applySnapshot(before);
+      if (hadSaved) writeSaved(hadSaved);
+    });
+  }
+  $("burnClear1").onclick = () => clearWithUndo(step1Fields, false);
+  $("burnClear2").onclick = () => clearWithUndo(step2Fields, true);
+
+  burnToggleSimple.onclick = () => setSimple(!burnSimple);
+
+  burnNotReady.addEventListener("change", syncNotReadyUI);
+
+  burnReleaseBtn.onclick = () => {
+    if (burnNotReady.checked){
+      const ok = writeSaved(snapshot());
+      showToast(ok ? "Paused. It’s saved on this phone for when you’re ready."
+                   : "Couldn’t save on this phone. Keep this page open.");
+      return;
+    }
+    burstStars(burnReleaseBtn);
+    dropSaved();
+    setTimeout(() => goTo("done"), 450);
   };
 
-  showBurnStep(1);
+  burnDoneCloseBtn.onclick = finishBurn;
+  prayerDone.onclick = finishBurn;
+
+  // ---------- start up ----------
+  // A reload keeps the history entry; if it was the 30-second screen,
+  // drop back to the questions rather than restarting the timer blind.
+  if (currentScreen() === "done") history.replaceState({ burn: 2 }, "");
+
+  const saved = readSaved();
+  if (saved && hasWriting(saved)){
+    applySnapshot(saved);
+    showToast("Picked up where you left off.");
+  } else if (currentScreen() === 2){
+    history.replaceState(null, "");
+  }
+  render();
 </script>
 
 </body>
