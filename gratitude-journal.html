@@ -685,6 +685,9 @@ main.bp{
   // The same message the ⓘ screen carries, sent as texts the first time
   // someone opens the journal. After that it lives behind the ⓘ.
   const INTRO_SEEN = "rm_grat_intro_seen";
+  // While editing: send the intro on EVERY page load. Flip to false later
+  // and it goes back to first-time-only.
+  const INTRO_EVERY_LOAD = true;
   const INTRO = [
     { quote:true, text:"“I was to know happiness, peace, and usefulness, in a way of life that is incredibly more wonderful as time passes.”", cite:"Bill W., Alcoholics Anonymous, p. 8" },
     "Sure, recovery means looking at where we were wrong. Inventory matters.",
@@ -808,7 +811,7 @@ main.bp{
   }
 
   function askNext(){
-    if (E.step === 0 && !E.intro && !introSeen()){
+    if (!INTRO_EVERY_LOAD && E.step === 0 && !E.intro && !introSeen()){
       E.intro = true; markIntroSeen();
       incoming(INTRO.concat([QUESTIONS[0].q]), showStepChips);
       return;
@@ -968,8 +971,20 @@ main.bp{
     TODAY = todayISO();
     $("gjDate").textContent = pretty(TODAY);
     loadToday();
-    drawToday();
     renderPast();
+    if (INTRO_EVERY_LOAD){
+      E.intro = false;
+      thread.innerHTML = "";
+      incoming(INTRO, () => {
+        E.intro = true; markIntroSeen();
+        drawToday();          // intro (already shown) + anything answered today
+        askNext();
+        syncSend();
+        scrollDown();
+      });
+      return;
+    }
+    drawToday();
     askNext();
     syncSend();
     if (E.step > 0) setTimeout(scrollDown, 60);
