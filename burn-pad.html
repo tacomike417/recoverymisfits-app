@@ -553,9 +553,16 @@ main.bp{
     S.msgs.forEach(m => bubble(m, false));
   }
 
+  // Keep the typing bar sitting just above the bottom nav -- NOT the bottom
+  // of the page, which is the fine print.
   function scrollDown(){
-    requestAnimationFrame(() =>
-      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" }));
+    requestAnimationFrame(() => {
+      const under = document.querySelector(".bpUnder");
+      const nav = document.getElementById("rm-bottom-nav");
+      const navH = nav ? nav.getBoundingClientRect().height : 0;
+      const y = window.scrollY + under.getBoundingClientRect().bottom - (window.innerHeight - navH - 12);
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    });
   }
 
   function say(m){
