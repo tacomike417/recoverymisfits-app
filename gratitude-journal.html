@@ -682,7 +682,38 @@ main.bp{
   function saveToday(){ writeDay(TODAY, E); renderPast(); }
 
   /* ---------- drawing the thread ---------- */
+  // The same message the ⓘ screen carries, sent as texts the first time
+  // someone opens the journal. After that it lives behind the ⓘ.
+  const INTRO_SEEN = "rm_grat_intro_seen";
+  const INTRO = [
+    { quote:true, text:"“I was to know happiness, peace, and usefulness, in a way of life that is incredibly more wonderful as time passes.”", cite:"Bill W., Alcoholics Anonymous, p. 8" },
+    "Sure, recovery means looking at where we were wrong. Inventory matters.",
+    "But the old-timers weren’t only digging up the bad stuff. They were also asking: Where was I happy today? Where was I at peace? Where was I useful?",
+    "That part’s tucked right there in the Big Book, and hardly anybody sees it. It’s the stuff that gets you here:",
+    { quote:true, text:"“We have found much of heaven and we have been rocketed into a fourth dimension of existence of which we had not even dreamed.”", cite:"Alcoholics Anonymous, p. 25" },
+    "That’s a grateful mindset. Let’s look at today."
+  ];
+  function introSeen(){ try { return localStorage.getItem(INTRO_SEEN) === "1"; } catch(e){ return true; } }
+  function markIntroSeen(){ try { localStorage.setItem(INTRO_SEEN, "1"); } catch(e){} }
+
   function bubble(who, text, animate, extra){
+    if (text && typeof text === "object"){
+      // a Big Book quote: italic, with the page under it
+      const lastEl = thread.lastElementChild;
+      if (who === "them" && !(lastEl && lastEl.classList.contains("them"))){
+        const from = document.createElement("div");
+        from.className = "bpFrom"; from.textContent = "Gratitude Journal";
+        thread.appendChild(from);
+      }
+      const el = document.createElement("div");
+      el.className = "msg " + who + " quote";
+      el.textContent = text.text;
+      const c = document.createElement("span"); c.className = "cite"; c.textContent = "— " + text.cite;
+      el.appendChild(c);
+      if (!animate) el.style.animation = "none";
+      thread.appendChild(el);
+      return;
+    }
     const lastEl = thread.lastElementChild;
     if (who === "them" && !(lastEl && lastEl.classList.contains("them"))){
       const from = document.createElement("div");
@@ -698,6 +729,7 @@ main.bp{
 
   function drawToday(){
     thread.innerHTML = "";
+    if (E.intro) INTRO.forEach(m => bubble("them", m, false));
     for (let i = 0; i < Math.min(E.step, QUESTIONS.length); i++){
       const Q = QUESTIONS[i];
       bubble("them", Q.q, false);
@@ -776,6 +808,11 @@ main.bp{
   }
 
   function askNext(){
+    if (E.step === 0 && !E.intro && !introSeen()){
+      E.intro = true; markIntroSeen();
+      incoming(INTRO.concat([QUESTIONS[0].q]), showStepChips);
+      return;
+    }
     if (E.step < QUESTIONS.length) incoming([QUESTIONS[E.step].q], showStepChips);
     else showStepChips();
   }
