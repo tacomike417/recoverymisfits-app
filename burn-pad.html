@@ -199,6 +199,40 @@ main.bp{
 .chip.go{background:var(--gold);color:var(--on-gold);border-color:var(--gold);font-weight:800}
 .chip.quiet{border-color:rgba(255,255,255,.14);color:var(--muted)}
 
+/* THE CALL TO ACTION. Not a bubble: full width, centered, set off from the
+   thread by a rule, with a line under it saying what it does -- so nobody
+   mistakes it for another text. */
+.bpCta{
+  flex:1 0 100%;
+  margin-top:8px;padding-top:14px;
+  border-top:1px dashed rgba(216,180,91,.35);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.bpCta .ctaBtn{
+  width:100%;min-height:52px;
+  border-radius:14px;
+  border:2px solid var(--gold);
+  background:linear-gradient(180deg,#e3c46f,#c9a449);
+  color:var(--on-gold);
+  font:inherit;font-size:17px;font-weight:800;letter-spacing:.01em;
+  cursor:pointer;
+  box-shadow:0 0 0 0 rgba(216,180,91,.55);
+  animation:ctaPulse 2.2s ease-out 3;
+  -webkit-tap-highlight-color:transparent;
+}
+.bpCta .ctaBtn:active{transform:scale(.98)}
+.bpCta .ctaSub{font-size:12px;color:var(--muted);text-align:center}
+.bpCta .ctaAlt{
+  background:none;border:none;color:var(--muted);
+  font:inherit;font-size:15px;min-height:44px;padding:0 12px;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;
+}
+@keyframes ctaPulse{
+  0%{box-shadow:0 0 0 0 rgba(216,180,91,.55)}
+  70%{box-shadow:0 0 0 12px rgba(216,180,91,0)}
+  100%{box-shadow:0 0 0 0 rgba(216,180,91,0)}
+}
+
 /* ---- the typing bar ---------------------------------------------------- */
 .bpBar{
   display:flex;align-items:flex-end;gap:8px;
@@ -238,7 +272,7 @@ main.bp{
    iPhone edge swipe closes it. */
 .bpRelease{
   position:fixed;inset:0;z-index:10050;
-  background:rgba(8,8,7,.97);
+  background:#0b0b0a;
   display:flex;align-items:center;justify-content:center;
   padding:calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
   color:var(--ivory);font-family:var(--ui);
@@ -409,17 +443,15 @@ main.bp{
   const OLD_KEY  = "rm_burn_pad_paused_v1";
 
   /* The questions, in order. `pick` = tap-to-pick bubbles (more than one
-     allowed); `hint` = what the typing bar says while that question is up. */
+     allowed). */
   const QUESTIONS = [
     { lead: "Strong reactions usually mean something important got touched.",
       q: "Right now I’m…", pick: ["Angry","Scared","Hurt","Embarrassed","Tired"] },
-    { q: "Where was my mistake?",
-      hint: "Self-seeking… lied… held on too long… passive aggressive…" },
+    { q: "Where was my mistake?" },
     { q: "Where did I make it worse?" },
     { q: "What was I trying to control, change, or force?" },
     { q: "What’s actually threatened here?", pick: ["Ego","Fear","Comfort","Image","Security"] },
-    { q: "What’s the next right move, if any?",
-      hint: "Sometimes the move is to do nothing and let things cool." },
+    { q: "What’s the next right move, if any?" },
     { q: "Who could help me see this more clearly?" }
   ];
   const CLOSING = [
@@ -521,6 +553,26 @@ main.bp{
   function setChips(list){
     chipsEl.innerHTML = "";
     list.forEach(c => {
+      if (c.cta){
+        const w = document.createElement("div");
+        w.className = "bpCta";
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "ctaBtn go"; b.textContent = c.label;
+        b.onclick = () => c.onTap(b);
+        w.appendChild(b);
+        if (c.sub){
+          const d = document.createElement("div");
+          d.className = "ctaSub"; d.textContent = c.sub; w.appendChild(d);
+        }
+        if (c.alt){
+          const a = document.createElement("button");
+          a.type = "button"; a.className = "ctaAlt"; a.textContent = c.alt.label;
+          a.onclick = () => c.alt.onTap(a);
+          w.appendChild(a);
+        }
+        chipsEl.appendChild(w);
+        return;
+      }
       const b = document.createElement("button");
       b.type = "button";
       b.className = "chip" + (c.cls ? " " + c.cls : "");
@@ -537,7 +589,8 @@ main.bp{
     if (busy) return setChips([]);
     if (S.phase === "vent"){
       if (!S.msgs.some(m => m.vent)) return setChips([]);
-      return setChips([{ label:"That’s it, I got it out", cls:"go", onTap: startQuestions }]);
+      return setChips([{ cta:true, label:"✓  That’s it, I got it out",
+        sub:"Tap when you’re done. Next, we’ll take a look at it.", onTap: startQuestions }]);
     }
     if (S.phase === "q"){
       const Q = QUESTIONS[S.qi];
@@ -557,18 +610,15 @@ main.bp{
       return setChips(list);
     }
     if (S.phase === "end"){
-      return setChips([
-        { label:"Not yet", cls:"quiet", onTap: notYet },
-        { label:"Release it 🔥", cls:"go", onTap: release }
-      ]);
+      return setChips([{ cta:true, label:"Release it 🔥",
+        alt:{ label:"Not yet", onTap: notYet }, onTap: release }]);
     }
   }
 
   /* ---------- flow ---------- */
+  // The typing bar stays blank once the thread starts -- no coaching in it.
   function hintFor(){
-    if (S.phase === "vent") return S.msgs.some(m => m.vent) ? "Keep going, or tap below when you’re done…" : "Get it out…";
-    if (S.phase === "q") return QUESTIONS[S.qi].hint || (QUESTIONS[S.qi].pick ? "Pick some, or say it your way…" : "Text back…");
-    return "Anything else to get out?";
+    return S.msgs.length ? "" : "Get it out…";
   }
 
   function syncSend(){
