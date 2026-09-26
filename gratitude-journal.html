@@ -478,6 +478,13 @@ main.bp{
 .whyText p{margin:0 0 12px;font-size:16px;line-height:1.5;color:var(--ivory)}
 .whyText b{color:var(--gold-lit)}
 
+.gjSplit{
+  display:flex;align-items:center;gap:12px;
+  margin:30px 0 8px;
+  color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+}
+.gjSplit::before,.gjSplit::after{content:"";flex:1;height:1px;background:rgba(216,180,91,.3)}
+
 /* a past day, full screen */
 .bpRelease.gjView{align-items:flex-start;overflow:auto}
 .gjViewInner{max-width:480px;width:100%;margin:0 auto;padding-top:8px}
@@ -730,9 +737,18 @@ main.bp{
     thread.appendChild(el);
   }
 
+  // A break between the intro and today's questions, like the timestamp
+  // line in a text thread -- so the questions read as a fresh start.
+  function splitLine(){
+    const d = document.createElement("div");
+    d.className = "gjSplit";
+    d.textContent = "Today · " + shortDay(TODAY).replace(/, \d{4}$/, "");
+    thread.appendChild(d);
+  }
+
   function drawToday(){
     thread.innerHTML = "";
-    if (E.intro) INTRO.forEach(m => bubble("them", m, false));
+    if (E.intro){ INTRO.forEach(m => bubble("them", m, false)); splitLine(); }
     for (let i = 0; i < Math.min(E.step, QUESTIONS.length); i++){
       const Q = QUESTIONS[i];
       bubble("them", Q.q, false);
@@ -813,7 +829,7 @@ main.bp{
   function askNext(){
     if (!INTRO_EVERY_LOAD && E.step === 0 && !E.intro && !introSeen()){
       E.intro = true; markIntroSeen();
-      incoming(INTRO.concat([QUESTIONS[0].q]), showStepChips);
+      incoming(INTRO, () => { splitLine(); incoming([QUESTIONS[0].q], showStepChips); });
       return;
     }
     if (E.step < QUESTIONS.length) incoming([QUESTIONS[E.step].q], showStepChips);
