@@ -15,8 +15,9 @@
 
 <style>
 /* ===========================================================================
-   THE UNTANGLER — dump the scramble, name what's holding each thing up,
-   then pick the ONE thing for today. First things first.
+   THE UNTANGLER — dump the scramble, then put it in order by tapping
+   "this or that", two at a time. No questions about the list, no reasons
+   asked for. Out comes an order: start with #1. First things first.
 
    Built phone-first, in the same texting layout as the Burn Pad, Fear
    Compass and Gratitude Journal (it shares their styles). The old version
@@ -514,6 +515,12 @@ main.bp{
 .gjViewInner .sumLabel{text-transform:none;letter-spacing:0;font-size:13px}
 .gjViewInner .sumVal{font-size:17px;white-space:pre-wrap}
 .gjViewBtns{text-align:center;margin-top:10px}
+
+/* this-or-that: two big tappable cards */
+.pairCard{padding:14px 16px;min-height:56px}
+.pairCard strong{font-size:17px;color:var(--ivory)}
+.pairCard:active{background:var(--gold);border-color:var(--gold)}
+.pairCard:active strong{color:var(--on-gold)}
 </style>
 </head>
 
@@ -582,21 +589,17 @@ main.bp{
 
   const SAVE_KEY = "rm_untangler_v2";
 
-  const BLOCKERS = [
-    "Fear", "Time", "Relying on someone else", "Money",
-    "Avoidance", "Confusion", "Don’t feel like it",
-    "Nothing, just need to do it", "Not actually important"
-  ];
-  const DROP = "Not actually important";
-
-  /* phase: dump -> block -> pick -> done
-     items: [{ t, blocker, dropped }]
-     bi:    which item we're asking about in "block"
-     pick:  index of the one thing for today (or -1)
-     msgs:  the thread, so a refresh draws it back exactly */
+  /* phase: dump -> sort -> done
+     items:  the list, as typed
+     order:  indexes of items already put in order (first = do first)
+     k:      the next item waiting to be slotted in
+     lo/hi:  where it might go in `order` (a binary search -- each tap
+             halves the choices, so ten items take about 20 taps, not 45)
+     done:   how many from the top they've checked off
+     msgs:   the thread, so a refresh draws it back exactly */
   let S = fresh();
   let busy = false, toastTimer = null, toastUndo = null;
-  function fresh(){ return { phase:"dump", items:[], bi:0, pick:-1, msgs:[], draft:"" }; }
+  function fresh(){ return { phase:"dump", items:[], order:[], k:0, lo:0, hi:0, done:0, msgs:[], draft:"" }; }
 
   /* ---------- storage (this phone only) ---------- */
   function save(){
@@ -670,6 +673,7 @@ main.bp{
   function setChips(list){
     chipsEl.innerHTML = "";
     list.forEach(c => {
+      if (c.el){ chipsEl.appendChild(c.el); return; }
       if (c.note){
         const n = document.createElement("div"); n.className = "chipNote"; n.textContent = c.note;
         chipsEl.appendChild(n); return;
@@ -683,32 +687,42 @@ main.bp{
     if (list.length) scrollDown();
   }
 
+  function pairCard(label, onTap){
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "optCard pairCard";
+    const st = document.createElement("strong"); st.textContent = label;
+    b.appendChild(st); b.onclick = onTap;
+    return b;
+  }
+
   function showStepChips(){
     if (busy) return setChips([]);
     if (S.phase === "dump"){
       if (!S.items.length) return setChips([]);
       return setChips([
-        { label:"That’s everything →", cls:"go", onTap: startBlockers },
+        { label:"That’s everything →", cls:"go", onTap: startSort },
         { note:"Or keep adding." }
       ]);
     }
-    if (S.phase === "block"){
-      return setChips(BLOCKERS.map(b => ({
-        label: b, cls: b === DROP ? "quiet" : "", onTap: () => pickBlocker(b)
-      })));
-    }
-    if (S.phase === "pick"){
-      return setChips(S.items
-        .map((it, i) => ({ it, i }))
-        .filter(x => !x.it.dropped)
-        .map(x => ({ label: x.it.t, onTap: () => pickOne(x.i) })));
+    if (S.phase === "sort"){
+      const mid = (S.lo + S.hi) >> 1;
+      const a = S.items[S.k], bIdx = S.order[mid], b = S.items[bIdx];
+      const wrap = document.createElement("div"); wrap.className = "optList";
+      wrap.append(
+        pairCard(a, () => choose(true)),
+        pairCard(b, () => choose(false))
+      );
+      return setChips([
+        { el: wrap },
+        { label:"Can’t decide", cls:"quiet", onTap: () => choose(false) }
+      ]);
     }
     if (S.phase === "done"){
-      return setChips([
-        { label:"Share", cls:"go", onTap: shareList },
-        { label:"Copy", onTap: copyList },
-        { label:"Untangle something else", cls:"quiet", onTap: startOver }
-      ]);
+      const list = [];
+      if (S.done < S.order.length) list.push({ label:"Done ✓ next one", cls:"go", onTap: checkOff });
+      list.push({ label:"Share", onTap: shareList }, { label:"Copy", onTap: copyList });
+      list.push({ label:"Untangle something else", cls:"quiet", onTap: startOver });
+      return setChips(list);
     }
   }
 
@@ -731,68 +745,58 @@ main.bp{
     const t = input.value.replace(/\s+/g, " ").trim();
     if (!t) return;
     input.value = ""; autoGrow();
-    S.items.push({ t, blocker:"", dropped:false });
+    S.items.push(t);
     say({ who:"me", text:t });
     showStepChips(); syncSend();
     input.focus({ preventScroll:true });
   }
 
-  function startBlockers(){
-    S.phase = "block"; S.bi = 0; save();
-    incoming(["Now let’s look at what’s holding each one up."], askBlocker);
+  function startSort(){
+    S.order = [0]; S.k = 1; S.lo = 0; S.hi = 1;
+    if (S.items.length < 2){ S.phase = "done"; save(); return finish(); }
+    S.phase = "sort"; save(); syncSend();
+    incoming(["Let’s put it in order.", "Which one first?"], showStepChips);
   }
-  function askBlocker(){
-    incoming(["“" + S.items[S.bi].t + "”", "What’s holding it up?"], showStepChips);
-  }
-  function pickBlocker(b){
-    const it = S.items[S.bi];
-    it.blocker = b;
-    it.dropped = (b === DROP);
-    say({ who:"me", text:b });
-    S.bi++;
-    save(); syncSend();
-    if (S.bi < S.items.length) return askBlocker();
-    const left = S.items.filter(x => !x.dropped);
-    if (!left.length){
-      S.phase = "done"; save();
-      return incoming(["Looks like none of it really needed doing. That’s untangled."], showStepChips);
+
+  // one tap: is the new item before the one it's up against?
+  function choose(newFirst){
+    const mid = (S.lo + S.hi) >> 1;
+    if (newFirst) S.hi = mid; else S.lo = mid + 1;
+    if (S.lo >= S.hi){
+      S.order.splice(S.lo, 0, S.k);
+      S.k++;
+      if (S.k >= S.items.length){ S.phase = "done"; save(); return finish(); }
+      S.lo = 0; S.hi = S.order.length;
     }
-    if (left.length === 1){
-      S.pick = S.items.indexOf(left[0]);
-      S.phase = "done"; save();
-      return incoming(["Only one thing left standing. That’s today.", { sum: summary() }], showStepChips);
-    }
-    S.phase = "pick"; save();
-    incoming(["First things first.", "Pick the ONE thing for today."], showStepChips);
+    save();
+    showStepChips();
   }
-  function pickOne(i){
-    S.pick = i;
-    say({ who:"me", text:S.items[i].t });
-    S.phase = "done"; save();
-    incoming(["Good. The rest can wait.", { sum: summary() }], showStepChips);
+
+  function finish(){
+    syncSend();
+    incoming(["That’s untangled. Here’s your order:", { sum: summary() },
+              "Start with the first one. Just that one."], showStepChips);
+  }
+
+  function checkOff(){
+    S.done++;
+    save();
+    if (S.done >= S.order.length){
+      return incoming(["That’s all of it. Nice work."], showStepChips);
+    }
+    incoming(["Nice. Next up:", "👉 " + S.items[S.order[S.done]]], showStepChips);
   }
 
   function summary(){
-    const line = (it) => it.blocker && it.blocker !== DROP && it.blocker !== "Nothing, just need to do it"
-      ? it.t + "  (" + it.blocker.toLowerCase() + ")" : it.t;
-    const today = S.pick >= 0 ? [line(S.items[S.pick])] : [];
-    const later = S.items.filter((it, i) => i !== S.pick && !it.dropped).map(line);
-    const off = S.items.filter(it => it.dropped).map(it => it.t);
-    const rows = [];
-    if (today.length) rows.push(["Today", today]);
-    if (later.length) rows.push(["Not today", later]);
-    if (off.length) rows.push(["Crossed off", off]);
-    return rows;
+    const lines = S.order.map((idx, n) =>
+      (n < S.done ? "✓ " : (n + 1) + ". ") + S.items[idx] + (n === S.done ? "   ← start here" : ""));
+    return [["Your order", lines]];
   }
 
   /* ---------- take it with you ---------- */
   function listText(){
     const out = ["The Untangler — Recovery Misfits", ""];
-    summary().forEach(([label, lines]) => {
-      out.push(label.toUpperCase());
-      lines.forEach(l => out.push("• " + l));
-      out.push("");
-    });
+    S.order.forEach((idx, n) => out.push((n < S.done ? "✓ " : (n + 1) + ". ") + S.items[idx]));
     return out.join("\n").trim();
   }
   async function copyList(){
@@ -846,14 +850,14 @@ main.bp{
 
   function restore(saved){
     S = Object.assign(fresh(), saved);
+    // lists from the version before this one stored objects; keep the words
+    S.items = (S.items || []).map(x => typeof x === "string" ? x : (x && x.t) || "").filter(Boolean);
+    if (!["dump","sort","done"].includes(S.phase)){ S.phase = "dump"; S.msgs = S.msgs.filter(m => m.who === "me" || m.text === "What’s tangled up in your head?"); }
     input.value = S.draft || ""; autoGrow();
     drawAll();
     const last = S.msgs[S.msgs.length - 1];
-    const waiting = !last || last.who === "me";
-    if (S.phase === "block" && waiting) askBlocker();
-    else if (S.phase === "pick" && waiting) incoming(["First things first.", "Pick the ONE thing for today."], showStepChips);
-    else if (S.phase === "done" && waiting && S.pick >= 0) incoming(["Good. The rest can wait.", { sum: summary() }], showStepChips);
-    else if (!S.msgs.length) opener();
+    if (!S.msgs.length) opener();
+    else if (S.phase === "done" && last && last.who === "me") finish();
     else showStepChips();
     syncSend();
     setTimeout(scrollDown, 60);
