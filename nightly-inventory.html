@@ -425,6 +425,17 @@ main.bp{
   background:var(--gold);color:var(--on-gold);cursor:pointer;margin-top:2px;
 }
 .niNext:disabled{background:#3a3934;color:#8a877e;cursor:default}
+.bpCta .ctaBtn.green{border-color:#2fa55f;background:linear-gradient(180deg,#3cbd6f,#2a9656);color:#fff;animation:none}
+.bpCta:has(.green){border-top-color:rgba(47,165,95,.4)}
+#goodNight{background:#2fa55f;color:#fff}
+.niWeek{display:flex;justify-content:center;gap:8px;margin:20px auto 6px}
+.niWeek .d{display:flex;flex-direction:column;align-items:center;gap:5px;width:34px}
+.niWeek .c{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.25);display:grid;place-items:center}
+.niWeek .c svg{width:16px;height:16px;opacity:0}
+.niWeek .on .c{background:#2fa55f;border-color:#2fa55f}
+.niWeek .on .c svg{opacity:1}
+.niWeek .d span{font-size:11px;color:var(--muted)}
+.niWeek .today span{color:var(--ivory);font-weight:700}
 .wrapCheck{width:64px;height:64px;border-radius:50%;background:#2fa55f;display:grid;place-items:center;margin:0 auto 12px}
 .wrapCheck svg{width:34px;height:34px}
 .msg.quote{font-style:italic}
@@ -509,7 +520,7 @@ main.bp{
 <div class="bpRelease" id="bpRelease" hidden role="dialog" aria-modal="true" aria-label="Day closed">
   <div class="bpReleaseInner">
     <div class="wrapCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-    <div class="medText" id="wrapTitle">You did it.</div>
+    <div class="medText" id="wrapTitle">Good night.</div>
     <div class="wrapSub" id="wrapSub">Tomorrow you'll see what you wrote down to fix. Get some rest.</div>
 
     <div class="nextBox" id="nextBox" hidden>
@@ -520,7 +531,7 @@ main.bp{
     <p class="soft" id="softLine" hidden>If today was heavy, call someone you trust.
       Or <a href="sms:988">text 988</a>. Any time, day or night.</p>
 
-    <div class="niDots" id="niDots" aria-label="Your last 30 nights"></div>
+    <div class="niWeek" id="niDots" aria-label="Your last 7 nights"></div>
     <div class="niDotsNote" id="niDotsNote"></div>
 
     <button class="bigBtn" id="goodNight" type="button">Good night</button>
@@ -558,7 +569,7 @@ main.bp{
 
      NOTHING LEAVES THE PHONE. localStorage only:
        (the thread itself is NOT saved -- a refresh or reopen starts fresh)
-       rm_nightly_log     the nights you did it (dates), for the 30 dots
+       rm_nightly_log     the nights you did it (dates), for the 7-night row
        rm_nightly_tomorrow  what to carry into tomorrow (apology, tell
                           someone, do better) -- for the home page later
      A "night" runs until 4 am, so a 1 am inventory is still tonight's.
@@ -629,7 +640,7 @@ main.bp{
 
   const STEPS = [
     { key:"open", kind:"one",
-      ask: () => ["Hey. You made it to the end of the day. That’s enough.", "Ready? Tap one."],
+      ask: () => ["Recovery suggests a nightly inventory. It clears out the day, shows us what to set right, and makes for a soft pillow.", "Ready? Tap one."],
       chips: ["Yes, let’s start", NOTHING],
       after: (a) => a.open === NOTHING ? "Good. That’s a good day." : "" },
 
@@ -658,7 +669,7 @@ main.bp{
     { key:"tellWho", kind:"one",
       skip: (a) => a.tell !== "Yes",
       ask: () => ["Who could you tell? Tap one."],
-      chips: ["My sponsor", "A friend", "Someone at a meeting"] },
+      chips: ["My sponsor", "A friend", "Someone at a meeting", "Someone else"] },
 
     { key:"good", kind:"many",
       ask: () => ["Now the good part.", "Today, did you do any of these?", "Check all that fit. Then tap Next."],
@@ -753,7 +764,7 @@ main.bp{
       if (c.cta){
         const w = document.createElement("div"); w.className = "bpCta";
         const b = document.createElement("button");
-        b.type = "button"; b.className = "ctaBtn go"; b.textContent = c.label;
+        b.type = "button"; b.className = "ctaBtn go" + (c.green ? " green" : ""); b.textContent = c.label;
         b.onclick = () => c.onTap(b); w.appendChild(b);
         if (c.sub){ const d = document.createElement("div"); d.className = "ctaSub"; d.textContent = c.sub; w.appendChild(d); }
         chipsEl.appendChild(w); return;
@@ -900,7 +911,7 @@ main.bp{
       "Nobody’s grading this. You showed up, and that’s the whole point."]), showClose);
   }
   function showClose(){
-    setChips([{ cta:true, label:"Finish for tonight", sub:"One more tap and you’re done.", onTap: () => closeOut(false) }]);
+    setChips([{ cta:true, green:true, label:"Finish for tonight", sub:"Then go to bed.", onTap: () => closeOut(false) }]);
   }
 
   /* ---------- closing (one history step: the phone's back button closes it) ---------- */
@@ -909,9 +920,9 @@ main.bp{
     markDone();
     S.closed = true; S.early = !!early; save();
     const items = saveTomorrow();
-    $("wrapTitle").textContent = early ? "That’s enough for tonight." : "You did it.";
-    $("wrapSub").textContent = early ? "You showed up. That counts. Get some rest."
-      : (items.length ? "Tomorrow you’ll see what you wrote down to fix. Get some rest." : "Nothing to carry into tomorrow. Get some rest.");
+    $("wrapTitle").textContent = "Good night.";
+    $("wrapSub").textContent = early ? "You showed up. That counts."
+      : (items.length ? "Here’s what to set right tomorrow." : "Nothing to carry into tomorrow.");
     const list = $("nextList"); list.innerHTML = "";
     items.forEach(t => { const li = document.createElement("li"); li.textContent = t; list.appendChild(li); });
     $("nextBox").hidden = !items.length;
@@ -947,21 +958,27 @@ main.bp{
     toast("Erased. Tonight still counts.");
   };
 
-  /* the 30 dots */
+  /* the last 7 nights, oldest on the left, tonight on the right */
   function drawDots(){
     const log = new Set(store.get(LOG_KEY, []));
     const wrap = $("niDots"); wrap.innerHTML = "";
-    let count = 0;
-    for (let k = 29; k >= 0; k--){
-      const d = new Date(); if (d.getHours() < 4) d.setDate(d.getDate() - 1);
-      d.setDate(d.getDate() - k);
-      const key = nightOf(d.setHours(12));
-      const i = document.createElement("i");
-      if (log.has(key)){ i.className = "on"; count++; }
-      if (k === 0) i.classList.add("today");
-      wrap.appendChild(i);
+    const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const base = new Date(); if (base.getHours() < 4) base.setDate(base.getDate() - 1);
+    base.setHours(12, 0, 0, 0);
+    for (let k = 6; k >= 0; k--){
+      const d = new Date(base); d.setDate(d.getDate() - k);
+      const key = nightOf(d);
+      const el = document.createElement("div");
+      el.className = "d" + (log.has(key) ? " on" : "") + (k === 0 ? " today" : "");
+      el.innerHTML = '<div class="c">' + CHECK_SVG + '</div><span></span>';
+      el.querySelector("span").textContent = k === 0 ? "Tonight" : DAYS[d.getDay()];
+      wrap.appendChild(el);
     }
-    $("niDotsNote").textContent = count === 1 ? "1 night in the last 30" : count + " nights in the last 30";
+    // nights in a row, counting back from tonight
+    let streak = 0;
+    const d = new Date(base);
+    while (log.has(nightOf(d))){ streak++; d.setDate(d.getDate() - 1); }
+    $("niDotsNote").textContent = streak <= 1 ? "1 night. Good start." : streak + " nights in a row.";
   }
 
   /* I'm done for tonight -- always there, never a trap */
