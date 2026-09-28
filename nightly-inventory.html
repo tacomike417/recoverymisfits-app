@@ -552,8 +552,7 @@ main.bp{
          asked every time, and a soft close: forgiveness, the fix, let it go.
 
      NOTHING LEAVES THE PHONE. localStorage only:
-       rm_nightly_v1      tonight's thread (so a slip of the back button
-                          doesn't lose it)
+       (the thread itself is NOT saved -- a refresh or reopen starts fresh)
        rm_nightly_log     the nights you did it (dates), for the 30 dots
        rm_nightly_tomorrow  what to carry into tomorrow (apology, tell
                           someone, do better) -- for the home page later
@@ -676,7 +675,9 @@ main.bp{
   function fresh(){ return { night:TONIGHT, i:0, msgs:[], ans:{}, closed:false, rough:false, early:false }; }
 
   /* ---------- storage ---------- */
-  function save(){ store.set(SAVE_KEY, S); }
+  /* The thread itself is never stored: close it or refresh and it starts
+     clean (Mike, 28 Sep 2026). Only the dots and the tomorrow list are kept. */
+  function save(){}
   function markDone(){
     const log = store.get(LOG_KEY, []);
     if (!log.includes(TONIGHT)){ log.push(TONIGHT); store.set(LOG_KEY, log.slice(-400)); }
@@ -954,23 +955,8 @@ main.bp{
 
   /* ---------- start up ---------- */
   if (history.state && history.state.ni === "close") history.replaceState(null, "");
-  const saved = store.get(SAVE_KEY, null);
-  if (saved && saved.night === TONIGHT && Array.isArray(saved.msgs) && saved.msgs.length){
-    S = Object.assign(fresh(), saved);
-    drawAll();
-    if (S.closed){ showAfter(); toast("You already finished tonight."); }
-    else {
-      const last = S.msgs[S.msgs.length - 1];
-      if (S.i >= STEPS.length) showClose();
-      else if (!last || last.who === "me") advance();
-      else showStepChips();
-      toast("Picked up where you left off.");
-    }
-    setTimeout(scrollDown, 60);
-  } else {
-    store.del(SAVE_KEY);
-    advance();
-  }
+  store.del(SAVE_KEY);          // clear anything older versions saved
+  advance();
   autoGrow();
   syncSend();
 })();
