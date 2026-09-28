@@ -411,6 +411,11 @@ main.bp{
 .niRow.on{border-color:#2fa55f;background:rgba(47,165,95,.10)}
 .niRow.on .box{background:#2fa55f;border-color:#2fa55f}
 .niRow.on .box svg{opacity:1}
+/* the four (and the one-tap answers) light up warning-light gold, not green */
+.niChecks.warn .niRow.on{border-color:var(--gold);background:rgba(216,180,91,.12)}
+.niChecks.warn .niRow.on .box{background:var(--gold);border-color:var(--gold)}
+.niChecks.warn .niRow .box svg path{stroke:#1a1814}
+.niChecks.one .niRow .words b{font-size:18px}
 .niNone{
   background:none;border:0;color:var(--muted);font:inherit;font-size:15px;
   text-decoration:underline;text-underline-offset:3px;padding:12px;margin:2px auto 0;cursor:pointer;
@@ -608,51 +613,52 @@ main.bp{
            text  = type it, or tap "That's all I've got"
      ask(ans) returns the incoming texts; skip(ans) true = leave this step out;
      after(ans) = the kind word that follows their answer. */
+  /* one writing step per thing they checked, in list order */
+  const WRITE = {
+    Resentful: "Who or what was it? What happened?",
+    Afraid:    "What were you scared of?",
+    Selfish:   "Where did it show up today?",
+    Dishonest: "What happened?"
+  };
+  const writeStep = (label) => ({
+    key:"w_" + label, kind:"text", label,
+    skip: (a) => !a.fourList || !a.fourList.includes(label),
+    ask: () => [label + ". " + WRITE[label], "Write as much or as little as you want. Then tap send. Or tap “That’s all I’ve got.”"],
+    placeholder:"Write it here"
+  });
+
   const STEPS = [
     { key:"open", kind:"one",
-      ask: () => ["Hey. You made it to the end of the day. That’s enough.",
-                  "This takes about 3 minutes. You can stop any time. Nothing you write leaves your phone.",
-                  "Ready?"],
+      ask: () => ["Hey. You made it to the end of the day. That’s enough.", "Ready? Tap one."],
       chips: ["Yes, let’s start", NOTHING],
-      after: (a) => a.open === NOTHING ? "Good. That’s a good day." : "Okay. Nice and easy." },
+      after: (a) => a.open === NOTHING ? "Good. That’s a good day." : "" },
 
-    { key:"four", kind:"many",
+    { key:"four", kind:"many", warn:true, noType:true,
       skip: (a) => a.open === NOTHING,
-      ask: () => ["Today, did you feel any of these?", "Check all that fit. Then tap Next."],
-      items: FOUR, none:"None of these today",
-      after: (a) => !a.fourList.length ? (a.fourText ? "Thanks for writing that out." : "Good. That’s a good day.")
-        : a.fourList.length >= 3 ? "That was a heavy day. Thanks for being honest. We just look at it. We don’t have to live in it."
-        : "Thanks for being honest. Everybody has days like that." },
+      ask: () => ["Today, were you any of these?", "Check all that fit. Then tap Next."],
+      items: FOUR, none:"None of these today" },
 
-    { key:"who", kind:"text",
-      skip: (a) => !a.fourList || !a.fourList.length || !!a.fourText,
-      ask: () => ["Who or what was it?", "Type a word or two. Or tap “That’s all I’ve got.”"],
-      placeholder:"A name or a few words",
-      after: () => "Got it. You don’t have to fix it tonight." },
+    writeStep("Resentful"), writeStep("Afraid"), writeStep("Selfish"), writeStep("Dishonest"),
 
     { key:"apology", kind:"one",
       skip: (a) => a.open === NOTHING,
       ask: () => ["Do you owe anyone an apology?", "Tap one."],
-      chips: ["No", "Yes"],
-      after: (a) => a.apology === "Yes" ? "That’s okay. It happens to all of us." : "Okay." },
+      chips: ["No", "Yes"] },
 
     { key:"apologyWho", kind:"text",
       skip: (a) => a.apology !== "Yes",
-      ask: () => ["Who? A first name is fine.", "You can make it right tomorrow. Not tonight."],
-      placeholder:"Their name",
-      after: () => "Okay. You’ll see it tomorrow so you don’t have to remember." },
+      ask: () => ["Who? A first name is fine. You’ll see it tomorrow."],
+      placeholder:"Their name" },
 
     { key:"tell", kind:"one",
       skip: (a) => a.open === NOTHING,
       ask: () => ["Is there something you need to tell someone?", "Tap one."],
-      chips: ["No", "Yes"],
-      after: (a) => a.tell === "Yes" ? "Thanks for being honest about that." : "Okay." },
+      chips: ["No", "Yes"] },
 
     { key:"tellWho", kind:"one",
       skip: (a) => a.tell !== "Yes",
       ask: () => ["Who could you tell? Tap one."],
-      chips: ["My sponsor", "A friend", "Someone at a meeting"],
-      after: () => "Good choice. You don’t have to carry it alone." },
+      chips: ["My sponsor", "A friend", "Someone at a meeting"] },
 
     { key:"good", kind:"many",
       ask: () => ["Now the good part.", "Today, did you do any of these?", "Check all that fit. Then tap Next."],
@@ -663,7 +669,7 @@ main.bp{
 
     { key:"better", kind:"text",
       skip: (a) => a.open === NOTHING,
-      ask: () => ["Last one.", "What’s one thing you want to do better tomorrow?", "Type it. Or tap “That’s all I’ve got.”"],
+      ask: () => ["Last one.", "What’s one thing you want to do better tomorrow?", "Write it. Or tap “That’s all I’ve got.”"],
       placeholder:"One small thing" }
   ];
 
@@ -764,10 +770,32 @@ main.bp{
     if (list.length) scrollDown();
   }
 
+  /* one-tap answers look like the check rows, so it's obvious you tap them */
+  function showOne(Q){
+    chipsEl.innerHTML = "";
+    const list = document.createElement("div"); list.className = "niChecks warn one";
+    let chosen = false;
+    Q.chips.forEach(label => {
+      const row = document.createElement("button");
+      row.type = "button"; row.className = "niRow";
+      row.innerHTML = '<span class="box">' + CHECK_SVG + '</span><span class="words"><b></b></span>';
+      row.querySelector("b").textContent = label;
+      row.onclick = () => {
+        if (chosen) return; chosen = true;
+        row.classList.add("on");
+        setTimeout(() => answer(label), 350);
+      };
+      list.appendChild(row);
+    });
+    chipsEl.appendChild(list);
+    chipsEl.hidden = false;
+    scrollDown();
+  }
+
   /* big check rows for "check all that fit" */
   function showChecks(Q){
     chipsEl.innerHTML = "";
-    const list = document.createElement("div"); list.className = "niChecks";
+    const list = document.createElement("div"); list.className = "niChecks" + (Q.warn ? " warn" : "");
     const next = document.createElement("button");
     next.type = "button"; next.className = "niNext"; next.textContent = "Next"; next.disabled = true;
     Q.items.forEach(it => {
@@ -803,9 +831,7 @@ main.bp{
     const Q = STEPS[S.i];
     picks = [];
     input.placeholder = Q.placeholder || "Want to write about it? (optional)";
-    if (Q.kind === "one"){
-      return setChips(Q.chips.map(o => ({ label:o, onTap: () => answer(o) })));
-    }
+    if (Q.kind === "one") return showOne(Q);
     if (Q.kind === "many") return showChecks(Q);
     // text
     return setChips([{ label:DONE, cls:"quiet", onTap: () => answer("", { skip:true }) }]);
@@ -813,7 +839,8 @@ main.bp{
 
   /* ---------- flow ---------- */
   function syncSend(){
-    const open = S.i < STEPS.length && !S.closed;
+    const open = S.i < STEPS.length && !S.closed && STEPS[S.i].kind === "text";
+    document.querySelector(".bpBar").style.display = (open && !busy) || input.value ? "" : "none";
     sendBtn.disabled = busy || !open || !input.value.trim();
     input.disabled = !open;
     doneTonightBtn.hidden = S.closed || !S.msgs.length;
@@ -828,7 +855,7 @@ main.bp{
     // skip any steps that don't apply
     while (S.i < STEPS.length && STEPS[S.i].skip && STEPS[S.i].skip(S.ans)) S.i++;
     save();
-    const pre = kind ? [kind] : [];
+    const pre = kind ? [kind] : [];   // only a few steps say anything after an answer
     if (S.i >= STEPS.length) return finishThread(pre);
     incoming(pre.concat(STEPS[S.i].ask(S.ans)), showStepChips);
   }
