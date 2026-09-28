@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recovery Misfits — Nightly Inventory</title>
+<meta name="theme-color" content="#11110f">
+<meta name="robots" content="noindex">
+
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="./icon-192.png">
+
+<style>
+/* ===========================================================================
+   NIGHTLY INVENTORY — close out the day, one text at a time.
+   (Shared texting styles, same as the Fear Compass and the Burn Pad.)
+
+   Built phone-first (phone wins), in the same texting layout as the Burn
+   Pad: the questions arrive as incoming texts and you answer like texting
+   back. Picks that need explaining show as cards; everything else is a
+   tap-to-pick bubble or a typed reply.
+
+   NOTHING LEAVES THE PHONE. No network calls. Answers are kept in this
+   phone's own storage so a refresh or a slip of the back button doesn't
+   lose the work; "Work on another fear" or Start over wipes them.
+
+   Scope: everything lives inside <main>. topbar.js and nav.js are untouched.
+   ======================================================================== */
+
+@font-face{
+  font-family:"RM Display";
+  src:url("assets/fonts/oswald-600.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
+
+:root{
+  --bg:#11110f;
+  --panel:#1b1b18;
+  --panel-soft:#22211d;
+  --bubble-in:#26251f;
+  --ivory:#f1e7cf;
+  --gold:#d8b45b;
+  --gold-lit:#f0d68a;
+  --on-gold:#1a1507;
+  --muted:#b7b0a2;
+  --line:rgba(216,180,91,.38);
+  --display:"RM Display","Arial Narrow",Impact,sans-serif;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{-webkit-font-smoothing:antialiased}
+
+main.bp{
+  max-width:560px;
+  margin:0 auto;
+  padding:10px 14px 16px;
+  color:var(--ivory);
+  font-family:var(--ui);
+  /* fill the screen between the top bar and the bottom nav, so the typing
+     bar sits low like a real texting screen even on an empty thread */
+  min-height:calc(100dvh - 272px);
+  display:flex;
+  flex-direction:column;
+}
+
+/* ---- header: the "New Message" line ---------------------------------- */
+.bpHead{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:4px 2px 8px;
+}
+.bpTitle{
+  font-family:var(--display);font-weight:600;
+  font-size:24px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ivory);margin:0;
+}
+.bpTitle span{color:var(--gold)}
+.bpStartOver{
+  background:none;border:none;color:var(--gold);
+  font:inherit;font-weight:700;font-size:15px;
+  padding:10px 2px;min-height:44px;cursor:pointer;
+}
+.bpStartOver[hidden]{display:none}
+
+.bpTo{
+  display:flex;align-items:center;gap:8px;
+  border-top:1px solid rgba(255,255,255,.08);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:6px 2px;
+}
+.bpTo label{color:var(--muted);font-size:16px}
+.bpTo input{
+  flex:1;min-width:0;background:transparent;border:none;outline:none;
+  color:var(--ivory);font:inherit;font-size:16px;padding:8px 0;
+}
+.bpTo input::placeholder{color:rgba(183,176,162,.6)}
+
+/* ---- the promise ------------------------------------------------------ */
+.bpPromise{
+  margin:14px auto 6px;
+  max-width:330px;
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;line-height:1.4;
+}
+.bpPromise b{color:var(--gold-lit);font-weight:700}
+.bpPromise .lock{display:block;font-size:18px;margin-bottom:4px}
+
+/* ---- the thread ------------------------------------------------------- */
+.bpThread{
+  flex:1;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  gap:4px;
+  padding:10px 0 6px;
+}
+.bpFrom{
+  font-size:11px;color:var(--muted);margin:8px 0 0 12px;
+}
+.msg{
+  max-width:78%;
+  padding:9px 13px;
+  border-radius:19px;
+  font-size:16px;line-height:1.35;
+  white-space:pre-wrap;overflow-wrap:anywhere;
+  animation:bpIn .28s cubic-bezier(.2,.8,.2,1) both;
+}
+.msg.me{
+  align-self:flex-end;
+  background:var(--gold);color:var(--on-gold);
+  border-bottom-right-radius:6px;
+}
+.msg.them{
+  align-self:flex-start;
+  background:var(--bubble-in);color:var(--ivory);
+  border-bottom-left-radius:6px;
+}
+.msg.me + .msg.me{margin-top:-1px}
+.msg.them + .msg.them{margin-top:-1px}
+.msg.skip{opacity:.55;font-style:italic}
+.bpNotSent{
+  align-self:flex-end;
+  font-size:11px;color:var(--muted);
+  margin:2px 4px 6px 0;
+}
+@keyframes bpIn{
+  from{opacity:0;transform:translateY(16px) scale(.97)}
+  to{opacity:1;transform:none}
+}
+
+/* typing dots */
+.typing{
+  align-self:flex-start;
+  background:var(--bubble-in);
+  border-radius:19px;border-bottom-left-radius:6px;
+  padding:12px 14px;display:flex;gap:5px;
+  animation:bpIn .2s ease-out both;
+}
+.typing i{
+  width:7px;height:7px;border-radius:50%;background:var(--muted);
+  animation:dot 1s infinite ease-in-out;
+}
+.typing i:nth-child(2){animation-delay:.15s}
+.typing i:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+
+/* burning the thread on release */
+.bpThread.burning .msg,
+.bpThread.burning .bpNotSent,
+.bpThread.burning .bpFrom{
+  animation:burnAway .9s ease-in forwards;
+}
+@keyframes burnAway{
+  0%{opacity:1;filter:none;transform:none}
+  40%{filter:sepia(1) saturate(4) hue-rotate(-20deg) brightness(1.2)}
+  100%{opacity:0;filter:blur(6px) sepia(1) saturate(4);transform:translateY(-40px) scale(.9)}
+}
+
+/* ---- quick replies (the tap-to-pick bubbles) --------------------------- */
+.bpChips{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;
+  padding:6px 0 10px;
+}
+.bpChips[hidden]{display:none}
+.chip{
+  min-height:40px;
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:transparent;color:var(--gold-lit);
+  font:inherit;font-size:15px;font-weight:600;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.chip.on{background:var(--gold);color:var(--on-gold);border-color:var(--gold)}
+.chip.go{background:var(--gold);color:var(--on-gold);border-color:var(--gold);font-weight:800}
+.chip.quiet{border-color:rgba(255,255,255,.14);color:var(--muted)}
+
+/* THE CALL TO ACTION. Not a bubble: full width, centered, set off from the
+   thread by a rule, with a line under it saying what it does -- so nobody
+   mistakes it for another text. */
+.bpCta{
+  flex:1 0 100%;
+  margin-top:8px;padding-top:14px;
+  border-top:1px dashed rgba(216,180,91,.35);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.bpCta .ctaBtn{
+  width:100%;min-height:52px;
+  border-radius:14px;
+  border:2px solid var(--gold);
+  background:linear-gradient(180deg,#e3c46f,#c9a449);
+  color:var(--on-gold);
+  font:inherit;font-size:17px;font-weight:800;letter-spacing:.01em;
+  cursor:pointer;
+  box-shadow:0 0 0 0 rgba(216,180,91,.55);
+  animation:ctaPulse 2.2s ease-out 3;
+  -webkit-tap-highlight-color:transparent;
+}
+.bpCta .ctaBtn:active{transform:scale(.98)}
+.bpCta .ctaSub{font-size:12px;color:var(--muted);text-align:center}
+.bpCta .ctaAlt{
+  background:none;border:none;color:var(--muted);
+  font:inherit;font-size:15px;min-height:44px;padding:0 12px;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;
+}
+@keyframes ctaPulse{
+  0%{box-shadow:0 0 0 0 rgba(216,180,91,.55)}
+  70%{box-shadow:0 0 0 12px rgba(216,180,91,0)}
+  100%{box-shadow:0 0 0 0 rgba(216,180,91,0)}
+}
+
+/* ---- the typing bar ---------------------------------------------------- */
+.bpBar{
+  display:flex;align-items:flex-end;gap:8px;
+  padding:6px 0 0;
+}
+.bpInput{
+  flex:1;min-width:0;
+  background:var(--panel);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:20px;
+  color:var(--ivory);
+  font:inherit;font-size:16px;line-height:1.35;
+  padding:9px 14px;
+  resize:none;outline:none;
+  max-height:40vh;
+  min-height:40px;
+}
+.bpInput:focus{border-color:var(--line)}
+.bpInput::placeholder{color:rgba(183,176,162,.6)}
+.bpSend{
+  flex:none;
+  width:40px;height:40px;border-radius:50%;
+  border:none;background:var(--gold);color:var(--on-gold);
+  display:grid;place-items:center;cursor:pointer;
+  transition:opacity .15s, transform .1s;
+}
+.bpSend:disabled{opacity:.3;cursor:default}
+.bpSend:not(:disabled):active{transform:scale(.92)}
+.bpSend svg{width:20px;height:20px}
+.bpUnder{
+  text-align:center;font-size:11px;color:var(--muted);
+  margin-top:8px;
+}
+
+/* ---- fine print: one line up front, the rest folded away ------------------
+   The 988 line never goes inside the fold -- nobody in a bad spot should have
+   to open anything to find the crisis number. */
+.bpFine{margin-top:22px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);color:var(--muted);font-size:12px;line-height:1.5}
+.bpCrisisLine{margin:0;font-size:13px;color:var(--ivory);text-align:center}
+.bpCrisisLine a{color:var(--gold-lit);font-weight:800}
+.bpAbout{margin-top:2px;text-align:center}
+.bpAbout summary{
+  display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 10px;
+  cursor:pointer;color:var(--muted);font-size:12px;list-style:none;
+  text-decoration:underline;text-underline-offset:3px;
+}
+.bpAbout summary::-webkit-details-marker{display:none}
+.bpAbout summary::after{content:"▾";text-decoration:none}
+.bpAbout[open] summary::after{content:"▴"}
+.bpAbout p{margin:0 0 10px;text-align:left}
+.bpAbout b{color:var(--ivory);font-weight:700}
+.bpAbout a{color:var(--gold-lit);font-weight:700}
+
+/* ---- release: 30 seconds, then the prayer -------------------------------
+   Full screen, and it is one history step: the phone's back button or the
+   iPhone edge swipe closes it. */
+.bpRelease{
+  position:fixed;inset:0;z-index:10050;
+  background:#0b0b0a;
+  display:flex;align-items:center;justify-content:center;
+  padding:calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+  color:var(--ivory);font-family:var(--ui);
+  animation:fadeIn .35s ease-out both;
+}
+.bpRelease[hidden]{display:none}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.bpReleaseInner{max-width:420px;width:100%;text-align:center}
+.medText{
+  font-family:var(--display);font-weight:600;
+  font-size:26px;line-height:1.25;letter-spacing:.02em;
+}
+.medTimer{
+  margin:22px auto 6px;
+  width:96px;height:96px;border-radius:50%;
+  border:2px solid var(--line);
+  display:grid;place-items:center;
+  font-size:38px;font-weight:800;color:var(--gold-lit);
+  font-variant-numeric:tabular-nums;
+}
+.medSub{color:var(--muted);font-size:14px}
+.prayer{
+  margin-top:26px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:var(--panel);
+  padding:18px 16px;
+  text-align:left;
+  animation:bpIn .4s ease-out both;
+}
+.prayer[hidden]{display:none}
+.prayer h2{
+  margin:0 0 10px;
+  font-family:var(--display);font-weight:600;
+  font-size:18px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);
+}
+.prayer p{margin:0;font-size:17px;line-height:1.5}
+.bigBtn{
+  margin-top:18px;width:100%;min-height:48px;
+  border:none;border-radius:999px;
+  background:var(--gold);color:var(--on-gold);
+  font:inherit;font-size:17px;font-weight:800;cursor:pointer;
+}
+.textBtn{
+  margin-top:14px;background:none;border:none;
+  color:var(--muted);font:inherit;font-size:14px;
+  min-height:44px;padding:0 10px;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;
+}
+
+/* stars on release */
+.star{
+  position:fixed;pointer-events:none;z-index:10060;
+  font-size:18px;opacity:0;
+  animation:starFly .85s ease-out forwards;
+}
+@keyframes starFly{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.9)}
+  10%{opacity:1}
+  100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(1.15)}
+}
+
+/* small message at the bottom (Start over -> Undo, restored, paused) */
+.bpToast{
+  position:fixed;left:50%;
+  bottom:calc(200px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  background:var(--panel-soft);color:var(--ivory);
+  border:1px solid var(--line);
+  border-radius:999px;padding:10px 16px;
+  font-family:var(--ui);font-weight:600;font-size:14px;
+  display:flex;align-items:center;gap:14px;
+  z-index:10040;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  max-width:calc(100% - 32px);white-space:nowrap;
+}
+.bpToast[hidden]{display:none}
+.bpToast button{
+  background:none;border:none;color:var(--gold-lit);
+  font:inherit;font-weight:800;cursor:pointer;padding:6px 2px;
+}
+.bpToast button[hidden]{display:none}
+
+@media (prefers-reduced-motion:reduce){
+  .msg,.typing,.prayer,.bpRelease{animation:none}
+  .bpThread.burning .msg,.bpThread.burning .bpNotSent,.bpThread.burning .bpFrom{animation:none;opacity:0}
+}
+
+/* ===========================================================================
+   NIGHTLY INVENTORY additions. Everything above is shared with the Burn Pad
+   and the Fear Compass, so the tools are the same room.
+   ======================================================================== */
+.bpDone{
+  background:none;border:1px solid rgba(255,255,255,.16);color:var(--muted);
+  font:inherit;font-weight:700;font-size:13px;border-radius:999px;
+  padding:6px 12px;min-height:36px;cursor:pointer;
+}
+.bpDone[hidden]{display:none}
+.msg.quote{font-style:italic}
+.msg.quote .cite{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:6px}
+.chip.next{background:var(--gold);color:var(--on-gold);border-color:var(--gold);font-weight:800}
+.chip.pen{border-style:dashed}
+
+/* 30 nights of dots */
+.niDots{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:18px auto 4px;max-width:300px}
+.niDots i{width:12px;height:12px;border-radius:50%;border:1px solid rgba(216,180,91,.35);background:transparent}
+.niDots i.on{background:var(--gold);border-color:var(--gold)}
+.niDots i.today{box-shadow:0 0 0 2px rgba(240,214,138,.5)}
+.niDotsNote{color:var(--muted);font-size:12px;text-align:center}
+
+/* wrap-up screen */
+.wrapMark{font-size:44px;line-height:1;margin-bottom:10px}
+.wrapSub{color:var(--muted);font-size:15px;margin-top:10px;line-height:1.45}
+.nextBox{
+  margin:18px auto 0;border:1px solid var(--line);border-radius:16px;
+  background:var(--panel);padding:12px 14px;text-align:left;
+}
+.nextBox[hidden]{display:none}
+.sumLabel{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.nextBox ul{margin:0;padding-left:18px;font-size:16px;line-height:1.45}
+.soft{margin-top:14px;font-size:14px;color:var(--ivory);line-height:1.5}
+.soft[hidden]{display:none}
+.soft a{color:var(--gold-lit);font-weight:800}
+</style>
+</head>
+
+<body>
+
+<div id="rm-topbar"></div>
+<script src="./topbar.js" defer></script>
+
+<main class="bp">
+  <div class="bpHead">
+    <h1 class="bpTitle">Nightly <span>Inventory</span> 🌙</h1>
+    <button class="bpDone" id="bpDoneTonight" type="button" hidden>I'm done for tonight</button>
+  </div>
+
+  <div class="bpPromise">
+    <span class="lock" aria-hidden="true">🔒</span>
+    <b>This stays on your phone.</b> Nobody sees it. A quick, honest look at
+    today. Tap what fits, skip anything, stop whenever you want.
+  </div>
+
+  <div class="bpThread" id="bpThread" aria-live="polite"></div>
+
+  <div class="bpChips" id="bpChips" hidden></div>
+
+  <div class="bpBar">
+    <textarea class="bpInput" id="bpInput" rows="1" aria-label="Add more (optional)" placeholder="Add more if you want…"></textarea>
+    <button class="bpSend" id="bpSend" type="button" aria-label="Send" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/>
+      </svg>
+    </button>
+  </div>
+  <div class="bpUnder">We look at it. We don't live in it.</div>
+
+  <footer class="bpFine">
+    <p class="bpCrisisLine">Not AI. Not therapy. In crisis? <a href="tel:988">Call</a> or <a href="sms:988">text</a> <a href="tel:988">988</a>.</p>
+    <details class="bpAbout">
+      <summary>About this tool</summary>
+      <p><b>About the Nightly Inventory.</b> This is a private self-reflection exercise and nothing more.
+      It is not AI, and no person or program reads or responds to what you write. The
+      questions are prewritten and the same for everyone, drawn from the nightly review
+      on page 86 of <i>Alcoholics Anonymous</i> (1939 first edition, public domain).
+      What you tap or type stays on this device and is never sent anywhere.</p>
+      <p>The Nightly Inventory is not counseling, therapy, or medical or professional advice, and
+      it is not a substitute for your program, your sponsor, or professional care.
+      Recovery Misfits is not a treatment provider.</p>
+      <p>If you are in crisis or thinking about harming yourself, call or text
+      <a href="tel:988">988</a> (Suicide &amp; Crisis Lifeline, US), any time, day or night.
+      In an emergency, call <a href="tel:911">911</a>.</p>
+    </details>
+  </footer>
+</main>
+
+<div class="bpRelease" id="bpRelease" hidden role="dialog" aria-modal="true" aria-label="Day closed">
+  <div class="bpReleaseInner">
+    <div class="wrapMark" aria-hidden="true">🌙</div>
+    <div class="medText" id="wrapTitle">Day closed.</div>
+    <div class="wrapSub" id="wrapSub">Ask forgiveness where it's needed. Note the fix. Then let it go.</div>
+
+    <div class="nextBox" id="nextBox" hidden>
+      <div class="sumLabel">For tomorrow</div>
+      <ul id="nextList"></ul>
+    </div>
+
+    <p class="soft" id="softLine" hidden>Rough night. You still showed up, and that counts.
+      Call someone if you can, or <a href="sms:988">text 988</a> if it's heavy.</p>
+
+    <div class="niDots" id="niDots" aria-label="Your last 30 nights"></div>
+    <div class="niDotsNote" id="niDotsNote"></div>
+
+    <button class="bigBtn" id="goodNight" type="button">Good night</button>
+    <button class="textBtn" id="tossBtn" type="button" hidden>🔥 Toss what I wrote</button>
+  </div>
+</div>
+
+<div class="bpToast" id="bpToast" role="status" aria-live="polite" hidden>
+  <span id="bpToastText"></span>
+  <button type="button" id="bpToastUndo" hidden>Undo</button>
+</div>
+
+<div id="rm-bottom-nav"></div>
+<script src="./nav.js" defer></script>
+
+<script>
+(function(){
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");
+
+  /* ===========================================================================
+     NIGHTLY INVENTORY -- Big Book p. 86 ("When we retire at night, we
+     constructively review our day..."), turned into a short text thread.
+
+     THE RULES IT LIVES BY (Mike, 28 Sep 2026)
+       * It counts if you show up. Any answer marks tonight done -- even
+         "Nothing's eating me tonight" or "I'm done for tonight".
+       * Taps first. Every question answers with a tap; typing is optional
+         ("add more"). Everything can be skipped.
+       * Never a trap. "I'm done for tonight" is always up top, the phone's
+         back button just leaves (tonight is saved), nothing gets replayed,
+         and what you typed can be tossed.
+       * Gently along. Short texts, typing dots, a nudge on a rough night
+         ("we look at it, we don't live in it"), the good side of the day
+         asked every time, and a soft close: forgiveness, the fix, let it go.
+
+     NOTHING LEAVES THE PHONE. localStorage only:
+       rm_nightly_v1      tonight's thread (so a slip of the back button
+                          doesn't lose it)
+       rm_nightly_log     the nights you did it (dates), for the 30 dots
+       rm_nightly_tomorrow  what to carry into tomorrow (apology, tell
+                          someone, do better) -- for the home page later
+     A "night" runs until 4 am, so a 1 am inventory is still tonight's.
+     ======================================================================== */
+
+  const $ = (id) => document.getElementById(id);
+  const thread = $("bpThread"), chipsEl = $("bpChips");
+  const input = $("bpInput"), sendBtn = $("bpSend");
+  const doneTonightBtn = $("bpDoneTonight");
+  const wrapEl = $("bpRelease");
+  const toastEl = $("bpToast"), toastText = $("bpToastText");
+
+  const SAVE_KEY = "rm_nightly_v1", LOG_KEY = "rm_nightly_log", TOMORROW_KEY = "rm_nightly_tomorrow";
+
+  function nightOf(d){
+    const x = new Date(d || Date.now());
+    if (x.getHours() < 4) x.setDate(x.getDate() - 1);
+    return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
+  }
+  const TONIGHT = nightOf();
+
+  const store = {
+    get(k, def){ try { const v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? def : v; } catch(e){ return def; } },
+    set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+    del(k){ try { localStorage.removeItem(k); } catch(e){} }
+  };
+
+  const FOUR = ["😤 Resentful", "🙋 Selfish", "🤥 Dishonest", "😰 Afraid"];
+  const GOOD = ["🤝 Helped someone", "💬 Kind words", "📞 Made a call", "🙏 Prayed or meditated",
+                "🏠 Showed up for family", "💪 Did the next right thing"];
+  const QUOTE = { text:"“After making our review we ask God’s forgiveness and inquire what corrective measures should be taken.”",
+                  cite:"Alcoholics Anonymous, p. 86" };
+
+  /* ---- the steps ------------------------------------------------------------
+     kind: one   = tap one chip and it answers
+           many  = tap any number, then Next (or the "none" chip)
+           text  = type it (chips offer Skip)
+     ask(ans) returns the incoming texts; skip(ans) true = leave this step out. */
+  const STEPS = [
+    { key:"open", kind:"one",
+      ask: () => ["Hey. Let’s close out the day. 🌙", "Quick look back. Tap what fits, skip anything."],
+      chips: ["Let’s do it", "Nothing’s eating me tonight"] },
+
+    { key:"four", kind:"many", pen:true,
+      skip: (a) => a.open === "Nothing’s eating me tonight",
+      ask: () => ["Anywhere today you were…"],
+      chips: FOUR, none:"👍 None of it" },
+
+    { key:"who", kind:"text",
+      skip: (a) => !a.fourList || !a.fourList.length,
+      ask: (a) => (a.fourList.length >= 3
+        ? ["Rough one. That’s okay. We look at it, we don’t live in it.", "Who or what was it? A word or two is plenty."]
+        : ["Who or what was it? A word or two is plenty."]),
+      placeholder:"A name, a situation…" },
+
+    { key:"apology", kind:"one",
+      skip: (a) => a.open === "Nothing’s eating me tonight",
+      ask: () => ["Owe anybody an apology?"],
+      chips: ["Nope", "Yeah"] },
+
+    { key:"apologyWho", kind:"text",
+      skip: (a) => a.apology !== "Yeah",
+      ask: () => ["Who? Just a name. You can make it right tomorrow."],
+      placeholder:"Their name" },
+
+    { key:"tell", kind:"one",
+      skip: (a) => a.open === "Nothing’s eating me tonight",
+      ask: () => ["Sitting on something you need to tell someone?"],
+      chips: ["Nope", "Yeah"] },
+
+    { key:"tellWho", kind:"one",
+      skip: (a) => a.tell !== "Yeah",
+      ask: () => ["Who could you tell tomorrow?"],
+      chips: ["My sponsor", "A friend", "Someone at a meeting"] },
+
+    { key:"good", kind:"many", pen:true,
+      ask: (a) => (a.open === "Nothing’s eating me tonight"
+        ? ["Love that. One more, the good kind:", "Where’d you show up today?"]
+        : ["Now the good stuff.", "Where’d you show up today?"]),
+      chips: GOOD, none:"Not today" },
+
+    { key:"better", kind:"text",
+      skip: (a) => a.open === "Nothing’s eating me tonight",
+      ask: (a) => (a.good === "Not today"
+        ? ["That’s okay. Tomorrow’s a new shot.", "One thing to do better tomorrow?"]
+        : ["One thing to do better tomorrow?"]),
+      placeholder:"Optional" }
+  ];
+
+  let S = fresh();
+  let picks = [];
+  let busy = false;
+  let toastTimer = null;
+
+  function fresh(){ return { night:TONIGHT, i:0, msgs:[], ans:{}, closed:false, rough:false, early:false }; }
+
+  /* ---------- storage ---------- */
+  function save(){ store.set(SAVE_KEY, S); }
+  function markDone(){
+    const log = store.get(LOG_KEY, []);
+    if (!log.includes(TONIGHT)){ log.push(TONIGHT); store.set(LOG_KEY, log.slice(-400)); }
+  }
+  function saveTomorrow(){
+    const a = S.ans, items = [];
+    if (a.apology === "Yeah") items.push(a.apologyWho ? "Make it right with " + a.apologyWho : "Make an apology you owe");
+    if (a.tell === "Yeah") items.push(a.tellWho ? "Talk to " + a.tellWho.toLowerCase().replace(/^my /, "your ") : "Tell someone what you’re sitting on");
+    if (a.better) items.push(a.better);
+    if (items.length) store.set(TOMORROW_KEY, { night:TONIGHT, items });
+    else store.del(TOMORROW_KEY);
+    return items;
+  }
+
+  /* ---------- drawing ---------- */
+  function bubble(m, animate){
+    const lastEl = thread.lastElementChild;
+    if (m.who === "them" && !(lastEl && lastEl.classList.contains("them"))){
+      const from = document.createElement("div");
+      from.className = "bpFrom"; from.textContent = "Nightly Inventory";
+      thread.appendChild(from);
+    }
+    const el = document.createElement("div");
+    el.className = "msg " + m.who + (m.skip ? " skip" : "") + (m.quote ? " quote" : "");
+    el.textContent = m.text;
+    if (m.quote){
+      const c = document.createElement("span"); c.className = "cite"; c.textContent = "— " + m.cite;
+      el.appendChild(c);
+    }
+    if (!animate) el.style.animation = "none";
+    thread.appendChild(el);
+  }
+  function drawAll(){ thread.innerHTML = ""; S.msgs.forEach(m => bubble(m, false)); }
+  function scrollDown(){
+    requestAnimationFrame(() => {
+      const under = document.querySelector(".bpUnder");
+      const nav = document.getElementById("rm-bottom-nav");
+      const navH = nav ? nav.getBoundingClientRect().height : 0;
+      const y = window.scrollY + under.getBoundingClientRect().bottom - (window.innerHeight - navH - 12);
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    });
+  }
+  function say(m){ S.msgs.push(m); bubble(m, true); save(); scrollDown(); }
+
+  function incoming(items, then){
+    busy = true; setChips([]); syncSend();
+    let k = 0;
+    const next = () => {
+      if (k >= items.length){ busy = false; syncSend(); then && then(); return; }
+      const dots = document.createElement("div");
+      dots.className = "typing"; dots.innerHTML = "<i></i><i></i><i></i>";
+      thread.appendChild(dots); scrollDown();
+      setTimeout(() => {
+        dots.remove();
+        const it = items[k++];
+        say(typeof it === "string" ? { who:"them", text:it } : Object.assign({ who:"them" }, it));
+        setTimeout(next, 220);
+      }, 550);
+    };
+    next();
+  }
+
+  /* ---------- chips ---------- */
+  function setChips(list){
+    chipsEl.innerHTML = "";
+    list.forEach(c => {
+      if (c.cta){
+        const w = document.createElement("div"); w.className = "bpCta";
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "ctaBtn go"; b.textContent = c.label;
+        b.onclick = () => c.onTap(b); w.appendChild(b);
+        if (c.sub){ const d = document.createElement("div"); d.className = "ctaSub"; d.textContent = c.sub; w.appendChild(d); }
+        chipsEl.appendChild(w); return;
+      }
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + (c.cls ? " " + c.cls : "");
+      b.textContent = c.label;
+      if (c.toggle) b.setAttribute("aria-pressed", "false");
+      b.onclick = () => c.onTap(b);
+      chipsEl.appendChild(b);
+    });
+    chipsEl.hidden = !list.length;
+    if (list.length) scrollDown();
+  }
+
+  function penChip(){
+    return { label:"✏️ Add more", cls:"quiet pen", onTap: () => { input.focus(); scrollDown(); } };
+  }
+
+  function showStepChips(){
+    if (busy) return setChips([]);
+    if (S.i >= STEPS.length) return showClose();
+    const Q = STEPS[S.i];
+    picks = [];
+    input.placeholder = Q.placeholder || "Add more if you want…";
+    if (Q.kind === "one"){
+      return setChips(Q.chips.map(o => ({ label:o, onTap: () => answer(o) })));
+    }
+    if (Q.kind === "many"){
+      const list = Q.chips.map(o => ({ label:o, toggle:true, onTap:(b) => togglePick(b, o) }));
+      if (Q.none) list.push({ label:Q.none, cls:"quiet", onTap: () => answer(Q.none, { none:true }) });
+      if (Q.pen) list.push(penChip());
+      return setChips(list);
+    }
+    // text
+    return setChips([{ label:"Skip", cls:"quiet", onTap: () => answer("", { skip:true }) }]);
+  }
+
+  function togglePick(b, label){
+    const on = !b.classList.contains("on");
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", String(on));
+    picks = on ? picks.concat(label) : picks.filter(x => x !== label);
+    // a "Next" chip appears once something is picked
+    let nx = chipsEl.querySelector(".chip.next");
+    if (picks.length && !nx){
+      nx = document.createElement("button");
+      nx.type = "button"; nx.className = "chip next"; nx.textContent = "Next →";
+      nx.onclick = () => answer("");
+      chipsEl.appendChild(nx);
+    } else if (!picks.length && nx) nx.remove();
+    syncSend();
+  }
+
+  /* ---------- flow ---------- */
+  function syncSend(){
+    const open = S.i < STEPS.length && !S.closed;
+    sendBtn.disabled = busy || !open || !input.value.trim();
+    input.disabled = !open;
+    doneTonightBtn.hidden = S.closed || !S.msgs.length;
+  }
+
+  function autoGrow(){
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight + 2, window.innerHeight * 0.4) + "px";
+  }
+
+  function advance(){
+    // skip any steps that don't apply
+    while (S.i < STEPS.length && STEPS[S.i].skip && STEPS[S.i].skip(S.ans)) S.i++;
+    save();
+    if (S.i >= STEPS.length) return finishThread();
+    incoming(STEPS[S.i].ask(S.ans), showStepChips);
+  }
+
+  function answer(text, opt){
+    opt = opt || {};
+    const Q = STEPS[S.i];
+    const typed = (text || "").trim();
+    let value;
+    if (opt.none) value = text;
+    else if (Q.kind === "many") value = picks.join(", ") + (typed ? (picks.length ? " — " : "") + typed : "");
+    else value = typed;
+    if (opt.skip && !value) say({ who:"me", text:"Skip", skip:true });
+    else say({ who:"me", text:value });
+    S.ans[Q.key] = value;
+    if (Q.key === "four") S.ans.fourList = opt.none ? [] : picks.slice();
+    if (Q.key === "four" && S.ans.fourList.length >= 3) S.rough = true;
+    picks = [];
+    markDone();                           /* showing up counts */
+    S.i++;
+    advance();
+    syncSend();
+  }
+
+  function send(){
+    if (busy) return;
+    const text = input.value.trim();
+    if (!text || S.i >= STEPS.length) return;
+    input.value = ""; autoGrow();
+    const Q = STEPS[S.i];
+    if (Q.kind === "one" && Q.chips.includes(text)) answer(text);
+    else answer(text);
+    input.focus({ preventScroll:true });
+  }
+
+  function finishThread(){
+    incoming(["That’s it. Not a courtroom.", { quote:true, text:QUOTE.text, cite:QUOTE.cite }], showClose);
+  }
+  function showClose(){
+    setChips([{ cta:true, label:"Close out the day 🌙", sub:"Forgiveness, the fix, then let it go.", onTap: () => closeOut(false) }]);
+  }
+
+  /* ---------- closing (one history step: the phone's back button closes it) ---------- */
+  function closeOut(early){
+    if (S.closed && wrapEl.hidden === false) return;
+    markDone();
+    S.closed = true; S.early = !!early; save();
+    const items = saveTomorrow();
+    $("wrapTitle").textContent = early ? "That’s enough for tonight." : "Day closed.";
+    $("wrapSub").textContent = early ? "Showing up counts. Rest easy."
+      : "Ask forgiveness where it’s needed. Note the fix. Then let it go.";
+    const list = $("nextList"); list.innerHTML = "";
+    items.forEach(t => { const li = document.createElement("li"); li.textContent = t; list.appendChild(li); });
+    $("nextBox").hidden = !items.length;
+    $("softLine").hidden = !(S.rough || early);
+    $("tossBtn").hidden = !S.msgs.some(m => m.who === "me" && !m.skip);
+    drawDots();
+    history.pushState({ ni:"close" }, "");
+    wrapEl.hidden = false;
+    setChips([]); syncSend();
+  }
+  function hideWrap(){ wrapEl.hidden = true; showAfter(); }
+  window.addEventListener("popstate", () => { if (!wrapEl.hidden) hideWrap(); });
+  $("goodNight").onclick = () => {
+    if (history.state && history.state.ni === "close") history.back(); else hideWrap();
+  };
+
+  /* after closing: tonight is done; offer to do it again */
+  function showAfter(){
+    setChips([{ label:"Look back again", cls:"quiet", onTap: () => {
+      store.del(SAVE_KEY); S = fresh(); drawAll(); syncSend(); advance();
+    }}]);
+    syncSend();
+  }
+
+  /* 🔥 toss: clear everything typed or tapped tonight; the night still counts */
+  $("tossBtn").onclick = () => {
+    S.msgs = []; S.ans = {}; save();
+    store.del(TOMORROW_KEY);
+    thread.classList.add("burning");
+    setTimeout(() => { thread.classList.remove("burning"); drawAll(); }, 900);
+    $("nextBox").hidden = true;
+    $("tossBtn").hidden = true;
+    toast("Tossed. Tonight still counts. ✓");
+  };
+
+  /* the 30 dots */
+  function drawDots(){
+    const log = new Set(store.get(LOG_KEY, []));
+    const wrap = $("niDots"); wrap.innerHTML = "";
+    let count = 0;
+    for (let k = 29; k >= 0; k--){
+      const d = new Date(); if (d.getHours() < 4) d.setDate(d.getDate() - 1);
+      d.setDate(d.getDate() - k);
+      const key = nightOf(d.setHours(12));
+      const i = document.createElement("i");
+      if (log.has(key)){ i.className = "on"; count++; }
+      if (k === 0) i.classList.add("today");
+      wrap.appendChild(i);
+    }
+    $("niDotsNote").textContent = count === 1 ? "1 night in the last 30" : count + " nights in the last 30";
+  }
+
+  /* I'm done for tonight -- always there, never a trap */
+  doneTonightBtn.onclick = () => { if (busy) return; closeOut(true); };
+
+  function toast(text){
+    clearTimeout(toastTimer);
+    toastText.textContent = text; toastEl.hidden = false;
+    toastTimer = setTimeout(() => { toastEl.hidden = true; }, 3500);
+  }
+
+  /* ---------- wiring ---------- */
+  sendBtn.onclick = send;
+  input.addEventListener("input", () => { autoGrow(); syncSend(); });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); send(); }
+  });
+
+  /* ---------- start up ---------- */
+  if (history.state && history.state.ni === "close") history.replaceState(null, "");
+  const saved = store.get(SAVE_KEY, null);
+  if (saved && saved.night === TONIGHT && Array.isArray(saved.msgs) && saved.msgs.length){
+    S = Object.assign(fresh(), saved);
+    drawAll();
+    if (S.closed){ showAfter(); toast("Already closed out tonight. ✓"); }
+    else {
+      const last = S.msgs[S.msgs.length - 1];
+      if (S.i >= STEPS.length) showClose();
+      else if (!last || last.who === "me") advance();
+      else showStepChips();
+      toast("Picked up where you left off.");
+    }
+    setTimeout(scrollDown, 60);
+  } else {
+    store.del(SAVE_KEY);
+    advance();
+  }
+  autoGrow();
+  syncSend();
+})();
+</script>
+
+</body>
+</html>
