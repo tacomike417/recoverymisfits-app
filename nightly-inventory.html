@@ -384,12 +384,44 @@ main.bp{
    NIGHTLY INVENTORY additions. Everything above is shared with the Burn Pad
    and the Fear Compass, so the tools are the same room.
    ======================================================================== */
+.niStopWrap{position:sticky;top:10px;z-index:6;height:0;display:flex;justify-content:flex-end;overflow:visible}
 .bpDone{
-  background:none;border:1px solid rgba(255,255,255,.16);color:var(--muted);
-  font:inherit;font-weight:700;font-size:13px;border-radius:999px;
-  padding:6px 12px;min-height:36px;cursor:pointer;
+  background:#1d1c19;border:1px solid rgba(255,255,255,.22);color:var(--ivory);
+  font:inherit;font-weight:700;font-size:14px;border-radius:999px;
+  padding:8px 16px;min-height:40px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45);
 }
 .bpDone[hidden]{display:none}
+
+/* check-all-that-fit lists: big rows, green circle, white check */
+.niChecks{display:flex;flex-direction:column;gap:8px;width:100%;margin-top:4px}
+.niRow{
+  display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  background:var(--panel);border:1.5px solid var(--line);border-radius:14px;
+  padding:13px 14px;min-height:58px;font:inherit;color:var(--ivory);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.niRow .box{
+  flex:none;width:28px;height:28px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.45);display:grid;place-items:center;
+  transition:background .15s,border-color .15s;
+}
+.niRow .box svg{width:16px;height:16px;opacity:0;transition:opacity .15s}
+.niRow .words b{display:block;font-size:17px;font-weight:700}
+.niRow .words small{display:block;font-size:13px;color:var(--muted);margin-top:2px;line-height:1.35}
+.niRow.on{border-color:#2fa55f;background:rgba(47,165,95,.10)}
+.niRow.on .box{background:#2fa55f;border-color:#2fa55f}
+.niRow.on .box svg{opacity:1}
+.niNone{
+  background:none;border:0;color:var(--muted);font:inherit;font-size:15px;
+  text-decoration:underline;text-underline-offset:3px;padding:12px;margin:2px auto 0;cursor:pointer;
+}
+.niNext{
+  width:100%;min-height:52px;border-radius:14px;border:0;font:inherit;font-size:17px;font-weight:800;
+  background:var(--gold);color:var(--on-gold);cursor:pointer;margin-top:2px;
+}
+.niNext:disabled{background:#3a3934;color:#8a877e;cursor:default}
+.wrapCheck{width:64px;height:64px;border-radius:50%;background:#2fa55f;display:grid;place-items:center;margin:0 auto 12px}
+.wrapCheck svg{width:34px;height:34px}
 .msg.quote{font-style:italic}
 .msg.quote .cite{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:6px}
 .chip.next{background:var(--gold);color:var(--on-gold);border-color:var(--gold);font-weight:800}
@@ -425,22 +457,22 @@ main.bp{
 
 <main class="bp">
   <div class="bpHead">
-    <h1 class="bpTitle">Nightly <span>Inventory</span> 🌙</h1>
-    <button class="bpDone" id="bpDoneTonight" type="button" hidden>I'm done for tonight</button>
+    <h1 class="bpTitle">Nightly <span>Inventory</span></h1>
   </div>
 
   <div class="bpPromise">
-    <span class="lock" aria-hidden="true">🔒</span>
-    <b>This stays on your phone.</b> Nobody sees it. A quick, honest look at
-    today. Tap what fits, skip anything, stop whenever you want.
+    <b>This stays on your phone.</b> Nobody sees it.
+    Answer what you want. You can stop any time.
   </div>
+
+  <div class="niStopWrap"><button class="bpDone" id="bpDoneTonight" type="button" hidden>Stop here</button></div>
 
   <div class="bpThread" id="bpThread" aria-live="polite"></div>
 
   <div class="bpChips" id="bpChips" hidden></div>
 
   <div class="bpBar">
-    <textarea class="bpInput" id="bpInput" rows="1" aria-label="Add more (optional)" placeholder="Add more if you want…"></textarea>
+    <textarea class="bpInput" id="bpInput" rows="1" aria-label="Write about it (optional)" placeholder="Want to write about it? (optional)"></textarea>
     <button class="bpSend" id="bpSend" type="button" aria-label="Send" disabled>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -471,23 +503,23 @@ main.bp{
 
 <div class="bpRelease" id="bpRelease" hidden role="dialog" aria-modal="true" aria-label="Day closed">
   <div class="bpReleaseInner">
-    <div class="wrapMark" aria-hidden="true">🌙</div>
-    <div class="medText" id="wrapTitle">Day closed.</div>
-    <div class="wrapSub" id="wrapSub">Ask forgiveness where it's needed. Note the fix. Then let it go.</div>
+    <div class="wrapCheck" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <div class="medText" id="wrapTitle">You did it.</div>
+    <div class="wrapSub" id="wrapSub">Tomorrow you'll see what you wrote down to fix. Get some rest.</div>
 
     <div class="nextBox" id="nextBox" hidden>
       <div class="sumLabel">For tomorrow</div>
       <ul id="nextList"></ul>
     </div>
 
-    <p class="soft" id="softLine" hidden>Rough night. You still showed up, and that counts.
-      Call someone if you can, or <a href="sms:988">text 988</a> if it's heavy.</p>
+    <p class="soft" id="softLine" hidden>If today was heavy, call someone you trust.
+      Or <a href="sms:988">text 988</a>. Any time, day or night.</p>
 
     <div class="niDots" id="niDots" aria-label="Your last 30 nights"></div>
     <div class="niDotsNote" id="niDotsNote"></div>
 
     <button class="bigBtn" id="goodNight" type="button">Good night</button>
-    <button class="textBtn" id="tossBtn" type="button" hidden>🔥 Toss what I wrote</button>
+    <button class="textBtn" id="tossBtn" type="button" hidden>Erase what I wrote</button>
   </div>
 </div>
 
@@ -512,7 +544,7 @@ main.bp{
          "Nothing's eating me tonight" or "I'm done for tonight".
        * Taps first. Every question answers with a tap; typing is optional
          ("add more"). Everything can be skipped.
-       * Never a trap. "I'm done for tonight" is always up top, the phone's
+       * Never a trap. "Stop here" stays pinned on screen, the phone's
          back button just leaves (tonight is saved), nothing gets replayed,
          and what you typed can be tossed.
        * Gently along. Short texts, typing dots, a nudge on a rough night
@@ -550,66 +582,90 @@ main.bp{
     del(k){ try { localStorage.removeItem(k); } catch(e){} }
   };
 
-  const FOUR = ["😤 Resentful", "🙋 Selfish", "🤥 Dishonest", "😰 Afraid"];
-  const GOOD = ["🤝 Helped someone", "💬 Kind words", "📞 Made a call", "🙏 Prayed or meditated",
-                "🏠 Showed up for family", "💪 Did the next right thing"];
-  const QUOTE = { text:"“After making our review we ask God’s forgiveness and inquire what corrective measures should be taken.”",
-                  cite:"Alcoholics Anonymous, p. 86" };
+  const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const NOTHING = "Nothing’s bothering me today";
+  const DONE = "That’s all I’ve got";
+
+  const FOUR = [
+    { label:"Resentful", sub:"Angry at someone. Still chewing on it." },
+    { label:"Afraid",    sub:"Worried or scared about something." },
+    { label:"Selfish",   sub:"Thought about me more than other people." },
+    { label:"Dishonest", sub:"Told a lie, big or small. Or hid something." }
+  ];
+  const GOOD = [
+    { label:"Helped someone",          sub:"Big or small, it counts." },
+    { label:"Said something kind",     sub:"To anyone. Even a stranger." },
+    { label:"Made a call",             sub:"Sponsor, friend, anyone in the program." },
+    { label:"Prayed or meditated",     sub:"Even for one minute." },
+    { label:"Showed up",               sub:"For family, work, or a meeting." },
+    { label:"Did the next right thing", sub:"Even when it was hard." }
+  ];
 
   /* ---- the steps ------------------------------------------------------------
-     kind: one   = tap one chip and it answers
-           many  = tap any number, then Next (or the "none" chip)
-           text  = type it (chips offer Skip)
-     ask(ans) returns the incoming texts; skip(ans) true = leave this step out. */
+     Written for someone scared and worn out: one plain instruction per
+     question, a kind word after every answer, no emojis, nothing to decode.
+     kind: one   = tap one button and it answers
+           many  = check any number of rows, then Next (or "none")
+           text  = type it, or tap "That's all I've got"
+     ask(ans) returns the incoming texts; skip(ans) true = leave this step out;
+     after(ans) = the kind word that follows their answer. */
   const STEPS = [
     { key:"open", kind:"one",
-      ask: () => ["Hey. Let’s close out the day. 🌙", "Quick look back. Tap what fits, skip anything."],
-      chips: ["Let’s do it", "Nothing’s eating me tonight"] },
+      ask: () => ["Hey. You made it to the end of the day. That’s enough.",
+                  "This takes about 3 minutes. You can stop any time. Nothing you write leaves your phone.",
+                  "Ready?"],
+      chips: ["Yes, let’s start", NOTHING],
+      after: (a) => a.open === NOTHING ? "Good. That’s a good day." : "Okay. Nice and easy." },
 
-    { key:"four", kind:"many", pen:true,
-      skip: (a) => a.open === "Nothing’s eating me tonight",
-      ask: () => ["Anywhere today you were…"],
-      chips: FOUR, none:"👍 None of it" },
+    { key:"four", kind:"many",
+      skip: (a) => a.open === NOTHING,
+      ask: () => ["Today, did you feel any of these?", "Check all that fit. Then tap Next."],
+      items: FOUR, none:"None of these today",
+      after: (a) => !a.fourList.length ? (a.fourText ? "Thanks for writing that out." : "Good. That’s a good day.")
+        : a.fourList.length >= 3 ? "That was a heavy day. Thanks for being honest. We just look at it. We don’t have to live in it."
+        : "Thanks for being honest. Everybody has days like that." },
 
     { key:"who", kind:"text",
-      skip: (a) => !a.fourList || !a.fourList.length,
-      ask: (a) => (a.fourList.length >= 3
-        ? ["Rough one. That’s okay. We look at it, we don’t live in it.", "Who or what was it? A word or two is plenty."]
-        : ["Who or what was it? A word or two is plenty."]),
-      placeholder:"A name, a situation…" },
+      skip: (a) => !a.fourList || !a.fourList.length || !!a.fourText,
+      ask: () => ["Who or what was it?", "Type a word or two. Or tap “That’s all I’ve got.”"],
+      placeholder:"A name or a few words",
+      after: () => "Got it. You don’t have to fix it tonight." },
 
     { key:"apology", kind:"one",
-      skip: (a) => a.open === "Nothing’s eating me tonight",
-      ask: () => ["Owe anybody an apology?"],
-      chips: ["Nope", "Yeah"] },
+      skip: (a) => a.open === NOTHING,
+      ask: () => ["Do you owe anyone an apology?", "Tap one."],
+      chips: ["No", "Yes"],
+      after: (a) => a.apology === "Yes" ? "That’s okay. It happens to all of us." : "Okay." },
 
     { key:"apologyWho", kind:"text",
-      skip: (a) => a.apology !== "Yeah",
-      ask: () => ["Who? Just a name. You can make it right tomorrow."],
-      placeholder:"Their name" },
+      skip: (a) => a.apology !== "Yes",
+      ask: () => ["Who? A first name is fine.", "You can make it right tomorrow. Not tonight."],
+      placeholder:"Their name",
+      after: () => "Okay. You’ll see it tomorrow so you don’t have to remember." },
 
     { key:"tell", kind:"one",
-      skip: (a) => a.open === "Nothing’s eating me tonight",
-      ask: () => ["Sitting on something you need to tell someone?"],
-      chips: ["Nope", "Yeah"] },
+      skip: (a) => a.open === NOTHING,
+      ask: () => ["Is there something you need to tell someone?", "Tap one."],
+      chips: ["No", "Yes"],
+      after: (a) => a.tell === "Yes" ? "Thanks for being honest about that." : "Okay." },
 
     { key:"tellWho", kind:"one",
-      skip: (a) => a.tell !== "Yeah",
-      ask: () => ["Who could you tell tomorrow?"],
-      chips: ["My sponsor", "A friend", "Someone at a meeting"] },
+      skip: (a) => a.tell !== "Yes",
+      ask: () => ["Who could you tell? Tap one."],
+      chips: ["My sponsor", "A friend", "Someone at a meeting"],
+      after: () => "Good choice. You don’t have to carry it alone." },
 
-    { key:"good", kind:"many", pen:true,
-      ask: (a) => (a.open === "Nothing’s eating me tonight"
-        ? ["Love that. One more, the good kind:", "Where’d you show up today?"]
-        : ["Now the good stuff.", "Where’d you show up today?"]),
-      chips: GOOD, none:"Not today" },
+    { key:"good", kind:"many",
+      ask: () => ["Now the good part.", "Today, did you do any of these?", "Check all that fit. Then tap Next."],
+      items: GOOD, none:"Not today",
+      after: (a) => a.good === "Not today"
+        ? "That’s okay. Some days are just about getting through. You got through."
+        : "Look at that. You did good today." },
 
     { key:"better", kind:"text",
-      skip: (a) => a.open === "Nothing’s eating me tonight",
-      ask: (a) => (a.good === "Not today"
-        ? ["That’s okay. Tomorrow’s a new shot.", "One thing to do better tomorrow?"]
-        : ["One thing to do better tomorrow?"]),
-      placeholder:"Optional" }
+      skip: (a) => a.open === NOTHING,
+      ask: () => ["Last one.", "What’s one thing you want to do better tomorrow?", "Type it. Or tap “That’s all I’ve got.”"],
+      placeholder:"One small thing" }
   ];
 
   let S = fresh();
@@ -627,8 +683,8 @@ main.bp{
   }
   function saveTomorrow(){
     const a = S.ans, items = [];
-    if (a.apology === "Yeah") items.push(a.apologyWho ? "Make it right with " + a.apologyWho : "Make an apology you owe");
-    if (a.tell === "Yeah") items.push(a.tellWho ? "Talk to " + a.tellWho.toLowerCase().replace(/^my /, "your ") : "Tell someone what you’re sitting on");
+    if (a.apology === "Yes") items.push(a.apologyWho ? "Make it right with " + a.apologyWho : "Make an apology you owe");
+    if (a.tell === "Yes") items.push(a.tellWho ? "Talk to " + a.tellWho.toLowerCase().replace(/^my /, "your ") : "Tell someone what you’re sitting on");
     if (a.better) items.push(a.better);
     if (items.length) store.set(TOMORROW_KEY, { night:TONIGHT, items });
     else store.del(TOMORROW_KEY);
@@ -707,8 +763,37 @@ main.bp{
     if (list.length) scrollDown();
   }
 
-  function penChip(){
-    return { label:"✏️ Add more", cls:"quiet pen", onTap: () => { input.focus(); scrollDown(); } };
+  /* big check rows for "check all that fit" */
+  function showChecks(Q){
+    chipsEl.innerHTML = "";
+    const list = document.createElement("div"); list.className = "niChecks";
+    const next = document.createElement("button");
+    next.type = "button"; next.className = "niNext"; next.textContent = "Next"; next.disabled = true;
+    Q.items.forEach(it => {
+      const row = document.createElement("button");
+      row.type = "button"; row.className = "niRow"; row.setAttribute("aria-pressed", "false");
+      row.innerHTML = '<span class="box">' + CHECK_SVG + '</span><span class="words"><b></b><small></small></span>';
+      row.querySelector("b").textContent = it.label;
+      row.querySelector("small").textContent = it.sub || "";
+      row.onclick = () => {
+        const on = !row.classList.contains("on");
+        row.classList.toggle("on", on); row.setAttribute("aria-pressed", String(on));
+        picks = on ? picks.concat(it.label) : picks.filter(x => x !== it.label);
+        picks = Q.items.map(x => x.label).filter(l => picks.includes(l));   // keep list order
+        next.disabled = !picks.length;
+        syncSend();
+      };
+      list.appendChild(row);
+    });
+    next.onclick = () => { if (picks.length) answer(input.value); };
+    list.appendChild(next);
+    const none = document.createElement("button");
+    none.type = "button"; none.className = "niNone"; none.textContent = Q.none;
+    none.onclick = () => answer(Q.none, { none:true });
+    list.appendChild(none);
+    chipsEl.appendChild(list);
+    chipsEl.hidden = false;
+    scrollDown();
   }
 
   function showStepChips(){
@@ -716,34 +801,13 @@ main.bp{
     if (S.i >= STEPS.length) return showClose();
     const Q = STEPS[S.i];
     picks = [];
-    input.placeholder = Q.placeholder || "Add more if you want…";
+    input.placeholder = Q.placeholder || "Want to write about it? (optional)";
     if (Q.kind === "one"){
       return setChips(Q.chips.map(o => ({ label:o, onTap: () => answer(o) })));
     }
-    if (Q.kind === "many"){
-      const list = Q.chips.map(o => ({ label:o, toggle:true, onTap:(b) => togglePick(b, o) }));
-      if (Q.none) list.push({ label:Q.none, cls:"quiet", onTap: () => answer(Q.none, { none:true }) });
-      if (Q.pen) list.push(penChip());
-      return setChips(list);
-    }
+    if (Q.kind === "many") return showChecks(Q);
     // text
-    return setChips([{ label:"Skip", cls:"quiet", onTap: () => answer("", { skip:true }) }]);
-  }
-
-  function togglePick(b, label){
-    const on = !b.classList.contains("on");
-    b.classList.toggle("on", on);
-    b.setAttribute("aria-pressed", String(on));
-    picks = on ? picks.concat(label) : picks.filter(x => x !== label);
-    // a "Next" chip appears once something is picked
-    let nx = chipsEl.querySelector(".chip.next");
-    if (picks.length && !nx){
-      nx = document.createElement("button");
-      nx.type = "button"; nx.className = "chip next"; nx.textContent = "Next →";
-      nx.onclick = () => answer("");
-      chipsEl.appendChild(nx);
-    } else if (!picks.length && nx) nx.remove();
-    syncSend();
+    return setChips([{ label:DONE, cls:"quiet", onTap: () => answer("", { skip:true }) }]);
   }
 
   /* ---------- flow ---------- */
@@ -759,12 +823,13 @@ main.bp{
     input.style.height = Math.min(input.scrollHeight + 2, window.innerHeight * 0.4) + "px";
   }
 
-  function advance(){
+  function advance(kind){
     // skip any steps that don't apply
     while (S.i < STEPS.length && STEPS[S.i].skip && STEPS[S.i].skip(S.ans)) S.i++;
     save();
-    if (S.i >= STEPS.length) return finishThread();
-    incoming(STEPS[S.i].ask(S.ans), showStepChips);
+    const pre = kind ? [kind] : [];
+    if (S.i >= STEPS.length) return finishThread(pre);
+    incoming(pre.concat(STEPS[S.i].ask(S.ans)), showStepChips);
   }
 
   function answer(text, opt){
@@ -775,15 +840,19 @@ main.bp{
     if (opt.none) value = text;
     else if (Q.kind === "many") value = picks.join(", ") + (typed ? (picks.length ? " — " : "") + typed : "");
     else value = typed;
-    if (opt.skip && !value) say({ who:"me", text:"Skip", skip:true });
+    if (Q.kind === "many" && typed && !opt.none){ input.value = ""; autoGrow(); }
+    if (opt.skip && !value) say({ who:"me", text:DONE, skip:true });
     else say({ who:"me", text:value });
     S.ans[Q.key] = value;
-    if (Q.key === "four") S.ans.fourList = opt.none ? [] : picks.slice();
-    if (Q.key === "four" && S.ans.fourList.length >= 3) S.rough = true;
+    if (Q.key === "four"){
+      S.ans.fourList = opt.none ? [] : picks.slice();
+      S.ans.fourText = opt.none ? "" : typed;
+      if (S.ans.fourList.length >= 3) S.rough = true;
+    }
     picks = [];
     markDone();                           /* showing up counts */
     S.i++;
-    advance();
+    advance(Q.after ? Q.after(S.ans) : "");
     syncSend();
   }
 
@@ -798,11 +867,12 @@ main.bp{
     input.focus({ preventScroll:true });
   }
 
-  function finishThread(){
-    incoming(["That’s it. Not a courtroom.", { quote:true, text:QUOTE.text, cite:QUOTE.cite }], showClose);
+  function finishThread(pre){
+    incoming((pre || []).concat(["That’s it. You did it.",
+      "Nobody’s grading this. You showed up, and that’s the whole point."]), showClose);
   }
   function showClose(){
-    setChips([{ cta:true, label:"Close out the day 🌙", sub:"Forgiveness, the fix, then let it go.", onTap: () => closeOut(false) }]);
+    setChips([{ cta:true, label:"Finish for tonight", sub:"One more tap and you’re done.", onTap: () => closeOut(false) }]);
   }
 
   /* ---------- closing (one history step: the phone's back button closes it) ---------- */
@@ -811,9 +881,9 @@ main.bp{
     markDone();
     S.closed = true; S.early = !!early; save();
     const items = saveTomorrow();
-    $("wrapTitle").textContent = early ? "That’s enough for tonight." : "Day closed.";
-    $("wrapSub").textContent = early ? "Showing up counts. Rest easy."
-      : "Ask forgiveness where it’s needed. Note the fix. Then let it go.";
+    $("wrapTitle").textContent = early ? "That’s enough for tonight." : "You did it.";
+    $("wrapSub").textContent = early ? "You showed up. That counts. Get some rest."
+      : (items.length ? "Tomorrow you’ll see what you wrote down to fix. Get some rest." : "Nothing to carry into tomorrow. Get some rest.");
     const list = $("nextList"); list.innerHTML = "";
     items.forEach(t => { const li = document.createElement("li"); li.textContent = t; list.appendChild(li); });
     $("nextBox").hidden = !items.length;
@@ -832,13 +902,13 @@ main.bp{
 
   /* after closing: tonight is done; offer to do it again */
   function showAfter(){
-    setChips([{ label:"Look back again", cls:"quiet", onTap: () => {
+    setChips([{ label:"Start over", cls:"quiet", onTap: () => {
       store.del(SAVE_KEY); S = fresh(); drawAll(); syncSend(); advance();
     }}]);
     syncSend();
   }
 
-  /* 🔥 toss: clear everything typed or tapped tonight; the night still counts */
+  /* erase: clear everything typed or tapped tonight; the night still counts */
   $("tossBtn").onclick = () => {
     S.msgs = []; S.ans = {}; save();
     store.del(TOMORROW_KEY);
@@ -846,7 +916,7 @@ main.bp{
     setTimeout(() => { thread.classList.remove("burning"); drawAll(); }, 900);
     $("nextBox").hidden = true;
     $("tossBtn").hidden = true;
-    toast("Tossed. Tonight still counts. ✓");
+    toast("Erased. Tonight still counts.");
   };
 
   /* the 30 dots */
@@ -888,7 +958,7 @@ main.bp{
   if (saved && saved.night === TONIGHT && Array.isArray(saved.msgs) && saved.msgs.length){
     S = Object.assign(fresh(), saved);
     drawAll();
-    if (S.closed){ showAfter(); toast("Already closed out tonight. ✓"); }
+    if (S.closed){ showAfter(); toast("You already finished tonight."); }
     else {
       const last = S.msgs[S.msgs.length - 1];
       if (S.i >= STEPS.length) showClose();
