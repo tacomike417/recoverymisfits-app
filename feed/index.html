@@ -41,6 +41,13 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
 .banner b{color:var(--gold2)}
 .banner a{color:var(--gold2);font-weight:700}
 
+.vote .kick{margin:0 0 6px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:#a07a2c}
+.vote ul{margin:0 0 12px;padding-left:20px;color:#3a362f;font-size:14px}
+.vote ul li{margin:0 0 5px}
+.vote .ask{margin:14px 0 10px;padding-top:14px;border-top:1px solid #ece6d9;font:700 16px Arial,sans-serif;color:#1b1a17}
+.fhd{margin:6px 12px 0;text-align:center;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--muted)}
+.fhd::before,.fhd::after{content:"";display:inline-block;width:28px;height:1px;background:#4a4336;vertical-align:middle;margin:0 10px}
+
 /* ---- tabs over the feed ---- */
 .ftabs{display:flex;gap:8px;margin:14px 12px 4px}
 .ftabs span{padding:8px 14px;border-radius:999px;border:1px solid var(--edge);color:var(--muted);font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.08em}
@@ -82,7 +89,7 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
 .cm .more{color:var(--muted);font-size:12.5px}
 
 /* ---- THE VOTE BOX (white, on purpose) ---- */
-.vote{margin:18px 12px;background:#fff;color:#1b1a17;border-radius:18px;padding:18px 16px;box-shadow:0 10px 30px rgba(0,0,0,.45);scroll-margin-top:70px}
+.vote{margin:12px 12px 18px;background:#fff;color:#1b1a17;border-radius:18px;padding:18px 16px;box-shadow:0 10px 30px rgba(0,0,0,.45);scroll-margin-top:70px}
 .vote h2{margin:0 0 4px;font:400 26px/1.1 "RM Head",Impact,sans-serif;letter-spacing:.02em}
 .vote p{margin:0 0 12px;color:#57524a;font-size:14px}
 .vote .opts{display:grid;gap:8px}
@@ -98,6 +105,67 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
 .vote .done h2{color:#1b1a17}
 .fvote{position:fixed;right:14px;bottom:calc(200px + env(safe-area-inset-bottom,0px));z-index:30;padding:12px 16px;border-radius:999px;border:0;background:#fff;color:#1b1a17;font:800 14px Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.5);cursor:pointer}
 .fvote[hidden],.fvote.away{display:none}
+
+/* ---- photo avatars (fall back to the drawn icon if the photo is missing) ---- */
+.avw{position:relative;width:40px;height:40px;flex:none;display:block}
+.avw img{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;object-fit:cover}
+.st .ring .avw{width:100%;height:100%}
+.st .ring .avw img{border:3px solid var(--bg);box-sizing:border-box}
+.okpill{display:inline-flex;align-items:center;gap:6px;margin:8px 12px 0;padding:5px 10px;border-radius:999px;background:rgba(63,143,79,.16);color:#8fd19b;font:700 11.5px Arial,sans-serif}
+
+/* ---- the (i) button ---- */
+.ibtn{display:inline-flex;align-items:center;gap:7px;margin-top:8px;padding:7px 12px 7px 8px;border-radius:999px;border:1px solid rgba(214,179,106,.55);background:none;color:var(--gold2);font:700 13px Arial,sans-serif;cursor:pointer}
+.ibtn i{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:2px solid currentColor;font:800 italic 12px Georgia,serif}
+.vote .ibtn{color:#8a6a24;border-color:#d8c9a4;margin:0 0 12px}
+
+/* ---- the photo-check demo card ---- */
+.demo{margin:14px 12px 0;border-radius:16px;overflow:hidden;border:1px solid rgba(214,179,106,.4);background:#1d1a12}
+.demo .hd{padding:12px 14px 4px;font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
+.demo p{margin:0;padding:0 14px 10px;color:#ddd2b8;font-size:14px}
+.demo img{display:block;width:100%;height:auto}
+.demo button{display:block;width:calc(100% - 28px);margin:12px 14px 14px;padding:13px;border:0;border-radius:12px;background:var(--gold);color:#17130b;font:800 15px Arial,sans-serif;cursor:pointer}
+
+/* ---- full-screen layers (phone back closes them) ---- */
+.layer{position:fixed;inset:0;z-index:20000;display:none}
+.layer.open{display:block}
+.layer .dim{position:absolute;inset:0;background:rgba(0,0,0,.7)}
+.layer .sheet{position:absolute;left:0;right:0;bottom:0;max-width:480px;max-height:88vh;overflow-y:auto;margin:0 auto;box-sizing:border-box;background:#15130f;border-radius:22px 22px 0 0;border-top:2px solid rgba(214,179,106,.45);padding:12px 20px calc(26px + env(safe-area-inset-bottom,0px))}
+.layer .g{width:44px;height:5px;border-radius:3px;background:#4a4336;margin:0 auto 12px}
+.x{position:absolute;top:10px;right:12px;width:38px;height:38px;border-radius:50%;border:0;background:#2a251c;color:var(--cream);font:700 18px Arial,sans-serif;cursor:pointer;z-index:2}
+#why h3{margin:4px 0 10px;font:400 30px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.02em}
+#why p{margin:0 0 12px;color:#e2d8c1}
+#why h4{margin:16px 0 6px;font:500 14px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
+#why ul{margin:0;padding-left:20px;color:#e2d8c1}
+#why li{margin:0 0 6px}
+#why .go{display:block;width:100%;margin-top:18px;padding:14px;border:0;border-radius:12px;background:#fff;color:#1b1a17;font:800 15px Arial,sans-serif;cursor:pointer}
+
+#scan .sheet{top:0;max-height:none;border-radius:0;border-top:0;padding-top:14px}
+#scan .t{margin:2px 0 12px;font:500 18px "RM Rail",Oswald,sans-serif;letter-spacing:.1em}
+.shot{position:relative;border-radius:12px;overflow:hidden;background:#000}
+.shot img{display:block;width:100%;height:auto}
+.shot .beam{position:absolute;left:0;right:0;height:3px;top:0;background:#e0bd6a;box-shadow:0 0 18px 6px rgba(224,189,106,.55);display:none}
+.shot.scanning .beam{display:block;animation:beam 1.6s ease-in-out infinite}
+@keyframes beam{0%{top:0}50%{top:calc(100% - 3px)}100%{top:0}}
+.shot .fb{position:absolute;border:2.5px solid #ff6b4a;border-radius:8px;box-shadow:0 0 0 2px rgba(0,0,0,.35);opacity:0;transform:scale(1.3);transition:opacity .3s,transform .3s}
+.shot.found .fb{opacity:1;transform:none}
+.cap{margin:12px 0 0;padding:12px;border-radius:12px;background:#1d1a14;color:var(--muted);font-size:14px}
+.st8{margin-top:14px}
+.st8 .busy{display:flex;align-items:center;gap:10px;color:var(--gold2);font-weight:700}
+.st8 .busy i{width:18px;height:18px;border-radius:50%;border:3px solid rgba(224,189,106,.3);border-top-color:#e0bd6a;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.flag{padding:14px;border-radius:14px;background:#2b1712;border:1.5px solid #c4563c}
+.flag b{display:block;color:#ffb39f;font-size:16px;margin-bottom:4px}
+.flag p{margin:0;color:#ecd9d2;font-size:14px}
+.choose{display:grid;gap:8px;margin-top:12px}
+.choose button{padding:14px;border-radius:12px;border:2px solid #4a4336;background:#1b1913;color:var(--cream);font:700 15px Arial,sans-serif;text-align:left;cursor:pointer}
+.choose button.alt{border:0;background:none;color:var(--muted);text-align:center;font-weight:600;text-decoration:underline}
+.shot.picking .fb{cursor:pointer;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{border-color:#ffd27a}}
+.shot .fb.blur{border-color:rgba(255,255,255,.4)}
+.shot .fb.me{border-color:#8fd19b}
+.okbox{padding:14px;border-radius:14px;background:#14261a;border:1.5px solid #3f8f4f;color:#cfe9d4}
+.okbox b{display:block;color:#8fd19b;font-size:16px;margin-bottom:4px}
+.fine{margin:14px 0 0;color:#8f887a;font-size:12.5px;text-align:center}
 
 /* ---- invite sheet (same as mockup) ---- */
 #inv{position:fixed;inset:0;z-index:20000;display:none}
@@ -127,16 +195,59 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
 </nav>
 
 <main class="wrap">
-  <div class="banner"><b>PREVIEW.</b> This is what a Recovery Misfits feed <i>could</i> look like. Every person and post here is made up. Look around, then <a href="#vote">tell us what you think</a>.</div>
+  <div id="votetop"></div>
+  <div class="fhd">THE FEED · EVERYONE HERE IS MADE UP</div>
 
   <div class="ftabs"><span class="on">EVERYONE</span><span>FOLLOWING</span><span>NEWCOMERS</span></div>
 
-  <section class="today"><h3>CELEBRATING TODAY</h3><div class="strip" id="strip"></div></section>
+
+  <section class="today"><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
 
   <div id="feed"></div>
 </main>
 
-<button type="button" class="fvote" id="fvote">Vote on this</button>
+<button type="button" class="fvote" id="fvote">↑ Vote</button>
+
+<div id="why" class="layer" role="dialog" aria-modal="true" aria-label="Why I'm on the fence">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div>
+    <h3>Why I'm on the fence</h3>
+    <p>I was raised in recovery on humility and anonymity. Principles before personalities. A feed full of faces and milestone posts could pull against that.</p>
+    <p>And this is a recovery app, not an AA app. My roots are AA, but anybody in recovery is welcome here, whatever their path.</p>
+    <p>A lot of people find recovery online now. Seeing real people make it could be the thing that keeps somebody going.</p>
+    <h4>WHAT WORRIES ME</h4>
+    <ul>
+      <li><b>Anonymity.</b> One photo could out somebody who never said OK.</li>
+      <li><b>Newcomers are raw.</b> A feed could turn into drama, comparing, or somebody posting at their worst moment.</li>
+      <li><b>It's work.</b> Reports, moderating, and a photo check all have to be there from day one.</li>
+    </ul>
+    <h4>WHAT I LIKE</h4>
+    <ul>
+      <li>Newcomers seeing real people with real time.</li>
+      <li>Celebrating coins and Survival Pile cards together.</li>
+      <li>Nobody having to feel alone at 3am.</li>
+    </ul>
+    <h4>HOW PHOTOS COULD WORK</h4>
+    <ul>
+      <li>Every photo gets checked for people before it posts.</li>
+      <li>Just you, or no people at all? It posts.</li>
+      <li>Anybody else in it? You have to confirm you're not breaking their anonymity, or that you have their permission.</li>
+    </ul>
+    <p style="margin-top:14px">So I'm asking people I trust before I build anything. Your vote counts.</p>
+    <button type="button" class="go" data-govote>Take me to the vote</button>
+  </div>
+</div>
+
+<div id="scan" class="layer" role="dialog" aria-modal="true" aria-label="New post">
+  <div class="sheet">
+    <button type="button" class="x" data-close aria-label="Close">✕</button>
+    <div class="t">NEW POST</div>
+    <div class="shot" id="shot"><img src="/feed/img/group.webp" alt="Five people outside a church hall"><div class="beam"></div></div>
+    <div class="cap">Great night at the Tuesday meeting 💛</div>
+    <div class="st8" id="st8"></div>
+    <p class="fine">Preview only. Nothing here actually posts.</p>
+  </div>
+</div>
 
 <div id="inv" role="dialog" aria-modal="true" aria-label="Pass it on">
   <div class="dim" data-close></div>
@@ -183,7 +294,15 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
       '<text x="20" y="25" text-anchor="middle" font-family="Arial" font-weight="700" font-size="15" fill="#fff">' + init + '</text></svg>';
   }
   var P = ["OneDayJen","BigBookBrad","grateful_gina","SoberSam76","Kev_in_recovery","HoosierHope","MomOf3Sober","TrudgingTony","SerenityShay","DinoDan","CoffeeAndSteps","LateBloomerLiz","ReformedRocker","QuietQuinn","FarmhouseFrank","NightShiftNia","ByTheBookBob","MisfitMarcus","SunriseSara","OldTimerWalt","NewGuyNate","HighPowerHolly","Jersey_Joe_ODAAT","PrayerAndPancakes","CleanSlateCal"];
-  var who = function (n) { var i = P.indexOf(n); return { name: n, face: face(n, i < 0 ? 0 : i) }; };
+  /* 20 members have a photo (feed/img/a-NAME.webp, all made-up people); the rest kept the drawn icon, like real life */
+  var PHOTO = {}; ["OneDayJen","BigBookBrad","CoffeeAndSteps","OldTimerWalt","Kev_in_recovery","SerenityShay","LateBloomerLiz","TrudgingTony","NightShiftNia",
+    "SoberSam76","HoosierHope","Jersey_Joe_ODAAT","FarmhouseFrank","MomOf3Sober","MisfitMarcus","HighPowerHolly","SunriseSara","DinoDan","ReformedRocker","grateful_gina"]
+    .forEach(function (n) { PHOTO[n] = 1; });
+  function avatar(n, i) {
+    var pic = PHOTO[n] ? '<img src="/feed/img/a-' + n + '.webp" alt="" loading="lazy" onerror="this.remove()">' : '';
+    return '<span class="avw">' + face(n, i) + pic + '</span>';
+  }
+  var who = function (n) { var i = P.indexOf(n); return { name: n, face: avatar(n, i < 0 ? 0 : i) }; };
 
   /* ---------------------------------------------------------------- POSTS */
   var M = function (n) { return "/assets/memes/" + n + ".jpg"; };
@@ -191,36 +310,44 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
   var COIN = function (f) { return "/assets/coins/" + f + ".webp"; };
   var posts = [
     { u: "OneDayJen", t: "12m", pill: "90 DAYS", kind: "coin", coin: "coin-90-days", big: "90 DAYS", body: "Ninety days. My kids noticed before I did. Thank you to whoever built this app, the reading this morning hit different.", c: [["BigBookBrad","So proud of you Jen. Keep coming back."],["grateful_gina","90 in 90 and then some! 🙌"]], more: 14 },
+    { u: "SunriseSara", t: "18m", kind: "photo", img: "sunrise", body: "Porch, coffee, sunrise. I used to sleep through these.", c: [["grateful_gina","This is the good life 🌅"]], more: 9 },
     { u: "TrudgingTony", t: "28m", kind: "meme", img: M("010"), body: "This one is too real 😂", c: [["DinoDan","Felt this in my soul"]], more: 6 },
     { u: "NewGuyNate", t: "41m", pill: "DAY 3", kind: "text", bg: "linear-gradient(160deg,#243142,#11100c)", card: "Day 3. Hands still shaky. Didn't drink last night.", body: "First time posting anything. Not really sure what I'm doing here.", c: [["OldTimerWalt","You're doing exactly right, Nate. Day 3 is hard. Call somebody today."],["SerenityShay","I remember day 3. It gets better, I promise. Keep showing up."],["HoosierHope","Welcome. Glad you're here. 💛"]], more: 22 },
     { u: "grateful_gina", t: "1h", kind: "text", bg: "linear-gradient(160deg,#3a2a18,#11100c)", card: "Gratitude list:\n1. Hot coffee\n2. My sponsor answering at 11pm\n3. Waking up without regret", body: "" , c: [["CoffeeAndSteps","#1 is always on my list too ☕"]], more: 4 },
-    { vote: true },
+    { demo: true },
     { u: "SoberSam76", t: "1h", pill: "500 DAYS", kind: "card", card: "500", label: "THE SOBER 500", body: "Five hundred laps around 'not drinking today.' Never thought I'd see this number.", c: [["ReformedRocker","Legend."],["QuietQuinn","Congrats Sam!"]], more: 11 },
     { u: "HoosierHope", t: "2h", kind: "text", bg: "linear-gradient(160deg,#2c3a2a,#11100c)", card: "God wink today: the song on the radio was the one they played at my first meeting.", body: "Didn't believe in these until they kept happening.", c: [["PrayerAndPancakes","Love a good God wink"]], more: 9 },
+    { u: "grateful_gina", t: "2h", kind: "photo", img: "group", ok: true, body: "Tuesday night crew. Everybody said yes to this one 💛", c: [["HoosierHope","Love this group"],["SerenityShay","Best meeting in town"]], more: 16 },
     { u: "BigBookBrad", t: "2h", kind: "meme", img: M("027"), body: "Page 417 people will get it.", c: [["ByTheBookBob","Acceptance is the answer 📖"]], more: 7 },
     { u: "MomOf3Sober", t: "3h", pill: "1 YEAR", kind: "coin", coin: "coin-01-year", big: "ONE YEAR", body: "One year ago I couldn't make it through a school pickup. Today I chaperoned the field trip.", c: [["SunriseSara","Crying at work reading this. So happy for you."],["LateBloomerLiz","This is everything. 💛"]], more: 31 },
     { u: "Kev_in_recovery", t: "3h", kind: "text", bg: "linear-gradient(160deg,#3a1f24,#11100c)", card: "Rough day. Wanted to drink at lunch. Didn't.", body: "Just needed to tell somebody.", c: [["OldTimerWalt","Proud of you Kev. That's a win."],["NightShiftNia","Glad you told us. Call your people tonight."]], more: 15 },
+    { u: "NightShiftNia", t: "3h", kind: "text", bg: "linear-gradient(160deg,#1f3440,#11100c)", card: "On Suboxone. In therapy.\n8 months without using.\nMy path counts too.", body: "", c: [["OldTimerWalt","It sure does. Glad you're here, Nia."],["MisfitMarcus","Every path counts 💛"]], more: 27 },
     { u: "DinoDan", t: "4h", kind: "meme", img: M("028"), body: "", c: [["TrudgingTony","😂😂"]], more: 3 },
     { u: "SerenityShay", t: "4h", kind: "text", bg: "linear-gradient(160deg,#2a2440,#11100c)", card: "Nightly inventory done.\nOne resentment. One amends to make tomorrow.", body: "The new Nightly Inventory tool makes it way less scary.", c: [["QuietQuinn","Same, it's the only way I actually do it"]], more: 5 },
     { u: "OldTimerWalt", t: "5h", pill: "22 YEARS", kind: "text", bg: "linear-gradient(160deg,#35301f,#11100c)", card: "\"It works if you work it.\"\nStill true at 22 years.", body: "Hit a meeting, call a newcomer, say the prayer. Same as day one.", c: [["NewGuyNate","Thanks Walt."],["BigBookBrad","Wisdom right here"]], more: 18 },
     { u: "CoffeeAndSteps", t: "5h", kind: "card", card: "100", label: "KEEPING IT 100", body: "A hundred days sober. Still a little weird.", c: [["grateful_gina","100!!! 🎉"]], more: 12 },
     { u: "LateBloomerLiz", t: "6h", kind: "meme", img: M("003"), body: "Sharing because it made me laugh on a hard morning.", c: [], more: 2 },
     { u: "ReformedRocker", t: "6h", kind: "text", bg: "linear-gradient(160deg,#401f1f,#11100c)", card: "Played my first sober gig tonight.\nHands didn't shake once.", body: "", c: [["MisfitMarcus","Rock on 🤘"],["HighPowerHolly","That's huge!"]], more: 20 },
+    { u: "ReformedRocker", t: "7h", kind: "photo", img: "guitar", body: "Here's proof. First sober gig. Coffeehouse crowd was the best crowd I ever had.", c: [["DinoDan","Sounds amazing man"]], more: 12 },
     { u: "QuietQuinn", t: "7h", kind: "text", bg: "linear-gradient(160deg,#1f3440,#11100c)", card: "Question for the group:\nHow do you handle a wedding with an open bar?", body: "My cousin's is Saturday. First one sober.", c: [["TrudgingTony","Bring a sober buddy, have an exit plan, leave before the toasts if you need to."],["SerenityShay","Club soda with lime in hand the whole time. Nobody asks."]], more: 26 },
     { u: "FarmhouseFrank", t: "8h", pill: "6 MONTHS", kind: "coin", coin: "coin-06-months", big: "SIX MONTHS", body: "Half a year. Cows still need milking but I remember doing it now.", c: [["DinoDan","😂 congrats Frank"]], more: 9 },
+    { u: "DinoDan", t: "9h", kind: "photo", img: "dog", body: "Me and Biscuit, 3 miles this morning. Used to be 3 beers by now.", c: [["LateBloomerLiz","Biscuit!! 🐶"]], more: 8 },
     { u: "NightShiftNia", t: "9h", kind: "meme", img: M("011"), body: "", c: [["SunriseSara","Needed this"]], more: 4 },
     { u: "ByTheBookBob", t: "10h", kind: "text", bg: "linear-gradient(160deg,#2b2b1f,#11100c)", card: "\"We will not regret the past nor wish to shut the door on it.\"", body: "The Promises on page 83. Read them out loud this morning.", c: [["BigBookBrad","My favorite page"]], more: 8 },
     { u: "MisfitMarcus", t: "11h", pill: "DAY 7", kind: "card", card: "7", label: "ONE WEEK", body: "7 days. That's a whole week. Yeah, a week!", c: [["OneDayJen","A WEEK! So proud of you"],["OldTimerWalt","One day at a time, brother."]], more: 19 },
+    { u: "HighPowerHolly", t: "11h", kind: "text", bg: "linear-gradient(160deg,#3a2a18,#11100c)", card: "Celebrate Recovery tonight.\nGrateful for a church that let me walk in exactly as I was.", body: "", c: [["PrayerAndPancakes","🙏"]], more: 7 },
     { u: "SunriseSara", t: "12h", kind: "text", bg: "linear-gradient(160deg,#40321f,#11100c)", card: "Watched the sunrise instead of sleeping off a hangover.", body: "Small things.", c: [["HoosierHope","The best things"]], more: 7 },
     { u: "HighPowerHolly", t: "13h", kind: "meme", img: M("005"), body: "", c: [], more: 1 },
     { u: "PrayerAndPancakes", t: "14h", kind: "text", bg: "linear-gradient(160deg,#3a2f22,#11100c)", card: "Sunday tradition now:\nmeeting, then pancakes with the group.", body: "Used to be mimosas. This is better.", c: [["CoffeeAndSteps","Where do I sign up 🥞"]], more: 10 },
+    { u: "PrayerAndPancakes", t: "15h", kind: "photo", img: "pancakes", body: "After the meeting. No faces, just pancakes.", c: [["CoffeeAndSteps","Save me a stack 🥞"]], more: 6 },
     { u: "Jersey_Joe_ODAAT", t: "15h", pill: "2 YEARS", kind: "coin", coin: "coin-02-years", big: "TWO YEARS", body: "Two years ago I was in detox. Today I'm sponsoring two guys.", c: [["MisfitMarcus","Goals man"],["TrudgingTony","Congrats Joe!"]], more: 24 },
     { u: "CleanSlateCal", t: "16h", kind: "text", bg: "linear-gradient(160deg,#1f2f2a,#11100c)", card: "Made my first amends today.\nShe said thank you.", body: "Step 9 is terrifying and then it isn't.", c: [["SerenityShay","That takes so much courage"]], more: 13 },
     { u: "TrudgingTony", t: "17h", kind: "meme", img: M("020"), body: "", c: [["Kev_in_recovery","lol"]], more: 5 },
     { u: "LateBloomerLiz", t: "18h", pill: "30 DAYS", kind: "coin", coin: "coin-30-days", big: "30 DAYS", body: "Started at 58. Never too late.", c: [["OldTimerWalt","Never too late. Welcome, Liz."]], more: 21 },
+    { u: "LateBloomerLiz", t: "19h", kind: "text", bg: "linear-gradient(160deg,#243142,#11100c)", card: "No program for me.\nJust my therapist, my walking shoes and this app.", body: "Still counts. Still sober.", c: [["CoffeeAndSteps","Still counts 💛"]], more: 11 },
     { u: "DinoDan", t: "19h", kind: "text", bg: "linear-gradient(160deg,#2f2440,#11100c)", card: "Things I do now instead of drinking:\n- puzzles\n- dog walks\n- terrible jokes", body: "", c: [["NightShiftNia","terrible jokes are a gift"]], more: 6 },
     { u: "grateful_gina", t: "20h", kind: "card", card: "111", label: "ONESIE DOES IT", body: "Stayed sober 1 year, 1 month, 1 day. Currently wearing it in a onesie.", c: [["MomOf3Sober","Obsessed with these cards 😂"]], more: 8 },
-    { u: "NewGuyNate", t: "1d", pill: "DAY 2", kind: "text", bg: "linear-gradient(160deg,#242424,#11100c)", card: "Downloaded this at 3am.\nDidn't drink.", body: "", c: [["HoosierHope","That counts. Keep going."],["SoberSam76","Proud of you, stranger."]], more: 17 },
+    { u: "NewGuyNate", t: "1d", pill: "DAY 2", kind: "text", bg: "linear-gradient(160deg,#242424,#11100c)", card: "Downloaded this at 3am.\nDidn't use.", body: "", c: [["HoosierHope","That counts. Keep going."],["SoberSam76","Proud of you, stranger."]], more: 17 },
     { u: "QuietQuinn", t: "1d", kind: "meme", img: M("030"), body: "", c: [], more: 2 },
     { u: "OneDayJen", t: "1d", kind: "text", bg: "linear-gradient(160deg,#402a33,#11100c)", card: "Burn Pad tonight.\nWrote it all out, burned it, went to bed.", body: "Nobody sees it. That's the point.", c: [["LateBloomerLiz","I use it every night now"]], more: 7 },
     { u: "OldTimerWalt", t: "1d", kind: "text", bg: "linear-gradient(160deg,#35301f,#11100c)", card: "To the newcomers:\nyou don't have to feel ready.\nYou just have to not drink today.", body: "", c: [["NewGuyNate","Needed this, thank you"],["Kev_in_recovery","🙏"]], more: 29 },
@@ -232,15 +359,21 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
 
   function postHTML(p, i) {
     if (p.vote) return voteHTML();
+    if (p.demo) return '<section class="demo" id="demo"><div class="hd">HOW PHOTOS COULD WORK</div>' +
+      '<p>Every photo gets checked for people before it posts. Try posting this one and see what happens.</p>' +
+      '<img src="/feed/img/group.webp" alt="Five people outside a church hall" loading="lazy" onerror="this.closest(\'.demo\').remove()">' +
+      '<button type="button" data-try>Try posting this photo</button></section>';
     var u = who(p.u), media = "";
     if (p.kind === "coin") media = '<div class="coin"><div style="text-align:center"><img src="' + COIN(p.coin) + '" alt="' + esc(p.big) + ' coin" loading="lazy"><p>' + esc(p.big) + '</p></div></div>';
     else if (p.kind === "card") media = '<div class="cardshare"><div style="text-align:center"><img src="' + C(p.card) + '" alt="' + esc(p.label) + '" loading="lazy"><p>' + esc(p.label) + '</p></div></div>';
     else if (p.kind === "meme") media = '<img class="img" src="' + p.img + '" alt="Recovery Misfits meme" loading="lazy">';
+    else if (p.kind === "photo") media = '<img class="img" src="/feed/img/' + p.img + '.webp" alt="" loading="lazy" onerror="this.closest(\'.post\').remove()">' +
+      (p.ok ? '<span class="okpill">✓ Poster confirmed permission from everyone in this photo</span>' : '');
     else if (p.kind === "text") media = '<div class="textcard" style="background:' + p.bg + '">' + esc(p.card).replace(/\n/g, "<br>") + '</div>';
     var got = dayWord[p.kind] ? ' <small>· earned ' + dayWord[p.kind] + '</small>' : '';
     var cm = (p.c || []).map(function (x) { return '<p><b>' + esc(x[0]) + '</b> ' + esc(x[1]) + '</p>'; }).join("");
     return '<article class="post">' +
-      '<div class="ph">' + u.face + '<div class="who"><b>' + esc(u.name) + '</b><small>' + esc(p.t) + ' ago</small>' + got + '</div>' + (p.pill ? '<span class="pill">' + esc(p.pill) + '</span>' : '') + '</div>' +
+      '<div class="ph">' + u.face + '<div class="who"><b>' + esc(u.name) + '</b><small>' + esc(p.t) + ' ago</small>' + got + '</div>' + '</div>' +
       (p.body ? '<div class="body">' + esc(p.body) + '</div>' : '') + media +
       '<div class="acts"><button type="button" data-r>🤝 Proud of you</button><button type="button" data-r>🙏 Me too</button><button type="button">💬 Comment</button></div>' +
       '<div class="cm">' + cm + (p.more ? '<p class="more">View all ' + p.more + ' comments</p>' : '') + '</div>' +
@@ -249,8 +382,18 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
 
   function voteHTML() {
     return '<section class="vote" id="vote" aria-label="Vote">' +
-      '<h2>What do you think?</h2>' +
-      '<p>We\'re thinking about adding a feed like this to Recovery Misfits. Be honest. There are no wrong answers.</p>' +
+      '<div class="kick">PREVIEW · WHAT RECOVERY MISFITS COULD BECOME</div>' +
+      '<h2>Could this be us?</h2>' +
+      '<p>Right now Recovery Misfits is a daily tool: readings, coins, the Survival Pile, memes and Nightly Inventory. Below is what it could look like if members could also post and cheer each other on. Like a small Instagram, just for us.</p>' +
+      '<p style="margin-bottom:6px;color:#1b1a17;font-weight:700">What you\'re looking at:</p>' +
+      '<ul><li>Members sharing coins, Survival Pile cards, memes and gratitude lists</li>' +
+      '<li>Newcomers getting support in the comments</li>' +
+      '<li>Photos, with a check that protects other people\'s anonymity</li>' +
+      '<li>Mostly 12-step folks, plus people on other paths: church, therapy, meds, or their own way</li>' +
+      '<li>No likes or follower counts. Just \u201cProud of you\u201d and \u201cMe too.\u201d</li></ul>' +
+      '<p>Everyone in it is made up. Scroll through it, then come back up here and vote.</p>' +
+      '<button type="button" class="ibtn" data-why><i>i</i>Why I\'m on the fence</button>' +
+      '<div class="ask">So what do you think? Be honest. There are no wrong answers.</div>' +
       '<div class="opts">' +
         '<button type="button" data-v="like">👍 Yeah, I like it</button>' +
         '<button type="button" data-v="dislike">👎 I don\'t like it</button>' +
@@ -266,12 +409,13 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
   }
 
   /* draw */
+  document.getElementById("votetop").innerHTML = voteHTML();
   document.getElementById("feed").innerHTML = posts.map(postHTML).join("");
-  var celebrating = [["OneDayJen","90 days"],["MomOf3Sober","1 year"],["SoberSam76","500 days"],["MisfitMarcus","1 week"],["FarmhouseFrank","6 months"],["Jersey_Joe_ODAAT","2 years"],["LateBloomerLiz","30 days"],["SerenityShay","3 years"]];
-  document.getElementById("strip").innerHTML = celebrating.map(function (x) {
-    return '<div class="st"><div class="ring">' + who(x[0]).face + '</div><b>' + esc(x[0]) + '</b>' + esc(x[1]) + '</div>';
+  /* New Misfits: just faces and names. No day counts, no streaks. */
+  var newbies = ["NewGuyNate","QuietQuinn","LateBloomerLiz","MisfitMarcus","Kev_in_recovery","NightShiftNia","HighPowerHolly","CleanSlateCal"];
+  document.getElementById("strip").innerHTML = newbies.map(function (n) {
+    return '<div class="st"><div class="ring">' + who(n).face + '</div><b>' + esc(n) + '</b></div>';
   }).join("");
-
   /* reactions just light up (preview) */
   document.addEventListener("click", function (e) {
     var r = e.target.closest("[data-r]"); if (r) r.classList.toggle("on");
@@ -323,13 +467,88 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
     var v = document.getElementById("vote"); if (v) v.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  /* ---------------------------------------------------------------- INVITE */
-  var inv = document.getElementById("inv");
-  function openInv() { inv.classList.add("open"); try { history.pushState({ inv: 1 }, ""); } catch (e) {} }
-  function closeInv() { inv.classList.remove("open"); }
-  document.querySelector("[data-invite]").addEventListener("click", openInv);
-  inv.addEventListener("click", function (e) { if (e.target.closest("[data-close]")) { if (history.state && history.state.inv) history.back(); else closeInv(); } });
-  window.addEventListener("popstate", closeInv);   /* the phone's back button closes it */
+  /* ---------------------------------------------------------------- LAYERS
+     Invite sheet, "why" sheet, photo check. One step back on the phone closes whatever is open. */
+  function openLayer(el) { el.classList.add("open"); try { history.pushState({ layer: el.id }, ""); } catch (e) {} }
+  function closeAll() { document.querySelectorAll(".layer.open,#inv.open").forEach(function (x) { x.classList.remove("open"); }); }
+  window.addEventListener("popstate", closeAll);
+  function back() { if (history.state && history.state.layer) history.back(); else closeAll(); }
+  var inv = document.getElementById("inv"), why = document.getElementById("why"), scan = document.getElementById("scan");
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("[data-invite]")) openLayer(inv);
+    else if (e.target.closest("[data-why]")) openLayer(why);
+    else if (e.target.closest("[data-try]")) { openLayer(scan); runScan(); }
+    else if (e.target.closest("[data-close]")) back();
+    else if (e.target.closest("[data-govote]")) { back(); setTimeout(function () { document.getElementById("vote").scrollIntoView({ behavior: "smooth", block: "start" }); }, 150); }
+  });
+
+  /* ---------------------------------------------------------------- PHOTO CHECK (demo)
+     In a real build a face finder would run on the phone before upload. Here the boxes are placed by hand. */
+  var FACES = [[15.5,20.7,14.8,22.6],[30.4,31.3,10.4,16.6],[43.2,33.1,11.4,16.6],[56.3,15.2,13.1,19.8],[77.3,30.4,12.4,21.2]];   /* [left%, top%, width%, height%] per face */
+  var shot = document.getElementById("shot"), st8 = document.getElementById("st8"), timer = null;
+  function runScan() {
+    clearTimeout(timer);
+    shot.querySelectorAll(".fb").forEach(function (b) { b.remove(); });
+    shot.querySelector("img").src = "/feed/img/group.webp";
+    FACES.forEach(function (f) {
+      var b = document.createElement("div"); b.className = "fb";
+      b.style.cssText = "left:" + f[0] + "%;top:" + f[1] + "%;width:" + f[2] + "%;height:" + f[3] + "%";
+      shot.appendChild(b);
+    });
+    shot.className = "shot scanning";
+    st8.innerHTML = '<div class="busy"><i></i>Checking for other people…</div>';
+    timer = setTimeout(function () {
+      shot.className = "shot found";
+      var n = FACES.length || 5;
+      st8.innerHTML = '<div class="flag"><b>We found ' + n + ' people in this photo</b>' +
+        '<p>To protect everyone\'s anonymity, this can\'t post until you confirm one of these:</p></div>' +
+        '<div class="choose">' +
+          '<button type="button" data-ok="anon">🛡️ I am not breaking anyone else\'s anonymity</button>' +
+          '<button type="button" data-ok="perm">✅ I have permission to post this picture</button>' +
+          '<button type="button" data-blur>🌫️ Blur the other faces for me</button>' +
+          '<button type="button" class="alt" data-close>Pick a different photo</button>' +
+        '</div>';
+    }, 2200);
+  }
+  /* BLUR: they tap their own face, everybody else gets blurred */
+  shot.addEventListener("click", function (e) {
+    var me = e.target.closest(".fb"); if (!me || !shot.classList.contains("picking")) return;
+    shot.classList.remove("picking");
+    var boxes = shot.querySelectorAll(".fb"), img = shot.querySelector("img");
+    boxes.forEach(function (f) { f.classList.add(f === me ? "me" : "blur"); });
+    /* really scramble the other faces (pixelate them), so it works on every phone */
+    try {
+      var W = img.naturalWidth, H = img.naturalHeight, cv = document.createElement("canvas"), cx = cv.getContext("2d");
+      cv.width = W; cv.height = H; cx.drawImage(img, 0, 0);
+      var tiny = document.createElement("canvas"), tx = tiny.getContext("2d");
+      FACES.forEach(function (f, k) {
+        if (boxes[k] === me) return;
+        var x = f[0] * W / 100, y = f[1] * H / 100, w = f[2] * W / 100, h = f[3] * H / 100;
+        tiny.width = 7; tiny.height = Math.max(7, Math.round(7 * h / w));
+        tx.drawImage(cv, x, y, w, h, 0, 0, tiny.width, tiny.height);
+        cx.imageSmoothingEnabled = false;
+        cx.drawImage(tiny, 0, 0, tiny.width, tiny.height, x, y, w, h);
+      });
+      img.src = cv.toDataURL("image/jpeg", 0.85);
+    } catch (e) {}
+    st8.innerHTML = '<div class="okbox"><b>✓ Everyone else is blurred</b>Only your face shows. Since nobody else can be recognized, it posts with no other questions.</div>' +
+      '<div class="choose"><button type="button" data-ok="blur">Post it</button><button type="button" class="alt" data-close>Pick a different photo</button></div>';
+  });
+  st8.addEventListener("click", function (e) {
+    if (e.target.closest("[data-blur]")) {
+      shot.className = "shot found picking";
+      st8.innerHTML = '<div class="flag" style="background:#1d1a14;border-color:#e0bd6a"><b style="color:#e0bd6a">Tap your own face</b><p>We\'ll blur everybody else.</p></div>';
+      return;
+    }
+    var b = e.target.closest("[data-ok]"); if (!b) return;
+    if (b.getAttribute("data-ok") === "blur") {
+      st8.innerHTML = '<div class="okbox"><b>✓ Posted</b>Posted with the other faces blurred.<br><br>Photos with just you, or no people at all, post right away with no questions.</div>';
+      return;
+    }
+    st8.innerHTML = '<div class="okbox"><b>✓ Posted</b>' +
+      (b.getAttribute("data-ok") === "perm" ? 'It shows a small note: "Poster confirmed permission from everyone in this photo."' : 'It shows a small note: "Poster confirmed no one\'s anonymity is broken."') +
+      '<br><br>Photos with just you, or no people at all, post right away with no questions.</div>';
+  });
 })();
 </script>
 </body>
