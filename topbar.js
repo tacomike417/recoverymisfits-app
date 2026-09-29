@@ -373,8 +373,14 @@
     window.matchMedia("(display-mode: standalone)").matches ||
     window.navigator.standalone === true;
 
-  const PLAY_STORE_URL =
-    "https://play.google.com/store/apps/details?id=com.tacomike.recoverymisfits&hl=en_US";
+  /* ANDROID INSTALLS OUR OWN APP NOW, NOT GOOGLE PLAY (29 Sep 2026, Mike).
+     Chrome hands us a one-tap install prompt when it is ready. We hold on to
+     it so the Install button can use it, instead of it popping up on its own. */
+  let deferredInstall = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstall = e;
+  });
 
   const APP_ICON_URL = "/icon-192.png";
 
@@ -414,7 +420,7 @@
           </div>
         </div>
         <div class="rm-install-actions">
-          <a class="rm-install-cta" id="rm-install-cta" href="${PLAY_STORE_URL}">Install</a>
+          <button class="rm-install-cta" id="rm-install-cta" type="button">Install</button>
           <button class="rm-install-dismiss" id="rm-install-dismiss">Not now</button>
         </div>
       `;
@@ -557,9 +563,25 @@
 
     if (isAndroid && cta) {
       cta.addEventListener("click", () => {
-        if (window.gtag) window.gtag("event", "play_store_install_click");
-        closeInstallSheet(scrim, wrap);
-      });
+        if (window.gtag) window.gtag("event", "pwa_install_click");
+        /* One tap: Chrome's own install box. */
+        if (deferredInstall) {
+          const ask = deferredInstall;
+          deferredInstall = null;
+          ask.prompt();
+          ask.userChoice.finally(() => closeInstallSheet(scrim, wrap));
+          return;
+        }
+        /* Chrome hasn't offered the one-tap box on this visit (or it's
+           another browser). The menu route always works, so show it right
+           here instead of sending them anywhere. */
+        const sub = wrap.querySelector(".rm-install-sub");
+        const title = wrap.querySelector(".rm-install-title");
+        if (title) title.textContent = "Two taps from your browser menu";
+        if (sub) sub.innerHTML = "Tap the <b>&#8942;</b> menu in the corner, then <b>Install app</b> or <b>Add to Home screen</b>.";
+        cta.textContent = "Got it";
+        cta.onclick = () => closeInstallSheet(scrim, wrap);
+      }, { once: true });
     }
 
     if (isIOS && cta) {
