@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Feed Preview · Recovery Misfits</title>
+<meta name="theme-color" content="#11110f">
+<!-- A PREVIEW, NOT A FEATURE (29 Sep 2026, Mike). Every person and post on
+     this page is made up, to show people what a Recovery Misfits feed could
+     become and ask them what they think. Kept out of search engines. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="A preview of what a Recovery Misfits feed could look like. Tell us what you think.">
+<meta property="og:title" content="What do you think of this?">
+<meta property="og:description" content="A preview of a Recovery Misfits feed. Take a look and vote.">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+@font-face{font-family:"RM Rail";src:url("/assets/fonts/oswald-500.woff2") format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"RM Head";src:url("/assets/fonts/anton-400.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"RM Hand";src:url("/assets/fonts/caveat-600.woff2") format("woff2");font-display:swap}
+:root{
+  --bg:#11110f; --panel:#17150f; --card:#1b1913; --line:rgba(255,255,255,.08); --edge:rgba(214,179,106,.22);
+  --cream:#f1e7cf; --muted:#a39b8a; --gold:#d6b36a; --gold2:#e0bd6a; --rust:#c4563c; --green:#3f8f4f;
+}
+html,body{background:var(--bg);margin:0}
+body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:480px;margin:0 auto;padding-bottom:200px}
+
+/* ---- THE RAIL (same as the Home mockup) ---- */
+#rmrail{display:grid;grid-template-columns:repeat(4,1fr);background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.18);border-bottom:1px solid rgba(214,179,106,.28);max-width:480px;margin:0 auto}
+#rmrail a,#rmrail button{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0 9px;color:#b8ae98;font:500 12px/1 "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.12em;text-decoration:none;background:none;border:0;cursor:pointer}
+#rmrail svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#rmrail .inv{color:var(--gold2)}
+#rmrail .n,#rmrail .d,#rmrail .c{position:absolute;top:4px;left:calc(50% + 7px);height:18px;border-radius:9px;border:2px solid #14120e;font:800 10.5px/18px Arial,sans-serif;letter-spacing:0;text-align:center}
+#rmrail .n{min-width:18px;padding:0 5px;box-sizing:border-box;background:var(--rust);color:#fff}
+#rmrail .d{padding:0 5px;background:#3a3122;color:var(--gold2)}
+#rmrail .c{width:18px;background:var(--green);color:#fff}
+
+/* ---- preview banner ---- */
+.banner{margin:12px 12px 0;padding:10px 12px;border-radius:12px;border:1px dashed rgba(214,179,106,.5);background:rgba(214,179,106,.07);font-size:13px;color:#e8dcbf;line-height:1.4}
+.banner b{color:var(--gold2)}
+.banner a{color:var(--gold2);font-weight:700}
+
+/* ---- tabs over the feed ---- */
+.ftabs{display:flex;gap:8px;margin:14px 12px 4px}
+.ftabs span{padding:8px 14px;border-radius:999px;border:1px solid var(--edge);color:var(--muted);font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.08em}
+.ftabs span.on{background:var(--gold);color:#17130b;border-color:var(--gold)}
+
+/* ---- celebrating today (story-style row) ---- */
+.today{margin:12px 0 4px;padding:0 12px}
+.today h3{margin:0 0 8px;font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
+.strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.st{flex:none;width:70px;text-align:center;font-size:11px;color:var(--muted)}
+.st .ring{width:62px;height:62px;margin:0 auto 5px;border-radius:50%;padding:3px;background:conic-gradient(from 200deg,#e0bd6a,#c4563c,#e0bd6a)}
+.st .ring svg,.st .ring img{width:100%;height:100%;border-radius:50%;border:3px solid var(--bg);box-sizing:border-box;display:block}
+.st b{display:block;color:var(--cream);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- posts ---- */
+.post{margin:14px 0 0;background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ph{display:flex;align-items:center;gap:10px;padding:11px 12px}
+.av{width:40px;height:40px;border-radius:50%;flex:none;display:block}
+.ph .who{min-width:0;flex:1}
+.ph .who b{display:block;font-size:14.5px}
+.ph .who small{color:var(--muted);font-size:12px}
+.pill{flex:none;padding:4px 9px;border-radius:999px;background:#2a2419;color:var(--gold2);font:500 11px "RM Rail",Oswald,sans-serif;letter-spacing:.08em}
+.body{padding:0 12px 10px;white-space:pre-line}
+.img{display:block;width:100%;height:auto;background:#0d0c0a}
+.coin{display:grid;place-items:center;padding:22px 0;background:radial-gradient(circle at 50% 40%,#2a2318,#11100c 70%)}
+.coin img{width:62%;max-width:260px;height:auto;filter:drop-shadow(0 10px 30px rgba(0,0,0,.6))}
+.coin p{margin:10px 0 0;font:400 26px/1 "RM Head",Impact,sans-serif;letter-spacing:.04em;color:var(--cream)}
+.cardshare{display:grid;place-items:center;padding:18px 0;background:linear-gradient(160deg,#1f2a33,#12100c)}
+.cardshare img{width:55%;max-width:230px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.55)}
+.cardshare p{margin:10px 0 0;font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.12em;color:var(--gold2)}
+.textcard{display:grid;place-items:center;min-height:250px;padding:26px 22px;box-sizing:border-box;text-align:center;font:600 30px/1.15 "RM Hand",cursive}
+.acts{display:flex;gap:6px;padding:8px 10px 4px;flex-wrap:wrap}
+.acts button{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:#14120e;color:var(--cream);font:600 12.5px Arial,sans-serif;cursor:pointer}
+.acts button.on{border-color:var(--gold);color:var(--gold2)}
+.cm{padding:4px 12px 12px;font-size:13.5px}
+.cm p{margin:4px 0}
+.cm b{color:var(--cream)}
+.cm .more{color:var(--muted);font-size:12.5px}
+
+/* ---- THE VOTE BOX (white, on purpose) ---- */
+.vote{margin:18px 12px;background:#fff;color:#1b1a17;border-radius:18px;padding:18px 16px;box-shadow:0 10px 30px rgba(0,0,0,.45);scroll-margin-top:70px}
+.vote h2{margin:0 0 4px;font:400 26px/1.1 "RM Head",Impact,sans-serif;letter-spacing:.02em}
+.vote p{margin:0 0 12px;color:#57524a;font-size:14px}
+.vote .opts{display:grid;gap:8px}
+.vote .opts button{padding:14px;border-radius:12px;border:2px solid #e2ddd2;background:#faf8f3;color:#1b1a17;font:700 16px Arial,sans-serif;text-align:left;cursor:pointer}
+.vote .opts button.on{border-color:#b98f33;background:#fbf1da}
+.vote label{display:block;margin:12px 0 4px;font:700 13px Arial,sans-serif;color:#3a362f}
+.vote textarea,.vote input{box-sizing:border-box;width:100%;padding:12px;border-radius:12px;border:1.5px solid #d6d0c3;background:#fff;color:#1b1a17;font:16px Arial,sans-serif}
+.vote textarea{min-height:90px;resize:vertical}
+.vote .send{margin-top:12px;width:100%;padding:15px;border:0;border-radius:12px;background:#1b1a17;color:#f1e7cf;font:800 16px Arial,sans-serif;cursor:pointer}
+.vote .send[disabled]{opacity:.4}
+.vote .msg{min-height:18px;margin:8px 0 0;font:700 13px Arial,sans-serif;color:#9b2c1d}
+.vote .done{text-align:center;padding:10px 0}
+.vote .done h2{color:#1b1a17}
+.fvote{position:fixed;right:14px;bottom:calc(200px + env(safe-area-inset-bottom,0px));z-index:30;padding:12px 16px;border-radius:999px;border:0;background:#fff;color:#1b1a17;font:800 14px Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.5);cursor:pointer}
+.fvote[hidden],.fvote.away{display:none}
+
+/* ---- invite sheet (same as mockup) ---- */
+#inv{position:fixed;inset:0;z-index:20000;display:none}
+#inv.open{display:block}
+#inv .dim{position:absolute;inset:0;background:rgba(0,0,0,.66)}
+#inv .sheet{position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;background:#15130f;border-radius:22px 22px 0 0;border-top:2px solid rgba(214,179,106,.45);padding:12px 18px calc(26px + env(safe-area-inset-bottom,0px))}
+#inv .g{width:44px;height:5px;border-radius:3px;background:#4a4336;margin:0 auto 12px}
+#inv h3{margin:0;text-align:center;font:500 30px/1 "RM Rail",Oswald,sans-serif;letter-spacing:.06em}
+#inv .s{margin:8px 0 16px;text-align:center;color:var(--muted);font-size:14px}
+#inv .gr{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px}
+#inv .it{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px}
+#inv .it span{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;color:#fff;font:800 19px Arial,sans-serif}
+#inv .l{margin-top:16px;display:flex;align-items:center;border:1.5px solid var(--gold);border-radius:999px;padding:8px 8px 8px 16px;color:var(--muted);font-size:14px}
+#inv .l b{margin-left:auto;background:var(--gold);color:#17130b;border-radius:999px;padding:9px 14px;font:700 13px Arial,sans-serif}
+#inv .f{margin:12px 0 0;text-align:center;color:#8f887a;font-size:12px}
+</style>
+</head>
+<body>
+<div id="rm-topbar"></div>
+<script src="/topbar.js" defer></script>
+
+<nav id="rmrail" aria-label="You">
+  <button type="button" class="inv" data-invite><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c1.3-4 4-6 7-6s5.7 2 7 6"/><path d="M19 8v6M16 11h6"/></svg>INVITE</button>
+  <a href="/survival-pile.html"><svg viewBox="0 0 24 24"><rect x="7" y="3" width="12" height="16" rx="2"/><path d="M5 7v12a2 2 0 0 0 2 2h9"/></svg><i class="n">1</i>MY PILE</a>
+  <a href="/coins.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8l1.2 2.6 2.8.3-2.1 1.9.6 2.8L12 14.2 9.5 15.6l.6-2.8L8 10.9l2.8-.3z"/></svg><i class="d">8d</i>MY COINS</a>
+  <a href="/another-day-sober.html"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/></svg><i class="c">✓</i>TODAY</a>
+</nav>
+
+<main class="wrap">
+  <div class="banner"><b>PREVIEW.</b> This is what a Recovery Misfits feed <i>could</i> look like. Every person and post here is made up. Look around, then <a href="#vote">tell us what you think</a>.</div>
+
+  <div class="ftabs"><span class="on">EVERYONE</span><span>FOLLOWING</span><span>NEWCOMERS</span></div>
+
+  <section class="today"><h3>CELEBRATING TODAY</h3><div class="strip" id="strip"></div></section>
+
+  <div id="feed"></div>
+</main>
+
+<button type="button" class="fvote" id="fvote">Vote on this</button>
+
+<div id="inv" role="dialog" aria-modal="true" aria-label="Pass it on">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div><h3>PASS IT ON</h3>
+    <p class="s">Know somebody who could use this?<br>Send them Recovery Misfits. It's free.</p>
+    <div class="gr">
+      <div class="it"><span style="background:#2fb24c">✉</span>Text</div>
+      <div class="it"><span style="background:#0a7cff">m</span>Messenger</div>
+      <div class="it"><span style="background:#25d366">w</span>WhatsApp</div>
+      <div class="it"><span style="background:#1877f2">f</span>Facebook</div>
+      <div class="it"><span style="background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af)">◎</span>Insta story</div>
+      <div class="it"><span style="background:#2a251c;border:1px solid #4a4336">@</span>Email</div>
+      <div class="it"><span style="background:#2a251c;border:1px solid #4a4336">▦</span>QR code</div>
+      <div class="it"><span style="background:#2a251c;border:1px solid #4a4336">⋯</span>More</div>
+    </div>
+    <div class="l">recoverymisfits.org <b>Copy link</b></div>
+    <p class="f">Preview only. These buttons don't send anything yet.</p>
+  </div>
+</div>
+
+<div id="rm-bottom-nav"></div>
+<script src="/nav.js" defer></script>
+
+<script>
+(function () {
+  "use strict";
+  /* ---------------------------------------------------------------- VOTES
+     Saved to the Recovery Misfits database (table feed_votes, see
+     supabase/feed_votes.sql). Anyone can ADD a vote; nobody can read them
+     from the page -- Mike reads them in the Supabase SQL editor. */
+  var DB = "https://rlytvfehbglsjfvprtbp.supabase.co";
+  var KEY = "sb_publishable_5r-l8Bj8PjXhq5qpp1b26g_QQ7xPQ7P";
+
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); };
+
+  /* ---------------------------------------------------------------- PEOPLE
+     All made up. Faces are drawn, never photos of anybody. */
+  var COLORS = ["#c4563c","#3f7f8f","#8a6bb8","#b98f33","#4f8f5a","#b8577c","#5b6fb8","#9a7b4f","#6f8f3f","#8f4f3f"];
+  function face(name, i) {
+    var c = COLORS[i % COLORS.length], c2 = COLORS[(i + 3) % COLORS.length];
+    var init = name.replace(/[^A-Za-z]/g, "").slice(0, 1).toUpperCase();
+    return '<svg class="av" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="g' + i + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c + '"/><stop offset="1" stop-color="' + c2 + '"/></linearGradient></defs>' +
+      '<circle cx="20" cy="20" r="20" fill="url(#g' + i + ')"/><circle cx="20" cy="16" r="7" fill="rgba(255,255,255,.28)"/><path d="M7 35c3-7 8-10 13-10s10 3 13 10" fill="rgba(255,255,255,.28)"/>' +
+      '<text x="20" y="25" text-anchor="middle" font-family="Arial" font-weight="700" font-size="15" fill="#fff">' + init + '</text></svg>';
+  }
+  var P = ["OneDayJen","BigBookBrad","grateful_gina","SoberSam76","Kev_in_recovery","HoosierHope","MomOf3Sober","TrudgingTony","SerenityShay","DinoDan","CoffeeAndSteps","LateBloomerLiz","ReformedRocker","QuietQuinn","FarmhouseFrank","NightShiftNia","ByTheBookBob","MisfitMarcus","SunriseSara","OldTimerWalt","NewGuyNate","HighPowerHolly","Jersey_Joe_ODAAT","PrayerAndPancakes","CleanSlateCal"];
+  var who = function (n) { var i = P.indexOf(n); return { name: n, face: face(n, i < 0 ? 0 : i) }; };
+
+  /* ---------------------------------------------------------------- POSTS */
+  var M = function (n) { return "/assets/memes/" + n + ".jpg"; };
+  var C = function (code) { return "/assets/survival-pile/cards/" + code + ".webp"; };
+  var COIN = function (f) { return "/assets/coins/" + f + ".webp"; };
+  var posts = [
+    { u: "OneDayJen", t: "12m", pill: "90 DAYS", kind: "coin", coin: "coin-90-days", big: "90 DAYS", body: "Ninety days. My kids noticed before I did. Thank you to whoever built this app, the reading this morning hit different.", c: [["BigBookBrad","So proud of you Jen. Keep coming back."],["grateful_gina","90 in 90 and then some! 🙌"]], more: 14 },
+    { u: "TrudgingTony", t: "28m", kind: "meme", img: M("010"), body: "This one is too real 😂", c: [["DinoDan","Felt this in my soul"]], more: 6 },
+    { u: "NewGuyNate", t: "41m", pill: "DAY 3", kind: "text", bg: "linear-gradient(160deg,#243142,#11100c)", card: "Day 3. Hands still shaky. Didn't drink last night.", body: "First time posting anything. Not really sure what I'm doing here.", c: [["OldTimerWalt","You're doing exactly right, Nate. Day 3 is hard. Call somebody today."],["SerenityShay","I remember day 3. It gets better, I promise. Keep showing up."],["HoosierHope","Welcome. Glad you're here. 💛"]], more: 22 },
+    { u: "grateful_gina", t: "1h", kind: "text", bg: "linear-gradient(160deg,#3a2a18,#11100c)", card: "Gratitude list:\n1. Hot coffee\n2. My sponsor answering at 11pm\n3. Waking up without regret", body: "" , c: [["CoffeeAndSteps","#1 is always on my list too ☕"]], more: 4 },
+    { vote: true },
+    { u: "SoberSam76", t: "1h", pill: "500 DAYS", kind: "card", card: "500", label: "THE SOBER 500", body: "Five hundred laps around 'not drinking today.' Never thought I'd see this number.", c: [["ReformedRocker","Legend."],["QuietQuinn","Congrats Sam!"]], more: 11 },
+    { u: "HoosierHope", t: "2h", kind: "text", bg: "linear-gradient(160deg,#2c3a2a,#11100c)", card: "God wink today: the song on the radio was the one they played at my first meeting.", body: "Didn't believe in these until they kept happening.", c: [["PrayerAndPancakes","Love a good God wink"]], more: 9 },
+    { u: "BigBookBrad", t: "2h", kind: "meme", img: M("027"), body: "Page 417 people will get it.", c: [["ByTheBookBob","Acceptance is the answer 📖"]], more: 7 },
+    { u: "MomOf3Sober", t: "3h", pill: "1 YEAR", kind: "coin", coin: "coin-01-year", big: "ONE YEAR", body: "One year ago I couldn't make it through a school pickup. Today I chaperoned the field trip.", c: [["SunriseSara","Crying at work reading this. So happy for you."],["LateBloomerLiz","This is everything. 💛"]], more: 31 },
+    { u: "Kev_in_recovery", t: "3h", kind: "text", bg: "linear-gradient(160deg,#3a1f24,#11100c)", card: "Rough day. Wanted to drink at lunch. Didn't.", body: "Just needed to tell somebody.", c: [["OldTimerWalt","Proud of you Kev. That's a win."],["NightShiftNia","Glad you told us. Call your people tonight."]], more: 15 },
+    { u: "DinoDan", t: "4h", kind: "meme", img: M("028"), body: "", c: [["TrudgingTony","😂😂"]], more: 3 },
+    { u: "SerenityShay", t: "4h", kind: "text", bg: "linear-gradient(160deg,#2a2440,#11100c)", card: "Nightly inventory done.\nOne resentment. One amends to make tomorrow.", body: "The new Nightly Inventory tool makes it way less scary.", c: [["QuietQuinn","Same, it's the only way I actually do it"]], more: 5 },
+    { u: "OldTimerWalt", t: "5h", pill: "22 YEARS", kind: "text", bg: "linear-gradient(160deg,#35301f,#11100c)", card: "\"It works if you work it.\"\nStill true at 22 years.", body: "Hit a meeting, call a newcomer, say the prayer. Same as day one.", c: [["NewGuyNate","Thanks Walt."],["BigBookBrad","Wisdom right here"]], more: 18 },
+    { u: "CoffeeAndSteps", t: "5h", kind: "card", card: "100", label: "KEEPING IT 100", body: "A hundred days sober. Still a little weird.", c: [["grateful_gina","100!!! 🎉"]], more: 12 },
+    { u: "LateBloomerLiz", t: "6h", kind: "meme", img: M("003"), body: "Sharing because it made me laugh on a hard morning.", c: [], more: 2 },
+    { u: "ReformedRocker", t: "6h", kind: "text", bg: "linear-gradient(160deg,#401f1f,#11100c)", card: "Played my first sober gig tonight.\nHands didn't shake once.", body: "", c: [["MisfitMarcus","Rock on 🤘"],["HighPowerHolly","That's huge!"]], more: 20 },
+    { u: "QuietQuinn", t: "7h", kind: "text", bg: "linear-gradient(160deg,#1f3440,#11100c)", card: "Question for the group:\nHow do you handle a wedding with an open bar?", body: "My cousin's is Saturday. First one sober.", c: [["TrudgingTony","Bring a sober buddy, have an exit plan, leave before the toasts if you need to."],["SerenityShay","Club soda with lime in hand the whole time. Nobody asks."]], more: 26 },
+    { u: "FarmhouseFrank", t: "8h", pill: "6 MONTHS", kind: "coin", coin: "coin-06-months", big: "SIX MONTHS", body: "Half a year. Cows still need milking but I remember doing it now.", c: [["DinoDan","😂 congrats Frank"]], more: 9 },
+    { u: "NightShiftNia", t: "9h", kind: "meme", img: M("011"), body: "", c: [["SunriseSara","Needed this"]], more: 4 },
+    { u: "ByTheBookBob", t: "10h", kind: "text", bg: "linear-gradient(160deg,#2b2b1f,#11100c)", card: "\"We will not regret the past nor wish to shut the door on it.\"", body: "The Promises on page 83. Read them out loud this morning.", c: [["BigBookBrad","My favorite page"]], more: 8 },
+    { u: "MisfitMarcus", t: "11h", pill: "DAY 7", kind: "card", card: "7", label: "ONE WEEK", body: "7 days. That's a whole week. Yeah, a week!", c: [["OneDayJen","A WEEK! So proud of you"],["OldTimerWalt","One day at a time, brother."]], more: 19 },
+    { u: "SunriseSara", t: "12h", kind: "text", bg: "linear-gradient(160deg,#40321f,#11100c)", card: "Watched the sunrise instead of sleeping off a hangover.", body: "Small things.", c: [["HoosierHope","The best things"]], more: 7 },
+    { u: "HighPowerHolly", t: "13h", kind: "meme", img: M("005"), body: "", c: [], more: 1 },
+    { u: "PrayerAndPancakes", t: "14h", kind: "text", bg: "linear-gradient(160deg,#3a2f22,#11100c)", card: "Sunday tradition now:\nmeeting, then pancakes with the group.", body: "Used to be mimosas. This is better.", c: [["CoffeeAndSteps","Where do I sign up 🥞"]], more: 10 },
+    { u: "Jersey_Joe_ODAAT", t: "15h", pill: "2 YEARS", kind: "coin", coin: "coin-02-years", big: "TWO YEARS", body: "Two years ago I was in detox. Today I'm sponsoring two guys.", c: [["MisfitMarcus","Goals man"],["TrudgingTony","Congrats Joe!"]], more: 24 },
+    { u: "CleanSlateCal", t: "16h", kind: "text", bg: "linear-gradient(160deg,#1f2f2a,#11100c)", card: "Made my first amends today.\nShe said thank you.", body: "Step 9 is terrifying and then it isn't.", c: [["SerenityShay","That takes so much courage"]], more: 13 },
+    { u: "TrudgingTony", t: "17h", kind: "meme", img: M("020"), body: "", c: [["Kev_in_recovery","lol"]], more: 5 },
+    { u: "LateBloomerLiz", t: "18h", pill: "30 DAYS", kind: "coin", coin: "coin-30-days", big: "30 DAYS", body: "Started at 58. Never too late.", c: [["OldTimerWalt","Never too late. Welcome, Liz."]], more: 21 },
+    { u: "DinoDan", t: "19h", kind: "text", bg: "linear-gradient(160deg,#2f2440,#11100c)", card: "Things I do now instead of drinking:\n- puzzles\n- dog walks\n- terrible jokes", body: "", c: [["NightShiftNia","terrible jokes are a gift"]], more: 6 },
+    { u: "grateful_gina", t: "20h", kind: "card", card: "111", label: "ONESIE DOES IT", body: "Stayed sober 1 year, 1 month, 1 day. Currently wearing it in a onesie.", c: [["MomOf3Sober","Obsessed with these cards 😂"]], more: 8 },
+    { u: "NewGuyNate", t: "1d", pill: "DAY 2", kind: "text", bg: "linear-gradient(160deg,#242424,#11100c)", card: "Downloaded this at 3am.\nDidn't drink.", body: "", c: [["HoosierHope","That counts. Keep going."],["SoberSam76","Proud of you, stranger."]], more: 17 },
+    { u: "QuietQuinn", t: "1d", kind: "meme", img: M("030"), body: "", c: [], more: 2 },
+    { u: "OneDayJen", t: "1d", kind: "text", bg: "linear-gradient(160deg,#402a33,#11100c)", card: "Burn Pad tonight.\nWrote it all out, burned it, went to bed.", body: "Nobody sees it. That's the point.", c: [["LateBloomerLiz","I use it every night now"]], more: 7 },
+    { u: "OldTimerWalt", t: "1d", kind: "text", bg: "linear-gradient(160deg,#35301f,#11100c)", card: "To the newcomers:\nyou don't have to feel ready.\nYou just have to not drink today.", body: "", c: [["NewGuyNate","Needed this, thank you"],["Kev_in_recovery","🙏"]], more: 29 },
+    { u: "SerenityShay", t: "2d", pill: "3 YEARS", kind: "coin", coin: "coin-03-years", big: "THREE YEARS", body: "Three years. Grateful for every meeting, every call, every hard night I didn't drink through.", c: [["OneDayJen","Queen 👑"]], more: 25 },
+    { u: "ByTheBookBob", t: "2d", kind: "meme", img: M("040"), body: "", c: [["BigBookBrad","📖"]], more: 3 },
+    { u: "HoosierHope", t: "2d", kind: "card", card: "14", label: "TWO WEEKS", body: "Two whole weeks. Look at you.", c: [["grateful_gina","Look at YOU!"]], more: 10 }
+  ];
+  var dayWord = { coin: "a coin", card: "a Survival Pile card" };
+
+  function postHTML(p, i) {
+    if (p.vote) return voteHTML();
+    var u = who(p.u), media = "";
+    if (p.kind === "coin") media = '<div class="coin"><div style="text-align:center"><img src="' + COIN(p.coin) + '" alt="' + esc(p.big) + ' coin" loading="lazy"><p>' + esc(p.big) + '</p></div></div>';
+    else if (p.kind === "card") media = '<div class="cardshare"><div style="text-align:center"><img src="' + C(p.card) + '" alt="' + esc(p.label) + '" loading="lazy"><p>' + esc(p.label) + '</p></div></div>';
+    else if (p.kind === "meme") media = '<img class="img" src="' + p.img + '" alt="Recovery Misfits meme" loading="lazy">';
+    else if (p.kind === "text") media = '<div class="textcard" style="background:' + p.bg + '">' + esc(p.card).replace(/\n/g, "<br>") + '</div>';
+    var got = dayWord[p.kind] ? ' <small>· earned ' + dayWord[p.kind] + '</small>' : '';
+    var cm = (p.c || []).map(function (x) { return '<p><b>' + esc(x[0]) + '</b> ' + esc(x[1]) + '</p>'; }).join("");
+    return '<article class="post">' +
+      '<div class="ph">' + u.face + '<div class="who"><b>' + esc(u.name) + '</b><small>' + esc(p.t) + ' ago</small>' + got + '</div>' + (p.pill ? '<span class="pill">' + esc(p.pill) + '</span>' : '') + '</div>' +
+      (p.body ? '<div class="body">' + esc(p.body) + '</div>' : '') + media +
+      '<div class="acts"><button type="button" data-r>🤝 Proud of you</button><button type="button" data-r>🙏 Me too</button><button type="button">💬 Comment</button></div>' +
+      '<div class="cm">' + cm + (p.more ? '<p class="more">View all ' + p.more + ' comments</p>' : '') + '</div>' +
+    '</article>';
+  }
+
+  function voteHTML() {
+    return '<section class="vote" id="vote" aria-label="Vote">' +
+      '<h2>What do you think?</h2>' +
+      '<p>We\'re thinking about adding a feed like this to Recovery Misfits. Be honest. There are no wrong answers.</p>' +
+      '<div class="opts">' +
+        '<button type="button" data-v="like">👍 Yeah, I like it</button>' +
+        '<button type="button" data-v="dislike">👎 I don\'t like it</button>' +
+        '<button type="button" data-v="other">💬 Something else</button>' +
+      '</div>' +
+      '<label for="vnote" id="vnoteL">Anything you want to add? <span style="font-weight:400;color:#77716a">(optional)</span></label>' +
+      '<textarea id="vnote" maxlength="1000" placeholder="Tell us what you think…"></textarea>' +
+      '<label for="vname">Your name <span style="font-weight:400;color:#77716a">(optional)</span></label>' +
+      '<input id="vname" maxlength="60" autocomplete="given-name" placeholder="First name is fine">' +
+      '<button type="button" class="send" id="vsend" disabled>Send my vote</button>' +
+      '<p class="msg" id="vmsg" role="status"></p>' +
+    '</section>';
+  }
+
+  /* draw */
+  document.getElementById("feed").innerHTML = posts.map(postHTML).join("");
+  var celebrating = [["OneDayJen","90 days"],["MomOf3Sober","1 year"],["SoberSam76","500 days"],["MisfitMarcus","1 week"],["FarmhouseFrank","6 months"],["Jersey_Joe_ODAAT","2 years"],["LateBloomerLiz","30 days"],["SerenityShay","3 years"]];
+  document.getElementById("strip").innerHTML = celebrating.map(function (x) {
+    return '<div class="st"><div class="ring">' + who(x[0]).face + '</div><b>' + esc(x[0]) + '</b>' + esc(x[1]) + '</div>';
+  }).join("");
+
+  /* reactions just light up (preview) */
+  document.addEventListener("click", function (e) {
+    var r = e.target.closest("[data-r]"); if (r) r.classList.toggle("on");
+  });
+
+  /* ---------------------------------------------------------------- VOTE */
+  var choice = null;
+  var box = document.getElementById("vote");
+  var send = document.getElementById("vsend"), msg = document.getElementById("vmsg");
+  var note = document.getElementById("vnote"), nameIn = document.getElementById("vname"), noteL = document.getElementById("vnoteL");
+  function ready() { send.disabled = !choice || (choice === "other" && !note.value.trim()); }
+  box.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-v]"); if (!b) return;
+    choice = b.getAttribute("data-v");
+    box.querySelectorAll("[data-v]").forEach(function (x) { x.classList.toggle("on", x === b); });
+    noteL.innerHTML = choice === "other" ? 'Tell us what you\'re thinking' : 'Anything you want to add? <span style="font-weight:400;color:#77716a">(optional)</span>';
+    if (choice === "other") note.focus();
+    ready();
+  });
+  note.addEventListener("input", ready);
+  function thanks() {
+    box.innerHTML = '<div class="done"><h2>Thank you!</h2><p>Your vote is in. It really helps.</p></div>';
+    var f = document.getElementById("fvote"); if (f) f.hidden = true;
+  }
+  try { if (localStorage.getItem("rm_feed_vote_v1")) thanks(); } catch (e) {}
+  send.addEventListener("click", function () {
+    if (send.disabled) return;
+    send.disabled = true; send.textContent = "Sending…"; msg.textContent = "";
+    fetch(DB + "/rest/v1/feed_votes", {
+      method: "POST",
+      headers: { "apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json", "Prefer": "return=minimal" },
+      body: JSON.stringify({ choice: choice, note: note.value.trim().slice(0, 1000) || null, name: nameIn.value.trim().slice(0, 60) || null })
+    }).then(function (r) {
+      if (!r.ok) throw new Error("bad");
+      try { localStorage.setItem("rm_feed_vote_v1", "1"); } catch (e) {}
+      thanks();
+    }).catch(function () {
+      msg.textContent = "That didn't send. Check your connection and try again.";
+      send.textContent = "Send my vote"; ready();
+    });
+  });
+  /* the Vote pill hides while the white box is on screen */
+  try {
+    new IntersectionObserver(function (es) {
+      document.getElementById("fvote").classList.toggle("away", es[0].isIntersecting);
+    }).observe(document.getElementById("vote"));
+  } catch (e) {}
+  document.getElementById("fvote").addEventListener("click", function () {
+    var v = document.getElementById("vote"); if (v) v.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  /* ---------------------------------------------------------------- INVITE */
+  var inv = document.getElementById("inv");
+  function openInv() { inv.classList.add("open"); try { history.pushState({ inv: 1 }, ""); } catch (e) {} }
+  function closeInv() { inv.classList.remove("open"); }
+  document.querySelector("[data-invite]").addEventListener("click", openInv);
+  inv.addEventListener("click", function (e) { if (e.target.closest("[data-close]")) { if (history.state && history.state.inv) history.back(); else closeInv(); } });
+  window.addEventListener("popstate", closeInv);   /* the phone's back button closes it */
+})();
+</script>
+</body>
+</html>
