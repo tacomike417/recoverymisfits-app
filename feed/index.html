@@ -60,6 +60,16 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
 .safe li{margin:0 0 4px}
 .safe .add{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:#fbf1da;color:#5a4418;font:700 13.5px Arial,sans-serif}
 
+.intro summary{list-style:none;cursor:pointer;position:relative;padding-right:30px}
+.intro summary::-webkit-details-marker{display:none}
+.intro summary::after{content:"▾";position:absolute;right:0;top:26px;font-size:24px;color:#a07a2c;transition:transform .2s}
+.intro[open] summary::after{transform:rotate(180deg)}
+.intro .tap{display:inline-block;margin-top:6px;font:700 13.5px Arial,sans-serif;color:#8a6a24}
+.intro[open] .tap{display:none}
+.intro summary + *{margin-top:10px}
+.vote .kick + h2 + .ibtn{margin-top:4px}
+.vote .ask{margin-top:6px}
+
 /* ---- tabs over the feed ---- */
 .ftabs{display:flex;gap:8px;margin:14px 12px 4px}
 .ftabs span{padding:8px 14px;border-radius:999px;border:1px solid var(--edge);color:var(--muted);font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.08em}
@@ -218,7 +228,7 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
   <div id="feed"></div>
 </main>
 
-<button type="button" class="fvote" id="fvote">↑ Vote</button>
+<button type="button" class="fvote" id="fvote">↓ Vote</button>
 
 <div id="why" class="layer" role="dialog" aria-modal="true" aria-label="Why I'm on the fence">
   <div class="dim" data-close></div>
@@ -229,6 +239,7 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
     <p>A lot of people find recovery online now. Seeing real people make it could be the thing that keeps somebody going.</p>
     <h4>WHAT WORRIES ME</h4>
     <ul>
+      <li><b>The morning.</b> Right now this is a morning meditation app, and the daily reading stays the front page no matter what. The feed would live on its own spot on the rail. Would it pull people away from the quiet morning part? I honestly don't know.</li>
       <li><b>Anonymity.</b> One photo could out somebody who never said OK.</li>
       <li><b>Newcomers are raw.</b> A feed could turn into drama, comparing, or somebody posting at their worst moment.</li>
       <li><b>It's work.</b> Reports, moderating, and a photo check all have to be there from day one.</li>
@@ -393,22 +404,22 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
   }
 
   function voteHTML() {
-    return '<section class="vote" id="vote" aria-label="Vote">' +
+    return '<details class="vote intro"><summary>' +
       '<div class="kick">PREVIEW · WHAT RECOVERY MISFITS COULD BECOME</div>' +
-      '<h2>Could this be us?</h2>' +
-      '<p>Right now Recovery Misfits is a daily tool: readings, coins, the Survival Pile, memes and Nightly Inventory. Below is what it could look like if members could also post and cheer each other on. Like a small Instagram, just for us.</p>' +
+      '<h2>Could this be us?</h2><span class="tap">Tap to see what you\'re looking at</span></summary>' +
+      '<p>Right now Recovery Misfits is a morning meditation app, plus coins, the Survival Pile, memes and Nightly Inventory. The morning reading stays the front page no matter what. Below is what a feed could look like, on its own spot on the rail, where members post and cheer each other on. Like a small Instagram, just for us.</p>' +
       '<p style="margin-bottom:6px;color:#1b1a17;font-weight:700">What you\'re looking at:</p>' +
       '<ul><li>Members sharing coins, Survival Pile cards, memes and gratitude lists</li>' +
       '<li>Newcomers getting support in the comments</li>' +
       '<li>Photos, with a check that protects other people\'s anonymity</li>' +
       '<li>Mostly 12-step folks, plus people on other paths: church, therapy, meds, or their own way</li>' +
       '<li>No likes or follower counts. Just \u201cProud of you\u201d and \u201cMe too.\u201d</li></ul>' +
-      '<p>Everyone in it is made up. Scroll through it, then come back up here and vote.</p>' +
+      '<p>Everyone in it is made up. Scroll through it, then vote at the bottom.</p>' +
       '<button type="button" class="ibtn" data-why><i>i</i>Why I\'m on the fence</button>' +
       '<details class="safe"><summary>🛡️ How we\'d keep it safe<small>Tap to read. Short list, we promise.</small></summary><div class="in">' +
         '<h5>ANONYMITY</h5><ul>' +
           '<li>Every photo is checked for faces before it posts</li>' +
-          '<li>Anyone else in it? You confirm their OK, or we blur them</li>' +
+          '<li>Anyone else in it? You confirm you have their OK. That\'s on you</li>' +
           '<li>No real names needed. A drawn icon is fine</li>' +
           '<li>Your sober date only shows if you want it to</li></ul>' +
         '<h5>NO EGO STUFF</h5><ul>' +
@@ -427,9 +438,17 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
         '<h5>YOUR STUFF</h5><ul>' +
           '<li>Delete a post, or your whole account, any time</li>' +
           '<li>Help lines one tap away on every screen</li></ul>' +
-        '<div class="add">Something we missed? Tell us below. Every idea gets read.</div>' +
+        '<div class="add">Something we missed? Tell us in the vote box at the bottom. Every idea gets read.</div>' +
       '</div></details>' +
-      '<div class="ask">So what do you think? Be honest. There are no wrong answers.</div>' +
+    '</details>';
+  }
+
+  function voteBoxHTML() {
+    return '<section class="vote" id="vote" aria-label="Vote">' +
+      '<div class="kick">YOUR VOTE</div>' +
+      '<h2>So, could this be us?</h2>' +
+      '<button type="button" class="ibtn" data-why><i>i</i>Why I\'m on the fence</button>' +
+      '<div class="ask">Be honest. There are no wrong answers.</div>' +
       '<div class="opts">' +
         '<button type="button" data-v="like">👍 Yeah, I like it</button>' +
         '<button type="button" data-v="dislike">👎 I don\'t like it</button>' +
@@ -446,7 +465,7 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
 
   /* draw */
   document.getElementById("votetop").innerHTML = voteHTML();
-  document.getElementById("feed").innerHTML = posts.map(postHTML).join("");
+  document.getElementById("feed").innerHTML = posts.map(postHTML).join("") + voteBoxHTML();
   /* New Misfits: just faces and names. No day counts, no streaks. */
   var newbies = ["NewGuyNate","QuietQuinn","LateBloomerLiz","MisfitMarcus","Kev_in_recovery","NightShiftNia","HighPowerHolly","CleanSlateCal"];
   document.getElementById("strip").innerHTML = newbies.map(function (n) {
@@ -500,7 +519,10 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
     }).observe(document.getElementById("vote"));
   } catch (e) {}
   document.getElementById("fvote").addEventListener("click", function () {
-    var v = document.getElementById("vote"); if (v) v.scrollIntoView({ behavior: "smooth", block: "start" });
+    var v = document.getElementById("vote"); if (!v) return;
+    /* photos above load as you pass them and push the box down, so land, then land again */
+    v.scrollIntoView({ block: "start" });
+    setTimeout(function () { v.scrollIntoView({ block: "start" }); }, 500);
   });
 
   /* ---------------------------------------------------------------- LAYERS
@@ -541,7 +563,6 @@ body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe U
         '<div class="choose">' +
           '<button type="button" data-ok="anon">🛡️ I am not breaking anyone else\'s anonymity</button>' +
           '<button type="button" data-ok="perm">✅ I have permission to post this picture</button>' +
-          '<button type="button" data-blur>🌫️ Blur the other faces for me</button>' +
           '<button type="button" class="alt" data-close>Pick a different photo</button>' +
         '</div>';
     }, 2200);
