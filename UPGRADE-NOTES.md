@@ -79,6 +79,18 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
   Level 2; a short wait for brand-new accounts before posting; delete everything any time.
 - Forgot password / username for Level 2: match the typed email's fingerprint, email a code.
 
+### Porch vs Facebook/Instagram: what we added (30 Sep 2026)
+- Done: follows + notifications, @ suggestions, **Send a share out** (paper plane: text it,
+  Facebook, copy link; the link opens that one share), **Reply to a comment** (one level,
+  like Facebook, with a "replied to your comment" notification), **Edit your share or
+  comment** (same checks as new, shows "edited"; photos stay put), **Search** people by name.
+- Next up: "New shares" pill + pull to refresh, link previews, double-tap a photo for
+  Proud of you, save a share, phone notifications with an icon badge.
+- Safety list still open: moderator screen, self-harm reports go to Mike instead of pausing
+  the person, delete my account (photos too), sign-up levels, 3-day wait on reacting/following,
+  follow/reaction spam cap, sample posts out before launch.
+- Sent links: while the Porch is Mike-only, anybody else who taps one lands on the /feed/ preview.
+
 ## THE ONE RULE (30 Sep 2026)
 **People in recovery deserve the best.**
 Every build decision gets checked against it: no cheap shortcuts, no fake people or

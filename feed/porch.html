@@ -10,6 +10,13 @@
      lives in /feed/ whatever it ends up being called.
      Members' posts never go to Google: noindex here + Disallow in robots.txt. -->
 <meta name="robots" content="noindex, nofollow">
+<!-- what a sent link looks like in a text or on Facebook (30 Sep 2026) -->
+<meta property="og:site_name" content="Recovery Misfits">
+<meta property="og:title" content="On the Porch · Recovery Misfits">
+<meta property="og:description" content="A free recovery app. No ads, ever. Every path counts.">
+<meta property="og:image" content="https://recoverymisfits.org/icon-512.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <link rel="icon" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <style>
@@ -315,6 +322,37 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 #viewer .vrow img{flex:none;width:100%;height:100%;object-fit:contain;scroll-snap-align:center}
 #viewer .vn{position:absolute;left:0;right:0;bottom:calc(20px + env(safe-area-inset-bottom,0px));text-align:center;color:#fff;font:700 13px Arial,sans-serif;text-shadow:0 1px 4px #000;pointer-events:none}
 
+/* ---- SEND A SHARE OUT (30 Sep 2026): the paper plane, far right, like Instagram ---- */
+.acts{flex-wrap:nowrap!important;gap:5px!important;padding:8px 8px 6px!important}
+.acts button{padding:8px 10px!important;white-space:nowrap}
+.acts button{gap:5px!important}
+@media (max-width:384px){.acts [data-comments] .lbl{display:none}}
+.acts .send1{margin-left:auto;flex:none;padding:8px 10px!important}
+.acts .send1 .ico{width:19px;height:19px}
+.menu button .ico{width:20px;height:20px;margin:0 12px -4px 0;color:var(--gold2)}
+
+/* ---- REPLIES: one level deep, tucked under the comment, like Facebook ---- */
+.c1.rp{margin-left:44px;padding:4px 0}
+.c1.rp .av{width:28px;height:28px;font-size:12px}
+.replyto{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px 0;color:var(--muted);font-size:13px}
+.replyto b{color:var(--cream)}
+.replyto button{border:0;background:none;color:var(--muted);font:700 13px Arial,sans-serif;cursor:pointer;padding:4px 6px}
+.replyto:empty{display:none}
+
+/* ---- SEARCH (30 Sep 2026) ---- */
+.ftabs .srch{margin-left:auto;display:flex;align-items:center;gap:6px}
+.ftabs .srch .ico{width:16px;height:16px}
+#search .page{padding-top:calc(14px + env(safe-area-inset-top,0px))}
+#search .sbox{position:relative;margin:0 16px 8px}
+#search .sbox .ico{position:absolute;left:14px;top:50%;margin-top:-9px;color:var(--muted)}
+#search .sbox input{width:100%;padding:13px 14px 13px 42px;border-radius:999px;border:1.5px solid var(--fline);background:var(--field);color:var(--cream);font:17px Arial,sans-serif}
+#search .sbox input:focus{outline:none;border-color:var(--gold)}
+.sr{display:flex;align-items:center;gap:12px;width:100%;padding:10px 16px;border:0;background:none;color:var(--cream);text-align:left;cursor:pointer;font:15px Arial,sans-serif}
+.sr .av{width:46px;height:46px}
+.sr b{display:block;font-size:15.5px}
+.sr small{display:block;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr .srw{min-width:0;flex:1}
+
 .toast{position:fixed;left:50%;bottom:calc(270px + env(safe-area-inset-bottom,0px));z-index:30000;transform:translate(-50%,20px);max-width:88vw;padding:12px 18px;border-radius:999px;background:var(--cream);color:var(--bg);font:700 14px Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -348,7 +386,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 <main class="wrap" id="main">
   
   <section class="newb" id="newb" hidden><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
-  <div class="ftabs" id="ftabs"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FOLLOWING</button></div>
+  <div class="ftabs" id="ftabs"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FOLLOWING</button><button type="button" class="srch" data-search aria-label="Search the Porch"><span data-ico="search"></span>SEARCH</button></div>
   <div id="feed" style="padding-top:2px"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
 </main>
@@ -474,6 +512,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   <div class="sheet"><div class="g"></div>
     <div id="clist"></div>
     <div class="atbar" id="atm"></div>
+    <div class="replyto" id="replyto"></div>
     <div class="cbar"><textarea id="cin" rows="1" maxlength="1000" placeholder="Say something kind…"></textarea><button type="button" id="cgo" disabled>Send</button></div>
   </div>
 </div>
@@ -498,6 +537,12 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 
 <!-- NOTIFICATIONS -->
 <div id="notes" class="layer full" role="dialog" aria-modal="true" aria-label="Notifications"><div class="page"><h2>NOTIFICATIONS</h2><div id="nlist"></div></div></div>
+
+<!-- SEARCH: find somebody by name -->
+<div id="search" class="layer full" role="dialog" aria-modal="true" aria-label="Search"><div class="page">
+  <div class="sbox"><span data-ico="search"></span><input id="sq" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Find somebody by name"></div>
+  <div id="slist"></div>
+</div></div>
 
 <!-- A PROFILE -->
 <div id="profile" class="layer full" role="dialog" aria-modal="true" aria-label="Profile"><div class="page" id="pfpage"></div></div>
@@ -559,7 +604,14 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     proud: '<path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/>',
     metoo: '<circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/>',
     comment:'<path d="M12 4c4.7 0 8.5 3 8.5 6.9s-3.8 6.9-8.5 6.9c-1 0-2-.1-2.9-.4L4.5 19.5l1.2-3.4C4.3 14.9 3.5 13 3.5 10.9 3.5 7 7.3 4 12 4z"/>',
-    read:  '<path d="M3 5.5c3-.9 6-.6 9 1.4 3-2 6-2.3 9-1.4v13c-3-.9-6-.6-9 1.4-3-2-6-2.3-9-1.4z"/><path d="M12 6.9v13"/>'
+    read:  '<path d="M3 5.5c3-.9 6-.6 9 1.4 3-2 6-2.3 9-1.4v13c-3-.9-6-.6-9 1.4-3-2-6-2.3-9-1.4z"/><path d="M12 6.9v13"/>',
+    send:  '<path d="M21 3L10 14"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/>',
+    search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>',
+    link:  '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>',
+    text:  '<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10 18.5h4"/>',
+    fb:    '<path d="M14.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H9v3h2.5V21"/>',
+    share: '<path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
+    reply: '<path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 6 6v1"/>'
   };
   var ico = function (k, cls) { return '<svg class="ico ' + (cls || "") + '" viewBox="0 0 24 24" aria-hidden="true">' + ICON[k] + "</svg>"; };
 
@@ -683,7 +735,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     var mins = Math.max(1, Math.round(text.split(/\s+/).length / 200));
     var r = mine[p.id] || {};
     return '<article class="post" id="p-' + p.id + '" data-post="' + p.id + '">' +
-      '<div class="ph"><button type="button" class="ubtn" data-u="' + p.user_id + '">' + avatar(people[p.user_id]) + '</button><div class="who"><b><button type="button" class="un" data-u="' + p.user_id + '">' + esc(name(p.user_id)) + "</button></b><small>" + ago(p.created_at) + (p.sample ? " · sample" : "") + "</small></div>" +
+      '<div class="ph"><button type="button" class="ubtn" data-u="' + p.user_id + '">' + avatar(people[p.user_id]) + '</button><div class="who"><b><button type="button" class="un" data-u="' + p.user_id + '">' + esc(name(p.user_id)) + "</button></b><small>" + ago(p.created_at) + (p.edited_at ? " · edited" : "") + (p.sample ? " · sample" : "") + "</small></div>" +
         (NEED[p.need] && p.need !== "talk" ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
         '<button type="button" class="more" data-more aria-label="Options">⋯</button></div>' +
       (text ? '<div class="body' + (long ? " clamp" : "") + '">' + linkify(text) + "</div>" +
@@ -691,7 +743,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       '<div class="acts">' +
         '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '">' + ico("proud") + 'Proud of you</button>' +
         '<button type="button" data-react="metoo" class="' + (r.metoo ? "on" : "") + '">' + ico("metoo") + 'Me too</button>' +
-        '<button type="button" data-comments>' + ico("comment") + 'Comment</button></div>' +
+        '<button type="button" data-comments>' + ico("comment") + '<span class="lbl">Comment</span></button>' +
+        '<button type="button" class="send1" data-send aria-label="Send this share to somebody">' + ico("send") + "</button></div>" +
       '<div class="cm">' + commentsPreview(p.id) + "</div></article>";
   }
   function commentsPreview(id) {
@@ -786,7 +839,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     if (loading || done) return;
     loading = true;
     try {
-      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at&order=created_at.desc&limit=" + PAGE +
+      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at&order=created_at.desc&limit=" + PAGE +
         (oldest ? "&created_at=lt." + encodeURIComponent(oldest) : "");
       var realFollows = Object.keys(follows).filter(function (k) { return !isSample(k); });
       var list = tab === "following" && !realFollows.length ? [] : await rest(q + (tab === "following" ? "&user_id=in.(" + realFollows.join(",") + ")" : ""));
@@ -794,7 +847,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       if (list.length) {
         oldest = list[list.length - 1].created_at;
         var ids = list.map(function (p) { return p.id; });
-        var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at&order=created_at.asc");
+        var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
         var rs = me.uid ? await rest("porch_reactions?user_id=eq." + me.uid + "&post_id=in.(" + ids.join(",") + ")&select=post_id,kind") : [];
         await loadPeople(list.map(function (p) { return p.user_id; }).concat(cs.map(function (c) { return c.user_id; })));
         ids.forEach(function (id) { comments[id] = []; mine[id] = {}; });
@@ -915,6 +968,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   document.querySelectorAll("[data-ico]").forEach(function (el) { el.innerHTML = ico(el.dataset.ico); });
 
   async function openCompose(m, fresh) {
+    if (fresh !== false) editingPost = null;
     if (fresh !== false) {
       var d = null; try { d = JSON.parse(localStorage.getItem(DRAFT) || "null"); } catch (e) {}
       if (d && d.mode && !m) m = d.mode;
@@ -930,7 +984,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   }
   function paintCompose() {
     var M = MODE[mode];
-    $("ctitle").textContent = M.title;
+    $("ctitle").textContent = editingPost ? "EDIT SHARE" : M.title;
+    if (!sending) $("csend").textContent = editingPost ? "Save" : "Share";
     $("cbody").maxLength = mode === "sign" ? SIGN_MAX : 2000;
     $("cbody").style.minHeight = mode === "say" ? "180px" : mode === "sign" ? "90px" : "70px";
     document.querySelectorAll("#needs [data-need]").forEach(function (b) { b.classList.toggle("on", b.dataset.need === need); });
@@ -938,8 +993,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     $("cbody").placeholder = (mode === "say" && HOLDER[need]) || M.holder;
     var t = $("cbody").value.trim();
     $("ccount").textContent = mode === "sign" ? t.length + " / " + SIGN_MAX : t.length > 1500 ? t.length + " / 2000" : "";
-    $("thumbs").innerHTML = photos.map(function (p, i) { return '<div><img src="' + p + '" alt=""><button type="button" data-unpic="' + i + '" aria-label="Remove photo">✕</button></div>'; }).join("");
-    $("addpic").hidden = mode !== "snap" || photos.length >= 4;
+    $("thumbs").innerHTML = photos.map(function (p, i) { return '<div><img src="' + pic(p) + '" alt="">' + (editingPost ? "" : '<button type="button" data-unpic="' + i + '" aria-label="Remove photo">✕</button>') + "</div>"; }).join("");
+    $("addpic").hidden = !!editingPost || mode !== "snap" || photos.length >= 4;
     /* Snapshot: photos come first, the words are the caption */
     var body = $("cbody"), tb = $("thumbs"), ap = $("addpic");
     if (mode === "snap") { body.parentNode.insertBefore(ap, body); body.parentNode.insertBefore(tb, ap); }
@@ -984,11 +1039,28 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   async function sendPost(sure) {
     if (sending) return;
     sending = true; $("cerr").textContent = "";
-    $("csend").disabled = true; $("csend").textContent = photos.length ? "Checking photos…" : "Sharing…";
     var body = $("cbody").value.trim();
+    if (editingPost) {
+      var eid = editingPost, ep = posts[eid];
+      $("csend").disabled = true; $("csend").textContent = "Saving…";
+      var er = await fn("porch", { action: "edit", post_id: eid, body: body, need: need, card_style: mode === "sign" ? style : undefined, sure: !!sure });
+      sending = false; paintCompose();
+      if (er.pause) return open("pause");
+      if (!er.ok) { $("cerr").textContent = er.error || "That didn't save. Try again."; return; }
+      ep.body = body || null; ep.need = need; ep.edited_at = er.edited_at; if (mode === "sign") ep.card_style = style;
+      editingPost = null;
+      await closeAll();
+      document.querySelectorAll('[data-post="' + eid + '"]').forEach(function (el) {
+        var wrap = document.createElement("div"); wrap.innerHTML = postHTML(ep);
+        var fresh = wrap.firstChild; if (!el.id) fresh.removeAttribute("id"); el.replaceWith(fresh);
+      });
+      if (er.care) open("care"); else toast("Saved.");
+      return;
+    }
+    $("csend").disabled = true; $("csend").textContent = photos.length ? "Checking photos…" : "Sharing…";
     var r = await fn("porch", { action: "post", need: need, body: body, photos: mode === "snap" ? photos : [],
       card_style: mode === "sign" ? style : null, sure: !!sure });
-    sending = false; $("csend").textContent = "Share"; paintCompose();
+    sending = false; paintCompose();
     if (r.pause) return open("pause");
     if (r.need === "confirm") { pending = function () { openCompose(mode, false); }; await closeTop(); cfReset(); return open("confirm"); }
     if (!r.ok) { $("cerr").textContent = r.error || "That didn't post. Try again."; return; }
@@ -1005,7 +1077,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   var pauseFor = "post";
   $("pgo").addEventListener("click", async function () { await closeTop(); if (pauseFor === "post") sendPost(true); else sendComment(true); });
   $("pdraft").addEventListener("click", async function () {
-    if (pauseFor === "post") {
+    if (pauseFor === "post" && editingPost) {
+      await closeTop(); toast("It's still there. Take your time.");
+    } else if (pauseFor === "post") {
       try { localStorage.setItem(DRAFT, JSON.stringify({ mode: mode, need: need, body: $("cbody").value, style: style })); } catch (e) {}
       await closeAll(); toast("Saved. It'll be here when you tap Share.");
     } else {
@@ -1029,31 +1103,79 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   }
 
   /* ================================================================ COMMENTS */
-  var openPost = null;
+  /* 30 Sep 2026: REPLIES (one level, like Facebook) and EDITS. Tap Reply under a
+     comment and it tucks under that comment; your own comments get Edit. */
+  var openPost = null, replyTo = null, editingC = null;
+  function oneComment(c, isReply) {
+    var own = c.user_id === me.uid;
+    return '<div class="c1' + (isReply ? " rp" : "") + '" data-comment="' + c.id + '"><button type="button" class="ubtn" data-u="' + c.user_id + '" style="all:unset;cursor:pointer">' + avatar(people[c.user_id]) + '</button><div style="flex:1;min-width:0"><div class="bub"><b><button type="button" class="un" data-u="' + c.user_id + '">' + esc(name(c.user_id)) + "</button></b><span>" + linkify(c.body) + "</span></div>" +
+      "<small>" + ago(c.created_at) + (c.edited_at ? " · edited" : "") +
+      '<button type="button" data-creply>Reply</button>' +
+      (own ? '<button type="button" data-cedit>Edit</button>' : "") +
+      '<button type="button" data-cmore>' + (own ? "Delete" : "Report") + "</button></small></div></div>";
+  }
   function paintComments() {
-    var list = comments[openPost] || [];
-    $("clist").innerHTML = list.length ? list.map(function (c) {
-      return '<div class="c1" data-comment="' + c.id + '"><button type="button" class="ubtn" data-u="' + c.user_id + '" style="all:unset;cursor:pointer">' + avatar(people[c.user_id]) + '</button><div style="flex:1;min-width:0"><div class="bub"><b><button type="button" class="un" data-u="' + c.user_id + '">' + esc(name(c.user_id)) + "</button></b><span>" + linkify(c.body) + "</span></div>" +
-        "<small>" + ago(c.created_at) + '<button type="button" data-cmore>' + (c.user_id === me.uid ? "Delete" : "Report") + "</button></small></div></div>";
+    var list = comments[openPost] || [], ids = {};
+    list.forEach(function (c) { ids[c.id] = 1; });
+    var tops = list.filter(function (c) { return !c.parent_id || !ids[c.parent_id]; });
+    $("clist").innerHTML = list.length ? tops.map(function (c) {
+      return oneComment(c, false) + list.filter(function (x) { return x.parent_id === c.id; }).map(function (x) { return oneComment(x, true); }).join("");
     }).join("") : '<p style="text-align:center;color:var(--muted);padding:30px 0">No comments yet. Say something kind.</p>';
   }
+  function paintReplyBar() {
+    var bar = $("replyto");
+    if (editingC) bar.innerHTML = "<span>Editing your comment</span><button type=\"button\" data-cancelc>Cancel</button>";
+    else if (replyTo) bar.innerHTML = "<span>Replying to <b>" + esc(name(replyTo.user_id)) + "</b></span><button type=\"button\" data-cancelc>Cancel</button>";
+    else bar.innerHTML = "";
+    $("cgo").textContent = editingC ? "Save" : "Send";
+    $("cin").placeholder = replyTo ? "Write a reply…" : "Say something kind…";
+  }
+  function clearBox() {
+    replyTo = null; editingC = null;
+    $("cin").value = ""; $("cin").style.height = ""; $("cgo").disabled = true; paintReplyBar();
+  }
+  function findComment(id) { return (comments[openPost] || []).find(function (c) { return c.id === id; }); }
   function openComments(id) {
-    openPost = id; paintComments(); open("comments");
+    if (openPost !== id) clearBox();
+    openPost = id; paintComments(); paintReplyBar(); open("comments");
     setTimeout(function () { var l = $("clist"); l.scrollTop = l.scrollHeight; }, 30);
   }
-  $("cin").addEventListener("input", function () { this.style.height = "auto"; this.style.height = Math.min(120, this.scrollHeight) + "px"; $("cgo").disabled = !this.value.trim(); });
+  function grow() { var b = $("cin"); b.style.height = "auto"; b.style.height = Math.min(120, b.scrollHeight) + "px"; $("cgo").disabled = !b.value.trim(); }
+  $("cin").addEventListener("input", grow);
   $("cin").addEventListener("focus", function () { if (!signedIn() || !me.member || !me.member.verified_at) { this.blur(); gate(function () { $("cin").focus(); }); } });
+  function startReply(cid) {
+    var c = findComment(cid); if (!c) return;
+    editingC = null; replyTo = c;
+    var b = $("cin"), tagIt = c.user_id !== me.uid && !isSample(c.user_id) ? "@" + name(c.user_id) + " " : "";
+    if (!b.value.trim() || /^@\S+\s$/.test(b.value)) b.value = tagIt;
+    paintReplyBar(); grow(); b.focus(); b.selectionStart = b.selectionEnd = b.value.length;
+  }
+  function startEditC(cid) {
+    var c = findComment(cid); if (!c) return;
+    replyTo = null; editingC = c;
+    $("cin").value = c.body; paintReplyBar(); grow(); $("cin").focus();
+  }
+  $("replyto").addEventListener("click", function (e) { if (e.target.closest("[data-cancelc]")) clearBox(); });
   async function sendComment(sure) {
     var t = $("cin").value.trim(); if (!t) return;
     $("cgo").disabled = true; $("cgo").textContent = "…";
-    var r = isSample(openPost) ? { ok: true, id: "local-" + Date.now() } : await fn("porch", { action: "comment", post_id: openPost, body: t, sure: !!sure });
-    $("cgo").textContent = "Send"; $("cgo").disabled = false;
+    var r, local = isSample(openPost) || (editingC && String(editingC.id).indexOf("local-") === 0);
+    if (editingC) r = local ? { ok: true, edited_at: new Date().toISOString() } : await fn("porch", { action: "edit", comment_id: editingC.id, body: t, sure: !!sure });
+    else {
+      var parent = replyTo ? (replyTo.parent_id || replyTo.id) : null;
+      r = local ? { ok: true, id: "local-" + Date.now(), parent_id: parent }
+        : await fn("porch", { action: "comment", post_id: openPost, body: t, parent_id: replyTo ? replyTo.id : undefined, sure: !!sure });
+    }
+    paintReplyBar(); $("cgo").disabled = false;
     if (r.pause) { pauseFor = "comment"; return open("pause"); }
     if (!r.ok) return toast(r.error || "That didn't send.");
-    comments[openPost].push({ id: r.id, post_id: openPost, user_id: me.uid, body: t, created_at: new Date().toISOString() });
-    $("cin").value = ""; $("cin").style.height = ""; $("cgo").disabled = true;
-    paintComments(); refreshComments(openPost);
-    var l = $("clist"); l.scrollTop = l.scrollHeight;
+    var l = $("clist"), keep = l.scrollTop;
+    if (editingC) { editingC.body = t; editingC.edited_at = r.edited_at; }
+    else comments[openPost].push({ id: r.id, post_id: openPost, user_id: me.uid, body: t, parent_id: r.parent_id || null, created_at: new Date().toISOString() });
+    var wasReply = !!replyTo || !!editingC;
+    clearBox(); paintComments(); refreshComments(openPost);
+    l.scrollTop = wasReply ? keep : l.scrollHeight;
+    if (wasReply) { var el = l.querySelector('[data-comment="' + (r.id || "") + '"]'); if (el) el.scrollIntoView({ block: "nearest" }); }
     if (r.care) open("care");
   }
   $("cgo").addEventListener("click", function () { pauseFor = "comment"; sendComment(false); });
@@ -1065,7 +1187,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     var uid = target.post ? posts[target.post].user_id : (comments[openPost].find(function (c) { return c.id === target.comment; }) || {}).user_id;
     var mineToo = uid === me.uid;
     var html = mineToo
-      ? '<button type="button" class="bad" data-m="del">Delete this ' + (target.post ? "share" : "comment") + "</button>"
+      ? (target.post ? '<button type="button" data-m="edit">Edit this share</button>' : "") + '<button type="button" class="bad" data-m="del">Delete this ' + (target.post ? "share" : "comment") + "</button>"
       : '<button type="button" data-m="report">Report this ' + (target.post ? "share" : "comment") + '</button><button type="button" data-m="block">Block ' + esc(name(uid)) + "</button>";
     $("mbody").innerHTML = html + '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
     $("mbody").dataset.t = JSON.stringify(target); $("mbody").dataset.uid = uid;
@@ -1074,6 +1196,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   $("mbody").addEventListener("click", async function (e) {
     var b = e.target.closest("[data-m]"); if (!b) return;
     var t = JSON.parse(this.dataset.t), uid = this.dataset.uid, m = b.dataset.m;
+    if (m === "edit") { await closeTop(); return editShare(t.post); }
+    if (m.indexOf("sx-") === 0) { var how = m.slice(3); await closeTop(); return sendVia(how, t.post); }
     if (m === "del") {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again to delete for good"; return; }
       var r = String(t.comment).indexOf("local-") === 0 ? { ok: true } : await fn("porch", t.post ? { action: "remove", post_id: t.post } : { action: "remove", comment_id: t.comment });
@@ -1101,16 +1225,90 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     }
   });
 
+  /* ================================================================ SEND A SHARE OUT (30 Sep 2026)
+     The paper plane on every share: send it in a text, copy the link, or put it on
+     Facebook. The link opens that one share on the Porch. */
+  function shareLink(id) { return "https://recoverymisfits.org/feed/porch.html?s=" + encodeURIComponent(id); }
+  function shareWords(id) {
+    var p = posts[id] || {}, t = String(p.body || "").replace(/\s+/g, " ").trim();
+    if (t.length > 120) t = t.slice(0, 117).replace(/\s+\S*$/, "") + "…";
+    return t ? "“" + t + "”, on the Recovery Misfits Porch" : name(p.user_id) + " shared this on the Recovery Misfits Porch";
+  }
+  function sendOut(id) {
+    if (isSample(id)) return toast("That's a sample post. Only you can see these.");
+    $("mbody").dataset.t = JSON.stringify({ post: id }); $("mbody").dataset.uid = "";
+    $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">Send this share</p>' +
+      (navigator.share ? '<button type="button" data-m="sx-native">' + ico("share") + "Send it to somebody…</button>" : "") +
+      '<button type="button" data-m="sx-text">' + ico("text") + "Text it</button>" +
+      '<button type="button" data-m="sx-fb">' + ico("fb") + "Put it on Facebook</button>" +
+      '<button type="button" data-m="sx-copy">' + ico("link") + "Copy the link</button>" +
+      '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
+    open("menu");
+  }
+  function sendVia(how, id) {
+    var url = shareLink(id), words = shareWords(id);
+    if (how === "native") return navigator.share({ title: "The Porch · Recovery Misfits", text: words, url: url }).catch(function () {});
+    if (how === "text") { location.href = "sms:?&body=" + encodeURIComponent(words + " " + url); return; }
+    if (how === "fb") { window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url), "_blank", "noopener"); return; }
+    try { navigator.clipboard.writeText(url).then(function () { toast("Link copied. Paste it anywhere."); }, function () { prompt("Copy this link:", url); }); }
+    catch (e) { toast(url); }
+  }
+
+  /* ================================================================ EDIT YOUR SHARE (30 Sep 2026)
+     Same screen as a new share, filled in. Words, tag and card color can change;
+     photos stay (delete and share again to change them). "edited" shows next to the time. */
+  var editingPost = null;
+  function editShare(id) {
+    var p = posts[id]; if (!p) return;
+    editingPost = id;
+    var ph = (p.photo_paths || []).length;
+    mode = ph ? "snap" : p.card_style != null && fitsCard(p.body || "") ? "sign" : "say";
+    need = NEED[p.need] && ["experience", "strength", "hope", "question"].indexOf(p.need) >= 0 ? p.need : "talk";
+    style = p.card_style != null ? p.card_style : 0;
+    $("cbody").value = p.body || ""; photos = (p.photo_paths || []).slice();
+    openCompose(mode, false);
+  }
+
+  /* ================================================================ SEARCH (30 Sep 2026)
+     Find somebody by name. Tap them to see their profile; back comes right back here. */
+  var stmr;
+  function openSearch() {
+    $("sq").value = ""; paintSearch([], ""); open("search");
+    setTimeout(function () { $("sq").focus(); }, 60);
+  }
+  function paintSearch(list, q) {
+    $("slist").innerHTML = list.length ? list.map(function (m) {
+      return '<button type="button" class="sr" data-u="' + m.user_id + '">' + avatar(m) + "<span class=\"srw\"><b>" + esc(m.handle) + "</b>" + (m.bio ? "<small>" + esc(m.bio) + "</small>" : "") + "</span></button>";
+    }).join("") : '<p class="pempty">' + (q ? "Nobody on the Porch goes by that." : "Type part of somebody's name.") + "</p>";
+  }
+  $("sq").addEventListener("input", function () {
+    clearTimeout(stmr);
+    var q = this.value.trim().replace(/^@/, "").toLowerCase().replace(/[^a-z0-9._-]/g, "");
+    if (!q) return paintSearch([], "");
+    stmr = setTimeout(async function () {
+      var found = {};
+      if (samplesOn) Object.keys(people).forEach(function (k) { if (isSample(k) && people[k].handle.toLowerCase().indexOf(q) >= 0) found[k] = Object.assign({ user_id: k }, people[k]); });
+      try {
+        (await rest("porch_members?handle=ilike.*" + encodeURIComponent(q) + "*&verified_at=not.is.null&select=user_id,handle,avatar_path,bio&order=handle.asc&limit=25"))
+          .forEach(function (m) { people[m.user_id] = Object.assign(people[m.user_id] || {}, m); found[m.user_id] = m; });
+      } catch (e) {}
+      if ($("sq").value.trim().replace(/^@/, "").toLowerCase().replace(/[^a-z0-9._-]/g, "") !== q) return;
+      var list = Object.keys(found).map(function (k) { return found[k]; });
+      list.sort(function (a, b) { var x = a.handle.toLowerCase().indexOf(q) === 0, y = b.handle.toLowerCase().indexOf(q) === 0; return x === y ? a.handle.localeCompare(b.handle) : x ? -1 : 1; });
+      paintSearch(list, q);
+    }, 200);
+  });
+
   /* ================================================================ PROFILES (30 Sep 2026)
      Tap anybody's face or name, anywhere, or an @name in a share or comment. */
   var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   function soberText(d) { var x = String(d).split("-"); return "Sober since " + MON[+x[1] - 1] + " " + (+x[2]) + ", " + x[0]; }
   async function postsFor(uid) {
     if (isSample(uid)) return Object.keys(posts).map(function (k) { return posts[k]; }).filter(function (p) { return p.user_id === uid; });
-    var list = await rest("porch_posts?user_id=eq." + uid + "&select=id,user_id,need,body,photo_paths,card_style,created_at&order=created_at.desc&limit=60");
+    var list = await rest("porch_posts?user_id=eq." + uid + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at&order=created_at.desc&limit=60");
     var fresh = list.filter(function (p) { return !comments[p.id]; }), ids = fresh.map(function (p) { return p.id; });
     if (ids.length) {
-      var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at&order=created_at.asc");
+      var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
       var rs = me.uid ? await rest("porch_reactions?user_id=eq." + me.uid + "&post_id=in.(" + ids.join(",") + ")&select=post_id,kind") : [];
       await loadPeople(cs.map(function (c) { return c.user_id; }));
       ids.forEach(function (id) { comments[id] = []; mine[id] = {}; });
@@ -1284,7 +1482,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     if (d) { if (unread) d.textContent = unread > 9 ? "9+" : unread; else d.remove(); }
   }
   var NOTE = {
-    comment: ["comment", "commented on your share"], proud: ["proud", "is proud of you"], metoo: ["metoo", "said Me too"],
+    comment: ["comment", "commented on your share"], reply: ["reply", "replied to your comment"], proud: ["proud", "is proud of you"], metoo: ["metoo", "said Me too"],
     mention: ["say", "tagged you"], follow: ["experience", "started following you"]
   };
   async function openNotes() {
@@ -1310,9 +1508,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     if (!postId) return openProfile(actor);
     if (!posts[postId]) {
       try {
-        var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at");
+        var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at");
         if (!r[0]) return toast("That share is gone.");
-        var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at&order=created_at.asc");
+        var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
         await loadPeople([r[0].user_id].concat(cs.map(function (c) { return c.user_id; })));
         posts[postId] = r[0]; comments[postId] = cs; mine[postId] = mine[postId] || {};
       } catch (e) { return toast("That didn't load."); }
@@ -1359,6 +1557,10 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       $("rtxt").innerHTML = linkify(pp.body || ""); open("reader"); $("reader").querySelector(".page").scrollTop = 0; return;
     }
     if (t.closest("[data-more]") && id) return gate(function () { menu({ post: id }); });
+    if (t.closest("[data-send]") && id) return sendOut(id);
+    if (t.closest("[data-search]")) return openSearch();
+    var cr = t.closest("[data-creply]"); if (cr) return gate(function () { startReply(cr.closest("[data-comment]").dataset.comment); });
+    var ce = t.closest("[data-cedit]"); if (ce) return gate(function () { startEditC(ce.closest("[data-comment]").dataset.comment); });
     if (t.closest("[data-cmore]")) return gate(function () { menu({ comment: t.closest("[data-comment]").dataset.comment }); });
     var v = t.closest("[data-view]");
     if (v) {
@@ -1424,6 +1626,12 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     loadNew();
     loadMore();
     checkNotes();
+    /* a link somebody sent: /feed/porch.html?s=<share> opens that one share */
+    var s = new URLSearchParams(location.search).get("s");
+    if (s && /^[0-9a-f-]{36}$/i.test(s)) {
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}
+      openNoteTarget(s, "");
+    }
   })();
 })();
 </script>

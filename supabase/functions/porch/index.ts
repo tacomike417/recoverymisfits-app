@@ -1,7 +1,8 @@
 /* THE PORCH (30 Sep 2026, Mike). Everything that SAYS something goes through here.
  *
  *   post     { need, body?, photos?: [base64 jpeg], card_style?, sure? }
- *   comment  { post_id, body, sure? }
+ *   comment  { post_id, body, parent_id?, sure? }      -- parent_id = replying to a comment
+ *   edit     { post_id | comment_id, body, sure? }     -- your own only, same checks
  *   remove   { post_id } | { comment_id }            -- your own only
  *   picture  { slot: "avatar"|"cover", photo }        -- profile pic / header
  *
@@ -194,9 +195,18 @@ Deno.serve(async (req) => {
       if (!post || post.hidden_at) return json({ error: "That post is gone." }, 404);
       const { data: blocked } = await admin.rpc("porch_blocked", { a: user.id, b: post.user_id });
       if (blocked) return json({ error: "You can't comment there." }, 403);
-      const { data, error } = await admin.from("porch_comments").insert({ post_id: b.post_id, user_id: user.id, body: text }).select("id").single();
+      // a reply hangs under the first comment in its thread (one level deep, like Facebook)
+      let parent: string | null = null;
+      if (b.parent_id) {
+        const { data: pc } = await admin.from("porch_comments").select("id, post_id, parent_id, user_id, hidden_at").eq("id", b.parent_id).maybeSingle();
+        if (!pc || pc.hidden_at || pc.post_id !== b.post_id) return json({ error: "That comment is gone." }, 404);
+        const { data: pblocked } = await admin.rpc("porch_blocked", { a: user.id, b: pc.user_id });
+        if (pblocked) return json({ error: "You can't reply there." }, 403);
+        parent = pc.parent_id || pc.id;
+      }
+      const { data, error } = await admin.from("porch_comments").insert({ post_id: b.post_id, user_id: user.id, body: text, parent_id: parent }).select("id").single();
       if (error) return json({ error: "That didn't go through. Try again." }, 500);
-      return json({ ok: true, id: data.id, care });
+      return json({ ok: true, id: data.id, parent_id: parent, care });
     }
 
     const need = String(b.need || "talk");
@@ -218,6 +228,33 @@ Deno.serve(async (req) => {
       .select("id").single();
     if (error) return json({ error: "That didn't go through. Try again." }, 500);
     return json({ ok: true, id: data.id, care });
+  }
+
+  /* EDIT your own share or comment: same checks as a new one, stamped "edited" */
+  if (b.action === "edit") {
+    const isPost = !!b.post_id;
+    const table = isPost ? "porch_posts" : "porch_comments";
+    const id = b.post_id || b.comment_id;
+    const { data: row } = await admin.from(table).select(isPost ? "user_id, hidden_at, photo_paths, card_style" : "user_id, hidden_at").eq("id", id).maybeSingle();
+    if (!row || (row as any).hidden_at) return json({ error: "That's gone." }, 404);
+    if ((row as any).user_id !== user.id) return json({ error: "You can only edit your own." }, 403);
+    const hasPhotos = isPost && ((row as any).photo_paths || []).length > 0;
+    if (!text && !hasPhotos) return json({ error: "Say something first." }, 400);
+    if (text.length > (isPost ? 2000 : 1000)) return json({ error: "That's too long." }, 400);
+    if (isPost && (row as any).card_style != null && !hasPhotos && text.length > 150) return json({ error: "Sayings are 150 characters or less." }, 400);
+    const w = checkWords(text); if (w) return json({ error: w }, 400);
+    const l = await checkLinks(text); if (l) return json({ error: l }, 400);
+    if (!b.sure && heated(text)) return json({ pause: true });
+    const edited_at = new Date().toISOString();
+    const change: Record<string, unknown> = { body: text || null, edited_at };
+    if (isPost && b.need != null) {
+      if (!["talk", "experience", "strength", "hope", "question"].includes(String(b.need))) return json({ error: "Pick what you need." }, 400);
+      change.need = String(b.need);
+    }
+    if (isPost && (row as any).card_style != null && Number.isInteger(b.card_style)) change.card_style = Math.max(0, Math.min(11, b.card_style));
+    const { error } = await admin.from(table).update(change).eq("id", id).eq("user_id", user.id);
+    if (error) return json({ error: "That didn't save. Try again." }, 500);
+    return json({ ok: true, edited_at, care: CARE.test(text) });
   }
 
   if (b.action === "remove") {
