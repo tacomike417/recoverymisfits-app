@@ -80,15 +80,20 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
 - Forgot password / username for Level 2: match the typed email's fingerprint, email a code.
 
 ### Porch vs Facebook/Instagram: what we added (30 Sep 2026)
-- Done: follows + notifications, @ suggestions, **Send a share out** (paper plane: text it,
-  Facebook, copy link; the link opens that one share), **Reply to a comment** (one level,
-  like Facebook, with a "replied to your comment" notification), **Edit your share or
-  comment** (same checks as new, shows "edited"; photos stay put), **Search** people by name.
-- Next up: "New shares" pill + pull to refresh, link previews, double-tap a photo for
-  Proud of you, save a share, phone notifications with an icon badge.
-- Safety list still open: moderator screen, self-harm reports go to Mike instead of pausing
-  the person, delete my account (photos too), sign-up levels, 3-day wait on reacting/following,
-  follow/reaction spam cap, sample posts out before launch.
+- Done: follows + notifications, @ suggestions, **Send a share out** (paper plane), **Reply
+  to a comment**, **Edit your share or comment**, **Search** people, pop-ups stay above the
+  phone keyboard, **New shares pill + pull down to refresh**, **link preview cards**,
+  **double-tap = Proud of you**, **Save a share** (ME → Saved shares, private),
+  **phone notifications + the number on the app icon** (iPhone: Home Screen app only).
+- Safety, done: **Reports screen** for moderators (ME → Reports; danger reports at the top,
+  never pause anybody), moderators get a notification per report, **Delete my Porch account**
+  (everything incl. photos; app account stays; a paused person's email stays locked),
+  deleted shares take their photos with them, 3-day wait now covers reacting/following/
+  reporting, spam caps (300 reactions / 50 follows an hour, 20 reports a day), a blocked
+  person can't react to your shares.
+- Still open: sign-up levels on the account page ("Your recovery, your way"), deleting the
+  whole app account (not just the Porch), Messages, Misfits Moments, sample posts out and
+  the Mike-only lock off at launch.
 - Sent links: while the Porch is Mike-only, anybody else who taps one lands on the /feed/ preview.
 
 ## THE ONE RULE (30 Sep 2026)

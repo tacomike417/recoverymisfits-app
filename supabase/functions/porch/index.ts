@@ -5,6 +5,8 @@
  *   edit     { post_id | comment_id, body, sure? }     -- your own only, same checks
  *   remove   { post_id } | { comment_id }            -- your own only
  *   picture  { slot: "avatar"|"cover", photo }        -- profile pic / header
+ *   leave    {}                                        -- delete everything they put on the Porch
+ *   mod_list / mod_act { key, what, who? }             -- moderators only: the reports screen
  *
  * Checks, in order, before anything is saved:
  *   1. Confirmed member, not paused by reports, account older than 3 days.
@@ -159,6 +161,73 @@ async function countSince(table: string, uid: string, minutes: number) {
   return count || 0;
 }
 
+/* ---------------- link previews (30 Sep 2026) ----------------
+   The first link in a share gets a card: title, a line of description, the site
+   and its picture. Only links that already passed the safety checks get here, and
+   the picture itself goes through SafeSearch too; if it can't be checked, the card
+   just shows without a picture. */
+function meta(html: string, names: string[]) {
+  for (const n of names) {
+    const re = new RegExp('<meta[^>]+(?:property|name)=["\']' + n.replace(":", "\\:") + '["\'][^>]*>', "i");
+    const tag = html.match(re)?.[0];
+    const c = tag?.match(/content=["']([^"']*)["']/i)?.[1];
+    if (c) return c;
+  }
+  return "";
+}
+const unent = (s: string) => s.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ").trim();
+async function previewFor(text: string) {
+  const u = linksIn(text)[0];
+  if (!u) return null;
+  try {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 5000);
+    const r = await fetch(u.href, { signal: ctl.signal, redirect: "follow", headers: { "User-Agent": "Mozilla/5.0 (compatible; RecoveryMisfitsBot/1.0; +https://recoverymisfits.org)", Accept: "text/html" } });
+    clearTimeout(t);
+    if (!r.ok || !(r.headers.get("content-type") || "").includes("text/html")) return null;
+    const html = (await r.text()).slice(0, 300_000);
+    const title = unent(meta(html, ["og:title", "twitter:title"]) || html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1] || "");
+    if (!title) return null;
+    const desc = unent(meta(html, ["og:description", "twitter:description", "description"]));
+    const site = unent(meta(html, ["og:site_name"])) || u.hostname.replace(/^www\./, "");
+    let image = meta(html, ["og:image", "og:image:url", "twitter:image"]);
+    if (image) {
+      try { image = new URL(image, r.url || u.href).href; } catch { image = ""; }
+      if (!/^https:\/\//.test(image) || !(await imageOk(image))) image = "";
+    }
+    return { url: u.href, title: title.slice(0, 140), desc: desc.slice(0, 220), site: site.slice(0, 60), image: image || null };
+  } catch { return null; }
+}
+async function imageOk(url: string) {
+  if (!VISION) return false;
+  try {
+    const r = await fetch("https://vision.googleapis.com/v1/images:annotate?key=" + encodeURIComponent(VISION), {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requests: [{ image: { source: { imageUri: url } }, features: [{ type: "SAFE_SEARCH_DETECTION" }] }] }),
+    });
+    const s = (await r.json())?.responses?.[0]?.safeSearchAnnotation;
+    if (!s) return false;
+    return (LEVEL[s.adult] || 0) < LEVEL.LIKELY && (LEVEL[s.racy] || 0) < LEVEL.VERY_LIKELY && (LEVEL[s.violence] || 0) < LEVEL.VERY_LIKELY;
+  } catch { return false; }
+}
+
+/* photos come off the server when the share (or the person) is gone */
+async function dropPhotos(paths: string[]) {
+  const mine = paths.filter((p) => p && !p.startsWith("/"));
+  if (mine.length) await admin.storage.from("porch").remove(mine);
+}
+async function dropFolder(uid: string) {
+  for (let i = 0; i < 20; i++) {
+    const { data } = await admin.storage.from("porch").list(uid, { limit: 100 });
+    if (!data?.length) return;
+    await admin.storage.from("porch").remove(data.map((f) => uid + "/" + f.name));
+  }
+}
+
+async function isMod(uid: string) {
+  const { data } = await admin.from("porch_moderators").select("user_id").eq("user_id", uid).maybeSingle();
+  return !!data;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
@@ -167,6 +236,70 @@ Deno.serve(async (req) => {
   const { data: who } = await admin.auth.getUser(jwt);
   const user = who?.user;
   if (!user) return json({ error: "Sign in first." }, 401);
+
+  let b: Record<string, any> = {};
+  try { b = await req.json(); } catch { /* empty */ }
+
+  /* LEAVE THE PORCH: everything they ever put here, gone. Their app account
+     (sober date, settings) stays. Works even if they're paused. */
+  if (b.action === "leave") {
+    const { data: m } = await admin.from("porch_members").select("frozen_at").eq("user_id", user.id).maybeSingle();
+    await dropFolder(user.id);
+    for (const [t, col] of [["porch_notes", "user_id"], ["porch_notes", "actor_id"], ["porch_saves", "user_id"], ["porch_push", "user_id"],
+      ["porch_reactions", "user_id"], ["porch_follows", "follower_id"], ["porch_follows", "followed_id"], ["porch_blocks", "blocker_id"],
+      ["porch_reports", "reporter_id"], ["porch_comments", "user_id"], ["porch_posts", "user_id"], ["porch_moderators", "user_id"]] as const) {
+      await admin.from(t).delete().eq(col, user.id);
+    }
+    await admin.from("porch_members").delete().eq("user_id", user.id);
+    // a paused person's email stays locked, so leaving can't be used to dodge a report
+    if (!m?.frozen_at) await admin.from("porch_identity").delete().eq("user_id", user.id);
+    return json({ ok: true });
+  }
+
+  /* MODERATORS: the reports screen */
+  if (b.action === "mod_list" || b.action === "mod_act") {
+    if (!(await isMod(user.id))) return json({ error: "Moderators only." }, 403);
+    if (b.action === "mod_list") {
+      const { data: reps } = await admin.from("porch_reports").select("*").is("handled_at", null).order("created_at", { ascending: true }).limit(200);
+      const groups: Record<string, any> = {};
+      for (const r of reps || []) {
+        const k = r.post_id ? "p:" + r.post_id : r.comment_id ? "c:" + r.comment_id : "m:" + r.member_id;
+        (groups[k] ||= { key: k, post_id: r.post_id, comment_id: r.comment_id, member_id: r.member_id, reasons: {}, notes: [], ids: [], first: r.created_at });
+        groups[k].reasons[r.reason] = (groups[k].reasons[r.reason] || 0) + 1;
+        if (r.note) groups[k].notes.push(r.note);
+        groups[k].ids.push(r.id);
+      }
+      const out = [];
+      for (const g of Object.values(groups) as any[]) {
+        let who = g.member_id, body = "", photos: string[] = [], post_id = g.post_id, hidden = null;
+        if (g.post_id) {
+          const { data: p } = await admin.from("porch_posts").select("user_id, body, photo_paths, hidden_at").eq("id", g.post_id).maybeSingle();
+          if (p) { who = p.user_id; body = p.body || ""; photos = p.photo_paths || []; hidden = p.hidden_at; }
+        } else if (g.comment_id) {
+          const { data: c } = await admin.from("porch_comments").select("user_id, body, post_id, hidden_at").eq("id", g.comment_id).maybeSingle();
+          if (c) { who = c.user_id; body = c.body; post_id = c.post_id; hidden = c.hidden_at; }
+        }
+        const { data: m } = await admin.from("porch_members").select("handle, avatar_path, frozen_at").eq("user_id", who).maybeSingle();
+        out.push({ ...g, who, handle: m?.handle || "misfit", avatar_path: m?.avatar_path || null, frozen: !!m?.frozen_at, body, photos, post_id, hidden,
+          danger: !!g.reasons.self_harm });
+      }
+      out.sort((a, b) => (b.danger ? 1 : 0) - (a.danger ? 1 : 0) || (a.first < b.first ? -1 : 1));
+      return json({ ok: true, reports: out });
+    }
+    // mod_act { key, what: "down" | "fine" | "unpause" }
+    const k = String(b.key || ""), what = String(b.what || "");
+    const [kind, id] = [k.slice(0, 1), k.slice(2)];
+    const col = kind === "p" ? "post_id" : kind === "c" ? "comment_id" : "member_id";
+    if (!id || !["down", "fine", "unpause"].includes(what)) return json({ error: "Bad request." }, 400);
+    if (what === "down" && kind !== "m") {
+      await admin.from(kind === "p" ? "porch_posts" : "porch_comments").update({ hidden_at: new Date().toISOString() }).eq("id", id);
+    }
+    if (what === "unpause" && b.who) await admin.from("porch_members").update({ frozen_at: null }).eq("user_id", b.who);
+    // handling the reports lifts the pause on its own once nothing is left open about them
+    await admin.from("porch_reports").update({ handled_at: new Date().toISOString() }).eq(col, id).is("handled_at", null);
+    return json({ ok: true });
+  }
+
   const { data: me } = await admin.from("porch_members").select("*").eq("user_id", user.id).maybeSingle();
   if (!me?.verified_at) return json({ error: "Confirm who you are to post.", need: "confirm" }, 403);
   if (me.frozen_at) return json({ error: "Your account is paused while someone looks at a report. Hang tight." }, 403);
@@ -174,8 +307,6 @@ Deno.serve(async (req) => {
     return json({ error: "Brand-new accounts can post after 3 days. Look around in the meantime." }, 403);
   }
 
-  let b: Record<string, any> = {};
-  try { b = await req.json(); } catch { /* empty */ }
   const text = String(b.body || "").trim();
 
   if (b.action === "post" || b.action === "comment") {
@@ -223,8 +354,9 @@ Deno.serve(async (req) => {
       paths.push(path);
     }
     const style = Number.isInteger(b.card_style) ? Math.max(0, Math.min(11, b.card_style)) : null;
+    const link_preview = paths.length ? null : await previewFor(text);
     const { data, error } = await admin.from("porch_posts")
-      .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style })
+      .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style, link_preview })
       .select("id").single();
     if (error) return json({ error: "That didn't go through. Try again." }, 500);
     return json({ ok: true, id: data.id, care });
@@ -252,16 +384,20 @@ Deno.serve(async (req) => {
       change.need = String(b.need);
     }
     if (isPost && (row as any).card_style != null && Number.isInteger(b.card_style)) change.card_style = Math.max(0, Math.min(11, b.card_style));
+    if (isPost && !hasPhotos) change.link_preview = await previewFor(text);
     const { error } = await admin.from(table).update(change).eq("id", id).eq("user_id", user.id);
     if (error) return json({ error: "That didn't save. Try again." }, 500);
-    return json({ ok: true, edited_at, care: CARE.test(text) });
+    return json({ ok: true, edited_at, link_preview: change.link_preview ?? null, care: CARE.test(text) });
   }
 
   if (b.action === "remove") {
     const table = b.post_id ? "porch_posts" : "porch_comments";
     const id = b.post_id || b.comment_id;
-    const { error } = await admin.from(table).update({ hidden_at: new Date().toISOString() }).eq("id", id).eq("user_id", user.id);
-    return error ? json({ error: "Couldn't remove it." }, 500) : json({ ok: true });
+    const { data: gone, error } = await admin.from(table).update({ hidden_at: new Date().toISOString() }).eq("id", id).eq("user_id", user.id)
+      .select(b.post_id ? "photo_paths" : "id");
+    if (error) return json({ error: "Couldn't remove it." }, 500);
+    if (b.post_id && gone?.[0]) await dropPhotos((gone[0] as any).photo_paths || []);
+    return json({ ok: true });
   }
 
   if (b.action === "picture") {
@@ -271,7 +407,9 @@ Deno.serve(async (req) => {
     try { bytes = decodeBase64(b64); } catch { return json({ error: "That photo couldn't be read." }, 400); }
     const bad = await photoOk(bytes, b64); if (bad) return json({ error: bad }, 400);
     const path = await storePhoto(user.id, bytes); if (!path) return json({ error: "The photo didn't upload. Try again." }, 500);
+    const old = (me as any)[slot];
     await admin.from("porch_members").update({ [slot]: path }).eq("user_id", user.id);
+    if (old) await dropPhotos([old]);
     return json({ ok: true, path });
   }
 

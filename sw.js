@@ -81,3 +81,35 @@ self.addEventListener("fetch", (event) => {
     }
   })());
 });
+
+/* PHONE NOTIFICATIONS FOR THE PORCH (30 Sep 2026). The porch-push function sends
+   { title, body, url, tag, badge }. This shows it, puts the number on the app
+   icon, and a tap opens the Porch right where it happened (or brings the app
+   forward if it's already open). */
+self.addEventListener("push", (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch (e) { d = { body: event.data && event.data.text() }; }
+  event.waitUntil((async () => {
+    try { if (d.badge && self.navigator.setAppBadge) await self.navigator.setAppBadge(d.badge); } catch (e) {}
+    await self.registration.showNotification(d.title || "The Porch", {
+      body: d.body || "Something happened on the Porch.",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      tag: d.tag || "porch",
+      renotify: true,
+      data: { url: d.url || "/feed/porch.html" }
+    });
+  })());
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL((event.notification.data && event.notification.data.url) || "/feed/porch.html", self.location.origin).href;
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const w of wins) {
+      if (w.url.indexOf("/feed/porch") >= 0 && "focus" in w) { await w.focus(); try { await w.navigate(url); } catch (e) {} return; }
+    }
+    await self.clients.openWindow(url);
+  })());
+});

@@ -359,6 +359,50 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .sr small{display:block;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sr .srw{min-width:0;flex:1}
 
+/* ---- link preview cards ---- */
+.lp{display:block;margin:0 12px 10px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--field);color:var(--cream);text-decoration:none}
+.lp img{display:block;width:100%;aspect-ratio:1.91/1;object-fit:cover;background:#0d0c0a}
+.lp span{display:block;padding:10px 12px}
+.lp small{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.lp b{display:block;margin-top:2px;font-size:15px;line-height:1.3}
+.lp em{display:-webkit-box;margin-top:3px;color:var(--soft);font-style:normal;font-size:13.5px;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* ---- double-tap: the heart pops ---- */
+.pics,.shared,.hand{position:relative;touch-action:manipulation}
+.burst{position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;color:#fff;pointer-events:none;filter:drop-shadow(0 4px 14px rgba(0,0,0,.5));animation:burst .85s ease forwards}
+.burst .ico{width:100%;height:100%;fill:#fff;stroke:#fff}
+@keyframes burst{0%{transform:scale(.2);opacity:0}15%{transform:scale(1.15);opacity:1}30%{transform:scale(.95)}45%{transform:scale(1)}80%{opacity:1}100%{transform:scale(1.1);opacity:0}}
+/* ---- New shares pill + pull to refresh ---- */
+.newpill{position:fixed;left:50%;top:calc(var(--ch,120px) + 60px);transition:top .28s ease;transform:translateX(-50%);z-index:9500;display:flex;align-items:center;gap:6px;padding:9px 16px;border:0;border-radius:999px;background:var(--gold2);color:#17130b;font:800 14px Arial,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.5);cursor:pointer}
+.newpill svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.ptr{position:fixed;left:50%;top:calc(var(--ch,120px) + 12px);z-index:8500;width:38px;height:38px;margin-left:0;transform:translateX(-50%);padding:8px;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--gold2);opacity:0;pointer-events:none;transition:opacity .15s}
+.ptr svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.ptr.go{background:var(--gold2);color:#17130b}
+.ptr.spin{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:translateX(-50%) rotate(360deg)}}
+#chrome.away ~ .newpill{top:calc(12px + env(safe-area-inset-top,0px))}
+/* our pull-to-refresh, not the browser's (Android Chrome would reload the whole page) */
+html,body{overscroll-behavior-y:contain}
+/* ---- full-page lists: saved, reports ---- */
+.lh{margin:0 16px 4px;padding-top:calc(14px + env(safe-area-inset-top,0px));font:400 30px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em}
+.lsub{margin:0 16px 6px;color:var(--muted);font-size:13px}
+.pushcard{margin:0 16px 12px;padding:14px;border-radius:16px;background:var(--field);border:1px solid rgba(214,179,106,.35)}
+.pushcard b{display:block;font-size:16px}
+.pushcard p{margin:6px 0 10px;color:var(--soft);font-size:14px}
+.pushcard p:last-child{margin-bottom:0}
+.mr{margin:12px 12px 0;padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.mr.danger{border-color:#c4563c;background:#231512}
+.mr .dz{margin:0 0 10px;color:#ffd6cc;font-weight:700;font-size:14px}
+.mwho{display:flex;align-items:center;gap:10px;width:100%;padding:0;border:0;background:none;color:var(--cream);text-align:left;cursor:pointer}
+.mwho b{display:block;font-size:15px}.mwho small{color:var(--muted);font-size:12.5px}
+.mb{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--bub);white-space:pre-wrap;word-wrap:break-word;font-size:14.5px}
+.mph{display:flex;gap:6px;margin-top:8px}.mph img{width:78px;height:78px;border-radius:10px;object-fit:cover}
+.mwhy{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.mwhy span{padding:5px 10px;border-radius:999px;background:var(--tagbg);color:var(--soft);font-size:12.5px;font-weight:700}
+.mn{margin:8px 0 0;color:var(--soft);font-size:13.5px;font-style:italic}
+.mbtn{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.mbtn button{flex:1 1 auto;padding:11px 14px;border-radius:12px;border:1px solid var(--fline);background:var(--field);color:var(--cream);font:700 14px Arial,sans-serif;cursor:pointer}
+.mbtn button.bad{background:#5a1f16;border-color:#5a1f16;color:#ffd6cc}
+
 .toast{position:fixed;left:50%;bottom:calc(270px + env(safe-area-inset-bottom,0px));z-index:30000;transform:translate(-50%,20px);max-width:88vw;padding:12px 18px;border-radius:999px;background:var(--cream);color:var(--bg);font:700 14px Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -541,8 +585,18 @@ html.kb #comments .sheet{top:0;border-radius:0}
   <div class="sheet"><div class="g"></div><div class="mmhead" id="mmhead"></div><div class="menu" id="mmbody"></div></div>
 </div>
 
+<!-- NEW SHARES pill + the pull-to-refresh spinner -->
+<button type="button" class="newpill" id="newpill" data-newpill hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg><b>New shares</b></button>
+<div class="ptr" id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg></div>
+
+<!-- SAVED SHARES -->
+<div id="saved" class="layer full" role="dialog" aria-modal="true" aria-label="Saved shares"><div class="page"><h2 class="lh">SAVED SHARES</h2><p class="lsub">Only you can see this list.</p><div id="svlist"></div></div></div>
+
+<!-- MODERATORS: REPORTS -->
+<div id="mod" class="layer full" role="dialog" aria-modal="true" aria-label="Reports"><div class="page"><h2 class="lh">REPORTS</h2><div id="mlist"></div></div></div>
+
 <!-- NOTIFICATIONS -->
-<div id="notes" class="layer full" role="dialog" aria-modal="true" aria-label="Notifications"><div class="page"><h2>NOTIFICATIONS</h2><div id="nlist"></div></div></div>
+<div id="notes" class="layer full" role="dialog" aria-modal="true" aria-label="Notifications"><div class="page"><h2>NOTIFICATIONS</h2><div class="pushcard" id="pushcard" hidden></div><div id="nlist"></div></div></div>
 
 <!-- SEARCH: find somebody by name -->
 <div id="search" class="layer full" role="dialog" aria-modal="true" aria-label="Search"><div class="page">
@@ -631,7 +685,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     opt = opt || {};
     var t = await tok();
     var h = { apikey: KEY, Authorization: "Bearer " + (t || KEY) };
-    if (opt.body) { h["Content-Type"] = "application/json"; h.Prefer = "return=minimal"; }
+    if (opt.body) { h["Content-Type"] = "application/json"; h.Prefer = "return=minimal" + (opt.upsert ? ",resolution=merge-duplicates" : ""); }
     var r = await fetch(DB + "/rest/v1/" + path, { method: opt.method || "GET", headers: h, body: opt.body ? JSON.stringify(opt.body) : undefined });
     if (!r.ok) { var e = new Error("rest " + r.status); e.status = r.status; throw e; }
     return r.status === 204 || opt.method ? null : r.json();
@@ -652,6 +706,8 @@ html.kb #comments .sheet{top:0;border-radius:0}
     if (!me.uid) return;
     try { var r = await rest("porch_members?user_id=eq." + me.uid + "&select=*"); me.member = r[0] || null; } catch (e) {}
     if (me.member) people[me.uid] = me.member;
+    try { saved = {}; (await rest("porch_saves?user_id=eq." + me.uid + "&select=post_id")).forEach(function (r) { saved[r.post_id] = true; }); } catch (e) {}
+    try { isMod = !!(await rest("porch_moderators?user_id=eq." + me.uid + "&select=user_id")).length; } catch (e) { isMod = false; }
     $("railme").innerHTML = avatar(me.member || { handle: A.name() });
   }
 
@@ -726,7 +782,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 
   /* ================================================================ THE FEED */
   var posts = {}, comments = {}, mine = {}, oldest = null, loading = false, done = false;
-  var tab = "all", follows = {};
+  var tab = "all", follows = {}, newest = null, saved = {}, isMod = false;
 
   function postHTML(p) {
     var media = "", text = p.body || "", photos = p.photo_paths || [];
@@ -746,12 +802,19 @@ html.kb #comments .sheet{top:0;border-radius:0}
         '<button type="button" class="more" data-more aria-label="Options">⋯</button></div>' +
       (text ? '<div class="body' + (long ? " clamp" : "") + '">' + linkify(text) + "</div>" +
         (long ? '<button type="button" class="chair" data-read>' + ico("read") + "Pull up a chair · " + mins + " min read</button>" : "") : "") + media +
+      (!photos.length && p.link_preview && p.link_preview.url ? previewHTML(p.link_preview) : "") +
       '<div class="acts">' +
         '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '">' + ico("proud") + 'Proud of you</button>' +
         '<button type="button" data-react="metoo" class="' + (r.metoo ? "on" : "") + '">' + ico("metoo") + 'Me too</button>' +
         '<button type="button" data-comments>' + ico("comment") + '<span class="lbl">Comment</span></button>' +
         '<button type="button" class="send1" data-send aria-label="Send this share to somebody">' + ico("send") + "</button></div>" +
       '<div class="cm">' + commentsPreview(p.id) + "</div></article>";
+  }
+  /* LINK PREVIEWS (30 Sep 2026): the first link in a share shows as a card, like Facebook */
+  function previewHTML(l) {
+    return '<a class="lp" href="' + esc(l.url) + '" target="_blank" rel="noopener nofollow ugc">' +
+      (l.image ? '<img src="' + esc(l.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : "") +
+      '<span><small>' + esc(l.site || "") + "</small><b>" + esc(l.title) + "</b>" + (l.desc ? "<em>" + esc(l.desc) + "</em>" : "") + "</span></a>";
   }
   function commentsPreview(id) {
     var list = comments[id] || [];
@@ -845,13 +908,14 @@ html.kb #comments .sheet{top:0;border-radius:0}
     if (loading || done) return;
     loading = true;
     try {
-      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at&order=created_at.desc&limit=" + PAGE +
+      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview&order=created_at.desc&limit=" + PAGE +
         (oldest ? "&created_at=lt." + encodeURIComponent(oldest) : "");
       var realFollows = Object.keys(follows).filter(function (k) { return !isSample(k); });
       var list = tab === "following" && !realFollows.length ? [] : await rest(q + (tab === "following" ? "&user_id=in.(" + realFollows.join(",") + ")" : ""));
       if (list.length < PAGE) done = true;
       if (list.length) {
         oldest = list[list.length - 1].created_at;
+        if (!newest || list[0].created_at > newest) newest = list[0].created_at;
         var ids = list.map(function (p) { return p.id; });
         var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
         var rs = me.uid ? await rest("porch_reactions?user_id=eq." + me.uid + "&post_id=in.(" + ids.join(",") + ")&select=post_id,kind") : [];
@@ -882,7 +946,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     loading = false;
   }
   async function reloadFeed() {
-    posts = {}; comments = {}; mine = {}; oldest = null; done = false;
+    posts = {}; comments = {}; mine = {}; oldest = null; done = false; newest = null; $("newpill").hidden = true;
     $("feed").innerHTML = '<div class="skel"></div>';
     await loadMore();
   }
@@ -1072,7 +1136,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
       sending = false; paintCompose();
       if (er.pause) return open("pause");
       if (!er.ok) { $("cerr").textContent = er.error || "That didn't save. Try again."; return; }
-      ep.body = body || null; ep.need = need; ep.edited_at = er.edited_at; if (mode === "sign") ep.card_style = style;
+      ep.body = body || null; ep.need = need; ep.edited_at = er.edited_at; if ("link_preview" in er) ep.link_preview = er.link_preview; if (mode === "sign") ep.card_style = style;
       editingPost = null;
       await closeAll();
       document.querySelectorAll('[data-post="' + eid + '"]').forEach(function (el) {
@@ -1220,6 +1284,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     var html = mineToo
       ? (target.post ? '<button type="button" data-m="edit">Edit this share</button>' : "") + '<button type="button" class="bad" data-m="del">Delete this ' + (target.post ? "share" : "comment") + "</button>"
       : '<button type="button" data-m="report">Report this ' + (target.post ? "share" : "comment") + '</button><button type="button" data-m="block">Block ' + esc(name(uid)) + "</button>";
+    if (target.post) html = '<button type="button" data-m="save">' + (saved[target.post] ? "Remove from saved" : "Save this share") + "</button>" + html;
     $("mbody").innerHTML = html + '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
     $("mbody").dataset.t = JSON.stringify(target); $("mbody").dataset.uid = uid;
     open("menu");
@@ -1228,6 +1293,16 @@ html.kb #comments .sheet{top:0;border-radius:0}
     var b = e.target.closest("[data-m]"); if (!b) return;
     var t = JSON.parse(this.dataset.t), uid = this.dataset.uid, m = b.dataset.m;
     if (m === "edit") { await closeTop(); return editShare(t.post); }
+    if (m === "save") { await closeTop(); return toggleSave(t.post); }
+    if (m === "leave") {
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again. This can't be undone."; return; }
+      b.textContent = "Deleting…"; b.disabled = true;
+      var lr = await fn("porch", { action: "leave" });
+      if (!lr.ok) { await closeTop(); return toast(lr.error || "That didn't go through. Try again."); }
+      try { await pushOff(true); } catch (e) {}
+      await closeAll(); toast("Done. Everything you put on the Porch is gone.");
+      setTimeout(function () { location.reload(); }, 1600); return;
+    }
     if (m.indexOf("sx-") === 0) { var how = m.slice(3); await closeTop(); return sendVia(how, t.post); }
     if (m === "del") {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again to delete for good"; return; }
@@ -1336,7 +1411,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
   function soberText(d) { var x = String(d).split("-"); return "Sober since " + MON[+x[1] - 1] + " " + (+x[2]) + ", " + x[0]; }
   async function postsFor(uid) {
     if (isSample(uid)) return Object.keys(posts).map(function (k) { return posts[k]; }).filter(function (p) { return p.user_id === uid; });
-    var list = await rest("porch_posts?user_id=eq." + uid + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at&order=created_at.desc&limit=60");
+    var list = await rest("porch_posts?user_id=eq." + uid + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview&order=created_at.desc&limit=60");
     var fresh = list.filter(function (p) { return !comments[p.id]; }), ids = fresh.map(function (p) { return p.id; });
     if (ids.length) {
       var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
@@ -1395,7 +1470,11 @@ html.kb #comments .sheet{top:0;border-radius:0}
     if (!signedIn()) return open("join");
     var m = me.member || { handle: A.name() };
     $("mmhead").innerHTML = avatar(m) + "<div><b>" + esc(m.handle) + "</b><small>" + (me.member && me.member.verified_at ? "On the Porch" : "Not confirmed yet") + "</small></div>";
-    $("mmbody").innerHTML = '<button type="button" data-mm="notes">Notifications' + (unread ? '<span class="mcount">' + unread + "</span>" : "") + '</button><button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>';
+    $("mmbody").innerHTML = '<button type="button" data-mm="notes">Notifications' + (unread ? '<span class="mcount">' + unread + "</span>" : "") + "</button>" +
+      (isMod ? '<button type="button" data-mm="mod">Reports' + (modCount ? '<span class="mcount">' + modCount + "</span>" : "") + "</button>" : "") +
+      '<button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>' +
+      '<button type="button" data-mm="saved">Saved shares</button>' +
+      (me.member ? '<button type="button" data-mm="leave" style="color:var(--faint);font-size:14px">Delete my Porch account</button>' : "");
     open("memenu");
   }
 
@@ -1511,10 +1590,12 @@ html.kb #comments .sheet{top:0;border-radius:0}
     if (unread && !d) $("railme").insertAdjacentHTML("afterend", '<i class="dot"></i>');
     d = document.querySelector("#rmrail .dot");
     if (d) { if (unread) d.textContent = unread > 9 ? "9+" : unread; else d.remove(); }
+    /* the number on the app icon, where the phone supports it */
+    try { if (unread && navigator.setAppBadge) navigator.setAppBadge(unread); else if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) {}
   }
   var NOTE = {
     comment: ["comment", "commented on your share"], reply: ["reply", "replied to your comment"], proud: ["proud", "is proud of you"], metoo: ["metoo", "said Me too"],
-    mention: ["say", "tagged you"], follow: ["experience", "started following you"]
+    mention: ["say", "tagged you"], follow: ["experience", "started following you"], report: ["question", "was reported. Take a look."]
   };
   async function openNotes() {
     $("nlist").innerHTML = '<div class="skel" style="height:200px"></div>';
@@ -1524,9 +1605,10 @@ html.kb #comments .sheet{top:0;border-radius:0}
     await loadPeople(list.map(function (n) { return n.actor_id; }));
     var cids = list.filter(function (n) { return n.comment_id; }).map(function (n) { return n.comment_id; }), words = {};
     if (cids.length) { try { (await rest("porch_comments?id=in.(" + cids.join(",") + ")&select=id,body")).forEach(function (c) { words[c.id] = c.body; }); } catch (e) {} }
+    paintPushCard();
     $("nlist").innerHTML = list.length ? list.map(function (n) {
       var k = NOTE[n.kind] || ["say", ""], said = n.comment_id && words[n.comment_id];
-      return '<button type="button" class="nt' + (n.read_at ? "" : " new") + '" data-note="' + n.id + '" data-np="' + (n.post_id || "") + '" data-na="' + n.actor_id + '">' +
+      return '<button type="button" class="nt' + (n.read_at ? "" : " new") + '" data-note="' + n.id + '" data-nk="' + n.kind + '" data-np="' + (n.post_id || "") + '" data-na="' + n.actor_id + '">' +
         '<span class="nk">' + avatar(people[n.actor_id]) + ico(k[0]) + '</span><span class="nw"><b>' + esc(name(n.actor_id)) + "</b> " + k[1] +
         (said ? "<q>" + esc(said.length > 90 ? said.slice(0, 90) + "…" : said) + "</q>" : "") + "<small>" + ago(n.created_at) + "</small></span></button>";
     }).join("") : '<p class="pempty">Nothing yet. When somebody comments, cheers you on, tags you or follows you, it shows up here.</p>';
@@ -1539,7 +1621,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     if (!postId) return openProfile(actor);
     if (!posts[postId]) {
       try {
-        var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at");
+        var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview");
         if (!r[0]) return toast("That share is gone.");
         var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
         await loadPeople([r[0].user_id].concat(cs.map(function (c) { return c.user_id; })));
@@ -1551,6 +1633,185 @@ html.kb #comments .sheet{top:0;border-radius:0}
   setInterval(checkNotes, 60000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) checkNotes(); });
 
+  /* ================================================================ SAVED SHARES (30 Sep 2026)
+     Only you ever see what you saved. ⋯ on any share → Save; ME → Saved shares. */
+  async function toggleSave(id) {
+    if (isSample(id)) return toast("That's a sample post. Only you can see these.");
+    var on = !saved[id];
+    try {
+      if (on) await rest("porch_saves", { method: "POST", body: { user_id: me.uid, post_id: id } });
+      else await rest("porch_saves?user_id=eq." + me.uid + "&post_id=eq." + id, { method: "DELETE" });
+    } catch (e) { if (e.status !== 409) return toast("That didn't go through."); }
+    if (on) saved[id] = true; else delete saved[id];
+    toast(on ? "Saved. Find it under ME → Saved shares." : "Removed from saved.");
+    if (!on && $("saved").classList.contains("open")) { var el = $("svlist").querySelector('[data-post="' + id + '"]'); if (el) el.remove(); }
+  }
+  async function openSaved() {
+    $("svlist").innerHTML = '<div class="skel"></div>'; open("saved");
+    try {
+      var s = await rest("porch_saves?user_id=eq." + me.uid + "&select=post_id,created_at&order=created_at.desc&limit=100");
+      var ids = s.map(function (r) { return r.post_id; }), list = [];
+      if (ids.length) {
+        var got = await rest("porch_posts?id=in.(" + ids.join(",") + ")&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview");
+        var byId = {}; got.forEach(function (p) { byId[p.id] = p; posts[p.id] = p; });
+        list = ids.map(function (i) { return byId[i]; }).filter(Boolean);
+        var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
+        await loadPeople(list.map(function (p) { return p.user_id; }).concat(cs.map(function (c) { return c.user_id; })));
+        list.forEach(function (p) { comments[p.id] = comments[p.id] || []; mine[p.id] = mine[p.id] || {}; });
+        comments = Object.assign(comments, {}); cs.forEach(function (c) { if (!comments[c.post_id].some(function (x) { return x.id === c.id; })) comments[c.post_id].push(c); });
+      }
+      $("svlist").innerHTML = list.length ? list.map(function (p) { return postHTML(p).replace(' id="p-' + p.id + '"', ""); }).join("")
+        : '<p class="pempty">Nothing saved yet. Tap ⋯ on any share, then Save this share.</p>';
+    } catch (e) { $("svlist").innerHTML = '<p class="pempty">That didn\'t load. Check your signal.</p>'; }
+  }
+
+  /* ================================================================ NEW SHARES + PULL TO REFRESH (30 Sep 2026)
+     Facebook's "New posts" pill: when fresh shares come in, a pill shows up top.
+     Pull down from the top of the Porch to refresh, the way every phone app does. */
+  async function checkNew() {
+    if (!newest || document.hidden) return;
+    try {
+      var q = "porch_posts?created_at=gt." + encodeURIComponent(newest) + "&select=id";
+      if (tab === "following") { var f = Object.keys(follows).filter(function (k) { return !isSample(k); }); if (!f.length) return; q += "&user_id=in.(" + f.join(",") + ")"; }
+      var r = await fetch(DB + "/rest/v1/" + q, { method: "HEAD", headers: { apikey: KEY, Authorization: "Bearer " + ((await tok()) || KEY), Prefer: "count=exact" } });
+      var n = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
+      if (n) { $("newpill").querySelector("b").textContent = n === 1 ? "1 new share" : (n > 9 ? "9+" : n) + " new shares"; $("newpill").hidden = false; }
+    } catch (e) {}
+  }
+  setInterval(checkNew, 45000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) checkNew(); });
+  (function pullToRefresh() {
+    var y0 = null, dy = 0, ptr = $("ptr");
+    window.addEventListener("touchstart", function (e) {
+      y0 = window.scrollY <= 0 && !stack.length && e.touches.length === 1 ? e.touches[0].clientY : null; dy = 0;
+    }, { passive: true });
+    window.addEventListener("touchmove", function (e) {
+      if (y0 == null) return;
+      dy = e.touches[0].clientY - y0;
+      if (dy <= 0 || window.scrollY > 0) { ptr.style.opacity = 0; return; }
+      var d = Math.min(dy, 140);
+      ptr.style.opacity = Math.min(1, d / 80); ptr.style.transform = "translate(-50%," + (d * 0.5) + "px) rotate(" + d * 3 + "deg)";
+      ptr.classList.toggle("go", d >= 90);
+    }, { passive: true });
+    window.addEventListener("touchend", function () {
+      if (y0 == null) return;
+      var go = dy >= 90 && window.scrollY <= 0; y0 = null;
+      ptr.style.transform = ""; ptr.classList.remove("go");
+      if (go) { ptr.classList.add("spin"); ptr.style.opacity = 1; reloadFeed().then(function () { ptr.classList.remove("spin"); ptr.style.opacity = 0; }); }
+      else ptr.style.opacity = 0;
+    }, { passive: true });
+  })();
+
+  /* ================================================================ PHONE NOTIFICATIONS (30 Sep 2026)
+     A buzz on the phone when somebody comments, cheers you on, tags you or follows you.
+     iPhone only allows this when the app is on the Home Screen (iOS 16.4+). */
+  var PUSHFN = DB + "/functions/v1/porch-push";
+  var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  var canPush = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  async function pushSub() {
+    if (!canPush) return null;
+    try { var reg = await navigator.serviceWorker.getRegistration("/"); return reg ? await reg.pushManager.getSubscription() : null; } catch (e) { return null; }
+  }
+  function b64key(s) {
+    var pad = "=".repeat((4 - s.length % 4) % 4), raw = atob((s + pad).replace(/-/g, "+").replace(/_/g, "/"));
+    var out = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out;
+  }
+  async function pushOn() {
+    var btn = document.querySelector("[data-pushon]"); if (btn) { btn.disabled = true; btn.textContent = "Turning on…"; }
+    try {
+      if ((await Notification.requestPermission()) !== "granted") { paintPushCard("denied"); return; }
+      var reg = await navigator.serviceWorker.register("/sw.js"); await navigator.serviceWorker.ready;
+      var key = (await (await fetch(PUSHFN, { headers: { apikey: KEY } })).json()).key;
+      var sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64key(key) });
+      var j = sub.toJSON();
+      await rest("porch_push?on_conflict=endpoint", { method: "POST", upsert: true, body: { endpoint: j.endpoint, user_id: me.uid, p256dh: j.keys.p256dh, auth: j.keys.auth } });
+      toast("You'll get a buzz when something happens on the Porch.");
+    } catch (e) { toast("That didn't work on this phone. Try again later."); }
+    paintPushCard();
+  }
+  async function pushOff(quiet) {
+    var sub = await pushSub(); if (!sub) return;
+    var ep = sub.endpoint;
+    try { await sub.unsubscribe(); } catch (e) {}
+    try { await rest("porch_push?endpoint=eq." + encodeURIComponent(ep), { method: "DELETE" }); } catch (e) {}
+    if (!quiet) toast("Phone notifications are off.");
+  }
+  async function paintPushCard(state) {
+    var c = $("pushcard"); if (!c) return;
+    var html = "";
+    if (state === "denied" || (canPush && Notification.permission === "denied")) {
+      html = "<b>Phone notifications are blocked</b><p>Turn them on for Recovery Misfits in your phone's Settings, then come back here.</p>";
+    } else if (iOS && !standalone) {
+      html = "<b>Want a buzz on your phone?</b><p>On iPhone, add Recovery Misfits to your Home Screen first: tap the Share button, then <em>Add to Home Screen</em>. Open it from there and come back here.</p>";
+    } else if (canPush && !(await pushSub())) {
+      html = "<b>Want a buzz on your phone?</b><p>Find out when somebody comments, cheers you on, tags you or follows you.</p><button type=\"button\" class=\"gbtn\" data-pushon>Turn on</button>";
+    } else if (canPush) {
+      html = '<p style="margin:0">Phone notifications are on. <button type="button" class="link" data-pushoff style="display:inline;width:auto;margin:0">Turn off</button></p>';
+    }
+    c.innerHTML = html; c.hidden = !html;
+  }
+  $("pushcard").addEventListener("click", async function (e) { if (e.target.closest("[data-pushoff]")) { await pushOff(); paintPushCard(); } });
+
+  /* ================================================================ MODERATORS: THE REPORTS SCREEN (30 Sep 2026)
+     ME → Reports. "Somebody might be in danger" is always at the top and never
+     pauses anybody. Take it down / It's fine / Unpause them. */
+  var modCount = 0, modList = [];
+  var WHY = { hate: "Hate or slurs", harassment: "Bullying or bashing", sexual: "Sexual stuff", spam: "Spam or a scam", self_harm: "Might be in danger", other: "Something else" };
+  async function modCheck() {
+    if (!isMod) return;
+    try {
+      var r = await fetch(DB + "/rest/v1/porch_reports?handled_at=is.null&select=id", { method: "HEAD", headers: { apikey: KEY, Authorization: "Bearer " + (await tok()), Prefer: "count=exact" } });
+      modCount = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
+    } catch (e) {}
+  }
+  async function openMod() {
+    if (!isMod) return;
+    $("mlist").innerHTML = '<div class="skel" style="height:200px"></div>'; open("mod");
+    var r = await fn("porch", { action: "mod_list" });
+    if (!r.ok) { $("mlist").innerHTML = '<p class="pempty">' + esc(r.error || "That didn't load.") + "</p>"; return; }
+    modList = r.reports; modCount = modList.reduce(function (n, g) { return n + g.ids.length; }, 0);
+    paintMod();
+  }
+  function paintMod() {
+    $("mlist").innerHTML = modList.length ? modList.map(function (g, i) {
+      var what = g.post_id && !g.comment_id ? "Their share" : g.comment_id ? "Their comment" : "Their profile";
+      return '<div class="mr' + (g.danger ? " danger" : "") + '">' +
+        (g.danger ? '<p class="dz">Somebody thinks this person might be in danger. Reach out if you can. Nobody gets paused for this.</p>' : "") +
+        '<button type="button" class="mwho" data-u="' + g.who + '">' + avatar({ handle: g.handle, avatar_path: g.avatar_path }) + "<span><b>" + esc(g.handle) + "</b><small>" + what + (g.hidden ? " · already taken down" : "") + (g.frozen ? " · paused" : "") + "</small></span></button>" +
+        (g.body ? '<p class="mb">' + esc(g.body) + "</p>" : "") +
+        (g.photos && g.photos.length ? '<div class="mph">' + g.photos.map(function (x) { return '<img src="' + pic(x) + '" alt="">'; }).join("") + "</div>" : "") +
+        '<div class="mwhy">' + Object.keys(g.reasons).map(function (k) { return "<span>" + esc(WHY[k] || k) + (g.reasons[k] > 1 ? " ×" + g.reasons[k] : "") + "</span>"; }).join("") + "</div>" +
+        (g.notes.length ? g.notes.map(function (n) { return '<p class="mn">“' + esc(n) + "”</p>"; }).join("") : "") +
+        '<div class="mbtn">' +
+          (!g.danger && g.key.charAt(0) !== "m" && !g.hidden ? '<button type="button" class="bad" data-modact="down" data-i="' + i + '">Take it down</button>' : "") +
+          '<button type="button" data-modact="fine" data-i="' + i + '">' + (g.danger ? "Seen it" : "It's fine") + "</button>" +
+          (g.frozen ? '<button type="button" data-modact="unpause" data-i="' + i + '">Unpause them</button>' : "") +
+        "</div></div>";
+    }).join("") : '<p class="pempty">Nothing to look at. The Porch is behaving.</p>';
+  }
+  async function modAct(b) {
+    var g = modList[+b.dataset.i], what = b.dataset.modact; if (!g) return;
+    if (what === "down" && !b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again to take it down"; return; }
+    b.disabled = true;
+    var r = await fn("porch", { action: "mod_act", key: g.key, what: what, who: g.who });
+    if (!r.ok) { b.disabled = false; return toast(r.error || "That didn't go through."); }
+    modList.splice(+b.dataset.i, 1); modCount = Math.max(0, modCount - g.ids.length); paintMod();
+    toast(what === "down" ? "Taken down." : what === "unpause" ? "Unpaused." : "Marked as seen.");
+    if (what === "down" && g.post_id && !g.comment_id) { var el = $("p-" + g.post_id); if (el) el.remove(); }
+  }
+
+  /* ================================================================ DELETE MY PORCH ACCOUNT (30 Sep 2026)
+     Everything they ever put on the Porch: shares, photos, comments, follows, the lot.
+     Their app account (sober date, coins, settings) stays. */
+  function askLeave() {
+    $("mbody").dataset.t = "{}"; $("mbody").dataset.uid = "";
+    $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">Delete my Porch account</p>' +
+      "<p>Everything you put on the Porch goes away for good: your shares and photos, comments, follows, saves and your profile. Your app account, sober date and coins stay right where they are.</p>" +
+      '<button type="button" class="bad" data-m="leave">Delete my Porch account</button><button type="button" data-close style="color:var(--muted)">Keep it</button>';
+    open("menu");
+  }
+
   /* ================================================================ TAPS */
   document.addEventListener("click", function (e) {
     var t = e.target, post = t.closest("[data-post]"), id = post && post.dataset.post;
@@ -1559,7 +1820,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     var op = t.closest("[data-openpost]"); if (op) return openSingle(op.dataset.openpost);
     if (t.closest("[data-memenu]")) return openMeMenu();
     var fb = t.closest("[data-follow]"); if (fb) return gate(function () { toggleFollow(fb.dataset.follow, fb); });
-    var nt = t.closest("[data-note]"); if (nt) return openNoteTarget(nt.dataset.np, nt.dataset.na);
+    var nt = t.closest("[data-note]"); if (nt) return nt.dataset.nk === "report" ? openMod() : openNoteTarget(nt.dataset.np, nt.dataset.na);
     var tb = t.closest("[data-tab]");
     if (tb) {
       if (tb.dataset.tab === tab) return;
@@ -1568,7 +1829,9 @@ html.kb #comments .sheet{top:0;border-radius:0}
       return reloadFeed();
     }
     var mm = t.closest("[data-mm]");
-    if (mm) { var which = mm.dataset.mm; closeTop().then(function () { if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else gate(openEdit); }); return; }
+    if (mm) { var which = mm.dataset.mm; closeTop().then(function () {
+      if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved();
+      else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else gate(openEdit); }); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
     if (t.closest("[data-new]")) return gate(function () { open("choose"); });
@@ -1593,16 +1856,39 @@ html.kb #comments .sheet{top:0;border-radius:0}
     var cr = t.closest("[data-creply]"); if (cr) return gate(function () { startReply(cr.closest("[data-comment]").dataset.comment); });
     var ce = t.closest("[data-cedit]"); if (ce) return gate(function () { startEditC(ce.closest("[data-comment]").dataset.comment); });
     if (t.closest("[data-cmore]")) return gate(function () { menu({ comment: t.closest("[data-comment]").dataset.comment }); });
-    var v = t.closest("[data-view]");
-    if (v) {
-      var all = Array.prototype.slice.call(v.parentNode.querySelectorAll("img"));
-      $("vrow").innerHTML = all.map(function (im) { return '<img src="' + im.src + '" alt="">'; }).join("");
-      open("viewer");
-      var row = $("vrow"), i = +v.dataset.view; row.scrollLeft = i * row.clientWidth;
-      $("vn").textContent = all.length > 1 ? (i + 1) + " / " + all.length : "";
+    /* DOUBLE-TAP a photo or a saying card = Proud of you (Instagram does this).
+       One tap on a photo still opens it full screen, a blink later. */
+    var media = t.closest(".pics,.shared,.hand");
+    if (media && id && !t.closest("#cprev")) {
+      var now = Date.now(), v = t.closest("[data-view]");
+      if (lastTap.el === media && now - lastTap.t < 320) {
+        clearTimeout(lastTap.tm); lastTap = {};
+        var pb = media.closest("[data-post]").querySelector('[data-react="proud"]');
+        burst(media);
+        if (pb && !pb.classList.contains("on")) gate(function () { react(id, "proud", pb); });
+        return;
+      }
+      clearTimeout(lastTap.tm);
+      lastTap = { el: media, t: now, tm: v ? setTimeout(function () { lastTap = {}; openViewer(v); }, 300) : 0 };
       return;
     }
+    var v2 = t.closest("[data-view]"); if (v2) return openViewer(v2);
+    if (t.closest("[data-newpill]")) { window.scrollTo(0, 0); return reloadFeed(); }
+    if (t.closest("[data-pushon]")) return pushOn();
+    if (t.closest("[data-modact]")) return modAct(t.closest("[data-modact]"));
   });
+  var lastTap = {};
+  function openViewer(v) {
+    var all = Array.prototype.slice.call(v.parentNode.querySelectorAll("img"));
+    $("vrow").innerHTML = all.map(function (im) { return '<img src="' + im.src + '" alt="">'; }).join("");
+    open("viewer");
+    var row = $("vrow"), i = +v.dataset.view; row.scrollLeft = i * row.clientWidth;
+    $("vn").textContent = all.length > 1 ? (i + 1) + " / " + all.length : "";
+  }
+  function burst(el) {
+    var b = document.createElement("span"); b.className = "burst"; b.innerHTML = ico("proud");
+    el.appendChild(b); setTimeout(function () { b.remove(); }, 900);
+  }
   /* a single photo takes its own shape, inside Facebook's limits */
   document.addEventListener("load", function (e) {
     var im = e.target; if (!im.parentNode || !im.parentNode.classList || !im.parentNode.classList.contains("n1")) return;
@@ -1639,7 +1925,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
      Scroll down: header + rail slide up out of the way. Scroll up: they come back.
      The bottom menu never moves. Same as Facebook. */
   var chrome = $("chrome"), lastY = 0;
-  function pad() { $("main").style.paddingTop = chrome.offsetHeight + "px"; }
+  function pad() { $("main").style.paddingTop = chrome.offsetHeight + "px"; document.documentElement.style.setProperty("--ch", chrome.offsetHeight + "px"); }
   try { new ResizeObserver(pad).observe(chrome); } catch (e) { setInterval(pad, 500); }
   pad();
   window.addEventListener("scroll", function () {
@@ -1656,8 +1942,9 @@ html.kb #comments .sheet{top:0;border-radius:0}
     await loadFollows();
     loadNew();
     loadMore();
-    checkNotes();
+    checkNotes(); checkNew(); modCheck();
     /* a link somebody sent: /feed/porch.html?s=<share> opens that one share */
+    if (/[?&]notes=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) openNotes(); }
     var s = new URLSearchParams(location.search).get("s");
     if (s && /^[0-9a-f-]{36}$/i.test(s)) {
       try { history.replaceState(null, "", location.pathname); } catch (e) {}
