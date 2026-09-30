@@ -368,7 +368,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .lp b{display:block;margin-top:2px;font-size:15px;line-height:1.3}
 .lp em{display:-webkit-box;margin-top:3px;color:var(--soft);font-style:normal;font-size:13.5px;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 /* ---- double-tap: the heart pops ---- */
-.pics,.shared,.hand{position:relative;touch-action:manipulation}
+.pics,.shared,.hand{position:relative;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .burst{position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;color:#fff;pointer-events:none;filter:drop-shadow(0 4px 14px rgba(0,0,0,.5));animation:burst .85s ease forwards}
 .burst .ico{width:100%;height:100%;fill:#fff;stroke:#fff}
 @keyframes burst{0%{transform:scale(.2);opacity:0}15%{transform:scale(1.15);opacity:1}30%{transform:scale(.95)}45%{transform:scale(1)}80%{opacity:1}100%{transform:scale(1.1);opacity:0}}
@@ -430,7 +430,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     <button type="button" class="meb" data-memenu aria-label="Your menu"><span id="railme"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg></span>ME</button>
   </nav></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v9</span>
+  <span class="ver" id="ver">v10</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1866,6 +1866,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
       var now = Date.now(), v = t.closest("[data-view]");
       if (lastTap.el === media && now - lastTap.t < 320) {
         clearTimeout(lastTap.tm); lastTap = {};
+        try { window.getSelection().removeAllRanges(); } catch (e) {}
         var pb = media.closest("[data-post]").querySelector('[data-react="proud"]');
         burst(media);
         if (pb && !pb.classList.contains("on")) gate(function () { react(id, "proud", pb); });
