@@ -40,7 +40,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 #chrome{position:fixed;top:0;left:0;right:0;z-index:9000;transition:transform .28s ease}
 #chrome.away{transform:translateY(-100%)}
 .ver{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:99999;padding:3px 10px;border-radius:999px;background:#fff;color:#000;font:800 12.5px/1.3 Arial,sans-serif;letter-spacing:.03em;box-shadow:0 2px 8px rgba(0,0,0,.45);pointer-events:none}
-#chrome #rm-topbar{position:relative}
+#chrome #rm-topbar{position:relative;min-height:48px}
 #chrome .railbg{background:#100f0c}
 #rmrail{display:grid;grid-template-columns:repeat(6,1fr);max-width:480px;margin:0 auto;background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.18);border-bottom:1px solid rgba(214,179,106,.28)}
 #rmrail a,#rmrail button{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0 9px;color:#b8ae98;font:500 12px/1 "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.08em;white-space:nowrap;text-decoration:none;background:none;border:0;cursor:pointer}
@@ -196,8 +196,49 @@ html.kb #comments .sheet{top:0;border-radius:0}
 #rmrail .meb{position:relative}
 .dot{position:absolute;top:3px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;border:2px solid #100f0c;background:var(--rust);color:#fff;font:800 10.5px/14px Arial,sans-serif;text-align:center;box-sizing:border-box}
 .menu .mcount{float:right;min-width:22px;padding:1px 7px;border-radius:11px;background:var(--rust);color:#fff;font:800 12px/20px Arial,sans-serif;text-align:center}
-#notes .page{padding-top:calc(14px + env(safe-area-inset-top,0px))}
-#notes h2{margin:0 16px 10px;font:400 30px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em}
+/* ---- THE BELL + THE DROP-DOWN (30 Sep 2026, the way Jeff's site does it) ---- */
+.bell{position:absolute;top:calc(4px + env(safe-area-inset-top,0px));right:6px;z-index:99999;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:none;color:var(--cream);cursor:pointer}
+.bell svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.bell-n{position:absolute;top:1px;right:0;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#e41e3f;color:#fff;font:800 11px/19px system-ui,Arial,sans-serif;font-style:normal;text-align:center;box-shadow:0 0 0 2px #100f0c;box-sizing:border-box}
+.ver{right:52px!important}
+.layer.drop .dim{background:rgba(0,0,0,.55)}
+.nd-panel{position:absolute;left:8px;right:8px;top:var(--ndtop,70px);max-width:560px;margin:0 auto;max-height:calc(100% - var(--ndtop,70px) - 16px);overflow-y:auto;border-radius:18px;background:var(--sheet);border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.6);animation:nddrop .2s ease}
+@keyframes nddrop{from{opacity:0;transform:translateY(-10px)}}
+.nd-panel::before{content:"";display:block;height:5px;background:linear-gradient(90deg,var(--gold),#e8a33d,var(--rust),var(--gold));background-size:300% 100%;animation:ndholo 6s linear infinite}
+@keyframes ndholo{to{background-position:300% 0}}
+.nd-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px 10px;background:var(--sheet);border-bottom:1px solid var(--line)}
+.nd-head b{font:400 26px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em;color:var(--cream)}
+.nd-sw{display:flex;align-items:center;gap:8px;padding:0;border:0;background:none;color:var(--muted);font:700 12.5px Arial,sans-serif;text-align:right;cursor:pointer}
+.nd-sw i{position:relative;flex:none;width:38px;height:22px;border-radius:11px;background:var(--fline);transition:background .2s}
+.nd-sw i::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.nd-sw[aria-pressed=true] i{background:linear-gradient(90deg,var(--gold),var(--rust))}
+.nd-sw[aria-pressed=true] i::after{transform:translateX(16px)}
+.nd-sw.off i{display:none}
+.nd-sec{margin:0;padding:12px 14px 4px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold)}
+.nd-row{display:flex;align-items:center;gap:12px;width:100%;padding:10px 14px;border:0;background:none;color:var(--cream);text-align:left;font:14.5px/1.35 -apple-system,Segoe UI,Roboto,Arial,sans-serif;cursor:pointer}
+.nd-row.is-new{background:rgba(214,179,106,.10)}
+.nd-av{position:relative;flex:none}
+.nd-av .av{width:54px;height:54px;font-size:19px}
+.nd-row.is-new .nd-av .av{box-shadow:0 0 0 2.5px var(--gold2)}
+.nd-k{position:absolute;right:-3px;bottom:-3px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;border:2px solid var(--sheet);color:#fff}
+.nd-k .ico{width:13px;height:13px;stroke-width:2.4}
+.nd-k.comment,.nd-k.reply{background:#2d88ff}.nd-k.proud{background:#e52e71}.nd-k.proud .ico{fill:#fff}.nd-k.metoo{background:#c9922b}
+.nd-k.mention{background:#8a3ffc}.nd-k.follow{background:#31a24c}.nd-k.report{background:#c4563c}
+.nd-t{flex:1;min-width:0}
+.nd-t span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.nd-t small{display:block;margin-top:3px;color:var(--faint);font-size:12.5px}
+.nd-row.is-new .nd-t small{color:var(--gold2);font-weight:800}
+.nd-th{flex:none;width:50px;height:50px;border-radius:9px;overflow:hidden;background:var(--field);display:grid;place-items:center;font:600 11px/1.1 "RM Hand",cursive;text-align:center;padding:2px;color:var(--cream)}
+.nd-th img{width:100%;height:100%;object-fit:cover}
+.nd-th.txt{font:10px/1.2 Arial,sans-serif;color:var(--soft);padding:5px;text-align:left;align-content:start;overflow:hidden}
+.nd-fb{flex:none;padding:8px 12px;border:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),#e8a33d);color:#17130b;font:800 12.5px Arial,sans-serif;cursor:pointer}
+.nd-dot{flex:none;width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--rust))}
+.nd-empty{padding:26px 18px 30px;text-align:center;color:var(--muted)}
+/* arriving from a notification: the comment glows so you can find it */
+.c1.hl .bub{animation:hlglow 4s ease}
+@keyframes hlglow{0%,60%{box-shadow:0 0 0 2px var(--gold2);background:#3a3120}100%{box-shadow:none}}
+.from-n{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 12px 8px;padding:9px 12px;border-radius:12px;background:var(--field);border:1px solid var(--line);color:var(--soft);font-size:13.5px}
+.from-n button{border:0;background:none;padding:0;color:var(--gold2);font:700 13px Arial,sans-serif;cursor:pointer}
 .nt{display:flex;gap:12px;align-items:flex-start;width:100%;padding:12px 16px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--cream);text-align:left;font:15px/1.35 -apple-system,Segoe UI,Roboto,Arial,sans-serif;cursor:pointer}
 .nt.new{background:rgba(214,179,106,.07)}
 .nt .av{width:44px;height:44px}
@@ -384,10 +425,6 @@ html.kb #comments .sheet{top:0;border-radius:0}
 /* ---- full-page lists: saved, reports ---- */
 .lh{margin:0 16px 4px;padding-top:calc(14px + env(safe-area-inset-top,0px));font:400 30px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em}
 .lsub{margin:0 16px 6px;color:var(--muted);font-size:13px}
-.pushcard{margin:0 16px 12px;padding:14px;border-radius:16px;background:var(--field);border:1px solid rgba(214,179,106,.35)}
-.pushcard b{display:block;font-size:16px}
-.pushcard p{margin:6px 0 10px;color:var(--soft);font-size:14px}
-.pushcard p:last-child{margin-bottom:0}
 .mr{margin:12px 12px 0;padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
 .mr.danger{border-color:#c4563c;background:#231512}
 .mr .dz{margin:0 0 10px;color:#ffd6cc;font-weight:700;font-size:14px}
@@ -430,7 +467,9 @@ html.kb #comments .sheet{top:0;border-radius:0}
     <button type="button" class="meb" data-memenu aria-label="Your menu"><span id="railme"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg></span>ME</button>
   </nav></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v10</span>
+  <span class="ver" id="ver">v11</span>
+  <!-- THE BELL (30 Sep 2026): notifications the way Jeff's site does them -->
+  <button type="button" class="bell" id="bell" data-bell aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-2 8-2 8h16s-2-1-2-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="bell-n" id="belln" hidden></i></button>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -597,7 +636,24 @@ html.kb #comments .sheet{top:0;border-radius:0}
 <div id="mod" class="layer full" role="dialog" aria-modal="true" aria-label="Reports"><div class="page"><h2 class="lh">REPORTS</h2><div id="mlist"></div></div></div>
 
 <!-- NOTIFICATIONS -->
-<div id="notes" class="layer full" role="dialog" aria-modal="true" aria-label="Notifications"><div class="page"><h2>NOTIFICATIONS</h2><div class="pushcard" id="pushcard" hidden></div><div id="nlist"></div></div></div>
+<div id="notes" class="layer drop" role="dialog" aria-modal="true" aria-label="Notifications">
+  <div class="dim" data-close></div>
+  <div class="nd-panel" id="ndpanel">
+    <div class="nd-head"><b>Notifications</b><button type="button" class="nd-sw" id="ndsw" aria-pressed="false"><span id="ndswl">Phone alerts</span><i></i></button></div>
+    <div id="nlist"></div>
+  </div>
+</div>
+
+<!-- THE NUDGE: turn on phone alerts (after you share or comment, never pushy) -->
+<div id="askpush" class="layer" role="dialog" aria-modal="true" aria-label="Phone alerts">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div>
+    <h3 id="aptitle">Don't miss a Proud of you</h3>
+    <p id="apbody">Get a buzz on your phone when somebody comments, cheers you on, tags you or follows you.</p>
+    <button type="button" class="btn" id="apyes">Turn on</button>
+    <button type="button" class="link" id="apno">Not now</button>
+  </div>
+</div>
 
 <!-- SEARCH: find somebody by name -->
 <div id="search" class="layer full" role="dialog" aria-modal="true" aria-label="Search"><div class="page">
@@ -672,7 +728,9 @@ html.kb #comments .sheet{top:0;border-radius:0}
     text:  '<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10 18.5h4"/>',
     fb:    '<path d="M14.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H9v3h2.5V21"/>',
     share: '<path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
-    reply: '<path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 6 6v1"/>'
+    reply: '<path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 6 6v1"/>',
+    mention: '<circle cx="12" cy="12" r="3.6"/><path d="M15.6 12v1.6a2.4 2.4 0 0 0 4.8 0V12a8.4 8.4 0 1 0-3.3 6.7"/>',
+    follow: '<circle cx="9" cy="8" r="3.6"/><path d="M2.5 20c1.2-3.6 3.7-5.4 6.5-5.4s5.3 1.8 6.5 5.4"/><path d="M18.5 8v6M15.5 11h6"/>'
   };
   var ico = function (k, cls) { return '<svg class="ico ' + (cls || "") + '" viewBox="0 0 24 24" aria-hidden="true">' + ICON[k] + "</svg>"; };
 
@@ -971,7 +1029,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
   var stack = [];
   function open(id) {
     var el = $(id); if (stack.indexOf(el) >= 0) return;
-    el.classList.add("open"); stack.push(el);
+    el.classList.add("open"); stack.push(el); el.style.zIndex = 20000 + stack.length;
     document.documentElement.classList.add("locked");
     try { history.pushState({ porch: stack.length }, ""); } catch (e) {}
   }
@@ -1159,7 +1217,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     await closeAll();
     window.scrollTo(0, 0);
     await reloadFeed();
-    if (r.care) open("care"); else toast("Shared 💛");
+    if (r.care) open("care"); else { toast("Shared 💛"); setTimeout(askPush, 1800); }
   }
   $("csend").addEventListener("click", function () { pauseFor = "post"; sendPost(false); });
 
@@ -1272,7 +1330,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     clearBox(); paintComments(); refreshComments(openPost);
     l.scrollTop = wasReply ? keep : l.scrollHeight;
     if (wasReply) { var el = l.querySelector('[data-comment="' + (r.id || "") + '"]'); if (el) el.scrollIntoView({ block: "nearest" }); }
-    if (r.care) open("care");
+    if (r.care) open("care"); else if (!wasReply) setTimeout(askPush, 1500);
   }
   $("cgo").addEventListener("click", function () { pauseFor = "comment"; sendComment(false); });
 
@@ -1577,8 +1635,11 @@ html.kb #comments .sheet{top:0;border-radius:0}
   }
 
   /* ================================================================ NOTIFICATIONS (30 Sep 2026)
-     Written by the database (porch_5_follows_notes.sql), read here. The red number
-     sits on your picture in the rail; the list lives in your menu. */
+     The way Jeff's site does them: a bell at the top right with a red count, a
+     drop-down split into NEW and EARLIER, a colored badge on each face, a little
+     picture of the share on the right (or Follow back), and everything marked
+     read the moment it opens. Tapping a comment takes you right to it, glowing,
+     with the reply box ready. Written by the database, read here. */
   var unread = 0;
   async function checkNotes() {
     if (!me.uid || !me.member) return;
@@ -1587,6 +1648,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
         headers: { apikey: KEY, Authorization: "Bearer " + (await tok()), Prefer: "count=exact" } });
       unread = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
     } catch (e) {}
+    var n = $("belln"); n.hidden = !unread; n.textContent = unread > 99 ? "99+" : unread;
     var d = document.querySelector("#rmrail .dot");
     if (unread && !d) $("railme").insertAdjacentHTML("afterend", '<i class="dot"></i>');
     d = document.querySelector("#rmrail .dot");
@@ -1595,41 +1657,82 @@ html.kb #comments .sheet{top:0;border-radius:0}
     try { if (unread && navigator.setAppBadge) navigator.setAppBadge(unread); else if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) {}
   }
   var NOTE = {
-    comment: ["comment", "commented on your share"], reply: ["reply", "replied to your comment"], proud: ["proud", "is proud of you"], metoo: ["metoo", "said Me too"],
-    mention: ["say", "tagged you"], follow: ["experience", "started following you"], report: ["question", "was reported. Take a look."]
+    comment: ["comment", "commented on your share"], reply: ["reply", "replied to your comment"],
+    proud: ["proud", "is proud of you"], metoo: ["metoo", "said Me too"],
+    mention: ["mention", "tagged you"], follow: ["follow", "started following you"],
+    report: ["question", "was reported. Take a look."]
   };
+  function noteSays(n) {
+    if (n.kind === "mention") return n.comment_id ? "tagged you in a comment" : "tagged you in a share";
+    return (NOTE[n.kind] || ["", "did something"])[1];
+  }
+  var noteThumbs = {};
+  function thumbHTML(p) {
+    if (!p) return "";
+    var ph = p.photo_paths || [];
+    if (ph.length) return '<span class="nd-th"><img src="' + pic(ph[0]) + '" alt="" loading="lazy"></span>';
+    if (p.card_style != null && fitsCard(p.body || "")) { var c = CARDS[p.card_style % CARDS.length]; return '<span class="nd-th" style="background:' + c.bg + ";color:" + c.ink + '">' + esc((p.body || "").slice(0, 40)) + "</span>"; }
+    return '<span class="nd-th txt">' + esc((p.body || "").slice(0, 60)) + "</span>";
+  }
   async function openNotes() {
-    $("nlist").innerHTML = '<div class="skel" style="height:200px"></div>';
+    if (!signedIn()) return open("join");
+    var bar = $("chrome").getBoundingClientRect();
+    document.documentElement.style.setProperty("--ndtop", Math.max(8, bar.bottom + 6) + "px");
+    $("nlist").innerHTML = '<div class="skel" style="height:180px;margin:10px"></div>';
+    paintSwitch();
     open("notes");
     var list = [];
-    try { list = await rest("porch_notes?user_id=eq." + me.uid + "&select=*&order=created_at.desc&limit=60"); } catch (e) {}
+    try { list = await rest("porch_notes?user_id=eq." + me.uid + "&select=*&order=created_at.desc&limit=50"); } catch (e) {}
     await loadPeople(list.map(function (n) { return n.actor_id; }));
     var cids = list.filter(function (n) { return n.comment_id; }).map(function (n) { return n.comment_id; }), words = {};
-    if (cids.length) { try { (await rest("porch_comments?id=in.(" + cids.join(",") + ")&select=id,body")).forEach(function (c) { words[c.id] = c.body; }); } catch (e) {} }
-    paintPushCard();
-    $("nlist").innerHTML = list.length ? list.map(function (n) {
-      var k = NOTE[n.kind] || ["say", ""], said = n.comment_id && words[n.comment_id];
-      return '<button type="button" class="nt' + (n.read_at ? "" : " new") + '" data-note="' + n.id + '" data-nk="' + n.kind + '" data-np="' + (n.post_id || "") + '" data-na="' + n.actor_id + '">' +
-        '<span class="nk">' + avatar(people[n.actor_id]) + ico(k[0]) + '</span><span class="nw"><b>' + esc(name(n.actor_id)) + "</b> " + k[1] +
-        (said ? "<q>" + esc(said.length > 90 ? said.slice(0, 90) + "…" : said) + "</q>" : "") + "<small>" + ago(n.created_at) + "</small></span></button>";
-    }).join("") : '<p class="pempty">Nothing yet. When somebody comments, cheers you on, tags you or follows you, it shows up here.</p>';
-    if (unread) {
+    var pids = list.filter(function (n) { return n.post_id && !noteThumbs[n.post_id]; }).map(function (n) { return n.post_id; });
+    try {
+      if (cids.length) (await rest("porch_comments?id=in.(" + cids.join(",") + ")&select=id,body")).forEach(function (c) { words[c.id] = c.body; });
+      if (pids.length) (await rest("porch_posts?id=in.(" + pids.filter(function (x, i) { return pids.indexOf(x) === i; }).join(",") + ")&select=id,body,photo_paths,card_style")).forEach(function (p) { noteThumbs[p.id] = p; });
+    } catch (e) {}
+    function row(n) {
+      var k = NOTE[n.kind] || ["say"], said = n.comment_id && words[n.comment_id], isNew = !n.read_at;
+      var right = n.kind === "follow" ? (!follows[n.actor_id] ? '<button type="button" class="nd-fb" data-follow="' + n.actor_id + '">Follow back</button>' : "")
+        : n.post_id ? thumbHTML(noteThumbs[n.post_id] || posts[n.post_id]) : "";
+      return '<div role="button" tabindex="0" class="nd-row' + (isNew ? " is-new" : "") + '" data-note="' + n.id + '" data-nk="' + n.kind + '" data-np="' + (n.post_id || "") + '" data-nc="' + (n.comment_id || "") + '" data-na="' + n.actor_id + '">' +
+        '<span class="nd-av">' + avatar(people[n.actor_id]) + '<span class="nd-k ' + n.kind + '">' + ico(k[0]) + "</span></span>" +
+        '<span class="nd-t"><span><b>' + esc(name(n.actor_id)) + "</b> " + noteSays(n) +
+        (said ? ": “" + esc(said.length > 90 ? said.slice(0, 90) + "…" : said) + "”" : "") + "</span><small>" + ago(n.created_at) + "</small></span>" +
+        right + (isNew && !right ? '<i class="nd-dot"></i>' : "") + "</div>";
+    }
+    var fresh = list.filter(function (n) { return !n.read_at; }), old = list.filter(function (n) { return n.read_at; });
+    $("nlist").innerHTML = list.length
+      ? (fresh.length ? '<p class="nd-sec">NEW</p>' + fresh.map(row).join("") : "") + (old.length ? '<p class="nd-sec">EARLIER</p>' + old.map(row).join("") : "")
+      : '<p class="nd-empty">Nothing yet. When somebody comments, cheers you on, tags you or follows you, it shows up here.</p>';
+    /* marked read the moment it opens (rows keep their NEW look until next time) */
+    if (fresh.length || unread) {
       try { await rest("porch_notes?user_id=eq." + me.uid + "&read_at=is.null", { method: "PATCH", body: { read_at: new Date().toISOString() } }); } catch (e) {}
       unread = 0; checkNotes();
     }
   }
-  async function openNoteTarget(postId, actor) {
+  /* where a notification takes you */
+  async function openNoteTarget(postId, actor, commentId, kind) {
     if (!postId) return openProfile(actor);
-    if (!posts[postId]) {
-      try {
-        var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview");
-        if (!r[0]) return toast("That share is gone.");
-        var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
-        await loadPeople([r[0].user_id].concat(cs.map(function (c) { return c.user_id; })));
-        posts[postId] = r[0]; comments[postId] = cs; mine[postId] = mine[postId] || {};
-      } catch (e) { return toast("That didn't load."); }
-    }
+    try {
+      var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview");
+      if (!r[0]) return toast("That share is gone.");
+      var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
+      await loadPeople([r[0].user_id, actor].concat(cs.map(function (c) { return c.user_id; })).filter(Boolean));
+      posts[postId] = r[0]; comments[postId] = cs; mine[postId] = mine[postId] || {};
+      if (me.uid) { try { (await rest("porch_reactions?user_id=eq." + me.uid + "&post_id=eq." + postId + "&select=kind")).forEach(function (x) { mine[postId][x.kind] = true; }); } catch (e) {} }
+    } catch (e) { if (!posts[postId]) return toast("That didn't load."); }
     openSingle(postId);
+    if (kind && actor && NOTE[kind]) {
+      $("sgpage").insertAdjacentHTML("afterbegin", '<p class="from-n"><span><b>' + esc(name(actor)) + "</b> " + ({ comment: "commented on this", reply: "replied to your comment here", proud: "is proud of you for this", metoo: "said Me too to this", mention: "tagged you here" }[kind] || noteSays({ kind: kind })) + '</span><button type="button" data-bell>See your other notifications</button></p>');
+    }
+    if (commentId && comments[postId].some(function (c) { return c.id === commentId; })) {
+      openComments(postId);
+      setTimeout(function () {
+        var el = $("clist").querySelector('[data-comment="' + commentId + '"]');
+        if (el) { el.scrollIntoView({ block: "center" }); el.classList.add("hl"); setTimeout(function () { el.classList.remove("hl"); }, 4200); }
+        if (kind === "comment" || kind === "reply" || kind === "mention") startReply(commentId);
+      }, 120);
+    }
   }
   setInterval(checkNotes, 60000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) checkNotes(); });
@@ -1740,21 +1843,61 @@ html.kb #comments .sheet{top:0;border-radius:0}
     try { await rest("porch_push?endpoint=eq." + encodeURIComponent(ep), { method: "DELETE" }); } catch (e) {}
     if (!quiet) toast("Phone notifications are off.");
   }
-  async function paintPushCard(state) {
-    var c = $("pushcard"); if (!c) return;
-    var html = "";
-    if (state === "denied" || (canPush && Notification.permission === "denied")) {
-      html = "<b>Phone notifications are blocked</b><p>Turn them on for Recovery Misfits in your phone's Settings, then come back here.</p>";
-    } else if (iOS && !standalone) {
-      html = "<b>Want a buzz on your phone?</b><p>On iPhone, add Recovery Misfits to your Home Screen first: tap the Share button, then <em>Add to Home Screen</em>. Open it from there and come back here.</p>";
-    } else if (canPush && !(await pushSub())) {
-      html = "<b>Want a buzz on your phone?</b><p>Find out when somebody comments, cheers you on, tags you or follows you.</p><button type=\"button\" class=\"gbtn\" data-pushon>Turn on</button>";
-    } else if (canPush) {
-      html = '<p style="margin:0">Phone notifications are on. <button type="button" class="link" data-pushoff style="display:inline;width:auto;margin:0">Turn off</button></p>';
-    }
-    c.innerHTML = html; c.hidden = !html;
+  /* the "Phone alerts" switch in the drop-down's header */
+  async function paintSwitch(state) {
+    var sw = $("ndsw"), l = $("ndswl"), on = false, off = false, txt = "Phone alerts";
+    if (!canPush && !(iOS && !standalone)) { txt = "No phone alerts in this browser"; off = true; }
+    else if (iOS && !standalone) { txt = "Add to Home Screen for phone alerts"; off = true; }
+    else if (state === "denied" || Notification.permission === "denied") { txt = "Blocked in phone settings"; off = true; }
+    else on = !!(await pushSub()) && Notification.permission === "granted";
+    l.textContent = txt; sw.classList.toggle("off", off); sw.setAttribute("aria-pressed", on ? "true" : "false");
   }
-  $("pushcard").addEventListener("click", async function (e) { if (e.target.closest("[data-pushoff]")) { await pushOff(); paintPushCard(); } });
+  $("ndsw").addEventListener("click", async function () {
+    if (this.classList.contains("off")) {
+      if (iOS && !standalone) toast("Tap Share, then Add to Home Screen. Open it from there.");
+      else if (canPush && Notification.permission === "denied") toast("Turn notifications on for this site in your phone's settings.");
+      return;
+    }
+    if (this.getAttribute("aria-pressed") === "true") { await pushOff(); } else { await pushOn(); }
+    paintSwitch();
+  });
+  function paintPushCard(state) { paintSwitch(state); }
+
+  /* THE NUDGE (like Jeff's): right after you share or comment, or a few seconds
+     after opening with something waiting. At most once every 4 days, and once a
+     month after 3 "Not now"s. Never if alerts are on, blocked, or impossible. */
+  var ASK = "rm_porch_askpush";
+  async function askPush() {
+    if (!me.uid || !me.member || stack.length) return;
+    var a = { t: 0, no: 0 }; try { a = JSON.parse(localStorage.getItem(ASK) || "null") || a; } catch (e) {}
+    var gap = (a.no >= 3 ? 30 : 4) * 86400000;
+    if (Date.now() - a.t < gap) return;
+    var iosTab = iOS && !standalone;
+    if (!iosTab && (!canPush || Notification.permission === "denied" || (Notification.permission === "granted" && await pushSub()))) return;
+    $("aptitle").textContent = "Don't miss a Proud of you";
+    $("apbody").textContent = iosTab
+      ? "On iPhone, phone alerts only work from the Home Screen. Tap the Share button, then Add to Home Screen, and open Recovery Misfits from there."
+      : "Get a buzz on your phone when somebody comments, cheers you on, tags you or follows you.";
+    $("apyes").textContent = iosTab ? "Got it" : "Turn on";
+    $("apyes").dataset.ios = iosTab ? "1" : "";
+    try { localStorage.setItem(ASK, JSON.stringify({ t: Date.now(), no: a.no })); } catch (e) {}
+    open("askpush");
+  }
+  $("apyes").addEventListener("click", async function () { var ios = this.dataset.ios; await closeTop(); if (!ios) pushOn(); });
+  $("apno").addEventListener("click", async function () {
+    var a = { t: Date.now(), no: 0 }; try { a = JSON.parse(localStorage.getItem(ASK) || "null") || a; } catch (e) {}
+    a.no = (a.no || 0) + 1; a.t = Date.now(); try { localStorage.setItem(ASK, JSON.stringify(a)); } catch (e) {}
+    await closeTop();
+  });
+  /* a phone that already said yes gets quietly re-tagged to whoever is signed in */
+  async function healPush() {
+    try {
+      if (!me.uid || !canPush || Notification.permission !== "granted") return;
+      var sub = await pushSub(); if (!sub) return;
+      var j = sub.toJSON();
+      await rest("porch_push?on_conflict=endpoint", { method: "POST", upsert: true, body: { endpoint: j.endpoint, user_id: me.uid, p256dh: j.keys.p256dh, auth: j.keys.auth } });
+    } catch (e) {}
+  }
 
   /* ================================================================ MODERATORS: THE REPORTS SCREEN (30 Sep 2026)
      ME → Reports. "Somebody might be in danger" is always at the top and never
@@ -1823,7 +1966,12 @@ html.kb #comments .sheet{top:0;border-radius:0}
     var op = t.closest("[data-openpost]"); if (op) return openSingle(op.dataset.openpost);
     if (t.closest("[data-memenu]")) return openMeMenu();
     var fb = t.closest("[data-follow]"); if (fb) return gate(function () { toggleFollow(fb.dataset.follow, fb); });
-    var nt = t.closest("[data-note]"); if (nt) return nt.dataset.nk === "report" ? openMod() : openNoteTarget(nt.dataset.np, nt.dataset.na);
+    var nt = t.closest("[data-note]");
+    if (nt && !t.closest("[data-follow]")) {
+      var nd = nt.dataset;
+      return closeTop().then(function () { return nd.nk === "report" ? openMod() : openNoteTarget(nd.np, nd.na, nd.nc, nd.nk); });
+    }
+    if (t.closest("[data-bell]")) { var inSingle = t.closest("#single"); return (inSingle ? closeTop() : Promise.resolve()).then(openNotes); }
     var tb = t.closest("[data-tab]");
     if (tb) {
       if (tb.dataset.tab === tab) return;
@@ -1946,13 +2094,16 @@ html.kb #comments .sheet{top:0;border-radius:0}
     await loadFollows();
     loadNew();
     loadMore();
-    checkNotes(); checkNew(); modCheck();
+    checkNotes(); checkNew(); modCheck(); healPush();
+    setTimeout(function () { if (unread) askPush(); }, 6000);
     /* a link somebody sent: /feed/porch.html?s=<share> opens that one share */
+    if (/[?&]mod=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (isMod) openMod(); }
     if (/[?&]notes=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) openNotes(); }
-    var s = new URLSearchParams(location.search).get("s");
+    var s = new URLSearchParams(location.search).get("s"), keepQ = location.search;
     if (s && /^[0-9a-f-]{36}$/i.test(s)) {
+      var qp = new URLSearchParams(keepQ);
       try { history.replaceState(null, "", location.pathname); } catch (e) {}
-      openNoteTarget(s, "");
+      openNoteTarget(s, qp.get("a") || "", qp.get("c") || "", qp.get("k") || "");
     }
   })();
 })();

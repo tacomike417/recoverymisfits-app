@@ -63,21 +63,31 @@ Deno.serve(async (req) => {
 
   let note_id = "";
   try { note_id = String((await req.json()).note_id || ""); } catch { /* empty */ }
-  const { data: n } = await admin.from("porch_notes").select("*").eq("id", note_id).maybeSingle();
+  // claim it: each notification buzzes once, and only while it's under an hour old
+  const { data: claimed } = await admin.rpc("porch_claim_push", { p_id: note_id });
+  const n = (claimed as any[])?.[0];
   if (!n) return json({ ok: true, sent: 0 });
 
-  const [{ data: actor }, { data: phones }, { count }] = await Promise.all([
+  const [{ data: actor }, { data: phones }, { count }, { data: said }] = await Promise.all([
     admin.from("porch_members").select("handle").eq("user_id", n.actor_id).maybeSingle(),
     admin.from("porch_push").select("*").eq("user_id", n.user_id),
     admin.from("porch_notes").select("id", { count: "exact", head: true }).eq("user_id", n.user_id).is("read_at", null),
+    n.comment_id ? admin.from("porch_comments").select("body").eq("id", n.comment_id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
   if (!phones?.length) return json({ ok: true, sent: 0 });
 
   await vapid();
+  // like Jeff's: the title says who did what, the body is what they said
+  const who = actor?.handle || "Somebody";
+  const words = n.kind === "mention" ? (n.comment_id ? "tagged you in a comment" : "tagged you in a share") : (WORDS[n.kind] || "did something");
+  const text = String((said as any)?.body || "").replace(/\s+/g, " ").trim();
+  const q = new URLSearchParams();
+  if (n.post_id) { q.set("s", n.post_id); if (n.comment_id) q.set("c", n.comment_id); q.set("k", n.kind); q.set("a", n.actor_id); }
+  else if (n.kind === "report") q.set("mod", "1"); else q.set("notes", "1");
   const payload = JSON.stringify({
-    title: "The Porch",
-    body: (actor?.handle || "Somebody") + " " + (WORDS[n.kind] || "did something"),
-    url: "/feed/porch.html" + (n.post_id ? "?s=" + n.post_id : "?notes=1"),
+    title: who + " " + words,
+    body: text ? (text.length > 140 ? text.slice(0, 137) + "…" : text) : "Tap to see it.",
+    url: "/feed/porch.html?" + q.toString(),
     tag: "porch-" + n.kind + "-" + (n.post_id || n.actor_id),
     badge: count || 1,
   });
