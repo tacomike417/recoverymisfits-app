@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>The Porch · Recovery Misfits</title>
 <meta name="theme-color" content="#0e0e10">
 <script>/* 30 Sep 2026: back to the original preview look (Classic). The other looks stay in the CSS, unused. */document.documentElement.classList.add("t-classic");</script>
@@ -145,6 +145,11 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 
 /* ---- layers. The phone's back button closes the top one. No on-screen back buttons. ---- */
 .layer{position:fixed;inset:0;z-index:20000;display:none}
+/* THE PHONE KEYBOARD (30 Sep 2026): every pop-up screen fits the space ABOVE the
+   keyboard, so the box you're typing in is never hidden behind it. */
+.layer{top:var(--vvt,0px);bottom:auto;height:var(--vvh,100%)}
+html.kb .cbar{padding-bottom:10px}
+html.kb #comments .sheet{top:0;border-radius:0}
 .layer.open{display:block}
 .layer .dim{position:absolute;inset:0;background:rgba(0,0,0,.7)}
 .sheet{position:absolute;left:0;right:0;bottom:0;max-width:480px;max-height:90vh;overflow-y:auto;margin:0 auto;background:var(--sheet);border-radius:22px 22px 0 0;border-top:1px solid var(--line);padding:12px 20px calc(24px + env(safe-area-inset-bottom,0px))}
@@ -338,6 +343,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .replyto b{color:var(--cream)}
 .replyto button{border:0;background:none;color:var(--muted);font:700 13px Arial,sans-serif;cursor:pointer;padding:4px 6px}
 .replyto:empty{display:none}
+.c1 .bub.work{box-shadow:0 0 0 2px var(--gold2)}
 
 /* ---- SEARCH (30 Sep 2026) ---- */
 .ftabs .srch{margin-left:auto;display:flex;align-items:center;gap:6px}
@@ -913,6 +919,25 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   function closeTop() { return new Promise(function (res) { if (!stack.length) return res(); waiters.push(res); history.back(); }); }
   async function closeAll() { while (stack.length) await closeTop(); }
 
+  /* ---- keep pop-ups above the phone keyboard ---- */
+  (function () {
+    var vv = window.visualViewport; if (!vv) return;
+    function fit() {
+      var s = document.documentElement.style;
+      s.setProperty("--vvh", vv.height + "px"); s.setProperty("--vvt", vv.offsetTop + "px");
+      document.documentElement.classList.toggle("kb", window.innerHeight - vv.height > 120);
+      keepInView();
+    }
+    vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit();
+  })();
+  /* the comment you're replying to or editing stays on screen when the keyboard comes up */
+  function keepInView() {
+    if (!$("comments").classList.contains("open")) return;
+    var c = editingC || replyTo; if (!c) return;
+    var el = $("clist").querySelector('[data-comment="' + c.id + '"]');
+    if (el) setTimeout(function () { el.scrollIntoView({ block: "nearest" }); }, 30);
+  }
+
   var tt;
   function toast(t) { var el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(tt); tt = setTimeout(function () { el.classList.remove("on"); }, 2600); }
 
@@ -1131,7 +1156,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     $("cin").placeholder = replyTo ? "Write a reply…" : "Say something kind…";
   }
   function clearBox() {
-    replyTo = null; editingC = null;
+    replyTo = null; editingC = null; markC();
     $("cin").value = ""; $("cin").style.height = ""; $("cgo").disabled = true; paintReplyBar();
   }
   function findComment(id) { return (comments[openPost] || []).find(function (c) { return c.id === id; }); }
@@ -1148,12 +1173,18 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     editingC = null; replyTo = c;
     var b = $("cin"), tagIt = c.user_id !== me.uid && !isSample(c.user_id) ? "@" + name(c.user_id) + " " : "";
     if (!b.value.trim() || /^@\S+\s$/.test(b.value)) b.value = tagIt;
-    paintReplyBar(); grow(); b.focus(); b.selectionStart = b.selectionEnd = b.value.length;
+    paintReplyBar(); grow(); markC(); b.focus(); b.selectionStart = b.selectionEnd = b.value.length; keepInView();
+  }
+  /* the comment you're working on gets a gold outline so it's obvious which one */
+  function markC() {
+    var c = editingC || replyTo;
+    $("clist").querySelectorAll(".bub.work").forEach(function (x) { x.classList.remove("work"); });
+    if (c) { var el = $("clist").querySelector('[data-comment="' + c.id + '"] .bub'); if (el) el.classList.add("work"); }
   }
   function startEditC(cid) {
     var c = findComment(cid); if (!c) return;
     replyTo = null; editingC = c;
-    $("cin").value = c.body; paintReplyBar(); grow(); $("cin").focus();
+    $("cin").value = c.body; paintReplyBar(); grow(); markC(); $("cin").focus(); keepInView();
   }
   $("replyto").addEventListener("click", function (e) { if (e.target.closest("[data-cancelc]")) clearBox(); });
   async function sendComment(sure) {
