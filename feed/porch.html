@@ -61,6 +61,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .say{display:flex;align-items:center;gap:10px;margin:12px 12px 0;padding:10px 12px;border-radius:16px;background:var(--card);border:1px solid var(--line);cursor:pointer;width:calc(100% - 24px);text-align:left;color:var(--muted);font-size:15px}
 .say .pl{flex:1;padding:9px 14px;border-radius:999px;background:var(--btn);border:1px solid var(--line)}
 .say .cam{font-size:20px}
+.ftabs{display:flex;gap:8px;margin:14px 12px 2px}
+.ftabs button{padding:8px 16px;border-radius:999px;border:1px solid rgba(214,179,106,.35);background:none;color:var(--muted);font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.1em;cursor:pointer}
+.ftabs button.on{background:var(--gold);color:#17130b;border-color:var(--gold)}
 .newb{margin:14px 0 0;padding:0 12px}
 .newb h3{margin:0 0 8px;font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
 .strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
@@ -174,6 +177,22 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .pname h2{margin:0;font:400 30px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.02em;word-break:break-all}
 .pname p{margin:6px 0 0;color:var(--soft);font-size:15px;white-space:pre-wrap}
 .pname .none{color:var(--faint)}
+.fol{display:inline-block;margin:10px 0 2px;padding:9px 22px;border-radius:999px;border:0;background:var(--gold2);color:#17130b;font:800 14px Arial,sans-serif;cursor:pointer}
+.fol.on{background:none;border:1.5px solid rgba(214,179,106,.5);color:var(--cream)}
+/* notifications */
+#rmrail .meb{position:relative}
+.dot{position:absolute;top:3px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;border:2px solid #100f0c;background:var(--rust);color:#fff;font:800 10.5px/14px Arial,sans-serif;text-align:center;box-sizing:border-box}
+.menu .mcount{float:right;min-width:22px;padding:1px 7px;border-radius:11px;background:var(--rust);color:#fff;font:800 12px/20px Arial,sans-serif;text-align:center}
+#notes .page{padding-top:calc(14px + env(safe-area-inset-top,0px))}
+#notes h2{margin:0 16px 10px;font:400 30px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em}
+.nt{display:flex;gap:12px;align-items:flex-start;width:100%;padding:12px 16px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--cream);text-align:left;font:15px/1.35 -apple-system,Segoe UI,Roboto,Arial,sans-serif;cursor:pointer}
+.nt.new{background:rgba(214,179,106,.07)}
+.nt .av{width:44px;height:44px}
+.nt .nk{position:relative}
+.nt .nk .ico{position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;padding:3px;border-radius:50%;background:var(--gold2);color:#17130b;stroke-width:2.2}
+.nt q{display:block;margin-top:3px;color:var(--soft);quotes:"\201C" "\201D"}
+.nt small{display:block;margin-top:4px;color:var(--faint);font-size:12.5px}
+.nt .nw{flex:1;min-width:0}
 .pchips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0}
 .pchips span{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);font-size:13px;color:var(--soft)}
 .pchips .ico{width:15px;height:15px;color:var(--gold2)}
@@ -329,6 +348,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 <main class="wrap" id="main">
   
   <section class="newb" id="newb" hidden><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
+  <div class="ftabs" id="ftabs"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FOLLOWING</button></div>
   <div id="feed" style="padding-top:2px"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
 </main>
@@ -475,6 +495,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div><div class="mmhead" id="mmhead"></div><div class="menu" id="mmbody"></div></div>
 </div>
+
+<!-- NOTIFICATIONS -->
+<div id="notes" class="layer full" role="dialog" aria-modal="true" aria-label="Notifications"><div class="page"><h2>NOTIFICATIONS</h2><div id="nlist"></div></div></div>
 
 <!-- A PROFILE -->
 <div id="profile" class="layer full" role="dialog" aria-modal="true" aria-label="Profile"><div class="page" id="pfpage"></div></div>
@@ -645,6 +668,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 
   /* ================================================================ THE FEED */
   var posts = {}, comments = {}, mine = {}, oldest = null, loading = false, done = false;
+  var tab = "all", follows = {};
 
   function postHTML(p) {
     var media = "", text = p.body || "", photos = p.photo_paths || [];
@@ -764,7 +788,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     try {
       var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at&order=created_at.desc&limit=" + PAGE +
         (oldest ? "&created_at=lt." + encodeURIComponent(oldest) : "");
-      var list = await rest(q);
+      var realFollows = Object.keys(follows).filter(function (k) { return !isSample(k); });
+      var list = tab === "following" && !realFollows.length ? [] : await rest(q + (tab === "following" ? "&user_id=in.(" + realFollows.join(",") + ")" : ""));
       if (list.length < PAGE) done = true;
       if (list.length) {
         oldest = list[list.length - 1].created_at;
@@ -779,13 +804,14 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       }
       if (samplesOn && !$("feed").querySelector(".post")) {
         var sp = samplePosts(); sp.forEach(function (p) { posts[p.id] = p; });
+        if (tab === "following") sp = sp.filter(function (p) { return follows[p.user_id]; });
         list = list.concat(sp).sort(function (a, b) { return a.created_at < b.created_at ? 1 : -1; });
       }
       var feed = $("feed");
       feed.querySelectorAll(".skel,.err").forEach(function (x) { x.remove(); });
       feed.insertAdjacentHTML("beforeend", list.map(postHTML).join(""));
       if (!feed.querySelector(".post")) {
-        feed.innerHTML = '<div class="empty"><h2>The Porch is brand new.</h2><p>Pull up a chair. Be the first one to say something.</p><button type="button" class="gbtn" data-new>Share something</button></div>';
+        feed.innerHTML = tab === "following" ? '<div class="empty"><h2>Nobody here yet.</h2><p>Tap somebody\'s name or face, then Follow. Their shares show up here.</p></div>' : '<div class="empty"><h2>The Porch is brand new.</h2><p>Pull up a chair. Be the first one to say something.</p><button type="button" class="gbtn" data-new>Share something</button></div>';
       } else if (done && !feed.querySelector(".endnote")) {
         feed.insertAdjacentHTML("beforeend", '<p class="endnote">You\'re all caught up. 💛</p>');
       }
@@ -1116,7 +1142,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     $("pfpage").innerHTML =
       '<div class="pcover"' + (m.cover_path ? ' style="background-image:url(\'' + pic(m.cover_path) + '\')"' : "") + '></div>' +
       '<div class="pav">' + avatar(m) + "</div>" +
-      '<div class="pname"><h2>' + esc(m.handle) + "</h2>" + (m.bio ? "<p>" + linkify(m.bio) + "</p>" : mineP ? '<p class="none">Add a line about you.</p>' : "") + "</div>" +
+      '<div class="pname"><h2>' + esc(m.handle) + "</h2>" + (!mineP ? '<button type="button" class="fol' + (follows[uid] ? " on" : "") + '" data-follow="' + uid + '">' + (follows[uid] ? "Following" : "Follow") + "</button>" : "") + (m.bio ? "<p>" + linkify(m.bio) + "</p>" : mineP ? '<p class="none">Add a line about you.</p>' : "") + "</div>" +
       (m.sober_date ? '<div class="pchips"><span>' + ico("win") + soberText(m.sober_date) + "</span></div>" : "") +
       (mineP ? '<button type="button" class="pedit" data-editp>Edit profile</button>' : "") +
       '<div class="plab">' + (mineP ? "MY SHARES" : "SHARES") + "</div>" +
@@ -1140,7 +1166,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     if (!signedIn()) return open("join");
     var m = me.member || { handle: A.name() };
     $("mmhead").innerHTML = avatar(m) + "<div><b>" + esc(m.handle) + "</b><small>" + (me.member && me.member.verified_at ? "On the Porch" : "Not confirmed yet") + "</small></div>";
-    $("mmbody").innerHTML = '<button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>';
+    $("mmbody").innerHTML = '<button type="button" data-mm="notes">Notifications' + (unread ? '<span class="mcount">' + unread + "</span>" : "") + '</button><button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>';
     open("memenu");
   }
 
@@ -1214,6 +1240,88 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   }
   watchAt($("cbody"), $("atc")); watchAt($("cin"), $("atm"));
 
+  /* ================================================================ FOLLOWS (30 Sep 2026)
+     No counts anywhere. You see who you follow; they get a notification. */
+  var SFOL = "rm_porch_sample_follows";
+  async function loadFollows() {
+    follows = {};
+    try { (JSON.parse(localStorage.getItem(SFOL) || "[]")).forEach(function (k) { follows[k] = true; }); } catch (e) {}
+    if (!me.uid) return;
+    try { (await rest("porch_follows?follower_id=eq." + me.uid + "&select=followed_id")).forEach(function (r) { follows[r.followed_id] = true; }); } catch (e) {}
+  }
+  async function toggleFollow(uid, btn) {
+    var on = !follows[uid];
+    if (on) follows[uid] = true; else delete follows[uid];
+    btn.classList.toggle("on", on); btn.textContent = on ? "Following" : "Follow";
+    if (isSample(uid)) {
+      try { localStorage.setItem(SFOL, JSON.stringify(Object.keys(follows).filter(isSample))); } catch (e) {}
+    } else {
+      try {
+        if (on) await rest("porch_follows", { method: "POST", body: { follower_id: me.uid, followed_id: uid } });
+        else await rest("porch_follows?follower_id=eq." + me.uid + "&followed_id=eq." + uid, { method: "DELETE" });
+      } catch (e) {
+        if (e.status !== 409) { if (on) delete follows[uid]; else follows[uid] = true; btn.classList.toggle("on", !on); btn.textContent = !on ? "Following" : "Follow"; return toast("That didn't go through."); }
+      }
+    }
+    if (on) toast("Following " + name(uid) + ". Their shares show up under Following.");
+    if (tab === "following") reloadFeed();
+  }
+
+  /* ================================================================ NOTIFICATIONS (30 Sep 2026)
+     Written by the database (porch_5_follows_notes.sql), read here. The red number
+     sits on your picture in the rail; the list lives in your menu. */
+  var unread = 0;
+  async function checkNotes() {
+    if (!me.uid || !me.member) return;
+    try {
+      var r = await fetch(DB + "/rest/v1/porch_notes?user_id=eq." + me.uid + "&read_at=is.null&select=id", { method: "HEAD",
+        headers: { apikey: KEY, Authorization: "Bearer " + (await tok()), Prefer: "count=exact" } });
+      unread = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
+    } catch (e) {}
+    var d = document.querySelector("#rmrail .dot");
+    if (unread && !d) $("railme").insertAdjacentHTML("afterend", '<i class="dot"></i>');
+    d = document.querySelector("#rmrail .dot");
+    if (d) { if (unread) d.textContent = unread > 9 ? "9+" : unread; else d.remove(); }
+  }
+  var NOTE = {
+    comment: ["comment", "commented on your share"], proud: ["proud", "is proud of you"], metoo: ["metoo", "said Me too"],
+    mention: ["say", "tagged you"], follow: ["experience", "started following you"]
+  };
+  async function openNotes() {
+    $("nlist").innerHTML = '<div class="skel" style="height:200px"></div>';
+    open("notes");
+    var list = [];
+    try { list = await rest("porch_notes?user_id=eq." + me.uid + "&select=*&order=created_at.desc&limit=60"); } catch (e) {}
+    await loadPeople(list.map(function (n) { return n.actor_id; }));
+    var cids = list.filter(function (n) { return n.comment_id; }).map(function (n) { return n.comment_id; }), words = {};
+    if (cids.length) { try { (await rest("porch_comments?id=in.(" + cids.join(",") + ")&select=id,body")).forEach(function (c) { words[c.id] = c.body; }); } catch (e) {} }
+    $("nlist").innerHTML = list.length ? list.map(function (n) {
+      var k = NOTE[n.kind] || ["say", ""], said = n.comment_id && words[n.comment_id];
+      return '<button type="button" class="nt' + (n.read_at ? "" : " new") + '" data-note="' + n.id + '" data-np="' + (n.post_id || "") + '" data-na="' + n.actor_id + '">' +
+        '<span class="nk">' + avatar(people[n.actor_id]) + ico(k[0]) + '</span><span class="nw"><b>' + esc(name(n.actor_id)) + "</b> " + k[1] +
+        (said ? "<q>" + esc(said.length > 90 ? said.slice(0, 90) + "…" : said) + "</q>" : "") + "<small>" + ago(n.created_at) + "</small></span></button>";
+    }).join("") : '<p class="pempty">Nothing yet. When somebody comments, cheers you on, tags you or follows you, it shows up here.</p>';
+    if (unread) {
+      try { await rest("porch_notes?user_id=eq." + me.uid + "&read_at=is.null", { method: "PATCH", body: { read_at: new Date().toISOString() } }); } catch (e) {}
+      unread = 0; checkNotes();
+    }
+  }
+  async function openNoteTarget(postId, actor) {
+    if (!postId) return openProfile(actor);
+    if (!posts[postId]) {
+      try {
+        var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at");
+        if (!r[0]) return toast("That share is gone.");
+        var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at&order=created_at.asc");
+        await loadPeople([r[0].user_id].concat(cs.map(function (c) { return c.user_id; })));
+        posts[postId] = r[0]; comments[postId] = cs; mine[postId] = mine[postId] || {};
+      } catch (e) { return toast("That didn't load."); }
+    }
+    openSingle(postId);
+  }
+  setInterval(checkNotes, 60000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) checkNotes(); });
+
   /* ================================================================ TAPS */
   document.addEventListener("click", function (e) {
     var t = e.target, post = t.closest("[data-post]"), id = post && post.dataset.post;
@@ -1221,8 +1329,17 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     var at = t.closest("[data-h]"); if (at && !t.closest("#cprev")) return openHandle(at.dataset.h);
     var op = t.closest("[data-openpost]"); if (op) return openSingle(op.dataset.openpost);
     if (t.closest("[data-memenu]")) return openMeMenu();
+    var fb = t.closest("[data-follow]"); if (fb) return gate(function () { toggleFollow(fb.dataset.follow, fb); });
+    var nt = t.closest("[data-note]"); if (nt) return openNoteTarget(nt.dataset.np, nt.dataset.na);
+    var tb = t.closest("[data-tab]");
+    if (tb) {
+      if (tb.dataset.tab === tab) return;
+      if (tb.dataset.tab === "following" && !signedIn()) return open("join");
+      tab = tb.dataset.tab; document.querySelectorAll("#ftabs [data-tab]").forEach(function (b) { b.classList.toggle("on", b === tb); });
+      return reloadFeed();
+    }
     var mm = t.closest("[data-mm]");
-    if (mm) { var which = mm.dataset.mm; closeTop().then(function () { if (which === "profile") openProfile(me.uid); else gate(openEdit); }); return; }
+    if (mm) { var which = mm.dataset.mm; closeTop().then(function () { if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else gate(openEdit); }); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
     if (t.closest("[data-new]")) return gate(function () { open("choose"); });
@@ -1303,8 +1420,10 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   /* ================================================================ GO */
   (async function () {
     await loadMe();
+    await loadFollows();
     loadNew();
     loadMore();
+    checkNotes();
   })();
 })();
 </script>
