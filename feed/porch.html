@@ -160,6 +160,22 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .needs button.on[data-need=hard]{background:#3a1f24;border-color:#c4563c;color:#ffd0c6}
 #cbody{display:block;width:100%;min-height:140px;margin-top:14px;padding:14px;border-radius:14px;border:1.5px solid var(--fline);background:var(--field);color:var(--cream);font:16.5px/1.45 -apple-system,Segoe UI,Roboto,Arial,sans-serif;resize:none}
 #cbody:focus{outline:none;border-color:var(--gold)}
+.cwho{display:flex;align-items:center;gap:10px;margin:14px 0 0}
+.cwho b{display:block;font-size:15px}
+.cwho small{color:var(--muted);font-size:12.5px}
+.lab span{margin-left:6px;color:var(--muted);letter-spacing:.04em;font:400 12px Arial,sans-serif}
+.addpic .ic{font-size:24px}
+.addpic b{display:block}
+.addpic span{text-align:left}
+.addpic small{color:var(--muted);font-weight:600;font-size:12.5px}
+#cprev{pointer-events:none;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+#cprev .post{margin:0;border:0}
+#cprev .acts,#cprev .cm,#cprev .more{display:none}
+#cardpick{margin-top:10px}
+.needs button{border:1px solid rgba(214,179,106,.4)!important}
+.needs button.on{border-color:var(--gold2)!important}
+.needs button.on[data-need=hard]{border-color:#c4563c!important}
+.addpic{border:1.5px dashed rgba(214,179,106,.5)!important}
 .count{margin-top:4px;text-align:right;color:var(--faint);font-size:12px}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .thumbs div{position:relative;width:86px;height:86px;border-radius:12px;overflow:hidden;background:#000}
@@ -242,7 +258,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   <div id="sentinel" style="height:1px"></div>
 </main>
 
-<button type="button" class="fab" data-new aria-label="New post"><svg viewBox="0 0 24 24"><path d="M12 3.5c4.97 0 9 3.36 9 7.5s-4.03 7.5-9 7.5c-1.1 0-2.15-.16-3.12-.46L4 20l1.3-3.9C3.86 14.8 3 13 3 11c0-4.14 4.03-7.5 9-7.5z"/><path d="M12 8v6M9 11h6"/></svg>Post</button>
+<button type="button" class="fab" data-new aria-label="New share"><svg viewBox="0 0 24 24"><path d="M12 3.5c4.97 0 9 3.36 9 7.5s-4.03 7.5-9 7.5c-1.1 0-2.15-.16-3.12-.46L4 20l1.3-3.9C3.86 14.8 3 13 3 11c0-4.14 4.03-7.5 9-7.5z"/><path d="M12 8v6M9 11h6"/></svg>Share</button>
 <div class="toast" id="toast" role="status"></div>
 
 <!-- NOT SIGNED IN -->
@@ -250,7 +266,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div>
     <h3>Your recovery, your way</h3>
-    <p>Anybody can read the Porch. To post, comment or cheer somebody on, you need an account and a confirmed email.</p>
+    <p>Anybody can read the Porch. To share, comment or cheer somebody on, you need an account and a confirmed email.</p>
     <p class="fine">We never keep your email, and nobody here will ever see it.</p>
     <a class="btn" href="/account.html?next=feed">Make an account or sign in</a>
     <button type="button" class="link" data-close>Keep looking around</button>
@@ -287,27 +303,25 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 </div>
 
 <!-- NEW POST -->
-<div id="compose" class="layer" role="dialog" aria-modal="true" aria-label="New post">
+<div id="compose" class="layer" role="dialog" aria-modal="true" aria-label="New share">
   <div class="page">
-    <div class="ctop"><b>NEW POST</b><button type="button" class="send" id="csend" disabled>Post</button></div>
-    <div class="lab">WHAT DO YOU NEED?</div>
+    <div class="ctop"><b>NEW SHARE</b><button type="button" class="send" id="csend" disabled>Share</button></div>
+    <div class="cwho"><span id="cav"></span><div><b id="cname"></b><small>Everyone on the Porch will see this</small></div></div>
+    <textarea id="cbody" maxlength="2000" placeholder="What's on your mind?"></textarea>
+    <div class="count" id="ccount"></div>
+    <div class="thumbs" id="thumbs"></div>
+    <button type="button" class="addpic" id="addpic"><span class="ic">📷</span><span><b>Add photos</b><small>Up to 4</small></span></button>
+    <input type="file" id="cfile" accept="image/*" multiple hidden>
+    <div class="lab">TAG IT <span>optional</span></div>
     <div class="needs" id="needs">
-      <button type="button" data-need="talk">🗣️ Just talking</button>
       <button type="button" data-need="win">🏆 A win</button>
       <button type="button" data-need="hard">🌧️ Hard day</button>
       <button type="button" data-need="question">❓ A question</button>
     </div>
-    <textarea id="cbody" maxlength="2000" placeholder="What's on your mind?"></textarea>
-    <div class="count" id="ccount"></div>
-    <div class="thumbs" id="thumbs"></div>
-    <button type="button" class="addpic" id="addpic">📷 Add photos <span style="color:var(--muted);font-weight:600">(up to 4)</span></button>
-    <input type="file" id="cfile" accept="image/*" multiple hidden>
-    <div id="cardpick">
-      <div class="lab">HOW IT LOOKS</div>
-      <div class="styles" id="styles"></div>
-      <div id="cprev"></div>
-      <p class="hint" id="chint"></p>
-    </div>
+    <p class="hint">Lets people know how to show up for you.</p>
+    <div class="lab">HOW IT'LL LOOK</div>
+    <div id="cprev"></div>
+    <div id="cardpick"><div class="styles" id="styles"></div><p class="hint" id="chint"></p></div>
     <div class="cerr" id="cerr" role="alert"></div>
     <a class="help" href="tel:988" style="margin:22px 0 0"><span>Having a hard time? A real person answers, day or night.</span><b>Call 988</b></a>
   </div>
@@ -318,10 +332,10 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   <div class="dim"></div>
   <div class="sheet paper"><div class="g" style="background:#d8ceb6"></div>
     <h3>Want to talk to a friend about this first?</h3>
-    <p>This one sounds like it's coming from a hard place. You can still post it. Sometimes it helps to say it to one person before the whole porch.</p>
+    <p>This one sounds like it's coming from a hard place. You can still share it. Sometimes it helps to say it to one person before the whole porch.</p>
     <a class="btn dark" href="sms:" id="ptext">Text a friend</a>
     <button type="button" class="btn line" id="pdraft">Save it as a draft</button>
-    <button type="button" class="link" id="pgo">Post anyway</button>
+    <button type="button" class="link" id="pgo">Share anyway</button>
   </div>
 </div>
 
@@ -377,7 +391,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   var PAGE = 15;
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); };
-  var pic = function (p) { return p.charAt(0) === "/" ? p : DB + "/storage/v1/object/public/porch/" + p; };
+  var pic = function (p) { return p.charAt(0) === "/" || p.indexOf("data:") === 0 ? p : DB + "/storage/v1/object/public/porch/" + p; };
 
   /* ================================================================ WHO'S HERE */
   var A = window.RMAccount;
@@ -485,7 +499,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     var r = mine[p.id] || {};
     return '<article class="post" id="p-' + p.id + '" data-post="' + p.id + '">' +
       '<div class="ph">' + avatar(people[p.user_id]) + '<div class="who"><b>' + esc(name(p.user_id)) + "</b><small>" + ago(p.created_at) + (p.sample ? " · sample" : "") + "</small></div>" +
-        (NEED[p.need] ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
+        (NEED[p.need] && p.need !== "talk" ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
         '<button type="button" class="more" data-more aria-label="Options">⋯</button></div>' +
       (text ? '<div class="body">' + linkify(text) + "</div>" : "") + media +
       '<div class="acts">' +
@@ -608,7 +622,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       feed.querySelectorAll(".skel,.err").forEach(function (x) { x.remove(); });
       feed.insertAdjacentHTML("beforeend", list.map(postHTML).join(""));
       if (!feed.querySelector(".post")) {
-        feed.innerHTML = '<div class="empty"><h2>The Porch is brand new.</h2><p>Pull up a chair. Be the first one to say something.</p><button type="button" class="gbtn" data-new>Say something</button></div>';
+        feed.innerHTML = '<div class="empty"><h2>The Porch is brand new.</h2><p>Pull up a chair. Be the first one to say something.</p><button type="button" class="gbtn" data-new>Share something</button></div>';
       } else if (done && !feed.querySelector(".endnote")) {
         feed.insertAdjacentHTML("beforeend", '<p class="endnote">You\'re all caught up. 💛</p>');
       }
@@ -711,27 +725,30 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       if (d) toast("Your draft is back.");
     }
     $("cerr").textContent = "";
+    $("cav").innerHTML = avatar(me.member || { handle: A.name() }); $("cname").textContent = A.name();
     paintCompose(); open("compose");
     setTimeout(function () { $("cbody").focus(); }, 60);
   }
   function paintCompose() {
     document.querySelectorAll("#needs [data-need]").forEach(function (b) { b.classList.toggle("on", b.dataset.need === need); });
     document.querySelectorAll("#styles [data-style]").forEach(function (b) { b.classList.toggle("on", +b.dataset.style === style); });
-    $("cbody").placeholder = HOLDER[need];
+    $("cbody").placeholder = HOLDER[need] || HOLDER.talk;
     var t = $("cbody").value.trim();
     $("ccount").textContent = t.length > 1500 ? t.length + " / 2000" : "";
     $("thumbs").innerHTML = photos.map(function (p, i) { return '<div><img src="' + p + '" alt=""><button type="button" data-unpic="' + i + '" aria-label="Remove photo">✕</button></div>'; }).join("");
     $("addpic").hidden = photos.length >= 4;
-    $("cardpick").hidden = !!photos.length;
-    if (!photos.length) {
-      var show = t && fitsCard(t) ? t : (t ? "" : "Your words go here");
-      $("cprev").innerHTML = show ? handHTML(show, style) : "";
-      $("chint").textContent = t && !fitsCard(t) ? "Longer posts show as regular text, like Facebook." : "Short posts become a handwritten card.";
-    }
+    /* the preview IS the post, exactly as it will show on the Porch */
+    $("cprev").innerHTML = postHTML({ id: "preview", user_id: me.uid, need: need, body: t || (photos.length ? "" : "Your words show up here."),
+      photo_paths: photos, card_style: style, created_at: new Date().toISOString() });
+    var card = !photos.length && (!t || fitsCard(t));
+    $("cardpick").hidden = !card;
+    $("chint").textContent = "Short shares become a handwritten card. Tap a color.";
+    if (!photos.length && t && !fitsCard(t)) { $("cardpick").hidden = false; $("styles").hidden = true; $("chint").textContent = "Longer shares show as regular text."; }
+    else $("styles").hidden = false;
     $("csend").disabled = sending || (!t && !photos.length);
   }
   $("cbody").addEventListener("input", paintCompose);
-  $("needs").addEventListener("click", function (e) { var b = e.target.closest("[data-need]"); if (b) { need = b.dataset.need; paintCompose(); } });
+  $("needs").addEventListener("click", function (e) { var b = e.target.closest("[data-need]"); if (b) { need = need === b.dataset.need ? "talk" : b.dataset.need; paintCompose(); } });
   $("styles").addEventListener("click", function (e) { var b = e.target.closest("[data-style]"); if (b) { style = +b.dataset.style; paintCompose(); } });
   $("thumbs").addEventListener("click", function (e) { var b = e.target.closest("[data-unpic]"); if (b) { photos.splice(+b.dataset.unpic, 1); paintCompose(); } });
   $("addpic").addEventListener("click", function () { $("cfile").click(); });
@@ -762,10 +779,10 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   async function sendPost(sure) {
     if (sending) return;
     sending = true; $("cerr").textContent = "";
-    $("csend").disabled = true; $("csend").textContent = photos.length ? "Checking photos…" : "Posting…";
+    $("csend").disabled = true; $("csend").textContent = photos.length ? "Checking photos…" : "Sharing…";
     var body = $("cbody").value.trim();
     var r = await fn("porch", { action: "post", need: need, body: body, photos: photos, card_style: style, sure: !!sure });
-    sending = false; $("csend").textContent = "Post"; paintCompose();
+    sending = false; $("csend").textContent = "Share"; paintCompose();
     if (r.pause) return open("pause");
     if (r.need === "confirm") { pending = function () { openCompose(false); }; await closeTop(); cfReset(); return open("confirm"); }
     if (!r.ok) { $("cerr").textContent = r.error || "That didn't post. Try again."; return; }
@@ -774,7 +791,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     await closeAll();
     window.scrollTo(0, 0);
     await reloadFeed();
-    if (r.care) open("care"); else toast("Posted 💛");
+    if (r.care) open("care"); else toast("Shared 💛");
   }
   $("csend").addEventListener("click", function () { pauseFor = "post"; sendPost(false); });
 
@@ -784,7 +801,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   $("pdraft").addEventListener("click", async function () {
     if (pauseFor === "post") {
       try { localStorage.setItem(DRAFT, JSON.stringify({ need: need, body: $("cbody").value, style: style })); } catch (e) {}
-      await closeAll(); toast("Saved. It'll be here when you tap +.");
+      await closeAll(); toast("Saved. It'll be here when you tap Share.");
     } else {
       await closeTop(); toast("It's still in the box. Take your time.");
     }
@@ -842,8 +859,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     var uid = target.post ? posts[target.post].user_id : (comments[openPost].find(function (c) { return c.id === target.comment; }) || {}).user_id;
     var mineToo = uid === me.uid;
     var html = mineToo
-      ? '<button type="button" class="bad" data-m="del">Delete ' + (target.post ? "post" : "comment") + "</button>"
-      : '<button type="button" data-m="report">Report this ' + (target.post ? "post" : "comment") + '</button><button type="button" data-m="block">Block ' + esc(name(uid)) + "</button>";
+      ? '<button type="button" class="bad" data-m="del">Delete this ' + (target.post ? "share" : "comment") + "</button>"
+      : '<button type="button" data-m="report">Report this ' + (target.post ? "share" : "comment") + '</button><button type="button" data-m="block">Block ' + esc(name(uid)) + "</button>";
     $("mbody").innerHTML = html + '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
     $("mbody").dataset.t = JSON.stringify(target); $("mbody").dataset.uid = uid;
     open("menu");
