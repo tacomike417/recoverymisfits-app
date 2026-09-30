@@ -34,10 +34,14 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 #chrome.away{transform:translateY(-100%)}
 #chrome #rm-topbar{position:relative}
 #chrome .railbg{background:#100f0c}
-#rmrail{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto;background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.18);border-bottom:1px solid rgba(214,179,106,.28)}
+#rmrail{display:grid;grid-template-columns:repeat(6,1fr);max-width:480px;margin:0 auto;background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.18);border-bottom:1px solid rgba(214,179,106,.28)}
 #rmrail a,#rmrail button{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0 9px;color:#b8ae98;font:500 12px/1 "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.08em;white-space:nowrap;text-decoration:none;background:none;border:0;cursor:pointer}
 #rmrail svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 #rmrail .inv{color:var(--gold2)}
+#rmrail .meb #railme{display:grid;place-items:center;width:25px;height:25px}
+#rmrail .meb .av{width:26px;height:26px;font-size:12px;box-shadow:0 0 0 2px #100f0c,0 0 0 3.5px var(--gold2)}
+/* 30 Sep 2026: your picture in the rail replaces the "Glad you're here" line on the Porch */
+.rm-greet{display:none!important}
 #rmrail .on{color:var(--cream)}
 #rmrail .on::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--gold2)}
 /* the greeting lives up here on the Porch, not in the bottom stack */
@@ -158,6 +162,56 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .menu button:last-child{border-bottom:0}
 .menu button.bad{color:#ff9f8a}
 
+/* ---- full-screen pages: new share, profiles, one share, edit profile ---- */
+.full{background:var(--bg)}
+.full .page{position:absolute;inset:0;overflow-y:auto;max-width:480px;margin:0 auto;padding:0 0 120px}
+/* profile */
+.pcover{position:relative;height:170px;background:linear-gradient(160deg,#2c2416,#11110f) center/cover}
+.pcover::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 45%,var(--bg))}
+.pav{position:relative;z-index:1;margin:-58px 0 0 16px;width:104px;height:104px;border-radius:50%;padding:4px;background:conic-gradient(from 200deg,var(--gold),var(--rust),var(--gold))}
+.pav .av{width:100%;height:100%;font-size:40px;border:4px solid var(--bg)}
+.pname{padding:8px 16px 0}
+.pname h2{margin:0;font:400 30px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.02em;word-break:break-all}
+.pname p{margin:6px 0 0;color:var(--soft);font-size:15px;white-space:pre-wrap}
+.pname .none{color:var(--faint)}
+.pchips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0}
+.pchips span{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);font-size:13px;color:var(--soft)}
+.pchips .ico{width:15px;height:15px;color:var(--gold2)}
+.pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
+.plab{margin:22px 16px 8px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.grid button{position:relative;aspect-ratio:1/1;padding:0;border:0;overflow:hidden;background:var(--field);cursor:pointer;color:var(--cream)}
+.grid img{width:100%;height:100%;object-fit:cover;display:block}
+.grid .gh{display:grid;place-items:center;width:100%;height:100%;padding:8px;font:600 15px/1.1 "RM Hand",cursive;text-align:center;overflow:hidden}
+.grid .gs{display:block;width:100%;height:100%;padding:9px;font:12px/1.35 Arial,sans-serif;text-align:left;overflow:hidden;color:var(--soft);-webkit-mask-image:linear-gradient(#000 70%,transparent)}
+.grid .many{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:4px;border:2px solid #fff;box-shadow:3px -3px 0 -1px rgba(255,255,255,.7)}
+.pempty{padding:30px 16px;text-align:center;color:var(--faint)}
+/* names and faces are buttons now */
+.who .un,.cm .un,.bub .un{all:unset;cursor:pointer}
+.ph .ubtn{all:unset;cursor:pointer;display:block;border-radius:50%}
+.at{color:var(--gold2);font-weight:700;cursor:pointer}
+/* @ suggestions */
+.atbar{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}
+.atbar:empty{display:none}
+.atbar button{flex:none;display:flex;align-items:center;gap:6px;padding:5px 11px 5px 5px;border-radius:999px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:600 13px Arial,sans-serif;cursor:pointer}
+.atbar .av{width:24px;height:24px;font-size:11px}
+/* your menu */
+.mmhead{display:flex;align-items:center;gap:12px;padding:0 0 12px;border-bottom:1px solid var(--line)}
+.mmhead .av{width:52px;height:52px;font-size:22px}
+.mmhead b{display:block;font-size:17px}
+.mmhead small{color:var(--muted)}
+/* edit profile */
+.ecover{position:relative;height:150px;border-radius:0;background:linear-gradient(160deg,#2c2416,#11110f) center/cover;cursor:pointer}
+.ecover .tip,.eav .tip{position:absolute;right:10px;bottom:10px;display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.65);color:#fff;font:700 12.5px Arial,sans-serif}
+.ecover .tip .ico,.eav .tip .ico{width:15px;height:15px}
+.eav{position:relative;margin:-50px 0 0 16px;width:100px;height:100px;border-radius:50%;cursor:pointer}
+.eav .av{width:100%;height:100%;font-size:38px;border:4px solid var(--bg)}
+.eav .tip{right:-4px;bottom:0;padding:6px}
+.eform{padding:0 16px}
+.eform label.l{display:block;margin:18px 0 6px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold)}
+.eform textarea{display:block;width:100%;min-height:90px;padding:12px;border-radius:14px;border:1.5px solid var(--fline);background:var(--field);color:var(--cream);font:16px/1.4 Arial,sans-serif;resize:none}
+.eform input[type=date]{width:100%;margin-top:8px;padding:12px;border-radius:14px;border:1.5px solid var(--fline);background:var(--field);color:var(--cream);font:16px Arial,sans-serif;color-scheme:dark}
+.estatus{margin:8px 16px 0;min-height:18px;font:700 13px Arial,sans-serif;color:var(--gold2)}
 /* the composer takes the whole screen */
 #compose{background:var(--bg)}
 #compose .page{position:absolute;inset:0;overflow-y:auto;max-width:480px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 120px}
@@ -267,6 +321,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     <a href="/survival-pile.html"><svg viewBox="0 0 24 24"><rect x="7" y="3" width="12" height="16" rx="2"/><path d="M5 7v12a2 2 0 0 0 2 2h9"/></svg>MY PILE</a>
     <a href="/coins.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8l1.2 2.6 2.8.3-2.1 1.9.6 2.8L12 14.2 9.5 15.6l.6-2.8L8 10.9l2.8-.3z"/></svg>MY COINS</a>
     <a href="/another-day-sober.html"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/></svg>TODAY</a>
+    <button type="button" class="meb" data-memenu aria-label="Your menu"><span id="railme"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg></span>ME</button>
   </nav></div>
 </div>
 <script src="/topbar.js" defer></script>
@@ -337,11 +392,12 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 </div>
 
 <!-- NEW POST -->
-<div id="compose" class="layer" role="dialog" aria-modal="true" aria-label="New share">
+<div id="compose" class="layer full" role="dialog" aria-modal="true" aria-label="New share">
   <div class="page">
     <div class="ctop"><b id="ctitle">NEW SHARE</b><button type="button" class="send" id="csend" disabled>Share</button></div>
     <div class="cwho"><span id="cav"></span><div><b id="cname"></b><small>Everyone on the Porch will see this</small></div></div>
     <textarea id="cbody" maxlength="2000" placeholder="What's on your mind?"></textarea>
+    <div class="atbar" id="atc"></div>
     <div class="count" id="ccount"></div>
     <div class="thumbs" id="thumbs"></div>
     <button type="button" class="addpic" id="addpic"><span class="ic" data-ico="camera"></span><span><b>Add photos</b><small>Up to 4</small></span></button>
@@ -396,6 +452,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div>
     <div id="clist"></div>
+    <div class="atbar" id="atm"></div>
     <div class="cbar"><textarea id="cin" rows="1" maxlength="1000" placeholder="Say something kind…"></textarea><button type="button" id="cgo" disabled>Send</button></div>
   </div>
 </div>
@@ -409,6 +466,38 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     <button type="button" class="lk" data-look="slate"><span class="sw" style="background:#fffdf8;color:#b8862b;border:1px solid #e0d6c2">Aa</span><span><b>Clean Slate</b><small>Light, easy on a sunny day</small></span></button>
     <button type="button" class="lk" data-look="classic"><span class="sw" style="background:#1b1913;color:#e0bd6a;border:1px solid #2e2a22">Aa</span><span><b>Classic</b><small>The original black and gold</small></span></button>
     <label class="check" style="margin:16px 0 0"><input type="checkbox" id="samples"> Show sample posts <span style="color:var(--muted);font-weight:400">(only you see these)</span></label>
+  </div>
+</div>
+
+<!-- YOUR MENU (the picture in the rail) -->
+<div id="memenu" class="layer" role="dialog" aria-modal="true" aria-label="Your menu">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div><div class="mmhead" id="mmhead"></div><div class="menu" id="mmbody"></div></div>
+</div>
+
+<!-- A PROFILE -->
+<div id="profile" class="layer full" role="dialog" aria-modal="true" aria-label="Profile"><div class="page" id="pfpage"></div></div>
+
+<!-- ONE SHARE, opened from a profile -->
+<div id="single" class="layer full" role="dialog" aria-modal="true" aria-label="Share"><div class="page" id="sgpage" style="padding-top:calc(10px + env(safe-area-inset-top,0px))"></div></div>
+
+<!-- EDIT YOUR PROFILE -->
+<div id="editp" class="layer full" role="dialog" aria-modal="true" aria-label="Edit profile">
+  <div class="page">
+    <div class="ctop" style="padding:calc(14px + env(safe-area-inset-top,0px)) 16px 12px"><b>EDIT PROFILE</b><button type="button" class="send" id="esave">Save</button></div>
+    <div class="ecover" id="ecover"><span class="tip" data-ico="camera"></span></div>
+    <div class="eav" id="eav"><span id="eavin"></span><span class="tip" data-ico="camera"></span></div>
+    <p class="estatus" id="estatus" role="status"></p>
+    <input type="file" id="efcover" accept="image/*" hidden><input type="file" id="efav" accept="image/*" hidden>
+    <div class="eform">
+      <label class="l" for="ebio">BIO</label>
+      <textarea id="ebio" maxlength="160" placeholder="A line or two about you. No real name needed."></textarea>
+      <div class="count" id="ebiocount"></div>
+      <label class="l">SOBER DATE</label>
+      <label class="check"><input type="checkbox" id="esober"> Show my sober date on my profile</label>
+      <input type="date" id="esdate" hidden>
+      <p class="hint">Only if you want. Nobody sees it unless this is checked.</p>
+    </div>
   </div>
 </div>
 
@@ -478,6 +567,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     if (!me.uid) return;
     try { var r = await rest("porch_members?user_id=eq." + me.uid + "&select=*"); me.member = r[0] || null; } catch (e) {}
     if (me.member) people[me.uid] = me.member;
+    $("railme").innerHTML = avatar(me.member || { handle: A.name() });
   }
 
   /* ================================================================ PEOPLE */
@@ -527,6 +617,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     return esc(s).replace(/\b((?:https?:\/\/|www\.)[^\s<]+)/gi, function (u) {
       var href = /^https?:/i.test(u) ? u : "https://" + u;
       return '<a href="' + href + '" target="_blank" rel="noopener nofollow ugc">' + u + "</a>";
+    }).replace(/(^|[^\w@\/.])@([A-Za-z0-9._-]{3,32})/g, function (m, pre, h) {
+      h = h.replace(/[._-]+$/, "");
+      return pre + '<span class="at" data-h="' + h + '">@' + h + "</span>";
     });
   }
   function ago(d) {
@@ -554,7 +647,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     var mins = Math.max(1, Math.round(text.split(/\s+/).length / 200));
     var r = mine[p.id] || {};
     return '<article class="post" id="p-' + p.id + '" data-post="' + p.id + '">' +
-      '<div class="ph">' + avatar(people[p.user_id]) + '<div class="who"><b>' + esc(name(p.user_id)) + "</b><small>" + ago(p.created_at) + (p.sample ? " · sample" : "") + "</small></div>" +
+      '<div class="ph"><button type="button" class="ubtn" data-u="' + p.user_id + '">' + avatar(people[p.user_id]) + '</button><div class="who"><b><button type="button" class="un" data-u="' + p.user_id + '">' + esc(name(p.user_id)) + "</button></b><small>" + ago(p.created_at) + (p.sample ? " · sample" : "") + "</small></div>" +
         (NEED[p.need] && p.need !== "talk" ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
         '<button type="button" class="more" data-more aria-label="Options">⋯</button></div>' +
       (text ? '<div class="body' + (long ? " clamp" : "") + '">' + linkify(text) + "</div>" +
@@ -567,7 +660,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   }
   function commentsPreview(id) {
     var list = comments[id] || [];
-    var last = list.slice(-2).map(function (c) { return "<p><b>" + esc(name(c.user_id)) + "</b> " + esc(c.body) + "</p>"; }).join("");
+    var last = list.slice(-2).map(function (c) { return '<p><b><button type="button" class="un" data-u="' + c.user_id + '">' + esc(name(c.user_id)) + "</button></b> " + linkify(c.body) + "</p>"; }).join("");
     return (list.length > 2 ? '<button type="button" class="all" data-comments>View all ' + list.length + " comments</button>" : "") + last;
   }
   function refreshComments(id) { var el = document.querySelector("#p-" + id + " .cm"); if (el) el.innerHTML = commentsPreview(id); }
@@ -706,7 +799,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
         .map(function (n) { return { user_id: "s-" + n, handle: n, avatar_path: SP_PHOTO[n] ? "/feed/img/a-" + n + ".webp" : null }; }));
       if (r.length < 3) return;
       r.forEach(function (m) { people[m.user_id] = people[m.user_id] || m; });
-      $("strip").innerHTML = r.map(function (m) { return '<div class="st"><div class="ring">' + avatar(m) + "</div><b>" + esc(m.handle) + "</b></div>"; }).join("");
+      $("strip").innerHTML = r.map(function (m) { return '<button type="button" class="st" data-u="' + m.user_id + '" style="all:unset;cursor:pointer;flex:none;width:66px;text-align:center;font-size:11.5px"><div class="ring">' + avatar(m) + "</div><b>" + esc(m.handle) + "</b></button>"; }).join("");
       $("newb").hidden = false;
     } catch (e) {}
   }
@@ -902,7 +995,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   function paintComments() {
     var list = comments[openPost] || [];
     $("clist").innerHTML = list.length ? list.map(function (c) {
-      return '<div class="c1" data-comment="' + c.id + '">' + avatar(people[c.user_id]) + '<div style="flex:1;min-width:0"><div class="bub"><b>' + esc(name(c.user_id)) + "</b><span>" + linkify(c.body) + "</span></div>" +
+      return '<div class="c1" data-comment="' + c.id + '"><button type="button" class="ubtn" data-u="' + c.user_id + '" style="all:unset;cursor:pointer">' + avatar(people[c.user_id]) + '</button><div style="flex:1;min-width:0"><div class="bub"><b><button type="button" class="un" data-u="' + c.user_id + '">' + esc(name(c.user_id)) + "</button></b><span>" + linkify(c.body) + "</span></div>" +
         "<small>" + ago(c.created_at) + '<button type="button" data-cmore>' + (c.user_id === me.uid ? "Delete" : "Report") + "</button></small></div></div>";
     }).join("") : '<p style="text-align:center;color:var(--muted);padding:30px 0">No comments yet. Say something kind.</p>';
   }
@@ -970,9 +1063,155 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     }
   });
 
+  /* ================================================================ PROFILES (30 Sep 2026)
+     Tap anybody's face or name, anywhere, or an @name in a share or comment. */
+  var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function soberText(d) { var x = String(d).split("-"); return "Sober since " + MON[+x[1] - 1] + " " + (+x[2]) + ", " + x[0]; }
+  async function postsFor(uid) {
+    if (isSample(uid)) return Object.keys(posts).map(function (k) { return posts[k]; }).filter(function (p) { return p.user_id === uid; });
+    var list = await rest("porch_posts?user_id=eq." + uid + "&select=id,user_id,need,body,photo_paths,card_style,created_at&order=created_at.desc&limit=60");
+    var fresh = list.filter(function (p) { return !comments[p.id]; }), ids = fresh.map(function (p) { return p.id; });
+    if (ids.length) {
+      var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at&order=created_at.asc");
+      var rs = me.uid ? await rest("porch_reactions?user_id=eq." + me.uid + "&post_id=in.(" + ids.join(",") + ")&select=post_id,kind") : [];
+      await loadPeople(cs.map(function (c) { return c.user_id; }));
+      ids.forEach(function (id) { comments[id] = []; mine[id] = {}; });
+      cs.forEach(function (c) { if (comments[c.post_id]) comments[c.post_id].push(c); });
+      rs.forEach(function (r) { if (mine[r.post_id]) mine[r.post_id][r.kind] = true; });
+    }
+    list.forEach(function (p) { posts[p.id] = p; });
+    return list;
+  }
+  function tileHTML(p) {
+    var ph = p.photo_paths || [], inner;
+    if (ph.length) inner = '<img src="' + pic(ph[0]) + '" alt="" loading="lazy">' + (ph.length > 1 ? '<i class="many"></i>' : "");
+    else if (p.card_style != null && fitsCard(p.body || "")) {
+      var c = CARDS[p.card_style % CARDS.length];
+      inner = '<span class="gh" style="background:' + c.bg + ";color:" + c.ink + '">' + esc(p.body) + "</span>";
+    } else inner = '<span class="gs">' + esc(p.body || "") + "</span>";
+    return '<button type="button" data-openpost="' + p.id + '">' + inner + "</button>";
+  }
+  async function openProfile(uid) {
+    if (!uid) return;
+    var m = people[uid] || { handle: "misfit" };
+    $("pfpage").innerHTML = '<div class="pcover"></div><div class="pav">' + avatar(m) + '</div><div class="pname"><h2>' + esc(m.handle) + "</h2></div>";
+    open("profile"); $("pfpage").scrollTop = 0;
+    try {
+      if (!isSample(uid)) { var r = await rest("porch_members?user_id=eq." + uid + "&select=*"); if (r[0]) { m = r[0]; people[uid] = Object.assign(people[uid] || {}, m); } }
+      var list = await postsFor(uid);
+    } catch (e) { list = []; }
+    var mineP = uid === me.uid;
+    $("pfpage").innerHTML =
+      '<div class="pcover"' + (m.cover_path ? ' style="background-image:url(\'' + pic(m.cover_path) + '\')"' : "") + '></div>' +
+      '<div class="pav">' + avatar(m) + "</div>" +
+      '<div class="pname"><h2>' + esc(m.handle) + "</h2>" + (m.bio ? "<p>" + linkify(m.bio) + "</p>" : mineP ? '<p class="none">Add a line about you.</p>' : "") + "</div>" +
+      (m.sober_date ? '<div class="pchips"><span>' + ico("win") + soberText(m.sober_date) + "</span></div>" : "") +
+      (mineP ? '<button type="button" class="pedit" data-editp>Edit profile</button>' : "") +
+      '<div class="plab">' + (mineP ? "MY SHARES" : "SHARES") + "</div>" +
+      (list.length ? '<div class="grid">' + list.map(tileHTML).join("") + "</div>"
+        : '<p class="pempty">' + (mineP ? "Nothing shared yet. Tap Share on the Porch." : "Nothing shared yet.") + "</p>");
+  }
+  function openSingle(id) {
+    var p = posts[id]; if (!p) return;
+    $("sgpage").innerHTML = postHTML(p).replace(' id="p-' + id + '"', "");
+    open("single"); $("sgpage").scrollTop = 0;
+  }
+  async function openHandle(h) {
+    h = String(h).toLowerCase();
+    var uid = Object.keys(people).filter(function (k) { return (people[k].handle || "").toLowerCase() === h; })[0];
+    if (!uid) { try { var r = await rest("porch_members?handle=eq." + encodeURIComponent(h) + "&select=user_id,handle,avatar_path"); if (r[0]) { uid = r[0].user_id; people[uid] = r[0]; } } catch (e) {} }
+    if (uid) openProfile(uid); else toast("Nobody on the Porch goes by @" + h + ".");
+  }
+
+  /* ---- your menu, from your picture in the rail ---- */
+  function openMeMenu() {
+    if (!signedIn()) return open("join");
+    var m = me.member || { handle: A.name() };
+    $("mmhead").innerHTML = avatar(m) + "<div><b>" + esc(m.handle) + "</b><small>" + (me.member && me.member.verified_at ? "On the Porch" : "Not confirmed yet") + "</small></div>";
+    $("mmbody").innerHTML = '<button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>';
+    open("memenu");
+  }
+
+  /* ---- edit your profile ---- */
+  function paintEdit() {
+    var m = me.member || {};
+    $("ecover").style.backgroundImage = m.cover_path ? "url('" + pic(m.cover_path) + "')" : "";
+    $("eavin").innerHTML = avatar(m);
+    $("ebiocount").textContent = $("ebio").value.length + " / 160";
+    $("esdate").hidden = !$("esober").checked;
+  }
+  function openEdit() {
+    var m = me.member || {};
+    $("ebio").value = m.bio || "";
+    $("esober").checked = !!m.sober_date;
+    var local = ""; try { local = localStorage.getItem("rm_sober_date") || ""; } catch (e) {}
+    $("esdate").value = m.sober_date || local;
+    $("estatus").textContent = "";
+    paintEdit(); open("editp");
+  }
+  $("ebio").addEventListener("input", paintEdit);
+  $("esober").addEventListener("change", paintEdit);
+  $("ecover").addEventListener("click", function () { $("efcover").click(); });
+  $("eav").addEventListener("click", function () { $("efav").click(); });
+  async function newPicture(input, slot) {
+    var f = input.files && input.files[0]; input.value = ""; if (!f) return;
+    $("estatus").textContent = "Checking the photo…";
+    var data; try { data = await shrink(f); } catch (e) { $("estatus").textContent = "That photo couldn't be opened."; return; }
+    var r = await fn("porch", { action: "picture", slot: slot, photo: data });
+    if (!r.ok) { $("estatus").textContent = r.error || "That didn't upload."; return; }
+    me.member[slot === "cover" ? "cover_path" : "avatar_path"] = r.path; people[me.uid] = me.member;
+    $("estatus").textContent = slot === "cover" ? "Header photo updated." : "Profile picture updated.";
+    paintEdit(); $("railme").innerHTML = avatar(me.member);
+  }
+  $("efcover").addEventListener("change", function () { newPicture(this, "cover"); });
+  $("efav").addEventListener("change", function () { newPicture(this, "avatar"); });
+  $("esave").addEventListener("click", async function () {
+    var b = this, sd = $("esober").checked && $("esdate").value ? $("esdate").value : null;
+    b.disabled = true; b.textContent = "Saving…";
+    try {
+      await rest("porch_members?user_id=eq." + me.uid, { method: "PATCH", body: { bio: $("ebio").value.trim() || null, sober_date: sd } });
+      me.member.bio = $("ebio").value.trim() || null; me.member.sober_date = sd; people[me.uid] = me.member;
+      await closeTop(); toast("Saved.");
+      if ($("profile").classList.contains("open")) openProfile(me.uid);
+    } catch (e) { $("estatus").textContent = "That didn't save. Try again."; }
+    b.disabled = false; b.textContent = "Save";
+  });
+
+  /* ---- @ suggestions while typing ---- */
+  function watchAt(box, bar) {
+    var tmr;
+    box.addEventListener("input", function () {
+      clearTimeout(tmr);
+      var m = box.value.slice(0, box.selectionStart).match(/(?:^|\s)@([A-Za-z0-9._-]{1,32})$/);
+      if (!m) { bar.innerHTML = ""; return; }
+      var q = m[1].toLowerCase();
+      tmr = setTimeout(async function () {
+        var found = {};
+        Object.keys(people).forEach(function (k) { var h = people[k].handle || ""; if (h.toLowerCase().indexOf(q) === 0 && k !== me.uid) found[h] = people[k]; });
+        try { (await rest("porch_members?handle=ilike." + encodeURIComponent(q) + "*&verified_at=not.is.null&select=user_id,handle,avatar_path&limit=8"))
+          .forEach(function (r) { people[r.user_id] = people[r.user_id] || r; if (r.user_id !== me.uid) found[r.handle] = r; }); } catch (e) {}
+        bar.innerHTML = Object.keys(found).slice(0, 8).map(function (h) { return '<button type="button" data-pick="' + esc(h) + '">' + avatar(found[h]) + "@" + esc(h) + "</button>"; }).join("");
+      }, 150);
+    });
+    bar.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-pick]"); if (!b) return;
+      var pos = box.selectionStart, before = box.value.slice(0, pos).replace(/@([A-Za-z0-9._-]{1,32})$/, "@" + b.dataset.pick + " ");
+      box.value = before + box.value.slice(pos); box.focus(); box.selectionStart = box.selectionEnd = before.length;
+      bar.innerHTML = ""; box.dispatchEvent(new Event("input"));
+    });
+  }
+  watchAt($("cbody"), $("atc")); watchAt($("cin"), $("atm"));
+
   /* ================================================================ TAPS */
   document.addEventListener("click", function (e) {
     var t = e.target, post = t.closest("[data-post]"), id = post && post.dataset.post;
+    var u = t.closest("[data-u]"); if (u && !t.closest("#cprev")) { e.preventDefault(); return openProfile(u.dataset.u); }
+    var at = t.closest("[data-h]"); if (at && !t.closest("#cprev")) return openHandle(at.dataset.h);
+    var op = t.closest("[data-openpost]"); if (op) return openSingle(op.dataset.openpost);
+    if (t.closest("[data-memenu]")) return openMeMenu();
+    var mm = t.closest("[data-mm]");
+    if (mm) { var which = mm.dataset.mm; closeTop().then(function () { if (which === "profile") openProfile(me.uid); else gate(openEdit); }); return; }
+    if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
     if (t.closest("[data-new]")) return gate(function () { open("choose"); });
     var md = t.closest("[data-mode]");
