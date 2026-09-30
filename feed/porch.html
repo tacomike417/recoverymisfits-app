@@ -30,13 +30,16 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 #chrome{position:fixed;top:0;left:0;right:0;z-index:9000;transition:transform .28s ease}
 #chrome.away{transform:translateY(-100%)}
 #chrome #rm-topbar{position:relative}
-#rmrail{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto;background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.18);border-bottom:1px solid rgba(214,179,106,.28)}
-#chrome .railbg{background:#100f0c}
-#rmrail a,#rmrail button{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0 9px;color:#b8ae98;font:500 12px/1 "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.08em;white-space:nowrap;text-decoration:none;background:none;border:0;cursor:pointer}
-#rmrail svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-#rmrail .inv{color:var(--gold2)}
-#rmrail .on{color:var(--cream)}
-#rmrail .on::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--gold2)}
+#chrome .railbg{background:#0e0e10;border-bottom:1px solid rgba(255,255,255,.07)}
+#rmrail{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto}
+#rmrail a,#rmrail button{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 0 7px;color:#8f887a;font:500 10.5px/1 "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.12em;white-space:nowrap;text-decoration:none;background:none;border:0;cursor:pointer}
+#rmrail svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#rmrail .on{color:var(--gold2)}
+#rmrail .on::after{content:"";position:absolute;left:34%;right:34%;bottom:0;height:2px;border-radius:2px;background:var(--gold2)}
+/* the greeting lives up here on the Porch, not in the bottom stack */
+.rm-greet{display:none!important}
+.hello{margin:12px 16px 0;color:var(--muted);font-size:13.5px}
+.hello b{color:var(--gold2)}
 
 /* ---- top of the feed ---- */
 .help{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 12px 0;padding:9px 12px;border-radius:12px;background:#17151a;border:1px solid #2c2838;color:#cfc8e6;font-size:13px;text-decoration:none}
@@ -98,7 +101,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .err{margin:16px 12px;padding:14px;border-radius:14px;background:#2b1712;border:1px solid #c4563c;color:#ecd9d2;text-align:center}
 
 /* ---- the + button ---- */
-.fab{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(200px + env(safe-area-inset-bottom,0px));z-index:8000;width:58px;height:58px;border-radius:50%;border:0;background:var(--gold2);color:#17130b;font:800 32px/1 Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.55);cursor:pointer}
+.fab{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(172px + env(safe-area-inset-bottom,0px));z-index:8000;width:50px;height:50px;display:grid;place-items:center;border-radius:50%;border:0;background:linear-gradient(160deg,#d4a94f,#9c7428);box-shadow:0 6px 18px rgba(0,0,0,.55);cursor:pointer}
+.fab svg{width:27px;height:27px;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
 /* ---- layers. The phone's back button closes the top one. No on-screen back buttons. ---- */
 .layer{position:fixed;inset:0;z-index:20000;display:none}
@@ -216,14 +220,14 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 <script src="/topbar.js" defer></script>
 
 <main class="wrap" id="main">
+  <p class="hello" id="hello" hidden></p>
   <button type="button" class="say" data-new><span class="av" id="meav"></span><span class="pl">What's on your mind?</span><span class="cam">📷</span></button>
-  <a class="help" href="tel:988"><span>Having a hard time? A real person answers, day or night.</span><b>Call 988</b></a>
   <section class="newb" id="newb" hidden><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
   <div id="feed"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
 </main>
 
-<button type="button" class="fab" data-new aria-label="New post">+</button>
+<button type="button" class="fab" data-new aria-label="New post"><svg viewBox="0 0 24 24"><path d="M12 3.5c4.97 0 9 3.36 9 7.5s-4.03 7.5-9 7.5c-1.1 0-2.15-.16-3.12-.46L4 20l1.3-3.9C3.86 14.8 3 13 3 11c0-4.14 4.03-7.5 9-7.5z"/><path d="M12 8v6M9 11h6"/></svg></button>
 <div class="toast" id="toast" role="status"></div>
 
 <!-- NOT SIGNED IN -->
@@ -290,6 +294,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       <p class="hint" id="chint"></p>
     </div>
     <div class="cerr" id="cerr" role="alert"></div>
+    <a class="help" href="tel:988" style="margin:22px 0 0"><span>Having a hard time? A real person answers, day or night.</span><b>Call 988</b></a>
   </div>
 </div>
 
@@ -379,6 +384,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     try { var r = await rest("porch_members?user_id=eq." + me.uid + "&select=*"); me.member = r[0] || null; } catch (e) {}
     if (me.member) people[me.uid] = me.member;
     $("meav").outerHTML = avatar(me.member || { handle: A.name() }, "meav");
+    $("hello").innerHTML = "Glad you're here, <b>" + esc(A.name()) + "</b>"; $("hello").hidden = false;
   }
 
   /* ================================================================ PEOPLE */
