@@ -200,7 +200,7 @@ Deno.serve(async (req) => {
     }
 
     const need = String(b.need || "talk");
-    if (!["talk", "win", "hard", "question", "moment"].includes(need)) return json({ error: "Pick what you need." }, 400);
+    if (!["talk", "experience", "strength", "hope", "question", "win", "hard", "moment"].includes(need)) return json({ error: "Pick what you need." }, 400);
     const photos: string[] = Array.isArray(b.photos) ? b.photos.slice(0, 4) : [];
     if (!text && !photos.length) return json({ error: "Say something or add a photo." }, 400);
     const paths: string[] = [];

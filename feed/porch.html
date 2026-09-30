@@ -71,7 +71,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .st b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ---- avatars: their photo, or a drawn initial ---- */
-.av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;overflow:hidden;color:#fff;font:700 16px Arial,sans-serif;background:#3a3122}
+.av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;overflow:hidden;color:#fff;font:700 15px Arial,sans-serif;letter-spacing:.02em;background:#3a3122}
 .av img{width:100%;height:100%;object-fit:cover;display:block}
 
 /* ---- posts ---- */
@@ -81,7 +81,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .ph .who b{display:block;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ph .who small{color:var(--muted);font-size:12px}
 .tag{flex:none;padding:4px 9px;border-radius:999px;font:500 11px "RM Rail",Oswald,sans-serif;letter-spacing:.08em;background:var(--tagbg);color:var(--soft)}
-.tag.win{background:#1f2e1c;color:#a8dca0}.tag.hard{background:#3a1f24;color:#ffb3a5}.tag.question{background:#1f2e3a;color:#9ecbff}.tag.moment{background:#2e2440;color:#d3bfff}
+.tag.win{background:#1f2e1c;color:#a8dca0}.tag.experience{background:#1f2a33;color:#a9c9e8}.tag.strength{background:#1f2e1c;color:#a8dca0}.tag.hope{background:#33290f;color:#f0cf7a}.tag.hard{background:#3a1f24;color:#ffb3a5}.tag.question{background:#1f2e3a;color:#9ecbff}.tag.moment{background:#2e2440;color:#d3bfff}
 .more{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:none;color:var(--muted);font:800 18px/1 Arial,sans-serif;cursor:pointer}
 .body{padding:0 12px 10px;white-space:pre-wrap;word-wrap:break-word;font-size:15.5px}
 .body a{color:var(--gold2)}
@@ -248,7 +248,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 #cardpick{margin-top:10px}
 .needs button{border:1px solid rgba(214,179,106,.4)!important}
 .needs button.on{border-color:var(--gold2)!important}
-.needs button.on[data-need=hard]{border-color:#c4563c!important}
+
 .addpic{border:1.5px dashed rgba(214,179,106,.5)!important}
 .count{margin-top:4px;text-align:right;color:var(--faint);font-size:12px}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -404,11 +404,12 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     <input type="file" id="cfile" accept="image/*" multiple hidden>
     <div class="lab">TAG IT <span>optional</span></div>
     <div class="needs" id="needs">
-      <button type="button" data-need="win"><span data-ico="win"></span>A win</button>
-      <button type="button" data-need="hard"><span data-ico="hard"></span>Hard day</button>
+      <button type="button" data-need="experience"><span data-ico="experience"></span>Experience</button>
+      <button type="button" data-need="strength"><span data-ico="strength"></span>Strength</button>
+      <button type="button" data-need="hope"><span data-ico="hope"></span>Hope</button>
       <button type="button" data-need="question"><span data-ico="question"></span>A question</button>
     </div>
-    <p class="hint">Lets people know how to show up for you.</p>
+    <p class="hint">What are you bringing to the Porch today?</p>
     <div class="lab">HOW IT'LL LOOK</div>
     <div id="cprev"></div>
     <div id="cardpick"><div class="styles" id="styles"></div><p class="hint" id="chint"></p></div>
@@ -527,6 +528,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     snap:  '<rect x="4" y="3" width="16" height="18" rx="1.8"/><rect x="6.5" y="5.5" width="11" height="10" rx=".6"/><path d="M8.5 13l2.3-2.6 1.8 2 1.3-1.4 1.6 2"/><path d="M9 18.3h6"/>',
     camera:'<path d="M4 8h3l1.6-2.4h6.8L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.3" r="3.6"/>',
     win:   '<circle cx="12" cy="15" r="5.2"/><path d="M8.3 3.5l3.7 6.4 3.7-6.4"/><path d="M12 12.6l.9 1.8 2 .3-1.4 1.4.3 2-1.8-.9-1.8.9.3-2-1.4-1.4 2-.3z"/>',
+    experience: '<path d="M9 21c-2-3 7-5 5-9s-6-4-4-9"/><path d="M5 21h2M17 3h2"/><circle cx="16.5" cy="17" r="1.3"/><circle cx="7" cy="7" r="1.3"/>',
+    strength: '<path d="M2.5 20l6.3-11 4.2 6.5 2.7-3.8 5.8 8.3z"/><path d="M8.8 9l1.6 2.8"/>',
+    hope: '<path d="M3 18h18"/><path d="M6.5 18a5.5 5.5 0 0 1 11 0"/><path d="M12 5v3M5.6 8.6l2 2M18.4 8.6l-2 2M3.5 14h1.8M18.7 14h1.8"/>',
     hard:  '<path d="M7 15a4 4 0 0 1-.4-8 5.5 5.5 0 0 1 10.6 1.3A3.4 3.4 0 0 1 17 15z"/><path d="M8.5 18l-1 2.5M12.5 18l-1 2.5M16.5 18l-1 2.5"/>',
     question:'<circle cx="12" cy="12" r="9"/><path d="M9.4 9.4a2.7 2.7 0 1 1 3.6 2.5c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17" r=".6"/>',
     proud: '<path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/>',
@@ -573,11 +577,18 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   /* ================================================================ PEOPLE */
   var people = {};
   var COLORS = ["#c4563c", "#3f7f8f", "#8a6bb8", "#b98f33", "#4f8f5a", "#b8577c", "#5b6fb8", "#9a7b4f"];
+  /* No picture? Their initials, from whatever the username gives us:
+     grateful_gina -> GG, OneDayJen -> OD, SoberSam76 -> SS, tacomike417 -> TA. */
+  function initials(h) {
+    var parts = String(h).replace(/([a-z])([A-Z])/g, "$1 $2").split(/[\s._\-0-9]+/).filter(Boolean);
+    if (!parts.length) return "?";
+    return (parts.length > 1 ? parts[0].charAt(0) + parts[1].charAt(0) : parts[0].slice(0, 2)).toUpperCase();
+  }
   function avatar(m, id) {
     m = m || {};
     var h = m.handle || "?", n = 0;
     for (var i = 0; i < h.length; i++) n = (n * 31 + h.charCodeAt(i)) >>> 0;
-    var inner = m.avatar_path ? '<img src="' + pic(m.avatar_path) + '" alt="" loading="lazy">' : esc(h.replace(/[^a-z0-9]/gi, "").charAt(0).toUpperCase() || "?");
+    var inner = m.avatar_path ? '<img src="' + pic(m.avatar_path) + '" alt="" loading="lazy">' : esc(initials(h));
     return '<span class="av"' + (id ? ' id="' + id + '"' : "") + ' style="background:' + COLORS[n % COLORS.length] + '">' + inner + "</span>";
   }
   async function loadPeople(ids) {
@@ -605,7 +616,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     { bg: "linear-gradient(90deg,transparent 30px,#e07a6b 30px 32px,transparent 32px),repeating-linear-gradient(#f6e48c 0 34px,#9fb6d2 34px 35px)", ink: "#1f2d4a" },
     { bg: "linear-gradient(#fbf8f0 0 30px,#e06b5b 30px 32px,#fbf8f0 32px)", ink: "#1b1a17" }
   ];
-  var NEED = { talk: "JUST TALKING", win: "A WIN", hard: "HARD DAY", question: "A QUESTION", moment: "A MOMENT" };
+  /* 30 Sep 2026, Mike: Experience, Strength, Hope, and a question. Nothing that invites a pity party. */
+  var NEED = { talk: "JUST TALKING", experience: "EXPERIENCE", strength: "STRENGTH", hope: "HOPE", question: "A QUESTION", moment: "A MOMENT" };
   var CARD_MAX = 150;
   function fitsCard(t) { return t && t.length <= CARD_MAX && t.split("\n").length <= 8; }
   function handSize(t) { var n = t.length; return n <= 40 ? 36 : n <= 90 ? 31 : n <= 140 ? 27 : 24; }
@@ -738,7 +750,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       else if (x.kind === "coin") ph = ["/assets/coins/" + x.coin + ".webp"];
       else if (x.kind === "card") ph = ["/assets/survival-pile/cards/" + x.card + ".webp"];
       else if (x.kind === "text") body = x.card + (x.body ? "\n" + x.body : "");
-      var need = x.pill ? "win" : /\b(rough|hard)\b/i.test(body) ? "hard" : /\?/.test(body) ? "question" : "talk";
+      var need = x.pill ? "strength" : /gratitude|grateful|better|sunrise/i.test(body) ? "hope" : /\?/.test(body) ? "question" : /\b(years?|learn|changed|amends)\b/i.test(body) ? "experience" : "talk";
       out.push({ id: id, user_id: "s-" + x.u, need: need, body: body, photo_paths: ph, card_style: x.kind === "text" && fitsCard(body) ? i % 12 : null, created_at: at, sample: true });
       comments[id] = (x.c || []).map(function (c, k) { return { id: id + "-c" + k, post_id: id, user_id: "s-" + c[0], body: c[1], created_at: at }; });
       mine[id] = {};
@@ -872,7 +884,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     sign: { title: "HANG A SIGN",   holder: "Short and loud. What do you want the Porch to see?" },
     snap: { title: "SNAPSHOT",      holder: "Say something about it (optional)" }
   };
-  var HOLDER = { win: "Tell us about it. We want to cheer.", hard: "What's going on? You're not alone here.", question: "Ask the Porch anything." };
+  var HOLDER = { experience: "What happened, and what did you learn?", strength: "What's keeping you going?", hope: "What's getting better?", question: "Ask the Porch anything." };
   $("styles").innerHTML = CARDS.map(function (c, i) { return '<button type="button" data-style="' + i + '" style="background:' + c.bg + ";color:" + c.ink + '" aria-label="Card ' + (i + 1) + '">Aa</button>'; }).join("");
   document.querySelectorAll("[data-ico]").forEach(function (el) { el.innerHTML = ico(el.dataset.ico); });
 
