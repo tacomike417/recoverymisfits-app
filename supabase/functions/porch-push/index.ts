@@ -51,6 +51,7 @@ async function vapid() {
 const WORDS: Record<string, string> = {
   comment: "commented on your share", reply: "replied to your comment", proud: "is proud of you",
   metoo: "said Me too", mention: "tagged you", follow: "started following you", report: "was reported. Take a look.",
+  friend_request: "sent you a friend request", friend_accept: "accepted your friend request",
 };
 
 Deno.serve(async (req) => {
@@ -83,7 +84,9 @@ Deno.serve(async (req) => {
   const text = String((said as any)?.body || "").replace(/\s+/g, " ").trim();
   const q = new URLSearchParams();
   if (n.post_id) { q.set("s", n.post_id); if (n.comment_id) q.set("c", n.comment_id); q.set("k", n.kind); q.set("a", n.actor_id); }
-  else if (n.kind === "report") q.set("mod", "1"); else q.set("notes", "1");
+  else if (n.kind === "report") q.set("mod", "1");
+  else if (n.kind === "friend_request" || n.kind === "friend_accept" || n.kind === "follow") q.set("who", n.actor_id);
+  else q.set("notes", "1");
   const payload = JSON.stringify({
     title: who + " " + words,
     body: text ? (text.length > 140 ? text.slice(0, 137) + "…" : text) : "Tap to see it.",

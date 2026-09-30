@@ -192,6 +192,16 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .pname .none{color:var(--faint)}
 .fol{display:inline-block;margin:10px 0 2px;padding:9px 22px;border-radius:999px;border:0;background:var(--gold2);color:#17130b;font:800 14px Arial,sans-serif;cursor:pointer}
 .fol.on{background:none;border:1.5px solid rgba(214,179,106,.5);color:var(--cream)}
+/* FRIENDS buttons (30 Sep 2026): the same button everywhere, drawn by friendBtn() */
+.fwrap{display:inline-flex;gap:8px;flex:none;align-items:center}
+.fol,.nd-fb{display:inline-flex;align-items:center;gap:6px}
+.fol .ico,.nd-fb .ico{width:17px;height:17px;stroke-width:2.2}
+.nd-fb.on{background:none;border:1.5px solid rgba(214,179,106,.5);color:var(--cream)}
+.pfb{margin-top:10px}.pfb .fol{margin:0}
+.fr-row{display:flex;align-items:center;gap:10px;padding:8px 14px}
+.fr-who{display:flex;align-items:center;gap:12px;flex:1;min-width:0;padding:0;border:0;background:none;color:var(--cream);font:700 15.5px Arial,sans-serif;text-align:left;cursor:pointer}
+.fr-who .av{width:48px;height:48px}
+.fr-who b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* notifications */
 #rmrail .meb{position:relative}
 .dot{position:absolute;top:3px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;border:2px solid #100f0c;background:var(--rust);color:#fff;font:800 10.5px/14px Arial,sans-serif;text-align:center;box-sizing:border-box}
@@ -223,7 +233,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .nd-k{position:absolute;right:-3px;bottom:-3px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;border:2px solid var(--sheet);color:#fff}
 .nd-k .ico{width:13px;height:13px;stroke-width:2.4}
 .nd-k.comment,.nd-k.reply{background:#2d88ff}.nd-k.proud{background:#e52e71}.nd-k.proud .ico{fill:#fff}.nd-k.metoo{background:#c9922b}
-.nd-k.mention{background:#8a3ffc}.nd-k.follow{background:#31a24c}.nd-k.report{background:#c4563c}
+.nd-k.mention{background:#8a3ffc}.nd-k.follow,.nd-k.friend_request,.nd-k.friend_accept{background:#31a24c}.nd-k.report{background:#c4563c}
 .nd-t{flex:1;min-width:0}
 .nd-t span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .nd-t small{display:block;margin-top:3px;color:var(--faint);font-size:12.5px}
@@ -439,6 +449,44 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .mbtn button{flex:1 1 auto;padding:11px 14px;border-radius:12px;border:1px solid var(--fline);background:var(--field);color:var(--cream);font:700 14px Arial,sans-serif;cursor:pointer}
 .mbtn button.bad{background:#5a1f16;border-color:#5a1f16;color:#ffd6cc}
 
+
+/* ================= PAPER (30 Sep 2026, Mike): notifications and comments use the warm
+   paper look from the pause and care notes, so they read like a note from a person ========= */
+#notes .nd-panel,#comments .sheet{--pp:#f7f1e3;--pink:#1b1a17;--pmute:#6e675b;--pfaint:#8a8272;--pline:#e2d8c2;--pbub:#fffdf7;--pgold:#9c7428;background:var(--pp);color:var(--pink);border-color:#d8ceb6}
+#notes .nd-head{background:var(--pp);border-bottom-color:var(--pline)}
+#notes .nd-head b{color:var(--pink)}
+#notes .nd-sw{color:var(--pmute)}
+#notes .nd-sw i{background:#d6ccb6}
+#notes .nd-sec{color:var(--pgold)}
+#notes .nd-row{color:var(--pink)}
+#notes .nd-row.is-new{background:#efe2c3}
+#notes .nd-row.is-new .nd-av .av{box-shadow:0 0 0 2.5px var(--pgold)}
+#notes .nd-t small{color:var(--pfaint)}
+#notes .nd-row.is-new .nd-t small{color:var(--pgold)}
+#notes .nd-k{border-color:var(--pp)}
+#notes .nd-th{background:#e9e0cc}
+#notes .nd-th.txt{color:var(--pmute)}
+#notes .nd-fb{background:#1b1a17;color:#f1e7cf}
+#notes .nd-fb.on{background:none;border:1.5px solid #cfc5ad;color:var(--pink)}
+#notes .nd-empty{color:var(--pmute)}
+#notes .skel{background:linear-gradient(100deg,#efe7d5 30%,#f7f1e3 50%,#efe7d5 70%) 0 0/300% 100%}
+#comments .sheet .g{background:#d8ceb6}
+#comments .c1 .bub{background:var(--pbub);border:1px solid var(--pline);color:var(--pink)}
+#comments .c1 .bub b,#comments .c1 .bub .un{color:var(--pink)}
+#comments .c1 small,#comments .c1 small button{color:var(--pfaint)}
+#comments .at,#comments .bub a{color:var(--pgold)}
+#comments #clist > p{color:var(--pmute)!important}
+#comments .cbar{background:var(--pp);border-top-color:var(--pline)}
+#comments .cbar textarea{background:#fffdf7;border-color:#cfc5ad;color:var(--pink)}
+#comments .cbar textarea:focus{outline:none;border-color:var(--pgold)}
+#comments .cbar button{background:#1b1a17;color:#f1e7cf}
+#comments .replyto{color:var(--pmute)}
+#comments .replyto b{color:var(--pink)}
+#comments .replyto button{color:var(--pmute)}
+#comments .c1 .bub.work{box-shadow:0 0 0 2px var(--pgold)}
+#comments .atbar button{background:#fffdf7;border-color:var(--pline);color:var(--pink)}
+#comments .c1.hl .bub{animation:hlpaper 4s ease}
+@keyframes hlpaper{0%,60%{box-shadow:0 0 0 2px var(--pgold);background:#f3e2b3}100%{box-shadow:none}}
 .toast{position:fixed;left:50%;bottom:calc(270px + env(safe-area-inset-bottom,0px));z-index:30000;transform:translate(-50%,20px);max-width:88vw;padding:12px 18px;border-radius:999px;background:var(--cream);color:var(--bg);font:700 14px Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -467,7 +515,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     <button type="button" class="meb" data-memenu aria-label="Your menu"><span id="railme"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg></span>ME</button>
   </nav></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v11</span>
+  <span class="ver" id="ver">v13</span>
   <!-- THE BELL (30 Sep 2026): notifications the way Jeff's site does them -->
   <button type="button" class="bell" id="bell" data-bell aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-2 8-2 8h16s-2-1-2-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="bell-n" id="belln" hidden></i></button>
 </div>
@@ -476,7 +524,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 <main class="wrap" id="main">
   
   <section class="newb" id="newb" hidden><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
-  <div class="ftabs" id="ftabs"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FOLLOWING</button><button type="button" class="srch" data-search aria-label="Search the Porch"><span data-ico="search"></span>SEARCH</button></div>
+  <div class="ftabs" id="ftabs"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" class="srch" data-search aria-label="Search the Porch"><span data-ico="search"></span>SEARCH</button></div>
   <div id="feed" style="padding-top:2px"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
 </main>
@@ -629,6 +677,9 @@ html.kb #comments .sheet{top:0;border-radius:0}
 <button type="button" class="newpill" id="newpill" data-newpill hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg><b>New shares</b></button>
 <div class="ptr" id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg></div>
 
+<!-- FRIENDS -->
+<div id="friends" class="layer full" role="dialog" aria-modal="true" aria-label="Friends"><div class="page"><h2 class="lh">FRIENDS</h2><p class="lsub">Only you can see this list.</p><div id="frlist"></div></div></div>
+
 <!-- SAVED SHARES -->
 <div id="saved" class="layer full" role="dialog" aria-modal="true" aria-label="Saved shares"><div class="page"><h2 class="lh">SAVED SHARES</h2><p class="lsub">Only you can see this list.</p><div id="svlist"></div></div></div>
 
@@ -649,7 +700,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div>
     <h3 id="aptitle">Don't miss a Proud of you</h3>
-    <p id="apbody">Get a buzz on your phone when somebody comments, cheers you on, tags you or follows you.</p>
+    <p id="apbody">Get a buzz on your phone when somebody comments, cheers you on, tags you or sends you a friend request.</p>
     <button type="button" class="btn" id="apyes">Turn on</button>
     <button type="button" class="link" id="apno">Not now</button>
   </div>
@@ -730,6 +781,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     share: '<path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
     reply: '<path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 6 6v1"/>',
     mention: '<circle cx="12" cy="12" r="3.6"/><path d="M15.6 12v1.6a2.4 2.4 0 0 0 4.8 0V12a8.4 8.4 0 1 0-3.3 6.7"/>',
+    friends: '<circle cx="8.5" cy="8" r="3.3"/><circle cx="16" cy="9" r="2.8"/><path d="M2.5 20c1-3.3 3.3-5 6-5s5 1.7 6 5"/><path d="M15 14.6c2.6-.3 4.8 1.2 6 4.4"/>',
     follow: '<circle cx="9" cy="8" r="3.6"/><path d="M2.5 20c1.2-3.6 3.7-5.4 6.5-5.4s5.3 1.8 6.5 5.4"/><path d="M18.5 8v6M15.5 11h6"/>'
   };
   var ico = function (k, cls) { return '<svg class="ico ' + (cls || "") + '" viewBox="0 0 24 24" aria-hidden="true">' + ICON[k] + "</svg>"; };
@@ -841,7 +893,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 
   /* ================================================================ THE FEED */
   var posts = {}, comments = {}, mine = {}, oldest = null, loading = false, done = false;
-  var tab = "all", follows = {}, newest = null, saved = {}, isMod = false;
+  var tab = "all", friends = {}, reqOut = {}, reqIn = {}, newest = null, saved = {}, isMod = false;
 
   function postHTML(p) {
     var media = "", text = p.body || "", photos = p.photo_paths || [];
@@ -969,7 +1021,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     try {
       var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview&order=created_at.desc&limit=" + PAGE +
         (oldest ? "&created_at=lt." + encodeURIComponent(oldest) : "");
-      var realFollows = Object.keys(follows).filter(function (k) { return !isSample(k); });
+      var realFollows = Object.keys(friends).filter(function (k) { return !isSample(k); });
       var list = tab === "following" && !realFollows.length ? [] : await rest(q + (tab === "following" ? "&user_id=in.(" + realFollows.join(",") + ")" : ""));
       if (list.length < PAGE) done = true;
       if (list.length) {
@@ -986,14 +1038,14 @@ html.kb #comments .sheet{top:0;border-radius:0}
       }
       if (samplesOn && !$("feed").querySelector(".post")) {
         var sp = samplePosts(); sp.forEach(function (p) { posts[p.id] = p; });
-        if (tab === "following") sp = sp.filter(function (p) { return follows[p.user_id]; });
+        if (tab === "following") sp = sp.filter(function (p) { return friends[p.user_id]; });
         list = list.concat(sp).sort(function (a, b) { return a.created_at < b.created_at ? 1 : -1; });
       }
       var feed = $("feed");
       feed.querySelectorAll(".skel,.err").forEach(function (x) { x.remove(); });
       feed.insertAdjacentHTML("beforeend", list.map(postHTML).join(""));
       if (!feed.querySelector(".post")) {
-        feed.innerHTML = tab === "following" ? '<div class="empty"><h2>Nobody here yet.</h2><p>Tap somebody\'s name or face, then Follow. Their shares show up here.</p></div>' : '<div class="empty"><h2>The Porch is brand new.</h2><p>Pull up a chair. Be the first one to say something.</p><button type="button" class="gbtn" data-new>Share something</button></div>';
+        feed.innerHTML = tab === "following" ? '<div class="empty"><h2>No friends here yet.</h2><p>Tap somebody\'s name or face, then Add Friend. Once they confirm, their shares show up here.</p></div>' : '<div class="empty"><h2>The Porch is brand new.</h2><p>Pull up a chair. Be the first one to say something.</p><button type="button" class="gbtn" data-new>Share something</button></div>';
       } else if (done && !feed.querySelector(".endnote")) {
         feed.insertAdjacentHTML("beforeend", '<p class="endnote">You\'re all caught up. 💛</p>');
       }
@@ -1352,6 +1404,10 @@ html.kb #comments .sheet{top:0;border-radius:0}
     var b = e.target.closest("[data-m]"); if (!b) return;
     var t = JSON.parse(this.dataset.t), uid = this.dataset.uid, m = b.dataset.m;
     if (m === "edit") { await closeTop(); return editShare(t.post); }
+    if (m === "unfriend") {
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again to unfriend"; return; }
+      await closeTop(); return unfriend(t.friend);
+    }
     if (m === "save") { await closeTop(); return toggleSave(t.post); }
     if (m === "leave") {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again. This can't be undone."; return; }
@@ -1505,7 +1561,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     $("pfpage").innerHTML =
       '<div class="pcover"' + (m.cover_path ? ' style="background-image:url(\'' + pic(m.cover_path) + '\')"' : "") + '></div>' +
       '<div class="pav">' + avatar(m) + "</div>" +
-      '<div class="pname"><h2>' + esc(m.handle) + "</h2>" + (!mineP ? '<button type="button" class="fol' + (follows[uid] ? " on" : "") + '" data-follow="' + uid + '">' + (follows[uid] ? "Following" : "Follow") + "</button>" : "") + (m.bio ? "<p>" + linkify(m.bio) + "</p>" : mineP ? '<p class="none">Add a line about you.</p>' : "") + "</div>" +
+      '<div class="pname"><h2>' + esc(m.handle) + "</h2>" + (!mineP ? '<div class="pfb">' + friendBtn(uid) + "</div>" : "") + (m.bio ? "<p>" + linkify(m.bio) + "</p>" : mineP ? '<p class="none">Add a line about you.</p>' : "") + "</div>" +
       (m.sober_date ? '<div class="pchips"><span>' + ico("win") + soberText(m.sober_date) + "</span></div>" : "") +
       (mineP ? '<button type="button" class="pedit" data-editp>Edit profile</button>' : "") +
       '<div class="plab">' + (mineP ? "MY SHARES" : "SHARES") + "</div>" +
@@ -1531,6 +1587,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     $("mmhead").innerHTML = avatar(m) + "<div><b>" + esc(m.handle) + "</b><small>" + (me.member && me.member.verified_at ? "On the Porch" : "Not confirmed yet") + "</small></div>";
     $("mmbody").innerHTML = '<button type="button" data-mm="notes">Notifications' + (unread ? '<span class="mcount">' + unread + "</span>" : "") + "</button>" +
       (isMod ? '<button type="button" data-mm="mod">Reports' + (modCount ? '<span class="mcount">' + modCount + "</span>" : "") + "</button>" : "") +
+      '<button type="button" data-mm="friends">Friends' + (reqCount() ? '<span class="mcount">' + reqCount() + "</span>" : "") + "</button>" +
       '<button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>' +
       '<button type="button" data-mm="saved">Saved shares</button>' +
       (me.member ? '<button type="button" data-mm="leave" style="color:var(--faint);font-size:14px">Delete my Porch account</button>' : "");
@@ -1607,31 +1664,111 @@ html.kb #comments .sheet{top:0;border-radius:0}
   }
   watchAt($("cbody"), $("atc")); watchAt($("cin"), $("atm"));
 
-  /* ================================================================ FOLLOWS (30 Sep 2026)
-     No counts anywhere. You see who you follow; they get a notification. */
-  var SFOL = "rm_porch_sample_follows";
-  async function loadFollows() {
-    follows = {};
-    try { (JSON.parse(localStorage.getItem(SFOL) || "[]")).forEach(function (k) { follows[k] = true; }); } catch (e) {}
+  /* ================================================================ FRIENDS (30 Sep 2026, Mike: "i like friends")
+     The Facebook way: Add Friend -> they Confirm -> Friends. Mutual, no counts
+     anywhere. Every Add Friend button on the Porch is drawn by friendBtn(), so
+     they all look and act the same and change together. */
+  var SFOL = "rm_porch_sample_friends";
+  async function loadFriends() {
+    friends = {}; reqOut = {}; reqIn = {};
+    try { (JSON.parse(localStorage.getItem(SFOL) || "[]")).forEach(function (k) { friends[k] = true; }); } catch (e) {}
     if (!me.uid) return;
-    try { (await rest("porch_follows?follower_id=eq." + me.uid + "&select=followed_id")).forEach(function (r) { follows[r.followed_id] = true; }); } catch (e) {}
+    try {
+      (await rest("porch_friends?or=(a.eq." + me.uid + ",b.eq." + me.uid + ")&select=a,b")).forEach(function (r) { friends[r.a === me.uid ? r.b : r.a] = true; });
+      (await rest("porch_friend_requests?or=(from_id.eq." + me.uid + ",to_id.eq." + me.uid + ")&select=from_id,to_id")).forEach(function (r) {
+        if (r.from_id === me.uid) reqOut[r.to_id] = true; else reqIn[r.from_id] = true;
+      });
+    } catch (e) {}
   }
-  async function toggleFollow(uid, btn) {
-    var on = !follows[uid];
-    if (on) follows[uid] = true; else delete follows[uid];
-    btn.classList.toggle("on", on); btn.textContent = on ? "Following" : "Follow";
-    if (isSample(uid)) {
-      try { localStorage.setItem(SFOL, JSON.stringify(Object.keys(follows).filter(isSample))); } catch (e) {}
-    } else {
-      try {
-        if (on) await rest("porch_follows", { method: "POST", body: { follower_id: me.uid, followed_id: uid } });
-        else await rest("porch_follows?follower_id=eq." + me.uid + "&followed_id=eq." + uid, { method: "DELETE" });
-      } catch (e) {
-        if (e.status !== 409) { if (on) delete follows[uid]; else follows[uid] = true; btn.classList.toggle("on", !on); btn.textContent = !on ? "Following" : "Follow"; return toast("That didn't go through."); }
-      }
-    }
-    if (on) toast("Following " + name(uid) + ". Their shares show up under Following.");
+  var reqCount = function () { return Object.keys(reqIn).length; };
+  function friendBtn(uid, small) {
+    var c = small ? "nd-fb" : "fol";
+    var inner = friends[uid] ? '<button type="button" class="' + c + ' on" data-friend="' + uid + '">' + ico("friends") + "Friends</button>"
+      : reqOut[uid] ? '<button type="button" class="' + c + ' on" data-friend="' + uid + '">Requested</button>'
+      : reqIn[uid] ? '<button type="button" class="' + c + '" data-fconfirm="' + uid + '">Confirm</button><button type="button" class="' + c + ' on" data-fdelete="' + uid + '">Delete</button>'
+      : '<button type="button" class="' + c + '" data-friend="' + uid + '">' + ico("follow") + "Add Friend</button>";
+    return '<span class="fwrap" data-fwrap="' + uid + '">' + inner + "</span>";
+  }
+  function repaintFriend(uid) {
+    document.querySelectorAll('[data-fwrap="' + uid + '"]').forEach(function (w) { w.outerHTML = friendBtn(uid, !!w.querySelector(".nd-fb")); });
+    if ($("friends").classList.contains("open")) paintFriends();
     if (tab === "following") reloadFeed();
+  }
+  async function rpc(fnName, body) {
+    var t = await tok();
+    var r = await fetch(DB + "/rest/v1/rpc/" + fnName, { method: "POST", headers: { apikey: KEY, Authorization: "Bearer " + (t || KEY), "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+    if (!r.ok) { var e = new Error("rpc " + r.status); e.status = r.status; throw e; }
+    return r.json();
+  }
+  async function friendTap(uid) {
+    if (friends[uid]) {                        /* already friends: offer Unfriend */
+      $("mbody").dataset.t = JSON.stringify({ friend: uid }); $("mbody").dataset.uid = uid;
+      $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">' + esc(name(uid)) + "</p>" +
+        '<button type="button" class="bad" data-m="unfriend">Unfriend ' + esc(name(uid)) + '</button><button type="button" data-close style="color:var(--muted)">Cancel</button>';
+      return open("menu");
+    }
+    if (isSample(uid)) {
+      friends[uid] = true;
+      try { localStorage.setItem(SFOL, JSON.stringify(Object.keys(friends).filter(isSample))); } catch (e) {}
+      toast("You're friends with " + name(uid) + ". (Sample: only on this phone.)"); return repaintFriend(uid);
+    }
+    try {
+      if (reqOut[uid]) {
+        await rest("porch_friend_requests?from_id=eq." + me.uid + "&to_id=eq." + uid, { method: "DELETE" });
+        delete reqOut[uid]; toast("Request canceled.");
+      } else {
+        await rest("porch_friend_requests", { method: "POST", body: { from_id: me.uid, to_id: uid } });
+        reqOut[uid] = true; toast("Friend request sent to " + name(uid) + ".");
+      }
+    } catch (e) {
+      if (e.status === 409) { await loadFriends(); }
+      else return toast(e.status === 403 || e.status === 401 ? "You can add friends once your account is 3 days old." : "That didn't go through.");
+    }
+    repaintFriend(uid);
+  }
+  async function confirmFriend(uid) {
+    try { var ok = await rpc("porch_confirm_friend", { p_from: uid }); if (!ok) throw new Error("no"); }
+    catch (e) { await loadFriends(); repaintFriend(uid); return toast("That request is gone."); }
+    delete reqIn[uid]; friends[uid] = true;
+    toast("You and " + name(uid) + " are friends now.");
+    repaintFriend(uid); refreshReqDot();
+  }
+  async function deleteRequest(uid) {
+    try { await rest("porch_friend_requests?from_id=eq." + uid + "&to_id=eq." + me.uid, { method: "DELETE" }); } catch (e) {}
+    delete reqIn[uid]; toast("Request deleted."); repaintFriend(uid); refreshReqDot();
+  }
+  async function unfriend(uid) {
+    if (isSample(uid)) {
+      delete friends[uid]; try { localStorage.setItem(SFOL, JSON.stringify(Object.keys(friends).filter(isSample))); } catch (e) {}
+    } else {
+      var a = me.uid < uid ? me.uid : uid, b = me.uid < uid ? uid : me.uid;
+      try { await rest("porch_friends?a=eq." + a + "&b=eq." + b, { method: "DELETE" }); } catch (e) { return toast("That didn't go through."); }
+      delete friends[uid];
+    }
+    toast("Unfriended."); repaintFriend(uid);
+  }
+  function refreshReqDot() { /* the count on ME → Friends lives in the menu; nothing else to paint */ }
+
+  /* ---- ME → Friends: requests on top, then your friends ---- */
+  async function openFriends() {
+    $("frlist").innerHTML = '<div class="skel" style="height:160px"></div>'; open("friends");
+    await loadFriends();
+    await loadPeople(Object.keys(friends).concat(Object.keys(reqIn), Object.keys(reqOut)).filter(function (k) { return !isSample(k); }));
+    paintFriends();
+  }
+  function paintFriends() {
+    function row(uid, right) {
+      return '<div class="fr-row"><button type="button" class="fr-who" data-u="' + uid + '">' + avatar(people[uid]) + "<b>" + esc(name(uid)) + "</b></button>" + right + "</div>";
+    }
+    var inIds = Object.keys(reqIn), fIds = Object.keys(friends).sort(function (x, y) { return name(x).toLowerCase() < name(y).toLowerCase() ? -1 : 1; });
+    var outIds = Object.keys(reqOut);
+    $("frlist").innerHTML =
+      (inIds.length ? '<p class="nd-sec">FRIEND REQUESTS</p>' + inIds.map(function (u) { return row(u, friendBtn(u, true)); }).join("") : "") +
+      '<p class="nd-sec">YOUR FRIENDS</p>' +
+      (fIds.length ? fIds.map(function (u) { return row(u, friendBtn(u, true)); }).join("")
+        : '<p class="pempty">No friends yet. Tap anybody\'s name or face on the Porch, then Add Friend.</p>') +
+      (outIds.length ? '<p class="nd-sec">REQUESTS YOU SENT</p>' + outIds.map(function (u) { return row(u, friendBtn(u, true)); }).join("") : "") +
+      '<button type="button" class="pedit" data-search style="margin-top:18px">Find somebody by name</button>';
   }
 
   /* ================================================================ NOTIFICATIONS (30 Sep 2026)
@@ -1660,6 +1797,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     comment: ["comment", "commented on your share"], reply: ["reply", "replied to your comment"],
     proud: ["proud", "is proud of you"], metoo: ["metoo", "said Me too"],
     mention: ["mention", "tagged you"], follow: ["follow", "started following you"],
+    friend_request: ["follow", "sent you a friend request"], friend_accept: ["friends", "accepted your friend request"],
     report: ["question", "was reported. Take a look."]
   };
   function noteSays(n) {
@@ -1692,7 +1830,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     } catch (e) {}
     function row(n) {
       var k = NOTE[n.kind] || ["say"], said = n.comment_id && words[n.comment_id], isNew = !n.read_at;
-      var right = n.kind === "follow" ? (!follows[n.actor_id] ? '<button type="button" class="nd-fb" data-follow="' + n.actor_id + '">Follow back</button>' : "")
+      var right = n.kind === "friend_request" || n.kind === "follow" ? (friends[n.actor_id] ? "" : friendBtn(n.actor_id, true))
         : n.post_id ? thumbHTML(noteThumbs[n.post_id] || posts[n.post_id]) : "";
       return '<div role="button" tabindex="0" class="nd-row' + (isNew ? " is-new" : "") + '" data-note="' + n.id + '" data-nk="' + n.kind + '" data-np="' + (n.post_id || "") + '" data-nc="' + (n.comment_id || "") + '" data-na="' + n.actor_id + '">' +
         '<span class="nd-av">' + avatar(people[n.actor_id]) + '<span class="nd-k ' + n.kind + '">' + ico(k[0]) + "</span></span>" +
@@ -1703,7 +1841,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     var fresh = list.filter(function (n) { return !n.read_at; }), old = list.filter(function (n) { return n.read_at; });
     $("nlist").innerHTML = list.length
       ? (fresh.length ? '<p class="nd-sec">NEW</p>' + fresh.map(row).join("") : "") + (old.length ? '<p class="nd-sec">EARLIER</p>' + old.map(row).join("") : "")
-      : '<p class="nd-empty">Nothing yet. When somebody comments, cheers you on, tags you or follows you, it shows up here.</p>';
+      : '<p class="nd-empty">Nothing yet. When somebody comments, cheers you on, tags you or sends you a friend request, it shows up here.</p>';
     /* marked read the moment it opens (rows keep their NEW look until next time) */
     if (fresh.length || unread) {
       try { await rest("porch_notes?user_id=eq." + me.uid + "&read_at=is.null", { method: "PATCH", body: { read_at: new Date().toISOString() } }); } catch (e) {}
@@ -1776,7 +1914,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     if (!newest || document.hidden) return;
     try {
       var q = "porch_posts?created_at=gt." + encodeURIComponent(newest) + "&select=id";
-      if (tab === "following") { var f = Object.keys(follows).filter(function (k) { return !isSample(k); }); if (!f.length) return; q += "&user_id=in.(" + f.join(",") + ")"; }
+      if (tab === "following") { var f = Object.keys(friends).filter(function (k) { return !isSample(k); }); if (!f.length) return; q += "&user_id=in.(" + f.join(",") + ")"; }
       var r = await fetch(DB + "/rest/v1/" + q, { method: "HEAD", headers: { apikey: KEY, Authorization: "Bearer " + ((await tok()) || KEY), Prefer: "count=exact" } });
       var n = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
       if (n) { $("newpill").querySelector("b").textContent = n === 1 ? "1 new share" : (n > 9 ? "9+" : n) + " new shares"; $("newpill").hidden = false; }
@@ -1809,7 +1947,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
   })();
 
   /* ================================================================ PHONE NOTIFICATIONS (30 Sep 2026)
-     A buzz on the phone when somebody comments, cheers you on, tags you or follows you.
+     A buzz on the phone when somebody comments, cheers you on, tags you or sends you a friend request.
      iPhone only allows this when the app is on the Home Screen (iOS 16.4+). */
   var PUSHFN = DB + "/functions/v1/porch-push";
   var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -1877,7 +2015,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     $("aptitle").textContent = "Don't miss a Proud of you";
     $("apbody").textContent = iosTab
       ? "On iPhone, phone alerts only work from the Home Screen. Tap the Share button, then Add to Home Screen, and open Recovery Misfits from there."
-      : "Get a buzz on your phone when somebody comments, cheers you on, tags you or follows you.";
+      : "Get a buzz on your phone when somebody comments, cheers you on, tags you or sends you a friend request.";
     $("apyes").textContent = iosTab ? "Got it" : "Turn on";
     $("apyes").dataset.ios = iosTab ? "1" : "";
     try { localStorage.setItem(ASK, JSON.stringify({ t: Date.now(), no: a.no })); } catch (e) {}
@@ -1948,12 +2086,12 @@ html.kb #comments .sheet{top:0;border-radius:0}
   }
 
   /* ================================================================ DELETE MY PORCH ACCOUNT (30 Sep 2026)
-     Everything they ever put on the Porch: shares, photos, comments, follows, the lot.
+     Everything they ever put on the Porch: shares, photos, comments, friends, the lot.
      Their app account (sober date, coins, settings) stays. */
   function askLeave() {
     $("mbody").dataset.t = "{}"; $("mbody").dataset.uid = "";
     $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">Delete my Porch account</p>' +
-      "<p>Everything you put on the Porch goes away for good: your shares and photos, comments, follows, saves and your profile. Your app account, sober date and coins stay right where they are.</p>" +
+      "<p>Everything you put on the Porch goes away for good: your shares and photos, comments, friends, saves and your profile. Your app account, sober date and coins stay right where they are.</p>" +
       '<button type="button" class="bad" data-m="leave">Delete my Porch account</button><button type="button" data-close style="color:var(--muted)">Keep it</button>';
     open("menu");
   }
@@ -1965,9 +2103,11 @@ html.kb #comments .sheet{top:0;border-radius:0}
     var at = t.closest("[data-h]"); if (at && !t.closest("#cprev")) return openHandle(at.dataset.h);
     var op = t.closest("[data-openpost]"); if (op) return openSingle(op.dataset.openpost);
     if (t.closest("[data-memenu]")) return openMeMenu();
-    var fb = t.closest("[data-follow]"); if (fb) return gate(function () { toggleFollow(fb.dataset.follow, fb); });
+    var fr = t.closest("[data-friend]"); if (fr) return gate(function () { friendTap(fr.dataset.friend); });
+    var fc = t.closest("[data-fconfirm]"); if (fc) return gate(function () { confirmFriend(fc.dataset.fconfirm); });
+    var fd = t.closest("[data-fdelete]"); if (fd) return gate(function () { deleteRequest(fd.dataset.fdelete); });
     var nt = t.closest("[data-note]");
-    if (nt && !t.closest("[data-follow]")) {
+    if (nt && !t.closest("[data-friend],[data-fconfirm],[data-fdelete]")) {
       var nd = nt.dataset;
       return closeTop().then(function () { return nd.nk === "report" ? openMod() : openNoteTarget(nd.np, nd.na, nd.nc, nd.nk); });
     }
@@ -1981,7 +2121,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
     }
     var mm = t.closest("[data-mm]");
     if (mm) { var which = mm.dataset.mm; closeTop().then(function () {
-      if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved();
+      if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "friends") openFriends();
       else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else gate(openEdit); }); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
@@ -2091,12 +2231,14 @@ html.kb #comments .sheet{top:0;border-radius:0}
   /* ================================================================ GO */
   (async function () {
     await loadMe();
-    await loadFollows();
+    await loadFriends();
     loadNew();
     loadMore();
     checkNotes(); checkNew(); modCheck(); healPush();
     setTimeout(function () { if (unread) askPush(); }, 6000);
     /* a link somebody sent: /feed/porch.html?s=<share> opens that one share */
+    var who = new URLSearchParams(location.search).get("who");
+    if (who && /^[0-9a-f-]{36}$/i.test(who)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openProfile(who); }
     if (/[?&]mod=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (isMod) openMod(); }
     if (/[?&]notes=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) openNotes(); }
     var s = new URLSearchParams(location.search).get("s"), keepQ = location.search;

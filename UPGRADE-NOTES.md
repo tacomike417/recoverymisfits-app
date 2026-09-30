@@ -80,6 +80,10 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
 - Forgot password / username for Level 2: match the typed email's fingerprint, email a code.
 
 ### Porch vs Facebook/Instagram: what we added (30 Sep 2026)
+- **Friends replace follows** (v12): Add Friend / Requested / Confirm + Delete / Friends → Unfriend; FRIENDS feed tab;
+  ME → Friends list with requests on top; requests + accepts in the bell and as phone alerts; blocking unfriends.
+- **Notifications like Jeff's site** (v11): bell top right with red count, drop-down with NEW / EARLIER, badges,
+  thumbnails, Phone alerts switch, the nudge, tap a comment alert to land on it glowing with the reply box ready.
 - Done: follows + notifications, @ suggestions, **Send a share out** (paper plane), **Reply
   to a comment**, **Edit your share or comment**, **Search** people, pop-ups stay above the
   phone keyboard, **New shares pill + pull down to refresh**, **link preview cards**,
@@ -92,7 +96,7 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
   reporting, spam caps (300 reactions / 50 follows an hour, 20 reports a day), a blocked
   person can't react to your shares.
 - Still open: sign-up levels on the account page ("Your recovery, your way"), deleting the
-  whole app account (not just the Porch), Messages, Sober Spins, sample posts out and
+  whole app account (not just the Porch), Messages (friends only), Sober Spins, sample posts out and
   the Mike-only lock off at launch.
 - Sent links: while the Porch is Mike-only, anybody else who taps one lands on the /feed/ preview.
 
@@ -175,7 +179,7 @@ Our crowd is **rated R, not rated X.**
 | Short videos (Loops on Infinite Pulls) | **Sober Spins** (one is a Sober Spin; named 30 Sep 2026, replaces Misfits Moments) |
 | Collection | My Pile + My Coins |
 | Profile | Profile |
-| Follow | Follow |
+| Follow | **Friends** (30 Sep 2026: Add Friend → Confirm → Friends, the Facebook way; mutual; no counts) |
 | Messages | Messages |
 | Reactions | **Proud of you** / **Me too** |
 | Moderators | Moderators |
