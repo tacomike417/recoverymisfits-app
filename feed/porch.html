@@ -381,8 +381,6 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .ptr.spin{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:translateX(-50%) rotate(360deg)}}
 #chrome.away ~ .newpill{top:calc(12px + env(safe-area-inset-top,0px))}
-/* our pull-to-refresh, not the browser's (Android Chrome would reload the whole page) */
-html,body{overscroll-behavior-y:contain}
 /* ---- full-page lists: saved, reports ---- */
 .lh{margin:0 16px 4px;padding-top:calc(14px + env(safe-area-inset-top,0px));font:400 30px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em}
 .lsub{margin:0 16px 6px;color:var(--muted);font-size:13px}
@@ -432,7 +430,7 @@ html,body{overscroll-behavior-y:contain}
     <button type="button" class="meb" data-memenu aria-label="Your menu"><span id="railme"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg></span>ME</button>
   </nav></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v8</span>
+  <span class="ver" id="ver">v9</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1686,6 +1684,8 @@ html,body{overscroll-behavior-y:contain}
   (function pullToRefresh() {
     var y0 = null, dy = 0, ptr = $("ptr");
     window.addEventListener("touchstart", function (e) {
+      /* safety net: nothing is open, so the page must never stay locked */
+      if (!stack.length) document.documentElement.classList.remove("locked");
       y0 = window.scrollY <= 0 && !stack.length && e.touches.length === 1 ? e.touches[0].clientY : null; dy = 0;
     }, { passive: true });
     window.addEventListener("touchmove", function (e) {
