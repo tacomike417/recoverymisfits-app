@@ -385,8 +385,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     <h3>What are you sharing?</h3>
     <div class="tiles">
       <button type="button" data-mode="say"><span class="ti" data-ico="say"></span><b>Say Something</b><small>Your words, as long as you want</small></button>
-      <button type="button" data-mode="sign"><span class="ti" data-ico="sign"></span><b>Hang a Sign</b><small>Short and loud, in your own hand</small></button>
-      <button type="button" data-mode="snap"><span class="ti" data-ico="snap"></span><b>Snapshot</b><small>Up to 4 photos</small></button>
+      <button type="button" data-mode="sign"><span class="ti" data-ico="sign"></span><b>Post a Saying</b><small>Short and loud, in your own hand</small></button>
+      <button type="button" data-mode="snap"><span class="ti" data-ico="snap"></span><b>Share a Photo</b><small>Up to 4 photos</small></button>
     </div>
   </div>
 </div>
@@ -878,11 +878,11 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   var need = "talk", style = 0, photos = [], sending = false, mode = "say";
   var DRAFT = "rm_porch_draft", SIGN_MAX = 150;
   /* THREE KINDS OF SHARE (30 Sep 2026, Mike): Say Something = words, any length;
-     Hang a Sign = the short handwritten card; Snapshot = photos. */
+     Post a Saying = the short handwritten card; Share a Photo = photos. */
   var MODE = {
     say:  { title: "SAY SOMETHING", holder: "What's on your mind? Say as much as you want." },
-    sign: { title: "HANG A SIGN",   holder: "Short and loud. What do you want the Porch to see?" },
-    snap: { title: "SNAPSHOT",      holder: "Say something about it (optional)" }
+    sign: { title: "POST A SAYING",   holder: "Short and loud. What do you want the Porch to see?" },
+    snap: { title: "SHARE A PHOTO",      holder: "Say something about it (optional)" }
   };
   var HOLDER = { experience: "What happened, and what did you learn?", strength: "What's keeping you going?", hope: "What's getting better?", question: "Ask the Porch anything." };
   $("styles").innerHTML = CARDS.map(function (c, i) { return '<button type="button" data-style="' + i + '" style="background:' + c.bg + ";color:" + c.ink + '" aria-label="Card ' + (i + 1) + '">Aa</button>'; }).join("");
@@ -922,7 +922,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     $("chint").textContent = "Tap a color.";
     /* the preview IS the share, exactly as it will show on the Porch */
     $("cprev").innerHTML = postHTML({ id: "preview", user_id: me.uid, need: need,
-      body: t || (mode === "sign" ? "Your sign goes here." : mode === "say" ? "Your words show up here." : ""),
+      body: t || (mode === "sign" ? "Your saying goes here." : mode === "say" ? "Your words show up here." : ""),
       photo_paths: mode === "snap" ? photos : [], card_style: mode === "sign" ? style : null, created_at: new Date().toISOString() });
     $("csend").disabled = sending || (mode === "snap" ? !photos.length : !t);
   }

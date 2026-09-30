@@ -37,9 +37,12 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
   where the preview's "Vote" pill was. (Neon Diner and Clean Slate/light are still in the CSS
   if we ever want a Colors option.)
 - **Three kinds of share (30 Sep 2026):** tap Share, pick one: **Say Something** (words, any
-  length), **Hang a Sign** (short handwritten card, 150 characters, a nod to the slogans on the
-  meeting-room wall), **Snapshot** (up to 4 photos). Misfits Moments becomes the 4th later.
-  Tag it (optional): A win / Hard day / A question. Our own line icons, no emojis.
+  length), **Post a Saying** (short handwritten card, 150 characters, a nod to the slogans on the
+  meeting-room wall), **Share a Photo** (up to 4 photos). Misfits Moments becomes the 4th later.
+  Tag it (optional): Experience / Strength / Hope / A question (no "hard day": keep it positive). Our own line icons, no emojis.
+- **The "switch up" (later):** when the rail/top bar goes app-wide, your picture moves up there
+  and the "Glad you're here" line comes off every page. Until then it only comes off the Porch.
+- No profile picture = initials from the username (grateful_gina -> GG, OneDayJen -> OD).
 - Long shares show 6 lines, then **"Pull up a chair · N min read"** opens a full-screen reader.
 - Photos lay out like Facebook: 1 keeps its shape (4:5 to 1.91:1), 2 side by side,
   3 = one big + two stacked, 4 = 2x2. Tap to swipe through them full screen.
