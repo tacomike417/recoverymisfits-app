@@ -89,6 +89,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .pics.n2{aspect-ratio:1/1;grid-template-columns:1fr 1fr}
 .pics.n3{aspect-ratio:1/1;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr}
 .pics.n3 img:first-child{grid-row:1/3}
+.shared{display:grid;place-items:center;padding:26px 0;background:radial-gradient(circle at 50% 40%,var(--field),var(--bg) 72%)}
+.shared img{width:62%;max-width:270px;height:auto;cursor:zoom-in;filter:drop-shadow(0 10px 28px rgba(0,0,0,.55))}
 .pics.n4{aspect-ratio:1/1;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
 .hand{display:grid;place-items:center;min-height:240px;padding:28px 22px;text-align:center;font:600 30px/1.15 "RM Hand",cursive;white-space:pre-wrap;word-wrap:break-word}
 .acts{display:flex;gap:6px;padding:8px 10px 6px;flex-wrap:wrap}
@@ -358,6 +360,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     <button type="button" class="lk" data-look="diner"><span class="sw" style="background:#151b1b;color:#3fe0c5;border:1px solid #243232">Aa</span><span><b>Neon Diner</b><small>Dark, with a mint glow</small></span></button>
     <button type="button" class="lk" data-look="slate"><span class="sw" style="background:#fffdf8;color:#b8862b;border:1px solid #e0d6c2">Aa</span><span><b>Clean Slate</b><small>Light, easy on a sunny day</small></span></button>
     <button type="button" class="lk" data-look="classic"><span class="sw" style="background:#1b1913;color:#e0bd6a;border:1px solid #2e2a22">Aa</span><span><b>Classic</b><small>The original black and gold</small></span></button>
+    <label class="check" style="margin:16px 0 0"><input type="checkbox" id="samples"> Show sample posts <span style="color:var(--muted);font-weight:400">(only you see these)</span></label>
   </div>
 </div>
 
@@ -374,7 +377,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   var PAGE = 15;
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); };
-  var pic = function (p) { return DB + "/storage/v1/object/public/porch/" + p; };
+  var pic = function (p) { return p.charAt(0) === "/" ? p : DB + "/storage/v1/object/public/porch/" + p; };
 
   /* ================================================================ WHO'S HERE */
   var A = window.RMAccount;
@@ -474,13 +477,16 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 
   function postHTML(p) {
     var media = "", text = p.body || "", photos = p.photo_paths || [];
-    if (photos.length) {
+    if (photos.length === 1 && /^\/assets\/(coins|survival-pile)\//.test(photos[0])) {
+      /* a coin or a Survival Pile card someone shared: shown whole, on a spotlight */
+      media = '<div class="shared"><img src="' + photos[0] + '" alt="" loading="lazy" data-view="0"></div>';
+    } else if (photos.length) {
       media = '<div class="pics n' + photos.length + '">' +
         photos.map(function (x, i) { return '<img src="' + pic(x) + '" alt="" loading="lazy" data-view="' + i + '">'; }).join("") + "</div>";
     } else if (fitsCard(text)) { media = handHTML(text, p.card_style); text = ""; }
     var r = mine[p.id] || {};
     return '<article class="post" id="p-' + p.id + '" data-post="' + p.id + '">' +
-      '<div class="ph">' + avatar(people[p.user_id]) + '<div class="who"><b>' + esc(name(p.user_id)) + "</b><small>" + ago(p.created_at) + "</small></div>" +
+      '<div class="ph">' + avatar(people[p.user_id]) + '<div class="who"><b>' + esc(name(p.user_id)) + "</b><small>" + ago(p.created_at) + (p.sample ? " · sample" : "") + "</small></div>" +
         (NEED[p.need] ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
         '<button type="button" class="more" data-more aria-label="Options">⋯</button></div>' +
       (text ? '<div class="body">' + linkify(text) + "</div>" : "") + media +
@@ -497,6 +503,86 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   }
   function refreshComments(id) { var el = document.querySelector("#p-" + id + " .cm"); if (el) el.innerHTML = commentsPreview(id); }
 
+
+  /* ================================================================ SAMPLE POSTS
+     MIKE ONLY, FOR TRYING IT OUT (30 Sep 2026). The made-up people and posts from the
+     old preview, mixed into the feed ON THIS PHONE ONLY so the Porch has something in
+     it. They never touch the database: reacting and commenting on them stays on the
+     phone, and each one says "sample" next to its time. Switch them off under Colors.
+     Take this whole block out before the Porch opens to everybody. */
+  var M = function (n) { return "/assets/memes/" + n + ".jpg"; };
+  var SAMPLE = [
+      { u: "OneDayJen", t: "12m", pill: "90 DAYS", kind: "coin", coin: "coin-90-days", big: "90 DAYS", body: "Ninety days. My kids noticed before I did. Thank you to whoever built this app, the reading this morning hit different.", c: [["BigBookBrad","So proud of you Jen. Keep coming back."],["grateful_gina","90 in 90 and then some! 🙌"]], more: 14 },
+      { u: "SunriseSara", t: "18m", kind: "photo", img: "sunrise", body: "Porch, coffee, sunrise. I used to sleep through these.", c: [["grateful_gina","This is the good life 🌅"]], more: 9 },
+      { u: "TrudgingTony", t: "28m", kind: "meme", img: M("010"), body: "This one is too real 😂", c: [["DinoDan","Felt this in my soul"]], more: 6 },
+      { u: "NewGuyNate", t: "41m", pill: "DAY 3", kind: "text", bg: "linear-gradient(160deg,#243142,#11100c)", card: "Day 3. Hands still shaky. Didn't drink last night.", body: "First time posting anything. Not really sure what I'm doing here.", c: [["OldTimerWalt","You're doing exactly right, Nate. Day 3 is hard. Call somebody today."],["SerenityShay","I remember day 3. It gets better, I promise. Keep showing up."],["HoosierHope","Welcome. Glad you're here. 💛"]], more: 22 },
+      { u: "grateful_gina", t: "1h", kind: "text", bg: "linear-gradient(160deg,#3a2a18,#11100c)", card: "Gratitude list:\n1. Hot coffee\n2. My sponsor answering at 11pm\n3. Waking up without regret", body: "" , c: [["CoffeeAndSteps","#1 is always on my list too ☕"]], more: 4 },
+      { u: "SoberSam76", t: "1h", pill: "500 DAYS", kind: "card", card: "500", label: "THE SOBER 500", body: "Five hundred laps around 'not drinking today.' Never thought I'd see this number.", c: [["ReformedRocker","Legend."],["QuietQuinn","Congrats Sam!"]], more: 11 },
+      { u: "HoosierHope", t: "2h", kind: "text", bg: "linear-gradient(160deg,#2c3a2a,#11100c)", card: "God wink today: the song on the radio was the one they played at my first meeting.", body: "Didn't believe in these until they kept happening.", c: [["PrayerAndPancakes","Love a good God wink"]], more: 9 },
+      { u: "grateful_gina", t: "2h", kind: "photo", img: "group", ok: true, body: "Tuesday night crew. Everybody said yes to this one 💛", c: [["HoosierHope","Love this group"],["SerenityShay","Best meeting in town"]], more: 16 },
+      { u: "BigBookBrad", t: "2h", kind: "meme", img: M("027"), body: "Page 417 people will get it.", c: [["ByTheBookBob","Acceptance is the answer 📖"]], more: 7 },
+      { u: "MomOf3Sober", t: "3h", pill: "1 YEAR", kind: "coin", coin: "coin-01-year", big: "ONE YEAR", body: "One year ago I couldn't make it through a school pickup. Today I chaperoned the field trip.", c: [["SunriseSara","Crying at work reading this. So happy for you."],["LateBloomerLiz","This is everything. 💛"]], more: 31 },
+      { u: "Kev_in_recovery", t: "3h", kind: "text", bg: "linear-gradient(160deg,#3a1f24,#11100c)", card: "Rough day. Wanted to drink at lunch. Didn't.", body: "Just needed to tell somebody.", c: [["OldTimerWalt","Proud of you Kev. That's a win."],["NightShiftNia","Glad you told us. Call your people tonight."]], more: 15 },
+      { u: "NightShiftNia", t: "3h", kind: "text", bg: "linear-gradient(160deg,#1f3440,#11100c)", card: "On Suboxone. In therapy.\n8 months without using.\nMy path counts too.", body: "", c: [["OldTimerWalt","It sure does. Glad you're here, Nia."],["MisfitMarcus","Every path counts 💛"]], more: 27 },
+      { u: "DinoDan", t: "4h", kind: "meme", img: M("028"), body: "", c: [["TrudgingTony","😂😂"]], more: 3 },
+      { u: "SerenityShay", t: "4h", kind: "text", bg: "linear-gradient(160deg,#2a2440,#11100c)", card: "Nightly inventory done.\nOne resentment. One amends to make tomorrow.", body: "The new Nightly Inventory tool makes it way less scary.", c: [["QuietQuinn","Same, it's the only way I actually do it"]], more: 5 },
+      { u: "OldTimerWalt", t: "5h", pill: "22 YEARS", kind: "text", bg: "linear-gradient(160deg,#35301f,#11100c)", card: "\"It works if you work it.\"\nStill true at 22 years.", body: "Hit a meeting, call a newcomer, say the prayer. Same as day one.", c: [["NewGuyNate","Thanks Walt."],["BigBookBrad","Wisdom right here"]], more: 18 },
+      { u: "CoffeeAndSteps", t: "5h", kind: "card", card: "100", label: "KEEPING IT 100", body: "A hundred days sober. Still a little weird.", c: [["grateful_gina","100!!! 🎉"]], more: 12 },
+      { u: "LateBloomerLiz", t: "6h", kind: "meme", img: M("003"), body: "Sharing because it made me laugh on a hard morning.", c: [], more: 2 },
+      { u: "ReformedRocker", t: "6h", kind: "text", bg: "linear-gradient(160deg,#401f1f,#11100c)", card: "Played my first sober gig tonight.\nHands didn't shake once.", body: "", c: [["MisfitMarcus","Rock on 🤘"],["HighPowerHolly","That's huge!"]], more: 20 },
+      { u: "ReformedRocker", t: "7h", kind: "photo", img: "guitar", body: "Here's proof. First sober gig. Coffeehouse crowd was the best crowd I ever had.", c: [["DinoDan","Sounds amazing man"]], more: 12 },
+      { u: "QuietQuinn", t: "7h", kind: "text", bg: "linear-gradient(160deg,#1f3440,#11100c)", card: "Question for the group:\nHow do you handle a wedding with an open bar?", body: "My cousin's is Saturday. First one sober.", c: [["TrudgingTony","Bring a sober buddy, have an exit plan, leave before the toasts if you need to."],["SerenityShay","Club soda with lime in hand the whole time. Nobody asks."]], more: 26 },
+      { u: "FarmhouseFrank", t: "8h", pill: "6 MONTHS", kind: "coin", coin: "coin-06-months", big: "SIX MONTHS", body: "Half a year. Cows still need milking but I remember doing it now.", c: [["DinoDan","😂 congrats Frank"]], more: 9 },
+      { u: "DinoDan", t: "9h", kind: "photo", img: "dog", body: "Me and Biscuit, 3 miles this morning. Used to be 3 beers by now.", c: [["LateBloomerLiz","Biscuit!! 🐶"]], more: 8 },
+      { u: "NightShiftNia", t: "9h", kind: "meme", img: M("011"), body: "", c: [["SunriseSara","Needed this"]], more: 4 },
+      { u: "ByTheBookBob", t: "10h", kind: "text", bg: "linear-gradient(160deg,#2b2b1f,#11100c)", card: "\"We will not regret the past nor wish to shut the door on it.\"", body: "The Promises on page 83. Read them out loud this morning.", c: [["BigBookBrad","My favorite page"]], more: 8 },
+      { u: "MisfitMarcus", t: "11h", pill: "DAY 7", kind: "card", card: "7", label: "ONE WEEK", body: "7 days. That's a whole week. Yeah, a week!", c: [["OneDayJen","A WEEK! So proud of you"],["OldTimerWalt","One day at a time, brother."]], more: 19 },
+      { u: "HighPowerHolly", t: "11h", kind: "text", bg: "linear-gradient(160deg,#3a2a18,#11100c)", card: "Celebrate Recovery tonight.\nGrateful for a church that let me walk in exactly as I was.", body: "", c: [["PrayerAndPancakes","🙏"]], more: 7 },
+      { u: "SunriseSara", t: "12h", kind: "text", bg: "linear-gradient(160deg,#40321f,#11100c)", card: "Watched the sunrise instead of sleeping off a hangover.", body: "Small things.", c: [["HoosierHope","The best things"]], more: 7 },
+      { u: "HighPowerHolly", t: "13h", kind: "meme", img: M("005"), body: "", c: [], more: 1 },
+      { u: "PrayerAndPancakes", t: "14h", kind: "text", bg: "linear-gradient(160deg,#3a2f22,#11100c)", card: "Sunday tradition now:\nmeeting, then pancakes with the group.", body: "Used to be mimosas. This is better.", c: [["CoffeeAndSteps","Where do I sign up 🥞"]], more: 10 },
+      { u: "PrayerAndPancakes", t: "15h", kind: "photo", img: "pancakes", body: "After the meeting. No faces, just pancakes.", c: [["CoffeeAndSteps","Save me a stack 🥞"]], more: 6 },
+      { u: "Jersey_Joe_ODAAT", t: "15h", pill: "2 YEARS", kind: "coin", coin: "coin-02-years", big: "TWO YEARS", body: "Two years ago I was in detox. Today I'm sponsoring two guys.", c: [["MisfitMarcus","Goals man"],["TrudgingTony","Congrats Joe!"]], more: 24 },
+      { u: "CleanSlateCal", t: "16h", kind: "text", bg: "linear-gradient(160deg,#1f2f2a,#11100c)", card: "Made my first amends today.\nShe said thank you.", body: "Step 9 is terrifying and then it isn't.", c: [["SerenityShay","That takes so much courage"]], more: 13 },
+      { u: "TrudgingTony", t: "17h", kind: "meme", img: M("020"), body: "", c: [["Kev_in_recovery","lol"]], more: 5 },
+      { u: "LateBloomerLiz", t: "18h", pill: "30 DAYS", kind: "coin", coin: "coin-30-days", big: "30 DAYS", body: "Started at 58. Never too late.", c: [["OldTimerWalt","Never too late. Welcome, Liz."]], more: 21 },
+      { u: "LateBloomerLiz", t: "19h", kind: "text", bg: "linear-gradient(160deg,#243142,#11100c)", card: "No program for me.\nJust my therapist, my walking shoes and this app.", body: "Still counts. Still sober.", c: [["CoffeeAndSteps","Still counts 💛"]], more: 11 },
+      { u: "DinoDan", t: "19h", kind: "text", bg: "linear-gradient(160deg,#2f2440,#11100c)", card: "Things I do now instead of drinking:\n- puzzles\n- dog walks\n- terrible jokes", body: "", c: [["NightShiftNia","terrible jokes are a gift"]], more: 6 },
+      { u: "grateful_gina", t: "20h", kind: "card", card: "111", label: "ONESIE DOES IT", body: "Stayed sober 1 year, 1 month, 1 day. Currently wearing it in a onesie.", c: [["MomOf3Sober","Obsessed with these cards 😂"]], more: 8 },
+      { u: "NewGuyNate", t: "1d", pill: "DAY 2", kind: "text", bg: "linear-gradient(160deg,#242424,#11100c)", card: "Downloaded this at 3am.\nDidn't use.", body: "", c: [["HoosierHope","That counts. Keep going."],["SoberSam76","Proud of you, stranger."]], more: 17 },
+      { u: "QuietQuinn", t: "1d", kind: "meme", img: M("030"), body: "", c: [], more: 2 },
+      { u: "OneDayJen", t: "1d", kind: "text", bg: "linear-gradient(160deg,#402a33,#11100c)", card: "Burn Pad tonight.\nWrote it all out, burned it, went to bed.", body: "Nobody sees it. That's the point.", c: [["LateBloomerLiz","I use it every night now"]], more: 7 },
+      { u: "OldTimerWalt", t: "1d", kind: "text", bg: "linear-gradient(160deg,#35301f,#11100c)", card: "To the newcomers:\nyou don't have to feel ready.\nYou just have to not drink today.", body: "", c: [["NewGuyNate","Needed this, thank you"],["Kev_in_recovery","🙏"]], more: 29 },
+      { u: "SerenityShay", t: "2d", pill: "3 YEARS", kind: "coin", coin: "coin-03-years", big: "THREE YEARS", body: "Three years. Grateful for every meeting, every call, every hard night I didn't drink through.", c: [["OneDayJen","Queen 👑"]], more: 25 },
+      { u: "ByTheBookBob", t: "2d", kind: "meme", img: M("040"), body: "", c: [["BigBookBrad","📖"]], more: 3 },
+      { u: "HoosierHope", t: "2d", kind: "card", card: "14", label: "TWO WEEKS", body: "Two whole weeks. Look at you.", c: [["grateful_gina","Look at YOU!"]], more: 10 }
+    ];
+    var SP_PEOPLE = ["OneDayJen","BigBookBrad","grateful_gina","SoberSam76","Kev_in_recovery","HoosierHope","MomOf3Sober","TrudgingTony","SerenityShay","DinoDan","CoffeeAndSteps","LateBloomerLiz","ReformedRocker","QuietQuinn","FarmhouseFrank","NightShiftNia","ByTheBookBob","MisfitMarcus","SunriseSara","OldTimerWalt","NewGuyNate","HighPowerHolly","Jersey_Joe_ODAAT","PrayerAndPancakes","CleanSlateCal"];
+    var SP_PHOTO = {}; ["OneDayJen","BigBookBrad","CoffeeAndSteps","OldTimerWalt","Kev_in_recovery","SerenityShay","LateBloomerLiz","TrudgingTony","NightShiftNia",
+      "SoberSam76","HoosierHope","Jersey_Joe_ODAAT","FarmhouseFrank","MomOf3Sober","MisfitMarcus","HighPowerHolly","SunriseSara","DinoDan","ReformedRocker","grateful_gina"]
+      .forEach(function (n) { SP_PHOTO[n] = 1; });
+  var samplesOn = true;
+  try { samplesOn = localStorage.getItem("rm_porch_samples") !== "off"; } catch (e) {}
+  var isSample = function (id) { return String(id).indexOf("s-") === 0; };
+  function mins(t) { var n = parseInt(t, 10); return /d/.test(t) ? n * 1440 : /h/.test(t) ? n * 60 : n; }
+  function samplePosts() {
+    var out = [];
+    SP_PEOPLE.forEach(function (n) { people["s-" + n] = { handle: n, avatar_path: SP_PHOTO[n] ? "/feed/img/a-" + n + ".webp" : null }; });
+    SAMPLE.forEach(function (x, i) {
+      var id = "s-" + i, at = new Date(Date.now() - mins(x.t) * 60000 - i * 1000).toISOString(), ph = [], body = x.body || "";
+      if (x.kind === "photo") ph = ["/feed/img/" + x.img + ".webp"];
+      else if (x.kind === "meme") ph = [x.img];
+      else if (x.kind === "coin") ph = ["/assets/coins/" + x.coin + ".webp"];
+      else if (x.kind === "card") ph = ["/assets/survival-pile/cards/" + x.card + ".webp"];
+      else if (x.kind === "text") body = x.card + (x.body ? "\n" + x.body : "");
+      var need = x.pill ? "win" : /\b(rough|hard)\b/i.test(body) ? "hard" : /\?/.test(body) ? "question" : "talk";
+      out.push({ id: id, user_id: "s-" + x.u, need: need, body: body, photo_paths: ph, card_style: i % 12, created_at: at, sample: true });
+      comments[id] = (x.c || []).map(function (c, k) { return { id: id + "-c" + k, post_id: id, user_id: "s-" + c[0], body: c[1], created_at: at }; });
+      mine[id] = {};
+    });
+    return out;
+  }
+
   async function loadMore() {
     if (loading || done) return;
     loading = true;
@@ -512,9 +598,13 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
         var rs = me.uid ? await rest("porch_reactions?user_id=eq." + me.uid + "&post_id=in.(" + ids.join(",") + ")&select=post_id,kind") : [];
         await loadPeople(list.map(function (p) { return p.user_id; }).concat(cs.map(function (c) { return c.user_id; })));
         ids.forEach(function (id) { comments[id] = []; mine[id] = {}; });
-        cs.forEach(function (c) { comments[c.post_id].push(c); });
-        rs.forEach(function (r) { mine[r.post_id][r.kind] = true; });
+        cs.forEach(function (c) { if (comments[c.post_id]) comments[c.post_id].push(c); });
+        rs.forEach(function (r) { if (mine[r.post_id]) mine[r.post_id][r.kind] = true; });
         list.forEach(function (p) { posts[p.id] = p; });
+      }
+      if (samplesOn && !$("feed").querySelector(".post")) {
+        var sp = samplePosts(); sp.forEach(function (p) { posts[p.id] = p; });
+        list = list.concat(sp).sort(function (a, b) { return a.created_at < b.created_at ? 1 : -1; });
       }
       var feed = $("feed");
       feed.querySelectorAll(".skel,.err").forEach(function (x) { x.remove(); });
@@ -525,6 +615,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
         feed.insertAdjacentHTML("beforeend", '<p class="endnote">You\'re all caught up. 💛</p>');
       }
     } catch (e) {
+      try { console.error("porch load", e); } catch (x) {}
       var f = $("feed"); f.querySelectorAll(".skel").forEach(function (x) { x.remove(); });
       if (!f.querySelector(".err")) f.insertAdjacentHTML("beforeend", '<div class="err">The Porch didn\'t load. Check your signal.<br><br><button type="button" class="gbtn" data-retry>Try again</button></div>');
     }
@@ -541,6 +632,8 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   async function loadNew() {
     try {
       var r = await rest("porch_members?verified_at=not.is.null&select=user_id,handle,avatar_path&order=verified_at.desc&limit=12");
+      if (r.length < 3 && samplesOn) r = r.concat(["NewGuyNate","QuietQuinn","LateBloomerLiz","MisfitMarcus","Kev_in_recovery","NightShiftNia","HighPowerHolly","CleanSlateCal"]
+        .map(function (n) { return { user_id: "s-" + n, handle: n, avatar_path: SP_PHOTO[n] ? "/feed/img/a-" + n + ".webp" : null }; }));
       if (r.length < 3) return;
       r.forEach(function (m) { people[m.user_id] = people[m.user_id] || m; });
       $("strip").innerHTML = r.map(function (m) { return '<div class="st"><div class="ring">' + avatar(m) + "</div><b>" + esc(m.handle) + "</b></div>"; }).join("");
@@ -704,6 +797,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     mine[id] = mine[id] || {};
     var on = !mine[id][kind];
     mine[id][kind] = on; btn.classList.toggle("on", on);
+    if (isSample(id)) return;
     try {
       if (on) await rest("porch_reactions", { method: "POST", body: { post_id: id, user_id: me.uid, kind: kind } });
       else await rest("porch_reactions?post_id=eq." + id + "&user_id=eq." + me.uid + "&kind=eq." + kind, { method: "DELETE" });
@@ -731,7 +825,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   async function sendComment(sure) {
     var t = $("cin").value.trim(); if (!t) return;
     $("cgo").disabled = true; $("cgo").textContent = "…";
-    var r = await fn("porch", { action: "comment", post_id: openPost, body: t, sure: !!sure });
+    var r = isSample(openPost) ? { ok: true, id: "local-" + Date.now() } : await fn("porch", { action: "comment", post_id: openPost, body: t, sure: !!sure });
     $("cgo").textContent = "Send"; $("cgo").disabled = false;
     if (r.pause) { pauseFor = "comment"; return open("pause"); }
     if (!r.ok) return toast(r.error || "That didn't send.");
@@ -746,6 +840,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   /* ================================================================ ⋯ : delete / report / block */
   var REASONS = [["hate", "Hate or slurs"], ["harassment", "Bullying or harassment"], ["sexual", "Sexual stuff"], ["spam", "Spam or a scam"], ["self_harm", "Somebody might be in danger"], ["other", "Something else"]];
   function menu(target) {       /* target: {post} or {comment} */
+    if (isSample(target.post || openPost) && !(target.comment && String(target.comment).indexOf("local-") === 0)) return toast("That's a sample post. Only you can see these.");
     var uid = target.post ? posts[target.post].user_id : (comments[openPost].find(function (c) { return c.id === target.comment; }) || {}).user_id;
     var mineToo = uid === me.uid;
     var html = mineToo
@@ -760,7 +855,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     var t = JSON.parse(this.dataset.t), uid = this.dataset.uid, m = b.dataset.m;
     if (m === "del") {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again to delete for good"; return; }
-      var r = await fn("porch", t.post ? { action: "remove", post_id: t.post } : { action: "remove", comment_id: t.comment });
+      var r = String(t.comment).indexOf("local-") === 0 ? { ok: true } : await fn("porch", t.post ? { action: "remove", post_id: t.post } : { action: "remove", comment_id: t.comment });
       await closeTop();
       if (!r.ok) return toast(r.error || "Couldn't delete it.");
       if (t.post) { var el = $("p-" + t.post); if (el) el.remove(); }
@@ -828,6 +923,12 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     if (l !== "diner") c.add("t-" + l);
     try { localStorage.setItem("rm_porch_look", l); } catch (e) {}
   }
+  $("samples").checked = samplesOn;
+  $("samples").addEventListener("change", function () {
+    samplesOn = this.checked;
+    try { localStorage.setItem("rm_porch_samples", samplesOn ? "on" : "off"); } catch (e) {}
+    reloadFeed(); if (!samplesOn) $("newb").hidden = true; loadNew();
+  });
   function paintLooks() { document.querySelectorAll("[data-look]").forEach(function (b) { b.classList.toggle("on", b.dataset.look === look()); }); }
 
   function invite() {
