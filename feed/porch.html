@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Porch · Recovery Misfits</title>
 <meta name="theme-color" content="#0e0e10">
-<script>try{var t=localStorage.getItem("rm_porch_look");if(t==="slate"||t==="classic")document.documentElement.classList.add("t-"+t);}catch(e){}</script>
+<script>/* 30 Sep 2026: back to the original preview look (Classic). The other looks stay in the CSS, unused. */document.documentElement.classList.add("t-classic");</script>
 <!-- THE PORCH (30 Sep 2026, Mike). The Recovery Misfits feed. Working name,
      lives in /feed/ whatever it ends up being called.
      Members' posts never go to Google: noindex here + Disallow in robots.txt. -->
@@ -32,14 +32,14 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 #chrome{position:fixed;top:0;left:0;right:0;z-index:9000;transition:transform .28s ease}
 #chrome.away{transform:translateY(-100%)}
 #chrome #rm-topbar{position:relative}
-#chrome .railbg{background:#0e0e10;border-bottom:1px solid rgba(255,255,255,.07)}
-#rmrail{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto}
-#rmrail a,#rmrail button{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 0 7px;color:var(--faint);font:500 10.5px/1 "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.12em;white-space:nowrap;text-decoration:none;background:none;border:0;cursor:pointer}
-#rmrail svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-#rmrail .on{color:var(--gold2)}
-#rmrail .on::after{content:"";position:absolute;left:34%;right:34%;bottom:0;height:2px;border-radius:2px;background:var(--gold2)}
+#chrome .railbg{background:#100f0c}
+#rmrail{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto;background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.18);border-bottom:1px solid rgba(214,179,106,.28)}
+#rmrail a,#rmrail button{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0 9px;color:#b8ae98;font:500 12px/1 "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.08em;white-space:nowrap;text-decoration:none;background:none;border:0;cursor:pointer}
+#rmrail svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#rmrail .inv{color:var(--gold2)}
+#rmrail .on{color:var(--cream)}
+#rmrail .on::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--gold2)}
 /* the greeting lives up here on the Porch, not in the bottom stack */
-.rm-greet{display:none!important}
 .hello{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 12px 0 16px;color:var(--muted);font-size:13.5px}
 .looks{flex:none;display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:var(--btn);color:var(--cream);font:600 12.5px Arial,sans-serif;cursor:pointer}
 .looks i{display:block;width:14px;height:14px;border-radius:50%;background:conic-gradient(#3fe0c5 0 33%,#ece6d9 0 66%,#e0bd6a 0)}
@@ -113,8 +113,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .err{margin:16px 12px;padding:14px;border-radius:14px;background:#2b1712;border:1px solid #c4563c;color:#ecd9d2;text-align:center}
 
 /* ---- the + button ---- */
-.fab{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(172px + env(safe-area-inset-bottom,0px));z-index:8000;width:50px;height:50px;display:grid;place-items:center;border-radius:50%;border:0;background:linear-gradient(160deg,var(--gold),var(--acc2));box-shadow:0 6px 18px rgba(0,0,0,.55);cursor:pointer}
-.fab svg{width:27px;height:27px;fill:none;stroke:var(--fabink);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+/* THE POST BUTTON lives where the preview's white "Vote" pill was (Mike, 30 Sep 2026) */
+.fab{position:fixed;right:max(14px,calc(50% - 226px));bottom:calc(200px + env(safe-area-inset-bottom,0px));z-index:8000;display:flex;align-items:center;gap:7px;padding:11px 17px 11px 13px;border-radius:999px;border:0;background:#fff;color:#1b1a17;font:800 14px Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.5);cursor:pointer}
+.fab svg{width:21px;height:21px;fill:none;stroke:#1b1a17;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* ---- layers. The phone's back button closes the top one. No on-screen back buttons. ---- */
 .layer{position:fixed;inset:0;z-index:20000;display:none}
@@ -235,14 +236,13 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 <script src="/topbar.js" defer></script>
 
 <main class="wrap" id="main">
-  <div class="hello"><span id="hello">Pull up a chair.</span><button type="button" class="looks" data-looks><i></i>Colors</button></div>
-  <button type="button" class="say" data-new><span class="av" id="meav"></span><span class="pl">What's on your mind?</span><span class="cam">📷</span></button>
+  
   <section class="newb" id="newb" hidden><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
-  <div id="feed"><div class="skel"></div><div class="skel"></div></div>
+  <div id="feed" style="padding-top:2px"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
 </main>
 
-<button type="button" class="fab" data-new aria-label="New post"><svg viewBox="0 0 24 24"><path d="M12 3.5c4.97 0 9 3.36 9 7.5s-4.03 7.5-9 7.5c-1.1 0-2.15-.16-3.12-.46L4 20l1.3-3.9C3.86 14.8 3 13 3 11c0-4.14 4.03-7.5 9-7.5z"/><path d="M12 8v6M9 11h6"/></svg></button>
+<button type="button" class="fab" data-new aria-label="New post"><svg viewBox="0 0 24 24"><path d="M12 3.5c4.97 0 9 3.36 9 7.5s-4.03 7.5-9 7.5c-1.1 0-2.15-.16-3.12-.46L4 20l1.3-3.9C3.86 14.8 3 13 3 11c0-4.14 4.03-7.5 9-7.5z"/><path d="M12 8v6M9 11h6"/></svg>Post</button>
 <div class="toast" id="toast" role="status"></div>
 
 <!-- NOT SIGNED IN -->
@@ -410,8 +410,6 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     if (!me.uid) return;
     try { var r = await rest("porch_members?user_id=eq." + me.uid + "&select=*"); me.member = r[0] || null; } catch (e) {}
     if (me.member) people[me.uid] = me.member;
-    $("meav").outerHTML = avatar(me.member || { handle: A.name() }, "meav");
-    $("hello").innerHTML = "Glad you're here, <b>" + esc(A.name()) + "</b>";
   }
 
   /* ================================================================ PEOPLE */
