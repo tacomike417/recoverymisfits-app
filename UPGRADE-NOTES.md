@@ -12,8 +12,8 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
 - Be the happy medium: **Facebook reimagined, really cool, but with the same feed a
   brand-new user already knows how to use.**
 - Profiles: profile picture + header (cover) photo.
-- One feed (the Front Porch) that mixes text posts, photo posts and Misfits Moments reels,
-  plus a full-screen swipe view for Moments only.
+- One feed (the Front Porch) that mixes text posts, photo posts and Sober Spins reels,
+  plus a full-screen swipe view for Sober Spins only.
 
 - **The pause (decided 30 Sep 2026):** when a post or comment reads heated, show a gentle
   pause before it posts, e.g. "Want to talk to a friend about this first?" with
@@ -24,7 +24,7 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
 ### Porch decisions (30 Sep 2026, from the in-app mockups)
 - Feed is **visual like Instagram** (the preview style), but plain posts are welcome.
 - Text posts show as the **handwritten cards** from the preview, so the feed stays visual.
-- Profile: profile pic, header photo, bio, **their Misfits Moments** grid.
+- Profile: profile pic, header photo, bio, **their Sober Spins** grid.
   **No coins or Survival Pile on profiles** (too streaky). Members can share them to
   the feed themselves if they want.
 - Sober date on profile: **their choice**, show or hide.
@@ -38,7 +38,7 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
   if we ever want a Colors option.)
 - **Three kinds of share (30 Sep 2026):** tap Share, pick one: **Say Something** (words, any
   length), **Post a Saying** (short handwritten card, 150 characters, a nod to the slogans on the
-  meeting-room wall), **Share a Photo** (up to 4 photos). Misfits Moments becomes the 4th later.
+  meeting-room wall), **Share a Photo** (up to 4 photos). Sober Spins becomes the 4th later.
   Tag it (optional): Experience / Strength / Hope / A question (no "hard day": keep it positive). Our own line icons, no emojis.
 - **The "switch up" (later):** when the rail/top bar goes app-wide, your picture moves up there
   and the "Glad you're here" line comes off every page. Until then it only comes off the Porch.
@@ -62,9 +62,9 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
   2. Confirm-your-email (needs an email sender: Resend, free tier)
   3. The porch function: word filter, link check, photo check (Google Vision SafeSearch), the pause
   4. The feed screen: photo posts, handwritten text cards, Proud of you / Me too, comments
-  5. Profiles: pic, header, bio, sober date on/off, their Moments
+  5. Profiles: pic, header, bio, sober date on/off, their Sober Spins
   6. Reports, blocks, moderator screen, freeze on reports
-  7. Misfits Moments (reels on Bunny)
+  7. Sober Spins (reels on Bunny)
 
 ### Your recovery, your way (sign-up levels, 30 Sep 2026)
 Headline on sign-up: **"Your recovery, your way."** Level names: Level 0 (no account),
@@ -74,7 +74,7 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
   settings across phones. Browse the Porch. No posting, photos, comments, reactions or
   messages. No password reset (nothing to send it to). Say all of this plainly.
 - **Level 2, confirmed:** confirm an email (never stored, never shown). Post, photos,
-  Moments, comment, react, message, report. Forgot password/username works.
+  Sober Spins, comment, react, message, report. Forgot password/username works.
 - Also covered: move up or back down any time; 18+ and the Porch rules (one screen) to reach
   Level 2; a short wait for brand-new accounts before posting; delete everything any time.
 - Forgot password / username for Level 2: match the typed email's fingerprint, email a code.
@@ -92,7 +92,7 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
   reporting, spam caps (300 reactions / 50 follows an hour, 20 reports a day), a blocked
   person can't react to your shares.
 - Still open: sign-up levels on the account page ("Your recovery, your way"), deleting the
-  whole app account (not just the Porch), Messages, Misfits Moments, sample posts out and
+  whole app account (not just the Porch), Messages, Sober Spins, sample posts out and
   the Mike-only lock off at launch.
 - Sent links: while the Porch is Mike-only, anybody else who taps one lands on the /feed/ preview.
 
@@ -142,9 +142,9 @@ Nothing below gets built until the votes are in and it's decided.
 
 ### What people said (29 Sep 2026, face to face)
 - They love the idea.
-- Focus on the **reels (Misfits Moments)** first.
+- Focus on the **reels (Sober Spins)** first.
 - They want **quotes in the reels**: the short text-over-video "quote memes" everybody shares.
-- So the first thing to build could be a **Misfits Moments maker**: pick a background
+- So the first thing to build could be a **Sober Spin maker**: pick a background
   (your own clip or photo, or one of ours), pick or type a quote, choose a text style,
   add music, done. It posts to the Front Porch AND saves/shares as a 9:16 video for
   Facebook, Instagram and TikTok, which also markets the app for free.
@@ -172,7 +172,7 @@ Our crowd is **rated R, not rated X.**
 |---|---|
 | Feed | **The Front Porch** |
 | Post | **Share** |
-| Short videos (Loops on Infinite Pulls) | **Misfits Moments** |
+| Short videos (Loops on Infinite Pulls) | **Sober Spins** (one is a Sober Spin; named 30 Sep 2026, replaces Misfits Moments) |
 | Collection | My Pile + My Coins |
 | Profile | Profile |
 | Follow | Follow |
@@ -192,7 +192,7 @@ without making it confusing.
   GitHub stays the code home; Cloudflare auto-deploys on every push.
 - Domain stays registered at **Porkbun**; only its nameservers point to Cloudflare.
   Check any email (MX) records come across, and keep `.well-known/` for the Android app.
-- Reels (Misfits Moments): **Bunny Stream**, reusing Infinite Pulls' Loops code.
+- Reels (Sober Spins): **Bunny Stream**, reusing Infinite Pulls' Loops code.
   15-second cap, 720p max, auto-delete after 30 days.
 - Logins and posts: Supabase.
 - Rough monthly cost: ~$80 at 10k users, ~$300 to $3,000 at 100k depending on how much
