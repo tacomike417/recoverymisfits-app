@@ -32,6 +32,11 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
 - The pause and "what do you need" post tags: keep.
 - Lives inside the existing header, top rail (FEED) and grungy bottom menus.
 - Top priority: the UI has to be **super intuitive**.
+- **Porch colors (30 Sep 2026):** three looks, picked from the Colors button and remembered
+  on the phone: **Neon Diner** (default: dark with a mint glow, coral when you react),
+  **Clean Slate** (the light one) and **Classic** (the original black and gold).
+- Photos lay out like Facebook: 1 keeps its shape (4:5 to 1.91:1), 2 side by side,
+  3 = one big + two stacked, 4 = 2x2. Tap to swipe through them full screen.
 - **Rule: if Facebook keeps it, so do we.** When unsure how something behaves, do what
   Facebook does, because our people already know it.
 - So: header + top rail **slide away when scrolling down, come back on scroll up**;
