@@ -20,8 +20,9 @@
    Classic is the original gold. Picked from the Colors button; remembered on this phone. */
 :root,html.t-diner{--bg:#0d0f0f;--card:#151b1b;--line:#243232;--cream:#eaf4f1;--muted:#86a09a;--gold:#3fe0c5;--gold2:#3fe0c5;--acc2:#16a58e;--ink:#04201b;--btn:#0f1414;--onbg:#2e1714;--on:#ff7a66;--sheet:#111616;--field:#182020;--fline:#2c3b3b;--bub:#1c2525;--soft:#c9dcd7;--faint:#6f8a84;--tagbg:#1c2626;--fabink:#04201b;--rust:#c4563c;--green:#3f8f4f;--edge:rgba(128,128,128,.25)}
 html.t-slate{--bg:#ece6d9;--card:#fffdf8;--line:#e0d6c2;--cream:#1b1a17;--muted:#7a7263;--gold:#b8862b;--gold2:#b8862b;--acc2:#8a6118;--ink:#ffffff;--btn:#f5f0e5;--onbg:#f6e8c6;--on:#8a6118;--sheet:#fbf8f1;--field:#f5f0e5;--fline:#d9cdb4;--bub:#f1ebdd;--soft:#4a453c;--faint:#8a8272;--tagbg:#eee6d4;--fabink:#ffffff;--rust:#c4563c;--green:#3f8f4f;--edge:rgba(128,128,128,.25)}
-html.t-classic{--bg:#11110f;--card:#1b1913;--line:#2e2a22;--cream:#f1e7cf;--muted:#a39b8a;--gold:#d6b36a;--gold2:#e0bd6a;--acc2:#9c7428;--ink:var(--ink);--btn:var(--btn);--onbg:var(--onbg);--on:#e0bd6a;--sheet:var(--sheet);--field:#1b1913;--fline:var(--fline);--bub:var(--bub);--soft:var(--soft);--faint:var(--faint);--tagbg:#2b271f;--fabink:#ffffff;--rust:#c4563c;--green:#3f8f4f;--edge:rgba(128,128,128,.25)}
+html.t-classic{--bg:#11110f;--card:#1b1913;--line:#2e2a22;--cream:#f1e7cf;--muted:#a39b8a;--gold:#d6b36a;--gold2:#e0bd6a;--acc2:#9c7428;--ink:#17130b;--btn:#14120e;--onbg:#2a2316;--on:#e0bd6a;--sheet:#15130f;--field:#1b1913;--fline:#3a342a;--bub:#221f18;--soft:#ddd2b8;--faint:#8f887a;--tagbg:#2b271f;--fabink:#ffffff;--rust:#c4563c;--green:#3f8f4f;--edge:rgba(128,128,128,.25)}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{background:var(--bg);margin:0}
 html.locked,html.locked body{overflow:hidden}
 body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
@@ -80,6 +81,15 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .more{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:none;color:var(--muted);font:800 18px/1 Arial,sans-serif;cursor:pointer}
 .body{padding:0 12px 10px;white-space:pre-wrap;word-wrap:break-word;font-size:15.5px}
 .body a{color:var(--gold2)}
+.body.clamp{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
+.chair{display:flex;align-items:center;gap:8px;margin:0 12px 10px;padding:9px 14px;border-radius:999px;border:1px solid rgba(214,179,106,.45);background:none;color:var(--gold2);font:700 13.5px Arial,sans-serif;cursor:pointer}
+#reader{background:var(--bg)}
+#reader .page{position:absolute;inset:0;overflow-y:auto;max-width:560px;margin:0 auto;padding:calc(22px + env(safe-area-inset-top,0px)) 22px 60px}
+#reader .who2{display:flex;align-items:center;gap:10px;margin-bottom:18px;color:var(--muted);font-size:13px}
+#reader .who2 b{display:block;color:var(--cream);font-size:15px}
+#reader .txt{white-space:pre-wrap;word-wrap:break-word;font:19px/1.65 Georgia,"Times New Roman",serif;color:var(--cream)}
+#reader .txt a{color:var(--gold2)}
+#reader .end{margin:30px 0 0;text-align:center;color:var(--faint);font-size:13px}
 /* PHOTOS, THE FACEBOOK WAY. One photo keeps its shape, but never taller than 4:5
    or wider than 1.91:1. Two sit side by side, three are one big + two stacked,
    four are a 2x2 grid. Tap any of them to see them all full screen. */
@@ -96,7 +106,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .acts{display:flex;gap:6px;padding:8px 10px 6px;flex-wrap:wrap}
 .acts button{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--btn);color:var(--cream);font:600 13px Arial,sans-serif;cursor:pointer}
 .acts button.on{border-color:var(--on);background:var(--onbg);color:var(--on)}
-.acts button.on .e{animation:pop .35s ease}
+.ico{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.acts button.on .ico{animation:pop .35s ease}
+.acts button.on[data-react=proud] .ico{fill:currentColor}
 @keyframes pop{40%{transform:scale(1.45)}}
 .cm{padding:2px 12px 12px;font-size:14px}
 .cm p{margin:4px 0;word-wrap:break-word}
@@ -154,17 +166,25 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .ctop .send{padding:10px 20px;border:0;border-radius:999px;background:var(--gold2);color:var(--ink);font:800 15px Arial,sans-serif;cursor:pointer}
 .ctop .send[disabled]{opacity:.4}
 .lab{margin:14px 0 8px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold)}
+.needs button{display:inline-flex;align-items:center;gap:6px}
 .needs{display:flex;gap:6px;flex-wrap:wrap}
 .needs button{padding:9px 13px;border-radius:999px;border:1px solid var(--fline);background:none;color:var(--cream);font:600 14px Arial,sans-serif;cursor:pointer}
 .needs button.on{background:var(--onbg);border-color:var(--gold2);color:var(--gold2)}
 .needs button.on[data-need=hard]{background:#3a1f24;border-color:#c4563c;color:#ffd0c6}
 #cbody{display:block;width:100%;min-height:140px;margin-top:14px;padding:14px;border-radius:14px;border:1.5px solid var(--fline);background:var(--field);color:var(--cream);font:16.5px/1.45 -apple-system,Segoe UI,Roboto,Arial,sans-serif;resize:none}
 #cbody:focus{outline:none;border-color:var(--gold)}
+.tiles{display:grid;gap:10px;margin-top:6px}
+.tiles button{display:grid;grid-template-columns:54px 1fr;grid-template-rows:auto auto;column-gap:14px;align-items:center;padding:14px;border-radius:16px;border:1.5px solid rgba(214,179,106,.35);background:var(--field);color:var(--cream);text-align:left;cursor:pointer}
+.tiles .ti{grid-row:1/3;display:grid;place-items:center;width:54px;height:54px;border-radius:14px;background:rgba(214,179,106,.12);color:var(--gold2)}
+.tiles .ti .ico{width:30px;height:30px;stroke-width:1.6}
+.tiles b{font:400 22px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em}
+.tiles small{color:var(--muted);font-size:13px}
 .cwho{display:flex;align-items:center;gap:10px;margin:14px 0 0}
 .cwho b{display:block;font-size:15px}
 .cwho small{color:var(--muted);font-size:12.5px}
 .lab span{margin-left:6px;color:var(--muted);letter-spacing:.04em;font:400 12px Arial,sans-serif}
-.addpic .ic{font-size:24px}
+.addpic .ic{display:grid;color:var(--gold2)}
+.addpic .ic .ico{width:28px;height:28px}
 .addpic b{display:block}
 .addpic span{text-align:left}
 .addpic small{color:var(--muted);font-weight:600;font-size:12.5px}
@@ -302,21 +322,34 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   </div>
 </div>
 
+<!-- WHAT ARE YOU SHARING? -->
+<div id="choose" class="layer" role="dialog" aria-modal="true" aria-label="What are you sharing?">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div>
+    <h3>What are you sharing?</h3>
+    <div class="tiles">
+      <button type="button" data-mode="say"><span class="ti" data-ico="say"></span><b>Say Something</b><small>Your words, as long as you want</small></button>
+      <button type="button" data-mode="sign"><span class="ti" data-ico="sign"></span><b>Hang a Sign</b><small>Short and loud, in your own hand</small></button>
+      <button type="button" data-mode="snap"><span class="ti" data-ico="snap"></span><b>Snapshot</b><small>Up to 4 photos</small></button>
+    </div>
+  </div>
+</div>
+
 <!-- NEW POST -->
 <div id="compose" class="layer" role="dialog" aria-modal="true" aria-label="New share">
   <div class="page">
-    <div class="ctop"><b>NEW SHARE</b><button type="button" class="send" id="csend" disabled>Share</button></div>
+    <div class="ctop"><b id="ctitle">NEW SHARE</b><button type="button" class="send" id="csend" disabled>Share</button></div>
     <div class="cwho"><span id="cav"></span><div><b id="cname"></b><small>Everyone on the Porch will see this</small></div></div>
     <textarea id="cbody" maxlength="2000" placeholder="What's on your mind?"></textarea>
     <div class="count" id="ccount"></div>
     <div class="thumbs" id="thumbs"></div>
-    <button type="button" class="addpic" id="addpic"><span class="ic">📷</span><span><b>Add photos</b><small>Up to 4</small></span></button>
+    <button type="button" class="addpic" id="addpic"><span class="ic" data-ico="camera"></span><span><b>Add photos</b><small>Up to 4</small></span></button>
     <input type="file" id="cfile" accept="image/*" multiple hidden>
     <div class="lab">TAG IT <span>optional</span></div>
     <div class="needs" id="needs">
-      <button type="button" data-need="win">🏆 A win</button>
-      <button type="button" data-need="hard">🌧️ Hard day</button>
-      <button type="button" data-need="question">❓ A question</button>
+      <button type="button" data-need="win"><span data-ico="win"></span>A win</button>
+      <button type="button" data-need="hard"><span data-ico="hard"></span>Hard day</button>
+      <button type="button" data-need="question"><span data-ico="question"></span>A question</button>
     </div>
     <p class="hint">Lets people know how to show up for you.</p>
     <div class="lab">HOW IT'LL LOOK</div>
@@ -378,6 +411,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   </div>
 </div>
 
+<!-- THE LONG ONES, full screen and easy on the eyes -->
+<div id="reader" class="layer" role="dialog" aria-modal="true" aria-label="Reading"><div class="page"><div class="who2" id="rwho"></div><div class="txt" id="rtxt"></div><p class="end">Back to the Porch with your phone's back button.</p></div></div>
+
 <div id="viewer" class="layer" role="dialog" aria-modal="true" aria-label="Photos" data-close><div class="vrow" id="vrow"></div><div class="vn" id="vn"></div></div>
 
 <div id="rm-bottom-nav"></div>
@@ -392,6 +428,23 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); };
   var pic = function (p) { return p.charAt(0) === "/" || p.indexOf("data:") === 0 ? p : DB + "/storage/v1/object/public/porch/" + p; };
+
+
+  /* ================================================================ OUR ICONS (no emojis) */
+  var ICON = {
+    say:   '<path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H10l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/><path d="M7.5 9.5h9M7.5 12.5h6"/>',
+    sign:  '<circle cx="12" cy="3.4" r="1.2"/><path d="M11.2 4.3L5 10M12.8 4.3L19 10"/><rect x="3" y="10" width="18" height="10" rx="1.5"/><path d="M7 14.2c1.5-1.2 2.6 1.2 4 0s2.6 1.2 4 0 1.6.4 2 .2M7 17h6"/>',
+    snap:  '<rect x="4" y="3" width="16" height="18" rx="1.8"/><rect x="6.5" y="5.5" width="11" height="10" rx=".6"/><path d="M8.5 13l2.3-2.6 1.8 2 1.3-1.4 1.6 2"/><path d="M9 18.3h6"/>',
+    camera:'<path d="M4 8h3l1.6-2.4h6.8L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.3" r="3.6"/>',
+    win:   '<circle cx="12" cy="15" r="5.2"/><path d="M8.3 3.5l3.7 6.4 3.7-6.4"/><path d="M12 12.6l.9 1.8 2 .3-1.4 1.4.3 2-1.8-.9-1.8.9.3-2-1.4-1.4 2-.3z"/>',
+    hard:  '<path d="M7 15a4 4 0 0 1-.4-8 5.5 5.5 0 0 1 10.6 1.3A3.4 3.4 0 0 1 17 15z"/><path d="M8.5 18l-1 2.5M12.5 18l-1 2.5M16.5 18l-1 2.5"/>',
+    question:'<circle cx="12" cy="12" r="9"/><path d="M9.4 9.4a2.7 2.7 0 1 1 3.6 2.5c-.7.3-1 .8-1 1.5v.6"/><circle cx="12" cy="17" r=".6"/>',
+    proud: '<path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/>',
+    metoo: '<circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/>',
+    comment:'<path d="M12 4c4.7 0 8.5 3 8.5 6.9s-3.8 6.9-8.5 6.9c-1 0-2-.1-2.9-.4L4.5 19.5l1.2-3.4C4.3 14.9 3.5 13 3.5 10.9 3.5 7 7.3 4 12 4z"/>',
+    read:  '<path d="M3 5.5c3-.9 6-.6 9 1.4 3-2 6-2.3 9-1.4v13c-3-.9-6-.6-9 1.4-3-2-6-2.3-9-1.4z"/><path d="M12 6.9v13"/>'
+  };
+  var ico = function (k, cls) { return '<svg class="ico ' + (cls || "") + '" viewBox="0 0 24 24" aria-hidden="true">' + ICON[k] + "</svg>"; };
 
   /* ================================================================ WHO'S HERE */
   var A = window.RMAccount;
@@ -495,17 +548,20 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     } else if (photos.length) {
       media = '<div class="pics n' + photos.length + '">' +
         photos.map(function (x, i) { return '<img src="' + pic(x) + '" alt="" loading="lazy" data-view="' + i + '">'; }).join("") + "</div>";
-    } else if (fitsCard(text)) { media = handHTML(text, p.card_style); text = ""; }
+    } else if (p.card_style != null && fitsCard(text)) { media = handHTML(text, p.card_style); text = ""; }
+    var long = text.length > 420 || text.split("\n").length > 7;
+    var mins = Math.max(1, Math.round(text.split(/\s+/).length / 200));
     var r = mine[p.id] || {};
     return '<article class="post" id="p-' + p.id + '" data-post="' + p.id + '">' +
       '<div class="ph">' + avatar(people[p.user_id]) + '<div class="who"><b>' + esc(name(p.user_id)) + "</b><small>" + ago(p.created_at) + (p.sample ? " · sample" : "") + "</small></div>" +
         (NEED[p.need] && p.need !== "talk" ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
         '<button type="button" class="more" data-more aria-label="Options">⋯</button></div>' +
-      (text ? '<div class="body">' + linkify(text) + "</div>" : "") + media +
+      (text ? '<div class="body' + (long ? " clamp" : "") + '">' + linkify(text) + "</div>" +
+        (long ? '<button type="button" class="chair" data-read>' + ico("read") + "Pull up a chair · " + mins + " min read</button>" : "") : "") + media +
       '<div class="acts">' +
-        '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '"><span class="e">🤝</span>Proud of you</button>' +
-        '<button type="button" data-react="metoo" class="' + (r.metoo ? "on" : "") + '"><span class="e">🙏</span>Me too</button>' +
-        '<button type="button" data-comments>💬 Comment</button></div>' +
+        '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '">' + ico("proud") + 'Proud of you</button>' +
+        '<button type="button" data-react="metoo" class="' + (r.metoo ? "on" : "") + '">' + ico("metoo") + 'Me too</button>' +
+        '<button type="button" data-comments>' + ico("comment") + 'Comment</button></div>' +
       '<div class="cm">' + commentsPreview(p.id) + "</div></article>";
   }
   function commentsPreview(id) {
@@ -524,6 +580,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
      Take this whole block out before the Porch opens to everybody. */
   var M = function (n) { return "/assets/memes/" + n + ".jpg"; };
   var SAMPLE = [
+    { u: "OldTimerWalt", t: "2h", kind: "text", card: "Somebody asked me after the meeting what actually changed for me, so here it is, the long version.\n\nFor about eleven years I told myself I was fine because I still went to work. I was the guy who never missed a shift. What I missed was everything else. My daughter's recitals. My wife's birthday two years running. My own dad's last good summer.\n\nThe first thing that changed wasn't big. I started making my bed. Sounds stupid. But it was one thing I did right before 7am, every day, and I could point at it.\n\nThen it was coffee with the same three guys on Tuesdays. Then it was calling one of them before I did something dumb instead of after. Then one day I noticed I hadn't thought about a drink since lunch the day before.\n\nNobody fixed me. I just kept stacking small right things on top of each other until the pile was taller than the old stuff.\n\n22 years now. Still make the bed. 🛏️☕", c: [["NewGuyNate","Needed this today. Making my bed tomorrow."],["SerenityShay","Stacking small right things. Stealing that."]], more: 12 },
       { u: "OneDayJen", t: "12m", pill: "90 DAYS", kind: "coin", coin: "coin-90-days", big: "90 DAYS", body: "Ninety days. My kids noticed before I did. Thank you to whoever built this app, the reading this morning hit different.", c: [["BigBookBrad","So proud of you Jen. Keep coming back."],["grateful_gina","90 in 90 and then some! 🙌"]], more: 14 },
       { u: "SunriseSara", t: "18m", kind: "photo", img: "sunrise", body: "Porch, coffee, sunrise. I used to sleep through these.", c: [["grateful_gina","This is the good life 🌅"]], more: 9 },
       { u: "TrudgingTony", t: "28m", kind: "meme", img: M("010"), body: "This one is too real 😂", c: [["DinoDan","Felt this in my soul"]], more: 6 },
@@ -588,7 +645,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
       else if (x.kind === "card") ph = ["/assets/survival-pile/cards/" + x.card + ".webp"];
       else if (x.kind === "text") body = x.card + (x.body ? "\n" + x.body : "");
       var need = x.pill ? "win" : /\b(rough|hard)\b/i.test(body) ? "hard" : /\?/.test(body) ? "question" : "talk";
-      out.push({ id: id, user_id: "s-" + x.u, need: need, body: body, photo_paths: ph, card_style: i % 12, created_at: at, sample: true });
+      out.push({ id: id, user_id: "s-" + x.u, need: need, body: body, photo_paths: ph, card_style: x.kind === "text" && fitsCard(body) ? i % 12 : null, created_at: at, sample: true });
       comments[id] = (x.c || []).map(function (c, k) { return { id: id + "-c" + k, post_id: id, user_id: "s-" + c[0], body: c[1], created_at: at }; });
       mine[id] = {};
     });
@@ -712,40 +769,56 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   $("cfagain").addEventListener("click", cfReset);
 
   /* ================================================================ NEW POST */
-  var need = "talk", style = 0, photos = [], sending = false;
-  var DRAFT = "rm_porch_draft";
-  var HOLDER = { talk: "What's on your mind?", win: "Tell us about it. We want to cheer.", hard: "What's going on? You're not alone here.", question: "Ask the Porch anything." };
+  var need = "talk", style = 0, photos = [], sending = false, mode = "say";
+  var DRAFT = "rm_porch_draft", SIGN_MAX = 150;
+  /* THREE KINDS OF SHARE (30 Sep 2026, Mike): Say Something = words, any length;
+     Hang a Sign = the short handwritten card; Snapshot = photos. */
+  var MODE = {
+    say:  { title: "SAY SOMETHING", holder: "What's on your mind? Say as much as you want." },
+    sign: { title: "HANG A SIGN",   holder: "Short and loud. What do you want the Porch to see?" },
+    snap: { title: "SNAPSHOT",      holder: "Say something about it (optional)" }
+  };
+  var HOLDER = { win: "Tell us about it. We want to cheer.", hard: "What's going on? You're not alone here.", question: "Ask the Porch anything." };
   $("styles").innerHTML = CARDS.map(function (c, i) { return '<button type="button" data-style="' + i + '" style="background:' + c.bg + ";color:" + c.ink + '" aria-label="Card ' + (i + 1) + '">Aa</button>'; }).join("");
+  document.querySelectorAll("[data-ico]").forEach(function (el) { el.innerHTML = ico(el.dataset.ico); });
 
-  function openCompose(fresh) {
+  async function openCompose(m, fresh) {
     if (fresh !== false) {
       var d = null; try { d = JSON.parse(localStorage.getItem(DRAFT) || "null"); } catch (e) {}
+      if (d && d.mode && !m) m = d.mode;
+      mode = m || "say";
       need = (d && d.need) || "talk"; style = d && d.style != null ? d.style : Math.floor(Math.random() * 10);
       $("cbody").value = (d && d.body) || ""; photos = [];
-      if (d) toast("Your draft is back.");
+      if (d && d.body) toast("Your draft is back.");
     }
     $("cerr").textContent = "";
     $("cav").innerHTML = avatar(me.member || { handle: A.name() }); $("cname").textContent = A.name();
     paintCompose(); open("compose");
-    setTimeout(function () { $("cbody").focus(); }, 60);
+    if (mode !== "snap") setTimeout(function () { $("cbody").focus(); }, 60);
   }
   function paintCompose() {
+    var M = MODE[mode];
+    $("ctitle").textContent = M.title;
+    $("cbody").maxLength = mode === "sign" ? SIGN_MAX : 2000;
+    $("cbody").style.minHeight = mode === "say" ? "180px" : mode === "sign" ? "90px" : "70px";
     document.querySelectorAll("#needs [data-need]").forEach(function (b) { b.classList.toggle("on", b.dataset.need === need); });
     document.querySelectorAll("#styles [data-style]").forEach(function (b) { b.classList.toggle("on", +b.dataset.style === style); });
-    $("cbody").placeholder = HOLDER[need] || HOLDER.talk;
+    $("cbody").placeholder = (mode === "say" && HOLDER[need]) || M.holder;
     var t = $("cbody").value.trim();
-    $("ccount").textContent = t.length > 1500 ? t.length + " / 2000" : "";
+    $("ccount").textContent = mode === "sign" ? t.length + " / " + SIGN_MAX : t.length > 1500 ? t.length + " / 2000" : "";
     $("thumbs").innerHTML = photos.map(function (p, i) { return '<div><img src="' + p + '" alt=""><button type="button" data-unpic="' + i + '" aria-label="Remove photo">✕</button></div>'; }).join("");
-    $("addpic").hidden = photos.length >= 4;
-    /* the preview IS the post, exactly as it will show on the Porch */
-    $("cprev").innerHTML = postHTML({ id: "preview", user_id: me.uid, need: need, body: t || (photos.length ? "" : "Your words show up here."),
-      photo_paths: photos, card_style: style, created_at: new Date().toISOString() });
-    var card = !photos.length && (!t || fitsCard(t));
-    $("cardpick").hidden = !card;
-    $("chint").textContent = "Short shares become a handwritten card. Tap a color.";
-    if (!photos.length && t && !fitsCard(t)) { $("cardpick").hidden = false; $("styles").hidden = true; $("chint").textContent = "Longer shares show as regular text."; }
-    else $("styles").hidden = false;
-    $("csend").disabled = sending || (!t && !photos.length);
+    $("addpic").hidden = mode !== "snap" || photos.length >= 4;
+    /* Snapshot: photos come first, the words are the caption */
+    var body = $("cbody"), tb = $("thumbs"), ap = $("addpic");
+    if (mode === "snap") { body.parentNode.insertBefore(ap, body); body.parentNode.insertBefore(tb, ap); }
+    else { $("ccount").after(tb); tb.after(ap); }
+    $("cardpick").hidden = mode !== "sign";
+    $("chint").textContent = "Tap a color.";
+    /* the preview IS the share, exactly as it will show on the Porch */
+    $("cprev").innerHTML = postHTML({ id: "preview", user_id: me.uid, need: need,
+      body: t || (mode === "sign" ? "Your sign goes here." : mode === "say" ? "Your words show up here." : ""),
+      photo_paths: mode === "snap" ? photos : [], card_style: mode === "sign" ? style : null, created_at: new Date().toISOString() });
+    $("csend").disabled = sending || (mode === "snap" ? !photos.length : !t);
   }
   $("cbody").addEventListener("input", paintCompose);
   $("needs").addEventListener("click", function (e) { var b = e.target.closest("[data-need]"); if (b) { need = need === b.dataset.need ? "talk" : b.dataset.need; paintCompose(); } });
@@ -781,10 +854,11 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     sending = true; $("cerr").textContent = "";
     $("csend").disabled = true; $("csend").textContent = photos.length ? "Checking photos…" : "Sharing…";
     var body = $("cbody").value.trim();
-    var r = await fn("porch", { action: "post", need: need, body: body, photos: photos, card_style: style, sure: !!sure });
+    var r = await fn("porch", { action: "post", need: need, body: body, photos: mode === "snap" ? photos : [],
+      card_style: mode === "sign" ? style : null, sure: !!sure });
     sending = false; $("csend").textContent = "Share"; paintCompose();
     if (r.pause) return open("pause");
-    if (r.need === "confirm") { pending = function () { openCompose(false); }; await closeTop(); cfReset(); return open("confirm"); }
+    if (r.need === "confirm") { pending = function () { openCompose(mode, false); }; await closeTop(); cfReset(); return open("confirm"); }
     if (!r.ok) { $("cerr").textContent = r.error || "That didn't post. Try again."; return; }
     try { localStorage.removeItem(DRAFT); } catch (e) {}
     $("cbody").value = ""; photos = [];
@@ -800,7 +874,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   $("pgo").addEventListener("click", async function () { await closeTop(); if (pauseFor === "post") sendPost(true); else sendComment(true); });
   $("pdraft").addEventListener("click", async function () {
     if (pauseFor === "post") {
-      try { localStorage.setItem(DRAFT, JSON.stringify({ need: need, body: $("cbody").value, style: style })); } catch (e) {}
+      try { localStorage.setItem(DRAFT, JSON.stringify({ mode: mode, need: need, body: $("cbody").value, style: style })); } catch (e) {}
       await closeAll(); toast("Saved. It'll be here when you tap Share.");
     } else {
       await closeTop(); toast("It's still in the box. Take your time.");
@@ -899,7 +973,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
   document.addEventListener("click", function (e) {
     var t = e.target, post = t.closest("[data-post]"), id = post && post.dataset.post;
     if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
-    if (t.closest("[data-new]")) return gate(function () { openCompose(); });
+    if (t.closest("[data-new]")) return gate(function () { open("choose"); });
+    var md = t.closest("[data-mode]");
+    if (md) { closeTop().then(function () { openCompose(md.dataset.mode); }); return; }
     if (t.closest("[data-retry]")) return reloadFeed();
     if (t.closest("[data-invite]")) return invite();
     if (t.closest("[data-looks]")) { paintLooks(); return open("looks"); }
@@ -908,6 +984,11 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
     var rb = t.closest("[data-react]");
     if (rb && id) return gate(function () { react(id, rb.dataset.react, rb); });
     if (t.closest("[data-comments]") && id) return openComments(id);
+    if (t.closest("[data-read]") && id) {
+      var pp = posts[id];
+      $("rwho").innerHTML = avatar(people[pp.user_id]) + "<div><b>" + esc(name(pp.user_id)) + "</b>" + ago(pp.created_at) + "</div>";
+      $("rtxt").innerHTML = linkify(pp.body || ""); open("reader"); $("reader").querySelector(".page").scrollTop = 0; return;
+    }
     if (t.closest("[data-more]") && id) return gate(function () { menu({ post: id }); });
     if (t.closest("[data-cmore]")) return gate(function () { menu({ comment: t.closest("[data-comment]").dataset.comment }); });
     var v = t.closest("[data-view]");

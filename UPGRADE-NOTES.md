@@ -36,6 +36,11 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
   black and gold, the big rail, posts like Instagram. The post button is a white "Post" pill
   where the preview's "Vote" pill was. (Neon Diner and Clean Slate/light are still in the CSS
   if we ever want a Colors option.)
+- **Three kinds of share (30 Sep 2026):** tap Share, pick one: **Say Something** (words, any
+  length), **Hang a Sign** (short handwritten card, 150 characters, a nod to the slogans on the
+  meeting-room wall), **Snapshot** (up to 4 photos). Misfits Moments becomes the 4th later.
+  Tag it (optional): A win / Hard day / A question. Our own line icons, no emojis.
+- Long shares show 6 lines, then **"Pull up a chair · N min read"** opens a full-screen reader.
 - Photos lay out like Facebook: 1 keeps its shape (4:5 to 1.91:1), 2 side by side,
   3 = one big + two stacked, 4 = 2x2. Tap to swipe through them full screen.
 - **Rule: if Facebook keeps it, so do we.** When unsure how something behaves, do what
