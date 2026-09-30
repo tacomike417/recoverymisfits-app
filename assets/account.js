@@ -382,6 +382,7 @@
     signUp: signUp,
     signIn: signIn,
     signOut: signOut,
+    token: token,          /* a fresh access token, for the Porch (30 Sep 2026) */
     pull: pull,
     push: push,
     update: update,

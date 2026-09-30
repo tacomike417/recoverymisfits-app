@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Porch · Recovery Misfits</title>
+<meta name="theme-color" content="#0e0e10">
+<!-- THE PORCH (30 Sep 2026, Mike). The Recovery Misfits feed. Working name,
+     lives in /feed/ whatever it ends up being called.
+     Members' posts never go to Google: noindex here + Disallow in robots.txt. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+@font-face{font-family:"RM Rail";src:url("/assets/fonts/oswald-500.woff2") format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"RM Head";src:url("/assets/fonts/anton-400.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"RM Hand";src:url("/assets/fonts/caveat-600.woff2") format("woff2");font-display:swap}
+:root{
+  --bg:#11110f; --card:#1b1913; --line:#2e2a22; --edge:rgba(214,179,106,.22);
+  --cream:#f1e7cf; --muted:#a39b8a; --gold:#d6b36a; --gold2:#e0bd6a; --rust:#c4563c; --green:#3f8f4f;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+html.locked,html.locked body{overflow:hidden}
+body{color:var(--cream);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:480px;margin:0 auto}
+
+/* ---- HEADER + RAIL: slide away scrolling down, come back scrolling up (Facebook does this) ---- */
+#chrome{position:fixed;top:0;left:0;right:0;z-index:9000;transition:transform .28s ease}
+#chrome.away{transform:translateY(-100%)}
+#chrome #rm-topbar{position:relative}
+#rmrail{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto;background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.18);border-bottom:1px solid rgba(214,179,106,.28)}
+#chrome .railbg{background:#100f0c}
+#rmrail a,#rmrail button{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0 9px;color:#b8ae98;font:500 12px/1 "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.08em;white-space:nowrap;text-decoration:none;background:none;border:0;cursor:pointer}
+#rmrail svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#rmrail .inv{color:var(--gold2)}
+#rmrail .on{color:var(--cream)}
+#rmrail .on::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--gold2)}
+
+/* ---- top of the feed ---- */
+.help{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:12px 12px 0;padding:9px 12px;border-radius:12px;background:#17151a;border:1px solid #2c2838;color:#cfc8e6;font-size:13px;text-decoration:none}
+.help b{color:#fff;white-space:nowrap}
+.say{display:flex;align-items:center;gap:10px;margin:12px 12px 0;padding:10px 12px;border-radius:16px;background:var(--card);border:1px solid var(--line);cursor:pointer;width:calc(100% - 24px);text-align:left;color:var(--muted);font-size:15px}
+.say .pl{flex:1;padding:9px 14px;border-radius:999px;background:#14120e;border:1px solid var(--line)}
+.say .cam{font-size:20px}
+.newb{margin:14px 0 0;padding:0 12px}
+.newb h3{margin:0 0 8px;font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
+.strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.st{flex:none;width:66px;text-align:center;font-size:11.5px;color:var(--cream)}
+.st .ring{width:60px;height:60px;margin:0 auto 5px;border-radius:50%;padding:3px;background:conic-gradient(from 200deg,#e0bd6a,#c4563c,#e0bd6a)}
+.st .ring .av{width:100%;height:100%;border:3px solid var(--bg)}
+.st b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- avatars: their photo, or a drawn initial ---- */
+.av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;overflow:hidden;color:#fff;font:700 16px Arial,sans-serif;background:#3a3122}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ---- posts ---- */
+.post{margin:12px 0 0;background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ph{display:flex;align-items:center;gap:10px;padding:11px 8px 9px 12px}
+.ph .who{min-width:0;flex:1}
+.ph .who b{display:block;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph .who small{color:var(--muted);font-size:12px}
+.tag{flex:none;padding:4px 9px;border-radius:999px;font:500 11px "RM Rail",Oswald,sans-serif;letter-spacing:.08em;background:#2b271f;color:#d6c9a8}
+.tag.win{background:#1f2e1c;color:#a8dca0}.tag.hard{background:#3a1f24;color:#ffb3a5}.tag.question{background:#1f2e3a;color:#9ecbff}.tag.moment{background:#2e2440;color:#d3bfff}
+.more{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:none;color:var(--muted);font:800 18px/1 Arial,sans-serif;cursor:pointer}
+.body{padding:0 12px 10px;white-space:pre-wrap;word-wrap:break-word;font-size:15.5px}
+.body a{color:var(--gold2)}
+.pics{position:relative}
+.pics .row{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;background:#0d0c0a}
+.pics .row::-webkit-scrollbar{display:none}
+.pics img{flex:none;width:100%;scroll-snap-align:center;display:block;cursor:zoom-in}
+.pics.one img{height:auto;max-height:78vh;object-fit:cover}
+.pics.many img{aspect-ratio:4/5;object-fit:cover}
+.pics .dots{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:5px;pointer-events:none}
+.pics .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.45)}
+.pics .dots i.on{background:#fff}
+.hand{display:grid;place-items:center;min-height:240px;padding:28px 22px;text-align:center;font:600 30px/1.15 "RM Hand",cursive;white-space:pre-wrap;word-wrap:break-word}
+.acts{display:flex;gap:6px;padding:8px 10px 6px;flex-wrap:wrap}
+.acts button{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#14120e;color:var(--cream);font:600 13px Arial,sans-serif;cursor:pointer}
+.acts button.on{border-color:var(--gold);background:#2a2316;color:var(--gold2)}
+.acts button.on .e{animation:pop .35s ease}
+@keyframes pop{40%{transform:scale(1.45)}}
+.cm{padding:2px 12px 12px;font-size:14px}
+.cm p{margin:4px 0;word-wrap:break-word}
+.cm b{color:var(--cream)}
+.cm .all{display:block;padding:2px 0;border:0;background:none;color:var(--muted);font-size:13px;cursor:pointer}
+
+.empty{margin:16px 12px;padding:28px 20px;border-radius:18px;background:linear-gradient(160deg,#2c2416,#17140e);border:1px solid #5a4a26;text-align:center}
+.empty h2{margin:0 0 6px;font:600 32px/1.1 "RM Hand",cursive}
+.empty p{margin:0 0 14px;color:#cfc3a6}
+.gbtn{display:inline-block;padding:12px 20px;border:0;border-radius:999px;background:var(--gold2);color:#17130b;font:800 15px Arial,sans-serif;cursor:pointer;text-decoration:none}
+.skel{margin:12px 0 0;height:320px;background:linear-gradient(100deg,#17150f 30%,#211e16 50%,#17150f 70%) 0 0/300% 100%;animation:sh 1.4s linear infinite}
+@keyframes sh{to{background-position:-300% 0}}
+.endnote{margin:22px 12px 0;text-align:center;color:#6f685b;font-size:13px}
+.err{margin:16px 12px;padding:14px;border-radius:14px;background:#2b1712;border:1px solid #c4563c;color:#ecd9d2;text-align:center}
+
+/* ---- the + button ---- */
+.fab{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(200px + env(safe-area-inset-bottom,0px));z-index:8000;width:58px;height:58px;border-radius:50%;border:0;background:var(--gold2);color:#17130b;font:800 32px/1 Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.55);cursor:pointer}
+
+/* ---- layers. The phone's back button closes the top one. No on-screen back buttons. ---- */
+.layer{position:fixed;inset:0;z-index:20000;display:none}
+.layer.open{display:block}
+.layer .dim{position:absolute;inset:0;background:rgba(0,0,0,.7)}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-width:480px;max-height:90vh;overflow-y:auto;margin:0 auto;background:#15130f;border-radius:22px 22px 0 0;border-top:2px solid rgba(214,179,106,.45);padding:12px 20px calc(24px + env(safe-area-inset-bottom,0px))}
+.sheet .g{width:44px;height:5px;border-radius:3px;background:#4a4336;margin:0 auto 14px}
+.sheet h3{margin:0 0 8px;font:400 28px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.02em}
+.sheet p{margin:0 0 12px;color:#ddd2b8}
+.sheet .fine{font-size:12.5px;color:#8f887a}
+.btn{display:block;width:100%;margin-top:10px;padding:14px;border:0;border-radius:14px;background:var(--gold2);color:#17130b;font:800 16px Arial,sans-serif;cursor:pointer;text-align:center;text-decoration:none}
+.btn.dark{background:#2a251c;color:var(--cream)}
+.btn.line{background:none;border:1.5px solid #4a4336;color:var(--cream)}
+.btn.red{background:#5a1f16;color:#ffd6cc}
+.btn[disabled]{opacity:.45}
+.link{display:block;width:100%;margin-top:12px;border:0;background:none;color:var(--muted);font:600 14px Arial,sans-serif;text-decoration:underline;cursor:pointer}
+.msg{min-height:20px;margin:10px 0 0;color:#ff9f8a;font:700 14px Arial,sans-serif}
+.msg.ok{color:#8fd19b}
+.field{display:block;width:100%;padding:14px;border-radius:14px;border:1.5px solid #3a342a;background:#1b1913;color:var(--cream);font:17px Arial,sans-serif}
+.field:focus{outline:none;border-color:var(--gold)}
+.code{letter-spacing:.5em;text-align:center;font:800 26px ui-monospace,Menlo,monospace}
+.rules{margin:0 0 12px;padding:12px 14px;border-radius:14px;background:#1b1913;border:1px solid var(--line);font-size:14px;color:#ddd2b8}
+.rules b{display:block;margin-bottom:4px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
+.rules ul{margin:0;padding-left:18px}
+.check{display:flex;gap:10px;align-items:flex-start;margin:0 0 12px;font:600 14.5px Arial,sans-serif;cursor:pointer}
+.check input{width:22px;height:22px;flex:none;margin:0;accent-color:var(--gold2)}
+.menu button{display:block;width:100%;padding:15px 4px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--cream);font:600 16px Arial,sans-serif;text-align:left;cursor:pointer}
+.menu button:last-child{border-bottom:0}
+.menu button.bad{color:#ff9f8a}
+
+/* the composer takes the whole screen */
+#compose{background:var(--bg)}
+#compose .page{position:absolute;inset:0;overflow-y:auto;max-width:480px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 120px}
+.ctop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ctop b{font:400 28px "RM Head",Impact,sans-serif;letter-spacing:.02em}
+.ctop .send{padding:10px 20px;border:0;border-radius:999px;background:var(--gold2);color:#17130b;font:800 15px Arial,sans-serif;cursor:pointer}
+.ctop .send[disabled]{opacity:.4}
+.lab{margin:14px 0 8px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold)}
+.needs{display:flex;gap:6px;flex-wrap:wrap}
+.needs button{padding:9px 13px;border-radius:999px;border:1px solid #3a342a;background:none;color:var(--cream);font:600 14px Arial,sans-serif;cursor:pointer}
+.needs button.on{background:#2a2316;border-color:var(--gold2);color:var(--gold2)}
+.needs button.on[data-need=hard]{background:#3a1f24;border-color:#c4563c;color:#ffd0c6}
+#cbody{display:block;width:100%;min-height:140px;margin-top:14px;padding:14px;border-radius:14px;border:1.5px solid #3a342a;background:#1b1913;color:var(--cream);font:16.5px/1.45 -apple-system,Segoe UI,Roboto,Arial,sans-serif;resize:none}
+#cbody:focus{outline:none;border-color:var(--gold)}
+.count{margin-top:4px;text-align:right;color:#6f685b;font-size:12px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.thumbs div{position:relative;width:86px;height:86px;border-radius:12px;overflow:hidden;background:#000}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+.thumbs button{position:absolute;top:4px;right:4px;width:26px;height:26px;border:0;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font:700 14px Arial,sans-serif;cursor:pointer}
+.addpic{display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;padding:13px 14px;border-radius:14px;border:1.5px dashed #4a4336;background:none;color:var(--cream);font:700 15px Arial,sans-serif;cursor:pointer}
+.styles{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.styles::-webkit-scrollbar{display:none}
+.styles button{flex:none;width:44px;height:44px;border-radius:12px;border:2px solid transparent;cursor:pointer;font:600 18px "RM Hand",cursive}
+.styles button.on{border-color:#fff}
+#cprev{border-radius:16px;overflow:hidden;margin-top:6px}
+#cprev .hand{min-height:200px}
+.hint{margin:6px 0 0;color:#8f887a;font-size:13px}
+.cerr{margin-top:12px;padding:12px 14px;border-radius:14px;background:#2b1712;border:1.5px solid #c4563c;color:#ffd6cc;font-weight:700}
+.cerr:empty{display:none}
+
+/* the pause and the care note are warm paper, so they read as a person, not an error */
+.paper{background:#f7f1e3;color:#1b1a17;border-top:0}
+.paper h3{color:#1b1a17}
+.paper p{color:#4a453c}
+.paper .btn.dark{background:#1b1a17;color:#f1e7cf}
+.paper .btn.line{border-color:#cfc5ad;color:#1b1a17}
+.paper .link{color:#6f685b}
+
+/* comments */
+#comments .sheet{top:8vh;max-height:none;display:flex;flex-direction:column;padding-bottom:0}
+#clist{flex:1;overflow-y:auto;padding-bottom:10px}
+.c1{display:flex;gap:10px;padding:8px 0}
+.c1 .av{width:34px;height:34px;font-size:14px}
+.c1 .bub{flex:1;min-width:0;padding:8px 12px;border-radius:16px;background:#221f18}
+.c1 .bub b{display:block;font-size:13.5px}
+.c1 .bub span{white-space:pre-wrap;word-wrap:break-word}
+.c1 small{display:flex;gap:12px;margin:3px 0 0 12px;color:#7f786a;font-size:12px}
+.c1 small button{border:0;background:none;padding:0;color:#9a927f;font:700 12px Arial,sans-serif;cursor:pointer}
+.cbar{display:flex;gap:8px;align-items:flex-end;padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:#15130f}
+.cbar textarea{flex:1;min-height:44px;max-height:120px;padding:11px 14px;border-radius:22px;border:1.5px solid #3a342a;background:#1b1913;color:var(--cream);font:16px Arial,sans-serif;resize:none}
+.cbar button{flex:none;height:44px;padding:0 18px;border:0;border-radius:22px;background:var(--gold2);color:#17130b;font:800 15px Arial,sans-serif;cursor:pointer}
+.cbar button[disabled]{opacity:.4}
+
+/* full-screen photo */
+#viewer{background:#000}
+#viewer img{position:absolute;inset:0;margin:auto;max-width:100%;max-height:100%;object-fit:contain}
+
+.toast{position:fixed;left:50%;bottom:calc(270px + env(safe-area-inset-bottom,0px));z-index:30000;transform:translate(-50%,20px);max-width:88vw;padding:12px 18px;border-radius:999px;background:#f1e7cf;color:#17130b;font:700 14px Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+<script src="/assets/account.js"></script>
+<script>
+/* MIKE ONLY, FOR NOW (30 Sep 2026). The real Porch, locked to Mike's account while he
+   tries it out. Everybody else is sent to the preview at /feed/. This locks the PAGE,
+   not the data: the posts themselves can still be read through the database's public
+   API, so only test posts go in here until it opens. */
+(function () {
+  var who = "";
+  try { who = (JSON.parse(localStorage.getItem("rm_account_v1") || "null") || {}).name || ""; } catch (e) {}
+  if (who !== "tacomike417") location.replace("/feed/");
+})();
+</script>
+</head>
+<body>
+<div id="chrome">
+  <div id="rm-topbar"></div>
+  <div class="railbg"><nav id="rmrail" aria-label="You">
+    <button type="button" class="inv" data-invite><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c1.3-4 4-6 7-6s5.7 2 7 6"/><path d="M19 8v6M16 11h6"/></svg>INVITE</button>
+    <a class="on" href="/feed/porch.html" aria-current="page"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="8" rx="2"/><rect x="4" y="13" width="16" height="8" rx="2"/></svg>FEED</a>
+    <a href="/survival-pile.html"><svg viewBox="0 0 24 24"><rect x="7" y="3" width="12" height="16" rx="2"/><path d="M5 7v12a2 2 0 0 0 2 2h9"/></svg>MY PILE</a>
+    <a href="/coins.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8l1.2 2.6 2.8.3-2.1 1.9.6 2.8L12 14.2 9.5 15.6l.6-2.8L8 10.9l2.8-.3z"/></svg>MY COINS</a>
+    <a href="/another-day-sober.html"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/></svg>TODAY</a>
+  </nav></div>
+</div>
+<script src="/topbar.js" defer></script>
+
+<main class="wrap" id="main">
+  <button type="button" class="say" data-new><span class="av" id="meav"></span><span class="pl">What's on your mind?</span><span class="cam">📷</span></button>
+  <a class="help" href="tel:988"><span>Having a hard time? A real person answers, day or night.</span><b>Call 988</b></a>
+  <section class="newb" id="newb" hidden><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
+  <div id="feed"><div class="skel"></div><div class="skel"></div></div>
+  <div id="sentinel" style="height:1px"></div>
+</main>
+
+<button type="button" class="fab" data-new aria-label="New post">+</button>
+<div class="toast" id="toast" role="status"></div>
+
+<!-- NOT SIGNED IN -->
+<div id="join" class="layer" role="dialog" aria-modal="true" aria-label="Your recovery, your way">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div>
+    <h3>Your recovery, your way</h3>
+    <p>Anybody can read the Porch. To post, comment or cheer somebody on, you need an account and a confirmed email.</p>
+    <p class="fine">We never keep your email, and nobody here will ever see it.</p>
+    <a class="btn" href="/account.html?next=feed">Make an account or sign in</a>
+    <button type="button" class="link" data-close>Keep looking around</button>
+  </div>
+</div>
+
+<!-- CONFIRM WHO YOU ARE -->
+<div id="confirm" class="layer" role="dialog" aria-modal="true" aria-label="Confirm who you are">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div>
+    <div id="cf1">
+      <h3>Confirm who you are</h3>
+      <p>One email = one person on the Porch. That's what keeps trolls from making a new account every five minutes.</p>
+      <p class="fine" style="margin-top:-6px">We scramble it and throw the email away. Nobody, not even us, can read it back, and nobody on the Porch will ever see it.</p>
+      <div class="rules"><b>THE PORCH RULES</b><p style="margin:0 0 6px;color:var(--cream);font-weight:700">We're all adults here. Let's act like it.</p><ul>
+        <li>Be kind. We're all in this together.</li>
+        <li>No hate, slurs or threats.</li>
+        <li>Protect other people's anonymity.</li>
+        <li>Say what you need. Somebody here gets it.</li></ul></div>
+      <label class="check"><input type="checkbox" id="cfok"> I'm 18 or older and I'll follow the Porch rules</label>
+      <input class="field" id="cfemail" type="email" inputmode="email" autocomplete="email" placeholder="Your email">
+      <button type="button" class="btn" id="cfsend" disabled>Send my code</button>
+      <p class="msg" id="cfmsg1" role="status"></p>
+    </div>
+    <div id="cf2" hidden>
+      <h3>Check your email</h3>
+      <p>We sent a 6-digit code. It works for 15 minutes. Check spam if you don't see it.</p>
+      <input class="field code" id="cfcode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······">
+      <button type="button" class="btn" id="cfverify" disabled>Confirm</button>
+      <p class="msg" id="cfmsg2" role="status"></p>
+      <button type="button" class="link" id="cfagain">Use a different email or send a new code</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW POST -->
+<div id="compose" class="layer" role="dialog" aria-modal="true" aria-label="New post">
+  <div class="page">
+    <div class="ctop"><b>NEW POST</b><button type="button" class="send" id="csend" disabled>Post</button></div>
+    <div class="lab">WHAT DO YOU NEED?</div>
+    <div class="needs" id="needs">
+      <button type="button" data-need="talk">🗣️ Just talking</button>
+      <button type="button" data-need="win">🏆 A win</button>
+      <button type="button" data-need="hard">🌧️ Hard day</button>
+      <button type="button" data-need="question">❓ A question</button>
+    </div>
+    <textarea id="cbody" maxlength="2000" placeholder="What's on your mind?"></textarea>
+    <div class="count" id="ccount"></div>
+    <div class="thumbs" id="thumbs"></div>
+    <button type="button" class="addpic" id="addpic">📷 Add photos <span style="color:var(--muted);font-weight:600">(up to 4)</span></button>
+    <input type="file" id="cfile" accept="image/*" multiple hidden>
+    <div id="cardpick">
+      <div class="lab">HOW IT LOOKS</div>
+      <div class="styles" id="styles"></div>
+      <div id="cprev"></div>
+      <p class="hint" id="chint"></p>
+    </div>
+    <div class="cerr" id="cerr" role="alert"></div>
+  </div>
+</div>
+
+<!-- THE PAUSE -->
+<div id="pause" class="layer" role="dialog" aria-modal="true" aria-label="Want to talk to a friend about this first?">
+  <div class="dim"></div>
+  <div class="sheet paper"><div class="g" style="background:#d8ceb6"></div>
+    <h3>Want to talk to a friend about this first?</h3>
+    <p>This one sounds like it's coming from a hard place. You can still post it. Sometimes it helps to say it to one person before the whole porch.</p>
+    <a class="btn dark" href="sms:" id="ptext">Text a friend</a>
+    <button type="button" class="btn line" id="pdraft">Save it as a draft</button>
+    <button type="button" class="link" id="pgo">Post anyway</button>
+  </div>
+</div>
+
+<!-- IF SOMEBODY SOUNDS LIKE THEY MIGHT HURT THEMSELVES. It still posts. -->
+<div id="care" class="layer" role="dialog" aria-modal="true" aria-label="We're glad you said something">
+  <div class="dim" data-close></div>
+  <div class="sheet paper"><div class="g" style="background:#d8ceb6"></div>
+    <h3>We're really glad you said something</h3>
+    <p>If you're thinking about hurting yourself, you don't have to carry it alone. A real person answers 988, any time, day or night. It's free.</p>
+    <a class="btn dark" href="tel:988">Call 988</a>
+    <a class="btn line" href="sms:988">Text 988</a>
+    <button type="button" class="link" data-close>I'm OK for now</button>
+  </div>
+</div>
+
+<!-- ⋯ on a post or comment -->
+<div id="menu" class="layer" role="dialog" aria-modal="true" aria-label="Options">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div><div class="menu" id="mbody"></div></div>
+</div>
+
+<!-- COMMENTS -->
+<div id="comments" class="layer" role="dialog" aria-modal="true" aria-label="Comments">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div>
+    <div id="clist"></div>
+    <div class="cbar"><textarea id="cin" rows="1" maxlength="1000" placeholder="Say something kind…"></textarea><button type="button" id="cgo" disabled>Send</button></div>
+  </div>
+</div>
+
+<div id="viewer" class="layer" role="dialog" aria-modal="true" aria-label="Photo" data-close><img alt=""></div>
+
+<div id="rm-bottom-nav"></div>
+<script src="/nav.js" defer></script>
+
+<script>
+(function () {
+  "use strict";
+  var DB = "https://rlytvfehbglsjfvprtbp.supabase.co";
+  var KEY = "sb_publishable_5r-l8Bj8PjXhq5qpp1b26g_QQ7xPQ7P";
+  var PAGE = 15;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); };
+  var pic = function (p) { return DB + "/storage/v1/object/public/porch/" + p; };
+
+  /* ================================================================ WHO'S HERE */
+  var A = window.RMAccount;
+  var me = { uid: "", member: null };
+  function signedIn() { return !!(A && A.signedIn()); }
+  async function tok() { if (!signedIn()) return null; try { return await A.token(); } catch (e) { return null; } }
+
+  async function rest(path, opt) {
+    opt = opt || {};
+    var t = await tok();
+    var h = { apikey: KEY, Authorization: "Bearer " + (t || KEY) };
+    if (opt.body) { h["Content-Type"] = "application/json"; h.Prefer = "return=minimal"; }
+    var r = await fetch(DB + "/rest/v1/" + path, { method: opt.method || "GET", headers: h, body: opt.body ? JSON.stringify(opt.body) : undefined });
+    if (!r.ok) { var e = new Error("rest " + r.status); e.status = r.status; throw e; }
+    return r.status === 204 || opt.method ? null : r.json();
+  }
+  async function fn(name, body) {
+    var t = await tok();
+    if (!t) return { error: "Sign in first.", status: 401 };
+    try {
+      var r = await fetch(DB + "/functions/v1/" + name, { method: "POST", headers: { apikey: KEY, Authorization: "Bearer " + t, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      var j = await r.json().catch(function () { return {}; });
+      j.status = r.status; return j;
+    } catch (e) { return { error: "No connection. Try again when you have signal." }; }
+  }
+
+  async function loadMe() {
+    me.uid = signedIn() ? A.uid() : "";
+    me.member = null;
+    if (!me.uid) return;
+    try { var r = await rest("porch_members?user_id=eq." + me.uid + "&select=*"); me.member = r[0] || null; } catch (e) {}
+    if (me.member) people[me.uid] = me.member;
+    $("meav").outerHTML = avatar(me.member || { handle: A.name() }, "meav");
+  }
+
+  /* ================================================================ PEOPLE */
+  var people = {};
+  var COLORS = ["#c4563c", "#3f7f8f", "#8a6bb8", "#b98f33", "#4f8f5a", "#b8577c", "#5b6fb8", "#9a7b4f"];
+  function avatar(m, id) {
+    m = m || {};
+    var h = m.handle || "?", n = 0;
+    for (var i = 0; i < h.length; i++) n = (n * 31 + h.charCodeAt(i)) >>> 0;
+    var inner = m.avatar_path ? '<img src="' + pic(m.avatar_path) + '" alt="" loading="lazy">' : esc(h.replace(/[^a-z0-9]/gi, "").charAt(0).toUpperCase() || "?");
+    return '<span class="av"' + (id ? ' id="' + id + '"' : "") + ' style="background:' + COLORS[n % COLORS.length] + '">' + inner + "</span>";
+  }
+  async function loadPeople(ids) {
+    ids = ids.filter(function (id, i) { return id && !people[id] && ids.indexOf(id) === i; });
+    if (!ids.length) return;
+    var r = await rest("porch_members?user_id=in.(" + ids.join(",") + ")&select=user_id,handle,avatar_path");
+    r.forEach(function (m) { people[m.user_id] = m; });
+    ids.forEach(function (id) { if (!people[id]) people[id] = { handle: "misfit" }; });
+  }
+  var name = function (uid) { return (people[uid] && people[uid].handle) || "misfit"; };
+
+  /* ================================================================ LOOKS */
+  /* The handwritten cards. The number is saved with the post (card_style). */
+  var CARDS = [
+    { bg: "linear-gradient(160deg,#243142,#11100c)", ink: "#f1e7cf" },
+    { bg: "linear-gradient(160deg,#3a2a18,#11100c)", ink: "#f1e7cf" },
+    { bg: "linear-gradient(160deg,#2c3a2a,#11100c)", ink: "#f1e7cf" },
+    { bg: "linear-gradient(160deg,#3a1f24,#11100c)", ink: "#f1e7cf" },
+    { bg: "linear-gradient(160deg,#1f3440,#11100c)", ink: "#f1e7cf" },
+    { bg: "linear-gradient(160deg,#2a2440,#11100c)", ink: "#f1e7cf" },
+    { bg: "linear-gradient(160deg,#401f1f,#11100c)", ink: "#f1e7cf" },
+    { bg: "linear-gradient(160deg,#35301f,#11100c)", ink: "#f1e7cf" },
+    { bg: "linear-gradient(160deg,#402a33,#11100c)", ink: "#f1e7cf" },
+    { bg: "radial-gradient(circle at 50% 35%,#e0bd6a,#8a6420 75%)", ink: "#1b1307" },
+    { bg: "linear-gradient(90deg,transparent 30px,#e07a6b 30px 32px,transparent 32px),repeating-linear-gradient(#f6e48c 0 34px,#9fb6d2 34px 35px)", ink: "#1f2d4a" },
+    { bg: "linear-gradient(#fbf8f0 0 30px,#e06b5b 30px 32px,#fbf8f0 32px)", ink: "#1b1a17" }
+  ];
+  var NEED = { talk: "JUST TALKING", win: "A WIN", hard: "HARD DAY", question: "A QUESTION", moment: "A MOMENT" };
+  var CARD_MAX = 150;
+  function fitsCard(t) { return t && t.length <= CARD_MAX && t.split("\n").length <= 8; }
+  function handSize(t) { var n = t.length; return n <= 40 ? 36 : n <= 90 ? 31 : n <= 140 ? 27 : 24; }
+  function handHTML(t, style) {
+    var c = CARDS[(style == null ? 0 : style) % CARDS.length];
+    return '<div class="hand" style="background:' + c.bg + ";color:" + c.ink + ";font-size:" + handSize(t) + 'px">' + esc(t) + "</div>";
+  }
+  function linkify(s) {
+    return esc(s).replace(/\b((?:https?:\/\/|www\.)[^\s<]+)/gi, function (u) {
+      var href = /^https?:/i.test(u) ? u : "https://" + u;
+      return '<a href="' + href + '" target="_blank" rel="noopener nofollow ugc">' + u + "</a>";
+    });
+  }
+  function ago(d) {
+    var s = (Date.now() - new Date(d).getTime()) / 1000;
+    if (s < 60) return "now";
+    if (s < 3600) return Math.floor(s / 60) + "m";
+    if (s < 86400) return Math.floor(s / 3600) + "h";
+    if (s < 7 * 86400) return Math.floor(s / 86400) + "d";
+    return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  /* ================================================================ THE FEED */
+  var posts = {}, comments = {}, mine = {}, oldest = null, loading = false, done = false;
+
+  function postHTML(p) {
+    var media = "", text = p.body || "", photos = p.photo_paths || [];
+    if (photos.length) {
+      media = '<div class="pics ' + (photos.length > 1 ? "many" : "one") + '"><div class="row">' +
+        photos.map(function (x) { return '<img src="' + pic(x) + '" alt="" loading="lazy" data-view>'; }).join("") + "</div>" +
+        (photos.length > 1 ? '<div class="dots">' + photos.map(function (x, i) { return '<i class="' + (i ? "" : "on") + '"></i>'; }).join("") + "</div>" : "") + "</div>";
+    } else if (fitsCard(text)) { media = handHTML(text, p.card_style); text = ""; }
+    var r = mine[p.id] || {};
+    return '<article class="post" id="p-' + p.id + '" data-post="' + p.id + '">' +
+      '<div class="ph">' + avatar(people[p.user_id]) + '<div class="who"><b>' + esc(name(p.user_id)) + "</b><small>" + ago(p.created_at) + "</small></div>" +
+        (NEED[p.need] ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
+        '<button type="button" class="more" data-more aria-label="Options">⋯</button></div>' +
+      (text ? '<div class="body">' + linkify(text) + "</div>" : "") + media +
+      '<div class="acts">' +
+        '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '"><span class="e">🤝</span>Proud of you</button>' +
+        '<button type="button" data-react="metoo" class="' + (r.metoo ? "on" : "") + '"><span class="e">🙏</span>Me too</button>' +
+        '<button type="button" data-comments>💬 Comment</button></div>' +
+      '<div class="cm">' + commentsPreview(p.id) + "</div></article>";
+  }
+  function commentsPreview(id) {
+    var list = comments[id] || [];
+    var last = list.slice(-2).map(function (c) { return "<p><b>" + esc(name(c.user_id)) + "</b> " + esc(c.body) + "</p>"; }).join("");
+    return (list.length > 2 ? '<button type="button" class="all" data-comments>View all ' + list.length + " comments</button>" : "") + last;
+  }
+  function refreshComments(id) { var el = document.querySelector("#p-" + id + " .cm"); if (el) el.innerHTML = commentsPreview(id); }
+
+  async function loadMore() {
+    if (loading || done) return;
+    loading = true;
+    try {
+      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at&order=created_at.desc&limit=" + PAGE +
+        (oldest ? "&created_at=lt." + encodeURIComponent(oldest) : "");
+      var list = await rest(q);
+      if (list.length < PAGE) done = true;
+      if (list.length) {
+        oldest = list[list.length - 1].created_at;
+        var ids = list.map(function (p) { return p.id; });
+        var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at&order=created_at.asc");
+        var rs = me.uid ? await rest("porch_reactions?user_id=eq." + me.uid + "&post_id=in.(" + ids.join(",") + ")&select=post_id,kind") : [];
+        await loadPeople(list.map(function (p) { return p.user_id; }).concat(cs.map(function (c) { return c.user_id; })));
+        ids.forEach(function (id) { comments[id] = []; mine[id] = {}; });
+        cs.forEach(function (c) { comments[c.post_id].push(c); });
+        rs.forEach(function (r) { mine[r.post_id][r.kind] = true; });
+        list.forEach(function (p) { posts[p.id] = p; });
+      }
+      var feed = $("feed");
+      feed.querySelectorAll(".skel,.err").forEach(function (x) { x.remove(); });
+      feed.insertAdjacentHTML("beforeend", list.map(postHTML).join(""));
+      if (!feed.querySelector(".post")) {
+        feed.innerHTML = '<div class="empty"><h2>The Porch is brand new.</h2><p>Pull up a chair. Be the first one to say something.</p><button type="button" class="gbtn" data-new>Say something</button></div>';
+      } else if (done && !feed.querySelector(".endnote")) {
+        feed.insertAdjacentHTML("beforeend", '<p class="endnote">You\'re all caught up. 💛</p>');
+      }
+    } catch (e) {
+      var f = $("feed"); f.querySelectorAll(".skel").forEach(function (x) { x.remove(); });
+      if (!f.querySelector(".err")) f.insertAdjacentHTML("beforeend", '<div class="err">The Porch didn\'t load. Check your signal.<br><br><button type="button" class="gbtn" data-retry>Try again</button></div>');
+    }
+    loading = false;
+  }
+  async function reloadFeed() {
+    posts = {}; comments = {}; mine = {}; oldest = null; done = false;
+    $("feed").innerHTML = '<div class="skel"></div>';
+    await loadMore();
+  }
+  new IntersectionObserver(function (es) { if (es[0].isIntersecting) loadMore(); }, { rootMargin: "900px" }).observe($("sentinel"));
+
+  /* New Misfits: faces and names. No day counts, no streaks. */
+  async function loadNew() {
+    try {
+      var r = await rest("porch_members?verified_at=not.is.null&select=user_id,handle,avatar_path&order=verified_at.desc&limit=12");
+      if (r.length < 3) return;
+      r.forEach(function (m) { people[m.user_id] = people[m.user_id] || m; });
+      $("strip").innerHTML = r.map(function (m) { return '<div class="st"><div class="ring">' + avatar(m) + "</div><b>" + esc(m.handle) + "</b></div>"; }).join("");
+      $("newb").hidden = false;
+    } catch (e) {}
+  }
+
+  /* ================================================================ LAYERS
+     Every sheet is one step on the phone's back button. Back closes the top one. */
+  var stack = [];
+  function open(id) {
+    var el = $(id); if (stack.indexOf(el) >= 0) return;
+    el.classList.add("open"); stack.push(el);
+    document.documentElement.classList.add("locked");
+    try { history.pushState({ porch: stack.length }, ""); } catch (e) {}
+  }
+  function hideTop() {
+    var el = stack.pop(); if (el) el.classList.remove("open");
+    if (!stack.length) document.documentElement.classList.remove("locked");
+  }
+  var waiters = [];
+  window.addEventListener("popstate", function () { hideTop(); var w = waiters.shift(); if (w) w(); });
+  function closeTop() { return new Promise(function (res) { if (!stack.length) return res(); waiters.push(res); history.back(); }); }
+  async function closeAll() { while (stack.length) await closeTop(); }
+
+  var tt;
+  function toast(t) { var el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(tt); tt = setTimeout(function () { el.classList.remove("on"); }, 2600); }
+
+  /* ================================================================ THE DOOR
+     Reading is open to everybody. Doing anything needs an account + confirmed email. */
+  var pending = null;
+  async function gate(then) {
+    if (!signedIn()) return open("join");
+    if (!me.member || !me.member.verified_at) await loadMe();
+    if (!me.member || !me.member.verified_at) { pending = then; cfReset(); return open("confirm"); }
+    if (me.member.frozen_at) return toast("Your account is paused while someone looks at a report.");
+    then();
+  }
+
+  /* ---- confirm who you are ---- */
+  function cfReset() { $("cf1").hidden = false; $("cf2").hidden = true; $("cfmsg1").textContent = ""; $("cfmsg2").textContent = ""; $("cfcode").value = ""; cfReady(); }
+  function cfReady() { $("cfsend").disabled = !$("cfok").checked || !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test($("cfemail").value.trim()); }
+  $("cfok").addEventListener("change", cfReady);
+  $("cfemail").addEventListener("input", cfReady);
+  $("cfsend").addEventListener("click", async function () {
+    var b = this; b.disabled = true; b.textContent = "Sending…"; $("cfmsg1").textContent = "";
+    var r = await fn("porch-confirm", { action: "send", email: $("cfemail").value.trim() });
+    b.textContent = "Send my code"; cfReady();
+    if (!r.ok) { $("cfmsg1").textContent = r.error || "That didn't send. Try again."; return; }
+    $("cfemail").value = "";              /* not kept on this phone either */
+    $("cf1").hidden = true; $("cf2").hidden = false; $("cfcode").focus();
+  });
+  $("cfcode").addEventListener("input", function () { this.value = this.value.replace(/\D/g, "").slice(0, 6); $("cfverify").disabled = this.value.length !== 6; });
+  $("cfverify").addEventListener("click", async function () {
+    var b = this; b.disabled = true; b.textContent = "Checking…"; $("cfmsg2").textContent = "";
+    var r = await fn("porch-confirm", { action: "verify", code: $("cfcode").value });
+    b.textContent = "Confirm";
+    if (!r.ok) { $("cfmsg2").textContent = r.error || "That didn't work. Try again."; b.disabled = false; return; }
+    await loadMe();
+    await closeTop();
+    toast("You're on the Porch, " + r.handle + " 💛");
+    var go = pending; pending = null; if (go) go();
+  });
+  $("cfagain").addEventListener("click", cfReset);
+
+  /* ================================================================ NEW POST */
+  var need = "talk", style = 0, photos = [], sending = false;
+  var DRAFT = "rm_porch_draft";
+  var HOLDER = { talk: "What's on your mind?", win: "Tell us about it. We want to cheer.", hard: "What's going on? You're not alone here.", question: "Ask the Porch anything." };
+  $("styles").innerHTML = CARDS.map(function (c, i) { return '<button type="button" data-style="' + i + '" style="background:' + c.bg + ";color:" + c.ink + '" aria-label="Card ' + (i + 1) + '">Aa</button>'; }).join("");
+
+  function openCompose(fresh) {
+    if (fresh !== false) {
+      var d = null; try { d = JSON.parse(localStorage.getItem(DRAFT) || "null"); } catch (e) {}
+      need = (d && d.need) || "talk"; style = d && d.style != null ? d.style : Math.floor(Math.random() * 10);
+      $("cbody").value = (d && d.body) || ""; photos = [];
+      if (d) toast("Your draft is back.");
+    }
+    $("cerr").textContent = "";
+    paintCompose(); open("compose");
+    setTimeout(function () { $("cbody").focus(); }, 60);
+  }
+  function paintCompose() {
+    document.querySelectorAll("#needs [data-need]").forEach(function (b) { b.classList.toggle("on", b.dataset.need === need); });
+    document.querySelectorAll("#styles [data-style]").forEach(function (b) { b.classList.toggle("on", +b.dataset.style === style); });
+    $("cbody").placeholder = HOLDER[need];
+    var t = $("cbody").value.trim();
+    $("ccount").textContent = t.length > 1500 ? t.length + " / 2000" : "";
+    $("thumbs").innerHTML = photos.map(function (p, i) { return '<div><img src="' + p + '" alt=""><button type="button" data-unpic="' + i + '" aria-label="Remove photo">✕</button></div>'; }).join("");
+    $("addpic").hidden = photos.length >= 4;
+    $("cardpick").hidden = !!photos.length;
+    if (!photos.length) {
+      var show = t && fitsCard(t) ? t : (t ? "" : "Your words go here");
+      $("cprev").innerHTML = show ? handHTML(show, style) : "";
+      $("chint").textContent = t && !fitsCard(t) ? "Longer posts show as regular text, like Facebook." : "Short posts become a handwritten card.";
+    }
+    $("csend").disabled = sending || (!t && !photos.length);
+  }
+  $("cbody").addEventListener("input", paintCompose);
+  $("needs").addEventListener("click", function (e) { var b = e.target.closest("[data-need]"); if (b) { need = b.dataset.need; paintCompose(); } });
+  $("styles").addEventListener("click", function (e) { var b = e.target.closest("[data-style]"); if (b) { style = +b.dataset.style; paintCompose(); } });
+  $("thumbs").addEventListener("click", function (e) { var b = e.target.closest("[data-unpic]"); if (b) { photos.splice(+b.dataset.unpic, 1); paintCompose(); } });
+  $("addpic").addEventListener("click", function () { $("cfile").click(); });
+  $("cfile").addEventListener("change", async function () {
+    var files = Array.prototype.slice.call(this.files || [], 0, 4 - photos.length); this.value = "";
+    for (var i = 0; i < files.length; i++) {
+      try { photos.push(await shrink(files[i])); } catch (e) { $("cerr").textContent = "That photo couldn't be opened. Try a different one."; }
+    }
+    paintCompose();
+  });
+  /* Photos get resized on the phone to a JPEG under 3MB before they leave it. */
+  function shrink(file) {
+    return new Promise(function (res, rej) {
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        var s = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        var q = 0.84, out = c.toDataURL("image/jpeg", q);
+        while (out.length > 3.6e6 && q > 0.4) { q -= 0.12; out = c.toDataURL("image/jpeg", q); }
+        res(out);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); rej(); };
+      img.src = url;
+    });
+  }
+
+  async function sendPost(sure) {
+    if (sending) return;
+    sending = true; $("cerr").textContent = "";
+    $("csend").disabled = true; $("csend").textContent = photos.length ? "Checking photos…" : "Posting…";
+    var body = $("cbody").value.trim();
+    var r = await fn("porch", { action: "post", need: need, body: body, photos: photos, card_style: style, sure: !!sure });
+    sending = false; $("csend").textContent = "Post"; paintCompose();
+    if (r.pause) return open("pause");
+    if (r.need === "confirm") { pending = function () { openCompose(false); }; await closeTop(); cfReset(); return open("confirm"); }
+    if (!r.ok) { $("cerr").textContent = r.error || "That didn't post. Try again."; return; }
+    try { localStorage.removeItem(DRAFT); } catch (e) {}
+    $("cbody").value = ""; photos = [];
+    await closeAll();
+    window.scrollTo(0, 0);
+    await reloadFeed();
+    if (r.care) open("care"); else toast("Posted 💛");
+  }
+  $("csend").addEventListener("click", function () { pauseFor = "post"; sendPost(false); });
+
+  /* ---- the pause ---- */
+  var pauseFor = "post";
+  $("pgo").addEventListener("click", async function () { await closeTop(); if (pauseFor === "post") sendPost(true); else sendComment(true); });
+  $("pdraft").addEventListener("click", async function () {
+    if (pauseFor === "post") {
+      try { localStorage.setItem(DRAFT, JSON.stringify({ need: need, body: $("cbody").value, style: style })); } catch (e) {}
+      await closeAll(); toast("Saved. It'll be here when you tap +.");
+    } else {
+      await closeTop(); toast("It's still in the box. Take your time.");
+    }
+  });
+
+  /* ================================================================ REACTIONS (no counts, ever) */
+  async function react(id, kind, btn) {
+    mine[id] = mine[id] || {};
+    var on = !mine[id][kind];
+    mine[id][kind] = on; btn.classList.toggle("on", on);
+    try {
+      if (on) await rest("porch_reactions", { method: "POST", body: { post_id: id, user_id: me.uid, kind: kind } });
+      else await rest("porch_reactions?post_id=eq." + id + "&user_id=eq." + me.uid + "&kind=eq." + kind, { method: "DELETE" });
+    } catch (e) {
+      if (e.status === 409) return;
+      mine[id][kind] = !on; btn.classList.toggle("on", !on); toast("That didn't go through.");
+    }
+  }
+
+  /* ================================================================ COMMENTS */
+  var openPost = null;
+  function paintComments() {
+    var list = comments[openPost] || [];
+    $("clist").innerHTML = list.length ? list.map(function (c) {
+      return '<div class="c1" data-comment="' + c.id + '">' + avatar(people[c.user_id]) + '<div style="flex:1;min-width:0"><div class="bub"><b>' + esc(name(c.user_id)) + "</b><span>" + linkify(c.body) + "</span></div>" +
+        "<small>" + ago(c.created_at) + '<button type="button" data-cmore>' + (c.user_id === me.uid ? "Delete" : "Report") + "</button></small></div></div>";
+    }).join("") : '<p style="text-align:center;color:var(--muted);padding:30px 0">No comments yet. Say something kind.</p>';
+  }
+  function openComments(id) {
+    openPost = id; paintComments(); open("comments");
+    setTimeout(function () { var l = $("clist"); l.scrollTop = l.scrollHeight; }, 30);
+  }
+  $("cin").addEventListener("input", function () { this.style.height = "auto"; this.style.height = Math.min(120, this.scrollHeight) + "px"; $("cgo").disabled = !this.value.trim(); });
+  $("cin").addEventListener("focus", function () { if (!signedIn() || !me.member || !me.member.verified_at) { this.blur(); gate(function () { $("cin").focus(); }); } });
+  async function sendComment(sure) {
+    var t = $("cin").value.trim(); if (!t) return;
+    $("cgo").disabled = true; $("cgo").textContent = "…";
+    var r = await fn("porch", { action: "comment", post_id: openPost, body: t, sure: !!sure });
+    $("cgo").textContent = "Send"; $("cgo").disabled = false;
+    if (r.pause) { pauseFor = "comment"; return open("pause"); }
+    if (!r.ok) return toast(r.error || "That didn't send.");
+    comments[openPost].push({ id: r.id, post_id: openPost, user_id: me.uid, body: t, created_at: new Date().toISOString() });
+    $("cin").value = ""; $("cin").style.height = ""; $("cgo").disabled = true;
+    paintComments(); refreshComments(openPost);
+    var l = $("clist"); l.scrollTop = l.scrollHeight;
+    if (r.care) open("care");
+  }
+  $("cgo").addEventListener("click", function () { pauseFor = "comment"; sendComment(false); });
+
+  /* ================================================================ ⋯ : delete / report / block */
+  var REASONS = [["hate", "Hate or slurs"], ["harassment", "Bullying or harassment"], ["sexual", "Sexual stuff"], ["spam", "Spam or a scam"], ["self_harm", "Somebody might be in danger"], ["other", "Something else"]];
+  function menu(target) {       /* target: {post} or {comment} */
+    var uid = target.post ? posts[target.post].user_id : (comments[openPost].find(function (c) { return c.id === target.comment; }) || {}).user_id;
+    var mineToo = uid === me.uid;
+    var html = mineToo
+      ? '<button type="button" class="bad" data-m="del">Delete ' + (target.post ? "post" : "comment") + "</button>"
+      : '<button type="button" data-m="report">Report this ' + (target.post ? "post" : "comment") + '</button><button type="button" data-m="block">Block ' + esc(name(uid)) + "</button>";
+    $("mbody").innerHTML = html + '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
+    $("mbody").dataset.t = JSON.stringify(target); $("mbody").dataset.uid = uid;
+    open("menu");
+  }
+  $("mbody").addEventListener("click", async function (e) {
+    var b = e.target.closest("[data-m]"); if (!b) return;
+    var t = JSON.parse(this.dataset.t), uid = this.dataset.uid, m = b.dataset.m;
+    if (m === "del") {
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again to delete for good"; return; }
+      var r = await fn("porch", t.post ? { action: "remove", post_id: t.post } : { action: "remove", comment_id: t.comment });
+      await closeTop();
+      if (!r.ok) return toast(r.error || "Couldn't delete it.");
+      if (t.post) { var el = $("p-" + t.post); if (el) el.remove(); }
+      else { comments[openPost] = comments[openPost].filter(function (c) { return c.id !== t.comment; }); paintComments(); refreshComments(openPost); }
+      toast("Deleted.");
+    } else if (m === "report") {
+      this.innerHTML = '<p style="margin:0 0 6px;font-weight:700">What\'s wrong with it?</p>' +
+        REASONS.map(function (x) { return '<button type="button" data-m="why" data-why="' + x[0] + '">' + x[1] + "</button>"; }).join("") +
+        '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
+    } else if (m === "why") {
+      var row = { reporter_id: me.uid, reason: b.dataset.why };
+      if (t.post) row.post_id = t.post; else row.comment_id = t.comment;
+      try { await rest("porch_reports", { method: "POST", body: row }); } catch (err) { if (err.status !== 409) { await closeTop(); return toast("That didn't send. Try again."); } }
+      this.innerHTML = '<p style="margin:0 0 4px;font:400 24px \'RM Head\',Impact,sans-serif">Thanks for looking out.</p><p>A real person will look at it.' +
+        (b.dataset.why === "self_harm" ? " If somebody's in danger right now, call 911." : "") + '</p><button type="button" data-m="block">Block ' + esc(name(uid)) + ' too</button><button type="button" data-close>Done</button>';
+    } else if (m === "block") {
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again: you won't see each other at all"; return; }
+      try { await rest("porch_blocks", { method: "POST", body: { blocker_id: me.uid, blocked_id: uid } }); } catch (err) { if (err.status !== 409) { await closeTop(); return toast("That didn't go through."); } }
+      await closeAll();
+      document.querySelectorAll(".post").forEach(function (p) { if (posts[p.dataset.post] && posts[p.dataset.post].user_id === uid) p.remove(); });
+      toast("Blocked. You won't see each other on the Porch.");
+    }
+  });
+
+  /* ================================================================ TAPS */
+  document.addEventListener("click", function (e) {
+    var t = e.target, post = t.closest("[data-post]"), id = post && post.dataset.post;
+    if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
+    if (t.closest("[data-new]")) return gate(function () { openCompose(); });
+    if (t.closest("[data-retry]")) return reloadFeed();
+    if (t.closest("[data-invite]")) return invite();
+    var rb = t.closest("[data-react]");
+    if (rb && id) return gate(function () { react(id, rb.dataset.react, rb); });
+    if (t.closest("[data-comments]") && id) return openComments(id);
+    if (t.closest("[data-more]") && id) return gate(function () { menu({ post: id }); });
+    if (t.closest("[data-cmore]")) return gate(function () { menu({ comment: t.closest("[data-comment]").dataset.comment }); });
+    var v = t.closest("[data-view]");
+    if (v) { $("viewer").querySelector("img").src = v.src; return open("viewer"); }
+  });
+  /* photo dots follow the swipe */
+  document.addEventListener("scroll", function (e) {
+    var row = e.target; if (!row.classList || !row.classList.contains("row")) return;
+    var i = Math.round(row.scrollLeft / row.clientWidth);
+    row.parentNode.querySelectorAll(".dots i").forEach(function (d, k) { d.classList.toggle("on", k === i); });
+  }, true);
+
+  function invite() {
+    var data = { title: "Recovery Misfits", text: "Free recovery app. No ads, ever. Thought of you.", url: "https://recoverymisfits.org" };
+    if (navigator.share) navigator.share(data).catch(function () {});
+    else { try { navigator.clipboard.writeText(data.url); toast("Link copied. Send it to somebody."); } catch (e) {} }
+  }
+
+  /* ================================================================ HEADER SCROLL-AWAY
+     Scroll down: header + rail slide up out of the way. Scroll up: they come back.
+     The bottom menu never moves. Same as Facebook. */
+  var chrome = $("chrome"), lastY = 0;
+  function pad() { $("main").style.paddingTop = chrome.offsetHeight + "px"; }
+  try { new ResizeObserver(pad).observe(chrome); } catch (e) { setInterval(pad, 500); }
+  pad();
+  window.addEventListener("scroll", function () {
+    var y = window.scrollY, h = chrome.offsetHeight;
+    if (y <= h) chrome.classList.remove("away");
+    else if (y > lastY + 6) chrome.classList.add("away");
+    else if (y < lastY - 6) chrome.classList.remove("away");
+    lastY = y;
+  }, { passive: true });
+
+  /* ================================================================ GO */
+  (async function () {
+    await loadMe();
+    loadNew();
+    loadMore();
+  })();
+})();
+</script>
+</body>
+</html>
