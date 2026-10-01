@@ -648,6 +648,11 @@
     if (busy) return;
 
     var name = $("nm").value, pw = $("pw").value;
+    /* your name is also your link (recoverymisfits.org/<name>), so it can't be one of
+       the site's own pages. Same list as feed/porch.html and functions/[handle].js. */
+    var NOT_NAMES = ['s','u','api','app','admin','feed','porch','login','signin','signup','account','settings','help','about','privacy','terms','support','mod','mods','staff','team','official','recoverymisfits','me','home','index','www','static','assets','images','cdn','blog','news','shop','store','search','explore','notifications','messages','spins','spin','friends','profile','user','users','null','undefined',
+    'another-day-sober','assets-trudge','audio','audio-lag-test','basics','burn-pad','chapters','coins','corner','css','data','engine','fear-compass','fun','game','game2','gratitude-journal','halloween-game','meme','misfits','nightly-inventory','on-awakening','pile','qr','reader','readings','recovery-engine','recovery-misfits-first-five-coins','sober-date','story','survival-pile','test','tools','unofficial-story','untangler','white-knuckler'];
+    if (mode === "new" && NOT_NAMES.indexOf(String(name).trim().toLowerCase()) >= 0) return say($("say"), "That name is taken. Try another.", "bad");
 
     busy = true;
     $("submit").disabled = true;

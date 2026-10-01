@@ -1,4 +1,5 @@
-/* PROFILE LINKS: recoverymisfits.org/u/<name> (1 Oct 2026, Mike).
+/* PROFILE LINKS: recoverymisfits.org/u/<name> (1 Oct 2026, Mike). The short link
+ * recoverymisfits.org/<name> (functions/[handle].js) shows this same page.
  *
  * A Cloudflare Pages Function, like the Spin links in functions/s/.
  *   Public profile        -> header, picture, @name, bio and their Spins, plus one
@@ -84,7 +85,7 @@ try { var a = JSON.parse(localStorage.getItem('rm_account_v1') || 'null');
 </script>`;
 
 function profile(c, origin) {
-  const url = origin + '/u/' + c.handle;
+  const url = origin + '/' + c.handle;
   const img = c.avatar_path ? pic(c.avatar_path) : origin + '/icon-512.png';
   const spins = Array.isArray(c.spins) ? c.spins : [];
   return HEAD(`@${c.handle} on Recovery Misfits`, c.bio || 'On the Recovery Misfits Porch. Good company between meetings.', img, origin, url) + `
@@ -103,7 +104,7 @@ ${MEMBER_JS('/feed/porch.html?u=' + encodeURIComponent(c.handle))}
 }
 
 function members(h, origin) {
-  return HEAD('A profile on Recovery Misfits', 'On the Recovery Misfits Porch. Members only.', origin + '/icon-512.png', origin, origin + '/u/' + h) + `
+  return HEAD('A profile on Recovery Misfits', 'On the Recovery Misfits Porch. Members only.', origin + '/icon-512.png', origin, origin + '/' + h) + `
 <main class="gone">
   <img src="/icon-192.png" alt="" style="width:76px;height:76px;border-radius:18px;margin-bottom:18px">
   <h1>For members</h1>

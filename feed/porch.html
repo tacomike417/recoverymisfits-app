@@ -814,7 +814,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v56</span>
+  <span class="ver" id="ver">v57</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2142,9 +2142,9 @@ html.kb .ch-bar{padding-bottom:8px}
     if (!signedIn()) return open("join");
     var m = me.member || { handle: A.name() };
     /* 1 Oct 2026, Mike: picture, username, and underneath it their own link to visit or copy */
-    var plink = "recoverymisfits.org/u/" + encodeURIComponent(m.handle || "");
+    var plink = "recoverymisfits.org" + profPath(m.handle);
     $("mmhead").innerHTML = '<span class="ul" data-mm="profile">' + avatar(m) + '</span><div style="min-width:0;flex:1"><b class="ul" data-mm="profile">' + esc(m.handle) + "</b>" +
-      '<div class="mmurl"><a href="/u/' + encodeURIComponent(m.handle || "") + '" target="_blank" rel="noopener">' + esc(plink) + '</a><button type="button" data-copyurl="https://' + esc(plink) + '">Copy</button></div></div>';
+      '<div class="mmurl"><a href="' + profPath(m.handle) + '" target="_blank" rel="noopener">' + esc(plink) + '</a><button type="button" data-copyurl="https://' + esc(plink) + '">Copy</button></div></div>';
     $("mmbody").innerHTML = '<button type="button" data-mm="notes">Notifications' + (unread ? '<span class="mcount">' + unread + "</span>" : "") + "</button>" +
       (isMod ? '<button type="button" data-mm="mod">Reports' + (modCount ? '<span class="mcount">' + modCount + "</span>" : "") + "</button>" : "") +
       '<button type="button" data-mm="friends">Friends' + (reqCount() ? '<span class="mcount">' + reqCount() + "</span>" : "") + "</button>" +
@@ -2460,9 +2460,14 @@ html.kb .ch-bar{padding-bottom:8px}
       return paintSetup();
     }
   });
-  /* your profile's link: recoverymisfits.org/u/<name> (functions/u/[handle].js) */
+  /* your profile's link: recoverymisfits.org/<name> (functions/[handle].js, 1 Oct 2026, Mike).
+     A name that matches one of the site's own pages keeps the longer /u/<name> link.
+     Same list as account.html and functions/[handle].js. */
+  var NOT_NAMES = ['s','u','api','app','admin','feed','porch','login','signin','signup','account','settings','help','about','privacy','terms','support','mod','mods','staff','team','official','recoverymisfits','me','home','index','www','static','assets','images','cdn','blog','news','shop','store','search','explore','notifications','messages','spins','spin','friends','profile','user','users','null','undefined',
+    'another-day-sober','assets-trudge','audio','audio-lag-test','basics','burn-pad','chapters','coins','corner','css','data','engine','fear-compass','fun','game','game2','gratitude-journal','halloween-game','meme','misfits','nightly-inventory','on-awakening','pile','qr','reader','readings','recovery-engine','recovery-misfits-first-five-coins','sober-date','story','survival-pile','test','tools','unofficial-story','untangler','white-knuckler'];
+  function profPath(h) { h = String(h || "").toLowerCase(); return (NOT_NAMES.indexOf(h) >= 0 || /\.[a-z0-9]{2,5}$/.test(h) ? "/u/" : "/") + encodeURIComponent(h); }
   async function shareProfile() {
-    var m = me.member || {}, url = location.origin + "/u/" + encodeURIComponent(m.handle || "");
+    var m = me.member || {}, url = location.origin + profPath(m.handle);
     var note = m.visibility === "public" ? "" : " Your profile is Members only, so people need to sign in to see it.";
     try { if (navigator.share) { await navigator.share({ title: "@" + m.handle + " on Recovery Misfits", url: url }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
     try { await navigator.clipboard.writeText(url); toast("Link copied." + note); } catch (e) { toast(url); }

@@ -23,6 +23,9 @@ python3 -m pip install --quiet pillow >/dev/null 2>&1 || true
 ADS_OUT_ROOT="$PWD/_site" python3 scripts/build_pages.py
 # speaker tapes: allowed to fail quietly, exactly like deploy.yml
 ADS_OUT_ROOT="$PWD/_site" python3 scripts/fetch_tapes.py || true
+# everything at the top of the site, so recoverymisfits.org/<name> never steals a real page
+# (functions/[handle].js reads this)
+python3 -c "import os,json;print(json.dumps(sorted({n[:-5] if n.endswith('.html') else n for n in os.listdir('_site')})))" > _site/names-taken.json
 # every script/stylesheet link gets this deploy's version, so phones pick up changes right away
 python3 scripts/stamp_assets.py _site
 echo "Built into _site"
