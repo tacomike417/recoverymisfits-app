@@ -80,6 +80,10 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
 - Forgot password / username for Level 2: match the typed email's fingerprint, email a code.
 
 ### Porch vs Facebook/Instagram: what we added (30 Sep 2026)
+- **Layout (v17, 30 Sep 2026):** Porch top rail is FEED / SPINS / COINS / INVITE / MESSAGES; your picture sits in the
+  ACCOUNT well of the sober rail (Porch only) and opens your menu.
+- **Home button → daily readings (decided 30 Sep 2026, NOT built yet):** Mike picked **A: "Today" with a sunrise icon**
+  (mockup: ~/Downloads/home-button-mockup.png). It changes nav.js, so it goes live app-wide when we do it.
 - **Messages** (v15): friends only; words, photos (up to 4) and links; rated R not X (slurs, threats, scam/porn links
   stopped; spicy photos blurred "Tap to see"; full nudity blocked); private photos only the two people can open;
   inbox + unread count on the Messages icon; Seen; tap your own message to Unsend; Report/Block from the chat;

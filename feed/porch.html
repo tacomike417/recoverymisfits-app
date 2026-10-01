@@ -42,7 +42,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .ver{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:99999;padding:3px 10px;border-radius:999px;background:#fff;color:#000;font:800 12.5px/1.3 Arial,sans-serif;letter-spacing:.03em;box-shadow:0 2px 8px rgba(0,0,0,.45);pointer-events:none}
 #chrome #rm-topbar{position:relative;min-height:48px}
 #chrome .railbg{background:#100f0c}
-#rmrail{display:grid;grid-template-columns:repeat(6,1fr);max-width:480px;margin:0 auto;background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.18);border-bottom:1px solid rgba(214,179,106,.28)}
+#rmrail{display:grid;grid-template-columns:repeat(5,1fr);max-width:480px;margin:0 auto;background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.18);border-bottom:1px solid rgba(214,179,106,.28)}
 #rmrail a,#rmrail button{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0 9px;color:#b8ae98;font:500 12px/1 "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.08em;white-space:nowrap;text-decoration:none;background:none;border:0;cursor:pointer}
 #rmrail svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 #rmrail .inv{color:var(--gold2)}
@@ -210,8 +210,14 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .bell{position:absolute;top:calc(4px + env(safe-area-inset-top,0px));right:6px;z-index:99999;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:none;color:var(--cream);cursor:pointer}
 .bell svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .bell-n{position:absolute;top:1px;right:0;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#e41e3f;color:#fff;font:800 11px/19px system-ui,Arial,sans-serif;font-style:normal;text-align:center;box-shadow:0 0 0 2px #100f0c;box-sizing:border-box}
-.ver{right:94px!important}
-.bell.msgs{right:48px}
+.ver{right:52px!important}
+#rmrail .rmsg{position:relative;color:#e9dfc6}
+#rmrail .rmsg .mmark{width:26px;height:26px;stroke:none}
+#rmrail .rail-n{top:4px;right:auto;left:calc(50% + 4px);box-shadow:0 0 0 2px #100f0c}
+/* YOUR PICTURE ON THE SOBER RAIL (30 Sep 2026): the Account well shows your face and opens your menu */
+#rmAccountBtn.pin{position:relative}
+#rmAccountBtn.pin #railme{display:grid;place-items:center;width:21px;height:21px}
+#rmAccountBtn.pin #railme .av{width:21px;height:21px;font-size:9px;box-shadow:0 0 0 1.5px #1a160e,0 0 0 2.6px var(--gold2)}
 .layer.drop .dim{background:rgba(0,0,0,.55)}
 .nd-panel{position:absolute;left:8px;right:8px;top:var(--ndtop,70px);max-width:560px;margin:0 auto;max-height:calc(100% - var(--ndtop,70px) - 16px);overflow-y:auto;border-radius:18px;background:var(--sheet);border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.6);animation:nddrop .2s ease}
 @keyframes nddrop{from{opacity:0;transform:translateY(-10px)}}
@@ -490,7 +496,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 @keyframes hlpaper{0%,60%{box-shadow:0 0 0 2px var(--pgold);background:#f3e2b3}100%{box-shadow:none}}
 /* ================= MESSAGES (30 Sep 2026): clean and sleek, the way Jeff's site does it,
    in black and gold. Phone wins. ================= */
-.bell.msgs .mmark{width:27px;height:27px}
+
 .dmui{background:#0c0b09;color:#f4ecd8}
 .dmpage,.chatpage{display:flex;flex-direction:column;padding:0!important;overflow:hidden!important}
 .dm-head{flex:none;display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top,0px)) 12px 12px 16px;border-bottom:1px solid #221f18;background:#100f0c}
@@ -584,18 +590,16 @@ html.kb .ch-bar{padding-bottom:8px}
 <body>
 <div id="chrome">
   <div id="rm-topbar"></div>
-  <div class="railbg"><nav id="rmrail" aria-label="You">
-    <button type="button" class="inv" data-invite><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c1.3-4 4-6 7-6s5.7 2 7 6"/><path d="M19 8v6M16 11h6"/></svg>INVITE</button>
+  <div class="railbg"><nav id="rmrail" aria-label="The Porch">
+    <!-- 30 Sep 2026 (Mike): FEED / SPINS / COINS / INVITE / MESSAGES. Your picture lives on the sober rail now. -->
     <a class="on" href="/feed/porch.html" aria-current="page"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="8" rx="2"/><rect x="4" y="13" width="16" height="8" rx="2"/></svg>FEED</a>
-    <a href="/survival-pile.html"><svg viewBox="0 0 24 24"><rect x="7" y="3" width="12" height="16" rx="2"/><path d="M5 7v12a2 2 0 0 0 2 2h9"/></svg>MY PILE</a>
-    <a href="/coins.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8l1.2 2.6 2.8.3-2.1 1.9.6 2.8L12 14.2 9.5 15.6l.6-2.8L8 10.9l2.8-.3z"/></svg>MY COINS</a>
-    <a href="/another-day-sober.html"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2z"/><path d="M20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/></svg>TODAY</a>
-    <button type="button" class="meb" data-memenu aria-label="Your menu"><span id="railme"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg></span>ME</button>
+    <button type="button" data-spins><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.2"/><path d="M12 3a9 9 0 0 1 8.4 5.8M3.6 15.2A9 9 0 0 0 12 21"/></svg>SPINS</button>
+    <a href="/coins.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8l1.2 2.6 2.8.3-2.1 1.9.6 2.8L12 14.2 9.5 15.6l.6-2.8L8 10.9l2.8-.3z"/></svg>COINS</a>
+    <button type="button" class="inv" data-invite><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c1.3-4 4-6 7-6s5.7 2 7 6"/><path d="M19 8v6M16 11h6"/></svg>INVITE</button>
+    <button type="button" class="rmsg" data-msgs aria-label="Messages"><svg class="mmark" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="rmdmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e3a8"/><stop offset=".5" stop-color="#e0bd6a"/><stop offset="1" stop-color="#c4563c"/></linearGradient></defs><path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:url(#rmdmg);stroke:none"/><circle cx="8" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="12" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="16" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/></svg><i class="bell-n rail-n" id="msgn" hidden></i>MESSAGES</button>
   </nav></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v16</span>
-  <!-- MESSAGES (30 Sep 2026) -->
-  <button type="button" class="bell msgs" id="msgbtn" data-msgs aria-label="Messages"><svg class="mmark" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="rmdmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e3a8"/><stop offset=".5" stop-color="#e0bd6a"/><stop offset="1" stop-color="#c4563c"/></linearGradient></defs><path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:url(#rmdmg);stroke:none"/><circle cx="8" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="12" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="16" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/></svg><i class="bell-n" id="msgn" hidden></i></button>
+  <span class="ver" id="ver">v17</span>
   <!-- THE BELL (30 Sep 2026): notifications the way Jeff's site does them -->
   <button type="button" class="bell" id="bell" data-bell aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-2 8-2 8h16s-2-1-2-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="bell-n" id="belln" hidden></i></button>
 </div>
@@ -931,8 +935,24 @@ html.kb .ch-bar{padding-bottom:8px}
     if (me.member) people[me.uid] = me.member;
     try { saved = {}; (await rest("porch_saves?user_id=eq." + me.uid + "&select=post_id")).forEach(function (r) { saved[r.post_id] = true; }); } catch (e) {}
     try { isMod = !!(await rest("porch_moderators?user_id=eq." + me.uid + "&select=user_id")).length; } catch (e) { isMod = false; }
-    $("railme").innerHTML = avatar(me.member || { handle: A.name() });
+    paintPin();
   }
+
+  /* ================================================================ YOUR PICTURE ON THE SOBER RAIL (30 Sep 2026)
+     On the Porch, the brass rail's ACCOUNT well shows your face and opens your
+     menu (notifications, friends, profile, saved, account). The rail itself comes
+     from nav.js and loads a moment after this page, so this waits for it. Only
+     the Porch does this; every other page's rail is untouched. */
+  function paintPin() {
+    var btn = $("rmAccountBtn"); if (!btn) return;
+    if (!btn.classList.contains("pin")) {
+      btn.classList.add("pin"); btn.setAttribute("aria-label", "Your menu");
+      var img = btn.querySelector("img"); if (img) img.outerHTML = '<span id="railme"></span>';
+      btn.addEventListener("click", function (e) { e.preventDefault(); openMeMenu(); });
+    }
+    var rm = $("railme"); if (rm) rm.innerHTML = avatar(me.member || { handle: signedIn() ? A.name() : "?" });
+  }
+  (function waitForRail(n) { if ($("rmAccountBtn")) paintPin(); else if (n < 80) setTimeout(function () { waitForRail(n + 1); }, 100); })(0);
 
   /* ================================================================ PEOPLE */
   var people = {};
@@ -1768,6 +1788,7 @@ html.kb .ch-bar{padding-bottom:8px}
       '<button type="button" data-mm="friends">Friends' + (reqCount() ? '<span class="mcount">' + reqCount() + "</span>" : "") + "</button>" +
       '<button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>' +
       '<button type="button" data-mm="saved">Saved shares</button>' +
+      '<button type="button" data-mm="account">Your app account</button>' +
       (me.member ? '<button type="button" data-mm="leave" style="color:var(--faint);font-size:14px">Delete my Porch account</button>' : "");
     open("memenu");
   }
@@ -1801,7 +1822,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (!r.ok) { $("estatus").textContent = r.error || "That didn't upload."; return; }
     me.member[slot === "cover" ? "cover_path" : "avatar_path"] = r.path; people[me.uid] = me.member;
     $("estatus").textContent = slot === "cover" ? "Header photo updated." : "Profile picture updated.";
-    paintEdit(); $("railme").innerHTML = avatar(me.member);
+    paintEdit(); paintPin();
   }
   $("efcover").addEventListener("change", function () { newPicture(this, "cover"); });
   $("efav").addEventListener("change", function () { newPicture(this, "avatar"); });
@@ -1965,10 +1986,6 @@ html.kb .ch-bar{padding-bottom:8px}
       unread = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
     } catch (e) {}
     var n = $("belln"); n.hidden = !unread; n.textContent = unread > 99 ? "99+" : unread;
-    var d = document.querySelector("#rmrail .dot");
-    if (unread && !d) $("railme").insertAdjacentHTML("afterend", '<i class="dot"></i>');
-    d = document.querySelector("#rmrail .dot");
-    if (d) { if (unread) d.textContent = unread > 9 ? "9+" : unread; else d.remove(); }
     /* the number on the app icon, where the phone supports it */
     try { if (unread && navigator.setAppBadge) navigator.setAppBadge(unread); else if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) {}
   }
@@ -2452,7 +2469,7 @@ html.kb .ch-bar{padding-bottom:8px}
     }
     var mm = t.closest("[data-mm]");
     if (mm) { var which = mm.dataset.mm; closeTop().then(function () {
-      if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "friends") openFriends();
+      if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends();
       else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else gate(openEdit); }); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
@@ -2474,6 +2491,7 @@ html.kb .ch-bar{padding-bottom:8px}
     }
     if (t.closest("[data-more]") && id) return gate(function () { menu({ post: id }); });
     if (t.closest("[data-msgs]")) return gate(openInbox);
+    if (t.closest("[data-spins]")) return toast("Sober Spins are coming soon.");
     if (t.closest("[data-newdm]")) return openPick();
     var pk = t.closest("[data-dmpick]"); if (pk) { var pu = pk.dataset.dmpick; return closeTop().then(function () { openChat(pu); }); }
     var dmb = t.closest("[data-dm]"); if (dmb) return gate(function () { openChat(dmb.dataset.dm); });
