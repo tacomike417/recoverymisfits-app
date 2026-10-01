@@ -448,6 +448,9 @@
     <p style="text-align:center;font-family:var(--ui);font-size:11.5px;color:var(--muted);margin:10px 0 0">
       Signing out stops the syncing. It does not erase anything on this phone.
     </p>
+    <!-- DELETE MY APP ACCOUNT (1 Oct 2026, big list): small, at the very bottom -->
+    <button type="button" class="forgot" id="delAcct" style="margin-top:26px;color:var(--muted);font-size:12px">Delete my account</button>
+    <p class="say" id="sayDel" role="status" aria-live="polite"></p>
   </div>
 
 </main>
@@ -885,6 +888,29 @@
     return MONTHS[Number(m[2]) - 1] + " " + d + ord(d) + ", " + Number(m[1]);
   }
 
+  $("delAcct").addEventListener("click", async function () {
+    var b = this;
+    if (!b.dataset.sure) {
+      b.dataset.sure = "1"; b.style.color = "#ff9a8a";
+      b.textContent = "Tap again to delete it for good";
+      say($("sayDel"), "Your username, the sober date saved to it, your settings and everything on the Porch go away for good. This phone keeps its own copy of your date.");
+      return;
+    }
+    b.disabled = true; b.textContent = "Deleting…";
+    try {
+      var t = await A.token();
+      var r = await fetch("https://rlytvfehbglsjfvprtbp.supabase.co/functions/v1/porch", {
+        method: "POST",
+        headers: { apikey: "sb_publishable_5r-l8Bj8PjXhq5qpp1b26g_QQ7xPQ7P", Authorization: "Bearer " + t, "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete_account" })
+      });
+      var j = await r.json().catch(function () { return {}; });
+      if (!r.ok || !j.ok) { b.disabled = false; b.textContent = "Delete my account"; delete b.dataset.sure; return say($("sayDel"), (j && j.error) || "That didn't work. Try again.", "bad"); }
+    } catch (e) { b.disabled = false; b.textContent = "Delete my account"; delete b.dataset.sure; return say($("sayDel"), "No connection. Try again when you have signal.", "bad"); }
+    try { localStorage.removeItem("rm_porch_ok"); } catch (e) {}
+    $("dsOut").click();
+    say($("sayLvl"), "Your account is deleted. Take care of yourself.");
+  });
   $("dsOut").addEventListener("click", function () {
     A.signOut();
     clearInterval(watching);

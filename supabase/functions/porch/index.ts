@@ -280,8 +280,12 @@ Deno.serve(async (req) => {
 
   /* LEAVE THE PORCH: everything they ever put here, gone. Their app account
      (sober date, settings) stays. Works even if they're paused. */
-  if (b.action === "leave") {
+  /* DELETE MY APP ACCOUNT (1 Oct 2026, big list): everything on the Porch (same as
+     leave), then the app account itself: sober date, settings, username. Gone for good.
+     Not while paused, so deleting can't be used to dodge a report. */
+  if (b.action === "leave" || b.action === "delete_account") {
     const { data: m } = await admin.from("porch_members").select("frozen_at").eq("user_id", user.id).maybeSingle();
+    if (b.action === "delete_account" && m?.frozen_at) return json({ error: "Your account is paused while someone looks at a report. You can delete it once that's done." }, 403);
     await dropFolder(user.id);
     const { data: myThreads } = await admin.from("porch_threads").select("id").or("a.eq." + user.id + ",b.eq." + user.id);
     for (const t of myThreads || []) {
@@ -313,6 +317,13 @@ Deno.serve(async (req) => {
     await admin.from("porch_members").delete().eq("user_id", user.id);
     // a paused person's email stays locked, so leaving can't be used to dodge a report
     if (!m?.frozen_at) await admin.from("porch_identity").delete().eq("user_id", user.id);
+    if (b.action === "delete_account") {
+      await admin.from("porch_mutes").delete().eq("muter_id", user.id);
+      await admin.from("porch_blocks").delete().eq("blocked_id", user.id);
+      await admin.from("profiles").delete().eq("id", user.id);
+      const del = await admin.auth.admin.deleteUser(user.id);
+      if (del.error) return json({ error: "Your Porch stuff is gone, but the account didn't delete. Try again." }, 500);
+    }
     return json({ ok: true });
   }
 
