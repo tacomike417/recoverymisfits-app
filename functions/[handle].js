@@ -14,7 +14,7 @@ import { onRequestGet as profilePage } from './u/[handle].js';
 const EXTRA = ['s', 'u', 'api', 'app', 'admin', 'feed', 'porch', 'login', 'signin', 'signup', 'account', 'settings',
   'help', 'about', 'privacy', 'terms', 'support', 'mod', 'mods', 'staff', 'team', 'official', 'recoverymisfits',
   'me', 'home', 'index', 'www', 'static', 'assets', 'images', 'cdn', 'blog', 'news', 'shop', 'store', 'search',
-  'explore', 'notifications', 'messages', 'spins', 'spin', 'friends', 'profile', 'user', 'users', 'null', 'undefined'];
+  'explore', 'share-in', 'notifications', 'messages', 'spins', 'spin', 'friends', 'profile', 'user', 'users', 'null', 'undefined'];
 const FILE = /\.(html?|js|mjs|css|json|txt|xml|png|jpe?g|gif|webp|avif|svg|ico|mp3|mp4|wav|webm|woff2?|ttf|map|webmanifest|pdf|zip)$/i;
 
 let taken = null;

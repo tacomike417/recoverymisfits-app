@@ -24,7 +24,7 @@
   const TUS = 'https://video.bunnycdn.com/tusupload';
   const TUS_LIB = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
   const MB_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
-  const MAKER = '/feed/spins/spin-maker.js?v=34';
+  const MAKER = '/feed/spins/spin-maker.js?v=35';
   const MAX_S = 15.5;
   const RAIL_N = 14;
   const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at';
@@ -757,7 +757,7 @@
       return r.blob();
     }
   };
-  function openMaker(sound) {
+  function openMaker(sound, files) {
     if (!makerReady) makerReady = new Promise((ok, no) => {
       if (window.PorchSpinMaker) return ok();
       const s = document.createElement('script'); s.src = MAKER;
@@ -765,7 +765,7 @@
       document.head.appendChild(s);
     });
     makerReady.then(() => {
-      window.PorchSpinMaker.open({ music: musicApi, handle: P().name(meId()), sound: sound || null, onDone: (file, music) => startWithFile(file, music) });
+      window.PorchSpinMaker.open({ music: musicApi, handle: P().name(meId()), sound: sound || null, files: files || null, onDone: (file, music) => startWithFile(file, music) });
       fixMakerZ();
     }).catch(() => say("Couldn't open the maker. Check your connection."));
   }
@@ -774,6 +774,12 @@
     if (!meId()) return P().gate(() => {});
     if (uploading) return say('One Spin is still uploading. Hang on a sec.');
     P().gate(() => openMaker(sound && sound.id ? sound : null));
+  }
+  /* shared into the app from the phone's gallery (1 Oct 2026) */
+  function startWith(files) {
+    if (!meId()) return P().gate(() => {});
+    if (uploading) return say('One Spin is still uploading. Hang on a sec.');
+    P().gate(() => openMaker(null, files));
   }
 
   function closeNew() { if (pickedURL) { try { URL.revokeObjectURL(pickedURL); } catch (_) {} pickedURL = ''; } if (newEl) { newEl.remove(); newEl = null; } }
@@ -951,5 +957,5 @@
     } catch (_) { say("That Spin didn't load."); }
   }
 
-  window.PorchSpins = { paintRail, profileGrid, openLatest, openById, openPost, start, refreshRows };
+  window.PorchSpins = { paintRail, profileGrid, openLatest, openById, openPost, start, startWith, refreshRows };
 })();

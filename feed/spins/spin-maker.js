@@ -665,6 +665,7 @@
     paintPanel();
     restartPreview();
     if (opts && opts.sound && opts.sound.id) useSound(opts.sound);
+    if (opts && opts.files && opts.files.length) addFiles(opts.files);
   }
 
   /* USE THIS SOUND (1 Oct 2026, Mike: the viral list): "Use this sound" on
@@ -848,19 +849,25 @@
       else { inp.accept = 'image/*,video/*'; inp.multiple = true; picker = inp; }
       document.body.appendChild(inp);
       inp.addEventListener('change', async () => {
-        const files = [...(inp.files || [])].slice(0, MAX_PHOTOS - (st ? st.photos.length : 0));
+        const files = [...(inp.files || [])];
         inp.value = '';
-        for (const f of files) {
-          try {
-            const clip = /^video\//.test(f.type) || /\.(mov|mp4|webm|m4v)$/i.test(f.name) ? await videoClip(f) : await photoClip(f);
-            if (!st) { dropClip(clip); return; }
-            if (clip) st.photos.push(clip);
-          } catch (_) {}
-        }
-        if (st) { t0 = performance.now(); paintPanel(); }
+        await addFiles(files);
       });
     }
     inp.click();
+  }
+
+  /* files from the picker, or shared into the app from the phone's gallery */
+  async function addFiles(list) {
+    const files = [...(list || [])].slice(0, MAX_PHOTOS - (st ? st.photos.length : 0));
+    for (const f of files) {
+      try {
+        const clip = /^video\//.test(f.type) || /\.(mov|mp4|webm|m4v)$/i.test(f.name) ? await videoClip(f) : await photoClip(f);
+        if (!st) { dropClip(clip); return; }
+        if (clip) st.photos.push(clip);
+      } catch (_) {}
+    }
+    if (st) { t0 = performance.now(); paintPanel(); }
   }
 
   async function photoClip(f) {

@@ -31,7 +31,32 @@
    normal browser behavior after four seconds, so this can never be the
    reason somebody is staring at a blank screen. */
 
-const VERSION = "fresh-pages-2026-09-21";
+const VERSION = "share-in-2026-10-01";
+
+/* SHARING INTO THE APP (1 Oct 2026, Mike: "would you like to share this to your
+   spins or would you like to make a post?"). On Android, the app shows up in the
+   phone's Share menu (manifest.json share_target). The phone POSTs the photos,
+   video or link to /share-in; this holds them on the phone (nothing is uploaded)
+   and opens the Porch, which asks: Spin or post? */
+const SHARE_CACHE = "rm-share-in";
+async function takeShare(req) {
+  try {
+    const fd = await req.formData();
+    const files = fd.getAll("media").filter((f) => f && typeof f !== "string" && f.size);
+    const c = await caches.open(SHARE_CACHE);
+    for (const k of await c.keys()) await c.delete(k);
+    const names = [], types = [];
+    for (let i = 0; i < Math.min(files.length, 10); i++) {
+      names.push(files[i].name || ""); types.push(files[i].type || "");
+      await c.put("/share-in/f" + i, new Response(files[i], { headers: { "Content-Type": files[i].type || "application/octet-stream" } }));
+    }
+    const meta = { n: names.length, names, types, title: fd.get("title") || "", text: fd.get("text") || "", url: fd.get("url") || "", at: Date.now() };
+    await c.put("/share-in/meta", new Response(JSON.stringify(meta), { headers: { "Content-Type": "application/json" } }));
+    return Response.redirect(new URL("/feed/porch.html?shared=1", req.url).href, 303);
+  } catch (e) {
+    return Response.redirect(new URL("/feed/porch.html?shared=0", req.url).href, 303);
+  }
+}
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -63,6 +88,7 @@ self.addEventListener("activate", (event) => {
    are fingerprinted or rarely changed and are better off cached. */
 self.addEventListener("fetch", (event) => {
   const req = event.request;
+  if (req.method === "POST" && new URL(req.url).pathname === "/share-in") { event.respondWith(takeShare(req)); return; }
   if (req.mode !== "navigate") return;      /* not a page: browser handles it */
 
   event.respondWith((async () => {

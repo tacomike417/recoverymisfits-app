@@ -398,6 +398,7 @@ html.fullon #main{visibility:hidden}
 .pvis{display:inline-flex;align-items:center;gap:6px;margin:10px 16px 0;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--soft);font:700 12.5px Arial,sans-serif;cursor:pointer}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
 .eleave{display:block;margin:34px auto 10px;padding:8px 12px;border:0;background:none;color:var(--faint);font:700 12.5px Arial,sans-serif;text-decoration:underline;cursor:pointer}
+.shin-pic{display:block;width:84px;height:84px;object-fit:cover;border-radius:12px;margin:0 0 10px}
 /* every name and face goes to that person's page (1 Oct 2026) */
 .ul{cursor:pointer}.th-av{display:flex;flex:none}
 /* PROFILE LAYOUT A (1 Oct 2026) */
@@ -818,7 +819,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v60</span>
+  <span class="ver" id="ver">v61</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1715,7 +1716,11 @@ html.kb .ch-bar{padding-bottom:8px}
   $("cfilecam").addEventListener("change", function () { addComposePhotos(this); });
   $("cfile").addEventListener("change", function () { addComposePhotos(this); });
   async function addComposePhotos(inp) {
-    var files = Array.prototype.slice.call(inp.files || [], 0, 4 - photos.length); inp.value = "";
+    var list = Array.prototype.slice.call(inp.files || []); inp.value = "";
+    return addComposeFiles(list);
+  }
+  async function addComposeFiles(list) {
+    var files = list.slice(0, 4 - photos.length);
     for (var i = 0; i < files.length; i++) {
       var pd; try { pd = await shrink(files[i]); } catch (e) { $("cerr").textContent = "That photo couldn't be opened. Try a different one."; continue; }
       if (await scanPhoto(pd, "post", function () { $("cfile").click(); })) photos.push(pd);
@@ -2494,7 +2499,7 @@ html.kb .ch-bar{padding-bottom:8px}
      A name that matches one of the site's own pages keeps the longer /u/<name> link.
      Same list as account.html and functions/[handle].js. */
   var NOT_NAMES = ['s','u','api','app','admin','feed','porch','login','signin','signup','account','settings','help','about','privacy','terms','support','mod','mods','staff','team','official','recoverymisfits','me','home','index','www','static','assets','images','cdn','blog','news','shop','store','search','explore','notifications','messages','spins','spin','friends','profile','user','users','null','undefined',
-    'another-day-sober','assets-trudge','audio','audio-lag-test','basics','burn-pad','chapters','coins','corner','css','data','engine','fear-compass','fun','game','game2','gratitude-journal','halloween-game','meme','misfits','nightly-inventory','on-awakening','pile','qr','reader','readings','recovery-engine','recovery-misfits-first-five-coins','sober-date','story','survival-pile','test','tools','unofficial-story','untangler','white-knuckler'];
+    'another-day-sober','share-in','assets-trudge','audio','audio-lag-test','basics','burn-pad','chapters','coins','corner','css','data','engine','fear-compass','fun','game','game2','gratitude-journal','halloween-game','meme','misfits','nightly-inventory','on-awakening','pile','qr','reader','readings','recovery-engine','recovery-misfits-first-five-coins','sober-date','story','survival-pile','test','tools','unofficial-story','untangler','white-knuckler'];
   function profPath(h) { h = String(h || "").toLowerCase(); return (NOT_NAMES.indexOf(h) >= 0 || /\.[a-z0-9]{2,5}$/.test(h) ? "/u/" : "/") + encodeURIComponent(h); }
   async function shareProfile() {
     var m = me.member || {}, url = location.origin + profPath(m.handle);
@@ -3271,6 +3276,7 @@ html.kb .ch-bar{padding-bottom:8px}
       closeTop().then(go); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-leave]")) return askLeave();
+    var shin = t.closest("[data-shin]"); if (shin) { var how = shin.dataset.shin; return closeTop().then(function () { useShared(how); }); }
     if (t.closest("[data-sharep]")) return shareProfile();
     var ptab = t.closest("[data-ptab]"); if (ptab) { var pg2 = ptab.closest(".page") || document; pg2.querySelectorAll("[data-ptab]").forEach(function (b) { b.classList.toggle("on", b === ptab); }); pg2.querySelectorAll("[data-ppane]").forEach(function (d) { d.hidden = d.dataset.ppane !== ptab.dataset.ptab; }); return; }
     var cu = t.closest("[data-copyurl]"); if (cu) { var u = cu.dataset.copyurl; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { cu.textContent = "Copied"; toast("Your link is copied."); }, function () { toast(u); }); return; }
@@ -3581,6 +3587,50 @@ html.kb .ch-bar{padding-bottom:8px}
     pickFriendToSend: function (text, card) { openPick(text, card); }
   };
 
+  /* ================================================================ SHARED IN
+     1 Oct 2026, Mike: "when people are sharing into our app ... would you like to share
+     this to your spins or would you like to make a post?" On Android the app is in the
+     phone's Share menu. sw.js holds what came in; this asks what to do with it.
+     Videos can only be Spins; photos can be either; a link or words make a post. */
+  var shared = null;
+  async function takeShared() {
+    var c, meta; try { c = await caches.open("rm-share-in"); var mr = await c.match("/share-in/meta"); if (!mr) return; meta = await mr.json(); } catch (e) { return; }
+    var files = [];
+    for (var i = 0; i < meta.n; i++) {
+      try { var r = await c.match("/share-in/f" + i); if (r) { var b = await r.blob(); files.push(new File([b], meta.names[i] || "shared-" + i, { type: b.type || meta.types[i] || "" })); } } catch (e) {}
+    }
+    try { await caches.delete("rm-share-in"); } catch (e) {}
+    if (Date.now() - meta.at > 864e5) return;
+    var words = [];
+    [meta.title, meta.text, meta.url].forEach(function (w) { w = String(w || "").trim(); if (w && !words.some(function (x) { return x.indexOf(w) >= 0; })) words.push(w); });
+    shared = { files: files, words: words.join("\n") };
+    var vids = files.filter(function (f) { return /^video\//.test(f.type); }), pics = files.filter(function (f) { return /^image\//.test(f.type); });
+    var canSpin = files.length > 0, canPost = pics.length > 0 || (!files.length && shared.words);
+    if (!canSpin && !canPost) return toast("That didn't come through. Try sharing it again.");
+    if (canSpin && !canPost) return useShared("spin");
+    if (canPost && !canSpin) return useShared("post");
+    var thumb = pics[0] ? URL.createObjectURL(pics[0]) : "";
+    $("mbody").dataset.t = "{}"; $("mbody").dataset.uid = "";
+    $("mbody").innerHTML = (thumb ? '<img class="shin-pic" src="' + thumb + '" alt="">' : "") +
+      '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">Share it on the Porch</p>' +
+      '<button type="button" data-shin="spin">Make it a Spin</button>' +
+      '<button type="button" data-shin="post">Make a post</button>' +
+      '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
+    open("menu");
+  }
+  function useShared(how) {
+    var s = shared; if (!s) return;
+    shared = null;
+    if (how === "spin") { if (window.PorchSpins) window.PorchSpins.startWith(s.files); return; }
+    var pics = s.files.filter(function (f) { return /^image\//.test(f.type); });
+    gate(function () {
+      openCompose(pics.length ? "snap" : "say");
+      if (s.words) { $("cbody").value = s.words; paintCompose(); }
+      if (pics.length) addComposeFiles(pics);
+      if (pics.length < s.files.length) toast("Videos go in Spins, so the video was left out.");
+    });
+  }
+
   /* ================================================================ GO */
   (async function () {
     await loadMe();
@@ -3600,6 +3650,12 @@ html.kb .ch-bar{padding-bottom:8px}
     var who = new URLSearchParams(location.search).get("who");
     if (who && /^[0-9a-f-]{36}$/i.test(who)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openProfile(who); }
     if (/[?&]mod=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (isMod) openMod(); }
+    if (/[?&]shared=[01]/.test(location.search)) {
+      var ok = /[?&]shared=1/.test(location.search);
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}
+      if (!ok) toast("That didn't come through. Try sharing it again.");
+      else { var goShare = function () { takeShared(); }; if (window.PorchSpins) goShare(); else window.addEventListener("load", goShare); }
+    }
     if (/[?&]notes=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) openNotes(); }
     var spinQ = new URLSearchParams(location.search).get("spin");
     if (spinQ && /^[0-9a-f-]{36}$/i.test(spinQ)) {
@@ -3616,6 +3672,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=60" defer></script>
+<script src="/feed/spins/spins.js?v=61" defer></script>
 </body>
 </html>
