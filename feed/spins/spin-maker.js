@@ -524,6 +524,7 @@
 .lpm-trk span{flex:1;min-width:0}.lpm-trk b{display:block;font:800 13.5px/1.25 system-ui,sans-serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lpm-trk small{color:#94a3b8;font-size:12px}
 .lpm-trk .pl{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:#0f172a;color:#e0bd6a;font:900 13px/1 system-ui}
+.lpm-trk .pl.on{background:#e0bd6a;color:#17130b}
 .lpm-trk .use{flex:none;border:0;border-radius:999px;padding:8px 12px;background:#e0bd6a;color:#17130b;font:900 12.5px/1 system-ui,sans-serif}
 .lpm-busy{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgba(5,8,15,.86);text-align:center;font:900 18px/1.4 system-ui,sans-serif}
 .lpm-busy .bar{width:220px;height:8px;margin:14px auto 0;border-radius:4px;background:#334155;overflow:hidden}
@@ -559,7 +560,7 @@
   }
 
   function close() {
-    stopMusic(); if (hearing) { try { hearing.a.pause(); } catch (_) {} hearing = null; }
+    stopMusic(); stopHearing(false);
     window.removeEventListener('resize', fit);
     cancelAnimationFrame(raf); raf = 0;
     if (el) { el.remove(); el = null; }
@@ -644,6 +645,7 @@
 
   function paintPanel() {
     if (!el) return;
+    if (tab !== 'music' && hearing) stopHearing(true);
     el.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-tab') === tab));
     const p = el.querySelector('.lpm-panel');
     if (tab === 'photos') {
@@ -702,45 +704,62 @@
       <div class="lpm-moods">${MOOD_CHIPS.map(([k, n]) => `<button type="button" data-mood="${k}" class="${mq === k ? 'on' : ''}">${n}</button>`).join('')}</div>
       <form class="lpm-msearch"><input type="search" placeholder="Search music (rain, guitar, happy…)" enterkeyhint="search" value="${MOOD_CHIPS.some(([k]) => k === mq) ? '' : esc(mq)}"></form>
       <div class="lpm-tracks">${mloading ? '<p class="lpm-hint">Finding music…</p>' : tracks.length ? tracks.map((t, i) => `<div class="lpm-trk${m && m.id === t.id ? ' on' : ''}">
-          <button type="button" class="pl" data-mplay="${i}" aria-label="Hear it">▶</button>
+          <button type="button" class="pl${hearing && hearing.id === t.id ? ' on' : ''}" data-mplay="${i}" aria-label="Hear it">${hearing && hearing.id === t.id ? '❚❚' : '▶'}</button>
           <span><b>${esc(t.name)}</b><small>${esc(t.by)} · ${t.secs}s</small></span>
-          <button type="button" class="use" data-muse="${i}">${m && m.id === t.id ? '✓ On' : 'Use'}</button></div>`).join('') : '<p class="lpm-hint">Nothing found. Try another word.</p>'}</div>
+          <button type="button" class="use" data-muse="${i}">${m && m.id === t.id ? '✓ On · tap to remove' : 'Use'}</button></div>`).join('') : '<p class="lpm-hint">Nothing found. Try another word.</p>'}</div>
       <p class="lpm-hint">Free music nobody owns, safe to share anywhere. From Freesound.</p>`;
     const f = p.querySelector('.lpm-msearch');
     f.addEventListener('submit', (e) => { e.preventDefault(); const q = f.querySelector('input').value.trim(); if (q) loadTracks(q); });
     const mv = p.querySelector('[data-mvol]'); if (mv) mv.addEventListener('input', () => { st.mvol = Number(mv.value); if (maudio) maudio.volume = st.mvol; });
     const ov = p.querySelector('[data-ovol]'); if (ov) ov.addEventListener('input', () => { st.ovol = Number(ov.value); });
   }
-  let hearing = null;
+  /* ONE SOUND AT A TIME (30 Sep 2026, Mike: "they keep layering over each other").
+     Hearing a track pauses everything else, including the one you picked; tap ❚❚
+     to stop it and your picked track comes back. Tap "✓ On" to take music off. */
+  let hearing = null, hearN = 0;
+  function stopHearing(resume) {
+    hearN++;                                             /* a slow download that lands late won't start playing */
+    if (hearing) { try { hearing.a.pause(); } catch (_) {} hearing = null; }
+    if (el) el.querySelectorAll('[data-mplay]').forEach((b) => { b.textContent = '▶'; b.classList.remove('on'); });
+    if (resume) startMusic();
+  }
   async function hearTrack(i, btn) {
     const t = tracks[i]; if (!t) return;
-    if (hearing && hearing.id === t.id) { hearing.a.pause(); hearing = null; btn.textContent = '▶'; return; }
-    if (hearing) { hearing.a.pause(); hearing = null; el.querySelectorAll('[data-mplay]').forEach((b) => (b.textContent = '▶')); }
+    const same = hearing && hearing.id === t.id;
+    stopHearing(same);
+    if (same) return;
+    stopMusic();
+    const n = hearN;
     btn.textContent = '…';
     try {
       const blob = await musicApi.file(t.id);
+      if (n !== hearN || !el) return;
       const a = new Audio(URL.createObjectURL(blob)); a.volume = 0.8;
-      hearing = { id: t.id, a }; a.play().catch(() => {}); btn.textContent = '❚❚';
-      a.onended = () => { btn.textContent = '▶'; hearing = null; };
-    } catch (_) { btn.textContent = '▶'; }
+      hearing = { id: t.id, a }; a.play().catch(() => {});
+      btn.textContent = '❚❚'; btn.classList.add('on');
+      a.onended = () => { if (hearing && hearing.a === a) stopHearing(true); };
+    } catch (_) { if (n === hearN) btn.textContent = '▶'; }
   }
   async function useTrack(i, btn) {
     const t = tracks[i]; if (!t) return;
+    if (st.music && st.music.id === t.id) { stopHearing(false); stopMusic(); st.music = null; paintPanel(); return; }   /* tap ✓ On = no music */
     audioReady();                                        /* inside the tap */
+    stopHearing(false);
+    const n = hearN;
     btn.textContent = '…';
-    if (hearing) { hearing.a.pause(); hearing = null; }
     try {
       const blob = await musicApi.file(t.id);
       const buf = await actx.decodeAudioData(await blob.arrayBuffer());
+      if (n !== hearN || !st) return;
       stopMusic();
       st.music = { id: t.id, name: t.name, by: t.by, buf, url: URL.createObjectURL(blob) };
-      startMusic();
+      restartPreview();
     } catch (_) { btn.textContent = 'Use'; return; }
     paintPanel();
   }
   /* under the preview: the track plays from the top whenever the preview does */
   function startMusic() {
-    if (!st || !st.music) return;
+    if (!st || !st.music || hearing) return;
     if (!maudio) { maudio = new Audio(); maudio.loop = true; }
     if (maudio.src !== st.music.url) maudio.src = st.music.url;
     maudio.volume = st.mvol; try { maudio.currentTime = 0; } catch (_) {}
@@ -867,7 +886,7 @@
       const md = e.target.closest('[data-mood]'); if (md) { loadTracks(md.getAttribute('data-mood')); return; }
       const mp = e.target.closest('[data-mplay]'); if (mp) { hearTrack(Number(mp.getAttribute('data-mplay')), mp); return; }
       const mu = e.target.closest('[data-muse]'); if (mu) { useTrack(Number(mu.getAttribute('data-muse')), mu); return; }
-      if (e.target.closest('[data-mnone]')) { stopMusic(); st.music = null; paintPanel(); return; }
+      if (e.target.closest('[data-mnone]')) { stopHearing(false); stopMusic(); st.music = null; paintPanel(); return; }
     });
 
     cv.addEventListener('pointerdown', (e) => {
@@ -932,7 +951,7 @@
        every Loop carries the ∞ INFINITE PULLS mark, wherever it is shared
        (Mike, 27 Sep). */
     const withSound = hasVideo() || !!st.music;
-    stopMusic(); if (hearing) { try { hearing.a.pause(); } catch (_) {} hearing = null; }
+    stopMusic(); stopHearing(false);
     if (withSound) audioReady();          /* inside the tap, or phones keep it silent */
     busy = true;
     st.sel = -1;
