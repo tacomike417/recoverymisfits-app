@@ -394,6 +394,34 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .prow .pedit{margin:0;width:auto;flex:1}
 .pvis{display:inline-flex;align-items:center;gap:6px;margin:10px 16px 0;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--soft);font:700 12.5px Arial,sans-serif;cursor:pointer}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
+/* PROFILE LAYOUT A (1 Oct 2026) */
+.pcover.pa{height:150px}
+.pahead{display:flex;align-items:flex-end;gap:12px;margin:-46px 16px 0;position:relative;z-index:1}
+.pav.pa{margin:0;width:92px;height:92px;padding:3px;flex:none}
+.pav.pa .av{font-size:34px;border-width:3px}
+.pa-nm{min-width:0;padding-bottom:6px}
+.pa-nm h2{margin:0;font:400 28px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em;word-break:break-all}
+.pa-badge{display:inline-flex;margin-top:6px;padding:3px 9px;border-radius:999px;background:rgba(224,189,106,.15);border:1px solid rgba(224,189,106,.5);color:var(--gold2);font:800 10.5px Arial,sans-serif;letter-spacing:.08em}
+.pa-body{padding:0 16px}
+.pa-bio{margin:10px 0 0;color:var(--soft);font:600 15px/1.4 Arial,sans-serif;white-space:pre-wrap}
+.pa-bio.none{color:var(--faint)}
+.pa-meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px}
+.pa-meta span,.pa-meta button{display:inline-flex;align-items:center;gap:5px;padding:0;border:0;background:none;color:var(--muted);font:700 12.5px Arial,sans-serif;cursor:default}
+.pa-meta button{cursor:pointer}
+.pa-meta svg,.pa-btns svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pa-btns{display:flex;gap:8px;margin-top:14px}
+.pa-btns>button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:800 14px Arial,sans-serif;cursor:pointer}
+.pa-btns>button svg{width:17px;height:17px;color:var(--gold2)}
+.pa-them .fwrap{display:flex;gap:8px;width:100%}.pa-them .fol{flex:1;margin:0;justify-content:center}
+.pa-friends{display:flex;align-items:center;gap:10px;width:100%;margin-top:14px;padding:10px 12px;border-radius:14px;background:var(--field);border:1px solid var(--line);color:var(--cream);cursor:pointer;text-align:left}
+.pa-lab{font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold2)}
+.pa-faces{display:flex}.pa-faces .av{width:32px;height:32px;font-size:11px;margin-left:-9px;box-shadow:0 0 0 2px var(--bg)}.pa-faces .av:first-child{margin-left:0}
+.pa-all{margin-left:auto;color:var(--gold2);font:800 13px Arial,sans-serif}
+.pa-tabs{display:flex;margin-top:14px;border-bottom:1px solid var(--line)}
+.pa-tabs button{flex:1;padding:12px 0 10px;border:0;border-bottom:3px solid transparent;background:none;color:var(--muted);font:500 14px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;cursor:pointer}
+.pa-tabs button.on{color:var(--cream);border-bottom-color:var(--gold2)}
+[data-ppane] .sp-grid,[data-ppane] .grid{padding:4px;gap:4px}
+[data-ppane] .grid button,[data-ppane] .sp-gt{border-radius:10px;overflow:hidden}
 .plab{margin:22px 16px 8px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
 .grid button{position:relative;aspect-ratio:1/1;padding:0;border:0;overflow:hidden;background:var(--field);cursor:pointer;color:var(--cream)}
@@ -784,7 +812,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v54</span>
+  <span class="ver" id="ver">v55</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2066,17 +2094,33 @@ html.kb .ch-bar{padding-bottom:8px}
       var list = await postsFor(uid);
     } catch (e) { list = []; }
     var mineP = uid === me.uid;
+    /* PROFILE, LAYOUT A (1 Oct 2026, Mike picked it): cover with the picture over its
+       edge, name + badge, bio, when they joined, one compact row of buttons, a strip of
+       friends' faces, then Spins | Shares | Wins. No counts anywhere (house rule). */
+    var TEST = ["tacomike417", "misfit_tester", "fire_l0ve", "krazyk226"];
+    var since = m.created_at ? new Date(m.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "";
+    var wins = list.filter(function (p) { return p.need === "win"; }), shares = list.filter(function (p) { return p.need !== "win"; });
+    var fids = mineP ? realFriends() : [];
+    /* friends lists are private (only you can read yours), so this strip only shows on your own profile */
+    var I2 = function (d) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + d + "</svg>"; };
+    var ICAL = I2('<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'), ILOCK = I2('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'), IGLOBE = I2('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>');
+    var IEDIT = I2('<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M14.5 7.5l3 3"/>'), ISHARE = I2('<path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>'), IFIND = I2('<circle cx="9" cy="8" r="3.6"/><path d="M2.5 20c1.2-3.6 3.7-5.4 6.5-5.4s5.3 1.8 6.5 5.4"/><path d="M19 8v6M16 11h6"/>');
+    var tabBody = { shares: shares.length ? '<div class="grid">' + shares.map(tileHTML).join("") + "</div>" : '<p class="pempty">' + (mineP ? "Nothing shared yet. Tap + on the Porch." : "Nothing shared yet.") + "</p>",
+      wins: wins.length ? '<div class="grid">' + wins.map(tileHTML).join("") + "</div>" : '<p class="pempty">' + (mineP ? "No wins shared yet. Tap + then Celebrate a win." : "No wins shared yet.") + "</p>" };
     $("pfpage").innerHTML =
-      '<div class="pcover"' + (m.cover_path ? ' style="background-image:url(\'' + pic(m.cover_path) + '\')"' : "") + '></div>' +
-      '<div class="pav">' + avatar(m) + "</div>" +
-      '<div class="pname"><h2>' + esc(m.handle) + "</h2>" + (!mineP ? '<div class="pfb">' + friendBtn(uid) + "</div>" : "") + (m.bio ? "<p>" + linkify(m.bio) + "</p>" : mineP ? '<p class="none">Add a line about you.</p>' : "") + "</div>" +
-      (mineP ? '<button type="button" class="pvis" data-editp>' + (m.visibility === "public" ? "🌐 Public profile" : "🔒 Members only") + "</button>" : "") +
-      (mineP ? '<div class="prow"><button type="button" class="pedit" data-editp>Edit profile</button><button type="button" class="pedit" data-sharep>Share my profile</button></div>' +
-        '<button type="button" class="pedit" data-findf>Find friends</button>' : "") +
-      '<div class="plab"><svg viewBox="0 0 24 24" style="color:#e0bd6a;width:16px;height:16px;margin:-3px 6px 0 0;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>' + (mineP ? "MY SOBER SPINS" : "SOBER SPINS") + '</div><div id="pfspins"></div>' +
-      '<div class="plab">' + (mineP ? "MY SHARES" : "SHARES") + "</div>" +
-      (list.length ? '<div class="grid">' + list.map(tileHTML).join("") + "</div>"
-        : '<p class="pempty">' + (mineP ? "Nothing shared yet. Tap Share on the Porch." : "Nothing shared yet.") + "</p>");
+      '<div class="pcover pa"' + (m.cover_path ? ' style="background-image:url(\'' + pic(m.cover_path) + '\')"' : "") + '></div>' +
+      '<div class="pahead"><div class="pav pa">' + avatar(m) + '</div><div class="pa-nm"><h2>' + esc(m.handle) + "</h2>" +
+        (TEST.indexOf(String(m.handle || "").toLowerCase()) >= 0 ? '<span class="pa-badge">BETA TESTER</span>' : "") + "</div></div>" +
+      '<div class="pa-body">' +
+        (m.bio ? '<p class="pa-bio">' + linkify(m.bio) + "</p>" : mineP ? '<p class="pa-bio none">Add a line about you.</p>' : "") +
+        '<div class="pa-meta">' + (since ? "<span>" + ICAL + "Misfit since " + esc(since) + "</span>" : "") +
+          (mineP ? '<button type="button" data-editp>' + (m.visibility === "public" ? IGLOBE + "Public" : ILOCK + "Members only") + "</button>" : "") + "</div>" +
+        (mineP ? '<div class="pa-btns"><button type="button" data-editp>' + IEDIT + "Edit</button><button type=\"button\" data-sharep>" + ISHARE + "Share</button><button type=\"button\" data-findf>" + IFIND + "Find</button></div>"
+          : '<div class="pa-btns pa-them">' + friendBtn(uid) + "</div>") +
+        (fids.length ? '<button type="button" class="pa-friends" data-allf><span class="pa-lab">FRIENDS</span><span class="pa-faces">' + fids.slice(0, 6).map(function (f) { return avatar(people[f]); }).join("") + "</span>" + (mineP ? '<span class="pa-all">See all ›</span>' : "") + "</button>" : "") +
+      "</div>" +
+      '<div class="pa-tabs" role="tablist"><button type="button" class="on" data-ptab="spins" role="tab">SPINS</button><button type="button" data-ptab="shares" role="tab">SHARES</button><button type="button" data-ptab="wins" role="tab">WINS</button></div>' +
+      '<div data-ppane="spins"><div id="pfspins"></div></div><div data-ppane="shares" hidden>' + tabBody.shares + '</div><div data-ppane="wins" hidden>' + tabBody.wins + "</div>";
     if (window.PorchSpins && !isSample(uid)) window.PorchSpins.profileGrid($("pfspins"), uid); else $("pfspins").innerHTML = '<p class="pempty">No Spins right now.</p>';
   }
   function openSingle(id) {
@@ -3181,8 +3225,10 @@ html.kb .ch-bar{padding-bottom:8px}
       else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else if (which === "signout") signOutHere(); else gate(openEdit); }); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-sharep]")) return shareProfile();
+    var ptab = t.closest("[data-ptab]"); if (ptab) { var pg2 = ptab.closest(".page") || document; pg2.querySelectorAll("[data-ptab]").forEach(function (b) { b.classList.toggle("on", b === ptab); }); pg2.querySelectorAll("[data-ppane]").forEach(function (d) { d.hidden = d.dataset.ppane !== ptab.dataset.ptab; }); return; }
     var cu = t.closest("[data-copyurl]"); if (cu) { var u = cu.dataset.copyurl; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { cu.textContent = "Copied"; toast("Your link is copied."); }, function () { toast(u); }); return; }
     if (t.closest("[data-findf]")) return openSetup("friends");
+    if (t.closest("[data-allf]")) return openFriends();
     if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
     if (t.closest("[data-new]")) return toggleDial();
     if (t.closest("[data-dialx]")) return closeDial();
@@ -3522,6 +3568,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=54" defer></script>
+<script src="/feed/spins/spins.js?v=55" defer></script>
 </body>
 </html>
