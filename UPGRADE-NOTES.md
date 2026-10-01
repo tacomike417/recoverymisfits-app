@@ -31,7 +31,7 @@ Order isn't set.
 - [x] Groups (done 1 Oct, v65: Groups tab, group pages, apply to start one, Mike approves).
       Trusted starters (step 21): tacomike417, fire_l0ve, krazyk226 skip the active test, to seed
       feeder groups. Still takes two, and Mike still approves each one.
-      Still to come inside groups: Events, group chat, Spins tab, group cover photos.
+      Still to come inside groups: Events (parked), Spins tab, group cover photos.
       Mike's rules (1 Oct): Groups get their own tab (mockup A).
       Two people start a group: a Keeper and a Co-keeper (not "admin" or "moderator").
       Starting a group is a privilege you earn: the Keeper is an ACTIVE member with 30
@@ -43,8 +43,10 @@ Order isn't set.
       Only members see what's shared in a group. Moderators can look in on any group.
       Nobody shares for 90 days = it closes (heads-up at 75 days). Closed is not erased.
       No sober-date rule. Events and group chat live inside groups (built after).
-- [ ] Events: "Thursday 7pm speaker meeting, who's going" with I'm going
-- [ ] Group chats in Messages
+- [ ] PARKED until there are some users (Mike, 1 Oct): Events: "Thursday 7pm speaker meeting,
+      who's going" with I'm going
+- [x] Group chats in Messages (done 1 Oct, v66: friends only, 12 people at the most; database step 22).
+      A chat room INSIDE a Group: no (Mike, 1 Oct). Shares and comments are the one place to talk.
 - [ ] Voice messages in Messages (hold to talk)
 - [ ] Sounds: a ding for new messages (in the app and on the phone alert), and a ringtone
       for incoming video calls

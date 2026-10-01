@@ -76,8 +76,47 @@ Deno.serve(async (req) => {
   const secret = await setting("push_secret");
   if (!secret || req.headers.get("x-porch-secret") !== secret) return json({ error: "no" }, 403);
 
-  let note_id = "", dm_id = "";
-  try { const j = await req.json(); note_id = String(j.note_id || ""); dm_id = String(j.dm_id || ""); } catch { /* empty */ }
+  let note_id = "", dm_id = "", gdm_id = "";
+  try { const j = await req.json(); note_id = String(j.note_id || ""); dm_id = String(j.dm_id || ""); gdm_id = String(j.gdm_id || ""); } catch { /* empty */ }
+
+  /* A NEW MESSAGE IN A GROUP CHAT (1 Oct 2026): "grateful_gina in The Crew" / what she said.
+     Everybody else in the chat gets it, except anybody blocked with the sender. */
+  if (gdm_id) {
+    const { data: m } = await admin.from("porch_gdm").select("*").eq("id", gdm_id).maybeSingle();
+    if (!m || Date.now() - new Date(m.created_at).getTime() > 3600_000) return json({ ok: true, sent: 0 });
+    const [{ data: c }, { data: mem }, { data: who }] = await Promise.all([
+      admin.from("porch_gchats").select("name").eq("id", m.chat_id).maybeSingle(),
+      admin.from("porch_gchat_members").select("user_id").eq("chat_id", m.chat_id).neq("user_id", m.from_id),
+      admin.from("porch_members").select("handle").eq("user_id", m.from_id).maybeSingle(),
+    ]);
+    const ids = (mem || []).map((x: any) => x.user_id);
+    if (!ids.length) return json({ ok: true, sent: 0 });
+    const { data: phones } = await admin.from("porch_push").select("*").in("user_id", ids);
+    if (!phones?.length) return json({ ok: true, sent: 0 });
+    await vapid();
+    let said = String(m.body || "").replace(/\s+/g, " ").trim();
+    const sh = said.match(/https?:\/\/(?:www\.)?recoverymisfits\.org\/(?:s\/|feed\/porch\.html\?(?:spin|s)=)\S+/i);
+    if (sh) said = said.replace(sh[0], "").trim() || (/\/s\/|spin=/.test(sh[0]) ? "Sent a Spin" : "Sent a share");
+    const payload = JSON.stringify({
+      title: (who?.handle || "Somebody") + " in " + (c?.name || "your group chat"),
+      body: m.racy ? "Sent a photo" : said ? (said.length > 140 ? said.slice(0, 137) + "…" : said) : (m.photo_paths?.length > 1 ? "Sent " + m.photo_paths.length + " photos" : "Sent a photo"),
+      url: "/feed/porch.html?gc=" + m.chat_id,
+      tag: "porch-gdm-" + m.chat_id,
+    });
+    let sent = 0;
+    for (const p of phones) {
+      const { data: blk } = await admin.rpc("porch_blocked", { a: p.user_id, b: m.from_id });
+      if (blk) continue;
+      try {
+        await webpush.sendNotification({ endpoint: p.endpoint, keys: { p256dh: p.p256dh, auth: p.auth } }, payload, { TTL: 86400, urgency: "normal" });
+        sent++;
+      } catch (e) {
+        const code = (e as any)?.statusCode;
+        if (code === 404 || code === 410) await admin.from("porch_push").delete().eq("endpoint", p.endpoint);
+      }
+    }
+    return json({ ok: true, sent });
+  }
 
   /* A NEW MESSAGE (30 Sep 2026): "grateful_gina" / what she said. One alert per chat
      on the lock screen (each new one replaces the last), tap opens that chat. */

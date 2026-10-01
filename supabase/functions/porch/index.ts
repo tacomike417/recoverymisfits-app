@@ -314,6 +314,11 @@ Deno.serve(async (req) => {
       ["porch_mutes", "muter_id"], ["porch_mutes", "muted_id"]] as const) {
       await admin.from(t).delete().eq(col, user.id);
     }
+    // out of every group chat, and their photos in them go too (1 Oct 2026)
+    const { data: myG } = await admin.from("porch_gdm").select("photo_paths").eq("from_id", user.id).neq("photo_paths", "{}");
+    const gPaths = (myG || []).flatMap((x: any) => x.photo_paths || []);
+    for (let i = 0; i < gPaths.length; i += 100) await admin.storage.from("porch-dm").remove(gPaths.slice(i, i + 100));
+    await admin.rpc("porch_gchats_forget", { p: user.id });
     // out of every group; a Co-keeper steps up; a group with no keeper closes
     await admin.rpc("porch_groups_forget", { p: user.id });
     await admin.from("porch_members").delete().eq("user_id", user.id);
@@ -528,6 +533,54 @@ Deno.serve(async (req) => {
     await admin.from("porch_dm").update({ unsent_at: new Date().toISOString(), body: null, photo_paths: [], racy: false }).eq("id", m.id);
     const { data: t } = await admin.from("porch_threads").select("last_at").eq("id", m.thread_id).maybeSingle();
     if (t && t.last_at === m.created_at) await admin.from("porch_threads").update({ last_preview: "Unsent a message" }).eq("id", m.thread_id);
+    return json({ ok: true });
+  }
+
+  /* GROUP CHATS IN MESSAGES (1 Oct 2026, Mike: friends only, capped at 12). Same checks as a
+     one-on-one message. Who's in a chat is decided by the database (porch_22_group_chats.sql).
+     gdm_send { chat_id, body?, photos?, sure? } / gdm_unsend { id } */
+  if (b.action === "gdm_send") {
+    const chatId = String(b.chat_id || "");
+    if (!/^[0-9a-f-]{36}$/i.test(chatId)) return json({ error: "That chat isn't here." }, 400);
+    const { data: inChat } = await admin.rpc("porch_in_gchat", { c: chatId, u: user.id });
+    if (!inChat) return json({ error: "You're not in that chat." }, 403);
+    const { count: sent } = await admin.from("porch_gdm").select("id", { count: "exact", head: true })
+      .eq("from_id", user.id).gt("created_at", new Date(Date.now() - 3600_000).toISOString());
+    if ((sent || 0) >= 200) return json({ error: "That's a lot of messages. Take a breather and try again in a bit." }, 429);
+    if (text.length > 2000) return json({ error: "That's too long." }, 400);
+    const photos: string[] = Array.isArray(b.photos) ? b.photos.slice(0, 4) : [];
+    if (!text && !photos.length) return json({ error: "Say something first." }, 400);
+    if (SLURS.test(text)) return json({ error: "That has a slur in it, so it wasn't sent." }, 400);
+    if (THREAT.test(text)) return json({ error: "That reads like a threat, so it wasn't sent." }, 400);
+    const l = await checkLinks(text); if (l) return json({ error: l }, 400);
+    if (!b.sure && heated(text)) return json({ pause: true });
+    const paths: string[] = []; let racy = false;
+    for (const p of photos) {
+      const b64 = String(p).replace(/^data:image\/\w+;base64,/, "");
+      let bytes: Uint8Array;
+      try { bytes = decodeBase64(b64); } catch { return json({ error: "That photo couldn't be read." }, 400); }
+      const ck = await dmPhoto(bytes, b64, !!b.faces_ok); if (ck.error) return json({ error: ck.error, need: ck.need }, 400);
+      racy = racy || !!ck.racy;
+      const path = chatId + "/" + crypto.randomUUID() + ".jpg";
+      const { error: upErr } = await admin.storage.from("porch-dm").upload(path, bytes, { contentType: "image/jpeg" });
+      if (upErr) return json({ error: "The photo didn't send. Try again." }, 500);
+      paths.push(path);
+    }
+    const { data: msg, error } = await admin.from("porch_gdm")
+      .insert({ chat_id: chatId, from_id: user.id, body: text || null, photo_paths: paths, racy }).select("*").single();
+    if (error) return json({ error: "That didn't go through. Try again." }, 500);
+    const preview = text ? text.replace(/\s+/g, " ").slice(0, 90) : paths.length > 1 ? "Sent " + paths.length + " photos" : "Sent a photo";
+    await admin.from("porch_gchats").update({ last_at: msg.created_at, last_from: user.id, last_preview: preview }).eq("id", chatId);
+    await admin.from("porch_gchat_members").update({ read_at: msg.created_at }).eq("chat_id", chatId).eq("user_id", user.id);
+    return json({ ok: true, message: msg, care: CARE.test(text) });
+  }
+  if (b.action === "gdm_unsend") {
+    const { data: m } = await admin.from("porch_gdm").select("id, from_id, chat_id, photo_paths, created_at").eq("id", b.id).maybeSingle();
+    if (!m || m.from_id !== user.id) return json({ error: "You can only unsend your own." }, 403);
+    if (m.photo_paths?.length) await admin.storage.from("porch-dm").remove(m.photo_paths);
+    await admin.from("porch_gdm").update({ unsent_at: new Date().toISOString(), body: null, photo_paths: [], racy: false }).eq("id", m.id);
+    const { data: c } = await admin.from("porch_gchats").select("last_at").eq("id", m.chat_id).maybeSingle();
+    if (c && c.last_at === m.created_at) await admin.from("porch_gchats").update({ last_preview: "Unsent a message" }).eq("id", m.chat_id);
     return json({ ok: true });
   }
 

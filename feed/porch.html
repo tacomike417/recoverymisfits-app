@@ -398,6 +398,12 @@ html.fullon #main{visibility:hidden}
 .prow .pedit{margin:0;width:auto;flex:1}
 .pvis{display:inline-flex;align-items:center;gap:6px;margin:10px 16px 0;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--soft);font:700 12.5px Arial,sans-serif;cursor:pointer}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
+/* GROUP CHATS (1 Oct 2026) */
+.dm-pill.line{background:none;border:1px solid #5a4d2c;color:#f4ecd8}
+.gc-face{flex:none;display:flex}.gc-face .g-tile{border-radius:50%}
+.ch-who{margin:10px 0 2px 2px}.ch-who .ul{display:inline-flex;align-items:center;gap:6px;color:#b9ae96;font:800 12.5px Arial,sans-serif}
+.ch-who .av{width:22px;height:22px;font-size:9px;box-shadow:none;border:0}
+#mbody .bm-row button[data-gcmember]{padding:6px 12px;font-size:16px}
 /* GROUPS (1 Oct 2026) */
 .g-wrap{padding:6px 14px 30px}
 .g-lab{margin:20px 0 8px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold)}
@@ -875,7 +881,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v65</span>
+  <span class="ver" id="ver">v66</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1087,7 +1093,7 @@ html.kb .ch-bar{padding-bottom:8px}
 
 <!-- MESSAGES: the inbox -->
 <div id="inbox" class="layer full dmui" role="dialog" aria-modal="true" aria-label="Messages"><div class="page dmpage">
-  <div class="dm-head"><h2>Messages</h2><button type="button" class="dm-pill" data-newdm><span data-ico="newdm"></span>New</button></div>
+  <div class="dm-head"><h2>Messages</h2><button type="button" class="dm-pill line" data-newgc>Group</button><button type="button" class="dm-pill" data-newdm><span data-ico="newdm"></span>New</button></div>
   <div class="dm-list" id="thlist"></div>
 </div></div>
 
@@ -1158,6 +1164,11 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="profile" class="layer full" role="dialog" aria-modal="true" aria-label="Profile"><div class="page" id="pfpage"></div></div>
 
 <!-- ONE SHARE, opened from a profile -->
+<!-- NEW GROUP CHAT / ADD FRIENDS (1 Oct 2026) -->
+<div id="gcnew" class="layer" role="dialog" aria-modal="true" aria-label="Group chat">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div><div id="gcbody"></div></div>
+</div>
 <!-- GROUPS (1 Oct 2026): inside a group, and applying to start one. Phone back = one step back. -->
 <div id="group" class="layer full" role="dialog" aria-modal="true" aria-label="Group"><div class="page" id="gpage"></div></div>
 <div id="gstart" class="layer full" role="dialog" aria-modal="true" aria-label="Start a group"><div class="page" id="gspage" style="padding-left:16px;padding-right:16px"></div></div>
@@ -2085,8 +2096,8 @@ html.kb .ch-bar{padding-bottom:8px}
       return closeTop();
     }
     if (m === "dmunsend") {
-      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again: it's gone for both of you"; return; }
-      var ur = await fn("porch", { action: "dm_unsend", id: t.dm }); await closeTop();
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = chat && chat.gid ? "Tap again: it's gone for everybody" : "Tap again: it's gone for both of you"; return; }
+      var ur = await fn("porch", { action: chat && chat.gid ? "gdm_unsend" : "dm_unsend", id: t.dm }); await closeTop();
       if (!ur.ok) return toast(ur.error || "That didn't go through.");
       return loadChat(true);
     }
@@ -2880,6 +2891,7 @@ html.kb .ch-bar{padding-bottom:8px}
         .filter(function (t) { return t.last_from && t.last_from !== me.uid; });
       await loadPeople(dms.map(otherOf));
     } catch (e) {}
+    var gdms = []; try { gdms = (await loadGChats()).filter(function (c) { return c.last_from && c.last_from !== me.uid; }).slice(0, 10); } catch (e) {}
     function dmRow(t) {
       var o = otherOf(t), isNew = !myReadOf(t) || t.last_at > myReadOf(t), pv = previewWords(t.last_preview);
       return '<div role="button" tabindex="0" class="nd-row' + (isNew ? " is-new" : "") + '" data-ndm="' + o + '">' +
@@ -2911,10 +2923,17 @@ html.kb .ch-bar{padding-bottom:8px}
         right + (isNew && !right ? '<i class="nd-dot"></i>' : "") + "</div>";
     }
     /* notes and messages together, newest first */
-    var all = list.map(function (n) { return { t: n.created_at, n: n }; }).concat(dms.map(function (d) { return { t: d.last_at, d: d }; }))
+    function gdmRow(c) {
+      var pv = previewWords(c.last_preview);
+      return '<div role="button" tabindex="0" class="nd-row' + (c.unread ? " is-new" : "") + '" data-ngc="' + c.id + '">' +
+        '<span class="nd-av" data-u="' + c.last_from + '">' + avatar(people[c.last_from]) + '<span class="nd-k dm">' + ico("comment") + "</span></span>" +
+        '<span class="nd-t"><span><b class="ul" data-u="' + c.last_from + '">' + esc(name(c.last_from)) + "</b> messaged <b>" + esc(gcName(c, c.members)) + "</b>" + (pv ? ": “" + esc(pv.length > 90 ? pv.slice(0, 90) + "…" : pv) + "”" : "") + "</span><small>" + ago(c.last_at) + "</small></span>" +
+        (c.unread ? '<i class="nd-dot"></i>' : "") + "</div>";
+    }
+    var all = list.map(function (n) { return { t: n.created_at, n: n }; }).concat(dms.map(function (d) { return { t: d.last_at, d: d }; })).concat(gdms.map(function (c) { return { t: c.last_at, g: c }; }))
       .sort(function (a, b) { return a.t < b.t ? 1 : -1; });
-    var isNewItem = function (x) { return x.n ? !x.n.read_at : (!myReadOf(x.d) || x.d.last_at > myReadOf(x.d)); };
-    var html1 = function (x) { return x.n ? row(x.n) : dmRow(x.d); };
+    var isNewItem = function (x) { return x.g ? x.g.unread : x.n ? !x.n.read_at : (!myReadOf(x.d) || x.d.last_at > myReadOf(x.d)); };
+    var html1 = function (x) { return x.g ? gdmRow(x.g) : x.n ? row(x.n) : dmRow(x.d); };
     var fresh = list.filter(function (n) { return !n.read_at; });
     var freshAll = all.filter(isNewItem), oldAll = all.filter(function (x) { return !isNewItem(x); });
     $("nlist").innerHTML = all.length
@@ -3199,12 +3218,17 @@ html.kb .ch-bar{padding-bottom:8px}
     try { list = await rest("porch_threads?or=(a.eq." + me.uid + ",b.eq." + me.uid + ")&select=*&order=last_at.desc&limit=60"); } catch (e) {}
     list = list.filter(function (t) { return t.last_from; });
     await loadPeople(list.map(otherOf).concat(realFriends()));
-    $("thlist").innerHTML = list.length ? list.map(function (t) {
+    var gcs = []; try { gcs = await loadGChats(); } catch (e) {}
+    var both = list.map(function (t) { return { at: t.last_at, t: t }; }).concat(gcs.map(function (c) { return { at: c.last_at, c: c }; }))
+      .sort(function (x, y) { return x.at < y.at ? 1 : -1; });
+    $("thlist").innerHTML = both.length ? both.map(function (x) {
+      if (x.c) return gcRowHTML(x.c);
+      var t = x.t;
       var o = otherOf(t), unread = t.last_from !== me.uid && (!myReadOf(t) || t.last_at > myReadOf(t));
       return '<button type="button" class="th-row' + (unread ? " unread" : "") + '" data-dm="' + o + '"><span class="th-av" data-u="' + o + '">' + avatar(people[o]) + "</span>" +
         '<span class="tw"><b>' + esc(name(o)) + "</b><small>" + (t.last_from === me.uid ? "You: " : "") + esc(previewWords(t.last_preview)) + "</small></span><em>" + ago(t.last_at) + "</em>" +
         (unread ? '<i class="th-dot"></i>' : "") + "</button>";
-    }).join("") + startChatsHTML(list) + '<p class="dm-safe"><b>Private.</b> Only you and your friend can see a chat. Report or block anybody from the ⋯ in a chat.</p>'
+    }).join("") + startChatsHTML(list) + '<p class="dm-safe"><b>Private.</b> Only the people in a chat can see it. Report or block anybody from the ⋯ in a chat.</p>'
       : (realFriends().length ? startChatsHTML([]) : '<div class="dm-empty"><b>No messages yet</b>You can message any of your friends. Tap somebody\'s name or face on the Porch, then Add Friend.</div>');
   }
   function previewWords(p) { var s = shareOf(p); if (!s) return p || ""; return s.rest || (s.spin ? "Sent a Spin" : "Sent a share"); }
@@ -3314,8 +3338,14 @@ html.kb .ch-bar{padding-bottom:8px}
     var l = $("dmlist"), atBottom = l.scrollHeight - l.scrollTop - l.clientHeight < 80, html = "", last = null;
     chat.msgs.forEach(function (m) {
       if (!last || new Date(m.created_at) - new Date(last.created_at) > 3600000) html += '<p class="ch-day">' + dayOf(m.created_at) + " · " + new Date(m.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) + "</p>";
+      if (chat.gid && m.from_id !== me.uid && (!last || last.from_id !== m.from_id)) html += '<p class="ch-who"><span class="ul" data-u="' + m.from_id + '">' + avatar(people[m.from_id]) + esc(name(m.from_id)) + "</span></p>";
       html += bubbleHTML(m); last = m;
     });
+    if (chat.gid) {
+      if (!chat.msgs.length) html = '<div class="dm-start"><h3>Say hi to the group</h3><p>Only the people in this chat can see it.</p>' +
+        '<div class="dm-quick">' + ["Hey everybody!", "How's everybody doing?", "Thinking of you all"].map(function (q) { return '<button type="button" data-quick="' + q + '">' + q + "</button>"; }).join("") + "</div></div>";
+      l.innerHTML = html; if (stick || atBottom) l.scrollTop = l.scrollHeight; return;
+    }
     var mineLast = chat.msgs.filter(function (m) { return m.from_id === me.uid; }).pop();
     if (mineLast && chat.thread && theirReadOf(chat.thread) && theirReadOf(chat.thread) >= mineLast.created_at && chat.msgs[chat.msgs.length - 1] === mineLast) html += '<p class="ch-seen">Seen</p>';
     if (!chat.msgs.length && friends[chat.uid]) html = '<div class="dm-start"><span class="ul" data-u="' + chat.uid + '">' + avatar(people[chat.uid]) + "</span><h3>Say hi to <span class=\"ul\" data-u=\"" + chat.uid + "\">" + esc(name(chat.uid)) + "</span></h3><p>Only the two of you can see this chat.</p>" +
@@ -3326,6 +3356,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   async function loadChat(fresh) {
     if (!chat) return;
+    if (chat.gid) return loadGChat(fresh);
     var x = me.uid < chat.uid ? me.uid : chat.uid, y = me.uid < chat.uid ? chat.uid : me.uid;
     try {
       var t = (await rest("porch_threads?a=eq." + x + "&b=eq." + y + "&select=*"))[0] || null;
@@ -3378,10 +3409,11 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   async function sendDm(sure) {
     if (!chat || dmSending) return;
-    if (!friends[chat.uid]) return toast("You can message friends only.");
+    if (!chat.gid && !friends[chat.uid]) return toast("You can message friends only.");
     var body = $("dmin").value.trim(); if (!body && !dmPhotos.length) return;
     dmSending = true; $("dmgo").classList.add("busy"); paintDmBox();
-    var r = await fn("porch", { action: "dm_send", to: chat.uid, body: body, photos: dmPhotos, sure: !!sure, faces_ok: true });
+    var r = await fn("porch", chat.gid ? { action: "gdm_send", chat_id: chat.gid, body: body, photos: dmPhotos, sure: !!sure, faces_ok: true }
+      : { action: "dm_send", to: chat.uid, body: body, photos: dmPhotos, sure: !!sure, faces_ok: true });
     dmSending = false; $("dmgo").classList.remove("busy"); paintDmBox();
     if (r.pause) { pauseFor = "dm"; return open("pause"); }
     if (r.need === "confirm") { await closeTop(); cfReset(); return open("confirm"); }
@@ -3402,6 +3434,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   function chatMore() {
     if (!chat) return;
+    if (chat.gid) return gchatMore();
     var uid = chat.uid;
     $("mbody").dataset.t = JSON.stringify({ member: uid }); $("mbody").dataset.uid = uid;
     $("mbody").innerHTML = '<button type="button" data-m="dmprofile">View profile</button><button type="button" data-m="reportme">Report ' + esc(name(uid)) + '</button><button type="button" data-m="block">Block ' + esc(name(uid)) + '</button><button type="button" data-close style="color:var(--muted)">Cancel</button>';
@@ -3419,6 +3452,8 @@ html.kb .ch-bar{padding-bottom:8px}
     var fc = t.closest("[data-fconfirm]"); if (fc) return gate(function () { confirmFriend(fc.dataset.fconfirm); });
     var fd = t.closest("[data-fdelete]"); if (fd) return gate(function () { deleteRequest(fd.dataset.fdelete); });
     var nm = t.closest("[data-ndm]"); if (nm) { var who = nm.dataset.ndm; return closeTop().then(function () { openChat(who); }); }
+    var ngc = t.closest("[data-ngc]");
+    if (ngc && !t.closest("[data-u]")) { var ngcid = ngc.dataset.ngc; return closeTop().then(function () { openGChat(ngcid); }); }
     var ng = t.closest("[data-ngroup]");
     if (ng && !t.closest("[data-u]")) { var ngid = ng.dataset.ngroup; return closeTop().then(function () { return ngid === "tab" ? showGroupsTab() : openGroup(ngid); }); }
     var nt = t.closest("[data-note]");
@@ -4046,6 +4081,155 @@ html.kb .ch-bar{padding-bottom:8px}
     }
   });
 
+  /* ================================================================ GROUP CHATS (1 Oct 2026)
+     Mike: "group chats in messages yes. and yeah cap it, and friends only." Like a group
+     text: you and two or more of your friends, 12 people at the most. Whoever starts it
+     can add friends, take somebody out and name it; anybody can leave. Only the people
+     in the chat can read it. Rules are enforced in supabase/porch_22_group_chats.sql. */
+  var gcPick = {}, gcMode = "new";
+  function gcName(c, members) {
+    if (c && c.name) return c.name;
+    var others = (members || []).map(function (m) { return m.user_id || m; }).filter(function (u) { return u !== me.uid; }).map(name);
+    return others.length > 3 ? others.slice(0, 3).join(", ") + " and others" : others.join(", ") || "Group chat";
+  }
+  function gcFace(c, members) { return '<span class="gc-face">' + gTile({ name: gcName(c, members) }, 54) + "</span>"; }
+  async function loadGChats() {
+    var cs = await rest("porch_gchats?select=*&order=last_at.desc&limit=60");
+    if (!cs.length) return [];
+    var ms = await rest("porch_gchat_members?chat_id=in.(" + cs.map(function (c) { return c.id; }).join(",") + ")&select=chat_id,user_id,read_at,joined_at&order=joined_at.asc");
+    await loadPeople(ms.map(function (m) { return m.user_id; }));
+    cs.forEach(function (c) {
+      c.members = ms.filter(function (m) { return m.chat_id === c.id; });
+      var mine = c.members.filter(function (m) { return m.user_id === me.uid; })[0];
+      c.unread = !!(c.last_from && c.last_from !== me.uid && (!mine || !mine.read_at || c.last_at > mine.read_at));
+    });
+    return cs;
+  }
+  function gcRowHTML(c) {
+    var pv = c.last_from ? (c.last_from === me.uid ? "You: " : esc(name(c.last_from)) + ": ") + esc(previewWords(c.last_preview)) : "New group chat. Say hi 👋";
+    return '<button type="button" class="th-row' + (c.unread ? " unread" : "") + '" data-gc="' + c.id + '">' + gcFace(c, c.members) +
+      '<span class="tw"><b>' + esc(gcName(c, c.members)) + "</b><small>" + pv + "</small></span><em>" + ago(c.last_at) + "</em>" + (c.unread ? '<i class="th-dot"></i>' : "") + "</button>";
+  }
+  async function openGChat(id) {
+    if (!signedIn()) return open("join");
+    chat = { gid: id, g: null, members: [], msgs: [] };
+    $("chtop").innerHTML = '<button type="button" class="who" data-gcwho><span class="gc-face sm">' + gTile({ name: "Group chat" }, 40) + '</span><span><b>Group chat</b><small>Only the people in it can see this</small></span></button><button type="button" class="more" data-chatmore aria-label="Options">⋯</button>';
+    $("dmlist").innerHTML = '<div class="skel" style="height:120px;margin:12px 0"></div>';
+    $("dmin").value = ""; dmPhotos = []; paintDmBox();
+    open("chat");
+    await loadChat(true);
+    clearInterval(dmPoll);
+    dmPoll = setInterval(function () { if (!$("chat").classList.contains("open")) { clearInterval(dmPoll); chat = null; return; } if (!document.hidden) loadChat(false); }, 3000);
+  }
+  async function loadGChat(fresh) {
+    var id = chat.gid;
+    try {
+      var c = (await rest("porch_gchats?id=eq." + id + "&select=*"))[0];
+      if (!chat || chat.gid !== id) return;
+      if (!c) { if (fresh) $("dmlist").innerHTML = '<div class="ch-note">This chat isn\'t here anymore.</div>'; return; }
+      var changed = fresh || !chat.g || c.last_at !== chat.g.last_at || c.name !== chat.g.name;
+      if (fresh || !chat.members.length || changed) {
+        chat.members = await rest("porch_gchat_members?chat_id=eq." + id + "&select=user_id,joined_at&order=joined_at.asc");
+        await loadPeople(chat.members.map(function (m) { return m.user_id; }));
+      }
+      chat.g = c;
+      var nm = gcName(c, chat.members);
+      $("chtop").innerHTML = '<button type="button" class="who" data-gcwho><span class="gc-face sm">' + gTile({ name: nm }, 40) + "</span><span><b>" + esc(nm) + '</b><small>Only the people in it can see this</small></span></button><button type="button" class="more" data-chatmore aria-label="Options">⋯</button>';
+      if (changed) {
+        var ms = (await rest("porch_gdm?chat_id=eq." + id + "&select=*&order=created_at.desc&limit=80")).reverse();
+        var seen = {}; chat.msgs.forEach(function (m) { if (m.seen) seen[m.id] = 1; });
+        ms.forEach(function (m) { if (seen[m.id]) m.seen = true; });
+        await loadPeople(ms.map(function (m) { return m.from_id; }));
+        await signDm([].concat.apply([], ms.map(function (m) { return m.photo_paths || []; })));
+        await loadShares(ms);
+        if (!chat || chat.gid !== id) return;
+        chat.msgs = ms; paintChat(fresh);
+        if (c.last_from && c.last_from !== me.uid) { try { await rpc("porch_gchat_read", { p_chat: id }); } catch (e) {} checkDms(); }
+      } else if (fresh) paintChat(true);
+    } catch (e) { if (fresh) { chat.msgs = []; paintChat(true); } }
+  }
+  /* pick friends: for a new chat, or to add to this one */
+  function openGcNew(mode) {
+    gcMode = mode || "new"; gcPick = {};
+    loadPeople(realFriends()).then(function () { paintGcNew(); open("gcnew"); });
+  }
+  function paintGcNew() {
+    var inIt = {}; if (gcMode === "add" && chat) chat.members.forEach(function (m) { inIt[m.user_id] = 1; });
+    var fr = realFriends().filter(function (u) { return !inIt[u]; }), room = 11 - (gcMode === "add" && chat ? chat.members.length - 1 : 0);
+    var keep = ($("gcname") || {}).value || "", n = Object.keys(gcPick).length;
+    $("gcbody").innerHTML = '<h3 style="margin:0 0 4px">' + (gcMode === "add" ? "Add friends" : "New group chat") + "</h3>" +
+      '<p class="g-fine" style="margin:0 0 10px">Friends only. A group chat holds 12 people.</p>' +
+      (gcMode === "new" ? '<input class="field" id="gcname" maxlength="40" placeholder="Name it (optional)" style="margin-bottom:10px">' : "") +
+      (fr.length ? '<div class="gs-co" style="max-height:44vh">' + fr.map(function (u) {
+        return '<button type="button" class="gs-f' + (gcPick[u] ? " on" : "") + '" data-gcpick="' + u + '">' + avatar(people[u]) + "<b>" + esc(name(u)) + '</b><i class="vr"></i></button>';
+      }).join("") + "</div>" : '<p class="g-none">' + (gcMode === "add" ? "All your friends are already in this chat." : "Add some friends first. Tap anybody's name or face on the Porch, then Add Friend.") + "</p>") +
+      '<p class="cerr" id="gcerr" role="alert"></p>' +
+      '<button type="button" class="btn" id="gcgo"' + ((gcMode === "new" ? n < 2 : n < 1) || n > room ? " disabled" : "") + ">" + (gcMode === "add" ? "Add to the chat" : n < 2 ? "Pick at least two friends" : "Start the chat") + "</button>";
+    if ($("gcname")) $("gcname").value = keep;
+  }
+  async function sendGcNew() {
+    var ids = Object.keys(gcPick), b = $("gcgo"); b.disabled = true;
+    if (gcMode === "add") {
+      for (var i = 0; i < ids.length; i++) { var r = await grpc("porch_gchat_add", { p_chat: chat.gid, p_user: ids[i] }); if (!r.ok) { b.disabled = false; return ($("gcerr").textContent = name(ids[i]) + ": " + r.error); } }
+      await closeTop(); toast("Added."); return loadChat(true);
+    }
+    var r2 = await grpc("porch_gchat_start", { p_name: ($("gcname") || {}).value || "", p_members: ids });
+    if (!r2.ok) { b.disabled = false; return ($("gcerr").textContent = r2.error); }
+    await closeTop(); openGChat(r2.data);
+  }
+  function gchatMore() {
+    var own = chat.g && chat.g.owner_id === me.uid;
+    $("mbody").dataset.t = "{}"; $("mbody").dataset.uid = "";
+    $("mbody").innerHTML = '<p style="margin:0 0 6px;font:400 26px \'RM Head\',Impact,sans-serif">' + esc(gcName(chat.g, chat.members)) + "</p>" +
+      chat.members.map(function (m) {
+        var u = m.user_id;
+        return '<div class="bm-row"><span class="ul" data-u="' + u + '" style="display:flex">' + avatar(people[u]) + '</span><b class="ul" data-u="' + u + '">' + esc(u === me.uid ? "You" : name(u)) + (chat.g && chat.g.owner_id === u ? ' <small class="g-k">Started it</small>' : "") + "</b>" +
+          (u !== me.uid ? '<button type="button" data-gcmember="' + u + '">⋯</button>' : "") + "</div>";
+      }).join("") +
+      (own && chat.members.length < 12 ? '<button type="button" data-gcm="add">Add friends</button>' : "") +
+      (own ? '<button type="button" data-gcm="name">Name this chat</button>' : "") +
+      '<button type="button" class="bad" data-gcm="leave">Leave this chat</button>' +
+      '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
+    open("menu");
+  }
+  document.addEventListener("click", async function (e) {
+    var t = e.target; if (!t.closest) return;
+    var b;
+    if ((b = t.closest("[data-gc]"))) { var gid = b.dataset.gc; return gate(function () { openGChat(gid); }); }
+    if (t.closest("[data-newgc]")) return gate(function () { openGcNew("new"); });
+    if ((b = t.closest("[data-gcpick]"))) { var u = b.dataset.gcpick; if (gcPick[u]) delete gcPick[u]; else gcPick[u] = 1; return paintGcNew(); }
+    if (t.closest("#gcgo")) return sendGcNew();
+    if (t.closest("[data-gcwho]")) return gchatMore();
+    if ((b = t.closest("[data-gcmember]"))) {
+      var mu = b.dataset.gcmember, own = chat && chat.g && chat.g.owner_id === me.uid;
+      $("mbody").dataset.t = JSON.stringify({ member: mu }); $("mbody").dataset.uid = mu;
+      $("mbody").innerHTML = '<button type="button" data-m="dmprofile">View profile</button><button type="button" data-m="reportme">Report ' + esc(name(mu)) + '</button><button type="button" data-m="block">Block ' + esc(name(mu)) + "</button>" +
+        (own ? '<button type="button" class="bad" data-gcm="remove" data-who="' + mu + '">Take ' + esc(name(mu)) + " out of this chat</button>" : "") +
+        '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
+      return;
+    }
+    if ((b = t.closest("[data-gcm]"))) {
+      var what = b.dataset.gcm, cid = chat && chat.gid; if (!cid) return;
+      if (what === "add") { await closeTop(); return openGcNew("add"); }
+      if (what === "name") {
+        $("mbody").innerHTML = '<p style="margin:0 0 8px;font-weight:700">Name this chat</p><input class="field" id="gcrename" maxlength="40" placeholder="The Crew" value="' + esc((chat.g && chat.g.name) || "") + '"><button type="button" data-gcm="savename" style="margin-top:10px">Save</button><button type="button" data-close style="color:var(--muted)">Cancel</button>';
+        return;
+      }
+      if (what === "savename") {
+        var rn = await grpc("porch_gchat_rename", { p_chat: cid, p_name: $("gcrename").value });
+        await closeTop(); if (!rn.ok) return toast(rn.error); return loadChat(true);
+      }
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = what === "leave" ? "Tap again to leave" : "Tap again to take them out"; return; }
+      if (what === "remove") {
+        var rr = await grpc("porch_gchat_remove", { p_chat: cid, p_user: b.dataset.who });
+        await closeTop(); if (!rr.ok) return toast(rr.error); toast("Taken out of the chat."); return loadChat(true);
+      }
+      var rl = await grpc("porch_gchat_leave", { p_chat: cid });
+      if (!rl.ok) { await closeTop(); return toast(rl.error); }
+      await closeAll(); toast("You left the chat."); checkDms();
+    }
+  });
+
   /* ================================================================ SHARED IN
      1 Oct 2026, Mike: "when people are sharing into our app ... would you like to share
      this to your spins or would you like to make a post?" On Android the app is in the
@@ -4115,6 +4299,8 @@ html.kb .ch-bar{padding-bottom:8px}
       if (!ok) toast("That didn't come through. Try sharing it again.");
       else { var goShare = function () { takeShared(); }; if (window.PorchSpins) goShare(); else window.addEventListener("load", goShare); }
     }
+    var gcq = new URLSearchParams(location.search).get("gc");
+    if (gcq && /^[0-9a-f-]{36}$/i.test(gcq)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openGChat(gcq); }
     var gq = new URLSearchParams(location.search).get("g");
     if (gq && /^[0-9a-f-]{36}$/i.test(gq)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openGroup(gq); }
     if (/[?&]groups=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) showGroupsTab(); }
