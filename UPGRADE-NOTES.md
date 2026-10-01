@@ -111,6 +111,20 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
 - Files: feed/spins/spins.js, feed/spins/spin-maker.js, feed/spins/stickers/,
   supabase/porch_12_spins.sql, supabase/functions/spins.
 
+### UI UPDATE: saved to come back to (1 Oct 2026)
+- Mike: "our ui is just super confusing and cluttered. It needs reorganized big time." He
+  wants a **+ speed dial** that fans out to make a post or a Spin.
+- Mockups: `Claude outputs/ui-update.html` (3 layouts in phone frames, dial open).
+  - **A, Instagram clean** (Claude's pick): Porch rail gone. Search, Messages and the bell
+    become icons up top. Spins become story circles. Coins and Invite move into ME. The dial
+    sits bottom right.
+  - **B, Porch | Spins**: one switch between the feed and a full Spins wall. The dial sits
+    bottom center.
+  - **C, Slim rail**: FEED / SPINS / FRIENDS only.
+- Dial buttons (proposed; Mike only decided "Make a Spin" for sure): Make a Spin,
+  Share a photo, Say something, Celebrate a win (coin + days).
+- Still to decide: A, B or C, and the 4 buttons. The Sober Since rail and bottom nav stay.
+
 ## THE ONE RULE (30 Sep 2026)
 **People in recovery deserve the best.**
 Every build decision gets checked against it: no cheap shortcuts, no fake people or
@@ -205,6 +219,12 @@ without making it confusing.
 - Expecting ~10,000 monthly users by end of year.
 - Website: move from GitHub Pages to **Cloudflare Pages** (free, unlimited bandwidth).
   GitHub stays the code home; Cloudflare auto-deploys on every push.
+- **Cloudflare has to BUILD the site, not just copy it** (fixed 1 Oct 2026): set
+  Build command `bash scripts/cf_build.sh` and Build output `_site`. Without it there
+  are no memes on the front page, no /meme/<id>/ share pages, and no reading pages or
+  sitemap for Google. Still open: a daily rebuild, which used to come from the GitHub
+  schedule; it isn't needed for memes. The speaker tapes need YOUTUBE_API_KEY added in
+  Cloudflare.
 - Domain stays registered at **Porkbun**; only its nameservers point to Cloudflare.
   Check any email (MX) records come across, and keep `.well-known/` for the Android app.
 - Reels (Misfits Moments): **Bunny Stream**, reusing Infinite Pulls' Loops code.
