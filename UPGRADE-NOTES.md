@@ -22,7 +22,8 @@ Order isn't set.
 - [x] Porch rules page people agree to once (done 1 Oct, v62: shown once before your first post, read again from Edit profile)
 - [x] Privacy policy + terms (done 1 Oct: recoverymisfits.org/privacy, linked from sign-up and Edit profile)
 - [ ] "Delete my app account" button (right now people have to message the Facebook page to have it wiped)
-- [ ] Forgot password: check there's a way back in for username-only accounts
+- [x] Forgot password (done 1 Oct: Sign In > Forgot your password?, works for anybody who
+      confirmed an email on the Porch; level 1 accounts with no email still can't reset)
 - [ ] Blocked people list (see who you blocked, unblock)
 - [ ] Mute somebody without blocking them
 

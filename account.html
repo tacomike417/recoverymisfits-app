@@ -130,6 +130,7 @@
     text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;
   }
   .go[disabled]{opacity:.55;cursor:default}
+  .forgot{display:block;margin:12px auto 0;padding:6px 10px;border:0;background:none;color:var(--gold);font-family:var(--ui);font-weight:700;font-size:13px;text-decoration:underline;cursor:pointer}
 
   /* ---- YOUR RECOVERY, YOUR WAY (1 Oct 2026, Mike): pick your level first -------- */
   .lvls{display:grid;gap:12px;margin:16px 0 0}
@@ -307,8 +308,30 @@
 
       <button class="go" type="submit" id="submit">Create My Anonymous Account</button>
       <p class="say" id="say" role="status" aria-live="polite"></p>
+      <button type="button" class="forgot" id="forgot" hidden>Forgot your password?</button>
       <p class="hint" style="text-align:center;margin-top:10px">By using Recovery Misfits you agree to our <a href="/privacy.html#terms" style="color:var(--gold)">terms</a>. See what we keep in <a href="/privacy.html" style="color:var(--gold)">privacy</a>.</p>
     </form>
+
+    <!-- FORGOT PASSWORD (1 Oct 2026, Mike, from the big list). Only works for people who
+         confirmed an email on the Porch: that's the only way to prove it's you. The email
+         is checked against a scrambled fingerprint and never kept. Phone back = back to Sign In. -->
+    <div id="reset" hidden>
+      <p class="lede" style="margin-top:14px;font-weight:800;color:#fff">Get back in.</p>
+      <p class="hint" style="margin:4px 0 14px">This works if you confirmed an email on the Porch. Use that same email.</p>
+      <div id="rs1">
+        <div class="field"><label for="rsName">Username</label><div class="box"><input id="rsName" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"></div></div>
+        <div class="field"><label for="rsEmail">Email you confirmed</label><div class="box"><input id="rsEmail" type="email" inputmode="email" autocomplete="email"></div></div>
+        <button type="button" class="go" id="rsSend">Send My Code</button>
+      </div>
+      <div id="rs2" hidden>
+        <p class="hint" style="margin:0 0 12px">If that name and email match, a 6-digit code is on its way. It works for 15 minutes. Check spam.</p>
+        <div class="field"><label for="rsCode">Code</label><div class="box"><input id="rsCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6"></div></div>
+        <div class="field"><label for="rsPw">New password</label><div class="box"><input id="rsPw" type="text" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false"></div><p class="hint">At least 8 characters.</p></div>
+        <button type="button" class="go" id="rsSet">Set My New Password</button>
+      </div>
+      <p class="say" id="rsSay" role="status" aria-live="polite"></p>
+      <p class="hint" style="margin-top:14px">Never confirmed an email? There's no way to reset it, because we never knew who you are. You can make a new account any time.</p>
+    </div>
 
     <!-- THE WAY OUT, and only from here. It used to sit at the foot of the
          whole page, so "Back to Tools" was still under you in the middle of
@@ -583,7 +606,56 @@
     try { history.pushState({ acct: "form" }, ""); } catch (e) {}
     setTimeout(function () { $("nm").focus(); }, 60);
   }
-  window.addEventListener("popstate", function () { if (!A.signedIn() && !$("out").hidden) showLevels(); });
+  window.addEventListener("popstate", function () {
+    if (!$("reset").hidden) return closeReset();
+    if (!A.signedIn() && !$("out").hidden) showLevels();
+  });
+
+  /* ---- forgot password ---- */
+  var RS_FN = "https://rlytvfehbglsjfvprtbp.supabase.co/functions/v1/porch-confirm";
+  var RS_KEY = "sb_publishable_5r-l8Bj8PjXhq5qpp1b26g_QQ7xPQ7P";
+  async function rsCall(body) {
+    try {
+      var r = await fetch(RS_FN, { method: "POST", headers: { apikey: RS_KEY, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      var j = await r.json().catch(function () { return {}; });
+      return r.ok ? (j || { ok: true }) : { error: (j && j.error) || "That didn't work. Try again." };
+    } catch (e) { return { error: "No connection. Try again when you have signal." }; }
+  }
+  function openReset() {
+    $("form").hidden = true; $("reset").hidden = false; rsHide(true); $("rs1").hidden = false; $("rs2").hidden = true;
+    $("rsName").value = $("nm").value.trim(); $("rsEmail").value = ""; $("rsCode").value = ""; $("rsPw").value = ""; say($("rsSay"), "");
+    $("pageName").textContent = "Forgot Password";
+    try { history.pushState({ acct: "reset" }, ""); } catch (e) {}
+    setTimeout(function () { ($("rsName").value ? $("rsEmail") : $("rsName")).focus(); }, 60);
+  }
+  /* the Create/I Have One switch and the line above it step aside while resetting */
+  function rsHide(on) { var sg = document.querySelector(".seg"); if (sg) { sg.hidden = on; var l = sg.previousElementSibling; if (l && l.classList.contains("lede")) l.hidden = on; } }
+  function closeReset() { rsHide(false); $("reset").hidden = true; $("form").hidden = false; $("pageName").textContent = "Sign In"; }
+  $("forgot").addEventListener("click", openReset);
+  $("rsSend").addEventListener("click", async function () {
+    var b = this, n = $("rsName").value.trim(), e = $("rsEmail").value.trim();
+    if (!n || !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(e)) return say($("rsSay"), "Fill in your username and the email you confirmed.", "bad");
+    b.disabled = true; b.textContent = "Sending…";
+    var r = await rsCall({ action: "reset_send", handle: n, email: e });
+    b.disabled = false; b.textContent = "Send My Code";
+    if (r.error) return say($("rsSay"), r.error, "bad");
+    $("rsEmail").value = "";              /* not kept on this phone either */
+    say($("rsSay"), ""); $("rs1").hidden = true; $("rs2").hidden = false; $("rsCode").focus();
+  });
+  $("rsCode").addEventListener("input", function () { this.value = this.value.replace(/\D/g, "").slice(0, 6); });
+  $("rsSet").addEventListener("click", async function () {
+    var b = this, n = $("rsName").value.trim(), c = $("rsCode").value, pw = $("rsPw").value;
+    if (c.length !== 6) return say($("rsSay"), "Type the 6-digit code from the email.", "bad");
+    if (pw.length < 8) return say($("rsSay"), "Your new password needs at least 8 characters.", "bad");
+    b.disabled = true; b.textContent = "Saving…";
+    var r = await rsCall({ action: "reset_verify", handle: n, code: c, password: pw });
+    b.disabled = false; b.textContent = "Set My New Password";
+    if (r.error) return say($("rsSay"), r.error, "bad");
+    /* signed in with the new password, the normal way */
+    $("nm").value = n; $("pw").value = pw;
+    try { history.back(); } catch (e) { closeReset(); }   /* back closes the reset screen */
+    setTimeout(function () { $("form").requestSubmit ? $("form").requestSubmit() : $("submit").click(); }, 250);
+  });
   var chosen = "";
   function paintChoice() {
     document.querySelectorAll("[data-lvl]").forEach(function (b) {
@@ -631,6 +703,7 @@
     $("submit").textContent = next === "new" ? "Create My Anonymous Account" : "Sign In";
     $("pw").setAttribute("autocomplete", next === "new" ? "new-password" : "current-password");
     $("nmHint").hidden = next !== "new";
+    $("forgot").hidden = next !== "old";
     $("pwHint").hidden = next !== "new";
     say($("say"), "");
   }
