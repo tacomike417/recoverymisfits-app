@@ -633,7 +633,7 @@
       <button type="button" class="lpm-x" data-lpm-close aria-label="Close the Spin maker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       <span class="lpm-len"></span>
       <nav class="lpm-tabs">
-        <button type="button" data-tab="photos" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 5l2 4M12 5l2 4M17 5l2 4"/></svg>Clips</button>
+        <button type="button" data-tab="photos" class="on"><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="7.5" cy="6.2" r="3"/><circle cx="14.2" cy="6.2" r="3"/><rect x="3" y="10.2" width="13.6" height="9" rx="1.6"/><path d="M16.6 13.4 21.5 11v7.6l-4.9-2.4"/><circle cx="7.5" cy="6.2" r=".6"/><circle cx="14.2" cy="6.2" r=".6"/></svg>Clips</button>
         <button type="button" data-tab="style"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>Style</button>
         <button type="button" data-tab="text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19 9 5l5 14M6 14h6"/><path d="M15 12.5a3 3 0 1 1 0 6.5h-.5M18 10v9"/></svg>Text</button>
         <button type="button" data-tab="stickers"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>Stickers</button>
