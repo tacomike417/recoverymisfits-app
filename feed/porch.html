@@ -416,6 +416,10 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .mmhead .av{width:52px;height:52px;font-size:22px}
 .mmhead b{display:block;font-size:17px}
 .mmhead small{color:var(--muted)}
+.psrc{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:6px 0 4px}
+.psrc button{display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px 10px;border-radius:18px;border:1.5px solid var(--line);background:var(--field);color:var(--cream);font:800 16px Arial,sans-serif;cursor:pointer}
+.psrc button:first-child{background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b;border-color:transparent}
+.psrc .ico{width:34px;height:34px}
 .mmurl{display:flex;align-items:center;gap:8px;margin-top:4px;min-width:0}
 .mmurl a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font:600 13px Arial,sans-serif;text-decoration:none}
 .mmurl button{flex:none;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--field);color:var(--cream);font:800 12px Arial,sans-serif;cursor:pointer}
@@ -780,7 +784,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v53</span>
+  <span class="ver" id="ver">v54</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -877,7 +881,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="count" id="ccount"></div>
     <div class="thumbs" id="thumbs"></div>
     <button type="button" class="addpic" id="addpic"><span class="ic" data-ico="camera"></span><span><b>Add photos</b><small>Up to 4</small></span></button>
-    <input type="file" id="cfile" accept="image/*" multiple hidden>
+    <input type="file" id="cfile" accept="image/*" multiple hidden><input type="file" id="cfilecam" accept="image/*" capture="environment" hidden>
     <div class="lab">TAG IT <span>optional</span></div>
     <div class="needs" id="needs">
       <button type="button" data-need="experience"><span data-ico="experience"></span>Experience</button>
@@ -919,6 +923,18 @@ html.kb .ch-bar{padding-bottom:8px}
 </div>
 
 <!-- ⋯ on a post or comment -->
+<!-- CAMERA OR PHOTOS (1 Oct 2026, Mike): Android hides "take a picture" when you can pick
+     more than one photo, so on Android we ask first. iPhone's own menu already has both. -->
+<div id="photosrc" class="layer" role="dialog" aria-modal="true" aria-label="Add a photo">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div>
+    <div class="psrc">
+      <button type="button" data-psrc="cam"><span data-ico="camera"></span><b>Take a picture</b></button>
+      <button type="button" data-psrc="lib"><span data-ico="snap"></span><b>Choose photos</b></button>
+    </div>
+  </div>
+</div>
+
 <div id="menu" class="layer" role="dialog" aria-modal="true" aria-label="Options">
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div><div class="menu" id="mbody"></div></div>
@@ -985,7 +1001,7 @@ html.kb .ch-bar{padding-bottom:8px}
       <textarea id="dmin" rows="1" maxlength="2000" placeholder="Message…"></textarea>
       <button type="button" class="dm-ico dm-sendb" id="dmgo" aria-label="Send" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></button>
     </div>
-    <input type="file" id="dmfile" accept="image/*" multiple hidden>
+    <input type="file" id="dmfile" accept="image/*" multiple hidden><input type="file" id="dmfilecam" accept="image/*" capture="environment" hidden>
   </div>
 </div></div>
 
@@ -1622,15 +1638,29 @@ html.kb .ch-bar{padding-bottom:8px}
   $("needs").addEventListener("click", function (e) { var b = e.target.closest("[data-need]"); if (b) { need = need === b.dataset.need ? "talk" : b.dataset.need; paintCompose(); } });
   $("styles").addEventListener("click", function (e) { var b = e.target.closest("[data-style]"); if (b) { style = +b.dataset.style; paintCompose(); } });
   $("thumbs").addEventListener("click", function (e) { var b = e.target.closest("[data-unpic]"); if (b) { photos.splice(+b.dataset.unpic, 1); paintCompose(); } });
-  $("addpic").addEventListener("click", function () { $("cfile").click(); });
-  $("cfile").addEventListener("change", async function () {
-    var files = Array.prototype.slice.call(this.files || [], 0, 4 - photos.length); this.value = "";
+  /* camera or library: Android asks first, iPhone's own menu already offers both */
+  var psrcFor = null;
+  function pickPhotos(lib, cam) {
+    if (!/Android/i.test(navigator.userAgent)) return lib.click();
+    psrcFor = { lib: lib, cam: cam }; open("photosrc");
+  }
+  $("photosrc").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-psrc]"); if (!b || !psrcFor) return;
+    var inp = b.dataset.psrc === "cam" ? psrcFor.cam : psrcFor.lib;
+    inp.click();                       /* inside the tap, or the phone won't open it */
+    closeTop();
+  });
+  $("addpic").addEventListener("click", function () { pickPhotos($("cfile"), $("cfilecam")); });
+  $("cfilecam").addEventListener("change", function () { addComposePhotos(this); });
+  $("cfile").addEventListener("change", function () { addComposePhotos(this); });
+  async function addComposePhotos(inp) {
+    var files = Array.prototype.slice.call(inp.files || [], 0, 4 - photos.length); inp.value = "";
     for (var i = 0; i < files.length; i++) {
       var pd; try { pd = await shrink(files[i]); } catch (e) { $("cerr").textContent = "That photo couldn't be opened. Try a different one."; continue; }
       if (await scanPhoto(pd, "post", function () { $("cfile").click(); })) photos.push(pd);
     }
     paintCompose();
-  });
+  }
   /* Photos get resized on the phone to a JPEG under 3MB before they leave it. */
   function shrink(file) {
     return new Promise(function (res, rej) {
@@ -3077,16 +3107,18 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   $("dmin").addEventListener("input", function () { this.style.height = "auto"; this.style.height = Math.min(130, this.scrollHeight) + "px"; paintDmBox(); });
   $("dmin").addEventListener("focus", function () { setTimeout(function () { var l = $("dmlist"); l.scrollTop = l.scrollHeight; }, 300); });
-  $("dmcam").addEventListener("click", function () { $("dmfile").click(); });
+  $("dmcam").addEventListener("click", function () { pickPhotos($("dmfile"), $("dmfilecam")); });
+  $("dmfilecam").addEventListener("change", function () { addDmPhotos(this); });
   $("dmthumbs").addEventListener("click", function (e) { var b = e.target.closest("[data-undm]"); if (b) { dmPhotos.splice(+b.dataset.undm, 1); paintDmBox(); } });
-  $("dmfile").addEventListener("change", async function () {
-    var files = Array.prototype.slice.call(this.files || [], 0, 4 - dmPhotos.length); this.value = "";
+  $("dmfile").addEventListener("change", function () { addDmPhotos(this); });
+  async function addDmPhotos(inp) {
+    var files = Array.prototype.slice.call(inp.files || [], 0, 4 - dmPhotos.length); inp.value = "";
     for (var i = 0; i < files.length; i++) {
       var pd; try { pd = await shrink(files[i]); } catch (e) { toast("That photo couldn't be opened."); continue; }
       if (await scanPhoto(pd, "dm", function () { $("dmfile").click(); })) dmPhotos.push(pd);
     }
     paintDmBox();
-  });
+  }
   async function sendDm(sure) {
     if (!chat || dmSending) return;
     if (!friends[chat.uid]) return toast("You can message friends only.");
@@ -3490,6 +3522,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=53" defer></script>
+<script src="/feed/spins/spins.js?v=54" defer></script>
 </body>
 </html>
