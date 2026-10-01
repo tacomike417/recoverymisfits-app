@@ -1804,3 +1804,14 @@
     if (firstBtn) { try { firstBtn.focus(); } catch (_) {} }
   });
 })();
+
+/* PORCH ALERTS ON EVERY PAGE (1 Oct 2026, Mike: notifications "need to work site wide").
+   Only on a phone that has been on the Porch; the Porch itself has its own bell.
+   The ?v= is bumped by hand when alerts.js changes (this script tag is made here,
+   so the deploy stamp doesn't reach it). */
+(function () {
+  try { if (localStorage.getItem("rm_porch_ok") !== "1") return; } catch (e) { return; }
+  if (/\/feed\/(porch|soon)\.html/.test(location.pathname)) return;
+  var s = document.createElement("script"); s.src = "/feed/alerts.js?v=1"; s.defer = true;
+  document.head.appendChild(s);
+})();

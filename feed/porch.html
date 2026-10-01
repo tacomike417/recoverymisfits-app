@@ -273,6 +273,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 #rmAccountBtn.pin{position:relative}
 #rmAccountBtn.pin #railme{display:grid;place-items:center;width:30px;height:30px;margin-top:-4px}
 #rmAccountBtn.pin #railme .av{width:30px;height:30px;font-size:12px;box-shadow:0 0 0 1.5px #1a160e,0 0 0 3px var(--gold2)}
+#rmAccountBtn.pin #railme .av img,#rmrail .meb .av img{width:100%!important;height:100%!important;max-width:none!important;object-fit:cover;border-radius:50%;display:block}
 .layer.drop .dim{background:rgba(0,0,0,.55)}
 .nd-panel{position:absolute;left:8px;right:8px;top:var(--ndtop,70px);max-width:560px;margin:0 auto;max-height:calc(100% - var(--ndtop,70px) - 16px);overflow-y:auto;border-radius:18px;background:var(--sheet);border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.6);animation:nddrop .2s ease}
 @keyframes nddrop{from{opacity:0;transform:translateY(-10px)}}
@@ -295,7 +296,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .nd-k{position:absolute;right:-3px;bottom:-3px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;border:2px solid var(--sheet);color:#fff}
 .nd-k .ico{width:13px;height:13px;stroke-width:2.4}
 .nd-k.comment,.nd-k.reply{background:#2d88ff}.nd-k.proud{background:#e52e71}.nd-k.proud .ico{fill:#fff}.nd-k.metoo{background:#c9922b}
-.nd-k.mention{background:#8a3ffc}.nd-k.follow,.nd-k.friend_request,.nd-k.friend_accept{background:#31a24c}.nd-k.report{background:#c4563c}
+.nd-k.mention{background:#8a3ffc}.nd-k.dm{background:#0a84ff}.nd-k.respin{background:#c9922b}.nd-k.comment_love{background:#e52e71}.nd-k.follow,.nd-k.friend_request,.nd-k.friend_accept{background:#31a24c}.nd-k.report{background:#c4563c}
 .nd-t{flex:1;min-width:0}
 .nd-t span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .nd-t small{display:block;margin-top:3px;color:var(--faint);font-size:12.5px}
@@ -415,6 +416,9 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .mmhead .av{width:52px;height:52px;font-size:22px}
 .mmhead b{display:block;font-size:17px}
 .mmhead small{color:var(--muted)}
+.mmurl{display:flex;align-items:center;gap:8px;margin-top:4px;min-width:0}
+.mmurl a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font:600 13px Arial,sans-serif;text-decoration:none}
+.mmurl button{flex:none;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--field);color:var(--cream);font:800 12px Arial,sans-serif;cursor:pointer}
 /* edit profile */
 .ecover{position:relative;height:150px;border-radius:0;background:linear-gradient(160deg,#2c2416,#11110f) center/cover;cursor:pointer}
 .ecover .tip,.eav .tip{position:absolute;right:10px;bottom:10px;display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(0,0,0,.65);color:#fff;font:700 12.5px Arial,sans-serif}
@@ -776,7 +780,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v49</span>
+  <span class="ver" id="ver">v50</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2061,7 +2065,10 @@ html.kb .ch-bar{padding-bottom:8px}
   function openMeMenu() {
     if (!signedIn()) return open("join");
     var m = me.member || { handle: A.name() };
-    $("mmhead").innerHTML = avatar(m) + "<div><b>" + esc(m.handle) + "</b><small>" + (me.member && me.member.verified_at ? "On the Porch" : "Not confirmed yet") + "</small></div>";
+    /* 1 Oct 2026, Mike: picture, username, and underneath it their own link to visit or copy */
+    var plink = "recoverymisfits.org/u/" + encodeURIComponent(m.handle || "");
+    $("mmhead").innerHTML = avatar(m) + '<div style="min-width:0;flex:1"><b>' + esc(m.handle) + "</b>" +
+      '<div class="mmurl"><a href="/u/' + encodeURIComponent(m.handle || "") + '" target="_blank" rel="noopener">' + esc(plink) + '</a><button type="button" data-copyurl="https://' + esc(plink) + '">Copy</button></div></div>';
     $("mmbody").innerHTML = '<button type="button" data-mm="notes">Notifications' + (unread ? '<span class="mcount">' + unread + "</span>" : "") + "</button>" +
       (isMod ? '<button type="button" data-mm="mod">Reports' + (modCount ? '<span class="mcount">' + modCount + "</span>" : "") + "</button>" : "") +
       '<button type="button" data-mm="friends">Friends' + (reqCount() ? '<span class="mcount">' + reqCount() + "</span>" : "") + "</button>" +
@@ -2081,7 +2088,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function signOutHere() {
     try { await pushOff(true); } catch (e) {}
     try { A.signOut(); } catch (e) {}
-    try { localStorage.removeItem("rm_level_pick"); } catch (e) {}
+    try { localStorage.removeItem("rm_level_pick"); localStorage.removeItem("rm_porch_ok"); } catch (e) {}
     location.replace("/account.html");
   }
 
@@ -2560,9 +2567,12 @@ html.kb .ch-bar{padding-bottom:8px}
     report: ["question", "was reported. Take a look."], respin: ["friends", "respun your Spin"],
     comment_love: ["proud", "loved your comment"]
   };
+  /* EXACTLY WHAT HAPPENED (1 Oct 2026, Mike): a Spin says Spin, not share */
   function noteSays(n) {
-    if (n.kind === "mention") return n.comment_id ? "tagged you in a comment" : "tagged you in a share";
-    return (NOTE[n.kind] || ["", "did something"])[1];
+    var p = n.post_id && (noteThumbs[n.post_id] || posts[n.post_id]), spin = p && p.need === "moment";
+    if (n.kind === "mention") return n.comment_id ? (spin ? "tagged you in a comment on a Spin" : "tagged you in a comment") : (spin ? "tagged you in a Spin" : "tagged you in a share");
+    var w = (NOTE[n.kind] || ["", "did something"])[1];
+    return spin ? w.replace("your share", "your Spin") : w;
   }
   var noteThumbs = {};
   function thumbHTML(p) {
@@ -2587,8 +2597,22 @@ html.kb .ch-bar{padding-bottom:8px}
     var pids = list.filter(function (n) { return n.post_id && !noteThumbs[n.post_id]; }).map(function (n) { return n.post_id; });
     try {
       if (cids.length) (await rest("porch_comments?id=in.(" + cids.join(",") + ")&select=id,body")).forEach(function (c) { words[c.id] = c.body; });
-      if (pids.length) (await rest("porch_posts?id=in.(" + pids.filter(function (x, i) { return pids.indexOf(x) === i; }).join(",") + ")&select=id,body,photo_paths,card_style")).forEach(function (p) { noteThumbs[p.id] = p; });
+      if (pids.length) (await rest("porch_posts?id=in.(" + pids.filter(function (x, i) { return pids.indexOf(x) === i; }).join(",") + ")&select=id,need,body,photo_paths,card_style")).forEach(function (p) { noteThumbs[p.id] = p; });
     } catch (e) {}
+    /* MESSAGES belong here too (1 Oct 2026, Mike): "___ messaged you", tap = that chat */
+    var dms = [];
+    try {
+      dms = (await rest("porch_threads?or=(a.eq." + me.uid + ",b.eq." + me.uid + ")&select=*&order=last_at.desc&limit=15"))
+        .filter(function (t) { return t.last_from && t.last_from !== me.uid; });
+      await loadPeople(dms.map(otherOf));
+    } catch (e) {}
+    function dmRow(t) {
+      var o = otherOf(t), isNew = !myReadOf(t) || t.last_at > myReadOf(t), pv = previewWords(t.last_preview);
+      return '<div role="button" tabindex="0" class="nd-row' + (isNew ? " is-new" : "") + '" data-ndm="' + o + '">' +
+        '<span class="nd-av">' + avatar(people[o]) + '<span class="nd-k dm">' + ico("comment") + "</span></span>" +
+        '<span class="nd-t"><span><b>' + esc(name(o)) + "</b> messaged you" + (pv ? ": “" + esc(pv.length > 90 ? pv.slice(0, 90) + "…" : pv) + "”" : "") + "</span><small>" + ago(t.last_at) + "</small></span>" +
+        (isNew ? '<i class="nd-dot"></i>' : "") + "</div>";
+    }
     function row(n) {
       var k = NOTE[n.kind] || ["say"], said = n.comment_id && words[n.comment_id], isNew = !n.read_at;
       var right = n.kind === "friend_request" || n.kind === "follow" ? (friends[n.actor_id] ? "" : friendBtn(n.actor_id, true))
@@ -2599,9 +2623,15 @@ html.kb .ch-bar{padding-bottom:8px}
         (said ? ": “" + esc(said.length > 90 ? said.slice(0, 90) + "…" : said) + "”" : "") + "</span><small>" + ago(n.created_at) + "</small></span>" +
         right + (isNew && !right ? '<i class="nd-dot"></i>' : "") + "</div>";
     }
-    var fresh = list.filter(function (n) { return !n.read_at; }), old = list.filter(function (n) { return n.read_at; });
-    $("nlist").innerHTML = list.length
-      ? (fresh.length ? '<p class="nd-sec">NEW</p>' + fresh.map(row).join("") : "") + (old.length ? '<p class="nd-sec">EARLIER</p>' + old.map(row).join("") : "")
+    /* notes and messages together, newest first */
+    var all = list.map(function (n) { return { t: n.created_at, n: n }; }).concat(dms.map(function (d) { return { t: d.last_at, d: d }; }))
+      .sort(function (a, b) { return a.t < b.t ? 1 : -1; });
+    var isNewItem = function (x) { return x.n ? !x.n.read_at : (!myReadOf(x.d) || x.d.last_at > myReadOf(x.d)); };
+    var html1 = function (x) { return x.n ? row(x.n) : dmRow(x.d); };
+    var fresh = list.filter(function (n) { return !n.read_at; });
+    var freshAll = all.filter(isNewItem), oldAll = all.filter(function (x) { return !isNewItem(x); });
+    $("nlist").innerHTML = all.length
+      ? (freshAll.length ? '<p class="nd-sec">NEW</p>' + freshAll.map(html1).join("") : "") + (oldAll.length ? '<p class="nd-sec">EARLIER</p>' + oldAll.map(html1).join("") : "")
       : '<p class="nd-empty">Nothing yet. When somebody comments, cheers you on, tags you or sends you a friend request, it shows up here.</p>';
     /* marked read the moment it opens (rows keep their NEW look until next time) */
     if (fresh.length || unread) {
@@ -3099,6 +3129,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var fr = t.closest("[data-friend]"); if (fr) return gate(function () { friendTap(fr.dataset.friend); });
     var fc = t.closest("[data-fconfirm]"); if (fc) return gate(function () { confirmFriend(fc.dataset.fconfirm); });
     var fd = t.closest("[data-fdelete]"); if (fd) return gate(function () { deleteRequest(fd.dataset.fdelete); });
+    var nm = t.closest("[data-ndm]"); if (nm) { var who = nm.dataset.ndm; return closeTop().then(function () { openChat(who); }); }
     var nt = t.closest("[data-note]");
     if (nt && !t.closest("[data-friend],[data-fconfirm],[data-fdelete]")) {
       var nd = nt.dataset;
@@ -3118,6 +3149,7 @@ html.kb .ch-bar{padding-bottom:8px}
       else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else if (which === "signout") signOutHere(); else gate(openEdit); }); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-sharep]")) return shareProfile();
+    var cu = t.closest("[data-copyurl]"); if (cu) { var u = cu.dataset.copyurl; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { cu.textContent = "Copied"; toast("Your link is copied."); }, function () { toast(u); }); return; }
     if (t.closest("[data-findf]")) return openSetup("friends");
     if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
     if (t.closest("[data-new]")) return toggleDial();
@@ -3426,6 +3458,7 @@ html.kb .ch-bar{padding-bottom:8px}
   /* ================================================================ GO */
   (async function () {
     await loadMe();
+    try { if (me.member) localStorage.setItem("rm_porch_ok", "1"); } catch (e) {}
     await loadFriends();
     loadNew();
     loadMore();
@@ -3457,6 +3490,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=49" defer></script>
+<script src="/feed/spins/spins.js?v=50" defer></script>
 </body>
 </html>
