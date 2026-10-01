@@ -82,9 +82,9 @@
 .sp-holes{position:absolute;left:0;right:0;height:7px;border-radius:2px;background-image:repeating-linear-gradient(90deg,transparent 0 5px,#2a271f 5px 13px,transparent 13px 18px)}
 .sp-holes.t{top:4px}.sp-holes.b{bottom:4px}
 .sp-frames{gap:6px!important;padding:0 10px 0 6px!important;align-items:center}
-.sp-frame{flex:none;position:relative;width:72px;height:128px;padding:0;border:0;border-radius:12px;overflow:hidden;background:#000;color:#fff;cursor:pointer;scroll-snap-align:start}
+.sp-frame{flex:none;position:relative;width:88px;height:156px;padding:0;border:0;border-radius:12px;overflow:hidden;background:#000;color:#fff;cursor:pointer;scroll-snap-align:start}
 .sp-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.sp-fplay{position:absolute;z-index:1;left:50%;top:44%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:rgba(0,0,0,.5);border:1.5px solid rgba(255,255,255,.85);display:grid;place-items:center;box-sizing:border-box}
+.sp-fplay{position:absolute;z-index:1;left:50%;top:46%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:rgba(0,0,0,.5);border:1.5px solid rgba(255,255,255,.85);display:grid;place-items:center;box-sizing:border-box}
 .sp-fplay svg{width:14px;height:14px;margin-left:2px;fill:#fff}
 .sp-film .sp-mk{width:80px;margin-right:4px}
 .sp-film .sp-mk .sp-ring{width:64px;height:64px}
@@ -94,7 +94,7 @@
 .sp-flen svg{width:9px;height:9px;fill:#fff}
 .sp-fre{position:absolute;z-index:1;right:5px;top:5px;width:20px;height:20px;border-radius:50%;background:#e0bd6a;display:grid;place-items:center}
 .sp-fre svg{width:12px;height:12px;fill:none;stroke:#11110f;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.sp-fnm{position:absolute;z-index:1;left:4px;bottom:5px;max-width:calc(100% - 8px);box-sizing:border-box;padding:2px 5px;border-radius:999px;background:rgba(0,0,0,.66);font:800 9px/1.3 Arial,sans-serif;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-fnm{position:absolute;z-index:1;left:4px;bottom:5px;max-width:calc(100% - 8px);box-sizing:border-box;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.66);font:800 9.5px/1.3 Arial,sans-serif;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-fmake{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #e0bd6a;box-sizing:border-box;background:rgba(224,189,106,.07);color:#e0bd6a}
 .sp-fmake::after{display:none}
 .sp-fmake .sp-cam svg{width:30px;height:30px}
