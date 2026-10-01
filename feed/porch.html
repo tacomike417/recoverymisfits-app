@@ -394,6 +394,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .prow .pedit{margin:0;width:auto;flex:1}
 .pvis{display:inline-flex;align-items:center;gap:6px;margin:10px 16px 0;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--soft);font:700 12.5px Arial,sans-serif;cursor:pointer}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
+.eleave{display:block;margin:34px auto 10px;padding:8px 12px;border:0;background:none;color:var(--faint);font:700 12.5px Arial,sans-serif;text-decoration:underline;cursor:pointer}
 /* every name and face goes to that person's page (1 Oct 2026) */
 .ul{cursor:pointer}.th-av{display:flex;flex:none}
 /* PROFILE LAYOUT A (1 Oct 2026) */
@@ -814,7 +815,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v58</span>
+  <span class="ver" id="ver">v59</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1095,6 +1096,7 @@ html.kb .ch-bar{padding-bottom:8px}
       <label class="l">FIND FRIENDS NEAR ME</label>
       <div class="nearset" id="enear"></div>
       <p class="hint">Your sober date is never on your profile. It's just for you.</p>
+      <button type="button" class="eleave" data-leave>Delete my account</button>
     </div>
   </div>
 </div>
@@ -2154,8 +2156,7 @@ html.kb .ch-bar{padding-bottom:8px}
       '<button type="button" data-mm="coins">My coins</button>' +
       '<button type="button" data-mm="invite">Invite somebody</button>' +
       '<button type="button" data-mm="account">Your app account</button>' +
-      '<button type="button" data-mm="signout">Sign out</button>' +
-      (me.member ? '<button type="button" data-mm="leave" style="color:var(--faint);font-size:14px">Delete my Porch account</button>' : "");
+      '<button type="button" data-mm="signout">Sign out</button>';
     open("memenu");
   }
 
@@ -3227,10 +3228,20 @@ html.kb .ch-bar{padding-bottom:8px}
       return reloadFeed();
     }
     var mm = t.closest("[data-mm]");
-    if (mm) { var which = mm.dataset.mm; closeTop().then(function () {
-      if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends(); else if (which === "coins") location.href = "/coins.html"; else if (which === "invite") invite(); else if (which === "findf") openSetup("friends");
-      else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else if (which === "signout") signOutHere(); else gate(openEdit); }); return; }
+    if (mm) {
+      /* 1 Oct 2026, Mike: back from a screen you opened from this menu comes back to the
+         menu, not the feed. Screens open on top of it; only leaving the Porch closes it. */
+      var which = mm.dataset.mm, LAYER = { profile: "profile", notes: "notes", saved: "saved", friends: "friends", findf: "setup", mod: "mod", edit: "editp" };
+      var go = function () {
+        if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends(); else if (which === "coins") location.href = "/coins.html"; else if (which === "invite") invite(); else if (which === "findf") openSetup("friends");
+        else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else if (which === "signout") signOutHere(); else gate(openEdit);
+      };
+      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout)$/.test(which) ? "editp" : "");
+      /* already open underneath (say, your own profile)? close the menu to show it */
+      if (lay && stack.indexOf($(lay)) < 0 && t.closest("#memenu")) return go();
+      closeTop().then(go); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
+    if (t.closest("[data-leave]")) return askLeave();
     if (t.closest("[data-sharep]")) return shareProfile();
     var ptab = t.closest("[data-ptab]"); if (ptab) { var pg2 = ptab.closest(".page") || document; pg2.querySelectorAll("[data-ptab]").forEach(function (b) { b.classList.toggle("on", b === ptab); }); pg2.querySelectorAll("[data-ppane]").forEach(function (d) { d.hidden = d.dataset.ppane !== ptab.dataset.ptab; }); return; }
     var cu = t.closest("[data-copyurl]"); if (cu) { var u = cu.dataset.copyurl; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { cu.textContent = "Copied"; toast("Your link is copied."); }, function () { toast(u); }); return; }
