@@ -113,6 +113,20 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .newb h3{margin:0 0 8px;font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
 .strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .strip::-webkit-scrollbar{display:none}
+/* the Friends tab (1 Oct 2026) */
+.fstrip{margin:14px 0 6px}
+.fcards{margin:6px 12px 20px;display:grid;gap:10px}
+.fcard{display:flex;align-items:center;gap:10px;padding:12px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.fwho{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:0;border:0;background:none;color:var(--cream);text-align:left;cursor:pointer}
+.fwho .av{width:52px;height:52px;flex:none}
+.fwho b{display:block;font:800 16px Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fwho small{display:block;margin-top:3px;color:var(--muted);font-size:13px}
+.fmsg{flex:none;display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:999px;border:0;background:var(--gold2);color:#17130b;font:800 14px Arial,sans-serif;cursor:pointer}
+.fmsg .ico{width:17px;height:17px}
+.dm-start{margin:14px 4px 0;text-align:left}
+.dm-start .th-row .av{width:54px!important;height:54px!important;font-size:20px!important;flex:none}
+.dm-start h4{padding:0 16px;text-align:left!important}
+.dm-start h4{margin:0 0 8px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold2)}
 .st{flex:none;width:66px;text-align:center;font-size:11.5px;color:var(--cream)}
 .st .ring{width:60px;height:60px;margin:0 auto 5px;border-radius:50%;padding:3px;background:conic-gradient(from 200deg,var(--gold),var(--acc2),var(--gold))}
 .st .ring .av{width:100%;height:100%;border:3px solid var(--bg)}
@@ -651,7 +665,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v30</span>
+  <span class="ver" id="ver">v31</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1001,6 +1015,9 @@ html.kb .ch-bar{padding-bottom:8px}
     me.member = null;
     if (!me.uid) return;
     try { var r = await rest("porch_members?user_id=eq." + me.uid + "&select=*"); me.member = r[0] || null; } catch (e) {}
+    /* 1 Oct 2026: no name card yet? Make one from your app username, so friends see your
+       name (not "misfit") and can find you. Confirming an email is still what lets you post. */
+    if (!me.member) { try { await rpc("porch_join", {}); var r2 = await rest("porch_members?user_id=eq." + me.uid + "&select=*"); me.member = r2[0] || null; } catch (e) {} }
     if (me.member) people[me.uid] = me.member;
     try { saved = {}; (await rest("porch_saves?user_id=eq." + me.uid + "&select=post_id")).forEach(function (r) { saved[r.post_id] = true; }); } catch (e) {}
     try { isMod = !!(await rest("porch_moderators?user_id=eq." + me.uid + "&select=user_id")).length; } catch (e) { isMod = false; }
@@ -1244,9 +1261,12 @@ html.kb .ch-bar{padding-bottom:8px}
       }
       var feed = $("feed");
       feed.querySelectorAll(".skel,.err").forEach(function (x) { x.remove(); });
+      if (tab === "following" && list.length && !feed.querySelector(".fstrip")) { var fi = realFriends(); if (fi.length) { await loadPeople(fi); fi = realFriends(); feed.insertAdjacentHTML("beforeend", friendsTopHTML(fi)); } }
       feed.insertAdjacentHTML("beforeend", list.map(postHTML).join(""));
       if (!feed.querySelector(".post")) {
-        feed.innerHTML = tab === "following" ? '<div class="empty"><h2>No friends here yet.</h2><p>Tap somebody\'s name or face, then Add Friend. Once they confirm, their shares show up here.</p></div>' : '<div class="empty"><h2>The Porch is brand new.</h2><p>Pull up a chair. Be the first one to say something.</p><button type="button" class="gbtn" data-new>Share something</button></div>';
+        var fids = realFriends();
+        if (tab === "following" && fids.length) { await loadPeople(fids); fids = realFriends(); feed.innerHTML = friendsTopHTML(fids) + friendCardsHTML(fids); }
+        else feed.innerHTML = tab === "following" ? '<div class="empty"><h2>No friends here yet.</h2><p>Tap somebody\'s name or face, then Add Friend. Once they confirm, their shares show up here.</p></div>' : '<div class="empty"><h2>The Porch is brand new.</h2><p>Pull up a chair. Be the first one to say something.</p><button type="button" class="gbtn" data-new>Share something</button></div>';
       } else if (done && !feed.querySelector(".endnote")) {
         feed.insertAdjacentHTML("beforeend", '<p class="endnote">You\'re all caught up. 💛</p>');
       }
@@ -1798,7 +1818,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var found = {};
       if (samplesOn) Object.keys(people).forEach(function (k) { if (isSample(k) && people[k].handle.toLowerCase().indexOf(q) >= 0) found[k] = Object.assign({ user_id: k }, people[k]); });
       try {
-        (await rest("porch_members?handle=ilike.*" + encodeURIComponent(q) + "*&verified_at=not.is.null&select=user_id,handle,avatar_path,bio&order=handle.asc&limit=25"))
+        (await rest("porch_members?handle=ilike.*" + encodeURIComponent(q) + "*&select=user_id,handle,avatar_path,bio&order=handle.asc&limit=25"))
           .forEach(function (m) { people[m.user_id] = Object.assign(people[m.user_id] || {}, m); found[m.user_id] = m; });
       } catch (e) {}
       if ($("sq").value.trim().replace(/^@/, "").toLowerCase().replace(/[^a-z0-9._-]/g, "") !== q) return;
@@ -1943,7 +1963,7 @@ html.kb .ch-bar{padding-bottom:8px}
       tmr = setTimeout(async function () {
         var found = {};
         Object.keys(people).forEach(function (k) { var h = people[k].handle || ""; if (h.toLowerCase().indexOf(q) === 0 && k !== me.uid) found[h] = people[k]; });
-        try { (await rest("porch_members?handle=ilike." + encodeURIComponent(q) + "*&verified_at=not.is.null&select=user_id,handle,avatar_path&limit=8"))
+        try { (await rest("porch_members?handle=ilike." + encodeURIComponent(q) + "*&select=user_id,handle,avatar_path&limit=8"))
           .forEach(function (r) { people[r.user_id] = people[r.user_id] || r; if (r.user_id !== me.uid) found[r.handle] = r; }); } catch (e) {}
         bar.innerHTML = Object.keys(found).slice(0, 8).map(function (h) { return '<button type="button" data-pick="' + esc(h) + '">' + avatar(found[h]) + "@" + esc(h) + "</button>"; }).join("");
       }, 150);
@@ -1974,6 +1994,22 @@ html.kb .ch-bar{padding-bottom:8px}
     } catch (e) {}
   }
   var reqCount = function () { return Object.keys(reqIn).length; };
+  /* FRIENDS YOU CAN SEE (1 Oct 2026, Mike: "we're all friends but you'd never know it") */
+  function realFriends() {
+    return Object.keys(friends).filter(function (k) { return !isSample(k); })
+      .sort(function (x, y) { return name(x).toLowerCase() < name(y).toLowerCase() ? -1 : 1; });
+  }
+  function friendsTopHTML(ids) {
+    return '<section class="fstrip newb"><h3>YOUR FRIENDS</h3><div class="strip">' + ids.map(function (u) {
+      return '<button type="button" class="st" data-u="' + u + '" style="all:unset;cursor:pointer;flex:none;width:66px;text-align:center;font-size:11.5px"><div class="ring">' + avatar(people[u]) + "</div><b>" + esc(name(u)) + "</b></button>";
+    }).join("") + "</div></section>";
+  }
+  function friendCardsHTML(ids) {
+    return '<div class="fcards">' + ids.map(function (u) {
+      return '<div class="fcard"><button type="button" class="fwho" data-u="' + u + '">' + avatar(people[u]) + '<span><b>' + esc(name(u)) + "</b><small>No posts from " + esc(name(u)) + " yet</small></span></button>" +
+        '<button type="button" class="fmsg" data-dm="' + u + '">' + ico("comment") + "Message</button></div>";
+    }).join("") + "</div>";
+  }
   function friendBtn(uid, small) {
     var c = small ? "nd-fb" : "fol";
     var inner = friends[uid] && small ? '<button type="button" class="' + c + '" data-dm="' + uid + '">' + ico("comment") + "Message</button>"
@@ -2409,14 +2445,24 @@ html.kb .ch-bar{padding-bottom:8px}
     var list = [];
     try { list = await rest("porch_threads?or=(a.eq." + me.uid + ",b.eq." + me.uid + ")&select=*&order=last_at.desc&limit=60"); } catch (e) {}
     list = list.filter(function (t) { return t.last_from; });
-    await loadPeople(list.map(otherOf));
+    await loadPeople(list.map(otherOf).concat(realFriends()));
     $("thlist").innerHTML = list.length ? list.map(function (t) {
       var o = otherOf(t), unread = t.last_from !== me.uid && (!myReadOf(t) || t.last_at > myReadOf(t));
       return '<button type="button" class="th-row' + (unread ? " unread" : "") + '" data-dm="' + o + '">' + avatar(people[o]) +
         '<span class="tw"><b>' + esc(name(o)) + "</b><small>" + (t.last_from === me.uid ? "You: " : "") + esc(t.last_preview || "") + "</small></span><em>" + ago(t.last_at) + "</em>" +
         (unread ? '<i class="th-dot"></i>' : "") + "</button>";
-    }).join("") + '<p class="dm-safe"><b>Private.</b> Only you and your friend can see a chat. Report or block anybody from the ⋯ in a chat.</p>'
-      : '<div class="dm-empty"><b>No messages yet</b>You can message any of your friends.<br><br><button type="button" class="dm-pill" data-newdm style="margin:0 auto">' + ico("newdm") + "New message</button></div>";
+    }).join("") + startChatsHTML(list) + '<p class="dm-safe"><b>Private.</b> Only you and your friend can see a chat. Report or block anybody from the ⋯ in a chat.</p>'
+      : (realFriends().length ? startChatsHTML([]) : '<div class="dm-empty"><b>No messages yet</b>You can message any of your friends. Tap somebody\'s name or face on the Porch, then Add Friend.</div>');
+  }
+  /* START A CHAT (1 Oct 2026, Mike: "messaging needs to be easy without having to search by
+     username"): every friend you don't have a chat with yet, one tap away. */
+  function startChatsHTML(threads) {
+    var have = {}; threads.forEach(function (t) { have[otherOf(t)] = 1; });
+    var ids = realFriends().filter(function (u) { return !have[u]; });
+    if (!ids.length) return "";
+    return '<div class="dm-start"><h4>' + (threads.length ? "START A CHAT" : "MESSAGE A FRIEND") + "</h4>" + ids.map(function (u) {
+      return '<button type="button" class="th-row" data-dm="' + u + '">' + avatar(people[u]) + '<span class="tw"><b>' + esc(name(u)) + "</b><small>Say hi 👋</small></span></button>";
+    }).join("") + "</div>";
   }
   var dmPrefill = "";
   function openPick(prefill) {
