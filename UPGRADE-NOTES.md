@@ -9,17 +9,18 @@ Launch means taking the Mike-only lock off feed/porch.html. Until Oct 20 it stay
 and even then only once the UI update (layout A) is built and has been lived with for a while.
 
 ## 📝 THE BIG LIST (brainstorm 1 Oct 2026, Mike: "we're doing all this stuff")
-Nothing here is built yet. Order isn't set.
+Order isn't set.
 
 **Finish first**
-- [ ] Spin music: pick the 50 clips (picker page), install them, push
-- [ ] Play Store app rebuild (picks up sharing into the app + everything since)
+- [x] Spin music: pick the 50 clips (picker page), install them, push (done 1 Oct: 50 clips, 15 seconds)
+- [x] Play Store app rebuild (dropped: the Play Store app is parked on purpose, the web based app is the real one)
 - [ ] Day 1 checklist: flip the lock, sample posts off, welcome post on top, a few people ready to share
 
 **Before the doors open**
-- [ ] "Need help now?" one tap on the Porch: 988 + a meeting finder
-- [ ] Porch rules page people agree to once (experience, strength and hope)
-- [ ] Privacy policy + terms (Google Play needs them; the app asks for location)
+- [x] "Need help now?": already there, the Call 988 line at the bottom of the post screen.
+      Mike likes it where it is; not on the menu. "They'll find it."
+- [x] Porch rules page people agree to once (done 1 Oct, v62: shown once before your first post, read again from Edit profile)
+- [ ] Privacy policy + terms (the app asks for location, so people deserve to know what happens to it)
 - [ ] Forgot password: check there's a way back in for username-only accounts
 - [ ] Blocked people list (see who you blocked, unblock)
 - [ ] Mute somebody without blocking them
@@ -29,12 +30,15 @@ Nothing here is built yet. Order isn't set.
 - [ ] Events: "Thursday 7pm speaker meeting, who's going" with I'm going
 - [ ] Group chats in Messages
 - [ ] Voice messages in Messages (hold to talk)
+- [ ] Sounds: a ding for new messages (in the app and on the phone alert), and a ringtone
+      for incoming video calls
 - [ ] Topics/hashtags (#gratitude) + a Discover tab
 - [ ] Polls
 - [ ] Reshare somebody's post to your friends
 - [ ] Calls in Messages: one-on-one video and voice, friends only, never recorded.
       Rings as a phone alert (web apps can't do a full-screen ring on iPhone).
       Group calls later.
+      A small Call 988 line at the bottom of the call screen, same as the post screen.
 - [ ] Disappearing photos in Messages: opens once for 10 seconds, then gone for good
       (deleted off the server). A web app can't stop screenshots (Snapchat can't
       either, it only tells you), so: no saving, the photo blurs if they leave the

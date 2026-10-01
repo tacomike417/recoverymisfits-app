@@ -224,6 +224,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .rules{margin:0 0 12px;padding:12px 14px;border-radius:14px;background:var(--field);border:1px solid var(--line);font-size:14px;color:var(--soft)}
 .rules b{display:block;margin-bottom:4px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
 .rules ul{margin:0;padding-left:18px}
+#rulesheet .rules{margin-top:4px}#rulesheet .rules li{margin:4px 0}
 .esh{margin:0 0 10px;padding:0 0 10px;border-bottom:1px solid var(--line)}
 .esh p{margin:0 0 6px;line-height:1.45}
 .esh .esh1{color:var(--gold2);font-weight:800;font-size:15px}
@@ -819,7 +820,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v61</span>
+  <span class="ver" id="ver">v62</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -872,8 +873,8 @@ html.kb .ch-bar{padding-bottom:8px}
         <li>Share what happened to you, not what somebody else ought to do. No medical, legal or counseling advice.</li>
         <li>Be kind. We're all in this together.</li>
         <li>Every path counts. No bashing anybody's recovery.</li>
-        <li>No hate, slurs or threats.</li>
-        <li>Protect other people's anonymity.</li>
+        <li>Rated R, not rated X. No hate, slurs or threats.</li>
+        <li>Protect other people's anonymity. Ask before posting anybody's photo.</li>
         <li>Say what you need. Somebody here gets it.</li></ul></div>
       <label class="check"><input type="checkbox" id="cfok"> I'm 18 or older and I'll follow the Porch rules</label>
       <input class="field" id="cfemail" type="email" inputmode="email" autocomplete="email" placeholder="Your email">
@@ -888,6 +889,27 @@ html.kb .ch-bar{padding-bottom:8px}
       <p class="msg" id="cfmsg2" role="status"></p>
       <button type="button" class="link" id="cfagain">Use a different email or send a new code</button>
     </div>
+  </div>
+</div>
+
+<!-- THE PORCH RULES, once (1 Oct 2026, Mike: "ok build it"). Everybody who confirms an
+     email ticks these. This shows them once to anybody who never did (testers skip the
+     email), and they can read them again from Edit profile. -->
+<div id="rulesheet" class="layer" role="dialog" aria-modal="true" aria-label="The Porch rules">
+  <div class="dim" data-close></div>
+  <div class="sheet"><div class="g"></div>
+    <div class="rules"><b>THE PORCH RULES</b>
+        <!-- 1 Oct 2026, Mike: experience, strength and hope, not opinion, strength and hope -->
+        <div class="esh"><p class="esh1">We share experience, strength and hope.<br>Not opinion, strength and hope.</p>
+        <p>Opinions can hurt people, and in recovery we're not in the people-hurting business anymore. So the doctors get to be the doctors, the lawyers the lawyers and the counselors the counselors. Here, we're people in recovery helping each other out.</p></div>
+        <p style="margin:0 0 6px;color:var(--cream);font-weight:700">We're all adults here. Let's act like it.</p><ul>
+        <li>Share what happened to you, not what somebody else ought to do. No medical, legal or counseling advice.</li>
+        <li>Be kind. We're all in this together.</li>
+        <li>Every path counts. No bashing anybody's recovery.</li>
+        <li>Rated R, not rated X. No hate, slurs or threats.</li>
+        <li>Protect other people's anonymity. Ask before posting anybody's photo.</li>
+        <li>Say what you need. Somebody here gets it.</li></ul></div>
+    <button type="button" class="btn" id="rulesok">I'm in</button>
   </div>
 </div>
 
@@ -1100,7 +1122,8 @@ html.kb .ch-bar{padding-bottom:8px}
       <label class="l">FIND FRIENDS NEAR ME</label>
       <div class="nearset" id="enear"></div>
       <p class="hint">Your sober date is never on your profile. It's just for you.</p>
-      <button type="button" class="eleave" data-leave>Delete my account</button>
+      <button type="button" class="eleave" data-rules style="margin-top:34px;margin-bottom:0">The Porch rules</button>
+      <button type="button" class="eleave" data-leave style="margin-top:4px">Delete my account</button>
     </div>
   </div>
 </div>
@@ -1610,8 +1633,18 @@ html.kb .ch-bar{padding-bottom:8px}
     if (!me.member || !me.member.verified_at) await loadMe();
     if (!me.member || !me.member.verified_at) { pending = then; cfReset(); return open("confirm"); }
     if (me.member.frozen_at) return toast("Your account is paused while someone looks at a report.");
+    if (!rulesOk()) { pending = then; $("rulesok").hidden = false; return open("rulesheet"); }
     then();
   }
+  var RULES_KEY = function () { return "rm_porch_rules_" + (me.uid || ""); };
+  function rulesOk() { try { return localStorage.getItem(RULES_KEY()) === "1"; } catch (e) { return true; } }
+  function rulesYes() { try { localStorage.setItem(RULES_KEY(), "1"); } catch (e) {} }
+  $("rulesok").addEventListener("click", async function () {
+    rulesYes(); await closeTop();
+    var go = pending; pending = null; if (go) go();
+  });
+  /* read them again any time (Edit profile, bottom) */
+  function showRules() { $("rulesok").hidden = true; open("rulesheet"); }
 
   /* ---- confirm who you are ---- */
   function cfReset() { $("cf1").hidden = false; $("cf2").hidden = true; $("cfmsg1").textContent = ""; $("cfmsg2").textContent = ""; $("cfcode").value = ""; cfReady(); }
@@ -1632,6 +1665,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var r = await fn("porch-confirm", { action: "verify", code: $("cfcode").value });
     b.textContent = "Confirm";
     if (!r.ok) { $("cfmsg2").textContent = r.error || "That didn't work. Try again."; b.disabled = false; return; }
+    rulesYes();                           /* they ticked "I'll follow the Porch rules" */
     await loadMe();
     await closeTop();
     toast("You're on the Porch, " + r.handle + " 💛");
@@ -3276,6 +3310,7 @@ html.kb .ch-bar{padding-bottom:8px}
       closeTop().then(go); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-leave]")) return askLeave();
+    if (t.closest("[data-rules]")) return showRules();
     var shin = t.closest("[data-shin]"); if (shin) { var how = shin.dataset.shin; return closeTop().then(function () { useShared(how); }); }
     if (t.closest("[data-sharep]")) return shareProfile();
     var ptab = t.closest("[data-ptab]"); if (ptab) { var pg2 = ptab.closest(".page") || document; pg2.querySelectorAll("[data-ptab]").forEach(function (b) { b.classList.toggle("on", b === ptab); }); pg2.querySelectorAll("[data-ppane]").forEach(function (d) { d.hidden = d.dataset.ppane !== ptab.dataset.ptab; }); return; }
