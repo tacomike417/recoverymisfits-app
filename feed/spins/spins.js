@@ -24,7 +24,7 @@
   const TUS = 'https://video.bunnycdn.com/tusupload';
   const TUS_LIB = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
   const MB_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
-  const MAKER = '/feed/spins/spin-maker.js?v=33';
+  const MAKER = '/feed/spins/spin-maker.js?v=34';
   const MAX_S = 15.5;
   const RAIL_N = 14;
   const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at';
@@ -703,8 +703,20 @@
   let newEl = null, picked = null, pickedURL = '', pickedMusic = null, uploading = false;
   let makerReady = null;
   const musicCache = new Map();
+  /* OUR OWN 50 CLIPS (1 Oct 2026, Mike: "pick 50 happy songs and snip em down").
+     assets/spin-music/list.json (scripts/install_music.mjs makes it). While it isn't
+     there yet, the Freesound search keeps working as before. */
+  let libReady = null;
+  const library = () => libReady || (libReady = fetch('/assets/spin-music/list.json', { cache: 'no-cache' })
+    .then((r) => (r.ok ? r.json() : [])).then((l) => (Array.isArray(l) ? l : [])).catch(() => []));
+  const STYLE_OF = { ukulele: 'Ukulele', hiphop: 'Hip hop', rock: 'Rock', happy: 'Happy' };
   const musicApi = {
-    async search(q) { const r = await callSpins({ action: 'music_search', q }); if (r.error) throw new Error(r.error); return r.tracks || []; },
+    async styles() { const l = await library(); return l.length ? ['all'].concat(Object.keys(STYLE_OF).filter((k) => l.some((t) => t.style === k))).map((k) => [k, k === 'all' ? 'All' : STYLE_OF[k]]) : null; },
+    async search(q) {
+      const l = await library();
+      if (l.length) return l.filter((t) => !q || q === 'all' || t.style === q).map((t) => ({ id: t.id, name: t.name, by: STYLE_OF[t.style] || 'Music', secs: 20, preview: t.file }));
+      const r = await callSpins({ action: 'music_search', q }); if (r.error) throw new Error(r.error); return r.tracks || [];
+    },
     /* the same track is only ever fetched once per visit (1 Oct 2026) */
     file(id) {
       if (!musicCache.has(id)) {
@@ -714,6 +726,12 @@
       return musicCache.get(id);
     },
     async _file(id) {
+      if (!/^\d+$/.test(String(id))) {            /* one of our own clips */
+        const hit = (await library()).find((x) => x.id === id);
+        const r = await fetch(hit ? hit.file : '/assets/spin-music/' + encodeURIComponent(id) + '.mp3');
+        if (!r.ok) throw new Error('music');
+        return r.blob();
+      }
       const t = await P().tok();
       const r = await fetch(P().DB + '/functions/v1/spins', { method: 'POST', headers: { apikey: P().KEY, Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'music_file', id }) });
       if (!r.ok) throw new Error('music');

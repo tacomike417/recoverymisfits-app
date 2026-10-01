@@ -750,8 +750,11 @@
      finished video. Sliders set the music and your video's own sound.
      ====================================================================== */
   const MOOD_CHIPS = [['chill', 'Chill'], ['upbeat', 'Upbeat'], ['hopeful', 'Hopeful'], ['acoustic', 'Acoustic'], ['lofi', 'Lo-fi'], ['piano', 'Piano'], ['cinematic', 'Big'], ['drums', 'Drums']];
+  let libChips = null;            /* our own clips' styles, when there's a library (1 Oct 2026) */
   async function loadTracks(q) {
     if (!musicApi) return;
+    if (musicApi.styles && libChips === null) { try { libChips = (await musicApi.styles()) || false; } catch (_) { libChips = false; } }
+    if (libChips && !libChips.some(([k]) => k === q)) q = 'all';
     mq = q; mloading = true; if (tab === 'music') paintPanel();
     try { tracks = await musicApi.search(q); } catch (_) { tracks = []; }
     mloading = false; if (tab === 'music') paintPanel();
@@ -760,19 +763,19 @@
     if (!musicApi) { p.innerHTML = '<p class="lpm-hint">Music isn\'t switched on yet.</p>'; return; }
     if (!tracks.length && !mloading) { loadTracks(mq); }
     const m = st.music;
-    p.innerHTML = `${m ? `<div class="lpm-now"><b>♫ ${esc(m.name)}</b><small>by ${esc(m.by)} · free to use</small>
+    p.innerHTML = `${m ? `<div class="lpm-now"><b>♫ ${esc(m.name)}</b><small>${libChips ? esc(m.by) : 'by ' + esc(m.by)} · free to use</small>
         <button type="button" data-mnone>✕ No music</button></div>
         <label class="lpm-vol">Music<input type="range" min="0" max="1" step="0.05" value="${st.mvol}" data-mvol></label>
         ${hasVideo() ? `<label class="lpm-vol">Your video's sound<input type="range" min="0" max="1" step="0.05" value="${st.ovol}" data-ovol></label>` : ''}` : ''}
-      <div class="lpm-moods">${MOOD_CHIPS.map(([k, n]) => `<button type="button" data-mood="${k}" class="${mq === k ? 'on' : ''}">${n}</button>`).join('')}</div>
-      <form class="lpm-msearch"><input type="search" placeholder="Search music (rain, guitar, happy…)" enterkeyhint="search" value="${MOOD_CHIPS.some(([k]) => k === mq) ? '' : esc(mq)}"></form>
+      <div class="lpm-moods">${(libChips || MOOD_CHIPS).map(([k, n]) => `<button type="button" data-mood="${k}" class="${mq === k ? 'on' : ''}">${n}</button>`).join('')}</div>
+      ${libChips ? '' : `<form class="lpm-msearch"><input type="search" placeholder="Search music (rain, guitar, happy…)" enterkeyhint="search" value="${MOOD_CHIPS.some(([k]) => k === mq) ? '' : esc(mq)}"></form>`}
       <div class="lpm-tracks">${mloading ? '<p class="lpm-hint">Finding music…</p>' : tracks.length ? tracks.map((t, i) => `<div class="lpm-trk${m && m.id === t.id ? ' on' : ''}">
           <button type="button" class="pl${hearing && hearing.id === t.id ? ' on' : ''}" data-mplay="${i}" aria-label="Hear it">${hearing && hearing.id === t.id ? '❚❚' : '▶'}</button>
-          <span><b>${esc(t.name)}</b><small>${esc(t.by)} · ${t.secs}s</small></span>
+          <span><b>${esc(t.name)}</b><small>${esc(t.by)}${libChips ? '' : ' · ' + t.secs + 's'}</small></span>
           <button type="button" class="use" data-muse="${i}">${m && m.id === t.id ? '✓ On · tap to remove' : 'Use'}</button></div>`).join('') : '<p class="lpm-hint">Nothing found. Try another word.</p>'}</div>
-      <p class="lpm-hint">Free music nobody owns, safe to share anywhere. From Freesound.</p>`;
+      <p class="lpm-hint">Free music nobody owns, safe to share anywhere.</p>`;
     const f = p.querySelector('.lpm-msearch');
-    f.addEventListener('submit', (e) => { e.preventDefault(); const q = f.querySelector('input').value.trim(); if (q) loadTracks(q); });
+    if (f) f.addEventListener('submit', (e) => { e.preventDefault(); const q = f.querySelector('input').value.trim(); if (q) loadTracks(q); });
     const mv = p.querySelector('[data-mvol]'); if (mv) mv.addEventListener('input', () => { st.mvol = Number(mv.value); if (maudio) maudio.volume = st.mvol; });
     const ov = p.querySelector('[data-ovol]'); if (ov) ov.addEventListener('input', () => { st.ovol = Number(ov.value); });
   }

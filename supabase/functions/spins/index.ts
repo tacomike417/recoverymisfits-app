@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
     const caption = String(b.caption || "").trim().slice(0, 500);
     const w = caption ? checkWords(caption) : null; if (w) return json({ error: w }, 400);
     const muted = !!b.muted;
-    const music = b.music && b.music.id ? { id: Number(b.music.id), name: String(b.music.name || "").slice(0, 60), by: String(b.music.by || "").slice(0, 40) } : null;
+    const music = b.music && b.music.id ? { id: /^\d+$/.test(String(b.music.id)) ? Number(b.music.id) : String(b.music.id).replace(/[^a-z0-9-]/g, "").slice(0, 40), name: String(b.music.name || "").slice(0, 60), by: String(b.music.by || "").slice(0, 40) } : null;
 
     const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
     const { count } = await admin.from("porch_spins").select("id", { count: "exact", head: true }).eq("user_id", user.id).gte("created_at", since);
