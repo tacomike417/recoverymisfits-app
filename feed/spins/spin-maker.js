@@ -30,7 +30,7 @@
   const W = 720, H = 1280, FPS = 30;
   const MB_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
   /* RECOVERY MISFITS stickers (30 Sep 2026): plain, positive, every path welcome */
-  const STICKERS = ['still-here', 'day-one', 'proud-of-me', 'grateful', 'small-wins', 'coffee-first', 'not-today', 'breathe',
+  const STICKERS = ['still-here', 'odaat', 'proud-of-me', 'grateful', 'small-wins', 'coffee-first', 'not-today', 'breathe',
     'showed-up', 'glow-up', 'new-me', 'big-mood', 'misfit', 'clean-slate', 'keep-going', 'we-got-this',
     'good-vibes', 'sunrise', 'hi-friends', 'lets-gooo', 'omg', 'no-way', 'love-this', 'recovery-misfits'];
   const STICKER_URL = (n) => `/feed/spins/stickers/${n}.webp`;
