@@ -54,6 +54,7 @@ const WORDS: Record<string, string> = {
   metoo: "said Me too", mention: "tagged you", follow: "started following you", report: "was reported. Take a look.",
   friend_request: "sent you a friend request", friend_accept: "accepted your friend request",
   respin: "respun your Spin",
+  comment_love: "loved your comment",
 };
 
 Deno.serve(async (req) => {

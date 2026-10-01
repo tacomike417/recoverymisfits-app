@@ -429,6 +429,12 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .c1 .bub span{white-space:pre-wrap;word-wrap:break-word}
 .c1 small{display:flex;gap:12px;margin:3px 0 0 12px;color:var(--faint);font-size:12px}
 .c1 small button{border:0;background:none;padding:0;color:var(--faint);font:700 12px Arial,sans-serif;cursor:pointer}
+.c1 .bub{position:relative}
+.c1 .bub.hearted{margin-bottom:6px}
+.c1 small .clove.on,#comments .c1 small .clove.on{color:#e0352b}
+.chb{position:absolute;right:10px;bottom:-11px;width:22px;height:22px;border-radius:50%;background:#e0352b;border:2px solid var(--sheet);display:grid;place-items:center;box-sizing:border-box}
+#comments .chb{border-color:var(--pp)}
+.chb svg{width:12px;height:12px;fill:#fff;stroke:none}
 .cbar{display:flex;gap:8px;align-items:flex-end;padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--sheet)}
 .cbar textarea{flex:1;min-height:44px;max-height:120px;padding:11px 14px;border-radius:22px;border:1.5px solid var(--fline);background:var(--field);color:var(--cream);font:16px Arial,sans-serif;resize:none}
 .cbar button{flex:none;height:44px;padding:0 18px;border:0;border-radius:22px;background:var(--gold2);color:var(--ink);font:800 15px Arial,sans-serif;cursor:pointer}
@@ -700,7 +706,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v39</span>
+  <span class="ver" id="ver">v40</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1632,10 +1638,42 @@ html.kb .ch-bar{padding-bottom:8px}
   /* 30 Sep 2026: REPLIES (one level, like Facebook) and EDITS. Tap Reply under a
      comment and it tucks under that comment; your own comments get Edit. */
   var openPost = null, replyTo = null, editingC = null;
+  /* HEARTS ON COMMENTS AND REPLIES (1 Oct 2026, Mike). Like Facebook: "Love" next to
+     Reply turns red when you've loved it, and a little red heart sits on the corner of
+     any comment somebody loved. No number, same as every reaction on the Porch. */
+  var cHearts = {};   /* comment id -> { user id: 1 } */
+  var CHEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/></svg>';
+  async function loadCHearts(list) {
+    var ids = (list || []).map(function (c) { return c.id; }).filter(function (id) { return !isSample(id) && /^[0-9a-f-]{36}$/.test(id); });
+    if (!ids.length) return;
+    try {
+      var r = await rest("porch_comment_hearts?comment_id=in.(" + ids.join(",") + ")&select=comment_id,user_id");
+      ids.forEach(function (id) { cHearts[id] = {}; });
+      r.forEach(function (h) { cHearts[h.comment_id][h.user_id] = 1; });
+    } catch (e) {}
+  }
+  async function heartComment(cid) {
+    var c = findComment(cid); if (!c) return;
+    if (c.user_id === me.uid) return toast("That's your comment. Others can love it.");
+    var h = cHearts[cid] = cHearts[cid] || {}, on = !h[me.uid];
+    if (on) h[me.uid] = 1; else delete h[me.uid];
+    paintComments();
+    if (isSample(cid)) return;
+    try {
+      if (on) await rest("porch_comment_hearts", { method: "POST", body: { comment_id: cid, user_id: me.uid } });
+      else await rest("porch_comment_hearts?comment_id=eq." + cid + "&user_id=eq." + me.uid, { method: "DELETE" });
+    } catch (e) {
+      if (e.status === 409) return;
+      if (on) delete h[me.uid]; else h[me.uid] = 1;
+      paintComments();
+      toast(e.status === 401 || e.status === 403 ? "You can cheer people on once your account is 3 days old." : "That didn't go through.");
+    }
+  }
   function oneComment(c, isReply) {
-    var own = c.user_id === me.uid;
-    return '<div class="c1' + (isReply ? " rp" : "") + '" data-comment="' + c.id + '"><button type="button" class="ubtn" data-u="' + c.user_id + '" style="all:unset;cursor:pointer">' + avatar(people[c.user_id]) + '</button><div style="flex:1;min-width:0"><div class="bub"><b><button type="button" class="un" data-u="' + c.user_id + '">' + esc(name(c.user_id)) + "</button></b><span>" + linkify(c.body) + "</span></div>" +
+    var own = c.user_id === me.uid, h = cHearts[c.id] || {}, loved = !!h[me.uid], any = Object.keys(h).length > 0;
+    return '<div class="c1' + (isReply ? " rp" : "") + '" data-comment="' + c.id + '"><button type="button" class="ubtn" data-u="' + c.user_id + '" style="all:unset;cursor:pointer">' + avatar(people[c.user_id]) + '</button><div style="flex:1;min-width:0"><div class="bub' + (any ? " hearted" : "") + '"><b><button type="button" class="un" data-u="' + c.user_id + '">' + esc(name(c.user_id)) + "</button></b><span>" + linkify(c.body) + "</span>" + (any ? '<i class="chb" aria-label="Loved">' + CHEART + "</i>" : "") + "</div>" +
       "<small>" + ago(c.created_at) + (c.edited_at ? " · edited" : "") +
+      (own ? "" : '<button type="button" class="clove' + (loved ? " on" : "") + '" data-clove aria-pressed="' + loved + '">' + (loved ? "Loved" : "Love") + "</button>") +
       '<button type="button" data-creply>Reply</button>' +
       (own ? '<button type="button" data-cedit>Edit</button>' : "") +
       '<button type="button" data-cmore>' + (own ? "Delete" : "Report") + "</button></small></div></div>";
@@ -1664,6 +1702,7 @@ html.kb .ch-bar{padding-bottom:8px}
   function openComments(id) {
     if (openPost !== id) clearBox();
     openPost = id; paintComments(); paintReplyBar(); open("comments");
+    loadCHearts(comments[id]).then(function () { if (openPost === id) paintComments(); });
     setTimeout(function () { var l = $("clist"); l.scrollTop = l.scrollHeight; }, 30);
   }
   function grow() { var b = $("cin"); b.style.height = "auto"; b.style.height = Math.min(120, b.scrollHeight) + "px"; $("cgo").disabled = !b.value.trim(); }
@@ -2175,7 +2214,8 @@ html.kb .ch-bar{padding-bottom:8px}
     proud: ["proud", "loved your share"], metoo: ["metoo", "said Me too"],
     mention: ["mention", "tagged you"], follow: ["follow", "started following you"],
     friend_request: ["follow", "sent you a friend request"], friend_accept: ["friends", "accepted your friend request"],
-    report: ["question", "was reported. Take a look."], respin: ["friends", "respun your Spin"]
+    report: ["question", "was reported. Take a look."], respin: ["friends", "respun your Spin"],
+    comment_love: ["proud", "loved your comment"]
   };
   function noteSays(n) {
     if (n.kind === "mention") return n.comment_id ? "tagged you in a comment" : "tagged you in a share";
@@ -2767,6 +2807,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var bbl = t.closest("[data-bb]"); if (bbl && !t.closest("a,.at")) return dmMenu(bbl.closest("[data-dmid]").dataset.dmid);
     if (t.closest("[data-send]") && id) return sendOut(id);
     if (t.closest("[data-search]")) return openSearch();
+    var cl = t.closest("[data-clove]"); if (cl) return gate(function () { heartComment(cl.closest("[data-comment]").dataset.comment); });
     var cr = t.closest("[data-creply]"); if (cr) return gate(function () { startReply(cr.closest("[data-comment]").dataset.comment); });
     var ce = t.closest("[data-cedit]"); if (ce) return gate(function () { startEditC(ce.closest("[data-comment]").dataset.comment); });
     if (t.closest("[data-cmore]")) return gate(function () { menu({ comment: t.closest("[data-comment]").dataset.comment }); });
@@ -3065,6 +3106,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=39" defer></script>
+<script src="/feed/spins/spins.js?v=40" defer></script>
 </body>
 </html>
