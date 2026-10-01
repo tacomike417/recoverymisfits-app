@@ -81,7 +81,10 @@ Deno.serve(async (req) => {
     ]);
     if (!phones?.length) return json({ ok: true, sent: 0 });
     await vapid();
-    const said = String(m.body || "").replace(/\s+/g, " ").trim();
+    let said = String(m.body || "").replace(/\s+/g, " ").trim();
+    /* a Spin or post sent in a chat: say so, not the link (1 Oct 2026) */
+    const sh = said.match(/https?:\/\/(?:www\.)?recoverymisfits\.org\/(?:s\/|feed\/porch\.html\?(?:spin|s)=)\S+/i);
+    if (sh) said = said.replace(sh[0], "").trim() || (/\/s\/|spin=/.test(sh[0]) ? "Sent you a Spin" : "Sent you a share");
     const payload = JSON.stringify({
       title: who?.handle || "New message",
       body: m.racy ? "Sent a photo" : said ? (said.length > 140 ? said.slice(0, 137) + "…" : said) : (m.photo_paths?.length > 1 ? "Sent " + m.photo_paths.length + " photos" : "Sent a photo"),

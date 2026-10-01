@@ -627,6 +627,33 @@ html.kb .ch-bar{padding-bottom:8px}
 .pk-q{margin:4px 0 8px}
 .pk-row{display:flex;align-items:center;gap:12px;width:100%;padding:8px 2px;border:0;background:none;color:var(--cream);font:700 15.5px Arial,sans-serif;text-align:left;cursor:pointer}
 .pk-row .av{width:44px;height:44px}
+/* SEND TO FRIENDS, like Facebook (1 Oct 2026, Mike): every friend, a Send button each */
+.pk-prev{display:flex;align-items:center;gap:12px;margin:2px 0 10px;padding:10px;border-radius:14px;background:#15130e;border:1px solid #2a261d}
+.pk-prev img{flex:none;width:48px;height:64px;border-radius:9px;object-fit:cover;background:#000}
+.pk-prev .pk-pt{flex:none;width:48px;height:64px;border-radius:9px;display:grid;place-items:center;background:#25221b;color:#e0bd6a;font:900 22px Georgia,serif}
+.pk-prev b{display:block;color:#f4ecd8;font:800 15px Arial,sans-serif}
+.pk-prev small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#958c78;font:600 13px/1.35 Arial,sans-serif}
+.pk-msg{margin:0 0 8px}
+.pk-send{cursor:default}
+.pk-send .pk-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk-go{flex:none;min-width:82px;padding:10px 16px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b;font:800 14.5px/1 Arial,sans-serif;cursor:pointer}
+.pk-go.sent{background:#25221b;color:#958c78}
+.pk-go[disabled]{cursor:default}
+/* a shared Spin or post inside a chat: a preview you tap, not a link */
+.dm-card{display:block;position:relative;width:190px;max-width:70%;padding:0;border:0;border-radius:18px;overflow:hidden;background:#15130e;color:#fff;text-align:left;cursor:pointer;box-shadow:0 0 0 1px #2a261d}
+.dm-card.spin{aspect-ratio:9/16}
+.dm-card.spin img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.dm-card.spin .dc-play{position:absolute;left:50%;top:44%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(0,0,0,.5);display:grid;place-items:center}
+.dm-card.spin .dc-play svg{width:24px;height:24px;margin-left:3px;fill:#fff}
+.dm-card.spin .dc-foot{position:absolute;left:0;right:0;bottom:0;padding:30px 10px 10px;background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,0))}
+.dm-card .dc-k{display:block;color:#e0bd6a;font:500 11px "RM Rail",Oswald,sans-serif;letter-spacing:.14em}
+.dm-card .dc-by{display:block;font:800 14px Arial,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-card .dc-cap{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px;font:600 12.5px/1.3 Arial,sans-serif;opacity:.9}
+.dm-card.post{width:240px;padding:12px}
+.dm-card.post img{display:block;width:calc(100% + 24px);margin:-12px -12px 10px;aspect-ratio:4/3;object-fit:cover}
+.dm-card.post .dc-cap{-webkit-line-clamp:4;color:#ddd2b8;font-size:14px}
+.dm-card.gone{padding:14px;color:#958c78;font:700 14px Arial,sans-serif;cursor:default}
+.bm.me .dm-card{margin-left:auto}
 #pklist{max-height:52vh;overflow-y:auto}
 
 .toast{position:fixed;left:50%;bottom:calc(270px + env(safe-area-inset-bottom,0px));z-index:30000;transform:translate(-50%,20px);max-width:88vw;padding:12px 18px;border-radius:999px;background:var(--cream);color:var(--bg);font:700 14px Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
@@ -666,7 +693,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v37</span>
+  <span class="ver" id="ver">v38</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -853,7 +880,8 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="pickdm" class="layer" role="dialog" aria-modal="true" aria-label="New message">
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div>
-    <h3>New message</h3>
+    <h3 id="pkh">New message</h3>
+    <div id="pkshare" hidden><div id="pkprev"></div><input class="field pk-msg" id="pkmsg" type="text" autocomplete="off" maxlength="300" placeholder="Write a message (optional)"></div>
     <input class="field pk-q" id="pkq" type="search" autocomplete="off" placeholder="Find a friend">
     <div id="pklist"></div>
   </div>
@@ -1784,7 +1812,10 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   function sendVia(how, id) {
     var url = shareLink(id), words = shareWords(id);
-    if (how === "dm") return gate(function () { openPick(url); });
+    if (how === "dm") return gate(function () {
+      var p = posts[id] || {}, ph = (p.photo_paths || [])[0], tx = String(p.body || "").replace(/\s+/g, " ").trim();
+      openPick(url, { title: name(p.user_id), text: tx.length > 110 ? tx.slice(0, 107) + "…" : tx, thumb: ph ? pic(ph) : "" });
+    });
     if (how === "link") {
       if (navigator.share) return navigator.share({ title: "The Porch · Recovery Misfits", text: words, url: url }).catch(function () {});
       how = "copy";
@@ -2462,11 +2493,12 @@ html.kb .ch-bar{padding-bottom:8px}
     $("thlist").innerHTML = list.length ? list.map(function (t) {
       var o = otherOf(t), unread = t.last_from !== me.uid && (!myReadOf(t) || t.last_at > myReadOf(t));
       return '<button type="button" class="th-row' + (unread ? " unread" : "") + '" data-dm="' + o + '">' + avatar(people[o]) +
-        '<span class="tw"><b>' + esc(name(o)) + "</b><small>" + (t.last_from === me.uid ? "You: " : "") + esc(t.last_preview || "") + "</small></span><em>" + ago(t.last_at) + "</em>" +
+        '<span class="tw"><b>' + esc(name(o)) + "</b><small>" + (t.last_from === me.uid ? "You: " : "") + esc(previewWords(t.last_preview)) + "</small></span><em>" + ago(t.last_at) + "</em>" +
         (unread ? '<i class="th-dot"></i>' : "") + "</button>";
     }).join("") + startChatsHTML(list) + '<p class="dm-safe"><b>Private.</b> Only you and your friend can see a chat. Report or block anybody from the ⋯ in a chat.</p>'
       : (realFriends().length ? startChatsHTML([]) : '<div class="dm-empty"><b>No messages yet</b>You can message any of your friends. Tap somebody\'s name or face on the Porch, then Add Friend.</div>');
   }
+  function previewWords(p) { var s = shareOf(p); if (!s) return p || ""; return s.rest || (s.spin ? "Sent a Spin" : "Sent a share"); }
   /* START A CHAT (1 Oct 2026, Mike: "messaging needs to be easy without having to search by
      username"): every friend you don't have a chat with yet, one tap away. */
   function startChatsHTML(threads) {
@@ -2477,14 +2509,43 @@ html.kb .ch-bar{padding-bottom:8px}
       return '<button type="button" class="th-row" data-dm="' + u + '">' + avatar(people[u]) + '<span class="tw"><b>' + esc(name(u)) + "</b><small>Say hi 👋</small></span></button>";
     }).join("") + "</div>";
   }
-  var dmPrefill = "";
-  function openPick(prefill) {
+  var dmPrefill = "", pkSent = {}, pkCard = null;
+  /* SHARING TO MESSAGES, like Facebook (1 Oct 2026, Mike): what you're sending up top,
+     an optional message, then every friend with their own Send button. Send to as
+     many as you like; each one turns into "Sent". A plain New message still opens a chat. */
+  function openPick(prefill, card) {
     dmPrefill = typeof prefill === "string" ? prefill : "";
+    pkSent = {}; pkCard = dmPrefill ? (card || {}) : null;
+    $("pkh").textContent = dmPrefill ? "Send to" : "New message";
+    $("pkshare").hidden = !dmPrefill; $("pkmsg").value = "";
+    if (dmPrefill) {
+      var c = pkCard;
+      $("pkprev").innerHTML = '<div class="pk-prev">' + (c.thumb ? '<img src="' + esc(c.thumb) + '" alt="">' : '<span class="pk-pt">“</span>') +
+        '<span style="min-width:0"><b>' + esc(c.title || "A share from the Porch") + "</b>" + (c.text ? "<small>" + esc(c.text) + "</small>" : "") + "</span></div>";
+    }
     $("pkq").value = ""; paintPick(""); open("pickdm");
+  }
+  async function pkSend(u, btn) {
+    if (pkSent[u] || !dmPrefill) return;
+    pkSent[u] = "busy"; btn.disabled = true; btn.textContent = "…";
+    var msg = $("pkmsg").value.trim();
+    var r = await fn("porch", { action: "dm_send", to: u, body: (msg ? msg + "\n" : "") + dmPrefill, photos: [], sure: false });
+    if (r.pause) { delete pkSent[u]; btn.disabled = false; btn.textContent = "Send"; return toast("Take a breath. Maybe reword that message?"); }
+    if (r.ok) { pkSent[u] = 1; btn.textContent = "Sent"; btn.classList.add("sent"); checkDms(); return; }
+    delete pkSent[u]; btn.disabled = false; btn.textContent = "Send";
+    if (r.need === "confirm") { await closeTop(); cfReset(); return open("confirm"); }
+    toast(r.error || "That didn't send. Try again.");
   }
   function paintPick(q) {
     var ids = Object.keys(friends).filter(function (k) { return !isSample(k) && (!q || name(k).toLowerCase().indexOf(q) >= 0); })
       .sort(function (x, y) { return name(x).toLowerCase() < name(y).toLowerCase() ? -1 : 1; });
+    if (dmPrefill) {
+      $("pklist").innerHTML = ids.length ? ids.map(function (u) {
+        var done = pkSent[u] === 1;
+        return '<div class="pk-row pk-send">' + avatar(people[u]) + '<span class="pk-nm">' + esc(name(u)) + '</span><button type="button" class="pk-go' + (done ? " sent" : "") + '" data-pksend="' + u + '"' + (done ? " disabled" : "") + ">" + (done ? "Sent" : "Send") + "</button></div>";
+      }).join("") : '<p style="color:#6e675b">' + (q ? "No friend by that name." : "Add friends to send them things. Tap anybody's name or face on the Porch, then Add Friend.") + "</p>";
+      return;
+    }
     $("pklist").innerHTML = ids.length ? ids.map(function (u) { return '<button type="button" class="pk-row" data-dmpick="' + u + '">' + avatar(people[u]) + esc(name(u)) + "</button>"; }).join("")
       : '<p style="color:#6e675b">' + (q ? "No friend by that name." : "You can message friends. Tap anybody's name or face on the Porch, then Add Friend.") + "</p>";
   }
@@ -2501,8 +2562,39 @@ html.kb .ch-bar{padding-bottom:8px}
     } catch (e) {}
   }
   var dayOf = function (d) { return new Date(d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }); };
+  /* A SPIN OR POST SENT IN A CHAT shows as a preview card, like Facebook (1 Oct 2026, Mike) */
+  var SHARE_RE = /https?:\/\/(?:www\.)?recoverymisfits\.org\/(?:s\/([0-9a-f-]{36})|feed\/porch\.html\?(?:spin=([0-9a-f-]{36})|s=([0-9a-f-]{36})))\S*/i;
+  var SPIN_CDN = "https://vz-e533a6c3-9fe.b-cdn.net", dmShare = {};
+  function shareOf(body) { var x = String(body || "").match(SHARE_RE); return x ? { spin: (x[1] || x[2] || "").toLowerCase(), post: (x[3] || "").toLowerCase(), rest: String(body).replace(x[0], "").trim() } : null; }
+  async function loadShares(msgs) {
+    var sp = [], po = [];
+    msgs.forEach(function (m) { var s = !m.unsent_at && shareOf(m.body); if (!s) return; if (s.spin && !("s:" + s.spin in dmShare)) sp.push(s.spin); if (s.post && !("p:" + s.post in dmShare)) po.push(s.post); });
+    var who = [];
+    try { if (sp.length) { sp.forEach(function (i) { dmShare["s:" + i] = false; }); (await rest("porch_spins?id=in.(" + sp.join(",") + ")&select=id,user_id,video_guid,caption")).forEach(function (x) { dmShare["s:" + x.id] = x; who.push(x.user_id); }); } } catch (e) {}
+    try { if (po.length) { po.forEach(function (i) { dmShare["p:" + i] = false; }); (await rest("porch_posts?id=in.(" + po.join(",") + ")&select=id,user_id,body,photo_paths")).forEach(function (x) { dmShare["p:" + x.id] = x; who.push(x.user_id); }); } } catch (e) {}
+    if (who.length) { try { await loadPeople(who); } catch (e) {} }
+  }
+  function shareCardHTML(s) {
+    var PLAY = '<span class="dc-play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg></span>';
+    if (s.spin) {
+      var l = dmShare["s:" + s.spin];
+      if (l === false) return '<div class="dm-card gone">This Spin is gone.</div>';
+      if (!l) return '<button type="button" class="dm-card spin" data-spinlink="' + s.spin + '">' + PLAY + "</button>";
+      return '<button type="button" class="dm-card spin" data-spinlink="' + s.spin + '" aria-label="Watch the Spin"><img src="' + SPIN_CDN + "/" + esc(l.video_guid) + '/thumbnail.jpg" alt="" loading="lazy">' + PLAY +
+        '<span class="dc-foot"><span class="dc-k">SOBER SPIN</span><span class="dc-by">@' + esc(name(l.user_id)) + "</span>" + (l.caption ? '<span class="dc-cap">' + esc(l.caption) + "</span>" : "") + "</span></button>";
+    }
+    var p = dmShare["p:" + s.post];
+    if (p === false) return '<div class="dm-card gone">That share is gone.</div>';
+    if (!p) return '<button type="button" class="dm-card post" data-sharepost="' + s.post + '"><span class="dc-k">THE PORCH</span></button>';
+    var ph = (p.photo_paths || [])[0];
+    return '<button type="button" class="dm-card post" data-sharepost="' + s.post + '">' + (ph ? '<img src="' + pic(ph) + '" alt="" loading="lazy">' : "") +
+      '<span class="dc-k">THE PORCH</span><span class="dc-by">' + esc(name(p.user_id)) + "</span>" + (p.body ? '<span class="dc-cap">' + esc(p.body) + "</span>" : "") + "</button>";
+  }
   function bubbleHTML(m) {
     var mine = m.from_id === me.uid, ph = m.photo_paths || [];
+    var sh = !m.unsent_at && shareOf(m.body);
+    if (sh) return (sh.rest ? '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '"><div class="bb" data-bb>' + linkify(sh.rest) + "</div></div>" : "") +
+      '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '">' + shareCardHTML(sh) + "</div>";
     if (m.unsent_at) return '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '"><div class="bb gone">' + (mine ? "You unsent a message" : "Message unsent") + "</div></div>";
     var pics = ph.length ? '<div class="pics n' + ph.length + (m.racy && !m.seen ? " rz" : "") + '" data-rz="' + (m.racy && !m.seen ? m.id : "") + '">' +
       ph.map(function (x, i) { return '<img src="' + (dmShown[x] || "") + '" alt="" loading="lazy" data-view="' + i + '">'; }).join("") + "</div>" : "";
@@ -2535,6 +2627,7 @@ html.kb .ch-bar{padding-bottom:8px}
         var seen = {}; chat.msgs.forEach(function (m) { if (m.seen) seen[m.id] = 1; });
         ms.forEach(function (m) { if (seen[m.id]) m.seen = true; });
         await signDm([].concat.apply([], ms.map(function (m) { return m.photo_paths || []; })));
+        await loadShares(ms);
         chat.msgs = ms;
         paintChat(fresh);
         if (t.last_from && t.last_from !== me.uid && (!myReadOf(t) || t.last_at > myReadOf(t))) { try { await rpc("porch_dm_read", { p_thread: t.id }); } catch (e) {} checkDms(); }
@@ -2651,6 +2744,8 @@ html.kb .ch-bar{padding-bottom:8px}
     if (t.closest("[data-msgs]")) return gate(openInbox);
     if (t.closest("[data-spins]")) { if (window.PorchSpins) window.PorchSpins.openLatest(); else toast("Spins are loading. Try again in a sec."); return; }
     if (t.closest("[data-newdm]")) return openPick();
+    var pks = t.closest("[data-pksend]"); if (pks) return pkSend(pks.dataset.pksend, pks);
+    var shp = t.closest("[data-sharepost]"); if (shp) return openNoteTarget(shp.dataset.sharepost);
     var pk = t.closest("[data-dmpick]"); if (pk) {
       var pu = pk.dataset.dmpick, pre = dmPrefill; dmPrefill = "";
       return closeTop().then(async function () { await openChat(pu); if (pre) { $("dmin").value = pre; paintDmBox(); } });
@@ -2927,7 +3022,7 @@ html.kb .ch-bar{padding-bottom:8px}
     get people() { return people; }, get me() { return me; },
     toast: toast, gate: gate, open: open, closeTop: closeTop, openProfile: openProfile, openHandle: openHandle,
     openCommentsFor: openCommentsFor, commentCount: function (id) { return (comments[id] || []).length; },
-    pickFriendToSend: function (text) { openPick(text); }
+    pickFriendToSend: function (text, card) { openPick(text, card); }
   };
 
   /* ================================================================ GO */
@@ -2961,6 +3056,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=37" defer></script>
+<script src="/feed/spins/spins.js?v=38" defer></script>
 </body>
 </html>

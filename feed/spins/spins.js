@@ -546,7 +546,7 @@
     el.addEventListener('click', async (e) => {
       const b = e.target.closest('[data-sh]'); if (!b) return;
       const w = b.getAttribute('data-sh');
-      if (w === 'dm') { await closeSheet(); P().gate(() => P().pickFriendToSend(url)); return; }
+      if (w === 'dm') { await closeSheet(); P().gate(() => P().pickFriendToSend(url, { title: at(l.user_id), text: l.caption || 'Sober Spin', thumb: thumbFor(l) })); return; }
       if (w === 'link') {
         await closeSheet();
         try { if (navigator.share) { await navigator.share({ title, url }); return; } } catch (err) { if (err && err.name === 'AbortError') return; }
