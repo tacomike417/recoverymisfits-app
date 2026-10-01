@@ -24,7 +24,7 @@
   const TUS = 'https://video.bunnycdn.com/tusupload';
   const TUS_LIB = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
   const MB_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
-  const MAKER = '/feed/spins/spin-maker.js?v=22';
+  const MAKER = '/feed/spins/spin-maker.js?v=23';
   const MAX_S = 15.5;
   const RAIL_N = 14;
   const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at';
@@ -51,7 +51,16 @@
 
   /* ---------------- its own look (black and gold) ---------------- */
   const CSS = `
-.sp-rail{margin:14px 0 2px}
+.sp-rail{margin:12px 0 4px}
+.sp-stories{gap:12px!important;padding:2px 12px 8px!important}
+.sp-story{flex:none;width:76px;padding:0;border:0;background:none;color:var(--soft);cursor:pointer;text-align:center;scroll-snap-align:start}
+.sp-ring{display:block;width:72px;height:72px;margin:0 auto;border-radius:50%;padding:3px;background:conic-gradient(#f6e3a8,#e0bd6a,#c9922b,#f6e3a8);box-sizing:border-box}
+.sp-ring img{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid var(--bg,#11110f);box-sizing:border-box;background:#15130e}
+.sp-nm{display:block;margin-top:6px;font:600 11.5px/1.2 Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-mk .sp-ring{background:none;border:2px dashed rgba(224,189,106,.75);padding:4px}
+.sp-mk .sp-plus{display:grid!important;place-items:center;width:100%!important;height:100%!important;margin:0!important;font:900 30px/1 Arial!important}
+.sp-mk .sp-nm{color:var(--gold2);font-weight:800;overflow:visible}
+.sp-story:active .sp-ring{transform:scale(.95)}
 .sp-rail h2{margin:0 12px 8px;font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold);display:flex;align-items:center;gap:7px}
 .sp-rail h2 svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .sp-row{display:flex;gap:8px;overflow-x:auto;padding:0 12px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
@@ -177,14 +186,21 @@
   const makeTile = () => `<button type="button" class="sp-tile sp-make" data-sp-make><span><span class="sp-plus">+</span><b>Give it<br>a spin</b></span></button>`;
   const SPIN_ICO = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.2"/><path d="M12 3a9 9 0 0 1 8.4 5.8M3.6 15.2A9 9 0 0 0 12 21"/></svg>';
 
+  /* LAYOUT A (1 Oct 2026): on the Porch, Spins are story circles under the tab row */
+  function storyHTML(l, i) {
+    return `<button type="button" class="sp-story" data-sp-open="rail" data-sp-i="${i}" aria-label="Spin by ${esc(at(l.user_id))}">
+      <span class="sp-ring"><img src="${esc(thumbFor(l))}" alt="" loading="lazy"></span><span class="sp-nm">${esc(P().name(l.user_id))}</span></button>`;
+  }
+  const makeStory = () => `<button type="button" class="sp-story sp-mk" data-sp-make aria-label="Give it a spin"><span class="sp-ring"><span class="sp-plus">+</span></span><span class="sp-nm">Give it a spin</span></button>`;
+
   async function railHTML() {
     let list = [];
     try { list = await latest(RAIL_N); } catch (_) { return ''; }
     if (!list.length && !meId()) return '';
     await P().loadPeople(list.map((l) => l.user_id));
     sets.set('rail', list);
-    return `<section class="sp-rail" data-sp-rail><h2>${SPIN_ICO}SOBER SPINS</h2>
-      <div class="sp-row">${meId() ? makeTile() : ''}${list.map((l, i) => tileHTML(l, 'rail', i, l.user_id === meId())).join('')}</div></section>`;
+    return `<section class="sp-rail" data-sp-rail aria-label="Sober Spins">
+      <div class="sp-row sp-stories">${meId() ? makeStory() : ''}${list.map((l, i) => storyHTML(l, i)).join('')}</div></section>`;
   }
   async function paintRail() {
     const host = document.getElementById('spinrail'); if (!host) return;

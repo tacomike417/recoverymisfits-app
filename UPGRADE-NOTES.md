@@ -146,6 +146,7 @@ advice."
   - **C, Slim rail**: FEED / SPINS / FRIENDS only.
 - Dial buttons (proposed; Mike only decided "Make a Spin" for sure): Make a Spin,
   Share a photo, Say something, Celebrate a win (coin + days).
+- **BUILT 1 Oct 2026 (Porch v23).** Celebrate a win shares a coin you've earned (only coins up to your sober date) on its spotlight. The porch function accepts `coin` for that. Compose has a Just words / A saying card switch, so Post a Saying is still one tap away.
 - **DECIDED 1 Oct 2026: layout A.** Real-pixel mockup: `Claude outputs/porch-layout-A.html`.
   The dial has: Give it a spin, Share a photo, Say something, Celebrate a win. The coin
   rail and bottom nav stay where they are. Coins and Invite move into the Account menu,

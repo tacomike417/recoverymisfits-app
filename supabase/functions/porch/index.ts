@@ -409,9 +409,12 @@ Deno.serve(async (req) => {
     const need = String(b.need || "talk");
     if (!["talk", "experience", "strength", "hope", "question", "win", "hard", "moment"].includes(need)) return json({ error: "Pick what you need." }, 400);
     const photos: string[] = Array.isArray(b.photos) ? b.photos.slice(0, 4) : [];
-    if (!text && !photos.length) return json({ error: "Say something or add a photo." }, 400);
-    const paths: string[] = [];
-    for (const p of photos) {
+    /* CELEBRATE A WIN (1 Oct 2026): a coin they've earned, shared whole. Only the app's own coin files. */
+    const coin = typeof b.coin === "string" && /^coin-(24-hours|30-days|60-days|90-days|06-months|(0[1-9]|[1-4]\d|5[0-5])-years?)\.webp$/.test(b.coin) ? b.coin : "";
+    if (b.coin && !coin) return json({ error: "That coin isn't one of ours." }, 400);
+    if (!text && !photos.length && !coin) return json({ error: "Say something or add a photo." }, 400);
+    const paths: string[] = coin ? ["/assets/coins/" + coin] : [];
+    for (const p of coin ? [] : photos) {
       const b64 = String(p).replace(/^data:image\/\w+;base64,/, "");
       let bytes: Uint8Array;
       try { bytes = decodeBase64(b64); } catch { return json({ error: "That photo couldn't be read." }, 400); }

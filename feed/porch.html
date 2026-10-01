@@ -69,9 +69,42 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .say{display:flex;align-items:center;gap:10px;margin:12px 12px 0;padding:10px 12px;border-radius:16px;background:var(--card);border:1px solid var(--line);cursor:pointer;width:calc(100% - 24px);text-align:left;color:var(--muted);font-size:15px}
 .say .pl{flex:1;padding:9px 14px;border-radius:999px;background:var(--btn);border:1px solid var(--line)}
 .say .cam{font-size:20px}
-.ftabs{display:flex;gap:8px;margin:14px 12px 2px}
-.ftabs button{padding:8px 16px;border-radius:999px;border:1px solid rgba(214,179,106,.35);background:none;color:var(--muted);font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.1em;cursor:pointer}
-.ftabs button.on{background:var(--gold);color:#17130b;border-color:var(--gold)}
+/* LAYOUT A (1 Oct 2026): the slim row under the logo */
+.ftabs{display:flex;align-items:center;max-width:480px;margin:0 auto;padding:0 4px 0 6px;background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.14);border-bottom:1px solid rgba(214,179,106,.24)}
+.ftabs [data-tab]{position:relative;padding:14px 10px 12px;border:0;background:none;color:var(--muted);font:500 14px "RM Rail",Oswald,sans-serif;letter-spacing:.1em;cursor:pointer}
+.ftabs [data-tab].on{color:var(--cream)}
+.ftabs [data-tab].on::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--gold2)}
+.ticons{margin-left:auto;display:flex;align-items:center;gap:2px}
+.tic{position:relative;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:50%;background:none;color:var(--cream);cursor:pointer;padding:0}
+.tic svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tic.rmsg .mmark{width:27px;height:27px;stroke:none}
+.tic:active{background:rgba(214,179,106,.12)}
+.tic .bell-n{top:3px;right:1px}
+/* the + dial */
+.dfab{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(196px + env(safe-area-inset-bottom,0px));z-index:8100;width:62px;height:62px;border-radius:50%;border:0;display:grid;place-items:center;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);box-shadow:0 10px 26px rgba(0,0,0,.6),0 0 0 3px rgba(16,15,12,.9);cursor:pointer;transition:transform .2s}
+.dfab svg{width:30px;height:30px;fill:none;stroke:#17130b;stroke-width:3;stroke-linecap:round}
+.dfab.x{transform:rotate(45deg)}
+.dial .ddim{position:fixed;inset:0;z-index:8050;background:rgba(5,5,4,.74);opacity:0;pointer-events:none;transition:opacity .2s}
+.dial .dstack{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(272px + env(safe-area-inset-bottom,0px));z-index:8090;display:flex;flex-direction:column;align-items:flex-end;gap:12px;pointer-events:none}
+.dial .dstack button{display:flex;align-items:center;gap:10px;padding:0;border:0;background:none;cursor:pointer;opacity:0;transform:translateY(16px) scale(.92);transition:opacity .18s,transform .18s}
+.dial .dstack b{padding:9px 14px;border-radius:10px;background:#f6efdc;color:#17130b;font:800 15px Arial,sans-serif;box-shadow:0 6px 16px rgba(0,0,0,.45);white-space:nowrap}
+.dial .dstack span{width:52px;height:52px;margin-right:5px;border-radius:50%;display:grid;place-items:center;background:#1b1913;border:2px solid #e0bd6a;box-shadow:0 6px 16px rgba(0,0,0,.45)}
+.dial .dstack svg{width:25px;height:25px;fill:none;stroke:#e0bd6a;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dial.open .ddim{opacity:1;pointer-events:auto}
+.dial.open .dstack{pointer-events:auto}
+.dial.open .dstack button{opacity:1;transform:none}
+.dial.open .dstack button:nth-child(3){transition-delay:.03s}.dial.open .dstack button:nth-child(2){transition-delay:.06s}.dial.open .dstack button:nth-child(1){transition-delay:.09s}
+/* compose: words or a saying card */
+.cmodes{display:flex;gap:8px;margin:0 0 12px}
+.cmodes button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--fline);background:none;color:var(--muted);font:800 14px Arial,sans-serif;cursor:pointer}
+.cmodes button.on{background:var(--onbg);border-color:var(--gold2);color:var(--gold2)}
+/* celebrate a win */
+.coinrow{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;scrollbar-width:none}
+.coinrow::-webkit-scrollbar{display:none}
+.wc{flex:none;width:92px;padding:8px 4px;border-radius:14px;border:2px solid transparent;background:var(--field);color:var(--cream);font:800 12.5px Arial,sans-serif;cursor:pointer;text-align:center}
+.wc img{display:block;width:76px;height:76px;margin:0 auto 6px;object-fit:contain}
+.wc.on{border-color:var(--gold2);background:var(--onbg)}
+#winbody{min-height:84px;margin-top:6px}
 .newb{margin:14px 0 0;padding:0 12px}
 .newb h3{margin:0 0 8px;font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
 .strip{display:flex;gap:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
@@ -210,10 +243,10 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .dot{position:absolute;top:3px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;border:2px solid #100f0c;background:var(--rust);color:#fff;font:800 10.5px/14px Arial,sans-serif;text-align:center;box-sizing:border-box}
 .menu .mcount{float:right;min-width:22px;padding:1px 7px;border-radius:11px;background:var(--rust);color:#fff;font:800 12px/20px Arial,sans-serif;text-align:center}
 /* ---- THE BELL + THE DROP-DOWN (30 Sep 2026, the way Jeff's site does it) ---- */
-.bell{position:absolute;top:calc(4px + env(safe-area-inset-top,0px));right:6px;z-index:99999;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:none;color:var(--cream);cursor:pointer}
+
 .bell svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .bell-n{position:absolute;top:1px;right:0;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#e41e3f;color:#fff;font:800 11px/19px system-ui,Arial,sans-serif;font-style:normal;text-align:center;box-shadow:0 0 0 2px #100f0c;box-sizing:border-box}
-.ver{right:52px!important}
+
 #rmrail .rmsg{position:relative;color:#e9dfc6}
 #rmrail .rmsg .mmark{width:26px;height:26px;stroke:none}
 #rmrail .rail-n{top:4px;right:auto;left:calc(50% + 4px);box-shadow:0 0 0 2px #100f0c}
@@ -599,31 +632,42 @@ html.kb .ch-bar{padding-bottom:8px}
 <body>
 <div id="chrome">
   <div id="rm-topbar"></div>
-  <div class="railbg"><nav id="rmrail" aria-label="The Porch">
-    <!-- 30 Sep 2026 (Mike): FEED / SPINS / COINS / INVITE / MESSAGES. Your picture lives on the sober rail now. -->
-    <a class="on" href="/feed/porch.html" aria-current="page"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="8" rx="2"/><rect x="4" y="13" width="16" height="8" rx="2"/></svg>FEED</a>
-    <button type="button" data-spins><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.2"/><path d="M12 3a9 9 0 0 1 8.4 5.8M3.6 15.2A9 9 0 0 0 12 21"/></svg>SPINS</button>
-    <a href="/coins.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8l1.2 2.6 2.8.3-2.1 1.9.6 2.8L12 14.2 9.5 15.6l.6-2.8L8 10.9l2.8-.3z"/></svg>COINS</a>
-    <button type="button" class="inv" data-invite><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c1.3-4 4-6 7-6s5.7 2 7 6"/><path d="M19 8v6M16 11h6"/></svg>INVITE</button>
-    <button type="button" class="rmsg" data-msgs aria-label="Messages"><svg class="mmark" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="rmdmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e3a8"/><stop offset=".5" stop-color="#e0bd6a"/><stop offset="1" stop-color="#c4563c"/></linearGradient></defs><path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:url(#rmdmg);stroke:none"/><circle cx="8" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="12" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="16" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/></svg><i class="bell-n rail-n" id="msgn" hidden></i>MESSAGES</button>
-  </nav></div>
+  <!-- LAYOUT A (1 Oct 2026, Mike picked it): one slim row under the logo.
+       Everyone / Friends on the left; Search, Messages and the bell on the right.
+       The old FEED / SPINS / COINS / INVITE / MESSAGES rail is gone: Spins are the
+       story circles, Coins and Invite live in the Account menu on the coin rail. -->
+  <div class="railbg"><div class="ftabs" id="ftabs">
+    <button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button>
+    <span class="ticons">
+      <button type="button" class="tic" data-search aria-label="Search the Porch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+      <button type="button" class="tic rmsg" data-msgs aria-label="Messages"><svg class="mmark" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="rmdmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e3a8"/><stop offset=".5" stop-color="#e0bd6a"/><stop offset="1" stop-color="#c4563c"/></linearGradient></defs><path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:url(#rmdmg);stroke:none"/><circle cx="8" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="12" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="16" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/></svg><i class="bell-n" id="msgn" hidden></i></button>
+      <button type="button" class="tic bell" id="bell" data-bell aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-2 8-2 8h16s-2-1-2-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="bell-n" id="belln" hidden></i></button>
+    </span>
+  </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v22</span>
-  <!-- THE BELL (30 Sep 2026): notifications the way Jeff's site does them -->
-  <button type="button" class="bell" id="bell" data-bell aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-2 8-2 8h16s-2-1-2-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="bell-n" id="belln" hidden></i></button>
+  <span class="ver" id="ver">v23</span>
 </div>
 <script src="/topbar.js" defer></script>
 
 <main class="wrap" id="main">
   
-  <section class="newb" id="newb" hidden><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
-  <div class="ftabs" id="ftabs"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" class="srch" data-search aria-label="Search the Porch"><span data-ico="search"></span>SEARCH</button></div>
   <div id="spinrail"></div>
   <div id="feed" style="padding-top:2px"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
 </main>
 
-<button type="button" class="fab" data-new aria-label="New share"><svg viewBox="0 0 24 24"><path d="M12 3.5c4.97 0 9 3.36 9 7.5s-4.03 7.5-9 7.5c-1.1 0-2.15-.16-3.12-.46L4 20l1.3-3.9C3.86 14.8 3 13 3 11c0-4.14 4.03-7.5 9-7.5z"/><path d="M12 8v6M9 11h6"/></svg>Share</button>
+<!-- THE + DIAL (Layout A, 1 Oct 2026): the four ways to put something on the Porch.
+     Sits above the coin rail. Back button, ✕ or a tap anywhere closes it. -->
+<div id="dial" class="dial">
+  <div class="ddim" data-dialx></div>
+  <div class="dstack">
+    <button type="button" data-go="spin"><b>Give it a spin</b><span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.2"/><path d="M12 3a9 9 0 0 1 8.4 5.8M3.6 15.2A9 9 0 0 0 12 21"/></svg></span></button>
+    <button type="button" data-go="snap"><b>Share a photo</b><span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="12" cy="12.5" r="3.6"/><path d="M8 5l1.6-2h4.8L16 5"/></svg></span></button>
+    <button type="button" data-go="say"><b>Say something</b><span><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/></svg></span></button>
+    <button type="button" data-go="win"><b>Celebrate a win</b><span><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/></svg></span></button>
+  </div>
+</div>
+<button type="button" class="dfab" id="dfab" data-new aria-label="Share something"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 <div class="toast" id="toast" role="status"></div>
 
 <!-- NOT SIGNED IN -->
@@ -674,15 +718,16 @@ html.kb .ch-bar{padding-bottom:8px}
 </div>
 
 <!-- WHAT ARE YOU SHARING? -->
-<div id="choose" class="layer" role="dialog" aria-modal="true" aria-label="What are you sharing?">
+
+<!-- CELEBRATE A WIN (Layout A, 1 Oct 2026): share a coin you've earned -->
+<div id="win" class="layer" role="dialog" aria-modal="true" aria-label="Celebrate a win">
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div>
-    <h3>What are you sharing?</h3>
-    <div class="tiles">
-      <button type="button" data-mode="say"><span class="ti" data-ico="say"></span><b>Say Something</b><small>Your words, as long as you want</small></button>
-      <button type="button" data-mode="sign"><span class="ti" data-ico="sign"></span><b>Post a Saying</b><small>Short and loud, in your own hand</small></button>
-      <button type="button" data-mode="snap"><span class="ti" data-ico="snap"></span><b>Share a Photo</b><small>Up to 4 photos</small></button>
-    </div>
+    <h3>Celebrate a win</h3>
+    <div id="winpick"></div>
+    <textarea class="field" id="winbody" maxlength="2000" placeholder="Say something about it (optional)"></textarea>
+    <button type="button" class="btn" id="wingo">Share it on the Porch</button>
+    <p class="msg" id="winmsg" role="status"></p>
   </div>
 </div>
 
@@ -690,6 +735,7 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="compose" class="layer full" role="dialog" aria-modal="true" aria-label="New share">
   <div class="page">
     <div class="ctop"><b id="ctitle">NEW SHARE</b><button type="button" class="send" id="csend" disabled>Share</button></div>
+    <div class="cmodes" id="cmodes"><button type="button" data-cm="say">Just words</button><button type="button" data-cm="sign">A saying card</button></div>
     <div class="cwho"><span id="cav"></span><div><b id="cname"></b><small>Everyone on the Porch will see this</small></div></div>
     <textarea id="cbody" maxlength="2000" placeholder="What's on your mind?"></textarea>
     <div class="atbar" id="atc"></div>
@@ -839,6 +885,8 @@ html.kb .ch-bar{padding-bottom:8px}
 <!-- SEARCH: find somebody by name -->
 <div id="search" class="layer full" role="dialog" aria-modal="true" aria-label="Search"><div class="page">
   <div class="sbox"><span data-ico="search"></span><input id="sq" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Find somebody by name"></div>
+  <!-- LAYOUT A: New Misfits moved here from the feed, so finding people is one place -->
+  <section class="newb" id="newb" hidden><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
   <div id="slist"></div>
 </div></div>
 
@@ -1012,7 +1060,7 @@ html.kb .ch-bar{padding-bottom:8px}
     { bg: "linear-gradient(#fbf8f0 0 30px,#e06b5b 30px 32px,#fbf8f0 32px)", ink: "#1b1a17" }
   ];
   /* 30 Sep 2026, Mike: Experience, Strength, Hope, and a question. Nothing that invites a pity party. */
-  var NEED = { talk: "JUST TALKING", experience: "EXPERIENCE", strength: "STRENGTH", hope: "HOPE", question: "A QUESTION", moment: "A MOMENT" };
+  var NEED = { talk: "JUST TALKING", experience: "EXPERIENCE", strength: "STRENGTH", hope: "HOPE", question: "A QUESTION", moment: "A MOMENT", win: "A WIN" };
   var CARD_MAX = 150;
   function fitsCard(t) { return t && t.length <= CARD_MAX && t.split("\n").length <= 8; }
   function handSize(t) { var n = t.length; return n <= 40 ? 36 : n <= 90 ? 31 : n <= 140 ? 27 : 24; }
@@ -1406,6 +1454,8 @@ html.kb .ch-bar{padding-bottom:8px}
     if (mode === "snap") { body.parentNode.insertBefore(ap, body); body.parentNode.insertBefore(tb, ap); }
     else { $("ccount").after(tb); tb.after(ap); }
     $("cardpick").hidden = mode !== "sign";
+    $("cmodes").hidden = !!editingPost || mode === "snap";
+    document.querySelectorAll("#cmodes [data-cm]").forEach(function (b) { b.classList.toggle("on", b.dataset.cm === mode); });
     $("chint").textContent = "Tap a color.";
     /* the preview IS the share, exactly as it will show on the Porch */
     $("cprev").innerHTML = postHTML({ id: "preview", user_id: me.uid, need: need,
@@ -1414,6 +1464,7 @@ html.kb .ch-bar{padding-bottom:8px}
     $("csend").disabled = sending || (mode === "snap" ? !photos.length : !t);
   }
   $("cbody").addEventListener("input", paintCompose);
+  $("cmodes").addEventListener("click", function (e) { var b = e.target.closest("[data-cm]"); if (b) { mode = b.dataset.cm; paintCompose(); $("cbody").focus(); } });
   $("needs").addEventListener("click", function (e) { var b = e.target.closest("[data-need]"); if (b) { need = need === b.dataset.need ? "talk" : b.dataset.need; paintCompose(); } });
   $("styles").addEventListener("click", function (e) { var b = e.target.closest("[data-style]"); if (b) { style = +b.dataset.style; paintCompose(); } });
   $("thumbs").addEventListener("click", function (e) { var b = e.target.closest("[data-unpic]"); if (b) { photos.splice(+b.dataset.unpic, 1); paintCompose(); } });
@@ -1823,6 +1874,8 @@ html.kb .ch-bar{padding-bottom:8px}
       '<button type="button" data-mm="friends">Friends' + (reqCount() ? '<span class="mcount">' + reqCount() + "</span>" : "") + "</button>" +
       '<button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>' +
       '<button type="button" data-mm="saved">Saved shares</button>' +
+      '<button type="button" data-mm="coins">My coins</button>' +
+      '<button type="button" data-mm="invite">Invite somebody</button>' +
       '<button type="button" data-mm="account">Your app account</button>' +
       (me.member ? '<button type="button" data-mm="leave" style="color:var(--faint);font-size:14px">Delete my Porch account</button>' : "");
     open("memenu");
@@ -2508,13 +2561,14 @@ html.kb .ch-bar{padding-bottom:8px}
     }
     var mm = t.closest("[data-mm]");
     if (mm) { var which = mm.dataset.mm; closeTop().then(function () {
-      if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends();
+      if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends(); else if (which === "coins") location.href = "/coins.html"; else if (which === "invite") invite();
       else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else gate(openEdit); }); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
-    if (t.closest("[data-new]")) return gate(function () { open("choose"); });
-    var md = t.closest("[data-mode]");
-    if (md) { closeTop().then(function () { openCompose(md.dataset.mode); }); return; }
+    if (t.closest("[data-new]")) return toggleDial();
+    if (t.closest("[data-dialx]")) return closeDial();
+    var dg = t.closest("[data-go]");
+    if (dg) { var go = dg.dataset.go; closeDial().then(function () { dialGo(go); }); return; }
     if (t.closest("[data-retry]")) return reloadFeed();
     if (t.closest("[data-invite]")) return invite();
     if (t.closest("[data-looks]")) { paintLooks(); return open("looks"); }
@@ -2710,6 +2764,78 @@ html.kb .ch-bar{padding-bottom:8px}
     lastY = y;
   }, { passive: true });
 
+  /* ================================================================ THE + DIAL (Layout A, 1 Oct 2026) */
+  function dialOpen() { return $("dial").classList.contains("open"); }
+  function toggleDial() {
+    if (dialOpen()) return closeDial();
+    gate(function () {
+      $("dial").classList.add("open"); $("dfab").classList.add("x"); $("dfab").setAttribute("aria-label", "Close");
+      window.PorchBack.push("dial", function () { $("dial").classList.remove("open"); $("dfab").classList.remove("x"); $("dfab").setAttribute("aria-label", "Share something"); });
+    });
+  }
+  function closeDial() {
+    var top = stack[stack.length - 1];
+    if (top && top._tag === "dial") return closeTop();
+    return Promise.resolve();
+  }
+  function dialGo(go) {
+    if (go === "spin") { if (window.PorchSpins) window.PorchSpins.start(); else toast("Spins are loading. Try again in a sec."); return; }
+    if (go === "win") return gate(openWin);
+    gate(function () {
+      openCompose(go);
+      if (go === "snap") setTimeout(function () { try { $("cfile").click(); } catch (e) {} }, 120);
+    });
+  }
+
+  /* ================================================================ CELEBRATE A WIN
+     The coins you've earned off your sober date, newest first. Pick one and it
+     goes on the Porch whole, on its spotlight, with whatever you want to say. */
+  var winCoin = null;
+  function earnedCoins() {
+    var ymd = ""; try { ymd = localStorage.getItem("rm_sober_date") || ""; } catch (e) {}
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd); if (!m) return null;
+    var start = new Date(+m[1], +m[2] - 1, +m[3]), now = new Date(), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var days = Math.floor((today - start) / 86400000); if (days < 0) return null;
+    var years = today.getFullYear() - start.getFullYear(); if (today.getMonth() < start.getMonth() || (today.getMonth() === start.getMonth() && today.getDate() < start.getDate())) years--;
+    var out = [];
+    for (var y = Math.min(years, 55); y >= 1; y--) out.push({ file: "coin-" + (y < 10 ? "0" : "") + y + (y === 1 ? "-year" : "-years") + ".webp", label: y === 1 ? "1 year" : y + " years" });
+    if (days >= 180) out.push({ file: "coin-06-months.webp", label: "6 months" });
+    if (days >= 90) out.push({ file: "coin-90-days.webp", label: "90 days" });
+    if (days >= 60) out.push({ file: "coin-60-days.webp", label: "60 days" });
+    if (days >= 30) out.push({ file: "coin-30-days.webp", label: "30 days" });
+    out.push({ file: "coin-24-hours.webp", label: "24 hours" });
+    return out;
+  }
+  function openWin() {
+    var list = earnedCoins();
+    $("winmsg").textContent = ""; $("winbody").value = "";
+    if (!list) {
+      winCoin = null;
+      $("winpick").innerHTML = '<p>Set your sober date first, then your coins show up here to share.</p><a class="btn" href="/account.html">Set my sober date</a>';
+      $("winbody").hidden = true; $("wingo").hidden = true; return open("win");
+    }
+    $("winbody").hidden = false; $("wingo").hidden = false;
+    winCoin = list[0].file;
+    $("winpick").innerHTML = '<p class="fine" style="margin:0 0 10px">Pick a coin you\'ve earned.</p><div class="coinrow">' + list.map(function (c, i) {
+      return '<button type="button" class="wc' + (i ? "" : " on") + '" data-wc="' + c.file + '"><img src="/assets/coins/' + c.file + '" alt="" loading="lazy"><span>' + c.label + "</span></button>";
+    }).join("") + "</div>";
+    open("win");
+  }
+  $("winpick").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-wc]"); if (!b) return;
+    winCoin = b.dataset.wc;
+    this.querySelectorAll("[data-wc]").forEach(function (x) { x.classList.toggle("on", x === b); });
+  });
+  $("wingo").addEventListener("click", async function () {
+    if (!winCoin) return;
+    var b = this; b.disabled = true; b.textContent = "Sharing…"; $("winmsg").textContent = "";
+    var r = await fn("porch", { action: "post", need: "win", body: $("winbody").value.trim(), coin: winCoin, sure: true });
+    b.disabled = false; b.textContent = "Share it on the Porch";
+    if (r.need === "confirm") { await closeTop(); cfReset(); return open("confirm"); }
+    if (!r.ok) { $("winmsg").textContent = r.error || "That didn't go through. Try again."; return; }
+    await closeTop(); toast("Shared. Congratulations! 💛"); reloadFeed();
+  });
+
   /* ================================================================ FOR SOBER SPINS (spins.js) */
   function openCommentsFor(postId, onClose, commentId) {
     (async function () {
@@ -2770,6 +2896,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=22" defer></script>
+<script src="/feed/spins/spins.js?v=23" defer></script>
 </body>
 </html>
