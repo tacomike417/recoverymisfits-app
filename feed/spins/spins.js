@@ -24,7 +24,7 @@
   const TUS = 'https://video.bunnycdn.com/tusupload';
   const TUS_LIB = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
   const MB_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
-  const MAKER = '/feed/spins/spin-maker.js?v=26';
+  const MAKER = '/feed/spins/spin-maker.js?v=27';
   const MAX_S = 15.5;
   const RAIL_N = 14;
   const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at';
@@ -118,6 +118,7 @@
 .sp-new{position:absolute;z-index:3;top:calc(8px + env(safe-area-inset-top,0px));right:146px;width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b;font:900 26px/44px Arial;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .sp-x{position:absolute;z-index:4;top:calc(10px + env(safe-area-inset-top,0px));left:10px;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#fff;cursor:pointer}
 .sp-x svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round}
+.sp-top svg{width:20px;height:20px;margin:-3px 7px 0 0;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .sp-top{position:absolute;top:calc(22px + env(safe-area-inset-top,0px));left:62px;font:500 15px "RM Rail",Oswald,sans-serif;letter-spacing:.12em;color:#f6e3a8;text-shadow:0 1px 3px #000;pointer-events:none}
 .sp-paused{position:absolute;left:50%;top:50%;width:92px;height:92px;margin:-46px 0 0 -46px;border-radius:50%;background:rgba(0,0,0,.45);display:none;place-items:center;pointer-events:none}
 .sp-paused svg{width:44px;height:44px;fill:#fff;margin-left:6px}
@@ -184,7 +185,8 @@
       <span class="sp-who">${P().avatar(P().people[l.user_id])}<span>${esc(at(l.user_id))}</span></span></button>`;
   }
   const makeTile = () => `<button type="button" class="sp-tile sp-make" data-sp-make><span><span class="sp-plus">+</span><b>Give it<br>a spin</b></span></button>`;
-  const SPIN_ICO = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.2"/><path d="M12 3a9 9 0 0 1 8.4 5.8M3.6 15.2A9 9 0 0 0 12 21"/></svg>';
+  /* THE SOBER SPINS ICON (1 Oct 2026, Mike): the little movie clapper, everywhere Spins shows up */
+  const SPIN_ICO = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 5l2 4M12 5l2 4M17 5l2 4"/></svg>';
 
   /* LAYOUT A (1 Oct 2026): on the Porch, Spins are story circles under the tab row */
   function storyHTML(l, i) {
@@ -345,7 +347,7 @@
     sp.className = 'sp'; sp.setAttribute('role', 'dialog'); sp.setAttribute('aria-label', 'Sober Spins');
     sp.innerHTML = `<div class="sp-list">${spList.map(itemHTML).join('')}</div>
       <button type="button" class="sp-x" data-sp-close aria-label="Close Spins, back to the Porch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-      <span class="sp-top">SOBER SPINS</span>
+      <span class="sp-top">${SPIN_ICO}SOBER SPINS</span>
       ${meId() ? '<button type="button" class="sp-new" data-sp-make aria-label="Make a Spin">+</button>' : ''}
       <button type="button" class="sp-snd" data-sp-snd aria-label="Sound on or off">
         <svg class="off" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z" fill="#fff"/><path d="m16 9 5 6M21 9l-5 6"/></svg><span class="off">Sound off</span>

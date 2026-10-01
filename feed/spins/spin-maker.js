@@ -498,6 +498,7 @@
 .lpm-th b{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font:900 13px/22px system-ui;text-align:center}
 .lpm-add{flex:none;width:72px;height:110px;border-radius:10px;border:2px dashed #e0bd6a;background:none;color:#e0bd6a;font:900 13px/1.2 system-ui,sans-serif;cursor:pointer}
 .lpm-add i{display:block;font-style:normal;font-size:28px;margin-bottom:4px}
+.lpm-add i svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .lpm-styles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .lpm-hint b{color:#f1e7cf}
 .lpm-styles button{border:2px solid transparent;border-radius:12px;padding:12px 8px;background:#15130e;color:#fff;font:900 15px/1 system-ui,sans-serif;cursor:pointer}
@@ -685,10 +686,10 @@
     if (tab === 'photos') {
       const room = st.photos.length < MAX_PHOTOS && duration() < 14.7;
       p.innerHTML = `<div class="lpm-thumbs">
-        ${room ? `<button type="button" class="lpm-add lpm-rec" data-rec><i>🎥</i>Record more</button>
+        ${room ? `<button type="button" class="lpm-add lpm-rec" data-rec><i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21.5 7v10l-6-3.5z"/></svg></i>Record more</button>
                   <button type="button" class="lpm-add" data-add><i>+</i>Add more</button>` : ''}
         ${st.photos.map((x, i) => `<button type="button" class="lpm-th" data-rm="${i}" aria-label="Take it out">${x.kind === 'video'
-          ? `<video src="${x.url}#t=0.1" muted playsinline preload="metadata"></video><span class="lpm-dur">🎥 ${Math.round(Math.min(15, x.dur || 0))}s</span>`
+          ? `<video src="${x.url}#t=0.1" muted playsinline preload="metadata"></video><span class="lpm-dur">${Math.round(Math.min(15, x.dur || 0))}s</span>`
           : `<img src="${x.url}" alt="">`}<b>✕</b></button>`).join('')}
       </div><p class="lpm-hint">${st.photos.length
         ? 'Tap a clip to take it out. Up to 15 seconds.'
@@ -1524,12 +1525,17 @@ registerProcessor('ip-pitch-shift', PitchShift);`;
 .lpc.lens video{opacity:0}
 .lpc-glow{position:absolute;z-index:2;top:calc(10px + env(safe-area-inset-top));right:12px;border:2px solid rgba(255,255,255,.4);border-radius:999px;padding:8px 12px;background:rgba(0,0,0,.45);color:#fff;font:900 13px/1 system-ui,sans-serif;cursor:pointer}
 .lpc-glow.on{border-color:#e0bd6a;background:rgba(224,189,106,.25)}
+.lpc-glow{display:flex;align-items:center;gap:6px;font:700 13px/1 Arial,sans-serif;letter-spacing:.02em}
+.lpc-glow svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linejoin:round}
+.lpc-glow.on{color:#f6e3a8}
 .lpc.rec .lpc-glow{opacity:.35;pointer-events:none}
 .lpc-top{position:absolute;left:0;right:0;top:calc(14px + env(safe-area-inset-top));display:flex;justify-content:center}
 .lpc-time{padding:7px 12px;border-radius:999px;background:rgba(0,0,0,.5);font-variant-numeric:tabular-nums}
 .lpc.rec .lpc-time{background:#e5243b}
 .lpc-bar{position:absolute;left:0;right:0;bottom:calc(26px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-around}
-.lpc-side{width:56px;height:56px;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:24px;cursor:pointer}
+.lpc-side{width:56px;height:56px;display:grid;place-items:center;border:1.5px solid rgba(255,255,255,.28);border-radius:50%;background:rgba(12,11,9,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#f1e7cf;cursor:pointer;padding:0}
+.lpc-side svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lpc-side:active{transform:scale(.94)}
 .lpc-go{position:relative;width:88px;height:88px;border:0;padding:0;background:none;cursor:pointer}
 .lpc-go svg{position:absolute;inset:0;transform:rotate(-90deg)}
 .lpc-go .lpc-dot{position:absolute;inset:14px;border-radius:50%;background:#e5243b;transition:all .2s}
@@ -1560,19 +1566,19 @@ registerProcessor('ip-pitch-shift', PitchShift);`;
     el2.setAttribute('aria-label', 'Record a Spin');
     el2.innerHTML = `<video playsinline muted autoplay></video><canvas class="lpc-cv" width="${CW}" height="${CH}"></canvas>
       <button type="button" class="lpc-x" data-cam-close aria-label="Close the camera"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-      <button type="button" class="lpc-glow${glowOn ? ' on' : ''}" data-cam-glow aria-label="Glow on or off">✨ Glow</button>
+      <button type="button" class="lpc-glow${glowOn ? ' on' : ''}" data-cam-glow aria-label="Glow on or off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 4.9 4.9 1.9-4.9 1.9L12 17.1l-1.9-4.9-4.9-1.9 4.9-1.9z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></svg><span>Glow</span></button>
       <div class="lpc-top"><span class="lpc-time">0:00 / 0:${String(Math.floor(camLeft())).padStart(2, '0')}</span></div>
       <p class="lpc-say">Tap to record · stops by itself at ${Math.floor(camLeft())} sec</p>
       <div class="lpc-voices" role="radiogroup" aria-label="Character">${CHARACTERS.map((ch) =>
         `<button type="button" data-char="${ch.key}" class="${ch.key === charKey ? 'on' : ''}">${ch.icon} ${ch.name}</button>`).join('')}</div>
       <div class="lpc-bar">
-        <button type="button" class="lpc-side" data-cam-pick aria-label="Pick from my phone">🖼</button>
+        <button type="button" class="lpc-side" data-cam-pick aria-label="Pick from my phone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.8" cy="9.3" r="1.8"/><path d="m3.6 17.2 5-5 4 4 2.6-2.6 5.2 5.2"/></svg></button>
         <button type="button" class="lpc-go" data-cam-go aria-label="Record">
           <svg viewBox="0 0 88 88"><circle cx="44" cy="44" r="40" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="6"/>
             <circle class="ring" cx="44" cy="44" r="40" fill="none" stroke="#e0bd6a" stroke-width="6" stroke-linecap="round"
               stroke-dasharray="251.3" stroke-dashoffset="251.3"/></svg>
           <span class="lpc-dot"></span></button>
-        <button type="button" class="lpc-side" data-cam-flip aria-label="Flip camera">🔄</button>
+        <button type="button" class="lpc-side" data-cam-flip aria-label="Flip camera"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.5-2.2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><path d="M8.8 12.6a3.3 3.3 0 0 1 6.1-1.3M15.2 14.4a3.3 3.3 0 0 1-6.1 1.3"/><path d="M15.2 9.2v2.3h-2.3M8.8 17.8v-2.3h2.3"/></svg></button>
       </div>`;
     document.body.appendChild(el2);
     cam = { el: el2, stream: null, rec: null, facing: 'environment', raf: 0, parts: [], cv: el2.querySelector('.lpc-cv') };
