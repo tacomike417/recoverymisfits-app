@@ -394,6 +394,8 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .prow .pedit{margin:0;width:auto;flex:1}
 .pvis{display:inline-flex;align-items:center;gap:6px;margin:10px 16px 0;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--soft);font:700 12.5px Arial,sans-serif;cursor:pointer}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
+/* every name and face goes to that person's page (1 Oct 2026) */
+.ul{cursor:pointer}.th-av{display:flex;flex:none}
 /* PROFILE LAYOUT A (1 Oct 2026) */
 .pcover.pa{height:150px}
 .pahead{display:flex;align-items:flex-end;gap:12px;margin:-46px 16px 0;position:relative;z-index:1}
@@ -812,7 +814,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v55</span>
+  <span class="ver" id="ver">v56</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1827,7 +1829,7 @@ html.kb .ch-bar{padding-bottom:8px}
   function paintReplyBar() {
     var bar = $("replyto");
     if (editingC) bar.innerHTML = "<span>Editing your comment</span><button type=\"button\" data-cancelc>Cancel</button>";
-    else if (replyTo) bar.innerHTML = "<span>Replying to <b>" + esc(name(replyTo.user_id)) + "</b></span><button type=\"button\" data-cancelc>Cancel</button>";
+    else if (replyTo) bar.innerHTML = "<span>Replying to <b class=\"ul\" data-u=\"" + replyTo.user_id + "\">" + esc(name(replyTo.user_id)) + "</b></span><button type=\"button\" data-cancelc>Cancel</button>";
     else bar.innerHTML = "";
     $("cgo").textContent = editingC ? "Save" : "Send";
     $("cin").placeholder = replyTo ? "Write a reply…" : "Say something kind…";
@@ -2141,7 +2143,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var m = me.member || { handle: A.name() };
     /* 1 Oct 2026, Mike: picture, username, and underneath it their own link to visit or copy */
     var plink = "recoverymisfits.org/u/" + encodeURIComponent(m.handle || "");
-    $("mmhead").innerHTML = avatar(m) + '<div style="min-width:0;flex:1"><b>' + esc(m.handle) + "</b>" +
+    $("mmhead").innerHTML = '<span class="ul" data-mm="profile">' + avatar(m) + '</span><div style="min-width:0;flex:1"><b class="ul" data-mm="profile">' + esc(m.handle) + "</b>" +
       '<div class="mmurl"><a href="/u/' + encodeURIComponent(m.handle || "") + '" target="_blank" rel="noopener">' + esc(plink) + '</a><button type="button" data-copyurl="https://' + esc(plink) + '">Copy</button></div></div>';
     $("mmbody").innerHTML = '<button type="button" data-mm="notes">Notifications' + (unread ? '<span class="mcount">' + unread + "</span>" : "") + "</button>" +
       (isMod ? '<button type="button" data-mm="mod">Reports' + (modCount ? '<span class="mcount">' + modCount + "</span>" : "") + "</button>" : "") +
@@ -2547,7 +2549,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function friendTap(uid) {
     if (friends[uid]) {                        /* already friends: offer Unfriend */
       $("mbody").dataset.t = JSON.stringify({ friend: uid }); $("mbody").dataset.uid = uid;
-      $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">' + esc(name(uid)) + "</p>" +
+      $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif"><span class="ul" data-u="' + uid + '">' + esc(name(uid)) + "</span></p>" +
         '<button type="button" class="bad" data-m="unfriend">Unfriend ' + esc(name(uid)) + '</button><button type="button" data-close style="color:var(--muted)">Cancel</button>';
       return open("menu");
     }
@@ -2683,8 +2685,8 @@ html.kb .ch-bar{padding-bottom:8px}
     function dmRow(t) {
       var o = otherOf(t), isNew = !myReadOf(t) || t.last_at > myReadOf(t), pv = previewWords(t.last_preview);
       return '<div role="button" tabindex="0" class="nd-row' + (isNew ? " is-new" : "") + '" data-ndm="' + o + '">' +
-        '<span class="nd-av">' + avatar(people[o]) + '<span class="nd-k dm">' + ico("comment") + "</span></span>" +
-        '<span class="nd-t"><span><b>' + esc(name(o)) + "</b> messaged you" + (pv ? ": “" + esc(pv.length > 90 ? pv.slice(0, 90) + "…" : pv) + "”" : "") + "</span><small>" + ago(t.last_at) + "</small></span>" +
+        '<span class="nd-av" data-u="' + o + '">' + avatar(people[o]) + '<span class="nd-k dm">' + ico("comment") + "</span></span>" +
+        '<span class="nd-t"><span><b class="ul" data-u="' + o + '">' + esc(name(o)) + "</b> messaged you" + (pv ? ": “" + esc(pv.length > 90 ? pv.slice(0, 90) + "…" : pv) + "”" : "") + "</span><small>" + ago(t.last_at) + "</small></span>" +
         (isNew ? '<i class="nd-dot"></i>' : "") + "</div>";
     }
     function row(n) {
@@ -2692,8 +2694,8 @@ html.kb .ch-bar{padding-bottom:8px}
       var right = n.kind === "friend_request" || n.kind === "follow" ? (friends[n.actor_id] ? "" : friendBtn(n.actor_id, true))
         : n.post_id ? thumbHTML(noteThumbs[n.post_id] || posts[n.post_id]) : "";
       return '<div role="button" tabindex="0" class="nd-row' + (isNew ? " is-new" : "") + '" data-note="' + n.id + '" data-nk="' + n.kind + '" data-np="' + (n.post_id || "") + '" data-nc="' + (n.comment_id || "") + '" data-na="' + n.actor_id + '">' +
-        '<span class="nd-av">' + avatar(people[n.actor_id]) + '<span class="nd-k ' + n.kind + '">' + ico(k[0]) + "</span></span>" +
-        '<span class="nd-t"><span><b>' + esc(name(n.actor_id)) + "</b> " + noteSays(n) +
+        '<span class="nd-av" data-u="' + n.actor_id + '">' + avatar(people[n.actor_id]) + '<span class="nd-k ' + n.kind + '">' + ico(k[0]) + "</span></span>" +
+        '<span class="nd-t"><span><b class="ul" data-u="' + n.actor_id + '">' + esc(name(n.actor_id)) + "</b> " + noteSays(n) +
         (said ? ": “" + esc(said.length > 90 ? said.slice(0, 90) + "…" : said) + "”" : "") + "</span><small>" + ago(n.created_at) + "</small></span>" +
         right + (isNew && !right ? '<i class="nd-dot"></i>' : "") + "</div>";
     }
@@ -2727,7 +2729,7 @@ html.kb .ch-bar{padding-bottom:8px}
     } catch (e) { if (!posts[postId]) return toast("That didn't load."); }
     openSingle(postId);
     if (kind && actor && NOTE[kind]) {
-      $("sgpage").insertAdjacentHTML("afterbegin", '<p class="from-n"><span><b>' + esc(name(actor)) + "</b> " + ({ comment: "commented on this", reply: "replied to your comment here", proud: "loved this", metoo: "said Me too to this", mention: "tagged you here" }[kind] || noteSays({ kind: kind })) + '</span><button type="button" data-bell>See your other notifications</button></p>');
+      $("sgpage").insertAdjacentHTML("afterbegin", '<p class="from-n"><span><b class="ul" data-u="' + actor + '">' + esc(name(actor)) + "</b> " + ({ comment: "commented on this", reply: "replied to your comment here", proud: "loved this", metoo: "said Me too to this", mention: "tagged you here" }[kind] || noteSays({ kind: kind })) + '</span><button type="button" data-bell>See your other notifications</button></p>');
     }
     if (commentId && comments[postId].some(function (c) { return c.id === commentId; })) {
       openComments(postId);
@@ -2988,7 +2990,7 @@ html.kb .ch-bar{padding-bottom:8px}
     await loadPeople(list.map(otherOf).concat(realFriends()));
     $("thlist").innerHTML = list.length ? list.map(function (t) {
       var o = otherOf(t), unread = t.last_from !== me.uid && (!myReadOf(t) || t.last_at > myReadOf(t));
-      return '<button type="button" class="th-row' + (unread ? " unread" : "") + '" data-dm="' + o + '">' + avatar(people[o]) +
+      return '<button type="button" class="th-row' + (unread ? " unread" : "") + '" data-dm="' + o + '"><span class="th-av" data-u="' + o + '">' + avatar(people[o]) + "</span>" +
         '<span class="tw"><b>' + esc(name(o)) + "</b><small>" + (t.last_from === me.uid ? "You: " : "") + esc(previewWords(t.last_preview)) + "</small></span><em>" + ago(t.last_at) + "</em>" +
         (unread ? '<i class="th-dot"></i>' : "") + "</button>";
     }).join("") + startChatsHTML(list) + '<p class="dm-safe"><b>Private.</b> Only you and your friend can see a chat. Report or block anybody from the ⋯ in a chat.</p>'
@@ -3002,7 +3004,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var ids = realFriends().filter(function (u) { return !have[u]; });
     if (!ids.length) return "";
     return '<div class="dm-start"><h4>' + (threads.length ? "START A CHAT" : "MESSAGE A FRIEND") + "</h4>" + ids.map(function (u) {
-      return '<button type="button" class="th-row" data-dm="' + u + '">' + avatar(people[u]) + '<span class="tw"><b>' + esc(name(u)) + "</b><small>Say hi 👋</small></span></button>";
+      return '<button type="button" class="th-row" data-dm="' + u + '"><span class="th-av" data-u="' + u + '">' + avatar(people[u]) + '</span><span class="tw"><b>' + esc(name(u)) + "</b><small>Say hi 👋</small></span></button>";
     }).join("") + "</div>";
   }
   var dmPrefill = "", pkSent = {}, pkCard = null;
@@ -3077,14 +3079,14 @@ html.kb .ch-bar{padding-bottom:8px}
       if (l === false) return '<div class="dm-card gone">This Spin is gone.</div>';
       if (!l) return '<button type="button" class="dm-card spin" data-spinlink="' + s.spin + '">' + PLAY + "</button>";
       return '<button type="button" class="dm-card spin" data-spinlink="' + s.spin + '" aria-label="Watch the Spin"><img src="' + SPIN_CDN + "/" + esc(l.video_guid) + '/thumbnail.jpg" alt="" loading="lazy">' + PLAY +
-        '<span class="dc-foot"><span class="dc-k">SOBER SPIN</span><span class="dc-by">@' + esc(name(l.user_id)) + "</span>" + (l.caption ? '<span class="dc-cap">' + esc(l.caption) + "</span>" : "") + "</span></button>";
+        '<span class="dc-foot"><span class="dc-k">SOBER SPIN</span><span class="dc-by ul" data-u="' + l.user_id + '">@' + esc(name(l.user_id)) + "</span>" + (l.caption ? '<span class="dc-cap">' + esc(l.caption) + "</span>" : "") + "</span></button>";
     }
     var p = dmShare["p:" + s.post];
     if (p === false) return '<div class="dm-card gone">That share is gone.</div>';
     if (!p) return '<button type="button" class="dm-card post" data-sharepost="' + s.post + '"><span class="dc-k">THE PORCH</span></button>';
     var ph = (p.photo_paths || [])[0];
     return '<button type="button" class="dm-card post" data-sharepost="' + s.post + '">' + (ph ? '<img src="' + pic(ph) + '" alt="" loading="lazy">' : "") +
-      '<span class="dc-k">THE PORCH</span><span class="dc-by">' + esc(name(p.user_id)) + "</span>" + (p.body ? '<span class="dc-cap">' + esc(p.body) + "</span>" : "") + "</button>";
+      '<span class="dc-k">THE PORCH</span><span class="dc-by ul" data-u="' + p.user_id + '">' + esc(name(p.user_id)) + "</span>" + (p.body ? '<span class="dc-cap">' + esc(p.body) + "</span>" : "") + "</button>";
   }
   function bubbleHTML(m) {
     var mine = m.from_id === me.uid, ph = m.photo_paths || [];
@@ -3105,7 +3107,7 @@ html.kb .ch-bar{padding-bottom:8px}
     });
     var mineLast = chat.msgs.filter(function (m) { return m.from_id === me.uid; }).pop();
     if (mineLast && chat.thread && theirReadOf(chat.thread) && theirReadOf(chat.thread) >= mineLast.created_at && chat.msgs[chat.msgs.length - 1] === mineLast) html += '<p class="ch-seen">Seen</p>';
-    if (!chat.msgs.length && friends[chat.uid]) html = '<div class="dm-start">' + avatar(people[chat.uid]) + "<h3>Say hi to " + esc(name(chat.uid)) + "</h3><p>Only the two of you can see this chat.</p>" +
+    if (!chat.msgs.length && friends[chat.uid]) html = '<div class="dm-start"><span class="ul" data-u="' + chat.uid + '">' + avatar(people[chat.uid]) + "</span><h3>Say hi to <span class=\"ul\" data-u=\"" + chat.uid + "\">" + esc(name(chat.uid)) + "</span></h3><p>Only the two of you can see this chat.</p>" +
       '<div class="dm-quick">' + ["Hey!", "How's your day going?", "Thinking of you", "Proud of you"].map(function (q) { return '<button type="button" data-quick="' + q + '">' + q + "</button>"; }).join("") + "</div></div>";
     if (!friends[chat.uid]) html += '<div class="ch-note">You can message friends only.<br><br>' + friendBtn(chat.uid) + "</div>";
     l.innerHTML = html;
@@ -3244,7 +3246,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (t.closest("[data-comments]") && id) return openComments(id);
     if (t.closest("[data-read]") && id) {
       var pp = posts[id];
-      $("rwho").innerHTML = avatar(people[pp.user_id]) + "<div><b>" + esc(name(pp.user_id)) + "</b>" + ago(pp.created_at) + "</div>";
+      $("rwho").innerHTML = '<span class="ul" data-u="' + pp.user_id + '">' + avatar(people[pp.user_id]) + "</span><div><b class=\"ul\" data-u=\"" + pp.user_id + "\">" + esc(name(pp.user_id)) + "</b>" + ago(pp.created_at) + "</div>";
       $("rtxt").innerHTML = linkify(pp.body || ""); open("reader"); $("reader").querySelector(".page").scrollTop = 0; return;
     }
     if (t.closest("[data-more]") && id) return gate(function () { menu({ post: id }); });
@@ -3568,6 +3570,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=55" defer></script>
+<script src="/feed/spins/spins.js?v=56" defer></script>
 </body>
 </html>

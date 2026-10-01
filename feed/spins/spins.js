@@ -393,7 +393,7 @@
       <span class="sp-paused" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg></span>
       <span class="sp-flash" aria-hidden="true">${HEART}</span>
       <div class="sp-foot">
-        ${l.respunBy ? `<span class="sp-respun">↻ Respun by ${esc(at(l.respunBy))}</span><br>` : ''}
+        ${l.respunBy ? `<span class="sp-respun">↻ Respun by <b data-sp-person="${esc(l.respunBy)}" style="cursor:pointer">${esc(at(l.respunBy))}</b></span><br>` : ''}
         <button type="button" class="sp-by" data-sp-person="${esc(l.user_id)}">${P().avatar(P().people[l.user_id])}<span>${esc(at(l.user_id))}</span></button>
         ${l.caption ? `<p class="sp-cap">${captionHTML(l.caption)}</p>` : ''}
         ${l.music && l.music.name ? `<button type="button" class="sp-music" data-sp-sound aria-label="Use this sound"><i>♫</i><span>${esc(l.music.name)}</span><b>Use this sound</b></button>` : ''}
