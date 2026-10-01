@@ -121,7 +121,12 @@
 .sp.sound .sp-snd .off{display:none}
 .sp-cambtn{padding:0;border:0;background:none;cursor:pointer;color:var(--gold2)}
 .sp-cambtn .sp-ring{position:relative;display:block;border-radius:50%;padding:3px;box-sizing:border-box;background:conic-gradient(#f6e3a8,#e0bd6a,#c9922b,#f6e3a8);animation:sp-call 3.2s ease-in-out infinite}
-.sp-new{position:absolute;z-index:3;top:calc(4px + env(safe-area-inset-top,0px));right:146px}
+/* Give it a spin sits at the top of the side buttons (1 Oct 2026, Mike: "crammed up top, easy to miss") */
+.sp-side .sp-sidecam{display:flex;flex-direction:column;align-items:center;gap:5px;margin-bottom:4px}
+.sp-sidecam .sp-ring{width:58px;height:58px}
+.sp-sidecam .sp-cam svg{width:28px!important;height:28px!important;fill:currentColor;stroke:none;filter:none}
+.sp-sidecam .sp-badge-plus{width:20px!important;height:20px!important;font-size:15px!important;border-width:2px!important}
+.sp-sidecam .sp-nm{font:800 11px/1.15 Arial,sans-serif;color:#f6e3a8;text-align:center;text-shadow:0 1px 3px #000}
 .sp-new .sp-ring{width:52px;height:52px}
 .sp-new .sp-cam svg{width:26px!important;height:26px!important}
 .sp-new .sp-badge-plus{width:19px!important;height:19px!important;font-size:14px!important;border-width:2px!important}
@@ -305,7 +310,8 @@
         ${mine ? `<div class="sp-meta">${l.pinned ? '📌 Pinned, stays on your profile' : d > 0 ? `Gone in ${d} day${d === 1 ? '' : 's'} · pin it to keep it` : 'Gone soon · pin it to keep it'}</div>` : ''}
       </div>
       <div class="sp-side">
-        <button type="button" data-sp-proud class="${proud.has(l.post_id) ? 'on' : ''}" aria-label="Proud of you">${HEART}<span>Proud</span></button>
+        ${meId() ? camBtn('sp-sidecam', 'Give it<br>a spin') : ''}
+        <button type="button" data-sp-proud class="${proud.has(l.post_id) ? 'on' : ''}" aria-label="Love this">${HEART}<span>Love</span></button>
         <button type="button" data-sp-talk aria-label="Comments">${TALK}<span class="n">${talkN.get(l.post_id) || 0}</span></button>
         ${own ? '' : `<button type="button" data-sp-respin class="re${isRe ? ' on' : ''}" aria-label="Respin to my profile">${RESPIN}<span>${isRe ? 'Respun' : 'Respin'}</span></button>`}
         <button type="button" data-sp-share aria-label="Share">${SHARE}<span>Share</span></button>
@@ -367,7 +373,6 @@
     sp.innerHTML = `<div class="sp-list">${spList.map(itemHTML).join('')}</div>
       <button type="button" class="sp-x" data-sp-close aria-label="Close Spins, back to the Porch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       <span class="sp-top">${SPIN_ICO}SOBER SPINS</span>
-      ${meId() ? camBtn('sp-new', '') : ''}
       <button type="button" class="sp-snd" data-sp-snd aria-label="Sound on or off">
         <svg class="off" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z" fill="#fff"/><path d="m16 9 5 6M21 9l-5 6"/></svg><span class="off">Sound off</span>
         <svg class="on" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z" fill="#fff"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span class="on">Sound on</span></button>`;

@@ -50,7 +50,7 @@ async function vapid() {
 }
 
 const WORDS: Record<string, string> = {
-  comment: "commented on your share", reply: "replied to your comment", proud: "is proud of you",
+  comment: "commented on your share", reply: "replied to your comment", proud: "loved your share",
   metoo: "said Me too", mention: "tagged you", follow: "started following you", report: "was reported. Take a look.",
   friend_request: "sent you a friend request", friend_accept: "accepted your friend request",
   respin: "respun your Spin",

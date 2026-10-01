@@ -665,7 +665,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v32</span>
+  <span class="ver" id="ver">v33</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -895,7 +895,7 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="askpush" class="layer" role="dialog" aria-modal="true" aria-label="Phone alerts">
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div>
-    <h3 id="aptitle">Don't miss a Proud of you</h3>
+    <h3 id="aptitle">Don't miss the love</h3>
     <p id="apbody">Get a buzz on your phone when somebody comments, cheers you on, tags you or sends you a friend request.</p>
     <button type="button" class="btn" id="apyes">Turn on</button>
     <button type="button" class="link" id="apno">Not now</button>
@@ -1133,7 +1133,7 @@ html.kb .ch-bar{padding-bottom:8px}
         (long ? '<button type="button" class="chair" data-read>' + ico("read") + "Pull up a chair · " + mins + " min read</button>" : "") : "") + media +
       (!photos.length && p.link_preview && p.link_preview.url ? previewHTML(p.link_preview) : "") +
       '<div class="acts">' +
-        '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '">' + ico("proud") + 'Proud of you</button>' +
+        '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '">' + ico("proud") + 'Love this</button>' +
         '<button type="button" data-react="metoo" class="' + (r.metoo ? "on" : "") + '">' + ico("metoo") + 'Me too</button>' +
         '<button type="button" data-comments>' + ico("comment") + '<span class="lbl">Comment</span></button>' +
         '<button type="button" class="send1" data-send aria-label="Send this share to somebody">' + ico("send") + "</button></div>" +
@@ -2121,7 +2121,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   var NOTE = {
     comment: ["comment", "commented on your share"], reply: ["reply", "replied to your comment"],
-    proud: ["proud", "is proud of you"], metoo: ["metoo", "said Me too"],
+    proud: ["proud", "loved your share"], metoo: ["metoo", "said Me too"],
     mention: ["mention", "tagged you"], follow: ["follow", "started following you"],
     friend_request: ["follow", "sent you a friend request"], friend_accept: ["friends", "accepted your friend request"],
     report: ["question", "was reported. Take a look."], respin: ["friends", "respun your Spin"]
@@ -2189,7 +2189,7 @@ html.kb .ch-bar{padding-bottom:8px}
     } catch (e) { if (!posts[postId]) return toast("That didn't load."); }
     openSingle(postId);
     if (kind && actor && NOTE[kind]) {
-      $("sgpage").insertAdjacentHTML("afterbegin", '<p class="from-n"><span><b>' + esc(name(actor)) + "</b> " + ({ comment: "commented on this", reply: "replied to your comment here", proud: "is proud of you for this", metoo: "said Me too to this", mention: "tagged you here" }[kind] || noteSays({ kind: kind })) + '</span><button type="button" data-bell>See your other notifications</button></p>');
+      $("sgpage").insertAdjacentHTML("afterbegin", '<p class="from-n"><span><b>' + esc(name(actor)) + "</b> " + ({ comment: "commented on this", reply: "replied to your comment here", proud: "loved this", metoo: "said Me too to this", mention: "tagged you here" }[kind] || noteSays({ kind: kind })) + '</span><button type="button" data-bell>See your other notifications</button></p>');
     }
     if (commentId && comments[postId].some(function (c) { return c.id === commentId; })) {
       openComments(postId);
@@ -2340,7 +2340,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (Date.now() - a.t < gap) return;
     var iosTab = iOS && !standalone;
     if (!iosTab && (!canPush || Notification.permission === "denied" || (Notification.permission === "granted" && await pushSub()))) return;
-    $("aptitle").textContent = "Don't miss a Proud of you";
+    $("aptitle").textContent = "Don't miss the love";
     $("apbody").textContent = iosTab
       ? "On iPhone, phone alerts only work from the Home Screen. Tap the Share button, then Add to Home Screen, and open Recovery Misfits from there."
       : "Get a buzz on your phone when somebody comments, cheers you on, tags you or sends you a friend request.";
@@ -2948,6 +2948,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=32" defer></script>
+<script src="/feed/spins/spins.js?v=33" defer></script>
 </body>
 </html>
