@@ -80,6 +80,11 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
 - Forgot password / username for Level 2: match the typed email's fingerprint, email a code.
 
 ### Porch vs Facebook/Instagram: what we added (30 Sep 2026)
+- **Messages** (v15): friends only; words, photos (up to 4) and links; rated R not X (slurs, threats, scam/porn links
+  stopped; spicy photos blurred "Tap to see"; full nudity blocked); private photos only the two people can open;
+  inbox + unread count on the Messages icon; Seen; tap your own message to Unsend; Report/Block from the chat;
+  buzz alerts; checks every 3 seconds while a chat is open (switch to realtime later if it gets busy).
+- Swipe down to close every bottom sheet (v14). Notifications + comments on the paper look (v13).
 - **Friends replace follows** (v12): Add Friend / Requested / Confirm + Delete / Friends → Unfriend; FRIENDS feed tab;
   ME → Friends list with requests on top; requests + accepts in the bell and as phone alerts; blocking unfriends.
 - **Notifications like Jeff's site** (v11): bell top right with red count, drop-down with NEW / EARLIER, badges,
@@ -96,7 +101,7 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
   reporting, spam caps (300 reactions / 50 follows an hour, 20 reports a day), a blocked
   person can't react to your shares.
 - Still open: sign-up levels on the account page ("Your recovery, your way"), deleting the
-  whole app account (not just the Porch), Messages (friends only), Sober Spins, sample posts out and
+  whole app account (not just the Porch), Sober Spins, sample posts out and
   the Mike-only lock off at launch.
 - Sent links: while the Porch is Mike-only, anybody else who taps one lands on the /feed/ preview.
 

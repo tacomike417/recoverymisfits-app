@@ -6,6 +6,8 @@
  *   remove   { post_id } | { comment_id }            -- your own only
  *   picture  { slot: "avatar"|"cover", photo }        -- profile pic / header
  *   leave    {}                                        -- delete everything they put on the Porch
+ *   dm_send  { to, body?, photos?, sure? }             -- Messages: friends only, rated R not X
+ *   dm_unsend { id }                                   -- take back your own message
  *   mod_list / mod_act { key, what, who? }             -- moderators only: the reports screen
  *
  * Checks, in order, before anything is saved:
@@ -210,6 +212,27 @@ async function imageOk(url: string) {
   } catch { return false; }
 }
 
+/* MESSAGES photos (30 Sep 2026): rated R, not rated X. Spicy comes through blurred;
+   full nudity and gore don't come through at all. Can't check = not sent. */
+async function dmPhoto(bytes: Uint8Array, b64: string): Promise<{ error?: string; racy?: boolean }> {
+  if (!VISION) return { error: "Photos aren't switched on yet." };
+  if (bytes.length > 3 * 1024 * 1024) return { error: "That photo is too big." };
+  if (!(bytes[0] === 0xff && bytes[1] === 0xd8)) return { error: "That photo couldn't be read." };
+  try {
+    const r = await fetch("https://vision.googleapis.com/v1/images:annotate?key=" + encodeURIComponent(VISION), {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requests: [{ image: { content: b64 }, features: [{ type: "SAFE_SEARCH_DETECTION" }] }] }),
+    });
+    const s = (await r.json())?.responses?.[0]?.safeSearchAnnotation;
+    if (!s) return { error: "Photos can't be checked right now, so that wasn't sent." };
+    if ((LEVEL[s.adult] || 0) >= LEVEL.VERY_LIKELY) return { error: "Full nudity can't be sent on Recovery Misfits." };
+    if ((LEVEL[s.violence] || 0) >= LEVEL.VERY_LIKELY) return { error: "That photo is too graphic to send." };
+    return { racy: (LEVEL[s.adult] || 0) >= LEVEL.POSSIBLE || (LEVEL[s.racy] || 0) >= LEVEL.LIKELY };
+  } catch { return { error: "Photos can't be checked right now, so that wasn't sent." }; }
+}
+// in messages, only slurs and threats are stopped (adults can cuss and flirt in private)
+const SLURS = words(["nigger", "nigga", "faggot", "fag", "retard", "tranny", "chink", "spic", "kike", "wetback", "raghead", "towelhead", "gook", "beaner", "dyke"]);
+
 /* photos come off the server when the share (or the person) is gone */
 async function dropPhotos(paths: string[]) {
   const mine = paths.filter((p) => p && !p.startsWith("/"));
@@ -245,6 +268,15 @@ Deno.serve(async (req) => {
   if (b.action === "leave") {
     const { data: m } = await admin.from("porch_members").select("frozen_at").eq("user_id", user.id).maybeSingle();
     await dropFolder(user.id);
+    const { data: myThreads } = await admin.from("porch_threads").select("id").or("a.eq." + user.id + ",b.eq." + user.id);
+    for (const t of myThreads || []) {
+      for (let i = 0; i < 20; i++) {
+        const { data } = await admin.storage.from("porch-dm").list(t.id, { limit: 100 });
+        if (!data?.length) break;
+        await admin.storage.from("porch-dm").remove(data.map((f) => t.id + "/" + f.name));
+      }
+    }
+    if (myThreads?.length) await admin.from("porch_threads").delete().in("id", myThreads.map((t) => t.id));
     for (const [t, col] of [["porch_notes", "user_id"], ["porch_notes", "actor_id"], ["porch_saves", "user_id"], ["porch_push", "user_id"],
       ["porch_reactions", "user_id"], ["porch_follows", "follower_id"], ["porch_follows", "followed_id"], ["porch_blocks", "blocker_id"],
       ["porch_reports", "reporter_id"], ["porch_comments", "user_id"], ["porch_posts", "user_id"], ["porch_moderators", "user_id"]] as const) {
@@ -360,6 +392,61 @@ Deno.serve(async (req) => {
       .select("id").single();
     if (error) return json({ error: "That didn't go through. Try again." }, 500);
     return json({ ok: true, id: data.id, care });
+  }
+
+  /* MESSAGES (30 Sep 2026): friends only. dm_send { to, body?, photos?, sure? } / dm_unsend { id } */
+  if (b.action === "dm_send") {
+    const to = String(b.to || "");
+    if (!to || to === user.id) return json({ error: "Pick a friend to message." }, 400);
+    const { data: blocked } = await admin.rpc("porch_blocked", { a: user.id, b: to });
+    if (blocked) return json({ error: "You can't message them." }, 403);
+    const { data: friendsOk } = await admin.rpc("porch_are_friends", { x: user.id, y: to });
+    if (!friendsOk) return json({ error: "You can message friends only.", need: "friend" }, 403);
+    const { count: sent } = await admin.from("porch_dm").select("id", { count: "exact", head: true })
+      .eq("from_id", user.id).gt("created_at", new Date(Date.now() - 3600_000).toISOString());
+    if ((sent || 0) >= 200) return json({ error: "That's a lot of messages. Take a breather and try again in a bit." }, 429);
+    if (text.length > 2000) return json({ error: "That's too long." }, 400);
+    const photos: string[] = Array.isArray(b.photos) ? b.photos.slice(0, 4) : [];
+    if (!text && !photos.length) return json({ error: "Say something first." }, 400);
+    if (SLURS.test(text)) return json({ error: "That has a slur in it, so it wasn't sent." }, 400);
+    if (THREAT.test(text)) return json({ error: "That reads like a threat, so it wasn't sent." }, 400);
+    const l = await checkLinks(text); if (l) return json({ error: l }, 400);
+    if (!b.sure && heated(text)) return json({ pause: true });
+    const [x, y] = user.id < to ? [user.id, to] : [to, user.id];
+    let { data: th } = await admin.from("porch_threads").select("id").eq("a", x).eq("b", y).maybeSingle();
+    if (!th) {
+      const { data: made } = await admin.from("porch_threads").upsert({ a: x, b: y }, { onConflict: "a,b" }).select("id").single();
+      th = made;
+    }
+    if (!th) return json({ error: "That didn't go through. Try again." }, 500);
+    const paths: string[] = []; let racy = false;
+    for (const p of photos) {
+      const b64 = String(p).replace(/^data:image\/\w+;base64,/, "");
+      let bytes: Uint8Array;
+      try { bytes = decodeBase64(b64); } catch { return json({ error: "That photo couldn't be read." }, 400); }
+      const ck = await dmPhoto(bytes, b64); if (ck.error) return json({ error: ck.error }, 400);
+      racy = racy || !!ck.racy;
+      const path = th.id + "/" + crypto.randomUUID() + ".jpg";
+      const { error: upErr } = await admin.storage.from("porch-dm").upload(path, bytes, { contentType: "image/jpeg" });
+      if (upErr) return json({ error: "The photo didn't send. Try again." }, 500);
+      paths.push(path);
+    }
+    const { data: msg, error } = await admin.from("porch_dm")
+      .insert({ thread_id: th.id, from_id: user.id, body: text || null, photo_paths: paths, racy }).select("*").single();
+    if (error) return json({ error: "That didn't go through. Try again." }, 500);
+    const preview = text ? text.replace(/\s+/g, " ").slice(0, 90) : paths.length > 1 ? "Sent " + paths.length + " photos" : "Sent a photo";
+    const mineRead = user.id === x ? { a_read_at: msg.created_at } : { b_read_at: msg.created_at };
+    await admin.from("porch_threads").update({ last_at: msg.created_at, last_from: user.id, last_preview: preview, ...mineRead }).eq("id", th.id);
+    return json({ ok: true, message: msg, thread_id: th.id, care: CARE.test(text) });
+  }
+  if (b.action === "dm_unsend") {
+    const { data: m } = await admin.from("porch_dm").select("id, from_id, thread_id, photo_paths, created_at").eq("id", b.id).maybeSingle();
+    if (!m || m.from_id !== user.id) return json({ error: "You can only unsend your own." }, 403);
+    if (m.photo_paths?.length) await admin.storage.from("porch-dm").remove(m.photo_paths);
+    await admin.from("porch_dm").update({ unsent_at: new Date().toISOString(), body: null, photo_paths: [], racy: false }).eq("id", m.id);
+    const { data: t } = await admin.from("porch_threads").select("last_at").eq("id", m.thread_id).maybeSingle();
+    if (t && t.last_at === m.created_at) await admin.from("porch_threads").update({ last_preview: "Unsent a message" }).eq("id", m.thread_id);
+    return json({ ok: true });
   }
 
   /* EDIT your own share or comment: same checks as a new one, stamped "edited" */

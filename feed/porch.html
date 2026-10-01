@@ -210,7 +210,8 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .bell{position:absolute;top:calc(4px + env(safe-area-inset-top,0px));right:6px;z-index:99999;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:none;color:var(--cream);cursor:pointer}
 .bell svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .bell-n{position:absolute;top:1px;right:0;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#e41e3f;color:#fff;font:800 11px/19px system-ui,Arial,sans-serif;font-style:normal;text-align:center;box-shadow:0 0 0 2px #100f0c;box-sizing:border-box}
-.ver{right:52px!important}
+.ver{right:94px!important}
+.bell.msgs{right:48px}
 .layer.drop .dim{background:rgba(0,0,0,.55)}
 .nd-panel{position:absolute;left:8px;right:8px;top:var(--ndtop,70px);max-width:560px;margin:0 auto;max-height:calc(100% - var(--ndtop,70px) - 16px);overflow-y:auto;border-radius:18px;background:var(--sheet);border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.6);animation:nddrop .2s ease}
 @keyframes nddrop{from{opacity:0;transform:translateY(-10px)}}
@@ -487,6 +488,60 @@ html.kb #comments .sheet{top:0;border-radius:0}
 #comments .atbar button{background:#fffdf7;border-color:var(--pline);color:var(--pink)}
 #comments .c1.hl .bub{animation:hlpaper 4s ease}
 @keyframes hlpaper{0%,60%{box-shadow:0 0 0 2px var(--pgold);background:#f3e2b3}100%{box-shadow:none}}
+/* ================= MESSAGES (30 Sep 2026): paper, like comments; phone wins ================= */
+.paperpage{background:#f7f1e3;color:#1b1a17}
+.paperpage .lh{color:#1b1a17}
+.paperpage .lsub{color:#6e675b}
+.ib-top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding-right:14px}
+.ib-new{flex:none;margin-bottom:6px;padding:9px 14px;border:0;border-radius:999px;background:#1b1a17;color:#f1e7cf;font:800 13.5px Arial,sans-serif;cursor:pointer}
+.th-row{display:flex;align-items:center;gap:12px;width:100%;padding:10px 16px;border:0;background:none;color:#1b1a17;text-align:left;cursor:pointer;font:15px Arial,sans-serif}
+.th-row .av{width:56px;height:56px;font-size:20px}
+.th-row .tw{flex:1;min-width:0}
+.th-row b{display:block;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.th-row small{display:block;margin-top:2px;color:#6e675b;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.th-row em{flex:none;font-style:normal;color:#8a8272;font-size:12.5px;align-self:flex-start;margin-top:6px}
+.th-row.unread b,.th-row.unread small{color:#1b1a17;font-weight:800}
+.th-row.unread em{color:#9c7428;font-weight:800}
+.th-dot{flex:none;width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,#d6b36a,#c4563c)}
+.paperpage .pempty{color:#6e675b}
+.pk-q{margin:4px 0 8px;background:#fffdf7!important;border-color:#cfc5ad!important;color:#1b1a17!important}
+.pk-row{display:flex;align-items:center;gap:12px;width:100%;padding:8px 2px;border:0;background:none;color:#1b1a17;font:700 15.5px Arial,sans-serif;text-align:left;cursor:pointer}
+.pk-row .av{width:44px;height:44px}
+#pklist{max-height:52vh;overflow-y:auto}
+.chatpage{display:flex;flex-direction:column;padding:0!important;overflow:hidden!important}
+.ch-top{flex:none;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 8px 10px 14px;border-bottom:1px solid #e2d8c2;background:#f7f1e3}
+.ch-top .who{all:unset;display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
+.ch-top .av{width:40px;height:40px}
+.ch-top b{font-size:17px;color:#1b1a17;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch-top .more{color:#6e675b}
+.ch-list{flex:1;overflow-y:auto;padding:12px 12px 6px;-webkit-overflow-scrolling:touch}
+.ch-day{margin:14px 0 8px;text-align:center;color:#8a8272;font:700 12px Arial,sans-serif}
+.bm{display:flex;margin:2px 0}
+.bm.me{justify-content:flex-end}
+.bm .bb{max-width:78%;padding:9px 13px;border-radius:20px;background:#fffdf7;border:1px solid #e2d8c2;color:#1b1a17;font:16px/1.38 -apple-system,Segoe UI,Roboto,Arial,sans-serif;white-space:pre-wrap;word-wrap:break-word;cursor:pointer}
+.bm.me .bb{background:#1b1a17;border-color:#1b1a17;color:#f6eedb}
+.bm .bb a{color:#9c7428;text-decoration:underline}
+.bm.me .bb a{color:#e0bd6a}
+.bm .bb.gone{background:none;border:1px dashed #cfc5ad;color:#8a8272;font-style:italic}
+.bm .pics{border-radius:16px;overflow:hidden;max-width:78%;width:260px;margin:2px 0}
+.bm.me .pics{margin-left:auto}
+.rz{position:relative;display:block}
+.rz img{filter:blur(26px) saturate(.6);transform:scale(1.15)}
+.rz::after{content:"Tap to see";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font:800 14px Arial,sans-serif;text-shadow:0 1px 6px rgba(0,0,0,.7);background:rgba(0,0,0,.25)}
+.ch-seen{margin:2px 6px 0 0;text-align:right;color:#8a8272;font:700 11.5px Arial,sans-serif}
+.ch-bar{flex:none;padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid #e2d8c2;background:#f7f1e3}
+html.kb .ch-bar{padding-bottom:8px}
+.ch-row{display:flex;align-items:flex-end;gap:8px}
+.ch-cam{flex:none;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:50%;background:#efe7d5;color:#9c7428;cursor:pointer}
+.ch-cam .ico{width:22px;height:22px}
+#dmin{flex:1;min-height:44px;max-height:130px;padding:11px 14px;border-radius:22px;border:1.5px solid #cfc5ad;background:#fffdf7;color:#1b1a17;font:16px Arial,sans-serif;resize:none}
+#dmin:focus{outline:none;border-color:#9c7428}
+.ch-send{flex:none;height:44px;padding:0 18px;border:0;border-radius:22px;background:#1b1a17;color:#f1e7cf;font:800 15px Arial,sans-serif;cursor:pointer}
+.ch-send[disabled]{opacity:.35}
+#dmthumbs:empty{display:none}
+#dmthumbs{margin:0 0 8px}
+.ch-note{margin:10px 4px;padding:12px;border-radius:14px;background:#efe7d5;color:#4a453c;font-size:14px;text-align:center}
+
 .toast{position:fixed;left:50%;bottom:calc(270px + env(safe-area-inset-bottom,0px));z-index:30000;transform:translate(-50%,20px);max-width:88vw;padding:12px 18px;border-radius:999px;background:var(--cream);color:var(--bg);font:700 14px Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -515,7 +570,9 @@ html.kb #comments .sheet{top:0;border-radius:0}
     <button type="button" class="meb" data-memenu aria-label="Your menu"><span id="railme"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg></span>ME</button>
   </nav></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v14</span>
+  <span class="ver" id="ver">v15</span>
+  <!-- MESSAGES (30 Sep 2026) -->
+  <button type="button" class="bell msgs" id="msgbtn" data-msgs aria-label="Messages"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5c4.97 0 9 3.36 9 7.5s-4.03 7.5-9 7.5c-1.1 0-2.15-.16-3.12-.46L4 20l1.3-3.9C3.86 14.8 3 13 3 11c0-4.14 4.03-7.5 9-7.5z"/></svg><i class="bell-n" id="msgn" hidden></i></button>
   <!-- THE BELL (30 Sep 2026): notifications the way Jeff's site does them -->
   <button type="button" class="bell" id="bell" data-bell aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-2 8-2 8h16s-2-1-2-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="bell-n" id="belln" hidden></i></button>
 </div>
@@ -676,6 +733,38 @@ html.kb #comments .sheet{top:0;border-radius:0}
 <!-- NEW SHARES pill + the pull-to-refresh spinner -->
 <button type="button" class="newpill" id="newpill" data-newpill hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg><b>New shares</b></button>
 <div class="ptr" id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg></div>
+
+<!-- MESSAGES: the inbox -->
+<div id="inbox" class="layer full paperpage" role="dialog" aria-modal="true" aria-label="Messages"><div class="page">
+  <div class="ib-top"><h2 class="lh">MESSAGES</h2><button type="button" class="ib-new" data-newdm>New message</button></div>
+  <p class="lsub">Private. Only you and your friend can see a chat.</p>
+  <div id="thlist"></div>
+</div></div>
+
+<!-- MESSAGES: pick a friend -->
+<div id="pickdm" class="layer" role="dialog" aria-modal="true" aria-label="New message">
+  <div class="dim" data-close></div>
+  <div class="sheet paper"><div class="g" style="background:#d8ceb6"></div>
+    <h3>New message</h3>
+    <input class="field pk-q" id="pkq" type="search" autocomplete="off" placeholder="Find a friend">
+    <div id="pklist"></div>
+  </div>
+</div>
+
+<!-- MESSAGES: one chat -->
+<div id="chat" class="layer full paperpage" role="dialog" aria-modal="true" aria-label="Chat"><div class="page chatpage">
+  <div class="ch-top" id="chtop"></div>
+  <div class="ch-list" id="dmlist"></div>
+  <div class="ch-bar">
+    <div class="thumbs" id="dmthumbs"></div>
+    <div class="ch-row">
+      <button type="button" class="ch-cam" id="dmcam" aria-label="Add photos"><span data-ico="camera"></span></button>
+      <textarea id="dmin" rows="1" maxlength="2000" placeholder="Message…"></textarea>
+      <button type="button" class="ch-send" id="dmgo" disabled>Send</button>
+    </div>
+    <input type="file" id="dmfile" accept="image/*" multiple hidden>
+  </div>
+</div></div>
 
 <!-- FRIENDS -->
 <div id="friends" class="layer full" role="dialog" aria-modal="true" aria-label="Friends"><div class="page"><h2 class="lh">FRIENDS</h2><p class="lsub">Only you can see this list.</p><div id="frlist"></div></div></div>
@@ -1107,6 +1196,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
   })();
   /* the comment you're replying to or editing stays on screen when the keyboard comes up */
   function keepInView() {
+    if ($("chat").classList.contains("open")) { var dl = $("dmlist"); setTimeout(function () { dl.scrollTop = dl.scrollHeight; }, 30); return; }
     if (!$("comments").classList.contains("open")) return;
     var c = editingC || replyTo; if (!c) return;
     var el = $("clist").querySelector('[data-comment="' + c.id + '"]');
@@ -1315,7 +1405,7 @@ html.kb #comments .sheet{top:0;border-radius:0}
 
   /* ---- the pause ---- */
   var pauseFor = "post";
-  $("pgo").addEventListener("click", async function () { await closeTop(); if (pauseFor === "post") sendPost(true); else sendComment(true); });
+  $("pgo").addEventListener("click", async function () { await closeTop(); if (pauseFor === "post") sendPost(true); else if (pauseFor === "dm") sendDm(true); else sendComment(true); });
   $("pdraft").addEventListener("click", async function () {
     if (pauseFor === "post" && editingPost) {
       await closeTop(); toast("It's still there. Take your time.");
@@ -1444,6 +1534,31 @@ html.kb #comments .sheet{top:0;border-radius:0}
     var b = e.target.closest("[data-m]"); if (!b) return;
     var t = JSON.parse(this.dataset.t), uid = this.dataset.uid, m = b.dataset.m;
     if (m === "edit") { await closeTop(); return editShare(t.post); }
+    if (m === "dmcopy") {
+      var cm = chat && chat.msgs.find(function (x) { return x.id === t.dm; });
+      try { await navigator.clipboard.writeText((cm && cm.body) || ""); toast("Copied."); } catch (e) {}
+      return closeTop();
+    }
+    if (m === "dmunsend") {
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again: it's gone for both of you"; return; }
+      var ur = await fn("porch", { action: "dm_unsend", id: t.dm }); await closeTop();
+      if (!ur.ok) return toast(ur.error || "That didn't go through.");
+      return loadChat(true);
+    }
+    if (m === "dmprofile") { await closeTop(); return openProfile(uid); }
+    if (m === "reportme") {
+      this.innerHTML = '<p style="margin:0 0 6px;font-weight:700">What\'s going on?</p>' +
+        REASONS.map(function (x) { return '<button type="button" data-m="whyme" data-why="' + x[0] + '">' + x[1] + "</button>"; }).join("") +
+        '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
+      return;
+    }
+    if (m === "whyme") {
+      try { await rest("porch_reports", { method: "POST", body: { reporter_id: me.uid, member_id: uid, reason: b.dataset.why } }); }
+      catch (err) { if (err.status !== 409) { await closeTop(); return toast("That didn't send. Try again."); } }
+      this.innerHTML = '<p style="margin:0 0 4px;font:400 24px \'RM Head\',Impact,sans-serif">Thanks for looking out.</p><p>A real person will look at it.' +
+        (b.dataset.why === "self_harm" ? " If somebody's in danger right now, call 911." : "") + '</p><button type="button" data-m="block">Block ' + esc(name(uid)) + ' too</button><button type="button" data-close>Done</button>';
+      return;
+    }
     if (m === "unfriend") {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again to unfriend"; return; }
       await closeTop(); return unfriend(t.friend);
@@ -1723,7 +1838,8 @@ html.kb #comments .sheet{top:0;border-radius:0}
   var reqCount = function () { return Object.keys(reqIn).length; };
   function friendBtn(uid, small) {
     var c = small ? "nd-fb" : "fol";
-    var inner = friends[uid] ? '<button type="button" class="' + c + ' on" data-friend="' + uid + '">' + ico("friends") + "Friends</button>"
+    var inner = friends[uid] && small ? '<button type="button" class="' + c + '" data-dm="' + uid + '">' + ico("comment") + "Message</button>"
+      : friends[uid] ? '<button type="button" class="' + c + ' on" data-friend="' + uid + '">' + ico("friends") + 'Friends</button><button type="button" class="' + c + '" data-dm="' + uid + '">' + ico("comment") + "Message</button>"
       : reqOut[uid] ? '<button type="button" class="' + c + ' on" data-friend="' + uid + '">Requested</button>'
       : reqIn[uid] ? '<button type="button" class="' + c + '" data-fconfirm="' + uid + '">Confirm</button><button type="button" class="' + c + ' on" data-fdelete="' + uid + '">Delete</button>'
       : '<button type="button" class="' + c + '" data-friend="' + uid + '">' + ico("follow") + "Add Friend</button>";
@@ -1912,8 +2028,8 @@ html.kb #comments .sheet{top:0;border-radius:0}
       }, 120);
     }
   }
-  setInterval(checkNotes, 60000);
-  document.addEventListener("visibilitychange", function () { if (!document.hidden) checkNotes(); });
+  setInterval(function () { checkNotes(); checkDms(); }, 60000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { checkNotes(); checkDms(); } });
 
   /* ================================================================ SAVED SHARES (30 Sep 2026)
      Only you ever see what you saved. ⋯ on any share → Save; ME → Saved shares. */
@@ -2136,6 +2252,156 @@ html.kb #comments .sheet{top:0;border-radius:0}
     open("menu");
   }
 
+  /* ================================================================ MESSAGES (30 Sep 2026)
+     Private chats between friends. Words, photos and links. Rated R, not rated X:
+     the porch function stops slurs, threats and scam/porn links, blurs spicy photos
+     ("Tap to see") and blocks full nudity. Photos are private: only the two people
+     in the chat can open them. While a chat is open it checks for new messages
+     every few seconds; the count on the Messages icon checks every minute. */
+  var dmUnread = 0, chat = null, dmPoll = null, dmPhotos = [], dmSending = false, dmShown = {};
+  async function checkDms() {
+    if (!me.uid || !me.member) return;
+    try { dmUnread = +(await rpc("porch_dm_unread", {})) || 0; } catch (e) { return; }
+    var n = $("msgn"); n.hidden = !dmUnread; n.textContent = dmUnread > 9 ? "9+" : dmUnread;
+  }
+  var otherOf = function (t) { return t.a === me.uid ? t.b : t.a; };
+  var myReadOf = function (t) { return t.a === me.uid ? t.a_read_at : t.b_read_at; };
+  var theirReadOf = function (t) { return t.a === me.uid ? t.b_read_at : t.a_read_at; };
+  async function openInbox() {
+    if (!signedIn()) return open("join");
+    $("thlist").innerHTML = '<div class="skel" style="height:160px;margin:12px"></div>'; open("inbox");
+    var list = [];
+    try { list = await rest("porch_threads?or=(a.eq." + me.uid + ",b.eq." + me.uid + ")&select=*&order=last_at.desc&limit=60"); } catch (e) {}
+    list = list.filter(function (t) { return t.last_from; });
+    await loadPeople(list.map(otherOf));
+    $("thlist").innerHTML = list.length ? list.map(function (t) {
+      var o = otherOf(t), unread = t.last_from !== me.uid && (!myReadOf(t) || t.last_at > myReadOf(t));
+      return '<button type="button" class="th-row' + (unread ? " unread" : "") + '" data-dm="' + o + '">' + avatar(people[o]) +
+        '<span class="tw"><b>' + esc(name(o)) + "</b><small>" + (t.last_from === me.uid ? "You: " : "") + esc(t.last_preview || "") + "</small></span><em>" + ago(t.last_at) + "</em>" +
+        (unread ? '<i class="th-dot"></i>' : "") + "</button>";
+    }).join("") : '<p class="pempty">No messages yet. You can message any of your friends.<br><br><button type="button" class="ib-new" data-newdm>New message</button></p>';
+  }
+  function openPick() {
+    $("pkq").value = ""; paintPick(""); open("pickdm");
+  }
+  function paintPick(q) {
+    var ids = Object.keys(friends).filter(function (k) { return !isSample(k) && (!q || name(k).toLowerCase().indexOf(q) >= 0); })
+      .sort(function (x, y) { return name(x).toLowerCase() < name(y).toLowerCase() ? -1 : 1; });
+    $("pklist").innerHTML = ids.length ? ids.map(function (u) { return '<button type="button" class="pk-row" data-dmpick="' + u + '">' + avatar(people[u]) + esc(name(u)) + "</button>"; }).join("")
+      : '<p style="color:#6e675b">' + (q ? "No friend by that name." : "You can message friends. Tap anybody's name or face on the Porch, then Add Friend.") + "</p>";
+  }
+  $("pkq").addEventListener("input", function () { paintPick(this.value.trim().toLowerCase()); });
+
+  async function signDm(paths) {
+    var need = paths.filter(function (p) { return !dmShown[p]; });
+    if (!need.length) return;
+    try {
+      var r = await fetch(DB + "/storage/v1/object/sign/porch-dm", { method: "POST",
+        headers: { apikey: KEY, Authorization: "Bearer " + (await tok()), "Content-Type": "application/json" },
+        body: JSON.stringify({ expiresIn: 3600, paths: need }) });
+      (await r.json()).forEach(function (x) { if (x.signedURL) dmShown[x.path] = DB + "/storage/v1" + x.signedURL; });
+    } catch (e) {}
+  }
+  var dayOf = function (d) { return new Date(d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }); };
+  function bubbleHTML(m) {
+    var mine = m.from_id === me.uid, ph = m.photo_paths || [];
+    if (m.unsent_at) return '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '"><div class="bb gone">' + (mine ? "You unsent a message" : "Message unsent") + "</div></div>";
+    var pics = ph.length ? '<div class="pics n' + ph.length + (m.racy && !m.seen ? " rz" : "") + '" data-rz="' + (m.racy && !m.seen ? m.id : "") + '">' +
+      ph.map(function (x, i) { return '<img src="' + (dmShown[x] || "") + '" alt="" loading="lazy" data-view="' + i + '">'; }).join("") + "</div>" : "";
+    return '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '">' + (pics ? '<div style="max-width:78%;width:260px' + (mine ? ";margin-left:auto" : "") + '">' + pics + "</div>" : "") + "</div>" +
+      (m.body ? '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '"><div class="bb" data-bb>' + linkify(m.body) + "</div></div>" : "");
+  }
+  function paintChat(stick) {
+    var l = $("dmlist"), atBottom = l.scrollHeight - l.scrollTop - l.clientHeight < 80, html = "", last = null;
+    chat.msgs.forEach(function (m) {
+      if (!last || new Date(m.created_at) - new Date(last.created_at) > 3600000) html += '<p class="ch-day">' + dayOf(m.created_at) + " · " + new Date(m.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) + "</p>";
+      html += bubbleHTML(m); last = m;
+    });
+    var mineLast = chat.msgs.filter(function (m) { return m.from_id === me.uid; }).pop();
+    if (mineLast && chat.thread && theirReadOf(chat.thread) && theirReadOf(chat.thread) >= mineLast.created_at && chat.msgs[chat.msgs.length - 1] === mineLast) html += '<p class="ch-seen">Seen</p>';
+    if (!chat.msgs.length) html = '<p class="ch-note">' + (friends[chat.uid] ? "Say hi to " + esc(name(chat.uid)) + ". Only the two of you can see this chat." : "") + "</p>";
+    if (!friends[chat.uid]) html += '<div class="ch-note">You can message friends only.<br><br>' + friendBtn(chat.uid) + "</div>";
+    l.innerHTML = html;
+    if (stick || atBottom) l.scrollTop = l.scrollHeight;
+  }
+  async function loadChat(fresh) {
+    if (!chat) return;
+    var x = me.uid < chat.uid ? me.uid : chat.uid, y = me.uid < chat.uid ? chat.uid : me.uid;
+    try {
+      var t = (await rest("porch_threads?a=eq." + x + "&b=eq." + y + "&select=*"))[0] || null;
+      var changed = fresh || !chat.thread || !t || t.last_at !== chat.thread.last_at || theirReadOf(t) !== theirReadOf(chat.thread);
+      chat.thread = t;
+      if (t && (fresh || changed)) {
+        var ms = (await rest("porch_dm?thread_id=eq." + t.id + "&select=*&order=created_at.desc&limit=80")).reverse();
+        var seen = {}; chat.msgs.forEach(function (m) { if (m.seen) seen[m.id] = 1; });
+        ms.forEach(function (m) { if (seen[m.id]) m.seen = true; });
+        await signDm([].concat.apply([], ms.map(function (m) { return m.photo_paths || []; })));
+        chat.msgs = ms;
+        paintChat(fresh);
+        if (t.last_from && t.last_from !== me.uid && (!myReadOf(t) || t.last_at > myReadOf(t))) { try { await rpc("porch_dm_read", { p_thread: t.id }); } catch (e) {} checkDms(); }
+      } else if (fresh) paintChat(true);
+    } catch (e) { if (fresh) { chat.msgs = []; paintChat(true); } }
+  }
+  async function openChat(uid) {
+    if (!uid || uid === me.uid) return;
+    if (isSample(uid)) return toast("That's a sample person. Only you can see them.");
+    if (!signedIn()) return open("join");
+    if (!people[uid] || !people[uid].handle || people[uid].handle === "misfit") { try { delete people[uid]; await loadPeople([uid]); } catch (e) {} }
+    chat = { uid: uid, thread: null, msgs: [] };
+    $("chtop").innerHTML = '<button type="button" class="who" data-u="' + uid + '">' + avatar(people[uid]) + "<b>" + esc(name(uid)) + '</b></button><button type="button" class="more" data-chatmore aria-label="Options">⋯</button>';
+    $("dmlist").innerHTML = '<div class="skel" style="height:120px;margin:12px 0"></div>';
+    $("dmin").value = ""; dmPhotos = []; paintDmBox();
+    open("chat");
+    await loadChat(true);
+    clearInterval(dmPoll);
+    dmPoll = setInterval(function () { if (!$("chat").classList.contains("open")) { clearInterval(dmPoll); chat = null; return; } if (!document.hidden) loadChat(false); }, 3000);
+  }
+  function paintDmBox() {
+    $("dmthumbs").innerHTML = dmPhotos.map(function (p, i) { return '<div><img src="' + p + '" alt=""><button type="button" data-undm="' + i + '" aria-label="Remove photo">✕</button></div>'; }).join("");
+    $("dmgo").disabled = dmSending || (!$("dmin").value.trim() && !dmPhotos.length);
+    $("dmcam").hidden = dmPhotos.length >= 4;
+  }
+  $("dmin").addEventListener("input", function () { this.style.height = "auto"; this.style.height = Math.min(130, this.scrollHeight) + "px"; paintDmBox(); });
+  $("dmin").addEventListener("focus", function () { setTimeout(function () { var l = $("dmlist"); l.scrollTop = l.scrollHeight; }, 300); });
+  $("dmcam").addEventListener("click", function () { $("dmfile").click(); });
+  $("dmthumbs").addEventListener("click", function (e) { var b = e.target.closest("[data-undm]"); if (b) { dmPhotos.splice(+b.dataset.undm, 1); paintDmBox(); } });
+  $("dmfile").addEventListener("change", async function () {
+    var files = Array.prototype.slice.call(this.files || [], 0, 4 - dmPhotos.length); this.value = "";
+    for (var i = 0; i < files.length; i++) { try { dmPhotos.push(await shrink(files[i])); } catch (e) { toast("That photo couldn't be opened."); } }
+    paintDmBox();
+  });
+  async function sendDm(sure) {
+    if (!chat || dmSending) return;
+    if (!friends[chat.uid]) return toast("You can message friends only.");
+    var body = $("dmin").value.trim(); if (!body && !dmPhotos.length) return;
+    dmSending = true; $("dmgo").textContent = dmPhotos.length ? "Checking…" : "…"; paintDmBox();
+    var r = await fn("porch", { action: "dm_send", to: chat.uid, body: body, photos: dmPhotos, sure: !!sure });
+    dmSending = false; $("dmgo").textContent = "Send"; paintDmBox();
+    if (r.pause) { pauseFor = "dm"; return open("pause"); }
+    if (r.need === "confirm") { await closeTop(); cfReset(); return open("confirm"); }
+    if (!r.ok) return toast(r.error || "That didn't send. Try again.");
+    $("dmin").value = ""; $("dmin").style.height = ""; dmPhotos = []; paintDmBox();
+    await loadChat(true);
+    if (r.care) open("care");
+  }
+  $("dmgo").addEventListener("click", function () { sendDm(false); });
+  /* tap your own message: Unsend / Copy. Tap theirs: Copy. */
+  function dmMenu(id) {
+    var m = chat && chat.msgs.find(function (x) { return x.id === id; }); if (!m || m.unsent_at) return;
+    $("mbody").dataset.t = JSON.stringify({ dm: id }); $("mbody").dataset.uid = m.from_id;
+    $("mbody").innerHTML = (m.body ? '<button type="button" data-m="dmcopy">Copy</button>' : "") +
+      (m.from_id === me.uid ? '<button type="button" class="bad" data-m="dmunsend">Unsend</button>' : "") +
+      '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
+    open("menu");
+  }
+  function chatMore() {
+    if (!chat) return;
+    var uid = chat.uid;
+    $("mbody").dataset.t = JSON.stringify({ member: uid }); $("mbody").dataset.uid = uid;
+    $("mbody").innerHTML = '<button type="button" data-m="dmprofile">View profile</button><button type="button" data-m="reportme">Report ' + esc(name(uid)) + '</button><button type="button" data-m="block">Block ' + esc(name(uid)) + '</button><button type="button" data-close style="color:var(--muted)">Cancel</button>';
+    open("menu");
+  }
+
   /* ================================================================ TAPS */
   document.addEventListener("click", function (e) {
     var t = e.target, post = t.closest("[data-post]"), id = post && post.dataset.post;
@@ -2182,6 +2448,14 @@ html.kb #comments .sheet{top:0;border-radius:0}
       $("rtxt").innerHTML = linkify(pp.body || ""); open("reader"); $("reader").querySelector(".page").scrollTop = 0; return;
     }
     if (t.closest("[data-more]") && id) return gate(function () { menu({ post: id }); });
+    if (t.closest("[data-msgs]")) return gate(openInbox);
+    if (t.closest("[data-newdm]")) return openPick();
+    var pk = t.closest("[data-dmpick]"); if (pk) { var pu = pk.dataset.dmpick; return closeTop().then(function () { openChat(pu); }); }
+    var dmb = t.closest("[data-dm]"); if (dmb) return gate(function () { openChat(dmb.dataset.dm); });
+    if (t.closest("[data-chatmore]")) return chatMore();
+    var rz = t.closest("[data-rz]");
+    if (rz && rz.dataset.rz) { var rm = chat && chat.msgs.find(function (x) { return x.id === rz.dataset.rz; }); if (rm) rm.seen = true; rz.classList.remove("rz"); rz.dataset.rz = ""; return; }
+    var bbl = t.closest("[data-bb]"); if (bbl && !t.closest("a,.at")) return dmMenu(bbl.closest("[data-dmid]").dataset.dmid);
     if (t.closest("[data-send]") && id) return sendOut(id);
     if (t.closest("[data-search]")) return openSearch();
     var cr = t.closest("[data-creply]"); if (cr) return gate(function () { startReply(cr.closest("[data-comment]").dataset.comment); });
@@ -2274,9 +2548,11 @@ html.kb #comments .sheet{top:0;border-radius:0}
     await loadFriends();
     loadNew();
     loadMore();
-    checkNotes(); checkNew(); modCheck(); healPush();
+    checkNotes(); checkDms(); checkNew(); modCheck(); healPush();
     setTimeout(function () { if (unread) askPush(); }, 6000);
     /* a link somebody sent: /feed/porch.html?s=<share> opens that one share */
+    var dmTo = new URLSearchParams(location.search).get("dm");
+    if (dmTo && /^[0-9a-f-]{36}$/i.test(dmTo)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openChat(dmTo); }
     var who = new URLSearchParams(location.search).get("who");
     if (who && /^[0-9a-f-]{36}$/i.test(who)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openProfile(who); }
     if (/[?&]mod=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (isMod) openMod(); }

@@ -2,6 +2,7 @@
  *
  * Two jobs:
  *   GET  (from the app)       -> { key }  the public push key the phone needs to sign up
+ *   POST (from the database)  { dm_id }    a new message: buzzes the other person's phones
  *   POST (from the database)  { note_id }  sends that notification to every phone the
  *                                           person turned notifications on for
  *
@@ -62,8 +63,37 @@ Deno.serve(async (req) => {
   const secret = await setting("push_secret");
   if (!secret || req.headers.get("x-porch-secret") !== secret) return json({ error: "no" }, 403);
 
-  let note_id = "";
-  try { note_id = String((await req.json()).note_id || ""); } catch { /* empty */ }
+  let note_id = "", dm_id = "";
+  try { const j = await req.json(); note_id = String(j.note_id || ""); dm_id = String(j.dm_id || ""); } catch { /* empty */ }
+
+  /* A NEW MESSAGE (30 Sep 2026): "grateful_gina" / what she said. One alert per chat
+     on the lock screen (each new one replaces the last), tap opens that chat. */
+  if (dm_id) {
+    const { data: m } = await admin.from("porch_dm").select("*").eq("id", dm_id).maybeSingle();
+    if (!m || Date.now() - new Date(m.created_at).getTime() > 3600_000) return json({ ok: true, sent: 0 });
+    const { data: t } = await admin.from("porch_threads").select("a, b").eq("id", m.thread_id).maybeSingle();
+    if (!t) return json({ ok: true, sent: 0 });
+    const them = t.a === m.from_id ? t.b : t.a;
+    const [{ data: who }, { data: phones }] = await Promise.all([
+      admin.from("porch_members").select("handle").eq("user_id", m.from_id).maybeSingle(),
+      admin.from("porch_push").select("*").eq("user_id", them),
+    ]);
+    if (!phones?.length) return json({ ok: true, sent: 0 });
+    await vapid();
+    const said = String(m.body || "").replace(/\s+/g, " ").trim();
+    const payload = JSON.stringify({
+      title: who?.handle || "New message",
+      body: m.racy ? "Sent a photo" : said ? (said.length > 140 ? said.slice(0, 137) + "…" : said) : (m.photo_paths?.length > 1 ? "Sent " + m.photo_paths.length + " photos" : "Sent a photo"),
+      url: "/feed/porch.html?dm=" + m.from_id,
+      tag: "porch-dm-" + m.thread_id,
+    });
+    let sent = 0;
+    for (const p of phones) {
+      try { await webpush.sendNotification({ endpoint: p.endpoint, keys: { p256dh: p.p256dh, auth: p.auth } }, payload, { TTL: 86400, urgency: "high" }); sent++; }
+      catch (e: any) { if (e?.statusCode === 404 || e?.statusCode === 410) await admin.from("porch_push").delete().eq("endpoint", p.endpoint); }
+    }
+    return json({ ok: true, sent });
+  }
   // claim it: each notification buzzes once, and only while it's under an hour old
   const { data: claimed } = await admin.rpc("porch_claim_push", { p_id: note_id });
   const n = (claimed as any[])?.[0];
