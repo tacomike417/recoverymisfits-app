@@ -111,6 +111,23 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
 - Files: feed/spins/spins.js, feed/spins/spin-maker.js, feed/spins/stickers/,
   supabase/porch_12_spins.sql, supabase/functions/spins.
 
+### Taglines for the community side (1 Oct 2026, Mike)
+- **"Good company between meetings"**: the Porch's tagline. It's in the page title, the
+  link preview, and the heading of the sign-in sheet.
+- **"Give it a spin"**: the Make-a-Spin button and the empty-Spins message.
+- **"Sober Spins"**: the name of the short videos.
+- Use them in the UI update too, for example under the logo and on the speed dial's Spin
+  button.
+
+### Porch rule: experience, strength and hope (1 Oct 2026, Mike, firm)
+"We share experience, strength and hope. Not opinion, strength and hope." Opinions can
+hurt people, and in recovery we're not in the people-hurting business anymore. The
+doctors get to be the doctors, the lawyers the lawyers and the counselors the counselors.
+Here, we're people in recovery helping each other out. It's at the top of THE PORCH
+RULES that people agree to when they confirm their email, plus a rule: "Share what
+happened to you, not what somebody else ought to do. No medical, legal or counseling
+advice."
+
 ### UI UPDATE: saved to come back to (1 Oct 2026)
 - Mike: "our ui is just super confusing and cluttered. It needs reorganized big time." He
   wants a **+ speed dial** that fans out to make a post or a Spin.

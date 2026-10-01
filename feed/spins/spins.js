@@ -24,7 +24,7 @@
   const TUS = 'https://video.bunnycdn.com/tusupload';
   const TUS_LIB = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
   const MB_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
-  const MAKER = '/feed/spins/spin-maker.js?v=21';
+  const MAKER = '/feed/spins/spin-maker.js?v=22';
   const MAX_S = 15.5;
   const RAIL_N = 14;
   const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at';
@@ -174,7 +174,7 @@
       ${badge ? `<span class="sp-badge">${esc(badge)}</span>` : ''}
       <span class="sp-who">${P().avatar(P().people[l.user_id])}<span>${esc(at(l.user_id))}</span></span></button>`;
   }
-  const makeTile = () => `<button type="button" class="sp-tile sp-make" data-sp-make><span><span class="sp-plus">+</span><b>Make a<br>Spin</b></span></button>`;
+  const makeTile = () => `<button type="button" class="sp-tile sp-make" data-sp-make><span><span class="sp-plus">+</span><b>Give it<br>a spin</b></span></button>`;
   const SPIN_ICO = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.2"/><path d="M12 3a9 9 0 0 1 8.4 5.8M3.6 15.2A9 9 0 0 0 12 21"/></svg>';
 
   async function railHTML() {
@@ -215,7 +215,7 @@
     grid.dataset.spGrid = uid;
     if (!list.length && !mine) { grid.innerHTML = '<p class="pempty">No Spins right now.</p>'; return; }
     grid.innerHTML = `<div class="sp-grid">
-      ${mine ? `<button type="button" class="sp-gt sp-make" data-sp-make><span><span class="sp-plus">+</span><b style="color:var(--gold2);font:900 13px Arial">Make a<br>Spin</b></span></button>` : ''}
+      ${mine ? `<button type="button" class="sp-gt sp-make" data-sp-make><span><span class="sp-plus">+</span><b style="color:var(--gold2);font:900 13px Arial">Give it<br>a spin</b></span></button>` : ''}
       ${list.map((l, i) => {
         let badge = '', dim = false;
         if (l.status === 'uploading') { badge = 'Processing…'; dim = true; }
@@ -740,7 +740,7 @@
   async function openLatest() {
     let list = [];
     try { list = await latest(30); } catch (_) {}
-    if (!list.length) { say('No Spins yet. Make the first one!'); return start(); }
+    if (!list.length) { say('No Spins yet. Give it a spin!'); return start(); }
     openPlayer(list, 0);
   }
   /* a link: ?spin=<id> (and from an alert: the Spin's post, maybe a comment) */
