@@ -745,7 +745,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v42</span>
+  <span class="ver" id="ver">v43</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2039,8 +2039,18 @@ html.kb .ch-bar{padding-bottom:8px}
       '<button type="button" data-mm="coins">My coins</button>' +
       '<button type="button" data-mm="invite">Invite somebody</button>' +
       '<button type="button" data-mm="account">Your app account</button>' +
+      '<button type="button" data-mm="signout">Sign out</button>' +
       (me.member ? '<button type="button" data-mm="leave" style="color:var(--faint);font-size:14px">Delete my Porch account</button>' : "");
     open("memenu");
+  }
+
+  /* SIGN OUT (1 Oct 2026, Mike): this phone stops buzzing for you, then the account page.
+     Nothing is deleted; signing back in brings everything back. */
+  async function signOutHere() {
+    try { await pushOff(true); } catch (e) {}
+    try { A.signOut(); } catch (e) {}
+    try { localStorage.removeItem("rm_level_pick"); } catch (e) {}
+    location.replace("/account.html");
   }
 
   /* ---- edit your profile ---- */
@@ -2936,7 +2946,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var mm = t.closest("[data-mm]");
     if (mm) { var which = mm.dataset.mm; closeTop().then(function () {
       if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends(); else if (which === "coins") location.href = "/coins.html"; else if (which === "invite") invite(); else if (which === "findf") openSetup("friends");
-      else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else gate(openEdit); }); return; }
+      else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else if (which === "signout") signOutHere(); else gate(openEdit); }); return; }
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-sharep]")) return shareProfile();
     if (t.closest("[data-findf]")) return openSetup("friends");
@@ -3278,6 +3288,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=42" defer></script>
+<script src="/feed/spins/spins.js?v=43" defer></script>
 </body>
 </html>
