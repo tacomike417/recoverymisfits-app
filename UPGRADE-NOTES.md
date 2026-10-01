@@ -128,6 +128,12 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
 - SPINS is in the Porch's top row. The face on the coin rail's Account well is bigger, and
   the Spin maker is restyled in black and gold.
 
+### The 5-second rule (1 Oct 2026, Mike)
+"Nobody reads anymore." Even Jeff asked "can I upload a video?" On the Porch side, people
+have to know what to do in 5 seconds, not 10. The first screen of the Spin maker is now
+just GIVE IT A SPIN with two big doors, RECORD and UPLOAD (video or photos). Tabs and the
+preview show up only once there's a clip.
+
 ### LATER: Spin face filters (1 Oct 2026, parked until the UI is worked out)
 - The selfie camera, the 8 characters, their voices and the face tracking are already in
   spin-maker.js. The filter art isn't: the pictures live in Jeff's project

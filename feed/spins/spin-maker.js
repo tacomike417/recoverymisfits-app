@@ -545,6 +545,22 @@
 .lpm-add{width:84px;font:800 12.5px/1.25 Arial,sans-serif}
 .lpm-go{background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b}
 .lpm-go[disabled]{opacity:.35}
+/* NOTHING PICKED YET: just the two doors, full screen. Tabs, preview and the
+   Make button show up once there's a clip to work with. */
+.lpm.lpm-blank .lpm-tabs,.lpm.lpm-blank .lpm-panel,.lpm.lpm-blank .lpm-go,.lpm.lpm-blank canvas{display:none!important}
+.lpm.lpm-blank .lpm-stage{background:radial-gradient(120% 70% at 50% 0%,#2a2316 0%,#0c0b09 60%)}
+.lpm.lpm-blank .lpm-empty{inset:0;padding:0 22px calc(20px + env(safe-area-inset-bottom));gap:0}
+.lpm-empty h2{font:400 44px/1 "RM Head",Impact,sans-serif;text-transform:uppercase;color:#f1e7cf}
+.lpm-empty .lpm-sub{margin:10px 0 28px;font:700 17px/1.3 Arial,sans-serif;color:#c9bfa8;max-width:none}
+.lpm-doors{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:400px}
+.lpm-door{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;aspect-ratio:1/1.1;border-radius:22px;cursor:pointer;font-family:Arial,sans-serif}
+.lpm-door svg{width:58px;height:58px;margin-bottom:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lpm-door b{font:400 26px/1 "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase}
+.lpm-door small{font:700 13px/1.2 Arial,sans-serif;opacity:.8}
+.lpm-door.rec{border:2px solid rgba(224,189,106,.55);background:#15130e;color:#f1e7cf}
+.lpm-door.rec svg{color:#e0bd6a}
+.lpm-door.pick{border:0;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b;box-shadow:0 10px 30px rgba(224,189,106,.25)}
+.lpm-door:active{transform:scale(.97)}
 `;
   (function addCSS() {
     if (document.getElementById('spin-maker-css')) return;
@@ -601,16 +617,16 @@
     el.setAttribute('aria-label', 'Make a Spin');
     el.innerHTML = `
       <div class="lpm-stage"><canvas width="${W}" height="${H}" aria-label="Preview"></canvas>
+        <!-- THE 5-SECOND RULE (1 Oct 2026, Mike: "nobody reads anymore". Even Jeff asked
+             "can I upload a video?"). Two big doors, a word each. Nothing else on the
+             screen until there's something to work with. -->
         <div class="lpm-empty">
-          <h2>Make a Spin in <span>3 taps</span></h2>
-          <p class="lpm-sub">No video? No problem. A few photos is all it takes. We turn them into a video for you, music and all.</p>
-          <ol class="lpm-steps">
-            <li><b>1</b>Pick photos or videos</li>
-            <li><b>2</b>Pick a style, music, words or stickers</li>
-            <li><b>3</b>Tap Make my Spin. Done.</li>
-          </ol>
-          <button type="button" class="lpm-big pick" data-add>📸 Pick photos or videos</button>
-          <button type="button" class="lpm-big rec" data-rec>🎥 Record one now</button>
+          <h2>Give it a spin</h2>
+          <p class="lpm-sub">15 seconds. A video or a few photos.</p>
+          <div class="lpm-doors">
+            <button type="button" class="lpm-door rec" data-rec><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21.5 7v10l-6-3.5z"/></svg><b>Record</b><small>Use your camera</small></button>
+            <button type="button" class="lpm-door pick" data-add><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><b>Upload</b><small>Video or photos</small></button>
+          </div>
         </div>
       </div>
       <button type="button" class="lpm-x" data-lpm-close aria-label="Close the Spin maker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -657,6 +673,7 @@
     if (go) go.disabled = !st.photos.length || busy;
     const em = el && el.querySelector('.lpm-empty');
     if (em) em.hidden = !!st.photos.length;
+    if (el) el.classList.toggle('lpm-blank', !st.photos.length);
   }
 
   function paintPanel() {
@@ -667,13 +684,13 @@
     if (tab === 'photos') {
       const room = st.photos.length < MAX_PHOTOS && duration() < 14.7;
       p.innerHTML = `<div class="lpm-thumbs">
-        ${room ? `<button type="button" class="lpm-add lpm-rec" data-rec><i>🎥</i>Record</button>
-                  <button type="button" class="lpm-add" data-add><i>+</i>From my phone</button>` : ''}
+        ${room ? `<button type="button" class="lpm-add lpm-rec" data-rec><i>🎥</i>Record more</button>
+                  <button type="button" class="lpm-add" data-add><i>+</i>Add more</button>` : ''}
         ${st.photos.map((x, i) => `<button type="button" class="lpm-th" data-rm="${i}" aria-label="Take it out">${x.kind === 'video'
           ? `<video src="${x.url}#t=0.1" muted playsinline preload="metadata"></video><span class="lpm-dur">🎥 ${Math.round(Math.min(15, x.dur || 0))}s</span>`
           : `<img src="${x.url}" alt="">`}<b>✕</b></button>`).join('')}
       </div><p class="lpm-hint">${st.photos.length
-        ? 'Plays in this order: videos their own length, photos 3 sec, 15 sec max. Tap one to take it out.'
+        ? 'Tap a clip to take it out. Up to 15 seconds.'
         : 'Photos work great on their own. Pick 3 or 4 and we make the video. Up to 15 seconds.'}</p>`;
     } else if (tab === 'style') {
       p.innerHTML = `<div class="lpm-styles">${STYLES.map((s) =>
