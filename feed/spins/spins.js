@@ -366,8 +366,10 @@
   try { soundOn = localStorage.getItem('rm-spin-sound') === 'on'; } catch (_) {}
   const saveSound = () => { try { localStorage.setItem('rm-spin-sound', soundOn ? 'on' : 'off'); } catch (_) {} };
   let sp = null, spList = [], io = null;
-  const proud = new Set(), respun = new Set(), talkN = new Map(), reN = new Map();
+  const proud = new Set(), respun = new Set(), talkN = new Map(), reN = new Map(), loveN = new Map();
   /* the Respin button shows how many people respun it (1 Oct 2026, Mike) */
+  /* hearts show how many people loved it, same as Respins (1 Oct 2026, Mike) */
+  const loveLabel = (l) => { const n = loveN.get(l.post_id) || 0; return n ? String(n) : 'Love'; };
   const reLabel = (l) => { const n = reN.get(l.id) || 0; return n ? String(n) : (l.user_id === meId() ? '0' : 'Respin'); };
   const paintSound = () => { if (sp) sp.classList.toggle('sound', soundOn); };
 
@@ -401,7 +403,7 @@
       </div>
       <div class="sp-side">
         ${meId() ? camBtn('sp-sidecam', 'Make') : ''}
-        <button type="button" data-sp-proud class="${proud.has(l.post_id) ? 'on' : ''}" aria-label="Love this">${HEART}<span>Love</span></button>
+        <button type="button" data-sp-proud class="${proud.has(l.post_id) ? 'on' : ''}" aria-label="Love this">${HEART}<span class="n">${loveLabel(l)}</span></button>
         <button type="button" data-sp-talk aria-label="Comments">${TALK}<span class="n">${talkN.get(l.post_id) || 0}</span></button>
         ${own ? `<button type="button" class="re sp-recount" aria-label="Respins">${RESPIN}<span>${reLabel(l)}</span></button>`
               : `<button type="button" data-sp-respin class="re${isRe ? ' on' : ''}" aria-label="Respin to my Spins">${RESPIN}<span>${reLabel(l)}</span></button>`}
@@ -411,26 +413,33 @@
   }
 
   async function loadMarks(list) {
+    /* each count loads on its own, so one that fails can't blank the others */
     const pids = list.map((l) => l.post_id).filter(Boolean), sids = list.map((l) => l.id);
-    try {
-      if (pids.length) {
-        const cs = await P().rest('porch_comments?post_id=in.(' + pids.join(',') + ')&select=post_id');
-        pids.forEach((p) => talkN.set(p, 0)); cs.forEach((c) => talkN.set(c.post_id, (talkN.get(c.post_id) || 0) + 1));
-      }
-      if (meId()) {
-        if (pids.length) (await P().rest('porch_reactions?user_id=eq.' + meId() + '&kind=eq.proud&post_id=in.(' + pids.join(',') + ')&select=post_id')).forEach((r) => proud.add(r.post_id));
-        (await P().rest('porch_respins?user_id=eq.' + meId() + '&spin_id=in.(' + sids.join(',') + ')&select=spin_id')).forEach((r) => respun.add(r.spin_id));
-      }
-      if (sids.length) {
-        sids.forEach((k) => reN.set(k, 0));
-        (await P().rest('porch_respins?spin_id=in.(' + sids.join(',') + ')&select=spin_id')).forEach((r) => reN.set(r.spin_id, (reN.get(r.spin_id) || 0) + 1));
-      }
-    } catch (_) {}
+    const tally = (rows, key, map, ids) => { ids.forEach((k) => map.set(k, 0)); rows.forEach((r) => map.set(r[key], (map.get(r[key]) || 0) + 1)); };
+    const jobs = [];
+    if (pids.length) {
+      jobs.push(P().rest('porch_comments?post_id=in.(' + pids.join(',') + ')&select=post_id').then((rows) => tally(rows, 'post_id', talkN, pids)));
+      jobs.push(P().rest('porch_reactions?kind=eq.proud&post_id=in.(' + pids.join(',') + ')&select=post_id,user_id').then((rows) => {
+        tally(rows, 'post_id', loveN, pids);
+        pids.forEach((k) => proud.delete(k));
+        if (meId()) rows.forEach((r) => { if (r.user_id === meId()) proud.add(r.post_id); });
+      }));
+    }
+    if (sids.length) {
+      jobs.push(P().rest('porch_respins?spin_id=in.(' + sids.join(',') + ')&select=spin_id,user_id').then((rows) => {
+        tally(rows, 'spin_id', reN, sids);
+        sids.forEach((k) => respun.delete(k));
+        if (meId()) rows.forEach((r) => { if (r.user_id === meId()) respun.add(r.spin_id); });
+      }));
+    }
+    await Promise.all(jobs.map((j) => j.catch(() => {})));
   }
+  /* a Spin can be in the list twice (theirs + somebody's Respin of it): repaint every copy */
+  const paintSame = (l) => spList.forEach((x, k) => { if (x.id === l.id) paintSide(k); });
   function paintSide(i) {
     if (!sp) return; const l = spList[i]; if (!l) return;
     const el = sp.querySelector(`[data-sp-item="${i}"]`); if (!el) return;
-    el.querySelector('[data-sp-proud]').classList.toggle('on', proud.has(l.post_id));
+    const lv = el.querySelector('[data-sp-proud]'); lv.classList.toggle('on', proud.has(l.post_id)); lv.querySelector('.n').textContent = loveLabel(l);
     el.querySelector('[data-sp-talk] .n').textContent = String(talkN.get(l.post_id) || 0);
     const r = el.querySelector('[data-sp-respin]');
     if (r) { r.classList.toggle('on', respun.has(l.id)); r.querySelector('span').textContent = reLabel(l); }
@@ -515,7 +524,7 @@
       return;
     }
     if (e.target.closest('[data-sp-proud]')) { return P().gate(() => toggleProud(i)); }
-    if (e.target.closest('[data-sp-talk]')) { if (l.post_id) P().openCommentsFor(l.post_id, () => { talkN.set(l.post_id, P().commentCount(l.post_id)); paintSide(i); }); return; }
+    if (e.target.closest('[data-sp-talk]')) { if (l.post_id) P().openCommentsFor(l.post_id, () => { talkN.set(l.post_id, P().commentCount(l.post_id)); paintSame(l); }); return; }
     if (e.target.closest('[data-sp-respin]')) { return P().gate(() => toggleRespin(i)); }
     if (e.target.closest('[data-sp-share]')) { share(l); return; }
     if (e.target.closest('[data-sp-more]')) { openMenu(i); return; }
@@ -538,14 +547,16 @@
     const l = spList[i]; if (!l || !l.post_id) return;
     const was = proud.has(l.post_id);
     if (was) proud.delete(l.post_id); else proud.add(l.post_id);
-    paintSide(i);
+    loveN.set(l.post_id, Math.max(0, (loveN.get(l.post_id) || 0) + (was ? -1 : 1)));
+    paintSame(l);
     try {
       if (was) await P().rest('porch_reactions?post_id=eq.' + l.post_id + '&user_id=eq.' + meId() + '&kind=eq.proud', { method: 'DELETE' });
       else await P().rest('porch_reactions', { method: 'POST', body: { post_id: l.post_id, user_id: meId(), kind: 'proud' } });
     } catch (err) {
       if (err.status === 409) return;
       if (was) proud.add(l.post_id); else proud.delete(l.post_id);
-      paintSide(i); say(err.status === 403 || err.status === 401 ? 'You can cheer people on once your account is 3 days old.' : "That didn't go through.");
+      loveN.set(l.post_id, Math.max(0, (loveN.get(l.post_id) || 0) + (was ? 1 : -1)));
+      paintSame(l); say(err.status === 403 || err.status === 401 ? 'You can cheer people on once your account is 3 days old.' : "That didn't go through.");
     }
   }
   /* RESPIN: puts their Spin on your profile (and tells them). Tap again to take it off. */
@@ -554,7 +565,7 @@
     const was = respun.has(l.id);
     if (was) respun.delete(l.id); else respun.add(l.id);
     reN.set(l.id, Math.max(0, (reN.get(l.id) || 0) + (was ? -1 : 1)));
-    paintSide(i);
+    paintSame(l);
     try {
       if (was) await P().rest('porch_respins?user_id=eq.' + meId() + '&spin_id=eq.' + l.id, { method: 'DELETE' });
       else await P().rest('porch_respins', { method: 'POST', body: { user_id: meId(), spin_id: l.id } });
@@ -563,7 +574,7 @@
       if (err.status === 409) return;
       if (was) respun.add(l.id); else respun.delete(l.id);
       reN.set(l.id, Math.max(0, (reN.get(l.id) || 0) + (was ? 1 : -1)));
-      paintSide(i); say(err.status === 403 || err.status === 401 ? 'You can Respin once your account is 3 days old.' : "That didn't go through.");
+      paintSame(l); say(err.status === 403 || err.status === 401 ? 'You can Respin once your account is 3 days old.' : "That didn't go through.");
     }
   }
 

@@ -814,7 +814,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v57</span>
+  <span class="ver" id="ver">v58</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3515,7 +3515,8 @@ html.kb .ch-bar{padding-bottom:8px}
   function openCommentsFor(postId, onClose, commentId) {
     (async function () {
       try {
-        if (!comments[postId]) {
+        /* always fresh, so the count on a Spin matches what's really there */
+        if (!comments[postId] || /^[0-9a-f-]{36}$/i.test(postId)) {
           var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
           await loadPeople(cs.map(function (c) { return c.user_id; }));
           comments[postId] = cs; mine[postId] = mine[postId] || {};
@@ -3575,6 +3576,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=56" defer></script>
+<script src="/feed/spins/spins.js?v=58" defer></script>
 </body>
 </html>
