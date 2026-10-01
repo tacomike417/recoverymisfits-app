@@ -522,6 +522,13 @@ html.kb #comments .sheet{top:0;border-radius:0}
 #notes .nd-head b{color:var(--pink)}
 #notes .nd-sw{color:var(--pmute)}
 #notes .nd-sw i{background:#d6ccb6}
+/* ON = GREEN, OFF = RED (1 Oct 2026, Mike: "make it obvious if notifications are on or off") */
+#notes .nd-sw,.nd-sw{gap:9px;padding:7px 8px 7px 14px;border-radius:999px;background:#c62f26;color:#fff;font:800 14px/1 Arial,sans-serif;letter-spacing:.02em;box-shadow:0 2px 8px rgba(198,47,38,.35)}
+#notes .nd-sw[aria-pressed=true],.nd-sw[aria-pressed=true]{background:#24913d;box-shadow:0 2px 8px rgba(36,145,61,.35)}
+#notes .nd-sw i,.nd-sw i,.nd-sw.off i{display:block;width:40px;height:24px;border-radius:12px;background:rgba(0,0,0,.28)}
+#notes .nd-sw[aria-pressed=true] i,.nd-sw[aria-pressed=true] i{background:rgba(0,0,0,.22)}
+.nd-sw i::after{top:3px;left:3px;width:18px;height:18px}
+.nd-sw[aria-pressed=true] i::after{transform:translateX(16px)}
 #notes .nd-sec{color:var(--pgold)}
 #notes .nd-row{color:var(--pink)}
 #notes .nd-row.is-new{background:#efe2c3}
@@ -693,7 +700,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v38</span>
+  <span class="ver" id="ver">v39</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -915,7 +922,7 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="notes" class="layer drop" role="dialog" aria-modal="true" aria-label="Notifications">
   <div class="dim" data-close></div>
   <div class="nd-panel" id="ndpanel">
-    <div class="nd-head"><b>Notifications</b><button type="button" class="nd-sw" id="ndsw" aria-pressed="false"><span id="ndswl">Phone alerts</span><i></i></button></div>
+    <div class="nd-head"><b>Notifications</b><button type="button" class="nd-sw" id="ndsw" aria-pressed="false"><span id="ndswl">Alerts OFF</span><i></i></button></div>
     <div id="nlist"></div>
   </div>
 </div>
@@ -2355,17 +2362,19 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   /* the "Phone alerts" switch in the drop-down's header */
   async function paintSwitch(state) {
-    var sw = $("ndsw"), l = $("ndswl"), on = false, off = false, txt = "Phone alerts";
-    if (!canPush && !(iOS && !standalone)) { txt = "No phone alerts in this browser"; off = true; }
-    else if (iOS && !standalone) { txt = "Add to Home Screen for phone alerts"; off = true; }
-    else if (state === "denied" || Notification.permission === "denied") { txt = "Blocked in phone settings"; off = true; }
+    var sw = $("ndsw"), l = $("ndswl"), on = false, off = false;
+    if (!canPush && !(iOS && !standalone)) off = true;
+    else if (iOS && !standalone) off = true;
+    else if (state === "denied" || Notification.permission === "denied") off = true;
     else on = !!(await pushSub()) && Notification.permission === "granted";
-    l.textContent = txt; sw.classList.toggle("off", off); sw.setAttribute("aria-pressed", on ? "true" : "false");
+    l.textContent = on ? "Alerts ON" : "Alerts OFF";
+    sw.setAttribute("aria-label", on ? "Phone alerts are on. Tap to turn off." : "Phone alerts are off. Tap to turn on."); sw.classList.toggle("off", off); sw.setAttribute("aria-pressed", on ? "true" : "false");
   }
   $("ndsw").addEventListener("click", async function () {
     if (this.classList.contains("off")) {
       if (iOS && !standalone) toast("Tap Share, then Add to Home Screen. Open it from there.");
       else if (canPush && Notification.permission === "denied") toast("Turn notifications on for this site in your phone's settings.");
+      else toast("This browser can't do phone alerts. Open Recovery Misfits from your Home Screen.");
       return;
     }
     if (this.getAttribute("aria-pressed") === "true") { await pushOff(); } else { await pushOn(); }
@@ -3056,6 +3065,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=38" defer></script>
+<script src="/feed/spins/spins.js?v=39" defer></script>
 </body>
 </html>
