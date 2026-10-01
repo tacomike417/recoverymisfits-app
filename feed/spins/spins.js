@@ -58,8 +58,8 @@
 .sp-ring img{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid var(--bg,#11110f);box-sizing:border-box;background:#15130e}
 .sp-nm{display:block;margin-top:6px;font:600 11.5px/1.2 Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-mk .sp-ring{position:relative;background:conic-gradient(#f6e3a8,#e0bd6a,#c9922b,#f6e3a8);padding:3px;animation:sp-call 3.2s ease-in-out infinite}
-.sp-mk .sp-cam{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;border:3px solid var(--bg,#11110f);box-sizing:border-box;background:radial-gradient(circle at 50% 40%,#f6e3a8,#e0bd6a 60%,#c9922b);color:#17130b}
-.sp-mk .sp-cam svg{width:36px;height:36px;margin-left:2px}
+.sp-cambtn .sp-cam,.sp-mk .sp-cam{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;border:3px solid var(--bg,#11110f);box-sizing:border-box;background:radial-gradient(circle at 50% 40%,#f6e3a8,#e0bd6a 60%,#c9922b);color:#17130b}
+.sp-cambtn .sp-cam svg,.sp-mk .sp-cam svg{width:36px;height:36px;margin-left:2px}
 .sp-badge-plus{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#f1e7cf;color:#17130b;border:3px solid var(--bg,#11110f);display:grid;place-items:center;font:900 18px/1 Arial;font-style:normal}
 @keyframes sp-call{0%,70%,100%{box-shadow:0 0 0 0 rgba(224,189,106,0)}80%{box-shadow:0 0 0 7px rgba(224,189,106,.35)}90%{box-shadow:0 0 0 12px rgba(224,189,106,0)}}
 @media (prefers-reduced-motion:reduce){.sp-mk .sp-ring{animation:none}}
@@ -119,7 +119,16 @@
 .sp.sound .sp-snd{background:#16a34a}
 .sp.sound .sp-snd .on{display:inline}
 .sp.sound .sp-snd .off{display:none}
-.sp-new{position:absolute;z-index:3;top:calc(8px + env(safe-area-inset-top,0px));right:146px;width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b;font:900 26px/44px Arial;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.sp-cambtn{padding:0;border:0;background:none;cursor:pointer;color:var(--gold2)}
+.sp-cambtn .sp-ring{position:relative;display:block;border-radius:50%;padding:3px;box-sizing:border-box;background:conic-gradient(#f6e3a8,#e0bd6a,#c9922b,#f6e3a8);animation:sp-call 3.2s ease-in-out infinite}
+.sp-new{position:absolute;z-index:3;top:calc(4px + env(safe-area-inset-top,0px));right:146px}
+.sp-new .sp-ring{width:52px;height:52px}
+.sp-new .sp-cam svg{width:26px!important;height:26px!important}
+.sp-new .sp-badge-plus{width:19px!important;height:19px!important;font-size:14px!important;border-width:2px!important}
+.sp-gtmake{display:grid;place-items:center;background:#15130e}
+.sp-gtmake .sp-cambtn{display:flex;flex-direction:column;align-items:center}
+.sp-gtmake .sp-ring{width:72px;height:72px}
+.sp-gtmake .sp-nm{margin-top:8px;font:800 12.5px Arial,sans-serif;color:var(--gold2)}
 .sp-x{position:absolute;z-index:4;top:calc(10px + env(safe-area-inset-top,0px));left:10px;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;border:0;background:rgba(0,0,0,.5);color:#fff;cursor:pointer}
 .sp-x svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round}
 .sp-top svg{width:20px;height:20px;margin:-3px 7px 0 0;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
@@ -200,7 +209,10 @@
   /* GIVE IT A SPIN (1 Oct 2026, Mike: "a plus sign is not obvious, we need to get a click").
      The gold movie camera itself is the button, with a little + badge, and it breathes
      a gold glow now and then so the eye lands on it. */
-  const makeStory = () => `<button type="button" class="sp-story sp-mk" data-sp-make aria-label="Give it a spin"><span class="sp-ring"><span class="sp-cam"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg></span><i class="sp-badge-plus">+</i></span><span class="sp-nm">Give it a spin</span></button>`;
+  const CAM_ICO = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>';
+  /* the same gold camera button, anywhere a Spin gets made: story row, player, profile */
+  const camBtn = (cls, label) => `<button type="button" class="sp-cambtn ${cls}" data-sp-make aria-label="Give it a spin"><span class="sp-ring"><span class="sp-cam">${CAM_ICO}</span><i class="sp-badge-plus">+</i></span>${label ? `<span class="sp-nm">${label}</span>` : ''}</button>`;
+  const makeStory = () => `<button type="button" class="sp-story sp-mk" data-sp-make aria-label="Give it a spin"><span class="sp-ring"><span class="sp-cam">${CAM_ICO}</span><i class="sp-badge-plus">+</i></span><span class="sp-nm">Give it a spin</span></button>`;
 
   async function railHTML() {
     let list = [];
@@ -240,7 +252,7 @@
     grid.dataset.spGrid = uid;
     if (!list.length && !mine) { grid.innerHTML = '<p class="pempty">No Spins right now.</p>'; return; }
     grid.innerHTML = `<div class="sp-grid">
-      ${mine ? `<button type="button" class="sp-gt sp-make" data-sp-make><span><span class="sp-plus">+</span><b style="color:var(--gold2);font:900 13px Arial">Give it<br>a spin</b></span></button>` : ''}
+      ${mine ? `<div class="sp-gt sp-gtmake">${camBtn('sp-mk', 'Give it a spin')}</div>` : ''}
       ${list.map((l, i) => {
         let badge = '', dim = false;
         if (l.status === 'uploading') { badge = 'Processing…'; dim = true; }
@@ -355,7 +367,7 @@
     sp.innerHTML = `<div class="sp-list">${spList.map(itemHTML).join('')}</div>
       <button type="button" class="sp-x" data-sp-close aria-label="Close Spins, back to the Porch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       <span class="sp-top">${SPIN_ICO}SOBER SPINS</span>
-      ${meId() ? '<button type="button" class="sp-new" data-sp-make aria-label="Make a Spin">+</button>' : ''}
+      ${meId() ? camBtn('sp-new', '') : ''}
       <button type="button" class="sp-snd" data-sp-snd aria-label="Sound on or off">
         <svg class="off" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z" fill="#fff"/><path d="m16 9 5 6M21 9l-5 6"/></svg><span class="off">Sound off</span>
         <svg class="on" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z" fill="#fff"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span class="on">Sound on</span></button>`;

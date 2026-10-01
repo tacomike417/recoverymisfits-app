@@ -134,6 +134,12 @@ have to know what to do in 5 seconds, not 10. The first screen of the Spin maker
 just GIVE IT A SPIN with two big doors, RECORD and UPLOAD (video or photos). Tabs and the
 preview show up only once there's a clip.
 
+### House rules for SQL files (1 Oct 2026, Mike)
+- The newest SQL step sits right in supabase/. Every older one moves to supabase/old sql/,
+  so the one to run is the only one there.
+- Beta testers (porch_testers) can post right away with no email confirmation
+  (porch_15_testers_post.sql). Everyone else still confirms an email once.
+
 ### LATER: Spin face filters (1 Oct 2026, parked until the UI is worked out)
 - The selfie camera, the 8 characters, their voices and the face tracking are already in
   spin-maker.js. The filter art isn't: the pictures live in Jeff's project
