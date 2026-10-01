@@ -72,6 +72,28 @@
 .sp-rail h2 svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .sp-row{display:flex;gap:8px;overflow-x:auto;padding:0 12px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
 .sp-row::-webkit-scrollbar{display:none}
+/* THE FILM STRIP (1 Oct 2026) */
+.sp-filmrail{margin:4px 0 6px}
+.sp-filmhead{display:flex;align-items:baseline;justify-content:space-between;padding:10px 14px 8px}
+.sp-filmhead span{font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.18em;color:var(--gold2,#e0bd6a)}
+.sp-filmhead button{border:0;background:none;padding:4px 0;color:var(--gold2,#e0bd6a);font:700 13px Arial,sans-serif;cursor:pointer}
+.sp-film{position:relative;padding:20px 0;background:#050504}
+.sp-holes{position:absolute;left:0;right:0;height:9px;border-radius:2px;background-image:repeating-linear-gradient(90deg,transparent 0 6px,#2a271f 6px 16px,transparent 16px 22px)}
+.sp-holes.t{top:5px}.sp-holes.b{bottom:5px}
+.sp-frames{gap:6px!important;padding:0 10px!important}
+.sp-frame{flex:none;position:relative;width:98px;height:172px;padding:0;border:0;border-radius:6px;overflow:hidden;background:#000;color:#fff;cursor:pointer;scroll-snap-align:start}
+.sp-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sp-frame::after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,0))}
+.sp-flen{position:absolute;z-index:1;left:6px;top:6px;display:flex;align-items:center;gap:3px;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.6);font:800 10.5px Arial,sans-serif}
+.sp-flen svg{width:9px;height:9px;fill:#fff}
+.sp-fre{position:absolute;z-index:1;right:6px;top:6px;width:22px;height:22px;border-radius:50%;background:#e0bd6a;display:grid;place-items:center}
+.sp-fre svg{width:12px;height:12px;fill:none;stroke:#11110f;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.sp-fnm{position:absolute;z-index:1;left:7px;right:7px;bottom:7px;font:800 11.5px Arial,sans-serif;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-fmake{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #e0bd6a;box-sizing:border-box;background:rgba(224,189,106,.07);color:#e0bd6a}
+.sp-fmake::after{display:none}
+.sp-fmake .sp-cam svg{width:30px;height:30px}
+.sp-fmake b{font:400 17px/1.05 "RM Head",Anton,Impact,sans-serif;text-align:center}
+.sp-frame:active{transform:scale(.97)}
 .sp-tile{flex:0 0 108px;height:176px;border-radius:12px;position:relative;overflow:hidden;background:#15130e;border:0;padding:0;cursor:pointer;scroll-snap-align:start;color:#fff}
 .sp-tile>img.sp-th{width:100%;height:100%;object-fit:cover;display:block}
 .sp-tile::after{content:"";position:absolute;inset:auto 0 0 0;height:50%;background:linear-gradient(transparent,rgba(0,0,0,.75));pointer-events:none}
@@ -239,6 +261,16 @@
   /* THE SOBER SPINS ICON (1 Oct 2026, Mike): the little movie clapper, everywhere Spins shows up */
   const SPIN_ICO = '<svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>';
 
+  const PLAY_ICO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
+  const lenTxt = (l) => { const n = Math.round(Number(l.length_s) || 0); return n ? '0:' + String(n).padStart(2, '0') : ''; };
+  function frameHTML(l, i) {
+    return `<button type="button" class="sp-frame" data-sp-open="rail" data-sp-i="${i}" aria-label="Spin by ${esc(at(l.user_id))}${l.respunBy ? ', respun by ' + esc(at(l.respunBy)) : ''}">
+      <img src="${esc(thumbFor(l))}" alt="" loading="lazy">
+      ${lenTxt(l) ? `<span class="sp-flen">${PLAY_ICO}${lenTxt(l)}</span>` : ''}
+      ${l.respunBy ? `<span class="sp-fre">${RESPIN}</span>` : ''}
+      <span class="sp-fnm">${l.respunBy ? '↻ ' + esc(P().name(l.respunBy)) : '@' + esc(P().name(l.user_id))}</span></button>`;
+  }
+  const makeFrame = () => `<button type="button" class="sp-frame sp-fmake" data-sp-make aria-label="Make a Spin"><span class="sp-cam">${CAM_ICO}</span><b>MAKE<br>A SPIN</b></button>`;
   /* LAYOUT A (1 Oct 2026): on the Porch, Spins are story circles under the tab row */
   function storyHTML(l, i) {
     return `<button type="button" class="sp-story" data-sp-open="rail" data-sp-i="${i}" aria-label="Spin by ${esc(at(l.user_id))}${l.respunBy ? ', respun by ' + esc(at(l.respunBy)) : ''}">
@@ -258,8 +290,13 @@
     if (!list.length && !meId()) return '';
     await P().loadPeople(list.map((l) => l.user_id).concat(list.map((l) => l.respunBy).filter(Boolean)));
     sets.set('rail', list);
-    return `<section class="sp-rail" data-sp-rail aria-label="Sober Spins">
-      <div class="sp-row sp-stories">${meId() ? makeStory() : ''}${list.map((l, i) => storyHTML(l, i)).join('')}</div></section>`;
+    /* THE FILM STRIP (1 Oct 2026, Mike picked it from the mockups: the circles looked
+       like profiles). Tall frames on a strip of film, each with its length, so it reads
+       as video at a glance. Make is the first frame; respins carry the gold ↻. */
+    return `<section class="sp-rail sp-filmrail" data-sp-rail aria-label="Sober Spins">
+      <div class="sp-filmhead"><span>SOBER SPINS</span><button type="button" data-spins>See all ›</button></div>
+      <div class="sp-film"><i class="sp-holes t"></i><i class="sp-holes b"></i>
+      <div class="sp-row sp-frames">${meId() ? makeFrame() : ''}${list.map((l, i) => frameHTML(l, i)).join('')}</div></div></section>`;
   }
   async function paintRail() {
     const host = document.getElementById('spinrail'); if (!host) return;
