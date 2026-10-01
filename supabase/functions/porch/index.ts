@@ -134,16 +134,20 @@ function checkWords(text: string): string | null {
 
 /* ---------------- photos ---------------- */
 const LEVEL: Record<string, number> = { UNKNOWN: 0, VERY_UNLIKELY: 1, UNLIKELY: 2, POSSIBLE: 3, LIKELY: 4, VERY_LIKELY: 5 };
-/* ONE FACE PER PHOTO (1 Oct 2026, Mike: "protecting their level of anonymity is
-   paramount"). Profile pictures, headers, shares and Messages: a photo with more than
-   one person's face in it doesn't go up. It never checks WHO a face is, only how many. */
-const ONE_FACE = "Just one face per photo. Other people's faces stay off Recovery Misfits to protect their anonymity.";
-function faceCount(res: any): number {
-  return (res?.faceAnnotations || []).filter((f: any) => (Number(f.detectionConfidence) || 0) >= 0.7).length;
+/* FACES NEED AN OK (1 Oct 2026, Mike; the promise in the preview's safety list: "people
+   in a photo need the poster's OK"). Every photo is scanned for faces. The app shows a
+   box around each face and the person has to push a button ("Yes, it's me" / "Yes,
+   everyone said OK") before it goes up; that push arrives here as faces_ok. A photo with
+   a face and no OK doesn't go up. It never checks WHO a face is, only where faces are. */
+const NEED_FACES = "NEED_FACES";
+const FACES_MSG = "Somebody's face is in that photo. Check it and confirm everyone said OK.";
+function goodFaces(res: any): any[] {
+  return (res?.faceAnnotations || []).filter((f: any) => (Number(f.detectionConfidence) || 0) >= 0.7);
 }
+function faceCount(res: any): number { return goodFaces(res).length; }
 const CHECKS = [{ type: "SAFE_SEARCH_DETECTION" }, { type: "FACE_DETECTION", maxResults: 6 }];
 
-async function photoOk(bytes: Uint8Array, b64: string): Promise<string | null> {
+async function photoOk(bytes: Uint8Array, b64: string, facesOk = false): Promise<string | null> {
   if (!VISION) return "Photos aren't switched on yet.";
   if (bytes.length > 3 * 1024 * 1024) return "That photo is too big.";
   if (!(bytes[0] === 0xff && bytes[1] === 0xd8)) return "That photo couldn't be read.";
@@ -155,7 +159,7 @@ async function photoOk(bytes: Uint8Array, b64: string): Promise<string | null> {
     if (!r.ok) return "Photos can't be checked right now, so that wasn't posted.";
     const res = (await r.json())?.responses?.[0], s = res?.safeSearchAnnotation;
     if (!s) return "Photos can't be checked right now, so that wasn't posted.";
-    if (faceCount(res) > 1) return ONE_FACE;
+    if (faceCount(res) > 0 && !facesOk) return NEED_FACES;
     if ((LEVEL[s.adult] || 0) >= LEVEL.LIKELY || (LEVEL[s.racy] || 0) >= LEVEL.VERY_LIKELY) return "That photo isn't allowed on the Porch.";
     if ((LEVEL[s.violence] || 0) >= LEVEL.VERY_LIKELY) return "That photo is too graphic for the Porch.";
     return null;
@@ -224,7 +228,7 @@ async function imageOk(url: string) {
 
 /* MESSAGES photos (30 Sep 2026): rated R, not rated X. Spicy comes through blurred;
    full nudity and gore don't come through at all. Can't check = not sent. */
-async function dmPhoto(bytes: Uint8Array, b64: string): Promise<{ error?: string; racy?: boolean }> {
+async function dmPhoto(bytes: Uint8Array, b64: string, facesOk = false): Promise<{ error?: string; racy?: boolean; need?: string }> {
   if (!VISION) return { error: "Photos aren't switched on yet." };
   if (bytes.length > 3 * 1024 * 1024) return { error: "That photo is too big." };
   if (!(bytes[0] === 0xff && bytes[1] === 0xd8)) return { error: "That photo couldn't be read." };
@@ -235,7 +239,7 @@ async function dmPhoto(bytes: Uint8Array, b64: string): Promise<{ error?: string
     });
     const res = (await r.json())?.responses?.[0], s = res?.safeSearchAnnotation;
     if (!s) return { error: "Photos can't be checked right now, so that wasn't sent." };
-    if (faceCount(res) > 1) return { error: ONE_FACE };
+    if (faceCount(res) > 0 && !facesOk) return { error: FACES_MSG, need: "faces" };
     if ((LEVEL[s.adult] || 0) >= LEVEL.VERY_LIKELY) return { error: "Full nudity can't be sent on Recovery Misfits." };
     if ((LEVEL[s.violence] || 0) >= LEVEL.VERY_LIKELY) return { error: "That photo is too graphic to send." };
     return { racy: (LEVEL[s.adult] || 0) >= LEVEL.POSSIBLE || (LEVEL[s.racy] || 0) >= LEVEL.LIKELY };
@@ -432,7 +436,9 @@ Deno.serve(async (req) => {
       const b64 = String(p).replace(/^data:image\/\w+;base64,/, "");
       let bytes: Uint8Array;
       try { bytes = decodeBase64(b64); } catch { return json({ error: "That photo couldn't be read." }, 400); }
-      const bad = await photoOk(bytes, b64); if (bad) return json({ error: bad }, 400);
+      const bad = await photoOk(bytes, b64, !!b.faces_ok);
+      if (bad === NEED_FACES) return json({ error: FACES_MSG, need: "faces" }, 400);
+      if (bad) return json({ error: bad }, 400);
       const path = await storePhoto(user.id, bytes); if (!path) return json({ error: "The photo didn't upload. Try again." }, 500);
       paths.push(path);
     }
@@ -475,7 +481,7 @@ Deno.serve(async (req) => {
       const b64 = String(p).replace(/^data:image\/\w+;base64,/, "");
       let bytes: Uint8Array;
       try { bytes = decodeBase64(b64); } catch { return json({ error: "That photo couldn't be read." }, 400); }
-      const ck = await dmPhoto(bytes, b64); if (ck.error) return json({ error: ck.error }, 400);
+      const ck = await dmPhoto(bytes, b64, !!b.faces_ok); if (ck.error) return json({ error: ck.error, need: ck.need }, 400);
       racy = racy || !!ck.racy;
       const path = th.id + "/" + crypto.randomUUID() + ".jpg";
       const { error: upErr } = await admin.storage.from("porch-dm").upload(path, bytes, { contentType: "image/jpeg" });
@@ -538,12 +544,47 @@ Deno.serve(async (req) => {
     return json({ ok: true });
   }
 
+  /* SCAN (1 Oct 2026): before a photo goes anywhere, the app sends it here and gets back
+     where the faces are (as fractions of the picture, for the boxes), plus whether it
+     would be stopped for nudity or gore. Nothing is kept. { action: "scan", photo, where } */
+  if (b.action === "scan") {
+    if (!VISION) return json({ error: "Photos aren't switched on yet." }, 503);
+    const b64 = String(b.photo || "").replace(/^data:image\/\w+;base64,/, "");
+    let bytes: Uint8Array;
+    try { bytes = decodeBase64(b64); } catch { return json({ error: "That photo couldn't be read." }, 400); }
+    if (bytes.length > 3 * 1024 * 1024) return json({ error: "That photo is too big." }, 400);
+    try {
+      const r = await fetch("https://vision.googleapis.com/v1/images:annotate?key=" + encodeURIComponent(VISION), {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requests: [{ image: { content: b64 }, features: CHECKS }] }),
+      });
+      const res = (await r.json())?.responses?.[0], s = res?.safeSearchAnnotation;
+      if (!s) return json({ error: "Photos can't be checked right now. Try again in a minute." }, 503);
+      const dm = b.where === "dm";
+      let bad = "";
+      if (dm ? (LEVEL[s.adult] || 0) >= LEVEL.VERY_LIKELY : ((LEVEL[s.adult] || 0) >= LEVEL.LIKELY || (LEVEL[s.racy] || 0) >= LEVEL.VERY_LIKELY)) bad = dm ? "Full nudity can't be sent on Recovery Misfits." : "That photo isn't allowed on the Porch.";
+      else if ((LEVEL[s.violence] || 0) >= LEVEL.VERY_LIKELY) bad = "That photo is too graphic for the Porch.";
+      // where the faces are, as fractions of the picture's own size
+      const W = Number(b.w) || 0, H = Number(b.h) || 0;
+      const faces = goodFaces(res).map((f: any) => {
+        const v = (f.fdBoundingPoly?.vertices || f.boundingPoly?.vertices || []).map((p: any) => ({ x: Number(p.x) || 0, y: Number(p.y) || 0 }));
+        if (!v.length || !W || !H) return null;
+        const xs = v.map((p: any) => p.x), ys = v.map((p: any) => p.y);
+        const x0 = Math.min(...xs), y0 = Math.min(...ys), x1 = Math.max(...xs), y1 = Math.max(...ys);
+        return { x: x0 / W, y: y0 / H, w: (x1 - x0) / W, h: (y1 - y0) / H };
+      }).filter(Boolean);
+      return json({ ok: true, faces, count: goodFaces(res).length, bad: bad || null });
+    } catch { return json({ error: "Photos can't be checked right now. Try again in a minute." }, 503); }
+  }
+
   if (b.action === "picture") {
     const slot = b.slot === "cover" ? "cover_path" : "avatar_path";
     const b64 = String(b.photo || "").replace(/^data:image\/\w+;base64,/, "");
     let bytes: Uint8Array;
     try { bytes = decodeBase64(b64); } catch { return json({ error: "That photo couldn't be read." }, 400); }
-    const bad = await photoOk(bytes, b64); if (bad) return json({ error: bad }, 400);
+    const bad = await photoOk(bytes, b64, !!b.faces_ok);
+    if (bad === NEED_FACES) return json({ error: FACES_MSG, need: "faces" }, 400);
+    if (bad) return json({ error: bad }, 400);
     const path = await storePhoto(user.id, bytes); if (!path) return json({ error: "The photo didn't upload. Try again." }, 500);
     const old = (me as any)[slot];
     await admin.from("porch_members").update({ [slot]: path }).eq("user_id", user.id);

@@ -68,9 +68,10 @@ function checkWords(t: string) {
 /* THE SAFETY CHECK: Bunny's picture of the video goes through Google SafeSearch.
    No nudity, nothing graphic, on any Spin. */
 const LEVEL: Record<string, number> = { UNKNOWN: 0, VERY_UNLIKELY: 1, UNLIKELY: 2, POSSIBLE: 3, LIKELY: 4, VERY_LIKELY: 5 };
-/* ONE FACE PER SPIN (1 Oct 2026, Mike): the Spin's picture can't show more than one
-   person's face, to protect other people's anonymity. Only counts faces, never who. */
-async function thumbOk(guid: string): Promise<boolean | null | "faces"> {
+/* OTHER PEOPLE NEED TO SAY OK (1 Oct 2026, Mike): if the Spin's picture shows more than
+   one face, it only goes up when the maker ticked "Everyone in this Spin said OK"
+   (faces_ok). Only counts faces, never who. */
+async function thumbOk(guid: string, facesOk = false): Promise<boolean | null | "faces"> {
   if (!VISION || !CDN) return null;
   try {
     const r = await fetch("https://vision.googleapis.com/v1/images:annotate?key=" + encodeURIComponent(VISION), {
@@ -79,8 +80,10 @@ async function thumbOk(guid: string): Promise<boolean | null | "faces"> {
     });
     const res = (await r.json())?.responses?.[0], s = res?.safeSearchAnnotation;
     if (!s) return null;
-    if ((res?.faceAnnotations || []).filter((f: any) => (Number(f.detectionConfidence) || 0) >= 0.7).length > 1) return "faces";
-    return (LEVEL[s.adult] || 0) < LEVEL.LIKELY && (LEVEL[s.racy] || 0) < LEVEL.VERY_LIKELY && (LEVEL[s.violence] || 0) < LEVEL.VERY_LIKELY;
+    const safe = (LEVEL[s.adult] || 0) < LEVEL.LIKELY && (LEVEL[s.racy] || 0) < LEVEL.VERY_LIKELY && (LEVEL[s.violence] || 0) < LEVEL.VERY_LIKELY;
+    if (!safe) return false;
+    if (!facesOk && (res?.faceAnnotations || []).filter((f: any) => (Number(f.detectionConfidence) || 0) >= 0.7).length > 1) return "faces";
+    return true;
   } catch { return null; }
 }
 
@@ -224,11 +227,11 @@ Deno.serve(async (req) => {
       return json({ status: "failed", error: "Spins are 15 seconds max. Trim it and try again." });
     }
     if (st === 4) {
-      const ok = await thumbOk(spin.video_guid);
+      const ok = await thumbOk(spin.video_guid, !!b.faces_ok);
       if (ok === false || ok === "faces") {
         await dropVideo(spin.video_guid);
         await admin.from("porch_spins").delete().eq("id", id);
-        return json({ status: "failed", error: ok === "faces" ? "Just one face per Spin. Other people's faces stay off Recovery Misfits to protect their anonymity." : "That video isn't allowed on the Porch." });
+        return json({ status: "failed", error: ok === "faces" ? "There's more than one person in this Spin. Post it again and tick \"Everyone in it said OK\"." : "That video isn't allowed on the Porch." });
       }
       const { data: post, error } = await admin.from("porch_posts")
         .insert({ user_id: spin.user_id, need: "moment", body: spin.caption || null }).select("id").single();

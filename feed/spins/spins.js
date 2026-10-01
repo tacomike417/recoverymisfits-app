@@ -105,6 +105,8 @@
 .sp-respun{display:inline-flex;align-items:center;gap:6px;margin:0 0 6px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.5);font:800 12px/1.2 Arial,sans-serif;color:#f6e3a8}
 .sp-cap{margin:0;white-space:pre-wrap;word-break:break-word;max-height:30vh;overflow:auto}
 .sp-at{color:#f6e3a8;cursor:pointer;font-weight:800}
+.spn-ok{display:flex;gap:10px;align-items:flex-start;margin:12px 0 4px;font:700 14px/1.35 Arial,sans-serif;color:#ddd2b8;text-align:left;cursor:pointer}
+.spn-ok input{flex:none;width:22px;height:22px;margin:0;accent-color:#e0bd6a}
 .sp-music{display:flex;align-items:center;gap:7px;max-width:100%;margin-top:8px;padding:5px 5px 5px 10px;border:0;border-radius:999px;background:rgba(0,0,0,.42);color:#fff;font:700 12.5px/1.2 Arial,sans-serif;cursor:pointer}
 .sp-music span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-music b{flex:none;padding:5px 10px;border-radius:999px;background:#e0bd6a;color:#11110f;font:800 12px/1 Arial,sans-serif}
@@ -714,6 +716,7 @@
         <div class="spn-snd"><p>Sound on your Spin</p><div>
           <button type="button" data-snd="on" class="on">🔊 Sound on</button><button type="button" data-snd="off">🔇 Sound off</button>
         </div><input type="hidden" name="muted" value=""></div>
+        <label class="spn-ok"><input type="checkbox" name="facesok"><span>Other people are in this Spin, and they all said OK</span></label>
         <button type="submit" class="spn-go">Post Spin</button>
         <button type="button" class="spn-alt" data-spn-maker>Back to the maker</button>
         <p class="spn-fine">Lasts 30 days. Pin up to 3 to keep them. Only post video you have the right to share.</p>
@@ -726,9 +729,10 @@
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const caption = form.querySelector('textarea').value.trim(), muted = form.querySelector('[name=muted]').value === '1';
+      const okFaces = form.querySelector('[name=facesok]').checked;
       const f = picked, mu = pickedMusic; if (!f) return;
       form.querySelector('.spn-go').disabled = true;
-      leaveNew(); upload(f, caption, muted, mu);
+      leaveNew(); upload(f, caption, muted, mu, okFaces);
     });
   }
   document.addEventListener('click', (e) => {
@@ -773,7 +777,7 @@
       return new File([buf], 'spin.mp4', { type: 'video/mp4' });
     } catch (_) { return file; }
   }
-  async function upload(file, caption, muted, music) {
+  async function upload(file, caption, muted, music, okFaces) {
     uploading = true;
     pillSay('Getting your Spin ready… keep this page open<span class="bar"><i></i></span>');
     file = await shrink(file, (p) => { const pct = Math.round(p * 100); pillSay(`Getting your Spin ready… ${pct}% · keep this page open<span class="bar"><i style="width:${pct}%"></i></span>`); });
@@ -786,13 +790,13 @@
       metadata: { filetype: file.type || 'video/mp4', title: 'spin' },
       onProgress: (sent, total) => { const pct = total ? Math.round((sent / total) * 100) : 0; pillSay(`Uploading your Spin… ${pct}% · keep this page open<span class="bar"><i style="width:${pct}%"></i></span>`); },
       onError: () => { uploading = false; pillSay('😕 The upload stopped. Check your connection and try again.'); pillGone(6000); },
-      onSuccess: () => { pillSay('Almost there… getting it ready to play<span class="bar"><i style="width:100%"></i></span>'); waitReady(made.id, 0); }
+      onSuccess: () => { pillSay('Almost there… getting it ready to play<span class="bar"><i style="width:100%"></i></span>'); waitReady(made.id, 0, okFaces); }
     });
     up.start();
   }
-  function waitReady(id, tries) {
+  function waitReady(id, tries, okFaces) {
     setTimeout(async () => {
-      const r = await callSpins({ action: 'done', id });
+      const r = await callSpins({ action: 'done', id, faces_ok: !!okFaces });
       if (r.status === 'ready') {
         uploading = false;
         pillSay('🎉 Your Spin is live! Tap to watch', async () => {
@@ -805,7 +809,7 @@
       if (r.status === 'failed' || tries > 90) { uploading = false; pillSay('😕 ' + esc(r.error || "That one didn't work. Try another video.")); pillGone(7000); refreshRows(); return; }
       const pc = Math.max(0, Math.min(99, Math.round(Number(r.progress) || 0)));
       pillSay(`Almost there… getting it ready to play${pc ? ' · ' + pc + '%' : ''}<span class="bar"><i style="width:${pc || 100}%"></i></span>`);
-      waitReady(id, tries + 1);
+      waitReady(id, tries + 1, okFaces);
     }, tries < 5 ? 2000 : 4000);
   }
 

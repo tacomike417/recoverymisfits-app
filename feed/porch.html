@@ -323,6 +323,26 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .pchips span{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);font-size:13px;color:var(--soft)}
 .pchips .ico{width:15px;height:15px;color:var(--gold2)}
 /* MOVE AND ZOOM a picture or header (1 Oct 2026) */
+/* THE PHOTO SCAN (1 Oct 2026) */
+.scan{position:fixed;inset:0;z-index:30000;display:flex;flex-direction:column;background:#0b0a08;color:#fff}
+.scan-t{margin:0;padding:calc(18px + env(safe-area-inset-top,0px)) 16px 6px;text-align:center;font:400 26px/1.1 "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;color:#f1e7cf}
+.scan-stage{position:relative;flex:1;display:grid;place-items:center;overflow:hidden}
+.scan-pic{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px rgba(224,189,106,.35),0 10px 40px rgba(0,0,0,.6)}
+.scan-pic img{display:block;width:100%;height:100%;object-fit:cover}
+.scan-grid{position:absolute;inset:0;opacity:0;background-image:linear-gradient(rgba(224,189,106,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(224,189,106,.13) 1px,transparent 1px);background-size:22px 22px;transition:opacity .4s}
+.scan-line{position:absolute;left:-10%;right:-10%;height:70px;top:-70px;opacity:0;background:linear-gradient(to bottom,rgba(224,189,106,0),rgba(224,189,106,.28) 75%,#f6e3a8 98%,rgba(246,227,168,0));box-shadow:0 18px 28px -14px rgba(246,227,168,.9)}
+.scan-pic.on .scan-grid{opacity:1}
+.scan-pic.on .scan-line{opacity:1;animation:scanmove 1.4s cubic-bezier(.45,0,.55,1) infinite alternate}
+@keyframes scanmove{from{top:-70px}to{top:100%}}
+.scan-boxes i{position:absolute;box-sizing:border-box;border-radius:10px;border:2.5px solid #f6e3a8;box-shadow:0 0 0 2px rgba(0,0,0,.35),0 0 18px rgba(246,227,168,.6);animation:boxin .35s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes boxin{from{opacity:0;transform:scale(1.5)}to{opacity:1;transform:scale(1)}}
+.scan-bot{padding:10px 16px calc(18px + env(safe-area-inset-bottom,0px));text-align:center;min-height:150px}
+.scan-q{margin:0;font:800 19px/1.3 Arial,sans-serif;color:#fff}
+.scan-q.bad{color:#ff9d8f}
+.scan-sub{margin:6px 0 0;font:600 13.5px/1.4 Arial,sans-serif;color:#ddd2b8}
+.scan-yes{display:block;width:100%;margin-top:14px;padding:16px;border:0;border-radius:16px;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b;font:400 21px/1 "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
+.scan-no{display:block;margin:12px auto 0;border:0;background:none;color:#ddd2b8;font:700 14px Arial,sans-serif;text-decoration:underline;cursor:pointer}
+[hidden].scan-yes,[hidden].scan-no{display:none}
 .crop{position:fixed;inset:0;z-index:30000;display:flex;flex-direction:column;background:#000;color:#fff;touch-action:none}
 .crop-t{margin:0;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 8px;text-align:center;font:800 16px Arial,sans-serif}
 .crop-stage{position:relative;flex:1;overflow:hidden;touch-action:none;cursor:grab}
@@ -756,7 +776,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v44</span>
+  <span class="ver" id="ver">v45</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1602,7 +1622,8 @@ html.kb .ch-bar{padding-bottom:8px}
   $("cfile").addEventListener("change", async function () {
     var files = Array.prototype.slice.call(this.files || [], 0, 4 - photos.length); this.value = "";
     for (var i = 0; i < files.length; i++) {
-      try { photos.push(await shrink(files[i])); } catch (e) { $("cerr").textContent = "That photo couldn't be opened. Try a different one."; }
+      var pd; try { pd = await shrink(files[i]); } catch (e) { $("cerr").textContent = "That photo couldn't be opened. Try a different one."; continue; }
+      if (await scanPhoto(pd, "post", function () { $("cfile").click(); })) photos.push(pd);
     }
     paintCompose();
   });
@@ -1646,7 +1667,7 @@ html.kb .ch-bar{padding-bottom:8px}
     }
     $("csend").disabled = true; $("csend").textContent = photos.length ? "Checking photos…" : "Sharing…";
     var r = await fn("porch", { action: "post", need: need, body: body, photos: mode === "snap" ? photos : [],
-      card_style: mode === "sign" ? style : null, sure: !!sure });
+      card_style: mode === "sign" ? style : null, sure: !!sure, faces_ok: true });
     sending = false; paintCompose();
     if (r.pause) return open("pause");
     if (r.need === "confirm") { pending = function () { openCompose(mode, false); }; await closeTop(); cfReset(); return open("confirm"); }
@@ -2116,6 +2137,68 @@ html.kb .ch-bar{padding-bottom:8px}
   });
   $("ecover").addEventListener("click", function () { $("efcover").click(); });
   $("eav").addEventListener("click", function () { $("efav").click(); });
+  /* THE PHOTO SCAN (1 Oct 2026, Mike: "i like the scanning, and box around the face, then
+     the confirmation messages the people have to push"). The promise from the preview's
+     safety list: people in a photo need the poster's OK. Every photo going onto the Porch
+     or into Messages gets scanned: a gold line sweeps it, a box goes around every face,
+     and if there's a face the person has to push "Yes, it's me" / "Yes, everyone said OK"
+     before it can go up. The server checks again and won't take a face without that OK.
+     It never checks WHO a face is, only where faces are.
+     kind: "avatar" | "cover" | "post" | "dm". Resolves true (go ahead) or false. */
+  /* close a full-screen piece, and only carry on once the phone's back step has landed,
+     so the next screen doesn't get closed by it */
+  function popThen(tag, then) {
+    var landed = false, go = function () { if (landed) return; landed = true; setTimeout(then, 0); };
+    window.addEventListener("popstate", go, { once: true });
+    if (!window.PorchBack.pop(tag)) { window.removeEventListener("popstate", go); go(); }
+    setTimeout(go, 700);   /* in case the phone never says */
+  }
+  function scanPhoto(data, kind, again) {
+    return new Promise(function (done) {
+      var el = document.createElement("div"); el.className = "scan"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Checking your photo");
+      el.innerHTML = '<p class="scan-t">Checking your photo…</p><div class="scan-stage"><div class="scan-pic"><img alt=""><div class="scan-grid"></div><div class="scan-line"></div><div class="scan-boxes"></div></div></div>' +
+        '<div class="scan-bot"><p class="scan-q"></p><p class="scan-sub"></p><button type="button" class="scan-yes" hidden></button><button type="button" class="scan-no" hidden>Pick a different photo</button></div>';
+      document.body.appendChild(el);
+      var finished = false;
+      var finish = function (v) { if (finished) return; finished = true; el.remove(); done(v); };
+      var z = window.PorchBack.push("scan", function () { finish(false); }); if (typeof z === "number") el.style.zIndex = String(z + 5);
+      var leave = function (v) { if (finished) return; finished = true; el.remove(); popThen("scan", function () { done(v); }); };
+      var img = el.querySelector("img"), pic = el.querySelector(".scan-pic"), stage = el.querySelector(".scan-stage");
+      var q = el.querySelector(".scan-q"), sub = el.querySelector(".scan-sub"), yes = el.querySelector(".scan-yes"), no = el.querySelector(".scan-no");
+      no.addEventListener("click", function () { leave(false); if (again) again(); });
+      img.onload = async function () {
+        var W = img.naturalWidth, H = img.naturalHeight, SW = stage.clientWidth - 24, SH = stage.clientHeight - 24;
+        var k = Math.min(SW / W, SH / H, 1.6); pic.style.width = Math.round(W * k) + "px"; pic.style.height = Math.round(H * k) + "px";
+        pic.classList.add("on");
+        var t0 = Date.now();
+        var r = await fn("porch", { action: "scan", photo: data, w: W, h: H, where: kind === "dm" ? "dm" : "porch" });
+        var wait = 1500 - (Date.now() - t0); if (wait > 0) await new Promise(function (ok) { setTimeout(ok, wait); });
+        if (finished) return;
+        pic.classList.remove("on"); pic.classList.add("done");
+        no.hidden = false;
+        if (!r.ok) { el.querySelector(".scan-t").textContent = "Couldn't check it"; q.textContent = r.error || "No connection. Try again when you have signal."; return; }
+        if (r.bad) { el.querySelector(".scan-t").textContent = "Can't use this one"; q.textContent = r.bad; q.classList.add("bad"); return; }
+        var faces = r.faces || [], n = r.count || faces.length;
+        el.querySelector(".scan-boxes").innerHTML = faces.map(function (f, i) {
+          return '<i style="left:' + (f.x * 100) + "%;top:" + (f.y * 100) + "%;width:" + (f.w * 100) + "%;height:" + (f.h * 100) + "%;animation-delay:" + (i * 0.12) + 's"></i>';
+        }).join("");
+        if (!n) {
+          el.querySelector(".scan-t").textContent = "All clear ✓"; q.textContent = "No faces in this one."; no.hidden = true;
+          setTimeout(function () { leave(true); }, 900); return;
+        }
+        var me1 = (kind === "avatar" || kind === "cover") && n === 1;
+        el.querySelector(".scan-t").textContent = n === 1 ? "1 face found" : n + " faces found";
+        q.textContent = me1 ? "Is this you?" : "Did everyone in this photo say OK?";
+        sub.textContent = me1 ? "Only use your own face, or a picture that isn't a person." : "People in recovery count on us to protect their anonymity. Only " + (kind === "dm" ? "send" : "post") + " faces that said yes.";
+        yes.textContent = me1 ? "Yes, it's me" : "Yes, everyone said OK";
+        yes.hidden = false;
+        yes.onclick = function () { leave(true); };
+      };
+      img.onerror = function () { toast("That photo couldn't be opened."); leave(false); };
+      img.src = data;
+    });
+  }
+
   /* MOVE AND ZOOM (1 Oct 2026, Mike: "i need that crop, move the picture around").
      After you pick a photo: drag it, pinch (or use the slider) to zoom, and what's
      inside the circle (picture) or the strip (header) is what goes up. Phone back = cancel. */
@@ -2172,7 +2255,7 @@ html.kb .ch-bar{padding-bottom:8px}
           while (out.length > 3.6e6 && q > 0.4) { q -= 0.12; out = c.toDataURL("image/jpeg", q); }
           window.removeEventListener("resize", layout);
           finished = true; el.remove(); URL.revokeObjectURL(url);
-          window.PorchBack.pop("crop"); done(out);
+          popThen("crop", function () { done(out); });
         });
         el.querySelector(".crop-again").addEventListener("click", function () {
           window.removeEventListener("resize", layout);
@@ -2190,9 +2273,10 @@ html.kb .ch-bar{padding-bottom:8px}
     var data = await cropPhoto(f, slot, input);
     if (data === "again") return;
     if (!data) return;
+    if (!(await scanPhoto(data, slot === "cover" ? "cover" : "avatar", function () { input.click(); }))) return;
     $("estatus").textContent = "Checking the photo…";
     var sst = $("sustatus"); if (sst) sst.textContent = "Checking the photo…";
-    var r = await fn("porch", { action: "picture", slot: slot, photo: data });
+    var r = await fn("porch", { action: "picture", slot: slot, photo: data, faces_ok: true });
     if (!r.ok) { $("estatus").textContent = r.error || "That didn't upload."; if (sst) sst.textContent = $("estatus").textContent; return; }
     me.member[slot === "cover" ? "cover_path" : "avatar_path"] = r.path; people[me.uid] = me.member;
     $("estatus").textContent = slot === "cover" ? "Header photo updated." : "Profile picture updated.";
@@ -2967,7 +3051,10 @@ html.kb .ch-bar{padding-bottom:8px}
   $("dmthumbs").addEventListener("click", function (e) { var b = e.target.closest("[data-undm]"); if (b) { dmPhotos.splice(+b.dataset.undm, 1); paintDmBox(); } });
   $("dmfile").addEventListener("change", async function () {
     var files = Array.prototype.slice.call(this.files || [], 0, 4 - dmPhotos.length); this.value = "";
-    for (var i = 0; i < files.length; i++) { try { dmPhotos.push(await shrink(files[i])); } catch (e) { toast("That photo couldn't be opened."); } }
+    for (var i = 0; i < files.length; i++) {
+      var pd; try { pd = await shrink(files[i]); } catch (e) { toast("That photo couldn't be opened."); continue; }
+      if (await scanPhoto(pd, "dm", function () { $("dmfile").click(); })) dmPhotos.push(pd);
+    }
     paintDmBox();
   });
   async function sendDm(sure) {
@@ -2975,7 +3062,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (!friends[chat.uid]) return toast("You can message friends only.");
     var body = $("dmin").value.trim(); if (!body && !dmPhotos.length) return;
     dmSending = true; $("dmgo").classList.add("busy"); paintDmBox();
-    var r = await fn("porch", { action: "dm_send", to: chat.uid, body: body, photos: dmPhotos, sure: !!sure });
+    var r = await fn("porch", { action: "dm_send", to: chat.uid, body: body, photos: dmPhotos, sure: !!sure, faces_ok: true });
     dmSending = false; $("dmgo").classList.remove("busy"); paintDmBox();
     if (r.pause) { pauseFor = "dm"; return open("pause"); }
     if (r.need === "confirm") { await closeTop(); cfReset(); return open("confirm"); }
@@ -3370,6 +3457,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=44" defer></script>
+<script src="/feed/spins/spins.js?v=45" defer></script>
 </body>
 </html>

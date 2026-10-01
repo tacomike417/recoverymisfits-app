@@ -158,6 +158,14 @@ preview show up only once there's a clip.
 - **Find friends near me:** phone location rounded to ~7 miles, in porch_places (nobody can read it), only names/faces come back, shuffled daily, confirmed members only, 5 moves a day, delete any time (Edit profile). Most active = most shares + comments in 2 weeks.
 - Private review done 1 Oct: anon can't call the near-me/most-active functions, can't read reactions/respins/hearts, can't see comments on members-only posts; pictures can only be set through the porch function.
 
+### Photos: scan, face boxes, and the OK button (1 Oct 2026, Porch v45, Mike)
+- The promise from the preview's safety list: **people in a photo need the poster's OK.**
+- Every photo (profile picture, header, shares, Messages) gets scanned after you pick it: a gold line sweeps it and a box goes around each face.
+  No faces = "All clear ✓" and it carries on. A face = "Is this you?" (profile picture/header, one face) or "Did everyone in this photo say OK?", and they push "Yes, it's me" / "Yes, everyone said OK", or pick a different photo.
+- The server checks again (Google Vision) and won't take a photo with a face unless that OK came with it. It never checks WHO a face is.
+- Spins: the post screen has "Other people are in this Spin, and they all said OK". Without it, a Spin whose picture shows 2+ faces is turned away.
+- Profile pictures and headers: move and zoom before the scan.
+
 ### LATER: Spin face filters (1 Oct 2026, parked until the UI is worked out)
 - The selfie camera, the 8 characters, their voices and the face tracking are already in
   spin-maker.js. The filter art isn't: the pictures live in Jeff's project
