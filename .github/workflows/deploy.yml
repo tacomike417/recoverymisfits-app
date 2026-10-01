@@ -1,70 +1,36 @@
-name: Build and deploy site
+name: Nightly rebuild on Cloudflare
+
+# THE SITE IS BUILT AND HOSTED BY CLOUDFLARE PAGES NOW (1 Oct 2026).
+# Every push to main already builds there (scripts/cf_build.sh). This workflow
+# only does the one thing Cloudflare can't do on its own: rebuild the site
+# every morning, so the speaker tapes pick up whatever went on the YouTube
+# channel since yesterday and the home page's TODAY card (the copy Google
+# reads) is baked for the new day.
+#
+# It calls Cloudflare's deploy hook. The hook URL lives in the GitHub secret
+# CF_DEPLOY_HOOK (Cloudflare: project > Settings > Build > Deploy Hooks).
+#
+# It used to build the site and publish it to GitHub Pages. That copy was no
+# longer the one anybody saw, so that part is gone.
+#
+# 09:20 UTC is about 5:20am Eastern. GitHub turns scheduled workflows off in a
+# repo with no pushes for 60 days; if the tapes ever go stale, check that first.
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch: {}
-  # ONCE A DAY, so the speaker tapes pick up whatever went on the YouTube
-  # channel since yesterday. There is nothing to commit -- the tape list is
-  # written straight into the build folder -- so a scheduled run is simply a
-  # deploy of the same site with a fresher list.
-  #
-  # 09:20 UTC is about 5:20am Eastern. GitHub turns scheduled workflows off
-  # in a repo with no pushes for 60 days; if the tapes ever go stale, that is
-  # the first thing to check.
   schedule:
     - cron: '20 9 * * *'
+  workflow_dispatch: {}
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  rebuild:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: Assemble the site into a clean build folder
+      - name: Ask Cloudflare to rebuild the site
+        env:
+          HOOK: ${{ secrets.CF_DEPLOY_HOOK }}
         run: |
-          mkdir -p _site
-          # copy everything except git/CI internals and the source-only folders
-          rsync -a --exclude='.git' --exclude='.github' --exclude='_site' \
-                --exclude='scripts' ./ _site/
-
-      - name: Generate reading pages + sitemap into the build folder
-        env:
-          ADS_OUT_ROOT: ${{ github.workspace }}/_site
-        run: python3 scripts/build_pages.py
-
-      # The speaker tapes off the YouTube channel. This step is ALLOWED TO
-      # FAIL QUIETLY: no key, spent quota or a YouTube outage and the script
-      # writes nothing and exits 0, so the deploy carries on and audio.html
-      # falls back to its five hand-kept tapes. A tape list is not worth
-      # taking the site down for.
-      - name: Pull the latest speaker tapes off the YouTube channel
-        env:
-          ADS_OUT_ROOT: ${{ github.workspace }}/_site
-          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-        run: python3 scripts/fetch_tapes.py
-
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          if [ -z "$HOOK" ]; then echo "CF_DEPLOY_HOOK secret is not set"; exit 1; fi
+          curl -fsS -X POST "$HOOK"

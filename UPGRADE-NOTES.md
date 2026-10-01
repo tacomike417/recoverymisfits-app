@@ -222,9 +222,10 @@ without making it confusing.
 - **Cloudflare has to BUILD the site, not just copy it** (fixed 1 Oct 2026): set
   Build command `bash scripts/cf_build.sh` and Build output `_site`. Without it there
   are no memes on the front page, no /meme/<id>/ share pages, and no reading pages or
-  sitemap for Google. Still open: a daily rebuild, which used to come from the GitHub
-  schedule; it isn't needed for memes. The speaker tapes need YOUTUBE_API_KEY added in
-  Cloudflare.
+  sitemap for Google. **Daily rebuild:** GitHub's 5:20am schedule (.github/workflows/
+  deploy.yml) now just calls Cloudflare's deploy hook, which is stored in the GitHub secret
+  CF_DEPLOY_HOOK. GitHub Pages isn't used anymore. The speaker tapes read YOUTUBE_API_KEY
+  from Cloudflare's Variables and secrets.
 - Domain stays registered at **Porkbun**; only its nameservers point to Cloudflare.
   Check any email (MX) records come across, and keep `.well-known/` for the Android app.
 - Reels (Misfits Moments): **Bunny Stream**, reusing Infinite Pulls' Loops code.
