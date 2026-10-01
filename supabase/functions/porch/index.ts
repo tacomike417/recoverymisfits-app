@@ -277,6 +277,14 @@ Deno.serve(async (req) => {
       }
     }
     if (myThreads?.length) await admin.from("porch_threads").delete().in("id", myThreads.map((t) => t.id));
+    // your Spins go too, videos and all (30 Sep 2026)
+    const { data: mySpins } = await admin.from("porch_spins").select("id, video_guid").eq("user_id", user.id);
+    const BK = Deno.env.get("BUNNY_STREAM_KEY"), BL = Deno.env.get("BUNNY_STREAM_LIBRARY");
+    for (const s of mySpins || []) {
+      if (BK && BL) { try { await fetch(`https://video.bunnycdn.com/library/${BL}/videos/${s.video_guid}`, { method: "DELETE", headers: { AccessKey: BK } }); } catch { /* gone already */ } }
+    }
+    await admin.from("porch_respins").delete().eq("user_id", user.id);
+    await admin.from("porch_spins").delete().eq("user_id", user.id);
     for (const [t, col] of [["porch_notes", "user_id"], ["porch_notes", "actor_id"], ["porch_saves", "user_id"], ["porch_push", "user_id"],
       ["porch_reactions", "user_id"], ["porch_follows", "follower_id"], ["porch_follows", "followed_id"], ["porch_blocks", "blocker_id"],
       ["porch_reports", "reporter_id"], ["porch_comments", "user_id"], ["porch_posts", "user_id"], ["porch_moderators", "user_id"]] as const) {

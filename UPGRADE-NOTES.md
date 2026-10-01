@@ -12,8 +12,8 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
 - Be the happy medium: **Facebook reimagined, really cool, but with the same feed a
   brand-new user already knows how to use.**
 - Profiles: profile picture + header (cover) photo.
-- One feed (the Front Porch) that mixes text posts, photo posts and Sober Spins reels,
-  plus a full-screen swipe view for Sober Spins only.
+- One feed (the Front Porch) that mixes text posts, photo posts and Misfits Moments reels,
+  plus a full-screen swipe view for Moments only.
 
 - **The pause (decided 30 Sep 2026):** when a post or comment reads heated, show a gentle
   pause before it posts, e.g. "Want to talk to a friend about this first?" with
@@ -24,7 +24,7 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
 ### Porch decisions (30 Sep 2026, from the in-app mockups)
 - Feed is **visual like Instagram** (the preview style), but plain posts are welcome.
 - Text posts show as the **handwritten cards** from the preview, so the feed stays visual.
-- Profile: profile pic, header photo, bio, **their Sober Spins** grid.
+- Profile: profile pic, header photo, bio, **their Misfits Moments** grid.
   **No coins or Survival Pile on profiles** (too streaky). Members can share them to
   the feed themselves if they want.
 - Sober date on profile: **their choice**, show or hide.
@@ -38,7 +38,7 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
   if we ever want a Colors option.)
 - **Three kinds of share (30 Sep 2026):** tap Share, pick one: **Say Something** (words, any
   length), **Post a Saying** (short handwritten card, 150 characters, a nod to the slogans on the
-  meeting-room wall), **Share a Photo** (up to 4 photos). Sober Spins becomes the 4th later.
+  meeting-room wall), **Share a Photo** (up to 4 photos). Misfits Moments becomes the 4th later.
   Tag it (optional): Experience / Strength / Hope / A question (no "hard day": keep it positive). Our own line icons, no emojis.
 - **The "switch up" (later):** when the rail/top bar goes app-wide, your picture moves up there
   and the "Glad you're here" line comes off every page. Until then it only comes off the Porch.
@@ -62,9 +62,9 @@ Always the best, even if it takes time. If something looks half-assed, ask him.
   2. Confirm-your-email (needs an email sender: Resend, free tier)
   3. The porch function: word filter, link check, photo check (Google Vision SafeSearch), the pause
   4. The feed screen: photo posts, handwritten text cards, Proud of you / Me too, comments
-  5. Profiles: pic, header, bio, sober date on/off, their Sober Spins
+  5. Profiles: pic, header, bio, sober date on/off, their Moments
   6. Reports, blocks, moderator screen, freeze on reports
-  7. Sober Spins (reels on Bunny)
+  7. Misfits Moments (reels on Bunny)
 
 ### Your recovery, your way (sign-up levels, 30 Sep 2026)
 Headline on sign-up: **"Your recovery, your way."** Level names: Level 0 (no account),
@@ -74,25 +74,12 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
   settings across phones. Browse the Porch. No posting, photos, comments, reactions or
   messages. No password reset (nothing to send it to). Say all of this plainly.
 - **Level 2, confirmed:** confirm an email (never stored, never shown). Post, photos,
-  Sober Spins, comment, react, message, report. Forgot password/username works.
+  Moments, comment, react, message, report. Forgot password/username works.
 - Also covered: move up or back down any time; 18+ and the Porch rules (one screen) to reach
   Level 2; a short wait for brand-new accounts before posting; delete everything any time.
 - Forgot password / username for Level 2: match the typed email's fingerprint, email a code.
 
 ### Porch vs Facebook/Instagram: what we added (30 Sep 2026)
-- **Layout (v17, 30 Sep 2026):** Porch top rail is FEED / SPINS / COINS / INVITE / MESSAGES; your picture sits in the
-  ACCOUNT well of the sober rail (Porch only) and opens your menu.
-- **Home button → daily readings (decided 30 Sep 2026, NOT built yet):** Mike picked **A: "Today" with a sunrise icon**
-  (mockup: ~/Downloads/home-button-mockup.png). It changes nav.js, so it goes live app-wide when we do it.
-- **Messages** (v15): friends only; words, photos (up to 4) and links; rated R not X (slurs, threats, scam/porn links
-  stopped; spicy photos blurred "Tap to see"; full nudity blocked); private photos only the two people can open;
-  inbox + unread count on the Messages icon; Seen; tap your own message to Unsend; Report/Block from the chat;
-  buzz alerts; checks every 3 seconds while a chat is open (switch to realtime later if it gets busy).
-- Swipe down to close every bottom sheet (v14). Notifications + comments on the paper look (v13).
-- **Friends replace follows** (v12): Add Friend / Requested / Confirm + Delete / Friends → Unfriend; FRIENDS feed tab;
-  ME → Friends list with requests on top; requests + accepts in the bell and as phone alerts; blocking unfriends.
-- **Notifications like Jeff's site** (v11): bell top right with red count, drop-down with NEW / EARLIER, badges,
-  thumbnails, Phone alerts switch, the nudge, tap a comment alert to land on it glowing with the reply box ready.
 - Done: follows + notifications, @ suggestions, **Send a share out** (paper plane), **Reply
   to a comment**, **Edit your share or comment**, **Search** people, pop-ups stay above the
   phone keyboard, **New shares pill + pull down to refresh**, **link preview cards**,
@@ -105,9 +92,24 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
   reporting, spam caps (300 reactions / 50 follows an hour, 20 reports a day), a blocked
   person can't react to your shares.
 - Still open: sign-up levels on the account page ("Your recovery, your way"), deleting the
-  whole app account (not just the Porch), Sober Spins, sample posts out and
+  whole app account (not just the Porch), sample posts out and
   the Mike-only lock off at launch.
 - Sent links: while the Porch is Mike-only, anybody else who taps one lands on the /feed/ preview.
+
+### Sober Spins (v20, 30 Sep 2026)
+- Short videos, 15 seconds max, built like Jeff's Infinite Loops: a SOBER SPINS row at the
+  top of the Porch, a full-screen player (swipe up for the next one, tap pauses, double-tap is
+  Proud of you, sound pill), and the maker (photos or clips, styles, words, stickers).
+- **Respin**: puts somebody's Spin on your profile with a ↻ label, and tells them.
+- **Free music**: Freesound tracks marked CC0 (nobody owns them), picked in the maker's ♫ tab.
+- Each Spin has a hidden Porch share behind it (need = 'moment'), so comments, reports
+  and notifications work the same way. The feed itself never shows those shares.
+- Videos: Bunny Stream library 767051 (Premium Encoding, MP4 fallback, 720p only).
+  The phone shrinks each video to 720p, then sends it straight to Bunny. SafeSearch checks the thumbnail.
+- A Spin lasts 30 days; pin up to 3 to keep them. Limit of 10 a day. Deleting your Porch
+  account deletes your Spins and their videos.
+- Files: feed/spins/spins.js, feed/spins/spin-maker.js, feed/spins/stickers/,
+  supabase/porch_12_spins.sql, supabase/functions/spins.
 
 ## THE ONE RULE (30 Sep 2026)
 **People in recovery deserve the best.**
@@ -155,9 +157,9 @@ Nothing below gets built until the votes are in and it's decided.
 
 ### What people said (29 Sep 2026, face to face)
 - They love the idea.
-- Focus on the **reels (Sober Spins)** first.
+- Focus on the **reels (Misfits Moments)** first.
 - They want **quotes in the reels**: the short text-over-video "quote memes" everybody shares.
-- So the first thing to build could be a **Sober Spin maker**: pick a background
+- So the first thing to build could be a **Misfits Moments maker**: pick a background
   (your own clip or photo, or one of ours), pick or type a quote, choose a text style,
   add music, done. It posts to the Front Porch AND saves/shares as a 9:16 video for
   Facebook, Instagram and TikTok, which also markets the app for free.
@@ -185,10 +187,10 @@ Our crowd is **rated R, not rated X.**
 |---|---|
 | Feed | **The Front Porch** |
 | Post | **Share** |
-| Short videos (Loops on Infinite Pulls) | **Sober Spins** (one is a Sober Spin; named 30 Sep 2026, replaces Misfits Moments) |
+| Short videos (Loops on Infinite Pulls) | **Misfits Moments** |
 | Collection | My Pile + My Coins |
 | Profile | Profile |
-| Follow | **Friends** (30 Sep 2026: Add Friend → Confirm → Friends, the Facebook way; mutual; no counts) |
+| Follow | Follow |
 | Messages | Messages |
 | Reactions | **Proud of you** / **Me too** |
 | Moderators | Moderators |
@@ -205,7 +207,7 @@ without making it confusing.
   GitHub stays the code home; Cloudflare auto-deploys on every push.
 - Domain stays registered at **Porkbun**; only its nameservers point to Cloudflare.
   Check any email (MX) records come across, and keep `.well-known/` for the Android app.
-- Reels (Sober Spins): **Bunny Stream**, reusing Infinite Pulls' Loops code.
+- Reels (Misfits Moments): **Bunny Stream**, reusing Infinite Pulls' Loops code.
   15-second cap, 720p max, auto-delete after 30 days.
 - Logins and posts: Supabase.
 - Rough monthly cost: ~$80 at 10k users, ~$300 to $3,000 at 100k depending on how much

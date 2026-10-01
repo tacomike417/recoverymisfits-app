@@ -603,7 +603,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <button type="button" class="rmsg" data-msgs aria-label="Messages"><svg class="mmark" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="rmdmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e3a8"/><stop offset=".5" stop-color="#e0bd6a"/><stop offset="1" stop-color="#c4563c"/></linearGradient></defs><path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:url(#rmdmg);stroke:none"/><circle cx="8" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="12" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="16" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/></svg><i class="bell-n rail-n" id="msgn" hidden></i>MESSAGES</button>
   </nav></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v19</span>
+  <span class="ver" id="ver">v20</span>
   <!-- THE BELL (30 Sep 2026): notifications the way Jeff's site does them -->
   <button type="button" class="bell" id="bell" data-bell aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-2 8-2 8h16s-2-1-2-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i class="bell-n" id="belln" hidden></i></button>
 </div>
@@ -613,6 +613,7 @@ html.kb .ch-bar{padding-bottom:8px}
   
   <section class="newb" id="newb" hidden><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
   <div class="ftabs" id="ftabs"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" class="srch" data-search aria-label="Search the Porch"><span data-ico="search"></span>SEARCH</button></div>
+  <div id="spinrail"></div>
   <div id="feed" style="padding-top:2px"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
 </main>
@@ -1155,7 +1156,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (loading || done) return;
     loading = true;
     try {
-      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview&order=created_at.desc&limit=" + PAGE +
+      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview&need=neq.moment&order=created_at.desc&limit=" + PAGE +
         (oldest ? "&created_at=lt." + encodeURIComponent(oldest) : "");
       var realFollows = Object.keys(friends).filter(function (k) { return !isSample(k); });
       var list = tab === "following" && !realFollows.length ? [] : await rest(q + (tab === "following" ? "&user_id=in.(" + realFollows.join(",") + ")" : ""));
@@ -1195,6 +1196,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function reloadFeed() {
     posts = {}; comments = {}; mine = {}; oldest = null; done = false; newest = null; $("newpill").hidden = true;
     $("feed").innerHTML = '<div class="skel"></div>';
+    if (window.PorchSpins) window.PorchSpins.paintRail();
     await loadMore();
   }
   new IntersectionObserver(function (es) { if (es[0].isIntersecting) loadMore(); }, { rootMargin: "900px" }).observe($("sentinel"));
@@ -1222,13 +1224,30 @@ html.kb .ch-bar{padding-bottom:8px}
     try { history.pushState({ porch: stack.length }, ""); } catch (e) {}
   }
   function hideTop() {
-    var el = stack.pop(); if (el) el.classList.remove("open");
+    var el = stack.pop(); if (el && el._close) { try { el._close(); } catch (e) {} } else if (el) el.classList.remove("open");
     if (!stack.length) document.documentElement.classList.remove("locked");
   }
   var waiters = [];
   window.addEventListener("popstate", function () { hideTop(); var w = waiters.shift(); if (w) w(); });
   function closeTop() { return new Promise(function (res) { if (!stack.length) return res(); waiters.push(res); history.back(); }); }
   async function closeAll() { while (stack.length) await closeTop(); }
+  /* SOBER SPINS (30 Sep 2026): the Spins player, maker and posting screen are
+     their own full-screen pieces; they ride the same back-button stack. */
+  window.PorchBack = {
+    push: function (tag, close) {
+      var f = { _tag: tag, _close: close, classList: { add: function () {}, remove: function () {}, contains: function () { return true; } }, style: {} };
+      stack.push(f); document.documentElement.classList.add("locked");
+      try { history.pushState({ porch: stack.length }, ""); } catch (e) {}
+      return 20000 + stack.length;
+    },
+    pop: function (tag) {
+      var i = -1; stack.forEach(function (x, k) { if (x._tag === tag) i = k; });
+      if (i < 0) return false;
+      if (i === stack.length - 1) { closeTop(); return true; }
+      stack.splice(i, 1); return false;
+    },
+    top: function () { return 20000 + stack.length; }
+  };
 
   /* ---- keep pop-ups above the phone keyboard ---- */
   (function () {
@@ -1728,7 +1747,7 @@ html.kb .ch-bar{padding-bottom:8px}
   function soberText(d) { var x = String(d).split("-"); return "Sober since " + MON[+x[1] - 1] + " " + (+x[2]) + ", " + x[0]; }
   async function postsFor(uid) {
     if (isSample(uid)) return Object.keys(posts).map(function (k) { return posts[k]; }).filter(function (p) { return p.user_id === uid; });
-    var list = await rest("porch_posts?user_id=eq." + uid + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview&order=created_at.desc&limit=60");
+    var list = await rest("porch_posts?user_id=eq." + uid + "&need=neq.moment&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview&order=created_at.desc&limit=60");
     var fresh = list.filter(function (p) { return !comments[p.id]; }), ids = fresh.map(function (p) { return p.id; });
     if (ids.length) {
       var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
@@ -1766,9 +1785,11 @@ html.kb .ch-bar{padding-bottom:8px}
       '<div class="pname"><h2>' + esc(m.handle) + "</h2>" + (!mineP ? '<div class="pfb">' + friendBtn(uid) + "</div>" : "") + (m.bio ? "<p>" + linkify(m.bio) + "</p>" : mineP ? '<p class="none">Add a line about you.</p>' : "") + "</div>" +
       (m.sober_date ? '<div class="pchips"><span>' + ico("win") + soberText(m.sober_date) + "</span></div>" : "") +
       (mineP ? '<button type="button" class="pedit" data-editp>Edit profile</button>' : "") +
+      '<div class="plab">' + (mineP ? "MY SPINS" : "SPINS") + '</div><div id="pfspins"></div>' +
       '<div class="plab">' + (mineP ? "MY SHARES" : "SHARES") + "</div>" +
       (list.length ? '<div class="grid">' + list.map(tileHTML).join("") + "</div>"
         : '<p class="pempty">' + (mineP ? "Nothing shared yet. Tap Share on the Porch." : "Nothing shared yet.") + "</p>");
+    if (window.PorchSpins && !isSample(uid)) window.PorchSpins.profileGrid($("pfspins"), uid); else $("pfspins").innerHTML = '<p class="pempty">No Spins right now.</p>';
   }
   function openSingle(id) {
     var p = posts[id]; if (!p) return;
@@ -1998,7 +2019,7 @@ html.kb .ch-bar{padding-bottom:8px}
     proud: ["proud", "is proud of you"], metoo: ["metoo", "said Me too"],
     mention: ["mention", "tagged you"], follow: ["follow", "started following you"],
     friend_request: ["follow", "sent you a friend request"], friend_accept: ["friends", "accepted your friend request"],
-    report: ["question", "was reported. Take a look."]
+    report: ["question", "was reported. Take a look."], respin: ["friends", "respun your Spin"]
   };
   function noteSays(n) {
     if (n.kind === "mention") return n.comment_id ? "tagged you in a comment" : "tagged you in a share";
@@ -2009,6 +2030,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (!p) return "";
     var ph = p.photo_paths || [];
     if (ph.length) return '<span class="nd-th"><img src="' + pic(ph[0]) + '" alt="" loading="lazy"></span>';
+    if (p.need === "moment") return '<span class="nd-th" style="background:#15130e;color:#e0bd6a;display:grid;place-items:center;font-size:18px">▶</span>';
     if (p.card_style != null && fitsCard(p.body || "")) { var c = CARDS[p.card_style % CARDS.length]; return '<span class="nd-th" style="background:' + c.bg + ";color:" + c.ink + '">' + esc((p.body || "").slice(0, 40)) + "</span>"; }
     return '<span class="nd-th txt">' + esc((p.body || "").slice(0, 60)) + "</span>";
   }
@@ -2054,6 +2076,7 @@ html.kb .ch-bar{padding-bottom:8px}
     try {
       var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview");
       if (!r[0]) return toast("That share is gone.");
+      if (r[0].need === "moment") { if (window.PorchSpins) window.PorchSpins.openPost(postId, commentId); return; }
       var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
       await loadPeople([r[0].user_id, actor].concat(cs.map(function (c) { return c.user_id; })).filter(Boolean));
       posts[postId] = r[0]; comments[postId] = cs; mine[postId] = mine[postId] || {};
@@ -2113,7 +2136,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function checkNew() {
     if (!newest || document.hidden) return;
     try {
-      var q = "porch_posts?created_at=gt." + encodeURIComponent(newest) + "&select=id";
+      var q = "porch_posts?created_at=gt." + encodeURIComponent(newest) + "&need=neq.moment&select=id";
       if (tab === "following") { var f = Object.keys(friends).filter(function (k) { return !isSample(k); }); if (!f.length) return; q += "&user_id=in.(" + f.join(",") + ")"; }
       var r = await fetch(DB + "/rest/v1/" + q, { method: "HEAD", headers: { apikey: KEY, Authorization: "Bearer " + ((await tok()) || KEY), Prefer: "count=exact" } });
       var n = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
@@ -2326,7 +2349,9 @@ html.kb .ch-bar{padding-bottom:8px}
     }).join("") + '<p class="dm-safe"><b>Private.</b> Only you and your friend can see a chat. Report or block anybody from the ⋯ in a chat.</p>'
       : '<div class="dm-empty"><b>No messages yet</b>You can message any of your friends.<br><br><button type="button" class="dm-pill" data-newdm style="margin:0 auto">' + ico("newdm") + "New message</button></div>";
   }
-  function openPick() {
+  var dmPrefill = "";
+  function openPick(prefill) {
+    dmPrefill = typeof prefill === "string" ? prefill : "";
     $("pkq").value = ""; paintPick(""); open("pickdm");
   }
   function paintPick(q) {
@@ -2495,9 +2520,12 @@ html.kb .ch-bar{padding-bottom:8px}
     }
     if (t.closest("[data-more]") && id) return gate(function () { menu({ post: id }); });
     if (t.closest("[data-msgs]")) return gate(openInbox);
-    if (t.closest("[data-spins]")) return toast("Sober Spins are coming soon.");
+    if (t.closest("[data-spins]")) { if (window.PorchSpins) window.PorchSpins.openLatest(); else toast("Spins are loading. Try again in a sec."); return; }
     if (t.closest("[data-newdm]")) return openPick();
-    var pk = t.closest("[data-dmpick]"); if (pk) { var pu = pk.dataset.dmpick; return closeTop().then(function () { openChat(pu); }); }
+    var pk = t.closest("[data-dmpick]"); if (pk) {
+      var pu = pk.dataset.dmpick, pre = dmPrefill; dmPrefill = "";
+      return closeTop().then(async function () { await openChat(pu); if (pre) { $("dmin").value = pre; paintDmBox(); } });
+    }
     var dmb = t.closest("[data-dm]"); if (dmb) return gate(function () { openChat(dmb.dataset.dm); });
     if (t.closest("[data-chatmore]")) return chatMore();
     var qk = t.closest("[data-quick]"); if (qk) { $("dmin").value = qk.dataset.quick; paintDmBox(); return sendDm(false); }
@@ -2672,12 +2700,42 @@ html.kb .ch-bar{padding-bottom:8px}
     lastY = y;
   }, { passive: true });
 
+  /* ================================================================ FOR SOBER SPINS (spins.js) */
+  function openCommentsFor(postId, onClose, commentId) {
+    (async function () {
+      try {
+        if (!comments[postId]) {
+          var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
+          await loadPeople(cs.map(function (c) { return c.user_id; }));
+          comments[postId] = cs; mine[postId] = mine[postId] || {};
+        }
+      } catch (e) { return toast("The comments didn't load."); }
+      openComments(postId);
+      if (onClose) {
+        var ob = new MutationObserver(function () { if (!$("comments").classList.contains("open")) { ob.disconnect(); onClose(); } });
+        ob.observe($("comments"), { attributes: true, attributeFilter: ["class"] });
+      }
+      if (commentId) setTimeout(function () {
+        var el = $("clist").querySelector('[data-comment="' + commentId + '"]');
+        if (el) { el.scrollIntoView({ block: "center" }); el.classList.add("hl"); setTimeout(function () { el.classList.remove("hl"); }, 4200); startReply(commentId); }
+      }, 120);
+    })();
+  }
+  window.Porch = {
+    DB: DB, KEY: KEY, rest: rest, fn: fn, rpc: rpc, tok: tok, avatar: avatar, loadPeople: loadPeople, name: name,
+    get people() { return people; }, get me() { return me; },
+    toast: toast, gate: gate, open: open, closeTop: closeTop, openProfile: openProfile, openHandle: openHandle,
+    openCommentsFor: openCommentsFor, commentCount: function (id) { return (comments[id] || []).length; },
+    pickFriendToSend: function (text) { openPick(text); }
+  };
+
   /* ================================================================ GO */
   (async function () {
     await loadMe();
     await loadFriends();
     loadNew();
     loadMore();
+    if (window.PorchSpins) window.PorchSpins.paintRail(); else window.addEventListener("load", function () { if (window.PorchSpins) window.PorchSpins.paintRail(); });
     checkNotes(); checkDms(); checkNew(); modCheck(); healPush();
     setTimeout(function () { if (unread) askPush(); }, 6000);
     /* a link somebody sent: /feed/porch.html?s=<share> opens that one share */
@@ -2687,6 +2745,12 @@ html.kb .ch-bar{padding-bottom:8px}
     if (who && /^[0-9a-f-]{36}$/i.test(who)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openProfile(who); }
     if (/[?&]mod=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (isMod) openMod(); }
     if (/[?&]notes=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) openNotes(); }
+    var spinQ = new URLSearchParams(location.search).get("spin");
+    if (spinQ && /^[0-9a-f-]{36}$/i.test(spinQ)) {
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}
+      var goSpin = function () { window.PorchSpins.openById(spinQ); };
+      if (window.PorchSpins) goSpin(); else window.addEventListener("load", goSpin);
+    }
     var s = new URLSearchParams(location.search).get("s"), keepQ = location.search;
     if (s && /^[0-9a-f-]{36}$/i.test(s)) {
       var qp = new URLSearchParams(keepQ);
@@ -2696,5 +2760,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
+<script src="/feed/spins/spins.js" defer></script>
 </body>
 </html>
