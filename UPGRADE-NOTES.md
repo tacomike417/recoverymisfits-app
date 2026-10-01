@@ -48,8 +48,9 @@ Order isn't set.
 - [x] Group chats in Messages (done 1 Oct, v66: friends only, 12 people at the most; database step 22).
       A chat room INSIDE a Group: no (Mike, 1 Oct). Shares and comments are the one place to talk.
 - [ ] Voice messages in Messages (hold to talk)
-- [ ] Sounds: a ding for new messages (in the app and on the phone alert), and a ringtone
-      for incoming video calls
+- [x] Sounds: a ding for new messages and notifications while the app is open, on every page
+      (done 1 Oct, v69; Sounds on/off is in the Notifications panel). The ringtone for video
+      calls gets built with calls.
 - [ ] Topics/hashtags (#gratitude) + a Discover tab
 - [ ] Polls
 - [ ] Reshare somebody's post to your friends

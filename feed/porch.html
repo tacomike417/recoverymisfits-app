@@ -408,6 +408,8 @@ html.fullon #main{visibility:hidden}
 .prow .pedit{margin:0;width:auto;flex:1}
 .pvis{display:inline-flex;align-items:center;gap:6px;margin:10px 16px 0;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--soft);font:700 12.5px Arial,sans-serif;cursor:pointer}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
+.nd-snd{display:block;margin:10px 14px 2px auto;padding:6px 12px;border-radius:999px;border:1px solid rgba(60,45,20,.25);background:rgba(49,162,76,.14);color:#1f6b33;font:800 12.5px Arial,sans-serif;cursor:pointer}
+.nd-snd.off{background:rgba(200,50,40,.1);color:#9a2a20}
 /* GROUP CHATS (1 Oct 2026) */
 .dm-pill.line{background:none;border:1px solid #5a4d2c;color:#f4ecd8}
 .gc-face{flex:none;display:flex}.gc-face .g-tile{border-radius:50%}
@@ -896,7 +898,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS</button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v68</span>
+  <span class="ver" id="ver">v69</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1152,6 +1154,7 @@ html.kb .ch-bar{padding-bottom:8px}
   <div class="dim" data-close></div>
   <div class="nd-panel" id="ndpanel">
     <div class="nd-head"><b>Notifications</b><button type="button" class="nd-sw" id="ndsw" aria-pressed="false"><span id="ndswl">Alerts OFF</span><i></i></button></div>
+    <button type="button" class="nd-snd" id="ndsnd" aria-pressed="true">Sounds on</button>
     <div id="nlist"></div>
   </div>
 </div>
@@ -2851,7 +2854,10 @@ html.kb .ch-bar{padding-bottom:8px}
     try {
       var r = await fetch(DB + "/rest/v1/porch_notes?user_id=eq." + me.uid + "&read_at=is.null&select=id", { method: "HEAD",
         headers: { apikey: KEY, Authorization: "Bearer " + (await tok()), Prefer: "count=exact" } });
+      var wasN = unread;
       unread = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
+      if (notesChecked && unread > wasN && window.RMSound) window.RMSound.ding();
+      notesChecked = true;
     } catch (e) {}
     var n = $("belln"); n.hidden = !unread; n.textContent = unread > 99 ? "99+" : unread;
     /* the number on the app icon, where the phone supports it */
@@ -2886,7 +2892,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var bar = $("chrome").getBoundingClientRect();
     document.documentElement.style.setProperty("--ndtop", Math.max(8, bar.bottom + 6) + "px");
     $("nlist").innerHTML = '<div class="skel" style="height:180px;margin:10px"></div>';
-    paintSwitch();
+    paintSwitch(); paintSnd();
     open("notes");
     var list = [];
     try { list = await rest("porch_notes?user_id=eq." + me.uid + "&select=*&order=created_at.desc&limit=50"); } catch (e) {}
@@ -2985,7 +2991,7 @@ html.kb .ch-bar{padding-bottom:8px}
       }, 120);
     }
   }
-  setInterval(function () { checkNotes(); checkDms(); }, 60000);
+  setInterval(function () { if (!document.hidden) { checkNotes(); checkDms(); } }, 30000);   /* was a minute; sounds made the wait noticeable */
   document.addEventListener("visibilitychange", function () { if (!document.hidden) { checkNotes(); checkDms(); } });
 
   /* ================================================================ SAVED SHARES (30 Sep 2026)
@@ -3104,6 +3110,9 @@ html.kb .ch-bar{padding-bottom:8px}
     l.textContent = on ? "Alerts ON" : "Alerts OFF";
     sw.setAttribute("aria-label", on ? "Phone alerts are on. Tap to turn off." : "Phone alerts are off. Tap to turn on."); sw.classList.toggle("off", off); sw.setAttribute("aria-pressed", on ? "true" : "false");
   }
+  /* SOUNDS (1 Oct 2026): the ding for new messages and notifications, on or off, per phone */
+  function paintSnd() { var onS = !window.RMSound || window.RMSound.on(), b = $("ndsnd"); b.textContent = onS ? "Sounds on" : "Sounds off"; b.classList.toggle("off", !onS); b.setAttribute("aria-pressed", onS ? "true" : "false"); }
+  $("ndsnd").addEventListener("click", function () { if (!window.RMSound) return; window.RMSound.set(!window.RMSound.on()); paintSnd(); if (window.RMSound.on()) window.RMSound.ding(); });
   $("ndsw").addEventListener("click", async function () {
     if (this.classList.contains("off")) {
       if (iOS && !standalone) toast("Tap Share, then Add to Home Screen. Open it from there.");
@@ -3217,10 +3226,14 @@ html.kb .ch-bar{padding-bottom:8px}
      ("Tap to see") and blocks full nudity. Photos are private: only the two people
      in the chat can open them. While a chat is open it checks for new messages
      every few seconds; the count on the Messages icon checks every minute. */
+  var dmChecked = false, notesChecked = false;
   var dmUnread = 0, chat = null, dmPoll = null, dmPhotos = [], dmSending = false, dmShown = {};
   async function checkDms() {
     if (!me.uid || !me.member) return;
+    var wasDm = dmUnread;
     try { dmUnread = +(await rpc("porch_dm_unread", {})) || 0; } catch (e) { return; }
+    if (dmChecked && dmUnread > wasDm && !$("chat").classList.contains("open") && window.RMSound) window.RMSound.ding();
+    dmChecked = true;
     var n = $("msgn"); n.hidden = !dmUnread; n.textContent = dmUnread > 9 ? "9+" : dmUnread;
   }
   var otherOf = function (t) { return t.a === me.uid ? t.b : t.a; };
@@ -3369,6 +3382,11 @@ html.kb .ch-bar{padding-bottom:8px}
     l.innerHTML = html;
     if (stick || atBottom) l.scrollTop = l.scrollHeight;
   }
+  function popIfNew(old, now, fresh) {
+    if (fresh || !now.length || !window.RMSound) return;
+    var a = old[old.length - 1], b = now[now.length - 1];
+    if (b.from_id !== me.uid && (!a || a.id !== b.id)) window.RMSound.pop();
+  }
   async function loadChat(fresh) {
     if (!chat) return;
     if (chat.gid) return loadGChat(fresh);
@@ -3383,6 +3401,7 @@ html.kb .ch-bar{padding-bottom:8px}
         ms.forEach(function (m) { if (seen[m.id]) m.seen = true; });
         await signDm([].concat.apply([], ms.map(function (m) { return m.photo_paths || []; })));
         await loadShares(ms);
+        popIfNew(chat.msgs, ms, fresh);
         chat.msgs = ms;
         paintChat(fresh);
         if (t.last_from && t.last_from !== me.uid && (!myReadOf(t) || t.last_at > myReadOf(t))) { try { await rpc("porch_dm_read", { p_thread: t.id }); } catch (e) {} checkDms(); }
@@ -4158,6 +4177,7 @@ html.kb .ch-bar{padding-bottom:8px}
         await signDm([].concat.apply([], ms.map(function (m) { return m.photo_paths || []; })));
         await loadShares(ms);
         if (!chat || chat.gid !== id) return;
+        popIfNew(chat.msgs, ms, fresh);
         chat.msgs = ms; paintChat(fresh);
         if (c.last_from && c.last_from !== me.uid) { try { await rpc("porch_gchat_read", { p_chat: id }); } catch (e) {} checkDms(); }
       } else if (fresh) paintChat(true);
@@ -4335,6 +4355,7 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
+<script src="/feed/sound.js?v=1" defer></script>
 <script src="/feed/spins/spins.js?v=65" defer></script>
 </body>
 </html>

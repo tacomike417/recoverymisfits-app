@@ -28,6 +28,7 @@
     comment: 'commented on your share', reply: 'replied to your comment', proud: 'loved your share',
     metoo: 'said Me too', follow: 'started following you', friend_request: 'sent you a friend request',
     friend_accept: 'accepted your friend request', respin: 'respun your Spin', comment_love: 'loved your comment',
+    group_cokeeper: 'asked you to co-keep a group', group_review: 'applied to start a group. Take a look.', group_ask: 'asked to join your group',
     report: 'was reported. Take a look.',
   };
 
@@ -98,8 +99,9 @@
     if (shown) { shown.remove(); shown = null; }
     const a = document.createElement('a'); a.className = 'rm-alert'; a.href = item.url; a.setAttribute('role', 'alert');
     a.innerHTML = `${avatar(item.who)}<i class="k" style="background:${KCOLOR[item.kind] || '#9c7428'}" aria-hidden="true">${item.kind === 'dm' ? '✉' : item.kind === 'proud' || item.kind === 'comment_love' ? '♥' : item.kind === 'mention' ? '@' : '•'}</i>
-      <span class="tx"><span><b>${esc((item.who && item.who.handle) || 'Somebody')}</b> ${esc(item.text)}</span><small>Tap to see it ›</small></span>`;
+      <span class="tx"><span>${item.plain ? '' : `<b>${esc((item.who && item.who.handle) || 'Somebody')}</b> `}${esc(item.text)}</span><small>Tap to see it ›</small></span>`;
     document.body.appendChild(a); shown = a;
+    if (window.RMSound) window.RMSound.ding();
     requestAnimationFrame(() => requestAnimationFrame(() => a.classList.add('on')));
     let y0 = null;
     a.addEventListener('touchstart', (e) => { y0 = e.touches[0].clientY; }, { passive: true });
@@ -114,6 +116,8 @@
   function urlFor(n) {
     const q = new URLSearchParams();
     if (n.post_id) { q.set('s', n.post_id); if (n.comment_id) q.set('c', n.comment_id); q.set('k', n.kind); q.set('a', n.actor_id); }
+    else if (n.kind === 'group_review' || n.kind === 'group_cokeeper' || n.kind === 'group_declined') q.set('groups', '1');
+    else if (n.group_id) q.set('g', n.group_id);
     else if (n.kind === 'report') q.set('mod', '1');
     else if (n.kind === 'friend_request' || n.kind === 'friend_accept' || n.kind === 'follow') q.set('who', n.actor_id);
     else q.set('notes', '1');
@@ -127,29 +131,39 @@
     try {
       const t = await token(); if (!t) return;
       const uid = window.RMAccount.uid();
-      const [notes, threads] = await Promise.all([
-        get('porch_notes?user_id=eq.' + uid + '&read_at=is.null&select=id,kind,actor_id,post_id,comment_id,created_at&order=created_at.desc&limit=30', t).catch(() => []),
+      const [notes, threads, gchats, gmine] = await Promise.all([
+        get('porch_notes?user_id=eq.' + uid + '&read_at=is.null&select=id,kind,actor_id,post_id,comment_id,group_id,created_at&order=created_at.desc&limit=30', t).catch(() => []),
         get('porch_threads?or=(a.eq.' + uid + ',b.eq.' + uid + ')&select=*&order=last_at.desc&limit=20', t).catch(() => []),
+        /* group chats too (1 Oct 2026) */
+        get('porch_gchats?select=id,name,last_at,last_from,last_preview&order=last_at.desc&limit=20', t).catch(() => []),
+        get('porch_gchat_members?user_id=eq.' + uid + '&select=chat_id,read_at', t).catch(() => []),
       ]);
+      const gRead = {}; gmine.forEach((m) => { gRead[m.chat_id] = m.read_at; });
+      const unreadG = gchats.filter((c) => c.last_from && c.last_from !== uid && (!gRead[c.id] || c.last_at > gRead[c.id]));
       const mine = (th) => (th.a === uid ? th.a_read_at : th.b_read_at);
       const unreadDms = threads.filter((th) => th.last_from && th.last_from !== uid && (!mine(th) || th.last_at > mine(th)));
-      paintCount(notes.length + unreadDms.length);
+      paintCount(notes.length + unreadDms.length + unreadG.length);
 
       /* the newest thing that happened, note or message */
-      const n0 = notes[0], d0 = unreadDms[0];
-      const useDm = d0 && (!n0 || d0.last_at > n0.created_at);
-      const key = useDm ? 'd:' + d0.id + ':' + d0.last_at : n0 ? 'n:' + n0.id : '';
+      const n0 = notes[0], d0 = unreadDms[0], g0 = unreadG[0];
+      const useG = g0 && (!n0 || g0.last_at > n0.created_at) && (!d0 || g0.last_at > d0.last_at);
+      const useDm = !useG && d0 && (!n0 || d0.last_at > n0.created_at);
+      const key = useG ? 'g:' + g0.id + ':' + g0.last_at : useDm ? 'd:' + d0.id + ':' + d0.last_at : n0 ? 'n:' + n0.id : '';
       if (!key) return;
       const last = seen();
-      const when = new Date(useDm ? d0.last_at : n0.created_at).getTime();
+      const when = new Date(useG ? g0.last_at : useDm ? d0.last_at : n0.created_at).getTime();
       markSeen(key);
       if (key === last) return;
       if (!last && Date.now() - when > 10 * 60 * 1000) return;   /* first time on this phone: no alert for old news */
       if (Date.now() - when > 24 * 3600 * 1000) return;
 
-      const actor = useDm ? (d0.a === uid ? d0.b : d0.a) : n0.actor_id;
+      const actor = useG ? g0.last_from : useDm ? (d0.a === uid ? d0.b : d0.a) : n0.actor_id;
       const who = (await get('porch_members?user_id=eq.' + actor + '&select=handle,avatar_path', t).catch(() => []))[0] || null;
-      if (useDm) {
+      if (useG) {
+        let pv = String(g0.last_preview || '').trim();
+        if (/recoverymisfits\.org\/(s\/|feed\/porch\.html\?(spin|s)=)/i.test(pv)) pv = '';
+        show({ kind: 'dm', who, text: 'messaged ' + (g0.name || 'your group chat') + (pv ? ': ' + (pv.length > 80 ? pv.slice(0, 80) + '…' : pv) : ''), url: '/feed/porch.html?gc=' + g0.id });
+      } else if (useDm) {
         let pv = String(d0.last_preview || '').trim();
         if (/recoverymisfits\.org\/(s\/|feed\/porch\.html\?spin=)/i.test(pv)) pv = 'sent you a Spin';
         else if (/recoverymisfits\.org\/feed\/porch\.html\?s=/i.test(pv)) pv = 'sent you a share';
@@ -158,6 +172,9 @@
       } else {
         let spin = false;
         if (n0.post_id) { try { spin = ((await get('porch_posts?id=eq.' + n0.post_id + '&select=need', t))[0] || {}).need === 'moment'; } catch (_) {} }
+        const GROUP_SAYS = { group_open: 'Your group is open. Go say hi.', group_declined: "Your group didn't open this time.", group_in: "You're in the group.",
+          group_quiet: "It's been quiet in your group. Share something or it closes soon.", group_closed: 'Your group closed. Nobody shared for 90 days.' };
+        if (GROUP_SAYS[n0.kind]) { show({ kind: n0.kind, who, plain: true, text: GROUP_SAYS[n0.kind], url: urlFor(n0) }); return; }
         let text = n0.kind === 'mention'
           ? (n0.comment_id ? (spin ? 'tagged you in a comment on a Spin' : 'tagged you in a comment') : (spin ? 'tagged you in a Spin' : 'tagged you in a share'))
           : (WORDS[n0.kind] || 'did something on the Porch');
@@ -170,6 +187,8 @@
     } catch (_) { /* no signal: try again next time */ } finally { busy = false; }
   }
 
+  /* the ding (feed/sound.js) */
+  (function () { const sc = document.createElement('script'); sc.src = '/feed/sound.js?v=1'; sc.defer = true; document.head.appendChild(sc); })();
   setTimeout(check, 1500);
   setInterval(check, 45000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
