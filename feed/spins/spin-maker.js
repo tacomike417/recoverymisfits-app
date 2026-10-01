@@ -642,7 +642,8 @@
       <button type="button" class="lpm-go" disabled>Make my Spin</button>`;
     document.body.appendChild(el);
     const b = back();
-    if (b) b.push('spinmaker', close);
+    /* sit on top of whatever is open (the Porch stacks screens by number) */
+    if (b) { const z = b.push('spinmaker', close); if (typeof z === 'number') el.style.zIndex = String(z); }
     cv = el.querySelector('canvas');
     ctx = cv.getContext('2d');
     fit();
@@ -1514,6 +1515,7 @@ registerProcessor('ip-pitch-shift', PitchShift);`;
     va = null;
   }
   const CAM_CSS = `
+.lpc .lpc-voices{display:none!important} /* 1 Oct 2026: characters/filters parked until the art exists (UPGRADE-NOTES) */
 .lpc{position:fixed;inset:0;z-index:9575;background:#000;color:#fff;font:800 14px/1 system-ui,-apple-system,sans-serif}
 .lpc video,.lpc-cv{position:absolute;left:50%;top:50%;width:min(100vw,56.25vh);height:min(100vh,177.78vw);transform:translate(-50%,-50%);object-fit:cover;border-radius:14px}
 .lpc.front video{transform:translate(-50%,-50%) scaleX(-1)}
@@ -1530,8 +1532,8 @@ registerProcessor('ip-pitch-shift', PitchShift);`;
 .lpc-side{width:56px;height:56px;border:0;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:24px;cursor:pointer}
 .lpc-go{position:relative;width:88px;height:88px;border:0;padding:0;background:none;cursor:pointer}
 .lpc-go svg{position:absolute;inset:0;transform:rotate(-90deg)}
-.lpc-go .dot{position:absolute;inset:14px;border-radius:50%;background:#e5243b;transition:all .2s}
-.lpc.rec .lpc-go .dot{inset:28px;border-radius:8px}
+.lpc-go .lpc-dot{position:absolute;inset:14px;border-radius:50%;background:#e5243b;transition:all .2s}
+.lpc.rec .lpc-go .lpc-dot{inset:28px;border-radius:8px}
 .lpc-voices{position:absolute;left:0;right:0;bottom:calc(128px + env(safe-area-inset-bottom));display:flex;gap:8px;overflow-x:auto;padding:0 14px;scrollbar-width:none}
 .lpc-voices::-webkit-scrollbar{display:none}
 .lpc-voices button{flex:none;border:2px solid transparent;border-radius:999px;padding:8px 12px;background:rgba(0,0,0,.5);color:#fff;font:800 13px/1 system-ui,sans-serif;cursor:pointer;white-space:nowrap}
@@ -1569,7 +1571,7 @@ registerProcessor('ip-pitch-shift', PitchShift);`;
           <svg viewBox="0 0 88 88"><circle cx="44" cy="44" r="40" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="6"/>
             <circle class="ring" cx="44" cy="44" r="40" fill="none" stroke="#e0bd6a" stroke-width="6" stroke-linecap="round"
               stroke-dasharray="251.3" stroke-dashoffset="251.3"/></svg>
-          <span class="dot"></span></button>
+          <span class="lpc-dot"></span></button>
         <button type="button" class="lpc-side" data-cam-flip aria-label="Flip camera">🔄</button>
       </div>`;
     document.body.appendChild(el2);
@@ -1578,7 +1580,9 @@ registerProcessor('ip-pitch-shift', PitchShift);`;
     charKey = 'normal'; voiceKey = 'normal'; lensKey = null;
     voiceStart();     /* inside the tap, so the phone lets the sound run */
     const b = back();
-    if (b) b.push('loopcam', closeCamera);
+    /* 1 Oct 2026: the camera opened BEHIND the maker on the Porch, so Record looked dead.
+       It takes the next number up the stack now. */
+    if (b) { const z = b.push('loopcam', closeCamera); if (typeof z === 'number') el2.style.zIndex = String(z); }
     el2.addEventListener('click', (e) => {
       if (e.target.closest('[data-cam-go]')) { cam && (cam.rec ? stopRec() : startRec()); return; }
       const gb = e.target.closest('[data-cam-glow]');
