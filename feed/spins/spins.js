@@ -77,18 +77,24 @@
 .sp-filmhead{display:flex;align-items:baseline;justify-content:space-between;padding:10px 14px 8px}
 .sp-filmhead span{font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.18em;color:var(--gold2,#e0bd6a)}
 .sp-filmhead button{border:0;background:none;padding:4px 0;color:var(--gold2,#e0bd6a);font:700 13px Arial,sans-serif;cursor:pointer}
-.sp-film{position:relative;padding:20px 0;background:#050504}
-.sp-holes{position:absolute;left:0;right:0;height:9px;border-radius:2px;background-image:repeating-linear-gradient(90deg,transparent 0 6px,#2a271f 6px 16px,transparent 16px 22px)}
-.sp-holes.t{top:5px}.sp-holes.b{bottom:5px}
-.sp-frames{gap:6px!important;padding:0 10px!important}
-.sp-frame{flex:none;position:relative;width:98px;height:172px;padding:0;border:0;border-radius:6px;overflow:hidden;background:#000;color:#fff;cursor:pointer;scroll-snap-align:start}
+.sp-filmrail{margin:8px 0 4px!important}
+.sp-film{position:relative;padding:15px 0;background:#050504}
+.sp-holes{position:absolute;left:0;right:0;height:7px;border-radius:2px;background-image:repeating-linear-gradient(90deg,transparent 0 5px,#2a271f 5px 13px,transparent 13px 18px)}
+.sp-holes.t{top:4px}.sp-holes.b{bottom:4px}
+.sp-frames{gap:6px!important;padding:0 10px 0 6px!important;align-items:center}
+.sp-frame{flex:none;position:relative;width:72px;height:128px;padding:0;border:0;border-radius:12px;overflow:hidden;background:#000;color:#fff;cursor:pointer;scroll-snap-align:start}
 .sp-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.sp-frame::after{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(to top,rgba(0,0,0,.88),rgba(0,0,0,0))}
+.sp-fplay{position:absolute;z-index:1;left:50%;top:44%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:rgba(0,0,0,.5);border:1.5px solid rgba(255,255,255,.85);display:grid;place-items:center;box-sizing:border-box}
+.sp-fplay svg{width:14px;height:14px;margin-left:2px;fill:#fff}
+.sp-film .sp-mk{width:80px;margin-right:4px}
+.sp-film .sp-mk .sp-ring{width:64px;height:64px}
+.sp-film .sp-mk .sp-cam svg{width:30px;height:30px}
+.sp-film .sp-mk .sp-nm{font-size:11px;color:#e0bd6a}
 .sp-flen{position:absolute;z-index:1;left:6px;top:6px;display:flex;align-items:center;gap:3px;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.6);font:800 10.5px Arial,sans-serif}
 .sp-flen svg{width:9px;height:9px;fill:#fff}
-.sp-fre{position:absolute;z-index:1;right:6px;top:6px;width:22px;height:22px;border-radius:50%;background:#e0bd6a;display:grid;place-items:center}
+.sp-fre{position:absolute;z-index:1;right:5px;top:5px;width:20px;height:20px;border-radius:50%;background:#e0bd6a;display:grid;place-items:center}
 .sp-fre svg{width:12px;height:12px;fill:none;stroke:#11110f;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.sp-fnm{position:absolute;z-index:1;left:7px;right:7px;bottom:7px;font:800 11.5px Arial,sans-serif;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-fnm{position:absolute;z-index:1;left:4px;bottom:5px;max-width:calc(100% - 8px);box-sizing:border-box;padding:2px 5px;border-radius:999px;background:rgba(0,0,0,.66);font:800 9px/1.3 Arial,sans-serif;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-fmake{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #e0bd6a;box-sizing:border-box;background:rgba(224,189,106,.07);color:#e0bd6a}
 .sp-fmake::after{display:none}
 .sp-fmake .sp-cam svg{width:30px;height:30px}
@@ -266,9 +272,9 @@
   function frameHTML(l, i) {
     return `<button type="button" class="sp-frame" data-sp-open="rail" data-sp-i="${i}" aria-label="Spin by ${esc(at(l.user_id))}${l.respunBy ? ', respun by ' + esc(at(l.respunBy)) : ''}">
       <img src="${esc(thumbFor(l))}" alt="" loading="lazy">
-      ${lenTxt(l) ? `<span class="sp-flen">${PLAY_ICO}${lenTxt(l)}</span>` : ''}
+      <span class="sp-fplay">${PLAY_ICO}</span>
       ${l.respunBy ? `<span class="sp-fre">${RESPIN}</span>` : ''}
-      <span class="sp-fnm">${l.respunBy ? '↻ ' + esc(P().name(l.respunBy)) : '@' + esc(P().name(l.user_id))}</span></button>`;
+      <span class="sp-fnm">${l.respunBy ? '↻ ' + esc(P().name(l.respunBy)) : esc(P().name(l.user_id))}</span></button>`;
   }
   const makeFrame = () => `<button type="button" class="sp-frame sp-fmake" data-sp-make aria-label="Make a Spin"><span class="sp-cam">${CAM_ICO}</span><b>MAKE<br>A SPIN</b></button>`;
   /* LAYOUT A (1 Oct 2026): on the Porch, Spins are story circles under the tab row */
@@ -293,10 +299,11 @@
     /* THE FILM STRIP (1 Oct 2026, Mike picked it from the mockups: the circles looked
        like profiles). Tall frames on a strip of film, each with its length, so it reads
        as video at a glance. Make is the first frame; respins carry the gold ↻. */
+    /* 1 Oct 2026, Mike: shorter, the old gold "Give it a spin" camera first, a play
+       button on every Spin, and the name in a little pill */
     return `<section class="sp-rail sp-filmrail" data-sp-rail aria-label="Sober Spins">
-      <div class="sp-filmhead"><span>SOBER SPINS</span><button type="button" data-spins>See all ›</button></div>
       <div class="sp-film"><i class="sp-holes t"></i><i class="sp-holes b"></i>
-      <div class="sp-row sp-frames">${meId() ? makeFrame() : ''}${list.map((l, i) => frameHTML(l, i)).join('')}</div></div></section>`;
+      <div class="sp-row sp-frames">${meId() ? makeStory() : ''}${list.map((l, i) => frameHTML(l, i)).join('')}</div></div></section>`;
   }
   async function paintRail() {
     const host = document.getElementById('spinrail'); if (!host) return;
