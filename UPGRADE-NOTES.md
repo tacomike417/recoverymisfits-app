@@ -29,6 +29,8 @@ Order isn't set.
 
 **Like the big apps**
 - [x] Groups (done 1 Oct, v65: Groups tab, group pages, apply to start one, Mike approves).
+      Trusted starters (step 21): tacomike417, fire_l0ve, krazyk226 skip the active test, to seed
+      feeder groups. Still takes two, and Mike still approves each one.
       Still to come inside groups: Events, group chat, Spins tab, group cover photos.
       Mike's rules (1 Oct): Groups get their own tab (mockup A).
       Two people start a group: a Keeper and a Co-keeper (not "admin" or "moderator").
