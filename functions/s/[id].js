@@ -32,20 +32,61 @@ async function card(id) {
     });
     if (!r.ok) return null;
     const j = await r.json();
-    return j && j.video_guid ? j : null;
+    return j && (j.video_guid || j.locked) ? j : null;
   } catch (_) { return null; }
 }
 
 export async function onRequestGet({ params, request }) {
   const id = String(params.id || '').toLowerCase();
   const url = new URL(request.url);
-  const s = /^[0-9a-f-]{36}$/.test(id) ? await card(id) : null;
-  const html = page(s, id, url.origin);
+  const c = /^[0-9a-f-]{36}$/.test(id) ? await card(id) : null;
+  /* MEMBERS ONLY (1 Oct 2026): the maker's profile is Members only, so nothing about
+     the Spin is handed out; signed-in members get a button into the Porch */
+  const html = c && c.locked ? locked(id, url.origin) : page(c, id, url.origin);
+  const s = c;
   return new Response(html, {
     status: s ? 200 : 404,
-    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': s ? 'public, max-age=300' : 'no-store' },
+    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': s ? 'public, max-age=60' : 'no-store' },
   });
 }
+
+function locked(id, origin) {
+  const porch = '/feed/porch.html?spin=' + encodeURIComponent(id);
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A Sober Spin · Recovery Misfits</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#11110f">
+<link rel="icon" href="/icon-192.png"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="manifest" href="/manifest.json">
+<meta property="og:site_name" content="Recovery Misfits">
+<meta property="og:title" content="A Sober Spin on Recovery Misfits">
+<meta property="og:description" content="Shared on the Porch. Members only.">
+<meta property="og:image" content="${origin}/icon-512.png">
+<meta name="twitter:card" content="summary">
+${LOCK_CSS}
+</head><body><div class="gone">
+  <img src="/icon-192.png" alt="" style="width:76px;height:76px;border-radius:18px;margin-bottom:18px">
+  <h1>For members</h1>
+  <p>This Spin is only for people signed in to Recovery Misfits.</p>
+  <a class="go" id="go" href="/account.html">Join Recovery Misfits</a>
+  <a class="alt" id="alt" href="/account.html?signin=1">I have an account</a>
+</div>
+<script>
+try { var a = JSON.parse(localStorage.getItem('rm_account_v1') || 'null');
+  if (a && a.name) { var g = document.getElementById('go'); g.href = ${JSON.stringify(porch)}; g.textContent = 'Watch it on the Porch'; document.getElementById('alt').hidden = true; } } catch (e) {}
+</script></body></html>`;
+}
+const LOCK_CSS = `<style>
+@font-face{font-family:"RM Head";src:url("/assets/fonts/anton-400.woff2") format("woff2");font-display:swap}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#11110f;color:#f1e7cf;font-family:Arial,sans-serif}
+.gone{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;text-align:center}
+.gone h1{margin:0 0 10px;font:400 34px/1.05 "RM Head",Impact,sans-serif;text-transform:uppercase}
+.gone p{margin:0 0 4px;font:600 16px/1.4 Arial,sans-serif;color:#ddd2b8;max-width:320px}
+.go{display:block;width:100%;max-width:340px;margin:18px 0 0;padding:16px;border-radius:16px;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#11110f;text-decoration:none;font:400 21px/1 "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase}
+.alt{margin-top:14px;color:#ddd2b8;font:700 14px Arial,sans-serif}
+[hidden]{display:none!important}
+</style>`;
 
 function page(s, id, origin) {
   const handle = s ? s.handle : '';

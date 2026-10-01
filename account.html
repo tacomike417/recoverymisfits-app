@@ -130,6 +130,30 @@
     text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;
   }
   .go[disabled]{opacity:.55;cursor:default}
+
+  /* ---- YOUR RECOVERY, YOUR WAY (1 Oct 2026, Mike): pick your level first -------- */
+  .lvls{display:grid;gap:12px;margin:16px 0 0}
+  .lvl{display:block;width:100%;padding:16px 16px 14px;border-radius:16px;text-align:left;cursor:pointer;
+    border:1.6px solid rgba(215,178,83,.4);background:rgba(215,178,83,.06);color:var(--ivory);
+    -webkit-tap-highlight-color:transparent}
+  .lvl:active{background:rgba(215,178,83,.14)}
+  .lvl .k{display:block;font-family:var(--ui);font-weight:800;font-size:10.5px;letter-spacing:1.7px;text-transform:uppercase;color:var(--gold)}
+  .lvl .t{display:block;margin:4px 0 8px;font-family:var(--display);font-size:24px;line-height:1.05;color:#fff}
+  .lvl ul{margin:0;padding:0;list-style:none}
+  .lvl li{font-family:var(--ui);font-size:13.5px;line-height:1.5;color:var(--ivory);padding-left:20px;position:relative}
+  .lvl li::before{content:"✓";position:absolute;left:0;color:var(--gold);font-weight:800}
+  .lvl .soon{display:inline-block;margin-top:10px;padding:4px 10px;border-radius:999px;background:#2a2516;color:var(--gold);
+    font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.2px;text-transform:uppercase}
+  .lvl.locked{opacity:.75}
+  .picked{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 0;padding:10px 14px;border-radius:12px;
+    background:rgba(215,178,83,.08);font-family:var(--ui);font-size:12.5px;color:var(--ivory)}
+  .picked b{color:var(--gold)}
+  .picked button,.textlink{border:0;background:none;color:var(--muted);font-family:var(--ui);font-weight:800;font-size:12px;text-decoration:underline;cursor:pointer;padding:6px 0}
+  .textlink{display:block;margin:16px auto 0}
+  .mine{margin:10px 0 0;font-family:var(--ui);font-size:12px;line-height:1.5;color:var(--muted);text-align:center}
+  .porchcard{margin:16px 0 0;padding:15px 16px;border-radius:14px;border:1px solid rgba(215,178,83,.34);background:rgba(215,178,83,.07)}
+  .porchcard h2{font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.7px;text-transform:uppercase;color:var(--gold);margin:0 0 9px}
+  .porchcard p{font-family:var(--ui);font-size:13px;line-height:1.6;color:var(--ivory);margin:0 0 10px}
   .go:active:not([disabled]){background:#e6c877}
 
   .say{
@@ -191,8 +215,30 @@
   <img class="rule" src="/assets/pages/d-rule.webp" alt="" aria-hidden="true"
        width="297" height="17" style="display:block;width:100%;max-width:297px;margin:6px 0 0">
 
+  <!-- ============ PICK YOUR LEVEL (1 Oct 2026, Mike) ============
+       The first thing a new person sees: two doors, plainly. Level 2 (the
+       Porch) is for the beta testers until the Porch opens; everybody else sees
+       it marked "Opens end of October". -->
+  <div id="levels" hidden>
+    <p class="lede">Your recovery, your way.</p>
+    <div class="lvls">
+      <button type="button" class="lvl" data-lvl="1">
+        <span class="k">Level 1</span><span class="t">Anonymous</span>
+        <ul><li>Just a username and password</li><li>Your sober date follows you to a new phone</li><li>Read the Porch</li><li>No email. Nobody knows you&rsquo;re here.</li></ul>
+      </button>
+      <button type="button" class="lvl" data-lvl="2" id="lvl2">
+        <span class="k">Level 2</span><span class="t">I&rsquo;m comfortable here</span>
+        <ul><li>Everything in Level 1</li><li>Post, make Spins, add friends, message</li><li>Confirm an email once. It&rsquo;s never kept or shown.</li></ul>
+        <span class="soon" id="lvl2soon" hidden>Opens end of October</span>
+      </button>
+    </div>
+    <p class="say" id="sayLvl" role="status" aria-live="polite"></p>
+    <button type="button" class="textlink" id="haveOne">I already have an account</button>
+  </div>
+
   <!-- ============ SIGNED OUT ============ -->
   <div id="out" hidden>
+    <div class="picked" id="pickedBar"><span id="pickedTxt"></span><button type="button" id="pickAgain">Change</button></div>
 
     <!-- ONE LINE BEFORE, EVERYTHING AFTER.
 
@@ -331,6 +377,23 @@
         <p class="dsDays" id="dsDays"></p>
       </div>
     </div>
+    <p class="mine">🔐 Only you can see your sober date. It&rsquo;s never on your profile. People only see it if you share a coin, your Survival Pile or a post yourself.</p>
+
+    <!-- the phone and the account disagreed about the date (this markup was missing) -->
+    <div class="clash" id="clash" hidden>
+      <h2>Two different dates</h2>
+      <p id="clashText"></p>
+      <button type="button" class="pick" id="pickLocal"><span>Keep this phone&rsquo;s</span><b id="pickLocalT"></b></button>
+    </div>
+
+    <!-- LEVEL 2: your Porch profile -->
+    <div class="porchcard" id="porchCard" hidden>
+      <h2 id="pcKick">Your Porch profile</h2>
+      <p id="pcTxt"></p>
+      <a class="go" id="pcGo" href="/feed/porch.html?setup=1" style="text-decoration:none">Set up my profile</a>
+      <a class="go" id="pcMine" href="/feed/porch.html?u=me" hidden
+         style="text-decoration:none;background:transparent;color:var(--gold);margin-top:8px">See my profile</a>
+    </div>
     <button class="go" type="button" id="dsPick" style="margin-top:14px">Pick My Sober Date</button>
     <a class="go" id="dsHome" href="/index.html" data-return hidden
        style="margin-top:14px;text-decoration:none">Take Me Home</a>
@@ -374,7 +437,19 @@
      signing up, and the one screen you land on whenever you are signed in
      -- which asks for your sober date if it does not have one and shows it
      if it does. There is no separate settings page to get stranded on. */
-  var STEP = { form:"out", fresh:"fresh", claim:"claimask", date:"datestep" };
+  var STEP = { levels:"levels", form:"out", fresh:"fresh", claim:"claimask", date:"datestep" };
+
+  /* LEVEL 2 = THE PORCH. Until the Porch opens (NOT before Oct 20, and only when Mike
+     says so: see UPGRADE-NOTES.md) only the beta testers get it. Same list as the
+     Porch's own lock in feed/porch.html. Flip PORCH_OPEN to true at launch. */
+  var PORCH_OPEN = false;
+  var TESTERS = ["tacomike417", "misfit_tester", "fire_l0ve", "krazyk226"];
+  function porchFor(nm) { return PORCH_OPEN || TESTERS.indexOf(String(nm || "").toLowerCase()) >= 0; }
+  var LVL_KEY = "rm_level_pick";
+  function picked() { try { return localStorage.getItem(LVL_KEY) || ""; } catch (e) { return ""; } }
+  function pick(n) { try { localStorage.setItem(LVL_KEY, n); } catch (e) {} }
+  /* Level 2 picked (or already on the Porch) and allowed in: after the date, set up the profile */
+  function wantsPorch() { return A.signedIn() && porchFor(A.name()) && picked() === "2"; }
   function paint(step) {
     Object.keys(STEP).forEach(function (k) {
       $(STEP[k]).hidden = (k !== step);
@@ -415,8 +490,8 @@
       $("dsDays").textContent = n === null ? "" : n.toLocaleString() + (n === 1 ? " day" : " days");
       $("dsPick").hidden = true;
       $("dsSkip").hidden = true;
-      $("dsHome").href = RETURN_TO;
-      $("dsHome").textContent = next === "readings" ? "Back to Readings" : next === "feed" ? "Back to the Porch" : $("dsHome").textContent;
+      $("dsHome").href = wantsPorch() ? "/feed/porch.html?setup=1" : RETURN_TO;
+      $("dsHome").textContent = wantsPorch() ? "Next: Set Up My Profile" : next === "readings" ? "Back to Readings" : next === "feed" ? "Back to the Porch" : "Take Me Home";
       $("dsHome").hidden = false;
     } else {
       $("dsKick").textContent = "One more thing";
@@ -426,6 +501,8 @@
       $("dsSkip").hidden = false;
       $("dsHome").hidden = true;
     }
+    paintPorchCard();
+    $("porchCard").hidden = $("porchCard").hidden || wantsPorch();   /* the big button already says it */
     paint("date");
   }
 
@@ -441,7 +518,56 @@
     }, 500);
   });
 
-  $("dsSkip").addEventListener("click", function () { location.href = RETURN_TO; });
+  $("dsSkip").addEventListener("click", function () { location.href = wantsPorch() ? "/feed/porch.html?setup=1" : RETURN_TO; });
+
+  /* the Porch card under the date: set up your profile, or see it */
+  function paintPorchCard() {
+    var c = $("porchCard");
+    if (!A.signedIn()) { c.hidden = true; return; }
+    c.hidden = false;
+    var done = false; try { done = localStorage.getItem("rm_porch_setup_done") === "1"; } catch (e) {}
+    if (!porchFor(A.name())) {
+      $("pcKick").textContent = "Level 2 · the Porch";
+      $("pcTxt").textContent = "Post, make Spins, add friends and message. It opens at the end of October.";
+      $("pcGo").hidden = true; $("pcMine").hidden = true; return;
+    }
+    $("pcKick").textContent = "Your Porch profile";
+    $("pcTxt").textContent = done ? "Picture, bio, who can see you and finding friends." : "Picture, bio, who can see you, then find your people. About a minute.";
+    $("pcGo").hidden = false; $("pcGo").textContent = done ? "Edit my profile" : "Set up my profile";
+    $("pcMine").hidden = !done;
+  }
+
+  /* ---- pick your level ---- */
+  function showLevels() {
+    var open = PORCH_OPEN;
+    $("lvl2").classList.toggle("locked", !open);
+    $("lvl2soon").hidden = open;
+    say($("sayLvl"), "");
+    paint("levels");
+  }
+  function goForm(lvl, m) {
+    if (lvl) pick(lvl);
+    $("pickedBar").hidden = m === "old";
+    $("pickedTxt").innerHTML = lvl === "2" ? "<b>Level 2</b> · I&rsquo;m comfortable here" : "<b>Level 1</b> · Anonymous";
+    setMode(m || "new");
+    paint("form");
+    /* the phone's back button goes back to the two levels, not out of the app */
+    try { history.pushState({ acct: "form" }, ""); } catch (e) {}
+    setTimeout(function () { $("nm").focus(); }, 60);
+  }
+  window.addEventListener("popstate", function () { if (!A.signedIn() && !$("out").hidden) showLevels(); });
+  document.querySelectorAll("[data-lvl]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var l = b.getAttribute("data-lvl");
+      if (l === "2" && !PORCH_OPEN) {
+        say($("sayLvl"), "Level 2 opens with the Porch at the end of October. Start with Level 1 and move up then.", "good");
+        return;
+      }
+      goForm(l, "new");
+    });
+  });
+  $("haveOne").addEventListener("click", function () { goForm("", "old"); });
+  $("pickAgain").addEventListener("click", showLevels);
 
   /* Where they were headed before this screen got in the way. SET on the
      sober bar sends people here when they have no date and no account. */
@@ -640,7 +766,8 @@
   $("dsOut").addEventListener("click", function () {
     A.signOut();
     clearInterval(watching);
-    paint("form");
+    try { localStorage.removeItem(LVL_KEY); } catch (e) {}
+    showLevels();
     setMode("new");
     $("nm").value = ""; $("pw").value = "";
   });
@@ -651,8 +778,10 @@
   if (A.signedIn()) {
     showDateStep();
     settle(false).then(showDateStep);
+  } else if (new URLSearchParams(location.search).get("signin") === "1") {
+    goForm("", "old");
   } else {
-    paint("form");
+    showLevels();
   }
 })();
 </script>

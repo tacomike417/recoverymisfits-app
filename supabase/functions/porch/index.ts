@@ -287,7 +287,10 @@ Deno.serve(async (req) => {
     await admin.from("porch_spins").delete().eq("user_id", user.id);
     for (const [t, col] of [["porch_notes", "user_id"], ["porch_notes", "actor_id"], ["porch_saves", "user_id"], ["porch_push", "user_id"],
       ["porch_reactions", "user_id"], ["porch_follows", "follower_id"], ["porch_follows", "followed_id"], ["porch_blocks", "blocker_id"],
-      ["porch_reports", "reporter_id"], ["porch_comments", "user_id"], ["porch_posts", "user_id"], ["porch_moderators", "user_id"]] as const) {
+      ["porch_reports", "reporter_id"], ["porch_comments", "user_id"], ["porch_posts", "user_id"], ["porch_moderators", "user_id"],
+      // 1 Oct 2026: friends, comment hearts and the near-me spot go too
+      ["porch_friends", "a"], ["porch_friends", "b"], ["porch_friend_requests", "from_id"], ["porch_friend_requests", "to_id"],
+      ["porch_comment_hearts", "user_id"], ["porch_places", "user_id"]] as const) {
       await admin.from(t).delete().eq(col, user.id);
     }
     await admin.from("porch_members").delete().eq("user_id", user.id);

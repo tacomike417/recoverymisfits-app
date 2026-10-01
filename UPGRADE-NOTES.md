@@ -148,6 +148,16 @@ preview show up only once there's a clip.
 - Spin links inside Porch messages show as "▶ Watch the Spin" and play right there.
 - Note: a Spin link can be watched by people outside the beta. The Porch itself stays locked until Oct 20.
 
+### Profiles + privacy (1 Oct 2026, Porch v42, Mike: "protecting their level of anonymity is paramount")
+- **Sign-up = pick your level first** (account.html): Level 1 Anonymous / Level 2 I'm comfortable here. Then username + password, then sober date.
+  Level 2 then goes to **/feed/porch.html?setup=1**: confirm email, picture + header + bio, who can see you, find your people, then your profile.
+- **Level 2 is testers-only until launch.** account.html has `PORCH_OPEN = false` and its own copy of the tester list. **At launch: flip PORCH_OPEN to true AND remove the Porch's tester lock.**
+- **Sober date is never on a profile.** SQL 18 wiped porch_members.sober_date and blocks it for good. It only lives in the person's own app account (profiles, own-row only). People see it only if they share a coin, Survival Pile or post themselves.
+- **Who can see my profile:** Members only (default; anyone signed in to the app, including Level 1) or Public (anybody with the link). Members-only hides profile, shares, comments, Spins and shared Spin links from anybody not signed in.
+- **Profile links:** recoverymisfits.org/u/<name> (functions/u/[handle].js). Members-only and no-such-person show the same "For members" page.
+- **Find friends near me:** phone location rounded to ~7 miles, in porch_places (nobody can read it), only names/faces come back, shuffled daily, confirmed members only, 5 moves a day, delete any time (Edit profile). Most active = most shares + comments in 2 weeks.
+- Private review done 1 Oct: anon can't call the near-me/most-active functions, can't read reactions/respins/hearts, can't see comments on members-only posts; pictures can only be set through the porch function.
+
 ### LATER: Spin face filters (1 Oct 2026, parked until the UI is worked out)
 - The selfie camera, the 8 characters, their voices and the face tracking are already in
   spin-maker.js. The filter art isn't: the pictures live in Jeff's project
