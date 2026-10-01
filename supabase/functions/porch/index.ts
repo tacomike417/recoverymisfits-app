@@ -305,7 +305,9 @@ Deno.serve(async (req) => {
       ["porch_reports", "reporter_id"], ["porch_comments", "user_id"], ["porch_posts", "user_id"], ["porch_moderators", "user_id"],
       // 1 Oct 2026: friends, comment hearts and the near-me spot go too
       ["porch_friends", "a"], ["porch_friends", "b"], ["porch_friend_requests", "from_id"], ["porch_friend_requests", "to_id"],
-      ["porch_comment_hearts", "user_id"], ["porch_places", "user_id"]] as const) {
+      ["porch_comment_hearts", "user_id"], ["porch_places", "user_id"],
+      // and mutes, both ways
+      ["porch_mutes", "muter_id"], ["porch_mutes", "muted_id"]] as const) {
       await admin.from(t).delete().eq(col, user.id);
     }
     await admin.from("porch_members").delete().eq("user_id", user.id);

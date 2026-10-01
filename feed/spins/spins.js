@@ -248,12 +248,13 @@
       P().rest('porch_respins?select=user_id,spin_id,created_at&order=created_at.desc&limit=' + n).catch(() => [])
     ]);
     const now = Date.now();
-    const live = (l) => l.status === 'ready' && (l.pinned || new Date(l.expires_at).getTime() > now);
+    const muted = (u) => !!(P().isMuted && P().isMuted(u));
+    const live = (l) => l.status === 'ready' && (l.pinned || new Date(l.expires_at).getTime() > now) && !muted(l.user_id);
     const by = {}; r.forEach((l) => (by[l.id] = l));
     const missing = [...new Set(rr.map((x) => x.spin_id).filter((id) => !by[id]))];
     if (missing.length) { try { (await P().rest('porch_spins?id=in.(' + missing.join(',') + ')&select=' + COLS)).forEach((l) => (by[l.id] = l)); } catch (_) {} }
     const all = r.filter(live).map((l) => ({ l, t: l.created_at }));
-    rr.forEach((x) => { const l = by[x.spin_id]; if (l && live(l) && x.user_id !== l.user_id) all.push({ l: Object.assign({}, l, { respunBy: x.user_id, respunAt: x.created_at }), t: x.created_at }); });
+    rr.forEach((x) => { const l = by[x.spin_id]; if (l && live(l) && x.user_id !== l.user_id && !muted(x.user_id)) all.push({ l: Object.assign({}, l, { respunBy: x.user_id, respunAt: x.created_at }), t: x.created_at }); });
     all.sort((a, b) => (a.t < b.t ? 1 : -1));
     const seen = new Set(), out = [];
     for (const a of all) { if (seen.has(a.l.id)) continue; seen.add(a.l.id); out.push(a.l); if (out.length >= n) break; }
@@ -650,6 +651,7 @@
          <button type="button" class="bad" data-m="delete">🗑 Delete this Spin</button>`
       : `<button type="button" data-m="copy">🔗 Copy link</button>
          <button type="button" data-m="report">🚩 Report this Spin</button>
+         <button type="button" data-m="mute">${P().isMuted && P().isMuted(l.user_id) ? 'Unmute' : 'Mute'} ${esc(at(l.user_id))}</button>
          <button type="button" class="bad" data-m="block">Block ${esc(at(l.user_id))}</button>`;
     const el = sheet('', rows + '<button type="button" data-close style="color:var(--muted)">Cancel</button>');
     el.addEventListener('click', async (e) => {
@@ -680,6 +682,7 @@
         catch (err) { if (err.status !== 409) { await closeSheet(); return say("That didn't send. Try again."); } }
         await closeSheet(); return say('Thanks for looking out. A real person will look at it.');
       }
+      if (m === 'mute') { await closeSheet(); return P().gate(() => P().toggleMute(l.user_id)); }
       if (m === 'block') {
         if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = "Tap again: you won't see each other at all"; return; }
         try { await P().rest('porch_blocks', { method: 'POST', body: { blocker_id: meId(), blocked_id: l.user_id } }); } catch (err) { if (err.status !== 409) return say("That didn't go through."); }

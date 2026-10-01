@@ -24,8 +24,8 @@ Order isn't set.
 - [ ] "Delete my app account" button (right now people have to message the Facebook page to have it wiped)
 - [x] Forgot password (done 1 Oct: Sign In > Forgot your password?, works for anybody who
       confirmed an email on the Porch; level 1 accounts with no email still can't reset)
-- [ ] Blocked people list (see who you blocked, unblock)
-- [ ] Mute somebody without blocking them
+- [x] Blocked people list (done 1 Oct: Edit profile > Blocked & muted)
+- [x] Mute somebody without blocking them (done 1 Oct: ⋯ on a share or Spin)
 
 **Like the big apps**
 - [ ] Groups (home groups, women's/men's, family, by step)

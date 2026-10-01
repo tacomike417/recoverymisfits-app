@@ -398,6 +398,12 @@ html.fullon #main{visibility:hidden}
 .prow .pedit{margin:0;width:auto;flex:1}
 .pvis{display:inline-flex;align-items:center;gap:6px;margin:10px 16px 0;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--soft);font:700 12.5px Arial,sans-serif;cursor:pointer}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
+.bm-lab{margin:14px 0 4px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
+.bm-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.bm-row .av{width:36px;height:36px;font-size:13px;flex:none}
+.bm-row b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mbody .bm-row button{flex:none;width:auto;margin:0;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:800 13px Arial,sans-serif}
+.bm-none,.bm-load{margin:2px 0 6px;color:var(--muted)}
 .eleave{display:block;width:max-content;margin:34px auto 10px;padding:8px 12px;border:0;background:none;color:var(--faint);font:700 12.5px Arial,sans-serif;text-decoration:underline;cursor:pointer}
 .shin-pic{display:block;width:84px;height:84px;object-fit:cover;border-radius:12px;margin:0 0 10px}
 /* every name and face goes to that person's page (1 Oct 2026) */
@@ -820,7 +826,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v63</span>
+  <span class="ver" id="ver">v64</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1122,7 +1128,8 @@ html.kb .ch-bar{padding-bottom:8px}
       <label class="l">FIND FRIENDS NEAR ME</label>
       <div class="nearset" id="enear"></div>
       <p class="hint">Your sober date is never on your profile. It's just for you.</p>
-      <button type="button" class="eleave" data-rules style="margin-top:34px;margin-bottom:0">The Porch rules</button>
+      <button type="button" class="eleave" data-blocked style="margin-top:34px;margin-bottom:0">Blocked &amp; muted</button>
+      <button type="button" class="eleave" data-rules style="margin-top:4px;margin-bottom:0">The Porch rules</button>
       <a class="eleave" href="/privacy.html" style="margin-top:4px">Privacy &amp; terms</a>
       <button type="button" class="eleave" data-leave style="margin-top:4px">Delete my account</button>
     </div>
@@ -1433,6 +1440,7 @@ html.kb .ch-bar{padding-bottom:8px}
     return out;
   }
 
+  var oldestSeen = null;
   async function loadMore() {
     if (loading || done) return;
     loading = true;
@@ -1442,8 +1450,11 @@ html.kb .ch-bar{padding-bottom:8px}
       var realFollows = Object.keys(friends).filter(function (k) { return !isSample(k); });
       var list = tab === "following" && !realFollows.length ? [] : await rest(q + (tab === "following" ? "&user_id=in.(" + realFollows.join(",") + ")" : ""));
       if (list.length < PAGE) done = true;
+      if (list.length) oldestSeen = list[list.length - 1].created_at;
+      list = list.filter(function (p) { return !muted[p.user_id]; });
+      if (!list.length && !done) { oldest = oldestSeen; loading = false; return loadMore(); }
       if (list.length) {
-        oldest = list[list.length - 1].created_at;
+        oldest = oldestSeen;
         if (!newest || list[0].created_at > newest) newest = list[0].created_at;
         var ids = list.map(function (p) { return p.id; });
         var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
@@ -1644,6 +1655,30 @@ html.kb .ch-bar{padding-bottom:8px}
     rulesYes(); await closeTop();
     var go = pending; pending = null; if (go) go();
   });
+  /* BLOCKED & MUTED (1 Oct 2026, big list): see who, and undo it */
+  async function openBlocked() {
+    $("mbody").dataset.t = "{}"; $("mbody").dataset.uid = "";
+    $("mbody").innerHTML = '<p style="margin:0 0 6px;font:400 26px \'RM Head\',Impact,sans-serif">Blocked &amp; muted</p><p class="bm-load">Loading…</p>';
+    open("menu");
+    var bl = [], mu = [];
+    try { bl = await rpc("porch_my_blocks", {}); } catch (e) {}
+    try { var ids = Object.keys(muted); if (ids.length) { await loadPeople(ids); mu = ids.map(function (u) { return people[u] || { user_id: u, handle: "misfit" }; }); } } catch (e) {}
+    var row = function (m, kind) {
+      return '<div class="bm-row">' + avatar(m) + "<b>" + esc(m.handle || "misfit") + '</b><button type="button" data-bm="' + kind + '" data-bmu="' + m.user_id + '">' + (kind === "block" ? "Unblock" : "Unmute") + "</button></div>";
+    };
+    $("mbody").innerHTML = '<p style="margin:0 0 6px;font:400 26px \'RM Head\',Impact,sans-serif">Blocked &amp; muted</p>' +
+      '<div class="bm-lab">BLOCKED</div>' + (bl.length ? bl.map(function (m) { return row(m, "block"); }).join("") : '<p class="bm-none">Nobody.</p>') +
+      '<div class="bm-lab">MUTED</div>' + (mu.length ? mu.map(function (m) { return row(m, "mute"); }).join("") : '<p class="bm-none">Nobody.</p>') +
+      '<button type="button" data-close style="color:var(--muted)">Done</button>';
+  }
+  document.addEventListener("click", async function (e) {
+    var b = e.target.closest && e.target.closest("[data-bm]"); if (!b) return;
+    var uid = b.dataset.bmu; b.disabled = true;
+    if (b.dataset.bm === "mute") { if (await toggleMute(uid)) { b.textContent = "Unmuted"; } else b.disabled = false; return; }
+    try { await rest("porch_blocks?blocker_id=eq." + me.uid + "&blocked_id=eq." + uid, { method: "DELETE" }); b.textContent = "Unblocked"; toast("Unblocked. You can see each other on the Porch again."); }
+    catch (err) { b.disabled = false; toast("That didn't go through."); }
+  });
+
   /* read them again any time (Edit profile, bottom) */
   function showRules() { $("rulesok").hidden = true; open("rulesheet"); }
 
@@ -1970,7 +2005,8 @@ html.kb .ch-bar{padding-bottom:8px}
     var mineToo = uid === me.uid;
     var html = mineToo
       ? (target.post ? '<button type="button" data-m="edit">Edit this share</button>' : "") + '<button type="button" class="bad" data-m="del">Delete this ' + (target.post ? "share" : "comment") + "</button>"
-      : '<button type="button" data-m="report">Report this ' + (target.post ? "share" : "comment") + '</button><button type="button" data-m="block">Block ' + esc(name(uid)) + "</button>";
+      : '<button type="button" data-m="report">Report this ' + (target.post ? "share" : "comment") + '</button>' +
+        '<button type="button" data-m="mute">' + (muted[uid] ? "Unmute " : "Mute ") + esc(name(uid)) + '</button><button type="button" data-m="block">Block ' + esc(name(uid)) + "</button>";
     if (target.post) html = '<button type="button" data-m="save">' + (saved[target.post] ? "Remove from saved" : "Save this share") + "</button>" + html;
     $("mbody").innerHTML = html + '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
     $("mbody").dataset.t = JSON.stringify(target); $("mbody").dataset.uid = uid;
@@ -2038,6 +2074,8 @@ html.kb .ch-bar{padding-bottom:8px}
       try { await rest("porch_reports", { method: "POST", body: row }); } catch (err) { if (err.status !== 409) { await closeTop(); return toast("That didn't send. Try again."); } }
       this.innerHTML = '<p style="margin:0 0 4px;font:400 24px \'RM Head\',Impact,sans-serif">Thanks for looking out.</p><p>A real person will look at it.' +
         (b.dataset.why === "self_harm" ? " If somebody's in danger right now, call 911." : "") + '</p><button type="button" data-m="block">Block ' + esc(name(uid)) + ' too</button><button type="button" data-close>Done</button>';
+    } else if (m === "mute") {
+      await closeTop(); gate(function () { toggleMute(uid); });
     } else if (m === "block") {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again: you won't see each other at all"; return; }
       try { await rest("porch_blocks", { method: "POST", body: { blocker_id: me.uid, blocked_id: uid } }); } catch (err) { if (err.status !== 409) { await closeTop(); return toast("That didn't go through."); } }
@@ -2573,7 +2611,27 @@ html.kb .ch-bar{padding-bottom:8px}
      anywhere. Every Add Friend button on the Porch is drawn by friendBtn(), so
      they all look and act the same and change together. */
   var SFOL = "rm_porch_sample_friends";
+  /* MUTE (1 Oct 2026, big list): their shares and Spins stay out of your feed.
+     They aren't told and nothing changes for them. */
+  var muted = {};
+  async function loadMutes() {
+    muted = {}; if (!me.uid) return;
+    try { (await rest("porch_mutes?muter_id=eq." + me.uid + "&select=muted_id")).forEach(function (r) { muted[r.muted_id] = true; }); } catch (e) {}
+  }
+  async function toggleMute(uid) {
+    var was = !!muted[uid];
+    try {
+      if (was) await rest("porch_mutes?muter_id=eq." + me.uid + "&muted_id=eq." + uid, { method: "DELETE" });
+      else await rest("porch_mutes", { method: "POST", body: { muter_id: me.uid, muted_id: uid } });
+    } catch (err) { if (err.status !== 409) { toast("That didn't go through."); return false; } }
+    if (was) delete muted[uid]; else muted[uid] = true;
+    if (!was) document.querySelectorAll(".post").forEach(function (p) { if (posts[p.dataset.post] && posts[p.dataset.post].user_id === uid) p.remove(); });
+    if (window.PorchSpins) window.PorchSpins.paintRail();
+    toast(was ? "Unmuted. Their shares show up again." : "Muted. You won't see their shares or Spins in your feed. They aren't told.");
+    return true;
+  }
   async function loadFriends() {
+    loadMutes();
     friends = {}; reqOut = {}; reqIn = {};
     try { (JSON.parse(localStorage.getItem(SFOL) || "[]")).forEach(function (k) { friends[k] = true; }); } catch (e) {}
     if (!me.uid) return;
@@ -3312,6 +3370,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (t.closest("[data-editp]")) return gate(openEdit);
     if (t.closest("[data-leave]")) return askLeave();
     if (t.closest("[data-rules]")) return showRules();
+    if (t.closest("[data-blocked]")) return openBlocked();
     var shin = t.closest("[data-shin]"); if (shin) { var how = shin.dataset.shin; return closeTop().then(function () { useShared(how); }); }
     if (t.closest("[data-sharep]")) return shareProfile();
     var ptab = t.closest("[data-ptab]"); if (ptab) { var pg2 = ptab.closest(".page") || document; pg2.querySelectorAll("[data-ptab]").forEach(function (b) { b.classList.toggle("on", b === ptab); }); pg2.querySelectorAll("[data-ppane]").forEach(function (d) { d.hidden = d.dataset.ppane !== ptab.dataset.ptab; }); return; }
@@ -3619,7 +3678,7 @@ html.kb .ch-bar{padding-bottom:8px}
     DB: DB, KEY: KEY, rest: rest, fn: fn, rpc: rpc, tok: tok, avatar: avatar, loadPeople: loadPeople, name: name,
     get people() { return people; }, get me() { return me; },
     toast: toast, gate: gate, open: open, closeTop: closeTop, openProfile: openProfile, openHandle: openHandle,
-    openCommentsFor: openCommentsFor, commentCount: function (id) { return (comments[id] || []).length; },
+    openCommentsFor: openCommentsFor, isMuted: function (u) { return !!muted[u]; }, toggleMute: toggleMute, commentCount: function (id) { return (comments[id] || []).length; },
     pickFriendToSend: function (text, card) { openPick(text, card); }
   };
 
@@ -3708,6 +3767,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=61" defer></script>
+<script src="/feed/spins/spins.js?v=64" defer></script>
 </body>
 </html>
