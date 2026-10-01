@@ -142,6 +142,15 @@
   .lvl ul{margin:0;padding:0;list-style:none}
   .lvl li{font-family:var(--ui);font-size:13.5px;line-height:1.5;color:var(--ivory);padding-left:20px;position:relative}
   .lvl li::before{content:"✓";position:absolute;left:0;color:var(--gold);font-weight:800}
+  .lvl{position:relative;padding-right:52px}
+  .lvl .radio{position:absolute;top:16px;right:16px;width:26px;height:26px;border-radius:50%;border:2px solid rgba(215,178,83,.6);box-sizing:border-box}
+  .lvl.on{border-color:var(--gold);background:rgba(215,178,83,.14)}
+  .lvl.on .radio{border:8px solid var(--gold)}
+  .steps{margin:12px 0 0}
+  .steps .bars{display:flex;gap:6px}
+  .steps .bars i{flex:1;height:5px;border-radius:3px;background:rgba(215,178,83,.2)}
+  .steps .bars i.on{background:var(--gold)}
+  .steps p{margin:8px 0 0;font-family:var(--ui);font-weight:800;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold)}
   .lvl .soon{display:inline-block;margin-top:10px;padding:4px 10px;border-radius:999px;background:#2a2516;color:var(--gold);
     font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.2px;text-transform:uppercase}
   .lvl.locked{opacity:.75}
@@ -210,10 +219,15 @@
 
   <header class="pub">
     <img class="art" src="/assets/pages/d-book.webp" alt="" aria-hidden="true" width="122" height="111">
-    <div><h1 class="name">Your Anonymous Account</h1></div>
+    <div><h1 class="name" id="pageName">Your Anonymous Account</h1></div>
   </header>
   <img class="rule" src="/assets/pages/d-rule.webp" alt="" aria-hidden="true"
        width="297" height="17" style="display:block;width:100%;max-width:297px;margin:6px 0 0">
+  <!-- WHERE YOU ARE (1 Oct 2026, Mike): signing up is three steps, and this says which one -->
+  <div class="steps" id="steps" hidden>
+    <div class="bars"><i></i><i></i><i></i></div>
+    <p id="stepTxt"></p>
+  </div>
 
   <!-- ============ PICK YOUR LEVEL (1 Oct 2026, Mike) ============
        The first thing a new person sees: two doors, plainly. Level 2 (the
@@ -221,18 +235,21 @@
        it marked "Opens end of October". -->
   <div id="levels" hidden>
     <p class="lede">Your recovery, your way.</p>
-    <div class="lvls">
-      <button type="button" class="lvl" data-lvl="1">
+    <div class="lvls" role="radiogroup" aria-label="Pick your level">
+      <button type="button" class="lvl" data-lvl="1" role="radio" aria-checked="false">
+        <span class="radio" aria-hidden="true"></span>
         <span class="k">Level 1</span><span class="t">Anonymous</span>
         <ul><li>Just a username and password</li><li>Your sober date follows you to a new phone</li><li>Read the Porch</li><li>No email. Nobody knows you&rsquo;re here.</li></ul>
       </button>
-      <button type="button" class="lvl" data-lvl="2" id="lvl2">
+      <button type="button" class="lvl" data-lvl="2" id="lvl2" role="radio" aria-checked="false">
+        <span class="radio" aria-hidden="true"></span>
         <span class="k">Level 2</span><span class="t">I&rsquo;m comfortable here</span>
         <ul><li>Everything in Level 1</li><li>Post, make Spins, add friends, message</li><li>Confirm an email once. It&rsquo;s never kept or shown.</li></ul>
         <span class="soon" id="lvl2soon" hidden>Opens end of October</span>
       </button>
     </div>
     <p class="say" id="sayLvl" role="status" aria-live="polite"></p>
+    <button type="button" class="go" id="lvlNext" disabled style="margin-top:14px">Next</button>
     <button type="button" class="textlink" id="haveOne">I already have an account</button>
   </div>
 
@@ -450,10 +467,19 @@
   function pick(n) { try { localStorage.setItem(LVL_KEY, n); } catch (e) {} }
   /* Level 2 picked (or already on the Porch) and allowed in: after the date, set up the profile */
   function wantsPorch() { return A.signedIn() && porchFor(A.name()) && picked() === "2"; }
+  var signingUp = false;
   function paint(step) {
     Object.keys(STEP).forEach(function (k) {
       $(STEP[k]).hidden = (k !== step);
     });
+    /* the big header says where you are: Sign Up / Sign In / your account */
+    var n = step === "levels" ? 1 : step === "form" && mode === "new" ? 2 : (step === "fresh" || step === "claim" || step === "date") && signingUp ? 3 : 0;
+    $("pageName").textContent = n ? "Sign Up" : step === "form" ? "Sign In" : "Your Anonymous Account";
+    $("steps").hidden = !n;
+    if (n) {
+      [].forEach.call($("steps").querySelectorAll("i"), function (b, i) { b.classList.toggle("on", i < n); });
+      $("stepTxt").textContent = "Step " + n + " of 3 · " + (n === 1 ? "Pick your level" : n === 2 ? "Make your username" : "Your sober date");
+    }
     if (A.signedIn()) $("dsWho").textContent = A.name();
   }
 
@@ -543,6 +569,7 @@
     $("lvl2").classList.toggle("locked", !open);
     $("lvl2soon").hidden = open;
     say($("sayLvl"), "");
+    paintChoice();
     paint("levels");
   }
   function goForm(lvl, m) {
@@ -556,6 +583,14 @@
     setTimeout(function () { $("nm").focus(); }, 60);
   }
   window.addEventListener("popstate", function () { if (!A.signedIn() && !$("out").hidden) showLevels(); });
+  var chosen = "";
+  function paintChoice() {
+    document.querySelectorAll("[data-lvl]").forEach(function (b) {
+      var on = b.getAttribute("data-lvl") === chosen;
+      b.classList.toggle("on", on); b.setAttribute("aria-checked", on ? "true" : "false");
+    });
+    $("lvlNext").disabled = !chosen;
+  }
   document.querySelectorAll("[data-lvl]").forEach(function (b) {
     b.addEventListener("click", function () {
       var l = b.getAttribute("data-lvl");
@@ -563,9 +598,11 @@
         say($("sayLvl"), "Level 2 opens with the Porch at the end of October. Start with Level 1 and move up then.", "good");
         return;
       }
-      goForm(l, "new");
+      say($("sayLvl"), "");
+      chosen = l; paintChoice();
     });
   });
+  $("lvlNext").addEventListener("click", function () { if (chosen) goForm(chosen, "new"); });
   $("haveOne").addEventListener("click", function () { goForm("", "old"); });
   $("pickAgain").addEventListener("click", showLevels);
 
@@ -583,6 +620,11 @@
   /* ---- create / sign in ------------------------------------------------- */
   function setMode(next) {
     mode = next;
+    if ($("pickedBar")) {
+      $("pickedBar").hidden = next === "old";
+      if (next === "new" && !$("pickedTxt").innerHTML) $("pickedTxt").innerHTML = picked() === "2" ? "<b>Level 2</b> · I&rsquo;m comfortable here" : "<b>Level 1</b> · Anonymous";
+    }
+    if ($("out") && !$("out").hidden) setTimeout(function () { paint("form"); }, 0);
     $("tabNew").setAttribute("aria-selected", next === "new" ? "true" : "false");
     $("tabOld").setAttribute("aria-selected", next === "old" ? "true" : "false");
     $("submit").textContent = next === "new" ? "Create My Anonymous Account" : "Sign In";
@@ -621,6 +663,7 @@
     say($("say"), "");
 
     if (mode === "new") {
+      signingUp = true;
       /* The one and only time this app shows somebody a password. */
       $("freshName").textContent = A.name();
       $("freshPw").textContent = pw;
