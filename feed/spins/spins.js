@@ -84,6 +84,7 @@
 .sp-frames{gap:6px!important;padding:0 10px 0 6px!important;align-items:center}
 .sp-frame{flex:none;position:relative;width:88px;height:156px;padding:0;border:0;border-radius:12px;overflow:hidden;background:#000;color:#fff;cursor:pointer;scroll-snap-align:start}
 .sp-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sp-meme img{transform:scale(1.32);transform-origin:50% 40%}
 .sp-fplay{position:absolute;z-index:1;left:50%;top:46%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:rgba(0,0,0,.5);border:1.5px solid rgba(255,255,255,.85);display:grid;place-items:center;box-sizing:border-box}
 .sp-fplay svg{width:14px;height:14px;margin-left:2px;fill:#fff}
 .sp-film .sp-mk{width:80px;margin-right:4px}
@@ -94,7 +95,7 @@
 .sp-flen svg{width:9px;height:9px;fill:#fff}
 .sp-fre{position:absolute;z-index:1;right:5px;top:5px;width:20px;height:20px;border-radius:50%;background:#e0bd6a;display:grid;place-items:center}
 .sp-fre svg{width:12px;height:12px;fill:none;stroke:#11110f;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.sp-fnm{position:absolute;z-index:1;left:4px;bottom:5px;max-width:calc(100% - 8px);box-sizing:border-box;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.66);font:800 9.5px/1.3 Arial,sans-serif;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-fnm{position:absolute;z-index:1;left:4px;bottom:5px;max-width:calc(100% - 8px);box-sizing:border-box;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);font:800 9.5px/1.3 Arial,sans-serif;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-fmake{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #e0bd6a;box-sizing:border-box;background:rgba(224,189,106,.07);color:#e0bd6a}
 .sp-fmake::after{display:none}
 .sp-fmake .sp-cam svg{width:30px;height:30px}
@@ -270,7 +271,10 @@
   const PLAY_ICO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>';
   const lenTxt = (l) => { const n = Math.round(Number(l.length_s) || 0); return n ? '0:' + String(n).padStart(2, '0') : ''; };
   function frameHTML(l, i) {
-    return `<button type="button" class="sp-frame" data-sp-open="rail" data-sp-i="${i}" aria-label="Spin by ${esc(at(l.user_id))}${l.respunBy ? ', respun by ' + esc(at(l.respunBy)) : ''}">
+    /* the meme Spins are a square picture inside a tall video (sound off, no music):
+       zoom the preview in so the picture fills more of the frame (1 Oct 2026, Mike) */
+    const meme = l.muted && !(l.music && l.music.name);
+    return `<button type="button" class="sp-frame${meme ? ' sp-meme' : ''}" data-sp-open="rail" data-sp-i="${i}" aria-label="Spin by ${esc(at(l.user_id))}${l.respunBy ? ', respun by ' + esc(at(l.respunBy)) : ''}">
       <img src="${esc(thumbFor(l))}" alt="" loading="lazy">
       <span class="sp-fplay">${PLAY_ICO}</span>
       ${l.respunBy ? `<span class="sp-fre">${RESPIN}</span>` : ''}
