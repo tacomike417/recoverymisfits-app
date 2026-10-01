@@ -143,6 +143,7 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .ph .who b{display:block;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ph .who small{color:var(--muted);font-size:12px}
 .tag{flex:none;padding:4px 9px;border-radius:999px;font:500 11px "RM Rail",Oswald,sans-serif;letter-spacing:.08em;background:var(--tagbg);color:var(--soft)}
+.spinlink{display:inline-block;padding:6px 12px;border-radius:999px;background:#e0bd6a;color:#11110f!important;font-weight:800;text-decoration:none!important}
 .tag.win{background:#1f2e1c;color:#a8dca0}.tag.experience{background:#1f2a33;color:#a9c9e8}.tag.strength{background:#1f2e1c;color:#a8dca0}.tag.hope{background:#33290f;color:#f0cf7a}.tag.hard{background:#3a1f24;color:#ffb3a5}.tag.question{background:#1f2e3a;color:#9ecbff}.tag.moment{background:#2e2440;color:#d3bfff}
 .more{flex:none;width:36px;height:36px;border:0;border-radius:50%;background:none;color:var(--muted);font:800 18px/1 Arial,sans-serif;cursor:pointer}
 .body{padding:0 12px 10px;white-space:pre-wrap;word-wrap:break-word;font-size:15.5px}
@@ -665,7 +666,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v36</span>
+  <span class="ver" id="ver">v37</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1094,6 +1095,9 @@ html.kb .ch-bar{padding-bottom:8px}
   function linkify(s) {
     return esc(s).replace(/\b((?:https?:\/\/|www\.)[^\s<]+)/gi, function (u) {
       var href = /^https?:/i.test(u) ? u : "https://" + u;
+      /* our own Spin links (/s/<id>) play right here instead of leaving the Porch */
+      var sm = href.match(/^https?:\/\/(?:www\.)?recoverymisfits\.org\/(?:s\/|feed\/porch\.html\?spin=)([0-9a-f-]{36})/i);
+      if (sm) return '<a href="' + href + '" class="spinlink" data-spinlink="' + sm[1].toLowerCase() + '">▶ Watch the Spin</a>';
       return '<a href="' + href + '" target="_blank" rel="noopener nofollow ugc">' + u + "</a>";
     }).replace(/(^|[^\w@\/.])@([A-Za-z0-9._-]{3,32})/g, function (m, pre, h) {
       h = h.replace(/[._-]+$/, "");
@@ -1284,6 +1288,10 @@ html.kb .ch-bar{padding-bottom:8px}
     await loadMore();
   }
   new IntersectionObserver(function (es) { if (es[0].isIntersecting) loadMore(); }, { rootMargin: "900px" }).observe($("sentinel"));
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("[data-spinlink]"); if (!a || !window.PorchSpins) return;
+    e.preventDefault(); e.stopPropagation(); window.PorchSpins.openById(a.getAttribute("data-spinlink"));
+  }, true);
 
   /* New Misfits: faces and names. No day counts, no streaks. */
   async function loadNew() {
@@ -2953,6 +2961,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=36" defer></script>
+<script src="/feed/spins/spins.js?v=37" defer></script>
 </body>
 </html>

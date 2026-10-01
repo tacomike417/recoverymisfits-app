@@ -341,6 +341,13 @@
     ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillText('RECOVERY MISFITS', W - 26, H - 38);
     ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillText('RECOVERY MISFITS', W - 28, H - 40);
+    /* WHO MADE IT (1 Oct 2026, Mike: the viral list): their @name rides on the
+       video, so a Spin posted to Reels or TikTok points back to them and to us */
+    if (markName) {
+      ctx.font = '900 30px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillText('@' + markName, W - 26, H - 74);
+      ctx.fillStyle = '#e0bd6a'; ctx.fillText('@' + markName, W - 28, H - 76);
+    }
     ctx.restore();
   }
 
@@ -550,6 +557,7 @@
    Make button show up once there's a clip to work with. */
 .lpm.lpm-blank .lpm-tabs,.lpm.lpm-blank .lpm-panel,.lpm.lpm-blank .lpm-go,.lpm.lpm-blank canvas{display:none!important}
 .lpm.lpm-blank .lpm-stage{background:radial-gradient(120% 70% at 50% 0%,#2a2316 0%,#0c0b09 60%)}
+.lpm-usnd{margin:16px 0 16px;padding:8px 14px;border-radius:999px;background:rgba(224,189,106,.14);border:1px solid rgba(224,189,106,.45);color:#e0bd6a;font:700 14px/1.2 Arial,sans-serif;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lpm.lpm-blank .lpm-empty{inset:0;padding:0 22px calc(20px + env(safe-area-inset-bottom));gap:0}
 .lpm-empty h2{font:400 44px/1 "RM Head",Impact,sans-serif;text-transform:uppercase;color:#f1e7cf}
 .lpm-empty .lpm-sub{margin:10px 0 28px;font:700 17px/1.3 Arial,sans-serif;color:#c9bfa8;max-width:none}
@@ -573,6 +581,7 @@
   let halftone = null;
   let el = null, cv = null, ctx = null, raf = 0, t0 = 0, tab = 'photos', onDone = null, busy = false;
   let musicApi = null, tracks = [], mq = 'chill', mloading = false, maudio = null;
+  let markName = '';
   let picker = null;
 
   /* the whole 9:16 picture, as big as the space allows */
@@ -610,6 +619,7 @@
     if (el) return;
     onDone = (opts && opts.onDone) || null;
     musicApi = (opts && opts.music) || null;
+    markName = String((opts && opts.handle) || '').replace(/[^A-Za-z0-9._-]/g, '').slice(0, 32);
     st = { photos: [], music: null, mvol: 0.8, ovol: 1, style: 'pullday', text: '', tp: { x: 0.5, y: 0.2, s: 1, r: 0 }, tbox: null, stickers: [], sel: -1 };
     tab = 'photos';
     el = document.createElement('div');
@@ -624,6 +634,7 @@
         <div class="lpm-empty">
           <h2>Give it a spin</h2>
           <p class="lpm-sub">15 seconds. A video or a few photos.</p>
+          ${opts && opts.sound && opts.sound.id ? `<p class="lpm-usnd">♫ <span>Getting the sound…</span></p>` : ''}
           <div class="lpm-doors">
             <button type="button" class="lpm-door rec" data-rec><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21.5 7v10l-6-3.5z"/></svg><b>Record</b><small>Use your camera</small></button>
             <button type="button" class="lpm-door pick" data-add><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><b>Upload</b><small>Video or photos</small></button>
@@ -653,6 +664,23 @@
     wire();
     paintPanel();
     restartPreview();
+    if (opts && opts.sound && opts.sound.id) useSound(opts.sound);
+  }
+
+  /* USE THIS SOUND (1 Oct 2026, Mike: the viral list): "Use this sound" on
+     somebody's Spin opens the maker with their track already on. */
+  async function useSound(s) {
+    const me = st, tag = el && el.querySelector('.lpm-usnd span');
+    try {
+      if (!musicApi) throw new Error('music');
+      const blob = await musicApi.file(s.id);
+      audioReady();
+      const buf = await actx.decodeAudioData(await blob.arrayBuffer());
+      if (st !== me || !st || st.music) return;
+      st.music = { id: s.id, name: s.name || 'Sound', by: s.by || '', buf, url: URL.createObjectURL(blob) };
+      if (tag) tag.textContent = st.music.name + (st.music.by ? ' · ' + st.music.by : '');
+      paintPanel();
+    } catch (_) { if (tag) tag.textContent = "Couldn't get that sound. Pick one in Music."; }
   }
 
   function restartPreview() {

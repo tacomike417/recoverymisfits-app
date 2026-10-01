@@ -140,6 +140,14 @@ preview show up only once there's a clip.
 - Beta testers (porch_testers) can post right away with no email confirmation
   (porch_15_testers_post.sql). Everyone else still confirms an email once.
 
+### Spins go viral (1 Oct 2026, Porch v37, Mike: "lets do all the viral stuff")
+- **@name on every Spin:** the maker burns "@handle" over RECOVERY MISFITS into the video, so a Spin posted to Reels/TikTok points back. New Spins only; the meme Spins from scripts/post_spins.mjs don't have it.
+- **Respins ride the story row:** a respun Spin jumps back to the front with a gold ↻ badge and the respinner's name.
+- **Use this sound:** the ♫ line on a Spin is a button that opens the maker with that track already on.
+- **Share links are /s/<id>:** functions/s/[id].js (Cloudflare Pages Function) gives texts and Messenger a picture preview and plays the Spin for anybody. New here = "Join Recovery Misfits"; has an account = "More Spins on the Porch". Needs SQL step 16 (porch_spin_card).
+- Spin links inside Porch messages show as "▶ Watch the Spin" and play right there.
+- Note: a Spin link can be watched by people outside the beta. The Porch itself stays locked until Oct 20.
+
 ### LATER: Spin face filters (1 Oct 2026, parked until the UI is worked out)
 - The selfie camera, the 8 characters, their voices and the face tracking are already in
   spin-maker.js. The filter art isn't: the pictures live in Jeff's project

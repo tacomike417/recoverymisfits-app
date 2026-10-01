@@ -24,7 +24,7 @@
   const TUS = 'https://video.bunnycdn.com/tusupload';
   const TUS_LIB = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
   const MB_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
-  const MAKER = '/feed/spins/spin-maker.js?v=30';
+  const MAKER = '/feed/spins/spin-maker.js?v=31';
   const MAX_S = 15.5;
   const RAIL_N = 14;
   const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at';
@@ -65,6 +65,9 @@
 @media (prefers-reduced-motion:reduce){.sp-mk .sp-ring{animation:none}}
 .sp-mk .sp-nm{color:var(--gold2);font-weight:800;overflow:visible}
 .sp-story:active .sp-ring{transform:scale(.95)}
+.sp-story .sp-ring{position:relative}
+.sp-rebadge{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#e0bd6a;border:2px solid var(--bg,#11110f);display:grid;place-items:center;box-sizing:border-box}
+.sp-rebadge svg{width:14px;height:14px;fill:none;stroke:#11110f;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .sp-rail h2{margin:0 12px 8px;font:500 13px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold);display:flex;align-items:center;gap:7px}
 .sp-rail h2 svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
 .sp-row{display:flex;gap:8px;overflow-x:auto;padding:0 12px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
@@ -102,7 +105,9 @@
 .sp-respun{display:inline-flex;align-items:center;gap:6px;margin:0 0 6px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.5);font:800 12px/1.2 Arial,sans-serif;color:#f6e3a8}
 .sp-cap{margin:0;white-space:pre-wrap;word-break:break-word;max-height:30vh;overflow:auto}
 .sp-at{color:#f6e3a8;cursor:pointer;font-weight:800}
-.sp-music{display:flex;align-items:center;gap:6px;margin-top:6px;font:700 12.5px/1.2 Arial,sans-serif;opacity:.9}
+.sp-music{display:flex;align-items:center;gap:7px;max-width:100%;margin-top:8px;padding:5px 5px 5px 10px;border:0;border-radius:999px;background:rgba(0,0,0,.42);color:#fff;font:700 12.5px/1.2 Arial,sans-serif;cursor:pointer}
+.sp-music span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-music b{flex:none;padding:5px 10px;border-radius:999px;background:#e0bd6a;color:#11110f;font:800 12px/1 Arial,sans-serif}
 .sp-music i{font-style:normal;animation:spinme 4s linear infinite;display:inline-block}
 @keyframes spinme{to{transform:rotate(360deg)}}
 .sp-meta{margin-top:6px;font-size:12px;opacity:.8}
@@ -197,10 +202,25 @@
      READING SPINS
      ====================================================================== */
   const sets = new Map();          /* 'rail' | 'prof:<uid>' -> [spins] */
+  /* RESPINS RIDE THE ROW TOO (1 Oct 2026, Mike: the viral list). When somebody
+     respins a Spin it comes back to the front of the row with their name on it,
+     so their friends see it. Each Spin shows once, at its newest moment. */
   async function latest(n) {
-    const r = await P().rest('porch_spins?status=eq.ready&select=' + COLS + '&order=created_at.desc&limit=' + (n * 2));
+    const [r, rr] = await Promise.all([
+      P().rest('porch_spins?status=eq.ready&select=' + COLS + '&order=created_at.desc&limit=' + (n * 2)),
+      P().rest('porch_respins?select=user_id,spin_id,created_at&order=created_at.desc&limit=' + n).catch(() => [])
+    ]);
     const now = Date.now();
-    return r.filter((l) => l.pinned || new Date(l.expires_at).getTime() > now).slice(0, n);
+    const live = (l) => l.status === 'ready' && (l.pinned || new Date(l.expires_at).getTime() > now);
+    const by = {}; r.forEach((l) => (by[l.id] = l));
+    const missing = [...new Set(rr.map((x) => x.spin_id).filter((id) => !by[id]))];
+    if (missing.length) { try { (await P().rest('porch_spins?id=in.(' + missing.join(',') + ')&select=' + COLS)).forEach((l) => (by[l.id] = l)); } catch (_) {} }
+    const all = r.filter(live).map((l) => ({ l, t: l.created_at }));
+    rr.forEach((x) => { const l = by[x.spin_id]; if (l && live(l) && x.user_id !== l.user_id) all.push({ l: Object.assign({}, l, { respunBy: x.user_id, respunAt: x.created_at }), t: x.created_at }); });
+    all.sort((a, b) => (a.t < b.t ? 1 : -1));
+    const seen = new Set(), out = [];
+    for (const a of all) { if (seen.has(a.l.id)) continue; seen.add(a.l.id); out.push(a.l); if (out.length >= n) break; }
+    return out;
   }
   function tileHTML(l, set, i, mine) {
     let badge = '', dim = false;
@@ -219,8 +239,8 @@
 
   /* LAYOUT A (1 Oct 2026): on the Porch, Spins are story circles under the tab row */
   function storyHTML(l, i) {
-    return `<button type="button" class="sp-story" data-sp-open="rail" data-sp-i="${i}" aria-label="Spin by ${esc(at(l.user_id))}">
-      <span class="sp-ring"><img src="${esc(thumbFor(l))}" alt="" loading="lazy"></span><span class="sp-nm">${esc(P().name(l.user_id))}</span></button>`;
+    return `<button type="button" class="sp-story" data-sp-open="rail" data-sp-i="${i}" aria-label="Spin by ${esc(at(l.user_id))}${l.respunBy ? ', respun by ' + esc(at(l.respunBy)) : ''}">
+      <span class="sp-ring"><img src="${esc(thumbFor(l))}" alt="" loading="lazy">${l.respunBy ? `<i class="sp-rebadge">${RESPIN}</i>` : ''}</span><span class="sp-nm">${l.respunBy ? '↻ ' : ''}${esc(P().name(l.respunBy || l.user_id))}</span></button>`;
   }
   /* GIVE IT A SPIN (1 Oct 2026, Mike: "a plus sign is not obvious, we need to get a click").
      The gold movie camera itself is the button, with a little + badge, and it breathes
@@ -234,7 +254,7 @@
     let list = [];
     try { list = await latest(RAIL_N); } catch (_) { return ''; }
     if (!list.length && !meId()) return '';
-    await P().loadPeople(list.map((l) => l.user_id));
+    await P().loadPeople(list.map((l) => l.user_id).concat(list.map((l) => l.respunBy).filter(Boolean)));
     sets.set('rail', list);
     return `<section class="sp-rail" data-sp-rail aria-label="Sober Spins">
       <div class="sp-row sp-stories">${meId() ? makeStory() : ''}${list.map((l, i) => storyHTML(l, i)).join('')}</div></section>`;
@@ -319,7 +339,7 @@
         ${l.respunBy ? `<span class="sp-respun">↻ Respun by ${esc(at(l.respunBy))}</span><br>` : ''}
         <button type="button" class="sp-by" data-sp-person="${esc(l.user_id)}">${P().avatar(P().people[l.user_id])}<span>${esc(at(l.user_id))}</span></button>
         ${l.caption ? `<p class="sp-cap">${captionHTML(l.caption)}</p>` : ''}
-        ${l.music && l.music.name ? `<div class="sp-music"><i>♫</i>${esc(l.music.name)} · ${esc(l.music.by || '')}</div>` : ''}
+        ${l.music && l.music.name ? `<button type="button" class="sp-music" data-sp-sound aria-label="Use this sound"><i>♫</i><span>${esc(l.music.name)}</span><b>Use this sound</b></button>` : ''}
         ${mine ? `<div class="sp-meta">${l.pinned ? '📌 Pinned, stays on your profile' : d > 0 ? `Gone in ${d} day${d === 1 ? '' : 's'} · pin it to keep it` : 'Gone soon · pin it to keep it'}</div>` : ''}
       </div>
       <div class="sp-side">
@@ -417,6 +437,12 @@
   async function onPlayerClick(e) {
     if (e.target.closest('[data-sp-close]')) { e.preventDefault(); leavePlayer(); return; }
     if (e.target.closest('[data-sp-make]')) { e.stopPropagation(); return start(); }
+    if (e.target.closest('[data-sp-sound]')) {
+      e.stopPropagation();
+      const ls = spList[current()];
+      if (!meId()) return P().gate(() => {});
+      return start(ls && ls.music);
+    }
     const item = e.target.closest('[data-sp-item]');
     const i = item ? Number(item.getAttribute('data-sp-item')) : current();
     const l = spList[i];
@@ -501,7 +527,9 @@
 
   /* SHARE: send it to a friend in Messages, share the video itself (with the
      RECOVERY MISFITS mark), or just the link. */
-  const linkFor = (l) => location.origin + '/feed/porch.html?spin=' + l.id;
+  /* /s/<id>: a page anybody can open, with the Spin's picture in the link preview
+     (functions/s/[id].js on Cloudflare). Members get sent on into the Porch. */
+  const linkFor = (l) => location.origin + '/s/' + l.id;
   async function share(l) {
     const url = linkFor(l), title = `${at(l.user_id)} on Recovery Misfits`;
     /* THREE BIG DOORS (1 Oct 2026, Mike: least words, completely obvious): a bold
@@ -633,7 +661,7 @@
       return r.blob();
     }
   };
-  function openMaker() {
+  function openMaker(sound) {
     if (!makerReady) makerReady = new Promise((ok, no) => {
       if (window.PorchSpinMaker) return ok();
       const s = document.createElement('script'); s.src = MAKER;
@@ -641,15 +669,15 @@
       document.head.appendChild(s);
     });
     makerReady.then(() => {
-      window.PorchSpinMaker.open({ music: musicApi, onDone: (file, music) => startWithFile(file, music) });
+      window.PorchSpinMaker.open({ music: musicApi, handle: P().name(meId()), sound: sound || null, onDone: (file, music) => startWithFile(file, music) });
       fixMakerZ();
     }).catch(() => say("Couldn't open the maker. Check your connection."));
   }
   function fixMakerZ() { const m = document.querySelector('.lpm'); if (m && back()) m.style.zIndex = String(back().top()); }
-  function start() {
+  function start(sound) {
     if (!meId()) return P().gate(() => {});
     if (uploading) return say('One Spin is still uploading. Hang on a sec.');
-    P().gate(openMaker);
+    P().gate(() => openMaker(sound && sound.id ? sound : null));
   }
 
   function closeNew() { if (pickedURL) { try { URL.revokeObjectURL(pickedURL); } catch (_) {} pickedURL = ''; } if (newEl) { newEl.remove(); newEl = null; } }

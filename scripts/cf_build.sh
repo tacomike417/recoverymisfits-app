@@ -17,7 +17,7 @@ set -e
 rm -rf _site
 mkdir _site
 # everything except git/CI internals and the source-only folders (same list as deploy.yml)
-tar --exclude=./.git --exclude=./.github --exclude=./_site --exclude=./scripts -cf - . | tar -xf - -C _site
+tar --exclude=./.git --exclude=./.github --exclude=./_site --exclude=./scripts --exclude=./functions -cf - . | tar -xf - -C _site
 # Pillow is only needed if a meme was added without its share card; never fail the build over it
 python3 -m pip install --quiet pillow >/dev/null 2>&1 || true
 ADS_OUT_ROOT="$PWD/_site" python3 scripts/build_pages.py
