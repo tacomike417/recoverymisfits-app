@@ -57,11 +57,12 @@
 .sp-ring{display:block;width:72px;height:72px;margin:0 auto;border-radius:50%;padding:3px;background:conic-gradient(#f6e3a8,#e0bd6a,#c9922b,#f6e3a8);box-sizing:border-box}
 .sp-ring img{display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid var(--bg,#11110f);box-sizing:border-box;background:#15130e}
 .sp-nm{display:block;margin-top:6px;font:600 11.5px/1.2 Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sp-mk .sp-ring{position:relative;background:conic-gradient(#f6e3a8,#e0bd6a,#c9922b,#f6e3a8);padding:3px;animation:sp-call 3.2s ease-in-out infinite}
+.sp-mk .sp-ring{position:relative;background:conic-gradient(#f6e3a8,#e0bd6a,#c9922b,#f6e3a8);padding:3px}
 .sp-cambtn .sp-cam,.sp-mk .sp-cam{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;border:3px solid var(--bg,#11110f);box-sizing:border-box;background:radial-gradient(circle at 50% 40%,#f6e3a8,#e0bd6a 60%,#c9922b);color:#17130b}
 .sp-cambtn .sp-cam svg,.sp-mk .sp-cam svg{width:36px;height:36px;margin-left:2px}
 .sp-badge-plus{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#f1e7cf;color:#17130b;border:3px solid var(--bg,#11110f);display:grid;place-items:center;font:900 18px/1 Arial;font-style:normal}
-@keyframes sp-call{0%,70%,100%{box-shadow:0 0 0 0 rgba(224,189,106,0)}80%{box-shadow:0 0 0 7px rgba(224,189,106,.35)}90%{box-shadow:0 0 0 12px rgba(224,189,106,0)}}
+@keyframes sp-call{0%,70%{transform:scale(1);opacity:0}80%{transform:scale(1.12);opacity:.6}100%{transform:scale(1.22);opacity:0}}
+.sp-mk .sp-ring::after,.sp-cambtn .sp-ring::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 4px rgba(224,189,106,.55);animation:sp-call 3.2s ease-out infinite;pointer-events:none;will-change:transform,opacity}
 @media (prefers-reduced-motion:reduce){.sp-mk .sp-ring{animation:none}}
 .sp-mk .sp-nm{color:var(--gold2);font-weight:800;overflow:visible}
 .sp-story:active .sp-ring{transform:scale(.95)}
@@ -161,7 +162,7 @@
 .sp.sound .sp-snd .on{display:inline}
 .sp.sound .sp-snd .off{display:none}
 .sp-cambtn{padding:0;border:0;background:none;cursor:pointer;color:var(--gold2)}
-.sp-cambtn .sp-ring{position:relative;display:block;border-radius:50%;padding:3px;box-sizing:border-box;background:conic-gradient(#f6e3a8,#e0bd6a,#c9922b,#f6e3a8);animation:sp-call 3.2s ease-in-out infinite}
+.sp-cambtn .sp-ring{position:relative;display:block;border-radius:50%;padding:3px;box-sizing:border-box;background:conic-gradient(#f6e3a8,#e0bd6a,#c9922b,#f6e3a8)}
 /* Give it a spin sits at the top of the side buttons (1 Oct 2026, Mike: "crammed up top, easy to miss") */
 .sp-side .sp-sidecam{display:flex;flex-direction:column;align-items:center;gap:5px;margin-bottom:4px}
 .sp-sidecam .sp-ring{width:58px;height:58px}

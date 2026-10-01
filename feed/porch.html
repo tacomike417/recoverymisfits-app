@@ -235,7 +235,10 @@ html.kb #comments .sheet{top:0;border-radius:0}
 
 /* ---- full-screen pages: new share, profiles, one share, edit profile ---- */
 .full{background:var(--bg)}
-.full .page{position:absolute;inset:0;overflow-y:auto;max-width:480px;margin:0 auto;padding:0 0 120px}
+.full .page{position:absolute;inset:0;overflow-y:auto;max-width:480px;margin:0 auto;padding:0 0 120px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+html.fullon #main{visibility:hidden}
+#pfpage{padding-bottom:calc(var(--railh,170px) + 24px)}
+#pfpage .sp-gt,#pfpage .grid button{content-visibility:auto;contain-intrinsic-size:auto 200px}
 /* profile */
 .pcover{position:relative;height:170px;background:linear-gradient(160deg,#2c2416,#11110f) center/cover}
 .pcover::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 45%,var(--bg))}
@@ -815,7 +818,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v59</span>
+  <span class="ver" id="ver">v60</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1480,13 +1483,32 @@ html.kb .ch-bar{padding-bottom:8px}
   function open(id) {
     var el = $(id); if (stack.indexOf(el) >= 0) return;
     el.classList.add("open"); stack.push(el); el.style.zIndex = 20000 + stack.length;
-    document.documentElement.classList.add("locked");
+    document.documentElement.classList.add("locked"); syncRail();
     try { history.pushState({ porch: stack.length }, ""); } catch (e) {}
   }
   function hideTop() {
     var el = stack.pop(); if (el && el._close) { try { el._close(); } catch (e) {} } else if (el) el.classList.remove("open");
     if (!stack.length) document.documentElement.classList.remove("locked");
+    syncRail();
   }
+  /* 1 Oct 2026, Mike: "my profile page loses the bottom rail and sober rail". While a
+     profile is the top screen, the app's bottom rail (sober plate + tabs) sits on top of
+     it, like Facebook. Anything opened over the profile covers the rail again.
+     Also: while a full screen covers the feed, the feed underneath stops drawing, so
+     scrolling the screen on top stays smooth. */
+  var RAIL_ON = { profile: 1 };
+  function syncRail() {
+    var top = stack[stack.length - 1], nav = document.getElementById("rm-bottom-nav"), h = document.documentElement;
+    h.classList.toggle("fullon", stack.some(function (l) { return l.classList.contains("full"); }));
+    if (!nav) return;
+    if (top && RAIL_ON[top.id]) { nav.style.zIndex = String((+top.style.zIndex || 20000) + 1); h.style.setProperty("--railh", nav.offsetHeight + "px"); }
+    else nav.style.zIndex = "";
+  }
+  /* the Porch tab while you're on a profile: back to the feed, not a page reload */
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest('#rm-bottom-nav a[href*="feed/porch.html"]');
+    if (a && stack.length) { e.preventDefault(); closeAll(); }
+  }, true);
   var waiters = [];
   window.addEventListener("popstate", function () { hideTop(); var w = waiters.shift(); if (w) w(); });
   function closeTop() { return new Promise(function (res) { if (!stack.length) return res(); waiters.push(res); history.back(); }); }
@@ -1495,8 +1517,8 @@ html.kb .ch-bar{padding-bottom:8px}
      their own full-screen pieces; they ride the same back-button stack. */
   window.PorchBack = {
     push: function (tag, close) {
-      var f = { _tag: tag, _close: close, classList: { add: function () {}, remove: function () {}, contains: function () { return true; } }, style: {} };
-      stack.push(f); document.documentElement.classList.add("locked");
+      var f = { _tag: tag, _close: close, classList: { add: function () {}, remove: function () {}, contains: function (c) { return c !== "full"; } }, style: {} };
+      stack.push(f); document.documentElement.classList.add("locked"); syncRail();
       try { history.pushState({ porch: stack.length }, ""); } catch (e) {}
       return 20000 + stack.length;
     },
@@ -1504,7 +1526,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var i = -1; stack.forEach(function (x, k) { if (x._tag === tag) i = k; });
       if (i < 0) return false;
       if (i === stack.length - 1) { closeTop(); return true; }
-      stack.splice(i, 1); return false;
+      stack.splice(i, 1); syncRail(); return false;
     },
     top: function () { return 20000 + stack.length; }
   };
@@ -1512,13 +1534,20 @@ html.kb .ch-bar{padding-bottom:8px}
   /* ---- keep pop-ups above the phone keyboard ---- */
   (function () {
     var vv = window.visualViewport; if (!vv) return;
+    var lastH = -1, lastT = -1, queued = false;
     function fit() {
-      var s = document.documentElement.style;
-      s.setProperty("--vvh", vv.height + "px"); s.setProperty("--vvt", vv.offsetTop + "px");
+      if (queued) return; queued = true;
+      requestAnimationFrame(function () { queued = false; fitNow(); });
+    }
+    function fitNow() {
+      var s = document.documentElement.style, hh = Math.round(vv.height), tt = Math.round(vv.offsetTop);
+      if (hh === lastH && tt === lastT) return;
+      lastH = hh; lastT = tt;
+      s.setProperty("--vvh", hh + "px"); s.setProperty("--vvt", tt + "px");
       document.documentElement.classList.toggle("kb", window.innerHeight - vv.height > 120);
       keepInView();
     }
-    vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fit();
+    vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); fitNow();
   })();
   /* the comment you're replying to or editing stays on screen when the keyboard comes up */
   function keepInView() {
@@ -3587,6 +3616,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=58" defer></script>
+<script src="/feed/spins/spins.js?v=60" defer></script>
 </body>
 </html>
