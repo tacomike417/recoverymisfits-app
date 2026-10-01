@@ -126,7 +126,8 @@
 .sp-sidecam .sp-ring{width:58px;height:58px}
 .sp-sidecam .sp-cam svg{width:28px!important;height:28px!important;fill:currentColor;stroke:none;filter:none}
 .sp-sidecam .sp-badge-plus{width:20px!important;height:20px!important;font-size:15px!important;border-width:2px!important}
-.sp-sidecam .sp-nm{font:800 11px/1.15 Arial,sans-serif;color:#f6e3a8;text-align:center;text-shadow:0 1px 3px #000}
+.sp-recount{pointer-events:none}
+.sp-sidecam .sp-nm{font:800 11.5px/1.15 Arial,sans-serif;color:#f6e3a8;text-align:center;text-shadow:0 1px 3px #000}
 .sp-new .sp-ring{width:52px;height:52px}
 .sp-new .sp-cam svg{width:26px!important;height:26px!important}
 .sp-new .sp-badge-plus{width:19px!important;height:19px!important;font-size:14px!important;border-width:2px!important}
@@ -290,7 +291,9 @@
   try { soundOn = localStorage.getItem('rm-spin-sound') === 'on'; } catch (_) {}
   const saveSound = () => { try { localStorage.setItem('rm-spin-sound', soundOn ? 'on' : 'off'); } catch (_) {} };
   let sp = null, spList = [], io = null;
-  const proud = new Set(), respun = new Set(), talkN = new Map();
+  const proud = new Set(), respun = new Set(), talkN = new Map(), reN = new Map();
+  /* the Respin button shows how many people respun it (1 Oct 2026, Mike) */
+  const reLabel = (l) => { const n = reN.get(l.id) || 0; return n ? String(n) : (l.user_id === meId() ? '0' : 'Respin'); };
   const paintSound = () => { if (sp) sp.classList.toggle('sound', soundOn); };
 
   const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/></svg>';
@@ -320,10 +323,11 @@
         ${mine ? `<div class="sp-meta">${l.pinned ? '📌 Pinned, stays on your profile' : d > 0 ? `Gone in ${d} day${d === 1 ? '' : 's'} · pin it to keep it` : 'Gone soon · pin it to keep it'}</div>` : ''}
       </div>
       <div class="sp-side">
-        ${meId() ? camBtn('sp-sidecam', 'Give it<br>a spin') : ''}
+        ${meId() ? camBtn('sp-sidecam', 'Make') : ''}
         <button type="button" data-sp-proud class="${proud.has(l.post_id) ? 'on' : ''}" aria-label="Love this">${HEART}<span>Love</span></button>
         <button type="button" data-sp-talk aria-label="Comments">${TALK}<span class="n">${talkN.get(l.post_id) || 0}</span></button>
-        ${own ? '' : `<button type="button" data-sp-respin class="re${isRe ? ' on' : ''}" aria-label="Respin to my profile">${RESPIN}<span>${isRe ? 'Respun' : 'Respin'}</span></button>`}
+        ${own ? `<button type="button" class="re sp-recount" aria-label="Respins">${RESPIN}<span>${reLabel(l)}</span></button>`
+              : `<button type="button" data-sp-respin class="re${isRe ? ' on' : ''}" aria-label="Respin to my Spins">${RESPIN}<span>${reLabel(l)}</span></button>`}
         <button type="button" data-sp-share aria-label="Share">${SHARE}<span>Share</span></button>
         <button type="button" data-sp-more aria-label="More">${MORE}</button>
       </div></section>`;
@@ -340,6 +344,10 @@
         if (pids.length) (await P().rest('porch_reactions?user_id=eq.' + meId() + '&kind=eq.proud&post_id=in.(' + pids.join(',') + ')&select=post_id')).forEach((r) => proud.add(r.post_id));
         (await P().rest('porch_respins?user_id=eq.' + meId() + '&spin_id=in.(' + sids.join(',') + ')&select=spin_id')).forEach((r) => respun.add(r.spin_id));
       }
+      if (sids.length) {
+        sids.forEach((k) => reN.set(k, 0));
+        (await P().rest('porch_respins?spin_id=in.(' + sids.join(',') + ')&select=spin_id')).forEach((r) => reN.set(r.spin_id, (reN.get(r.spin_id) || 0) + 1));
+      }
     } catch (_) {}
   }
   function paintSide(i) {
@@ -348,7 +356,7 @@
     el.querySelector('[data-sp-proud]').classList.toggle('on', proud.has(l.post_id));
     el.querySelector('[data-sp-talk] .n').textContent = String(talkN.get(l.post_id) || 0);
     const r = el.querySelector('[data-sp-respin]');
-    if (r) { r.classList.toggle('on', respun.has(l.id)); r.querySelector('span').textContent = respun.has(l.id) ? 'Respun' : 'Respin'; }
+    if (r) { r.classList.toggle('on', respun.has(l.id)); r.querySelector('span').textContent = reLabel(l); }
   }
   function current() { if (!sp) return -1; const list = sp.querySelector('.sp-list'); return Math.round(list.scrollTop / Math.max(1, list.clientHeight)); }
   function wake(i) {
@@ -462,14 +470,16 @@
     const l = spList[i]; if (!l) return;
     const was = respun.has(l.id);
     if (was) respun.delete(l.id); else respun.add(l.id);
+    reN.set(l.id, Math.max(0, (reN.get(l.id) || 0) + (was ? -1 : 1)));
     paintSide(i);
     try {
       if (was) await P().rest('porch_respins?user_id=eq.' + meId() + '&spin_id=eq.' + l.id, { method: 'DELETE' });
       else await P().rest('porch_respins', { method: 'POST', body: { user_id: meId(), spin_id: l.id } });
-      say(was ? 'Taken off your profile.' : 'Respun. It\'s on your profile now.');
+      say(was ? 'Taken off your Sober Spins.' : 'Respun! It\'s on your Sober Spins now.');
     } catch (err) {
       if (err.status === 409) return;
       if (was) respun.add(l.id); else respun.delete(l.id);
+      reN.set(l.id, Math.max(0, (reN.get(l.id) || 0) + (was ? 1 : -1)));
       paintSide(i); say(err.status === 403 || err.status === 401 ? 'You can Respin once your account is 3 days old.' : "That didn't go through.");
     }
   }
