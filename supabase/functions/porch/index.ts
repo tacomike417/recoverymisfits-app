@@ -288,6 +288,29 @@ Deno.serve(async (req) => {
     return json({ ok: true });
   }
 
+  /* CHECKUP (moderators only, 30 Sep 2026): tests each outside check without posting anything,
+     so we can see which one is failing. { action: "diag" } */
+  if (b.action === "diag") {
+    if (!(await isMod(user.id))) return json({ error: "Moderators only." }, 403);
+    const out: Record<string, unknown> = { vision_key_set: !!VISION };
+    const tiny = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAQABADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDuKKKK+MPZP//Z";
+    try {
+      const r = await fetch("https://vision.googleapis.com/v1/images:annotate?key=" + encodeURIComponent(VISION), { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requests: [{ image: { content: tiny }, features: [{ type: "SAFE_SEARCH_DETECTION" }] }] }) });
+      out.photos_vision = r.status + " " + (await r.text()).replace(/\s+/g, " ").slice(0, 220);
+    } catch (e) { out.photos_vision = "fetch failed: " + String(e).slice(0, 120); }
+    try {
+      const r = await fetch("https://family.cloudflare-dns.com/dns-query?type=A&name=example.com", { headers: { accept: "application/dns-json" } });
+      out.links_family_dns = r.status + " " + (await r.text()).slice(0, 160);
+    } catch (e) { out.links_family_dns = "fetch failed: " + String(e).slice(0, 120); }
+    try {
+      const q = new URLSearchParams(); q.append("threatTypes", "MALWARE"); q.set("uri", "https://example.com/"); q.set("key", VISION);
+      const r = await fetch("https://webrisk.googleapis.com/v1/uris:search?" + q);
+      out.links_web_risk = r.status + " " + (await r.text()).replace(/\s+/g, " ").slice(0, 220);
+    } catch (e) { out.links_web_risk = "fetch failed: " + String(e).slice(0, 120); }
+    return json({ ok: true, ...out });
+  }
+
   /* MODERATORS: the reports screen */
   if (b.action === "mod_list" || b.action === "mod_act") {
     if (!(await isMod(user.id))) return json({ error: "Moderators only." }, 403);
@@ -335,7 +358,10 @@ Deno.serve(async (req) => {
   const { data: me } = await admin.from("porch_members").select("*").eq("user_id", user.id).maybeSingle();
   if (!me?.verified_at) return json({ error: "Confirm who you are to post.", need: "confirm" }, 403);
   if (me.frozen_at) return json({ error: "Your account is paused while someone looks at a report. Hang tight." }, 403);
-  if (Date.now() - new Date(user.created_at).getTime() < 3 * 24 * 3600_000) {
+  // testers (porch_testers) and moderators skip the 3-day wait so Mike can test with a fresh account
+  const { data: tester } = await admin.from("porch_testers").select("handle").eq("handle", me.handle).maybeSingle();
+  const { data: modRow } = await admin.from("porch_moderators").select("user_id").eq("user_id", user.id).maybeSingle();
+  if (!tester && !modRow && Date.now() - new Date(user.created_at).getTime() < 3 * 24 * 3600_000) {
     return json({ error: "Brand-new accounts can post after 3 days. Look around in the meantime." }, 403);
   }
 
