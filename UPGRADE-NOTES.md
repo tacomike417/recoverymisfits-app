@@ -8,6 +8,41 @@ help me slow down so I don't rush something that is confusing for people."
 Launch means taking the Mike-only lock off feed/porch.html. Until Oct 20 it stays locked,
 and even then only once the UI update (layout A) is built and has been lived with for a while.
 
+## 📝 THE BIG LIST (brainstorm 1 Oct 2026, Mike: "we're doing all this stuff")
+Nothing here is built yet. Order isn't set.
+
+**Finish first**
+- [ ] Spin music: pick the 50 clips (picker page), install them, push
+- [ ] Play Store app rebuild (picks up sharing into the app + everything since)
+- [ ] Day 1 checklist: flip the lock, sample posts off, welcome post on top, a few people ready to share
+
+**Before the doors open**
+- [ ] "Need help now?" one tap on the Porch: 988 + a meeting finder
+- [ ] Porch rules page people agree to once (experience, strength and hope)
+- [ ] Privacy policy + terms (Google Play needs them; the app asks for location)
+- [ ] Forgot password: check there's a way back in for username-only accounts
+- [ ] Blocked people list (see who you blocked, unblock)
+- [ ] Mute somebody without blocking them
+
+**Like the big apps**
+- [ ] Groups (home groups, women's/men's, family, by step)
+- [ ] Events: "Thursday 7pm speaker meeting, who's going" with I'm going
+- [ ] Group chats in Messages
+- [ ] Voice messages in Messages (hold to talk)
+- [ ] Topics/hashtags (#gratitude) + a Discover tab
+- [ ] Polls
+- [ ] Reshare somebody's post to your friends
+- [ ] Calls in Messages: one-on-one video and voice, friends only, never recorded.
+      Rings as a phone alert (web apps can't do a full-screen ring on iPhone).
+      Group calls later.
+- [ ] Disappearing photos in Messages: opens once for 10 seconds, then gone for good
+      (deleted off the server). A web app can't stop screenshots (Snapchat can't
+      either, it only tells you), so: no saving, the photo blurs if they leave the
+      app, and the viewer's own @name is stamped across it.
+- [ ] Live / audio rooms (biggest and hardest to keep safe, later)
+- [ ] Counts on profiles (likes, friends): Mike, 1 Oct: doesn't think these break the
+      ego rule. Tentative, decide later.
+
 ## How Mike builds
 1. Get it working. 2. Get it simple. 3. Make it look really cool.
 Always the best, even if it takes time. If something looks half-assed, ask him.
