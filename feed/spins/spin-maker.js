@@ -463,7 +463,7 @@
 
   /* ---------------- the screen ---------------- */
   const CSS = `
-.lpm{position:fixed;inset:0;z-index:9560;background:#05080f;color:#fff;display:flex;flex-direction:column;font:500 15px/1.35 system-ui,-apple-system,sans-serif;overscroll-behavior:contain}
+.lpm{position:fixed;inset:0;z-index:9560;background:#0c0b09;color:#fff;display:flex;flex-direction:column;font:500 15px/1.35 system-ui,-apple-system,sans-serif;overscroll-behavior:contain}
 .lpm-stage{position:relative;flex:1;min-height:0;display:grid;place-items:center;padding:calc(10px + env(safe-area-inset-top)) 10px 6px}
 /* THE EMPTY LOOP. People who think "I don't have any video" walk away here,
    so the first screen says it plainly: photos are enough, we make the video
@@ -472,9 +472,9 @@
 .lpm-empty[hidden]{display:none}
 .lpm-empty h2{margin:0;font:900 23px/1.15 system-ui,sans-serif}
 .lpm-empty h2 span{background:linear-gradient(135deg,#e0bd6a,#c4563c);-webkit-background-clip:text;background-clip:text;color:transparent}
-.lpm-empty .lpm-sub{margin:0;color:#cbd5e1;font:600 15px/1.4 system-ui,sans-serif;max-width:270px}
+.lpm-empty .lpm-sub{margin:0;color:#ddd2b8;font:600 15px/1.4 system-ui,sans-serif;max-width:270px}
 .lpm-steps{list-style:none;margin:6px 0 4px;padding:0;display:grid;gap:7px;text-align:left;max-width:260px}
-.lpm-steps li{display:flex;gap:10px;align-items:center;font:700 14px/1.3 system-ui,sans-serif;color:#e2e8f0}
+.lpm-steps li{display:flex;gap:10px;align-items:center;font:700 14px/1.3 system-ui,sans-serif;color:#f1e7cf}
 .lpm-steps b{flex:none;width:24px;height:24px;border-radius:50%;background:#e0bd6a;color:#17130b;display:grid;place-items:center;font:900 13px/1 system-ui}
 .lpm-big{width:100%;max-width:270px;padding:15px 12px;border-radius:14px;border:0;font:900 16px/1.1 system-ui,sans-serif;cursor:pointer}
 .lpm-big.pick{background:#e0bd6a;color:#17130b;box-shadow:0 6px 20px rgba(224,189,106,.3)}
@@ -485,13 +485,13 @@
 .lpm-x svg,.lpc-x svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round}
 .lpm-len{position:absolute;top:calc(16px + env(safe-area-inset-top));right:16px;padding:5px 10px;border-radius:999px;background:rgba(0,0,0,.55);font:800 12px/1 system-ui,sans-serif}
 .lpm-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:6px 10px 0}
-.lpm-tabs button{border:0;border-radius:10px 10px 0 0;padding:10px 4px;background:#0f172a;color:#94a3b8;font:900 12.5px/1 system-ui,sans-serif;cursor:pointer}
-.lpm-tabs button.on{background:#1e293b;color:#fff}
-.lpm-panel{background:#1e293b;margin:0 10px;border-radius:0 0 12px 12px;padding:10px;height:168px;overflow:auto}
+.lpm-tabs button{border:0;border-radius:10px 10px 0 0;padding:10px 4px;background:#15130e;color:#a39b8a;font:900 12.5px/1 system-ui,sans-serif;cursor:pointer}
+.lpm-tabs button.on{background:#1b1913;color:#fff}
+.lpm-panel{background:#1b1913;margin:0 10px;border-radius:0 0 12px 12px;padding:10px;height:168px;overflow:auto}
 .lpm-go{margin:8px 10px calc(10px + env(safe-area-inset-bottom));padding:15px;border:0;border-radius:14px;background:linear-gradient(135deg,#e0bd6a,#c4563c);color:#fff;font:900 17px/1 system-ui,sans-serif;cursor:pointer}
 .lpm-go[disabled]{opacity:.45}
 .lpm-thumbs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
-.lpm-th{position:relative;flex:none;width:72px;height:110px;border-radius:10px;overflow:hidden;background:#0f172a;border:0;padding:0}
+.lpm-th{position:relative;flex:none;width:72px;height:110px;border-radius:10px;overflow:hidden;background:#15130e;border:0;padding:0}
 .lpm-th img,.lpm-th video{width:100%;height:100%;object-fit:cover;pointer-events:none}
 .lpm-dur{position:absolute;left:4px;bottom:4px;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.7);font:800 11px/1.3 system-ui,sans-serif}
 .lpm-add.lpm-rec{border-color:#c4563c;color:#e6a38f}
@@ -499,36 +499,52 @@
 .lpm-add{flex:none;width:72px;height:110px;border-radius:10px;border:2px dashed #e0bd6a;background:none;color:#e0bd6a;font:900 13px/1.2 system-ui,sans-serif;cursor:pointer}
 .lpm-add i{display:block;font-style:normal;font-size:28px;margin-bottom:4px}
 .lpm-styles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.lpm-hint b{color:#e2e8f0}
-.lpm-styles button{border:2px solid transparent;border-radius:12px;padding:12px 8px;background:#0f172a;color:#fff;font:900 15px/1 system-ui,sans-serif;cursor:pointer}
+.lpm-hint b{color:#f1e7cf}
+.lpm-styles button{border:2px solid transparent;border-radius:12px;padding:12px 8px;background:#15130e;color:#fff;font:900 15px/1 system-ui,sans-serif;cursor:pointer}
 .lpm-styles button.on{border-color:#e0bd6a;background:#2a2316}
-.lpm-text input{box-sizing:border-box;width:100%;padding:14px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:#fff;font:800 17px/1.2 system-ui,sans-serif}
-.lpm-hint{margin:8px 2px 0;color:#94a3b8;font-size:12.5px}
+.lpm-text input{box-sizing:border-box;width:100%;padding:14px;border-radius:12px;border:1px solid #2e2a22;background:#15130e;color:#fff;font:800 17px/1.2 system-ui,sans-serif}
+.lpm-hint{margin:8px 2px 0;color:#a39b8a;font-size:12.5px}
 .lpm-stk{display:grid;grid-template-rows:repeat(2,64px);grid-auto-flow:column;grid-auto-columns:64px;gap:8px;overflow-x:auto}
-.lpm-stk button{border:0;background:#0f172a;border-radius:12px;padding:4px;cursor:pointer}
+.lpm-stk button{border:0;background:#15130e;border-radius:12px;padding:4px;cursor:pointer}
 .lpm-stk img{width:100%;height:100%;object-fit:contain}
 .lpm-selbar{display:flex;gap:8px;margin-bottom:8px}
 .lpm-selbar button{flex:1;border:0;border-radius:10px;padding:10px;background:#3b0d12;color:#ffd7d9;font:900 13px/1 system-ui,sans-serif}
 .lpm-now{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:8px 10px;border-radius:10px;background:#2a2316;margin-bottom:8px}
 .lpm-now b{font:900 13.5px/1.2 system-ui,sans-serif;color:#f6e3a8}.lpm-now small{color:#c9bfa8;font-size:12px}
 .lpm-now button{margin-left:auto;border:0;border-radius:999px;padding:6px 10px;background:#3b0d12;color:#ffd7d9;font:800 12px/1 system-ui,sans-serif}
-.lpm-vol{display:flex;align-items:center;gap:10px;margin:4px 2px;color:#cbd5e1;font:800 12px/1 system-ui,sans-serif}
+.lpm-vol{display:flex;align-items:center;gap:10px;margin:4px 2px;color:#ddd2b8;font:800 12px/1 system-ui,sans-serif}
 .lpm-vol input{flex:1;accent-color:#e0bd6a}
 .lpm-moods{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
-.lpm-moods button{flex:none;border:1.5px solid #334155;border-radius:999px;padding:7px 12px;background:#0f172a;color:#e2e8f0;font:800 12.5px/1 system-ui,sans-serif}
+.lpm-moods button{flex:none;border:1.5px solid #2e2a22;border-radius:999px;padding:7px 12px;background:#15130e;color:#f1e7cf;font:800 12.5px/1 system-ui,sans-serif}
 .lpm-moods button.on{border-color:#e0bd6a;background:#2a2316;color:#f6e3a8}
-.lpm-msearch input{box-sizing:border-box;width:100%;padding:10px 12px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#fff;font:600 15px/1.2 system-ui,sans-serif}
+.lpm-msearch input{box-sizing:border-box;width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2e2a22;background:#15130e;color:#fff;font:600 15px/1.2 system-ui,sans-serif}
 .lpm-tracks{margin-top:6px}
-.lpm-trk{display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #263244}
+.lpm-trk{display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #2e2a22}
 .lpm-trk.on{background:rgba(224,189,106,.08)}
 .lpm-trk span{flex:1;min-width:0}.lpm-trk b{display:block;font:800 13.5px/1.25 system-ui,sans-serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lpm-trk small{color:#94a3b8;font-size:12px}
-.lpm-trk .pl{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:#0f172a;color:#e0bd6a;font:900 13px/1 system-ui}
+.lpm-trk small{color:#a39b8a;font-size:12px}
+.lpm-trk .pl{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:#15130e;color:#e0bd6a;font:900 13px/1 system-ui}
 .lpm-trk .pl.on{background:#e0bd6a;color:#17130b}
 .lpm-trk .use{flex:none;border:0;border-radius:999px;padding:8px 12px;background:#e0bd6a;color:#17130b;font:900 12.5px/1 system-ui,sans-serif}
-.lpm-busy{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgba(5,8,15,.86);text-align:center;font:900 18px/1.4 system-ui,sans-serif}
-.lpm-busy .bar{width:220px;height:8px;margin:14px auto 0;border-radius:4px;background:#334155;overflow:hidden}
+.lpm-busy{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgba(12,11,9,.88);text-align:center;font:900 18px/1.4 system-ui,sans-serif}
+.lpm-busy .bar{width:220px;height:8px;margin:14px auto 0;border-radius:4px;background:#2e2a22;overflow:hidden}
 .lpm-busy .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e0bd6a,#c4563c)}
+
+/* PORCH LOOK (1 Oct 2026, Mike: "create a spin is not formatted correctly").
+   Black and gold like the rest of the Porch, the app's own fonts, and tabs that
+   never wrap: icon on top, one short word under it. */
+.lpm,.lpm button,.lpm input{font-family:Arial,"Helvetica Neue",sans-serif}
+.lpm-empty h2{font:400 27px/1.1 "RM Head",Impact,sans-serif;letter-spacing:.01em}
+.lpm-empty .lpm-sub{font:600 15px/1.45 Arial,sans-serif}
+.lpm-steps li,.lpm-big,.lpm-busy,.lpm-hint,.lpm-styles button{font-family:Arial,"Helvetica Neue",sans-serif}
+.lpm-tabs{gap:0;padding:6px 10px 0}
+.lpm-tabs button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 0 8px;border-radius:12px 12px 0 0;background:none;color:#a39b8a;font:500 11.5px/1 "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.lpm-tabs button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.lpm-tabs button.on{background:#1b1913;color:#e0bd6a}
+.lpm-panel{border:1px solid rgba(214,179,106,.16);border-top:0}
+.lpm-add{width:84px;font:800 12.5px/1.25 Arial,sans-serif}
+.lpm-go{background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b}
+.lpm-go[disabled]{opacity:.35}
 `;
   (function addCSS() {
     if (document.getElementById('spin-maker-css')) return;
@@ -600,11 +616,11 @@
       <button type="button" class="lpm-x" data-lpm-close aria-label="Close the Spin maker"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
       <span class="lpm-len"></span>
       <nav class="lpm-tabs">
-        <button type="button" data-tab="photos" class="on">🎬 Clips</button>
-        <button type="button" data-tab="style">✨ Style</button>
-        <button type="button" data-tab="text">Aa Text</button>
-        <button type="button" data-tab="stickers">😎 Stickers</button>
-        <button type="button" data-tab="music">♫ Music</button>
+        <button type="button" data-tab="photos" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M7 5l2 4M12 5l2 4M17 5l2 4"/></svg>Clips</button>
+        <button type="button" data-tab="style"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>Style</button>
+        <button type="button" data-tab="text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19 9 5l5 14M6 14h6"/><path d="M15 12.5a3 3 0 1 1 0 6.5h-.5M18 10v9"/></svg>Text</button>
+        <button type="button" data-tab="stickers"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>Stickers</button>
+        <button type="button" data-tab="music"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>Music</button>
       </nav>
       <div class="lpm-panel"></div>
       <button type="button" class="lpm-go" disabled>Make my Spin</button>`;

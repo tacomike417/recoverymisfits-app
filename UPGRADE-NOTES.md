@@ -117,6 +117,17 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
 - Files: feed/spins/spins.js, feed/spins/spin-maker.js, feed/spins/stickers/,
   supabase/porch_12_spins.sql, supabase/functions/spins.
 
+### Beta testers + the Porch tab (1 Oct 2026, Porch v24)
+- Beta testers, who have the full Porch: **tacomike417, fire_l0ve, krazyk226**, plus
+  misfit_tester (Mike's second account). They're all friends with each other
+  (supabase/porch_13_beta.sql). To add one, put the name in the lock list in
+  feed/porch.html AND in porch_testers.
+- The bottom bar's **Memes** tab became **Porch**. Memes are still on Today and at /meme.html.
+  Testers land on the Porch; everybody else gets feed/soon.html ("Good company between
+  meetings. The Recovery Misfits community opens at the end of October.").
+- SPINS is in the Porch's top row. The face on the coin rail's Account well is bigger, and
+  the Spin maker is restyled in black and gold.
+
 ### Taglines for the community side (1 Oct 2026, Mike)
 - **"Good company between meetings"**: the Porch's tagline. It's in the page title, the
   link preview, and the heading of the sign-in sheet.

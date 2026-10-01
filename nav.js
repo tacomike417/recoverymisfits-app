@@ -967,6 +967,8 @@
   }
 
   const ICONS = {
+    /* a porch: roof, two posts, a bench */
+    porch: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5 12 4l9.5 6.5"/><path d="M5 9.5V20M19 9.5V20M2.5 20h19"/><path d="M8.5 15h7M8.5 15v5M15.5 15v5"/></svg>`,
     today: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18"/><path d="M6.5 18a5.5 5.5 0 0 1 11 0"/><path d="M12 5v3M5.6 8.6l2 2M18.4 8.6l-2 2M3.5 14h1.8M18.7 14h1.8"/><path d="M8 21h8"/></svg>`,
     home: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10.5V21h11V10.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     tools: `<svg viewBox="0 0 24 24" class="rm-ico" aria-hidden="true"><path d="M14 7a5 5 0 0 0-6.5 6.5L3 18l3 3 4.5-4.5A5 5 0 0 0 17 10l-3 3-2-2 2-4z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -1019,7 +1021,10 @@
     /* 30 Sep 2026 (Mike picked A): Home becomes TODAY with a sunrise, because the front
        page is the daily reading. Same page, same link; just the name and the picture. */
     { href: "/index.html", label: "Today", icon: ICONS.today },
-    { href: "/meme.html", label: "Memes", icon: ICONS.meme },
+    /* 1 Oct 2026 (Mike): THE PORCH takes the Memes spot. The beta testers land on the
+       Porch; everybody else gets "coming at the end of October" (feed/soon.html).
+       Memes are still on Today (Meme of the Day + the rail) and at /meme.html. */
+    { href: "/feed/porch.html", label: "Porch", icon: ICONS.porch },
     { href: "/audio.html", label: "Audio", icon: ICONS.audio },
     { href: "/fun.html", label: "Fun", icon: ICONS.fun },
     { href: "/tools.html", label: "Tools", icon: ICONS.tools },

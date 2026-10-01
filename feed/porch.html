@@ -73,6 +73,9 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .ftabs{display:flex;align-items:center;max-width:480px;margin:0 auto;padding:0 4px 0 6px;background:linear-gradient(180deg,#171510,#100f0c);border-top:1px solid rgba(214,179,106,.14);border-bottom:1px solid rgba(214,179,106,.24)}
 .ftabs [data-tab]{position:relative;padding:14px 10px 12px;border:0;background:none;color:var(--muted);font:500 14px "RM Rail",Oswald,sans-serif;letter-spacing:.1em;cursor:pointer}
 .ftabs [data-tab].on{color:var(--cream)}
+/* SPINS, right in the row (1 Oct 2026, Mike: "spins needs to be easily accessible") */
+.ftabs .tspin{padding:14px 9px 12px;border:0;background:none;color:var(--gold2);font:500 14px "RM Rail",Oswald,sans-serif;letter-spacing:.1em;cursor:pointer}
+@media (max-width:380px){.ftabs [data-tab],.ftabs .tspin{padding-left:7px;padding-right:7px;letter-spacing:.06em}.tic{width:40px}}
 .ftabs [data-tab].on::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--gold2)}
 .ticons{margin-left:auto;display:flex;align-items:center;gap:2px}
 .tic{position:relative;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:50%;background:none;color:var(--cream);cursor:pointer;padding:0}
@@ -252,8 +255,8 @@ html.kb #comments .sheet{top:0;border-radius:0}
 #rmrail .rail-n{top:4px;right:auto;left:calc(50% + 4px);box-shadow:0 0 0 2px #100f0c}
 /* YOUR PICTURE ON THE SOBER RAIL (30 Sep 2026): the Account well shows your face and opens your menu */
 #rmAccountBtn.pin{position:relative}
-#rmAccountBtn.pin #railme{display:grid;place-items:center;width:21px;height:21px}
-#rmAccountBtn.pin #railme .av{width:21px;height:21px;font-size:9px;box-shadow:0 0 0 1.5px #1a160e,0 0 0 2.6px var(--gold2)}
+#rmAccountBtn.pin #railme{display:grid;place-items:center;width:30px;height:30px;margin-top:-4px}
+#rmAccountBtn.pin #railme .av{width:30px;height:30px;font-size:12px;box-shadow:0 0 0 1.5px #1a160e,0 0 0 3px var(--gold2)}
 .layer.drop .dim{background:rgba(0,0,0,.55)}
 .nd-panel{position:absolute;left:8px;right:8px;top:var(--ndtop,70px);max-width:560px;margin:0 auto;max-height:calc(100% - var(--ndtop,70px) - 16px);overflow-y:auto;border-radius:18px;background:var(--sheet);border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.6);animation:nddrop .2s ease}
 @keyframes nddrop{from{opacity:0;transform:translateY(-10px)}}
@@ -624,12 +627,14 @@ html.kb .ch-bar{padding-bottom:8px}
   try { who = (JSON.parse(localStorage.getItem("rm_account_v1") || "null") || {}).name || ""; } catch (e) {}
   /* 1 OCT 2026, MIKE: "do not let me launch this before Oct 20." This lock stays on until
      at least October 20, 2026. See the top of UPGRADE-NOTES.md before touching it. */
-  /* 30 Sep 2026: misfit_tester is Mike's second account for testing friends and Messages */
-  if (["tacomike417", "misfit_tester"].indexOf(who) < 0) location.replace("/feed/");
+  /* THE BETA TESTERS (1 Oct 2026, Mike): tacomike417, fire_l0ve and krazyk226, plus
+     misfit_tester (Mike's second account). Everybody else gets the "coming at the end of
+     October" page, which is where the Porch tab on the bottom bar lands for them. */
+  if (["tacomike417", "misfit_tester", "fire_l0ve", "krazyk226"].indexOf(String(who).toLowerCase()) < 0) location.replace("/feed/soon.html");
 })();
 </script>
 </head>
-<body>
+<body data-rm-nav="feed/porch.html">
 <div id="chrome">
   <div id="rm-topbar"></div>
   <!-- LAYOUT A (1 Oct 2026, Mike picked it): one slim row under the logo.
@@ -637,7 +642,7 @@ html.kb .ch-bar{padding-bottom:8px}
        The old FEED / SPINS / COINS / INVITE / MESSAGES rail is gone: Spins are the
        story circles, Coins and Invite live in the Account menu on the coin rail. -->
   <div class="railbg"><div class="ftabs" id="ftabs">
-    <button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button>
+    <button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" class="tspin" data-spins>SPINS</button>
     <span class="ticons">
       <button type="button" class="tic" data-search aria-label="Search the Porch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
       <button type="button" class="tic rmsg" data-msgs aria-label="Messages"><svg class="mmark" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="rmdmg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e3a8"/><stop offset=".5" stop-color="#e0bd6a"/><stop offset="1" stop-color="#c4563c"/></linearGradient></defs><path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:url(#rmdmg);stroke:none"/><circle cx="8" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="12" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/><circle cx="16" cy="11.2" r="1.35" style="fill:#17130b;stroke:none"/></svg><i class="bell-n" id="msgn" hidden></i></button>
@@ -645,7 +650,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v23</span>
+  <span class="ver" id="ver">v24</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2896,6 +2901,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=23" defer></script>
+<script src="/feed/spins/spins.js?v=24" defer></script>
 </body>
 </html>
