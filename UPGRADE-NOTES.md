@@ -2,6 +2,12 @@
 
 One list for this project. New ideas and decisions go here.
 
+## ⛔ NO PORCH LAUNCH BEFORE OCTOBER 20, 2026
+Mike, 1 Oct 2026: "do not let me launch this before Oct 20. I feel like I need to have you
+help me slow down so I don't rush something that is confusing for people."
+Launch means taking the Mike-only lock off feed/porch.html. Until Oct 20 it stays locked,
+and even then only once the UI update (layout A) is built and has been lived with for a while.
+
 ## How Mike builds
 1. Get it working. 2. Get it simple. 3. Make it look really cool.
 Always the best, even if it takes time. If something looks half-assed, ask him.
@@ -140,7 +146,10 @@ advice."
   - **C, Slim rail**: FEED / SPINS / FRIENDS only.
 - Dial buttons (proposed; Mike only decided "Make a Spin" for sure): Make a Spin,
   Share a photo, Say something, Celebrate a win (coin + days).
-- Still to decide: A, B or C, and the 4 buttons. The Sober Since rail and bottom nav stay.
+- **DECIDED 1 Oct 2026: layout A.** Real-pixel mockup: `Claude outputs/porch-layout-A.html`.
+  The dial has: Give it a spin, Share a photo, Say something, Celebrate a win. The coin
+  rail and bottom nav stay where they are. Coins and Invite move into the Account menu,
+  and New Misfits moves behind Search.
 
 ## THE ONE RULE (30 Sep 2026)
 **People in recovery deserve the best.**
