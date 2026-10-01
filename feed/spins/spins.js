@@ -24,7 +24,7 @@
   const TUS = 'https://video.bunnycdn.com/tusupload';
   const TUS_LIB = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
   const MB_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
-  const MAKER = '/feed/spins/spin-maker.js?v=28';
+  const MAKER = '/feed/spins/spin-maker.js?v=29';
   const MAX_S = 15.5;
   const RAIL_N = 14;
   const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at';
@@ -186,7 +186,7 @@
   }
   const makeTile = () => `<button type="button" class="sp-tile sp-make" data-sp-make><span><span class="sp-plus">+</span><b>Give it<br>a spin</b></span></button>`;
   /* THE SOBER SPINS ICON (1 Oct 2026, Mike): the little movie clapper, everywhere Spins shows up */
-  const SPIN_ICO = '<svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="7.5" cy="6.2" r="3"/><circle cx="14.2" cy="6.2" r="3"/><rect x="3" y="10.2" width="13.6" height="9" rx="1.6"/><path d="M16.6 13.4 21.5 11v7.6l-4.9-2.4"/><circle cx="7.5" cy="6.2" r=".6"/><circle cx="14.2" cy="6.2" r=".6"/></svg>';
+  const SPIN_ICO = '<svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>';
 
   /* LAYOUT A (1 Oct 2026): on the Porch, Spins are story circles under the tab row */
   function storyHTML(l, i) {
