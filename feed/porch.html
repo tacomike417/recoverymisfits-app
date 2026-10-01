@@ -665,7 +665,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v33</span>
+  <span class="ver" id="ver">v35</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1766,16 +1766,21 @@ html.kb .ch-bar{padding-bottom:8px}
   function sendOut(id) {
     if (isSample(id)) return toast("That's a sample post. Only you can see these.");
     $("mbody").dataset.t = JSON.stringify({ post: id }); $("mbody").dataset.uid = "";
-    $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">Send this share</p>' +
-      (navigator.share ? '<button type="button" data-m="sx-native">' + ico("share") + "Send it to somebody…</button>" : "") +
-      '<button type="button" data-m="sx-text">' + ico("text") + "Text it</button>" +
-      '<button type="button" data-m="sx-fb">' + ico("fb") + "Put it on Facebook</button>" +
-      '<button type="button" data-m="sx-copy">' + ico("link") + "Copy the link</button>" +
-      '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
+    /* same big doors as sharing a Spin (1 Oct 2026): least words, completely obvious */
+    var door = function (k, svg, t, sub) { return '<button type="button" class="sx" data-m="' + k + '"><span class="sx-i"><svg viewBox="0 0 24 24">' + svg + '</svg></span><span class="sx-t"><b>' + t + "</b><small class=\"sx-sub\">" + sub + "</small></span></button>"; };
+    $("mbody").innerHTML = '<div class="sxs">' +
+      door("sx-dm", '<path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:currentColor;stroke:none"/><circle cx="8" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/><circle cx="12" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/><circle cx="16" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/>', "Send in Misfit Messages", "To a friend on the Porch") +
+      door("sx-link", '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>', "Share the link", "Text · Messenger · Email") +
+      "</div>";
     open("menu");
   }
   function sendVia(how, id) {
     var url = shareLink(id), words = shareWords(id);
+    if (how === "dm") return gate(function () { openPick(url); });
+    if (how === "link") {
+      if (navigator.share) return navigator.share({ title: "The Porch · Recovery Misfits", text: words, url: url }).catch(function () {});
+      how = "copy";
+    }
     if (how === "native") return navigator.share({ title: "The Porch · Recovery Misfits", text: words, url: url }).catch(function () {});
     if (how === "text") { location.href = "sms:?&body=" + encodeURIComponent(words + " " + url); return; }
     if (how === "fb") { window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url), "_blank", "noopener"); return; }
@@ -2948,6 +2953,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=33" defer></script>
+<script src="/feed/spins/spins.js?v=35" defer></script>
 </body>
 </html>

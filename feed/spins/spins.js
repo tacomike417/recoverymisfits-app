@@ -171,6 +171,16 @@
 .sp-pill{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30001;max-width:calc(100% - 32px);padding:10px 16px;border-radius:999px;background:#100f0c;color:#fff;border:2px solid #e0bd6a;box-shadow:0 8px 26px rgba(0,0,0,.5);font:800 14px/1.2 Arial,sans-serif;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp-pill .bar{display:block;height:4px;margin-top:6px;border-radius:2px;background:#2e2a21;overflow:hidden}
 .sp-pill .bar i{display:block;height:100%;background:#e0bd6a;width:0;transition:width .3s}
+/* the share sheet: three big doors */
+.sxs{display:grid;gap:10px;padding:4px 0 6px}
+.menu .sx{display:flex;align-items:center;gap:14px;width:100%;padding:14px;border:1px solid rgba(214,179,106,.22)!important;border-radius:16px;background:#15130e;text-align:left;cursor:pointer}
+.menu .sx:active{transform:scale(.98)}
+.sx-i{flex:none;width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b}
+.menu .sx-i svg{width:28px;height:28px;margin:0;fill:none;stroke:#17130b;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sx-t{min-width:0}
+.sx-t b{display:block;font:800 17px/1.2 Arial,sans-serif;color:var(--cream,#f1e7cf)}
+.sx-t small{display:block;margin-top:3px;font:700 13.5px/1.2 Arial,sans-serif;color:#c9bfa8}
+.sx.ready small{color:#7ee2a8}
 .sp-sheet .menu button svg{width:20px;height:20px;margin:0 12px -4px 0;fill:none;stroke:var(--gold2);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 `;
   (function addCSS() { const s = document.createElement('style'); s.id = 'spins-css'; s.textContent = CSS; document.head.appendChild(s); })();
@@ -484,11 +494,14 @@
   const linkFor = (l) => location.origin + '/feed/porch.html?spin=' + l.id;
   async function share(l) {
     const url = linkFor(l), title = `${at(l.user_id)} on Recovery Misfits`;
-    const el = sheet('Share this Spin', `
-      <button type="button" data-sh="dm">${TALK}Send in Messages</button>
-      <button type="button" data-sh="video">${SHARE}Share the video</button>
-      <button type="button" data-sh="link"><svg viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>Share the link</button>
-      <p class="fine" style="margin:10px 0 0">The video carries the RECOVERY MISFITS mark wherever it goes.</p>`);
+    /* THREE BIG DOORS (1 Oct 2026, Mike: least words, completely obvious): a bold
+       name for what it does, and one small line of where it goes. */
+    const row = (k, ico, t, sub) => `<button type="button" class="sx" data-sh="${k}"><span class="sx-i">${ico}</span><span class="sx-t"><b>${t}</b><small class="sx-sub">${sub}</small></span></button>`;
+    const el = sheet('', `<div class="sxs">
+      ${row('dm', '<svg viewBox="0 0 24 24"><path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:currentColor;stroke:none"/><circle cx="8" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/><circle cx="12" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/><circle cx="16" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/></svg>', 'Send in Misfit Messages', 'To a friend on the Porch')}
+      ${row('video', CAM_ICO, 'Share this video', 'Reels · Stories · TikTok')}
+      ${row('link', '<svg viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>', 'Share the link', 'Text · Messenger · Email')}
+      </div>`);
     let ready = null;
     const getting = fetch(srcFor(l)).then((r) => { if (!r.ok) throw new Error('fetch'); return r.blob(); })
       .then((blob) => (ready = new File([blob], 'recovery-misfits-spin.mp4', { type: 'video/mp4' }))).catch(() => null);
@@ -504,11 +517,12 @@
       }
       let file = ready;
       if (!file) {
-        b.disabled = true; b.lastChild.textContent = 'Getting the video…';
+        const sub = b.querySelector('.sx-sub');
+        b.disabled = true; sub.textContent = 'Getting it ready…';
         file = await getting;
         b.disabled = false;
-        if (!file) { b.lastChild.textContent = 'Share the video'; say("Couldn't get the video. Try the link."); return; }
-        b.lastChild.textContent = 'Ready, tap to share'; return;
+        if (!file) { sub.textContent = 'Reels · Stories · TikTok'; say("Couldn't get the video. Try the link."); return; }
+        sub.textContent = 'Ready! Tap again'; b.classList.add('ready'); return;
       }
       await closeSheet();
       try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title, text: `${title} ${url}` }); return; } }
