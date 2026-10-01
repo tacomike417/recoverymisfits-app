@@ -23,4 +23,6 @@ python3 -m pip install --quiet pillow >/dev/null 2>&1 || true
 ADS_OUT_ROOT="$PWD/_site" python3 scripts/build_pages.py
 # speaker tapes: allowed to fail quietly, exactly like deploy.yml
 ADS_OUT_ROOT="$PWD/_site" python3 scripts/fetch_tapes.py || true
+# every script/stylesheet link gets this deploy's version, so phones pick up changes right away
+python3 scripts/stamp_assets.py _site
 echo "Built into _site"

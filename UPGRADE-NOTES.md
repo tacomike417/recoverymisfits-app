@@ -128,6 +128,13 @@ Level 1 **Anonymous**, Level 2 **I'm comfortable here**.
 - SPINS is in the Porch's top row. The face on the coin rail's Account well is bigger, and
   the Spin maker is restyled in black and gold.
 
+### LATER: Spin face filters (1 Oct 2026, parked until the UI is worked out)
+- The selfie camera, the 8 characters, their voices and the face tracking are already in
+  spin-maker.js. The filter art isn't: the pictures live in Jeff's project
+  (tcg-sandbox/assets/loops/lenses/), so filters show blank for now.
+- Options when it's time: copy Jeff's generic pieces, make a recovery-themed pack (I write
+  the prompt list for ChatGPT), or both.
+
 ### Taglines for the community side (1 Oct 2026, Mike)
 - **"Good company between meetings"**: the Porch's tagline. It's in the page title, the
   link preview, and the heading of the sign-in sheet.
