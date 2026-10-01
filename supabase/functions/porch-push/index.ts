@@ -55,6 +55,17 @@ const WORDS: Record<string, string> = {
   friend_request: "sent you a friend request", friend_accept: "accepted your friend request",
   respin: "respun your Spin",
   comment_love: "loved your comment",
+  // groups (1 Oct 2026)
+  group_cokeeper: "asked you to co-keep a group", group_review: "applied to start a group. Take a look.",
+  group_ask: "asked to join your group",
+};
+// group alerts that aren't about a person
+const GROUP_SAYS: Record<string, [string, string]> = {
+  group_open: ["Your group is open", "Go say hi."],
+  group_declined: ["About your group", "It didn't open this time."],
+  group_in: ["You're in", "A keeper let you into the group."],
+  group_quiet: ["It's been quiet in your group", "Share something or it closes soon."],
+  group_closed: ["Your group closed", "Nobody shared for 90 days. A moderator can open it back up."],
 };
 
 Deno.serve(async (req) => {
@@ -119,12 +130,14 @@ Deno.serve(async (req) => {
   const text = String((said as any)?.body || "").replace(/\s+/g, " ").trim();
   const q = new URLSearchParams();
   if (n.post_id) { q.set("s", n.post_id); if (n.comment_id) q.set("c", n.comment_id); q.set("k", n.kind); q.set("a", n.actor_id); }
+  else if (n.kind === "group_review" || n.kind === "group_cokeeper" || n.kind === "group_declined") q.set("groups", "1");
+  else if (n.group_id) q.set("g", n.group_id);
   else if (n.kind === "report") q.set("mod", "1");
   else if (n.kind === "friend_request" || n.kind === "friend_accept" || n.kind === "follow") q.set("who", n.actor_id);
   else q.set("notes", "1");
   const payload = JSON.stringify({
-    title: who + " " + words,
-    body: text ? (text.length > 140 ? text.slice(0, 137) + "…" : text) : "Tap to see it.",
+    title: GROUP_SAYS[n.kind] ? GROUP_SAYS[n.kind][0] : who + " " + words,
+    body: GROUP_SAYS[n.kind] ? GROUP_SAYS[n.kind][1] : text ? (text.length > 140 ? text.slice(0, 137) + "…" : text) : "Tap to see it.",
     url: "/feed/porch.html?" + q.toString(),
     tag: "porch-" + n.kind + "-" + (n.post_id || n.actor_id),
     badge: count || 1,

@@ -314,6 +314,8 @@ Deno.serve(async (req) => {
       ["porch_mutes", "muter_id"], ["porch_mutes", "muted_id"]] as const) {
       await admin.from(t).delete().eq(col, user.id);
     }
+    // out of every group; a Co-keeper steps up; a group with no keeper closes
+    await admin.rpc("porch_groups_forget", { p: user.id });
     await admin.from("porch_members").delete().eq("user_id", user.id);
     // a paused person's email stays locked, so leaving can't be used to dodge a report
     if (!m?.frozen_at) await admin.from("porch_identity").delete().eq("user_id", user.id);
@@ -423,6 +425,9 @@ Deno.serve(async (req) => {
       if (!post || post.hidden_at) return json({ error: "That post is gone." }, 404);
       const { data: blocked } = await admin.rpc("porch_blocked", { a: user.id, b: post.user_id });
       if (blocked) return json({ error: "You can't comment there." }, 403);
+      // a share in a group: only people who can see it can comment on it (1 Oct 2026)
+      const { data: seeIt } = await admin.rpc("porch_post_ok", { p: b.post_id, u: user.id });
+      if (seeIt === false) return json({ error: "That post is gone." }, 404);
       // a reply hangs under the first comment in its thread (one level deep, like Facebook)
       let parent: string | null = null;
       if (b.parent_id) {
@@ -437,6 +442,13 @@ Deno.serve(async (req) => {
       return json({ ok: true, id: data.id, parent_id: parent, care });
     }
 
+    // GROUPS (1 Oct 2026): sharing in a group means being in it
+    const groupId = typeof b.group_id === "string" && /^[0-9a-f-]{36}$/i.test(b.group_id) ? b.group_id : null;
+    if (b.group_id && !groupId) return json({ error: "That group isn't here." }, 400);
+    if (groupId) {
+      const { data: inIt } = await admin.rpc("porch_in_group", { g: groupId, u: user.id });
+      if (!inIt) return json({ error: "Join the group to share in it." }, 403);
+    }
     const need = String(b.need || "talk");
     if (!["talk", "experience", "strength", "hope", "question", "win", "hard", "moment"].includes(need)) return json({ error: "Pick what you need." }, 400);
     const photos: string[] = Array.isArray(b.photos) ? b.photos.slice(0, 4) : [];
@@ -458,7 +470,7 @@ Deno.serve(async (req) => {
     const style = Number.isInteger(b.card_style) ? Math.max(0, Math.min(11, b.card_style)) : null;
     const link_preview = paths.length ? null : await previewFor(text);
     const { data, error } = await admin.from("porch_posts")
-      .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style, link_preview })
+      .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style, link_preview, ...(groupId ? { group_id: groupId } : {}) })
       .select("id").single();
     if (error) return json({ error: "That didn't go through. Try again." }, 500);
     return json({ ok: true, id: data.id, care });

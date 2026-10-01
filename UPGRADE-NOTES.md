@@ -28,7 +28,19 @@ Order isn't set.
 - [x] Mute somebody without blocking them (done 1 Oct: ⋯ on a share or Spin)
 
 **Like the big apps**
-- [ ] Groups (home groups, women's/men's, family, by step)
+- [x] Groups (done 1 Oct, v65: Groups tab, group pages, apply to start one, Mike approves).
+      Still to come inside groups: Events, group chat, Spins tab, group cover photos.
+      Mike's rules (1 Oct): Groups get their own tab (mockup A).
+      Two people start a group: a Keeper and a Co-keeper (not "admin" or "moderator").
+      Starting a group is a privilege you earn: the Keeper is an ACTIVE member with 30
+      days on the Porch and APPLIES for the group. The Co-keeper is active too and taps "I'm in".
+      "Active" (between us, the app never shows the numbers): picture + bio, 5+ shares,
+      10+ comments on other people's shares, showed up 8+ different days in the last 30,
+      not paused, nothing taken down in the last 30 days. Hearts don't count.
+      Then Mike approves EVERY group before it opens. No self-centered crazy groups.
+      Only members see what's shared in a group. Moderators can look in on any group.
+      Nobody shares for 90 days = it closes (heads-up at 75 days). Closed is not erased.
+      No sober-date rule. Events and group chat live inside groups (built after).
 - [ ] Events: "Thursday 7pm speaker meeting, who's going" with I'm going
 - [ ] Group chats in Messages
 - [ ] Voice messages in Messages (hold to talk)
