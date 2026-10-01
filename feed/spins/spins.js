@@ -24,7 +24,7 @@
   const TUS = 'https://video.bunnycdn.com/tusupload';
   const TUS_LIB = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
   const MB_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
-  const MAKER = '/feed/spins/spin-maker.js?v=32';
+  const MAKER = '/feed/spins/spin-maker.js?v=33';
   const MAX_S = 15.5;
   const RAIL_N = 14;
   const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at';
@@ -702,9 +702,18 @@
      ====================================================================== */
   let newEl = null, picked = null, pickedURL = '', pickedMusic = null, uploading = false;
   let makerReady = null;
+  const musicCache = new Map();
   const musicApi = {
     async search(q) { const r = await callSpins({ action: 'music_search', q }); if (r.error) throw new Error(r.error); return r.tracks || []; },
-    async file(id) {
+    /* the same track is only ever fetched once per visit (1 Oct 2026) */
+    file(id) {
+      if (!musicCache.has(id)) {
+        const p = this._file(id); musicCache.set(id, p);
+        p.catch(() => musicCache.delete(id));
+      }
+      return musicCache.get(id);
+    },
+    async _file(id) {
       const t = await P().tok();
       const r = await fetch(P().DB + '/functions/v1/spins', { method: 'POST', headers: { apikey: P().KEY, Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'music_file', id }) });
       if (!r.ok) throw new Error('music');

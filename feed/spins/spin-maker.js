@@ -795,9 +795,13 @@
     const n = hearN;
     btn.textContent = '…';
     try {
-      const blob = await musicApi.file(t.id);
+      /* ▶ plays straight from Freesound's preview, streaming, so it starts right away;
+         the track itself starts coming down quietly in case they tap Use (1 Oct 2026) */
+      let src = t.preview || '';
+      musicApi.file(t.id).catch(() => {});
+      if (!src) src = URL.createObjectURL(await musicApi.file(t.id));
       if (n !== hearN || !el) return;
-      const a = new Audio(URL.createObjectURL(blob)); a.volume = 0.8;
+      const a = new Audio(src); a.volume = 0.8;
       hearing = { id: t.id, a }; a.play().catch(() => {});
       btn.textContent = '❚❚'; btn.classList.add('on');
       a.onended = () => { if (hearing && hearing.a === a) stopHearing(true); };

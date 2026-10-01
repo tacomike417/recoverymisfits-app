@@ -122,9 +122,12 @@ Deno.serve(async (req) => {
       const r = await fetch(u.toString());
       if (!r.ok) return json({ error: "Music didn't load. Try again." }, 502);
       const d = await r.json();
+      /* the preview link goes to the phone too, so tapping ▶ plays straight from
+         Freesound, streaming, in a second instead of after the whole song downloads */
       const tracks = (d.results || []).map((x: any) => ({
         id: x.id, name: String(x.name || "Track").replace(/\.(mp3|wav|ogg|flac|aif+)$/i, "").slice(0, 60),
         by: x.username, secs: Math.round(x.duration || 0),
+        preview: /^https:\/\/[a-z0-9.-]*freesound\.org\//i.test(String(x.previews?.["preview-lq-mp3"] || "")) ? x.previews["preview-lq-mp3"] : null,
       }));
       return json({ ok: true, tracks });
     } catch { return json({ error: "Music didn't load. Try again." }, 502); }
@@ -139,9 +142,21 @@ Deno.serve(async (req) => {
       if (!/publicdomain\/zero/.test(String(s.license || ""))) return json({ error: "That track can't be used." }, 403);
       const url = s.previews?.["preview-hq-mp3"];
       if (!url) return json({ error: "That track didn't load." }, 502);
-      const a = await fetch(url);
-      if (!a.ok) return json({ error: "That track didn't load." }, 502);
-      return new Response(a.body, { headers: { ...CORS, "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
+      /* A SPIN IS 15 SECONDS (1 Oct 2026, Mike: "it takes about a minute"): only the
+         first ~40 seconds of the song come down, not the whole thing. MP3 is made of
+         small frames, so a cut-off file still plays from the top. */
+      const a = await fetch(url, { headers: { Range: "bytes=0-655359" } });
+      if (!a.ok || !a.body) return json({ error: "That track didn't load." }, 502);
+      const reader = a.body.getReader(), parts: Uint8Array[] = []; let got = 0;
+      while (got < 655360) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        parts.push(value); got += value.length;
+      }
+      try { await reader.cancel(); } catch { /* done already */ }
+      const out = new Uint8Array(Math.min(got, 655360)); let o = 0;
+      for (const p of parts) { const n = Math.min(p.length, out.length - o); if (n <= 0) break; out.set(p.subarray(0, n), o); o += n; }
+      return new Response(out, { headers: { ...CORS, "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=86400" } });
     } catch { return json({ error: "That track didn't load." }, 502); }
   }
 
