@@ -1812,6 +1812,6 @@
 (function () {
   try { if (localStorage.getItem("rm_porch_ok") !== "1") return; } catch (e) { return; }
   if (/\/feed\/(porch|soon)\.html/.test(location.pathname)) return;
-  var s = document.createElement("script"); s.src = "/feed/alerts.js?v=2"; s.defer = true;
+  var s = document.createElement("script"); s.src = "/feed/alerts.js?v=3"; s.defer = true;
   document.head.appendChild(s);
 })();

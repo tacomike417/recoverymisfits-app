@@ -536,6 +536,27 @@ Deno.serve(async (req) => {
     return json({ ok: true });
   }
 
+  /* CALLS (1 Oct 2026): hands a phone the list of servers it uses to reach the other phone.
+     With the Cloudflare relay keys set (CF_TURN_KEY_ID, CF_TURN_KEY_API_TOKEN) that includes
+     the relay, good for one hour. Without them, calls still work whenever two phones can
+     reach each other directly. The keys never leave the server. */
+  if (b.action === "call_ice") {
+    const fallback = [{ urls: ["stun:stun.cloudflare.com:3478"] }];
+    const kid = Deno.env.get("CF_TURN_KEY_ID"), ktok = Deno.env.get("CF_TURN_KEY_API_TOKEN");
+    if (!kid || !ktok) return json({ ok: true, iceServers: fallback, relay: false });
+    try {
+      const r = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${kid}/credentials/generate-ice-servers`, {
+        method: "POST", headers: { Authorization: "Bearer " + ktok, "Content-Type": "application/json" }, body: JSON.stringify({ ttl: 3600 }),
+      });
+      if (!r.ok) return json({ ok: true, iceServers: fallback, relay: false });
+      const j = await r.json();
+      // browsers block port 53, and waiting on it slows a call down
+      const servers = (j.iceServers || []).map((x: any) => ({ ...x, urls: [].concat(x.urls || []).filter((u: string) => !/:53(\?|$)/.test(u)) }))
+        .filter((x: any) => x.urls.length);
+      return json({ ok: true, iceServers: servers.length ? servers : fallback, relay: true });
+    } catch { return json({ ok: true, iceServers: fallback, relay: false }); }
+  }
+
   /* GROUP CHATS IN MESSAGES (1 Oct 2026, Mike: friends only, capped at 12). Same checks as a
      one-on-one message. Who's in a chat is decided by the database (porch_22_group_chats.sql).
      gdm_send { chat_id, body?, photos?, sure? } / gdm_unsend { id } */

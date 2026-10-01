@@ -188,7 +188,25 @@
   }
 
   /* the ding (feed/sound.js) */
-  (function () { const sc = document.createElement('script'); sc.src = '/feed/sound.js?v=1'; sc.defer = true; document.head.appendChild(sc); })();
+  (function () { const sc = document.createElement('script'); sc.src = '/feed/sound.js?v=2'; sc.defer = true; document.head.appendChild(sc); })();
+  /* A CALL IS RINGING (1 Oct 2026): checked every 8 seconds while a page is on screen.
+     The banner says who's calling; tapping it opens the Porch, where the call screen is. */
+  let lastCall = '';
+  async function checkCall() {
+    if (document.hidden) return;
+    try {
+      const t = await token(); if (!t) return;
+      const uid = window.RMAccount.uid();
+      const since = new Date(Date.now() - 60000).toISOString();
+      const r = await get('porch_calls?callee=eq.' + uid + '&status=eq.ringing&created_at=gt.' + encodeURIComponent(since) + '&select=id,caller,kind&order=created_at.desc&limit=1', t).catch(() => []);
+      if (!r[0] || r[0].id === lastCall) return;
+      lastCall = r[0].id;
+      const who = (await get('porch_members?user_id=eq.' + r[0].caller + '&select=handle,avatar_path', t).catch(() => []))[0] || null;
+      show({ kind: 'dm', who, text: 'is calling. Tap to answer the ' + (r[0].kind === 'voice' ? 'voice' : 'video') + ' call.', url: '/feed/porch.html?call=' + r[0].id });
+      if (window.RMSound) { window.RMSound.ring(false); setTimeout(() => window.RMSound.stopRing(), 9000); }
+    } catch (_) {}
+  }
+  setInterval(checkCall, 8000);
   setTimeout(check, 1500);
   setInterval(check, 45000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });

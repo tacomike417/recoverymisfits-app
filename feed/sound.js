@@ -5,6 +5,7 @@
  *
  *   RMSound.ding()   something new came in
  *   RMSound.pop()    a new message in the open chat
+ *   RMSound.ring()   a call is ringing (ring(true) = the caller's softer tone); stopRing() ends it
  *   RMSound.on()     are sounds on?        RMSound.set(true|false)
  *
  * Phones only let a page make noise after it's been touched once, so the first tap
@@ -39,8 +40,20 @@
     last = now;
     try { notes.forEach(function (n) { note(n[0], n[1], n[2], n[3]); }); } catch (e) {}
   }
+  /* a call ringing: two quick notes, twice, every couple of seconds, until it stops.
+     "out" is the softer tone the caller hears while it rings on the other end. */
+  var ringer = null;
+  function ringOnce(out) {
+    if (!on() || !ctx || ctx.state !== 'running') return;
+    try {
+      if (out) { note(440, 0, 0.9, 0.06); note(480, 0, 0.9, 0.05); return; }
+      [0, 0.45].forEach(function (t) { note(988, t, 0.16, 0.2); note(1318.5, t + 0.16, 0.22, 0.18); });
+    } catch (e) {}
+  }
+  function ring(out) { stopRing(); wake(); ringOnce(out); ringer = setInterval(function () { ringOnce(out); }, out ? 3000 : 2200); }
+  function stopRing() { if (ringer) { clearInterval(ringer); ringer = null; } }
   window.RMSound = {
-    on: on, set: set,
+    on: on, set: set, ring: ring, stopRing: stopRing,
     ding: function () { play([[880, 0, 0.32, 0.16], [1318.5, 0.11, 0.5, 0.13]]); },
     pop: function () { play([[660, 0, 0.16, 0.1]]); }
   };

@@ -76,8 +76,38 @@ Deno.serve(async (req) => {
   const secret = await setting("push_secret");
   if (!secret || req.headers.get("x-porch-secret") !== secret) return json({ error: "no" }, 403);
 
-  let note_id = "", dm_id = "", gdm_id = "";
-  try { const j = await req.json(); note_id = String(j.note_id || ""); dm_id = String(j.dm_id || ""); gdm_id = String(j.gdm_id || ""); } catch { /* empty */ }
+  let note_id = "", dm_id = "", gdm_id = "", call_id = "";
+  try { const j = await req.json(); note_id = String(j.note_id || ""); dm_id = String(j.dm_id || ""); gdm_id = String(j.gdm_id || ""); call_id = String(j.call_id || ""); } catch { /* empty */ }
+
+  /* A CALL IS RINGING (1 Oct 2026): "grateful_gina is calling" / tap to answer. Only good
+     while it's ringing, so it doesn't sit around after the call is gone. */
+  if (call_id) {
+    const { data: c } = await admin.from("porch_calls").select("id, caller, callee, kind, status, created_at").eq("id", call_id).maybeSingle();
+    if (!c || c.status !== "ringing" || Date.now() - new Date(c.created_at).getTime() > 60_000) return json({ ok: true, sent: 0 });
+    const [{ data: who }, { data: phones }] = await Promise.all([
+      admin.from("porch_members").select("handle").eq("user_id", c.caller).maybeSingle(),
+      admin.from("porch_push").select("*").eq("user_id", c.callee),
+    ]);
+    if (!phones?.length) return json({ ok: true, sent: 0 });
+    await vapid();
+    const payload = JSON.stringify({
+      title: (who?.handle || "A friend") + " is calling",
+      body: c.kind === "voice" ? "Voice call. Tap to answer." : "Video call. Tap to answer.",
+      url: "/feed/porch.html?call=" + c.id,
+      tag: "porch-call",
+    });
+    let sent = 0;
+    for (const p of phones) {
+      try {
+        await webpush.sendNotification({ endpoint: p.endpoint, keys: { p256dh: p.p256dh, auth: p.auth } }, payload, { TTL: 45, urgency: "high" });
+        sent++;
+      } catch (e) {
+        const code = (e as any)?.statusCode;
+        if (code === 404 || code === 410) await admin.from("porch_push").delete().eq("endpoint", p.endpoint);
+      }
+    }
+    return json({ ok: true, sent });
+  }
 
   /* A NEW MESSAGE IN A GROUP CHAT (1 Oct 2026): "grateful_gina in The Crew" / what she said.
      Everybody else in the chat gets it, except anybody blocked with the sender. */

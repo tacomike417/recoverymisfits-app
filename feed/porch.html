@@ -410,6 +410,33 @@ html.fullon #main{visibility:hidden}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
 .nd-snd{display:block;margin:10px 14px 2px auto;padding:6px 12px;border-radius:999px;border:1px solid rgba(60,45,20,.25);background:rgba(49,162,76,.14);color:#1f6b33;font:800 12.5px Arial,sans-serif;cursor:pointer}
 .nd-snd.off{background:rgba(200,50,40,.1);color:#9a2a20}
+/* CALLS (1 Oct 2026) */
+.ch-call{flex:none;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:none;color:#e0bd6a;cursor:pointer}
+.ch-call svg,.kl-b svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ch-call:active{background:rgba(214,179,106,.14)}
+.callui{background:#070706}
+.callpage{padding:0!important;overflow:hidden!important;max-width:none!important;color:#fff}
+#klremote{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#070706}
+#kllocal{position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top,0px));width:104px;height:150px;object-fit:cover;border-radius:14px;border:2px solid rgba(255,255,255,.7);background:#111;transform:scaleX(-1);z-index:2}
+#kllocal.back{transform:none}
+.callui.voice #klremote,.callui.voice #kllocal{opacity:0;pointer-events:none}
+.callui:not(.live) #kllocal{display:none}
+.kl-who{position:absolute;left:0;right:0;top:calc(22% + env(safe-area-inset-top,0px));display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;z-index:1;text-shadow:0 1px 6px #000}
+.kl-who .av{width:112px;height:112px;font-size:40px;box-shadow:0 0 0 3px #e0bd6a}
+.kl-who b{font:400 30px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.02em}
+.kl-who small{font:700 15px Arial,sans-serif;color:#e8dfc9}
+.callui.live:not(.voice) .kl-who{top:calc(14px + env(safe-area-inset-top,0px));left:14px;right:auto;flex-direction:row;align-items:center;gap:8px}
+.callui.live:not(.voice) .kl-who .av{display:none}
+.callui.live:not(.voice) .kl-who b{font-size:20px}
+.kl-ring,.kl-btns{position:absolute;left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:22px;z-index:2}
+.kl-ring{gap:70px}
+.kl-b{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;color:#fff;font:700 12px Arial,sans-serif;cursor:pointer;text-shadow:0 1px 4px #000}
+.kl-b span{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;background:rgba(40,36,28,.86);border:1px solid rgba(255,255,255,.18)}
+.kl-b.off span{background:#f1e7cf;color:#17130b}
+.kl-b.no span{background:#d6332a;border-color:transparent}
+.kl-b.yes span{background:#2a9d4a;border-color:transparent}
+.kl-988{position:absolute;left:0;right:0;bottom:calc(18px + env(safe-area-inset-bottom,0px));text-align:center;color:rgba(255,255,255,.75);font:600 12.5px Arial,sans-serif;text-decoration:none;z-index:2;text-shadow:0 1px 4px #000}
+.kl-988 b{color:#e0bd6a}
 /* GROUP CHATS (1 Oct 2026) */
 .dm-pill.line{background:none;border:1px solid #5a4d2c;color:#f4ecd8}
 .gc-face{flex:none;display:flex}.gc-face .g-tile{border-radius:50%}
@@ -898,7 +925,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS</button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v69</span>
+  <span class="ver" id="ver">v70</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1182,6 +1209,25 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="profile" class="layer full" role="dialog" aria-modal="true" aria-label="Profile"><div class="page" id="pfpage"></div></div>
 
 <!-- ONE SHARE, opened from a profile -->
+<!-- A CALL (1 Oct 2026): video or voice with a friend. Never recorded. Phone back = hang up. -->
+<div id="call" class="layer full callui" role="dialog" aria-modal="true" aria-label="Call">
+  <div class="page callpage">
+    <video id="klremote" playsinline autoplay></video>
+    <video id="kllocal" playsinline autoplay muted></video>
+    <div class="kl-who"><span id="klav"></span><b id="klname"></b><small id="klstate" role="status"></small></div>
+    <div class="kl-ring" id="klring" hidden>
+      <button type="button" class="kl-b no" id="klno" aria-label="Decline"><span></span><small>Decline</small></button>
+      <button type="button" class="kl-b yes" id="klyes" aria-label="Answer"><span></span><small>Answer</small></button>
+    </div>
+    <div class="kl-btns" id="klbtns" hidden>
+      <button type="button" class="kl-b" id="klmic" aria-label="Mute" aria-pressed="false"><span></span><small>Mute</small></button>
+      <button type="button" class="kl-b" id="klcam" aria-label="Camera"><span></span><small>Camera</small></button>
+      <button type="button" class="kl-b" id="klflip" aria-label="Flip camera"><span></span><small>Flip</small></button>
+      <button type="button" class="kl-b no" id="klhang" aria-label="Hang up"><span></span><small>Hang up</small></button>
+    </div>
+    <a class="kl-988" href="tel:988">Having a hard time? A real person answers. <b>Call 988</b></a>
+  </div>
+</div>
 <!-- NEW GROUP CHAT / ADD FRIENDS (1 Oct 2026) -->
 <div id="gcnew" class="layer" role="dialog" aria-modal="true" aria-label="Group chat">
   <div class="dim" data-close></div>
@@ -2991,7 +3037,9 @@ html.kb .ch-bar{padding-bottom:8px}
       }, 120);
     }
   }
-  setInterval(function () { if (!document.hidden) { checkNotes(); checkDms(); } }, 30000);   /* was a minute; sounds made the wait noticeable */
+  setInterval(function () { if (!document.hidden) { checkNotes(); checkDms(); } }, 30000);
+  setInterval(checkIncoming, 4000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) checkIncoming(); });   /* was a minute; sounds made the wait noticeable */
   document.addEventListener("visibilitychange", function () { if (!document.hidden) { checkNotes(); checkDms(); } });
 
   /* ================================================================ SAVED SHARES (30 Sep 2026)
@@ -3414,7 +3462,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (!signedIn()) return open("join");
     if (!people[uid] || !people[uid].handle || people[uid].handle === "misfit") { try { delete people[uid]; await loadPeople([uid]); } catch (e) {} }
     chat = { uid: uid, thread: null, msgs: [] };
-    $("chtop").innerHTML = '<button type="button" class="who" data-u="' + uid + '">' + avatar(people[uid]) + "<span><b>" + esc(name(uid)) + '</b><small>Private chat</small></span></button><button type="button" class="more" data-chatmore aria-label="Options">⋯</button>';
+    $("chtop").innerHTML = '<button type="button" class="who" data-u="' + uid + '">' + avatar(people[uid]) + "<span><b>" + esc(name(uid)) + '</b><small>Private chat</small></span></button>' + (friends[uid] ? callBtnsHTML(uid) : "") + '<button type="button" class="more" data-chatmore aria-label="Options">⋯</button>';
     $("dmlist").innerHTML = '<div class="skel" style="height:120px;margin:12px 0"></div>';
     $("dmin").value = ""; dmPhotos = []; paintDmBox();
     open("chat");
@@ -4115,6 +4163,186 @@ html.kb .ch-bar{padding-bottom:8px}
     }
   });
 
+  /* ================================================================ CALLS (1 Oct 2026)
+     Mike: "I just think it's important to be able to do this." One-on-one video and voice
+     calls between friends, started from a chat. The call goes phone to phone (through
+     Cloudflare's relay when two phones can't reach each other). Never recorded; nothing
+     said or seen is stored. The database only holds the handshake (porch_23_calls.sql).
+     Phone back = hang up. */
+  var call = null;
+  setTimeout(function () { var put = function (id, k) { var el = $(id); if (el) el.querySelector("span").innerHTML = CI[k]; };
+    put("klmic", "mic"); put("klcam", "video"); put("klflip", "flip"); put("klhang", "hang"); put("klno", "hang"); put("klyes", "voice"); }, 0);
+  var CI = {
+    video: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21.5 7v10l-6-3.5z"/></svg>',
+    voice: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>',
+    mic: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+    flip: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V7a2 2 0 0 1 2-2h9M20 15v2a2 2 0 0 1-2 2H9"/><path d="M13 2l3 3-3 3M11 22l-3-3 3-3"/></svg>',
+    hang: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14.5c5-5 13-5 18 0l-2.5 2.5-3.5-1.5v-3a12 12 0 0 0-6 0v3L5.5 17z"/></svg>'
+  };
+  function callBtnsHTML(uid) {
+    return '<button type="button" class="ch-call" data-call="voice" data-callto="' + uid + '" aria-label="Voice call">' + CI.voice + '</button><button type="button" class="ch-call" data-call="video" data-callto="' + uid + '" aria-label="Video call">' + CI.video + "</button>";
+  }
+  function callSay(t) { if ($("klstate")) $("klstate").textContent = t; }
+  function callPaint() {
+    if (!call) return;
+    var vid = call.kind === "video", live = call.state === "live" || call.state === "connecting" || call.state === "calling";
+    $("call").classList.toggle("voice", !vid);
+    $("klav").innerHTML = avatar(people[call.peer]);
+    $("klname").textContent = name(call.peer);
+    $("klring").hidden = call.state !== "ringing";
+    $("klbtns").hidden = !live;
+    $("klflip").hidden = !vid; $("klcam").hidden = !vid;
+    $("klmic").classList.toggle("off", !!call.muted); $("klcam").classList.toggle("off", !!call.camOff);
+    $("klmic").setAttribute("aria-pressed", call.muted ? "true" : "false");
+    $("call").classList.toggle("live", call.state === "live");
+  }
+  function callOpen() {
+    $("call")._close = function () { $("call").classList.remove("open"); if (call && !call.done) callFinish(true); };
+    callPaint(); open("call");
+  }
+  function waitIce(pc) {
+    return new Promise(function (res) {
+      if (pc.iceGatheringState === "complete") return res();
+      var done = false, fin = function () { if (!done) { done = true; res(); } };
+      pc.addEventListener("icegatheringstatechange", function () { if (pc.iceGatheringState === "complete") fin(); });
+      setTimeout(fin, 3500);
+    });
+  }
+  async function callMedia(kind, facing) {
+    return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: kind === "video" ? { facingMode: facing || "user", width: { ideal: 640 }, height: { ideal: 480 } } : false });
+  }
+  async function callPeer() {
+    var r = await fn("porch", { action: "call_ice" });
+    var pc = new RTCPeerConnection({ iceServers: (r && r.iceServers) || [{ urls: "stun:stun.cloudflare.com:3478" }] });
+    call.stream.getTracks().forEach(function (t) { pc.addTrack(t, call.stream); });
+    pc.ontrack = function (e) { var v = $("klremote"); if (v.srcObject !== e.streams[0]) { v.srcObject = e.streams[0]; v.play().catch(function () {}); } };
+    pc.onconnectionstatechange = function () {
+      if (!call || call.pc !== pc) return;
+      if (pc.connectionState === "connected") {
+        if (window.RMSound) window.RMSound.stopRing();
+        call.state = "live"; call.t0 = call.t0 || Date.now(); callPaint();
+        clearInterval(call.clock); call.clock = setInterval(function () { if (!call) return; var s = Math.floor((Date.now() - call.t0) / 1000); callSay(Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2)); }, 1000);
+      } else if (pc.connectionState === "failed") { toast("The call couldn't connect."); callFinish(true); }
+    };
+    $("kllocal").srcObject = call.stream;
+    return pc;
+  }
+  function callSupported() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.RTCPeerConnection); }
+  /* ---- I call somebody ---- */
+  async function startCall(uid, kind) {
+    if (call) return;
+    if (!friends[uid]) return toast("You can call friends only.");
+    if (!callSupported()) return toast("This phone's browser can't make calls.");
+    call = { role: "caller", peer: uid, kind: kind, state: "calling", id: null };
+    callOpen(); callSay("Getting ready…");
+    try { call.stream = await callMedia(kind); }
+    catch (e) { callFinish(false); return toast(kind === "video" ? "Turn on the camera and microphone for this site to make calls." : "Turn on the microphone for this site to make calls."); }
+    if (!call) return;
+    try {
+      call.pc = await callPeer();
+      await call.pc.setLocalDescription(await call.pc.createOffer());
+      await waitIce(call.pc);
+      if (!call) return;
+      var r = await grpc("porch_call_start", { p_to: uid, p_kind: kind, p_offer: call.pc.localDescription });
+      if (!call) return;
+      if (!r.ok) { callFinish(false); return toast(r.error); }
+      call.id = r.data; callSay("Ringing…");
+      if (window.RMSound) window.RMSound.ring(true);
+    } catch (e) { callFinish(true); return toast("The call didn't go through. Try again."); }
+    var started = Date.now(), answered = false, cid = call.id;
+    call.poll = setInterval(async function () {
+      if (!call || call.id !== cid) return;
+      var p = await grpc("porch_call_ping", { p_call: cid }); if (!call || call.id !== cid || !p.ok) return;
+      var st = p.data || {};
+      if (st.status === "accepted" && st.answer && !answered) {
+        answered = true; if (window.RMSound) window.RMSound.stopRing();
+        call.state = "connecting"; callPaint(); callSay("Connecting…");
+        try { await call.pc.setRemoteDescription(st.answer); } catch (e) { toast("The call couldn't connect."); callFinish(true); }
+      } else if (st.status === "declined") { toast(name(uid) + " can't talk right now."); callFinish(false); }
+      else if (st.status === "ended" || st.status === "missed") { if (answered) toast("Call ended."); callFinish(false); }
+      else if (st.status === "ringing" && Date.now() - started > 45000) { toast("No answer."); callFinish(true); }
+    }, 1300);
+  }
+  /* ---- somebody calls me ---- */
+  async function checkIncoming() {
+    if (call || !me.uid || !me.member || document.hidden) return;
+    try {
+      var since = new Date(Date.now() - 60000).toISOString();
+      var r = await rest("porch_calls?callee=eq." + me.uid + "&status=eq.ringing&created_at=gt." + encodeURIComponent(since) + "&select=id,caller,kind,offer,created_at&order=created_at.desc&limit=1");
+      if (r[0] && !call) incomingCall(r[0]);
+    } catch (e) {}
+  }
+  async function incomingCall(row) {
+    if (call) return;
+    call = { role: "callee", peer: row.caller, kind: row.kind, state: "ringing", id: row.id, offer: row.offer };
+    try { await loadPeople([row.caller]); } catch (e) {}
+    if (!call || call.id !== row.id) return;
+    callOpen(); callSay(row.kind === "voice" ? "Voice call" : "Video call");
+    if (window.RMSound) window.RMSound.ring(false);
+    var cid = row.id;
+    call.poll = setInterval(async function () {
+      if (!call || call.id !== cid) return;
+      var p = await grpc("porch_call_ping", { p_call: cid }); if (!call || call.id !== cid || !p.ok) return;
+      var st = (p.data || {}).status;
+      if (call.state === "ringing" && st !== "ringing") { toast("Missed call from " + name(row.caller) + "."); callFinish(false); }
+      else if (call.state !== "ringing" && (st === "ended" || st === "missed" || st === "declined")) { toast("Call ended."); callFinish(false); }
+    }, 1500);
+  }
+  async function answerCall() {
+    if (!call || call.role !== "callee" || call.state !== "ringing") return;
+    if (!callSupported()) { toast("This phone's browser can't take calls."); return callFinish(true); }
+    if (window.RMSound) window.RMSound.stopRing();
+    call.state = "connecting"; callPaint(); callSay("Connecting…");
+    try { call.stream = await callMedia(call.kind); }
+    catch (e) { toast(call.kind === "video" ? "Turn on the camera and microphone for this site to take calls." : "Turn on the microphone for this site to take calls."); return callFinish(true); }
+    if (!call) return;
+    try {
+      call.pc = await callPeer();
+      await call.pc.setRemoteDescription(call.offer);
+      await call.pc.setLocalDescription(await call.pc.createAnswer());
+      await waitIce(call.pc);
+      if (!call) return;
+      var r = await grpc("porch_call_answer", { p_call: call.id, p_answer: call.pc.localDescription });
+      if (!r.ok) { toast(r.error); return callFinish(false); }
+    } catch (e) { toast("The call couldn't connect."); callFinish(true); }
+  }
+  /* ---- it's over: stop everything, tell the other phone, close the screen ---- */
+  function callFinish(tell) {
+    if (!call || call.done) return;
+    var c = call; c.done = true; call = null;
+    if (window.RMSound) window.RMSound.stopRing();
+    clearInterval(c.poll); clearInterval(c.clock);
+    try { if (c.stream) c.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+    try { if (c.pc) { c.pc.ontrack = null; c.pc.onconnectionstatechange = null; c.pc.close(); } } catch (e) {}
+    $("klremote").srcObject = null; $("kllocal").srcObject = null;
+    if (tell && c.id) grpc("porch_call_end", { p_call: c.id });
+    if ($("call").classList.contains("open")) { if (stack[stack.length - 1] === $("call")) closeTop(); else $("call").classList.remove("open"); }
+    if (chat && !chat.gid && $("chat").classList.contains("open")) setTimeout(function () { loadChat(true); }, 900);
+  }
+  async function flipCam() {
+    if (!call || !call.stream || call.kind !== "video") return;
+    var want = call.facing === "environment" ? "user" : "environment";
+    try {
+      var s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: want, width: { ideal: 640 }, height: { ideal: 480 } } });
+      var nt = s.getVideoTracks()[0], old = call.stream.getVideoTracks()[0];
+      var sender = call.pc.getSenders().filter(function (x) { return x.track && x.track.kind === "video"; })[0];
+      if (sender) await sender.replaceTrack(nt);
+      call.stream.removeTrack(old); old.stop(); call.stream.addTrack(nt); nt.enabled = !call.camOff;
+      call.facing = want; $("kllocal").srcObject = call.stream; $("kllocal").classList.toggle("back", want === "environment");
+    } catch (e) { toast("Couldn't switch cameras."); }
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target; if (!t.closest) return;
+    var b = t.closest("[data-call]");
+    if (b) { var to = b.dataset.callto, k = b.dataset.call; return gate(function () { startCall(to, k); }); }
+    if (t.closest("#klyes")) return answerCall();
+    if (t.closest("#klno") || t.closest("#klhang")) return callFinish(true);
+    if (t.closest("#klmic") && call && call.stream) { call.muted = !call.muted; call.stream.getAudioTracks().forEach(function (x) { x.enabled = !call.muted; }); return callPaint(); }
+    if (t.closest("#klcam") && call && call.stream) { call.camOff = !call.camOff; call.stream.getVideoTracks().forEach(function (x) { x.enabled = !call.camOff; }); return callPaint(); }
+    if (t.closest("#klflip")) return flipCam();
+  });
+  window.addEventListener("pagehide", function () { if (call && call.id) { try { grpc("porch_call_end", { p_call: call.id }); } catch (e) {} } });
+
   /* ================================================================ GROUP CHATS (1 Oct 2026)
      Mike: "group chats in messages yes. and yeah cap it, and friends only." Like a group
      text: you and two or more of your friends, 12 people at the most. Whoever starts it
@@ -4334,6 +4562,7 @@ html.kb .ch-bar{padding-bottom:8px}
       if (!ok) toast("That didn't come through. Try sharing it again.");
       else { var goShare = function () { takeShared(); }; if (window.PorchSpins) goShare(); else window.addEventListener("load", goShare); }
     }
+    if (/[?&]call=/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} checkIncoming(); }
     var gcq = new URLSearchParams(location.search).get("gc");
     if (gcq && /^[0-9a-f-]{36}$/i.test(gcq)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openGChat(gcq); }
     var gq = new URLSearchParams(location.search).get("g");
@@ -4355,7 +4584,7 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/sound.js?v=1" defer></script>
+<script src="/feed/sound.js?v=2" defer></script>
 <script src="/feed/spins/spins.js?v=65" defer></script>
 </body>
 </html>

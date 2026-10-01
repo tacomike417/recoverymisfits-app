@@ -28,6 +28,18 @@ Order isn't set.
 - [x] Mute somebody without blocking them (done 1 Oct: ⋯ on a share or Spin)
 
 **Like the big apps**
+- [x] Calls in Messages: one-on-one video and voice, friends only, never recorded
+      (built 1 Oct, v70; database step 23). STILL TO DO: turn on the Cloudflare relay and paste
+      its two keys, then test a real call between two phones. A "restrictor" (limits) can come
+      later if the bill ever needs it.
+      Rings as a phone alert (web apps can't do a full-screen ring on iPhone).
+      Group calls later. Ringtone gets built with it.
+      A small Call 988 line at the bottom of the call screen, same as the post screen.
+      THE MONEY (checked 1 Oct 2026, Cloudflare's own pricing pages): calls need Cloudflare's
+      relay (TURN) for phones that can't connect directly. First 1,000 GB a month is free,
+      then 5 cents a GB. Only relayed calls count; direct ones cost nothing. A relayed video
+      call is roughly 1 GB an hour (estimate), so the free part covers about 1,000 hours of
+      relayed video a month, and after that it's about a nickel an hour. No per-minute fees.
 - [x] Groups (done 1 Oct, v65: Groups tab, group pages, apply to start one, Mike approves).
       Trusted starters (step 21): tacomike417, fire_l0ve, krazyk226 skip the active test, to seed
       feeder groups. Still takes two, and Mike still approves each one.
@@ -47,23 +59,19 @@ Order isn't set.
       who's going" with I'm going
 - [x] Group chats in Messages (done 1 Oct, v66: friends only, 12 people at the most; database step 22).
       A chat room INSIDE a Group: no (Mike, 1 Oct). Shares and comments are the one place to talk.
-- [ ] Voice messages in Messages (hold to talk)
+- [ ] PARKED (Mike, 1 Oct): Voice messages in Messages (hold to talk)
 - [x] Sounds: a ding for new messages and notifications while the app is open, on every page
       (done 1 Oct, v69; Sounds on/off is in the Notifications panel). The ringtone for video
       calls gets built with calls.
-- [ ] Topics/hashtags (#gratitude) + a Discover tab
-- [ ] Polls
-- [ ] Reshare somebody's post to your friends
-- [ ] Calls in Messages: one-on-one video and voice, friends only, never recorded.
-      Rings as a phone alert (web apps can't do a full-screen ring on iPhone).
-      Group calls later.
-      A small Call 988 line at the bottom of the call screen, same as the post screen.
-- [ ] Disappearing photos in Messages: opens once for 10 seconds, then gone for good
+- [ ] PARKED (Mike, 1 Oct): Topics/hashtags (#gratitude) + a Discover tab
+- [ ] PARKED (Mike, 1 Oct): Polls
+- [ ] KEEPING, right after calls: Reshare somebody's post to your friends
+- [ ] PARKED (Mike, 1 Oct): Disappearing photos in Messages: opens once for 10 seconds, then gone for good
       (deleted off the server). A web app can't stop screenshots (Snapchat can't
       either, it only tells you), so: no saving, the photo blurs if they leave the
       app, and the viewer's own @name is stamped across it.
-- [ ] Live / audio rooms (biggest and hardest to keep safe, later)
-- [ ] Counts on profiles (likes, friends): Mike, 1 Oct: doesn't think these break the
+- [ ] PARKED (Mike, 1 Oct): Live / audio rooms (biggest and hardest to keep safe, later)
+- [ ] PARKED (Mike, 1 Oct): Counts on profiles (likes, friends): Mike, 1 Oct: doesn't think these break the
       ego rule. Tentative, decide later.
 
 ## How Mike builds
