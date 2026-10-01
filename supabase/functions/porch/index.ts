@@ -134,6 +134,15 @@ function checkWords(text: string): string | null {
 
 /* ---------------- photos ---------------- */
 const LEVEL: Record<string, number> = { UNKNOWN: 0, VERY_UNLIKELY: 1, UNLIKELY: 2, POSSIBLE: 3, LIKELY: 4, VERY_LIKELY: 5 };
+/* ONE FACE PER PHOTO (1 Oct 2026, Mike: "protecting their level of anonymity is
+   paramount"). Profile pictures, headers, shares and Messages: a photo with more than
+   one person's face in it doesn't go up. It never checks WHO a face is, only how many. */
+const ONE_FACE = "Just one face per photo. Other people's faces stay off Recovery Misfits to protect their anonymity.";
+function faceCount(res: any): number {
+  return (res?.faceAnnotations || []).filter((f: any) => (Number(f.detectionConfidence) || 0) >= 0.7).length;
+}
+const CHECKS = [{ type: "SAFE_SEARCH_DETECTION" }, { type: "FACE_DETECTION", maxResults: 6 }];
+
 async function photoOk(bytes: Uint8Array, b64: string): Promise<string | null> {
   if (!VISION) return "Photos aren't switched on yet.";
   if (bytes.length > 3 * 1024 * 1024) return "That photo is too big.";
@@ -141,11 +150,12 @@ async function photoOk(bytes: Uint8Array, b64: string): Promise<string | null> {
   try {
     const r = await fetch("https://vision.googleapis.com/v1/images:annotate?key=" + encodeURIComponent(VISION), {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ requests: [{ image: { content: b64 }, features: [{ type: "SAFE_SEARCH_DETECTION" }] }] }),
+      body: JSON.stringify({ requests: [{ image: { content: b64 }, features: CHECKS }] }),
     });
     if (!r.ok) return "Photos can't be checked right now, so that wasn't posted.";
-    const s = (await r.json())?.responses?.[0]?.safeSearchAnnotation;
+    const res = (await r.json())?.responses?.[0], s = res?.safeSearchAnnotation;
     if (!s) return "Photos can't be checked right now, so that wasn't posted.";
+    if (faceCount(res) > 1) return ONE_FACE;
     if ((LEVEL[s.adult] || 0) >= LEVEL.LIKELY || (LEVEL[s.racy] || 0) >= LEVEL.VERY_LIKELY) return "That photo isn't allowed on the Porch.";
     if ((LEVEL[s.violence] || 0) >= LEVEL.VERY_LIKELY) return "That photo is too graphic for the Porch.";
     return null;
@@ -221,10 +231,11 @@ async function dmPhoto(bytes: Uint8Array, b64: string): Promise<{ error?: string
   try {
     const r = await fetch("https://vision.googleapis.com/v1/images:annotate?key=" + encodeURIComponent(VISION), {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ requests: [{ image: { content: b64 }, features: [{ type: "SAFE_SEARCH_DETECTION" }] }] }),
+      body: JSON.stringify({ requests: [{ image: { content: b64 }, features: CHECKS }] }),
     });
-    const s = (await r.json())?.responses?.[0]?.safeSearchAnnotation;
+    const res = (await r.json())?.responses?.[0], s = res?.safeSearchAnnotation;
     if (!s) return { error: "Photos can't be checked right now, so that wasn't sent." };
+    if (faceCount(res) > 1) return { error: ONE_FACE };
     if ((LEVEL[s.adult] || 0) >= LEVEL.VERY_LIKELY) return { error: "Full nudity can't be sent on Recovery Misfits." };
     if ((LEVEL[s.violence] || 0) >= LEVEL.VERY_LIKELY) return { error: "That photo is too graphic to send." };
     return { racy: (LEVEL[s.adult] || 0) >= LEVEL.POSSIBLE || (LEVEL[s.racy] || 0) >= LEVEL.LIKELY };

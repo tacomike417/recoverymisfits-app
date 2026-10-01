@@ -68,15 +68,18 @@ function checkWords(t: string) {
 /* THE SAFETY CHECK: Bunny's picture of the video goes through Google SafeSearch.
    No nudity, nothing graphic, on any Spin. */
 const LEVEL: Record<string, number> = { UNKNOWN: 0, VERY_UNLIKELY: 1, UNLIKELY: 2, POSSIBLE: 3, LIKELY: 4, VERY_LIKELY: 5 };
-async function thumbOk(guid: string): Promise<boolean | null> {
+/* ONE FACE PER SPIN (1 Oct 2026, Mike): the Spin's picture can't show more than one
+   person's face, to protect other people's anonymity. Only counts faces, never who. */
+async function thumbOk(guid: string): Promise<boolean | null | "faces"> {
   if (!VISION || !CDN) return null;
   try {
     const r = await fetch("https://vision.googleapis.com/v1/images:annotate?key=" + encodeURIComponent(VISION), {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ requests: [{ image: { source: { imageUri: `https://${CDN}/${guid}/thumbnail.jpg` } }, features: [{ type: "SAFE_SEARCH_DETECTION" }] }] }),
+      body: JSON.stringify({ requests: [{ image: { source: { imageUri: `https://${CDN}/${guid}/thumbnail.jpg` } }, features: [{ type: "SAFE_SEARCH_DETECTION" }, { type: "FACE_DETECTION", maxResults: 6 }] }] }),
     });
-    const s = (await r.json())?.responses?.[0]?.safeSearchAnnotation;
+    const res = (await r.json())?.responses?.[0], s = res?.safeSearchAnnotation;
     if (!s) return null;
+    if ((res?.faceAnnotations || []).filter((f: any) => (Number(f.detectionConfidence) || 0) >= 0.7).length > 1) return "faces";
     return (LEVEL[s.adult] || 0) < LEVEL.LIKELY && (LEVEL[s.racy] || 0) < LEVEL.VERY_LIKELY && (LEVEL[s.violence] || 0) < LEVEL.VERY_LIKELY;
   } catch { return null; }
 }
@@ -222,10 +225,10 @@ Deno.serve(async (req) => {
     }
     if (st === 4) {
       const ok = await thumbOk(spin.video_guid);
-      if (ok === false) {
+      if (ok === false || ok === "faces") {
         await dropVideo(spin.video_guid);
         await admin.from("porch_spins").delete().eq("id", id);
-        return json({ status: "failed", error: "That video isn't allowed on the Porch." });
+        return json({ status: "failed", error: ok === "faces" ? "Just one face per Spin. Other people's faces stay off Recovery Misfits to protect their anonymity." : "That video isn't allowed on the Porch." });
       }
       const { data: post, error } = await admin.from("porch_posts")
         .insert({ user_id: spin.user_id, need: "moment", body: spin.caption || null }).select("id").single();

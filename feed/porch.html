@@ -322,6 +322,17 @@ html.kb #comments .sheet{top:0;border-radius:0}
 .pchips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px 0}
 .pchips span{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:var(--field);border:1px solid var(--line);font-size:13px;color:var(--soft)}
 .pchips .ico{width:15px;height:15px;color:var(--gold2)}
+/* MOVE AND ZOOM a picture or header (1 Oct 2026) */
+.crop{position:fixed;inset:0;z-index:30000;display:flex;flex-direction:column;background:#000;color:#fff;touch-action:none}
+.crop-t{margin:0;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 8px;text-align:center;font:800 16px Arial,sans-serif}
+.crop-stage{position:relative;flex:1;overflow:hidden;touch-action:none;cursor:grab}
+.crop-stage img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.crop-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,.62);border:2px solid rgba(255,255,255,.9);border-radius:14px;pointer-events:none}
+.crop-frame.round{border-radius:50%}
+.crop-bot{padding:12px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.crop-zoom{display:block;width:100%;margin:0 0 14px;accent-color:#e0bd6a}
+.crop-go{display:block;width:100%;padding:16px;border:0;border-radius:16px;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b;font:400 21px/1 "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
+.crop-again{display:block;margin:12px auto 0;border:0;background:none;color:#ddd2b8;font:700 14px Arial,sans-serif;text-decoration:underline;cursor:pointer}
 /* SETUP + PRIVACY (1 Oct 2026) */
 .su{padding:0 0 calc(30px + env(safe-area-inset-bottom,0px))}
 .su-top{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 6px}
@@ -745,7 +756,7 @@ html.kb .ch-bar{padding-bottom:8px}
     </span>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v43</span>
+  <span class="ver" id="ver">v44</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2105,11 +2116,82 @@ html.kb .ch-bar{padding-bottom:8px}
   });
   $("ecover").addEventListener("click", function () { $("efcover").click(); });
   $("eav").addEventListener("click", function () { $("efav").click(); });
+  /* MOVE AND ZOOM (1 Oct 2026, Mike: "i need that crop, move the picture around").
+     After you pick a photo: drag it, pinch (or use the slider) to zoom, and what's
+     inside the circle (picture) or the strip (header) is what goes up. Phone back = cancel. */
+  function cropPhoto(file, slot, input) {
+    return new Promise(function (done) {
+      var url = URL.createObjectURL(file), img = new Image(), round = slot !== "cover";
+      img.onerror = function () { URL.revokeObjectURL(url); toast("That photo couldn't be opened."); done(null); };
+      img.onload = function () {
+        var el = document.createElement("div"); el.className = "crop"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Move and zoom");
+        el.innerHTML = '<p class="crop-t">' + (round ? "Move and zoom your picture" : "Move and zoom your header") + '</p><div class="crop-stage"><img alt=""><div class="crop-frame' + (round ? " round" : "") + '"></div></div>' +
+          '<div class="crop-bot"><input class="crop-zoom" type="range" min="0" max="1000" value="0" aria-label="Zoom"><button type="button" class="crop-go">Use this</button><button type="button" class="crop-again">Pick a different photo</button></div>';
+        document.body.appendChild(el);
+        var finished = false;
+        var finish = function (v) { if (finished) return; finished = true; el.remove(); URL.revokeObjectURL(url); done(v); };
+        var z = window.PorchBack.push("crop", function () { finish(null); }); if (typeof z === "number") el.style.zIndex = String(z + 5);
+        var stage = el.querySelector(".crop-stage"), pic = el.querySelector("img"), frame = el.querySelector(".crop-frame"), zoom = el.querySelector(".crop-zoom");
+        pic.src = url;
+        var iw = img.naturalWidth, ih = img.naturalHeight, fw, fh, fx, fy, min, max, sc, x, y;
+        function layout() {
+          var W = stage.clientWidth, H = stage.clientHeight;
+          if (round) { fw = fh = Math.min(W - 40, H - 40, 360); } else { fw = Math.min(W - 24, 560); fh = Math.round(fw / 2.4); }
+          fx = (W - fw) / 2; fy = (H - fh) / 2;
+          frame.style.cssText = "left:" + fx + "px;top:" + fy + "px;width:" + fw + "px;height:" + fh + "px";
+          min = Math.max(fw / iw, fh / ih); max = min * 5;
+          if (sc == null) { sc = min; x = (fw - iw * sc) / 2; y = (fh - ih * sc) / 2; }
+          clamp(); paint();
+        }
+        function clamp() { sc = Math.min(max, Math.max(min, sc)); x = Math.min(0, Math.max(fw - iw * sc, x)); y = Math.min(0, Math.max(fh - ih * sc, y)); }
+        function paint() { pic.style.transform = "translate(" + (fx + x) + "px," + (fy + y) + "px) scale(" + sc + ")"; zoom.value = String(Math.round(1000 * Math.log(sc / min) / Math.log(max / min))); }
+        function zoomAt(ns, cx, cy) {     /* keep the point under the fingers where it is */
+          var px = (cx - fx - x) / sc, py = (cy - fy - y) / sc;
+          sc = Math.min(max, Math.max(min, ns)); x = cx - fx - px * sc; y = cy - fy - py * sc; clamp(); paint();
+        }
+        var pts = {}, last = null;
+        function mid() { var k = Object.keys(pts), a = pts[k[0]], b = pts[k[1]]; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) }; }
+        stage.addEventListener("pointerdown", function (e) { stage.setPointerCapture(e.pointerId); var r = stage.getBoundingClientRect(); pts[e.pointerId] = { x: e.clientX - r.left, y: e.clientY - r.top }; last = Object.keys(pts).length > 1 ? mid() : null; });
+        stage.addEventListener("pointermove", function (e) {
+          if (!pts[e.pointerId]) return;
+          var r = stage.getBoundingClientRect(), p = { x: e.clientX - r.left, y: e.clientY - r.top }, o = pts[e.pointerId];
+          pts[e.pointerId] = p;
+          if (Object.keys(pts).length > 1) { var m = mid(); if (last && last.d) { x += m.x - last.x; y += m.y - last.y; zoomAt(sc * m.d / last.d, m.x, m.y); } last = m; }
+          else { x += p.x - o.x; y += p.y - o.y; clamp(); paint(); }
+        });
+        var up = function (e) { delete pts[e.pointerId]; last = Object.keys(pts).length > 1 ? mid() : null; };
+        stage.addEventListener("pointerup", up); stage.addEventListener("pointercancel", up);
+        stage.addEventListener("wheel", function (e) { e.preventDefault(); var r = stage.getBoundingClientRect(); zoomAt(sc * (e.deltaY < 0 ? 1.08 : 1 / 1.08), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+        zoom.addEventListener("input", function () { zoomAt(min * Math.pow(max / min, Number(zoom.value) / 1000), fx + fw / 2, fy + fh / 2); });
+        window.addEventListener("resize", layout);
+        el.querySelector(".crop-go").addEventListener("click", function () {
+          var OW = round ? 720 : 1500, OH = round ? 720 : 625;
+          var c = document.createElement("canvas"); c.width = OW; c.height = OH;
+          c.getContext("2d").drawImage(img, -x / sc, -y / sc, fw / sc, fh / sc, 0, 0, OW, OH);
+          var q = 0.86, out = c.toDataURL("image/jpeg", q);
+          while (out.length > 3.6e6 && q > 0.4) { q -= 0.12; out = c.toDataURL("image/jpeg", q); }
+          window.removeEventListener("resize", layout);
+          finished = true; el.remove(); URL.revokeObjectURL(url);
+          window.PorchBack.pop("crop"); done(out);
+        });
+        el.querySelector(".crop-again").addEventListener("click", function () {
+          window.removeEventListener("resize", layout);
+          finished = true; el.remove(); URL.revokeObjectURL(url); window.PorchBack.pop("crop");
+          if (input) input.click();          /* right inside the tap, or phones won't open the picker */
+          done("again");
+        });
+        requestAnimationFrame(layout);
+      };
+      img.src = url;
+    });
+  }
   async function newPicture(input, slot) {
     var f = input.files && input.files[0]; input.value = ""; if (!f) return;
+    var data = await cropPhoto(f, slot, input);
+    if (data === "again") return;
+    if (!data) return;
     $("estatus").textContent = "Checking the photo…";
     var sst = $("sustatus"); if (sst) sst.textContent = "Checking the photo…";
-    var data; try { data = await shrink(f); } catch (e) { $("estatus").textContent = "That photo couldn't be opened."; return; }
     var r = await fn("porch", { action: "picture", slot: slot, photo: data });
     if (!r.ok) { $("estatus").textContent = r.error || "That didn't upload."; if (sst) sst.textContent = $("estatus").textContent; return; }
     me.member[slot === "cover" ? "cover_path" : "avatar_path"] = r.path; people[me.uid] = me.member;
@@ -3288,6 +3370,6 @@ html.kb .ch-bar{padding-bottom:8px}
   })();
 })();
 </script>
-<script src="/feed/spins/spins.js?v=43" defer></script>
+<script src="/feed/spins/spins.js?v=44" defer></script>
 </body>
 </html>
