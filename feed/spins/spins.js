@@ -123,10 +123,15 @@
 .sp-list{position:absolute;inset:0;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none}
 .sp-list::-webkit-scrollbar{display:none}
 .sp-item{position:relative;height:100vh;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;background:#000}
-.sp-item video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:transparent}
+/* THE VIDEO KEEPS ITS OWN SHAPE (1 Oct 2026, Mike: "does it look stretched"): some
+   phones ignore object-fit on video and stretch it to fill the screen, so the box
+   itself gets the video's shape (aspect-ratio) and is centered. object-fit stays as a backup. */
+.sp-item video{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;height:auto;max-height:100%;object-fit:contain;background:transparent}
+.sp-item video:not([style*="aspect-ratio"]){width:100%;height:100%}
 .sp-bg{position:absolute;inset:-40px;background:#000 center/cover no-repeat;filter:blur(28px) brightness(.45);pointer-events:none}
 .sp-item.tall .sp-bg{display:none}
-.sp-item.tall video{object-fit:cover}
+.sp-item.tall video{object-fit:cover;max-height:none}
+.sp-item.tall.byh video{width:auto;height:100%}
 .sp-shade{position:absolute;inset:auto 0 0 0;height:48%;background:linear-gradient(transparent,rgba(0,0,0,.78));pointer-events:none}
 .sp-foot{position:absolute;left:14px;right:86px;bottom:calc(22px + env(safe-area-inset-bottom,0px));font:600 14px/1.4 -apple-system,Segoe UI,Roboto,Arial,sans-serif;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .sp-by{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:0;border:0;background:none;color:#fff;font:900 15px/1.2 Arial,sans-serif;cursor:pointer}
@@ -378,9 +383,11 @@
     const mine = l.user_id === meId() && !l.respunBy;
     const d = daysLeft(l);
     const isRe = respun.has(l.id), own = l.user_id === meId();
-    return `<section class="sp-item${tall ? ' tall' : ''}" data-sp-item="${i}">
+    /* a tall Spin fills the screen: by height if it's wider than the screen, else by width */
+    const byH = tall && l.height / l.width < scr;
+    return `<section class="sp-item${tall ? ' tall' : ''}${byH ? ' byh' : ''}" data-sp-item="${i}">
       <div class="sp-bg" style="background-image:url('${esc(thumbFor(l))}')"></div>
-      <video playsinline loop muted preload="none" poster="${esc(thumbFor(l))}" data-src="${esc(srcFor(l))}"></video>
+      <video playsinline loop muted preload="none" poster="${esc(thumbFor(l))}" data-src="${esc(srcFor(l))}"${l.width && l.height ? ` style="aspect-ratio:${l.width}/${l.height}"` : ''}></video>
       <div class="sp-shade"></div>
       ${l.muted ? '<span class="sp-muted">🔇 No sound on this one</span>' : ''}
       <span class="sp-paused" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg></span>
