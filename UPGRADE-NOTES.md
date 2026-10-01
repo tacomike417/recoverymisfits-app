@@ -20,7 +20,8 @@ Order isn't set.
 - [x] "Need help now?": already there, the Call 988 line at the bottom of the post screen.
       Mike likes it where it is; not on the menu. "They'll find it."
 - [x] Porch rules page people agree to once (done 1 Oct, v62: shown once before your first post, read again from Edit profile)
-- [ ] Privacy policy + terms (the app asks for location, so people deserve to know what happens to it)
+- [x] Privacy policy + terms (done 1 Oct: recoverymisfits.org/privacy, linked from sign-up and Edit profile)
+- [ ] "Delete my app account" button (right now people have to message the Facebook page to have it wiped)
 - [ ] Forgot password: check there's a way back in for username-only accounts
 - [ ] Blocked people list (see who you blocked, unblock)
 - [ ] Mute somebody without blocking them
