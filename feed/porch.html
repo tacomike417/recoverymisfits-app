@@ -1018,7 +1018,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v92</span>
+  <span class="ver" id="ver">v93</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1215,7 +1215,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <button type="button" class="lk" data-look="diner"><span class="sw" style="background:#151b1b;color:#3fe0c5;border:1px solid #243232">Aa</span><span><b>Neon Diner</b><small>Dark, with a mint glow</small></span></button>
     <button type="button" class="lk" data-look="slate"><span class="sw" style="background:#fffdf8;color:#b8862b;border:1px solid #e0d6c2">Aa</span><span><b>Clean Slate</b><small>Light, easy on a sunny day</small></span></button>
     <button type="button" class="lk" data-look="classic"><span class="sw" style="background:#1b1913;color:#e0bd6a;border:1px solid #2e2a22">Aa</span><span><b>Classic</b><small>The original black and gold</small></span></button>
-    <label class="check" style="margin:16px 0 0"><input type="checkbox" id="samples"> Show sample posts <span style="color:var(--muted);font-weight:400">(only you see these)</span></label>
+    <label class="check" hidden style="margin:16px 0 0"><input type="checkbox" id="samples"> Show sample posts <span style="color:var(--muted);font-weight:400">(only you see these)</span></label>
   </div>
 </div>
 
@@ -1702,8 +1702,9 @@ html.kb .ch-bar{padding-bottom:8px}
     var SP_PHOTO = {}; ["OneDayJen","BigBookBrad","CoffeeAndSteps","OldTimerWalt","Kev_in_recovery","SerenityShay","LateBloomerLiz","TrudgingTony","NightShiftNia",
       "SoberSam76","HoosierHope","Jersey_Joe_ODAAT","FarmhouseFrank","MomOf3Sober","MisfitMarcus","HighPowerHolly","SunriseSara","DinoDan","ReformedRocker","grateful_gina"]
       .forEach(function (n) { SP_PHOTO[n] = 1; });
-  var samplesOn = true;
-  try { samplesOn = localStorage.getItem("rm_porch_samples") !== "off"; } catch (e) {}
+  /* SAMPLES ARE OFF FOR EVERYBODY (2 Oct 2026, Mike: "clean up some of this old BS ...
+     these fake posts"). Real people post here now. The switch under Colors is gone too. */
+  var samplesOn = false;
   var isSample = function (id) { return String(id).indexOf("s-") === 0; };
   function mins(t) { var n = parseInt(t, 10); return /d/.test(t) ? n * 1440 : /h/.test(t) ? n * 60 : n; }
   function samplePosts() {
@@ -2981,7 +2982,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function loadFriends() {
     loadMutes();
     friends = {}; reqOut = {}; reqIn = {};
-    try { (JSON.parse(localStorage.getItem(SFOL) || "[]")).forEach(function (k) { friends[k] = true; }); } catch (e) {}
+    if (samplesOn) try { (JSON.parse(localStorage.getItem(SFOL) || "[]")).forEach(function (k) { friends[k] = true; }); } catch (e) {}
     if (!me.uid) return;
     try {
       (await rest("porch_friends?or=(a.eq." + me.uid + ",b.eq." + me.uid + ")&select=a,b")).forEach(function (r) { friends[r.a === me.uid ? r.b : r.a] = true; });
@@ -4015,8 +4016,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   $("samples").checked = samplesOn;
   $("samples").addEventListener("change", function () {
-    samplesOn = this.checked;
-    try { localStorage.setItem("rm_porch_samples", samplesOn ? "on" : "off"); } catch (e) {}
+    samplesOn = false;
     reloadFeed(); if (!samplesOn) $("newb").hidden = true; loadNew();
   });
   function paintLooks() { document.querySelectorAll("[data-look]").forEach(function (b) { b.classList.toggle("on", b.dataset.look === look()); }); }

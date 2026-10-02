@@ -434,3 +434,7 @@ without making it confusing.
 - [x] Mike picked mockup B: a square picture with a play button, "Tap to watch". A tap opens the Spin player. Love this, Me too, Comment and Send work on it like any share.
 - [x] Every Spin shows in the feed by itself (Everyone and Friends). No SQL: each Spin already had a share row.
 - [ ] Not yet seen with a real Spin on a phone.
+
+## v93 (2 Oct 2026): cleanup
+- [x] Sample posts and sample people are off for everybody. The "Show sample posts" switch is gone.
+- [ ] Real test posts and Spins in the database: Mike picks what goes.
