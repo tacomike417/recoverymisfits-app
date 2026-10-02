@@ -35,7 +35,8 @@ const json = (data: unknown, status = 200) =>
 const API = "https://video.bunnycdn.com";
 const PER_DAY = 10;
 const MAX_BYTES = 200 * 1024 * 1024;
-const MAX_SECONDS = 16;
+const MAX_SECONDS = 16;          /* everybody */
+const MAX_SECONDS_LONG = 61;     /* accounts on porch_spin_long (2 Oct 2026): 60-second Spins */
 const KEY = Deno.env.get("BUNNY_STREAM_KEY") || "";
 const LIB = Deno.env.get("BUNNY_STREAM_LIBRARY") || "";
 const CDN = (Deno.env.get("BUNNY_STREAM_CDN") || "").replace(/^https?:\/\//, "").replace(/\/+$/, "");
@@ -236,10 +237,14 @@ Deno.serve(async (req) => {
       return json({ status: "failed", error: "Bunny couldn't read that video. Try another one." });
     }
     const len = Number(v.length) || 0;
-    if (len > MAX_SECONDS) {
+    /* 15 seconds for everybody; 60 for an account a moderator upgraded. If the list
+       can't be read (porch_27 not run yet) it stays 15. */
+    const { data: lng } = await admin.from("porch_spin_long").select("user_id").eq("user_id", spin.user_id).maybeSingle();
+    const maxS = lng ? MAX_SECONDS_LONG : MAX_SECONDS;
+    if (len > maxS) {
       await dropVideo(spin.video_guid);
       await admin.from("porch_spins").delete().eq("id", id);
-      return json({ status: "failed", error: "Spins are 15 seconds max. Trim it and try again." });
+      return json({ status: "failed", error: `Spins are ${maxS - 1} seconds max. Trim it and try again.` });
     }
     if (st === 4) {
       const ok = await thumbOk(spin.video_guid, !!b.faces_ok);

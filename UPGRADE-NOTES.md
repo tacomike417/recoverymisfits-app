@@ -21,6 +21,10 @@ Order isn't set.
 - [x] Comments on the paper look under every share, with an "Add a comment" line; heart button and
       tap-to-reply in the comments window (v84, 2 Oct).
 - [x] No dead ends on the Porch (v84, 2 Oct): arrow on pages you browse, X on things you can cancel.
+- [x] Longer Spins (v85, 2 Oct): Spins stay 15 seconds; an upgraded account gets 60. "Need longer Spins?"
+      in the Spin maker lets people apply. Mike sees each ask on the Reports screen with their numbers
+      (Spins, shares, comments, days here) and taps "Give them 60" or "Not yet". Beta testers start with 60.
+      Needs supabase/porch_27_long_spins.sql run and the spins function deployed.
 - [ ] IDEA (Mike, 1 Oct, brainstorm, not decided): Share from the Daily Stack to the Porch. Own stuff
       (Another Day Sober, the meme, On Awakening) goes in as a card that opens the page in the app.
       Outside readings (Daily Reflections, Twenty-Four Hours) go in as a link card with the date, never

@@ -1006,7 +1006,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v84</span>
+  <span class="ver" id="ver">v85</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1256,7 +1256,7 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="saved" class="layer full" role="dialog" aria-modal="true" aria-label="Saved shares"><div class="page"><h2 class="lh"><button type="button" class="bk" data-close aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>SAVED SHARES</h2><p class="lsub">Only you can see this list.</p><div id="svlist"></div></div></div>
 
 <!-- MODERATORS: REPORTS -->
-<div id="mod" class="layer full" role="dialog" aria-modal="true" aria-label="Reports"><div class="page"><h2 class="lh"><button type="button" class="bk" data-close aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>REPORTS</h2><div id="mlist"></div></div></div>
+<div id="mod" class="layer full" role="dialog" aria-modal="true" aria-label="Reports"><div class="page"><h2 class="lh"><button type="button" class="bk" data-close aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>REPORTS</h2><div id="mlong"></div><div id="mlist"></div></div></div>
 
 <!-- NOTIFICATIONS -->
 <div id="notes" class="layer drop" role="dialog" aria-modal="true" aria-label="Notifications">
@@ -3400,13 +3400,39 @@ html.kb .ch-bar{padding-bottom:8px}
       var r = await fetch(DB + "/rest/v1/porch_reports?handled_at=is.null&select=id", { method: "HEAD", headers: { apikey: KEY, Authorization: "Bearer " + (await tok()), Prefer: "count=exact" } });
       modCount = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
     } catch (e) {}
+    try { longAsks = await rpc("porch_long_spin_asks", {}); if (!Array.isArray(longAsks)) longAsks = []; modCount += longAsks.length; } catch (e) { longAsks = []; }
+  }
+  /* LONGER SPINS (2 Oct 2026): who asked for 60 seconds, with the numbers to decide by.
+     It sits above the reports on this same screen so there is one place to look. */
+  var longAsks = [];
+  async function loadLongAsks() {
+    try { longAsks = await rpc("porch_long_spin_asks", {}); if (!Array.isArray(longAsks)) longAsks = []; } catch (e) { longAsks = []; }
+    paintLongAsks();
+  }
+  function paintLongAsks() {
+    $("mlong").innerHTML = longAsks.length ? '<p style="margin:0 0 8px;font:800 13px system-ui;letter-spacing:.08em;color:var(--muted)">LONGER SPINS</p>' + longAsks.map(function (a, i) {
+      return '<div class="mr"><button type="button" class="mwho" data-u="' + a.user_id + '">' + avatar({ handle: a.handle, avatar_path: a.avatar_path }) +
+        "<span><b>" + esc(a.handle) + "</b><small>wants 60-second Spins</small></span></button>" +
+        (a.why ? '<p class="mn">\u201c' + esc(a.why) + "\u201d</p>" : "") +
+        '<div class="mwhy"><span>' + a.spins + (a.spins === 1 ? " Spin" : " Spins") + "</span><span>" + a.shares + (a.shares === 1 ? " share" : " shares") + "</span><span>" + a.comments + (a.comments === 1 ? " comment" : " comments") + "</span><span>" + a.days_here + (a.days_here === 1 ? " day here" : " days here") + "</span></div>" +
+        '<div class="mbtn"><button type="button" data-longact="yes" data-i="' + i + '">Give them 60</button><button type="button" data-longact="no" data-i="' + i + '">Not yet</button></div></div>';
+    }).join("") : "";
+  }
+  async function longAct(b) {
+    var a = longAsks[+b.dataset.i]; if (!a) return;
+    b.disabled = true;
+    try { await rpc("porch_long_spin_decide", { p_user: a.user_id, p_yes: b.dataset.longact === "yes" }); }
+    catch (e) { b.disabled = false; return toast("That didn't go through."); }
+    longAsks.splice(+b.dataset.i, 1); modCount = Math.max(0, modCount - 1); paintLongAsks();
+    toast(b.dataset.longact === "yes" ? a.handle + " has 60-second Spins." : "Marked not yet.");
   }
   async function openMod() {
     if (!isMod) return;
     $("mlist").innerHTML = '<div class="skel" style="height:200px"></div>'; open("mod");
+    loadLongAsks();
     var r = await fn("porch", { action: "mod_list" });
     if (!r.ok) { $("mlist").innerHTML = '<p class="pempty">' + esc(r.error || "That didn't load.") + "</p>"; return; }
-    modList = r.reports; modCount = modList.reduce(function (n, g) { return n + g.ids.length; }, 0);
+    modList = r.reports || []; modCount = modList.reduce(function (n, g) { return n + g.ids.length; }, 0) + longAsks.length;
     paintMod();
   }
   function paintMod() {
@@ -3827,6 +3853,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (t.closest("[data-newpill]")) { window.scrollTo(0, 0); return reloadFeed(); }
     if (t.closest("[data-pushon]")) return pushOn();
     if (t.closest("[data-modact]")) return modAct(t.closest("[data-modact]"));
+    if (t.closest("[data-longact]")) return longAct(t.closest("[data-longact]"));
   });
   var lastTap = {};
   /* ================================================================ THE PHOTO VIEWER (30 Sep 2026)
@@ -4857,6 +4884,6 @@ html.kb .ch-bar{padding-bottom:8px}
 })();
 </script>
 <script src="/feed/sound.js?v=3" defer></script>
-<script src="/feed/spins/spins.js?v=65" defer></script>
+<script src="/feed/spins/spins.js?v=66" defer></script>
 </body>
 </html>

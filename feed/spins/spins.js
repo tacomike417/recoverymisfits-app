@@ -24,8 +24,20 @@
   const TUS = 'https://video.bunnycdn.com/tusupload';
   const TUS_LIB = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
   const MB_LIB = 'https://cdn.jsdelivr.net/npm/mediabunny@1.60.0/dist/bundles/mediabunny.min.mjs';
-  const MAKER = '/feed/spins/spin-maker.js?v=35';
-  const MAX_S = 15.5;
+  const MAKER = '/feed/spins/spin-maker.js?v=36';
+  /* HOW LONG MY SPINS CAN BE (2 Oct 2026). 15 seconds for everybody; 60 once a
+     moderator upgrades the account. Asked from the Porch each time the maker opens,
+     so an upgrade shows up without a refresh. */
+  let MAX_S = 15.5, longInfo = { long: false, max: 15, ask: null };
+  async function loadLong() {
+    try {
+      const r = await P().rpc('porch_long_spin_me', {});
+      if (r && typeof r === 'object') { longInfo = r; MAX_S = (Number(r.max) || 15) + 0.5; }
+      /* the yes, said once: this is how somebody who applied finds out */
+      if (longInfo.long && longInfo.ask === 'yes') { try { if (!localStorage.getItem('rm_long_spins_told')) { localStorage.setItem('rm_long_spins_told', '1'); say("You've got 60-second Spins now."); } } catch (_) {} }
+    } catch (_) { /* porch_27 not run yet: stays 15 */ }
+    return longInfo;
+  }
   const RAIL_N = 14;
   const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at';
 
@@ -767,8 +779,10 @@
       s.onload = ok; s.onerror = () => { makerReady = null; no(new Error('load')); };
       document.head.appendChild(s);
     });
-    makerReady.then(() => {
-      window.PorchSpinMaker.open({ music: musicApi, handle: P().name(meId()), sound: sound || null, files: files || null, onDone: (file, music) => startWithFile(file, music) });
+    Promise.all([makerReady, loadLong()]).then(() => {
+      window.PorchSpinMaker.open({ music: musicApi, handle: P().name(meId()), sound: sound || null, files: files || null,
+        maxSeconds: Math.floor(MAX_S), onLonger: longInfo.long ? null : askLonger,
+        onDone: (file, music) => startWithFile(file, music) });
       fixMakerZ();
     }).catch(() => say("Couldn't open the maker. Check your connection."));
   }
@@ -783,6 +797,39 @@
     if (!meId()) return P().gate(() => {});
     if (uploading) return say('One Spin is still uploading. Hang on a sec.');
     P().gate(() => openMaker(null, files));
+  }
+
+  /* "I NEED LONGER SPINS" (2 Oct 2026, Mike: "let people apply... based on how many you
+     post and how active you are"). One small screen: what it is, a line to say what
+     they'd make, Apply. A moderator sees it on the Reports screen with their numbers. */
+  let longEl = null;
+  function closeLonger() { if (longEl) { longEl.remove(); longEl = null; } }
+  async function askLonger() {
+    if (!meId()) return P().gate(() => {});
+    closeLonger(); await loadLong();
+    longEl = document.createElement('div'); longEl.className = 'spn'; longEl.setAttribute('role', 'dialog');
+    document.body.appendChild(longEl); pushLayer('spinlong', longEl, closeLonger);
+    const X = `<div class="spn-head"><button type="button" class="spn-x" data-long-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><h2>LONGER SPINS</h2></div>`;
+    const draw = () => {
+      if (!longEl) return;
+      longEl.innerHTML = `<div class="spn-in">${X}` + (
+        longInfo.long ? `<div class="spn-fine" style="font-size:17px;color:#fff">You've got 60-second Spins. Go make one.</div><button type="button" class="spn-go" data-long-close>OK</button>`
+        : longInfo.ask === 'open' ? `<div class="spn-fine" style="font-size:17px;color:#fff">You're on the list. We'll take a look.</div><p class="spn-fine">It goes by how many Spins you post and how active you are on the Porch.</p><button type="button" class="spn-go" data-long-close>OK</button>`
+        : longInfo.ask === 'no' ? `<div class="spn-fine" style="font-size:17px;color:#fff">Not yet. Keep posting, and ask again in a few weeks.</div><button type="button" class="spn-go" data-long-close>OK</button>`
+        : `<p class="spn-fine" style="font-size:17px;color:#fff;margin-bottom:6px">Spins are 15 seconds. Regulars can get 60.</p>
+           <p class="spn-fine">It goes by how many Spins you post and how active you are on the Porch. Somebody looks at every ask.</p>
+           <form class="spn-form"><textarea maxlength="300" placeholder="What would you make with 60 seconds?"></textarea>
+           <button type="submit" class="spn-go">Apply</button><p class="spn-err" hidden></p></form>`) + `</div>`;
+      const f = longEl.querySelector('form');
+      if (f) f.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const b = f.querySelector('.spn-go'), err = f.querySelector('.spn-err'); b.disabled = true;
+        try { await P().rpc('porch_long_spin_ask', { p_why: f.querySelector('textarea').value }); await loadLong(); draw(); }
+        catch (_) { b.disabled = false; err.hidden = false; err.textContent = "That didn't go through. Try again in a minute."; }
+      });
+    };
+    longEl.addEventListener('click', (e) => { if (e.target.closest('[data-long-close]')) popLayer('spinlong', closeLonger); });
+    draw();
   }
 
   function closeNew() { if (pickedURL) { try { URL.revokeObjectURL(pickedURL); } catch (_) {} pickedURL = ''; } if (newEl) { newEl.remove(); newEl = null; } }
@@ -808,7 +855,7 @@
     const secs = await lengthOf(pickedURL);
     if (!newEl) return;
     if (secs > MAX_S) {
-      newEl.innerHTML = `<div class="spn-in">${HEAD('NEW SPIN')}<div class="spn-err">That video is ${Math.round(secs)} seconds. Spins are 15 seconds max.</div><button type="button" class="spn-go" data-spn-maker>Back to the maker</button></div>`;
+      newEl.innerHTML = `<div class="spn-in">${HEAD('NEW SPIN')}<div class="spn-err">That video is ${Math.round(secs)} seconds. Spins are ${Math.floor(MAX_S)} seconds max.</div>${longInfo.long ? '' : `<button type="button" class="spn-alt" data-spn-longer>Need longer Spins?</button>`}<button type="button" class="spn-go" data-spn-maker>Back to the maker</button></div>`;
       return;
     }
     newEl.innerHTML = `<div class="spn-in">${HEAD('NEW SPIN')}
@@ -840,6 +887,7 @@
   }
   document.addEventListener('click', (e) => {
     if (newEl && e.target.closest('[data-spn-close]')) { e.preventDefault(); leaveNew(); }
+    if (newEl && e.target.closest('[data-spn-longer]')) { e.preventDefault(); leaveNew(); setTimeout(askLonger, 260); return; }
     if (newEl && e.target.closest('[data-spn-maker]')) { e.preventDefault(); leaveNew(); setTimeout(openMaker, 260); }
   });
 
@@ -960,5 +1008,5 @@
     } catch (_) { say("That Spin didn't load."); }
   }
 
-  window.PorchSpins = { paintRail, profileGrid, openLatest, openById, openPost, start, startWith, refreshRows };
+  window.PorchSpins = { paintRail, profileGrid, openLatest, openById, openPost, start, startWith, refreshRows, askLonger };
 })();

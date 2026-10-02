@@ -58,6 +58,11 @@
     imgCache.set(n, im);
     return im;
   }
+  /* HOW LONG A SPIN CAN BE. 15 seconds for everybody; 60 for an upgraded account
+     (2 Oct 2026). spins.js passes it in as opts.maxSeconds when the maker opens. */
+  let MAXS = 15;
+  let onLonger = null;             /* the 'Need longer Spins?' link, when spins.js offers one */
+
   /* THE TIMELINE. st.photos holds every clip -- photos AND videos (the name
      stuck from before videos). Photos only: 3 sec each, 6-15 sec in all.
      With a video in it: each video plays its own length, photos 3 sec,
@@ -67,13 +72,13 @@
     if (!m.length) return [];
     const out = [];
     if (m.every((x) => x.kind !== 'video')) {
-      const D = Math.min(15, Math.max(6, m.length * 3)), L = D / m.length;
+      const D = Math.min(MAXS, Math.max(6, m.length * 3)), L = D / m.length;
       m.forEach((x, i) => out.push({ m: x, start: i * L, len: L }));
       return out;
     }
     let acc = 0;
     for (const x of m) {
-      const len = Math.min(x.kind === 'video' ? (x.dur || 15) : 3, 15 - acc);
+      const len = Math.min(x.kind === 'video' ? (x.dur || MAXS) : 3, MAXS - acc);
       if (len < 0.3) break;
       out.push({ m: x, start: acc, len });
       acc += len;
@@ -96,7 +101,7 @@
       const v = sg.m.el;
       if (j === k) {
         v.muted = !!preview;
-        const want = Math.min(local, Math.max(0, (sg.m.dur || 15) - 0.05));
+        const want = Math.min(local, Math.max(0, (sg.m.dur || MAXS) - 0.05));
         if (v.paused) {
           try { v.currentTime = want; } catch (_) {}
           const pr = v.play(); if (pr && pr.catch) pr.catch(() => {});
@@ -618,6 +623,8 @@
   function open(opts) {
     if (el) return;
     onDone = (opts && opts.onDone) || null;
+    MAXS = Math.max(15, Math.min(60, Number(opts && opts.maxSeconds) || 15));
+    onLonger = (opts && opts.onLonger) || null;
     musicApi = (opts && opts.music) || null;
     markName = String((opts && opts.handle) || '').replace(/[^A-Za-z0-9._-]/g, '').slice(0, 32);
     st = { photos: [], music: null, mvol: 0.8, ovol: 1, style: 'pullday', text: '', tp: { x: 0.5, y: 0.2, s: 1, r: 0 }, tbox: null, stickers: [], sel: -1 };
@@ -633,7 +640,8 @@
              screen until there's something to work with. -->
         <div class="lpm-empty">
           <h2>Give it a spin</h2>
-          <p class="lpm-sub">15 seconds. A video or a few photos.</p>
+          <p class="lpm-sub">${MAXS} seconds. A video or a few photos.</p>
+          ${MAXS <= 15 && opts && opts.onLonger ? `<button type="button" data-longer style="margin:-4px auto 12px;display:block;padding:8px 14px;border:0;background:none;color:#e0bd6a;font:700 14px system-ui,sans-serif;text-decoration:underline;cursor:pointer">Need longer Spins?</button>` : ''}
           ${opts && opts.sound && opts.sound.id ? `<p class="lpm-usnd">♫ <span>Getting the sound…</span></p>` : ''}
           <div class="lpm-doors">
             <button type="button" class="lpm-door rec" data-rec><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21.5 7v10l-6-3.5z"/></svg><b>Record</b><small>Use your camera</small></button>
@@ -713,16 +721,16 @@
     el.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-tab') === tab));
     const p = el.querySelector('.lpm-panel');
     if (tab === 'photos') {
-      const room = st.photos.length < MAX_PHOTOS && duration() < 14.7;
+      const room = st.photos.length < MAX_PHOTOS && duration() < MAXS - 0.3;
       p.innerHTML = `<div class="lpm-thumbs">
         ${room ? `<button type="button" class="lpm-add lpm-rec" data-rec><i><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21.5 7v10l-6-3.5z"/></svg></i>Record more</button>
                   <button type="button" class="lpm-add" data-add><i>+</i>Add more</button>` : ''}
         ${st.photos.map((x, i) => `<button type="button" class="lpm-th" data-rm="${i}" aria-label="Take it out">${x.kind === 'video'
-          ? `<video src="${x.url}#t=0.1" muted playsinline preload="metadata"></video><span class="lpm-dur">${Math.round(Math.min(15, x.dur || 0))}s</span>`
+          ? `<video src="${x.url}#t=0.1" muted playsinline preload="metadata"></video><span class="lpm-dur">${Math.round(Math.min(MAXS, x.dur || 0))}s</span>`
           : `<img src="${x.url}" alt="">`}<b>✕</b></button>`).join('')}
       </div><p class="lpm-hint">${st.photos.length
-        ? 'Tap a clip to take it out. Up to 15 seconds.'
-        : 'Photos work great on their own. Pick 3 or 4 and we make the video. Up to 15 seconds.'}</p>`;
+        ? `Tap a clip to take it out. Up to ${MAXS} seconds.`
+        : `Photos work great on their own. Pick 3 or 4 and we make the video. Up to ${MAXS} seconds.`}</p>`;
     } else if (tab === 'style') {
       p.innerHTML = `<div class="lpm-styles">${STYLES.map((s) =>
         `<button type="button" data-style="${s.key}" class="${st.style === s.key ? 'on' : ''}">${s.icon} ${esc(s.name)}</button>`).join('')}</div>`;
@@ -892,7 +900,7 @@
     document.body.appendChild(v);
     await new Promise((ok) => { v.onloadedmetadata = ok; v.onerror = ok; setTimeout(ok, 8000); });
     if (!v.videoWidth) { v.remove(); URL.revokeObjectURL(url); return null; }
-    const dur = isFinite(v.duration) && v.duration > 0 ? v.duration : 15;
+    const dur = isFinite(v.duration) && v.duration > 0 ? v.duration : MAXS;
     return { kind: 'video', el: v, url, dur, file: f };
   }
 
@@ -936,6 +944,7 @@
       if (e.target.closest('[data-lpm-close]')) { e.preventDefault(); leave(); return; }
       const t = e.target.closest('[data-tab]');
       if (t) { tab = t.getAttribute('data-tab'); if (tab !== 'stickers' && st.sel !== 'text') st.sel = -1; if (tab !== 'text' && st.sel === 'text') st.sel = -1; paintPanel(); return; }
+      if (e.target.closest('[data-longer]')) { const f = onLonger; leave(); if (f) setTimeout(f, 60); return; }
       if (e.target.closest('[data-add]')) { pickClips(false); return; }
       if (e.target.closest('[data-rec]')) { openCamera(); return; }
       const rm = e.target.closest('[data-rm]');
@@ -1592,7 +1601,7 @@ registerProcessor('ip-pitch-shift', PitchShift);`;
 
   function camLeft() {
     const used = st && st.photos.length ? duration() : 0;
-    return clamp(15 - used, 1, 15);
+    return clamp(MAXS - used, 1, MAXS);
   }
 
   async function openCamera() {
@@ -1727,7 +1736,7 @@ registerProcessor('ip-pitch-shift', PitchShift);`;
       const clip = await videoClip(file);
       if (!clip) return;
       /* a recording's length is often unknown to the phone; we know it */
-      if (took && (!clip.dur || !isFinite(clip.dur) || clip.dur > took + 0.5)) clip.dur = Math.min(took, 15);
+      if (took && (!clip.dur || !isFinite(clip.dur) || clip.dur > took + 0.5)) clip.dur = Math.min(took, MAXS);
       if (st) { st.photos.push(clip); t0 = performance.now(); paintPanel(); }
     };
     cam.rec.start(250);
