@@ -679,9 +679,10 @@ html.fullon #main{visibility:hidden}
 .acts{flex-wrap:nowrap!important;gap:5px!important;padding:8px 8px 6px!important}
 .acts button{padding:8px 10px!important;white-space:nowrap}
 .acts button{gap:5px!important}
-@media (max-width:384px){.acts [data-comments] .lbl{display:none}}
+@media (max-width:440px){.acts [data-comments] .lbl{display:none}}
 .acts .send1{margin-left:auto;flex:none;padding:8px 10px!important}
 .acts .send1 .ico{width:19px;height:19px}
+.rs1 + .send1{margin-left:0}
 .menu button .ico{width:20px;height:20px;margin:0 12px -4px 0;color:var(--gold2)}
 
 /* ---- REPLIES: one level deep, tucked under the comment, like Facebook ---- */
@@ -936,7 +937,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS</button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v72</span>
+  <span class="ver" id="ver">v73</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1313,6 +1314,7 @@ html.kb .ch-bar{padding-bottom:8px}
     metoo: '<circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/>',
     comment:'<path d="M12 4c4.7 0 8.5 3 8.5 6.9s-3.8 6.9-8.5 6.9c-1 0-2-.1-2.9-.4L4.5 19.5l1.2-3.4C4.3 14.9 3.5 13 3.5 10.9 3.5 7 7.3 4 12 4z"/>',
     read:  '<path d="M3 5.5c3-.9 6-.6 9 1.4 3-2 6-2.3 9-1.4v13c-3-.9-6-.6-9 1.4-3-2-6-2.3-9-1.4z"/><path d="M12 6.9v13"/>',
+    reshare: '<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>',
     send:  '<path d="M21 3L10 14"/><path d="M21 3l-6.5 18-4-7.5L3 9.5z"/>',
     search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>',
     link:  '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>',
@@ -1508,6 +1510,7 @@ html.kb .ch-bar{padding-bottom:8px}
         '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '">' + ico("proud") + 'Love this</button>' +
         '<button type="button" data-react="metoo" class="' + (r.metoo ? "on" : "") + '">' + ico("metoo") + 'Me too</button>' +
         '<button type="button" data-comments>' + ico("comment") + '<span class="lbl">Comment</span></button>' +
+        (p.user_id !== me.uid && !p.group_id && p.need !== "moment" ? '<button type="button" class="send1 rs1" data-reshare aria-label="Reshare this on the Porch">' + ico("reshare") + "</button>" : "") +
         '<button type="button" class="send1" data-send aria-label="Send this share to somebody">' + ico("send") + "</button></div>" +
       '<div class="cm">' + commentsPreview(p.id) + "</div></article>";
   }
@@ -2231,14 +2234,7 @@ html.kb .ch-bar{padding-bottom:8px}
       await closeAll(); toast("Done. Everything you put on the Porch is gone.");
       setTimeout(function () { location.reload(); }, 1600); return;
     }
-    if (m === "reshare") {
-      var rid = (posts[t.post] && posts[t.post].reshare_of) || t.post;
-      if (!origs[rid] && posts[rid]) origs[rid] = posts[rid];
-      this.innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">Reshare</p>' + origHTML(rid).replace(' data-sharepost="' + rid + '"', "") +
-        '<textarea class="field" id="rswords" maxlength="500" rows="2" placeholder="Say something about it (optional)" style="margin-top:10px;resize:none;font-family:Arial,sans-serif"></textarea>' +
-        '<p class="cerr" id="rserr" role="alert"></p><button type="button" class="rs-go" data-m="reshare-go">Reshare</button><button type="button" data-close style="color:var(--muted)">Cancel</button>';
-      return;
-    }
+    if (m === "reshare") return paintReshare(t.post);
     if (m === "reshare-go") {
       return gate(async function () {
         b.disabled = true; b.textContent = "Sharing…";
@@ -2287,6 +2283,18 @@ html.kb .ch-bar{padding-bottom:8px}
     var p = posts[id] || {}, t = String(p.body || "").replace(/\s+/g, " ").trim();
     if (t.length > 120) t = t.slice(0, 117).replace(/\s+\S*$/, "") + "…";
     return t ? "“" + t + "”, on the Recovery Misfits Porch" : name(p.user_id) + " shared this on the Recovery Misfits Porch";
+  }
+  function paintReshare(id) {
+      var rid = (posts[id] && posts[id].reshare_of) || id;
+      if (!origs[rid] && posts[rid]) origs[rid] = posts[rid];
+      $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">Reshare</p>' + origHTML(rid).replace(' data-sharepost="' + rid + '"', "") +
+        '<textarea class="field" id="rswords" maxlength="500" rows="2" placeholder="Say something about it (optional)" style="margin-top:10px;resize:none;font-family:Arial,sans-serif"></textarea>' +
+        '<p class="cerr" id="rserr" role="alert"></p><button type="button" class="rs-go" data-m="reshare-go">Reshare</button><button type="button" data-close style="color:var(--muted)">Cancel</button>';
+  }
+  function reshareSheet(id) {
+    if (isSample(id)) return toast("That's a sample post. Only you can see these.");
+    $("mbody").dataset.t = JSON.stringify({ post: id }); $("mbody").dataset.uid = "";
+    paintReshare(id); open("menu");
   }
   function sendOut(id) {
     if (isSample(id)) return toast("That's a sample post. Only you can see these.");
@@ -3666,6 +3674,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var rz = t.closest("[data-rz]");
     if (rz && rz.dataset.rz) { var rm = chat && chat.msgs.find(function (x) { return x.id === rz.dataset.rz; }); if (rm) rm.seen = true; rz.classList.remove("rz"); rz.dataset.rz = ""; return; }
     var bbl = t.closest("[data-bb]"); if (bbl && !t.closest("a,.at")) return dmMenu(bbl.closest("[data-dmid]").dataset.dmid);
+    if (t.closest("[data-reshare]") && id) return reshareSheet(id);
     if (t.closest("[data-send]") && id) return sendOut(id);
     if (t.closest("[data-search]")) return openSearch();
     var cl = t.closest("[data-clove]"); if (cl) return gate(function () { heartComment(cl.closest("[data-comment]").dataset.comment); });
