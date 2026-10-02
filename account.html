@@ -266,7 +266,11 @@
          now, and the whole story once they are through, on a card with
          their name and password on it, which is the moment it actually
          means something. -->
-    <p class="lede">So your sober date can follow you to a new phone.<br>
+    <!-- THE WORDS FOLLOW THE LEVEL (2 Oct 2026, Mike: "some of it still steers towards
+         the old no email"). Level 1 is the anonymous one and says so. Level 2 is the
+         Porch: people will see the name, so "nobody knows you're here" is not true there.
+         levelWords() swaps this line and the button. -->
+    <p class="lede" id="formLede">So your sober date can follow you to a new phone.<br>
        No email, no real name, nobody knows you&rsquo;re here.</p>
 
     <div class="seg" role="tablist" aria-label="Create an account or sign in">
@@ -604,11 +608,21 @@
     paintChoice();
     paint("levels");
   }
+  function levelWords() {
+    var two = picked() === "2";
+    $("formLede").innerHTML = !two
+      ? "So your sober date can follow you to a new phone.<br>No email, no real name, nobody knows you&rsquo;re here."
+      : betaPhone()
+        ? "You&rsquo;re in the beta. Pick the name people will see on the Porch."
+        : "Pick the name people will see on the Porch.<br>You&rsquo;ll confirm an email once so you can post. It&rsquo;s never kept or shown.";
+    if (mode === "new") $("submit").textContent = two ? "Create My Account" : "Create My Anonymous Account";
+  }
   function goForm(lvl, m) {
     if (lvl) pick(lvl);
     $("pickedBar").hidden = m === "old";
     $("pickedTxt").innerHTML = lvl === "2" ? "<b>Level 2</b> · I&rsquo;m comfortable here" : "<b>Level 1</b> · Anonymous";
     setMode(m || "new");
+    levelWords();
     paint("form");
     /* the phone's back button goes back to the two levels, not out of the app */
     try { history.pushState({ acct: "form" }, ""); } catch (e) {}
@@ -708,7 +722,7 @@
     if ($("out") && !$("out").hidden) setTimeout(function () { paint("form"); }, 0);
     $("tabNew").setAttribute("aria-selected", next === "new" ? "true" : "false");
     $("tabOld").setAttribute("aria-selected", next === "old" ? "true" : "false");
-    $("submit").textContent = next === "new" ? "Create My Anonymous Account" : "Sign In";
+    $("submit").textContent = next === "new" ? (picked() === "2" ? "Create My Account" : "Create My Anonymous Account") : "Sign In";
     $("pw").setAttribute("autocomplete", next === "new" ? "new-password" : "current-password");
     $("nmHint").hidden = next !== "new";
     $("forgot").hidden = next !== "old";
