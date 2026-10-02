@@ -486,4 +486,6 @@ without making it confusing.
 
 ## v103 (2 Oct 2026): the Porch menu, smaller and on paper
 - [x] Paper color, two buttons to a line, about half the height. Notifications (it's the bell) and My coins are off it. Switch account has the round arrows, Sign out is in red, Reports is a small button for moderators only.
-- [ ] Mike said he likes the paper color "for the menus": the other pop-up menus are still dark.
+
+## v104 (2 Oct 2026): every pop-up menu on paper
+- [x] All the sheets that slide up from the bottom are the paper color now: the three-dot menu, the share sheet, sign-in prompts, the rules, comments, photo choices, the account switcher. Full screens and the tutorial stay dark.
