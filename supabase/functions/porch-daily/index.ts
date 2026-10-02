@@ -13,7 +13,7 @@
  *   - if today's meme is already up it does nothing
  * So it is safe that anybody can knock: there is no secret to keep and nothing to abuse.
  *
- * THE DAILY PRAYER (2 Oct 2026, Mike). A second house account, spiritual_misfit,
+ * THE DAILY PRAYER (2 Oct 2026, Mike). A second house account, spiritualmisfit,
  * posts the day's prayer at 7am Eastern as a saying card, with a mix of the card
  * backgrounds. It is a separate account on purpose: "if it's coming from the house
  * account, it looks like we started a religion here." Anybody can Mute it.
@@ -27,7 +27,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const HOUSE = "recoverymisfits";
 const SITE = "https://recoverymisfits.org";
 const START_HOUR = 6;                       // the meme: 6am Eastern
-const PRAYER_HOUSE = "spiritual_misfit";
+const PRAYER_HOUSE = "spiritualmisfit";
 const PRAYER_HOUR = 7;                      // the prayer: 7am Eastern
 const CARD_STYLES = 14;                     // the saying-card backgrounds in feed/porch.html
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
@@ -73,7 +73,7 @@ async function prayer(day: string, hour: number) {
   const text = String(days[md] || (md === "02-29" ? days["02-28"] : "") || "").trim();
   if (!text) return { posted: false, why: "no prayer for " + md };
   const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", PRAYER_HOUSE).maybeSingle();
-  if (!m) return { posted: false, error: "spiritual_misfit is not on the Porch yet" };
+  if (!m) return { posted: false, error: "spiritualmisfit is not on the Porch yet" };
   const { data: had } = await admin.from("porch_posts").select("id").eq("user_id", m.user_id)
     .eq("body", text).gte("created_at", since20h()).limit(1);
   if (had && had.length) return { posted: false, why: "today's prayer is already up" };

@@ -489,3 +489,6 @@ without making it confusing.
 
 ## v104 (2 Oct 2026): every pop-up menu on paper
 - [x] All the sheets that slide up from the bottom are the paper color now: the three-dot menu, the share sheet, sign-in prompts, the rules, comments, photo choices, the account switcher. Full screens and the tutorial stay dark.
+
+## v105 (2 Oct 2026)
+- [x] The prayer account is `spiritualmisfit`, no underscore (Mike: "i dont want an underscore"). Lines above that say spiritual_misfit mean this account.
