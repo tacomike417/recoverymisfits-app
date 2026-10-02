@@ -595,11 +595,24 @@
       cta.addEventListener("click", () => {
         if (window.gtag) window.gtag("event", "pwa_install_click");
         if (deferredInstall) return oneTap();
-        if (steps && steps.hidden) { steps.hidden = false; cta.textContent = "Got it"; return; }
+        if (cta.dataset.wait) return;
+        if (steps && steps.hidden) {
+          /* Chrome takes a few seconds after the page opens to get its one-tap box
+             ready. Give it up to 5 before falling back to the menu steps; when it
+             shows up, the button turns back into one tap. */
+          cta.dataset.wait = "1"; cta.textContent = "Getting it ready\u2026";
+          let n = 0;
+          const t = setInterval(() => {
+            n++;
+            if (deferredInstall) { clearInterval(t); delete cta.dataset.wait; cta.textContent = "Tap to install"; return; }
+            if (n >= 10) { clearInterval(t); delete cta.dataset.wait; steps.hidden = false; cta.textContent = "Got it"; }
+          }, 500);
+          return;
+        }
         closeInstallSheet(scrim, wrap, false, true);
       });
       window.addEventListener("beforeinstallprompt", () => {
-        setTimeout(() => { if (deferredInstall && cta.isConnected) { if (steps) steps.hidden = true; cta.textContent = "Install app now"; } }, 0);
+        setTimeout(() => { if (deferredInstall && cta.isConnected) { if (steps) steps.hidden = true; if (!cta.dataset.wait) cta.textContent = "Install app now"; } }, 0);
       });
     }
 
