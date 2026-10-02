@@ -1018,7 +1018,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v93</span>
+  <span class="ver" id="ver">v94</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2825,6 +2825,8 @@ html.kb .ch-bar{padding-bottom:8px}
   $("esave").addEventListener("click", async function () {
     var b = this;
     b.disabled = true; b.textContent = "Saving…";
+    var newName = $("ename").value.replace(/\s+/g, " ").trim();
+    if (newName && newName !== (me.member.real_name || "") && (await nameTaken(newName))) { $("estatus").textContent = "That name is taken. Try another."; b.disabled = false; b.textContent = "Save"; return; }
     try {
       await rest("porch_members?user_id=eq." + me.uid, { method: "PATCH", body: { bio: $("ebio").value.trim() || null, real_name: $("ename").value.replace(/\s+/g, " ").trim() || null, visibility: editVis } });
       me.member.bio = $("ebio").value.trim() || null; me.member.real_name = $("ename").value.replace(/\s+/g, " ").trim() || null; me.member.visibility = editVis; people[me.uid] = me.member;
@@ -2883,11 +2885,15 @@ html.kb .ch-bar{padding-bottom:8px}
       loadSuPeople();
     });
   }
+  /* names nobody can take (supabase/porch_29_names_taken.sql). The database refuses
+     them too; this is the clear "no" before the save. */
+  async function nameTaken(n) { try { return (await rpc("name_blocked", { p_name: n, p_pages: false })) === true; } catch (e) { return false; } }
   async function suSave() {
     try {
       if (suStep === 0) {
         var bio = ($("subio").value || "").trim() || null;
         var rn = ($("suname").value || "").replace(/\s+/g, " ").trim() || null;
+        if (rn && rn !== (me.member.real_name || null) && (await nameTaken(rn))) { toast("That name is taken. Try another."); return false; }
         if (bio !== (me.member.bio || null) || rn !== (me.member.real_name || null)) { await rest("porch_members?user_id=eq." + me.uid, { method: "PATCH", body: { bio: bio, real_name: rn } }); me.member.bio = bio; me.member.real_name = rn; }
       } else if (suStep === 1 && suVis !== (me.member.visibility || "members")) {
         await rest("porch_members?user_id=eq." + me.uid, { method: "PATCH", body: { visibility: suVis } }); me.member.visibility = suVis;

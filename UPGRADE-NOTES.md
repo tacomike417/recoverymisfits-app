@@ -438,3 +438,8 @@ without making it confusing.
 ## v93 (2 Oct 2026): cleanup
 - [x] Sample posts and sample people are off for everybody. The "Show sample posts" switch is gone.
 - [ ] Real test posts and Spins in the database: Mike picks what goes.
+
+## v94 (2 Oct 2026): names nobody can take
+- [x] supabase/porch_29_names_taken.sql: recoverymisfits, admin, mod, staff, slurs and X-rated words can't be used in a new account name or a profile NAME. Reads past tricks (Rec0very.M1sfits). People who already have a name keep it.
+- [x] House accounts: `insert into name_passes values ('thename');` lets that one name sign up one time.
+- [ ] Mike runs the SQL.

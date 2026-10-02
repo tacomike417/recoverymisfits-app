@@ -148,7 +148,10 @@
   function readError(json, fallback) {
     var m = (json && (json.msg || json.message || json.error_description ||
                       json.error)) || "";
-    if (/already registered|already exists|duplicate/i.test(m)) {
+    /* name_taken / "Database error saving new user": the database's wall for names
+       nobody can take (supabase/porch_29_names_taken.sql). Same words as a real
+       taken name, on purpose: nobody gets told there is a list. */
+    if (/already registered|already exists|duplicate|name_taken|database error saving new user/i.test(m)) {
       return "That name is taken. Try another.";
     }
     if (/invalid login|invalid credentials|grant/i.test(m)) {
@@ -165,6 +168,12 @@
   async function signUp(name, password) {
     var bad = nameProblem(name) || passwordProblem(password);
     if (bad) return { ok: false, error: bad };
+    /* names nobody can take (recoverymisfits, admin, slurs ...). The database refuses
+       them anyway; asking first is just a faster, cleaner no. */
+    try {
+      var nb = await post("/rest/v1/rpc/name_blocked", { p_name: cleanName(name) });
+      if (nb.ok && (await nb.json()) === true) return { ok: false, error: "That name is taken. Try another." };
+    } catch (e) {}
     try {
       var res = await post("/auth/v1/signup",
         { email: cleanName(name) + MAIL_DOMAIN, password: password });
