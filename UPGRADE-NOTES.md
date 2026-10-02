@@ -443,3 +443,7 @@ without making it confusing.
 - [x] supabase/porch_29_names_taken.sql: recoverymisfits, admin, mod, staff, slurs and X-rated words can't be used in a new account name or a profile NAME. Reads past tricks (Rec0very.M1sfits). People who already have a name keep it.
 - [x] House accounts: `insert into name_passes values ('thename');` lets that one name sign up one time.
 - [ ] Mike runs the SQL.
+
+## v95 (2 Oct 2026): the house account
+- [x] supabase/porch_30_house_account.sql: recoverymisfits, no email, can post, tester, 60-second Spins, moderator, shows as "Recovery Misfits". Run it, add the user in Supabase, run it again.
+- [x] recoverymisfits is on the beta tester list in account.html and feed/porch.html.
