@@ -488,7 +488,12 @@
      Porch's own lock in feed/porch.html. Flip PORCH_OPEN to true at launch. */
   var PORCH_OPEN = false;
   var TESTERS = ["tacomike417", "misfit_tester", "fire_l0ve", "krazyk226"];
-  function porchFor(nm) { return PORCH_OPEN || TESTERS.indexOf(String(nm || "").toLowerCase()) >= 0; }
+  /* THE BETA DOOR (2 Oct 2026): a phone that opened /beta.html (or came here with ?beta=1)
+     is a beta phone. Level 2 and the Porch are open for it. See beta.html. */
+  try { if (new URLSearchParams(location.search).get("beta") === "1") localStorage.setItem("rm_beta", "1"); } catch (e) {}
+  function betaPhone() { try { return localStorage.getItem("rm_beta") === "1"; } catch (e) { return false; } }
+  function lvl2Open() { return PORCH_OPEN || betaPhone(); }
+  function porchFor(nm) { return lvl2Open() || TESTERS.indexOf(String(nm || "").toLowerCase()) >= 0; }
   var LVL_KEY = "rm_level_pick";
   function picked() { try { return localStorage.getItem(LVL_KEY) || ""; } catch (e) { return ""; } }
   function pick(n) { try { localStorage.setItem(LVL_KEY, n); } catch (e) {} }
@@ -592,7 +597,7 @@
 
   /* ---- pick your level ---- */
   function showLevels() {
-    var open = PORCH_OPEN;
+    var open = lvl2Open();
     $("lvl2").classList.toggle("locked", !open);
     $("lvl2soon").hidden = open;
     say($("sayLvl"), "");
@@ -670,7 +675,7 @@
   document.querySelectorAll("[data-lvl]").forEach(function (b) {
     b.addEventListener("click", function () {
       var l = b.getAttribute("data-lvl");
-      if (l === "2" && !PORCH_OPEN) {
+      if (l === "2" && !lvl2Open()) {
         say($("sayLvl"), "Level 2 opens with the Porch at the end of October. Start with Level 1 and move up then.", "good");
         return;
       }
@@ -727,7 +732,7 @@
     var name = $("nm").value, pw = $("pw").value;
     /* your name is also your link (recoverymisfits.org/<name>), so it can't be one of
        the site's own pages. Same list as feed/porch.html and functions/[handle].js. */
-    var NOT_NAMES = ['s','u','api','app','admin','feed','porch','login','signin','signup','account','settings','help','about','privacy','terms','support','mod','mods','staff','team','official','recoverymisfits','me','home','index','www','static','assets','images','cdn','blog','news','shop','store','search','explore','notifications','messages','spins','spin','friends','groups','group','profile','user','users','null','undefined',
+    var NOT_NAMES = ['beta','s','u','api','app','admin','feed','porch','login','signin','signup','account','settings','help','about','privacy','terms','support','mod','mods','staff','team','official','recoverymisfits','me','home','index','www','static','assets','images','cdn','blog','news','shop','store','search','explore','notifications','messages','spins','spin','friends','groups','group','profile','user','users','null','undefined',
     'another-day-sober','share-in','assets-trudge','audio','audio-lag-test','basics','burn-pad','chapters','coins','corner','css','data','engine','fear-compass','fun','game','game2','gratitude-journal','halloween-game','meme','misfits','nightly-inventory','on-awakening','pile','qr','reader','readings','recovery-engine','recovery-misfits-first-five-coins','sober-date','story','survival-pile','test','tools','unofficial-story','untangler','white-knuckler'];
     if (mode === "new" && NOT_NAMES.indexOf(String(name).trim().toLowerCase()) >= 0) return say($("say"), "That name is taken. Try another.", "bad");
 
@@ -927,7 +932,11 @@
     showDateStep();
     settle(false).then(showDateStep);
   } else if (new URLSearchParams(location.search).get("signin") === "1") {
+    if (betaPhone()) pick("2");
     goForm("", "old");
+  } else if (new URLSearchParams(location.search).get("beta") === "1") {
+    /* from the beta invite: no levels to pick, straight to "pick a name and a password" */
+    goForm("2", "new");
   } else {
     showLevels();
   }

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>You're invited — Recovery Misfits beta</title>
+<meta name="description" content="An early look at the Porch, the community side of Recovery Misfits.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#11110f">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>html{background:#11110f}body{background:#11110f;color:#f1e7cf;margin:0}</style>
+<style>
+/* THE BETA DOOR (2 Oct 2026, Mike: "make some sort of page that says beta.html and let
+   me send it out, and anybody that signs up through that gets full access to the site
+   right away").
+
+   WHAT IT DOES. Opening this page marks THIS phone as a beta phone (rm_beta = 1). From
+   then on the Porch lock in feed/porch.html and the Level 2 lock in account.html let
+   this phone through, and the first time they land on the Porch signed in, the database
+   makes them a beta tester (porch_beta_join, supabase/porch_28_beta_door.sql): they can
+   post right away and their Spins can run 60 seconds.
+
+   IT IS NOT THE LAUNCH. Everybody without the link still gets "coming at the end of
+   October". The door has a cap and an off switch in porch_28_beta_door.sql.
+
+   Phone first, at 393. One screen, one button. The 5-second rule. */
+@font-face{font-family:"RM Head";src:url("/assets/fonts/anton-400.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"RM Rail";src:url("/assets/fonts/oswald-500.woff2") format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"RM Hand";src:url("/assets/fonts/caveat-600.woff2") format("woff2");font-display:swap}
+*{box-sizing:border-box}
+main{max-width:480px;margin:0 auto;padding:30px 22px calc(40px + env(safe-area-inset-bottom));text-align:center}
+.logo{display:block;width:108px;height:108px;margin:0 auto 16px;border-radius:24px;box-shadow:0 10px 34px rgba(224,189,106,.25)}
+.k{margin:0 0 10px;font:500 13px "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.2em;color:#e0bd6a}
+h1{margin:0;font:400 44px/1.02 "RM Head",Impact,sans-serif;letter-spacing:.01em;text-transform:uppercase}
+.rule{display:block;width:120px;height:4px;margin:14px auto 18px;border-radius:3px;background:linear-gradient(90deg,rgba(224,189,106,0),#e0bd6a,rgba(224,189,106,0))}
+.lede{margin:0 0 20px;font:700 18px/1.45 Arial,sans-serif}
+.steps{margin:0 auto 22px;padding:6px 18px;max-width:340px;list-style:none;text-align:left;border:1px solid rgba(214,179,106,.28);border-radius:16px;background:rgba(31,31,27,.82);counter-reset:s}
+.steps li{display:flex;gap:14px;align-items:center;padding:13px 0;font:700 16.5px/1.3 Arial,sans-serif;color:#f1e7cf;counter-increment:s}
+.steps li+li{border-top:1px solid rgba(214,179,106,.14)}
+.steps li::before{content:counter(s);flex:none;width:34px;height:34px;border-radius:50%;background:#e0bd6a;color:#1a1408;display:grid;place-items:center;font:400 20px "RM Head",Impact,sans-serif}
+.steps small{display:block;margin-top:2px;font:500 13.5px/1.35 Arial,sans-serif;color:#b9ad92}
+.go{display:block;width:100%;max-width:340px;margin:0 auto;padding:18px 20px;border:0;border-radius:16px;cursor:pointer;text-decoration:none;
+  background:linear-gradient(135deg,#f3dfa0,#e0bd6a 55%,#c9973a);color:#1a1408;font:400 26px/1 "RM Head",Impact,sans-serif;letter-spacing:.04em;text-transform:uppercase;box-shadow:0 10px 30px rgba(224,189,106,.28)}
+.alt{display:inline-block;margin:16px 0 0;padding:10px 14px;color:#e0bd6a;font:700 15px Arial,sans-serif}
+.hand{margin:26px 0 0;font:600 24px/1.2 "RM Hand","Bradley Hand",cursive;color:#f1e7cf;opacity:.9;transform:rotate(-3deg)}
+.fine{margin:18px auto 0;max-width:330px;font:13px/1.5 Arial,sans-serif;color:#9d927a}
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="/icon-192.png" alt="">
+  <p class="k">RECOVERY MISFITS · BETA</p>
+  <h1 id="h">You&rsquo;re invited</h1>
+  <span class="rule"></span>
+  <p class="lede" id="lede">You get the Porch early: share, make Spins, add friends, message.</p>
+
+  <ol class="steps" id="steps">
+    <li><span>Pick a name and a password<small>No email. No phone number.</small></span></li>
+    <li><span>Put in your sober date<small>Or skip it. Up to you.</small></span></li>
+    <li><span>You&rsquo;re on the Porch</span></li>
+  </ol>
+
+  <a class="go" id="go" href="/account.html?beta=1">Let&rsquo;s go</a>
+  <a class="alt" id="alt" href="/account.html?beta=1&amp;signin=1">I already have an account</a>
+
+  <p class="hand">Good company between meetings.</p>
+  <p class="fine">It&rsquo;s a beta, so things will change and a few will break. Tell Mike what&rsquo;s confusing. That&rsquo;s the whole job.</p>
+</main>
+<script>
+(function () {
+  /* mark this phone. That is the whole trick: everything else reads this. */
+  try { localStorage.setItem("rm_beta", "1"); } catch (e) {}
+  var who = "";
+  try { who = (JSON.parse(localStorage.getItem("rm_account_v1") || "null") || {}).name || ""; } catch (e) {}
+  if (who) {
+    /* already has an account on this phone: nothing to make, just walk in */
+    document.getElementById("h").innerHTML = "You&rsquo;re in";
+    document.getElementById("lede").textContent = "Hey " + who + ". The Porch is open for you now.";
+    document.getElementById("steps").hidden = true;
+    var go = document.getElementById("go"); go.textContent = "Open the Porch"; go.href = "/feed/porch.html";
+    document.getElementById("alt").hidden = true;
+  }
+})();
+</script>
+</body>
+</html>

@@ -11,7 +11,7 @@
 import { onRequestGet as profilePage } from './u/[handle].js';
 
 /* never names, even if no page uses them yet (same list as porch.html and account.html) */
-const EXTRA = ['s', 'u', 'api', 'app', 'admin', 'feed', 'porch', 'login', 'signin', 'signup', 'account', 'settings',
+const EXTRA = ['beta', 's', 'u', 'api', 'app', 'admin', 'feed', 'porch', 'login', 'signin', 'signup', 'account', 'settings',
   'help', 'about', 'privacy', 'terms', 'support', 'mod', 'mods', 'staff', 'team', 'official', 'recoverymisfits',
   'me', 'home', 'index', 'www', 'static', 'assets', 'images', 'cdn', 'blog', 'news', 'shop', 'store', 'search',
   'explore', 'share-in', 'notifications', 'messages', 'spins', 'spin', 'friends', 'groups', 'group', 'profile', 'user', 'users', 'null', 'undefined'];

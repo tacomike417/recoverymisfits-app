@@ -21,6 +21,10 @@ Order isn't set.
 - [x] Comments on the paper look under every share, with an "Add a comment" line; heart button and
       tap-to-reply in the comments window (v84, 2 Oct).
 - [x] No dead ends on the Porch (v84, 2 Oct): arrow on pages you browse, X on things you can cancel.
+- [x] THE BETA DOOR (v86, 2 Oct): recoverymisfits.org/beta.html. Anybody who opens that link is let
+      into the Porch on that phone, and on their first signed-in visit becomes a beta tester (can post
+      right away, 60-second Spins, friends with tacomike417). NOT the launch: no link, no Porch.
+      Brakes in supabase/porch_28_beta_door.sql: a cap of 25 testers and an off switch.
 - [x] Longer Spins (v85, 2 Oct): Spins stay 15 seconds; an upgraded account gets 60. "Need longer Spins?"
       in the Spin maker lets people apply. Mike sees each ask on the Reports screen with their numbers
       (Spins, shares, comments, days here) and taps "Give them 60" or "Not yet". Beta testers start with 60.
