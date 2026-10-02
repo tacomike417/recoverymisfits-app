@@ -460,7 +460,26 @@ Deno.serve(async (req) => {
     /* CELEBRATE A WIN (1 Oct 2026): a coin they've earned, shared whole. Only the app's own coin files. */
     const coin = typeof b.coin === "string" && /^coin-(24-hours|30-days|60-days|90-days|06-months|(0[1-9]|[1-4]\d|5[0-5])-years?)\.webp$/.test(b.coin) ? b.coin : "";
     if (b.coin && !coin) return json({ error: "That coin isn't one of ours." }, 400);
-    if (!text && !photos.length && !coin) return json({ error: "Say something or add a photo." }, 400);
+    /* RESHARE (1 Oct 2026): somebody's share, on the Porch again, with your words if you
+       have any. Not from a group, not a Spin (that's Respin), not your own, once each.
+       Resharing a reshare points at the original. */
+    let reshareOf: string | null = null;
+    if (b.reshare_of) {
+      if (typeof b.reshare_of !== "string" || !/^[0-9a-f-]{36}$/i.test(b.reshare_of)) return json({ error: "That share is gone." }, 404);
+      let { data: orig } = await admin.from("porch_posts").select("id, user_id, need, hidden_at, group_id, reshare_of").eq("id", b.reshare_of).maybeSingle();
+      if (orig?.reshare_of) ({ data: orig } = await admin.from("porch_posts").select("id, user_id, need, hidden_at, group_id, reshare_of").eq("id", orig.reshare_of).maybeSingle());
+      if (!orig || orig.hidden_at) return json({ error: "That share is gone." }, 404);
+      if (orig.group_id) return json({ error: "What's shared in a group stays in the group." }, 403);
+      if (orig.need === "moment") return json({ error: "That's a Spin. Use Respin." }, 400);
+      if (orig.user_id === user.id) return json({ error: "That one's already yours." }, 400);
+      const { data: rblocked } = await admin.rpc("porch_blocked", { a: user.id, b: orig.user_id });
+      if (rblocked) return json({ error: "That share is gone." }, 404);
+      const { data: had } = await admin.from("porch_posts").select("id").eq("user_id", user.id).eq("reshare_of", orig.id).is("hidden_at", null).maybeSingle();
+      if (had) return json({ error: "You already reshared that one." }, 409);
+      if (groupId || photos.length || coin) return json({ error: "A reshare is just the share and your words." }, 400);
+      reshareOf = orig.id;
+    }
+    if (!text && !photos.length && !coin && !reshareOf) return json({ error: "Say something or add a photo." }, 400);
     const paths: string[] = coin ? ["/assets/coins/" + coin] : [];
     for (const p of coin ? [] : photos) {
       const b64 = String(p).replace(/^data:image\/\w+;base64,/, "");
@@ -475,7 +494,7 @@ Deno.serve(async (req) => {
     const style = Number.isInteger(b.card_style) ? Math.max(0, Math.min(11, b.card_style)) : null;
     const link_preview = paths.length ? null : await previewFor(text);
     const { data, error } = await admin.from("porch_posts")
-      .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style, link_preview, ...(groupId ? { group_id: groupId } : {}) })
+      .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style, link_preview: reshareOf ? null : link_preview, ...(groupId ? { group_id: groupId } : {}), ...(reshareOf ? { reshare_of: reshareOf } : {}) })
       .select("id").single();
     if (error) return json({ error: "That didn't go through. Try again." }, 500);
     return json({ ok: true, id: data.id, care });

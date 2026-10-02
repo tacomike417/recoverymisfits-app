@@ -65,7 +65,7 @@ Order isn't set.
       calls gets built with calls.
 - [ ] PARKED (Mike, 1 Oct): Topics/hashtags (#gratitude) + a Discover tab
 - [ ] PARKED (Mike, 1 Oct): Polls
-- [ ] KEEPING, right after calls: Reshare somebody's post to your friends
+- [x] Reshare somebody's post to your friends (v72, 1 Oct). Not from groups, not your own, once each.
 - [ ] PARKED (Mike, 1 Oct): Disappearing photos in Messages: opens once for 10 seconds, then gone for good
       (deleted off the server). A web app can't stop screenshots (Snapchat can't
       either, it only tells you), so: no saving, the photo blurs if they leave the

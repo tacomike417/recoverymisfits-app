@@ -310,7 +310,7 @@ html.fullon #main{visibility:hidden}
 .nd-k{position:absolute;right:-3px;bottom:-3px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;border:2px solid var(--sheet);color:#fff}
 .nd-k .ico{width:13px;height:13px;stroke-width:2.4}
 .nd-k.comment,.nd-k.reply{background:#2d88ff}.nd-k.proud{background:#e52e71}.nd-k.proud .ico{fill:#fff}.nd-k.metoo{background:#c9922b}
-.nd-k.mention{background:#8a3ffc}.nd-k.dm{background:#0a84ff}.nd-k.respin{background:#c9922b}.nd-k.comment_love{background:#e52e71}.nd-k.follow,.nd-k.friend_request,.nd-k.friend_accept{background:#31a24c}.nd-k.report{background:#c4563c}
+.nd-k.mention{background:#8a3ffc}.nd-k.dm{background:#0a84ff}.nd-k.respin,.nd-k.reshare{background:#c9922b}.nd-k.comment_love{background:#e52e71}.nd-k.follow,.nd-k.friend_request,.nd-k.friend_accept{background:#31a24c}.nd-k.report{background:#c4563c}
 .nd-t{flex:1;min-width:0}
 .nd-t span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .nd-t small{display:block;margin-top:3px;color:var(--faint);font-size:12.5px}
@@ -410,6 +410,17 @@ html.fullon #main{visibility:hidden}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
 .nd-snd{display:block;margin:10px 14px 2px auto;padding:6px 12px;border-radius:999px;border:1px solid rgba(60,45,20,.25);background:rgba(49,162,76,.14);color:#1f6b33;font:800 12.5px Arial,sans-serif;cursor:pointer}
 .nd-snd.off{background:rgba(200,50,40,.1);color:#9a2a20}
+/* RESHARE (1 Oct 2026) */
+.rs-card{display:block;margin:10px 12px 0;padding:12px;border-radius:14px;border:1px solid var(--fline);background:var(--field);cursor:pointer;text-align:left}
+.rs-card.gone,.rs-load{color:var(--muted);font:600 14px Arial,sans-serif;cursor:default}
+.rs-by{display:flex;align-items:center;gap:8px}
+.rs-by .av{width:30px;height:30px;font-size:11px}
+.rs-by b{font:800 14.5px Arial,sans-serif}.rs-by small{color:var(--muted);font:600 12.5px Arial,sans-serif}
+.rs-tx{margin-top:8px;color:var(--cream);font:15.5px/1.45 Arial,sans-serif;white-space:pre-wrap;word-break:break-word}
+.rs-pic{display:block;width:100%;max-height:320px;object-fit:cover;border-radius:10px;margin-top:10px}
+.rs-card .hand{margin:10px 0 0}
+#mbody .rs-card{margin:6px 0 0}
+#mbody .rs-go{background:var(--gold2);color:var(--ink);border-radius:999px;text-align:center;font-weight:800;margin-top:10px}
 /* CALLS (1 Oct 2026) */
 .ch-call{flex:none;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:none;color:#e0bd6a;cursor:pointer}
 .ch-call svg,.kl-b svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
@@ -925,7 +936,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS</button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v71</span>
+  <span class="ver" id="ver">v72</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1447,6 +1458,32 @@ html.kb .ch-bar{padding-bottom:8px}
   var posts = {}, comments = {}, mine = {}, oldest = null, loading = false, done = false;
   var tab = "all", friends = {}, reqOut = {}, reqIn = {}, newest = null, saved = {}, isMod = false;
 
+  /* RESHARE (1 Oct 2026): the original share, shown inside the reshare with its author's
+     name. Tapping it opens the original. Loaded on demand, wherever a reshare shows up. */
+  var origs = {}, origAsk = {};
+  function origHTML(id) {
+    var o = origs[id];
+    if (o === false) return '<div class="rs-card gone" data-rs="' + id + '">This share is gone.</div>';
+    if (!o) { needOrig(id); return '<div class="rs-card" data-rs="' + id + '"><span class="rs-load">Loading…</span></div>'; }
+    var ph = o.photo_paths || [], tx = o.body || "", med = "";
+    if (ph.length) med = '<img class="rs-pic" src="' + (/^\/assets\//.test(ph[0]) ? ph[0] : pic(ph[0])) + '" alt="" loading="lazy">';
+    else if (o.card_style != null && fitsCard(tx)) { med = handHTML(tx, o.card_style); tx = ""; }
+    if (tx.length > 280) tx = tx.slice(0, 277).replace(/\s+\S*$/, "") + "…";
+    return '<div class="rs-card" role="button" tabindex="0" data-rs="' + id + '" data-sharepost="' + id + '">' +
+      '<div class="rs-by"><span class="ul" data-u="' + o.user_id + '">' + avatar(people[o.user_id]) + "</span><b class=\"ul\" data-u=\"" + o.user_id + '">' + esc(name(o.user_id)) + "</b><small>" + ago(o.created_at) + "</small></div>" +
+      (tx ? '<div class="rs-tx">' + esc(tx) + "</div>" : "") + med + "</div>";
+  }
+  function needOrig(id) {
+    if (origAsk[id]) return; origAsk[id] = 1;
+    setTimeout(async function () {
+      try {
+        var r = await rest("porch_posts?id=eq." + id + "&select=id,user_id,need,body,photo_paths,card_style,created_at");
+        origs[id] = r[0] || false;
+        if (r[0]) await loadPeople([r[0].user_id]);
+      } catch (e) { delete origAsk[id]; return; }
+      document.querySelectorAll('.rs-card[data-rs="' + id + '"]').forEach(function (el) { el.outerHTML = origHTML(id); });
+    }, 0);
+  }
   function postHTML(p) {
     var media = "", text = p.body || "", photos = p.photo_paths || [];
     if (photos.length === 1 && /^\/assets\/(coins|survival-pile)\//.test(photos[0])) {
@@ -1460,11 +1497,12 @@ html.kb .ch-bar{padding-bottom:8px}
     var mins = Math.max(1, Math.round(text.split(/\s+/).length / 200));
     var r = mine[p.id] || {};
     return '<article class="post" id="p-' + p.id + '" data-post="' + p.id + '">' +
-      '<div class="ph"><button type="button" class="ubtn" data-u="' + p.user_id + '">' + avatar(people[p.user_id]) + '</button><div class="who"><b><button type="button" class="un" data-u="' + p.user_id + '">' + esc(name(p.user_id)) + "</button></b><small>" + ago(p.created_at) + (p.edited_at ? " · edited" : "") + (p.sample ? " · sample" : "") + "</small></div>" +
+      '<div class="ph"><button type="button" class="ubtn" data-u="' + p.user_id + '">' + avatar(people[p.user_id]) + '</button><div class="who"><b><button type="button" class="un" data-u="' + p.user_id + '">' + esc(name(p.user_id)) + "</button></b><small>" + (p.reshare_of ? "reshared · " : "") + ago(p.created_at) + (p.edited_at ? " · edited" : "") + (p.sample ? " · sample" : "") + "</small></div>" +
         (NEED[p.need] && p.need !== "talk" ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
         '<button type="button" class="more" data-more aria-label="Options">⋯</button></div>' +
       (text ? '<div class="body' + (long ? " clamp" : "") + '">' + linkify(text) + "</div>" +
         (long ? '<button type="button" class="chair" data-read>' + ico("read") + "Pull up a chair · " + mins + " min read</button>" : "") : "") + media +
+      (p.reshare_of ? origHTML(p.reshare_of) : "") +
       (!photos.length && p.link_preview && p.link_preview.url ? previewHTML(p.link_preview) : "") +
       '<div class="acts">' +
         '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '">' + ico("proud") + 'Love this</button>' +
@@ -1573,7 +1611,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (loading || done) return;
     loading = true;
     try {
-      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview&need=neq.moment&group_id=is.null&order=created_at.desc&limit=" + PAGE +
+      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of&need=neq.moment&group_id=is.null&order=created_at.desc&limit=" + PAGE +
         (oldest ? "&created_at=lt." + encodeURIComponent(oldest) : "");
       var realFollows = Object.keys(friends).filter(function (k) { return !isSample(k); });
       var list = tab === "following" && !realFollows.length ? [] : await rest(q + (tab === "following" ? "&user_id=in.(" + realFollows.join(",") + ")" : ""));
@@ -2193,6 +2231,24 @@ html.kb .ch-bar{padding-bottom:8px}
       await closeAll(); toast("Done. Everything you put on the Porch is gone.");
       setTimeout(function () { location.reload(); }, 1600); return;
     }
+    if (m === "reshare") {
+      var rid = (posts[t.post] && posts[t.post].reshare_of) || t.post;
+      if (!origs[rid] && posts[rid]) origs[rid] = posts[rid];
+      this.innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">Reshare</p>' + origHTML(rid).replace(' data-sharepost="' + rid + '"', "") +
+        '<textarea class="field" id="rswords" maxlength="500" rows="2" placeholder="Say something about it (optional)" style="margin-top:10px;resize:none;font-family:Arial,sans-serif"></textarea>' +
+        '<p class="cerr" id="rserr" role="alert"></p><button type="button" class="rs-go" data-m="reshare-go">Reshare</button><button type="button" data-close style="color:var(--muted)">Cancel</button>';
+      return;
+    }
+    if (m === "reshare-go") {
+      return gate(async function () {
+        b.disabled = true; b.textContent = "Sharing…";
+        var rr = await fn("porch", { action: "post", need: "talk", body: $("rswords").value.trim(), reshare_of: t.post, sure: true });
+        if (!rr.ok) { b.disabled = false; b.textContent = "Reshare"; $("rserr").textContent = rr.error || "That didn't go through. Try again."; return; }
+        await closeAll(); window.scrollTo(0, 0);
+        if (tab === "groups") { tab = "all"; document.querySelectorAll("#ftabs [data-tab]").forEach(function (x) { x.classList.toggle("on", x.dataset.tab === "all"); }); }
+        await reloadFeed(); toast("Reshared 💛");
+      });
+    }
     if (m.indexOf("sx-") === 0) { var how = m.slice(3); await closeTop(); return sendVia(how, t.post); }
     if (m === "del") {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again to delete for good"; return; }
@@ -2237,7 +2293,9 @@ html.kb .ch-bar{padding-bottom:8px}
     $("mbody").dataset.t = JSON.stringify({ post: id }); $("mbody").dataset.uid = "";
     /* same big doors as sharing a Spin (1 Oct 2026): least words, completely obvious */
     var door = function (k, svg, t, sub) { return '<button type="button" class="sx" data-m="' + k + '"><span class="sx-i"><svg viewBox="0 0 24 24">' + svg + '</svg></span><span class="sx-t"><b>' + t + "</b><small class=\"sx-sub\">" + sub + "</small></span></button>"; };
+    var sp = posts[id] || {}, canRe = sp.user_id !== me.uid && sp.need !== "moment" && !(groupOpen && $("group").classList.contains("open"));
     $("mbody").innerHTML = '<div class="sxs">' +
+      (canRe ? door("reshare", '<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>', "Reshare on the Porch", "Their name stays on it") : "") +
       door("sx-dm", '<path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:currentColor;stroke:none"/><circle cx="8" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/><circle cx="12" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/><circle cx="16" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/>', "Send in Misfit Messages", "To a friend on the Porch") +
       door("sx-link", '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>', "Share the link", "Text · Messenger · Email") +
       "</div>";
@@ -2311,7 +2369,7 @@ html.kb .ch-bar{padding-bottom:8px}
   function soberText(d) { var x = String(d).split("-"); return "Sober since " + MON[+x[1] - 1] + " " + (+x[2]) + ", " + x[0]; }
   async function postsFor(uid) {
     if (isSample(uid)) return Object.keys(posts).map(function (k) { return posts[k]; }).filter(function (p) { return p.user_id === uid; });
-    var list = await rest("porch_posts?user_id=eq." + uid + "&need=neq.moment&group_id=is.null&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview&order=created_at.desc&limit=60");
+    var list = await rest("porch_posts?user_id=eq." + uid + "&need=neq.moment&group_id=is.null&reshare_of=is.null&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of&order=created_at.desc&limit=60");
     var fresh = list.filter(function (p) { return !comments[p.id]; }), ids = fresh.map(function (p) { return p.id; });
     if (ids.length) {
       var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
@@ -2915,7 +2973,7 @@ html.kb .ch-bar{padding-bottom:8px}
     mention: ["mention", "tagged you"], follow: ["follow", "started following you"],
     friend_request: ["follow", "sent you a friend request"], friend_accept: ["friends", "accepted your friend request"],
     report: ["question", "was reported. Take a look."], respin: ["friends", "respun your Spin"],
-    comment_love: ["proud", "loved your comment"]
+    comment_love: ["proud", "loved your comment"], reshare: ["friends", "reshared your share"]
   };
   /* EXACTLY WHAT HAPPENED (1 Oct 2026, Mike): a Spin says Spin, not share */
   function noteSays(n) {
@@ -3016,7 +3074,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function openNoteTarget(postId, actor, commentId, kind) {
     if (!postId) return openProfile(actor);
     try {
-      var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview");
+      var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of");
       if (!r[0]) return toast("That share is gone.");
       if (r[0].need === "moment") { if (window.PorchSpins) window.PorchSpins.openPost(postId, commentId); return; }
       var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
@@ -3061,7 +3119,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var s = await rest("porch_saves?user_id=eq." + me.uid + "&select=post_id,created_at&order=created_at.desc&limit=100");
       var ids = s.map(function (r) { return r.post_id; }), list = [];
       if (ids.length) {
-        var got = await rest("porch_posts?id=in.(" + ids.join(",") + ")&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview");
+        var got = await rest("porch_posts?id=in.(" + ids.join(",") + ")&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of");
         var byId = {}; got.forEach(function (p) { byId[p.id] = p; posts[p.id] = p; });
         list = ids.map(function (i) { return byId[i]; }).filter(Boolean);
         var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
@@ -3887,7 +3945,7 @@ html.kb .ch-bar{padding-bottom:8px}
      Nobody shares for 90 days and it closes (heads-up at 75). No counts shown anywhere.
      Everything is checked again in the database (supabase/porch_20_groups.sql). */
   var groups = {}, myGroups = {}, myAsks = {}, groupOpen = null, nextComposeGroup = null, composeGroup = null;
-  var POST_COLS = "id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview";
+  var POST_COLS = "id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of";
   async function grpc(name, args) {
     try {
       var t = await tok();

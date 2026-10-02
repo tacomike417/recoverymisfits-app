@@ -27,7 +27,7 @@
   const WORDS = {
     comment: 'commented on your share', reply: 'replied to your comment', proud: 'loved your share',
     metoo: 'said Me too', follow: 'started following you', friend_request: 'sent you a friend request',
-    friend_accept: 'accepted your friend request', respin: 'respun your Spin', comment_love: 'loved your comment',
+    friend_accept: 'accepted your friend request', respin: 'respun your Spin', comment_love: 'loved your comment', reshare: 'reshared your share',
     group_cokeeper: 'asked you to co-keep a group', group_review: 'applied to start a group. Take a look.', group_ask: 'asked to join your group',
     report: 'was reported. Take a look.',
   };
