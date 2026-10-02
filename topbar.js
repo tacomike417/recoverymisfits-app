@@ -393,7 +393,7 @@
      kept the sheet quiet for two weeks. Now: opening the installed app clears the
      quiet period, installing never starts one, and a real "Not now" lasts 3 days.
      (New key name, so everybody's old quiet period is wiped once.) */
-  const DISMISS_KEY = "rm_install_sheet_no_at";
+  const DISMISS_KEY = "rm_install_sheet_no_at2";
   const DISMISS_DAYS = 3;
   try { if (isStandalone) localStorage.removeItem(DISMISS_KEY); } catch (e) {}
   window.addEventListener("appinstalled", () => { try { localStorage.removeItem(DISMISS_KEY); } catch (e) {} });
@@ -522,10 +522,17 @@
     return { scrim, wrap };
   }
 
-  function closeInstallSheet(scrim, wrap, installed) {
+  /* Only a real "Not now" keeps the sheet quiet for days. "Got it" after reading the
+     steps (or the one-tap box being closed) is quiet for 10 minutes, so somebody who
+     still hasn't installed gets asked again next time. (Mike, 1 Oct: "it didn't
+     prompt me" -- his "Got it" had counted as a no.) */
+  function closeInstallSheet(scrim, wrap, installed, soon) {
     wrap.classList.remove("rm-open");
     scrim.classList.remove("rm-open");
-    try { if (installed) localStorage.removeItem(DISMISS_KEY); else localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch (e) {}
+    try {
+      if (installed) localStorage.removeItem(DISMISS_KEY);
+      else localStorage.setItem(DISMISS_KEY, String(soon ? Date.now() - DISMISS_DAYS * 864e5 + 6e5 : Date.now()));
+    } catch (e) {}
     setTimeout(() => {
       scrim.remove();
       wrap.remove();
@@ -583,13 +590,13 @@
       const oneTap = () => {
         const ask = deferredInstall; deferredInstall = null;
         ask.prompt();
-        ask.userChoice.then((c) => closeInstallSheet(scrim, wrap, c && c.outcome === "accepted"), () => closeInstallSheet(scrim, wrap));
+        ask.userChoice.then((c) => closeInstallSheet(scrim, wrap, c && c.outcome === "accepted", true), () => closeInstallSheet(scrim, wrap, false, true));
       };
       cta.addEventListener("click", () => {
         if (window.gtag) window.gtag("event", "pwa_install_click");
         if (deferredInstall) return oneTap();
         if (steps && steps.hidden) { steps.hidden = false; cta.textContent = "Got it"; return; }
-        closeInstallSheet(scrim, wrap);
+        closeInstallSheet(scrim, wrap, false, true);
       });
       window.addEventListener("beforeinstallprompt", () => {
         setTimeout(() => { if (deferredInstall && cta.isConnected) { if (steps) steps.hidden = true; cta.textContent = "Install app now"; } }, 0);
@@ -600,7 +607,7 @@
       const isteps = document.getElementById("rm-ios-steps"), ipoint = document.getElementById("rm-ios-point");
       cta.addEventListener("click", () => {
         if (isteps && isteps.hidden) { isteps.hidden = false; if (ipoint) ipoint.hidden = false; cta.textContent = "Got it"; return; }
-        closeInstallSheet(scrim, wrap);
+        closeInstallSheet(scrim, wrap, false, true);
       });
     }
 
@@ -627,7 +634,7 @@
       dismissBtn.addEventListener("click", () => closeInstallSheet(scrim, wrap));
     }
 
-    scrim.addEventListener("click", () => closeInstallSheet(scrim, wrap));
+    scrim.addEventListener("click", () => closeInstallSheet(scrim, wrap, false, true));
   }
 
   initInstallSheet();
