@@ -510,3 +510,9 @@ without making it confusing.
 
 ## v109 (2 Oct 2026)
 - [x] The "Alerts on iPhone" six-step screen no longer pops up after somebody posts. It is still under the bell, in Alerts.
+
+## The house account posts a joke every other day at noon (2 Oct 2026)
+- [x] data/moments.json: Mike's 150 Moments of Questionable Serenity, in order, then it starts over.
+- [x] supabase/functions/porch-daily posts one from recoverymisfits every other day at noon Eastern, as a saying card.
+- [x] supabase/porch_34_daily_moments.sql: the timer with the noon knock.
+- [ ] Mike: push, deploy porch-daily, run porch_34.

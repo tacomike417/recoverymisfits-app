@@ -19,6 +19,11 @@
  * account, it looks like we started a religion here." Anybody can Mute it.
  * The prayers are in the site's /data/prayers.json, one per date.
  *
+ * MOMENTS OF QUESTIONABLE SERENITY (2 Oct 2026, Mike). The house account also posts one
+ * of Mike's 150 recovery jokes every other day at noon Eastern, as a saying card. They
+ * run in order from /data/moments.json and start over at the end. One account can carry
+ * as many of these schedules as we like: each is its own little job below.
+ *
  * Deploy:
  *   npx supabase functions deploy porch-daily --no-verify-jwt --project-ref rlytvfehbglsjfvprtbp
  */
@@ -29,7 +34,8 @@ const SITE = "https://recoverymisfits.org";
 const START_HOUR = 6;                       // the meme: 6am Eastern
 const PRAYER_HOUSE = "spiritualmisfit";
 const PRAYER_HOUR = 7;                      // the prayer: 7am Eastern
-const CARD_STYLES = 19;                     // the saying-card backgrounds in feed/porch.html
+const CARD_STYLES = 19;
+const MOMENT_HOUR = 12;                     // the jokes: noon Eastern, every other day                     // the saying-card backgrounds in feed/porch.html
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   { auth: { persistSession: false } });
 const json = (data: unknown, status = 200) =>
@@ -87,6 +93,34 @@ async function prayer(day: string, hour: number) {
   return { posted: true, card: style, post_id: post.id };
 }
 
+/* whole days from one YYYY-MM-DD to another */
+const daysBetween = (a: string, b: string) => Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400000);
+
+async function moment(day: string, hour: number) {
+  if (hour < MOMENT_HOUR) return { posted: false, why: "before noon Eastern" };
+  const r = await fetch(SITE + "/data/moments.json", { headers: { "cache-control": "no-cache" } });
+  if (!r.ok) return { posted: false, error: "could not read the moments (" + r.status + ")" };
+  const j = await r.json();
+  const items: string[] = Array.isArray(j.items) ? j.items : [];
+  const every = Math.max(1, Number(j.every) || 2);
+  const n = daysBetween(String(j.start || day), day);
+  if (!items.length || n < 0) return { posted: false, why: "not started yet" };
+  if (n % every !== 0) return { posted: false, why: "not today (every " + every + " days)" };
+  const idx = Math.floor(n / every) % items.length;
+  const text = String(items[idx] || "").trim();
+  if (!text) return { posted: false, why: "empty line " + (idx + 1) };
+  const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", HOUSE).maybeSingle();
+  if (!m) return { posted: false, error: "the house account is not on the Porch yet" };
+  const { data: had } = await admin.from("porch_posts").select("id").eq("user_id", m.user_id)
+    .eq("body", text).gte("created_at", since20h()).limit(1);
+  if (had && had.length) return { posted: false, why: "today's moment is already up", number: idx + 1 };
+  const style = (idx * 7 + 11) % CARD_STYLES;                 // a different card each time
+  const { data: post, error } = await admin.from("porch_posts")
+    .insert({ user_id: m.user_id, need: "talk", body: text, photo_paths: [], card_style: text.length <= 200 ? style : null }).select("id").single();
+  if (error) return { posted: false, error: error.message };
+  return { posted: true, number: idx + 1, card: style, post_id: post.id };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return json({ ok: true });
   try {
@@ -94,6 +128,7 @@ Deno.serve(async (req) => {
     const out: Record<string, unknown> = { ok: true, day };
     try { out.meme = await meme(day, hour); } catch (e) { out.meme = { posted: false, error: String((e as Error).message || e) }; }
     try { out.prayer = await prayer(day, hour); } catch (e) { out.prayer = { posted: false, error: String((e as Error).message || e) }; }
+    try { out.moment = await moment(day, hour); } catch (e) { out.moment = { posted: false, error: String((e as Error).message || e) }; }
     return json(out);
   } catch (e) {
     return json({ ok: false, error: String((e as Error).message || e) }, 500);
