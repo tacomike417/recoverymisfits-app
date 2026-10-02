@@ -447,3 +447,8 @@ without making it confusing.
 ## v95 (2 Oct 2026): the house account
 - [x] supabase/porch_30_house_account.sql: recoverymisfits, no email, can post, tester, 60-second Spins, moderator, shows as "Recovery Misfits". Run it, add the user in Supabase, run it again.
 - [x] recoverymisfits is on the beta tester list in account.html and feed/porch.html.
+
+## The house account posts the Meme of the Day at 6am (2 Oct 2026)
+- [x] supabase/functions/porch-daily: posts today's meme from recoverymisfits, once a day, never before 6am Eastern. Reads the site's own /data/meme-days.json.
+- [x] supabase/porch_31_daily_meme.sql: the 6am timer.
+- [ ] Mike deploys the function, then runs the SQL.
