@@ -410,6 +410,10 @@ html.fullon #main{visibility:hidden}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
 .nd-snd{display:block;margin:10px 14px 2px auto;padding:6px 12px;border-radius:999px;border:1px solid rgba(60,45,20,.25);background:rgba(49,162,76,.14);color:#1f6b33;font:800 12.5px Arial,sans-serif;cursor:pointer}
 .nd-snd.off{background:rgba(200,50,40,.1);color:#9a2a20}
+.nd-ios{display:block;width:calc(100% - 28px);margin:10px 14px 0;padding:10px 12px;border-radius:12px;border:1px solid #d9c9a0;background:#fff6dc;color:#3a3122;font:600 13.5px/1.35 Arial,sans-serif;text-align:left;cursor:pointer}
+.nd-ios b{text-decoration:underline}
+.ios-steps{margin:0;padding-left:24px;text-align:left;font:600 17px/1.5 Arial,sans-serif}
+.ios-steps li{margin:6px 0}
 /* RESHARE (1 Oct 2026) */
 .rs-card{display:block;margin:10px 12px 0;padding:12px;border-radius:14px;border:1px solid var(--fline);background:var(--field);cursor:pointer;text-align:left}
 .rs-card.gone,.rs-load{color:var(--muted);font:600 14px Arial,sans-serif;cursor:default}
@@ -443,6 +447,7 @@ html.fullon #main{visibility:hidden}
 .kl-ring{gap:70px}
 .kl-b{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;color:#fff;font:700 12px Arial,sans-serif;cursor:pointer;text-shadow:0 1px 4px #000}
 .kl-b span{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;background:rgba(40,36,28,.86);border:1px solid rgba(255,255,255,.18)}
+.kl-btns{gap:12px!important}.kl-btns .kl-b span{width:56px;height:56px}
 .kl-b.off span{background:#f1e7cf;color:#17130b}
 .kl-b.no span{background:#d6332a;border-color:transparent}
 .kl-b.yes span{background:#2a9d4a;border-color:transparent}
@@ -937,7 +942,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS</button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v73</span>
+  <span class="ver" id="ver">v75</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1194,6 +1199,7 @@ html.kb .ch-bar{padding-bottom:8px}
   <div class="nd-panel" id="ndpanel">
     <div class="nd-head"><b>Notifications</b><button type="button" class="nd-sw" id="ndsw" aria-pressed="false"><span id="ndswl">Alerts OFF</span><i></i></button></div>
     <button type="button" class="nd-snd" id="ndsnd" aria-pressed="true">Sounds on</button>
+    <button type="button" class="nd-ios" id="ndios" hidden>On iPhone? Alerts and call ringing only work from your Home Screen. <b>Show me how</b></button>
     <div id="nlist"></div>
   </div>
 </div>
@@ -1235,6 +1241,7 @@ html.kb .ch-bar{padding-bottom:8px}
       <button type="button" class="kl-b" id="klmic" aria-label="Mute" aria-pressed="false"><span></span><small>Mute</small></button>
       <button type="button" class="kl-b" id="klcam" aria-label="Camera"><span></span><small>Camera</small></button>
       <button type="button" class="kl-b" id="klflip" aria-label="Flip camera"><span></span><small>Flip</small></button>
+      <button type="button" class="kl-b" id="klspk" aria-label="Speaker" aria-pressed="false" hidden><span></span><small>Speaker</small></button>
       <button type="button" class="kl-b no" id="klhang" aria-label="Hang up"><span></span><small>Hang up</small></button>
     </div>
     <a class="kl-988" href="tel:988">Having a hard time? A real person answers. <b>Call 988</b></a>
@@ -3221,15 +3228,17 @@ html.kb .ch-bar{padding-bottom:8px}
     else if (iOS && !standalone) off = true;
     else if (state === "denied" || Notification.permission === "denied") off = true;
     else on = !!(await pushSub()) && Notification.permission === "granted";
+    $("ndios").hidden = !(iOS && !standalone);
     l.textContent = on ? "Alerts ON" : "Alerts OFF";
     sw.setAttribute("aria-label", on ? "Phone alerts are on. Tap to turn off." : "Phone alerts are off. Tap to turn on."); sw.classList.toggle("off", off); sw.setAttribute("aria-pressed", on ? "true" : "false");
   }
   /* SOUNDS (1 Oct 2026): the ding for new messages and notifications, on or off, per phone */
   function paintSnd() { var onS = !window.RMSound || window.RMSound.on(), b = $("ndsnd"); b.textContent = onS ? "Sounds on" : "Sounds off"; b.classList.toggle("off", !onS); b.setAttribute("aria-pressed", onS ? "true" : "false"); }
   $("ndsnd").addEventListener("click", function () { if (!window.RMSound) return; window.RMSound.set(!window.RMSound.on()); paintSnd(); if (window.RMSound.on()) window.RMSound.ding(); });
+  $("ndios").addEventListener("click", async function () { await closeTop(); iosSteps(); });
   $("ndsw").addEventListener("click", async function () {
     if (this.classList.contains("off")) {
-      if (iOS && !standalone) toast("Tap Share, then Add to Home Screen. Open it from there.");
+      if (iOS && !standalone) { await closeTop(); iosSteps(); }
       else if (canPush && Notification.permission === "denied") toast("Turn notifications on for this site in your phone's settings.");
       else toast("This browser can't do phone alerts. Open Recovery Misfits from your Home Screen.");
       return;
@@ -3242,6 +3251,20 @@ html.kb .ch-bar{padding-bottom:8px}
   /* THE NUDGE (like Jeff's): right after you share or comment, or a few seconds
      after opening with something waiting. At most once every 4 days, and once a
      month after 3 "Not now"s. Never if alerts are on, blocked, or impossible. */
+  /* iPhone only does alerts from the Home Screen. Konner couldn't find Share (it's under
+     the three dots now), so spell it out, same sheet from the switch and the nudge. */
+  function iosSteps() {
+    var safari = !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+    $("aptitle").textContent = "Alerts on iPhone";
+    $("apbody").innerHTML = '<ol class="ios-steps">' +
+      (safari ? "" : "<li>Open recoverymisfits.org in <b>Safari</b>.</li>") +
+      "<li>Tap <b>⋯</b> at the bottom, then <b>Share</b>.</li>" +
+      "<li>Tap <b>Add to Home Screen</b>.</li>" +
+      "<li>Open <b>Recovery Misfits</b> from the new icon.</li>" +
+      "<li>Tap the bell, then <b>Alerts</b>.</li></ol>";
+    $("apyes").textContent = "Got it"; $("apyes").dataset.ios = "1"; $("apno").hidden = true;
+    open("askpush");
+  }
   var ASK = "rm_porch_askpush";
   async function askPush() {
     if (!me.uid || !me.member || stack.length) return;
@@ -3250,13 +3273,11 @@ html.kb .ch-bar{padding-bottom:8px}
     if (Date.now() - a.t < gap) return;
     var iosTab = iOS && !standalone;
     if (!iosTab && (!canPush || Notification.permission === "denied" || (Notification.permission === "granted" && await pushSub()))) return;
-    $("aptitle").textContent = "Don't miss the love";
-    $("apbody").textContent = iosTab
-      ? "On iPhone, phone alerts only work from the Home Screen. Tap the Share button, then Add to Home Screen, and open Recovery Misfits from there."
-      : "Get a buzz on your phone when somebody comments, cheers you on, tags you or sends you a friend request.";
-    $("apyes").textContent = iosTab ? "Got it" : "Turn on";
-    $("apyes").dataset.ios = iosTab ? "1" : "";
     try { localStorage.setItem(ASK, JSON.stringify({ t: Date.now(), no: a.no })); } catch (e) {}
+    if (iosTab) return iosSteps();
+    $("aptitle").textContent = "Don't miss the love";
+    $("apbody").textContent = "Get a buzz on your phone when somebody comments, cheers you on, tags you or sends you a friend request.";
+    $("apyes").textContent = "Turn on"; $("apyes").dataset.ios = ""; $("apno").hidden = false;
     open("askpush");
   }
   $("apyes").addEventListener("click", async function () { var ios = this.dataset.ios; await closeTop(); if (!ios) pushOn(); });
@@ -4238,10 +4259,11 @@ html.kb .ch-bar{padding-bottom:8px}
      Phone back = hang up. */
   var call = null;
   setTimeout(function () { var put = function (id, k) { var el = $(id); if (el) el.querySelector("span").innerHTML = CI[k]; };
-    put("klmic", "mic"); put("klcam", "video"); put("klflip", "flip"); put("klhang", "hang"); put("klno", "hang"); put("klyes", "voice"); }, 0);
+    put("klmic", "mic"); put("klcam", "video"); put("klflip", "flip"); put("klspk", "spk"); put("klhang", "hang"); put("klno", "hang"); put("klyes", "voice"); }, 0);
   var CI = {
     video: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21.5 7v10l-6-3.5z"/></svg>',
     voice: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>',
+    spk: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18.3 6.3a8 8 0 0 1 0 11.4"/></svg>',
     mic: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
     flip: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V7a2 2 0 0 1 2-2h9M20 15v2a2 2 0 0 1-2 2H9"/><path d="M13 2l3 3-3 3M11 22l-3-3 3-3"/></svg>',
     hang: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14.5c5-5 13-5 18 0l-2.5 2.5-3.5-1.5v-3a12 12 0 0 0-6 0v3L5.5 17z"/></svg>'
@@ -4261,6 +4283,7 @@ html.kb .ch-bar{padding-bottom:8px}
     $("klflip").hidden = !vid; $("klcam").hidden = !vid;
     $("klmic").classList.toggle("off", !!call.muted); $("klcam").classList.toggle("off", !!call.camOff);
     $("klmic").setAttribute("aria-pressed", call.muted ? "true" : "false");
+    $("klspk").hidden = !call.outs; $("klspk").classList.toggle("off", !!call.spk); $("klspk").setAttribute("aria-pressed", call.spk ? "true" : "false");
     $("call").classList.toggle("live", call.state === "live");
   }
   function callOpen() {
@@ -4287,12 +4310,34 @@ html.kb .ch-bar{padding-bottom:8px}
       if (!call || call.pc !== pc) return;
       if (pc.connectionState === "connected") {
         if (window.RMSound) window.RMSound.stopRing();
-        call.state = "live"; call.t0 = call.t0 || Date.now(); callPaint();
+        call.state = "live"; call.t0 = call.t0 || Date.now(); callPaint(); speakerSetup();
         clearInterval(call.clock); call.clock = setInterval(function () { if (!call) return; var s = Math.floor((Date.now() - call.t0) / 1000); callSay(Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2)); }, 1000);
       } else if (pc.connectionState === "failed") { toast("The call couldn't connect."); callFinish(true); }
     };
     $("kllocal").srcObject = call.stream;
     return pc;
+  }
+  /* SPEAKERPHONE (1 Oct 2026): where the phone's browser lets a page pick (Android Chrome
+     lists "Speakerphone" and "Headset earpiece"), calls start on the loud speaker and a
+     Speaker button switches to the earpiece and back. iPhone doesn't let a page choose,
+     so there's no button there. With headphones on, the phone uses those. */
+  async function speakerSetup() {
+    var c = call, v = $("klremote");
+    if (!c || c.outs || !v.setSinkId || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      var outs = (await navigator.mediaDevices.enumerateDevices()).filter(function (d) { return d.kind === "audiooutput"; });
+      var loud = outs.filter(function (d) { return /speaker/i.test(d.label); })[0], ear = outs.filter(function (d) { return /earpiece/i.test(d.label); })[0];
+      if (!loud || !ear || call !== c) return;
+      var other = outs.some(function (d) { return /bluetooth|wired|headphone|usb/i.test(d.label); });
+      c.outs = { loud: loud.deviceId, ear: ear.deviceId };
+      if (!other) { await v.setSinkId(loud.deviceId); c.spk = true; }
+      callPaint();
+    } catch (e) {}
+  }
+  async function speakerFlip() {
+    if (!call || !call.outs) return;
+    try { await $("klremote").setSinkId(call.spk ? call.outs.ear : call.outs.loud); call.spk = !call.spk; } catch (e) { toast("This phone won't switch the speaker."); }
+    callPaint();
   }
   function callSupported() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.RTCPeerConnection); }
   /* ---- I call somebody ---- */
@@ -4407,6 +4452,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (t.closest("#klmic") && call && call.stream) { call.muted = !call.muted; call.stream.getAudioTracks().forEach(function (x) { x.enabled = !call.muted; }); return callPaint(); }
     if (t.closest("#klcam") && call && call.stream) { call.camOff = !call.camOff; call.stream.getVideoTracks().forEach(function (x) { x.enabled = !call.camOff; }); return callPaint(); }
     if (t.closest("#klflip")) return flipCam();
+    if (t.closest("#klspk")) return speakerFlip();
   });
   window.addEventListener("pagehide", function () { if (call && call.id) { try { grpc("porch_call_end", { p_call: call.id }); } catch (e) {} } });
 
