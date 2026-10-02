@@ -423,3 +423,9 @@ without making it confusing.
 ## Install
 - 29 Sep 2026: the Install button installs our own app (the PWA), not Google
   Play. Moving away from Google Play.
+
+## v91 (2 Oct 2026): the tour walks them through it
+- [x] First screen points at the ? button: tap it any time and the tour comes back.
+- [x] Each step's gold button (Add it now, Say something now, Make one now, Share it now) starts THE COACH in feed/tour.js: a gold ring and one short line on the real button to tap next, on the real screens. It moves on by itself and never blocks a tap.
+- [x] Done: the tour comes back on the next step. Backed out: it comes back on the same step.
+- [ ] Not yet tried on a real phone: a real picture upload, a real recording, and the phone's own share list.

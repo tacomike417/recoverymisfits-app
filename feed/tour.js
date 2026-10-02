@@ -19,6 +19,14 @@
  * The pictures are in /feed/tour/. They are real screenshots; if a screen changes a lot,
  * retake them.
  *
+ * v91, 2 Oct 2026, Mike: "just walk them right through what they're doing ... make it like
+ * an interactive tutorial that they can't fuck up." So the gold button on each step no
+ * longer just opens a screen and leaves. THE COACH (bottom of this file) takes over: the
+ * tour steps aside, the real screen comes up, and a gold ring and one short line sit on
+ * the exact button to tap next. It watches the screen and moves on by itself. Nothing is
+ * blocked; the coach never eats a tap. When the thing is done, the tour comes back on the
+ * next step. Back out halfway, and the tour comes back on the same step.
+ *
  * Phone first, at 393. Leans on window.Porch and window.PorchBack (feed/porch.html).
  */
 (function () {
@@ -54,24 +62,22 @@
     { k: 'hello' },
     { k: 'profile', n: 1, title: 'Add your picture',
       body: () => pic('1-profile.webp', 'The profile screen with the picture circle ringed'),
-      line: 'Tap the circle. Pick a picture. Add a line about you.',
-      go: 'Set up my profile', act: () => P().setup() },
+      line: 'A picture and a line about you.', go: 'Add it now' },
     { k: 'post', n: 2, title: 'Say something',
       body: () => pic('2-post.webp', 'The gold plus button open, with Say something ringed'),
-      line: 'Tap the gold + at the bottom. Pick one.',
-      go: 'Try it now', act: () => P().compose() },
+      line: 'Say hi to the Porch. Anything at all.', go: 'Say something now' },
     { k: 'spin', n: 3, title: 'Make a Spin',
       body: () => pic('3-spin.webp', 'The Spin maker with Record and Upload'),
-      line: 'A short video. Record one, or upload one from your phone.',
-      go: 'Make a Spin', act: () => { if (window.PorchSpins) window.PorchSpins.start(); } },
+      line: 'A short video. Record one, or use one from your phone.', go: 'Make one now' },
     { k: 'share', n: 4, title: 'Put your Spin on YouTube, Facebook, TikTok, etc.', small: true,
       body: () => `<div class="pt-two">
           <figure>${pic('4a-share.webp', 'A Spin with the share arrow ringed')}<figcaption><b>1</b> Open your Spin. Tap the arrow.</figcaption></figure>
           <figure>${pic('4b-video.webp', 'The share choices with Share this video ringed')}<figcaption><b>2</b> Tap <i>Share this video</i>.</figcaption></figure>
         </div>`,
-      line: '<b>3</b> Pick the app you want.' },
+      line: '<b>3</b> Pick the app you want.', go: 'Share it now' },
     { k: 'more' }
   ];
+  const stepOf = (k) => STEPS.findIndex((x) => x.k === k);
 
   const CSS = `
 .pt{position:fixed;inset:0;z-index:20060;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.72);font-family:Arial,sans-serif}
@@ -105,10 +111,28 @@
 .pt-strip{display:flex;align-items:center;gap:10px;width:calc(100% - 20px);margin:8px 10px 4px;padding:11px 12px 11px 14px;border-radius:14px;border:1px solid rgba(224,189,106,.4);background:linear-gradient(135deg,rgba(224,189,106,.16),rgba(224,189,106,.05));color:#f1e7cf;text-align:left;cursor:pointer;font:800 15px Arial,sans-serif}
 .pt-strip small{display:block;margin-top:1px;font:600 13px Arial,sans-serif;color:#cfc4a8}
 .pt-strip .go{margin-left:auto;color:#e0bd6a;white-space:nowrap}
+.pt-tip{display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:11px 13px;border-radius:14px;border:1px solid rgba(224,189,106,.4);background:rgba(224,189,106,.1);text-align:left;font:700 15px/1.35 Arial,sans-serif}
+.pt-q{flex:none;display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid #e0bd6a;color:#e0bd6a;font:800 17px Arial,sans-serif}
+.pt-ring{position:fixed;display:grid;place-items:center;border-radius:50%;border:3px solid #e0bd6a;background:#191814;color:#e0bd6a;font:800 20px Arial,sans-serif;pointer-events:none;animation:ptpulse 1.4s ease-in-out infinite}
+.pt-ring small{position:absolute;top:calc(100% + 9px);right:-4px;white-space:nowrap;padding:5px 10px;border-radius:999px;background:#e0bd6a;color:#1a1408;font:800 12.5px Arial,sans-serif}
+.pt-hand{margin:8px 0 0;font:600 13.5px Arial,sans-serif;color:#b9ad92}
+.pt-cheer{margin:0 44px 10px;padding:8px 12px;border-radius:12px;background:rgba(120,190,120,.16);color:#9fd49f;font:800 15px/1.3 Arial,sans-serif}
+@keyframes ptpulse{0%,100%{box-shadow:0 0 0 0 rgba(224,189,106,.75)}50%{box-shadow:0 0 0 12px rgba(224,189,106,0)}}
+.co-ring{position:fixed;z-index:2147483000;pointer-events:none;border:3px solid #e0bd6a;border-radius:16px;animation:ptpulse 1.4s ease-in-out infinite;transition:left .18s,top .18s,width .18s,height .18s}
+.co-bub{position:fixed;z-index:2147483001;pointer-events:none;display:flex;align-items:flex-start;gap:8px;padding:12px 8px 12px 14px;border-radius:16px;background:#e0bd6a;color:#1a1408;box-shadow:0 10px 30px rgba(0,0,0,.6);font:800 16.5px/1.3 Arial,sans-serif;text-align:left}
+.co-bub p{margin:0;flex:1;padding-top:3px}
+.co-bub p b{font-weight:900;text-decoration:underline}
+.co-bub button{pointer-events:auto;flex:none;width:30px;height:30px;border:0;border-radius:50%;background:rgba(26,20,8,.14);color:#1a1408;font-size:15px;cursor:pointer}
+.co-bub::after{content:"";position:absolute;left:var(--ax,50%);width:14px;height:14px;margin-left:-7px;background:#e0bd6a;transform:rotate(45deg)}
+.co-bub.up::after{top:-6px}
+.co-bub.down::after{bottom:-6px}
+.co-bub.none::after{display:none}
+.co-bub.ok{background:#1f2a1c;color:#bfe6bf;border:2px solid #7dbb7d;justify-content:center;text-align:center}
+.co-bub.ok button{display:none}
 .pt-strip .x{flex:none;width:34px;height:34px;margin:-4px -4px -4px 0;border:0;border-radius:50%;background:none;color:#a99d82;font-size:18px;cursor:pointer}`;
   function addCSS() { if (document.getElementById('pt-css')) return; const s = document.createElement('style'); s.id = 'pt-css'; s.textContent = CSS; document.head.appendChild(s); }
 
-  let el = null, at = 0;
+  let el = null, at = 0, cheer = '';
   const XSVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
 
   function shut() { if (el) { el.remove(); el = null; } paintStrip(); }
@@ -122,7 +146,8 @@
     let h = `<button type="button" class="pt-x" data-pt-x aria-label="Close">${XSVG}</button>`;
     if (s.k === 'hello') {
       h += `<p class="pt-k">WELCOME TO THE PORCH</p><h2>${name ? 'Hey ' + esc(name) : 'Hey there'}</h2>
-        <p class="pt-sub">${did.profile ? 'Want a quick look at how things work here?' : 'You haven&rsquo;t set up your profile yet. Let&rsquo;s fix that and show you around.'}<br>Four quick things. About a minute.</p>
+        <p class="pt-sub">Four quick things. You do each one for real, and I point at every button.</p>
+        <div class="pt-tip"><span class="pt-q">?</span><span>Tap the <b>?</b> at the top any time. This comes right back.</span></div>
         <button type="button" class="pt-go" data-pt-next>Show me</button>
         <button type="button" class="pt-skip" data-pt-x>Not now</button>`;
     } else if (s.k === 'more') {
@@ -137,20 +162,30 @@
         <button type="button" class="pt-next" data-pt-x>I&rsquo;m good. Take me to the Porch.</button>`;
     } else {
       const done = did[s.k];
-      h += `${dots}<p class="pt-k">${s.n} OF 4</p><h2${s.small ? ' class="sm"' : ''}>${s.title}</h2>
+      const needSpin = s.k === 'share' && !did.spin;
+      const c = cheer; cheer = '';
+      h += `${dots}${c ? `<p class="pt-cheer">&#10003; ${c}</p>` : ''}<p class="pt-k">${c ? 'NEXT: ' : ''}${s.n} OF 4</p><h2${s.small ? ' class="sm"' : ''}>${s.title}</h2>
         ${done ? '<span class="pt-done">&#10003; Done</span>' : ''}
         ${s.body()}
         <p class="pt-line">${s.line}</p>
-        ${s.go && !done ? `<button type="button" class="pt-go" data-pt-go>${s.go}</button>` : ''}
-        <button type="button" class="${s.go && !done ? 'pt-next' : 'pt-go'}" data-pt-next>${at === last - 1 ? 'Got it' : 'Show me more'}</button>`;
+        ${done ? '' : needSpin ? `<button type="button" class="pt-go" data-pt-go="spin">Make a Spin first</button>` : `<button type="button" class="pt-go" data-pt-go="${s.k}">${s.go}</button>`}
+        ${done ? '' : '<p class="pt-hand">I&rsquo;ll point at every button.</p>'}
+        <button type="button" class="${done ? 'pt-go' : 'pt-next'}" data-pt-next>${done ? 'Show me more' : 'Skip this one'}</button>`;
     }
     h += `<label class="pt-off"><input type="checkbox" data-pt-off${get(OFF) === '1' ? ' checked' : ''}> Don&rsquo;t show me this again</label>`;
     el.querySelector('.pt-box').innerHTML = h;
     el.querySelector('.pt-box').scrollTop = 0;
+    const old = el.querySelector('.pt-ring'); if (old) old.remove();
+    const qb = s.k === 'hello' && document.querySelector('[data-tour]');
+    if (qb) { const r = qb.getBoundingClientRect();
+      if (r.width > 2 && r.top >= 0 && r.bottom < el.querySelector('.pt-box').getBoundingClientRect().top) {
+        const g = document.createElement('div'); g.className = 'pt-ring'; g.innerHTML = '?<small>This one</small>';
+        g.style.cssText = `left:${r.left - 3}px;top:${r.top - 3}px;width:${r.width + 6}px;height:${r.height + 6}px`; el.appendChild(g); } }
   }
 
-  async function open(step) {
+  async function open(step, say) {
     if (el) return;
+    coachStop(); cheer = say || '';
     addCSS(); set(SEEN, '1');
     await loadDid();
     at = Math.max(0, Math.min(STEPS.length - 1, step == null ? (Number(get(AT)) || 0) : step));
@@ -162,10 +197,8 @@
     el.addEventListener('click', (e) => {
       if (e.target === el || e.target.closest('[data-pt-x]')) { if (STEPS[at].k === 'more') set(AT, '0'); else set(AT, String(at)); return close(); }
       if (e.target.closest('[data-pt-next]')) { at = Math.min(STEPS.length - 1, at + 1); set(AT, String(at)); return draw(); }
-      if (e.target.closest('[data-pt-go]')) {
-        const s = STEPS[at]; set(AT, String(Math.min(STEPS.length - 1, at + 1)));     /* pick up at the next one when they come back */
-        close(); setTimeout(() => { try { s.act(); } catch (_) {} }, 120); return;
-      }
+      const g = e.target.closest('[data-pt-go]');
+      if (g) { const k = g.getAttribute('data-pt-go'); set(AT, String(stepOf(k))); close(); setTimeout(() => coach(k), 350); return; }
       const m = e.target.closest('[data-pt-more]');
       if (m) { const k = m.getAttribute('data-pt-more'); set(AT, '0'); close(); setTimeout(() => { try { P().goTo(k); } catch (_) {} }, 120); }
     });
@@ -207,12 +240,188 @@
     setTimeout(tick, 1800);
   }
 
+  /* ================================================================ THE COACH
+     One gold ring and one short line, on the real screen, on the button to tap next.
+     Every 300ms it looks at what is on screen and picks the first line that fits, so
+     there is no wrong order to do things in. It never covers or eats a tap. */
+  const seen = (e) => { if (!e) return null; const r = e.getBoundingClientRect(); return r.width > 2 && r.height > 2 ? e : null; };
+  const q = (sel) => { const all = document.querySelectorAll(sel); for (let i = 0; i < all.length; i++) if (seen(all[i])) return all[i]; return null; };
+  const HIDE_IT = { hide: true };
+  const otherLayer = (ids) => { const l = document.querySelectorAll('.layer.open'); for (let i = 0; i < l.length; i++) if (ids.indexOf(l[i].id) < 0) return true; return false; };
+  const mine = () => (P().me.member || {});
+  const GUIDES = {
+    profile: {
+      start: () => P().setup(),
+      look: (c) => {
+        if (q('.crop')) return { at: q('.crop-go'), say: 'Slide it where you want it. Then tap <b>Use this</b>.' };
+        if (q('#photosrc.open')) return { at: q('#photosrc .psrc'), say: 'Take one now, or choose one from your phone.' };
+        if (q('#setup.open')) {
+          c.was = true;
+          const go = q('#setup [data-su-go]'), av = q('#setup [data-su-av]');
+          if (av) {
+            const st = document.getElementById('sustatus');
+            if (st && /Checking/.test(st.textContent)) return { at: av, say: 'Checking your picture&hellip;' };
+            if (!mine().avatar_path) return { at: av, say: 'Tap the circle. Pick a picture. It doesn&rsquo;t have to be your face.' };
+            const bio = document.getElementById('subio');
+            if (bio && !bio.value.trim()) return { at: bio, say: 'Looking good. Type a line about you. Or skip it and tap <b>Next</b>.' };
+            return { at: go, say: 'Now tap <b>Next</b>.' };
+          }
+          if (q('#setup .vis')) return { at: go, say: 'Pick who can see your profile. Then tap <b>Next</b>.' };
+          return { at: go, say: 'Add a friend if you see one. Then tap <b>Show my profile</b>.' };
+        }
+        if (c.was && q('#profile.open')) return { fin: mine().avatar_path ? 'That&rsquo;s your profile. Looking good.' : 'That&rsquo;s your profile. Add a picture any time.' };
+        return null;
+      }
+    },
+    post: {
+      start: async () => { const t = document.getElementById('toast'); if (t) t.textContent = ''; await home(); },
+      look: (c) => {
+        if (q('#compose.open')) {
+          c.was = true; c.asked = false;
+          const body = document.getElementById('cbody'), send = document.getElementById('csend');
+          if (!body.value.trim()) return { at: body, say: 'Type anything. Even just &ldquo;Hi, I&rsquo;m new here.&rdquo;' };
+          if (/ing/.test(send.textContent)) return { at: send, say: 'Sharing&hellip;' };
+          return { at: send, say: 'Now tap <b>Share</b>.' };
+        }
+        if (c.was) {
+          const t = document.getElementById('toast');
+          if (c.posted || (t && /^Shared/.test(t.textContent))) return { fin: 'You&rsquo;re on the Porch. Nice.' };
+          if (!c.asked) { c.asked = true; newest('porch_posts').then((id) => { if (id && id !== c.before) c.posted = true; }); }
+        }
+        if (document.querySelector('#dial.open')) return { at: q('#dial [data-go="say"]'), say: 'Tap <b>Say something</b>.' };
+        if (otherLayer([])) return HIDE_IT;
+        return { at: q('#dfab'), say: 'Tap the gold <b>+</b>.' };
+      },
+      before: () => newest('porch_posts')
+    },
+    spin: {
+      start: () => home(),
+      look: (c) => {
+        const pill = q('.sp-pill');
+        if (pill) {
+          if (/live/i.test(pill.textContent)) return { fin: 'Your Spin is up!' };
+          if (/😕/.test(pill.textContent)) return { at: q('#dfab'), say: 'That one didn&rsquo;t work. Tap the gold <b>+</b> and try another.' };
+          return { at: pill, say: 'It&rsquo;s uploading. Keep this page open.' };
+        }
+        if (q('.spn')) {
+          const post = q('.spn .spn-go[type="submit"]'), bk = q('.spn [data-spn-maker]');
+          if (post) return post.disabled ? HIDE_IT : { at: post, say: 'Add a few words if you want. Then tap <b>Post Spin</b>.' };
+          if (bk) return { at: bk, say: 'Too long. Tap <b>Back to the maker</b> and use a shorter one.' };
+          return HIDE_IT;
+        }
+        if (q('.lpc')) return { at: q('.lpc [data-cam-go]'), say: 'Tap the big button to record. Tap it again to stop.' };
+        if (q('.lpm.lpm-blank')) return { at: q('.lpm .lpm-doors'), say: '<b>Record</b> uses your camera. <b>Upload</b> uses a video from your phone.' };
+        if (q('.lpm')) { const go = q('.lpm .lpm-go'); return go && !go.disabled ? { at: go, say: 'Add words or music if you want. Then tap <b>Make my Spin</b>.' } : HIDE_IT; }
+        if (document.querySelector('#dial.open')) return { at: q('#dial [data-go="spin"]'), say: 'Tap <b>Give it a spin</b>.' };
+        if (otherLayer([])) return HIDE_IT;
+        return { at: q('#dfab'), say: 'Tap the gold <b>+</b>.' };
+      }
+    },
+    share: {
+      start: async () => { await home(); const id = await newest('porch_spins', '&status=eq.ready'); if (id && window.PorchSpins) window.PorchSpins.openById(id); },
+      look: (c) => {
+        const sh = q('.sp-sheet.open');
+        if (sh) {
+          c.was = true;
+          const v = q('.sp-sheet.open [data-sh="video"]'); if (!v) return HIDE_IT;
+          if (v.disabled) return { at: v, say: 'Getting your video ready&hellip;' };
+          if (v.classList.contains('ready')) return { at: v, say: 'It&rsquo;s ready. Tap it one more time.' };
+          return { at: v, say: 'Tap <b>Share this video</b>.' };
+        }
+        if (c.tapAt && Date.now() - c.tapAt < 1500) return { fin: 'Now pick YouTube, Facebook or TikTok from your phone&rsquo;s list.', next: 'more', hold: 4200 };
+        if (q('.sp')) { c.was = true; return { at: q('.sp [data-sp-share]'), say: 'Tap <b>Share</b>.' }; }
+        return c.was ? null : HIDE_IT;
+      },
+      /* the sheet shutting right after a tap on "Share this video" = the phone's own share list is up */
+      tap: (c, e) => { const v = e.target.closest && e.target.closest('[data-sh="video"]'); if (v && !v.disabled) c.tapAt = Date.now(); }
+    }
+  };
+  /* their newest share or Spin, to tell when a new one lands */
+  async function newest(table, more) {
+    try { const p = P(); const r = await p.rest(table + '?user_id=eq.' + p.me.uid + (more || '') + '&select=id&order=created_at.desc&limit=1'); return (r[0] && r[0].id) || ''; } catch (_) { return ''; }
+  }
+
+  /* back to the feed first, so the gold + is right there */
+  async function home() { try { await P().closeAll(); window.scrollTo(0, 0); } catch (_) {} }
+
+  let co = null;
+  function coachStop() {
+    if (!co) return;
+    clearInterval(co.tmr); document.removeEventListener('click', co.onTap, true); window.removeEventListener('scroll', co.onMove, true);
+    if (co.ring) co.ring.remove(); if (co.bub) co.bub.remove(); co = null;
+  }
+  function paint(c, at, say, ok) {
+    if (!c.bub) {
+      c.ring = document.createElement('div'); c.ring.className = 'co-ring';
+      c.bub = document.createElement('div'); c.bub.className = 'co-bub'; c.bub.setAttribute('role', 'status');
+      c.bub.innerHTML = '<p></p><button type="button" aria-label="Stop showing me">&#10005;</button>';
+      c.bub.querySelector('button').addEventListener('click', () => { coachStop(); try { P().toast('OK. Tap the ? up top to pick this back up.'); } catch (_) {} paintStrip(); });
+      document.body.appendChild(c.ring); document.body.appendChild(c.bub);
+    }
+    if (say == null) { c.ring.style.display = 'none'; c.bub.style.display = 'none'; c.key = ''; return; }
+    const vv = window.visualViewport, vh = vv ? vv.height : window.innerHeight, vw = window.innerWidth;
+    let r = at ? at.getBoundingClientRect() : null;
+    /* off the screen? bring it to them, once */
+    if (r && (r.bottom > vh - 4 || r.top < 4) && c.scrolled !== say) { c.scrolled = say; try { at.scrollIntoView({ block: 'center' }); } catch (_) {} r = at.getBoundingClientRect(); }
+    if (r && (r.top > vh || r.bottom < 0)) r = null;
+    const key = say + '|' + (r ? [r.left, r.top, r.width, r.height].map(Math.round).join(',') : '') + '|' + Math.round(vh);
+    if (key === c.key) return; c.key = key;
+    c.bub.className = 'co-bub' + (ok ? ' ok' : ''); c.bub.querySelector('p').innerHTML = say;
+    c.bub.style.display = ''; c.bub.style.width = Math.min(310, vw - 24) + 'px';
+    const w = c.bub.offsetWidth, h = c.bub.offsetHeight;
+    if (!r) {
+      c.ring.style.display = 'none'; c.bub.classList.add('none');
+      c.bub.style.left = (vw - w) / 2 + 'px'; c.bub.style.top = Math.max(12, vh * 0.42 - h / 2) + 'px'; return;
+    }
+    const round = Math.abs(r.width - r.height) < 6 && r.width < 110;
+    c.ring.style.cssText = `display:block;left:${r.left - 6}px;top:${r.top - 6}px;width:${r.width + 12}px;height:${r.height + 12}px;border-radius:${round ? '50%' : '18px'}`;
+    const cx = r.left + r.width / 2, left = Math.max(12, Math.min(vw - 12 - w, cx - w / 2));
+    const below = r.top + r.height / 2 < vh / 2;
+    c.bub.classList.add(below ? 'up' : 'down');
+    c.bub.style.left = left + 'px';
+    c.bub.style.top = (below ? Math.min(vh - h - 8, r.bottom + 20) : Math.max(8, r.top - 20 - h)) + 'px';
+    c.bub.style.setProperty('--ax', Math.max(22, Math.min(w - 22, cx - left)) + 'px');
+  }
+  async function coach(k) {
+    const g = GUIDES[k]; if (!g) return;
+    coachStop(); addCSS();
+    const c = co = { k, lost: 0 };
+    if (g.before) c.before = await g.before();
+    if (co !== c) return;
+    try { await g.start(); } catch (_) {}
+    if (co !== c) return;
+    c.onTap = (e) => { if (g.tap) g.tap(c, e); setTimeout(tick, 60); };
+    c.onMove = () => { if (!c.raf) c.raf = requestAnimationFrame(() => { c.raf = 0; c.key = ''; tick(); }); };
+    document.addEventListener('click', c.onTap, true); window.addEventListener('scroll', c.onMove, true);
+    function tick() {
+      if (co !== c || c.done) return;
+      if (revealUp()) return paint(c, null, null);            /* a coin or a pile card goes first */
+      let s = null;
+      const ok = seen(document.getElementById('rulesok'));
+      if (ok) s = { at: ok, say: 'The house rules. Give them a read, then tap <b>I&rsquo;m in</b>.' };
+      else { try { s = g.look(c); } catch (_) {} if (!s && document.querySelector('.layer.open')) s = HIDE_IT; }
+      if (s && s.fin) {
+        c.done = true; clearInterval(c.tmr);
+        paint(c, null, '&#10003; ' + s.fin, true);
+        const nxt = s.next ? stepOf(s.next) : stepOf(k) + 1;
+        /* the tour comes back for the next thing, after any coin that just popped */
+        let clear = 0; const wait = () => { if (co !== c) return; if (revealUp()) clear = 0; else clear++; if (clear >= 2) { set(AT, String(nxt)); coachStop(); open(nxt, s.next ? '' : s.fin); } else setTimeout(wait, 600); };
+        setTimeout(wait, s.hold || 1500); return;
+      }
+      if (!s) { if (++c.lost > 5) { coachStop(); open(stepOf(k)); } return paint(c, null, null); }   /* they backed out: same step again */
+      c.lost = 0;
+      if (s.hide) return paint(c, null, null);
+      paint(c, s.at, s.say);
+    }
+    c.tmr = setInterval(tick, 300); setTimeout(tick, 250);
+  }
+
   /* every visit to the Porch signed in, until they tick "Don't show me this again" */
   function maybe() {
     const p = P(); if (!p || !p.me || !p.me.uid) return;
     paintStrip();
-    if (get(OFF) !== '1') whenClear(() => { if (!el) open(0); });
+    if (get(OFF) !== '1') whenClear(() => { if (!el && !co) open(0); });
   }
 
-  window.PorchTour = { open, maybe, fresh: () => get(OFF) !== '1', refresh: paintStrip };
+  window.PorchTour = { open, maybe, coach, coaching: () => !!co, fresh: () => get(OFF) !== '1', refresh: paintStrip };
 })();
