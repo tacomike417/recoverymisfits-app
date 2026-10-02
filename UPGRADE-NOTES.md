@@ -480,3 +480,6 @@ without making it confusing.
 - [x] "Set up my profile" no longer shows for a profile that is already set up. The page asks the Porch (picture, bio or name) instead of trusting a note one browser kept.
 - [x] On the account page, the Account button in the bottom bar opens the switcher. There is also a Switch pill next to "Signed in as".
 - [x] Desktop: holding the mouse on the Account button no longer gets cancelled by the browser trying to drag the link.
+
+## v102 (2 Oct 2026)
+- [x] "Your app account" is off the Porch menu. Everything it led to is already closer: sober date on the bottom bar, Sign out and Switch account in the menu, Delete my account in Edit profile. The account page itself stays (sign up, sign in, add account).
