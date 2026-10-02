@@ -472,3 +472,6 @@ without making it confusing.
 ## v99 (2 Oct 2026): two new saying cards
 - [x] A black chalkboard in a wood frame, and a neon sign on a brick wall. 14 cards now, for everybody's sayings and the daily prayer.
 - [ ] Mike: push, then deploy BOTH functions (porch and porch-daily) so the two new cards are allowed.
+
+## v100 (2 Oct 2026): switching accounts no longer pops the coin
+- [x] Each account keeps its own record of the last coin and Survival Pile card it was shown (assets/account.js, coins.js). A real milestone still pops.

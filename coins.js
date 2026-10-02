@@ -564,6 +564,15 @@
      not an accident. Set rm_coin_seen at install time to skip it. */
   function maybeReveal() {
     var coin = coinFor(soberYMD());
+    /* JUST SWITCHED ACCOUNTS (assets/account.js, 2 Oct 2026). This account's coin has
+       never been noted on this phone, so note it quietly. A switch is not a milestone. */
+    try {
+      if (localStorage.getItem("rm_coin_quiet")) {
+        localStorage.removeItem("rm_coin_quiet");
+        if (coin && !coin.silent) markSeen(coin.file);
+        return;
+      }
+    } catch (e) {}
     if (!coin || coin.silent) return;
     if (seen() === coin.file) return;
     show(coin);

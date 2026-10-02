@@ -89,6 +89,12 @@
      back, so a house account never wears somebody's sober time. */
   var ACCTS_KEY = "rm_accounts_v1";
   var KEEP = ["rm_sober_date", "rm_sober_owner", "rm_joined_date"];
+  /* WHAT EACH ACCOUNT HAS ALREADY BEEN SHOWN (2 Oct 2026, Mike: "when I switch between
+     accounts, it keeps shooting my coin notification up"). The coin and Survival Pile
+     pop-ups remember the last one they showed in ONE spot on the phone, so two accounts
+     with different coins each looked brand new to the other. Now each account carries
+     its own, and a switch never sets one off. */
+  var SHOWN = ["rm_coin_seen", "rm_pile_seen"];
   function accts() { try { return JSON.parse(localStorage.getItem(ACCTS_KEY) || "{}") || {}; } catch (e) { return {}; } }
   function saveAccts(a) { try { localStorage.setItem(ACCTS_KEY, JSON.stringify(a)); } catch (e) {} }
   /* put the live account away, with the date it owns */
@@ -97,10 +103,18 @@
     var keep = {}, own = "";
     try { own = localStorage.getItem("rm_sober_owner") || ""; } catch (e) {}
     if (!own || own === session.uid) KEEP.forEach(function (k) { try { var v = localStorage.getItem(k); if (v != null) keep[k] = v; } catch (e) {} });
+    SHOWN.forEach(function (k) { try { var v = localStorage.getItem(k); if (v != null) keep[k] = v; } catch (e) {} });
     var a = accts(); a[session.name] = { s: session, keep: keep }; saveAccts(a);
   }
   function bring(entry) {
-    KEEP.forEach(function (k) { try { if (entry.keep && entry.keep[k] != null) localStorage.setItem(k, entry.keep[k]); else localStorage.removeItem(k); } catch (e) {} });
+    KEEP.concat(SHOWN).forEach(function (k) { try { if (entry.keep && entry.keep[k] != null) localStorage.setItem(k, entry.keep[k]); else localStorage.removeItem(k); } catch (e) {} });
+    /* nothing remembered for this account yet: whatever coin or card it is on gets
+       marked as shown, quietly, instead of popping up because of the switch
+       (coins.js reads rm_coin_quiet; assets/pile-reveal.js reads rm_welcome_skip) */
+    try {
+      if (!entry.keep || entry.keep.rm_coin_seen == null) localStorage.setItem("rm_coin_quiet", "1");
+      if (!entry.keep || entry.keep.rm_pile_seen == null) localStorage.setItem("rm_welcome_skip", "1");
+    } catch (e) {}
     remember(entry.s);
   }
   function accounts() {
