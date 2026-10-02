@@ -636,6 +636,25 @@ html.fullon #main{visibility:hidden}
 .atbar .av{width:24px;height:24px;font-size:11px}
 /* your menu */
 .mmhead{display:flex;align-items:center;gap:12px;padding:0 0 12px;border-bottom:1px solid var(--line)}
+/* the menu on paper, two to a line (2 Oct 2026) */
+#memenu .sheet{background:#f7f1e3;color:#1b1a17;border-top:1px solid #d8ceb6;padding:10px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+#memenu .sheet .g{background:#cfc4aa;margin-bottom:10px}
+#memenu .mmhead{border-bottom:1px solid #d8ceb6;padding-bottom:10px}
+#memenu .mmhead .av{width:44px;height:44px;font-size:18px}
+#memenu .mmhead b{color:#1b1a17}
+#memenu .mmurl a{color:#8a6118}
+#memenu .mmurl button{background:#fffdf8;border-color:#d8ceb6;color:#1b1a17}
+#memenu .menu{padding-top:10px}
+#memenu .mm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#memenu .menu button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;padding:8px 10px;border:1px solid #d8ceb6;border-radius:12px;background:#fffdf8;color:#1b1a17;font:700 15px Arial,sans-serif;text-align:center;cursor:pointer}
+#memenu .menu button:active{background:#efe6d0}
+#memenu .mm-grid .wide{grid-column:1/-1}
+#memenu .menu .mcount{float:none;margin-left:2px}
+#memenu .menu .mm-switch{margin-top:8px;background:#1b1a17;border-color:#1b1a17;color:#f7f1e3;font-weight:800}
+#memenu .menu .mm-switch:active{background:#33312b}
+#memenu .mm-ico{width:20px;height:20px;fill:none;stroke:#e0bd6a;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#memenu .menu .mm-out{margin-top:8px;min-height:42px;background:#fbe7e2;border-color:#e2a69a;color:#a8321f;font-weight:800}
+#memenu .menu .mm-out:active{background:#f6d5cd}
 .mmhead .av{width:52px;height:52px;font-size:22px}
 .mmhead b{display:block;font-size:17px}
 .mmhead small{color:var(--muted)}
@@ -1018,7 +1037,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v102</span>
+  <span class="ver" id="ver">v103</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2609,17 +2628,21 @@ html.kb .ch-bar{padding-bottom:8px}
     var plink = "recoverymisfits.org" + profPath(m.handle);
     $("mmhead").innerHTML = '<span class="ul" data-mm="profile">' + avatar(m) + '</span><div style="min-width:0;flex:1"><b class="ul" data-mm="profile">' + esc(m.handle) + "</b>" +
       '<div class="mmurl"><a href="' + profPath(m.handle) + '" target="_blank" rel="noopener">' + esc(plink) + '</a><button type="button" data-copyurl="https://' + esc(plink) + '">Copy</button></div></div>';
-    $("mmbody").innerHTML = '<button type="button" data-mm="notes">Notifications' + (unread ? '<span class="mcount">' + unread + "</span>" : "") + "</button>" +
-      (isMod ? '<button type="button" data-mm="mod">Reports' + (modCount ? '<span class="mcount">' + modCount + "</span>" : "") + "</button>" : "") +
-      '<button type="button" data-mm="friends">Friends' + (reqCount() ? '<span class="mcount">' + reqCount() + "</span>" : "") + "</button>" +
-      '<button type="button" data-mm="findf">Find friends</button>' +
-      '<button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>' +
-      '<button type="button" data-mm="saved">Saved shares</button>' +
-      '<button type="button" data-mm="coins">My coins</button>' +
-      '<button type="button" data-mm="invite">Invite somebody</button>' +
-      '<button type="button" data-mm="tour">How the Porch works</button>' +
-      '<button type="button" data-mm="switch">Switch account</button>' +
-      '<button type="button" data-mm="signout">Sign out</button>';
+    /* THE MENU, SMALLER AND ON PAPER (2 Oct 2026, Mike: "it's really an intimidatingly large
+       menu ... make this menu that paper color"). Two to a line. Notifications is the bell,
+       coins are on the bottom bar, so both are gone from here. Switch account wears the
+       round arrows; Sign out sits in red. Reports is a small line, moderators only. */
+    var SWAP = '<svg class="mm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.2-4.4"/><path d="M5 3v4h4"/><path d="M4 13a8 8 0 0 0 14.2 4.4"/><path d="M19 21v-4h-4"/></svg>';
+    var cnt = function (n) { return n ? '<span class="mcount">' + n + "</span>" : ""; };
+    $("mmbody").innerHTML = '<div class="mm-grid">' +
+        '<button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>' +
+        '<button type="button" data-mm="friends">Friends' + cnt(reqCount()) + '</button><button type="button" data-mm="findf">Find friends</button>' +
+        '<button type="button" data-mm="saved">Saved shares</button><button type="button" data-mm="invite">Invite somebody</button>' +
+        '<button type="button" data-mm="tour"' + (isMod ? "" : ' class="wide"') + ">How the Porch works</button>" +
+        (isMod ? '<button type="button" data-mm="mod">Reports' + cnt(modCount) + "</button>" : "") +
+      "</div>" +
+      '<button type="button" class="mm-switch" data-mm="switch">' + SWAP + "Switch account</button>" +
+      '<button type="button" class="mm-out" data-mm="signout">Sign out</button>';
     open("memenu");
   }
 

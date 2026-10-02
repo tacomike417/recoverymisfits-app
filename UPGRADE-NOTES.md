@@ -483,3 +483,7 @@ without making it confusing.
 
 ## v102 (2 Oct 2026)
 - [x] "Your app account" is off the Porch menu. Everything it led to is already closer: sober date on the bottom bar, Sign out and Switch account in the menu, Delete my account in Edit profile. The account page itself stays (sign up, sign in, add account).
+
+## v103 (2 Oct 2026): the Porch menu, smaller and on paper
+- [x] Paper color, two buttons to a line, about half the height. Notifications (it's the bell) and My coins are off it. Switch account has the round arrows, Sign out is in red, Reports is a small button for moderators only.
+- [ ] Mike said he likes the paper color "for the menus": the other pop-up menus are still dark.
