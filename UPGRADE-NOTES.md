@@ -460,3 +460,11 @@ without making it confusing.
 - [x] Signing out of one account hands the phone to the next one on the list.
 - [x] spiritual_misfit is on the beta tester list (v96).
 - [ ] Not yet tried on a real phone: the long press itself.
+
+## v98 (2 Oct 2026): the daily prayer, from spiritual_misfit
+- [x] data/prayers.json: the 365 prayers, one per date. Edit a line and push to change one.
+- [x] supabase/functions/porch-daily now also posts the day's prayer at 7am Eastern from spiritual_misfit, as a saying card, a different background each day.
+- [x] Saying cards can show up to 200 characters (people still write 150 at most).
+- [x] supabase/porch_33_daily_prayer.sql: the timer, now meme at 6 and prayer at 7.
+- [ ] Mike: push, deploy porch-daily, run porch_33.
+- [ ] Six prayers say drink or drinking (Jan 11, Mar 17, Jun 6, Jun 18, Oct 23, Dec 9). Mike decides if that stays.
