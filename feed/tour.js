@@ -11,7 +11,8 @@
  * to tap, one short line, and a button that DOES it (the tour steps aside and the real
  * screen opens). "Next" just looks. The X is always there. Nothing is required.
  *
- * It comes up by itself the first time somebody lands on the Porch signed in. After that a
+ * It comes up by itself EVERY time somebody lands on the Porch signed in, until they tick
+ * "Don't show me this again" at the bottom of it. A
  * small "Getting started" strip sits above the feed until the three things are done or
  * they close it, and "How the Porch works" stays in the account menu for good.
  *
@@ -30,6 +31,10 @@
   const SEEN = 'rm_porch_tour';          /* '1' once they have been shown the tour */
   const AT = 'rm_porch_tour_at';         /* the step to pick up at */
   const HIDE = 'rm_porch_tour_hide';     /* they closed the Getting started strip */
+  /* EVERY TIME, UNTIL THEY SAY STOP (2 Oct 2026, Mike: "show for everybody on the beta ...
+     until they click that little don't show me this again"). Closing it with the X does
+     not count. Only the tick does. */
+  const OFF = 'rm_porch_tour_off';
   const get = (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } };
   const set = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -59,12 +64,12 @@
       body: () => pic('3-spin.webp', 'The Spin maker with Record and Upload'),
       line: 'A short video. Record one, or upload one from your phone.',
       go: 'Make a Spin', act: () => { if (window.PorchSpins) window.PorchSpins.start(); } },
-    { k: 'share', n: 4, title: 'Put your Spin on YouTube',
+    { k: 'share', n: 4, title: 'Put your Spin on YouTube, Facebook, TikTok, etc.', small: true,
       body: () => `<div class="pt-two">
           <figure>${pic('4a-share.webp', 'A Spin with the share arrow ringed')}<figcaption><b>1</b> Open your Spin. Tap the arrow.</figcaption></figure>
           <figure>${pic('4b-video.webp', 'The share choices with Share this video ringed')}<figcaption><b>2</b> Tap <i>Share this video</i>.</figcaption></figure>
         </div>`,
-      line: '<b>3</b> Pick YouTube. Same for Instagram, TikTok and Facebook.' },
+      line: '<b>3</b> Pick the app you want.' },
     { k: 'more' }
   ];
 
@@ -89,6 +94,9 @@
 .pt-done{display:inline-block;margin:0 0 10px;padding:5px 12px;border-radius:999px;background:rgba(120,190,120,.16);color:#9fd49f;font:800 13px Arial,sans-serif}
 .pt-go{display:block;width:100%;padding:16px 18px;border:0;border-radius:15px;cursor:pointer;background:linear-gradient(135deg,#f3dfa0,#e0bd6a 55%,#c9973a);color:#1a1408;font:400 22px/1 "RM Head",Impact,sans-serif;letter-spacing:.04em;text-transform:uppercase}
 .pt-next{display:block;width:100%;margin-top:9px;padding:14px 18px;border:1.5px solid rgba(224,189,106,.4);border-radius:15px;cursor:pointer;background:none;color:#f1e7cf;font:800 16px Arial,sans-serif}
+.pt h2.sm{font-size:24px;line-height:1.1}
+.pt-off{display:flex;align-items:center;justify-content:center;gap:9px;margin:14px 0 0;color:#b9ad92;font:700 14px Arial,sans-serif;cursor:pointer}
+.pt-off input{width:22px;height:22px;flex:none;accent-color:#e0bd6a}
 .pt-skip{display:inline-block;margin-top:10px;padding:10px 14px;border:0;background:none;color:#a99d82;font:700 14px Arial,sans-serif;cursor:pointer}
 .pt-more{display:grid;gap:8px;margin:4px 0 14px;text-align:left}
 .pt-more button{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:14px;border:1px solid rgba(224,189,106,.25);background:rgba(255,255,255,.03);color:#f1e7cf;cursor:pointer;font:800 16px Arial,sans-serif;text-align:left}
@@ -129,13 +137,14 @@
         <button type="button" class="pt-next" data-pt-x>I&rsquo;m good. Take me to the Porch.</button>`;
     } else {
       const done = did[s.k];
-      h += `${dots}<p class="pt-k">${s.n} OF 4</p><h2>${s.title}</h2>
+      h += `${dots}<p class="pt-k">${s.n} OF 4</p><h2${s.small ? ' class="sm"' : ''}>${s.title}</h2>
         ${done ? '<span class="pt-done">&#10003; You did this one</span>' : ''}
         ${s.body()}
         <p class="pt-line">${s.line}</p>
         ${s.go ? `<button type="button" class="pt-go" data-pt-go>${done ? 'Do it again' : s.go}</button>` : ''}
         <button type="button" class="${s.go ? 'pt-next' : 'pt-go'}" data-pt-next>${at === last - 1 ? 'Got it' : 'Next'}</button>`;
     }
+    h += `<label class="pt-off"><input type="checkbox" data-pt-off${get(OFF) === '1' ? ' checked' : ''}> Don&rsquo;t show me this again</label>`;
     el.querySelector('.pt-box').innerHTML = h;
     el.querySelector('.pt-box').scrollTop = 0;
   }
@@ -149,6 +158,7 @@
     el.innerHTML = '<div class="pt-box"></div>';
     document.body.appendChild(el);
     const b = window.PorchBack; const z = b ? b.push('tour', shut) : 20060; el.style.zIndex = String(z || 20060);
+    el.addEventListener('change', (e) => { if (e.target.matches('[data-pt-off]')) { if (e.target.checked) set(OFF, '1'); else { try { localStorage.removeItem(OFF); } catch (_) {} } } });
     el.addEventListener('click', (e) => {
       if (e.target === el || e.target.closest('[data-pt-x]')) { if (STEPS[at].k === 'more') set(AT, '0'); else set(AT, String(at)); return close(); }
       if (e.target.closest('[data-pt-next]')) { at = Math.min(STEPS.length - 1, at + 1); set(AT, String(at)); return draw(); }
@@ -181,12 +191,12 @@
     };
   }
 
-  /* the first time on the Porch signed in: the tour comes up by itself */
+  /* every visit to the Porch signed in, until they tick "Don't show me this again" */
   function maybe() {
     const p = P(); if (!p || !p.me || !p.me.uid) return;
-    if (!get(SEEN)) { setTimeout(() => { if (!document.querySelector('.layer.open, .spn, .lpm')) open(0); else { set(SEEN, '1'); paintStrip(); } }, 900); return; }
+    if (get(OFF) !== '1') { setTimeout(() => { if (!el && !document.querySelector('.layer.open, .spn, .lpm')) open(0); else { set(SEEN, '1'); paintStrip(); } }, 900); return; }
     paintStrip();
   }
 
-  window.PorchTour = { open, maybe, fresh: () => !get(SEEN), refresh: paintStrip };
+  window.PorchTour = { open, maybe, fresh: () => get(OFF) !== '1', refresh: paintStrip };
 })();
