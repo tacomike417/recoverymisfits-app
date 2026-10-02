@@ -138,11 +138,11 @@
     } else {
       const done = did[s.k];
       h += `${dots}<p class="pt-k">${s.n} OF 4</p><h2${s.small ? ' class="sm"' : ''}>${s.title}</h2>
-        ${done ? '<span class="pt-done">&#10003; You did this one</span>' : ''}
+        ${done ? '<span class="pt-done">&#10003; Done</span>' : ''}
         ${s.body()}
         <p class="pt-line">${s.line}</p>
-        ${s.go ? `<button type="button" class="pt-go" data-pt-go>${done ? 'Do it again' : s.go}</button>` : ''}
-        <button type="button" class="${s.go ? 'pt-next' : 'pt-go'}" data-pt-next>${at === last - 1 ? 'Got it' : 'Next'}</button>`;
+        ${s.go && !done ? `<button type="button" class="pt-go" data-pt-go>${s.go}</button>` : ''}
+        <button type="button" class="${s.go && !done ? 'pt-next' : 'pt-go'}" data-pt-next>${at === last - 1 ? 'Got it' : 'Show me more'}</button>`;
     }
     h += `<label class="pt-off"><input type="checkbox" data-pt-off${get(OFF) === '1' ? ' checked' : ''}> Don&rsquo;t show me this again</label>`;
     el.querySelector('.pt-box').innerHTML = h;
@@ -191,11 +191,27 @@
     };
   }
 
+  /* A NEW COIN OR A SURVIVAL PILE CARD GOES FIRST (2 Oct 2026, Mike: "a coin or one of
+     those survival pile things popped up. I closed it. It closed the tutorial"). Those
+     reveals close themselves with the phone's back button, and back also shuts whatever
+     Porch layer is on top, which was the tour. So the tour waits its turn: nothing of
+     theirs on screen, twice in a row, before it comes up. */
+  const revealUp = () => !!document.querySelector('.rm-coin-reveal, .rm-pr');
+  function whenClear(fn, tries) {
+    let clear = 0, n = 0;
+    const tick = () => {
+      if (revealUp() || document.querySelector('.layer.open, .spn, .lpm')) clear = 0; else clear++;
+      if (clear >= 2) return fn();
+      if (++n < (tries || 180)) setTimeout(tick, 700);
+    };
+    setTimeout(tick, 1800);
+  }
+
   /* every visit to the Porch signed in, until they tick "Don't show me this again" */
   function maybe() {
     const p = P(); if (!p || !p.me || !p.me.uid) return;
-    if (get(OFF) !== '1') { setTimeout(() => { if (!el && !document.querySelector('.layer.open, .spn, .lpm')) open(0); else { set(SEEN, '1'); paintStrip(); } }, 900); return; }
     paintStrip();
+    if (get(OFF) !== '1') whenClear(() => { if (!el) open(0); });
   }
 
   window.PorchTour = { open, maybe, fresh: () => get(OFF) !== '1', refresh: paintStrip };
