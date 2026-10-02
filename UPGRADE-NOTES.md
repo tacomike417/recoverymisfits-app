@@ -492,3 +492,8 @@ without making it confusing.
 
 ## v105 (2 Oct 2026)
 - [x] The prayer account is `spiritualmisfit`, no underscore (Mike: "i dont want an underscore"). Lines above that say spiritual_misfit mean this account.
+
+## v106 (2 Oct 2026): your picture shows
+- [x] The switcher now asks for pictures as the signed-in person, so Members-only profiles show their face.
+- [x] The Account button in the bottom bar wears your picture on every page, not only the Porch.
+- [x] On the Porch, the picture and menu come back if the bar gets rebuilt (it does after an account switch).

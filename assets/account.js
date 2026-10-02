@@ -501,19 +501,56 @@
       if (switchTo(n)) { swShut(); location.replace(location.pathname); }
     });
     /* faces and profile names, for the ones that are on the Porch */
-    if (list.length) {
-      fetch(URL_BASE + "/rest/v1/porch_members?handle=in.(" + list.map(function (a) { return '"' + encodeURIComponent(a.name) + '"'; }).join(",") + ")&select=handle,avatar_path,real_name",
-        { headers: { "apikey": ANON_KEY, "Authorization": "Bearer " + ANON_KEY } })
-        .then(function (r) { return r.ok ? r.json() : []; }).then(function (rows) {
-          if (!swEl) return;
-          (rows || []).forEach(function (m) {
-            var av = swEl.querySelector('[data-sw-av="' + m.handle + '"]'), nm = swEl.querySelector('[data-sw-nm="' + m.handle + '"]');
-            if (av && m.avatar_path) { var src = m.avatar_path.charAt(0) === "/" ? m.avatar_path : URL_BASE + "/storage/v1/object/public/porch/" + m.avatar_path; av.innerHTML = '<img src="' + esc(src) + '" alt="">'; }
-            if (nm && m.real_name) nm.textContent = m.real_name + " \u00b7 " + m.handle;
-          });
-        }).catch(function () {});
-    }
+    paintFaces();
+    loadFaces(list.map(function (a) { return a.name; })).then(paintFaces);
   }
+
+  /* ---- FACES (2 Oct 2026, Mike: "I have my profile picture set, but it just does not show
+     down there on the rail, and it doesn't show up in the box"). Two reasons it didn't:
+     the switcher asked for pictures without saying who was asking, and the Porch only
+     hands a Members-only profile to somebody signed in; and the Account button only ever
+     wore your picture on the Porch page. Now the pictures are asked for as the signed-in
+     person, kept on the phone so they show at once, and the Account button wears yours
+     on every page. */
+  var FACES_KEY = "rm_faces_v1";
+  function faces() { try { return JSON.parse(localStorage.getItem(FACES_KEY) || "{}") || {}; } catch (e) { return {}; } }
+  function faceURL(p) { return !p ? "" : p.charAt(0) === "/" ? p : URL_BASE + "/storage/v1/object/public/porch/" + p; }
+  async function loadFaces(names) {
+    names = (names || []).filter(Boolean); if (!names.length) return;
+    try {
+      var t = (await token()) || ANON_KEY;
+      var r = await fetch(URL_BASE + "/rest/v1/porch_members?handle=in.(" + names.map(function (n) { return '"' + encodeURIComponent(n) + '"'; }).join(",") + ")&select=handle,avatar_path,real_name",
+        { headers: { "apikey": ANON_KEY, "Authorization": "Bearer " + t } });
+      if (!r.ok) return;
+      var rows = await r.json(), f = faces();
+      (rows || []).forEach(function (m) { f[m.handle] = { av: m.avatar_path || "", rn: m.real_name || "" }; });
+      try { localStorage.setItem(FACES_KEY, JSON.stringify(f)); } catch (e) {}
+    } catch (e) {}
+  }
+  function paintFaces() {
+    var f = faces();
+    if (swEl) Object.keys(f).forEach(function (h) {
+      var av = swEl.querySelector('[data-sw-av="' + h + '"]'), nm = swEl.querySelector('[data-sw-nm="' + h + '"]');
+      if (av && f[h].av) av.innerHTML = '<img src="' + esc(faceURL(f[h].av)) + '" alt="">';
+      if (nm && f[h].rn) nm.textContent = f[h].rn + " \u00b7 " + h;
+    });
+    railFace();
+  }
+  /* your picture on the Account button, on every page. The Porch page draws its own
+     (class "pin"), so this leaves that one alone. */
+  function railFace() {
+    var b = document.getElementById("rmAccountBtn"); if (!b || b.classList.contains("pin") || !session) return;
+    var me = faces()[session.name], img = b.querySelector("img"); if (!img || !me || !me.av) return;
+    var src = faceURL(me.av); if (img.getAttribute("data-face") === src) return;
+    img.setAttribute("data-face", src); img.src = src;
+    img.style.cssText = "width:28px;height:28px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px #1a160e,0 0 0 3px #e0bd6a";
+  }
+  (function keepRailFace() {
+    if (!session) return;
+    var tick = function () { try { railFace(); } catch (e) {} };
+    setInterval(tick, 1500); setTimeout(tick, 400);
+    loadFaces([session.name]).then(tick);
+  })();
 
   /* HOLD YOUR FINGER ON THE ACCOUNT BUTTON (the one in the bottom rail, on every
      page). Half a second and the switcher comes up; a plain tap still does what
