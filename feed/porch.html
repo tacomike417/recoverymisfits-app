@@ -1050,7 +1050,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v107</span>
+  <span class="ver" id="ver">v108</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2710,9 +2710,15 @@ html.kb .ch-bar{padding-bottom:8px}
     });
   }
   async function useLocation() {
-    var c; try { c = await locate(); } catch (e) { toast("Location is off for this app. Turn it on in your phone's settings, or skip it."); return false; }
+    /* say what actually went wrong: blocked, not found, or no location on this device */
+    var c; try { c = await locate(); } catch (e) {
+      toast(e && e.code === 1 ? "Location is blocked for this site. Allow it in your browser or phone settings, or skip it."
+        : e && (e.code === 2 || e.code === 3) ? "Couldn't find where you are right now. Try again, or skip it."
+        : "This device can't share a location. You can skip it.");
+      return false;
+    }
     try { await rpc("porch_set_place", { p_lat: c.latitude, p_lng: c.longitude }); hasPlace = true; return true; }
-    catch (e) { toast("That didn't save. Try again."); return false; }
+    catch (e) { toast(e && (e.status === 401 || e.status === 403) ? "Confirm your email first, then you can turn this on." : "That didn't save. Try again."); return false; }
   }
   async function forgetLocation() { try { await rpc("porch_forget_place", {}); hasPlace = false; toast("Your location is deleted."); } catch (e) { toast("That didn't go through."); } }
   async function paintNearSet() {
@@ -3099,7 +3105,12 @@ html.kb .ch-bar{padding-bottom:8px}
     var t = await tok();
     var r = await fetch(DB + "/rest/v1/rpc/" + fnName, { method: "POST", headers: { apikey: KEY, Authorization: "Bearer " + (t || KEY), "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
     if (!r.ok) { var e = new Error("rpc " + r.status); e.status = r.status; throw e; }
-    return r.json();
+    /* A database job that hands nothing back answers with an EMPTY reply. Reading that as
+       data blew up, so a job that had WORKED was reported as failed (2 Oct 2026, Mike: "check
+       the use my location thing ... it's not saving". It was saving; the page said it didn't). */
+    var txt = await r.text();
+    if (!txt) return null;
+    try { return JSON.parse(txt); } catch (x) { return null; }
   }
   async function friendTap(uid) {
     if (friends[uid]) {                        /* already friends: offer Unfriend */

@@ -502,3 +502,8 @@ without making it confusing.
 - [x] The card picker is two rows now, Colors and Paper and Fun, with every card in sight (it was one row you had to swipe, and a desktop can't swipe).
 - [x] Five new cards: parchment, notebook paper, galaxy with neon purple writing, blush pink with dots, cotton candy. The chalkboard lost its wood border. 19 cards.
 - [ ] Mike: push, then deploy BOTH functions (porch and porch-daily).
+
+## v108 (2 Oct 2026): Use my location
+- [x] It WAS saving; the page said it didn't. Database jobs that hand nothing back answer with an empty reply, and the page choked on that. Fixed for every such job (location on and off, long-Spin yes/no, and others).
+- [x] Clearer messages: blocked in the browser, couldn't find you, or this device has no location.
+- [ ] Not yet tried on a real phone or the Play Store app.
