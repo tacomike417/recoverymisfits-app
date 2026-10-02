@@ -507,3 +507,6 @@ without making it confusing.
 - [x] It WAS saving; the page said it didn't. Database jobs that hand nothing back answer with an empty reply, and the page choked on that. Fixed for every such job (location on and off, long-Spin yes/no, and others).
 - [x] Clearer messages: blocked in the browser, couldn't find you, or this device has no location.
 - [ ] Not yet tried on a real phone or the Play Store app.
+
+## v109 (2 Oct 2026)
+- [x] The "Alerts on iPhone" six-step screen no longer pops up after somebody posts. It is still under the bell, in Alerts.

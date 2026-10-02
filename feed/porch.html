@@ -1050,7 +1050,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v108</span>
+  <span class="ver" id="ver">v109</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3493,10 +3493,14 @@ html.kb .ch-bar{padding-bottom:8px}
     var a = { t: 0, no: 0 }; try { a = JSON.parse(localStorage.getItem(ASK) || "null") || a; } catch (e) {}
     var gap = (a.no >= 3 ? 30 : 4) * 86400000;
     if (Date.now() - a.t < gap) return;
-    var iosTab = iOS && !standalone;
-    if (!iosTab && (!canPush || Notification.permission === "denied" || (Notification.permission === "granted" && await pushSub()))) return;
+    /* AN IPHONE IN A BROWSER TAB GETS NOTHING HERE (2 Oct 2026, Mike: "I just made a post ...
+       and when I was done, the iPhone warning screen popped up. I don't know what's up with
+       that"). It used to throw the six-step "take the app off and put it back on" screen at
+       them right after their share. That is a lecture nobody asked for. The steps are still
+       one tap away under the bell, in Alerts, for anybody who goes looking. */
+    if (iOS && !standalone) return;
+    if (!canPush || Notification.permission === "denied" || (Notification.permission === "granted" && await pushSub())) return;
     try { localStorage.setItem(ASK, JSON.stringify({ t: Date.now(), no: a.no })); } catch (e) {}
-    if (iosTab) return iosSteps();
     $("aptitle").textContent = "Don't miss the love";
     $("apbody").textContent = "Get a buzz on your phone when somebody comments, cheers you on, tags you or sends you a friend request.";
     $("apyes").textContent = "Turn on"; $("apyes").dataset.ios = ""; $("apno").hidden = false;
