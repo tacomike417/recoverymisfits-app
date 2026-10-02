@@ -387,8 +387,15 @@
   /* -------------------------
      Install sheet (mobile only)
   ------------------------- */
-  const DISMISS_KEY = "rm_install_sheet_dismissed_at";
-  const DISMISS_DAYS = 14;
+  /* 1 Oct 2026: Mike took the app off his phone, opened the site in Chrome, and
+     nothing offered to put it back. Installing used to count as a "Not now", which
+     kept the sheet quiet for two weeks. Now: opening the installed app clears the
+     quiet period, installing never starts one, and a real "Not now" lasts 3 days.
+     (New key name, so everybody's old quiet period is wiped once.) */
+  const DISMISS_KEY = "rm_install_sheet_no_at";
+  const DISMISS_DAYS = 3;
+  try { if (isStandalone) localStorage.removeItem(DISMISS_KEY); } catch (e) {}
+  window.addEventListener("appinstalled", () => { try { localStorage.removeItem(DISMISS_KEY); } catch (e) {} });
 
   function recentlyDismissed() {
     const raw = localStorage.getItem(DISMISS_KEY);
@@ -464,7 +471,7 @@
         <ol class="rm-steps">
           <li>
             <span class="rm-step-n">1</span>
-            <span class="rm-step-t">Tap this button at the bottom of your screen
+            <span class="rm-step-t">Tap this button at the bottom of your screen. Don&rsquo;t see it? Tap <b>&#8943;</b> first, then <b>Share</b>
               <span class="rm-step-ico" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 15.5V3.5"/><path d="M8.2 7.1 12 3.3l3.8 3.8"/>
@@ -509,10 +516,10 @@
     return { scrim, wrap };
   }
 
-  function closeInstallSheet(scrim, wrap) {
+  function closeInstallSheet(scrim, wrap, installed) {
     wrap.classList.remove("rm-open");
     scrim.classList.remove("rm-open");
-    localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    try { if (installed) localStorage.removeItem(DISMISS_KEY); else localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch (e) {}
     setTimeout(() => {
       scrim.remove();
       wrap.remove();
@@ -569,7 +576,7 @@
           const ask = deferredInstall;
           deferredInstall = null;
           ask.prompt();
-          ask.userChoice.finally(() => closeInstallSheet(scrim, wrap));
+          ask.userChoice.then((c) => closeInstallSheet(scrim, wrap, c && c.outcome === "accepted"), () => closeInstallSheet(scrim, wrap));
           return;
         }
         /* Chrome hasn't offered the one-tap box on this visit (or it's
