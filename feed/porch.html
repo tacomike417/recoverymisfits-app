@@ -1018,7 +1018,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v96</span>
+  <span class="ver" id="ver">v97</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2609,6 +2609,7 @@ html.kb .ch-bar{padding-bottom:8px}
       '<button type="button" data-mm="coins">My coins</button>' +
       '<button type="button" data-mm="invite">Invite somebody</button>' +
       '<button type="button" data-mm="tour">How the Porch works</button>' +
+      '<button type="button" data-mm="switch">Switch account</button>' +
       '<button type="button" data-mm="account">Your app account</button>' +
       '<button type="button" data-mm="signout">Sign out</button>';
     open("memenu");
@@ -2619,6 +2620,8 @@ html.kb .ch-bar{padding-bottom:8px}
   async function signOutHere() {
     try { await pushOff(true); } catch (e) {}
     try { A.signOut(); } catch (e) {}
+    /* another account is on this phone (the switcher): it takes over, and they stay on the Porch */
+    if (A.signedIn()) { location.replace("/feed/porch.html"); return; }
     try { localStorage.removeItem("rm_level_pick"); localStorage.removeItem("rm_porch_ok"); } catch (e) {}
     location.replace("/account.html");
   }
@@ -3816,9 +3819,10 @@ html.kb .ch-bar{padding-bottom:8px}
       var which = mm.dataset.mm, LAYER = { profile: "profile", notes: "notes", saved: "saved", friends: "friends", findf: "setup", mod: "mod", edit: "editp" };
       var go = function () {
         if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends(); else if (which === "coins") location.href = "/coins.html"; else if (which === "invite") invite(); else if (which === "findf") openSetup("friends"); else if (which === "tour") { if (window.PorchTour) window.PorchTour.open(0); }
+        else if (which === "switch") { if (A.switcher) A.switcher(); else location.href = "/account.html"; }
         else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else if (which === "signout") signOutHere(); else gate(openEdit);
       };
-      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout|tour)$/.test(which) ? "editp" : "");
+      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout|tour|switch)$/.test(which) ? "editp" : "");
       /* already open underneath (say, your own profile)? close the menu to show it */
       if (lay && stack.indexOf($(lay)) < 0 && t.closest("#memenu")) return go();
       closeTop().then(go); return; }

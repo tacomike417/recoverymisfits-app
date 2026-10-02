@@ -445,6 +445,9 @@
     <button class="go" type="button" id="dsSkip"
             style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:8px">
       Not Right Now</button>
+    <button class="go" type="button" id="dsSwitch"
+            style="background:transparent;color:var(--gold);border-color:var(--line);margin-top:8px">
+      Switch or Add Account</button>
     <button class="go" type="button" id="dsOut"
             style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:8px">
       Sign Out</button>
@@ -930,8 +933,13 @@
     $("dsOut").click();
     say($("sayLvl"), "Your account is deleted. Take care of yourself.");
   });
+  /* THE ACCOUNT SWITCHER (2 Oct 2026, Mike). Also on every page: hold a finger on the
+     Account button in the bottom rail. */
+  $("dsSwitch").addEventListener("click", function () { if (A.switcher) A.switcher(); });
   $("dsOut").addEventListener("click", function () {
     A.signOut();
+    /* another account is on this phone: it takes over, the way Instagram does it */
+    if (A.signedIn()) { location.replace("/account.html"); return; }
     clearInterval(watching);
     try { localStorage.removeItem(LVL_KEY); } catch (e) {}
     showLevels();
@@ -942,7 +950,14 @@
   /* Somebody sent here by SET who already has an account just needs to sign
      in, so that is the tab that opens. */
   setMode("new");
-  if (A.signedIn()) {
+  if (new URLSearchParams(location.search).get("add") === "1") {
+    /* ADD AN ACCOUNT, from the switcher: the sign-in form, even though somebody is
+       signed in. They stay signed in on this phone too; signing in here adds one. */
+    var stay = A.signedIn() ? A.name() : "";
+    if (betaPhone()) pick("2");
+    goForm("", "old");
+    if (stay) $("formLede").innerHTML = "Add another account. <b>" + stay.replace(/[&<>]/g, "") + "</b> stays signed in on this phone too.";
+  } else if (A.signedIn()) {
     showDateStep();
     settle(false).then(showDateStep);
   } else if (new URLSearchParams(location.search).get("signin") === "1") {

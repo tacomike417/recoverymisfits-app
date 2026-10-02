@@ -452,3 +452,11 @@ without making it confusing.
 - [x] supabase/functions/porch-daily: posts today's meme from recoverymisfits, once a day, never before 6am Eastern. Reads the site's own /data/meme-days.json.
 - [x] supabase/porch_31_daily_meme.sql: the 6am timer.
 - [ ] Mike deploys the function, then runs the SQL.
+
+## v97 (2 Oct 2026): the account switcher
+- [x] Hold a finger on the Account button in the bottom rail (every page): a sheet lists every account signed in on this phone, tap one to switch, or Add account. No password again.
+- [x] Also in the Porch menu (Switch account) and on the account page (Switch or Add Account).
+- [x] Each account keeps its own sober date; a house account never wears somebody's.
+- [x] Signing out of one account hands the phone to the next one on the list.
+- [x] spiritual_misfit is on the beta tester list (v96).
+- [ ] Not yet tried on a real phone: the long press itself.

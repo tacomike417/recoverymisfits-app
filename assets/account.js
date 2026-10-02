@@ -70,7 +70,53 @@
       if (s) localStorage.setItem(TOKEN_KEY, JSON.stringify(s));
       else localStorage.removeItem(TOKEN_KEY);
     } catch (e) {}
+    /* the switcher's copy of this account stays fresh (see THE ACCOUNT SWITCHER below) */
+    if (s && s.name) { var a = accts(); a[s.name] = { s: s, keep: (a[s.name] && a[s.name].keep) || {} }; saveAccts(a); }
   }
+
+  /* ---- THE ACCOUNT SWITCHER (2 Oct 2026, Mike) ---------------------------
+     "I need an account switcher to add accounts ... Instagram's is pretty nice.
+     You just hold your finger on the account thing. It comes up, lets you
+     switch right there."
+
+     Every account that has signed in on this phone stays in a list on this
+     phone (rm_accounts_v1), each with its own sign-in. Switching swaps which
+     one is live and reloads the page; nobody types a password again. Signing
+     in while already signed in ADDS an account instead of replacing one.
+
+     EACH ACCOUNT KEEPS ITS OWN SOBER DATE. The date on the phone is put away
+     with the account it belongs to and brought back when that account comes
+     back, so a house account never wears somebody's sober time. */
+  var ACCTS_KEY = "rm_accounts_v1";
+  var KEEP = ["rm_sober_date", "rm_sober_owner", "rm_joined_date"];
+  function accts() { try { return JSON.parse(localStorage.getItem(ACCTS_KEY) || "{}") || {}; } catch (e) { return {}; } }
+  function saveAccts(a) { try { localStorage.setItem(ACCTS_KEY, JSON.stringify(a)); } catch (e) {} }
+  /* put the live account away, with the date it owns */
+  function park() {
+    if (!session || !session.name) return;
+    var keep = {}, own = "";
+    try { own = localStorage.getItem("rm_sober_owner") || ""; } catch (e) {}
+    if (!own || own === session.uid) KEEP.forEach(function (k) { try { var v = localStorage.getItem(k); if (v != null) keep[k] = v; } catch (e) {} });
+    var a = accts(); a[session.name] = { s: session, keep: keep }; saveAccts(a);
+  }
+  function bring(entry) {
+    KEEP.forEach(function (k) { try { if (entry.keep && entry.keep[k] != null) localStorage.setItem(k, entry.keep[k]); else localStorage.removeItem(k); } catch (e) {} });
+    remember(entry.s);
+  }
+  function accounts() {
+    var a = accts(), cur = (session && session.name) || "";
+    if (cur && !a[cur]) { a[cur] = { s: session, keep: {} }; saveAccts(a); }
+    return Object.keys(a).sort(function (x, y) { return x === cur ? -1 : y === cur ? 1 : x < y ? -1 : 1; })
+      .map(function (n) { return { name: n, current: n === cur }; });
+  }
+  function switchTo(name) {
+    var t = accts()[name];
+    if (!t || !t.s) return false;
+    if (session && session.name === name) return true;
+    park(); bring(t);
+    return true;
+  }
+  function forget(name) { var a = accts(); delete a[name]; saveAccts(a); }
 
   /* ---- names -------------------------------------------------------------
      Lowercased so "Mike417" and "mike417" cannot become two accounts that
@@ -137,6 +183,8 @@
       uid: json.user && json.user.id,
       name: name || (session && session.name) || ""
     };
+    /* signing in as somebody else while signed in: the first account is put away, not lost */
+    if (session && session.name && s.name && session.name !== s.name) park();
     remember(s);
     return s;
   }
@@ -223,6 +271,7 @@
       if (!res.ok || !json || !json.access_token) {
         /* The refresh token is dead -- signed out somewhere else, or it
            simply expired. Drop it rather than retrying forever. */
+        forget(session.name);
         remember(null);
         return false;
       }
@@ -252,7 +301,13 @@
        account ended up wearing somebody else's sober time. */
     claimLocal();
     try { localStorage.removeItem("rm_joined_date"); } catch (e) {}   /* the Misfitversary is the account's */
+    var was = (session && session.name) || "";
     remember(null);
+    /* the switcher: this account leaves the list, and if another one is on this
+       phone it takes over (the way Instagram does it) */
+    if (was) forget(was);
+    var rest = accts(), names = Object.keys(rest);
+    if (names.length && rest[names[0]].s) bring(rest[names[0]]);
   }
 
   /* ---- the blob ----------------------------------------------------------
@@ -385,7 +440,92 @@
     } catch (e) {}
   })();
 
+  /* ---- the switcher's sheet --------------------------------------------- */
+  var swEl = null;
+  var esc = function (v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); };
+  var SW_CSS = "#rmAccountBtn,[data-rm-switch]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}" +
+    ".rm-sw{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.66);font-family:Arial,sans-serif}" +
+    ".rm-sw-box{position:relative;width:100%;max-width:480px;max-height:80vh;overflow:auto;padding:10px 14px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:#191814;color:#f1e7cf;border-top:1px solid rgba(224,189,106,.35)}" +
+    ".rm-sw-g{width:44px;height:5px;margin:2px auto 10px;border-radius:3px;background:rgba(241,231,207,.25)}" +
+    ".rm-sw-x{position:absolute;right:8px;top:8px;width:44px;height:44px;border:0;border-radius:50%;background:none;color:#f1e7cf;font-size:20px;cursor:pointer}" +
+    ".rm-sw h3{margin:0 44px 8px 6px;font:800 13px Arial,sans-serif;letter-spacing:.14em;color:#e0bd6a}" +
+    ".rm-sw-row{display:flex;align-items:center;gap:13px;width:100%;padding:10px 8px;border:0;border-radius:14px;background:none;color:#f1e7cf;text-align:left;cursor:pointer;font:800 17px Arial,sans-serif}" +
+    ".rm-sw-row:active{background:rgba(255,255,255,.06)}" +
+    ".rm-sw-av{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:#c9a24a;color:#1a1408;font:800 18px Arial,sans-serif}" +
+    ".rm-sw-av img{width:100%;height:100%;object-fit:cover;display:block}" +
+    ".rm-sw-row small{display:block;margin-top:2px;font:500 13.5px Arial,sans-serif;color:#b9ad92}" +
+    ".rm-sw-row .ck{margin-left:auto;flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#e0bd6a;color:#1a1408;font-size:15px}" +
+    ".rm-sw-add .rm-sw-av{background:none;border:2px dashed rgba(224,189,106,.6);color:#e0bd6a;font-size:26px;font-weight:400}";
+  function swCSS() { if (document.getElementById("rm-sw-css")) return; var st = document.createElement("style"); st.id = "rm-sw-css"; st.textContent = SW_CSS; document.head.appendChild(st); }
+  function swShut() { if (swEl) { swEl.remove(); swEl = null; } }
+  function swClose() {
+    if (!swEl) return;
+    if (window.PorchBack && window.PorchBack.pop && window.PorchBack.pop("switcher")) return;
+    if (swEl._own) { swEl._own = false; try { history.back(); return; } catch (e) {} }
+    swShut();
+  }
+  function switcher() {
+    if (swEl) return;
+    swCSS();
+    var list = accounts();
+    swEl = document.createElement("div"); swEl.className = "rm-sw"; swEl.setAttribute("role", "dialog"); swEl.setAttribute("aria-modal", "true"); swEl.setAttribute("aria-label", "Switch account");
+    swEl.innerHTML = '<div class="rm-sw-box"><div class="rm-sw-g"></div><button type="button" class="rm-sw-x" data-sw-x aria-label="Close">&#10005;</button><h3>' + (list.length ? "SWITCH ACCOUNT" : "ACCOUNTS") + "</h3>" +
+      list.map(function (a) {
+        return '<button type="button" class="rm-sw-row" data-sw="' + esc(a.name) + '"><span class="rm-sw-av" data-sw-av="' + esc(a.name) + '">' + esc(a.name.slice(0, 2).toUpperCase()) + '</span><span><span data-sw-nm="' + esc(a.name) + '">' + esc(a.name) + "</span>" + (a.current ? "<small>Signed in now</small>" : "") + "</span>" + (a.current ? '<span class="ck">&#10003;</span>' : "") + "</button>";
+      }).join("") +
+      '<button type="button" class="rm-sw-row rm-sw-add" data-sw-add><span class="rm-sw-av">+</span><span>' + (list.length ? "Add account" : "Sign in or make an account") + "</span></button></div>";
+    document.body.appendChild(swEl);
+    /* the phone's back button closes it: the Porch's own back stack there, a plain history step anywhere else */
+    if (window.PorchBack && window.PorchBack.push) { var z = window.PorchBack.push("switcher", swShut); }
+    else { try { history.pushState({ rmsw: 1 }, ""); swEl._own = true; window.addEventListener("popstate", function once() { window.removeEventListener("popstate", once); if (swEl) { swEl._own = false; swShut(); } }); } catch (e) {} }
+    swEl.addEventListener("click", function (e) {
+      if (e.target === swEl || e.target.closest("[data-sw-x]")) return swClose();
+      if (e.target.closest("[data-sw-add]")) { location.href = "/account.html?add=1"; return; }
+      var r = e.target.closest("[data-sw]"); if (!r) return;
+      var n = r.getAttribute("data-sw");
+      if (session && session.name === n) return swClose();
+      if (switchTo(n)) { swShut(); location.replace(location.pathname); }
+    });
+    /* faces and profile names, for the ones that are on the Porch */
+    if (list.length) {
+      fetch(URL_BASE + "/rest/v1/porch_members?handle=in.(" + list.map(function (a) { return '"' + encodeURIComponent(a.name) + '"'; }).join(",") + ")&select=handle,avatar_path,real_name",
+        { headers: { "apikey": ANON_KEY, "Authorization": "Bearer " + ANON_KEY } })
+        .then(function (r) { return r.ok ? r.json() : []; }).then(function (rows) {
+          if (!swEl) return;
+          (rows || []).forEach(function (m) {
+            var av = swEl.querySelector('[data-sw-av="' + m.handle + '"]'), nm = swEl.querySelector('[data-sw-nm="' + m.handle + '"]');
+            if (av && m.avatar_path) { var src = m.avatar_path.charAt(0) === "/" ? m.avatar_path : URL_BASE + "/storage/v1/object/public/porch/" + m.avatar_path; av.innerHTML = '<img src="' + esc(src) + '" alt="">'; }
+            if (nm && m.real_name) nm.textContent = m.real_name + " \u00b7 " + m.handle;
+          });
+        }).catch(function () {});
+    }
+  }
+
+  /* HOLD YOUR FINGER ON THE ACCOUNT BUTTON (the one in the bottom rail, on every
+     page). Half a second and the switcher comes up; a plain tap still does what
+     it always did. */
+  (function holdToSwitch() {
+    var SEL = "#rmAccountBtn,[data-rm-switch]", tmr = 0, x0 = 0, y0 = 0, fired = 0;
+    try { swCSS(); } catch (e) {}      /* so an iPhone never shows its own link bubble on the button */
+    function stop() { clearTimeout(tmr); tmr = 0; }
+    document.addEventListener("pointerdown", function (e) {
+      var t = e.target.closest && e.target.closest(SEL); if (!t) return;
+      swCSS(); x0 = e.clientX; y0 = e.clientY; stop();
+      tmr = setTimeout(function () { tmr = 0; fired = Date.now(); try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {} switcher(); }, 480);
+    }, true);
+    document.addEventListener("pointermove", function (e) { if (tmr && (Math.abs(e.clientX - x0) > 12 || Math.abs(e.clientY - y0) > 12)) stop(); }, true);
+    ["pointerup", "pointercancel", "scroll"].forEach(function (ev) { document.addEventListener(ev, stop, true); });
+    /* the tap that ends a long press must not also open the button */
+    document.addEventListener("click", function (e) {
+      if (fired && Date.now() - fired < 1200 && e.target.closest && e.target.closest(SEL)) { e.preventDefault(); e.stopPropagation(); fired = 0; }
+    }, true);
+    document.addEventListener("contextmenu", function (e) { if (e.target.closest && e.target.closest(SEL)) e.preventDefault(); }, true);
+  })();
+
   window.RMAccount = {
+    accounts: accounts,      /* every account signed in on this phone */
+    switchTo: switchTo,      /* then reload the page */
+    switcher: switcher,      /* the sheet */
     signedIn: function () { return !!session; },
     name: function () { return (session && session.name) || ""; },
     signUp: signUp,
