@@ -497,3 +497,8 @@ without making it confusing.
 - [x] The switcher now asks for pictures as the signed-in person, so Members-only profiles show their face.
 - [x] The Account button in the bottom bar wears your picture on every page, not only the Porch.
 - [x] On the Porch, the picture and menu come back if the bar gets rebuilt (it does after an account switch).
+
+## v107 (2 Oct 2026): more cards, and a picker you can see
+- [x] The card picker is two rows now, Colors and Paper and Fun, with every card in sight (it was one row you had to swipe, and a desktop can't swipe).
+- [x] Five new cards: parchment, notebook paper, galaxy with neon purple writing, blush pink with dots, cotton candy. The chalkboard lost its wood border. 19 cards.
+- [ ] Mike: push, then deploy BOTH functions (porch and porch-daily).

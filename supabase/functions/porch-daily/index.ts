@@ -29,7 +29,7 @@ const SITE = "https://recoverymisfits.org";
 const START_HOUR = 6;                       // the meme: 6am Eastern
 const PRAYER_HOUSE = "spiritualmisfit";
 const PRAYER_HOUR = 7;                      // the prayer: 7am Eastern
-const CARD_STYLES = 14;                     // the saying-card backgrounds in feed/porch.html
+const CARD_STYLES = 19;                     // the saying-card backgrounds in feed/porch.html
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   { auth: { persistSession: false } });
 const json = (data: unknown, status = 200) =>

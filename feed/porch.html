@@ -731,9 +731,12 @@ html.fullon #main{visibility:hidden}
 .thumbs img{width:100%;height:100%;object-fit:cover}
 .thumbs button{position:absolute;top:4px;right:4px;width:26px;height:26px;border:0;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font:700 14px Arial,sans-serif;cursor:pointer}
 .addpic{display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;padding:13px 14px;border-radius:14px;border:1.5px dashed var(--fline);background:none;color:var(--cream);font:700 15px Arial,sans-serif;cursor:pointer}
-.styles{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.styles{padding:2px 2px 6px}
+.styles .srow{display:flex;flex-wrap:wrap;gap:8px}
+.styles .srow-t{margin:8px 0 6px;font:800 11.5px Arial,sans-serif;letter-spacing:.14em;color:var(--muted)}
+.styles .srow-t:first-child{margin-top:0}
 .styles::-webkit-scrollbar{display:none}
-.styles button{flex:none;width:44px;height:44px;border-radius:12px;border:2px solid transparent;cursor:pointer;font:600 18px "RM Hand",cursive}
+.styles button{flex:none;width:44px;height:44px;border-radius:12px;border:2px solid transparent;cursor:pointer;font:600 18px "RM Hand",cursive;overflow:hidden;text-shadow:none}
 .styles button.on{border-color:var(--cream)}
 #cprev{border-radius:16px;overflow:hidden;margin-top:6px}
 #cprev .hand{min-height:200px}
@@ -1047,7 +1050,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v106</span>
+  <span class="ver" id="ver">v107</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1559,9 +1562,20 @@ html.kb .ch-bar{padding-bottom:8px}
        more in that's kind of cool." A black chalkboard in a wood frame, and a neon sign on
        a brick wall. fx = extra styling for the words and the frame. */
     { bg: "radial-gradient(ellipse at 28% 18%,rgba(255,255,255,.09),transparent 55%),radial-gradient(ellipse at 80% 85%,rgba(255,255,255,.05),transparent 50%),#141514", ink: "#f3f1e8",
-      fx: "box-shadow:inset 0 0 0 9px #6b4a2b,inset 0 0 0 11px #2e1f11,inset 0 0 26px rgba(0,0,0,.8);text-shadow:0 0 1px rgba(255,255,255,.55);padding:36px 30px" },
+      fx: "text-shadow:0 0 1px rgba(255,255,255,.55)" },
     { bg: "linear-gradient(rgba(10,6,8,.6),rgba(10,6,8,.6)),repeating-linear-gradient(0deg,transparent 0 26px,#1a0f0d 26px 29px),repeating-linear-gradient(90deg,#5a2a22 0 58px,#1a0f0d 58px 61px)", ink: "#fff1dc",
-      fx: "text-shadow:0 0 5px #ffb45e,0 0 14px #ff7a1a,0 0 30px #ff5a00" }
+      fx: "text-shadow:0 0 5px #ffb45e,0 0 14px #ff7a1a,0 0 30px #ff5a00" },
+    /* v107, Mike: "I wish there was another row down there ... notebook paper, some parchment
+       paper, a blackboard (no border), some far out galaxy thing you can print neon purple
+       on ... some that would be for girly stuff." 14 parchment, 15 notebook, 16 galaxy,
+       17 blush with dots, 18 cotton candy. NEVER reorder these: a share remembers its number. */
+    { bg: "radial-gradient(ellipse at 18% 12%,rgba(120,78,28,.28),transparent 40%),radial-gradient(ellipse at 88% 90%,rgba(120,78,28,.32),transparent 42%),radial-gradient(ellipse at 50% 50%,#f4e4bd 0%,#e9d3a0 62%,#cfae6e 100%)", ink: "#3b2a14",
+      fx: "box-shadow:inset 0 0 44px rgba(110,72,26,.45)" },
+    { bg: "linear-gradient(90deg,transparent 36px,#e58c8c 36px 38px,transparent 38px),repeating-linear-gradient(#fdfdfb 0 31px,#a9c4e6 31px 32px)", ink: "#1f2d4a" },
+    { bg: "radial-gradient(1.5px 1.5px at 12% 22%,#fff,transparent 60%),radial-gradient(1px 1px at 28% 68%,#fff,transparent 60%),radial-gradient(2px 2px at 44% 14%,#fff,transparent 60%),radial-gradient(1px 1px at 58% 82%,#fff,transparent 60%),radial-gradient(1.5px 1.5px at 72% 36%,#fff,transparent 60%),radial-gradient(1px 1px at 86% 62%,#fff,transparent 60%),radial-gradient(2px 2px at 92% 16%,#ffe9ff,transparent 60%),radial-gradient(1px 1px at 8% 88%,#fff,transparent 60%),radial-gradient(1px 1px at 36% 42%,#fff,transparent 60%),radial-gradient(ellipse at 28% 30%,rgba(168,85,247,.6),transparent 55%),radial-gradient(ellipse at 78% 72%,rgba(56,189,248,.42),transparent 55%),radial-gradient(ellipse at 64% 18%,rgba(236,72,153,.4),transparent 50%),#0b0620", ink: "#f6e3ff",
+      fx: "text-shadow:0 0 5px #e09bff,0 0 14px #a855f7,0 0 30px #7c3aed" },
+    { bg: "radial-gradient(circle,rgba(255,255,255,.6) 2.5px,transparent 3px) 0 0/24px 24px,radial-gradient(circle,rgba(255,255,255,.6) 2.5px,transparent 3px) 12px 12px/24px 24px,linear-gradient(160deg,#ffd9e8,#ffb1cf)", ink: "#8a1c4f" },
+    { bg: "radial-gradient(2px 2px at 20% 24%,#fff,transparent 60%),radial-gradient(2px 2px at 78% 18%,#fff,transparent 60%),radial-gradient(2px 2px at 64% 78%,#fff,transparent 60%),radial-gradient(2px 2px at 12% 80%,#fff,transparent 60%),linear-gradient(135deg,#fbc2eb,#c9b6f2 50%,#a6d8f0)", ink: "#4a2a7a" }
   ];
   /* 30 Sep 2026, Mike: Experience, Strength, Hope, and a question. Nothing that invites a pity party. */
   var NEED = { talk: "JUST TALKING", experience: "EXPERIENCE", strength: "STRENGTH", hope: "HOPE", question: "A QUESTION", moment: "A MOMENT", win: "A WIN" };
@@ -2072,7 +2086,13 @@ html.kb .ch-bar{padding-bottom:8px}
     snap: { title: "SHARE A PHOTO",      holder: "Say something about it (optional)" }
   };
   var HOLDER = { experience: "What happened, and what did you learn?", strength: "What's keeping you going?", hope: "What's getting better?", question: "Ask the Porch anything." };
-  $("styles").innerHTML = CARDS.map(function (c, i) { return '<button type="button" data-style="' + i + '" style="background:' + c.bg + ";color:" + c.ink + '" aria-label="Card ' + (i + 1) + '">Aa</button>'; }).join("");
+  /* TWO ROWS, ALL OF THEM IN SIGHT (v107, Mike: "I don't see anything other than the different
+     colors"). It was one row you had to swipe sideways, and on a desktop there is no swipe. */
+  (function () {
+    var one = function (i) { var c = CARDS[i]; return '<button type="button" data-style="' + i + '" style="background:' + c.bg + ";color:" + c.ink + '" aria-label="Card ' + (i + 1) + '">Aa</button>'; };
+    var row = function (name, from, to) { var h = ""; for (var i = from; i <= to; i++) h += one(i); return '<p class="srow-t">' + name + '</p><div class="srow">' + h + "</div>"; };
+    $("styles").innerHTML = row("COLORS", 0, 9) + row("PAPER AND FUN", 10, CARDS.length - 1);
+  })();
   document.querySelectorAll("[data-ico]").forEach(function (el) { el.innerHTML = ico(el.dataset.ico); });
 
   async function openCompose(m, fresh) {
@@ -2113,7 +2133,7 @@ html.kb .ch-bar{padding-bottom:8px}
     $("cardpick").hidden = mode !== "sign";
     $("cmodes").hidden = !!editingPost || mode === "snap";
     document.querySelectorAll("#cmodes [data-cm]").forEach(function (b) { b.classList.toggle("on", b.dataset.cm === mode); });
-    $("chint").textContent = "Tap a color.";
+    $("chint").textContent = "Tap a card.";
     /* the preview IS the share, exactly as it will show on the Porch */
     $("cprev").innerHTML = postHTML({ id: "preview", user_id: me.uid, need: need,
       body: t || (mode === "sign" ? "Your saying goes here." : mode === "say" ? "Your words show up here." : ""),
