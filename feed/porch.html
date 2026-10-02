@@ -170,6 +170,13 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 /* PHOTOS, THE FACEBOOK WAY. One photo keeps its shape, but never taller than 4:5
    or wider than 1.91:1. Two sit side by side, three are one big + two stacked,
    four are a 2x2 grid. Tap any of them to see them all full screen. */
+.fsp{position:relative;display:block;width:100%;aspect-ratio:1/1;margin:10px 0 2px;padding:0;border-radius:18px;overflow:hidden;background:#000;border:1px solid rgba(224,189,106,.3);cursor:pointer}
+.fsp img{display:block;width:100%;height:100%;object-fit:cover}
+.fsp-tag{position:absolute;left:10px;top:10px;display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;background:rgba(16,15,12,.78);color:#e0bd6a;font:800 12.5px Arial,sans-serif;letter-spacing:.08em}
+.fsp-tag svg{width:16px;height:16px;fill:currentColor;stroke:none}
+.fsp-play{position:absolute;left:50%;top:50%;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;background:rgba(16,15,12,.6);border:2px solid rgba(255,255,255,.85);display:grid;place-items:center}
+.fsp-play svg{width:30px;height:30px;fill:#fff;stroke:none;margin-left:4px}
+.fsp-bot{position:absolute;left:0;right:0;bottom:0;padding:40px 12px 12px;background:linear-gradient(transparent,rgba(0,0,0,.8));color:#fff;font:700 14px Arial,sans-serif;display:flex;justify-content:space-between;align-items:flex-end;gap:10px;text-align:left}
 .pics{display:grid;gap:3px;background:#0d0c0a;overflow:hidden}
 .pics img{display:block;width:100%;height:100%;min-height:0;object-fit:cover;cursor:zoom-in;background:var(--field)}
 .pics.n1 img{height:auto;aspect-ratio:4/5}
@@ -1011,7 +1018,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v91</span>
+  <span class="ver" id="ver">v92</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1586,13 +1593,22 @@ html.kb .ch-bar{padding-bottom:8px}
       media = '<div class="pics n' + photos.length + '">' +
         photos.map(function (x, i) { return '<img src="' + pic(x) + '" alt="" loading="lazy" data-view="' + i + '">'; }).join("") + "</div>";
     } else if (p.card_style != null && fitsCard(text)) { media = handHTML(text, p.card_style); text = ""; }
+    var isSpin = p.need === "moment";
+    if (isSpin) {
+      var sv = spinOf[p.id], secs = sv && sv.length_s ? Math.max(1, Math.round(sv.length_s)) : 0;
+      media = '<button type="button" class="fsp" data-spin-post aria-label="Watch this Spin">' +
+        (sv ? '<img src="' + SPIN_CDN + "/" + sv.video_guid + '/thumbnail.jpg" alt="" loading="lazy">' : "") +
+        '<span class="fsp-tag"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.6" cy="7" r="2.7"/><circle cx="12.9" cy="6.2" r="3.5"/><path d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z"/><path d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPIN</span>' +
+        '<span class="fsp-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></span>' +
+        '<span class="fsp-bot"><span>Tap to watch' + (secs ? " · 0:" + (secs < 10 ? "0" : "") + secs : "") + "</span></span></button>";
+    }
     var long = text.length > 420 || text.split("\n").length > 7;
     var mins = Math.max(1, Math.round(text.split(/\s+/).length / 200));
     var r = mine[p.id] || {};
     return '<article class="post" id="p-' + p.id + '" data-post="' + p.id + '">' +
-      '<div class="ph"><button type="button" class="ubtn" data-u="' + p.user_id + '">' + avatar(people[p.user_id]) + '</button><div class="who"><b><button type="button" class="un" data-u="' + p.user_id + '">' + esc(name(p.user_id)) + "</button></b><small>" + (p.reshare_of ? "reshared · " : "") + ago(p.created_at) + (p.edited_at ? " · edited" : "") + (p.sample ? " · sample" : "") + "</small></div>" +
-        (NEED[p.need] && p.need !== "talk" ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
-        '<button type="button" class="more" data-more aria-label="Options">⋯</button></div>' +
+      '<div class="ph"><button type="button" class="ubtn" data-u="' + p.user_id + '">' + avatar(people[p.user_id]) + '</button><div class="who"><b><button type="button" class="un" data-u="' + p.user_id + '">' + esc(name(p.user_id)) + "</button></b><small>" + (p.reshare_of ? "reshared · " : "") + ago(p.created_at) + (isSpin ? " · Spin" : p.edited_at ? " · edited" : "") + (p.sample ? " · sample" : "") + "</small></div>" +
+        (NEED[p.need] && p.need !== "talk" && !isSpin ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
+        (isSpin ? "" : '<button type="button" class="more" data-more aria-label="Options">⋯</button>') + "</div>" +
       (text ? '<div class="body' + (long ? " clamp" : "") + '">' + linkify(text) + "</div>" +
         (long ? '<button type="button" class="chair" data-read>' + ico("read") + "Pull up a chair · " + mins + " min read</button>" : "") : "") + media +
       (p.reshare_of ? origHTML(p.reshare_of) : "") +
@@ -1708,19 +1724,27 @@ html.kb .ch-bar{padding-bottom:8px}
     return out;
   }
 
-  var oldestSeen = null;
+  var oldestSeen = null, spinOf = {}, SPIN_CDN = "https://vz-e533a6c3-9fe.b-cdn.net";
   async function loadMore() {
     if (tab === "groups") return;
     if (loading || done) return;
     loading = true;
     try {
-      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of&need=neq.moment&group_id=is.null&order=created_at.desc&limit=" + PAGE +
+      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of&group_id=is.null&order=created_at.desc&limit=" + PAGE +
         (oldest ? "&created_at=lt." + encodeURIComponent(oldest) : "");
       var realFollows = Object.keys(friends).filter(function (k) { return !isSample(k); });
       var list = tab === "following" && !realFollows.length ? [] : await rest(q + (tab === "following" ? "&user_id=in.(" + realFollows.join(",") + ")" : ""));
       if (list.length < PAGE) done = true;
       if (list.length) oldestSeen = list[list.length - 1].created_at;
       list = list.filter(function (p) { return !muted[p.user_id]; });
+      /* SPINS IN THE FEED (2 Oct 2026, Mike picked mockup B): every Spin already has a
+         share row (need "moment"). It shows as a square picture with a play button; a tap
+         opens the Spin player. */
+      var mo = list.filter(function (p) { return p.need === "moment"; }).map(function (p) { return p.id; });
+      if (mo.length) {
+        try { (await rest("porch_spins?post_id=in.(" + mo.join(",") + ")&status=eq.ready&select=post_id,video_guid,length_s")).forEach(function (r) { spinOf[r.post_id] = r; }); } catch (e) {}
+        list = list.filter(function (p) { return p.need !== "moment" || spinOf[p.id]; });
+      }
       if (!list.length && !done) { oldest = oldestSeen; loading = false; return loadMore(); }
       if (list.length) {
         oldest = oldestSeen;
@@ -3266,7 +3290,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function checkNew() {
     if (!newest || document.hidden) return;
     try {
-      var q = "porch_posts?created_at=gt." + encodeURIComponent(newest) + "&need=neq.moment&group_id=is.null&select=id";
+      var q = "porch_posts?created_at=gt." + encodeURIComponent(newest) + "&group_id=is.null&select=id";
       if (tab === "following") { var f = Object.keys(friends).filter(function (k) { return !isSample(k); }); if (!f.length) return; q += "&user_id=in.(" + f.join(",") + ")"; }
       var r = await fetch(DB + "/rest/v1/" + q, { method: "HEAD", headers: { apikey: KEY, Authorization: "Bearer " + ((await tok()) || KEY), Prefer: "count=exact" } });
       var n = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
@@ -3829,6 +3853,7 @@ html.kb .ch-bar{padding-bottom:8px}
       $("rwho").innerHTML = '<span class="ul" data-u="' + pp.user_id + '">' + avatar(people[pp.user_id]) + "</span><div><b class=\"ul\" data-u=\"" + pp.user_id + "\">" + esc(name(pp.user_id)) + "</b>" + ago(pp.created_at) + "</div>";
       $("rtxt").innerHTML = linkify(pp.body || ""); open("reader"); $("reader").querySelector(".page").scrollTop = 0; return;
     }
+    if (t.closest("[data-spin-post]") && id) { if (window.PorchSpins) window.PorchSpins.openPost(id); else toast("Spins are loading. Try again in a sec."); return; }
     if (t.closest("[data-more]") && id) return gate(function () { menu({ post: id }); });
     if (t.closest("[data-msgs]")) return gate(openInbox);
     if (t.closest("[data-spins]")) { if (window.PorchSpins) window.PorchSpins.openLatest(); else toast("Spins are loading. Try again in a sec."); return; }

@@ -429,3 +429,8 @@ without making it confusing.
 - [x] Each step's gold button (Add it now, Say something now, Make one now, Share it now) starts THE COACH in feed/tour.js: a gold ring and one short line on the real button to tap next, on the real screens. It moves on by itself and never blocks a tap.
 - [x] Done: the tour comes back on the next step. Backed out: it comes back on the same step.
 - [ ] Not yet tried on a real phone: a real picture upload, a real recording, and the phone's own share list.
+
+## v92 (2 Oct 2026): Spins show in the Porch feed
+- [x] Mike picked mockup B: a square picture with a play button, "Tap to watch". A tap opens the Spin player. Love this, Me too, Comment and Send work on it like any share.
+- [x] Every Spin shows in the feed by itself (Everyone and Friends). No SQL: each Spin already had a share row.
+- [ ] Not yet seen with a real Spin on a phone.
