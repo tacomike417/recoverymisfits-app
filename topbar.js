@@ -208,6 +208,7 @@
       /* THE STEPS. Bigger type than the rest of this app on purpose: this
          is read once, by somebody who may be shaky, tired, and holding the
          phone at arm's length. Nothing here is decorative. */
+      .rm-steps[hidden],.rm-point[hidden]{display:none!important}
       .rm-steps{
         list-style:none;
         margin:14px 0 4px;
@@ -422,12 +423,17 @@
         <div class="rm-install-row">
           <img class="rm-install-icon" src="${APP_ICON_URL}" alt="" />
           <div class="rm-install-copy">
-            <div class="rm-install-title">Get the free Recovery Misfits app</div>
-            <div class="rm-install-sub">Faster, works offline, one tap from your home screen.</div>
+            <div class="rm-install-title">Install Recovery Misfits</div>
+            <div class="rm-install-sub">Free. Works offline. One tap from your home screen.</div>
           </div>
         </div>
+        <ol class="rm-steps" id="rm-and-steps" hidden>
+          <li><span class="rm-step-n">1</span><span class="rm-step-t">Tap <b>&#8942;</b> at the top right of Chrome.</span></li>
+          <li><span class="rm-step-n">2</span><span class="rm-step-t">Tap <b>Add to Home screen</b>.</span></li>
+          <li><span class="rm-step-n">3</span><span class="rm-step-t">Tap <b>Install</b>. Not &ldquo;Create shortcut&rdquo;.</span></li>
+        </ol>
         <div class="rm-install-actions">
-          <button class="rm-install-cta" id="rm-install-cta" type="button">Install</button>
+          <button class="rm-install-cta" id="rm-install-cta" type="button">Install app now</button>
           <button class="rm-install-dismiss" id="rm-install-dismiss">Not now</button>
         </div>
       `;
@@ -463,12 +469,12 @@
         <div class="rm-install-row">
           <img class="rm-install-icon" src="${APP_ICON_URL}" alt="" />
           <div class="rm-install-copy">
-            <div class="rm-install-title">Put Recovery Misfits on your phone</div>
+            <div class="rm-install-title">Install Recovery Misfits</div>
             <div class="rm-install-sub">Takes about ten seconds. It&rsquo;s free, and it works with no signal.</div>
           </div>
         </div>
 
-        <ol class="rm-steps">
+        <ol class="rm-steps" id="rm-ios-steps" hidden>
           <li>
             <span class="rm-step-n">1</span>
             <span class="rm-step-t">Tap this button at the bottom of your screen. Don&rsquo;t see it? Tap <b>&#8943;</b> first, then <b>Share</b>
@@ -497,13 +503,13 @@
           </li>
         </ol>
 
-        <div class="rm-point" aria-hidden="true">
+        <div class="rm-point" id="rm-ios-point" aria-hidden="true" hidden>
           <span class="rm-point-arrow">&darr;</span>
           <span class="rm-point-text">the button is down there</span>
         </div>
 
         <div class="rm-install-actions">
-          <button class="rm-install-cta" id="rm-install-cta">Got it</button>
+          <button class="rm-install-cta" id="rm-install-cta">Install app now</button>
           <button class="rm-install-dismiss" id="rm-install-dismiss">Not now</button>
         </div>
       `;
@@ -569,30 +575,33 @@
     const dismissBtn = document.getElementById("rm-install-dismiss");
 
     if (isAndroid && cta) {
+      /* 1 Oct 2026 (Mike): one plain "Install app now" button. If Chrome has its
+         one-tap box ready, that's what opens. If it doesn't, the three menu steps
+         show right here, and the button goes back to one-tap the moment Chrome
+         is ready. */
+      const steps = document.getElementById("rm-and-steps");
+      const oneTap = () => {
+        const ask = deferredInstall; deferredInstall = null;
+        ask.prompt();
+        ask.userChoice.then((c) => closeInstallSheet(scrim, wrap, c && c.outcome === "accepted"), () => closeInstallSheet(scrim, wrap));
+      };
       cta.addEventListener("click", () => {
         if (window.gtag) window.gtag("event", "pwa_install_click");
-        /* One tap: Chrome's own install box. */
-        if (deferredInstall) {
-          const ask = deferredInstall;
-          deferredInstall = null;
-          ask.prompt();
-          ask.userChoice.then((c) => closeInstallSheet(scrim, wrap, c && c.outcome === "accepted"), () => closeInstallSheet(scrim, wrap));
-          return;
-        }
-        /* Chrome hasn't offered the one-tap box on this visit (or it's
-           another browser). The menu route always works, so show it right
-           here instead of sending them anywhere. */
-        const sub = wrap.querySelector(".rm-install-sub");
-        const title = wrap.querySelector(".rm-install-title");
-        if (title) title.textContent = "Two taps from your browser menu";
-        if (sub) sub.innerHTML = "Tap the <b>&#8942;</b> menu in the corner, then <b>Install app</b> or <b>Add to Home screen</b>.";
-        cta.textContent = "Got it";
-        cta.onclick = () => closeInstallSheet(scrim, wrap);
-      }, { once: true });
+        if (deferredInstall) return oneTap();
+        if (steps && steps.hidden) { steps.hidden = false; cta.textContent = "Got it"; return; }
+        closeInstallSheet(scrim, wrap);
+      });
+      window.addEventListener("beforeinstallprompt", () => {
+        setTimeout(() => { if (deferredInstall && cta.isConnected) { if (steps) steps.hidden = true; cta.textContent = "Install app now"; } }, 0);
+      });
     }
 
     if (isIOS && cta) {
-      cta.addEventListener("click", () => closeInstallSheet(scrim, wrap));
+      const isteps = document.getElementById("rm-ios-steps"), ipoint = document.getElementById("rm-ios-point");
+      cta.addEventListener("click", () => {
+        if (isteps && isteps.hidden) { isteps.hidden = false; if (ipoint) ipoint.hidden = false; cta.textContent = "Got it"; return; }
+        closeInstallSheet(scrim, wrap);
+      });
     }
 
     /* Wrong browser: hand them the address so there is nothing to type.
