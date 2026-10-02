@@ -491,7 +491,7 @@ Deno.serve(async (req) => {
       const path = await storePhoto(user.id, bytes); if (!path) return json({ error: "The photo didn't upload. Try again." }, 500);
       paths.push(path);
     }
-    const style = Number.isInteger(b.card_style) ? Math.max(0, Math.min(11, b.card_style)) : null;
+    const style = Number.isInteger(b.card_style) ? Math.max(0, Math.min(13, b.card_style)) : null;
     const link_preview = paths.length ? null : await previewFor(text);
     const { data, error } = await admin.from("porch_posts")
       .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style, link_preview: reshareOf ? null : link_preview, ...(groupId ? { group_id: groupId } : {}), ...(reshareOf ? { reshare_of: reshareOf } : {}) })
@@ -645,7 +645,7 @@ Deno.serve(async (req) => {
       if (!["talk", "experience", "strength", "hope", "question"].includes(String(b.need))) return json({ error: "Pick what you need." }, 400);
       change.need = String(b.need);
     }
-    if (isPost && (row as any).card_style != null && Number.isInteger(b.card_style)) change.card_style = Math.max(0, Math.min(11, b.card_style));
+    if (isPost && (row as any).card_style != null && Number.isInteger(b.card_style)) change.card_style = Math.max(0, Math.min(13, b.card_style));
     if (isPost && !hasPhotos) change.link_preview = await previewFor(text);
     const { error } = await admin.from(table).update(change).eq("id", id).eq("user_id", user.id);
     if (error) return json({ error: "That didn't save. Try again." }, 500);

@@ -468,3 +468,7 @@ without making it confusing.
 - [x] supabase/porch_33_daily_prayer.sql: the timer, now meme at 6 and prayer at 7.
 - [ ] Mike: push, deploy porch-daily, run porch_33.
 - [ ] Six prayers say drink or drinking (Jan 11, Mar 17, Jun 6, Jun 18, Oct 23, Dec 9). Mike decides if that stays.
+
+## v99 (2 Oct 2026): two new saying cards
+- [x] A black chalkboard in a wood frame, and a neon sign on a brick wall. 14 cards now, for everybody's sayings and the daily prayer.
+- [ ] Mike: push, then deploy BOTH functions (porch and porch-daily) so the two new cards are allowed.

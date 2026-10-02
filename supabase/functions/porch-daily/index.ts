@@ -29,7 +29,7 @@ const SITE = "https://recoverymisfits.org";
 const START_HOUR = 6;                       // the meme: 6am Eastern
 const PRAYER_HOUSE = "spiritual_misfit";
 const PRAYER_HOUR = 7;                      // the prayer: 7am Eastern
-const CARD_STYLES = 12;                     // the saying-card backgrounds in feed/porch.html
+const CARD_STYLES = 14;                     // the saying-card backgrounds in feed/porch.html
 const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   { auth: { persistSession: false } });
 const json = (data: unknown, status = 200) =>
@@ -77,7 +77,7 @@ async function prayer(day: string, hour: number) {
   const { data: had } = await admin.from("porch_posts").select("id").eq("user_id", m.user_id)
     .eq("body", text).gte("created_at", since20h()).limit(1);
   if (had && had.length) return { posted: false, why: "today's prayer is already up" };
-  /* a mix of the backgrounds: a different card every day, all twelve before any repeats */
+  /* a mix of the backgrounds: a different card every day, every one before any repeats */
   const [, mo, dd] = day.split("-").map(Number);
   const dayOfYear = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334][mo - 1] + dd;
   const style = (dayOfYear * 5 + 3) % CARD_STYLES;

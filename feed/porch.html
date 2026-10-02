@@ -1018,7 +1018,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v98</span>
+  <span class="ver" id="ver">v99</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1522,7 +1522,14 @@ html.kb .ch-bar{padding-bottom:8px}
     { bg: "linear-gradient(160deg,#402a33,#11100c)", ink: "#f1e7cf" },
     { bg: "radial-gradient(circle at 50% 35%,#e0bd6a,#8a6420 75%)", ink: "#1b1307" },
     { bg: "linear-gradient(90deg,transparent 30px,#e07a6b 30px 32px,transparent 32px),repeating-linear-gradient(#f6e48c 0 34px,#9fb6d2 34px 35px)", ink: "#1f2d4a" },
-    { bg: "linear-gradient(#fbf8f0 0 30px,#e06b5b 30px 32px,#fbf8f0 32px)", ink: "#1b1a17" }
+    { bg: "linear-gradient(#fbf8f0 0 30px,#e06b5b 30px 32px,#fbf8f0 32px)", ink: "#1b1a17" },
+    /* 2 Oct 2026, Mike: "I like the chalkboard one that's black. We should probably add one
+       more in that's kind of cool." A black chalkboard in a wood frame, and a neon sign on
+       a brick wall. fx = extra styling for the words and the frame. */
+    { bg: "radial-gradient(ellipse at 28% 18%,rgba(255,255,255,.09),transparent 55%),radial-gradient(ellipse at 80% 85%,rgba(255,255,255,.05),transparent 50%),#141514", ink: "#f3f1e8",
+      fx: "box-shadow:inset 0 0 0 9px #6b4a2b,inset 0 0 0 11px #2e1f11,inset 0 0 26px rgba(0,0,0,.8);text-shadow:0 0 1px rgba(255,255,255,.55);padding:36px 30px" },
+    { bg: "linear-gradient(rgba(10,6,8,.6),rgba(10,6,8,.6)),repeating-linear-gradient(0deg,transparent 0 26px,#1a0f0d 26px 29px),repeating-linear-gradient(90deg,#5a2a22 0 58px,#1a0f0d 58px 61px)", ink: "#fff1dc",
+      fx: "text-shadow:0 0 5px #ffb45e,0 0 14px #ff7a1a,0 0 30px #ff5a00" }
   ];
   /* 30 Sep 2026, Mike: Experience, Strength, Hope, and a question. Nothing that invites a pity party. */
   var NEED = { talk: "JUST TALKING", experience: "EXPERIENCE", strength: "STRENGTH", hope: "HOPE", question: "A QUESTION", moment: "A MOMENT", win: "A WIN" };
@@ -1533,7 +1540,7 @@ html.kb .ch-bar{padding-bottom:8px}
   function handSize(t) { var n = t.length; return n <= 40 ? 36 : n <= 90 ? 31 : n <= 140 ? 27 : n <= 160 ? 24 : 22; }
   function handHTML(t, style) {
     var c = CARDS[(style == null ? 0 : style) % CARDS.length];
-    return '<div class="hand" style="background:' + c.bg + ";color:" + c.ink + ";font-size:" + handSize(t) + 'px">' + esc(t) + "</div>";
+    return '<div class="hand" style="background:' + c.bg + ";color:" + c.ink + ";font-size:" + handSize(t) + "px" + (c.fx ? ";" + c.fx : "") + '">' + esc(t) + "</div>";
   }
   function linkify(s) {
     return esc(s).replace(/\b((?:https?:\/\/|www\.)[^\s<]+)/gi, function (u) {
