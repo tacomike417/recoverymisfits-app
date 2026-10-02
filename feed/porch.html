@@ -410,9 +410,11 @@ html.fullon #main{visibility:hidden}
 .pedit{display:block;margin:14px 16px 0;width:calc(100% - 32px);padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:700 14.5px Arial,sans-serif;cursor:pointer}
 .nd-snd{display:block;margin:10px 14px 2px auto;padding:6px 12px;border-radius:999px;border:1px solid rgba(60,45,20,.25);background:rgba(49,162,76,.14);color:#1f6b33;font:800 12.5px Arial,sans-serif;cursor:pointer}
 .nd-snd.off{background:rgba(200,50,40,.1);color:#9a2a20}
-.nd-ios{display:block;width:calc(100% - 28px);margin:10px 14px 0;padding:10px 12px;border-radius:12px;border:1px solid #d9c9a0;background:#fff6dc;color:#3a3122;font:600 13.5px/1.35 Arial,sans-serif;text-align:left;cursor:pointer}
+.nd-ios{display:flex;align-items:center;gap:10px;width:calc(100% - 28px);margin:10px 14px 0;padding:10px 12px;border-radius:12px;border:1px solid #d9c9a0;background:#fff6dc;color:#3a3122;font:600 13.5px/1.35 Arial,sans-serif;text-align:left;cursor:pointer}
 .nd-ios b{text-decoration:underline}
-.ios-steps{margin:0;padding-left:24px;text-align:left;font:600 17px/1.5 Arial,sans-serif}
+.nd-ios i{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid #8a6a1f;color:#8a6a1f;display:grid;place-items:center;font:italic 800 14px Georgia,serif}
+.ios-why{margin:0 0 6px;text-align:left;font:600 15px/1.4 Arial,sans-serif;color:var(--muted)}
+.ios-steps{margin:0;padding-left:24px;text-align:left;font:600 16px/1.4 Arial,sans-serif}
 .ios-steps li{margin:6px 0}
 /* RESHARE (1 Oct 2026) */
 .rs-card{display:block;margin:10px 12px 0;padding:12px;border-radius:14px;border:1px solid var(--fline);background:var(--field);cursor:pointer;text-align:left}
@@ -942,7 +944,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS</button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v75</span>
+  <span class="ver" id="ver">v76</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1199,7 +1201,7 @@ html.kb .ch-bar{padding-bottom:8px}
   <div class="nd-panel" id="ndpanel">
     <div class="nd-head"><b>Notifications</b><button type="button" class="nd-sw" id="ndsw" aria-pressed="false"><span id="ndswl">Alerts OFF</span><i></i></button></div>
     <button type="button" class="nd-snd" id="ndsnd" aria-pressed="true">Sounds on</button>
-    <button type="button" class="nd-ios" id="ndios" hidden>On iPhone? Alerts and call ringing only work from your Home Screen. <b>Show me how</b></button>
+    <button type="button" class="nd-ios" id="ndios" hidden><i aria-hidden="true">i</i><span>iPhone: alerts won't turn on? <b>Tap for the fix</b></span></button>
     <div id="nlist"></div>
   </div>
 </div>
@@ -3228,7 +3230,7 @@ html.kb .ch-bar{padding-bottom:8px}
     else if (iOS && !standalone) off = true;
     else if (state === "denied" || Notification.permission === "denied") off = true;
     else on = !!(await pushSub()) && Notification.permission === "granted";
-    $("ndios").hidden = !(iOS && !standalone);
+    $("ndios").hidden = !(iOS && !on);
     l.textContent = on ? "Alerts ON" : "Alerts OFF";
     sw.setAttribute("aria-label", on ? "Phone alerts are on. Tap to turn off." : "Phone alerts are off. Tap to turn on."); sw.classList.toggle("off", off); sw.setAttribute("aria-pressed", on ? "true" : "false");
   }
@@ -3254,14 +3256,14 @@ html.kb .ch-bar{padding-bottom:8px}
   /* iPhone only does alerts from the Home Screen. Konner couldn't find Share (it's under
      the three dots now), so spell it out, same sheet from the switch and the nudge. */
   function iosSteps() {
-    var safari = !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
     $("aptitle").textContent = "Alerts on iPhone";
-    $("apbody").innerHTML = '<ol class="ios-steps">' +
-      (safari ? "" : "<li>Open recoverymisfits.org in <b>Safari</b>.</li>") +
+    $("apbody").innerHTML = '<p class="ios-why">You might have to take the app off and put it back on. Takes a minute.</p><ol class="ios-steps">' +
+      "<li>Hold the <b>Recovery Misfits</b> icon and remove it.</li>" +
+      "<li>Open recoverymisfits.org in <b>Safari</b>.</li>" +
       "<li>Tap <b>⋯</b> at the bottom, then <b>Share</b>.</li>" +
       "<li>Tap <b>Add to Home Screen</b>.</li>" +
-      "<li>Open <b>Recovery Misfits</b> from the new icon.</li>" +
-      "<li>Tap the bell, then <b>Alerts</b>.</li></ol>";
+      "<li>Open it from the new icon and sign in.</li>" +
+      "<li>Tap the bell, then <b>Alerts</b>, then <b>Allow</b>.</li></ol>";
     $("apyes").textContent = "Got it"; $("apyes").dataset.ios = "1"; $("apno").hidden = true;
     open("askpush");
   }
