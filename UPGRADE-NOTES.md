@@ -15,6 +15,20 @@ Order isn't set.
 - [x] Spin music: pick the 50 clips (picker page), install them, push (done 1 Oct: 50 clips, 15 seconds)
 - [x] Play Store app rebuild (dropped: the Play Store app is parked on purpose, the web based app is the real one)
 - [ ] Day 1 checklist: flip the lock, sample posts off, welcome post on top, a few people ready to share
+- [x] Groups get their own address: recoverymisfits.org/groups/<name> (v84, 2 Oct). Picked when the group is
+      started, Keeper can change it. The address page shows only the group's name and what it's for.
+- [x] GROUPS tab shows how many new shares are waiting in your groups (v84, 2 Oct), and a number on each group.
+- [x] Comments on the paper look under every share, with an "Add a comment" line; heart button and
+      tap-to-reply in the comments window (v84, 2 Oct).
+- [x] No dead ends on the Porch (v84, 2 Oct): arrow on pages you browse, X on things you can cancel.
+- [ ] IDEA (Mike, 1 Oct, brainstorm, not decided): Share from the Daily Stack to the Porch. Own stuff
+      (Another Day Sober, the meme, On Awakening) goes in as a card that opens the page in the app.
+      Outside readings (Daily Reflections, Twenty-Four Hours) go in as a link card with the date, never
+      their words. Build it hidden behind the tester lock so it goes live Oct 20 with the Porch.
+      Open question: meme as a picture post, a Spin with music, or let them pick.
+- [ ] IDEA (1 Oct): fill Spins with our own stuff instead of outside videos: a house account posts a meme
+      + music Spin and a daily-reading Spin each day; a "Spin of the day" prompt. Outside video sources
+      looked at and passed on: KLIPY, GIPHY Clips, OpenWeb Ninja, ViralHog.
 
 **Before the doors open**
 - [x] "Need help now?": already there, the Call 988 line at the bottom of the post screen.
