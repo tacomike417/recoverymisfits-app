@@ -534,6 +534,8 @@
       if (fired && Date.now() - fired < 1200 && e.target.closest && e.target.closest(SEL)) { e.preventDefault(); e.stopPropagation(); fired = 0; }
     }, true);
     document.addEventListener("contextmenu", function (e) { if (e.target.closest && e.target.closest(SEL)) e.preventDefault(); }, true);
+    /* on a desktop, holding the mouse on a link starts dragging it, which cancelled the hold */
+    document.addEventListener("dragstart", function (e) { if (e.target.closest && e.target.closest(SEL)) e.preventDefault(); }, true);
   })();
 
   window.RMAccount = {
@@ -552,6 +554,7 @@
     local: localSettings,
     apply: applySettings,
     uid: uid,
+    anonKey: ANON_KEY,     /* the public key, for reading the Porch from account.html */
     localOwner: localOwner,
     localIsMine: localIsMine,
     claimLocal: claimLocal,

@@ -475,3 +475,8 @@ without making it confusing.
 
 ## v100 (2 Oct 2026): switching accounts no longer pops the coin
 - [x] Each account keeps its own record of the last coin and Survival Pile card it was shown (assets/account.js, coins.js). A real milestone still pops.
+
+## v101 (2 Oct 2026): the account page
+- [x] "Set up my profile" no longer shows for a profile that is already set up. The page asks the Porch (picture, bio or name) instead of trusting a note one browser kept.
+- [x] On the account page, the Account button in the bottom bar opens the switcher. There is also a Switch pill next to "Signed in as".
+- [x] Desktop: holding the mouse on the Account button no longer gets cancelled by the browser trying to drag the link.

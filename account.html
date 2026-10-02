@@ -412,7 +412,8 @@
        date here is the moment it pays off -- and then they are sent home,
        not left on a settings screen. -->
   <div id="datestep" hidden>
-    <p class="signedas">Signed in as <b id="dsWho"></b></p>
+    <p class="signedas">Signed in as <b id="dsWho"></b>
+      <button type="button" id="dsSwitchTop" style="margin-left:8px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--gold);font:800 13px var(--ui);cursor:pointer">Switch</button></p>
     <div class="warn" style="text-align:center">
       <h2 id="dsKick">One more thing</h2>
       <p id="dsAsk" style="text-align:center">When did you get sober?<br>
@@ -555,8 +556,9 @@
       $("dsDays").textContent = n === null ? "" : n.toLocaleString() + (n === 1 ? " day" : " days");
       $("dsPick").hidden = true;
       $("dsSkip").hidden = true;
-      $("dsHome").href = wantsPorch() ? "/feed/porch.html?setup=1" : RETURN_TO;
-      $("dsHome").textContent = wantsPorch() ? "Next: Set Up My Profile" : next === "readings" ? "Back to Readings" : next === "feed" ? "Back to the Porch" : "Take Me Home";
+      var setup = wantsPorch() && !profDone();
+      $("dsHome").href = setup ? "/feed/porch.html?setup=1" : RETURN_TO;
+      $("dsHome").textContent = setup ? "Next: Set Up My Profile" : next === "readings" ? "Back to Readings" : next === "feed" ? "Back to the Porch" : "Take Me Home";
       $("dsHome").hidden = false;
     } else {
       $("dsKick").textContent = "One more thing";
@@ -567,7 +569,7 @@
       $("dsHome").hidden = true;
     }
     paintPorchCard();
-    $("porchCard").hidden = $("porchCard").hidden || wantsPorch();   /* the big button already says it */
+    $("porchCard").hidden = $("porchCard").hidden || (wantsPorch() && !profDone());   /* the big button already says it */
     paint("date");
   }
 
@@ -583,14 +585,41 @@
     }, 500);
   });
 
-  $("dsSkip").addEventListener("click", function () { location.href = wantsPorch() ? "/feed/porch.html?setup=1" : RETURN_TO; });
+  $("dsSkip").addEventListener("click", function () { location.href = wantsPorch() && !profDone() ? "/feed/porch.html?setup=1" : RETURN_TO; });
+
+  /* IS THE PROFILE SET UP? (2 Oct 2026, Mike: "I have my profile set up, and when I go click
+     on my app account it says set up your profile, like I didn't do it already.") It used to
+     go by a note this one browser kept after the setup screens, so a profile made on the
+     phone, or by Edit Profile, looked brand new here. Now it asks the Porch: a picture, a
+     bio or a profile name means it's set up. The note is still honored, per account. */
+  var profSeen = {};
+  function profDone() {
+    var n = A.name(), flag = false;
+    try { flag = localStorage.getItem("rm_porch_setup_done_" + n) === "1"; } catch (e) {}
+    return flag || !!profSeen[n];
+  }
+  async function checkProfile() {
+    var n = A.name(); if (!n || !A.signedIn()) return;
+    try {
+      var t = await A.token(); if (!t) return;
+      var r = await fetch("https://rlytvfehbglsjfvprtbp.supabase.co/rest/v1/porch_members?user_id=eq." + encodeURIComponent(A.uid()) + "&select=avatar_path,bio,real_name,cover_path",
+        { headers: { apikey: A.anonKey, Authorization: "Bearer " + t } });
+      if (!r.ok) return;
+      var m = (await r.json())[0];
+      if (m && (m.avatar_path || m.bio || m.real_name || m.cover_path)) {
+        profSeen[n] = true;
+        try { localStorage.setItem("rm_porch_setup_done_" + n, "1"); } catch (e) {}
+        if (!$("datestep").hidden) showDateStep();
+      }
+    } catch (e) {}
+  }
 
   /* the Porch card under the date: set up your profile, or see it */
   function paintPorchCard() {
     var c = $("porchCard");
     if (!A.signedIn()) { c.hidden = true; return; }
     c.hidden = false;
-    var done = false; try { done = localStorage.getItem("rm_porch_setup_done") === "1"; } catch (e) {}
+    var done = profDone();
     if (!porchFor(A.name())) {
       $("pcKick").textContent = "Level 2 · the Porch";
       $("pcTxt").textContent = "Post, make Spins, add friends and message. It opens at the end of October.";
@@ -936,6 +965,15 @@
   /* THE ACCOUNT SWITCHER (2 Oct 2026, Mike). Also on every page: hold a finger on the
      Account button in the bottom rail. */
   $("dsSwitch").addEventListener("click", function () { if (A.switcher) A.switcher(); });
+  $("dsSwitchTop").addEventListener("click", function () { if (A.switcher) A.switcher(); });
+  /* ON THIS PAGE THE ACCOUNT BUTTON IN THE BOTTOM BAR OPENS THE SWITCHER (2 Oct 2026, Mike:
+     "as soon as I get to that page, I can't click account down there and switch"). Here a
+     tap on it only reloaded this same page, which looked like a dead button. */
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("#rmAccountBtn");
+    if (!b || !A.signedIn() || !A.switcher) return;
+    e.preventDefault(); A.switcher();
+  });
   $("dsOut").addEventListener("click", function () {
     A.signOut();
     /* another account is on this phone: it takes over, the way Instagram does it */
@@ -958,6 +996,7 @@
     goForm("", "old");
     if (stay) $("formLede").innerHTML = "Add another account. <b>" + stay.replace(/[&<>]/g, "") + "</b> stays signed in on this phone too.";
   } else if (A.signedIn()) {
+    checkProfile();
     showDateStep();
     settle(false).then(showDateStep);
   } else if (new URLSearchParams(location.search).get("signin") === "1") {
