@@ -619,7 +619,7 @@
     const row = (k, ico, t, sub) => `<button type="button" class="sx" data-sh="${k}"><span class="sx-i">${ico}</span><span class="sx-t"><b>${t}</b><small class="sx-sub">${sub}</small></span></button>`;
     const el = sheet('', `<div class="sxs">
       ${row('dm', '<svg viewBox="0 0 24 24"><path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:currentColor;stroke:none"/><circle cx="8" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/><circle cx="12" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/><circle cx="16" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/></svg>', 'Send in Misfit Messages', 'To a friend on the Porch')}
-      ${row('video', CAM_ICO, 'Share this video', 'Reels · Stories · TikTok')}
+      ${row('video', CAM_ICO, 'Share this video', 'YouTube · Reels · TikTok')}
       ${row('link', '<svg viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>', 'Share the link', 'Text · Messenger · Email')}
       </div>`);
     let ready = null;
@@ -641,7 +641,7 @@
         b.disabled = true; sub.textContent = 'Getting it ready…';
         file = await getting;
         b.disabled = false;
-        if (!file) { sub.textContent = 'Reels · Stories · TikTok'; say("Couldn't get the video. Try the link."); return; }
+        if (!file) { sub.textContent = 'YouTube · Reels · TikTok'; say("Couldn't get the video. Try the link."); return; }
         sub.textContent = 'Ready! Tap again'; b.classList.add('ready'); return;
       }
       await closeSheet();

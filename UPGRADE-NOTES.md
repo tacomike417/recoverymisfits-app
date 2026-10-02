@@ -21,6 +21,12 @@ Order isn't set.
 - [x] Comments on the paper look under every share, with an "Add a comment" line; heart button and
       tap-to-reply in the comments window (v84, 2 Oct).
 - [x] No dead ends on the Porch (v84, 2 Oct): arrow on pages you browse, X on things you can cancel.
+- [x] THE PORCH TOUR (v88, 2 Oct): pops up the first time somebody lands on the Porch signed in. One thing
+      per screen with a real screenshot and a gold ring on what to tap: add your picture, say something,
+      make a Spin, put your Spin on YouTube, then "want to see what else you can do?". Every step has a
+      button that opens the real screen. A "Getting started" strip sits above the feed until the three
+      are done, and "How the Porch works" is in the account menu. Files: feed/tour.js, feed/tour/*.webp
+      (real screenshots; retake them if those screens change a lot).
 - [x] THE BETA DOOR (v86, 2 Oct): recoverymisfits.org/beta.html. Anybody who opens that link is let
       into the Porch on that phone, and on their first signed-in visit becomes a beta tester (can post
       right away, 60-second Spins, friends with tacomike417). NOT the launch: no link, no Porch.

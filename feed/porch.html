@@ -1009,7 +1009,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v87</span>
+  <span class="ver" id="ver">v88</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1808,6 +1808,8 @@ html.kb .ch-bar{padding-bottom:8px}
     var el = stack.pop(); if (el && el._close) { try { el._close(); } catch (e) {} } else if (el) el.classList.remove("open");
     if (!stack.length) document.documentElement.classList.remove("locked");
     syncRail();
+    /* back on the feed: the Getting started strip catches up with what they just did */
+    if (!stack.length && window.PorchTour) setTimeout(function () { try { window.PorchTour.refresh(); } catch (e) {} }, 500);
   }
   /* 1 Oct 2026, Mike: "my profile page loses the bottom rail and sober rail". While a
      profile is the top screen, the app's bottom rail (sober plate + tabs) sits on top of
@@ -2579,6 +2581,7 @@ html.kb .ch-bar{padding-bottom:8px}
       '<button type="button" data-mm="saved">Saved shares</button>' +
       '<button type="button" data-mm="coins">My coins</button>' +
       '<button type="button" data-mm="invite">Invite somebody</button>' +
+      '<button type="button" data-mm="tour">How the Porch works</button>' +
       '<button type="button" data-mm="account">Your app account</button>' +
       '<button type="button" data-mm="signout">Sign out</button>';
     open("memenu");
@@ -3778,10 +3781,10 @@ html.kb .ch-bar{padding-bottom:8px}
          menu, not the feed. Screens open on top of it; only leaving the Porch closes it. */
       var which = mm.dataset.mm, LAYER = { profile: "profile", notes: "notes", saved: "saved", friends: "friends", findf: "setup", mod: "mod", edit: "editp" };
       var go = function () {
-        if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends(); else if (which === "coins") location.href = "/coins.html"; else if (which === "invite") invite(); else if (which === "findf") openSetup("friends");
+        if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends(); else if (which === "coins") location.href = "/coins.html"; else if (which === "invite") invite(); else if (which === "findf") openSetup("friends"); else if (which === "tour") { if (window.PorchTour) window.PorchTour.open(0); }
         else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else if (which === "signout") signOutHere(); else gate(openEdit);
       };
-      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout)$/.test(which) ? "editp" : "");
+      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout|tour)$/.test(which) ? "editp" : "");
       /* already open underneath (say, your own profile)? close the menu to show it */
       if (lay && stack.indexOf($(lay)) < 0 && t.closest("#memenu")) return go();
       closeTop().then(go); return; }
@@ -4110,7 +4113,14 @@ html.kb .ch-bar{padding-bottom:8px}
     get people() { return people; }, get me() { return me; },
     toast: toast, gate: gate, open: open, closeTop: closeTop, openProfile: openProfile, openHandle: openHandle,
     openCommentsFor: openCommentsFor, isMuted: function (u) { return !!muted[u]; }, toggleMute: toggleMute, commentCount: function (id) { return (comments[id] || []).length; },
-    pickFriendToSend: function (text, card) { openPick(text, card); }
+    pickFriendToSend: function (text, card) { openPick(text, card); },
+    /* for the tour (feed/tour.js): the real screens behind its "do it now" buttons */
+    setup: function () { openSetup(); },
+    compose: function () { dialGo("say"); },
+    goTo: function (k) {
+      if (k === "friends") openSetup("friends"); else if (k === "messages") gate(openInbox);
+      else if (k === "groups") showGroupsTab(); else if (k === "invite") invite();
+    }
   };
 
   /* ================================================================ GROUPS (1 Oct 2026)
@@ -4861,7 +4871,10 @@ html.kb .ch-bar{padding-bottom:8px}
     /* a link somebody sent: /feed/porch.html?s=<share> opens that one share */
     var dmTo = new URLSearchParams(location.search).get("dm");
     if (dmTo && /^[0-9a-f-]{36}$/i.test(dmTo)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openChat(dmTo); }
-    if (/[?&]setup=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) openSetup(); }
+    if (/[?&]setup=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) { if (window.PorchTour && window.PorchTour.fresh()) window.PorchTour.open(0); else openSetup(); } }
+    /* THE TOUR (2 Oct 2026): comes up by itself the first time, then leaves a small
+       "Getting started" strip above the feed. feed/tour.js. */
+    (function tourStart(n) { if (window.PorchTour) window.PorchTour.maybe(); else if (n < 20) setTimeout(function () { tourStart(n + 1); }, 300); })(0);
     var uh = new URLSearchParams(location.search).get("u");
     if (uh && /^[a-z0-9._-]{2,32}$/i.test(uh)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (uh === "me" && me.uid) openProfile(me.uid); else openHandle(uh); }
     var who = new URLSearchParams(location.search).get("who");
@@ -4899,6 +4912,7 @@ html.kb .ch-bar{padding-bottom:8px}
 })();
 </script>
 <script src="/feed/sound.js?v=3" defer></script>
-<script src="/feed/spins/spins.js?v=66" defer></script>
+<script src="/feed/spins/spins.js?v=67" defer></script>
+<script src="/feed/tour.js?v=1" defer></script>
 </body>
 </html>
