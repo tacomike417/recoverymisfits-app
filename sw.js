@@ -31,7 +31,7 @@
    normal browser behavior after four seconds, so this can never be the
    reason somebody is staring at a blank screen. */
 
-const VERSION = "share-in-2026-10-01";
+const VERSION = "calls-2026-10-01";
 
 /* SHARING INTO THE APP (1 Oct 2026, Mike: "would you like to share this to your
    spins or would you like to make a post?"). On Android, the app shows up in the
@@ -117,14 +117,18 @@ self.addEventListener("push", (event) => {
   try { d = event.data ? event.data.json() : {}; } catch (e) { d = { body: event.data && event.data.text() }; }
   event.waitUntil((async () => {
     try { if (d.badge && self.navigator.setAppBadge) await self.navigator.setAppBadge(d.badge); } catch (e) {}
-    await self.registration.showNotification(d.title || "The Porch", {
+    /* A CALL (1 Oct 2026, Mike: "make it sound like it's ringing"): the alert stays on the
+       screen until it's tapped, and the phone buzzes in a long ring pattern where the phone
+       allows it (Android). The sound itself is the phone's own notification sound. */
+    const isCall = d.tag === "porch-call";
+    await self.registration.showNotification(d.title || "The Porch", Object.assign({
       body: d.body || "Something happened on the Porch.",
       icon: "/icon-192.png",
       badge: "/icon-192.png",
       tag: d.tag || "porch",
       renotify: true,
       data: { url: d.url || "/feed/porch.html" }
-    });
+    }, isCall ? { requireInteraction: true, vibrate: [900, 500, 900, 500, 900, 500, 900, 500, 900, 500, 900] } : {}));
   })());
 });
 

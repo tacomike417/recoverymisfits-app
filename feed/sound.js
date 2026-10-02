@@ -30,6 +30,7 @@
     o.type = 'sine'; o.frequency.value = freq;
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+    if (len > 1) g.gain.setValueAtTime(vol, t + len - 0.12);      /* a long tone holds, then lets go */
     g.gain.exponentialRampToValueAtTime(0.0001, t + len);
     o.connect(g); g.connect(ctx.destination);
     o.start(t); o.stop(t + len + 0.05);
@@ -46,11 +47,13 @@
   function ringOnce(out) {
     if (!on() || !ctx || ctx.state !== 'running') return;
     try {
-      if (out) { note(440, 0, 0.9, 0.06); note(480, 0, 0.9, 0.05); return; }
-      [0, 0.45].forEach(function (t) { note(988, t, 0.16, 0.2); note(1318.5, t + 0.16, 0.22, 0.18); });
+      /* the caller hears the ring everybody knows from a phone: two low tones together, two
+         seconds on. The person being called gets a brighter ring, three quick trills. */
+      if (out) { note(440, 0, 1.9, 0.13); note(480, 0, 1.9, 0.13); return; }
+      [0, 0.42, 0.84].forEach(function (t) { note(988, t, 0.17, 0.3); note(1318.5, t + 0.17, 0.2, 0.28); });
     } catch (e) {}
   }
-  function ring(out) { stopRing(); wake(); ringOnce(out); ringer = setInterval(function () { ringOnce(out); }, out ? 3000 : 2200); }
+  function ring(out) { stopRing(); wake(); ringOnce(out); ringer = setInterval(function () { ringOnce(out); }, out ? 5000 : 2400); }
   function stopRing() { if (ringer) { clearInterval(ringer); ringer = null; } }
   window.RMSound = {
     on: on, set: set, ring: ring, stopRing: stopRing,

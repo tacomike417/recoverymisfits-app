@@ -188,7 +188,7 @@
   }
 
   /* the ding (feed/sound.js) */
-  (function () { const sc = document.createElement('script'); sc.src = '/feed/sound.js?v=2'; sc.defer = true; document.head.appendChild(sc); })();
+  (function () { const sc = document.createElement('script'); sc.src = '/feed/sound.js?v=3'; sc.defer = true; document.head.appendChild(sc); })();
   /* A CALL IS RINGING (1 Oct 2026): checked every 8 seconds while a page is on screen.
      The banner says who's calling; tapping it opens the Porch, where the call screen is. */
   let lastCall = '';
