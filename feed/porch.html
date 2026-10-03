@@ -883,8 +883,14 @@ html.fullon #main{visibility:hidden}
    that might leave room for reshare"). "Me too" is gone. The row is Love this, Comment, Reshare in
    words, and the paper plane. */
 @media (max-width:384px){.acts [data-comments] .lbl{display:none}}   /* a narrow phone: Comment drops to its picture so the row still fits */
-.acts .send1{margin-left:auto;flex:none;padding:8px 10px!important}
-.acts .send1 .ico{width:19px;height:19px}
+/* JUST THE PICTURES (3 Oct 2026, Mike: "just a heart, a comment bubble, and the reshare icon").
+   No words, no pills. The heart fills red when you love it. The paper plane stays far right. */
+.acts{gap:2px!important;padding:6px 6px 4px!important}
+.acts button{border:0!important;background:none!important;padding:9px!important;min-width:44px;min-height:44px;justify-content:center;color:var(--cream)}
+.acts button .ico{width:25px;height:25px}
+.acts button.on[data-react=proud]{color:#e0352b}
+.acts .send1{margin-left:auto;flex:none;padding:9px!important}
+.acts .send1 .ico{width:24px;height:24px}
 
 .menu button .ico{width:20px;height:20px;margin:0 12px -4px 0;color:var(--gold2)}
 
@@ -1149,7 +1155,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v156</span>
+  <span class="ver" id="ver">v157</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1787,9 +1793,9 @@ html.kb .ch-bar{padding-bottom:8px}
       (p.reshare_of ? origHTML(p.reshare_of) : "") +
       (!photos.length && p.link_preview && p.link_preview.url ? previewHTML(p.link_preview) : "") +
       '<div class="acts">' +
-        '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '">' + ico("proud") + 'Love this</button>' +
-        '<button type="button" data-comments>' + ico("comment") + '<span class="lbl">Comment</span></button>' +
-        (p.user_id !== me.uid && !p.group_id && p.need !== "moment" ? '<button type="button" class="rs1" data-reshare aria-label="Reshare this on the Porch">' + ico("reshare") + "Reshare</button>" : "") +
+        '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '" aria-label="Love this">' + ico("proud") + '</button>' +
+        '<button type="button" data-comments aria-label="Comment">' + ico("comment") + '</button>' +
+        (p.user_id !== me.uid && !p.group_id && p.need !== "moment" ? '<button type="button" class="rs1" data-reshare aria-label="Reshare this on the Porch">' + ico("reshare") + "</button>" : "") +
         '<button type="button" class="send1" data-send aria-label="Send this share to somebody">' + ico("send") + "</button></div>" +
       '<div class="cm">' + commentsPreview(p.id) + "</div></article>";
   }

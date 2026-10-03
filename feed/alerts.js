@@ -58,6 +58,7 @@
     if (!tab) return;
     let b = tab.querySelector('.rm-porch-n');
     if (!n) { if (b) b.remove(); return; }
+    css();   // the red circle's looks live in the stylesheet; without it the number sat bare under the icon
     if (!b) { b = document.createElement('b'); b.className = 'rm-porch-n'; tab.style.position = 'relative'; tab.appendChild(b); }
     b.textContent = n > 99 ? '99+' : String(n);
     b.setAttribute('aria-label', n + ' new on the Porch');
