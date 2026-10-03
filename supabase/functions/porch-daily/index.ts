@@ -48,6 +48,13 @@
  * morning, so a missed morning catches itself up. /data/ads-questions.json has the links;
  * the pictures are /assets/house/anotherdaysober/MM-DD.webp.
  *
+ * THE LEDGER (3 Oct 2026, Mike: "the one I edited ... it shot out the original one from
+ * yesterday"). The jobs used to decide "did this one go up yet?" by looking for a share with
+ * the same words. Edit the words and it looked like it never went up, so it went up again.
+ * Now every share a job makes is written down in porch_house_posted (supabase/
+ * porch_38_house_ledger.sql), and that list is what the jobs go by. Edit or delete a house
+ * share all you like: it never comes back. Until that SQL is run, the old way still works.
+ *
  * Deploy:
  *   npx supabase functions deploy porch-daily --no-verify-jwt --project-ref rlytvfehbglsjfvprtbp
  */
@@ -84,6 +91,16 @@ function eastern() {
   return { day: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) };
 }
 
+/* ---- the ledger: what each house account has already put up ---- */
+async function ledger(handle: string, list: string): Promise<Map<string, string> | null> {
+  const { data, error } = await admin.from("porch_house_posted").select("key, at").eq("handle", handle).eq("list", list).limit(5000);
+  if (error) return null;                                     // the table isn't there yet: fall back to the old way
+  return new Map((data || []).map((r: any) => [String(r.key), String(r.at)]));
+}
+async function mark(handle: string, list: string, key: string, at: string) {
+  try { await admin.from("porch_house_posted").upsert({ handle, list, key, at }, { onConflict: "handle,list,key", ignoreDuplicates: true }); } catch { /* fine */ }
+}
+
 const since20h = () => new Date(Date.now() - 20 * 3600 * 1000).toISOString();
 
 async function meme(day: string, hour: number) {
@@ -98,10 +115,12 @@ async function meme(day: string, hour: number) {
   /* once a day: the same picture from the house account in the last 20 hours means it's done */
   const { data: had } = await admin.from("porch_posts").select("id").eq("user_id", m.user_id)
     .contains("photo_paths", [path]).gte("created_at", since20h()).limit(1);
-  if (had && had.length) return { posted: false, why: "today's meme is already up", meme: file };
+  const led = await ledger(HOUSE, "meme");
+  if ((led && led.has(day)) || (had && had.length)) { if (led && !led.has(day)) await mark(HOUSE, "meme", day, new Date().toISOString()); return { posted: false, why: "today's meme is already up", meme: file }; }
   const { data: post, error } = await admin.from("porch_posts")
     .insert({ user_id: m.user_id, need: "talk", body: "Meme of the Day", photo_paths: [path] }).select("id").single();
   if (error) return { posted: false, error: error.message };
+  await mark(HOUSE, "meme", day, new Date().toISOString());
   return { posted: true, meme: file, post_id: post.id };
 }
 
@@ -117,7 +136,8 @@ async function prayer(day: string, hour: number) {
   if (!m) return { posted: false, error: "spiritualmisfit is not on the Porch yet" };
   const { data: had } = await admin.from("porch_posts").select("id").eq("user_id", m.user_id)
     .eq("body", text).gte("created_at", since20h()).limit(1);
-  if (had && had.length) return { posted: false, why: "today's prayer is already up" };
+  const led = await ledger(PRAYER_HOUSE, "prayer");
+  if ((led && led.has(day)) || (had && had.length)) { if (led && !led.has(day)) await mark(PRAYER_HOUSE, "prayer", day, new Date().toISOString()); return { posted: false, why: "today's prayer is already up" }; }
   /* a mix of the backgrounds: a different card every day, every one before any repeats */
   const [, mo, dd] = day.split("-").map(Number);
   const dayOfYear = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334][mo - 1] + dd;
@@ -125,6 +145,7 @@ async function prayer(day: string, hour: number) {
   const { data: post, error } = await admin.from("porch_posts")
     .insert({ user_id: m.user_id, need: "talk", body: text, photo_paths: [], card_style: style }).select("id").single();
   if (error) return { posted: false, error: error.message };
+  await mark(PRAYER_HOUSE, "prayer", day, new Date().toISOString());
   return { posted: true, card: style, post_id: post.id };
 }
 
@@ -148,11 +169,13 @@ async function moment(day: string, hour: number) {
   if (!m) return { posted: false, error: "the house account is not on the Porch yet" };
   const { data: had } = await admin.from("porch_posts").select("id").eq("user_id", m.user_id)
     .eq("body", text).gte("created_at", since20h()).limit(1);
-  if (had && had.length) return { posted: false, why: "today's moment is already up", number: idx + 1 };
+  const led = await ledger(HOUSE, "moment");
+  if ((led && led.has(day)) || (had && had.length)) { if (led && !led.has(day)) await mark(HOUSE, "moment", day, new Date().toISOString()); return { posted: false, why: "today's moment is already up", number: idx + 1 }; }
   const style = (idx * 7 + 11) % CARD_STYLES;                 // a different card each time
   const { data: post, error } = await admin.from("porch_posts")
     .insert({ user_id: m.user_id, need: "talk", body: text, photo_paths: [], card_style: text.length <= 200 ? style : null }).select("id").single();
   if (error) return { posted: false, error: error.message };
+  await mark(HOUSE, "moment", day, new Date().toISOString());
   return { posted: true, number: idx + 1, card: style, post_id: post.id };
 }
 
@@ -241,19 +264,32 @@ async function reels(hour: number) {
 
 /* ---- a list that runs once through, with a starting batch ---- */
 type ListItem = { key: string; row: Record<string, unknown> };
-async function runList(handle: string, items: ListItem[], keyOf: (p: any) => string, backlog: number, due: boolean, notDue: string, hour: number, dueHour: number) {
+async function runList(list: string, handle: string, items: ListItem[], keyOf: (p: any) => string, backlog: number, due: boolean, notDue: string, hour: number, dueHour: number) {
   const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", handle).maybeSingle();
   if (!m) return { posted: 0, error: handle + " is not on the Porch yet" };
   const { data: mine } = await admin.from("porch_posts").select("body, photo_paths, created_at").eq("user_id", m.user_id)
     .order("created_at", { ascending: false }).limit(1000);
   const keys = new Set(items.map((i) => i.key));
   const had = (mine || []).filter((p: any) => keys.has(keyOf(p)));
-  const have = new Set(had.map(keyOf));
+  /* what has gone up: the ledger if it's there, else (the old way) whatever still matches word for word */
+  let led = await ledger(handle, list);
+  if (led && !led.size) {
+    /* first time with the ledger: these run in order, so everything up to the furthest one
+       still on the Porch has gone up, including any that were edited or deleted since */
+    const when = new Map<string, string>(); had.forEach((p: any) => { if (!when.has(keyOf(p))) when.set(keyOf(p), String(p.created_at)); });
+    let far = -1; items.forEach((it, n) => { if (when.has(it.key)) far = n; });
+    for (let n = 0; n <= far; n++) { const at = when.get(items[n].key) || "2000-01-01T00:00:00Z"; await mark(handle, list, items[n].key, at); led.set(items[n].key, at); }
+  }
+  const have = led ? new Set(led.keys()) : new Set(had.map(keyOf));
+  const times = led ? [...led.values()].map((t) => Date.parse(t)) : had.map((p: any) => Date.parse(p.created_at));
   const left = items.filter((i) => !have.has(i.key));
   const done = items.length - left.length;
   if (!left.length) return { posted: 0, why: "they have all run", total: done };
-  const put = async (it: ListItem, when: Date) =>
-    (await admin.from("porch_posts").insert({ user_id: m.user_id, need: "talk", photo_paths: [], ...it.row, created_at: when.toISOString() })).error;
+  const put = async (it: ListItem, when: Date) => {
+    const error = (await admin.from("porch_posts").insert({ user_id: m.user_id, need: "talk", photo_paths: [], ...it.row, created_at: when.toISOString() })).error;
+    if (!error) await mark(handle, list, it.key, when.toISOString());
+    return error;
+  };
   let posted = 0;
   if (done < backlog) {
     /* the starting batch: one a day going back, the newest dated now */
@@ -268,7 +304,7 @@ async function runList(handle: string, items: ListItem[], keyOf: (p: any) => str
   /* "already up today" means since today's posting hour, so last night's starting batch
      doesn't make the first morning skip */
   const sinceDue = Date.now() - (Math.max(0, hour - dueHour) + 1) * 3600 * 1000;
-  if (had.some((p: any) => Date.parse(p.created_at) > sinceDue)) return { posted: 0, why: "today's is already up", waiting: left.length };
+  if (times.some((t) => t > sinceDue)) return { posted: 0, why: "today's is already up", waiting: left.length };
   const err = await put(left[0], new Date());
   if (err) return { posted: 0, error: err.message };
   return { posted: 1, number: done + 1, waiting: left.length - 1 };
@@ -283,7 +319,7 @@ async function sponsor(day: string, hour: number) {
     .map((t: string) => ({ key: t, row: { body: t, card_style: t.length <= 200 ? card : null } }));
   const n = daysBetween(String(j.start || day), day);
   const off = ((n % 3) + 3) % 3 === 2;                                        // two days on, one day off
-  return await runList("shitmysponsorsays", items, (p) => String(p.body || ""), 10, hour >= 7 && !off, off ? "day off (two on, one off)" : "before 7am Eastern", hour, 7);
+  return await runList("sponsor", "shitmysponsorsays", items, (p) => String(p.body || ""), 10, hour >= 7 && !off, off ? "day off (two on, one off)" : "before 7am Eastern", hour, 7);
 }
 
 async function spiritualMemes(hour: number) {
@@ -292,7 +328,7 @@ async function spiritualMemes(hour: number) {
   const j = await r.json();
   const items: ListItem[] = (Array.isArray(j.items) ? j.items : []).filter((x: any) => /^[\w.-]+\.(jpg|jpeg|png|webp)$/i.test(String(x.file || "")))
     .map((x: any) => { const path = "/assets/house/spiritualmisfit/" + x.file; return { key: path, row: { body: null, photo_paths: [path] } }; });
-  return await runList(PRAYER_HOUSE, items, (p) => String((p.photo_paths || [])[0] || ""), 5, hour >= 12, "before noon Eastern", hour, 12);
+  return await runList("spiritual_memes", PRAYER_HOUSE, items, (p) => String((p.photo_paths || [])[0] || ""), 5, hour >= 12, "before noon Eastern", hour, 12);
 }
 
 async function ads(day: string, hour: number) {
@@ -307,6 +343,7 @@ async function ads(day: string, hour: number) {
   const { data: mine } = await admin.from("porch_posts").select("photo_paths").eq("user_id", m.user_id)
     .gte("created_at", new Date(Date.now() - (back + 20) * 86400000).toISOString()).limit(1000);
   const have = new Set((mine || []).map((p: any) => String((p.photo_paths || [])[0] || "")));
+  const led = await ledger("anotherdaysober", "ads");          // by date, so a deleted one stays deleted
   const shift = (d: string, n: number) => new Date(Date.parse(d + "T00:00:00Z") + n * 86400000).toISOString().slice(0, 10);
   let posted = 0; const put: string[] = [];
   for (let n = back - 1; n >= 0; n--) {
@@ -315,11 +352,13 @@ async function ads(day: string, hour: number) {
     let md = d.slice(5); if (!days[md] && md === "02-29") md = "02-28";
     const it = days[md]; if (!it || !/^\/another-day-sober\/[\w\/-]+$/.test(String(it.link || ""))) continue;
     const path = "/assets/house/anotherdaysober/" + md + ".webp";
-    if (have.has(path)) continue;
+    if (led && led.has(d)) continue;
+    if (have.has(path)) { if (led) await mark("anotherdaysober", "ads", d, d + "T08:00:00Z"); continue; }
     const { error } = await admin.from("porch_posts").insert({ user_id: m.user_id, need: "talk",
       body: "The full reading: " + SITE + it.link, photo_paths: [path],
       created_at: n === 0 ? new Date().toISOString() : d + "T08:00:00Z" });      // older days are dated their own morning
     if (error) return { posted, error: error.message };
+    await mark("anotherdaysober", "ads", d, new Date().toISOString());
     have.add(path); posted++; put.push(md);
   }
   return posted ? { posted, days: put } : { posted: 0, why: hour < H ? "before 4am Eastern" : "today's is already up" };
