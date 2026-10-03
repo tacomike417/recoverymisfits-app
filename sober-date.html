@@ -94,6 +94,7 @@
   .square.has-art > div,.square.has-art::before{display:none}
   #coinPreview{display:block;width:100%;height:100%;object-fit:cover}
   #coinPreview[hidden]{display:none}
+  .go[hidden]{display:none}
   .acts{display:grid;gap:10px;margin:16px 0 0}
   .go{
     display:flex;align-items:center;justify-content:center;gap:10px;
@@ -212,6 +213,11 @@
       $("saySet").hidden = false;
       $("broke").textContent = "";
       $("shareBtn").disabled = true;
+      /* NOTHING TO SHARE OR CHANGE YET (3 Oct 2026, the unclear list): with no date there is one
+         button, and it says what it does. */
+      $("shareBtn").hidden = true;
+      $("setBtn").textContent = "Set my sober date";
+      $("setBtn").classList.remove("quiet");
       return;
     }
     var start = parseYMD(ymd);
@@ -235,6 +241,9 @@
     $("unit").textContent = days === 1 ? "day" : "days";
     $("broke").textContent = state.broke;
     $("shareBtn").disabled = false;
+    $("shareBtn").hidden = false;                       /* a date is in: both buttons are back */
+    $("setBtn").textContent = "Change my sober date";
+    $("setBtn").classList.add("quiet");
     refreshPreview();
   }
 

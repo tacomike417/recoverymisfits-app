@@ -1025,13 +1025,13 @@
        Porch; everybody else gets "coming at the end of October" (feed/soon.html).
        Memes are still on Today (Meme of the Day + the rail) and at /meme.html. */
     { href: "/feed/porch.html", label: "Porch", icon: ICONS.porch },
-    { href: "/audio.html", label: "Audio", icon: ICONS.audio },
+    { href: "/audio.html", label: "Listen", icon: ICONS.audio },
     { href: "/fun.html", label: "Fun", icon: ICONS.fun },
     { href: "/tools.html", label: "Tools", icon: ICONS.tools },
     /* SHARE, NOT A PAGE. It opens the code sheet rather than going anywhere,
        which is why it carries data-rm-share and a href that means "no
        destination" -- the click handler below stops it. */
-    { href: "#share", label: "Share", icon: ICONS.share, share: true }
+    { href: "#share", label: "Invite", icon: ICONS.share, share: true }   /* 3 Oct 2026: was "Share". Share what? It invites a friend. */
   ];
 
   injectStyles();
@@ -1701,7 +1701,7 @@
     modal.innerHTML = `
       <div class="rm-modal" role="dialog" aria-modal="true" aria-labelledby="rmShareTitle">
         <img class="rm-share-banner" src="/assets/pages/s-banner.webp" alt="" aria-hidden="true">
-        <h3 id="rmShareTitle" class="rm-sr-only">Share the app</h3>
+        <h3 id="rmShareTitle" style="margin:0 0 8px;font:800 20px/1.2 Arial,sans-serif;text-align:center">Invite a friend</h3>
         <p class="rm-share-lead">Point a phone camera at the code.</p>
 
         <div class="rm-share-code">

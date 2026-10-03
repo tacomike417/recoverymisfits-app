@@ -190,6 +190,25 @@ body::after{
 .stackhead{margin:16px 0 2px}
 .stackhead img{display:block;width:227px;height:auto}
 .stackrule{display:block;width:207px;height:auto;margin:2px 0 13px 4px}
+/* THE PLAIN LINES (3 Oct 2026, the unclear list): one short sentence under a heading that
+   didn't say what was in it. */
+.plainnote{margin:-6px 4px 12px;font-family:var(--ui);font-size:13px;line-height:1.4;color:rgba(255,255,255,.55)}
+.corner-plain{margin:6px 2px 0}
+.today .tkick{font-family:var(--ui);font-weight:800;font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:#6b4a14;margin:0 0 3px}
+.porchcard{position:relative;display:grid;grid-template-columns:54px 1fr;align-items:center;gap:8px 10px;margin:30px 0 0;padding:14px 14px 14px 10px;
+  border-radius:var(--radius);border:1px solid rgba(216,180,91,.42);text-decoration:none;
+  background:linear-gradient(180deg,rgba(216,180,91,.10),rgba(216,180,91,0) 60%),#1a1813}
+.porchcard:active{border-color:var(--gold)}
+.porchcard .pc-ico{display:grid;place-items:center;color:var(--gold)}
+.porchcard .pc-ico svg{width:38px;height:38px}
+.porchcard .pc-txt{border-left:1px solid rgba(216,180,91,.35);padding-left:12px;min-width:0}
+.porchcard .pc-k,.porchcard .pc-t,.porchcard .pc-w{display:block}
+.porchcard .pc-k{font-family:var(--display);font-weight:600;font-size:15px;line-height:1.1;letter-spacing:.4px;text-transform:uppercase;color:#f6efdd}
+.porchcard .pc-t{font-family:var(--ui);font-size:13.5px;line-height:1.35;color:var(--ivory);margin-top:4px}
+.porchcard .pc-w{font-family:var(--ui);font-weight:700;font-size:12.5px;color:var(--gold);margin-top:3px}
+.porchcard .pc-go{grid-column:1 / -1;display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;border-radius:999px;
+  border:1.4px solid var(--gold);font-family:var(--ui);font-weight:800;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#f6efdd}
+.porchcard .pc-go svg{width:18px;height:10px;stroke:var(--gold);fill:none;stroke-width:1.8}
 
 .rows{display:grid;gap:11px;position:relative}
 .stack{display:grid;gap:11px;position:relative}
@@ -1241,9 +1260,9 @@ body::after{
 }
 .make{
   display:inline-flex;align-items:center;justify-content:center;gap:5px;
-  min-height:38px;padding:8px 9px;margin:0 0 0 7px;
+  min-height:38px;padding:8px 7px;margin:0 0 0 4px;
   border-radius:999px;border:1.4px solid var(--gold);
-  font-family:var(--ui);font-weight:800;font-size:9.5px;letter-spacing:.6px;
+  font-family:var(--ui);font-weight:800;font-size:9px;letter-spacing:.2px;
   text-transform:uppercase;color:#f0e2c2;white-space:nowrap;
 }
 .make svg{width:12px;height:8px;stroke:var(--gold);fill:none;stroke-width:2}
@@ -1344,6 +1363,9 @@ body::after{
     <!-- Says "Today's Reading" until the real one lands, and stays saying it
          if the fetch fails. A heading that empties itself is worse than a
          heading that is a little generic. -->
+    <!-- WHICH READING IS THIS? (3 Oct 2026, the unclear list.) The card showed the day's title and
+         never said it was Another Day Sober, which is also listed again in the stack below. -->
+    <p class="tkick">Another Day Sober</p>
     <h2 class="k" id="todayTitle">Today&rsquo;s Reading</h2>
     <span class="krule"></span>
     <p class="date" id="todayDate">&nbsp;</p>
@@ -1389,6 +1411,7 @@ body::after{
     </button>
   </div>
   <img class="stackrule" src="assets/pages/r-rule-stack.webp" alt="" aria-hidden="true" width="473" height="15">
+  <p class="plainnote">Your readings for today. Tap Edit to pick which ones.</p>
 
   <div class="rows">
 
@@ -1544,6 +1567,7 @@ body::after{
       </h2>
       <img class="corner-rule" src="assets/pages/c-rule.webp" alt="" aria-hidden="true"
            width="900" height="32">
+      <p class="plainnote corner-plain">Your milestones and coins.</p>
       <p class="corner-note" aria-hidden="true">Same<br>day<br>brighter<br>tomorrow</p>
       <svg class="corner-star" viewBox="0 0 90 90" aria-hidden="true">
         <path d="m46 6 8 27 27-8-22 18 18 22-27-10-10 28-1-30-30 4 27-14L18 18l22 17 6-29Z"/>
@@ -1628,12 +1652,12 @@ body::after{
         <span class="ccard-cut" aria-hidden="true"></span>
         <span class="ccard-body">
           <span class="ccard-k">Share Your Sober Date</span>
-          <span class="ccard-sub">No name. Just the date and the days.</span>
+          <span class="ccard-sub">A picture of your date and days. No name on it.</span>
         </span>
         <!-- The fourth cell in the card's grid, beside the words rather than
              under them, as drawn. Under 360px the stylesheet drops it to its
              own line, where there is no longer width for both. -->
-        <span class="make">Make Card
+        <span class="make">Make My Card
           <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
         <p class="carry" aria-hidden="true">Carry<br>the<br>message</p>
@@ -1642,58 +1666,9 @@ body::after{
     </div>
   </section>
 
-  <!-- THE BOOK SHELF IS A ROOM OF ITS OWN, and the Big Book lives in it.
-
-       The Big Book row used to sit directly under the four dailies, in the
-       same shape and the same size as them, separated by nothing but a thin
-       rule. It read as a fifth thing you could add to your stack -- which
-       you cannot, and never could. A row that looks like a choice and is not
-       one is the kind of small confusion that makes somebody stop trusting
-       the whole screen.
-
-       So: a shelf, drawn as a shelf, with its own heading and its own edge,
-       standing well clear of the stack. Everything in here is reference you
-       reach for when you want it. Nothing in here is a thing to do today. -->
-  <section class="shelf">
-    <h2 class="shelfhead">Book Shelf</h2>
-    <p class="shelfnote">Here whenever you want them. Not part of your daily stack.</p>
-
-    <div class="shelfbox">
-    <details class="bigbook">
-      <summary class="row row-bb">
-        <img class="ico" src="assets/pages/r-ico-bb.webp" alt="" aria-hidden="true" width="124" height="82">
-        <span class="txt"><span class="t">Big Book</span><span class="d">The foundation. Always here.</span></span>
-        <span class="pill">Open <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      </summary>
-      <p class="chaphead">Chapters &amp; forewords</p>
-      <div class="links">
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_preface.pdf" target="_blank" rel="noopener">Preface</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_forewordfirstedition.pdf" target="_blank" rel="noopener">Foreword — First Edition</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_forewordfourthedition.pdf" target="_blank" rel="noopener">Foreword — Fourth Edition</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_foreworddoctorsopinion.pdf" target="_blank" rel="noopener">The Doctor’s Opinion</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt1.pdf" target="_blank" rel="noopener">Ch 1 — Bill’s Story</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt2.pdf" target="_blank" rel="noopener">Ch 2 — There Is a Solution</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt3.pdf" target="_blank" rel="noopener">Ch 3 — More About Alcoholism</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt4.pdf" target="_blank" rel="noopener">Ch 4 — We Agnostics</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt5.pdf" target="_blank" rel="noopener">Ch 5 — How It Works</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt6.pdf" target="_blank" rel="noopener">Ch 6 — Into Action</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt7.pdf" target="_blank" rel="noopener">Ch 7 — Working With Others</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt8.pdf" target="_blank" rel="noopener">Ch 8 — To Wives</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt9.pdf" target="_blank" rel="noopener">Ch 9 — The Family Afterward</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt10.pdf" target="_blank" rel="noopener">Ch 10 — To Employers</a>
-        <a href="https://www.aa.org/sites/default/files/2021-11/en_bigbook_chapt11.pdf" target="_blank" rel="noopener">Ch 11 — A Vision For You</a>
-      </div>
-    </details>
-
-      <p class="chaphead">Also on the shelf</p>
-      <div class="links">
-        <a href="https://www.amazon.com/Twelve-Steps-Traditions-Alcoholics/dp/0916856291" target="_blank" rel="noopener">Twelve Steps &amp; Traditions</a>
-        <a href="https://www.amazon.com/As-Bill-Sees-Way-Life/dp/B00KAF9CO0" target="_blank" rel="noopener">As Bill Sees It</a>
-        <a href="https://www.amazon.com/Little-Red-Book/dp/0894860046" target="_blank" rel="noopener">The Little Red Book</a>
-        <a href="https://www.amazon.com/Drop-Rock-Removing-Character-Defects/dp/1592851614" target="_blank" rel="noopener">Drop the Rock</a>
-      </div>
-    </div>
-  </section>
+  <!-- THE BOOK SHELF MOVED TO THE TOOLS PAGE (3 Oct 2026, Mike: "move that big book and book list
+       into tools for now, it doesn't belong on the homepage if we are being all inviting"). The
+       Daily Stack did not change: "it's my app and I use it daily". -->
 
   <!-- NO "EVERY READING" LINK DOWN HERE ANY MORE.
 
@@ -1704,53 +1679,34 @@ body::after{
        the way to it. It was a row of small print under the Book Shelf that
        nobody was ever going to press. -->
 
-  <!-- ===================================================================
-       RECOVERY BASICS.
+  <!-- RECOVERY BASICS IS GONE (3 Oct 2026, Mike: "take that recovery basics thing off completely,
+       I never liked it"). Season Watch and "Another One" lived inside it and went with it.
 
-       One of the 43, and it is the LAST THING ON THE PAGE on purpose --
-       after the stack, after Your Corner, after the shelf. A parting shot on
-       the way out rather than another thing to get past on the way in. Plain
-       enough to read at two in the morning, which is the hour it was written
-       for.
-
-       THE PLATE IS THE APPROVED ARTWORK, CUT UP. The frame, the screws, the
-       tape, the red mark and the sign panel on the button are pieces of
-       reference/APPROVED-RECOVERY-BASICS-UI.png, not CSS impressions of it.
-       See the stylesheet before replacing any of them with a gradient.
-
-       STARTS HIDDEN. /basics.js shows it once the cards are in hand. With no
-       signal there is no card, and an empty battered frame with nothing in it
-       is worse than no frame -- so the page closes up around it.
-       ================================================================ -->
-  <section class="rm-basic" id="rm-basic" aria-labelledby="basicTitle" hidden>
-    <span class="screw tl" aria-hidden="true"></span>
-    <span class="screw tr" aria-hidden="true"></span>
-    <span class="screw bl" aria-hidden="true"></span>
-    <span class="screw br" aria-hidden="true"></span>
-    <span class="tape" aria-hidden="true"></span>
-
-    <div class="topline">
-      <span class="kicker">Recovery Basics</span>
-      <span class="hr" aria-hidden="true"></span>
-      <span class="flag">Holiday Watch</span>
-    </div>
-    <div class="headrule" aria-hidden="true"></div>
-
-    <div class="body">
-      <img class="mark" src="assets/basics/basics-mark.webp" alt="" aria-hidden="true"
-           width="342" height="327">
-      <div class="copy">
-        <h2 class="t" id="basicTitle" data-basic-title>&nbsp;</h2>
-        <p class="d" data-basic-body>&nbsp;</p>
-      </div>
-    </div>
-
-    <div class="foot">
-      <span class="hr" aria-hidden="true"></span>
-      <button class="again" type="button" data-basic-next><span>Another One</span></button>
-      <span class="n">Practical. Simple. One day at a time.</span>
-    </div>
-  </section>
+       IN ITS PLACE, THE PORCH. "Put a little thing for the porch, our community ... needs worded
+       simply ... put an icon in too ... you can put it there today to let people know it's
+       opening soon." Until October 20 it says when it opens; from that day on it changes itself
+       to an invitation. -->
+  <a class="porchcard" id="porchCard" href="/feed/porch.html">
+    <span class="pc-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5 12 4l9.5 6.5"/><path d="M5 9.5V20M19 9.5V20M2.5 20h19"/><path d="M8.5 15h7M8.5 15v5M15.5 15v5"/></svg></span>
+    <span class="pc-txt">
+      <span class="pc-k">The Porch &middot; our community</span>
+      <span class="pc-t">Good people between meetings.</span>
+      <span class="pc-w" id="porchWhen">Opens October 20.</span>
+    </span>
+    <span class="pc-go" id="porchGo">See what&rsquo;s coming
+      <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h20M16 1l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+  </a>
+  <script>
+  (function () {
+    /* from opening day on, the card stops announcing and starts inviting */
+    var d = new Date(), today = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+    if (today < 20261020) return;
+    var w = document.getElementById("porchWhen"), g = document.getElementById("porchGo");
+    if (w) w.hidden = true;
+    if (g && g.firstChild) g.firstChild.nodeValue = "Come hang out ";
+  })();
+  </script>
 
   <div class="tailroom"></div>
 </main>
@@ -1759,7 +1715,6 @@ body::after{
 <script src="./nav.js" defer></script>
 <script src="/assets/meme-share.js"></script>
 <script src="./corner.js" defer></script>
-<script src="./basics.js" defer></script>
 <script>
 /* THE MEME RAIL, AND TODAY'S ROW IN THE STACK. Both read /data/meme-days.json
    off this phone's clock -- the same file and the same rule meme.html uses,

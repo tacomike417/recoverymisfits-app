@@ -115,42 +115,42 @@ Order isn't set.
 
 EVERYWHERE
 - [x] Tagline is "Good people between meetings". Fix the Porch page title and the coming-soon page ("Good company").
-- [ ] Sober bar, signed out: "SIGN IN" under SOBER SINCE becomes "SET DATE". The "?" coin STAYS (a blank coin looked like a hole).
-- [ ] Bottom bar: the "Share" tab becomes "Invite"; the screen it opens is titled "Invite a friend".
-- [ ] Bottom bar: the "Audio" tab becomes "Listen".
+- LEFT AS IS after all: the sober bar's "SIGN IN" (see "What the build turned up"). The "?" coin STAYS (a blank coin looked like a hole).
+- [x] Bottom bar: the "Share" tab becomes "Invite"; the screen it opens is titled "Invite a friend".
+- [x] Bottom bar: the "Audio" tab becomes "Listen".
 - LEFT AS IS: "share" meaning a post. "Porch" as a tab name. Spins/Respin and Misfit Messages wording.
 
 HOME
-- [ ] Top card gets a small label: "Another Day Sober · today's reading".
-- [ ] Under Your Daily Stack: "Your readings for today. Tap Edit to pick which ones." The stack itself does not change.
+- [x] Top card gets a small label: "Another Day Sober · today's reading".
+- [x] Under Your Daily Stack: "Your readings for today. Tap Edit to pick which ones." The stack itself does not change.
       Mike: "it's my app and I use it daily".
-- [ ] Under Your Corner: "Your milestones and coins."
-- [ ] Recovery Basics comes OFF completely (Season Watch and "Another One" go with it). "I never liked it."
-- [ ] In its place, a small Porch card with the porch icon: "THE PORCH · OUR COMMUNITY / Good people between
+- [x] Under Your Corner: "Your milestones and coins."
+- [x] Recovery Basics comes OFF completely (Season Watch and "Another One" go with it). "I never liked it."
+- [x] In its place, a small Porch card with the porch icon: "THE PORCH · OUR COMMUNITY / Good people between
       meetings. / Opens October 20. → See what's coming". From launch day it switches itself to "→ Come hang out".
-- [ ] "MAKE CARD" becomes "MAKE MY CARD"; small line "A picture of your date and days. No name on it."
-- [ ] The Book Shelf (Big Book + Also on the shelf) moves off the home page onto the Tools page.
+- [x] "MAKE CARD" becomes "MAKE MY CARD"; small line "A picture of your date and days. No name on it."
+- [x] The Book Shelf (Big Book + Also on the shelf) moves off the home page onto the Tools page.
 
 READING PAGE
-- [ ] "BACK TO READINGS" becomes "BACK", a true back (home or the Porch, wherever they came from).
-- [ ] "EVERY READING" becomes "ALL 365 READINGS".
+- [x] "BACK TO READINGS" becomes "BACK", a true back (home or the Porch, wherever they came from).
+- [x] "EVERY READING" becomes "ALL 365 READINGS".
 
 LISTEN (was Audio)
-- [ ] "Watch" on each row becomes "Play".
-- [ ] Take out the Speaker Tapes / Audiobooks switch IF it only repeats the three big buttons. Check first.
+- [x] "Watch" on each row becomes "Play".
+- [x] Take out the Speaker Tapes / Audiobooks switch IF it only repeats the three big buttons. Check first.
 
 FUN
-- [ ] A small "GAME" tag on both cards.
+- [x] A small "GAME" tag on both cards.
 
 TOOLS
-- [ ] Fear Compass: "Send" becomes "Next".
+- [x] Fear Compass: "Send" becomes "Next".
 - [ ] Burn Pad: faint words in the To box: "Who's this about? (a person, a place, yourself)".
 - LEFT AS IS: "About this tool" stays at the bottom.
 
 COINS, PILE, SOBER DATE, MEME
-- [ ] Coins, signed out: "Set your sober date and every coin you've already earned shows up here."
-- [ ] Survival Pile: add "Celebration cards you earn along the way. A new one shows up on certain days."
-- [ ] Sober date page with no date: one button, "SET MY SOBER DATE".
+- [x] Coins, signed out: "Set your sober date and every coin you've already earned shows up here."
+- [x] Survival Pile: add "Celebration cards you earn along the way. A new one shows up on certain days."
+- [x] Sober date page with no date: one button, "SET MY SOBER DATE".
 - [ ] Meme page: delete the paragraph that explains buttons that aren't there.
 
 SIGN-UP
@@ -169,6 +169,16 @@ THE PORCH
       Public: "Anyone with the link can see them, signed in or not."
 - [x] BETA TESTER badge becomes "FOUNDING MISFIT".
 - LEFT AS IS: the WINS tab on profiles.
+
+WHAT THE BUILD TURNED UP (v151): four things on the list were my mistake, read off the page wrong.
+- Sober bar "SIGN IN" was LEFT AS IS. Signed out, that button really does go to sign in / sign up (a 21 Sep rule:
+  "the button goes where it says it goes"). "SET DATE" would have been the lie.
+- Fear Compass "Send" is not a word on the screen. It is an arrow button; only the hidden name read "Send". The
+  hidden name is "Next" now.
+- Burn Pad's To box already had faint words: "Who's it for? (optional)". Left as is.
+- The Meme page paragraph is RIGHT on a phone: the buttons there say "Share this one" and "Share the link". They
+  only read Save the image / Copy the link on a computer. Paragraph left in. Mike can still say delete it.
+- "Every Reading" only shows before the daily build; on the live site that spot is the month calendar.
 
 ITS OWN BUILD, AFTER THE WORDING
 - [ ] "Share to the Porch" as the FIRST choice everywhere the site has a share button (sober date card, meme,

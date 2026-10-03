@@ -277,9 +277,9 @@ PAGE_TEMPLATE = """<!doctype html>
       Share this reading
     </button>
     <p class="say" id="say" role="status" aria-live="polite"></p>
-    <a class="back" href="/">
+    <a class="back" href="/" onclick="if(document.referrer.indexOf(location.origin)===0&&history.length>1)return history.back(),false">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Back to Readings
+      Back
     </a>
   </div>
 
@@ -335,9 +335,9 @@ INDEX_TEMPLATE = """<!doctype html>
     <ul>
 {items}
     </ul>
-    <a class="back" href="/" style="margin:22px auto 0">
+    <a class="back" href="/" style="margin:22px auto 0" onclick="if(document.referrer.indexOf(location.origin)===0&&history.length>1)return history.back(),false">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Back to Readings
+      Back
     </a>
   </div>
   <div class="tailroom"></div>
