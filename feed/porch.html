@@ -1082,7 +1082,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v117</span>
+  <span class="ver" id="ver">v118</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1193,7 +1193,7 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="compose" class="layer full" role="dialog" aria-modal="true" aria-label="New share">
   <div class="page">
     <div class="ctop"><button type="button" class="bk xb" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><b id="ctitle">NEW SHARE</b><button type="button" class="send" id="csend" disabled>Share</button></div>
-    <div class="cmodes" id="cmodes"><button type="button" data-cm="say">Just words</button><button type="button" data-cm="sign">A saying card</button></div>
+    <div class="cmodes" id="cmodes"><button type="button" data-cm="say">Just words</button><button type="button" data-cm="sign">Make a card</button></div>
     <div class="cwho"><span id="cav"></span><div><b id="cname"></b><small>Everyone on the Porch will see this</small></div></div>
     <textarea id="cbody" maxlength="2000" placeholder="What's on your mind?"></textarea>
     <div class="atbar" id="atc"></div>
@@ -2128,7 +2128,7 @@ html.kb .ch-bar{padding-bottom:8px}
      Post a Saying = the short handwritten card; Share a Photo = photos. */
   var MODE = {
     say:  { title: "SAY SOMETHING", holder: "What's on your mind? Say as much as you want." },
-    sign: { title: "POST A SAYING",   holder: "Short and loud. What do you want the Porch to see?" },
+    sign: { title: "MAKE A CARD",   holder: "Short and loud. What do you want the Porch to see?" },
     snap: { title: "SHARE A PHOTO",      holder: "Say something about it (optional)" }
   };
   var HOLDER = { experience: "What happened, and what did you learn?", strength: "What's keeping you going?", hope: "What's getting better?", question: "Ask the Porch anything." };
@@ -2182,7 +2182,7 @@ html.kb .ch-bar{padding-bottom:8px}
     $("chint").textContent = "Tap a card.";
     /* the preview IS the share, exactly as it will show on the Porch */
     $("cprev").innerHTML = postHTML({ id: "preview", user_id: me.uid, need: need,
-      body: t || (mode === "sign" ? "Your saying goes here." : mode === "say" ? "Your words show up here." : ""),
+      body: t || (mode === "sign" ? "Your words go on the card." : mode === "say" ? "Your words show up here." : ""),
       photo_paths: mode === "snap" ? photos : [], card_style: mode === "sign" ? style : null, created_at: new Date().toISOString() });
     $("csend").disabled = sending || (mode === "snap" ? !photos.length : !t);
   }
