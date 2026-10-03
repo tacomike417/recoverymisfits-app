@@ -95,7 +95,7 @@ function profile(c, origin) {
   <h1>@${esc(c.handle)}</h1>
   ${c.bio ? `<p class="bio">${esc(c.bio)}</p>` : ''}
   ${spins.length ? `<div class="lab">SOBER SPINS</div><div class="grid">${spins.map((s) => `<a href="/s/${esc(s.id)}" style="background-image:url('${CDN}/${esc(s.video_guid)}/thumbnail.jpg')" aria-label="Watch a Spin"></a>`).join('')}</div>` : ''}
-  <a class="go" id="go" href="/account.html">Join Recovery Misfits</a>
+  <a class="go" id="go" href="/account.html?next=feed">Join free</a>
   <p class="sub" id="sub">Free. Anonymous. Every path welcome.</p>
   <a class="alt" id="alt" href="/account.html?signin=1">I have an account</a>
 </main>
@@ -109,7 +109,7 @@ function members(h, origin) {
   <img src="/icon-192.png" alt="" style="width:76px;height:76px;border-radius:18px;margin-bottom:18px">
   <h1>For members</h1>
   <p>This profile is only for people signed in to Recovery Misfits.</p>
-  <a class="go" id="go" href="/account.html">Join Recovery Misfits</a>
+  <a class="go" id="go" href="/account.html?next=feed">Join free</a>
   <a class="alt" id="alt" href="/account.html?signin=1">I have an account</a>
 </main>
 ${MEMBER_JS('/feed/porch.html?u=' + encodeURIComponent(h))}

@@ -71,7 +71,7 @@ p{margin:0 0 6px;max-width:340px;font:600 16px/1.45 Arial,sans-serif;color:#ddd2
   ${g.who_for ? `<p>For: ${esc(g.who_for)}</p>` : ''}
   <p class="fine">Only members see what's shared in a group.</p>` : `<h1>FOR MEMBERS</h1>
   <p>Groups are for people signed in to Recovery Misfits.</p>`}
-  <a class="go" href="/account.html">Join Recovery Misfits</a>
+  <a class="go" href="/account.html?next=feed">Join free</a>
   <p class="fine">Free. Anonymous. Every path welcome.</p>
   <a class="alt" href="/account.html?signin=1">I have an account</a>
 </main>

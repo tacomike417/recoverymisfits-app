@@ -14,6 +14,9 @@ Order isn't set.
 **Finish first**
 - [x] Spin music: pick the 50 clips (picker page), install them, push (done 1 Oct: 50 clips, 15 seconds)
 - [x] Play Store app rebuild (dropped: the Play Store app is parked on purpose, the web based app is the real one)
+- [ ] BEFORE LAUNCH: close the Gmail plus hole in porch-confirm (name+anything@gmail.com counts as a new email
+      today, so one Gmail can confirm many accounts). Left open on purpose while Mike tests with plus emails.
+      The email step itself was tested for real on 3 Oct (test link: /feed/porch.html?testemail=1) and worked.
 - [ ] WELCOME CREW (Mike, 3 Oct: "Number two will come"): a few real people get a "New here" list each day and
       one tap to go say hi. The house comment, the new folks rail and house accounts accepting friend requests
       are done (v141, porch_41). Later idea: a "Porch Greeter" card for welcoming 10 new people.

@@ -6,7 +6,7 @@
  *     Facebook preview (the og: tags below), not a bare link
  *   - PLAYS for anybody, member or not, with one button under it:
  *       has an account here  -> "More Spins on the Porch"
- *       new here             -> "Join Recovery Misfits" (free, anonymous)
+ *       new here             -> "Join free" (same words as the Porch's own door, 3 Oct 2026)
  * Phone first, at 393. No back button on screen: the phone's own back works.
  * What it can read about a Spin comes from porch_spin_card() (SQL step 16), which
  * only hands over ready, unexpired, not-taken-down Spins.
@@ -69,7 +69,7 @@ ${LOCK_CSS}
   <img src="/icon-192.png" alt="" style="width:76px;height:76px;border-radius:18px;margin-bottom:18px">
   <h1>For members</h1>
   <p>This Spin is only for people signed in to Recovery Misfits.</p>
-  <a class="go" id="go" href="/account.html">Join Recovery Misfits</a>
+  <a class="go" id="go" href="/account.html?next=feed">Join free</a>
   <a class="alt" id="alt" href="/account.html?signin=1">I have an account</a>
 </div>
 <script>
@@ -161,7 +161,7 @@ ${s.muted ? '' : '<button type="button" class="snd" id="snd">🔇 Tap for sound<
   <p class="by">@${esc(handle)}</p>
   ${cap ? `<p class="cap">${esc(cap)}</p>` : ''}
   ${music ? `<p class="mus">♫ ${esc(music)}</p>` : ''}
-  <a class="go" id="go" href="/account.html">Join Recovery Misfits</a>
+  <a class="go" id="go" href="/account.html?next=feed">Join free</a>
   <p class="sub" id="sub">Free. Anonymous. Every path welcome.</p>
 </div>` : `<div class="gone">
   <img src="/icon-192.png" alt="" style="width:76px;height:76px;border-radius:18px;margin-bottom:18px">

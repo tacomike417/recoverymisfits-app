@@ -648,7 +648,7 @@ html.fullon #main{visibility:hidden}
 .pa-meta button{cursor:pointer}
 .pa-meta svg,.pa-btns svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .pa-btns{display:flex;gap:8px;margin-top:14px}
-.pa-btns>button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:800 14px Arial,sans-serif;cursor:pointer}
+.pa-btns>button{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:800 14px Arial,sans-serif;cursor:pointer}
 .pa-btns>button svg{width:17px;height:17px;color:var(--gold2)}
 .pa-them .fwrap{display:flex;gap:8px;width:100%}.pa-them .fol{flex:1;margin:0;justify-content:center}
 .pa-friends{display:flex;align-items:center;gap:10px;width:100%;margin-top:14px;padding:10px 12px;border-radius:14px;background:var(--field);border:1px solid var(--line);color:var(--cream);cursor:pointer;text-align:left}
@@ -1131,7 +1131,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v143</span>
+  <span class="ver" id="ver">v144</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2650,6 +2650,36 @@ html.kb .ch-bar{padding-bottom:8px}
     $("mbody").dataset.t = JSON.stringify({ post: id }); $("mbody").dataset.uid = "";
     paintReshare(id); open("menu");
   }
+  /* THE HOUSE'S PICTURES CAN LEAVE THE APP (3 Oct 2026, Mike: "lets do 1-4"). A member's share
+     stays on the Porch ("We gotta protect them"). The memes, prayers and daily questions from the
+     four house accounts are nobody's private business, so those get one more door: send the
+     picture itself anywhere, with recoverymisfits.org along the bottom. */
+  var HOUSE = ["recoverymisfits", "spiritualmisfit", "shitmysponsorsays", "anotherdaysober"], housePic = null;
+  function isHousePost(p) { return !!p && HOUSE.indexOf(String((people[p.user_id] || {}).handle || "").toLowerCase()) >= 0 && !!(p.photo_paths || [])[0]; }
+  function stampPic(src) {
+    return fetch(src).then(function (r) { if (!r.ok) throw new Error("pic"); return r.blob(); }).then(function (blob) {
+      return new Promise(function (done, fail) {
+        var u = URL.createObjectURL(blob), im = new Image();
+        im.onload = function () {
+          try {
+            var w = Math.min(im.naturalWidth, 1600), h = Math.round(im.naturalHeight * w / im.naturalWidth), bar = Math.max(44, Math.round(w * 0.075));
+            var c = document.createElement("canvas"); c.width = w; c.height = h + bar;
+            var x = c.getContext("2d");
+            x.fillStyle = "#11110f"; x.fillRect(0, 0, w, h + bar);
+            x.drawImage(im, 0, 0, w, h);
+            x.fillStyle = "#e0bd6a"; x.textAlign = "center"; x.textBaseline = "middle";
+            try { x.letterSpacing = Math.round(bar * 0.08) + "px"; } catch (e) {}
+            x.font = "800 " + Math.round(bar * 0.42) + "px Arial,sans-serif";
+            x.fillText("RECOVERYMISFITS.ORG", w / 2, h + bar / 2 + 1);
+            URL.revokeObjectURL(u);
+            c.toBlob(function (b) { b ? done(new File([b], "recovery-misfits.jpg", { type: "image/jpeg" })) : fail(new Error("blob")); }, "image/jpeg", 0.9);
+          } catch (e) { fail(e); }
+        };
+        im.onerror = function () { URL.revokeObjectURL(u); fail(new Error("img")); };
+        im.src = u;
+      });
+    });
+  }
   function sendOut(id) {
     if (isSample(id)) return toast("That's a sample post. Only you can see these.");
     $("mbody").dataset.t = JSON.stringify({ post: id }); $("mbody").dataset.uid = "";
@@ -2659,12 +2689,24 @@ html.kb .ch-bar{padding-bottom:8px}
     $("mbody").innerHTML = '<div class="sxs">' +
       (canRe ? door("reshare", '<path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/>', "Reshare on the Porch", "Their name stays on it") : "") +
       door("sx-dm", '<path d="M12 2.6c-5.2 0-9.4 3.8-9.4 8.6 0 2.6 1.3 4.9 3.3 6.5L5 21.4l4.2-2.1c.9.2 1.8.3 2.8.3 5.2 0 9.4-3.8 9.4-8.6S17.2 2.6 12 2.6z" style="fill:currentColor;stroke:none"/><circle cx="8" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/><circle cx="12" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/><circle cx="16" cy="11.2" r="1.3" style="fill:#e0bd6a;stroke:none"/>', "Send in Misfit Messages", "To a friend on the Porch") +
+      (isHousePost(sp) ? door("sx-pic", '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M21 16l-5-5-8 8"/>', "Share this picture", "Facebook · Instagram · Text") : "") +
       door("sx-link", '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>', "Share the link", "Text · Messenger · Email") +
       "</div>";
+    /* get the picture ready while they are still reading the doors, so the phone's share sheet opens on the tap */
+    housePic = isHousePost(sp) ? stampPic(pic(sp.photo_paths[0])).catch(function () { return null; }) : null;
     open("menu");
   }
   function sendVia(how, id) {
     var url = shareLink(id), words = shareWords(id);
+    if (how === "pic") {
+      return Promise.resolve(housePic).then(function (file) {
+        if (!file) return toast("Couldn't get the picture. Try the link.");
+        try { if (navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file], text: "recoverymisfits.org" }).catch(function () {}); } catch (e) {}
+        var a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = file.name;
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+        toast("Saved. Post it anywhere!");
+      });
+    }
     if (how === "dm") return gate(function () {
       var p = posts[id] || {}, ph = (p.photo_paths || [])[0], tx = String(p.body || "").replace(/\s+/g, " ").trim();
       openPick(url, { title: name(p.user_id), text: tx.length > 110 ? tx.slice(0, 107) + "…" : tx, thumb: ph ? pic(ph) : "" });
@@ -2784,7 +2826,7 @@ html.kb .ch-bar{padding-bottom:8px}
         (m.bio ? '<p class="pa-bio">' + linkify(m.bio) + "</p>" : mineP ? '<p class="pa-bio none">Add a line about you.</p>' : "") +
         '<div class="pa-meta">' + (since ? "<span>" + ICAL + "Misfit since " + esc(since) + "</span>" : "") +
           (mineP ? '<button type="button" data-editp>' + (m.visibility === "public" ? IGLOBE + "Public" : ILOCK + "Members only") + "</button>" : "") + "</div>" +
-        (mineP ? '<div class="pa-btns"><button type="button" data-editp>' + IEDIT + "Edit</button><button type=\"button\" data-sharep>" + ISHARE + "Share</button><button type=\"button\" data-findf>" + IFIND + "Find</button></div>"
+        (mineP ? '<div class="pa-btns"><button type="button" data-editp>' + IEDIT + "Edit</button><button type=\"button\" data-sharep>" + ISHARE + "Share</button><button type=\"button\" data-findf>" + IFIND + "Find</button><button type=\"button\" data-invite>" + '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg>' + "Invite</button></div>"
           : '<div class="pa-btns pa-them">' + friendBtn(uid) + "</div>") +
         (fids.length ? '<button type="button" class="pa-friends" data-allf><span class="pa-lab">FRIENDS</span><span class="pa-faces">' + fids.slice(0, 6).map(function (f) { return avatar(people[f]); }).join("") + "</span>" + (mineP ? '<span class="pa-all">See all ›</span>' : "") + "</button>" : "") +
       "</div>" +
@@ -3125,7 +3167,7 @@ html.kb .ch-bar{padding-bottom:8px}
   var SU_PEOPLE = 2;
   var SU_LAST = SU_FIND ? 2 : 1;                 /* 0 profile, 1 say hi, 2 find your people */
   var HELLO = "👋 Hey, I'm new here.", HELLO_CARD = 9;       /* the ready-made first share (the warm gold card) */
-  var INVITE = { title: "Recovery Misfits", text: "Good people between meetings. Free, anonymous, every path counts. Thought of you.", url: "https://recoverymisfits.org" };
+  var INVITE = { title: "Recovery Misfits", text: "Good people between meetings. Free, anonymous, every path counts. Thought of you.", url: "https://recoverymisfits.org/feed/porch.html" };   /* lands on the Porch, where Join free is (3 Oct 2026) */
   function suDots() { var tot = SU_LAST + 2, h = '<div class="su-dots">'; for (var i = 0; i < tot; i++) h += '<i class="' + (i <= suStep + 1 ? "on" : "") + '"></i>'; return h + "</div>"; }
   function personRow(m) {
     people[m.user_id] = people[m.user_id] || m;
@@ -3175,7 +3217,14 @@ html.kb .ch-bar{padding-bottom:8px}
      right here on the phone: a waving hand, their face (or their initials), "Hey, I'm new
      here." and their name. It goes up as a photo share. */
   var suHello = "";
-  function helloImage(m) {
+  /* ONE CARD, TWO JOBS (3 Oct 2026): the hello picture and the invite picture are the same
+     gold card with different words on it. */
+  function helloImage(m) { return faceCard(m, { wave: true, head: "Hey, I'm new here.", sub: "@" + String((m && m.handle) || "misfit"), foot: "RECOVERY MISFITS  \u00b7  GOOD PEOPLE BETWEEN MEETINGS" }); }
+  /* THE INVITE (Mike: "lets do 1-4"). A card gets tapped; a bare link gets scrolled past. Their
+     picture is on it because they are the one sending it. Their username is NOT: this leaves the
+     app, and the name is theirs to give out, not ours. */
+  function inviteImage(m) { return faceCard(m, { wave: false, head: "Come sit on the Porch with me.", sub: "Good people between meetings.", foot: "RECOVERYMISFITS.ORG  \u00b7  FREE  \u00b7  ANONYMOUS" }); }
+  function faceCard(m, o) {
     return new Promise(function (done) {
       var S = 1080, c = document.createElement("canvas"); c.width = c.height = S;
       var x = c.getContext("2d"), handle = String((m && m.handle) || "misfit");
@@ -3199,14 +3248,16 @@ html.kb .ch-bar{padding-bottom:8px}
           x.fillStyle = "#fff"; x.font = "800 150px Arial,sans-serif"; x.fillText(initials(handle), cx, cy + 8);
         }
         x.restore();
-        x.font = '150px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.fillText("👋", S / 2 + 205, 285);
+        if (o.wave) { x.font = '150px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.fillText("👋", S / 2 + 205, 285); }
         x.fillStyle = "#1b1307";
-        x.font = '400 112px "RM Head",Impact,"Arial Narrow",sans-serif'; x.fillText("Hey, I'm new here.", S / 2, 700);
-        var nm = "@" + handle, fs = 64; x.font = "800 " + fs + "px Arial,sans-serif";
+        var hs = 112; x.font = '400 ' + hs + 'px "RM Head",Impact,"Arial Narrow",sans-serif';
+        while (x.measureText(o.head).width > S - 150 && hs > 50) { hs -= 4; x.font = '400 ' + hs + 'px "RM Head",Impact,"Arial Narrow",sans-serif'; }
+        x.fillText(o.head, S / 2, 700);
+        var nm = o.sub, fs = 64; x.font = "800 " + fs + "px Arial,sans-serif";
         while (x.measureText(nm).width > S - 180 && fs > 30) { fs -= 4; x.font = "800 " + fs + "px Arial,sans-serif"; }
         x.fillText(nm, S / 2, 815);
         x.fillStyle = "rgba(27,19,7,.75)";
-        var foot = "RECOVERY MISFITS  ·  GOOD PEOPLE BETWEEN MEETINGS", ff = 30;
+        var foot = o.foot, ff = 30;
         try { x.letterSpacing = "3px"; } catch (e) {}
         x.font = "800 " + ff + "px Arial,sans-serif";
         while (x.measureText(foot).width > S - 170 && ff > 16) { ff -= 1; x.font = "800 " + ff + "px Arial,sans-serif"; }
@@ -3486,7 +3537,8 @@ html.kb .ch-bar{padding-bottom:8px}
       (fIds.length ? fIds.map(function (u) { return row(u, friendBtn(u, true)); }).join("")
         : '<p class="pempty">No friends yet. Tap anybody\'s name or face on the Porch, then Add Friend.</p>') +
       (outIds.length ? '<p class="nd-sec">REQUESTS YOU SENT</p>' + outIds.map(function (u) { return row(u, friendBtn(u, true)); }).join("") : "") +
-      '<button type="button" class="pedit" data-search style="margin-top:18px">Find somebody by name</button>';
+      '<button type="button" class="pedit" data-search style="margin-top:18px">Find somebody by name</button>' +
+      '<button type="button" class="pedit" data-invite style="margin-top:10px">Invite a friend</button>';
   }
 
   /* ================================================================ NOTIFICATIONS (30 Sep 2026)
@@ -4468,11 +4520,31 @@ html.kb .ch-bar{padding-bottom:8px}
   });
   function paintLooks() { document.querySelectorAll("[data-look]").forEach(function (b) { b.classList.toggle("on", b.dataset.look === look()); }); }
 
-  function invite() {
-    var data = INVITE;                 /* the same words as the set-up walk (make all the doors the same) */
-    if (navigator.share) navigator.share(data).catch(function () {});
-    else { try { navigator.clipboard.writeText(data.url); toast("Link copied. Send it to somebody."); } catch (e) {} }
+  /* The picture is drawn ahead of time (a few seconds after the Porch opens, and again if their
+     face changes) because a phone only lets a page open its share sheet right after a tap. */
+  var invFile = null, invKey = "";
+  function invPrep() {
+    if (!me.uid || !me.member) return;
+    var key = me.member.handle + "|" + (me.member.avatar_path || "");
+    if (key === invKey) return;
+    invKey = key; invFile = null;
+    inviteImage(me.member).then(function (url) { return url ? fetch(url).then(function (r) { return r.blob(); }) : null; })
+      .then(function (b) { if (b && key === invKey) invFile = new File([b], "recovery-misfits-invite.jpg", { type: "image/jpeg" }); })
+      .catch(function () {});
   }
+  function invite() {
+    var data = INVITE;                 /* the same words everywhere Invite is (make all the doors the same) */
+    invPrep();
+    try {
+      if (invFile && navigator.canShare && navigator.canShare({ files: [invFile] })) {
+        navigator.share({ files: [invFile], title: data.title, text: data.text + " " + data.url }).catch(function () {});
+        return;
+      }
+    } catch (e) {}
+    if (navigator.share) navigator.share(data).catch(function () {});
+    else { try { navigator.clipboard.writeText(data.text + " " + data.url); toast("Copied. Paste it to somebody."); } catch (e) {} }
+  }
+  setTimeout(invPrep, 4000);
 
   /* ================================================================ HEADER SCROLL-AWAY
      Scroll down: header + rail slide up out of the way. Scroll up: they come back.
