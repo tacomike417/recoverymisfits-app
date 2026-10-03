@@ -81,6 +81,14 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .ft-me{flex:none;width:44px;height:44px;margin:0 -2px 0 -4px;padding:0;border:0;background:none;display:grid;place-items:center;cursor:pointer;border-radius:50%;-webkit-tap-highlight-color:transparent}
 .ft-me .av{width:34px;height:34px;font-size:14px;box-shadow:0 0 0 2px #100f0c,0 0 0 3.5px var(--gold2)}
 .ft-me:active .av{transform:scale(.94)}
+.ft-me[hidden]{display:none}
+.joinbar{margin:10px 12px 6px;padding:16px 16px 12px;border-radius:18px;border:1.5px solid var(--gold2);background:linear-gradient(160deg,rgba(224,189,106,.14),rgba(224,189,106,.04));text-align:center}
+.joinbar[hidden]{display:none}
+.joinbar b{display:block;font:400 25px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.02em;color:var(--cream)}
+.joinbar p{margin:6px 0 2px;color:var(--soft);font:700 14px Arial,sans-serif}
+.joinbar .btn{font-size:19px;padding:15px;margin-top:10px}
+.joinbar .jb-in{display:block;min-height:44px;line-height:44px;color:var(--gold2);font:700 14.5px/44px Arial,sans-serif;text-decoration:none}
+.sheet .btn.jb-alt{background:none!important;border:1.5px solid currentColor;color:inherit!important;margin-top:8px}
 .ft-sub .tspin{flex:1;justify-content:center;padding:9px 0 8px;font-size:12.5px;letter-spacing:.1em}
 .ft-sub .tspin svg{width:16px;height:16px}
 .ft-sub{display:flex;border-top:1px solid rgba(214,179,106,.12)}
@@ -1092,12 +1100,19 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v121</span>
+  <span class="ver" id="ver">v122</span>
 </div>
 <script src="/topbar.js" defer></script>
 
 <main class="wrap" id="main">
-  
+  <!-- NOT SIGNED IN YET (3 Oct 2026, Mike: "we need to put join free"). A stranger used to land
+       on the feed with nothing inviting them in. One warm line and one obvious button. -->
+  <section class="joinbar" id="joinbar" hidden>
+    <b>Good people between meetings.</b>
+    <p>Anonymous. Private. Every path counts.</p>
+    <a class="btn" href="/account.html?next=feed">Join free</a>
+    <a class="jb-in" href="/account.html?signin=1&next=feed">I have an account</a>
+  </section>
   <div id="spinrail"></div>
   <div id="feed" style="padding-top:2px"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
@@ -1121,10 +1136,10 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="join" class="layer" role="dialog" aria-modal="true" aria-label="Your recovery, your way">
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div>
-    <h3>Good company between meetings</h3>
-    <p>Anybody can read the Porch. To share, comment or cheer somebody on, you need an account and a confirmed email.</p>
-    <p class="fine">We never keep your email, and nobody here will ever see it.</p>
-    <a class="btn" href="/account.html?next=feed">Make an account or sign in</a>
+    <h3>Join us. It's free.</h3>
+    <p>Make an account to share, comment and cheer people on. It takes a minute. No real name needed.</p>
+    <a class="btn" href="/account.html?next=feed">Join free</a>
+    <a class="btn jb-alt" href="/account.html?signin=1&next=feed">I have an account</a>
     <button type="button" class="link" data-close>Keep looking around</button>
   </div>
 </div>
@@ -1559,7 +1574,8 @@ html.kb .ch-bar{padding-bottom:8px}
      from nav.js and loads a moment after this page, so this waits for it. Only
      the Porch does this; every other page's rail is untouched. */
   function paintPin() {
-    var tm = $("topme"); if (tm) tm.innerHTML = avatar(me.member || { handle: signedIn() ? A.name() : "?" });
+    var tm = $("topme"); if (tm) { tm.hidden = !signedIn(); tm.innerHTML = avatar(me.member || { handle: signedIn() ? A.name() : "?" }); }
+    var jb = $("joinbar"); if (jb) jb.hidden = signedIn();
     var btn = $("rmAccountBtn"); if (!btn) return;
     if (!btn.classList.contains("pin")) {
       btn.classList.add("pin"); btn.setAttribute("aria-label", "Your menu");
