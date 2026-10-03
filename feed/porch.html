@@ -1082,7 +1082,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v115</span>
+  <span class="ver" id="ver">v116</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2248,11 +2248,16 @@ html.kb .ch-bar{padding-bottom:8px}
       if (!er.ok) { $("cerr").textContent = er.error || "That didn't save. Try again."; return; }
       ep.body = body || null; ep.need = need; ep.edited_at = er.edited_at; if ("link_preview" in er) ep.link_preview = er.link_preview; if (mode === "sign") ep.card_style = style;
       editingPost = null;
-      await closeAll();
+      /* 3 Oct 2026, Mike: "I click save and it takes me back to the main feed. It needs to take me
+         back to the profile where they are." Only the editor closes; whatever you were on stays. */
+      while (stack.length && stack[stack.length - 1].id === "compose") await closeTop();
+      /* edited from a profile's grid: land back on the grid, ready for the next one */
+      if (stack.length > 1 && stack[stack.length - 1].id === "single" && stack[stack.length - 2].id === "profile") await closeTop();
       document.querySelectorAll('[data-post="' + eid + '"]').forEach(function (el) {
         var wrap = document.createElement("div"); wrap.innerHTML = postHTML(ep);
         var fresh = wrap.firstChild; if (!el.id) fresh.removeAttribute("id"); el.replaceWith(fresh);
       });
+      document.querySelectorAll('[data-openpost="' + eid + '"]').forEach(function (el) { el.outerHTML = tileHTML(ep); });   /* the tile on the profile */
       if (er.care) open("care"); else toast("Saved.");
       return;
     }
