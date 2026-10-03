@@ -846,6 +846,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
 
     if (mode === "new") {
       signingUp = true;
+      try { localStorage.setItem("rm_walk_hold", String(Date.now())); } catch (e) {}     /* coins and pile cards wait for the end of the walk */
       /* The one and only time this app shows somebody a password. */
       $("freshName").textContent = A.name();
       $("freshPw").textContent = pw;

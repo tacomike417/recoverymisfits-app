@@ -1107,7 +1107,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v127</span>
+  <span class="ver" id="ver">v128</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -5190,6 +5190,23 @@ html.kb .ch-bar{padding-bottom:8px}
     var dmTo = new URLSearchParams(location.search).get("dm");
     if (dmTo && /^[0-9a-f-]{36}$/i.test(dmTo)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openChat(dmTo); }
     if (/[?&]setup=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) openSetup(); }     /* the walk comes first; the "How the Porch works" hello waits until it's done */
+    /* THE COIN AND THE PILE CARD WAIT FOR THE VERY END (3 Oct 2026, Mike). They were held back
+       while signing up (rm_walk_hold). Once nothing from the walk is on screen, let them go. */
+    (function walkWatch() {
+      var held = false; try { held = !!localStorage.getItem("rm_walk_hold"); } catch (e) {}
+      if (!held) return;
+      var iv = setInterval(function () {
+        if (stack.length || document.querySelector(".scan, .crop")) return;
+        clearInterval(iv);
+        try { localStorage.removeItem("rm_walk_hold"); } catch (e) {}
+        window.__rmRevealSoon = Date.now() + 5000;          /* tells the "How the Porch works" hello to wait its turn */
+        setTimeout(function () {
+          try { if (window.RMWelcome && window.RMWelcome.run) window.RMWelcome.run(); } catch (e) {}          /* the welcome deck first, then the coin */
+          try { if (window.RMCoins && window.RMCoins.maybeReveal) window.RMCoins.maybeReveal(); } catch (e) {}
+          try { if (window.RMPileReveal && window.RMPileReveal.run) window.RMPileReveal.run(); } catch (e) {}
+        }, 1400);
+      }, 1500);
+    })();
     /* THE TOUR (2 Oct 2026): comes up by itself the first time, then leaves a small
        "Getting started" strip above the feed. feed/tour.js. */
     (function tourStart(n) { if (window.PorchTour) window.PorchTour.maybe(); else if (n < 20) setTimeout(function () { tourStart(n + 1); }, 300); })(0);

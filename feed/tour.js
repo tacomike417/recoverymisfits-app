@@ -229,7 +229,10 @@
      reveals close themselves with the phone's back button, and back also shuts whatever
      Porch layer is on top, which was the tour. So the tour waits its turn: nothing of
      theirs on screen, twice in a row, before it comes up. */
-  const revealUp = () => !!document.querySelector('.rm-coin-reveal, .rm-pr');
+  /* ONE THING AT A TIME (3 Oct 2026, Mike): the welcome deck, a new coin and a pile card all come
+     before this, and none of them come until the sign-up walk is over (rm_walk_hold). */
+  const walkHeld = () => { try { const h = Number(localStorage.getItem('rm_walk_hold')) || 0; return !!h && Date.now() - h < 30 * 60 * 1000; } catch (_) { return false; } };
+  const revealUp = () => !!document.querySelector('.rm-coin-reveal, .rm-pr, .rm-welcome') || !!window.__rmWelcomePending || (window.__rmRevealSoon || 0) > Date.now() || walkHeld();
   function whenClear(fn, tries) {
     let clear = 0, n = 0;
     const tick = () => {

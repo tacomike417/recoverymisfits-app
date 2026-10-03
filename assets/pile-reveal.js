@@ -199,6 +199,8 @@
 
   function run() {
     if (!signedIn()) return;
+    /* not during sign-up: see rm_walk_hold in coins.js (3 Oct 2026) */
+    try { var hold = Number(localStorage.getItem("rm_walk_hold")) || 0; if (hold && Date.now() - hold < 30 * 60 * 1000) return; } catch (e) {}
     needPile().then(function (P) {
       if (!P) return;
       return P.load().then(function (cards) {
@@ -232,5 +234,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
   else run();
 
-  window.RMPileReveal = { close: close };
+  window.RMPileReveal = { close: close, run: run };
 })();

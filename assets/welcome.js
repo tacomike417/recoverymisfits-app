@@ -135,9 +135,13 @@
   /* FIRST TIME WITH AN ACCOUNT: open it, and claim the day. */
   function run() {
     if (!signedIn() || seen()) { window.__rmWelcomePending = false; return; }
+    /* NOT DURING SIGN-UP (3 Oct 2026, Mike): nothing pops up until the set-up walk is over.
+       The Porch clears rm_walk_hold at the end and calls run() again. See coins.js. */
+    try { var hold = Number(localStorage.getItem("rm_walk_hold")) || 0; if (hold && Date.now() - hold < 30 * 60 * 1000) { window.__rmWelcomePending = false; return; } } catch (e) {}
     claimTheDay();
     open(0);
   }
+  window.RMWelcome.run = run;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
   else run();
 })();

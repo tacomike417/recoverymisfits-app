@@ -563,6 +563,11 @@
      it is an introduction, not a false milestone -- but it is a decision,
      not an accident. Set rm_coin_seen at install time to skip it. */
   function maybeReveal() {
+    /* NOT DURING SIGN-UP (3 Oct 2026, Mike: "I don't want the coin or the survival pile things to
+       shoot up until the very, very end"). The account page sets rm_walk_hold when an account is
+       made; the Porch clears it when the set-up walk is over and calls this again. It lets go by
+       itself after 30 minutes, so a walk somebody abandons can't hide a coin for good. */
+    try { var hold = Number(localStorage.getItem("rm_walk_hold")) || 0; if (hold && Date.now() - hold < 30 * 60 * 1000) return; } catch (e) {}
     var coin = coinFor(soberYMD());
     /* JUST SWITCHED ACCOUNTS (assets/account.js, 2 Oct 2026). This account's coin has
        never been noted on this phone, so note it quietly. A switch is not a milestone. */
@@ -615,6 +620,7 @@
     }, 150);
 
     maybeReveal();
+    api.maybeReveal = maybeReveal;       /* the Porch calls this when the set-up walk ends */
 
     /* Crossing midnight while the app is open is the one time a milestone
        can arrive without a page load. */
