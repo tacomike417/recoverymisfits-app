@@ -41,6 +41,13 @@
  * Both run through runList(): it looks at what the account has already shared, so nothing
  * repeats and nothing needs counting. The starting batch is dated one a day going back.
  *
+ * ANOTHER DAY SOBER (2 Oct 2026, Mike). The account anotherdaysober posts the question
+ * that ends the day's reading, as a picture made to match the reading page, "every single
+ * morning at 4 a.m.", with a link to that day's reading under it. "Backlog the last 25
+ * days or so": it fills in any of the last 25 days that are missing, each dated its own
+ * morning, so a missed morning catches itself up. /data/ads-questions.json has the links;
+ * the pictures are /assets/house/anotherdaysober/MM-DD.webp.
+ *
  * Deploy:
  *   npx supabase functions deploy porch-daily --no-verify-jwt --project-ref rlytvfehbglsjfvprtbp
  */
@@ -288,6 +295,36 @@ async function spiritualMemes(hour: number) {
   return await runList(PRAYER_HOUSE, items, (p) => String((p.photo_paths || [])[0] || ""), 5, hour >= 12, "before noon Eastern", hour, 12);
 }
 
+async function ads(day: string, hour: number) {
+  const r = await fetch(SITE + "/data/ads-questions.json", { headers: { "cache-control": "no-cache" } });
+  if (!r.ok) return { posted: 0, error: "could not read the question list (" + r.status + ")" };
+  const j = await r.json();
+  const days = j.days || {};
+  const H = Number.isInteger(j.hour) ? j.hour : 4;
+  const back = Math.min(60, Math.max(1, Number(j.backlog) || 25));
+  const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", "anotherdaysober").maybeSingle();
+  if (!m) return { posted: 0, error: "anotherdaysober is not on the Porch yet" };
+  const { data: mine } = await admin.from("porch_posts").select("photo_paths").eq("user_id", m.user_id)
+    .gte("created_at", new Date(Date.now() - (back + 20) * 86400000).toISOString()).limit(1000);
+  const have = new Set((mine || []).map((p: any) => String((p.photo_paths || [])[0] || "")));
+  const shift = (d: string, n: number) => new Date(Date.parse(d + "T00:00:00Z") + n * 86400000).toISOString().slice(0, 10);
+  let posted = 0; const put: string[] = [];
+  for (let n = back - 1; n >= 0; n--) {
+    if (n === 0 && hour < H) break;                                   // today's waits for 4am
+    const d = shift(day, -n);
+    let md = d.slice(5); if (!days[md] && md === "02-29") md = "02-28";
+    const it = days[md]; if (!it || !/^\/another-day-sober\/[\w\/-]+$/.test(String(it.link || ""))) continue;
+    const path = "/assets/house/anotherdaysober/" + md + ".webp";
+    if (have.has(path)) continue;
+    const { error } = await admin.from("porch_posts").insert({ user_id: m.user_id, need: "talk",
+      body: "The full reading: " + SITE + it.link, photo_paths: [path],
+      created_at: n === 0 ? new Date().toISOString() : d + "T08:00:00Z" });      // older days are dated their own morning
+    if (error) return { posted, error: error.message };
+    have.add(path); posted++; put.push(md);
+  }
+  return posted ? { posted, days: put } : { posted: 0, why: hour < H ? "before 4am Eastern" : "today's is already up" };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return json({ ok: true });
   let body: Record<string, any> = {};
@@ -303,6 +340,7 @@ Deno.serve(async (req) => {
     try { out.moment = await moment(day, hour); } catch (e) { out.moment = { posted: false, error: String((e as Error).message || e) }; }
     try { out.reels = await reels(hour); } catch (e) { out.reels = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.sponsor = await sponsor(day, hour); } catch (e) { out.sponsor = { posted: 0, error: String((e as Error).message || e) }; }
+    try { out.another_day_sober = await ads(day, hour); } catch (e) { out.another_day_sober = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.spiritual_memes = await spiritualMemes(hour); } catch (e) { out.spiritual_memes = { posted: 0, error: String((e as Error).message || e) }; }
     return json(out);
   } catch (e) {
