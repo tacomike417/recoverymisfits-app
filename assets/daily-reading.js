@@ -208,6 +208,24 @@
      all live -- one button instead of four, as the mockup has it. Where
      there is no share sheet the link is copied instead and the page says so
      out loud for a screen reader. */
+  /* SHARE TO THE PORCH is the first choice (3 Oct 2026, Mike). Added here, not in the page, so
+     all 365 built reading pages get it without rebuilding their template. It opens a new share
+     on the Porch with the reading's title and link in it. */
+  (function () {
+    var old = document.getElementById("share");
+    if (!old || document.getElementById("toPorch")) return;
+    var b = document.createElement("button");
+    b.type = "button"; b.id = "toPorch"; b.className = old.className;
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5 12 4l9.5 6.5"/><path d="M5 9.5V20M19 9.5V20M2.5 20h19"/><path d="M8.5 15h7M8.5 15v5M15.5 15v5"/></svg>Share to the Porch';
+    b.style.marginBottom = "10px";
+    old.parentNode.insertBefore(b, old);
+    b.onclick = function () {
+      if (!postUrl) { sayEl.textContent = "Nothing to share yet."; return; }
+      if (window.RMToPorch) window.RMToPorch({ words: postTitle + "\n" + postUrl });
+      else location.href = "/feed/porch.html";
+    };
+  })();
+
   document.getElementById("share").onclick = function () {
     if (!postUrl) { sayEl.textContent = "Nothing to share yet."; return; }
     var text = "Check this out: " + postTitle;

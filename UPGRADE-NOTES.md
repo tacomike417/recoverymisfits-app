@@ -194,7 +194,8 @@ WHAT THE BUILD TURNED UP (v151): four things on the list were my mistake, read o
 - "Every Reading" only shows before the daily build; on the live site that spot is the month calendar.
 
 ITS OWN BUILD, AFTER THE WORDING
-- [ ] "Share to the Porch" as the FIRST choice everywhere the site has a share button (sober date card, meme,
+- [x] (v155: sober date card, meme page, reading pages, Survival Pile card. NOT yet: the two small share
+      icons on the home page's Meme of the Day row.) "Share to the Porch" as the FIRST choice everywhere the site has a share button (sober date card, meme,
       today's reading, a coin, a Survival Pile card). Opens a new Porch post with the picture in it; nothing posts
       by itself. Shown to everybody now; before launch it lands on the "Opens October 20" page. Mike: "let the
       user get a little hungry to wonder what the porch is".

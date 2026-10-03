@@ -346,6 +346,11 @@
          share sheet, so there the picture saves, the link copies, and
          Facebook gets its own button. -->
     <div class="dacts" id="dacts" hidden>
+      <!-- SHARE TO THE PORCH is the first choice (3 Oct 2026, Mike) -->
+      <button class="dshare" type="button" id="dporch">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5 12 4l9.5 6.5"/><path d="M5 9.5V20M19 9.5V20M2.5 20h19"/><path d="M8.5 15h7M8.5 15v5M15.5 15v5"/></svg>
+        <span>Share to the Porch</span>
+      </button>
       <button class="dshare" type="button" id="dshare">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="dshareLabel">Share this card</span>
@@ -847,6 +852,16 @@
     if (!open) return;
     window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(linkFor(open.card)),
                 "fbshare", "width=640,height=560,noopener");
+  });
+
+  $("dporch").addEventListener("click", function () {
+    if (!open) return;
+    var grp = open, say = $("dsay");
+    say.textContent = "Getting it ready…";
+    picture(grp).then(function (blob) {
+      if (window.RMToPorch) return window.RMToPorch({ blob: blob, name: "survival-pile-" + grp.card.code + ".jpg" });
+      location.href = "/feed/porch.html";
+    }, function () { say.textContent = "Couldn't get the picture. Try again."; });
   });
 
   $("dshare").addEventListener("click", function () {

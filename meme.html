@@ -213,6 +213,11 @@
   </div>
 
   <div class="acts">
+    <!-- SHARE TO THE PORCH is the first choice (3 Oct 2026, Mike) -->
+    <button class="btn btn-go" id="toPorch" type="button" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5 12 4l9.5 6.5"/><path d="M5 9.5V20M19 9.5V20M2.5 20h19"/><path d="M8.5 15h7M8.5 15v5M15.5 15v5"/></svg>
+      <span>Share to the Porch</span>
+    </button>
     <button class="btn btn-go" id="share" type="button" disabled>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span id="shareLabel">Share this one</span>
@@ -422,6 +427,14 @@
   shot.addEventListener("load", function () {
     frame.classList.add("ready");
     btn.disabled = false;
+    document.getElementById("toPorch").disabled = false;
+  });
+  document.getElementById("toPorch").addEventListener("click", function () {
+    if (!cur.file) return;
+    var b = this; b.disabled = true;
+    fetch("/assets/memes/" + cur.file).then(function (r) { if (!r.ok) throw new Error("meme"); return r.blob(); })
+      .then(function (blob) { return window.RMToPorch ? window.RMToPorch({ blob: blob, name: "recovery-misfits-meme.jpg" }) : (location.href = "/feed/porch.html"); })
+      .catch(function () { b.disabled = false; tell("Couldn't get the picture. Try again.", true); });
   });
   shot.addEventListener("error", function () {
     frame.classList.add("ready");

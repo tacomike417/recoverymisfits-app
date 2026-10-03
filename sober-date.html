@@ -136,6 +136,12 @@
   </section>
 
   <div class="acts">
+    <!-- SHARE TO THE PORCH is the first choice (3 Oct 2026, Mike). It opens a new share on the Porch
+         with the card in it; they still have to tap Share there. Their date only goes up if they do. -->
+    <button class="go" id="porchBtn" type="button" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5 12 4l9.5 6.5"/><path d="M5 9.5V20M19 9.5V20M2.5 20h19"/><path d="M8.5 15h7M8.5 15v5M15.5 15v5"/></svg>
+      Share to the Porch
+    </button>
     <button class="go" id="shareBtn" type="button">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Share my card
@@ -216,6 +222,7 @@
       /* NOTHING TO SHARE OR CHANGE YET (3 Oct 2026, the unclear list): with no date there is one
          button, and it says what it does. */
       $("shareBtn").hidden = true;
+      $("porchBtn").hidden = true;
       $("setBtn").textContent = "Set my sober date";
       $("setBtn").classList.remove("quiet");
       return;
@@ -242,6 +249,7 @@
     $("broke").textContent = state.broke;
     $("shareBtn").disabled = false;
     $("shareBtn").hidden = false;                       /* a date is in: both buttons are back */
+    $("porchBtn").hidden = false;
     $("setBtn").textContent = "Change my sober date";
     $("setBtn").classList.add("quiet");
     refreshPreview();
@@ -438,6 +446,18 @@
       else resolve(null);
     });
   }
+
+  $("porchBtn").addEventListener("click", async function () {
+    if (!state.has) return;
+    msg.textContent = "Making your card…";
+    try {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      var blob = await toBlob(drawCard(await loadBg()));
+      if (!blob) { msg.textContent = "This browser cannot make the image."; return; }
+      if (window.RMToPorch) await window.RMToPorch({ blob: blob, name: "sober-" + state.days + "-days.png" });
+      else location.href = "/feed/porch.html";
+    } catch (e) { msg.textContent = "That didn't work. Try again."; }
+  });
 
   $("shareBtn").addEventListener("click", async function () {
     if (!state.has) return;

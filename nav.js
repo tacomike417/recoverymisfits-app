@@ -1818,3 +1818,35 @@
   var s = document.createElement("script"); s.src = "/feed/alerts.js?v=5"; s.defer = true;
   document.head.appendChild(s);
 })();
+
+
+/* ============================================================================
+   SHARE TO THE PORCH (3 Oct 2026, Mike: "now that we have the porch we need to add
+   that option in there as the number one option to share to, wherever you can share
+   these things ... let the user get a little hungry to wonder what the porch is").
+
+   One helper for every page: RMToPorch({ blob, name, words }). It hands the picture
+   (or just the words) to the Porch the same way the phone's own Share menu does:
+   it is put in the "rm-share-in" shelf sw.js already uses, and the Porch picks it up
+   and opens a new share with it in place. NOTHING POSTS BY ITSELF: they land on the
+   composer and tap Share. Before the Porch opens, somebody who isn't in yet lands on
+   the "Opens October 20" page instead.
+   ========================================================================== */
+window.RMToPorch = async function (o) {
+  o = o || {};
+  try {
+    var c = await caches.open("rm-share-in");
+    var keys = await c.keys();
+    for (var i = 0; i < keys.length; i++) await c.delete(keys[i]);
+    var names = [], types = [];
+    if (o.blob) {
+      var t = o.blob.type || "image/jpeg";
+      names.push(o.name || "share.jpg"); types.push(t);
+      await c.put("/share-in/f0", new Response(o.blob, { headers: { "Content-Type": t } }));
+    }
+    await c.put("/share-in/meta", new Response(JSON.stringify({
+      n: names.length, names: names, types: types, title: "", text: o.words || "", url: "", at: Date.now(), how: "post"
+    }), { headers: { "Content-Type": "application/json" } }));
+  } catch (e) {}
+  location.href = "/feed/porch.html?shared=1";
+};
