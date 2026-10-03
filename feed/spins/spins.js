@@ -82,14 +82,21 @@
    seven seconds a little misfit taking a selfie slides up into the gold button, holds, and slides
    back down to the camera. A drawing of somebody else, on purpose: no red dot, no REC, nothing
    that looks like the person's own camera is on. Everybody sees it, every time. */
-.sp-mk .sp-cam{position:relative;overflow:hidden}
-.sp-selfie{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;background:#14110b;border-radius:50%;transform:translateY(106%);animation:sp-selfie 7s ease-in-out infinite;pointer-events:none}
-.sp-mk .sp-cam svg{animation:sp-camfade 7s ease-in-out infinite}
-@keyframes sp-selfie{0%,54%{transform:translateY(106%)}62%,88%{transform:translateY(2%)}96%,100%{transform:translateY(106%)}}
-@keyframes sp-camfade{0%,54%{opacity:1}60%,90%{opacity:0}96%,100%{opacity:1}}
-/* a phone set to "reduce motion" gets a slow fade in place instead of the slide */
-@keyframes sp-selfie-fade{0%,54%{opacity:0}62%,88%{opacity:1}96%,100%{opacity:0}}
-@media (prefers-reduced-motion:reduce){.sp-selfie{transform:translateY(2%);opacity:0;animation:sp-selfie-fade 7s linear infinite}}
+.sp-mk .sp-cam{position:relative;z-index:1;overflow:hidden}
+.sp-mk .sp-badge-plus{z-index:2}
+.sp-selfie{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;background:#14110b;border-radius:50%;transform:translateY(106%);animation:sp-selfie 8s ease-in-out infinite;pointer-events:none}
+.sp-mk .sp-cam svg{animation:sp-camfade 8s ease-in-out infinite}
+/* HE SLIDES UP, AND THE RING GOES RED WHILE HE IS FILMING (3 Oct 2026, Mike: "it's supposed to slide
+   up in there, and once he slides up you should turn the ring around red and a red glow for
+   recording. You can slow this down a half a second too"). The slide takes a little over a second
+   now. It always slides, even on a phone set to reduce motion: that setting was turning it into a
+   fade, which is what Mike saw. The red is on the ring around the drawing of the misfit, so it reads
+   as HIM recording. */
+.sp-mk .sp-ring::before{content:"";position:absolute;inset:0;border-radius:50%;z-index:0;opacity:0;pointer-events:none;
+  background:conic-gradient(#ff6a5c,#e5261f,#b3120e,#ff6a5c);box-shadow:0 0 14px 4px rgba(229,38,31,.75);animation:sp-rec 8s ease-in-out infinite}
+@keyframes sp-selfie{0%,50%{transform:translateY(106%)}64%,86%{transform:translateY(2%)}98%,100%{transform:translateY(106%)}}
+@keyframes sp-camfade{0%,50%{opacity:1}60%,90%{opacity:0}98%,100%{opacity:1}}
+@keyframes sp-rec{0%,62%{opacity:0}66%{opacity:1}72%{opacity:.72}78%{opacity:1}84%{opacity:.8}87%{opacity:1}92%,100%{opacity:0}}
 .sp-story:active .sp-ring{transform:scale(.95)}
 .sp-story .sp-ring{position:relative}
 .sp-rebadge{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#e0bd6a;border:2px solid var(--bg,#11110f);display:grid;place-items:center;box-sizing:border-box}
