@@ -1082,7 +1082,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v116</span>
+  <span class="ver" id="ver">v117</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2711,8 +2711,13 @@ html.kb .ch-bar{padding-bottom:8px}
   }
 
   /* ---- your menu, from your picture in the rail ---- */
-  function openMeMenu() {
+  async function openMeMenu() {
     if (!signedIn()) return open("join");
+    /* 3 Oct 2026, Mike: "once you're on your profile, that little icon of your profile picture
+       down in the bottom right doesn't work anymore." The profile had been opened FROM this menu,
+       so the menu was still open underneath and a second "open" did nothing. Come back up to it. */
+    var mmEl = $("memenu");
+    if (stack.indexOf(mmEl) >= 0) { while (stack.length && stack[stack.length - 1] !== mmEl) await closeTop(); return; }
     var m = me.member || { handle: A.name() };
     /* 1 Oct 2026, Mike: picture, username, and underneath it their own link to visit or copy */
     var plink = "recoverymisfits.org" + profPath(m.handle);
