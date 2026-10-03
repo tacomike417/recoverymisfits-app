@@ -305,6 +305,18 @@
     return ok ? session.access : null;
   }
 
+  /* A DELETED ACCOUNT LEAVES NOTHING ON THE PHONE (3 Oct 2026, Mike: "All record of them
+     wiped"). Signing out keeps the sober date here on purpose; deleting does not. This
+     clears this account's sober date, its coins and pile markers and its saved face, and
+     must run BEFORE signOut so the date isn't signed and kept. */
+  function wipeMine() {
+    KEEP.concat(SHOWN).forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+    try {
+      var f = JSON.parse(localStorage.getItem("rm_faces_v1") || "{}") || {};
+      if (session && session.name && f[session.name]) { delete f[session.name]; localStorage.setItem("rm_faces_v1", JSON.stringify(f)); }
+    } catch (e) {}
+  }
+
   function signOut() {
     /* SIGN THE DATE ON THE WAY OUT.
 
@@ -584,6 +596,7 @@
     signUp: signUp,
     signIn: signIn,
     signOut: signOut,
+    wipeMine: wipeMine,
     token: token,          /* a fresh access token, for the Porch (30 Sep 2026) */
     pull: pull,
     push: push,

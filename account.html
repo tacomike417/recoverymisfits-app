@@ -946,9 +946,8 @@
       /* 3 Oct 2026, Mike: say it plainly. It's safe, it's for good, and the name is retired.
          And offer the gentler thing first: take a break (porch_39). */
       b.textContent = "Tap again to delete it for good";
-      $("sayDel").innerHTML = "<b>Deleting is safe.</b> Everything you shared on the Porch, your settings and the sober date saved to your account are wiped for good." +
+      $("sayDel").innerHTML = "<b>Deleting is safe.</b> Everything is wiped for good: what you shared on the Porch, your friends, your settings, your sober date and your coins." +
         "<br><br><b>Your username is retired.</b> Nobody can ever use it again, and that includes you. Nobody can pretend to be you." +
-        "<br><br>This phone keeps its own copy of your sober date." +
         '<br><br>Just need some space? <a href="/feed/porch.html?break=1" style="color:#e0bd6a;font-weight:800">Take a break instead</a>. Nothing is erased and your name stays yours.';
       return;
     }
@@ -964,6 +963,7 @@
       if (!r.ok || !j.ok) { b.disabled = false; b.textContent = "Delete my account"; delete b.dataset.sure; return say($("sayDel"), (j && j.error) || "That didn't work. Try again.", "bad"); }
     } catch (e) { b.disabled = false; b.textContent = "Delete my account"; delete b.dataset.sure; return say($("sayDel"), "No connection. Try again when you have signal.", "bad"); }
     try { localStorage.removeItem("rm_porch_ok"); } catch (e) {}
+    if (A.wipeMine) A.wipeMine();          /* the sober date and coins leave this phone too (3 Oct 2026) */
     $("dsOut").click();
     say($("sayLvl"), "Your account is deleted. Take care of yourself.");
   });

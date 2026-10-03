@@ -1092,7 +1092,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v120</span>
+  <span class="ver" id="ver">v121</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2492,11 +2492,16 @@ html.kb .ch-bar{padding-bottom:8px}
     if (m === "leave") {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = "Tap again. This can't be undone."; return; }
       b.textContent = "Deleting…"; b.disabled = true;
-      var lr = await fn("porch", { action: "leave" });
-      if (!lr.ok) { await closeTop(); return toast(lr.error || "That didn't go through. Try again."); }
+      /* ONE DELETE (3 Oct 2026, Mike: "All record of them wiped and their name retired and they
+         can't get it back"). This used to wipe only the Porch and leave the app account, sober
+         date and coins. Now it is the same full delete as the Account page. */
       try { await pushOff(true); } catch (e) {}
-      await closeAll(); toast("Done. Everything you put on the Porch is gone.");
-      setTimeout(function () { location.reload(); }, 1600); return;
+      var lr = await fn("porch", { action: "delete_account" });
+      if (!lr.ok) { await closeTop(); return toast(lr.error || "That didn't go through. Try again."); }
+      try { localStorage.removeItem("rm_porch_ok"); } catch (e) {}
+      try { if (A.wipeMine) A.wipeMine(); A.signOut(); } catch (e) {}
+      await closeAll(); toast("Your account is deleted. Take care of yourself.");
+      setTimeout(function () { location.replace("/index.html"); }, 1800); return;
     }
     if (m === "reshare") return paintReshare(t.post);
     if (m === "reshare-go") {
@@ -3720,7 +3725,7 @@ html.kb .ch-bar{padding-bottom:8px}
       "<p><b>Take a break</b> hides your profile and everything you shared. Nothing is erased. Your name stays yours. Come back any time and it's all still here.</p>" +
       '<button type="button" class="btn" id="breakgo" style="text-align:center;border-bottom:0;padding:15px;margin:6px 0 4px">Take a break</button>' +
       '<button type="button" data-close style="text-align:center;border-bottom:0;font-weight:700">Not right now</button>' +
-      '<p style="margin:14px 0 2px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;opacity:.85"><b>Or delete it.</b> It\'s safe: your shares, photos, Spins, comments and friends are wiped for good and can\'t come back. Your app account, sober date and coins stay.</p>' +
+      '<p style="margin:14px 0 2px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;opacity:.85"><b>Or delete your account.</b> It\'s safe. Everything is wiped for good: your shares, photos, Spins, comments, friends, sober date and coins. <b>Your username is retired.</b> Nobody can ever use it again, and that includes you.</p>' +
       '<button type="button" class="bad" data-m="leave" id="leavego" disabled style="text-align:center;border-bottom:0;font-size:14px">You can delete in 10</button>';
     open("menu");
     var n = 10; clearInterval(leaveTick);
@@ -3729,7 +3734,7 @@ html.kb .ch-bar{padding-bottom:8px}
       if (!b || !$("menu").classList.contains("open")) return clearInterval(leaveTick);
       n--;
       if (n > 0) { b.textContent = "You can delete in " + n; return; }
-      clearInterval(leaveTick); b.disabled = false; b.textContent = "Delete my Porch account";
+      clearInterval(leaveTick); b.disabled = false; b.textContent = "Delete my account";
     }, 1000);
   }
   /* ON A BREAK: one calm screen with one obvious way back in. Not a dead end: "Not yet"
