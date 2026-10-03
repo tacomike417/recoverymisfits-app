@@ -1107,7 +1107,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v129</span>
+  <span class="ver" id="ver">v130</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3051,7 +3051,8 @@ html.kb .ch-bar{padding-bottom:8px}
      still opens on its own from Find friends in the menu. */
   var suStep = 0, suVis = "members", suNear = null, suActive = null, suOnly = false;
   var SU_FIND = false;
-  var SU_LAST = SU_FIND ? 2 : 1;                 /* 0 profile, 1 invite, 2 find your people */
+  var SU_PEOPLE = 3;
+  var SU_LAST = SU_FIND ? 3 : 2;                 /* 0 profile, 1 invite, 2 say hi, 3 find your people */
   var INVITE = { title: "Recovery Misfits", text: "Good people between meetings. Free, anonymous, every path counts. Thought of you.", url: "https://recoverymisfits.org" };
   function suDots() { var tot = SU_LAST + 2, h = '<div class="su-dots">'; for (var i = 0; i < tot; i++) h += '<i class="' + (i <= suStep + 1 ? "on" : "") + '"></i>'; return h + "</div>"; }
   function personRow(m) {
@@ -3078,6 +3079,15 @@ html.kb .ch-bar{padding-bottom:8px}
           '<button type="button" class="su-ib" data-su-inv="copy">' + ico("link") + "<span><b>Copy the link</b><small>recoverymisfits.org</small></span></button>" +
         "</div>" +
         '<button type="button" class="go" data-su-go>' + (last ? "Done. Show me the Porch" : "Next") + "</button>";
+    } else if (suStep === 2) {
+      /* SAY HI (3 Oct 2026, Mike: "the same thing we did over at Infinite Pulls ... they can
+         introduce themselves and say hi here in a reel. I really like that.") */
+      h += "<h2>Say hi</h2><p class=\"sub\">Introduce yourself with a quick Spin. A few seconds is plenty: who you are and what brought you here. New folks get a warm welcome.</p>" +
+        '<div class="su-inv">' +
+          '<button type="button" class="su-ib gold" data-su-hi="spin">' + ico("camera") + "<span><b>Say hi in a Spin</b><small>A short video. You can do it over before it goes up.</small></span></button>" +
+          '<button type="button" class="su-ib" data-su-hi="words">' + ico("comment") + "<span><b>Say hi with words</b><small>Type a line or two instead</small></span></button>" +
+        "</div>" +
+        '<button type="button" class="ghost" data-su-go>' + (last ? "Maybe later. Show me the Porch" : "Maybe later") + "</button>";
     } else {
       h += "<h2>Find your people</h2><p class=\"sub\">Add a few friends. Their shares show up in Friends.</p>" +
         '<div class="su-sec">NEAR ME</div>' +
@@ -3092,11 +3102,11 @@ html.kb .ch-bar{padding-bottom:8px}
   async function loadSuPeople() {
     try { suActive = await rpc("porch_most_active", {}); } catch (e) { suActive = []; }
     if (await placeKnown()) { try { suNear = await rpc("porch_near_me", {}); } catch (e) { suNear = []; } }
-    if (suStep === 2) paintSetup();
+    if (suStep === SU_PEOPLE) paintSetup();
   }
   function openSetup(at) {
     gate(function () {
-      suOnly = at === "friends"; suStep = suOnly ? 2 : 0; suVis = me.member && me.member.visibility === "public" ? "public" : "members";
+      suOnly = at === "friends"; suStep = suOnly ? SU_PEOPLE : 0; suVis = me.member && me.member.visibility === "public" ? "public" : "members";
       suNear = null; suActive = null; paintSetup(); open("setup"); $("supage").scrollTop = 0;
       loadSuPeople();
     });
@@ -3115,15 +3125,16 @@ html.kb .ch-bar{padding-bottom:8px}
       people[me.uid] = me.member; return true;
     } catch (e) { toast("That didn't save. Try again."); return false; }
   }
+  async function suFinish(then) {
+    var only = suOnly;
+    await closeAll(); try { localStorage.setItem("rm_porch_setup_done", "1"); localStorage.setItem("rm_porch_setup_done_" + A.name(), "1"); } catch (e) {}
+    if (only) return openProfile(me.uid);                              /* came from Find friends in the menu */
+    paintPin(); window.scrollTo(0, 0);
+    if (then) then(); else toast("You're all set. Welcome to the Porch.");
+  }
   async function suNext() {
     if (!(await suSave())) return;
-    if (suOnly || suStep >= SU_LAST) {
-      var only = suOnly;
-      await closeAll(); try { localStorage.setItem("rm_porch_setup_done", "1"); localStorage.setItem("rm_porch_setup_done_" + A.name(), "1"); } catch (e) {}
-      if (only) openProfile(me.uid);                                   /* came from Find friends in the menu */
-      else { paintPin(); toast("You're all set. Welcome to the Porch."); window.scrollTo(0, 0); }
-      return;
-    }
+    if (suOnly || suStep >= SU_LAST) return suFinish();
     var from = suStep; suStep++;
     window.PorchBack.push("su" + suStep, function () { suStep = from; paintSetup(); });
     paintSetup(); $("supage").scrollTop = 0;
@@ -3133,6 +3144,15 @@ html.kb .ch-bar{padding-bottom:8px}
     if (t.closest("[data-su-go]") || t.closest("[data-su-next]")) return suNext();
     if (t.closest("[data-su-cover]")) return $("efcover").click();
     if (t.closest("[data-su-av]")) return $("efav").click();
+    var hi = t.closest("[data-su-hi]");
+    if (hi) {
+      var how2 = hi.dataset.suHi;
+      if (SU_FIND) { suNext(); return; }                    /* (with Find your people on, saying hi waits until after it) */
+      return suFinish(function () {
+        if (how2 === "spin" && window.PorchSpins) window.PorchSpins.start();
+        else { $("cbody").value = ""; openCompose("say"); }
+      });
+    }
     var inv = t.closest("[data-su-inv]");
     if (inv) {
       var how = inv.dataset.suInv;
@@ -5187,7 +5207,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var held = false; try { held = !!localStorage.getItem("rm_walk_hold"); } catch (e) {}
       if (!held) return;
       var iv = setInterval(function () {
-        if (stack.length || document.querySelector(".scan, .crop")) return;
+        if (stack.length || document.querySelector(".scan, .crop, .spn, .lpm, .lpc, .sp")) return;      /* still in the walk, or saying hi */
         clearInterval(iv);
         try { localStorage.removeItem("rm_walk_hold"); } catch (e) {}
         window.__rmRevealSoon = Date.now() + 5000;          /* tells the "How the Porch works" hello to wait its turn */
