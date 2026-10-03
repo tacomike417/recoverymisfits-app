@@ -71,6 +71,8 @@ const REEL_HOUR = 17;                       // the reels: 5pm Eastern, every oth
 const REEL_BACKLOG = 6;                     // how many go up to start
 const MISFIT_SPINS_FROM = 1001;             // recoverymisfits' own Spins are numbered from here up
 const MISFIT_SPIN_HOUR = 16, MISFIT_SPIN_MIN = 17;   // 4:17pm Eastern, every other day
+const MISFIT_DAILY_FROM = 2001;             // the dated batch (one a morning, each on its own day) is numbered from here
+const MISFIT_DAILY_HOUR = 4, MISFIT_DAILY_MIN = 17;  // 4:17am Eastern
 const HOUSE_KEY = Deno.env.get("HOUSE_KEY") || "";
 const BUNNY_KEY = Deno.env.get("BUNNY_STREAM_KEY") || "";
 const BUNNY_LIB = Deno.env.get("BUNNY_STREAM_LIBRARY") || "";
@@ -206,7 +208,9 @@ async function reelDoor(b: Record<string, any>) {
       if (!made.ok) return json({ ok: false, error: "the video host said no (" + made.status + ")" }, 502);
       guid = String((await made.json()).guid || "");
       if (!guid) return json({ ok: false, error: "the video host gave no id" }, 502);
-      const { error } = await admin.from("porch_house_reels").insert({ n, video_guid: guid, title: String(b.title || "").slice(0, 120) || null, caption: String(b.caption || "").slice(0, 500) || null });
+      const rowIn: Record<string, unknown> = { n, video_guid: guid, title: String(b.title || "").slice(0, 120) || null, caption: String(b.caption || "").slice(0, 500) || null };
+      if (/^\d{4}-\d{2}-\d{2}$/.test(String(b.post_on || ""))) rowIn.post_on = String(b.post_on);      // a Spin with its own day (porch_44)
+      const { error } = await admin.from("porch_house_reels").insert(rowIn);
       if (error) { try { await bunny(`/videos/${guid}`, { method: "DELETE" }); } catch { /* fine */ } return json({ ok: false, error: error.message }, 500); }
     }
     const expire = Math.floor(Date.now() / 1000) + 6 * 3600;
@@ -376,7 +380,7 @@ async function ads(day: string, hour: number) {
 async function misfitSpins(hour: number, minute: number) {
   const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", HOUSE).maybeSingle();
   if (!m) return { posted: 0, error: "recoverymisfits is not on the Porch yet" };
-  const { data: all, error } = await admin.from("porch_house_reels").select("*").gte("n", MISFIT_SPINS_FROM).order("n", { ascending: true });
+  const { data: all, error } = await admin.from("porch_house_reels").select("*").gte("n", MISFIT_SPINS_FROM).lt("n", MISFIT_DAILY_FROM).order("n", { ascending: true });
   if (error) return { posted: 0, why: "no list yet" };
   const done = (all || []).filter((r: any) => r.status === "posted");
   const queue = (all || []).filter((r: any) => r.status === "queued");
@@ -389,6 +393,33 @@ async function misfitSpins(hour: number, minute: number) {
   const why = await publishReel(queue[0], m.user_id, new Date());
   if (why) return { posted: 0, why: "spin " + queue[0].n + ": " + why, waiting: queue.length };
   return { posted: 1, numbers: [queue[0].n], waiting: queue.length - 1 };
+}
+
+/* THE DATED BATCH (3 Oct 2026, Mike: "I want to post one a day with the date ones on the right
+ * date ... this batch is independent of that ... have them post in the morning at 4:17am, I'll
+ * catch 'em then"). 19 Spins, 4 Oct to 22 Oct, each with its own day written on its row (post_on):
+ * the countdown to the Porch opening lands on the right mornings, and Mike shares each one out
+ * to Facebook and Instagram from the Porch. This runs alongside the every-other-day afternoon
+ * line and never touches it. A Spin only goes up ON its day, at or after 4:17am Eastern; if a
+ * whole day is somehow missed it is left waiting and reported here as "missed", because
+ * "Tomorrow. The Porch opens." a day late would be wrong. */
+async function misfitDaily(day: string, hour: number, minute: number) {
+  const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", HOUSE).maybeSingle();
+  if (!m) return { posted: 0, error: "recoverymisfits is not on the Porch yet" };
+  const { data: all, error } = await admin.from("porch_house_reels").select("*").gte("n", MISFIT_DAILY_FROM).order("n", { ascending: true });
+  if (error) return { posted: 0, why: "no list yet" };
+  const queue = (all || []).filter((r: any) => r.status === "queued" && r.post_on);
+  if (!queue.length) return { posted: 0, why: (all || []).length ? "they have all run" : "none waiting" };
+  const missed = queue.filter((r: any) => String(r.post_on) < day).map((r: any) => r.n);
+  const todays = queue.filter((r: any) => String(r.post_on) === day);
+  const out: any = { posted: 0, waiting: queue.length };
+  if (missed.length) out.missed = missed;
+  if (!todays.length) { out.why = "nothing dated today"; return out; }
+  if (hour < MISFIT_DAILY_HOUR || (hour === MISFIT_DAILY_HOUR && minute < MISFIT_DAILY_MIN)) { out.why = "before 4:17am Eastern"; return out; }
+  const why = await publishReel(todays[0], m.user_id, new Date());
+  if (why) { out.why = "spin " + todays[0].n + ": " + why; return out; }
+  out.posted = 1; out.numbers = [todays[0].n]; out.waiting = queue.length - 1;
+  return out;
 }
 
 Deno.serve(async (req) => {
@@ -406,6 +437,7 @@ Deno.serve(async (req) => {
     try { out.moment = await moment(day, hour); } catch (e) { out.moment = { posted: false, error: String((e as Error).message || e) }; }
     try { out.reels = await reels(hour); } catch (e) { out.reels = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.misfit_spins = await misfitSpins(hour, minute); } catch (e) { out.misfit_spins = { posted: 0, error: String((e as Error).message || e) }; }
+    try { out.misfit_daily = await misfitDaily(day, hour, minute); } catch (e) { out.misfit_daily = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.sponsor = await sponsor(day, hour); } catch (e) { out.sponsor = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.another_day_sober = await ads(day, hour); } catch (e) { out.another_day_sober = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.spiritual_memes = await spiritualMemes(hour); } catch (e) { out.spiritual_memes = { posted: 0, error: String((e as Error).message || e) }; }

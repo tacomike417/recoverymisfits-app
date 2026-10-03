@@ -108,6 +108,19 @@ Order isn't set.
 - [ ] PARKED (Mike, 1 Oct): Counts on profiles (likes, friends): Mike, 1 Oct: doesn't think these break the
       ego rule. Tentative, decide later.
 
+## 📅 THE DATED SPINS (3 Oct 2026): one a morning at 4:17am, 4 Oct to 22 Oct, from recoverymisfits
+
+Mike shares each one out to Facebook and Instagram from the Porch during his morning time. This batch is its
+own line (numbers 2001+, porch_44, scripts/upload_misfit_daily.py). The every-other-day 4:17pm line (1001+) is
+not changed, except the old spin-24 (Facebook Messenger logo) came off it.
+
+Oct 4 Sunday night · 5 sit with my feelings · 6 SOMETHING'S OPENING · 7 90 days · 8 resentment subfolders ·
+9 New town · 10 SAVING YOU A SEAT · 11 chose peace · 12 meeting's over · 13 ONE WEEK · 14 my mug · 15 Good day? ·
+16 surrendered · 17 THREE DAYS · 18 One hour in the room · 19 TOMORROW · 20 WE'RE OPEN · 21 my lane ·
+22 Hit me up, Misfit Messages (the corrected spin-24)
+
+- If the launch date moves, the five countdown Spins (Oct 6, 10, 13, 17, 19) say October 20 on them.
+
 ## 🔎 THE UNCLEAR LIST: DECIDED (3 Oct 2026, Mike went down it one by one)
 
 "Go over the whole site and tag anything with ambiguity." 37 things were tagged; these are his calls.
