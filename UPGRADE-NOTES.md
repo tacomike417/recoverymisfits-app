@@ -523,3 +523,6 @@ without making it confusing.
 - [x] supabase/porch_35_house_reels.sql: the waiting list and the 5pm knock.
 - [ ] Mike: run porch_35, then the paste command (it asks him to make up an upload password).
 - [ ] Not tested against the real video host yet. The upload was tested against a stand-in.
+
+## v110 (2 Oct 2026): a third house account
+- [x] shitmysponsorsays, shown as "Shit My Sponsor Says". Made on the site the normal way, then supabase/porch_36_sponsor_account.sql sets it up. On the tester lists.
