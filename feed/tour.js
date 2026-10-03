@@ -423,7 +423,7 @@
   function maybe() {
     const p = P(); if (!p || !p.me || !p.me.uid) return;
     paintStrip();
-    if (get(OFF) !== '1') whenClear(() => { if (!el && !co) open(0); });
+    if (get(OFF) !== '1') whenClear(() => { if (get(OFF) !== '1' && !el && !co) open(0); });       /* asked again: the sign-up walk turns this off */
   }
 
   window.PorchTour = { open, maybe, coach, coaching: () => !!co, fresh: () => get(OFF) !== '1', refresh: paintStrip };

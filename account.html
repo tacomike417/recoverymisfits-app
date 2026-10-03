@@ -233,7 +233,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   </header>
   <img class="rule" src="/assets/pages/d-rule.webp" alt="" aria-hidden="true"
        width="297" height="17" style="display:block;width:100%;max-width:297px;margin:6px 0 0">
-  <!-- WHERE YOU ARE (1 Oct 2026, Mike): signing up is three steps, then setting up is three more (sober date, profile, invite). This says which one -->
+  <!-- WHERE YOU ARE (1 Oct 2026, Mike): signing up is three steps, then setting up is three more (sober date, profile, say hi). This says which one -->
   <div class="steps" id="steps" hidden>
     <div class="bars"><i></i><i></i><i></i></div>
     <p id="stepTxt"></p>
@@ -539,7 +539,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       /* SET UP (3 Oct 2026, Mike): "Step one, put in your sober date ... then their profile ... then
          invite their friends." Level 1 has no profile, so for them the date is the only step. */
       var walk = picked() === "2" && porchFor(A.name());
-      $("stepTxt").textContent = setup ? (walk ? "Step 1 of 4 · Your sober date" : "Last step · Your sober date")
+      $("stepTxt").textContent = setup ? (walk ? "Step 1 of 3 · Your sober date" : "Last step · Your sober date")
         : "Step " + n + " of 3 · " + (n === 1 ? "Pick your level" : n === 2 ? "Make your username" : "Save your username and password");
       if (setup && !walk) [].forEach.call($("steps").querySelectorAll("i"), function (b) { b.classList.add("on"); });
     }
@@ -598,7 +598,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       }
       $("dsHome").hidden = false;
     } else {
-      $("dsKick").textContent = "One more thing";
+      $("dsKick").textContent = signingUp ? "You're in! Let's set you up." : "One more thing";
       $("dsAsk").hidden = false;
       $("dsDone").hidden = true;
       $("dsPick").hidden = false;

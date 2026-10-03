@@ -394,6 +394,12 @@ html.fullon #main{visibility:hidden}
 .su-where{display:flex;align-items:center;gap:10px}.su-where b{font:800 11.5px Arial,sans-serif;letter-spacing:.14em;color:var(--gold2)}
 .su .ecover .tip{gap:6px}
 .su-inv{margin:6px 16px 0;display:grid;gap:10px}
+.su-pic{display:block;margin:6px auto 0;padding:6px 12px;border:0;background:none;color:var(--gold2);text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.su-pic b{display:block;margin-top:10px;font:800 16px Arial,sans-serif}
+.su-face{position:relative;display:inline-block;width:132px;height:132px;border-radius:50%;padding:4px;background:conic-gradient(from 200deg,var(--gold),var(--rust),var(--gold))}
+.su-face .av{width:100%;height:100%;font-size:46px;border:4px solid var(--bg)}
+.su-face i{position:absolute;right:2px;bottom:2px;width:38px;height:38px;border-radius:50%;background:var(--gold2);color:var(--ink);display:grid;place-items:center;border:3px solid var(--bg)}
+.su-face i .ico{width:19px;height:19px;color:inherit}
 .su-ib{display:flex;align-items:center;gap:14px;width:100%;min-height:68px;padding:12px 16px;border-radius:16px;border:1.5px solid var(--line);background:var(--field);color:var(--cream);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .su-ib .ico{width:26px;height:26px;flex:none;color:var(--gold2)}
 .su-ib b{display:block;font:800 16.5px Arial,sans-serif}.su-ib small{display:block;margin-top:2px;color:var(--soft);font:600 12.5px Arial,sans-serif}
@@ -1107,7 +1113,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v130</span>
+  <span class="ver" id="ver">v131</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1165,6 +1171,8 @@ html.kb .ch-bar{padding-bottom:8px}
       <button type="button" class="btn" id="cfsend" disabled>Send my code</button>
       <p class="msg" id="cfmsg1" role="status"></p>
       <p class="fine">One email, one person. That keeps the Porch safe.</p>
+      <!-- only while setting up: don't strand somebody who can't get to their email right now -->
+      <button type="button" class="link" id="cflater" data-close hidden>Do this later</button>
     </div>
     <div id="cf2" hidden>
       <h3>Check your email</h3>
@@ -2085,12 +2093,32 @@ html.kb .ch-bar{padding-bottom:8px}
     if (!me.member || !me.member.verified_at) { pending = then; cfReset(); return open("confirm"); }
     then();
   }
+  /* THE WALK'S DOOR (3 Oct 2026, Mike's walk-through). The rules, then the email, but the email can
+     wait: "Do this later" or closing the sheet carries on with the walk instead of dumping them on
+     the feed with nothing set up. They're asked again the first time they post or add a picture. */
+  var pendingSoft = false;
+  async function softGate(then) {
+    if (!signedIn()) return open("join");
+    if (!me.member || !me.member.verified_at) await loadMe();
+    if (me.member && me.member.frozen_at) return toast("Your account is paused while someone looks at a report.");
+    if (!rulesOk()) { pending = function () { softGate(then); }; pendingRaw = true; $("rulesok").hidden = false; return open("rulesheet"); }
+    if (me.member && me.member.verified_at) return then();
+    pending = then; pendingSoft = true; cfReset(); $("cflater").hidden = false; open("confirm");
+    var iv = setInterval(function () {
+      if ($("confirm").classList.contains("open")) return;
+      clearInterval(iv); $("cflater").hidden = true;
+      if (!pendingSoft) return;                        /* they confirmed: the code handler already carried on */
+      pendingSoft = false; var go = pending; pending = null; if (go) go();
+    }, 250);
+  }
+  var pendingRaw = false;
   var RULES_KEY = function () { return "rm_porch_rules_" + (me.uid || ""); };
   function rulesOk() { try { return localStorage.getItem(RULES_KEY()) === "1"; } catch (e) { return true; } }
   function rulesYes() { try { localStorage.setItem(RULES_KEY(), "1"); } catch (e) {} }
   $("rulesok").addEventListener("click", async function () {
     rulesYes(); await closeTop();
-    var go = pending; pending = null; if (go) gate(go);        /* back through the door: the email comes next if they need one */
+    var go = pending, raw = pendingRaw; pending = null; pendingRaw = false;
+    if (go) { if (raw) go(); else gate(go); }       /* back through the door: the email comes next if they need one */
   });
   /* BLOCKED & MUTED (1 Oct 2026, big list): see who, and undo it */
   async function openBlocked() {
@@ -2137,7 +2165,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var r = await fn("porch-confirm", { action: "verify", code: $("cfcode").value });
     b.textContent = "Confirm";
     if (!r.ok) { $("cfmsg2").textContent = r.error || "That didn't work. Try again."; b.disabled = false; return; }
-    rulesYes();
+    rulesYes(); pendingSoft = false;
     await loadMe();
     await closeTop();
     toast("You're on the Porch, " + r.handle + " 💛");
@@ -2303,8 +2331,28 @@ html.kb .ch-bar{padding-bottom:8px}
     await closeAll();
     window.scrollTo(0, 0);
     await reloadFeed();
-    if (r.care) open("care"); else { toast("Shared 💛"); setTimeout(askPush, 1800); }
+    if (r.care) open("care"); else { toast("Shared 💛"); if (!askInvite()) setTimeout(askPush, 1800); }
   }
+  /* INVITE A FRIEND, ONCE, AFTER THE FIRST SHARE (3 Oct 2026). It used to be a step in the sign-up
+     walk, before they had even seen the place. Now it's one quiet offer when they have something
+     to show for it. Never asked again; Invite somebody is always in the menu. */
+  function askInvite() {
+    try { if (localStorage.getItem("rm_invite_asked_" + me.uid)) return false; localStorage.setItem("rm_invite_asked_" + me.uid, "1"); } catch (e) { return false; }
+    setTimeout(function () {
+      /* one thing at a time: if their coin is about to show (the walk just ended), ask after the next share instead */
+      var busy = stack.length || (window.__rmRevealSoon || 0) > Date.now() || document.querySelector(".rm-coin-reveal, .rm-pr");
+      try { busy = busy || !!localStorage.getItem("rm_walk_hold"); if (busy) localStorage.removeItem("rm_invite_asked_" + me.uid); } catch (e) {}
+      if (busy) return;
+      $("mbody").dataset.t = "{}"; $("mbody").dataset.uid = "";
+      $("mbody").innerHTML = '<p style="margin:0 0 6px;font:400 26px \'RM Head\',Impact,sans-serif">Your first share is up</p>' +
+        "<p>Know somebody who could use good company? Send them the link.</p>" +
+        '<button type="button" class="btn" id="invgo" style="text-align:center;border-bottom:0;padding:15px;margin:6px 0 4px">Invite a friend</button>' +
+        '<button type="button" data-close style="text-align:center;border-bottom:0;font-weight:700">Not now</button>';
+      open("menu");
+    }, 1600);
+    return true;
+  }
+  document.addEventListener("click", async function (e) { if (e.target.closest && e.target.closest("#invgo")) { await closeTop(); invite(); } });
   $("csend").addEventListener("click", function () { pauseFor = "post"; sendPost(false); });
 
   /* ---- the pause ---- */
@@ -3051,8 +3099,8 @@ html.kb .ch-bar{padding-bottom:8px}
      still opens on its own from Find friends in the menu. */
   var suStep = 0, suVis = "members", suNear = null, suActive = null, suOnly = false;
   var SU_FIND = false;
-  var SU_PEOPLE = 3;
-  var SU_LAST = SU_FIND ? 3 : 2;                 /* 0 profile, 1 invite, 2 say hi, 3 find your people */
+  var SU_PEOPLE = 2;
+  var SU_LAST = SU_FIND ? 2 : 1;                 /* 0 profile, 1 say hi, 2 find your people */
   var INVITE = { title: "Recovery Misfits", text: "Good people between meetings. Free, anonymous, every path counts. Thought of you.", url: "https://recoverymisfits.org" };
   function suDots() { var tot = SU_LAST + 2, h = '<div class="su-dots">'; for (var i = 0; i < tot; i++) h += '<i class="' + (i <= suStep + 1 ? "on" : "") + '"></i>'; return h + "</div>"; }
   function personRow(m) {
@@ -3064,22 +3112,16 @@ html.kb .ch-bar{padding-bottom:8px}
     var h = '<div class="su-top">' + (suOnly ? "<span></span>" : '<span class="su-where">' + suDots() + "<b>STEP " + (suStep + 2) + " OF " + (SU_LAST + 2) + "</b></span>") +
       '<button type="button" class="su-skip" data-su-next>' + (last ? "Done" : "Skip") + "</button></div>";
     if (suStep === 0) {
+      /* JUST THE PICTURE AND A NAME (3 Oct 2026). The header photo is a second trip through pick,
+         crop and face check, so it waits for Edit Profile. Inviting a friend moved to after their
+         first share: "forget about my motives ... get in, set up your profile, say hi, go browse." */
       h += "<h2>Your profile</h2><p class=\"sub\">Add a picture and a name. No real name or face needed. Use whatever feels right.</p>" +
-        '<div class="ecover" data-su-cover style="' + (m.cover_path ? "background-image:url('" + pic(m.cover_path) + "')" : "") + '"><span class="tip">' + ico("camera") + "Header</span></div>" +
-        '<div class="eav" data-su-av><span>' + avatar(m) + '</span><span class="tip">' + ico("camera") + "</span></div>" +
-        '<p class="estatus" id="sustatus" role="status"></p>' +
+        '<button type="button" class="su-pic" data-su-av><span class="su-face">' + avatar(m) + '<i>' + ico("camera") + "</i></span><b>" + (m.avatar_path ? "Change my picture" : "Add a picture") + "</b></button>" +
+        '<p class="estatus" id="sustatus" role="status" style="text-align:center"></p>' +
         '<div class="eform"><label class="l" for="suname">NAME <span class="opt">optional</span></label><input type="text" class="ename" id="suname" maxlength="40" autocomplete="off" autocapitalize="words" placeholder="Mike N." value="' + esc(m.real_name || "") + '">' +
         '<label class="l" for="subio">BIO <span class="opt">optional</span></label><textarea id="subio" maxlength="160" placeholder="A line or two about you.">' + esc(m.bio || "") + "</textarea></div>" +
         '<button type="button" class="go" data-su-go>Next</button>';
     } else if (suStep === 1) {
-      h += "<h2>Invite a friend</h2><p class=\"sub\">Know somebody who could use good company? Send them the link.</p>" +
-        '<div class="su-inv">' +
-          '<button type="button" class="su-ib gold" data-su-inv="send">' + ico("comment") + "<span><b>Text or message a friend</b><small>Text · Messenger · anything on your phone</small></span></button>" +
-          '<button type="button" class="su-ib" data-su-inv="fb">' + ico("friends") + "<span><b>Share it on Facebook</b><small>A post your friends can see</small></span></button>" +
-          '<button type="button" class="su-ib" data-su-inv="copy">' + ico("link") + "<span><b>Copy the link</b><small>recoverymisfits.org</small></span></button>" +
-        "</div>" +
-        '<button type="button" class="go" data-su-go>' + (last ? "Done. Show me the Porch" : "Next") + "</button>";
-    } else if (suStep === 2) {
       /* SAY HI (3 Oct 2026, Mike: "the same thing we did over at Infinite Pulls ... they can
          introduce themselves and say hi here in a reel. I really like that.") */
       h += "<h2>Say hi</h2><p class=\"sub\">Introduce yourself with a quick Spin. A few seconds is plenty: who you are and what brought you here. New folks get a warm welcome.</p>" +
@@ -3105,7 +3147,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (suStep === SU_PEOPLE) paintSetup();
   }
   function openSetup(at) {
-    gate(function () {
+    (at === "friends" ? gate : softGate)(function () {
       suOnly = at === "friends"; suStep = suOnly ? SU_PEOPLE : 0; suVis = me.member && me.member.visibility === "public" ? "public" : "members";
       suNear = null; suActive = null; paintSetup(); open("setup"); $("supage").scrollTop = 0;
       loadSuPeople();
@@ -3143,7 +3185,11 @@ html.kb .ch-bar{padding-bottom:8px}
     var t = e.target;
     if (t.closest("[data-su-go]") || t.closest("[data-su-next]")) return suNext();
     if (t.closest("[data-su-cover]")) return $("efcover").click();
-    if (t.closest("[data-su-av]")) return $("efav").click();
+    if (t.closest("[data-su-av]")) {
+      /* a picture needs a confirmed email; if they put that off, this is where it comes back */
+      if (!me.member || !me.member.verified_at) { var ns = $("suname").value, bs = $("subio").value; return gate(function () { paintSetup(); $("suname").value = ns; $("subio").value = bs; toast("You're set. Tap your picture to add one."); }); }
+      return $("efav").click();
+    }
     var hi = t.closest("[data-su-hi]");
     if (hi) {
       var how2 = hi.dataset.suHi;
@@ -3153,14 +3199,7 @@ html.kb .ch-bar{padding-bottom:8px}
         else { $("cbody").value = ""; openCompose("say"); }
       });
     }
-    var inv = t.closest("[data-su-inv]");
-    if (inv) {
-      var how = inv.dataset.suInv;
-      if (how === "fb") { window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(INVITE.url), "_blank", "noopener"); return; }
-      if (how === "send" && navigator.share) { navigator.share(INVITE).catch(function () {}); return; }
-      try { await navigator.clipboard.writeText(how === "send" ? INVITE.text + " " + INVITE.url : INVITE.url); toast("Link copied. Paste it to somebody."); } catch (x) { toast(INVITE.url); }
-      return;
-    }
+
     if (t.closest("[data-su-near]")) {
       var b = t.closest("[data-su-near]"); b.textContent = "Finding…"; b.disabled = true;
       if (await useLocation()) { try { suNear = await rpc("porch_near_me", {}); } catch (x) { suNear = []; } }
@@ -5210,9 +5249,14 @@ html.kb .ch-bar{padding-bottom:8px}
         if (stack.length || document.querySelector(".scan, .crop, .spn, .lpm, .lpc, .sp")) return;      /* still in the walk, or saying hi */
         clearInterval(iv);
         try { localStorage.removeItem("rm_walk_hold"); } catch (e) {}
+        /* AFTER THE WALK, JUST THE COIN (3 Oct 2026): the Welcome Deck and the "How the Porch
+           works" hello were three more things to get through, and two of the tour's tasks are
+           ones the walk just did. The deck is still in their Survival Pile and the tour is the
+           ? at the top, so neither opens on its own for somebody who came through the walk. */
+        try { if (!localStorage.getItem("rm_welcome_seen")) localStorage.setItem("rm_welcome_seen", String(Date.now())); localStorage.setItem("rm_porch_tour_off", "1"); } catch (e) {}
+        window.__rmWelcomePending = false;
         window.__rmRevealSoon = Date.now() + 5000;          /* tells the "How the Porch works" hello to wait its turn */
         setTimeout(function () {
-          try { if (window.RMWelcome && window.RMWelcome.run) window.RMWelcome.run(); } catch (e) {}          /* the welcome deck first, then the coin */
           try { if (window.RMCoins && window.RMCoins.maybeReveal) window.RMCoins.maybeReveal(); } catch (e) {}
           try { if (window.RMPileReveal && window.RMPileReveal.run) window.RMPileReveal.run(); } catch (e) {}
         }, 1400);
