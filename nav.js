@@ -1202,13 +1202,14 @@
     const thisY = now.getFullYear(), thisM = now.getMonth(), thisD = now.getDate();
     const dim = daysInMonth(v.y, v.m);
 
-    wheelEls.m.querySelectorAll(".opt").forEach((el, i) => {
-      el.classList.toggle("void", v.y === thisY && i > thisM);
-    });
+    /* 3 Oct 2026, Mike: "I can't pick it. It only picks today." The wheels open on today, and
+       every day and month after today was dead, so touching the DAY or MONTH wheel first just
+       slid back to today. You had to know to change the year first. Now any month and day can be
+       landed on in any order; a date that is still in the future is said so under the wheels and
+       Save won't take it. Only days a month doesn't have (Feb 30) are dead. */
+    wheelEls.m.querySelectorAll(".opt").forEach((el) => { el.classList.remove("void"); });
     wheelEls.d.querySelectorAll(".opt").forEach((el, i) => {
-      const day = i + 1;
-      const future = (v.y === thisY && v.m === thisM && day > thisD);
-      el.classList.toggle("void", day > dim || future);
+      el.classList.toggle("void", i + 1 > dim);
     });
     wheelEls.y.querySelectorAll(".opt").forEach((el, i) => {
       el.classList.toggle("void", YEAR_MIN + i > thisY);
@@ -1227,7 +1228,10 @@
       const ymd = wheelYMD();
       const days = daysBetweenLocal(ymd, todayLocalYMD());
       read.innerHTML = `<b>${MONTHS_LONG[v.m]} ${Math.min(v.d, dim)}, ${v.y}</b>` +
-        (days >= 0 ? ` &middot; <span class="days">${days.toLocaleString()} day${days === 1 ? "" : "s"}</span>` : "");
+        (days >= 0 ? ` &middot; <span class="days">${days.toLocaleString()} day${days === 1 ? "" : "s"}</span>`
+                   : ` &middot; <span class="days" style="color:#ff9f8a">That day isn&rsquo;t here yet. Pick the year.</span>`);
+      const sv = document.getElementById("rmSoberDateSave");
+      if (sv) { sv.disabled = days < 0; sv.style.opacity = days < 0 ? ".45" : ""; }
     }
   }
 
@@ -1239,11 +1243,9 @@
     let v = wheelValues();
 
     if (v.y > thisY) { scrollWheelTo(wheelEls.y, thisY - YEAR_MIN, true); v.y = thisY; }
-    if (v.y === thisY && v.m > thisM) { scrollWheelTo(wheelEls.m, thisM, true); v.m = thisM; }
+    /* only a day the month doesn't have gets walked back; the future is handled by Save (see paintWheels) */
     const dim = daysInMonth(v.y, v.m);
-    let maxD = dim;
-    if (v.y === thisY && v.m === thisM) maxD = Math.min(dim, thisD);
-    if (v.d > maxD) scrollWheelTo(wheelEls.d, maxD - 1, true);
+    if (v.d > dim) scrollWheelTo(wheelEls.d, dim - 1, true);
     paintWheels();
   }
 
@@ -1333,6 +1335,7 @@
     save.addEventListener("click", () => {
       const ymd = wheelYMD();
       if (!ymd) return;
+      if (daysBetweenLocal(ymd, todayLocalYMD()) < 0) return;          /* a sober date can't be in the future */
       /* THE RESET HEADS-UP. Moving the date more than a week LATER starts
          the coins and the Survival Pile over. Say so once, in the picker,
          and let the second tap save it. A few days either way is a typo fix
