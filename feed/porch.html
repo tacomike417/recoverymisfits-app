@@ -1107,7 +1107,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v128</span>
+  <span class="ver" id="ver">v129</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1155,25 +1155,16 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="confirm" class="layer" role="dialog" aria-modal="true" aria-label="Confirm who you are">
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div>
+    <!-- JUST THE EMAIL (3 Oct 2026, Mike: "keep it simple"). The rules and the 18-or-older promise
+         used to be crammed in here and pushed the button off the screen. They are their own screen
+         now (the rules sheet, right before this one). -->
     <div id="cf1">
-      <h3>Confirm who you are</h3>
-      <p>One email = one person on the Porch. That's what keeps trolls from making a new account every five minutes.</p>
-      <p class="fine" style="margin-top:-6px">We scramble it and throw the email away. Nobody, not even us, can read it back, and nobody on the Porch will ever see it.</p>
-      <div class="rules"><b>THE PORCH RULES</b>
-        <!-- 1 Oct 2026, Mike: experience, strength and hope, not opinion, strength and hope -->
-        <div class="esh"><p class="esh1">We share experience, strength and hope.<br>Not opinion, strength and hope.</p>
-        <p>Opinions can hurt people, and in recovery we're not in the people-hurting business anymore. So the doctors get to be the doctors, the lawyers the lawyers and the counselors the counselors. Here, we're people in recovery helping each other out.</p></div>
-        <p style="margin:0 0 6px;color:var(--cream);font-weight:700">We're all adults here. Let's act like it.</p><ul>
-        <li>Share what happened to you, not what somebody else ought to do. No medical, legal or counseling advice.</li>
-        <li>Be kind. We're all in this together.</li>
-        <li>Every path counts. No bashing anybody's recovery.</li>
-        <li>Rated R, not rated X. No hate, slurs or threats.</li>
-        <li>Protect other people's anonymity. Ask before posting anybody's photo.</li>
-        <li>Say what you need. Somebody here gets it.</li></ul></div>
-      <label class="check"><input type="checkbox" id="cfok"> I'm 18 or older and I'll follow the Porch rules</label>
+      <h3>Confirm an email</h3>
+      <p>This is what lets you post and add a picture. We scramble it and never keep it. Nobody ever sees it.</p>
       <input class="field" id="cfemail" type="email" inputmode="email" autocomplete="email" placeholder="Your email">
       <button type="button" class="btn" id="cfsend" disabled>Send my code</button>
       <p class="msg" id="cfmsg1" role="status"></p>
+      <p class="fine">One email, one person. That keeps the Porch safe.</p>
     </div>
     <div id="cf2" hidden>
       <h3>Check your email</h3>
@@ -1203,7 +1194,7 @@ html.kb .ch-bar{padding-bottom:8px}
         <li>Rated R, not rated X. No hate, slurs or threats.</li>
         <li>Protect other people's anonymity. Ask before posting anybody's photo.</li>
         <li>Say what you need. Somebody here gets it.</li></ul></div>
-    <button type="button" class="btn" id="rulesok">I'm in</button>
+    <button type="button" class="btn" id="rulesok">I'm 18 or older, and I'm in</button>
   </div>
 </div>
 
@@ -2088,9 +2079,10 @@ html.kb .ch-bar{padding-bottom:8px}
   async function gate(then) {
     if (!signedIn()) return open("join");
     if (!me.member || !me.member.verified_at) await loadMe();
-    if (!me.member || !me.member.verified_at) { pending = then; cfReset(); return open("confirm"); }
-    if (me.member.frozen_at) return toast("Your account is paused while someone looks at a report.");
+    if (me.member && me.member.frozen_at) return toast("Your account is paused while someone looks at a report.");
+    /* the rules first (one tap), then the email if they still need one (3 Oct 2026) */
     if (!rulesOk()) { pending = then; $("rulesok").hidden = false; return open("rulesheet"); }
+    if (!me.member || !me.member.verified_at) { pending = then; cfReset(); return open("confirm"); }
     then();
   }
   var RULES_KEY = function () { return "rm_porch_rules_" + (me.uid || ""); };
@@ -2098,7 +2090,7 @@ html.kb .ch-bar{padding-bottom:8px}
   function rulesYes() { try { localStorage.setItem(RULES_KEY(), "1"); } catch (e) {} }
   $("rulesok").addEventListener("click", async function () {
     rulesYes(); await closeTop();
-    var go = pending; pending = null; if (go) go();
+    var go = pending; pending = null; if (go) gate(go);        /* back through the door: the email comes next if they need one */
   });
   /* BLOCKED & MUTED (1 Oct 2026, big list): see who, and undo it */
   async function openBlocked() {
@@ -2129,8 +2121,7 @@ html.kb .ch-bar{padding-bottom:8px}
 
   /* ---- confirm who you are ---- */
   function cfReset() { $("cf1").hidden = false; $("cf2").hidden = true; $("cfmsg1").textContent = ""; $("cfmsg2").textContent = ""; $("cfcode").value = ""; cfReady(); }
-  function cfReady() { $("cfsend").disabled = !$("cfok").checked || !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test($("cfemail").value.trim()); }
-  $("cfok").addEventListener("change", cfReady);
+  function cfReady() { $("cfsend").disabled = !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test($("cfemail").value.trim()); }
   $("cfemail").addEventListener("input", cfReady);
   $("cfsend").addEventListener("click", async function () {
     var b = this; b.disabled = true; b.textContent = "Sending…"; $("cfmsg1").textContent = "";
@@ -2146,7 +2137,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var r = await fn("porch-confirm", { action: "verify", code: $("cfcode").value });
     b.textContent = "Confirm";
     if (!r.ok) { $("cfmsg2").textContent = r.error || "That didn't work. Try again."; b.disabled = false; return; }
-    rulesYes();                           /* they ticked "I'll follow the Porch rules" */
+    rulesYes();
     await loadMe();
     await closeTop();
     toast("You're on the Porch, " + r.handle + " 💛");
