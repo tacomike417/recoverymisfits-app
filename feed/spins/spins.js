@@ -77,6 +77,18 @@
 .sp-mk .sp-ring::after,.sp-cambtn .sp-ring::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 4px rgba(224,189,106,.55);animation:sp-call 3.2s ease-out infinite;pointer-events:none;will-change:transform,opacity}
 @media (prefers-reduced-motion:reduce){.sp-mk .sp-ring{animation:none}}
 .sp-mk .sp-nm{color:var(--gold2);font-weight:800;overflow:visible}
+/* WHAT "GIVE IT A SPIN" MEANS, WITHOUT A WORD (3 Oct 2026, Mike: "have it slide in someone holding
+   a phone recording a selfie, or something cute like that ... the least intrusive thing"). Every
+   seven seconds a little misfit taking a selfie slides up into the gold button, holds, and slides
+   back down to the camera. A drawing of somebody else, on purpose: no red dot, no REC, nothing
+   that looks like the person's own camera is on. It stops for good once they have made a Spin. */
+.sp-mk .sp-cam{position:relative;overflow:hidden}
+.sp-selfie{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;background:#14110b;border-radius:50%;transform:translateY(106%);animation:sp-selfie 7s ease-in-out infinite;pointer-events:none}
+.sp-mk .sp-cam svg{animation:sp-camfade 7s ease-in-out infinite}
+@keyframes sp-selfie{0%,54%{transform:translateY(106%)}62%,88%{transform:translateY(2%)}96%,100%{transform:translateY(106%)}}
+@keyframes sp-camfade{0%,54%{opacity:1}60%,90%{opacity:0}96%,100%{opacity:1}}
+html.sp-made .sp-selfie{display:none}html.sp-made .sp-mk .sp-cam svg{animation:none}
+@media (prefers-reduced-motion:reduce){.sp-selfie{display:none}.sp-mk .sp-cam svg{animation:none}}
 .sp-story:active .sp-ring{transform:scale(.95)}
 .sp-story .sp-ring{position:relative}
 .sp-rebadge{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#e0bd6a;border:2px solid var(--bg,#11110f);display:grid;place-items:center;box-sizing:border-box}
@@ -311,7 +323,7 @@
   const CAM_ICO = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>';
   /* the same gold camera button, anywhere a Spin gets made: story row, player, profile */
   const camBtn = (cls, label) => `<button type="button" class="sp-cambtn ${cls}" data-sp-make aria-label="Give it a spin"><span class="sp-ring"><span class="sp-cam">${CAM_ICO}</span><i class="sp-badge-plus">+</i></span>${label ? `<span class="sp-nm">${label}</span>` : ''}</button>`;
-  const makeStory = () => `<button type="button" class="sp-story sp-mk" data-sp-make aria-label="Give it a spin"><span class="sp-ring"><span class="sp-cam">${CAM_ICO}</span><i class="sp-badge-plus">+</i></span><span class="sp-nm">Give it a spin</span></button>`;
+  const makeStory = () => `<button type="button" class="sp-story sp-mk" data-sp-make aria-label="Give it a spin"><span class="sp-ring"><span class="sp-cam">${CAM_ICO}<img class="sp-selfie" src="/assets/spins/selfie-misfit.webp" alt="" aria-hidden="true"></span><i class="sp-badge-plus">+</i></span><span class="sp-nm">Give it a spin</span></button>`;
 
   async function railHTML() {
     let list = [];
@@ -319,6 +331,8 @@
     if (!list.length && !meId()) return '';
     await P().loadPeople(list.map((l) => l.user_id).concat(list.map((l) => l.respunBy).filter(Boolean)));
     sets.set('rail', list);
+    /* somebody who has made a Spin doesn't need the selfie hint any more */
+    try { if (meId() && list.some((l) => l.user_id === meId())) localStorage.setItem('rm_spin_made', '1'); if (localStorage.getItem('rm_spin_made')) document.documentElement.classList.add('sp-made'); } catch (_) {}
     /* THE FILM STRIP (1 Oct 2026, Mike picked it from the mockups: the circles looked
        like profiles). Tall frames on a strip of film, each with its length, so it reads
        as video at a glance. Make is the first frame; respins carry the gold ↻. */
@@ -950,6 +964,7 @@
       const r = await callSpins({ action: 'done', id, faces_ok: !!okFaces });
       if (r.status === 'ready') {
         uploading = false;
+        try { localStorage.setItem('rm_spin_made', '1'); document.documentElement.classList.add('sp-made'); } catch (_) {}
         pillSay('🎉 Your Spin is live! Tap to watch', async () => {
           pillGone(0);
           const d = await P().rest('porch_spins?id=eq.' + id + '&select=' + COLS);
