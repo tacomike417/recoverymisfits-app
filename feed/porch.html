@@ -617,6 +617,14 @@ html.fullon #main{visibility:hidden}
 .pa-tabs button.on{color:var(--cream);border-bottom-color:var(--gold2)}
 [data-ppane] .sp-grid,[data-ppane] .grid{padding:4px;gap:4px}
 [data-ppane] .grid button,[data-ppane] .sp-gt{border-radius:10px;overflow:hidden}
+/* the Spins slider on top of Shares: one row you slide sideways */
+.sprow{border-bottom:1px solid var(--line);padding:6px 0 4px}
+.sprow .sp-grid{display:flex;gap:6px;padding:4px 10px;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.sprow .sp-grid::-webkit-scrollbar{display:none}
+.sprow .sp-gt{flex:0 0 27%;max-width:130px;scroll-snap-align:start}
+.sprow .sp-note{margin:4px 12px 2px;font-size:11.5px}
+.sprow .pempty,.sprow .skel{display:none}
+@media (hover:hover){.sprow .sp-grid{scrollbar-width:thin;padding-bottom:8px}.sprow .sp-grid::-webkit-scrollbar{display:block;height:8px}.sprow .sp-grid::-webkit-scrollbar-thumb{background:rgba(224,189,106,.45);border-radius:8px}}
 .plab{margin:22px 16px 8px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold)}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
 .grid button{position:relative;aspect-ratio:1/1;padding:0;border:0;overflow:hidden;background:var(--field);cursor:pointer;color:var(--cream)}
@@ -1050,7 +1058,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v112</span>
+  <span class="ver" id="ver">v113</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2637,9 +2645,15 @@ html.kb .ch-bar{padding-bottom:8px}
           : '<div class="pa-btns pa-them">' + friendBtn(uid) + "</div>") +
         (fids.length ? '<button type="button" class="pa-friends" data-allf><span class="pa-lab">FRIENDS</span><span class="pa-faces">' + fids.slice(0, 6).map(function (f) { return avatar(people[f]); }).join("") + "</span>" + (mineP ? '<span class="pa-all">See all ›</span>' : "") + "</button>" : "") +
       "</div>" +
-      '<div class="pa-tabs" role="tablist"><button type="button" class="on" data-ptab="spins" role="tab">SPINS</button><button type="button" data-ptab="shares" role="tab">SHARES</button><button type="button" data-ptab="wins" role="tab">WINS</button></div>' +
-      '<div data-ppane="spins"><div id="pfspins"></div></div><div data-ppane="shares" hidden>' + tabBody.shares + '</div><div data-ppane="wins" hidden>' + tabBody.wins + "</div>";
-    if (window.PorchSpins && !isSample(uid)) window.PorchSpins.profileGrid($("pfspins"), uid); else $("pfspins").innerHTML = '<p class="pempty">No Spins right now.</p>';
+      /* TWO TABS (2 Oct 2026, Mike): "do the slider at the top with the spins and then the
+         shares underneath." Spins and Shares are one page now; Wins is the other. No third
+         tab: the Pile and coins stay off profiles, sober days are only ever theirs to share. */
+      '<div class="pa-tabs" role="tablist"><button type="button" class="on" data-ptab="shares" role="tab">SHARES</button><button type="button" data-ptab="wins" role="tab">WINS</button></div>' +
+      '<div data-ppane="shares"><div id="pfspins" class="sprow" hidden></div>' + tabBody.shares + '</div><div data-ppane="wins" hidden>' + tabBody.wins + "</div>";
+    if (window.PorchSpins && !isSample(uid)) {
+      var row = $("pfspins");
+      Promise.resolve(window.PorchSpins.profileGrid(row, uid)).then(function () { if ($("pfspins") === row) row.hidden = !row.querySelector(".sp-grid"); }, function () {});
+    }
   }
   function openSingle(id) {
     var p = posts[id]; if (!p) return;
