@@ -1050,6 +1050,19 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     if (betaPhone()) pick("2");
     goForm("", "old");
     if (stay) $("formLede").innerHTML = "Add another account. <b>" + stay.replace(/[&<>]/g, "") + "</b> stays signed in on this phone too.";
+  } else if (A.signedIn() && new URLSearchParams(location.search).get("rewalk") === "1" && porchFor(A.name())) {
+    /* RUN THE WALK AGAIN (3 Oct 2026, Mike: "take me through the walkthrough over and over").
+       FOR TESTING ONLY: it works for beta phones and the tester names, nobody else. It forgets, on
+       THIS browser only, that this account has been through the walk, then starts at the sober
+       date. Nothing is deleted from the account. Link: /account.html?rewalk=1&next=feed */
+    (function () {
+      var uid = ""; try { uid = (A.uid && A.uid()) || ""; } catch (e) {}
+      ["rm_sober_date", "rm_sober_owner", "rm_coin_seen", "rm_pile_seen", "rm_porch_setup_done", "rm_porch_setup_done_" + A.name(),
+       "rm_porch_rules_" + uid, "rm_invite_asked_" + uid, "rm_porch_tour_off"].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+      try { localStorage.setItem("rm_walk_hold", String(Date.now())); } catch (e) {}
+      pick("2"); signingUp = true;
+      showDateStep();
+    })();
   } else if (A.signedIn()) {
     checkProfile();
     showDateStep();
