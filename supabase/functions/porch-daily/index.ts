@@ -69,6 +69,8 @@ const CARD_STYLES = 19;
 const MOMENT_HOUR = 12;                     // the jokes: noon Eastern, every other day
 const REEL_HOUR = 17;                       // the reels: 5pm Eastern, every other day
 const REEL_BACKLOG = 6;                     // how many go up to start
+const MISFIT_SPINS_FROM = 1001;             // recoverymisfits' own Spins are numbered from here up
+const MISFIT_SPIN_HOUR = 16, MISFIT_SPIN_MIN = 17;   // 4:17pm Eastern, every other day
 const HOUSE_KEY = Deno.env.get("HOUSE_KEY") || "";
 const BUNNY_KEY = Deno.env.get("BUNNY_STREAM_KEY") || "";
 const BUNNY_LIB = Deno.env.get("BUNNY_STREAM_LIBRARY") || "";
@@ -88,7 +90,7 @@ function eastern() {
   const p: Record<string, string> = {};
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hourCycle: "h23" })
     .formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
-  return { day: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour) };
+  return { day: `${p.year}-${p.month}-${p.day}`, hour: Number(p.hour), minute: new Date().getUTCMinutes() };   // Eastern is a whole number of hours off, so the minute is the same
 }
 
 /* ---- the ledger: what each house account has already put up ---- */
@@ -184,7 +186,7 @@ async function reelDoor(b: Record<string, any>) {
   if (!HOUSE_KEY || String(b.key || "") !== HOUSE_KEY) return json({ ok: false, error: "wrong upload password" }, 403);
   if (!BUNNY_KEY || !BUNNY_LIB) return json({ ok: false, error: "the video host isn't set up on the server" }, 500);
   if (b.action === "reel_status") {
-    const { data } = await admin.from("porch_house_reels").select("status");
+    const { data } = await admin.from("porch_house_reels").select("status").gte("n", Number(b.from) || 0).lte("n", Number(b.to) || 9999);
     const c: Record<string, number> = {}; (data || []).forEach((r: any) => { c[r.status] = (c[r.status] || 0) + 1; });
     return json({ ok: true, counts: c });
   }
@@ -237,7 +239,7 @@ async function publishReel(row: any, userId: string, when: Date) {
 async function reels(hour: number) {
   const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", PRAYER_HOUSE).maybeSingle();
   if (!m) return { posted: 0, error: "spiritualmisfit is not on the Porch yet" };
-  const { data: all, error } = await admin.from("porch_house_reels").select("*").order("n", { ascending: true });
+  const { data: all, error } = await admin.from("porch_house_reels").select("*").lt("n", MISFIT_SPINS_FROM).order("n", { ascending: true });
   if (error) return { posted: 0, why: "no reel list yet" };
   const done = (all || []).filter((r: any) => r.status === "posted");
   const queue = (all || []).filter((r: any) => r.status === "queued");
@@ -364,6 +366,31 @@ async function ads(day: string, hour: number) {
   return posted ? { posted, days: put } : { posted: 0, why: hour < H ? "before 4am Eastern" : "today's is already up" };
 }
 
+/* THE RECOVERY MISFITS SPINS (3 Oct 2026, Mike: "25-40 sober spins that belong to the
+ * recoverymisfits account ... post one every other day around 4:17pm"). Same waiting list as
+ * the reels (porch_house_reels); these are numbered from 1001 up so the two lists can't mix.
+ * No starting batch: the first one goes up at the next 4:17pm Eastern, then one every other
+ * day until they run out. Uploaded once from Mike's computer by scripts/upload_misfit_spins.py.
+ * A timer knocks at :17 for this (supabase/porch_42_spins_417.sql); the hourly knocks after
+ * 4:17 catch it up if that one is missed. */
+async function misfitSpins(hour: number, minute: number) {
+  const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", HOUSE).maybeSingle();
+  if (!m) return { posted: 0, error: "recoverymisfits is not on the Porch yet" };
+  const { data: all, error } = await admin.from("porch_house_reels").select("*").gte("n", MISFIT_SPINS_FROM).order("n", { ascending: true });
+  if (error) return { posted: 0, why: "no list yet" };
+  const done = (all || []).filter((r: any) => r.status === "posted");
+  const queue = (all || []).filter((r: any) => r.status === "queued");
+  if (!queue.length) return { posted: 0, why: done.length ? "they have all run" : "none waiting", total: done.length };
+  if (hour < MISFIT_SPIN_HOUR || (hour === MISFIT_SPIN_HOUR && minute < MISFIT_SPIN_MIN)) return { posted: 0, why: "before 4:17pm Eastern", waiting: queue.length };
+  if (done.length) {
+    const last = Math.max(...done.map((r: any) => Date.parse(r.posted_at || 0) || 0));
+    if (Date.now() - last < 40 * 3600 * 1000) return { posted: 0, why: "not today (every other day)", waiting: queue.length };
+  }
+  const why = await publishReel(queue[0], m.user_id, new Date());
+  if (why) return { posted: 0, why: "spin " + queue[0].n + ": " + why, waiting: queue.length };
+  return { posted: 1, numbers: [queue[0].n], waiting: queue.length - 1 };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return json({ ok: true });
   let body: Record<string, any> = {};
@@ -372,12 +399,13 @@ Deno.serve(async (req) => {
     try { return await reelDoor(body); } catch (e) { return json({ ok: false, error: String((e as Error).message || e) }, 500); }
   }
   try {
-    const { day, hour } = eastern();
+    const { day, hour, minute } = eastern();
     const out: Record<string, unknown> = { ok: true, day };
     try { out.meme = await meme(day, hour); } catch (e) { out.meme = { posted: false, error: String((e as Error).message || e) }; }
     try { out.prayer = await prayer(day, hour); } catch (e) { out.prayer = { posted: false, error: String((e as Error).message || e) }; }
     try { out.moment = await moment(day, hour); } catch (e) { out.moment = { posted: false, error: String((e as Error).message || e) }; }
     try { out.reels = await reels(hour); } catch (e) { out.reels = { posted: 0, error: String((e as Error).message || e) }; }
+    try { out.misfit_spins = await misfitSpins(hour, minute); } catch (e) { out.misfit_spins = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.sponsor = await sponsor(day, hour); } catch (e) { out.sponsor = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.another_day_sober = await ads(day, hour); } catch (e) { out.another_day_sober = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.spiritual_memes = await spiritualMemes(hour); } catch (e) { out.spiritual_memes = { posted: 0, error: String((e as Error).message || e) }; }
