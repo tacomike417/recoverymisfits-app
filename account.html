@@ -34,6 +34,11 @@
   .agerules li{margin:3px 0}
   .agecheck{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:14px 14px;line-height:1.3;border-radius:16px;border:1.5px solid var(--gold);background:rgba(215,178,83,.10);font-family:var(--ui);font-weight:800;font-size:16px;color:#fff;cursor:pointer}
   .agecheck input{width:26px;height:26px;flex:none;accent-color:#d7b253}
+  /* 3 Oct 2026, Mike: "this page take off take me home, switch profile". The big Switch or Add
+     Account button is gone (the small Switch next to "Signed in as" and a long press on the
+     Account button still do it). Take Me Home is gone from the plain account page; the bottom
+     tabs and Back to Home are the way out. */
+  #dsSwitch{display:none !important}
   /* SIGNING UP IS NOT THE ACCOUNT PAGE (3 Oct 2026, Mike: "You don't want to delete your account
      right now"). A brand-new person gets the date, yes or not now, and nothing else. */
   #datestep.signup #dsSwitchTop,#datestep.signup #dsSwitch,#datestep.signup #dsOut,
@@ -647,6 +652,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       $("dsSkip").hidden = false;
       $("dsHome").hidden = true;
     }
+    if (!signingUp && !next) $("dsHome").hidden = true;       /* only shown when it has somewhere particular to send them */
     paintPorchCard();
     $("porchCard").hidden = $("porchCard").hidden || (wantsPorch() && !profDone());   /* the big button already says it */
     paint("date");
