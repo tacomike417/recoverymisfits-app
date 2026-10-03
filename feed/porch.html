@@ -661,6 +661,16 @@ html.fullon #main{visibility:hidden}
 [data-ppane] .sp-grid,[data-ppane] .grid{padding:4px;gap:4px}
 [data-ppane] .grid button,[data-ppane] .sp-gt{border-radius:10px;overflow:hidden}
 /* the Spins slider on top of Shares: one row you slide sideways */
+/* WELCOME OUR NEW FOLKS (3 Oct 2026, Mike: "one of those rails that you scroll through of new people
+   on the site or welcome our new folks"). Tap a face to go say hi. */
+.newrail{border-bottom:1px solid var(--line);padding:10px 0 8px}
+.newrail h4{margin:0 14px 8px;font:800 12px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.newrail .nr-row{display:flex;gap:10px;padding:0 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.newrail .nr-row::-webkit-scrollbar{display:none}
+.newrail .nr{flex:0 0 68px;border:0;background:none;padding:0;color:var(--cream);cursor:pointer;text-align:center;font:600 11.5px Arial,sans-serif}
+.newrail .nr .av{width:58px;height:58px;font-size:20px;margin:0 auto 5px;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--gold2)}
+.newrail .nr span.nm{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.newrail .nr small{display:block;margin-top:1px;font:800 10.5px Arial,sans-serif;color:var(--gold)}
 .sprow{border-bottom:1px solid var(--line);padding:6px 0 4px}
 .sprow .sp-grid{display:flex;gap:6px;padding:4px 10px;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .sprow .sp-grid::-webkit-scrollbar{display:none}
@@ -1121,7 +1131,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v140</span>
+  <span class="ver" id="ver">v141</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1135,6 +1145,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <a class="jb-in" href="/account.html?signin=1&next=feed">I have an account</a>
   </section>
   <div id="spinrail"></div>
+  <section class="newrail" id="newrail" hidden></section>
   <div id="feed" style="padding-top:2px"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
 </main>
@@ -5308,6 +5319,24 @@ html.kb .ch-bar{padding-bottom:8px}
     });
   }
 
+  /* WELCOME OUR NEW FOLKS: the people who joined in the last two weeks. A face with a share
+     opens that share (so you can say hi on it); a face without one opens their profile. */
+  async function loadNewFolks() {
+    var el = $("newrail"), list = [];
+    try { list = (await rpc("porch_new_folks", {})) || []; } catch (e) { list = []; }
+    if (!list.length) { el.hidden = true; el.innerHTML = ""; return; }
+    list.forEach(function (m) { people[m.user_id] = Object.assign(people[m.user_id] || {}, { user_id: m.user_id, handle: m.handle, avatar_path: m.avatar_path, real_name: m.real_name }); });
+    el.innerHTML = "<h4>👋 Welcome our new folks</h4><div class=\"nr-row\">" + list.map(function (m) {
+      return '<button type="button" class="nr" data-nr="' + esc(m.user_id) + '" data-nrp="' + esc(m.post_id || "") + '" aria-label="Say hi to ' + esc(m.handle) + '">' + avatar(m) + '<span class="nm">' + esc(m.real_name || m.handle) + "</span><small>Say hi</small></button>";
+    }).join("") + "</div>";
+    el.hidden = false;
+  }
+  $("newrail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-nr]"); if (!b) return;
+    var pid = b.getAttribute("data-nrp");
+    if (pid) openSingle(pid); else openProfile(b.getAttribute("data-nr"));
+  });
+
   /* ================================================================ GO */
   (async function () {
     await loadMe();
@@ -5315,6 +5344,7 @@ html.kb .ch-bar{padding-bottom:8px}
     await loadFriends();
     loadNew();
     loadMore();
+    loadNewFolks();
     if (window.PorchSpins) window.PorchSpins.paintRail(); else window.addEventListener("load", function () { if (window.PorchSpins) window.PorchSpins.paintRail(); });
     checkNotes(); checkDms(); checkGNew(); checkNew(); modCheck(); healPush();
     setTimeout(function () { if (unread) askPush(); }, 6000);

@@ -14,6 +14,9 @@ Order isn't set.
 **Finish first**
 - [x] Spin music: pick the 50 clips (picker page), install them, push (done 1 Oct: 50 clips, 15 seconds)
 - [x] Play Store app rebuild (dropped: the Play Store app is parked on purpose, the web based app is the real one)
+- [ ] WELCOME CREW (Mike, 3 Oct: "Number two will come"): a few real people get a "New here" list each day and
+      one tap to go say hi. The house comment, the new folks rail and house accounts accepting friend requests
+      are done (v141, porch_41). Later idea: a "Porch Greeter" card for welcoming 10 new people.
 - [ ] Day 1 checklist: flip the lock, sample posts off, welcome post on top, a few people ready to share
 - [x] Groups get their own address: recoverymisfits.org/groups/<name> (v84, 2 Oct). Picked when the group is
       started, Keeper can change it. The address page shows only the group's name and what it's for.
