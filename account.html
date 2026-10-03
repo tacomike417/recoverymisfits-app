@@ -206,6 +206,10 @@
 </head>
 
 <body data-rm-nav="tools.html">
+<script>
+/* Came here from the Porch (Join free)? Then the Porch is the tab that stays lit, not Tools. */
+if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-nav", "feed/porch.html");
+</script>
 
 <div id="rm-topbar"></div>
 <script src="/topbar.js" defer></script>
@@ -318,7 +322,7 @@
       <button class="go" type="submit" id="submit">Create My Anonymous Account</button>
       <p class="say" id="say" role="status" aria-live="polite"></p>
       <button type="button" class="forgot" id="forgot" hidden>Forgot your password?</button>
-      <p class="hint" style="text-align:center;margin-top:10px">By using Recovery Misfits you agree to our <a href="/privacy.html#terms" style="color:var(--gold)">terms</a>. See what we keep in <a href="/privacy.html" style="color:var(--gold)">privacy</a>.</p>
+      <p class="hint" style="text-align:center;margin-top:12px;font-size:11.5px;line-height:1.5;opacity:.8">By using Recovery Misfits you agree to our <a href="/privacy.html#terms" style="color:var(--gold)">terms</a>. See what we keep in <a href="/privacy.html" style="color:var(--gold)">privacy</a>.</p>
     </form>
 
     <!-- FORGOT PASSWORD (1 Oct 2026, Mike, from the big list). Only works for people who
@@ -346,9 +350,9 @@
          whole page, so "Back to Tools" was still under you in the middle of
          signing up and again on the screen that was supposed to end with
          Take Me Home. A screen with somewhere to go does not need it. -->
-    <a class="back" href="/tools.html" style="margin-top:20px">
+    <a class="back" id="backOut" href="/tools.html" style="margin-top:20px">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Back to Tools
+      <span id="backOutTxt">Back to Tools</span>
     </a>
   </div>
 
@@ -653,6 +657,8 @@
         ? "You&rsquo;re in the beta. Pick the name people will see on the Porch."
         : "Pick the name people will see on the Porch.<br>You&rsquo;ll confirm an email once so you can post. It&rsquo;s never kept or shown.";
     if (mode === "new") $("submit").textContent = two ? "Create My Account" : "Create My Anonymous Account";
+    /* 3 Oct 2026, Mike's walk-through: say it before they forget it */
+    $("pwHint").innerHTML = two ? "At least 8 characters. <b>Write it down.</b>" : "At least 8 characters. <b>Write it down.</b> With no email, we can&rsquo;t reset it.";
   }
   function goForm(lvl, m) {
     if (lvl) pick(lvl);
@@ -750,6 +756,8 @@
      pages this app knows by name -- never a URL handed to it. */
   var BACKS = { readings: "/readings.html", set: "/index.html", feed: "/feed/porch.html" };
   var RETURN_TO = BACKS[next] || "/index.html";
+  /* the way out goes back where they came from (it said "Back to Tools" to somebody who came from the Porch) */
+  if (next === "feed" && $("backOut")) { $("backOut").href = "/feed/porch.html"; $("backOutTxt").textContent = "Back to the Porch"; }
 
   /* ---- create / sign in ------------------------------------------------- */
   function setMode(next) {
@@ -759,6 +767,9 @@
       if (next === "new" && !$("pickedTxt").innerHTML) $("pickedTxt").innerHTML = picked() === "2" ? "<b>Level 2</b> · I&rsquo;m comfortable here" : "<b>Level 1</b> · Anonymous";
     }
     if ($("out") && !$("out").hidden) setTimeout(function () { paint("form"); }, 0);
+    /* the Sign Up / Sign In tabs live on the level screen now; here they only show while signing
+       in, so a new person isn't asked the same question twice (3 Oct 2026) */
+    var seg = $("tabNew").parentNode; if (seg) seg.hidden = next === "new";
     $("tabNew").setAttribute("aria-selected", next === "new" ? "true" : "false");
     $("tabOld").setAttribute("aria-selected", next === "old" ? "true" : "false");
     $("submit").textContent = next === "new" ? (picked() === "2" ? "Create My Account" : "Create My Anonymous Account") : "Sign In";
@@ -768,7 +779,7 @@
     $("pwHint").hidden = next !== "new";
     say($("say"), "");
   }
-  $("tabNew").addEventListener("click", function () { setMode("new"); });
+  $("tabNew").addEventListener("click", function () { showLevels(); });        /* Sign Up starts at "pick your level" */
   $("tabOld").addEventListener("click", function () { setMode("old"); });
 
   $("peek").addEventListener("click", function () {
