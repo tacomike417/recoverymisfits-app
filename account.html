@@ -943,8 +943,13 @@
     var b = this;
     if (!b.dataset.sure) {
       b.dataset.sure = "1"; b.style.color = "#ff9a8a";
+      /* 3 Oct 2026, Mike: say it plainly. It's safe, it's for good, and the name is retired.
+         And offer the gentler thing first: take a break (porch_39). */
       b.textContent = "Tap again to delete it for good";
-      say($("sayDel"), "Your username, the sober date saved to it, your settings and everything on the Porch go away for good. This phone keeps its own copy of your date.");
+      $("sayDel").innerHTML = "<b>Deleting is safe.</b> Everything you shared on the Porch, your settings and the sober date saved to your account are wiped for good." +
+        "<br><br><b>Your username is retired.</b> Nobody can ever use it again, and that includes you. Nobody can pretend to be you." +
+        "<br><br>This phone keeps its own copy of your sober date." +
+        '<br><br>Just need some space? <a href="/feed/porch.html?break=1" style="color:#e0bd6a;font-weight:800">Take a break instead</a>. Nothing is erased and your name stays yours.';
       return;
     }
     b.disabled = true; b.textContent = "Deleting…";

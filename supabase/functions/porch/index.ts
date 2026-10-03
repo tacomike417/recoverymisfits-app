@@ -284,7 +284,7 @@ Deno.serve(async (req) => {
      leave), then the app account itself: sober date, settings, username. Gone for good.
      Not while paused, so deleting can't be used to dodge a report. */
   if (b.action === "leave" || b.action === "delete_account") {
-    const { data: m } = await admin.from("porch_members").select("frozen_at").eq("user_id", user.id).maybeSingle();
+    const { data: m } = await admin.from("porch_members").select("frozen_at, handle").eq("user_id", user.id).maybeSingle();
     if (b.action === "delete_account" && m?.frozen_at) return json({ error: "Your account is paused while someone looks at a report. You can delete it once that's done." }, 403);
     await dropFolder(user.id);
     const { data: myThreads } = await admin.from("porch_threads").select("id").or("a.eq." + user.id + ",b.eq." + user.id);
@@ -330,6 +330,12 @@ Deno.serve(async (req) => {
       await admin.from("profiles").delete().eq("id", user.id);
       const del = await admin.auth.admin.deleteUser(user.id);
       if (del.error) return json({ error: "Your Porch stuff is gone, but the account didn't delete. Try again." }, 500);
+      /* RETIRED NAMES (3 Oct 2026, Mike: "if they delete their account, their username is
+         retired. I don't want anybody to duplicate the account."). Only a scrambled
+         fingerprint of the name is kept (supabase/porch_39_break_and_retired.sql). */
+      for (const n of [String(user.email || "").toLowerCase().endsWith("@rm.invalid") ? String(user.email).split("@")[0] : "", String((m as any)?.handle || "")]) {
+        if (n) { try { await admin.rpc("name_retire", { p_name: n }); } catch { /* the delete still stands */ } }
+      }
     }
     return json({ ok: true });
   }
