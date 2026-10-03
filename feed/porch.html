@@ -1133,7 +1133,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v145</span>
+  <span class="ver" id="ver">v146</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2873,6 +2873,49 @@ html.kb .ch-bar{padding-bottom:8px}
     $("sgpage").innerHTML = '<div class="bkbar">' + BK + "</div>" + postHTML(p).replace(' id="p-' + id + '"', "");
     open("single"); $("sgpage").scrollTop = 0;
   }
+  /* KEEP SCROLLING (3 Oct 2026, Mike: "when you click a shared post in messages I think it
+     should let you scroll the feed"). The share they tapped is on top; the rest of the Porch
+     follows under it, newest first, and keeps loading as they go. */
+  var sgOldest = null, sgDone = false, sgBusy = false, sgFirst = "", sgWatch = null;
+  function sgFeed(firstId) {
+    var pg = $("sgpage"); if (!$("single").classList.contains("open") || pg.querySelector(".sgmore")) return;
+    sgOldest = null; sgDone = false; sgBusy = false; sgFirst = firstId;
+    pg.insertAdjacentHTML("beforeend", '<p class="nd-sec sgmore" style="margin-top:18px">MORE FROM THE PORCH</p><div id="sgfeed"></div><div id="sgsent" style="height:1px"></div>');
+    if (sgWatch) sgWatch.disconnect();
+    sgWatch = new IntersectionObserver(function (es) { if (es[0].isIntersecting) sgMore(); }, { root: pg, rootMargin: "700px" });
+    sgWatch.observe($("sgsent"));
+    sgMore();
+  }
+  async function sgMore() {
+    var box = $("sgfeed"); if (!box || sgBusy || sgDone) return;
+    sgBusy = true;
+    try {
+      var list = await rest("porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of&group_id=is.null&order=created_at.desc&limit=" + PAGE +
+        (sgOldest ? "&created_at=lt." + encodeURIComponent(sgOldest) : ""));
+      if (list.length < PAGE) sgDone = true;
+      if (list.length) sgOldest = list[list.length - 1].created_at;
+      list = list.filter(function (p) { return p.id !== sgFirst && !muted[p.user_id]; });
+      var mo = list.filter(function (p) { return p.need === "moment"; }).map(function (p) { return p.id; });
+      if (mo.length) {
+        try { (await rest("porch_spins?post_id=in.(" + mo.join(",") + ")&status=eq.ready&select=post_id,video_guid,length_s")).forEach(function (r) { spinOf[r.post_id] = r; }); } catch (e) {}
+        list = list.filter(function (p) { return p.need !== "moment" || spinOf[p.id]; });
+      }
+      if (list.length) {
+        var ids = list.map(function (p) { return p.id; });
+        var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
+        var rs = me.uid ? await rest("porch_reactions?user_id=eq." + me.uid + "&post_id=in.(" + ids.join(",") + ")&select=post_id,kind") : [];
+        await loadPeople(list.map(function (p) { return p.user_id; }).concat(cs.map(function (c) { return c.user_id; })));
+        ids.forEach(function (id) { comments[id] = []; mine[id] = {}; });
+        cs.forEach(function (c) { if (comments[c.post_id]) comments[c.post_id].push(c); });
+        rs.forEach(function (r) { if (mine[r.post_id]) mine[r.post_id][r.kind] = true; });
+        list.forEach(function (p) { posts[p.id] = p; });
+        if ($("sgfeed") === box) box.insertAdjacentHTML("beforeend", list.map(function (p) { return postHTML(p).replace(' id="p-' + p.id + '"', ""); }).join(""));
+      }
+      if (sgDone && $("sgfeed") === box) box.insertAdjacentHTML("beforeend", '<p class="endnote">You\'re all caught up. 💛</p>');
+    } catch (e) {}
+    sgBusy = false;
+    if (!sgDone && $("sgfeed") === box && !box.querySelector(".post")) sgMore();
+  }
   async function openHandle(h) {
     h = String(h).toLowerCase();
     var uid = Object.keys(people).filter(function (k) { return (people[k].handle || "").toLowerCase() === h; })[0];
@@ -4109,6 +4152,22 @@ html.kb .ch-bar{padding-bottom:8px}
         '<span style="min-width:0"><b>' + esc(c.title || "A share from the Porch") + "</b>" + (c.text ? "<small>" + esc(c.text) + "</small>" : "") + "</span></div>";
     }
     $("pkq").value = ""; paintPick(""); open("pickdm");
+    pkRankLoad();
+  }
+  /* WHO YOU MESSAGE THE MOST COMES FIRST (3 Oct 2026, Mike: "it should order that list by who
+     you message the most"). Counted from the last 1,000 messages you sent. Friends you have
+     never messaged follow, by name. The list paints right away and re-sorts when the count is in. */
+  var pkRank = {};
+  async function pkRankLoad() {
+    if (!me.uid) return;
+    try {
+      var th = await rest("porch_threads?or=(a.eq." + me.uid + ",b.eq." + me.uid + ")&select=id,a,b&limit=200");
+      var who = {}; th.forEach(function (t) { who[t.id] = otherOf(t); });
+      var sent = await rest("porch_dm?from_id=eq." + me.uid + "&select=thread_id&order=created_at.desc&limit=1000");
+      var n = {}; sent.forEach(function (d) { var u = who[d.thread_id]; if (u) n[u] = (n[u] || 0) + 1; });
+      pkRank = n;
+      if ($("pickdm").classList.contains("open")) paintPick($("pkq").value.trim().toLowerCase());
+    } catch (e) {}
   }
   async function pkSend(u, btn) {
     if (pkSent[u] || !dmPrefill) return;
@@ -4123,7 +4182,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   function paintPick(q) {
     var ids = Object.keys(friends).filter(function (k) { return !isSample(k) && (!q || name(k).toLowerCase().indexOf(q) >= 0); })
-      .sort(function (x, y) { return name(x).toLowerCase() < name(y).toLowerCase() ? -1 : 1; });
+      .sort(function (x, y) { var a = pkRank[x] || 0, b = pkRank[y] || 0; return a !== b ? b - a : name(x).toLowerCase() < name(y).toLowerCase() ? -1 : 1; });
     if (dmPrefill) {
       $("pklist").innerHTML = ids.length ? ids.map(function (u) {
         var done = pkSent[u] === 1;
@@ -4387,7 +4446,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (t.closest("[data-spins]")) { if (window.PorchSpins) window.PorchSpins.openLatest(); else toast("Spins are loading. Try again in a sec."); return; }
     if (t.closest("[data-newdm]")) return openPick();
     var pks = t.closest("[data-pksend]"); if (pks) return pkSend(pks.dataset.pksend, pks);
-    var shp = t.closest("[data-sharepost]"); if (shp) return openNoteTarget(shp.dataset.sharepost);
+    var shp = t.closest("[data-sharepost]"); if (shp) { var shId = shp.dataset.sharepost, inChat = shp.classList.contains("dm-card"); return openNoteTarget(shId).then(function () { if (inChat) sgFeed(shId); }); }
     var pk = t.closest("[data-dmpick]"); if (pk) {
       var pu = pk.dataset.dmpick, pre = dmPrefill; dmPrefill = "";
       return closeTop().then(async function () { await openChat(pu); if (pre) { $("dmin").value = pre; paintDmBox(); } });
@@ -5533,7 +5592,7 @@ html.kb .ch-bar{padding-bottom:8px}
 })();
 </script>
 <script src="/feed/sound.js?v=3" defer></script>
-<script src="/feed/spins/spins.js?v=67" defer></script>
+<script src="/feed/spins/spins.js?v=68" defer></script>
 <script src="/feed/tour.js?v=4" defer></script>
 </body>
 </html>

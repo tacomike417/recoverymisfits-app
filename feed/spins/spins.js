@@ -993,18 +993,26 @@
     openPlayer(list, 0);
   }
   /* a link: ?spin=<id> (and from an alert: the Spin's post, maybe a comment) */
+  /* KEEP SWIPING (3 Oct 2026, Mike: "when you click a spin in the normal feed I think it should
+     let you keep swiping spins"). The one they tapped plays first; the latest Spins line up
+     behind it. Same for a Spin opened from a link or a message. */
+  async function andMore(first) {
+    let rest = [];
+    try { rest = await latest(30); } catch (_) {}
+    return [first].concat(rest.filter((l) => l.id !== first.id));
+  }
   async function openById(id, commentId) {
     try {
       const d = await P().rest('porch_spins?id=eq.' + id + '&select=' + COLS);
       if (!d[0]) return say('That Spin is gone.');
-      openPlayer([d[0]], 0, commentId ? () => P().openCommentsFor(d[0].post_id, null, commentId) : null);
+      openPlayer(await andMore(d[0]), 0, commentId ? () => P().openCommentsFor(d[0].post_id, null, commentId) : null);
     } catch (_) { say("That Spin didn't load."); }
   }
   async function openPost(postId, commentId) {
     try {
       const d = await P().rest('porch_spins?post_id=eq.' + postId + '&select=' + COLS);
       if (!d[0]) return say('That Spin is gone.');
-      openPlayer([d[0]], 0, commentId ? () => P().openCommentsFor(postId, null, commentId) : null);
+      openPlayer(await andMore(d[0]), 0, commentId ? () => P().openCommentsFor(postId, null, commentId) : null);
     } catch (_) { say("That Spin didn't load."); }
   }
 
