@@ -516,3 +516,10 @@ without making it confusing.
 - [x] supabase/functions/porch-daily posts one from recoverymisfits every other day at noon Eastern, as a saying card.
 - [x] supabase/porch_34_daily_moments.sql: the timer with the noon knock.
 - [ ] Mike: push, deploy porch-daily, run porch_34.
+
+## The reels for Spiritual Misfit (2 Oct 2026)
+- [x] scripts/upload_house_reels.py: sends the 100 reels from ~/Downloads/RM-House Accounts to the video host once, in order. Safe to run again.
+- [x] supabase/functions/porch-daily: posts them as Spins from spiritualmisfit. Six to start (dated one a day going back), then one every other day at 5pm Eastern until they run out. House Spins don't expire.
+- [x] supabase/porch_35_house_reels.sql: the waiting list and the 5pm knock.
+- [ ] Mike: run porch_35, then the paste command (it asks him to make up an upload password).
+- [ ] Not tested against the real video host yet. The upload was tested against a stand-in.
