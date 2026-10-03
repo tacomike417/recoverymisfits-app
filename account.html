@@ -23,6 +23,10 @@
      element stays on screen. That is how "Pick My Sober Date" was still
      sitting under a date that was already picked. */
   [hidden]{display:none !important}
+  /* SIGNING UP IS NOT THE ACCOUNT PAGE (3 Oct 2026, Mike: "You don't want to delete your account
+     right now"). A brand-new person gets the date, yes or not now, and nothing else. */
+  #datestep.signup #dsSwitchTop,#datestep.signup #dsSwitch,#datestep.signup #dsOut,
+  #datestep.signup #dsOutNote,#datestep.signup #delAcct,#datestep.signup #sayDel,#datestep.signup .back{display:none !important}
 
   main{padding:6px 18px 20px}
   .pub{align-items:center}
@@ -228,9 +232,9 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   </header>
   <img class="rule" src="/assets/pages/d-rule.webp" alt="" aria-hidden="true"
        width="297" height="17" style="display:block;width:100%;max-width:297px;margin:6px 0 0">
-  <!-- WHERE YOU ARE (1 Oct 2026, Mike): signing up is three steps, and this says which one -->
+  <!-- WHERE YOU ARE (1 Oct 2026, Mike): signing up is four steps, and this says which one -->
   <div class="steps" id="steps" hidden>
-    <div class="bars"><i></i><i></i><i></i></div>
+    <div class="bars"><i></i><i></i><i></i><i></i></div>
     <p id="stepTxt"></p>
   </div>
 
@@ -387,7 +391,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
            else and always was. -->
       <button class="go" type="button" id="sendCreds" hidden
               style="background:transparent;color:var(--gold);margin-top:8px">Send It To Myself</button>
-      <p style="font-family:var(--ui);font-size:12.5px;line-height:1.6;color:var(--ivory);margin:13px 0 0">
+      <p id="freshWarn" style="font-family:var(--ui);font-size:12.5px;line-height:1.6;color:var(--ivory);margin:13px 0 0">
         There is no &ldquo;forgot password&rdquo; email, because there&rsquo;s no email.
         Nobody can look this up for you &mdash; not us, not anybody.
         <b style="color:#fff">Lose it and you start over.</b>
@@ -427,8 +431,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       <button type="button" id="dsSwitchTop" style="margin-left:8px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--gold);font:800 13px var(--ui);cursor:pointer">Switch</button></p>
     <div class="warn" style="text-align:center">
       <h2 id="dsKick">One more thing</h2>
-      <p id="dsAsk" style="text-align:center">When did you get sober?<br>
-         <span style="color:var(--muted)">This is the part that follows you to a new phone.</span></p>
+      <p id="dsAsk" style="text-align:center">When did you get sober?</p>
       <div id="dsDone" hidden>
         <p class="dsDate" id="dsDate"></p>
         <p class="dsDays" id="dsDays"></p>
@@ -464,7 +467,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
             style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:8px">
       Sign Out</button>
     <p class="say" id="say2" role="status" aria-live="polite"></p>
-    <p style="text-align:center;font-family:var(--ui);font-size:11.5px;color:var(--muted);margin:10px 0 0">
+    <p id="dsOutNote" style="text-align:center;font-family:var(--ui);font-size:11.5px;color:var(--muted);margin:10px 0 0">
       Signing out stops the syncing. It does not erase anything on this phone.
     </p>
     <!-- DELETE MY APP ACCOUNT (1 Oct 2026, big list): small, at the very bottom -->
@@ -524,13 +527,19 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       $(STEP[k]).hidden = (k !== step);
     });
     /* the big header says where you are: Sign Up / Sign In / your account */
-    var n = step === "levels" ? 1 : step === "form" && mode === "new" ? 2 : (step === "fresh" || step === "claim" || step === "date") && signingUp ? 3 : 0;
+    var n = step === "levels" ? 1 : step === "form" && mode === "new" ? 2 : step === "fresh" && signingUp ? 3 : (step === "claim" || step === "date") && signingUp ? 4 : 0;
     $("pageName").textContent = n ? "Sign Up" : step === "form" ? "Sign In" : "Your Anonymous Account";
     $("steps").hidden = !n;
     if (n) {
       [].forEach.call($("steps").querySelectorAll("i"), function (b, i) { b.classList.toggle("on", i < n); });
-      $("stepTxt").textContent = "Step " + n + " of 3 · " + (n === 1 ? "Pick your level" : n === 2 ? "Make your username" : "Your sober date");
+      $("stepTxt").textContent = "Step " + n + " of 4 · " + (n === 1 ? "Pick your level" : n === 2 ? "Make your username" : n === 3 ? "Save your username and password" : "Your sober date");
     }
+    $("datestep").classList.toggle("signup", !!signingUp);
+    /* Level 2 confirms an email on the Porch, and that email can reset the password. So the
+       "lose it and you start over" warning is only true for Level 1. */
+    if (step === "fresh") $("freshWarn").innerHTML = picked() === "2"
+      ? "<b style=\"color:#fff\">Write it down.</b> Once you confirm an email on the Porch, you can reset your password with it."
+      : "There is no &ldquo;forgot password&rdquo; email, because there&rsquo;s no email. Nobody can look this up for you &mdash; not us, not anybody. <b style=\"color:#fff\">Lose it and you start over.</b>";
     if (A.signedIn()) $("dsWho").textContent = A.name();
   }
 
@@ -570,6 +579,10 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       var setup = wantsPorch() && !profDone();
       $("dsHome").href = setup ? "/feed/porch.html?setup=1" : RETURN_TO;
       $("dsHome").textContent = setup ? "Next: Set Up My Profile" : next === "readings" ? "Back to Readings" : next === "feed" ? "Back to the Porch" : "Take Me Home";
+      /* SIGNING UP ENDS ON THE PORCH (3 Oct 2026, Mike: "write this stuff down, pick your sober date
+         or not, and then go explore the porch. That's really it."). The profile steps used to be
+         forced in here; now the Porch offers them once they're looking around. */
+      if (signingUp && porchFor(A.name())) { $("dsHome").href = "/feed/porch.html"; $("dsHome").textContent = "Go Explore the Porch"; }
       $("dsHome").hidden = false;
     } else {
       $("dsKick").textContent = "One more thing";
@@ -596,7 +609,10 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     }, 500);
   });
 
-  $("dsSkip").addEventListener("click", function () { location.href = wantsPorch() && !profDone() ? "/feed/porch.html?setup=1" : RETURN_TO; });
+  $("dsSkip").addEventListener("click", function () {
+    if (signingUp && porchFor(A.name())) { location.href = "/feed/porch.html"; return; }      /* straight to the Porch */
+    location.href = wantsPorch() && !profDone() ? "/feed/porch.html?setup=1" : RETURN_TO;
+  });
 
   /* IS THE PROFILE SET UP? (2 Oct 2026, Mike: "I have my profile set up, and when I go click
      on my app account it says set up your profile, like I didn't do it already.") It used to
