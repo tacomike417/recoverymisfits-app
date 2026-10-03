@@ -397,6 +397,8 @@ html.fullon #main{visibility:hidden}
 .su-hello{margin:4px 16px 0;padding:14px;border-radius:18px;background:var(--card,#1a1915);border:1px solid var(--line)}
 .su-hw{display:flex;align-items:center;gap:10px;margin-bottom:12px}.su-hw .av{width:44px;height:44px;font-size:17px;flex:none}
 .su-hw b{display:block;font:800 16px Arial,sans-serif;color:var(--cream)}.su-hw small{color:var(--muted);font:600 12.5px Arial,sans-serif}
+.su-hpic{aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:#2a2418}
+.su-hpic img{display:block;width:100%;height:100%;object-fit:cover}
 .su-hc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:190px;padding:22px 18px;border-radius:14px;text-align:center;font:400 30px/1.15 "RM Head",Impact,sans-serif;letter-spacing:.01em}
 .su-wave{font-style:normal;font-size:62px;line-height:1;display:inline-block;transform-origin:70% 75%;animation:suwave 1.6s ease-in-out infinite}
 @keyframes suwave{0%,55%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-10deg)}}
@@ -1120,7 +1122,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v133</span>
+  <span class="ver" id="ver">v134</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3135,10 +3137,9 @@ html.kb .ch-bar{padding-bottom:8px}
       /* THE HELLO IS ALREADY MADE (3 Oct 2026, Mike: "take them right into the thing with their
          profile picture and it's a little waving hand. Like the spin is already made. All they
          gotta do is push post ... Super simple."). This is exactly what goes up: one tap. */
-      var hc = CARDS[HELLO_CARD];
       h += "<h2>Say hi</h2><p class=\"sub\">Your hello is ready. Just tap Post.</p>" +
         '<div class="su-hello"><div class="su-hw">' + avatar(m) + "<span><b>" + esc(m.handle || "") + "</b><small>Just now</small></span></div>" +
-          '<div class="su-hc" style="background:' + hc.bg + ";color:" + hc.ink + '"><i class="su-wave">👋</i><span>' + esc(HELLO.replace("👋 ", "")) + "</span></div></div>" +
+          '<div class="su-hpic" id="suhpic"><div class="skel" style="height:100%;margin:0;border-radius:14px"></div></div></div>' +
         '<button type="button" class="go" data-su-hello>Post my hello</button>' +
         '<p class="estatus" id="suhello" role="status" style="text-align:center"></p>' +
         '<button type="button" class="ghost" data-su-hi="spin">Make a Spin instead</button>' +
@@ -3153,6 +3154,60 @@ html.kb .ch-bar{padding-bottom:8px}
         '<button type="button" class="go" data-su-go>' + (suOnly ? "Show my profile" : "Done. Show me the Porch") + "</button>";
     }
     $("supage").innerHTML = h;
+    if (suStep === 1) helloImage(m).then(function (url) { suHello = url; var box = $("suhpic"); if (box && url) box.innerHTML = '<img src="' + url + '" alt="Your hello: your picture, your name, and Hey, I\'m new here.">'; });
+  }
+  /* THE HELLO, DRAWN WITH THEIR PICTURE AND NAME (3 Oct 2026, Mike: "spice that up a little bit
+     and maybe put the profile picture in there, and their username"). A square picture made
+     right here on the phone: a waving hand, their face (or their initials), "Hey, I'm new
+     here." and their name. It goes up as a photo share. */
+  var suHello = "";
+  function helloImage(m) {
+    return new Promise(function (done) {
+      var S = 1080, c = document.createElement("canvas"); c.width = c.height = S;
+      var x = c.getContext("2d"), handle = String((m && m.handle) || "misfit");
+      function draw(face) {
+        var g = x.createRadialGradient(S / 2, S * 0.4, 60, S / 2, S / 2, S * 0.78);
+        g.addColorStop(0, "#f3d98f"); g.addColorStop(0.55, "#d9b057"); g.addColorStop(1, "#8a6420");
+        x.fillStyle = g; x.fillRect(0, 0, S, S);
+        x.strokeStyle = "rgba(27,19,7,.55)"; x.lineWidth = 6; x.strokeRect(34, 34, S - 68, S - 68);
+        x.strokeStyle = "rgba(27,19,7,.25)"; x.lineWidth = 2; x.strokeRect(50, 50, S - 100, S - 100);
+        x.textAlign = "center"; x.textBaseline = "middle";
+        var cx = S / 2, cy = 400, r = 170;
+        x.beginPath(); x.arc(cx, cy, r + 16, 0, Math.PI * 2); x.fillStyle = "#1b1307"; x.fill();
+        x.beginPath(); x.arc(cx, cy, r + 8, 0, Math.PI * 2); x.fillStyle = "#f6e3a8"; x.fill();
+        x.save(); x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.clip();
+        if (face) {
+          var k = Math.max(2 * r / face.naturalWidth, 2 * r / face.naturalHeight), w = face.naturalWidth * k, hh = face.naturalHeight * k;
+          x.drawImage(face, cx - w / 2, cy - hh / 2, w, hh);
+        } else {
+          var n = 0; for (var i = 0; i < handle.length; i++) n = (n * 31 + handle.charCodeAt(i)) >>> 0;
+          x.fillStyle = COLORS[n % COLORS.length]; x.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+          x.fillStyle = "#fff"; x.font = "800 150px Arial,sans-serif"; x.fillText(initials(handle), cx, cy + 8);
+        }
+        x.restore();
+        x.font = '150px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.fillText("👋", S / 2 + 205, 285);
+        x.fillStyle = "#1b1307";
+        x.font = '400 112px "RM Head",Impact,"Arial Narrow",sans-serif'; x.fillText("Hey, I'm new here.", S / 2, 700);
+        var nm = "@" + handle, fs = 64; x.font = "800 " + fs + "px Arial,sans-serif";
+        while (x.measureText(nm).width > S - 180 && fs > 30) { fs -= 4; x.font = "800 " + fs + "px Arial,sans-serif"; }
+        x.fillText(nm, S / 2, 815);
+        x.fillStyle = "rgba(27,19,7,.75)";
+        var foot = "RECOVERY MISFITS  ·  GOOD PEOPLE BETWEEN MEETINGS", ff = 30;
+        try { x.letterSpacing = "3px"; } catch (e) {}
+        x.font = "800 " + ff + "px Arial,sans-serif";
+        while (x.measureText(foot).width > S - 170 && ff > 16) { ff -= 1; x.font = "800 " + ff + "px Arial,sans-serif"; }
+        x.fillText(foot, S / 2, 975);
+        try { x.letterSpacing = "0px"; } catch (e) {}
+        try { done(c.toDataURL("image/jpeg", 0.88)); } catch (e) { if (face) { x.clearRect(0, 0, S, S); draw(null); } else done(""); }
+      }
+      var ready = (document.fonts && document.fonts.load) ? document.fonts.load('112px "RM Head"').catch(function () {}) : Promise.resolve();
+      Promise.resolve(ready).then(function () {
+        if (!m || !m.avatar_path) return draw(null);
+        var im = new Image(); im.crossOrigin = "anonymous";
+        im.onload = function () { draw(im); }; im.onerror = function () { draw(null); };
+        im.src = pic(m.avatar_path);
+      });
+    });
   }
   async function loadSuPeople() {
     try { suActive = await rpc("porch_most_active", {}); } catch (e) { suActive = []; }
@@ -3207,7 +3262,9 @@ html.kb .ch-bar{padding-bottom:8px}
     if (hb) {
       if (!me.member || !me.member.verified_at) return gate(function () { paintSetup(); toast("You're set. Tap Post my hello."); });   /* posting needs the email */
       hb.disabled = true; hb.textContent = "Posting…";
-      var hr = await fn("porch", { action: "post", need: "talk", body: HELLO, photos: [], card_style: HELLO_CARD, sure: true, faces_ok: true });
+      /* the picture if it drew; the plain gold card if this phone couldn't make it */
+      var hr = await fn("porch", suHello ? { action: "post", need: "talk", body: HELLO, photos: [suHello], card_style: null, sure: true, faces_ok: true }
+                                         : { action: "post", need: "talk", body: HELLO, photos: [], card_style: HELLO_CARD, sure: true, faces_ok: true });
       if (hr.need === "confirm") { hb.disabled = false; hb.textContent = "Post my hello"; return gate(function () { paintSetup(); }); }
       if (!hr.ok) { hb.disabled = false; hb.textContent = "Post my hello"; $("suhello").textContent = hr.error || "That didn't post. Try again."; return; }
       return suFinish(function () { toast("Your hello is up 💛 Welcome to the Porch."); reloadFeed(); });
