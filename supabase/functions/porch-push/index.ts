@@ -204,12 +204,41 @@ Deno.serve(async (req) => {
   else if (n.kind === "report") q.set("mod", "1");
   else if (n.kind === "friend_request" || n.kind === "friend_accept" || n.kind === "follow") q.set("who", n.actor_id);
   else q.set("notes", "1");
-  const payload = JSON.stringify({
-    title: GROUP_SAYS[n.kind] ? GROUP_SAYS[n.kind][0] : who + " " + words,
+  /* ONE BUZZ, NOT A BUNCH (3 Oct 2026, Mike: "I don't want to bug the shit out of them on their
+     own phone ... like Temu does ... it buzzes and then all the notifications kind of go under
+     that one"). Every alert lands on ONE card on the phone (one tag), and the card counts up.
+     The phone only makes a sound if it hasn't buzzed for this person in the last hour, and no
+     more than 5 times in a day. Everything in between piles onto the card without a sound.
+     Messages and calls are not part of this; those are a person talking to you. */
+  const BUZZ_GAP_MIN = 60, BUZZ_DAY_MAX = 5;
+  let quiet = false;
+  try {
+    const dayAgo = new Date(Date.now() - 86400000).toISOString();
+    const { data: buzzes, error: be } = await admin.from("porch_notes").select("buzzed_at")
+      .eq("user_id", n.user_id).gt("buzzed_at", dayAgo).order("buzzed_at", { ascending: false }).limit(BUZZ_DAY_MAX);
+    if (!be && buzzes?.length) {
+      const last = new Date((buzzes[0] as any).buzzed_at).getTime();
+      quiet = Date.now() - last < BUZZ_GAP_MIN * 60000 || buzzes.length >= BUZZ_DAY_MAX;
+    }
+    if (!be && !quiet) await admin.from("porch_notes").update({ buzzed_at: new Date().toISOString() }).eq("id", n.id);
+  } catch { /* before porch_41 is run there is no buzzed_at: every alert buzzes, like it used to */ }
+
+  const one = GROUP_SAYS[n.kind] ? GROUP_SAYS[n.kind][0] : who + " " + words;
+  const more = (count || 1) - 1;
+  const payload = JSON.stringify(more > 0 ? {
+    title: (more + 1) + " new on the Porch 👋",
+    body: one + ", and " + more + " more.",
+    url: "/feed/porch.html?notes=1",
+    tag: "porch-notes",
+    badge: count || 1,
+    quiet,
+  } : {
+    title: one,
     body: GROUP_SAYS[n.kind] ? GROUP_SAYS[n.kind][1] : text ? (text.length > 140 ? text.slice(0, 137) + "…" : text) : "Tap to see it.",
     url: "/feed/porch.html?" + q.toString(),
-    tag: "porch-" + n.kind + "-" + (n.post_id || n.actor_id),
+    tag: "porch-notes",
     badge: count || 1,
+    quiet,
   });
   let sent = 0;
   for (const p of phones) {

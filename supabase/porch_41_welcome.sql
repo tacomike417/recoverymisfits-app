@@ -12,6 +12,8 @@
 --      last 14 days, so everybody can say hi.
 --   3. THE HOUSE ACCOUNTS SAY YES. A friend request to a house account is accepted on
 --      the spot, so a new person's friends list isn't empty on day one.
+--   4. ONE BUZZ, NOT A BUNCH. "I don't want to bug the shit out of them on their own phone."
+--      A place to remember when a phone last buzzed (porch_notes.buzzed_at).
 -- ============================================================
 
 -- ---------- which accounts are the house ----------
@@ -97,6 +99,12 @@ begin
   perform public.porch_note(new.to_id, new.from_id, 'friend_request', null, null);
   return null;
 end $$;
+
+-- ---------- 4. one buzz, not a bunch ----------
+-- when a notification made the phone buzz. The push function uses this to keep it to one buzz
+-- an hour and five a day; everything in between piles onto the same card without a sound.
+alter table public.porch_notes add column if not exists buzzed_at timestamptz;
+create index if not exists porch_notes_buzzed on public.porch_notes (user_id, buzzed_at desc) where buzzed_at is not null;
 
 -- requests already waiting on a house account: say yes to those too
 with waiting as (

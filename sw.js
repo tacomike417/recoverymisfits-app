@@ -31,7 +31,7 @@
    normal browser behavior after four seconds, so this can never be the
    reason somebody is staring at a blank screen. */
 
-const VERSION = "house34-2026-10-03";
+const VERSION = "house35-2026-10-03";
 
 /* SHARING INTO THE APP (1 Oct 2026, Mike: "would you like to share this to your
    spins or would you like to make a post?"). On Android, the app shows up in the
@@ -126,7 +126,10 @@ self.addEventListener("push", (event) => {
       icon: "/icon-192.png",
       badge: "/icon-192.png",
       tag: d.tag || "porch",
-      renotify: true,
+      /* quiet = this one piles onto the card that is already there, without a sound
+         (3 Oct 2026, Mike: one buzz, not a bunch) */
+      renotify: !d.quiet,
+      silent: !!d.quiet,
       data: { url: d.url || "/feed/porch.html" }
     }, isCall ? { requireInteraction: true, vibrate: [900, 500, 900, 500, 900, 500, 900, 500, 900, 500, 900] } : {}));
   })());

@@ -1131,7 +1131,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v141</span>
+  <span class="ver" id="ver">v142</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2354,7 +2354,7 @@ html.kb .ch-bar{padding-bottom:8px}
     await closeAll();
     window.scrollTo(0, 0);
     await reloadFeed();
-    if (r.care) open("care"); else { toast("Shared 💛"); if (!askInvite()) setTimeout(askPush, 1800); }
+    if (r.care) open("care"); else { toast("Shared 💛"); setTimeout(async function () { if (!(await askPush())) askInvite(); }, 1800); }   /* alerts first: a buzz is what brings them back (3 Oct 2026) */
   }
   /* INVITE A FRIEND, ONCE, AFTER THE FIRST SHARE (3 Oct 2026). It used to be a step in the sign-up
      walk, before they had even seen the place. Now it's one quiet offer when they have something
@@ -3249,6 +3249,7 @@ html.kb .ch-bar{padding-bottom:8px}
       people[me.uid] = me.member; return true;
     } catch (e) { toast("That didn't save. Try again."); return false; }
   }
+  var walkAsk = false;      /* the alerts question is on its way: the coin waits for it */
   async function suFinish(then) {
     var only = suOnly;
     await closeAll(); try { localStorage.setItem("rm_porch_setup_done", "1"); localStorage.setItem("rm_porch_setup_done_" + A.name(), "1"); } catch (e) {}
@@ -3281,7 +3282,9 @@ html.kb .ch-bar{padding-bottom:8px}
                                          : { action: "post", need: "talk", body: HELLO, photos: [], card_style: HELLO_CARD, sure: true, faces_ok: true });
       if (hr.need === "confirm") { hb.disabled = false; hb.textContent = "Post my hello"; return gate(function () { paintSetup(); }); }
       if (!hr.ok) { hb.disabled = false; hb.textContent = "Post my hello"; $("suhello").textContent = hr.error || "That didn't post. Try again."; return; }
-      return suFinish(function () { toast("Your hello is up 💛 Welcome to the Porch."); reloadFeed(); });
+      /* THE ONE MOMENT THEY WANT A BUZZ (3 Oct 2026): they just said hi and somebody is about to
+         say hi back. Ask now, before the coin. The coin waits until this sheet is answered. */
+      return suFinish(function () { toast("Your hello is up 💛 Welcome to the Porch."); reloadFeed(); walkAsk = true; setTimeout(function () { askPush("hello").then(function () { walkAsk = false; }, function () { walkAsk = false; }); }, 700); });
     }
     var hi = t.closest("[data-su-hi]");
     if (hi) {
@@ -3791,25 +3794,36 @@ html.kb .ch-bar{padding-bottom:8px}
     open("askpush");
   }
   var ASK = "rm_porch_askpush";
-  async function askPush() {
-    if (!me.uid || !me.member || stack.length) return;
+  async function askPush(why) {
+    if (!me.uid || !me.member || stack.length) return false;
+    /* AN IPHONE IN A BROWSER TAB, RIGHT AFTER THEIR HELLO: one soft line, once, ever. Not the
+       six steps; those only open if they tap "Show me how". */
+    if (why === "hello" && iOS && !standalone) {
+      try { if (localStorage.getItem("rm_porch_iosasked")) return false; localStorage.setItem("rm_porch_iosasked", "1"); } catch (e) { return false; }
+      $("aptitle").textContent = "Want a buzz when someone says hi back?";
+      $("apbody").textContent = "On iPhone, put Recovery Misfits on your Home Screen first. It takes a minute.";
+      $("apyes").textContent = "Show me how"; $("apyes").dataset.ios = "how"; $("apno").hidden = false;
+      open("askpush"); return true;
+    }
     var a = { t: 0, no: 0 }; try { a = JSON.parse(localStorage.getItem(ASK) || "null") || a; } catch (e) {}
     var gap = (a.no >= 3 ? 30 : 4) * 86400000;
-    if (Date.now() - a.t < gap) return;
+    if (Date.now() - a.t < gap) return false;
     /* AN IPHONE IN A BROWSER TAB GETS NOTHING HERE (2 Oct 2026, Mike: "I just made a post ...
        and when I was done, the iPhone warning screen popped up. I don't know what's up with
        that"). It used to throw the six-step "take the app off and put it back on" screen at
        them right after their share. That is a lecture nobody asked for. The steps are still
        one tap away under the bell, in Alerts, for anybody who goes looking. */
-    if (iOS && !standalone) return;
-    if (!canPush || Notification.permission === "denied" || (Notification.permission === "granted" && await pushSub())) return;
+    if (iOS && !standalone) return false;
+    if (!canPush || Notification.permission === "denied" || (Notification.permission === "granted" && await pushSub())) return false;
     try { localStorage.setItem(ASK, JSON.stringify({ t: Date.now(), no: a.no })); } catch (e) {}
-    $("aptitle").textContent = "Don't miss the love";
-    $("apbody").textContent = "Get a buzz on your phone when somebody comments, cheers you on, tags you or sends you a friend request.";
+    $("aptitle").textContent = why === "hello" ? "Want a buzz when someone says hi back?" : "Don't miss the love";
+    $("apbody").textContent = why === "hello" ? "One buzz, not a bunch. You can turn it off anytime under the bell."
+      : "Get a buzz when somebody comments, cheers you on or sends you a friend request. One buzz, not a bunch.";
     $("apyes").textContent = "Turn on"; $("apyes").dataset.ios = ""; $("apno").hidden = false;
     open("askpush");
+    return true;
   }
-  $("apyes").addEventListener("click", async function () { var ios = this.dataset.ios; await closeTop(); if (!ios) pushOn(); });
+  $("apyes").addEventListener("click", async function () { var ios = this.dataset.ios; await closeTop(); if (ios === "how") iosSteps(); else if (!ios) pushOn(); });
   $("apno").addEventListener("click", async function () {
     var a = { t: Date.now(), no: 0 }; try { a = JSON.parse(localStorage.getItem(ASK) || "null") || a; } catch (e) {}
     a.no = (a.no || 0) + 1; a.t = Date.now(); try { localStorage.setItem(ASK, JSON.stringify(a)); } catch (e) {}
@@ -5358,7 +5372,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var held = false; try { held = !!localStorage.getItem("rm_walk_hold"); } catch (e) {}
       if (!held) return;
       var iv = setInterval(function () {
-        if (stack.length || document.querySelector(".scan, .crop, .spn, .lpm, .lpc, .sp")) return;      /* still in the walk, or saying hi */
+        if (walkAsk || stack.length || document.querySelector(".scan, .crop, .spn, .lpm, .lpc, .sp")) return;      /* still in the walk, or saying hi */
         clearInterval(iv);
         try { localStorage.removeItem("rm_walk_hold"); } catch (e) {}
         /* AFTER THE WALK, JUST THE COIN (3 Oct 2026): the Welcome Deck and the "How the Porch
