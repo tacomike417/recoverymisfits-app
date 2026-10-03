@@ -889,6 +889,8 @@ html.fullon #main{visibility:hidden}
 #search .sbox .ico{position:absolute;left:14px;top:50%;margin-top:-9px;color:var(--muted)}
 #search .sbox input{width:100%;padding:13px 14px 13px 42px;border-radius:999px;border:1.5px solid var(--fline);background:var(--field);color:var(--cream);font:17px Arial,sans-serif}
 #search .sbox input:focus{outline:none;border-color:var(--gold)}
+.nearme{display:block;width:calc(100% - 32px);margin:10px 16px 4px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:800 15px Arial,sans-serif;cursor:pointer}
+.snote{margin:10px 16px 4px;font:500 13px/1.4 Arial,sans-serif;color:var(--muted)}
 .sr{display:flex;align-items:center;gap:12px;width:100%;padding:10px 16px;border:0;background:none;color:var(--cream);text-align:left;cursor:pointer;font:15px Arial,sans-serif}
 .sr .av{width:46px;height:46px}
 .sr b{display:block;font-size:15.5px}
@@ -1131,7 +1133,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v144</span>
+  <span class="ver" id="ver">v145</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1408,7 +1410,9 @@ html.kb .ch-bar{padding-bottom:8px}
 
 <!-- SEARCH: find somebody by name -->
 <div id="search" class="layer full" role="dialog" aria-modal="true" aria-label="Search"><div class="page">
-  <div class="srow"><button type="button" class="bk" data-close aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="sbox"><span data-ico="search"></span><input id="sq" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Find somebody by name"></div></div>
+  <div class="srow"><button type="button" class="bk" data-close aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="sbox"><span data-ico="search"></span><input id="sq" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Name or username"></div></div>
+  <!-- FIND PEOPLE THREE WAYS (3 Oct 2026, Mike: "search by username, or the name the person types in, or location") -->
+  <button type="button" class="nearme" id="snear">📍 People near me</button>
   <!-- LAYOUT A: New Misfits moved here from the feed, so finding people is one place -->
   <section class="newb" id="newb" hidden><h3>NEW MISFITS · SAY HI 👋</h3><div class="strip" id="strip"></div></section>
   <div id="slist"></div>
@@ -2744,27 +2748,51 @@ html.kb .ch-bar{padding-bottom:8px}
     $("sq").value = ""; paintSearch([], ""); open("search");
     setTimeout(function () { $("sq").focus(); }, 60);
   }
-  function paintSearch(list, q) {
-    $("slist").innerHTML = list.length ? list.map(function (m) {
-      return '<button type="button" class="sr" data-u="' + m.user_id + '">' + avatar(m) + "<span class=\"srw\"><b>" + esc(m.handle) + "</b>" + (m.bio ? "<small>" + esc(m.bio) + "</small>" : "") + "</span></button>";
-    }).join("") : '<p class="pempty">' + (q ? "Nobody on the Porch goes by that." : "Type part of somebody's name.") + "</p>";
+  /* the name they typed in is the big line when there is one; the username is always shown */
+  function paintSearch(list, q, empty, note) {
+    $("slist").innerHTML = (note ? '<p class="snote">' + note + "</p>" : "") + (list.length ? list.map(function (m) {
+      var sub = (m.real_name ? "@" + m.handle + (m.bio ? " · " + m.bio : "") : m.bio) || "";
+      return '<button type="button" class="sr" data-u="' + m.user_id + '">' + avatar(m) + "<span class=\"srw\"><b>" + esc(m.real_name || m.handle) + "</b>" + (sub ? "<small>" + esc(sub) + "</small>" : "") + "</span></button>";
+    }).join("") : '<p class="pempty">' + (empty || (q ? "Nobody on the Porch goes by that." : "Type a name or a username. Or tap People near me.")) + "</p>");
   }
+  /* letters, numbers, spaces and . _ - ' only: a typed name can have a space in it, a username can't */
+  function cleanQ(v) { return String(v || "").trim().replace(/^@/, "").toLowerCase().replace(/[^a-z0-9 ._'\-]/g, "").replace(/\s+/g, " ").trim(); }
   $("sq").addEventListener("input", function () {
     clearTimeout(stmr);
-    var q = this.value.trim().replace(/^@/, "").toLowerCase().replace(/[^a-z0-9._-]/g, "");
+    var q = cleanQ(this.value);
     if (!q) return paintSearch([], "");
     stmr = setTimeout(async function () {
-      var found = {};
-      if (samplesOn) Object.keys(people).forEach(function (k) { if (isSample(k) && people[k].handle.toLowerCase().indexOf(q) >= 0) found[k] = Object.assign({ user_id: k }, people[k]); });
+      var found = {}, hit = function (m) { return String(m.handle || "").toLowerCase().indexOf(q) >= 0 || String(m.real_name || "").toLowerCase().indexOf(q) >= 0; };
+      if (samplesOn) Object.keys(people).forEach(function (k) { if (isSample(k) && hit(people[k])) found[k] = Object.assign({ user_id: k }, people[k]); });
       try {
-        (await rest("porch_members?handle=ilike.*" + encodeURIComponent(q) + "*&select=user_id,handle,avatar_path,bio&order=handle.asc&limit=25"))
+        var v = encodeURIComponent('"*' + q + '*"');
+        (await rest("porch_members?or=(handle.ilike." + v + ",real_name.ilike." + v + ")&select=user_id,handle,real_name,avatar_path,bio&order=handle.asc&limit=25"))
           .forEach(function (m) { people[m.user_id] = Object.assign(people[m.user_id] || {}, m); found[m.user_id] = m; });
-      } catch (e) {}
-      if ($("sq").value.trim().replace(/^@/, "").toLowerCase().replace(/[^a-z0-9._-]/g, "") !== q) return;
+      } catch (e) {
+        /* if the two-way search ever fails, usernames alone still work */
+        try { var h = q.replace(/[^a-z0-9._-]/g, ""); if (h) (await rest("porch_members?handle=ilike.*" + encodeURIComponent(h) + "*&select=user_id,handle,real_name,avatar_path,bio&order=handle.asc&limit=25"))
+          .forEach(function (m) { people[m.user_id] = Object.assign(people[m.user_id] || {}, m); found[m.user_id] = m; }); } catch (e2) {}
+      }
+      if (cleanQ($("sq").value) !== q) return;
       var list = Object.keys(found).map(function (k) { return found[k]; });
-      list.sort(function (a, b) { var x = a.handle.toLowerCase().indexOf(q) === 0, y = b.handle.toLowerCase().indexOf(q) === 0; return x === y ? a.handle.localeCompare(b.handle) : x ? -1 : 1; });
+      var first = function (m) { return String(m.handle).toLowerCase().indexOf(q) === 0 || String(m.real_name || "").toLowerCase().indexOf(q) === 0; };
+      list.sort(function (a, b) { var x = first(a), y = first(b); return x === y ? a.handle.localeCompare(b.handle) : x ? -1 : 1; });
       paintSearch(list, q);
     }, 200);
+  });
+  /* BY LOCATION: the same safe way as Edit Profile. It is rounded to their town, never shown, and
+     only people who turned location on can be found this way. No town names, no distances. */
+  $("snear").addEventListener("click", function () {
+    var b = this;
+    gate(async function () {
+      $("sq").value = ""; b.disabled = true; b.textContent = "Finding…";
+      var ok = (await placeKnown()) || (await useLocation()), list = [];
+      if (ok) { try { list = (await rpc("porch_near_me", {})) || []; } catch (e) { list = []; } }
+      b.disabled = false; b.textContent = "📍 People near me";
+      if (!ok) return;
+      list.forEach(function (m) { people[m.user_id] = Object.assign(people[m.user_id] || {}, m); });
+      paintSearch(list, "", "Nobody near you has turned on location yet.", "About 30 miles around you. Nobody ever sees where you are, and you never see where they are.");
+    });
   });
 
   /* ================================================================ PROFILES (30 Sep 2026)
@@ -3535,9 +3563,9 @@ html.kb .ch-bar{padding-bottom:8px}
       (inIds.length ? '<p class="nd-sec">FRIEND REQUESTS</p>' + inIds.map(function (u) { return row(u, friendBtn(u, true)); }).join("") : "") +
       '<p class="nd-sec">YOUR FRIENDS</p>' +
       (fIds.length ? fIds.map(function (u) { return row(u, friendBtn(u, true)); }).join("")
-        : '<p class="pempty">No friends yet. Tap anybody\'s name or face on the Porch, then Add Friend.</p>') +
+        : '<p class="pempty">No friends yet. Tap Find people, or tap anybody\'s name or face on the Porch.</p>') +
       (outIds.length ? '<p class="nd-sec">REQUESTS YOU SENT</p>' + outIds.map(function (u) { return row(u, friendBtn(u, true)); }).join("") : "") +
-      '<button type="button" class="pedit" data-search style="margin-top:18px">Find somebody by name</button>' +
+      '<button type="button" class="pedit" data-search style="margin-top:18px">Find people</button>' +
       '<button type="button" class="pedit" data-invite style="margin-top:10px">Invite a friend</button>';
   }
 
