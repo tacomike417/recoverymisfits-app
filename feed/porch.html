@@ -391,6 +391,13 @@ html.fullon #main{visibility:hidden}
 .su-top{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 6px}
 .su-dots{display:flex;gap:6px}.su-dots i{width:26px;height:5px;border-radius:3px;background:#2e2a21}.su-dots i.on{background:var(--gold2)}
 .su-skip{border:0;background:none;color:var(--muted);font:700 14px Arial,sans-serif;cursor:pointer;padding:8px 2px}
+.su-where{display:flex;align-items:center;gap:10px}.su-where b{font:800 11.5px Arial,sans-serif;letter-spacing:.14em;color:var(--gold2)}
+.su .ecover .tip{gap:6px}
+.su-inv{margin:6px 16px 0;display:grid;gap:10px}
+.su-ib{display:flex;align-items:center;gap:14px;width:100%;min-height:68px;padding:12px 16px;border-radius:16px;border:1.5px solid var(--line);background:var(--field);color:var(--cream);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.su-ib .ico{width:26px;height:26px;flex:none;color:var(--gold2)}
+.su-ib b{display:block;font:800 16.5px Arial,sans-serif}.su-ib small{display:block;margin-top:2px;color:var(--soft);font:600 12.5px Arial,sans-serif}
+.su-ib.gold{border-color:var(--gold2);background:rgba(224,189,106,.12)}
 .su h2{margin:10px 16px 4px;font:400 34px/1.02 "RM Head",Impact,sans-serif;text-transform:uppercase;color:var(--cream)}
 .su .sub{margin:0 16px 14px;color:var(--soft);font:600 15px/1.4 Arial,sans-serif}
 .su .ecover{margin:0 16px;border-radius:16px}
@@ -1100,7 +1107,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v126</span>
+  <span class="ver" id="ver">v127</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3044,28 +3051,42 @@ html.kb .ch-bar{padding-bottom:8px}
      Level 2 sign-up lands here (?setup=1): confirm your email if you haven't, then
      1) picture, header and bio  2) who can see your profile  3) find your people
      (near me + most active), then your own profile. Phone back = one step back. */
-  var suStep = 0, suVis = "members", suNear = null, suActive = null;
-  var SU_STEPS = 3;
-  function suDots() { var h = '<div class="su-dots">'; for (var i = 0; i < SU_STEPS; i++) h += '<i class="' + (i <= suStep ? "on" : "") + '"></i>'; return h + "</div>"; }
+  /* THE WALK (3 Oct 2026, Mike): after the sober date on the account page comes
+       2 of 3: your profile (picture, header, name, bio)
+       3 of 3: invite a friend (text, Messenger, Facebook, however they want)
+     and then the Porch. "Who can see you" is no longer a step: everybody starts as Members only
+     and can change it in Edit Profile. "Find your people" is OFF for now (SU_FIND): "there's just
+     not a lot of people using it". Flip SU_FIND to true and it becomes the last step again. It
+     still opens on its own from Find friends in the menu. */
+  var suStep = 0, suVis = "members", suNear = null, suActive = null, suOnly = false;
+  var SU_FIND = false;
+  var SU_LAST = SU_FIND ? 2 : 1;                 /* 0 profile, 1 invite, 2 find your people */
+  var INVITE = { title: "Recovery Misfits", text: "Good people between meetings. Free, anonymous, every path counts. Thought of you.", url: "https://recoverymisfits.org" };
+  function suDots() { var tot = SU_LAST + 2, h = '<div class="su-dots">'; for (var i = 0; i < tot; i++) h += '<i class="' + (i <= suStep + 1 ? "on" : "") + '"></i>'; return h + "</div>"; }
   function personRow(m) {
     people[m.user_id] = people[m.user_id] || m;
     return '<div class="su-p">' + avatar(m) + '<span class="tw" data-u="' + m.user_id + '"><b>' + esc(m.handle) + "</b>" + (m.bio ? "<small>" + esc(m.bio) + "</small>" : "") + "</span>" + friendBtn(m.user_id, true) + "</div>";
   }
   function paintSetup() {
-    var m = me.member || {}, h = '<div class="su-top">' + suDots() + '<button type="button" class="su-skip" data-su-next>' + (suStep === SU_STEPS - 1 ? "Done" : "Skip") + "</button></div>";
+    var m = me.member || {}, last = suOnly || suStep >= SU_LAST;
+    var h = '<div class="su-top">' + (suOnly ? "<span></span>" : '<span class="su-where">' + suDots() + "<b>STEP " + (suStep + 2) + " OF " + (SU_LAST + 2) + "</b></span>") +
+      '<button type="button" class="su-skip" data-su-next>' + (last ? "Done" : "Skip") + "</button></div>";
     if (suStep === 0) {
-      h += "<h2>Your profile</h2><p class=\"sub\">No real name or face needed. Use whatever feels right.</p>" +
-        '<div class="ecover" data-su-cover style="' + (m.cover_path ? "background-image:url('" + pic(m.cover_path) + "')" : "") + '"><span class="tip">' + ico("camera") + "</span></div>" +
+      h += "<h2>Your profile</h2><p class=\"sub\">Add a picture and a name. No real name or face needed. Use whatever feels right.</p>" +
+        '<div class="ecover" data-su-cover style="' + (m.cover_path ? "background-image:url('" + pic(m.cover_path) + "')" : "") + '"><span class="tip">' + ico("camera") + "Header</span></div>" +
         '<div class="eav" data-su-av><span>' + avatar(m) + '</span><span class="tip">' + ico("camera") + "</span></div>" +
         '<p class="estatus" id="sustatus" role="status"></p>' +
         '<div class="eform"><label class="l" for="suname">NAME <span class="opt">optional</span></label><input type="text" class="ename" id="suname" maxlength="40" autocomplete="off" autocapitalize="words" placeholder="Mike N." value="' + esc(m.real_name || "") + '">' +
-        '<label class="l" for="subio">BIO</label><textarea id="subio" maxlength="160" placeholder="A line or two about you.">' + esc(m.bio || "") + "</textarea></div>" +
+        '<label class="l" for="subio">BIO <span class="opt">optional</span></label><textarea id="subio" maxlength="160" placeholder="A line or two about you.">' + esc(m.bio || "") + "</textarea></div>" +
         '<button type="button" class="go" data-su-go>Next</button>';
     } else if (suStep === 1) {
-      h += "<h2>Who can see you?</h2><p class=\"sub\">You can change this any time.</p>" +
-        '<div class="vis">' + visHTML(suVis) + "</div>" +
-        '<p class="sub" style="margin-top:16px">🔐 Your sober date is never on your profile. It\'s between you and you.</p>' +
-        '<button type="button" class="go" data-su-go>Next</button>';
+      h += "<h2>Invite a friend</h2><p class=\"sub\">Know somebody who could use good company? Send them the link.</p>" +
+        '<div class="su-inv">' +
+          '<button type="button" class="su-ib gold" data-su-inv="send">' + ico("comment") + "<span><b>Text or message a friend</b><small>Text · Messenger · anything on your phone</small></span></button>" +
+          '<button type="button" class="su-ib" data-su-inv="fb">' + ico("friends") + "<span><b>Share it on Facebook</b><small>A post your friends can see</small></span></button>" +
+          '<button type="button" class="su-ib" data-su-inv="copy">' + ico("link") + "<span><b>Copy the link</b><small>recoverymisfits.org</small></span></button>" +
+        "</div>" +
+        '<button type="button" class="go" data-su-go>' + (last ? "Done. Show me the Porch" : "Next") + "</button>";
     } else {
       h += "<h2>Find your people</h2><p class=\"sub\">Add a few friends. Their shares show up in Friends.</p>" +
         '<div class="su-sec">NEAR ME</div>' +
@@ -3073,7 +3094,7 @@ html.kb .ch-bar{padding-bottom:8px}
           : '<div class="su-near"><button type="button" class="nearbtn" data-su-near>📍 Use my location</button><p>Rounded to your town. Nobody ever sees where you are.</p></div>') +
         '<div class="su-sec">MOST ACTIVE</div>' +
         '<div class="su-list">' + (suActive === null ? '<div class="skel" style="height:120px"></div>' : suActive.length ? suActive.map(personRow).join("") : '<p class="su-none">Nobody yet. Be the first!</p>') + "</div>" +
-        '<button type="button" class="go" data-su-go>Show my profile</button>';
+        '<button type="button" class="go" data-su-go>' + (suOnly ? "Show my profile" : "Done. Show me the Porch") + "</button>";
     }
     $("supage").innerHTML = h;
   }
@@ -3084,7 +3105,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   function openSetup(at) {
     gate(function () {
-      suStep = at === "friends" ? 2 : 0; suVis = me.member && me.member.visibility === "public" ? "public" : "members";
+      suOnly = at === "friends"; suStep = suOnly ? 2 : 0; suVis = me.member && me.member.visibility === "public" ? "public" : "members";
       suNear = null; suActive = null; paintSetup(); open("setup"); $("supage").scrollTop = 0;
       loadSuPeople();
     });
@@ -3099,17 +3120,18 @@ html.kb .ch-bar{padding-bottom:8px}
         var rn = ($("suname").value || "").replace(/\s+/g, " ").trim() || null;
         if (rn && rn !== (me.member.real_name || null) && (await nameTaken(rn))) { toast("That name is taken. Try another."); return false; }
         if (bio !== (me.member.bio || null) || rn !== (me.member.real_name || null)) { await rest("porch_members?user_id=eq." + me.uid, { method: "PATCH", body: { bio: bio, real_name: rn } }); me.member.bio = bio; me.member.real_name = rn; }
-      } else if (suStep === 1 && suVis !== (me.member.visibility || "members")) {
-        await rest("porch_members?user_id=eq." + me.uid, { method: "PATCH", body: { visibility: suVis } }); me.member.visibility = suVis;
       }
       people[me.uid] = me.member; return true;
     } catch (e) { toast("That didn't save. Try again."); return false; }
   }
   async function suNext() {
     if (!(await suSave())) return;
-    if (suStep >= SU_STEPS - 1) {
+    if (suOnly || suStep >= SU_LAST) {
+      var only = suOnly;
       await closeAll(); try { localStorage.setItem("rm_porch_setup_done", "1"); localStorage.setItem("rm_porch_setup_done_" + A.name(), "1"); } catch (e) {}
-      openProfile(me.uid); return;
+      if (only) openProfile(me.uid);                                   /* came from Find friends in the menu */
+      else { paintPin(); toast("You're all set. Welcome to the Porch."); window.scrollTo(0, 0); }
+      return;
     }
     var from = suStep; suStep++;
     window.PorchBack.push("su" + suStep, function () { suStep = from; paintSetup(); });
@@ -3120,7 +3142,14 @@ html.kb .ch-bar{padding-bottom:8px}
     if (t.closest("[data-su-go]") || t.closest("[data-su-next]")) return suNext();
     if (t.closest("[data-su-cover]")) return $("efcover").click();
     if (t.closest("[data-su-av]")) return $("efav").click();
-    var v = t.closest("[data-vis]"); if (v) { suVis = v.dataset.vis; return paintSetup(); }
+    var inv = t.closest("[data-su-inv]");
+    if (inv) {
+      var how = inv.dataset.suInv;
+      if (how === "fb") { window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(INVITE.url), "_blank", "noopener"); return; }
+      if (how === "send" && navigator.share) { navigator.share(INVITE).catch(function () {}); return; }
+      try { await navigator.clipboard.writeText(how === "send" ? INVITE.text + " " + INVITE.url : INVITE.url); toast("Link copied. Paste it to somebody."); } catch (x) { toast(INVITE.url); }
+      return;
+    }
     if (t.closest("[data-su-near]")) {
       var b = t.closest("[data-su-near]"); b.textContent = "Finding…"; b.disabled = true;
       if (await useLocation()) { try { suNear = await rpc("porch_near_me", {}); } catch (x) { suNear = []; } }
@@ -4283,7 +4312,7 @@ html.kb .ch-bar{padding-bottom:8px}
   function paintLooks() { document.querySelectorAll("[data-look]").forEach(function (b) { b.classList.toggle("on", b.dataset.look === look()); }); }
 
   function invite() {
-    var data = { title: "Recovery Misfits", text: "Free recovery app. No ads, ever. Thought of you.", url: "https://recoverymisfits.org" };
+    var data = INVITE;                 /* the same words as the set-up walk (make all the doors the same) */
     if (navigator.share) navigator.share(data).catch(function () {});
     else { try { navigator.clipboard.writeText(data.url); toast("Link copied. Send it to somebody."); } catch (e) {} }
   }
@@ -5160,7 +5189,7 @@ html.kb .ch-bar{padding-bottom:8px}
     /* a link somebody sent: /feed/porch.html?s=<share> opens that one share */
     var dmTo = new URLSearchParams(location.search).get("dm");
     if (dmTo && /^[0-9a-f-]{36}$/i.test(dmTo)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openChat(dmTo); }
-    if (/[?&]setup=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid && !(window.PorchTour && window.PorchTour.fresh())) openSetup(); }
+    if (/[?&]setup=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) openSetup(); }     /* the walk comes first; the "How the Porch works" hello waits until it's done */
     /* THE TOUR (2 Oct 2026): comes up by itself the first time, then leaves a small
        "Getting started" strip above the feed. feed/tour.js. */
     (function tourStart(n) { if (window.PorchTour) window.PorchTour.maybe(); else if (n < 20) setTimeout(function () { tourStart(n + 1); }, 300); })(0);

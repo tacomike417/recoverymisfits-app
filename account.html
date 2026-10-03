@@ -164,7 +164,8 @@
   .picked b{color:var(--gold)}
   .picked button,.textlink{border:0;background:none;color:var(--muted);font-family:var(--ui);font-weight:800;font-size:12px;text-decoration:underline;cursor:pointer;padding:6px 0}
   .textlink{display:block;margin:16px auto 0}
-  .mine{margin:10px 0 0;font-family:var(--ui);font-size:12px;line-height:1.5;color:var(--muted);text-align:center}
+  .mine{margin:12px 0 0;padding:12px 14px;border-radius:16px;border:1.5px solid var(--gold);background:rgba(215,178,83,.10);font-family:var(--ui);font-size:14px;line-height:1.45;color:var(--ivory);text-align:center}
+  .mine b{display:block;color:#fff;font-size:15px;margin-bottom:2px}
   .porchcard{margin:16px 0 0;padding:15px 16px;border-radius:14px;border:1px solid rgba(215,178,83,.34);background:rgba(215,178,83,.07)}
   .porchcard h2{font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.7px;text-transform:uppercase;color:var(--gold);margin:0 0 9px}
   .porchcard p{font-family:var(--ui);font-size:13px;line-height:1.6;color:var(--ivory);margin:0 0 10px}
@@ -232,9 +233,9 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   </header>
   <img class="rule" src="/assets/pages/d-rule.webp" alt="" aria-hidden="true"
        width="297" height="17" style="display:block;width:100%;max-width:297px;margin:6px 0 0">
-  <!-- WHERE YOU ARE (1 Oct 2026, Mike): signing up is four steps, and this says which one -->
+  <!-- WHERE YOU ARE (1 Oct 2026, Mike): signing up is three steps, then setting up is three more (sober date, profile, invite). This says which one -->
   <div class="steps" id="steps" hidden>
-    <div class="bars"><i></i><i></i><i></i><i></i></div>
+    <div class="bars"><i></i><i></i><i></i></div>
     <p id="stepTxt"></p>
   </div>
 
@@ -437,7 +438,9 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
         <p class="dsDays" id="dsDays"></p>
       </div>
     </div>
-    <p class="mine">🔐 Only you can see your sober date. It&rsquo;s never on your profile. People only see it if you share a coin, your Survival Pile or a post yourself.</p>
+    <!-- PLAIN TO SEE (3 Oct 2026, Mike): "This is for you and only you. Nobody on the site sees your
+         sober date unless you decide to share it on the porch, period." -->
+    <p class="mine"><b>🔐 This is for you and only you.</b> Nobody on the site sees your sober date unless you decide to share it on the Porch.</p>
 
     <!-- the phone and the account disagreed about the date (this markup was missing) -->
     <div class="clash" id="clash" hidden>
@@ -527,12 +530,18 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       $(STEP[k]).hidden = (k !== step);
     });
     /* the big header says where you are: Sign Up / Sign In / your account */
-    var n = step === "levels" ? 1 : step === "form" && mode === "new" ? 2 : step === "fresh" && signingUp ? 3 : (step === "claim" || step === "date") && signingUp ? 4 : 0;
-    $("pageName").textContent = n ? "Sign Up" : step === "form" ? "Sign In" : "Your Anonymous Account";
+    var setup = (step === "claim" || step === "date") && signingUp;      /* the account is made; now setting up */
+    var n = step === "levels" ? 1 : step === "form" && mode === "new" ? 2 : step === "fresh" && signingUp ? 3 : setup ? 1 : 0;
+    $("pageName").textContent = setup ? "Set Up" : n ? "Sign Up" : step === "form" ? "Sign In" : "Your Anonymous Account";
     $("steps").hidden = !n;
     if (n) {
       [].forEach.call($("steps").querySelectorAll("i"), function (b, i) { b.classList.toggle("on", i < n); });
-      $("stepTxt").textContent = "Step " + n + " of 4 · " + (n === 1 ? "Pick your level" : n === 2 ? "Make your username" : n === 3 ? "Save your username and password" : "Your sober date");
+      /* SET UP (3 Oct 2026, Mike): "Step one, put in your sober date ... then their profile ... then
+         invite their friends." Level 1 has no profile, so for them the date is the only step. */
+      var walk = picked() === "2" && porchFor(A.name());
+      $("stepTxt").textContent = setup ? (walk ? "Step 1 of 3 · Your sober date" : "Last step · Your sober date")
+        : "Step " + n + " of 3 · " + (n === 1 ? "Pick your level" : n === 2 ? "Make your username" : "Save your username and password");
+      if (setup && !walk) [].forEach.call($("steps").querySelectorAll("i"), function (b) { b.classList.add("on"); });
     }
     $("datestep").classList.toggle("signup", !!signingUp);
     /* Level 2 confirms an email on the Porch, and that email can reset the password. So the
@@ -580,9 +589,13 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       $("dsHome").href = setup ? "/feed/porch.html?setup=1" : RETURN_TO;
       $("dsHome").textContent = setup ? "Next: Set Up My Profile" : next === "readings" ? "Back to Readings" : next === "feed" ? "Back to the Porch" : "Take Me Home";
       /* SIGNING UP ENDS ON THE PORCH (3 Oct 2026, Mike: "write this stuff down, pick your sober date
-         or not, and then go explore the porch. That's really it."). The profile steps used to be
-         forced in here; now the Porch offers them once they're looking around. */
-      if (signingUp && porchFor(A.name())) { $("dsHome").href = "/feed/porch.html"; $("dsHome").textContent = "Go Explore the Porch"; }
+         or not, and then go explore the porch."). Then, the same morning: "Now we take them into the
+         setup of their profile." So: date, then the profile, then invite a friend, then the Porch. */
+      if (signingUp && porchFor(A.name())) {
+        var two = picked() === "2";                    /* Level 2 goes on to the profile; Level 1 is done */
+        $("dsHome").href = two ? "/feed/porch.html?setup=1" : "/feed/porch.html";
+        $("dsHome").textContent = two ? "Next: Your Profile" : "Go Explore the Porch";
+      }
       $("dsHome").hidden = false;
     } else {
       $("dsKick").textContent = "One more thing";
@@ -610,7 +623,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   });
 
   $("dsSkip").addEventListener("click", function () {
-    if (signingUp && porchFor(A.name())) { location.href = "/feed/porch.html"; return; }      /* straight to the Porch */
+    if (signingUp && porchFor(A.name())) { location.href = picked() === "2" ? "/feed/porch.html?setup=1" : "/feed/porch.html"; return; }
     location.href = wantsPorch() && !profDone() ? "/feed/porch.html?setup=1" : RETURN_TO;
   });
 
