@@ -693,6 +693,24 @@ html.fullon #main{visibility:hidden}
 .eav{position:relative;margin:-50px 0 0 16px;width:100px;height:100px;border-radius:50%;cursor:pointer}
 .eav .av{width:100%;height:100%;font-size:38px;border:4px solid var(--bg)}
 .eav .tip{right:-4px;bottom:0;padding:6px}
+.eavrow{display:flex;align-items:flex-end;gap:10px;padding-right:12px}
+.eavrow .eav{flex:none}
+.ebtns{flex:1;min-width:0;display:flex;gap:7px;padding-bottom:3px}
+.eb{flex:1 1 0;min-width:0;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:6px 8px;border-radius:999px;border:1.5px solid var(--gold2);background:none;color:var(--gold2);font:800 13px/1.1 Arial,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.eb:first-child{flex:1.35 1 0}
+.eb.gold{background:var(--gold2);color:var(--ink)}
+.eb[disabled]{opacity:.5}
+.eb svg,.pv-yes svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.esaved{min-width:64px;text-align:right;font:800 13px Arial,sans-serif;color:var(--gold2)}
+.pvcard{position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%);max-width:420px;margin:0 auto;max-height:calc(100% - 36px);overflow-y:auto;background:var(--bg);border:1.5px solid var(--gold2);border-radius:22px;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.pv-t{margin:0;padding:13px 16px 11px;text-align:center;font:800 12px Arial,sans-serif;letter-spacing:.16em;color:var(--gold2)}
+.pv-x{position:absolute;top:4px;right:4px;z-index:3;width:44px;height:44px;border:0;background:none;color:var(--cream);display:grid;place-items:center;cursor:pointer}
+.pv-x svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.pv-in{padding-bottom:6px}
+.pv-in .pcover.pa{height:120px}
+.pv-b{padding:10px 16px 16px}
+.pv-yes{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;font-size:18px}
+.pv-no{display:block;width:100%;margin-top:6px;min-height:44px;border:0;background:none;color:var(--muted);font:700 14px Arial,sans-serif;cursor:pointer}
 .eform{padding:0 16px}
 .eform label.l{display:block;margin:18px 0 6px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold)}
 .eform textarea{display:block;width:100%;min-height:90px;padding:12px;border-radius:14px;border:1.5px solid var(--fline);background:var(--field);color:var(--cream);font:16px/1.4 Arial,sans-serif;resize:none}
@@ -1064,7 +1082,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v114</span>
+  <span class="ver" id="ver">v115</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1383,9 +1401,13 @@ html.kb .ch-bar{padding-bottom:8px}
 <!-- EDIT YOUR PROFILE -->
 <div id="editp" class="layer full" role="dialog" aria-modal="true" aria-label="Edit profile">
   <div class="page">
-    <div class="ctop" style="padding:calc(14px + env(safe-area-inset-top,0px)) 16px 12px"><button type="button" class="bk xb" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><b>EDIT PROFILE</b><button type="button" class="send" id="esave">Save</button></div>
+    <div class="ctop" style="padding:calc(14px + env(safe-area-inset-top,0px)) 16px 12px"><button type="button" class="bk xb" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><b>EDIT PROFILE</b><span class="esaved" id="esaved" role="status" aria-live="polite"></span></div>
     <div class="ecover" id="ecover"><span class="tip" data-ico="camera"></span></div>
-    <div class="eav" id="eav"><span id="eavin"></span><span class="tip" data-ico="camera"></span></div>
+    <!-- IT SAVES ITSELF (3 Oct 2026, Mike: "it's not as easy as it could be ... have it autosave and
+         two buttons to the right of the profile picture"). View my profile shows what people will
+         see; I like it is the obvious "I'm done". -->
+    <div class="eavrow"><div class="eav" id="eav"><span id="eavin"></span><span class="tip" data-ico="camera"></span></div>
+      <div class="ebtns"><button type="button" class="eb" id="eview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.600 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>View my profile</button><button type="button" class="eb gold" id="elike"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l4 4v14H5z"/><path d="M8 3v6h7V3M8 21v-7h8v7"/></svg>I like it</button></div></div>
     <p class="estatus" id="estatus" role="status"></p>
     <input type="file" id="efcover" accept="image/*" hidden><input type="file" id="efav" accept="image/*" hidden>
     <div class="eform">
@@ -1405,6 +1427,15 @@ html.kb .ch-bar{padding-bottom:8px}
       <button type="button" class="eleave" data-leave style="margin-top:4px">Delete my account</button>
     </div>
   </div>
+</div>
+
+<!-- WHAT PEOPLE WILL SEE (3 Oct 2026, Mike): "like one of those light box things that pops up of what
+     the profile is going to look like. And then on there say, I like it." -->
+<div id="pview" class="layer" role="dialog" aria-modal="true" aria-label="What your profile looks like">
+  <div class="dim" data-close></div>
+  <div class="pvcard"><button type="button" class="pv-x" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <p class="pv-t">THIS IS WHAT PEOPLE SEE</p><div class="pv-in" id="pvin"></div>
+    <div class="pv-b"><button type="button" class="btn pv-yes" id="pvyes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l4 4v14H5z"/><path d="M8 3v6h7V3M8 21v-7h8v7"/></svg>I like it</button><button type="button" class="pv-no" data-close>Keep editing</button></div></div>
 </div>
 
 <!-- SET UP YOUR PROFILE (1 Oct 2026, Mike): picture, header and bio, who can see it,
@@ -2758,11 +2789,62 @@ html.kb .ch-bar{padding-bottom:8px}
     var m = me.member || {};
     $("ebio").value = m.bio || ""; $("ename").value = m.real_name || "";
     editVis = m.visibility === "public" ? "public" : "members";
-    $("estatus").textContent = "";
+    $("estatus").textContent = ""; edSay(""); edLast = edSnap(); edOpen = true;
     paintEdit(); paintNearSet(); open("editp");
   }
-  $("ebio").addEventListener("input", paintEdit);
-  $("evis").addEventListener("click", function (e) { var b = e.target.closest("[data-vis]"); if (b) { editVis = b.dataset.vis; paintEdit(); } });
+  /* IT SAVES ITSELF: a moment after you stop typing, and right away when you pick who can see it.
+     Pictures already saved the second they were picked. Nothing here waits on a Save button. */
+  var edT = null, edLast = "", edChain = Promise.resolve(true), edOpen = false;
+  function edSnap() { return JSON.stringify([$("ename").value.replace(/\s+/g, " ").trim(), $("ebio").value.trim(), editVis]); }
+  function edSay(t) { var el = $("esaved"); if (el) el.textContent = t; }
+  function edSave() {
+    clearTimeout(edT); edT = null;
+    edChain = edChain.then(async function () {
+      var snap = edSnap(); if (snap === edLast) return true;
+      var v = JSON.parse(snap), nm = v[0], nameOk = true;
+      edSay("Saving…");
+      if (nm && nm !== (me.member.real_name || "")) { try { nameOk = !(await nameTaken(nm)); } catch (e) { nameOk = true; } }
+      var body = { bio: v[1] || null, visibility: v[2] }; if (nameOk) body.real_name = nm || null;
+      try {
+        await rest("porch_members?user_id=eq." + me.uid, { method: "PATCH", body: body });
+        me.member.bio = body.bio; me.member.visibility = body.visibility; if (nameOk) me.member.real_name = nm || null; people[me.uid] = me.member;
+      } catch (e) { $("estatus").textContent = "That didn't save. Try again."; edSay(""); return false; }
+      if (!nameOk) { $("estatus").textContent = "That name is taken. Try another."; edSay(""); return false; }
+      edLast = snap; $("estatus").textContent = ""; edSay("Saved ✓"); return true;
+    });
+    return edChain;
+  }
+  function edSoon() { clearTimeout(edT); edSay(""); edT = setTimeout(edSave, 900); }
+  function myProfileFresh() { if ($("profile").classList.contains("open") && $("pfpage").querySelector("[data-editp]")) openProfile(me.uid); }
+  $("ebio").addEventListener("input", function () { paintEdit(); edSoon(); });
+  $("ename").addEventListener("input", edSoon);
+  $("evis").addEventListener("click", function (e) { var b = e.target.closest("[data-vis]"); if (b) { editVis = b.dataset.vis; paintEdit(); edSave(); } });
+  /* leaving with the X or the phone's back button: finish saving, then your profile catches up */
+  window.addEventListener("popstate", function () {
+    if (!edOpen) return;
+    setTimeout(async function () { if ($("editp").classList.contains("open")) return; edOpen = false; await edSave(); myProfileFresh(); }, 60);
+  });
+  /* VIEW MY PROFILE: the top of your profile, exactly as it will look, with what you've typed so far */
+  function previewHTML() {
+    var m = me.member || {}, nm = $("ename").value.replace(/\s+/g, " ").trim(), bio = $("ebio").value.trim();
+    var since = m.created_at ? new Date(m.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "";
+    return '<div class="pcover pa"' + (m.cover_path ? ' style="background-image:url(\'' + pic(m.cover_path) + '\')"' : "") + '></div>' +
+      '<div class="pahead"><div class="pav pa">' + avatar(m) + '</div><div class="pa-nm"><h2>' + esc(m.handle || "") + "</h2>" + (nm ? '<p class="pa-real">' + esc(nm) + "</p>" : "") + "</div></div>" +
+      '<div class="pa-body">' + (bio ? '<p class="pa-bio">' + linkify(bio) + "</p>" : '<p class="pa-bio none">No bio yet.</p>') +
+        '<div class="pa-meta">' + (since ? "<span>Misfit since " + esc(since) + "</span>" : "") + "<span>" + (editVis === "public" ? "🌐 Anybody with your link can see this" : "🔒 Only members can see this") + "</span></div></div>";
+  }
+  $("eview").addEventListener("click", function () { $("pvin").innerHTML = previewHTML(); open("pview"); });
+  async function likeIt(btn) {
+    btn.disabled = true;
+    var ok = await edSave();
+    btn.disabled = false;
+    if (!ok) { if ($("pview").classList.contains("open")) await closeTop(); return; }   /* the reason is on the edit screen */
+    if ($("pview").classList.contains("open")) await closeTop();
+    if ($("editp").classList.contains("open")) await closeTop();
+    toast("Saved."); myProfileFresh();
+  }
+  $("elike").addEventListener("click", function () { likeIt(this); });
+  $("pvyes").addEventListener("click", function () { likeIt(this); });
   $("enear").addEventListener("click", async function (e) {
     if (e.target.closest("[data-nearon]")) { if (await useLocation()) toast("Near me is on."); paintNearSet(); }
     if (e.target.closest("[data-nearoff]")) { await forgetLocation(); paintNearSet(); }
@@ -2916,19 +2998,6 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   $("efcover").addEventListener("change", function () { newPicture(this, "cover"); });
   $("efav").addEventListener("change", function () { newPicture(this, "avatar"); });
-  $("esave").addEventListener("click", async function () {
-    var b = this;
-    b.disabled = true; b.textContent = "Saving…";
-    var newName = $("ename").value.replace(/\s+/g, " ").trim();
-    if (newName && newName !== (me.member.real_name || "") && (await nameTaken(newName))) { $("estatus").textContent = "That name is taken. Try another."; b.disabled = false; b.textContent = "Save"; return; }
-    try {
-      await rest("porch_members?user_id=eq." + me.uid, { method: "PATCH", body: { bio: $("ebio").value.trim() || null, real_name: $("ename").value.replace(/\s+/g, " ").trim() || null, visibility: editVis } });
-      me.member.bio = $("ebio").value.trim() || null; me.member.real_name = $("ename").value.replace(/\s+/g, " ").trim() || null; me.member.visibility = editVis; people[me.uid] = me.member;
-      await closeTop(); toast("Saved.");
-      if ($("profile").classList.contains("open")) openProfile(me.uid);
-    } catch (e) { $("estatus").textContent = "That didn't save. Try again."; }
-    b.disabled = false; b.textContent = "Save";
-  });
 
   /* ================================================================ SET UP YOUR PROFILE (1 Oct 2026, Mike)
      Level 2 sign-up lands here (?setup=1): confirm your email if you haven't, then
