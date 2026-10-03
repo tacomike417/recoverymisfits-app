@@ -147,7 +147,7 @@
     if (s.k === 'hello') {
       h += `<p class="pt-k">WELCOME TO THE PORCH</p><h2>${name ? 'Hey ' + esc(name) : 'Hey there'}</h2>
         <p class="pt-sub">Four quick things. You do each one for real, and I point at every button.</p>
-        <div class="pt-tip"><span class="pt-q">?</span><span>Tap the <b>?</b> at the top any time. This comes right back.</span></div>
+        <div class="pt-tip"><span class="pt-q">?</span><span>This is in your menu any time: tap your picture, then <b>How the Porch works</b>.</span></div>
         <button type="button" class="pt-go" data-pt-next>Show me</button>
         <button type="button" class="pt-skip" data-pt-x>Not now</button>`;
     } else if (s.k === 'more') {
@@ -358,7 +358,7 @@
       c.ring = document.createElement('div'); c.ring.className = 'co-ring';
       c.bub = document.createElement('div'); c.bub.className = 'co-bub'; c.bub.setAttribute('role', 'status');
       c.bub.innerHTML = '<p></p><button type="button" aria-label="Stop showing me">&#10005;</button>';
-      c.bub.querySelector('button').addEventListener('click', () => { coachStop(); try { P().toast('OK. Tap the ? up top to pick this back up.'); } catch (_) {} paintStrip(); });
+      c.bub.querySelector('button').addEventListener('click', () => { coachStop(); try { P().toast('OK. It\'s in your menu: How the Porch works.'); } catch (_) {} paintStrip(); });
       document.body.appendChild(c.ring); document.body.appendChild(c.bub);
     }
     if (say == null) { c.ring.style.display = 'none'; c.bub.style.display = 'none'; c.key = ''; return; }
