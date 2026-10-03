@@ -526,3 +526,8 @@ without making it confusing.
 
 ## v110 (2 Oct 2026): a third house account
 - [x] shitmysponsorsays, shown as "Shit My Sponsor Says". Made on the site the normal way, then supabase/porch_36_sponsor_account.sql sets it up. On the tester lists.
+
+## Two more house lists (2 Oct 2026)
+- [x] Shit My Sponsor Says: data/sponsor.json, 200 lines on the yellow legal pad card from shitmysponsorsays. Ten to start, then two days on and one off at 7am Eastern.
+- [x] Spiritual Misfit picture memes: data/spiritual-memes.json and assets/house/spiritualmisfit/. Five to start, then one a day at noon Eastern. 94 of the 100: numbers 005, 046, 057, 063, 080 and 092 arrived damaged.
+- [ ] Mike: make the shitmysponsorsays account on the site, run porch_36, push, deploy porch-daily.

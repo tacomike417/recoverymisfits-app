@@ -33,6 +33,14 @@
  * The upload doors below (reel_slot, reel_uploaded, reel_status) need HOUSE_KEY, a
  * password Mike made up; without it they refuse.
  *
+ * TWO MORE LISTS (2 Oct 2026, Mike).
+ *  - shitmysponsorsays: 200 lines on the yellow legal pad card. Ten to start, then two
+ *    days on and one day off, 7am Eastern (/data/sponsor.json).
+ *  - spiritualmisfit: picture memes. Five to start, then one a day at noon Eastern
+ *    (/data/spiritual-memes.json, pictures in /assets/house/spiritualmisfit/).
+ * Both run through runList(): it looks at what the account has already shared, so nothing
+ * repeats and nothing needs counting. The starting batch is dated one a day going back.
+ *
  * Deploy:
  *   npx supabase functions deploy porch-daily --no-verify-jwt --project-ref rlytvfehbglsjfvprtbp
  */
@@ -224,6 +232,62 @@ async function reels(hour: number) {
   return out;
 }
 
+/* ---- a list that runs once through, with a starting batch ---- */
+type ListItem = { key: string; row: Record<string, unknown> };
+async function runList(handle: string, items: ListItem[], keyOf: (p: any) => string, backlog: number, due: boolean, notDue: string, hour: number, dueHour: number) {
+  const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", handle).maybeSingle();
+  if (!m) return { posted: 0, error: handle + " is not on the Porch yet" };
+  const { data: mine } = await admin.from("porch_posts").select("body, photo_paths, created_at").eq("user_id", m.user_id)
+    .order("created_at", { ascending: false }).limit(1000);
+  const keys = new Set(items.map((i) => i.key));
+  const had = (mine || []).filter((p: any) => keys.has(keyOf(p)));
+  const have = new Set(had.map(keyOf));
+  const left = items.filter((i) => !have.has(i.key));
+  const done = items.length - left.length;
+  if (!left.length) return { posted: 0, why: "they have all run", total: done };
+  const put = async (it: ListItem, when: Date) =>
+    (await admin.from("porch_posts").insert({ user_id: m.user_id, need: "talk", photo_paths: [], ...it.row, created_at: when.toISOString() })).error;
+  let posted = 0;
+  if (done < backlog) {
+    /* the starting batch: one a day going back, the newest dated now */
+    for (const it of left.slice(0, backlog - done)) {
+      const err = await put(it, new Date(Date.now() - (backlog - 1 - (done + posted)) * 86400000));
+      if (err) return { posted, error: err.message };
+      posted++;
+    }
+    return { posted, waiting: left.length - posted, starting: true };
+  }
+  if (!due) return { posted: 0, why: notDue, waiting: left.length };
+  /* "already up today" means since today's posting hour, so last night's starting batch
+     doesn't make the first morning skip */
+  const sinceDue = Date.now() - (Math.max(0, hour - dueHour) + 1) * 3600 * 1000;
+  if (had.some((p: any) => Date.parse(p.created_at) > sinceDue)) return { posted: 0, why: "today's is already up", waiting: left.length };
+  const err = await put(left[0], new Date());
+  if (err) return { posted: 0, error: err.message };
+  return { posted: 1, number: done + 1, waiting: left.length - 1 };
+}
+
+async function sponsor(day: string, hour: number) {
+  const r = await fetch(SITE + "/data/sponsor.json", { headers: { "cache-control": "no-cache" } });
+  if (!r.ok) return { posted: 0, error: "could not read the sponsor lines (" + r.status + ")" };
+  const j = await r.json();
+  const card = Number.isInteger(j.card) ? j.card : 10;                       // the yellow legal pad
+  const items: ListItem[] = (Array.isArray(j.items) ? j.items : []).map((t: string) => String(t || "").trim()).filter(Boolean)
+    .map((t: string) => ({ key: t, row: { body: t, card_style: t.length <= 200 ? card : null } }));
+  const n = daysBetween(String(j.start || day), day);
+  const off = ((n % 3) + 3) % 3 === 2;                                        // two days on, one day off
+  return await runList("shitmysponsorsays", items, (p) => String(p.body || ""), 10, hour >= 7 && !off, off ? "day off (two on, one off)" : "before 7am Eastern", hour, 7);
+}
+
+async function spiritualMemes(hour: number) {
+  const r = await fetch(SITE + "/data/spiritual-memes.json", { headers: { "cache-control": "no-cache" } });
+  if (!r.ok) return { posted: 0, error: "could not read the meme list (" + r.status + ")" };
+  const j = await r.json();
+  const items: ListItem[] = (Array.isArray(j.items) ? j.items : []).filter((x: any) => /^[\w.-]+\.(jpg|jpeg|png|webp)$/i.test(String(x.file || "")))
+    .map((x: any) => { const path = "/assets/house/spiritualmisfit/" + x.file; return { key: path, row: { body: null, photo_paths: [path] } }; });
+  return await runList(PRAYER_HOUSE, items, (p) => String((p.photo_paths || [])[0] || ""), 5, hour >= 12, "before noon Eastern", hour, 12);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return json({ ok: true });
   let body: Record<string, any> = {};
@@ -238,6 +302,8 @@ Deno.serve(async (req) => {
     try { out.prayer = await prayer(day, hour); } catch (e) { out.prayer = { posted: false, error: String((e as Error).message || e) }; }
     try { out.moment = await moment(day, hour); } catch (e) { out.moment = { posted: false, error: String((e as Error).message || e) }; }
     try { out.reels = await reels(hour); } catch (e) { out.reels = { posted: 0, error: String((e as Error).message || e) }; }
+    try { out.sponsor = await sponsor(day, hour); } catch (e) { out.sponsor = { posted: 0, error: String((e as Error).message || e) }; }
+    try { out.spiritual_memes = await spiritualMemes(hour); } catch (e) { out.spiritual_memes = { posted: 0, error: String((e as Error).message || e) }; }
     return json(out);
   } catch (e) {
     return json({ ok: false, error: String((e as Error).message || e) }, 500);
