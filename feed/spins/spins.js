@@ -165,6 +165,7 @@
 .sp-item.tall .sp-bg{display:none}
 .sp-item.tall video{object-fit:cover;max-height:none}
 .sp-item.tall.byh video{width:auto;height:100%}
+.sp-item.fith video{width:auto;height:100%;max-width:100%}
 .sp-shade{position:absolute;inset:auto 0 0 0;height:48%;background:linear-gradient(transparent,rgba(0,0,0,.78));pointer-events:none}
 .sp-foot{position:absolute;left:14px;right:86px;bottom:calc(22px + env(safe-area-inset-bottom,0px));font:600 14px/1.4 -apple-system,Segoe UI,Roboto,Arial,sans-serif;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .sp-by{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:0;border:0;background:none;color:#fff;font:900 15px/1.2 Arial,sans-serif;cursor:pointer}
@@ -420,13 +421,21 @@
 
   function itemHTML(l, i) {
     const scr = (window.innerHeight || 800) / (window.innerWidth || 400);
-    const tall = l.height && l.width ? l.height / l.width >= scr * 0.92 : false;
+    /* FILL THE SCREEN ONLY WHEN IT COSTS ALMOST NOTHING (3 Oct 2026, Mike: "this spin stretch, it is
+       driving me crazy"). A Spin used to fill the screen whenever it was taller in shape than the
+       screen. On a phone that trims a sliver. On a computer or a tablet it blew a 9:16 video up to
+       the full width of the window, three times too tall, and showed the middle third of it. Now it
+       only fills when the Spin and the screen are nearly the same shape. Otherwise the whole Spin
+       shows, as big as fits, on the blurred backdrop. */
+    const shape = l.height && l.width ? l.height / l.width : 0;
+    const tall = shape ? shape >= scr * 0.92 && shape <= scr * 1.08 : false;
+    const fitH = shape ? !tall && shape > scr : false;      /* taller than the screen: fit by height */
     const mine = l.user_id === meId() && !l.respunBy;
     const d = daysLeft(l);
     const isRe = respun.has(l.id), own = l.user_id === meId();
     /* a tall Spin fills the screen: by height if it's wider than the screen, else by width */
     const byH = tall && l.height / l.width < scr;
-    return `<section class="sp-item${tall ? ' tall' : ''}${byH ? ' byh' : ''}" data-sp-item="${i}">
+    return `<section class="sp-item${tall ? ' tall' : ''}${byH ? ' byh' : ''}${fitH ? ' fith' : ''}" data-sp-item="${i}">
       <div class="sp-bg" style="background-image:url('${esc(thumbFor(l))}')"></div>
       <video playsinline loop muted preload="none" poster="${esc(thumbFor(l))}" data-src="${esc(srcFor(l))}"${l.width && l.height ? ` style="aspect-ratio:${l.width}/${l.height}"` : ''}></video>
       <div class="sp-shade"></div>
