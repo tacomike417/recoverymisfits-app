@@ -81,14 +81,15 @@
    a phone recording a selfie, or something cute like that ... the least intrusive thing"). Every
    seven seconds a little misfit taking a selfie slides up into the gold button, holds, and slides
    back down to the camera. A drawing of somebody else, on purpose: no red dot, no REC, nothing
-   that looks like the person's own camera is on. It stops for good once they have made a Spin. */
+   that looks like the person's own camera is on. Everybody sees it, every time. */
 .sp-mk .sp-cam{position:relative;overflow:hidden}
 .sp-selfie{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;background:#14110b;border-radius:50%;transform:translateY(106%);animation:sp-selfie 7s ease-in-out infinite;pointer-events:none}
 .sp-mk .sp-cam svg{animation:sp-camfade 7s ease-in-out infinite}
 @keyframes sp-selfie{0%,54%{transform:translateY(106%)}62%,88%{transform:translateY(2%)}96%,100%{transform:translateY(106%)}}
 @keyframes sp-camfade{0%,54%{opacity:1}60%,90%{opacity:0}96%,100%{opacity:1}}
-html.sp-made .sp-selfie{display:none}html.sp-made .sp-mk .sp-cam svg{animation:none}
-@media (prefers-reduced-motion:reduce){.sp-selfie{display:none}.sp-mk .sp-cam svg{animation:none}}
+/* a phone set to "reduce motion" gets a slow fade in place instead of the slide */
+@keyframes sp-selfie-fade{0%,54%{opacity:0}62%,88%{opacity:1}96%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.sp-selfie{transform:translateY(2%);opacity:0;animation:sp-selfie-fade 7s linear infinite}}
 .sp-story:active .sp-ring{transform:scale(.95)}
 .sp-story .sp-ring{position:relative}
 .sp-rebadge{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#e0bd6a;border:2px solid var(--bg,#11110f);display:grid;place-items:center;box-sizing:border-box}
@@ -332,15 +333,10 @@ html.sp-made .sp-selfie{display:none}html.sp-made .sp-mk .sp-cam svg{animation:n
     await P().loadPeople(list.map((l) => l.user_id).concat(list.map((l) => l.respunBy).filter(Boolean)));
     sets.set('rail', list);
     /* somebody who has made a Spin doesn't need the selfie hint any more */
-    /* PER ACCOUNT, not per phone (3 Oct 2026, Mike: "I don't see the new misfits graphic"). It was
-       one flag for the whole browser, so once tacomike417 had a Spin, every other account on that
-       phone lost the hint too, and so did somebody signed out. */
-    try {
-      localStorage.removeItem('rm_spin_made');
-      const k = 'rm_spin_made_' + (meId() || '');
-      if (meId() && list.some((l) => l.user_id === meId())) localStorage.setItem(k, '1');
-      document.documentElement.classList.toggle('sp-made', !!meId() && !!localStorage.getItem(k));
-    } catch (_) {}
+/* EVERYBODY SEES THE SELFIE MISFIT (3 Oct 2026, Mike: "the misfits graphic isn't showing up").
+       It used to stop for anybody who had made a Spin, which is exactly who Mike is, so he never
+       saw his own button move. That rule is gone. Clean out the old switches it left behind. */
+    try { localStorage.removeItem('rm_spin_made'); if (meId()) localStorage.removeItem('rm_spin_made_' + meId()); document.documentElement.classList.remove('sp-made'); } catch (_) {}
     /* THE FILM STRIP (1 Oct 2026, Mike picked it from the mockups: the circles looked
        like profiles). Tall frames on a strip of film, each with its length, so it reads
        as video at a glance. Make is the first frame; respins carry the gold ↻. */
@@ -972,7 +968,6 @@ html.sp-made .sp-selfie{display:none}html.sp-made .sp-mk .sp-cam svg{animation:n
       const r = await callSpins({ action: 'done', id, faces_ok: !!okFaces });
       if (r.status === 'ready') {
         uploading = false;
-        try { if (meId()) localStorage.setItem('rm_spin_made_' + meId(), '1'); document.documentElement.classList.add('sp-made'); } catch (_) {}
         pillSay('🎉 Your Spin is live! Tap to watch', async () => {
           pillGone(0);
           const d = await P().rest('porch_spins?id=eq.' + id + '&select=' + COLS);
