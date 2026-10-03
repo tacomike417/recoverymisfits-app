@@ -27,9 +27,12 @@
   .agerules .ar-k{display:block;font-size:11px;letter-spacing:2px;color:var(--gold)}
   .agerules .ar-1{margin:6px 0 6px;font-weight:800;font-size:14px;line-height:1.3;color:var(--gold)}
   .agerules .ar-2{margin:12px 0 4px;font-weight:800;font-size:14px;color:#fff}
+  .agerules .ar-3{margin:6px 0 0;font-size:13px;line-height:1.45;color:var(--ivory)}
+  .agelinks{display:flex;justify-content:space-between;gap:10px;margin:8px 2px 0}
+  .agelinks button,.agelinks a{min-height:44px;display:inline-flex;align-items:center;padding:0 4px;border:0;background:none;color:var(--gold);font:800 14px var(--ui);text-decoration:underline;cursor:pointer}
   .agerules ul{margin:0;padding-left:18px;font-size:13px;line-height:1.4}
   .agerules li{margin:3px 0}
-  .agecheck{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:11px 14px;border-radius:16px;border:1.5px solid var(--gold);background:rgba(215,178,83,.10);font-family:var(--ui);font-weight:800;font-size:16px;color:#fff;cursor:pointer}
+  .agecheck{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:14px 14px;line-height:1.3;border-radius:16px;border:1.5px solid var(--gold);background:rgba(215,178,83,.10);font-family:var(--ui);font-weight:800;font-size:16px;color:#fff;cursor:pointer}
   .agecheck input{width:26px;height:26px;flex:none;accent-color:#d7b253}
   /* SIGNING UP IS NOT THE ACCOUNT PAGE (3 Oct 2026, Mike: "You don't want to delete your account
      right now"). A brand-new person gets the date, yes or not now, and nothing else. */
@@ -257,18 +260,28 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
        nobody is asked the same thing twice. -->
   <div id="agegate" hidden>
     <p class="lede" style="font-weight:800;color:#fff;margin-bottom:0">Before you sign up</p>
-    <div class="agerules">
+    <!-- ONE BOX, ONE TICK (3 Oct 2026, Mike): 18 and up, the house rules and the privacy policy, all
+         agreed to in one go, "with the least amount of hassle possible". The whole rules used to
+         pop up later on the Porch with an "I'm in" button; they live here now, behind "What's this
+         all about?", and the Porch never asks again. -->
+    <label class="agecheck"><input type="checkbox" id="ageOk"><span>I&rsquo;m 18 or older, and I agree to the house rules and the privacy policy.</span></label>
+    <div class="agelinks"><button type="button" id="ageWhat" aria-expanded="false" aria-controls="ageFull">What&rsquo;s this all about?</button><a href="/privacy.html" target="_blank" rel="noopener">Privacy policy</a></div>
+    <div class="agerules" id="ageFull" hidden>
       <b class="ar-k">THE HOUSE RULES</b>
       <p class="ar-1">We share experience, strength and hope.<br>Not opinion, strength and hope.</p>
+      <p class="ar-3">Opinions can hurt people, and in recovery we&rsquo;re not in the people-hurting business anymore. So the doctors get to be the doctors, the lawyers the lawyers and the counselors the counselors. Here, we&rsquo;re people in recovery helping each other out.</p>
+      <p class="ar-2">We&rsquo;re all adults here. Let&rsquo;s act like it.</p>
       <ul>
-        <li>Share your own experience. No medical or legal advice.</li>
-        <li>Be kind. Every path counts.</li>
+        <li>Share what happened to you, not what somebody else ought to do. No medical, legal or counseling advice.</li>
+        <li>Be kind. We&rsquo;re all in this together.</li>
+        <li>Every path counts. No bashing anybody&rsquo;s recovery.</li>
         <li>No rated X behavior. No hate, slurs or threats.</li>
-        <li>Protect other people&rsquo;s anonymity.</li>
+        <li>Protect other people&rsquo;s anonymity. Ask before posting anybody&rsquo;s photo.</li>
+        <li>Say what you need. Somebody here gets it.</li>
       </ul>
+      <p class="ar-3" style="margin-top:10px"><b style="color:#fff">Your privacy:</b> no ads, and we don&rsquo;t sell anything about you. Your sober date is only yours. The <a href="/privacy.html" target="_blank" rel="noopener" style="color:var(--gold)">privacy policy</a> has the rest.</p>
     </div>
-    <label class="agecheck"><input type="checkbox" id="ageOk"><span>I&rsquo;m 18 or older, and I&rsquo;m in.</span></label>
-    <button type="button" class="go" id="ageGo" disabled style="margin-top:10px">Let&rsquo;s Go</button>
+    <button type="button" class="go" id="ageGo" disabled style="margin-top:12px">Let&rsquo;s Go</button>
     <button type="button" class="textlink" id="ageHave">I already have an account</button>
   </div>
 
@@ -707,6 +720,10 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   function ageOk() { try { return localStorage.getItem(AGE_KEY) === "1"; } catch (e) { return false; } }
   function needAge(then) { if (ageOk()) return false; afterAge = then; $("ageOk").checked = false; $("ageGo").disabled = true; paint("age"); return true; }
   $("ageOk").addEventListener("change", function () { $("ageGo").disabled = !this.checked; });
+  $("ageWhat").addEventListener("click", function () {
+    var box = $("ageFull"), open = box.hidden; box.hidden = !open;
+    this.setAttribute("aria-expanded", open ? "true" : "false"); this.textContent = open ? "Hide this" : "What\u2019s this all about?";
+  });
   $("ageGo").addEventListener("click", function () {
     if (!$("ageOk").checked) return;
     try { localStorage.setItem(AGE_KEY, "1"); } catch (e) {}

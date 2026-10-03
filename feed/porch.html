@@ -1121,7 +1121,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v137</span>
+  <span class="ver" id="ver">v138</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1210,7 +1210,7 @@ html.kb .ch-bar{padding-bottom:8px}
         <li>No rated X behavior. No hate, slurs or threats.</li>
         <li>Protect other people's anonymity. Ask before posting anybody's photo.</li>
         <li>Say what you need. Somebody here gets it.</li></ul></div>
-    <button type="button" class="btn" id="rulesok">I'm 18 or older, and I'm in</button>
+    <button type="button" class="btn" id="rulesok" hidden>I'm in</button>
   </div>
 </div>
 
@@ -2121,7 +2121,11 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   var pendingRaw = false;
   var RULES_KEY = function () { return "rm_porch_rules_" + (me.uid || ""); };
-  function rulesOk() { try { return localStorage.getItem(RULES_KEY()) === "1"; } catch (e) { return true; } }
+  /* THE "I'M IN" SHEET IS RETIRED (3 Oct 2026, Mike: "this whole part needs to be put when they do
+     the checkbox ... and the I'm in button taken off"). Everybody agrees to the house rules once,
+     with the 18-and-up tick before they sign up (account.html). The Porch never stops anybody to
+     ask again; the rules are still there to READ from Edit Profile > The Porch rules. */
+  function rulesOk() { return true; }
   function rulesYes() { try { localStorage.setItem(RULES_KEY(), "1"); } catch (e) {} }
   $("rulesok").addEventListener("click", async function () {
     rulesYes(); await closeTop();
