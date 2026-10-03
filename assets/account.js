@@ -481,7 +481,13 @@
     ".rm-sw-av img{width:100%;height:100%;object-fit:cover;display:block}" +
     ".rm-sw-row small{display:block;margin-top:2px;font:500 13.5px Arial,sans-serif;color:#6e675b}" +
     ".rm-sw-row .ck{margin-left:auto;flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#e0bd6a;color:#1a1408;font-size:15px}" +
-    ".rm-sw-add .rm-sw-av{background:none;border:2px dashed #b8862b;color:#8a6118;font-size:26px;font-weight:400}";
+    ".rm-sw-add .rm-sw-av{background:none;border:2px dashed #b8862b;color:#8a6118;font-size:26px;font-weight:400}" +
+    ".rm-sw-line{display:flex;align-items:center;gap:4px}.rm-sw-line .rm-sw-row{flex:1;min-width:0}" +
+    ".rm-sw-rm{flex:none;width:44px;height:44px;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0}" +
+    ".rm-sw-rm span{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#c0392b;color:#fff;font:800 13px Arial,sans-serif}" +
+    ".rm-sw-who{cursor:default}.rm-sw-p{margin:6px 8px 16px;font:500 16px/1.4 Arial,sans-serif;color:#3a362e}" +
+    ".rm-sw-yn{display:flex;gap:10px;padding:0 4px}.rm-sw-yn button{flex:1;height:52px;border-radius:14px;font:800 17px Arial,sans-serif;cursor:pointer}" +
+    ".rm-sw-no{border:1.5px solid #b9ad92;background:none;color:#1b1a17}.rm-sw-yes{border:0;background:#c0392b;color:#fff}";
   function swCSS() { if (document.getElementById("rm-sw-css")) return; var st = document.createElement("style"); st.id = "rm-sw-css"; st.textContent = SW_CSS; document.head.appendChild(st); }
   function swShut() { if (swEl) { swEl.remove(); swEl = null; } }
   function swClose() {
@@ -490,30 +496,55 @@
     if (swEl._own) { swEl._own = false; try { history.back(); return; } catch (e) {} }
     swShut();
   }
+  /* REMOVE AN ACCOUNT FROM THIS PHONE (3 Oct 2026, Mike: "that little like remove account
+     thing ... a little circle that's red or an X ... then confirmation saying you sure. And
+     then yes or no, all like how they do on Facebook, really simple"). It only takes the
+     sign-in off this phone. The account itself is untouched. */
+  function swDraw() {
+    var list = accounts();
+    swEl.querySelector(".rm-sw-box").innerHTML = '<div class="rm-sw-g"></div><button type="button" class="rm-sw-x" data-sw-x aria-label="Close">&#10005;</button><h3>' + (list.length ? "SWITCH ACCOUNT" : "ACCOUNTS") + "</h3>" +
+      list.map(function (a) {
+        return '<div class="rm-sw-line"><button type="button" class="rm-sw-row" data-sw="' + esc(a.name) + '"><span class="rm-sw-av" data-sw-av="' + esc(a.name) + '">' + esc(a.name.slice(0, 2).toUpperCase()) + '</span><span><span data-sw-nm="' + esc(a.name) + '">' + esc(a.name) + "</span>" + (a.current ? "<small>Signed in now</small>" : "") + "</span></button>" +
+          '<button type="button" class="rm-sw-rm" data-sw-rm="' + esc(a.name) + '" aria-label="Remove ' + esc(a.name) + ' from this phone"><span>&#10005;</span></button></div>';
+      }).join("") +
+      '<button type="button" class="rm-sw-row rm-sw-add" data-sw-add><span class="rm-sw-av">+</span><span>' + (list.length ? "Add account" : "Sign in or make an account") + "</span></button>";
+    paintFaces();
+    return list;
+  }
+  function swAsk(n) {
+    swEl.querySelector(".rm-sw-box").innerHTML = '<div class="rm-sw-g"></div><h3>REMOVE ACCOUNT?</h3>' +
+      '<div class="rm-sw-row rm-sw-who"><span class="rm-sw-av" data-sw-av="' + esc(n) + '">' + esc(n.slice(0, 2).toUpperCase()) + '</span><span><span data-sw-nm="' + esc(n) + '">' + esc(n) + "</span></span></div>" +
+      '<p class="rm-sw-p">Take this account off this phone? The account is not deleted. You can sign in again anytime.</p>' +
+      '<div class="rm-sw-yn"><button type="button" class="rm-sw-no" data-sw-no>No</button><button type="button" class="rm-sw-yes" data-sw-yes="' + esc(n) + '">Yes, remove</button></div>';
+    paintFaces();
+  }
   function switcher() {
     if (swEl) return;
     swCSS();
-    var list = accounts();
     swEl = document.createElement("div"); swEl.className = "rm-sw"; swEl.setAttribute("role", "dialog"); swEl.setAttribute("aria-modal", "true"); swEl.setAttribute("aria-label", "Switch account");
-    swEl.innerHTML = '<div class="rm-sw-box"><div class="rm-sw-g"></div><button type="button" class="rm-sw-x" data-sw-x aria-label="Close">&#10005;</button><h3>' + (list.length ? "SWITCH ACCOUNT" : "ACCOUNTS") + "</h3>" +
-      list.map(function (a) {
-        return '<button type="button" class="rm-sw-row" data-sw="' + esc(a.name) + '"><span class="rm-sw-av" data-sw-av="' + esc(a.name) + '">' + esc(a.name.slice(0, 2).toUpperCase()) + '</span><span><span data-sw-nm="' + esc(a.name) + '">' + esc(a.name) + "</span>" + (a.current ? "<small>Signed in now</small>" : "") + "</span>" + (a.current ? '<span class="ck">&#10003;</span>' : "") + "</button>";
-      }).join("") +
-      '<button type="button" class="rm-sw-row rm-sw-add" data-sw-add><span class="rm-sw-av">+</span><span>' + (list.length ? "Add account" : "Sign in or make an account") + "</span></button></div>";
+    swEl.innerHTML = '<div class="rm-sw-box"></div>';
     document.body.appendChild(swEl);
+    var list = swDraw();
     /* the phone's back button closes it: the Porch's own back stack there, a plain history step anywhere else */
     if (window.PorchBack && window.PorchBack.push) { var z = window.PorchBack.push("switcher", swShut); }
     else { try { history.pushState({ rmsw: 1 }, ""); swEl._own = true; window.addEventListener("popstate", function once() { window.removeEventListener("popstate", once); if (swEl) { swEl._own = false; swShut(); } }); } catch (e) {} }
     swEl.addEventListener("click", function (e) {
       if (e.target === swEl || e.target.closest("[data-sw-x]")) return swClose();
       if (e.target.closest("[data-sw-add]")) { location.href = "/account.html?add=1"; return; }
+      if (e.target.closest("[data-sw-no]")) { swDraw(); return; }
+      var rm = e.target.closest("[data-sw-rm]"); if (rm) { swAsk(rm.getAttribute("data-sw-rm")); return; }
+      var yes = e.target.closest("[data-sw-yes]");
+      if (yes) {
+        var who = yes.getAttribute("data-sw-yes");
+        if (session && session.name === who) { signOut(); swShut(); location.replace(session ? location.pathname : "/account.html"); return; }
+        forget(who); swDraw(); return;
+      }
       var r = e.target.closest("[data-sw]"); if (!r) return;
       var n = r.getAttribute("data-sw");
       if (session && session.name === n) return swClose();
       if (switchTo(n)) { swShut(); location.replace(location.pathname); }
     });
     /* faces and profile names, for the ones that are on the Porch */
-    paintFaces();
     loadFaces(list.map(function (a) { return a.name; })).then(paintFaces);
   }
 
