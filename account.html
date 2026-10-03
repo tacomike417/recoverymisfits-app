@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Your Anonymous Account — Recovery Misfits</title>
+<title>Your Account — Recovery Misfits</title>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#0e0e0d">
 <link rel="manifest" href="/manifest.json">
@@ -245,7 +245,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
 
   <header class="pub">
     <img class="art" src="/assets/pages/d-book.webp" alt="" aria-hidden="true" width="122" height="111">
-    <div><h1 class="name" id="pageName">Your Anonymous Account</h1></div>
+    <div><h1 class="name" id="pageName">Your Account</h1></div>
   </header>
   <img class="rule" src="/assets/pages/d-rule.webp" alt="" aria-hidden="true"
        width="297" height="17" style="display:block;width:100%;max-width:297px;margin:6px 0 0">
@@ -255,7 +255,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     <p id="stepTxt"></p>
   </div>
 
-  <!-- ============ PICK YOUR LEVEL (1 Oct 2026, Mike) ============
+  <!-- ============ PICK ONE (1 Oct 2026, Mike) ============
        The first thing a new person sees: two doors, plainly. Level 2 (the
        Porch) is for the beta testers until the Porch opens; everybody else sees
        it marked "Opens end of October". -->
@@ -298,17 +298,17 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       <button type="button" role="tab" id="haveOne" aria-selected="false">Sign In</button>
     </div>
     <p class="lede">Your recovery, your way. It takes about two minutes to set up your account. Let&rsquo;s go.</p>
-    <div class="lvls" role="radiogroup" aria-label="Pick your level">
+    <div class="lvls" role="radiogroup" aria-label="Pick one">
       <button type="button" class="lvl" data-lvl="1" role="radio" aria-checked="false">
         <span class="radio" aria-hidden="true"></span>
-        <span class="k">Level 1 &middot; FREE</span><span class="t">Anonymous</span>
-        <ul><li>Just a username, a password and your sober date</li><li>Read everything. You can&rsquo;t post.</li><li>No email. Nobody knows you&rsquo;re here.</li></ul>
+        <span class="k">FREE</span><span class="t">Look around</span>
+        <ul><li>Just a username, a password and your sober date</li><li>Read everything. You can&rsquo;t post.</li><li>Anonymous. No email. Nobody knows you&rsquo;re here.</li></ul>
       </button>
       <button type="button" class="lvl" data-lvl="2" id="lvl2" role="radio" aria-checked="false">
         <span class="radio" aria-hidden="true"></span>
-        <span class="k">Level 2 &middot; ALSO FREE</span><span class="t">I&rsquo;m comfortable here</span>
-        <ul><li>Everything in Level 1</li><li>Post, make Spins, add friends, send messages</li><li>Confirm an email once. It&rsquo;s never kept or shown.</li></ul>
-        <span class="soon" id="lvl2soon" hidden>Opens end of October</span>
+        <span class="k">ALSO FREE</span><span class="t">Pull up a chair</span>
+        <ul><li>Everything in Look around</li><li>Post, make Spins, add friends, send messages</li><li>Confirm an email once. It&rsquo;s never kept or shown.</li></ul>
+        <span class="soon" id="lvl2soon" hidden>Opens October 20</span>
       </button>
     </div>
     <p class="say" id="sayLvl" role="status" aria-live="polite"></p>
@@ -579,7 +579,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     /* the big header says where you are: Sign Up / Sign In / your account */
     var setup = (step === "claim" || step === "date") && signingUp;      /* the account is made; now setting up */
     var n = step === "levels" ? 1 : step === "form" && mode === "new" ? 2 : step === "fresh" && signingUp ? 3 : setup ? 1 : 0;
-    $("pageName").textContent = setup ? "Set Up" : n || step === "age" ? "Sign Up" : step === "form" ? "Sign In" : "Your Anonymous Account";
+    $("pageName").textContent = setup ? "Set Up" : n || step === "age" ? "Sign Up" : step === "form" ? "Sign In" : "Your Account";
     $("steps").hidden = !n;
     if (n) {
       [].forEach.call($("steps").querySelectorAll("i"), function (b, i) { b.classList.toggle("on", i < n); });
@@ -587,7 +587,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
          invite their friends." Level 1 has no profile, so for them the date is the only step. */
       var walk = picked() === "2" && porchFor(A.name());
       $("stepTxt").textContent = setup ? (walk ? "Step 1 of 3 · Your sober date" : "Last step · Your sober date")
-        : "Step " + n + " of 3 · " + (n === 1 ? "Pick your level" : n === 2 ? "Make your username" : "Save your username and password");
+        : "Step " + n + " of 3 · " + (n === 1 ? "Pick one" : n === 2 ? "Make your username" : "Save your username and password");
       if (setup && !walk) [].forEach.call($("steps").querySelectorAll("i"), function (b) { b.classList.add("on"); });
     }
     $("datestep").classList.toggle("signup", !!signingUp);
@@ -709,8 +709,8 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     c.hidden = false;
     var done = profDone();
     if (!porchFor(A.name())) {
-      $("pcKick").textContent = "Level 2 · the Porch";
-      $("pcTxt").textContent = "Post, make Spins, add friends and message. It opens at the end of October.";
+      $("pcKick").textContent = "Pull up a chair · the Porch";
+      $("pcTxt").textContent = "Post, make Spins, add friends and message. It opens October 20.";
       $("pcGo").hidden = true; $("pcMine").hidden = true; return;
     }
     $("pcKick").textContent = "Your Porch profile";
@@ -759,7 +759,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   function goForm(lvl, m) {
     if (lvl) pick(lvl);
     $("pickedBar").hidden = m === "old";
-    $("pickedTxt").innerHTML = lvl === "2" ? "<b>Level 2</b> · I&rsquo;m comfortable here" : "<b>Level 1</b> · Anonymous";
+    $("pickedTxt").innerHTML = lvl === "2" ? "<b>Pull up a chair</b> · post, Spins, friends" : "<b>Look around</b> · anonymous";
     setMode(m || "new");
     levelWords();
     paint("form");
@@ -829,7 +829,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     b.addEventListener("click", function () {
       var l = b.getAttribute("data-lvl");
       if (l === "2" && !lvl2Open()) {
-        say($("sayLvl"), "Level 2 opens with the Porch at the end of October. Start with Level 1 and move up then.", "good");
+        say($("sayLvl"), "Pull up a chair opens with the Porch on October 20. Start with Look around and move up then.", "good");
         return;
       }
       say($("sayLvl"), "");
@@ -860,7 +860,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     mode = next;
     if ($("pickedBar")) {
       $("pickedBar").hidden = next === "old";
-      if (next === "new" && !$("pickedTxt").innerHTML) $("pickedTxt").innerHTML = picked() === "2" ? "<b>Level 2</b> · I&rsquo;m comfortable here" : "<b>Level 1</b> · Anonymous";
+      if (next === "new" && !$("pickedTxt").innerHTML) $("pickedTxt").innerHTML = picked() === "2" ? "<b>Pull up a chair</b> · post, Spins, friends" : "<b>Look around</b> · anonymous";
     }
     if ($("out") && !$("out").hidden) setTimeout(function () { paint("form"); }, 0);
     /* the Sign Up / Sign In tabs live on the level screen now; here they only show while signing

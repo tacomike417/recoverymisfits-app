@@ -108,87 +108,76 @@ Order isn't set.
 - [ ] PARKED (Mike, 1 Oct): Counts on profiles (likes, friends): Mike, 1 Oct: doesn't think these break the
       ego rule. Tentative, decide later.
 
-## 🔎 THE UNCLEAR LIST (3 Oct 2026, Mike: "go over the whole site and tag anything with ambiguity,
-## anything unclear on what it means, anything that might produce confusion")
+## 🔎 THE UNCLEAR LIST: DECIDED (3 Oct 2026, Mike went down it one by one)
 
-Read as a brand-new person, signed out, at phone width. Looked at: home, the reading page, Audio, Fun,
-Tools and the first screen of each tool, Coins, Survival Pile, Sober date, Meme, Privacy, the sign-up
-screens, the Porch "coming soon" page, and the Porch itself. NOT looked at yet: the later steps inside
-each tool, the two games, the book reader, the audio player, group screens, calls.
+"Go over the whole site and tag anything with ambiguity." 37 things were tagged; these are his calls.
+[ ] = decided, not built yet. [x] = built.
 
-ONE WORD, THREE MEANINGS
-- [ ] "Share" means three things. A post is "a share" ("3 new shares", "Your first share is up"). Sending
-      something out is "Share". And the last tab in the bottom bar is "Share". A new person can't tell which.
-- [ ] The same thing has several names: Find friends (menu) / Find people (friends list) / Find (profile) /
-      Search the Porch (top). Invite somebody (menu) / Invite (profile) / Invite a friend (friends list).
-- [ ] Username / Porch name / name / handle are all used for the same thing.
-- [ ] Alerts / notifications / a buzz. Spins / Sober Spins / Respin. Misfit Messages / Messages.
-- [ ] The tagline has two versions live: "Good PEOPLE between meetings" (the real one) and "Good COMPANY
-      between meetings" (the Porch page title and the coming-soon page).
-
-THE BOTTOM BAR (on every page)
-- [ ] The sober bar says "SOBER SINCE" with "SIGN IN" under it. Tapping it is for setting a date, but it
-      reads like a sign-in button.
-- [ ] The coin with a big "?" on it looks like a help button. It is the "no coin yet" coin.
-- [ ] "Share" as a tab: share what? (the app, a meme, my date?)
-- [ ] "Porch" as a tab: a new person doesn't know it means the community.
+EVERYWHERE
+- [x] Tagline is "Good people between meetings". Fix the Porch page title and the coming-soon page ("Good company").
+- [ ] Sober bar, signed out: "SIGN IN" under SOBER SINCE becomes "SET DATE". The "?" coin STAYS (a blank coin looked like a hole).
+- [ ] Bottom bar: the "Share" tab becomes "Invite"; the screen it opens is titled "Invite a friend".
+- [ ] Bottom bar: the "Audio" tab becomes "Listen".
+- LEFT AS IS: "share" meaning a post. "Porch" as a tab name. Spins/Respin and Misfit Messages wording.
 
 HOME
-- [ ] The top card shows today's reading by its title ("The Rewind Button") but never says which reading
-      it is. It is Another Day Sober, which is also listed again four rows down.
-- [ ] "Your Daily Stack" and "Today's stack 0 of 5 opened": nothing says what a stack is. EDIT edits what?
-- [ ] "Your Corner", "Season Watch", "Recovery Basics": section names that don't say what's in them.
-- [ ] "Another One" button under Season Watch: another what?
-- [ ] "MAKE CARD" next to Share your sober date: "card" also means a Survival Pile card and a saying card.
-- [ ] "Every path counts" is the promise, but the home page is all twelve-step books (Big Book, Twenty-Four
-      Hours, Daily Reflections, Twelve and Twelve). Somebody on another path may read it as "this is an AA
-      app". Mike's call.
+- [ ] Top card gets a small label: "Another Day Sober · today's reading".
+- [ ] Under Your Daily Stack: "Your readings for today. Tap Edit to pick which ones." The stack itself does not change.
+      Mike: "it's my app and I use it daily".
+- [ ] Under Your Corner: "Your milestones and coins."
+- [ ] Recovery Basics comes OFF completely (Season Watch and "Another One" go with it). "I never liked it."
+- [ ] In its place, a small Porch card with the porch icon: "THE PORCH · OUR COMMUNITY / Good people between
+      meetings. / Opens October 20. → See what's coming". From launch day it switches itself to "→ Come hang out".
+- [ ] "MAKE CARD" becomes "MAKE MY CARD"; small line "A picture of your date and days. No name on it."
+- [ ] The Book Shelf (Big Book + Also on the shelf) moves off the home page onto the Tools page.
 
-THE READING PAGE
-- [ ] "BACK TO READINGS" goes to the home page, which the bottom bar calls "Today". Two names, one place.
-- [ ] "EVERY READING": every reading of what? (It is the Another Day Sober list.)
+READING PAGE
+- [ ] "BACK TO READINGS" becomes "BACK", a true back (home or the Porch, wherever they came from).
+- [ ] "EVERY READING" becomes "ALL 365 READINGS".
 
-AUDIO
-- [ ] The tab says Audio, the page says Listen, one big button says Videos, and every row says "Watch".
-      Is it listening or watching?
-- [ ] Two sets of buttons do nearly the same job: Audiobooks / Videos / Surprise Me on top, then
-      Speaker Tapes / Audiobooks right under it.
+LISTEN (was Audio)
+- [ ] "Watch" on each row becomes "Play".
+- [ ] Take out the Speaker Tapes / Audiobooks switch IF it only repeats the three big buttons. Check first.
 
 FUN
-- [ ] "A Very Very Very Unofficial Story of How We Got Here. The truth. The laughs. The legacy." It doesn't
-      say it's a game. PLAY NOW could be a video.
+- [ ] A small "GAME" tag on both cards.
 
 TOOLS
-- [ ] Fear Compass has a "Send" button, right under "This stays on your phone. Nobody sees it." (Burn Pad
-      handles it: its button says "Send (it won't)".)
-- [ ] Burn Pad starts with a "To:" line with no hint what goes there.
-- [ ] "About this tool" is the only explanation and it's at the bottom, after the box you type in.
+- [ ] Fear Compass: "Send" becomes "Next".
+- [ ] Burn Pad: faint words in the To box: "Who's this about? (a person, a place, yourself)".
+- LEFT AS IS: "About this tool" stays at the bottom.
 
 COINS, PILE, SOBER DATE, MEME
-- [ ] Coins, signed out: "Your coins live on your account. Make one, no email, no name..." Make one what,
-      a coin or an account? And the button under it says SET MY DATE, not make an account.
-- [ ] "No email, no name" here, but the Porch asks for an email to post. True (it's never kept), but it
-      looks like a contradiction to somebody who reads both.
-- [ ] Survival Pile: "Your pile starts with the night you decided." Nothing says what the Pile is or what's in it.
-- [ ] Sober date page with no date set still shows SHARE MY CARD and CHANGE MY SOBER DATE. There's nothing
-      to share or change yet. Could say Set my sober date.
-- [ ] Meme page: the paragraph explains buttons called "Share this one" and "Share the link". The buttons
-      on the page are SAVE THE IMAGE, COPY THE LINK and POST TO FACEBOOK.
+- [ ] Coins, signed out: "Set your sober date and every coin you've already earned shows up here."
+- [ ] Survival Pile: add "Celebration cards you earn along the way. A new one shows up on certain days."
+- [ ] Sober date page with no date: one button, "SET MY SOBER DATE".
+- [ ] Meme page: delete the paragraph that explains buttons that aren't there.
 
 SIGN-UP
-- [ ] "Level 1 · FREE" and "Level 2 · ALSO FREE": "levels" sounds like a game or a paid tier.
-- [ ] The page is called "Your Anonymous Account", then Level 2 asks for an email.
+- [x] No more "Level". "Look around · FREE" and "Pull up a chair · ALSO FREE", everywhere in sign-up.
+- [x] Page title "Your Anonymous Account" becomes "Your Account".
+- [x] Coming-soon page says October 20, not "the end of October".
 
 THE PORCH
-- [ ] "Spin" is never explained before somebody is asked to "Give it a spin". (It's a short video.)
-- [ ] Under every post: Love this, Me too, then three buttons that are pictures only (comment, reshare,
-      send). Reshare and send are easy to mix up.
-- [ ] "Me too": could be read as the MeToo movement by somebody new. Here it means "same here".
-- [ ] Post tags: JUST TALKING / EXPERIENCE / STRENGTH / HOPE / A QUESTION / A WIN. The profile has a WINS
-      tab but no tab for the others.
-- [ ] "Members only" vs "Public" on a profile: doesn't say members of what, or who "public" is.
-- [ ] The BETA TESTER badge on profiles: after launch, new people won't know what it means.
-- [ ] The coming-soon page says "opens at the end of October". The countdown Spins say October 20.
+- [x] Finding: one name, "Find people" ("Find" on the small profile button). "Find friends" comes out of the menu.
+- [x] Inviting: one name, "Invite a friend" ("Invite" on the small profile button).
+- [x] Profile name box: "Name people see (optional)" + "Leave it blank and people see your username."
+- [x] "Alerts" is the one word for the setting. "Buzz" only as the friendly word. No "notifications".
+- [x] What a Spin is: the selfie misfit slides into "Give it a spin" (v149). No red dot.
+- [x] "Me too" comes off. The row is Love this · Comment · Reshare · (send), the first three in words.
+- [x] Members only: "Only people signed in to Recovery Misfits can see your profile and shares."
+      Public: "Anyone with the link can see them, signed in or not."
+- [x] BETA TESTER badge becomes "FOUNDING MISFIT".
+- LEFT AS IS: the WINS tab on profiles.
+
+ITS OWN BUILD, AFTER THE WORDING
+- [ ] "Share to the Porch" as the FIRST choice everywhere the site has a share button (sober date card, meme,
+      today's reading, a coin, a Survival Pile card). Opens a new Porch post with the picture in it; nothing posts
+      by itself. Shown to everybody now; before launch it lands on the "Opens October 20" page. Mike: "let the
+      user get a little hungry to wonder what the porch is".
+- [ ] LATER: quick comments (one-tap replies), now that "Me too" is gone.
+- JUST A QUESTION, NOT A TO-DO: mass email isn't possible (emails are never kept). A buzz to everybody or a
+  pinned post could do that job.
 
 ## How Mike builds
 1. Get it working. 2. Get it simple. 3. Make it look really cool.

@@ -332,7 +332,15 @@ html.sp-made .sp-selfie{display:none}html.sp-made .sp-mk .sp-cam svg{animation:n
     await P().loadPeople(list.map((l) => l.user_id).concat(list.map((l) => l.respunBy).filter(Boolean)));
     sets.set('rail', list);
     /* somebody who has made a Spin doesn't need the selfie hint any more */
-    try { if (meId() && list.some((l) => l.user_id === meId())) localStorage.setItem('rm_spin_made', '1'); if (localStorage.getItem('rm_spin_made')) document.documentElement.classList.add('sp-made'); } catch (_) {}
+    /* PER ACCOUNT, not per phone (3 Oct 2026, Mike: "I don't see the new misfits graphic"). It was
+       one flag for the whole browser, so once tacomike417 had a Spin, every other account on that
+       phone lost the hint too, and so did somebody signed out. */
+    try {
+      localStorage.removeItem('rm_spin_made');
+      const k = 'rm_spin_made_' + (meId() || '');
+      if (meId() && list.some((l) => l.user_id === meId())) localStorage.setItem(k, '1');
+      document.documentElement.classList.toggle('sp-made', !!meId() && !!localStorage.getItem(k));
+    } catch (_) {}
     /* THE FILM STRIP (1 Oct 2026, Mike picked it from the mockups: the circles looked
        like profiles). Tall frames on a strip of film, each with its length, so it reads
        as video at a glance. Make is the first frame; respins carry the gold ↻. */
@@ -964,7 +972,7 @@ html.sp-made .sp-selfie{display:none}html.sp-made .sp-mk .sp-cam svg{animation:n
       const r = await callSpins({ action: 'done', id, faces_ok: !!okFaces });
       if (r.status === 'ready') {
         uploading = false;
-        try { localStorage.setItem('rm_spin_made', '1'); document.documentElement.classList.add('sp-made'); } catch (_) {}
+        try { if (meId()) localStorage.setItem('rm_spin_made_' + meId(), '1'); document.documentElement.classList.add('sp-made'); } catch (_) {}
         pillSay('🎉 Your Spin is live! Tap to watch', async () => {
           pillGone(0);
           const d = await P().rest('porch_spins?id=eq.' + id + '&select=' + COLS);
