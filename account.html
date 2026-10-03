@@ -235,23 +235,28 @@
        Porch) is for the beta testers until the Porch opens; everybody else sees
        it marked "Opens end of October". -->
   <div id="levels" hidden>
+    <!-- SIGN UP OR SIGN IN, RIGHT UP TOP (3 Oct 2026, Mike: "I already have an account ... needs to
+         be up top"). The same two tabs as the next screen; it used to be a small link at the bottom. -->
+    <div class="seg" role="tablist" aria-label="Sign up or sign in" style="margin-bottom:14px">
+      <button type="button" role="tab" aria-selected="true">Sign Up</button>
+      <button type="button" role="tab" id="haveOne" aria-selected="false">Sign In</button>
+    </div>
     <p class="lede">Your recovery, your way.</p>
     <div class="lvls" role="radiogroup" aria-label="Pick your level">
       <button type="button" class="lvl" data-lvl="1" role="radio" aria-checked="false">
         <span class="radio" aria-hidden="true"></span>
         <span class="k">Level 1</span><span class="t">Anonymous</span>
-        <ul><li>Just a username and password</li><li>Your sober date follows you to a new phone</li><li>Read the Porch</li><li>No email. Nobody knows you&rsquo;re here.</li></ul>
+        <ul><li>Just a username, a password and your sober date</li><li>Read everything. You can&rsquo;t post.</li><li>No email. Nobody knows you&rsquo;re here.</li></ul>
       </button>
       <button type="button" class="lvl" data-lvl="2" id="lvl2" role="radio" aria-checked="false">
         <span class="radio" aria-hidden="true"></span>
         <span class="k">Level 2</span><span class="t">I&rsquo;m comfortable here</span>
-        <ul><li>Everything in Level 1</li><li>Post, make Spins, add friends, message</li><li>Confirm an email once. It&rsquo;s never kept or shown.</li></ul>
+        <ul><li>Everything in Level 1</li><li>Post, make Spins, add friends, send messages</li><li>Confirm an email once. It&rsquo;s never kept or shown.</li></ul>
         <span class="soon" id="lvl2soon" hidden>Opens end of October</span>
       </button>
     </div>
     <p class="say" id="sayLvl" role="status" aria-live="polite"></p>
     <button type="button" class="go" id="lvlNext" disabled style="margin-top:14px">Next</button>
-    <button type="button" class="textlink" id="haveOne">I already have an account</button>
   </div>
 
   <!-- ============ SIGNED OUT ============ -->
@@ -274,8 +279,8 @@
        No email, no real name, nobody knows you&rsquo;re here.</p>
 
     <div class="seg" role="tablist" aria-label="Create an account or sign in">
-      <button type="button" role="tab" id="tabNew" aria-selected="true">Create One</button>
-      <button type="button" role="tab" id="tabOld" aria-selected="false">I Have One</button>
+      <button type="button" role="tab" id="tabNew" aria-selected="true">Sign Up</button>
+      <button type="button" role="tab" id="tabOld" aria-selected="false">Sign In</button>
     </div>
 
     <form id="form" novalidate>
@@ -727,6 +732,8 @@
       }
       say($("sayLvl"), "");
       chosen = l; paintChoice();
+      /* Next sat below the screen, behind the coin rail. Bring it up where they can see it. */
+      try { $("lvlNext").scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {}
     });
   });
   $("lvlNext").addEventListener("click", function () { if (chosen) goForm(chosen, "new"); });
