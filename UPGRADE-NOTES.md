@@ -774,3 +774,4 @@ without making it confusing.
 - [x] "Celebrate a win" is off the + menu (Mike: coins and piles already have share all over them). The win layer and `openWin` code are still in porch.html, just unreachable; old wins still show on profiles.
 - [x] v172: Spin view counts are just the eye and the number, no word "views".
 - [x] v173: the "Welcome to the Porch" tour never pops up by itself anymore (it was every visit until "Don't show me this again" was ticked; that checkbox is gone). Still opens from the menu, "How the Porch works", and from the small Getting started strip.
+- [x] v174: sticker editor on iPhone: the Words and Stickers lists were squashed ("menus all jacked up"); rows are a fixed height now. NOT tested on a real iPhone from here; Mike to confirm.

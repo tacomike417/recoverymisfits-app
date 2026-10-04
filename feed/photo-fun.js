@@ -98,10 +98,10 @@
 .pfx-tabs{display:flex;gap:8px;margin-bottom:10px}
 .pfx-tabs button{padding:8px 15px;border-radius:999px;border:1px solid #3a3426;background:none;color:#958c78;font:700 14px Arial,sans-serif;cursor:pointer}
 .pfx-tabs button.on{background:#e0bd6a;border-color:#e0bd6a;color:#17130b}
-.pfx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:26vh;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
-.pfx-grid button{aspect-ratio:1;padding:6px;border-radius:12px;border:1px solid #3a3426;background:#1f1d18;display:grid;place-items:center;overflow:hidden;cursor:pointer}
-.pfx-grid button.wide{grid-column:span 2;aspect-ratio:2.1}
-.pfx-grid img{max-width:100%;max-height:100%;pointer-events:none}
+.pfx-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:74px;align-content:start;gap:8px;max-height:26vh;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.pfx-grid button{display:block;height:74px;min-width:0;padding:6px;border-radius:12px;border:1px solid #3a3426;background:#1f1d18;overflow:hidden;cursor:pointer}
+.pfx-grid button.wide{grid-column:span 2}
+.pfx-grid img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 .pfx-note{margin:8px 2px 0;color:#958c78;font:400 13px/1.35 Arial,sans-serif}
 .pfx-none{grid-column:1/-1;margin:6px 2px;color:#c9bfa8;font:400 14px/1.4 Arial,sans-serif}`;
   function addCSS() { if (document.getElementById('photo-fun-css')) return; const s = document.createElement('style'); s.id = 'photo-fun-css'; s.textContent = CSS; document.head.appendChild(s); }
@@ -147,7 +147,8 @@
         sel = list.length - 1; paint();
       }
 
-      /* the tray */
+      /* the tray. v174: fixed-height rows, no aspect-ratio. On iPhone the Words and Stickers lists (the long ones that
+         scroll) came out squashed on top of each other; Safari shrinks aspect-ratio rows inside a box with a max-height. */
       function tray(tab) {
         el.querySelectorAll('.pfx-tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
         if (tab === 'stickers') {
