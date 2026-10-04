@@ -849,6 +849,17 @@ html.fullon #main{visibility:hidden}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .thumbs div{position:relative;width:86px;height:86px;border-radius:12px;overflow:hidden;background:#000}
 .thumbs img{width:100%;height:100%;object-fit:cover}
+.thumbs button.deco{top:auto;right:auto;left:4px;bottom:4px;background:var(--gold);color:#17130b}
+.thumbs.one div{width:132px;height:132px}
+#cfun{margin-top:10px}
+#cfun .fbtns{display:flex;gap:8px;flex-wrap:wrap}
+#cfun button{padding:11px 14px;border-radius:12px;border:1px solid var(--gold);background:none;color:var(--gold);font:700 14px Arial,sans-serif;cursor:pointer}
+#cfun button.q{border-color:var(--fline);color:var(--cream)}
+#cfun button.on{background:var(--gold);color:#17130b}
+#cfun button:disabled{opacity:.5}
+#cfun input{display:block;width:100%;margin:10px 0 0;padding:12px 14px;border-radius:12px;border:1px solid var(--fline);background:var(--field);color:var(--cream);font:700 16px Arial,sans-serif}
+#cfun .fl{margin:12px 0 6px;font:500 11px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--gold)}
+#cfun .fh{margin:8px 0 0;color:var(--faint);font:400 13px Arial,sans-serif}
 .thumbs button{position:absolute;top:4px;right:4px;width:26px;height:26px;border:0;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font:700 14px Arial,sans-serif;cursor:pointer}
 .addpic{display:flex;align-items:center;gap:10px;width:100%;margin-top:12px;padding:13px 14px;border-radius:14px;border:1.5px dashed var(--fline);background:none;color:var(--cream);font:700 15px Arial,sans-serif;cursor:pointer}
 .styles{padding:2px 2px 6px}
@@ -1183,7 +1194,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v166</span>
+  <span class="ver" id="ver">v167</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1303,6 +1314,8 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="atbar" id="atc"></div>
     <div class="count" id="ccount"></div>
     <div class="thumbs" id="thumbs"></div>
+    <!-- PHOTO FUN (4 Oct 2026): stickers on a photo, and a Polaroid collage. feed/photo-fun.js draws them. -->
+    <div id="cfun" hidden></div>
     <button type="button" class="addpic" id="addpic"><span class="ic" data-ico="camera"></span><span><b>Add photos</b><small>Up to 4</small></span></button>
     <input type="file" id="cfile" accept="image/*" multiple hidden><input type="file" id="cfilecam" accept="image/*" capture="environment" hidden>
     <div class="lab">TAG IT <span>optional</span></div>
@@ -2297,7 +2310,7 @@ html.kb .ch-bar{padding-bottom:8px}
       if (d && d.mode && !m) m = d.mode;
       mode = m || "say";
       need = (d && d.need) || "talk"; style = d && d.style != null ? d.style : Math.floor(Math.random() * 10);
-      $("cbody").value = (d && d.body) || ""; photos = [];
+      $("cbody").value = (d && d.body) || ""; photos = []; collage = null; decoOf = {};
       if (d && d.body) toast("Your draft is back.");
     }
     $("cerr").textContent = "";
@@ -2316,12 +2329,16 @@ html.kb .ch-bar{padding-bottom:8px}
     $("cbody").placeholder = (mode === "say" && HOLDER[need]) || M.holder;
     var t = $("cbody").value.trim();
     $("ccount").textContent = mode === "sign" ? t.length + " / " + SIGN_MAX : t.length > 1500 ? t.length + " / 2000" : "";
-    $("thumbs").innerHTML = photos.map(function (p, i) { return '<div><img src="' + pic(p) + '" alt="">' + (editingPost ? "" : '<button type="button" data-unpic="' + i + '" aria-label="Remove photo">✕</button>') + "</div>"; }).join("");
-    $("addpic").hidden = !!editingPost || mode !== "snap" || photos.length >= 4;
+    $("thumbs").innerHTML = photos.map(function (p, i) { return '<div><img src="' + pic(p) + '" alt="">' + (editingPost ? "" : (collage ? "" : '<button type="button" data-unpic="' + i + '" aria-label="Remove photo">✕</button>') +
+      (window.PorchPhotoFun ? '<button type="button" class="deco" data-deco="' + i + '" aria-label="Add stickers to this photo">✨</button>' : "")) + "</div>"; }).join("");
+    $("thumbs").classList.toggle("one", photos.length === 1);
+    $("addpic").hidden = !!editingPost || mode !== "snap" || photos.length >= 4 || !!collage;
+    paintFun();
     /* Snapshot: photos come first, the words are the caption */
     var body = $("cbody"), tb = $("thumbs"), ap = $("addpic");
     if (mode === "snap") { body.parentNode.insertBefore(ap, body); body.parentNode.insertBefore(tb, ap); }
     else { $("ccount").after(tb); tb.after(ap); }
+    tb.after($("cfun"));
     $("cardpick").hidden = mode !== "sign";
     $("cmodes").hidden = !!editingPost || mode === "snap";
     document.querySelectorAll("#cmodes [data-cm]").forEach(function (b) { b.classList.toggle("on", b.dataset.cm === mode); });
@@ -2336,7 +2353,81 @@ html.kb .ch-bar{padding-bottom:8px}
   $("cmodes").addEventListener("click", function (e) { var b = e.target.closest("[data-cm]"); if (b) { mode = b.dataset.cm; paintCompose(); $("cbody").focus(); } });
   $("needs").addEventListener("click", function (e) { var b = e.target.closest("[data-need]"); if (b) { need = need === b.dataset.need ? "talk" : b.dataset.need; paintCompose(); } });
   $("styles").addEventListener("click", function (e) { var b = e.target.closest("[data-style]"); if (b) { style = +b.dataset.style; paintCompose(); } });
-  $("thumbs").addEventListener("click", function (e) { var b = e.target.closest("[data-unpic]"); if (b) { photos.splice(+b.dataset.unpic, 1); paintCompose(); } });
+  $("thumbs").addEventListener("click", function (e) {
+    var d = e.target.closest("[data-deco]"); if (d) return collage ? decoCollage() : decoPhoto(+d.dataset.deco);
+    var b = e.target.closest("[data-unpic]"); if (b) { photos.splice(+b.dataset.unpic, 1); paintCompose(); }
+  });
+
+  /* ================================================================ PHOTO FUN (4 Oct 2026)
+     Mike: "a photo collage ... with a hashtag on it ... like a polaroid collage ... a bunch of
+     little graphics ... we could bake into the pics ... you get to see what the post looks like
+     before you post it." feed/photo-fun.js makes the pictures; this is the buttons.
+       STICKERS  ✨ on a photo opens the sticker screen. Done bakes them into that photo. The
+                 clean photo is kept (decoOf), so opening it again lets them move things.
+       COLLAGE   2 to 4 photos become ONE picture of Polaroids. The photos are kept (collage.src),
+                 so Shuffle, a new look, the hashtag and Undo all work until they share. */
+  var decoOf = {}, decoN = 0, collage = null, funBusy = false;
+  function decoKey(d) { return d.length + ":" + d.slice(-48); }
+  async function decoPhoto(i) {
+    if (!window.PorchPhotoFun || funBusy || photos[i] == null) return;
+    var had = decoOf[decoKey(photos[i])], base = had ? had.orig : photos[i];
+    var r = await window.PorchPhotoFun.decorate(base, had ? had.st : []);
+    if (!r) return;
+    if (r.stickers.length) { photos[i] = r.data; decoOf[decoKey(r.data)] = { orig: base, st: r.stickers }; }
+    else photos[i] = base;
+    paintCompose();
+  }
+  async function drawCollage() {
+    if (!collage || funBusy) return;
+    funBusy = true; paintFun();
+    try { photos = [await window.PorchPhotoFun.apply(await window.PorchPhotoFun.collage(collage.src, collage), collage.st)]; }
+    catch (e) { photos = collage.src.slice(); collage = null; toast("The collage didn't work. Your photos are still here."); }
+    funBusy = false; paintCompose();
+  }
+  function paintFun() {
+    var el = $("cfun");
+    if (!window.PorchPhotoFun || editingPost || mode !== "snap" || !photos.length) { el.hidden = true; el.innerHTML = ""; return; }
+    el.hidden = false;
+    if (!collage) {
+      el.innerHTML = '<div class="fbtns">' + (photos.length === 1 ? '<button type="button" data-fun="deco">✨ Add stickers</button>' : "") +
+        (photos.length >= 2 ? '<button type="button" data-fun="collage">Make a collage</button>' : "") + "</div>" +
+        '<p class="fh">' + (photos.length >= 2 ? "Tap ✨ on a photo for stickers, or turn them all into one Polaroid collage." : "Add another photo and you can make a Polaroid collage.") + "</p>";
+      return;
+    }
+    var keep = document.activeElement && document.activeElement.id === "cftag", L = [["wood", "Wood table"], ["cork", "Corkboard"], ["black", "Black"]];
+    if (keep && el.querySelector("#cftag")) {          /* typing the hashtag: don't rebuild the box under their thumbs */
+      el.querySelectorAll("[data-fbg]").forEach(function (b) { b.classList.toggle("on", b.dataset.fbg === collage.bg); b.disabled = funBusy; });
+      return;
+    }
+    el.innerHTML = '<div class="fl">HASHTAG ON THE COLLAGE</div><input id="cftag" maxlength="24" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="#SOBERSUNDAY" value="' + esc(collage.tag || "") + '">' +
+      '<div class="fl">THE LOOK</div><div class="fbtns">' + L.map(function (x) { return '<button type="button" class="q' + (collage.bg === x[0] ? " on" : "") + '" data-fbg="' + x[0] + '"' + (funBusy ? " disabled" : "") + ">" + x[1] + "</button>"; }).join("") + "</div>" +
+      '<div class="fbtns" style="margin-top:8px"><button type="button" data-fun="shuffle"' + (funBusy ? " disabled" : "") + '>🔀 Shuffle</button><button type="button" data-fun="deco"' + (funBusy ? " disabled" : "") + '>✨ Add stickers</button><button type="button" class="q" data-fun="undo">Undo collage</button></div>';
+  }
+  $("cfun").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b || funBusy) return;
+    if (b.dataset.fbg && collage) { collage.bg = b.dataset.fbg; return drawCollage(); }
+    var f = b.dataset.fun;
+    if (f === "deco") return collage ? decoCollage() : decoPhoto(0);
+    if (f === "collage") { collage = { src: photos.slice(0, 4), bg: "wood", tag: "", seed: 1, st: [] }; return drawCollage(); }
+    if (f === "shuffle" && collage) { collage.seed++; return drawCollage(); }
+    if (f === "undo" && collage) { photos = collage.src.slice(); collage = null; paintCompose(); }
+  });
+  var tagT = null;
+  $("cfun").addEventListener("input", function (e) {
+    if (e.target.id !== "cftag" || !collage) return;
+    var v = e.target.value.replace(/\s+/g, "").toUpperCase(); if (v && v.charAt(0) !== "#") v = "#" + v;
+    v = v.replace(/[^#A-Z0-9_]/g, "").slice(0, 24); if (e.target.value !== v) e.target.value = v;
+    collage.tag = v === "#" ? "" : v;
+    clearTimeout(tagT); tagT = setTimeout(drawCollage, 450);
+  });
+  /* stickers on the finished collage */
+  async function decoCollage() {
+    if (!collage || funBusy) return;
+    var clean = await window.PorchPhotoFun.collage(collage.src, collage);
+    var r = await window.PorchPhotoFun.decorate(clean, collage.st || []);
+    if (!r || !collage) return;
+    collage.st = r.stickers; photos = [r.stickers.length ? r.data : clean]; paintCompose();
+  }
   /* camera or library: Android asks first, iPhone's own menu already offers both */
   var psrcFor = null;
   function pickPhotos(lib, cam) {
@@ -2417,7 +2508,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (r.need === "confirm") { pending = function () { openCompose(mode, false); }; await closeTop(); cfReset(); return open("confirm"); }
     if (!r.ok) { $("cerr").textContent = r.error || "That didn't post. Try again."; return; }
     try { localStorage.removeItem(DRAFT); } catch (e) {}
-    $("cbody").value = ""; photos = [];
+    $("cbody").value = ""; photos = []; collage = null; decoOf = {};
     if (composeGroup) {          /* shared in a group: back to the group, not the main feed */
       var cg = composeGroup; composeGroup = null;
       await closeTop(); await openGroup(cg, true); $("gpage").scrollTop = 0;
@@ -2806,7 +2897,7 @@ html.kb .ch-bar{padding-bottom:8px}
     mode = ph ? "snap" : p.card_style != null && fitsCard(p.body || "") ? "sign" : "say";
     need = NEED[p.need] && ["experience", "strength", "hope", "question"].indexOf(p.need) >= 0 ? p.need : "talk";
     style = p.card_style != null ? p.card_style : 0;
-    $("cbody").value = p.body || ""; photos = (p.photo_paths || []).slice();
+    $("cbody").value = p.body || ""; photos = (p.photo_paths || []).slice(); collage = null;
     tagGroup = p.tag_group_id || null;
     openCompose(mode, false);
   }
@@ -5845,6 +5936,7 @@ html.kb .ch-bar{padding-bottom:8px}
 </script>
 <script src="/feed/sound.js?v=3" defer></script>
 <script src="/feed/spins/spins.js?v=74" defer></script>
+<script src="/feed/photo-fun.js?v=1" defer></script>
 <script src="/feed/tour.js?v=5" defer></script>
 </body>
 </html>

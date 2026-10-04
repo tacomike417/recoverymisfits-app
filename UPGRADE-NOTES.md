@@ -744,3 +744,9 @@ without making it confusing.
 - Shares out on the Porch that are tagged with a group show on that group's page under ON THE PORCH, to everybody, joined or not. So a newcomer who taps the GROUP button never lands in an empty room.
 - What members share inside the group is still members only, under IN THE GROUP.
 - SOBER RIOT memes: 60 in line (`data/sober-riot.json`), 3 a day. New batches from ChatGPT go in `Downloads`, Claude adds them.
+
+## Photo stickers + Polaroid collage (4 Oct 2026, v167)
+- `feed/photo-fun.js`. In Share a photo: ✨ Add stickers (Words, Stickers, My days; up to 8; drag, pinch or pull the corner; Done bakes them into the photo), and Make a collage (2 to 4 photos as Polaroids on a wood table, corkboard or black, a hashtag across them, Shuffle, Undo).
+- All on the phone. What posts is one ordinary photo, so the photo check and everything else is unchanged.
+- Fonts: `assets/fonts/dancing-script-700.woff2`, `permanent-marker-400.woff2` (both free to use).
+- NOT DONE YET: writing a few words on each Polaroid (it was in the mockup); the collage hashtag is only in the picture, it is not added to the words under the share; stickers on photos in Messages.
