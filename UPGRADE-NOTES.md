@@ -49,6 +49,14 @@ Everything that has to happen to open the Porch. Nothing here before October 20.
       phone for alerts right there; on an iPhone in a browser tab it shows the Home Screen steps. The after-hello pop-up
       does not also ask while the tour is walking them through. (feed/tour.js, Porch.alertsState / alertsOn.)
 
+## 🗂️ THE SHARE DESK (4 Oct 2026, Mike: "i dont want to get confused on if i have shared it yet")
+- [x] v159: /feed/share-desk.html, in the menu as "Share desk". MODERATORS ONLY (locked by sign-in, checked again in the
+      database; no password in the code because this repo is public). Lists every Spin and picture post by recoverymisfits,
+      newest first. "Get the video / picture" hands it to the phone's Share menu. Tick Instagram and Facebook ("I did it");
+      when both are ticked it moves to DONE. "Skip this one" archives without sharing. "Put it back" undoes.
+      It does not post anywhere by itself. Table: porch_share_desk (porch_47_share_desk.sql).
+- [ ] Same desk for Infinite Pulls (Loops).
+
 ## 📝 THE BIG LIST (brainstorm 1 Oct 2026, Mike: "we're doing all this stuff")
 Order isn't set.
 
