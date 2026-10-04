@@ -772,3 +772,4 @@ without making it confusing.
 - [x] One picture goes straight to the share screen. 2 to 4 pictures come up already made into a collage, with one switch under it: COLLAGE / SWIPE THROUGH. "+ Photos" now adds to a collage (up to 4). The bottom "Collage" button is now "Look" and only shows while it is a collage.
 - [x] Clear headers: SAY SOMETHING, SHARE PHOTOS, MAKE A CARD, EDIT SHARE (was "NEW SHARE" for all).
 - [x] "Celebrate a win" is off the + menu (Mike: coins and piles already have share all over them). The win layer and `openWin` code are still in porch.html, just unreachable; old wins still show on profiles.
+- [x] v172: Spin view counts are just the eye and the number, no word "views".

@@ -426,7 +426,7 @@
      counts, for anybody, the maker included. Nothing is multiplied: each one is a real play. */
   const fmtN = (n) => { n = Number(n) || 0; return n < 1000 ? String(n) : n < 10000 ? (Math.floor(n / 100) / 10) + 'K' : n < 1e6 ? Math.floor(n / 1000) + 'K' : (Math.floor(n / 1e5) / 10) + 'M'; };
   const EYE = '<svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-  const viewsLabel = (l) => { const n = Number(l.views) || 0; return n ? fmtN(n) + (n === 1 ? ' view' : ' views') : ''; };
+  const viewsLabel = (l) => { const n = Number(l.views) || 0; return n ? fmtN(n) : ''; };      /* v172, Mike: "just make an eye take off the word views" */
   const lastView = new Map();
   function countView(l, el) {
     if (!l || !l.id || l.status !== 'ready') return;
