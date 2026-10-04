@@ -461,6 +461,58 @@ async function starkSpins(hour: number) {
   return { posted: 1, numbers: [queue[0].n], waiting: queue.length - 1 };
 }
 
+/* SOBER RIOT (4 Oct 2026, Mike: "big rock and roll look at me style recovery group with simple
+ * powerful memes that post a few times a day"). The soberriot account posts picture memes ON THE
+ * PORCH (everybody sees them), each one tagged with the SOBER RIOT group so the button under it
+ * leads there. The list is /data/sober-riot.json, the pictures are in /assets/house/soberriot/memes/.
+ *   - the first three go up at once, dated a day apart going back
+ *   - after that: up to 3 a day, between 7am and 9pm Eastern, at least 4 and a half hours apart
+ *   - each runs once, in the order of the list; new ones are added at the END */
+const RIOT = "soberriot";
+const RIOT_PER_DAY = 3;
+async function soberRiot(day: string, hour: number) {
+  const r = await fetch(SITE + "/data/sober-riot.json", { headers: { "cache-control": "no-cache" } });
+  if (!r.ok) return { posted: 0, error: "could not read the meme list (" + r.status + ")" };
+  const j = await r.json();
+  const items = (Array.isArray(j.items) ? j.items : []).filter((x: any) => /^[\w.-]+\.(jpg|jpeg|png|webp)$/i.test(String(x.file || "")));
+  if (!items.length) return { posted: 0, why: "no memes on the list yet" };
+  const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", RIOT).maybeSingle();
+  if (!m) return { posted: 0, error: "soberriot is not on the Porch yet" };
+  const { data: g } = await admin.from("porch_groups").select("id, status").eq("slug", "sober-riot").eq("status", "open").maybeSingle();
+  const led = await ledger(RIOT, "riot");
+  if (!led) return { posted: 0, error: "no ledger" };
+  const left = items.filter((x: any) => !led.has(String(x.file)));
+  if (!left.length) return { posted: 0, why: "they have all run", total: led.size };
+  const put = async (it: any, when: Date) => {
+    const { error } = await admin.from("porch_posts").insert({
+      user_id: m.user_id, need: "talk", body: String(it.words || "").slice(0, 300) || null,
+      photo_paths: ["/assets/house/soberriot/memes/" + it.file], created_at: when.toISOString(),
+      ...(g ? { tag_group_id: g.id } : {}),
+    });
+    if (!error) await mark(RIOT, "riot", String(it.file), when.toISOString());
+    return error;
+  };
+  if (!led.size) {
+    let posted = 0;
+    for (const it of left.slice(0, 3)) {
+      const err = await put(it, new Date(Date.now() - (2 - posted) * 86400000));
+      if (err) return { posted, error: err.message };
+      posted++;
+    }
+    return { posted, waiting: left.length - posted, starting: true };
+  }
+  if (hour < 7 || hour > 21) return { posted: 0, why: "quiet hours", waiting: left.length };
+  const times = [...led.values()].map((t) => Date.parse(t)).filter((t) => t <= Date.now() + 60000);
+  const dayOf = (t: number) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date(t));
+  const today = times.filter((t) => dayOf(t) === day).length;
+  if (today >= RIOT_PER_DAY) return { posted: 0, why: "today's " + RIOT_PER_DAY + " are up", waiting: left.length };
+  const last = Math.max(...times);
+  if (Date.now() - last < 4.5 * 3600 * 1000) return { posted: 0, why: "too soon after the last one", waiting: left.length };
+  const err = await put(left[0], new Date());
+  if (err) return { posted: 0, error: err.message };
+  return { posted: 1, file: left[0].file, waiting: left.length - 1 };
+}
+
 /* WELCOME MATT'S PINNED SPINS (4 Oct 2026, Mike: "i want to make three spins for welcome matt ...
  * i am going to pin the three up on his profile"). Numbered 4001 and up. Every one that is waiting
  * goes up at the next knock, already pinned, dated a day apart going back so they don't pile up
@@ -500,6 +552,7 @@ Deno.serve(async (req) => {
     try { out.misfit_spins = await misfitSpins(hour, minute); } catch (e) { out.misfit_spins = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.misfit_daily = await misfitDaily(day, hour, minute); } catch (e) { out.misfit_daily = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.stark = await starkSpins(hour); } catch (e) { out.stark = { posted: 0, error: String((e as Error).message || e) }; }
+    try { out.sober_riot = await soberRiot(day, hour); } catch (e) { out.sober_riot = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.matt = await mattSpins(); } catch (e) { out.matt = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.sponsor = await sponsor(day, hour); } catch (e) { out.sponsor = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.another_day_sober = await ads(day, hour); } catch (e) { out.another_day_sober = { posted: 0, error: String((e as Error).message || e) }; }
