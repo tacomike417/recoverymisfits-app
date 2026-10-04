@@ -8,6 +8,8 @@
  *   leave    {}                                        -- delete everything they put on the Porch
  *   dm_send  { to, body?, photos?, sure? }             -- Messages: friends only, rated R not X
  *   dm_unsend { id }                                   -- take back your own message
+ *   dm_send { to, poof: true, photos: [one] }          -- a Poof: one picture, opened once, 10 seconds (porch_55_poof.sql)
+ *   poof_open / poof_done / poof_report { id }         -- the person it was sent to: open it once, finish, or report it
  *   mod_list / mod_act { key, what, who? }             -- moderators only: the reports screen
  *
  * Checks, in order, before anything is saved:
@@ -33,7 +35,7 @@
  *   npx supabase functions deploy porch --project-ref rlytvfehbglsjfvprtbp
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { decodeBase64 } from "jsr:@std/encoding@1/base64";
+import { decodeBase64, encodeBase64 } from "jsr:@std/encoding@1/base64";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -248,6 +250,39 @@ async function dmPhoto(bytes: Uint8Array, b64: string, facesOk = false): Promise
 // in messages, only slurs and threats are stopped (adults can cuss and flirt in private)
 const SLURS = words(["nigger", "nigga", "faggot", "fag", "retard", "tranny", "chink", "spic", "kike", "wetback", "raghead", "towelhead", "gook", "beaner", "dyke"]);
 
+/* POOF (4 Oct 2026, Mike: "disappearing pictures ... we're going to call them poof"). One picture, opened once,
+   for POOF_SECONDS. It sits in the porch-poof bucket, which no phone can read; only this function hands it over.
+   Who may send one is the database's call (porch_poof_can): friends, 5 messages each way, both switched on.
+   The picture rule is the Messages rule (dmPhoto): spicy is fine, full nudity is blocked. */
+const POOF_SECONDS = 10, POOF_KEEP_MIN = 15, POOF_LIFE_H = 24;
+const POOF_WHY: Record<string, string> = {
+  friends: "You can only send a Poof to a friend.",
+  rapport: "Poof opens up once you two have messaged back and forth a bit more.",
+  me_off: "Turn Poof on first.",
+  them_off: "They don't have Poof turned on.",
+};
+/* opened Poofs come off the server 15 minutes later (that window is what lets a report be looked at);
+   ones nobody opened go after a day. Reported ones stay until a moderator has looked. */
+async function poofSweep() {
+  try {
+    const seenBefore = new Date(Date.now() - POOF_KEEP_MIN * 60_000).toISOString(), madeBefore = new Date(Date.now() - POOF_LIFE_H * 3600_000).toISOString();
+    const { data } = await admin.from("porch_dm").select("id, photo_paths").eq("poof", true).eq("poof_reported", false).neq("photo_paths", "{}")
+      .or("poof_seen_at.lt." + seenBefore + ",created_at.lt." + madeBefore).limit(40);
+    for (const m of data || []) {
+      if (m.photo_paths?.length) await admin.storage.from("porch-poof").remove(m.photo_paths);
+      await admin.from("porch_dm").update({ photo_paths: [] }).eq("id", m.id);
+    }
+  } catch { /* cleaning up never stops a message */ }
+}
+/* the Poof with this id, if this person is the one it was sent TO */
+async function poofFor(id: string, uid: string) {
+  const { data: m } = await admin.from("porch_dm").select("id, thread_id, from_id, photo_paths, poof, poof_seen_at, poof_reported, unsent_at, created_at").eq("id", id).maybeSingle();
+  if (!m || !m.poof || m.from_id === uid) return null;
+  const { data: t } = await admin.from("porch_threads").select("a, b").eq("id", m.thread_id).maybeSingle();
+  if (!t || (t.a !== uid && t.b !== uid)) return null;
+  return m;
+}
+
 /* photos come off the server when the share (or the person) is gone */
 async function dropPhotos(paths: string[]) {
   const mine = paths.filter((p) => p && !p.startsWith("/"));
@@ -303,6 +338,10 @@ Deno.serve(async (req) => {
         if (!data?.length) break;
         await admin.storage.from("porch-dm").remove(data.map((f) => t.id + "/" + f.name));
       }
+      try {
+        const { data: pf } = await admin.storage.from("porch-poof").list(t.id, { limit: 100 });
+        if (pf?.length) await admin.storage.from("porch-poof").remove(pf.map((f) => t.id + "/" + f.name));
+      } catch { /* the bucket isn't there until porch_55_poof.sql is run */ }
     }
     if (myThreads?.length) await admin.from("porch_threads").delete().in("id", myThreads.map((t) => t.id));
     // your Spins go too, videos and all (30 Sep 2026)
@@ -396,7 +435,16 @@ Deno.serve(async (req) => {
           if (c) { who = c.user_id; body = c.body; post_id = c.post_id; hidden = c.hidden_at; }
         }
         const { data: m } = await admin.from("porch_members").select("handle, avatar_path, frozen_at").eq("user_id", who).maybeSingle();
-        out.push({ ...g, who, handle: m?.handle || "misfit", avatar_path: m?.avatar_path || null, frozen: !!m?.frozen_at, body, photos, post_id, hidden,
+        /* a reported Poof: the picture is kept so a real person can look (a moderator only, for one hour per look) */
+        const poofs: string[] = [];
+        if (g.member_id) {
+          try {
+            const { data: pm } = await admin.from("porch_dm").select("photo_paths").eq("from_id", who).eq("poof", true).eq("poof_reported", true).neq("photo_paths", "{}").limit(8);
+            const pp = (pm || []).flatMap((x: any) => x.photo_paths || []);
+            if (pp.length) { const { data: sg } = await admin.storage.from("porch-poof").createSignedUrls(pp, 3600); for (const x of sg || []) if (x.signedUrl) poofs.push(x.signedUrl); }
+          } catch { /* none */ }
+        }
+        out.push({ ...g, poofs, who, handle: m?.handle || "misfit", avatar_path: m?.avatar_path || null, frozen: !!m?.frozen_at, body, photos, post_id, hidden,
           danger: !!g.reasons.self_harm });
       }
       out.sort((a, b) => (b.danger ? 1 : 0) - (a.danger ? 1 : 0) || (a.first < b.first ? -1 : 1));
@@ -409,6 +457,12 @@ Deno.serve(async (req) => {
     if (!id || !["down", "fine", "unpause"].includes(what)) return json({ error: "Bad request." }, 400);
     if (what === "down" && kind !== "m") {
       await admin.from(kind === "p" ? "porch_posts" : "porch_comments").update({ hidden_at: new Date().toISOString() }).eq("id", id);
+    }
+    if (kind === "m") {                       /* looked at: the reported Poofs from them come off the server now */
+      try {
+        const { data: pm } = await admin.from("porch_dm").select("id, photo_paths").eq("from_id", id).eq("poof", true).eq("poof_reported", true).neq("photo_paths", "{}").limit(40);
+        for (const x of pm || []) { if (x.photo_paths?.length) await admin.storage.from("porch-poof").remove(x.photo_paths); await admin.from("porch_dm").update({ photo_paths: [] }).eq("id", x.id); }
+      } catch { /* none */ }
     }
     if (what === "unpause" && b.who) await admin.from("porch_members").update({ frozen_at: null }).eq("user_id", b.who);
     // handling the reports lifts the pause on its own once nothing is left open about them
@@ -536,6 +590,14 @@ Deno.serve(async (req) => {
     if ((sent || 0) >= 200) return json({ error: "That's a lot of messages. Take a breather and try again in a bit." }, 429);
     if (text.length > 2000) return json({ error: "That's too long." }, 400);
     const photos: string[] = Array.isArray(b.photos) ? b.photos.slice(0, 4) : [];
+    const poof = !!b.poof;
+    if (poof) {
+      if (photos.length !== 1 || text) return json({ error: "A Poof is one picture, nothing else." }, 400);
+      const { data: why, error: whyErr } = await admin.rpc("porch_poof_can", { x: user.id, y: to });
+      if (whyErr) return json({ error: "Poof isn't switched on yet." }, 400);
+      if (why !== "") return json({ error: POOF_WHY[String(why)] || "You can't send them a Poof.", need: "poof_" + why }, 403);
+      await poofSweep();
+    }
     if (!text && !photos.length) return json({ error: "Say something first." }, 400);
     if (SLURS.test(text)) return json({ error: "That has a slur in it, so it wasn't sent." }, 400);
     if (THREAT.test(text)) return json({ error: "That reads like a threat, so it wasn't sent." }, 400);
@@ -556,22 +618,58 @@ Deno.serve(async (req) => {
       const ck = await dmPhoto(bytes, b64, !!b.faces_ok); if (ck.error) return json({ error: ck.error, need: ck.need }, 400);
       racy = racy || !!ck.racy;
       const path = th.id + "/" + crypto.randomUUID() + ".jpg";
-      const { error: upErr } = await admin.storage.from("porch-dm").upload(path, bytes, { contentType: "image/jpeg" });
+      const { error: upErr } = await admin.storage.from(poof ? "porch-poof" : "porch-dm").upload(path, bytes, { contentType: "image/jpeg" });
       if (upErr) return json({ error: "The photo didn't send. Try again." }, 500);
       paths.push(path);
     }
     const { data: msg, error } = await admin.from("porch_dm")
-      .insert({ thread_id: th.id, from_id: user.id, body: text || null, photo_paths: paths, racy }).select("*").single();
-    if (error) return json({ error: "That didn't go through. Try again." }, 500);
-    const preview = text ? text.replace(/\s+/g, " ").slice(0, 90) : paths.length > 1 ? "Sent " + paths.length + " photos" : "Sent a photo";
+      .insert({ thread_id: th.id, from_id: user.id, body: text || null, photo_paths: paths, racy, ...(poof ? { poof: true } : {}) }).select("*").single();
+    if (error) { if (poof && paths.length) await admin.storage.from("porch-poof").remove(paths); return json({ error: "That didn't go through. Try again." }, 500); }
+    if (!poof) await poofSweep();
+    const preview = poof ? "Sent a Poof" : text ? text.replace(/\s+/g, " ").slice(0, 90) : paths.length > 1 ? "Sent " + paths.length + " photos" : "Sent a photo";
     const mineRead = user.id === x ? { a_read_at: msg.created_at } : { b_read_at: msg.created_at };
     await admin.from("porch_threads").update({ last_at: msg.created_at, last_from: user.id, last_preview: preview, ...mineRead }).eq("id", th.id);
     return json({ ok: true, message: msg, thread_id: th.id, care: CARE.test(text) });
   }
+  /* POOF: the person it was sent to opens it ONCE. The picture comes back inside this answer (no link to
+     save or pass around), and the row is stamped first, so a second ask gets nothing. */
+  if (b.action === "poof_open") {
+    const m = await poofFor(String(b.id || ""), user.id);
+    if (!m || m.unsent_at) return json({ error: "That Poof is gone." }, 404);
+    if (m.poof_seen_at) return json({ error: "You already opened that one." }, 410);
+    if (Date.now() - new Date(m.created_at).getTime() > POOF_LIFE_H * 3600_000 || !m.photo_paths?.length) return json({ error: "That Poof is gone." }, 410);
+    const { data: blocked } = await admin.rpc("porch_blocked", { a: user.id, b: m.from_id });
+    if (blocked) return json({ error: "That Poof is gone." }, 404);
+    const { data: got } = await admin.from("porch_dm").update({ poof_seen_at: new Date().toISOString() }).eq("id", m.id).is("poof_seen_at", null).select("id");
+    if (!got?.length) return json({ error: "You already opened that one." }, 410);
+    const { data: file, error: dlErr } = await admin.storage.from("porch-poof").download(m.photo_paths[0]);
+    if (dlErr || !file) return json({ error: "That Poof is gone." }, 410);
+    const photo = "data:image/jpeg;base64," + encodeBase64(new Uint8Array(await file.arrayBuffer()));
+    await poofSweep();
+    return json({ ok: true, photo, seconds: POOF_SECONDS });
+  }
+  /* the 10 seconds are up (or they closed it). Nobody can open it again. The file itself stays locked away for
+     15 more minutes so a report can be looked at, then the sweep takes it off the server. */
+  if (b.action === "poof_done") {
+    await poofSweep();
+    return json({ ok: true });
+  }
+  /* reported: the picture is KEPT (for moderators only) and a report goes in the pile about the sender */
+  if (b.action === "poof_report") {
+    const m = await poofFor(String(b.id || ""), user.id);
+    if (!m || !m.poof_seen_at) return json({ error: "Open it first, then you can report it." }, 400);
+    if (!m.photo_paths?.length) return json({ error: "That Poof is already gone, so there's nothing left to look at. You can still report the person from the chat's menu." }, 410);
+    await admin.from("porch_dm").update({ poof_reported: true }).eq("id", m.id);
+    await admin.from("porch_reports").insert({ reporter_id: user.id, member_id: m.from_id, reason: "sexual", note: "Reported a Poof they were sent." });
+    return json({ ok: true });
+  }
   if (b.action === "dm_unsend") {
     const { data: m } = await admin.from("porch_dm").select("id, from_id, thread_id, photo_paths, created_at").eq("id", b.id).maybeSingle();
     if (!m || m.from_id !== user.id) return json({ error: "You can only unsend your own." }, 403);
-    if (m.photo_paths?.length) await admin.storage.from("porch-dm").remove(m.photo_paths);
+    if (m.photo_paths?.length) {
+      await admin.storage.from("porch-dm").remove(m.photo_paths);
+      try { await admin.storage.from("porch-poof").remove(m.photo_paths); } catch { /* not a Poof */ }
+    }
     await admin.from("porch_dm").update({ unsent_at: new Date().toISOString(), body: null, photo_paths: [], racy: false }).eq("id", m.id);
     const { data: t } = await admin.from("porch_threads").select("last_at").eq("id", m.thread_id).maybeSingle();
     if (t && t.last_at === m.created_at) await admin.from("porch_threads").update({ last_preview: "Unsent a message" }).eq("id", m.thread_id);

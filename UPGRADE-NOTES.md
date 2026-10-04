@@ -780,3 +780,12 @@ without making it confusing.
 - [x] A Filters button on the share screen (photo shares only, not when editing an old share): Normal, Black & White, Glow, Golden Hour, Pop, Faded. Tap one and see it on the picture; it goes on every picture in the share, collage included.
 - Done by hand on the pixels in porch.html (`filtImg`, `FILT`), because iPhone's canvas has no built-in filters. `photos` stays unfiltered; `shownPhotos()` is what is shown and sent.
 - Known and left: the filter goes over stickers too (Black & White makes the stickers gray). No face-aware "sparkly eyes" filter; that needs a face-tracking add-on and is its own project.
+
+## Poof: a disappearing picture in Messages (4 Oct 2026, v176)
+- What it is: one picture in a one-on-one chat, opened ONCE, 10 seconds, then gone. 💨 button in the chat, next to the camera.
+- Mike's rules, all enforced by the database (`porch_55_poof.sql`, `porch_poof_can`): friends, at least 5 messages EACH way (Poofs and unsent ones don't count), and BOTH people have flipped Poof on. It starts OFF. Not in group chats.
+- The switch: the Poof sheet (opens from the 💨 button, and from Edit profile > POOF > "What's a Poof?"). Table `porch_poof`; only you can read your own switch. The other person's switch is only told to you once the rapport is there.
+- Picture rule = the Messages rule ("today's rule", Mike): spicy is fine, FULL NUDITY IS BLOCKED (`dmPhoto` in the porch function). Mike decided NOT to loosen this: there is no way to check age, and "I don't want this to turn into some porn site."
+- Where the picture lives: bucket `porch-poof`, private with NO read policy, so no phone can read it. `poof_open` hands it over once inside the answer (no link). Opened Poofs come off the server 15 minutes later (`poofSweep`), unopened ones after a day.
+- Reporting: "Report this" on the picture, or tap "Poof opened" in the chat within 15 minutes. A reported Poof is KEPT and shows on the moderator reports screen under that person ("Reported Poof:"); it comes off the server when a moderator handles the report.
+- Known and left: screenshots can't be stopped on a web based app (the sheet says so). A phone still on an old version shows a Poof as a broken picture until it updates. If full nudity is ever wanted: it needs an age-estimate service first, and a lawyer's look (NCMEC reporting duty).

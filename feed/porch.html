@@ -126,6 +126,21 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .cf-strip button{flex:none;width:84px;padding:0;border:0;background:none;color:var(--soft);font:700 12px Arial,sans-serif;cursor:pointer}
 .cf-strip img,.cf-strip u{display:block;width:84px;height:84px;margin-bottom:5px;border-radius:12px;border:2px solid var(--line);object-fit:cover;background:var(--field)}
 .cf-strip button.on{color:var(--gold)}.cf-strip button.on img{border-color:var(--gold)}
+.dm-poofb{font-size:19px;line-height:1}.dm-poofb.on{box-shadow:0 0 0 2px var(--gold2) inset}
+.bm .bb.pf{font-weight:700}
+.bm button.bb.pf.live{border:0;text-align:left;background:#3a2f12;color:#f6e3a8;box-shadow:0 0 0 2px #e0bd6a inset}
+.bm .bb.pf small{display:block;margin-top:2px;font:600 12.5px/1.3 Arial,sans-serif;opacity:.85}
+.bm .bb.pf.done{background:none;border:1px dashed #3a352a;color:#7d7564;box-shadow:none}
+.pf-p{margin:0 0 10px;font:700 16px/1.4 Arial,sans-serif;color:var(--cream)}
+.pf-l{margin:0 0 16px;padding-left:20px;color:var(--soft);font:600 14px/1.5 Arial,sans-serif}
+.pf-done{display:block;width:100%;margin-top:18px;padding:13px;border-radius:14px;border:1px solid var(--fline);background:none;color:var(--cream);font:800 15px Arial,sans-serif;cursor:pointer}
+.poofv{position:fixed;inset:0;z-index:9600;background:#000;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.poofv .pv-pic{position:absolute;inset:0;background:center/contain no-repeat;pointer-events:none}
+.poofv .pv-bar{position:absolute;left:0;right:0;top:env(safe-area-inset-top,0px);height:5px;background:rgba(255,255,255,.2);z-index:2}
+.poofv .pv-bar i{display:block;height:100%;width:100%;background:#e0bd6a;transition:width linear}
+.poofv .pv-x{position:absolute;right:10px;top:calc(14px + env(safe-area-inset-top,0px));z-index:2;width:44px;height:44px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font:400 22px/1 Arial,sans-serif;cursor:pointer}
+.poofv .pv-n{position:absolute;left:14px;top:calc(18px + env(safe-area-inset-top,0px));z-index:2;min-width:36px;height:36px;padding:0 8px;border-radius:18px;background:rgba(0,0,0,.55);color:#fff;font:800 17px/36px Arial,sans-serif;text-align:center}
+.poofv .pv-rep{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:2;padding:10px 18px;border:0;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font:700 14px Arial,sans-serif;cursor:pointer}
 .cstart{display:none;margin-top:14px}
 #compose.starting .cstart{display:block}
 #compose.starting .ccard,#compose.starting .ctools,#compose.starting .cmini,#compose.starting #csend,#compose.starting .help{display:none!important}
@@ -1282,7 +1297,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v175</span>
+  <span class="ver" id="ver">v176</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1548,6 +1563,19 @@ html.kb .ch-bar{padding-bottom:8px}
   <div class="dm-list" id="thlist"></div>
 </div></div>
 
+<!-- POOF (v176, Mike: "you flip the trade finder on or off, we should be able to flip this on or off too ...
+     and we explain very, very, very briefly what that is"). One sheet, opened from a chat and from Edit profile. -->
+<div id="poof" class="layer" role="dialog" aria-modal="true" aria-label="Poof">
+  <div class="dim" data-close></div>
+  <div class="sheet pf-sheet"><div class="g"></div>
+    <h3>💨 Poof</h3>
+    <p class="pf-p">A Poof is one picture a friend can open once. After 10 seconds it's gone.</p>
+    <ul class="pf-l"><li>Only for friends you've really talked with, back and forth.</li><li>You both have to turn it on.</li><li>Same rules as Messages. Full nudity is blocked.</li><li>People can screenshot. Only send what you're okay with them keeping.</li></ul>
+    <div class="nearset" id="poofsw"></div>
+    <button type="button" class="pf-done" data-close>Done</button>
+  </div>
+</div>
+
 <!-- MESSAGES: pick a friend -->
 <div id="pickdm" class="layer" role="dialog" aria-modal="true" aria-label="New message">
   <div class="dim" data-close></div>
@@ -1567,10 +1595,11 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="thumbs" id="dmthumbs"></div>
     <div class="ch-row">
       <button type="button" class="dm-ico dm-camb" id="dmcam" aria-label="Add photos"><span data-ico="camera"></span></button>
+      <button type="button" class="dm-ico dm-camb dm-poofb" id="dmpoof" aria-label="Send a Poof" hidden>💨</button>
       <textarea id="dmin" rows="1" maxlength="2000" placeholder="Message…"></textarea>
       <button type="button" class="dm-ico dm-sendb" id="dmgo" aria-label="Send" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></button>
     </div>
-    <input type="file" id="dmfile" accept="image/*" multiple hidden><input type="file" id="dmfilecam" accept="image/*" capture="environment" hidden>
+    <input type="file" id="poofile" accept="image/*" hidden><input type="file" id="poofilecam" accept="image/*" capture="environment" hidden><input type="file" id="dmfile" accept="image/*" multiple hidden><input type="file" id="dmfilecam" accept="image/*" capture="environment" hidden>
   </div>
 </div></div>
 
@@ -1675,6 +1704,8 @@ html.kb .ch-bar{padding-bottom:8px}
       <div class="vis" id="evis"></div>
       <label class="l">FIND FRIENDS NEAR ME</label>
       <div class="nearset" id="enear"></div>
+      <div id="epoofwrap" hidden><label class="l">POOF</label>
+      <div class="nearset" id="epoof"></div></div>
       <p class="hint">Your sober date is never on your profile. It's just for you.</p>
       <!-- QUIET ON PURPOSE (3 Oct 2026, Mike): small pills that blend in, so nobody deletes their
            account in a hasty minute. "Put some sort of pause in between them and finding it." -->
@@ -3049,6 +3080,7 @@ html.kb .ch-bar{padding-bottom:8px}
       try { await navigator.clipboard.writeText((cm && cm.body) || ""); toast("Copied."); } catch (e) {}
       return closeTop();
     }
+    if (m === "poofreport") { await closeTop(); return poofReport(t.dm); }
     if (m === "dmunsend") {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = chat && chat.gid ? "Tap again: it's gone for everybody" : "Tap again: it's gone for both of you"; return; }
       var ur = await fn("porch", { action: chat && chat.gid ? "gdm_unsend" : "dm_unsend", id: t.dm }); await closeTop();
@@ -3516,7 +3548,7 @@ html.kb .ch-bar{padding-bottom:8px}
     $("ebio").value = m.bio || ""; $("ename").value = m.real_name || "";
     editVis = m.visibility === "public" ? "public" : "members";
     $("estatus").textContent = ""; edSay(""); edLast = edSnap(); edOpen = true;
-    paintEdit(); paintNearSet(); open("editp");
+    paintEdit(); paintNearSet(); paintPoofSet(); open("editp");
   }
   /* IT SAVES ITSELF: a moment after you stop typing, and right away when you pick who can see it.
      Pictures already saved the second they were picked. Nothing here waits on a Save button. */
@@ -4627,6 +4659,7 @@ html.kb .ch-bar{padding-bottom:8px}
         '<button type="button" class="mwho" data-u="' + g.who + '">' + avatar({ handle: g.handle, avatar_path: g.avatar_path }) + "<span><b>" + esc(g.handle) + "</b><small>" + what + (g.hidden ? " · already taken down" : "") + (g.frozen ? " · paused" : "") + "</small></span></button>" +
         (g.body ? '<p class="mb">' + esc(g.body) + "</p>" : "") +
         (g.photos && g.photos.length ? '<div class="mph">' + g.photos.map(function (x) { return '<img src="' + pic(x) + '" alt="">'; }).join("") + "</div>" : "") +
+        (g.poofs && g.poofs.length ? '<p class="mn">Reported Poof:</p><div class="mph">' + g.poofs.map(function (x) { return '<a href="' + esc(x) + '" target="_blank" rel="noopener"><img src="' + esc(x) + '" alt=""></a>'; }).join("") + "</div>" : "") +
         '<div class="mwhy">' + Object.keys(g.reasons).map(function (k) { return "<span>" + esc(WHY[k] || k) + (g.reasons[k] > 1 ? " ×" + g.reasons[k] : "") + "</span>"; }).join("") + "</div>" +
         (g.notes.length ? g.notes.map(function (n) { return '<p class="mn">“' + esc(n) + "”</p>"; }).join("") : "") +
         '<div class="mbtn">' +
@@ -4851,6 +4884,12 @@ html.kb .ch-bar{padding-bottom:8px}
     if (sh) return (sh.rest ? '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '"><div class="bb" data-bb>' + linkify(sh.rest) + "</div></div>" : "") +
       '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '">' + shareCardHTML(sh) + "</div>";
     if (m.unsent_at) return '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '"><div class="bb gone">' + (mine ? "You unsent a message" : "Message unsent") + "</div></div>";
+    if (m.poof) {            /* a Poof never shows as a picture in the chat: it opens once, full screen (v176) */
+      var pOld = Date.now() - new Date(m.created_at).getTime() > 864e5, pSeen = !!m.poof_seen_at, pc = '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '">';
+      if (mine) return pc + '<div class="bb pf" data-bb>💨 ' + (pSeen ? "Poof opened" : pOld ? "Poof expired" : "Poof sent") + "</div></div>";
+      if (!pSeen && !pOld) return pc + '<button type="button" class="bb pf live" data-poof="' + m.id + '">💨 Poof<small>Tap to open. One look, 10 seconds.</small></button></div>';
+      return pc + '<div class="bb pf done" data-bb>💨 ' + (pSeen ? "Poof opened" : "Poof expired") + "</div></div>";
+    }
     var pics = ph.length ? '<div class="pics n' + ph.length + (m.racy && !m.seen ? " rz" : "") + '" data-rz="' + (m.racy && !m.seen ? m.id : "") + '">' +
       ph.map(function (x, i) { return '<img src="' + (dmShown[x] || "") + '" alt="" loading="lazy" data-view="' + i + '">'; }).join("") + "</div>" : "";
     return '<div class="bm' + (mine ? " me" : "") + '" data-dmid="' + m.id + '">' + (pics ? '<div style="max-width:78%;width:260px' + (mine ? ";margin-left:auto" : "") + '">' + pics + "</div>" : "") + "</div>" +
@@ -4893,7 +4932,8 @@ html.kb .ch-bar{padding-bottom:8px}
         var ms = (await rest("porch_dm?thread_id=eq." + t.id + "&select=*&order=created_at.desc&limit=80")).reverse();
         var seen = {}; chat.msgs.forEach(function (m) { if (m.seen) seen[m.id] = 1; });
         ms.forEach(function (m) { if (seen[m.id]) m.seen = true; });
-        await signDm([].concat.apply([], ms.map(function (m) { return m.photo_paths || []; })));
+        await signDm([].concat.apply([], ms.map(function (m) { return m.poof ? [] : m.photo_paths || []; })));
+        if (!poofSt.rapport && Date.now() - poofAt > 8000) poofLoad(chat.uid);
         await loadShares(ms);
         popIfNew(chat.msgs, ms, fresh);
         chat.msgs = ms;
@@ -4918,7 +4958,9 @@ html.kb .ch-bar{padding-bottom:8px}
     if (bar) bar.style.display = robot ? "none" : "";
     if (robot && !rn && bar) { rn = document.createElement("p"); rn.id = "robonote"; rn.style.cssText = "margin:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));text-align:center;color:var(--muted);font:600 14px/1.4 Arial,sans-serif;border-top:1px solid var(--line)"; rn.textContent = "Matt is a robot. He can't read replies."; bar.parentNode.insertBefore(rn, bar); }
     if (rn) rn.style.display = robot ? "" : "none";
+    poofSt = { rapport: false, me_on: false, them_on: false }; poofAt = 0; paintPoofBtn();
     open("chat");
+    if (!robot) poofLoad(uid);
     await loadChat(true);
     clearInterval(dmPoll);
     dmPoll = setInterval(function () { if (!$("chat").classList.contains("open")) { clearInterval(dmPoll); chat = null; return; } if (!document.hidden) loadChat(false); }, 3000);
@@ -4942,6 +4984,95 @@ html.kb .ch-bar{padding-bottom:8px}
     }
     paintDmBox();
   }
+  /* ---------------------------------------------------------------- POOF (v176, 4 Oct 2026)
+     One picture, opened once, 10 seconds. The button only shows in a chat once the database says the two
+     of you have a rapport (friends, 5 messages each way: porch_poof_state). Each person flips it on for
+     themselves; it starts off. The server checks all of it again and checks the picture (porch function). */
+  var poofSt = { rapport: false, me_on: false, them_on: false }, poofAt = 0, poofMine = null, poofBusy = false;
+  function paintPoofBtn() {
+    var b = $("dmpoof"); if (!b) return;
+    b.hidden = !(chat && !chat.gid && poofSt.rapport && friends[chat.uid]);
+    b.classList.toggle("on", !!(poofSt.me_on && poofSt.them_on));
+  }
+  async function poofLoad(uid) {
+    poofAt = Date.now();
+    try { var r = await rpc("porch_poof_state", { p_other: uid }); if (chat && chat.uid === uid && r) { poofSt = r; poofMine = !!r.me_on; } } catch (e) {}
+    paintPoofBtn();
+  }
+  async function poofMineLoad() {
+    try { var r = await rest("porch_poof?user_id=eq." + me.uid + "&select=is_on"); poofMine = !!(r[0] && r[0].is_on); } catch (e) { poofMine = null; }
+    return poofMine;
+  }
+  function poofSwHTML() {
+    return poofMine ? '<p>💨 On. Friends you\'ve really talked with can send you a Poof, if theirs is on too.</p><button type="button" class="nearbtn off" data-poofset="0">Turn Poof off</button>'
+      : '<p>Off. Nobody can send you a Poof.</p><button type="button" class="nearbtn" data-poofset="1">💨 Turn Poof on</button>';
+  }
+  async function paintPoofSet() {
+    var w = $("epoofwrap"); if (!w) return;
+    if (poofMine === null) await poofMineLoad();
+    w.hidden = poofMine === null;                 /* null: Poof isn't set up in the database yet */
+    if (poofMine !== null) $("epoof").innerHTML = poofSwHTML() + '<button type="button" class="nearbtn off" data-poofwhat style="margin-top:2px">What\'s a Poof?</button>';
+    if ($("poofsw")) $("poofsw").innerHTML = poofMine === null ? "" : poofSwHTML();
+  }
+  async function openPoofSheet() { if (poofMine === null) await poofMineLoad(); if (poofMine === null) return toast("Poof isn't ready yet."); $("poofsw").innerHTML = poofSwHTML(); open("poof"); }
+  async function poofSet(on) {
+    try { await rpc("porch_poof_set", { p_on: !!on }); poofMine = !!on; poofSt.me_on = !!on; toast(on ? "Poof is on." : "Poof is off."); }
+    catch (e) { toast("That didn't go through."); }
+    paintPoofSet(); paintPoofBtn();
+    if (on && chat && !chat.gid) poofLoad(chat.uid);
+  }
+  document.addEventListener("click", function (e) {
+    var s = e.target.closest("[data-poofset]"); if (s) { e.preventDefault(); return poofSet(s.dataset.poofset === "1"); }
+    if (e.target.closest("[data-poofwhat]")) { e.preventDefault(); return openPoofSheet(); }
+  });
+  $("dmpoof").addEventListener("click", function () {
+    if (!chat || chat.gid) return;
+    if (!poofSt.me_on) return openPoofSheet();
+    if (!poofSt.them_on) return toast(name(chat.uid) + " doesn't have Poof turned on.");
+    pickPhotos($("poofile"), $("poofilecam"));
+  });
+  async function poofSend(inp) {
+    var f = (inp.files || [])[0]; inp.value = ""; if (!f || !chat || chat.gid || poofBusy) return;
+    var to = chat.uid, pd; try { pd = await shrink(f); } catch (e) { return toast("That photo couldn't be opened."); }
+    if (!(await scanPhoto(pd, "dm", function () { $("poofile").click(); }))) return;
+    poofBusy = true; toast("Sending your Poof…");
+    var r = await fn("porch", { action: "dm_send", to: to, poof: true, photos: [pd], faces_ok: true });
+    poofBusy = false;
+    if (!r.ok) { if (/^poof_/.test(r.need || "")) poofLoad(to); return toast(r.error || "That didn't send. Try again."); }
+    toast("Poof sent 💨"); if (chat && chat.uid === to) loadChat(true);
+  }
+  $("poofile").addEventListener("change", function () { poofSend(this); });
+  $("poofilecam").addEventListener("change", function () { poofSend(this); });
+  async function poofOpen(id) {
+    if (poofBusy) return; poofBusy = true;
+    var r = await fn("porch", { action: "poof_open", id: id }); poofBusy = false;
+    if (!r.ok || !r.photo) { toast(r.error || "That Poof is gone."); return loadChat(true); }
+    var m = chat && chat.msgs.find(function (x) { return x.id === id; }); if (m) { m.poof_seen_at = new Date().toISOString(); paintChat(false); }
+    var secs = r.seconds || 10, left = secs, done = false, tmr = null;
+    var el = document.createElement("div"); el.className = "poofv"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Poof");
+    el.innerHTML = '<div class="pv-pic"></div><div class="pv-bar"><i></i></div><span class="pv-n">' + secs + '</span><button type="button" class="pv-x" aria-label="Close">✕</button><button type="button" class="pv-rep">Report this</button>';
+    el.querySelector(".pv-pic").style.backgroundImage = "url('" + r.photo + "')"; r.photo = null;
+    el.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    document.body.appendChild(el);
+    var end = function () {
+      if (done) return; done = true; clearInterval(tmr); document.removeEventListener("visibilitychange", hid);
+      el.querySelector(".pv-pic").style.backgroundImage = "none"; el.remove();
+      fn("porch", { action: "poof_done", id: id });
+    };
+    var shut = function () { if (!done && !window.PorchBack.pop("poofv")) end(); };
+    var hid = function () { if (document.hidden) shut(); };          /* leave the app and it's over */
+    var z = window.PorchBack.push("poofv", end); if (typeof z === "number") el.style.zIndex = String(z + 5);
+    document.addEventListener("visibilitychange", hid);
+    var bar = el.querySelector(".pv-bar i"); bar.style.transitionDuration = secs + "s";
+    requestAnimationFrame(function () { requestAnimationFrame(function () { bar.style.width = "0%"; }); });
+    tmr = setInterval(function () { left--; var n = el.querySelector(".pv-n"); if (n) n.textContent = Math.max(0, left); if (left <= 0) shut(); }, 1000);
+    el.querySelector(".pv-x").addEventListener("click", shut);
+    el.querySelector(".pv-rep").addEventListener("click", function () { shut(); setTimeout(function () { poofReport(id); }, 400); });
+  }
+  async function poofReport(id) {
+    var r = await fn("porch", { action: "poof_report", id: id });
+    toast(r.ok ? "Thanks for looking out. A real person will look at it." : (r.error || "That didn't send. Try again."));
+  }
   async function sendDm(sure) {
     if (!chat || dmSending) return;
     if (!chat.gid && !friends[chat.uid]) return toast("You can message friends only.");
@@ -4964,6 +5095,7 @@ html.kb .ch-bar{padding-bottom:8px}
     $("mbody").dataset.t = JSON.stringify({ dm: id }); $("mbody").dataset.uid = m.from_id;
     $("mbody").innerHTML = (m.body ? '<button type="button" data-m="dmcopy">Copy</button>' : "") +
       (m.from_id === me.uid ? '<button type="button" class="bad" data-m="dmunsend">Unsend</button>' : "") +
+      (m.poof && m.from_id !== me.uid && m.poof_seen_at ? '<button type="button" class="bad" data-m="poofreport">Report this Poof</button>' : "") +
       '<button type="button" data-close style="color:var(--muted)">Cancel</button>';
     open("menu");
   }
@@ -5077,6 +5209,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var qk = t.closest("[data-quick]"); if (qk) { $("dmin").value = qk.dataset.quick; paintDmBox(); return sendDm(false); }
     var rz = t.closest("[data-rz]");
     if (rz && rz.dataset.rz) { var rm = chat && chat.msgs.find(function (x) { return x.id === rz.dataset.rz; }); if (rm) rm.seen = true; rz.classList.remove("rz"); rz.dataset.rz = ""; return; }
+    var pfb = t.closest("[data-poof]"); if (pfb) return poofOpen(pfb.dataset.poof);
     var bbl = t.closest("[data-bb]"); if (bbl && !t.closest("a,.at")) return dmMenu(bbl.closest("[data-dmid]").dataset.dmid);
     if (t.closest("[data-reshare]") && id) return reshareSheet(id);
     if (t.closest("[data-send]") && id) return sendOut(id);
