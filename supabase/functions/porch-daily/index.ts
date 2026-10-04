@@ -76,6 +76,8 @@ const MISFIT_DAILY_HOUR = 4, MISFIT_DAILY_MIN = 17;  // 4:17am Eastern
 const STARK = "starkrecovery";              // the Stark Recovery resources account
 const STARK_FROM = 3001;                    // its Spins are numbered from here up
 const STARK_BACKLOG = 3;                    // how many go up to start
+const MATT = "welcomematt";                 // the greeter robot
+const MATT_FROM = 4001;                     // his pinned Spins are numbered from here up
 const STARK_HOUR = 7;                       // then one every 3 days, at the first knock after 7am Eastern
 const HOUSE_KEY = Deno.env.get("HOUSE_KEY") || "";
 const BUNNY_KEY = Deno.env.get("BUNNY_STREAM_KEY") || "";
@@ -224,7 +226,7 @@ async function reelDoor(b: Record<string, any>) {
 }
 
 /* ---- the reels: publishing ---- */
-async function publishReel(row: any, userId: string, when: Date) {
+async function publishReel(row: any, userId: string, when: Date, pinned = false) {
   const r = await bunny(`/videos/${row.video_guid}`);
   if (!r.ok) return "the video host didn't answer";
   const v = await r.json();
@@ -239,6 +241,7 @@ async function publishReel(row: any, userId: string, when: Date) {
     length_s: Number(v.length) || null, width: Number(v.width) || null, height: Number(v.height) || null,
     resolutions: String(v.availableResolutions || "") || null,
     created_at: iso, expires_at: new Date(Date.now() + 3650 * 86400000).toISOString(),      // house Spins stay
+    ...(pinned ? { pinned: true } : {}),
   }).select("id").single();
   if (e2 || !spin) { await admin.from("porch_posts").delete().eq("id", post.id); return e2 ? e2.message : "no spin"; }
   await admin.from("porch_house_reels").update({ status: "posted", spin_id: spin.id, posted_at: new Date().toISOString() }).eq("n", row.n);
@@ -458,6 +461,28 @@ async function starkSpins(hour: number) {
   return { posted: 1, numbers: [queue[0].n], waiting: queue.length - 1 };
 }
 
+/* WELCOME MATT'S PINNED SPINS (4 Oct 2026, Mike: "i want to make three spins for welcome matt ...
+ * i am going to pin the three up on his profile"). Numbered 4001 and up. Every one that is waiting
+ * goes up at the next knock, already pinned, dated a day apart going back so they don't pile up
+ * at the top of the Porch. Three is all a profile can pin. */
+async function mattSpins() {
+  const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", MATT).maybeSingle();
+  if (!m) return { posted: 0, error: "welcomematt is not on the Porch yet" };
+  const { data: all, error } = await admin.from("porch_house_reels").select("*").gte("n", MATT_FROM).lt("n", MATT_FROM + 1000).order("n", { ascending: true });
+  if (error) return { posted: 0, why: "no list yet" };
+  const done = (all || []).filter((r: any) => r.status === "posted");
+  const queue = (all || []).filter((r: any) => r.status === "queued").slice(0, Math.max(0, 3 - done.length));
+  if (!queue.length) return { posted: 0, why: done.length ? "they are all up" : "none waiting", total: done.length };
+  const out: any = { posted: 0, numbers: [] as number[] };
+  for (const row of queue) {
+    const back = queue.length - 1 - queue.indexOf(row);
+    const why = await publishReel(row, m.user_id, new Date(Date.now() - back * 86400000), true);
+    if (why) { out.why = "spin " + row.n + ": " + why; break; }
+    out.posted++; out.numbers.push(row.n);
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return json({ ok: true });
   let body: Record<string, any> = {};
@@ -475,6 +500,7 @@ Deno.serve(async (req) => {
     try { out.misfit_spins = await misfitSpins(hour, minute); } catch (e) { out.misfit_spins = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.misfit_daily = await misfitDaily(day, hour, minute); } catch (e) { out.misfit_daily = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.stark = await starkSpins(hour); } catch (e) { out.stark = { posted: 0, error: String((e as Error).message || e) }; }
+    try { out.matt = await mattSpins(); } catch (e) { out.matt = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.sponsor = await sponsor(day, hour); } catch (e) { out.sponsor = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.another_day_sober = await ads(day, hour); } catch (e) { out.another_day_sober = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.spiritual_memes = await spiritualMemes(hour); } catch (e) { out.spiritual_memes = { posted: 0, error: String((e as Error).message || e) }; }
