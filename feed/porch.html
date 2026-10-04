@@ -1298,7 +1298,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v177</span>
+  <span class="ver" id="ver">v178</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2002,7 +2002,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var mins = Math.max(1, Math.round(text.split(/\s+/).length / 200));
     var r = mine[p.id] || {};
     return '<article class="post" id="p-' + p.id + '" data-post="' + p.id + '">' +
-      '<div class="ph"><button type="button" class="ubtn" data-u="' + p.user_id + '">' + avatar(people[p.user_id]) + '</button><div class="who"><b><button type="button" class="un" data-u="' + p.user_id + '">' + esc(name(p.user_id)) + "</button></b><small>" + (p.reshare_of ? "reshared · " : "") + ago(p.created_at) + (isSpin ? " · Spin" : p.edited_at ? " · edited" : "") + (p.sample ? " · sample" : "") + "</small></div>" +
+      '<div class="ph"><button type="button" class="ubtn" data-u="' + p.user_id + '">' + avatar(people[p.user_id]) + '</button><div class="who"><b><button type="button" class="un" data-u="' + p.user_id + '">' + esc(name(p.user_id)) + "</button></b><small>" + (p.reshare_of ? "💛 reshared · " : "") + ago(p.created_at) + (isSpin ? " · Spin" : p.edited_at ? " · edited" : "") + (p.sample ? " · sample" : "") + "</small></div>" +
         (NEED[p.need] && p.need !== "talk" && !isSpin ? '<span class="tag ' + p.need + '">' + NEED[p.need] + "</span>" : "") +
         (isSpin ? "" : '<button type="button" class="more" data-more aria-label="Options">⋯</button>') + "</div>" +
       (text ? '<div class="body' + (long ? " clamp" : "") + '">' + linkify(text) + "</div>" +
@@ -2012,7 +2012,7 @@ html.kb .ch-bar{padding-bottom:8px}
       (!photos.length && p.link_preview && p.link_preview.url ? previewHTML(p.link_preview) : "") +
       '<div class="acts">' +
         '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '" aria-label="Love this">' + ico("proud") + cntHTML(p.id, "h") + '</button>' +
-        '<button type="button" data-comments aria-label="Comment">' + ico("comment") + '<i class="an" data-cc="' + p.id + '">' + ((comments[p.id] || []).length ? fmtN(comments[p.id].length) : "") + '</i></button>' +
+        '<button type="button" data-comments aria-label="Comment">' + ico("comment") + '<i class="an" data-cc="' + p.id + '">' + fmtN((comments[p.id] || []).length) + '</i></button>' +
         (p.user_id !== me.uid && !p.group_id && p.need !== "moment" ? '<button type="button" class="rs1" data-reshare aria-label="Reshare this on the Porch">' + ico("reshare") + cntHTML(p.id, "r") + "</button>"
           : !p.group_id && p.need !== "moment" ? '<span class="rs1 mine" aria-label="Reshares">' + ico("reshare") + cntHTML(p.id, "r") + "</span>" : "") +
         '<button type="button" class="send1" data-send aria-label="Send this share to somebody">' + ico("send") + "</button></div>" +
@@ -2040,7 +2040,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   function refreshComments(id) {
     var el = document.querySelector("#p-" + id + " .cm"); if (el) el.innerHTML = commentsPreview(id);
-    var n = (comments[id] || []).length; document.querySelectorAll('[data-cc="' + id + '"]').forEach(function (i) { i.textContent = n ? fmtN(n) : ""; });
+    var n = (comments[id] || []).length; document.querySelectorAll('[data-cc="' + id + '"]').forEach(function (i) { i.textContent = fmtN(n); });
   }
   /* THE NUMBERS (4 Oct 2026, Mike: "views ... heart count, reshare count ... its what makes social media
      social media"). Real counts, shown when there is at least one. Hearts and reshares are looked up a
@@ -2050,11 +2050,11 @@ html.kb .ch-bar{padding-bottom:8px}
   function cntHTML(id, k) {
     var ok = /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(String(id)), c = cnt[id];
     if (ok && c === undefined) { cnt[id] = null; cntQ.push(id); clearTimeout(cntT); cntT = setTimeout(cntLoad, 60); }
-    return '<i class="an" data-cn="' + esc(id) + '" data-ck="' + k + '">' + (c && c[k] ? fmtN(c[k]) : "") + "</i>";
+    return '<i class="an" data-cn="' + esc(id) + '" data-ck="' + k + '">' + (c ? fmtN(c[k]) : ok ? "" : "0") + "</i>";      /* v178, Mike: "we need counts on this stuff" -- the number always shows, 0 included */
   }
   function cntFill(id) {
     var c = cnt[id]; if (!c) return;
-    document.querySelectorAll('[data-cn="' + id + '"]').forEach(function (i) { var v = c[i.dataset.ck]; i.textContent = v ? fmtN(v) : ""; });
+    document.querySelectorAll('[data-cn="' + id + '"]').forEach(function (i) { i.textContent = fmtN(c[i.dataset.ck]); });
   }
   async function cntLoad() {
     var ids = cntQ.splice(0, 100); if (!ids.length) return;
