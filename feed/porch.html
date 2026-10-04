@@ -1155,7 +1155,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v160</span>
+  <span class="ver" id="ver">v161</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -4327,6 +4327,13 @@ html.kb .ch-bar{padding-bottom:8px}
     $("chtop").innerHTML = BK + '<button type="button" class="who" data-u="' + uid + '">' + avatar(people[uid]) + "<span><b>" + esc(name(uid)) + '</b><small>Private chat</small></span></button>' + (friends[uid] ? callBtnsHTML(uid) : "") + '<button type="button" class="more" data-chatmore aria-label="Options">⋯</button>';
     $("dmlist").innerHTML = '<div class="skel" style="height:120px;margin:12px 0"></div>';
     $("dmin").value = ""; dmPhotos = []; paintDmBox();
+    /* WELCOME MATT IS A ROBOT (4 Oct 2026, Mike: "i dont want people to message him"). No typing box in
+       a chat with him; a line says why, so it is not a dead end. */
+    var robot = String((people[uid] || {}).handle || "").toLowerCase() === "welcomematt";
+    var bar = document.querySelector("#chat .ch-bar"), rn = $("robonote");
+    if (bar) bar.style.display = robot ? "none" : "";
+    if (robot && !rn && bar) { rn = document.createElement("p"); rn.id = "robonote"; rn.style.cssText = "margin:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));text-align:center;color:var(--muted);font:600 14px/1.4 Arial,sans-serif;border-top:1px solid var(--line)"; rn.textContent = "Matt is a robot. He can't read replies."; bar.parentNode.insertBefore(rn, bar); }
+    if (rn) rn.style.display = robot ? "" : "none";
     open("chat");
     await loadChat(true);
     clearInterval(dmPoll);
@@ -5608,6 +5615,8 @@ html.kb .ch-bar{padding-bottom:8px}
     if (gcq && /^[0-9a-f-]{36}$/i.test(gcq)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openGChat(gcq); }
     var gq = new URLSearchParams(location.search).get("g");
     if (gq && /^([0-9a-f-]{36}|[a-z0-9][a-z0-9-]{1,28}[a-z0-9])$/i.test(gq)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openGroup(gq); }
+    /* ?invite=1 opens the invite card (4 Oct 2026): Welcome Matt's "invite a friend" message links here */
+    if (/[?&]invite=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) setTimeout(function () { try { invite(); } catch (e) {} }, 700); }
     if (/[?&]groups=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) showGroupsTab(); }
     if (/[?&]break=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid && me.member && !me.member.away_at) askLeave(); }
     /* TRY THE EMAIL STEP FOR REAL (3 Oct 2026). Every tester is confirmed by the beta door, so

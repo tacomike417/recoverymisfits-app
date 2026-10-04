@@ -62,9 +62,20 @@ A humble worker robot who took the greeter job. He says plainly that he is a rob
 - [x] Name welcomematt, shows as "Welcome Matt". Line: "Greeter robot. I set up the chairs, hold the door, and say hi. Glad you're here."
 - [x] Picture: assets/house/welcomematt/avatar.webp (Mike's art; the big one is in Downloads as welcomematt-full.jpg).
 - [x] v160: on the tester lists (account.html, feed/porch.html) and the house lists (porch.html HOUSE, porch-push, porch_house()).
-- [ ] Make the account on the site, then run porch_48_welcome_matt.sql.
-- [ ] NEXT: what he does. Same idea as Infinite Pulls: a welcome comment on a first share within minutes, a welcome message
-      in the first day. The words are Mike's to pick.
+- [x] Account made and set up (porch_48, 4 Oct).
+- [x] v161 + porch_49_matt_greets.sql: WHAT HE DOES.
+      * A first share: Recovery Misfits still comments right away (porch_41); Matt adds his own 2 to 8 minutes later
+        (one of ten lines). Mike: "Both comment."
+      * Everybody new: one message from Matt 1 to 20 hours after joining: "Beep boop. Welcome to the Porch! I'm Matt, the
+        greeter robot. I can't fix much, but I can point you to the coffee. Take a look around, there's a lot of good
+        sobriety here." + yellow heart.
+      * NOBODY CAN REPLY TO HIM (Mike: "i dont want people to message him"). A chat with Matt has no typing box and says
+        "Matt is a robot. He can't read replies."
+      * A second message 2 to 6 hours later: "invite a friend if you think the Porch would help" with a link
+        (/feed/porch.html?invite=1 opens the invite card). It only goes out FROM OCTOBER 20 ON; before launch an invited
+        friend cannot get in. Nothing to flip on launch day, the date is in the SQL.
+      * Job: porch-matt-greets, every 2 minutes. Stop him: select cron.unschedule('porch-matt-greets');
+      * People who were here before 4 Oct get nothing late.
 
 ## 📝 THE BIG LIST (brainstorm 1 Oct 2026, Mike: "we're doing all this stuff")
 Order isn't set.
