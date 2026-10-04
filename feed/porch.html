@@ -120,6 +120,30 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .dial.open .dstack button{opacity:1;transform:none}
 .dial.open .dstack button:nth-child(3){transition-delay:.03s}.dial.open .dstack button:nth-child(2){transition-delay:.06s}.dial.open .dstack button:nth-child(1){transition-delay:.09s}
 /* compose: words or a saying card */
+.cstart{display:none;margin-top:14px}
+#compose.starting .cstart{display:block}
+#compose.starting .ccard,#compose.starting .ctools,#compose.starting .cmini,#compose.starting #csend,#compose.starting .help{display:none!important}
+.cstart button{display:flex;align-items:center;gap:16px;width:100%;min-height:210px;margin:0 0 14px;padding:18px;border-radius:22px;border:2px solid var(--line);background:var(--card);color:var(--cream);text-align:left;cursor:pointer}
+.cstart.busy button{opacity:.45;pointer-events:none}
+.cstart button:first-child{border-color:var(--gold2)}
+.cstart b{display:block;font:400 27px/1.08 "RM Head",Impact,sans-serif;letter-spacing:.04em}
+.cstart small{display:block;margin-top:6px;color:var(--muted);font:600 15px/1.35 Arial,sans-serif}
+.cs-art{flex:none;position:relative;width:128px;height:170px}
+.cs-cam{position:absolute;inset:30px 2px 34px;border-radius:18px;border:3px solid var(--gold2);background:var(--field);display:grid;place-items:center}
+.cs-cam:before{content:"";position:absolute;top:-14px;left:36px;width:44px;height:13px;border-radius:6px 6px 0 0;background:var(--gold2)}
+.cs-cam i{width:60px;height:60px;border-radius:50%;border:6px solid var(--gold2)}
+.cs-p{position:absolute;display:block;border-radius:8px;border:3px solid #fff;box-shadow:0 6px 14px rgba(0,0,0,.55)}
+.cs-p.a{background:linear-gradient(135deg,#3fe0c5,#16607a)}.cs-p.b{background:linear-gradient(135deg,#f3d36b,#b8862b)}.cs-p.c{background:linear-gradient(135deg,#ff9a62,#c4563c)}
+.cs-art .cs-p{width:80px;height:96px}
+.cs-art .a{left:0;top:4px;transform:rotate(-9deg)}.cs-art .b{left:46px;top:34px;transform:rotate(7deg)}.cs-art .c{left:14px;top:74px;transform:rotate(-3deg)}
+.cswitch{display:flex;gap:10px;margin-top:12px}
+.cswitch button{flex:1;padding:10px 6px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--soft);font:500 14px "RM Rail",Arial,sans-serif;letter-spacing:.05em;cursor:pointer}
+.cswitch button.on{border-color:var(--gold2);color:var(--gold2);background:var(--onbg)}
+.cswitch button[disabled]{opacity:.5}
+.cs-mini{display:block;position:relative;width:86px;height:56px;margin:0 auto 6px}
+.cs-mini .cs-p{width:38px;height:44px;border-width:2px;top:4px}
+.cs-mini .a{left:8px;transform:rotate(-9deg)}.cs-mini .b{left:38px;top:10px;transform:rotate(8deg)}
+.cs-mini.sw .a{left:12px;transform:none}.cs-mini.sw .b{left:44px;top:4px;transform:none;opacity:.5}
 .cmodes{display:flex;gap:8px;margin:0 0 12px}
 .cmodes button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--fline);background:none;color:var(--muted);font:800 14px Arial,sans-serif;cursor:pointer}
 .cmodes button.on{background:var(--onbg);border-color:var(--gold2);color:var(--gold2)}
@@ -1252,7 +1276,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v170</span>
+  <span class="ver" id="ver">v171</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1277,9 +1301,8 @@ html.kb .ch-bar{padding-bottom:8px}
   <div class="ddim" data-dialx></div>
   <div class="dstack">
     <button type="button" data-go="spin"><b>Give it a spin</b><span><svg viewBox="0 0 24 24" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg></span></button>
-    <button type="button" data-go="snap"><b>Share a photo</b><span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="12" cy="12.5" r="3.6"/><path d="M8 5l1.6-2h4.8L16 5"/></svg></span></button>
+    <button type="button" data-go="snap"><b>Share photos</b><span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="12" cy="12.5" r="3.6"/><path d="M8 5l1.6-2h4.8L16 5"/></svg></span></button>
     <button type="button" data-go="say"><b>Say something</b><span><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/></svg></span></button>
-    <button type="button" data-go="win"><b>Celebrate a win</b><span><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/></svg></span></button>
   </div>
 </div>
 <button type="button" class="dfab" id="dfab" data-new aria-label="Share something"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -1373,6 +1396,13 @@ html.kb .ch-bar{padding-bottom:8px}
       <button type="button" class="cmini" id="cmini" aria-label="See how it will look"><span class="cm-p" id="cminip"><i></i><i class="s"></i><em></em></span><small>Preview</small></button>
       <button type="button" class="send" id="csend" disabled>Share</button></div>
     <div class="cmodes" id="cmodes" hidden><button type="button" data-cm="say">Just words</button><button type="button" data-cm="sign">Make a card</button></div>
+    <!-- SHARE PHOTOS STARTS WITH TWO BIG BUTTONS (v171, Mike: "how can we widdle this down to two choices ...
+         people want quick as well as versitile"). Collage is not a choice up front: pick 2 to 4 and it is one. -->
+    <div class="cstart" id="cstart">
+      <button type="button" data-cs="cam"><span class="cs-art"><span class="cs-cam"><i></i></span></span><span><b>TAKE A PICTURE</b><small>Opens your camera.</small></span></button>
+      <button type="button" data-cs="lib"><span class="cs-art"><i class="cs-p a"></i><i class="cs-p b"></i><i class="cs-p c"></i></span><span><b>PICK FROM MY PHONE</b><small>One picture, or up to 4 for a collage.</small></span></button>
+      <p class="hint" id="cstarthint" style="text-align:center;margin-top:14px"></p>
+    </div>
     <div class="ccard">
       <div class="cwho"><span id="cav"></span><div><b id="cname"></b><small>Everyone on the Porch will see this</small></div><span class="tag" id="cpill" hidden></span></div>
       <textarea id="cbody" maxlength="2000" placeholder="What's on your mind?"></textarea>
@@ -1380,6 +1410,10 @@ html.kb .ch-bar{padding-bottom:8px}
       <div class="count" id="ccount"></div>
       <div id="clive" hidden></div>
       <div class="thumbs" id="thumbs"></div>
+      <div class="cswitch" id="cswitch" hidden>
+        <button type="button" data-csw="collage"><span class="cs-mini"><i class="cs-p a"></i><i class="cs-p b"></i></span>COLLAGE</button>
+        <button type="button" data-csw="swipe"><span class="cs-mini sw"><i class="cs-p a"></i><i class="cs-p b"></i></span>SWIPE THROUGH</button>
+      </div>
       <div id="cgt"></div>
     </div>
     <div class="cerr" id="cerr" role="alert"></div>
@@ -1390,7 +1424,7 @@ html.kb .ch-bar{padding-bottom:8px}
   <div class="ctools" id="cbar">
     <button type="button" data-ct="photos"><span data-ico="camera"></span><b>Photos</b></button>
     <button type="button" data-ct="stickers"><span>✨</span><b>Stickers</b><i></i></button>
-    <button type="button" data-ct="collage"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="9" height="11" rx="1.5" transform="rotate(-8 7.5 9.5)"/><rect x="12" y="8" width="9" height="11" rx="1.5" transform="rotate(7 16.5 13.5)"/></svg></span><b>Collage</b></button>
+    <button type="button" data-ct="collage"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="9" height="11" rx="1.5" transform="rotate(-8 7.5 9.5)"/><rect x="12" y="8" width="9" height="11" rx="1.5" transform="rotate(7 16.5 13.5)"/></svg></span><b>Look</b></button>
     <button type="button" data-ct="card"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 15l2.6-6 2.6 6M8 13h3.2M15 10.5v4.5M15 12.2c.5-.9 2.6-1 2.6.6V15"/></svg></span><b>Card</b></button>
     <button type="button" data-ct="tags"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12.5V4.5h8l9 9-8 8z"/><circle cx="8" cy="9" r="1.4"/></svg></span><b>Tags</b><i></i></button>
   </div>
@@ -2401,7 +2435,7 @@ html.kb .ch-bar{padding-bottom:8px}
   var MODE = {
     say:  { title: "SAY SOMETHING", holder: "What's on your mind? Say as much as you want." },
     sign: { title: "MAKE A CARD",   holder: "Short and loud. What do you want the Porch to see?" },
-    snap: { title: "SHARE A PHOTO",      holder: "Say something about it (optional)" }
+    snap: { title: "SHARE PHOTOS",      holder: "Say something about it (optional)" }
   };
   var HOLDER = { experience: "What happened, and what did you learn?", strength: "What's keeping you going?", hope: "What's getting better?", question: "Ask the Porch anything." };
   /* TWO ROWS, ALL OF THEM IN SIGHT (v107, Mike: "I don't see anything other than the different
@@ -2425,7 +2459,7 @@ html.kb .ch-bar{padding-bottom:8px}
       if (d && d.mode && !m) m = d.mode;
       mode = m || "say";
       need = (d && d.need) || "talk"; style = d && d.style != null ? d.style : Math.floor(Math.random() * 10);
-      $("cbody").value = (d && d.body) || ""; photos = []; collage = null; decoOf = {};
+      $("cbody").value = (d && d.body) || ""; photos = []; collage = null; decoOf = {}; wantCollage = true; adding = false;
       if (d && d.body) toast("Your draft is back.");
     }
     $("cerr").textContent = "";
@@ -2435,7 +2469,10 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   function paintCompose() {
     var M = MODE[mode];
-    $("ctitle").textContent = editingPost ? "EDIT SHARE" : "NEW SHARE";
+    $("ctitle").textContent = editingPost ? "EDIT SHARE" : M.title;      /* v171, Mike: "clear headers at the top ... to let them know where they are at" */
+    var start = mode === "snap" && !photos.length && !editingPost;
+    $("compose").classList.toggle("starting", start);
+    $("cstart").classList.toggle("busy", adding); $("cstarthint").textContent = adding ? "Getting your picture ready…" : "You'll see it before anybody else does.";
     if (!sending) $("csend").textContent = editingPost ? "Save" : "Share";
     $("cbody").maxLength = mode === "sign" ? SIGN_MAX : 2000;
     $("cbody").style.minHeight = mode === "say" ? "150px" : mode === "sign" ? "70px" : "54px";
@@ -2448,6 +2485,10 @@ html.kb .ch-bar{padding-bottom:8px}
       (window.PorchPhotoFun ? '<button type="button" class="deco" data-deco="' + i + '" aria-label="Add stickers to this photo">✨</button>' : "")) + "</div>"; }).join("");
     $("thumbs").classList.toggle("one", photos.length === 1);
     paintFun();
+    var sw = $("cswitch"), swOn = !editingPost && !!window.PorchPhotoFun && mode === "snap" && (!!collage || photos.length >= 2);
+    sw.hidden = !swOn;
+    sw.querySelector('[data-csw="collage"]').classList.toggle("on", !!collage); sw.querySelector('[data-csw="swipe"]').classList.toggle("on", !collage);
+    sw.querySelectorAll("button").forEach(function (b) { b.disabled = funBusy; });
     /* the post they are building: the tag pill, the card (when it is one), the group button */
     var pill = $("cpill"), showNeed = NEED[need] && need !== "talk";
     pill.hidden = !showNeed; pill.className = "tag " + need; pill.textContent = showNeed ? NEED[need] : "";
@@ -2480,9 +2521,9 @@ html.kb .ch-bar{padding-bottom:8px}
       var i = b.querySelector("i"); if (i) i.textContent = n ? String(n) : "";
     };
     var sc = stickerCount(), tags = (NEED[need] && need !== "talk" ? 1 : 0) + (!composeGroup && tagGroup ? 1 : 0) + hashIn($("cbody").value).length;
-    set("photos", !ed && mode !== "sign", photos.length >= 4 || !!collage, false);
+    set("photos", !ed && mode !== "sign", (collage ? collage.src.length : photos.length) >= 4, false);
     set("stickers", !ed && fun && mode !== "sign", !photos.length, sc > 0, sc);
-    set("collage", !ed && fun && mode !== "sign", !collage && photos.length < 2, !!collage);
+    set("collage", !ed && fun && !!collage, false, true);      /* "Look": only while it IS a collage; the switch under the picture turns one on */
     set("card", !photos.length && (!ed || mode === "sign"), false, mode === "sign");
     set("tags", true, false, tags > 0, tags);
   }
@@ -2516,8 +2557,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var k = b.dataset.ct;
     if (k === "tags") return openPanel("tags");
     if (k === "photos") {
-      if (collage) return toast("Undo the collage to change the photos.");
-      if (photos.length >= 4) return toast("That's 4, the most a share holds.");
+      if ((collage ? collage.src.length : photos.length) >= 4) return toast("That's 4, the most a share holds.");
       return pickPhotos($("cfile"), $("cfilecam"));
     }
     if (k === "stickers") {
@@ -2526,13 +2566,7 @@ html.kb .ch-bar{padding-bottom:8px}
       if (photos.length === 1) return decoPhoto(0);
       return toast("Tap the ✨ on the photo you want.");
     }
-    if (k === "collage") {
-      if (collage) return openPanel("collage");
-      if (photos.length < 2) return toast("Add 2 to 4 photos, then make them a collage.");
-      collage = { src: photos.slice(0, 4), bg: "wood", tag: "", seed: 1, st: [] };
-      drawCollage().then(function () { if (collage) openPanel("collage"); });
-      return;
-    }
+    if (k === "collage") { if (collage) openPanel("collage"); return; }
     if (k === "card") { if (mode !== "sign") { mode = "sign"; if ($("cbody").value.length > SIGN_MAX) toast("Cards hold " + SIGN_MAX + " letters. Trim it and it fits."); paintCompose(); } return openPanel("card"); }
   });
   $("cardoff").addEventListener("click", function () { mode = "say"; closePanel(); paintCompose(); });
@@ -2554,6 +2588,15 @@ html.kb .ch-bar{padding-bottom:8px}
   $("cmodes").addEventListener("click", function (e) { var b = e.target.closest("[data-cm]"); if (b) { mode = b.dataset.cm; paintCompose(); $("cbody").focus(); } });
   $("needs").addEventListener("click", function (e) { var b = e.target.closest("[data-need]"); if (b) { need = need === b.dataset.need ? "talk" : b.dataset.need; paintCompose(); } });
   $("styles").addEventListener("click", function (e) { var b = e.target.closest("[data-style]"); if (b) { style = +b.dataset.style; paintCompose(); } });
+  $("cstart").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cs]"); if (!b) return;
+    (b.dataset.cs === "cam" ? $("cfilecam") : $("cfile")).click();      /* inside the tap, or the phone won't open it */
+  });
+  $("cswitch").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-csw]"); if (!b || funBusy) return;
+    if (b.dataset.csw === "collage" && !collage) { wantCollage = true; collage = { src: photos.slice(0, 4), bg: "wood", tag: "", seed: 1, st: [] }; drawCollage(); }
+    if (b.dataset.csw === "swipe" && collage) { wantCollage = false; photos = collage.src.slice(); collage = null; closePanel(); paintCompose(); }
+  });
   $("thumbs").addEventListener("click", function (e) {
     var d = e.target.closest("[data-deco]"); if (d) return collage ? decoCollage() : decoPhoto(+d.dataset.deco);
     var b = e.target.closest("[data-unpic]"); if (b) { photos.splice(+b.dataset.unpic, 1); if (!photos.length && !editingPost) mode = "say"; paintCompose(); }
@@ -2567,7 +2610,7 @@ html.kb .ch-bar{padding-bottom:8px}
                  clean photo is kept (decoOf), so opening it again lets them move things.
        COLLAGE   2 to 4 photos become ONE picture of Polaroids. The photos are kept (collage.src),
                  so Shuffle, a new look, the hashtag and Undo all work until they share. */
-  var decoOf = {}, decoN = 0, collage = null, funBusy = false;
+  var decoOf = {}, decoN = 0, collage = null, funBusy = false, wantCollage = true, adding = false;
   function decoKey(d) { return d.length + ":" + d.slice(-48); }
   async function decoPhoto(i) {
     if (!window.PorchPhotoFun || funBusy || photos[i] == null) return;
@@ -2605,7 +2648,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (f === "deco") return collage ? decoCollage() : decoPhoto(0);
     if (f === "collage") { collage = { src: photos.slice(0, 4), bg: "wood", tag: "", seed: 1, st: [] }; return drawCollage(); }
     if (f === "shuffle" && collage) { collage.seed++; return drawCollage(); }
-    if (f === "undo" && collage) { photos = collage.src.slice(); collage = null; closePanel(); paintCompose(); }
+    if (f === "undo" && collage) { wantCollage = false; photos = collage.src.slice(); collage = null; closePanel(); paintCompose(); }
   });
   var tagT = null;
   $("cfun").addEventListener("input", function (e) {
@@ -2643,12 +2686,21 @@ html.kb .ch-bar{padding-bottom:8px}
     return addComposeFiles(list);
   }
   async function addComposeFiles(list) {
-    var files = list.slice(0, 4 - photos.length);
+    /* a collage keeps its own photos (collage.src); "+ Photos" adds to those and redraws it */
+    var into = collage ? collage.src : photos, files = list.slice(0, 4 - into.length);
+    if (!files.length) return;
+    adding = true; paintCompose();
     for (var i = 0; i < files.length; i++) {
       var pd; try { pd = await shrink(files[i]); } catch (e) { $("cerr").textContent = "That photo couldn't be opened. Try a different one."; continue; }
-      if (await scanPhoto(pd, "post", function () { $("cfile").click(); })) photos.push(pd);
+      if (await scanPhoto(pd, "post", function () { $("cfile").click(); })) into.push(pd);
     }
+    adding = false;
     if (photos.length && !editingPost) mode = "snap";        /* a photo makes it a photo share */
+    /* 2 to 4 pictures ARE a collage unless they said "Swipe through" (v171) */
+    if (!editingPost && window.PorchPhotoFun && mode === "snap") {
+      if (collage) return drawCollage();
+      if (wantCollage && photos.length >= 2) { collage = { src: photos.slice(0, 4), bg: "wood", tag: "", seed: 1, st: [] }; return drawCollage(); }
+    }
     paintCompose();
   }
   /* Photos get resized on the phone to a JPEG under 3MB before they leave it. */
@@ -3204,7 +3256,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var ICAL = I2('<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'), ILOCK = I2('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'), IGLOBE = I2('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>');
     var IEDIT = I2('<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M14.5 7.5l3 3"/>'), ISHARE = I2('<path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>'), IFIND = I2('<circle cx="9" cy="8" r="3.6"/><path d="M2.5 20c1.2-3.6 3.7-5.4 6.5-5.4s5.3 1.8 6.5 5.4"/><path d="M19 8v6M16 11h6"/>');
     var tabBody = { shares: shares.length ? '<div class="grid">' + shares.map(tileHTML).join("") + "</div>" : '<p class="pempty">' + (mineP ? "Nothing shared yet. Tap + on the Porch." : "Nothing shared yet.") + "</p>",
-      wins: wins.length ? '<div class="grid">' + wins.map(tileHTML).join("") + "</div>" : '<p class="pempty">' + (mineP ? "No wins shared yet. Tap + then Celebrate a win." : "No wins shared yet.") + "</p>" };
+      wins: wins.length ? '<div class="grid">' + wins.map(tileHTML).join("") + "</div>" : '<p class="pempty">' + (mineP ? "No wins shared yet. Share a coin and it lands here." : "No wins shared yet.") + "</p>" };
     $("pfpage").innerHTML =
       '<div class="pcover pa"' + (m.cover_path ? ' style="background-image:url(\'' + pic(m.cover_path) + '\')"' : "") + '>' + BK.replace('class="bk"', 'class="bk over"') + '</div>' +
       '<div class="pahead"><div class="pav pa">' + avatar(m) + '</div><div class="pa-nm"><h2>' + esc(m.handle) + "</h2>" + (m.real_name ? '<p class="pa-real">' + esc(m.real_name) + "</p>" : "") +
@@ -5147,10 +5199,8 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   function dialGo(go) {
     if (go === "spin") { if (window.PorchSpins) window.PorchSpins.start(); else toast("Spins are loading. Try again in a sec."); return; }
-    if (go === "win") return gate(openWin);
     gate(function () {
-      openCompose(go);
-      if (go === "snap") setTimeout(function () { try { $("cfile").click(); } catch (e) {} }, 120);
+      openCompose(go);          /* photos start on the two big buttons (v171), no picker popping open by itself */
     });
   }
 

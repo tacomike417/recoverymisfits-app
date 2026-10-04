@@ -766,3 +766,9 @@ without making it confusing.
 - NOT DONE, ON PURPOSE: nothing is multiplied and no hearts are made up. Mike asked about 3x; Claude said no to that part and Mike is talking to his sponsor about it.
 
 - 4 Oct 2026: SOBER RIOT memes 121-220 added (no version bump, nothing on the page changed). The line is now 220 memes, about 73 days at 3 a day. The first-50 look-alikes are spread thin through the rest. ChatGPT lines 221-371 are still unmade; Mike has them in a zip for later.
+
+## Share photos: two big buttons (4 Oct 2026, v171)
+- [x] "Share photos" (was "Share a photo") opens on two big picture buttons: TAKE A PICTURE / PICK FROM MY PHONE. No picker pops open by itself anymore.
+- [x] One picture goes straight to the share screen. 2 to 4 pictures come up already made into a collage, with one switch under it: COLLAGE / SWIPE THROUGH. "+ Photos" now adds to a collage (up to 4). The bottom "Collage" button is now "Look" and only shows while it is a collage.
+- [x] Clear headers: SAY SOMETHING, SHARE PHOTOS, MAKE A CARD, EDIT SHARE (was "NEW SHARE" for all).
+- [x] "Celebrate a win" is off the + menu (Mike: coins and piles already have share all over them). The win layer and `openWin` code are still in porch.html, just unreachable; old wins still show on profiles.
