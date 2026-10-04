@@ -588,6 +588,13 @@ html.fullon #main{visibility:hidden}
 .g-fact .av{width:30px;height:30px;font-size:11px}.g-fact span{display:block;margin-top:5px;color:var(--muted);font:600 12.5px/1.4 Arial,sans-serif}
 .g-cover{height:96px;padding:0 16px;display:flex;align-items:flex-end;background:linear-gradient(160deg,#2c2416,#11110f)}
 .g-cover .g-tile{margin-bottom:-22px;box-shadow:0 0 0 3px var(--bg)}
+/* GROUP PICTURES (4 Oct 2026): a group can have its own picture and banner; keepers change them */
+.g-tile.pic{overflow:hidden;background:#000}
+.g-tile.pic img{display:block;width:100%;height:100%;object-fit:cover}
+.g-cover.has{height:152px;background-size:cover;background-position:center}
+.g-edit{position:absolute;right:12px;top:calc(10px + env(safe-area-inset-top,0px));padding:8px 14px;border-radius:999px;border:1px solid var(--gold);background:rgba(0,0,0,.62);color:var(--gold);font:700 13px Arial,sans-serif;cursor:pointer}
+.g-cover{position:relative}
+.gtag img{flex:none;width:26px;height:26px;border-radius:50%;object-fit:cover;margin:-3px 0 -3px -4px}
 .g-head{padding:30px 16px 0}
 .g-head h2{margin:0;font:400 30px/1.02 "RM Head",Impact,sans-serif;letter-spacing:.02em}
 .g-meta{display:flex;align-items:center;gap:6px;margin:8px 0 0;color:var(--muted);font:700 12.5px Arial,sans-serif}
@@ -1140,7 +1147,7 @@ html.kb .ch-bar{padding-bottom:8px}
   /* THE BETA DOOR (2 Oct 2026): a phone that opened /beta.html is a beta phone and gets in
      too. Still not the launch: everybody without that link lands on the soon page. */
   var beta = false; try { beta = localStorage.getItem("rm_beta") === "1"; } catch (e) {}
-  if (!beta && ["tacomike417", "misfit_tester", "fire_l0ve", "krazyk226", "recoverymisfits", "spiritualmisfit", "shitmysponsorsays", "anotherdaysober", "welcomematt"].indexOf(String(who).toLowerCase()) < 0) location.replace("/feed/soon.html");
+  if (!beta && ["tacomike417", "misfit_tester", "fire_l0ve", "krazyk226", "recoverymisfits", "spiritualmisfit", "shitmysponsorsays", "anotherdaysober", "welcomematt", "soberriot"].indexOf(String(who).toLowerCase()) < 0) location.replace("/feed/soon.html");
 })();
 </script>
 </head>
@@ -1169,7 +1176,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v162</span>
+  <span class="ver" id="ver">v163</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1506,6 +1513,7 @@ html.kb .ch-bar{padding-bottom:8px}
       <div class="ebtns"><button type="button" class="eb" id="eview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.600 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>View my profile</button><button type="button" class="eb gold" id="elike"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l4 4v14H5z"/><path d="M8 3v6h7V3M8 21v-7h8v7"/></svg>I like it</button></div></div>
     <p class="estatus" id="estatus" role="status"></p>
     <input type="file" id="efcover" accept="image/*" hidden><input type="file" id="efav" accept="image/*" hidden>
+    <input type="file" id="gfcover" accept="image/*" hidden><input type="file" id="gfav" accept="image/*" hidden>
     <div class="eform">
       <label class="l" for="ename">NAME PEOPLE SEE <span class="opt">optional</span></label>
       <input type="text" class="ename" id="ename" maxlength="40" autocomplete="off" autocapitalize="words" placeholder="Mike N.">
@@ -2711,7 +2719,7 @@ html.kb .ch-bar{padding-bottom:8px}
      stays on the Porch ("We gotta protect them"). The memes, prayers and daily questions from the
      four house accounts are nobody's private business, so those get one more door: send the
      picture itself anywhere, with recoverymisfits.org along the bottom. */
-  var HOUSE = ["recoverymisfits", "spiritualmisfit", "shitmysponsorsays", "anotherdaysober", "welcomematt"], housePic = null;
+  var HOUSE = ["recoverymisfits", "spiritualmisfit", "shitmysponsorsays", "anotherdaysober", "welcomematt", "soberriot"], housePic = null;
   function isHousePost(p) { return !!p && HOUSE.indexOf(String((people[p.user_id] || {}).handle || "").toLowerCase()) >= 0 && !!(p.photo_paths || [])[0]; }
   function stampPic(src) {
     return fetch(src).then(function (r) { if (!r.ok) throw new Error("pic"); return r.blob(); }).then(function (blob) {
@@ -3577,7 +3585,7 @@ html.kb .ch-bar{padding-bottom:8px}
   /* the group button under a share or a Spin. The name is looked up once and filled in. */
   var tagG = {}, tagGQ = [], tagGT = null;
   var GICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20c1.1-3.6 3.6-5.4 6.5-5.4s5.4 1.8 6.5 5.4"/><circle cx="17.5" cy="9" r="2.6"/><path d="M17 14.7c2.3.2 4 1.7 4.8 4.6"/></svg>';
-  function gtagInner(g) { return GICON + "<small>GROUP</small><span>" + esc(g.name) + "</span><i>›</i>"; }
+  function gtagInner(g) { return (g.avatar_path ? '<img src="' + esc(pic(g.avatar_path)) + '" alt="">' : GICON) + "<small>GROUP</small><span>" + esc(g.name) + "</span><i>›</i>"; }
   function gtagHTML(id) {
     if (!id) return "";
     var g = tagG[id];
@@ -3587,7 +3595,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function gtagLoad() {
     var ids = tagGQ.splice(0); if (!ids.length) return;
     try {
-      (await rest("porch_groups?id=in.(" + ids.join(",") + ")&status=eq.open&select=id,name")).forEach(function (g) { tagG[g.id] = g; });
+      (await rest("porch_groups?id=in.(" + ids.join(",") + ")&status=eq.open&select=id,name,avatar_path")).forEach(function (g) { tagG[g.id] = g; });
     } catch (e) { ids.forEach(function (id) { delete tagG[id]; }); return; }
     ids.forEach(function (id) {
       if (!tagG[id]) return;
@@ -3603,7 +3611,7 @@ html.kb .ch-bar{padding-bottom:8px}
     myOpenP = (async function () {
       var mem = await rest("porch_group_members?user_id=eq." + me.uid + "&select=group_id");
       if (!mem.length) return [];
-      var gs = await rest("porch_groups?id=in.(" + mem.map(function (m) { return m.group_id; }).join(",") + ")&status=eq.open&kind=eq.open&select=id,name&order=name.asc");
+      var gs = await rest("porch_groups?id=in.(" + mem.map(function (m) { return m.group_id; }).join(",") + ")&status=eq.open&kind=eq.open&select=id,name,avatar_path&order=name.asc");
       gs.forEach(function (g) { tagG[g.id] = g; });
       return gs;
     })().catch(function () { myOpenP = null; return []; });
@@ -4982,6 +4990,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   var groupLink = function (g) { return "recoverymisfits.org/groups/" + (g.slug || ""); };
   function gTile(g, sz) {
+    if (g.avatar_path) return '<span class="g-tile pic" style="width:' + sz + "px;height:" + sz + 'px"><img src="' + esc(pic(g.avatar_path)) + '" alt="" loading="lazy"></span>';
     var h = String(g.name || "?"), n = 0; for (var i = 0; i < h.length; i++) n = (n * 31 + h.charCodeAt(i)) >>> 0;
     var w = h.replace(/[^A-Za-z0-9 ]/g, "").split(/\s+/).filter(Boolean), ini = ((w[0] || "?").charAt(0) + (w[1] ? w[1].charAt(0) : "")).toUpperCase();
     return '<span class="g-tile" style="width:' + sz + "px;height:" + sz + "px;font-size:" + Math.round(sz * 0.36) + "px;background:" + COLORS[n % COLORS.length] + '">' + esc(ini) + "</span>";
@@ -5098,7 +5107,8 @@ html.kb .ch-bar{padding-bottom:8px}
     } catch (e) { pg.innerHTML = '<div class="bkbar">' + BK + '</div><p class="pempty">The group didn\'t load. Check your signal.</p>'; return; }
     groupOpen = { id: id, members: mem, keeper: keeper, inIt: inIt };
     var LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
-    var head = '<div class="g-cover">' + BK.replace('class="bk"', 'class="bk over"') + gTile(g, 76) + "</div><div class=\"g-head\"><h2>" + esc(g.name) + "</h2>" +
+    var head = '<div class="g-cover' + (g.cover_path ? ' has" style="background-image:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(17,17,15,.75)),url(\'' + esc(pic(g.cover_path)) + "\')" : "") + '">' + BK.replace('class="bk"', 'class="bk over"') +
+      ((keeper || isMod) && g.status === "open" ? '<button type="button" class="g-edit" data-gedit>✎ Edit</button>' : "") + gTile(g, 76) + "</div><div class=\"g-head\"><h2>" + esc(g.name) + "</h2>" +
       '<p class="g-meta">' + LOCK + (g.kind === "ask" ? "Ask to join" : "Anybody can join") + " · only members see what's shared here</p>" +
       (g.about ? '<p class="g-about">' + esc(g.about) + "</p>" : "") + (g.who_for ? '<p class="g-for">For: ' + esc(g.who_for) + "</p>" : "") +
       (g.slug && g.status === "open" ? '<button type="button" class="g-addr" data-gcopy aria-label="Copy this group\'s address">' + esc(groupLink(g)) + "<span>Copy</span></button>" : "") +
@@ -5131,12 +5141,36 @@ html.kb .ch-bar{padding-bottom:8px}
       }).join("") + '<button type="button" data-close style="color:var(--muted)">Done</button>';
     });
   }
+  /* GROUP PICTURES: the Edit button on the banner (keepers and moderators) */
+  function groupEdit() {
+    var g = groups[groupOpen.id];
+    $("mbody").dataset.t = "{}"; $("mbody").dataset.uid = "";
+    $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">Edit group</p>' +
+      '<button type="button" data-gm="pic">' + (g.avatar_path ? "Change the picture" : "Add a picture") + '</button><button type="button" data-gm="banner">' + (g.cover_path ? "Change the banner" : "Add a banner") + "</button>" +
+      '<p class="g-fine">Everybody sees these, in the Groups list and on shares that tag the group.</p><button type="button" data-close style="color:var(--muted)">Cancel</button>';
+    open("menu");
+  }
+  async function newGroupPicture(input, slot) {
+    var f = input.files && input.files[0]; input.value = ""; if (!f || !groupOpen) return;
+    var gid = groupOpen.id, data = await cropPhoto(f, slot, input);
+    if (data === "again" || !data) return;
+    if (!(await scanPhoto(data, slot === "cover" ? "cover" : "avatar", function () { input.click(); }))) return;
+    toast("Checking the photo…");
+    var r = await fn("porch", { action: "group_picture", group: gid, slot: slot, photo: data, faces_ok: true });
+    if (!r.ok) return toast(r.error || "That didn't upload.");
+    if (groups[gid]) groups[gid][slot === "cover" ? "cover_path" : "avatar_path"] = r.path;
+    if (tagG[gid]) tagG[gid].avatar_path = groups[gid] && groups[gid].avatar_path;
+    toast(slot === "cover" ? "Banner updated." : "Picture updated.");
+    if (groupOpen && groupOpen.id === gid && $("group").classList.contains("open")) openGroup(gid, true);
+  }
+  $("gfav").addEventListener("change", function () { newGroupPicture(this, "avatar"); });
+  $("gfcover").addEventListener("change", function () { newGroupPicture(this, "cover"); });
   function groupMore() {
     var g = groups[groupOpen.id];
     $("mbody").dataset.t = "{}"; $("mbody").dataset.uid = "";
     $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">' + esc(g.name) + "</p>" +
       '<button type="button" data-gm="who">See who\'s here</button><button type="button" data-gm="rules">The Porch rules</button>' +
-      (groupOpen.keeper || isMod ? '<button type="button" data-gm="addr">Change the address</button>' : "") +
+      (groupOpen.keeper || isMod ? '<button type="button" data-gm="pic">Change the picture</button><button type="button" data-gm="banner">Change the banner</button><button type="button" data-gm="addr">Change the address</button>' : "") +
       (groupOpen.inIt && !groupOpen.keeper ? '<button type="button" class="bad" data-gm="leave">Leave this group</button>' : "") +
       (groupOpen.keeper ? '<p class="g-fine">Keepers keep the light on. If you need to step away, message a moderator.</p>' : "") +
       (isMod ? '<button type="button" class="bad" data-gm="close">Close this group</button>' : "") +
@@ -5244,6 +5278,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (t.closest("[data-gshare]")) return openGroupCompose();
     if (t.closest("[data-gwho]")) return groupWho();
     if (t.closest("[data-gmore]")) return groupMore();
+    if (t.closest("[data-gedit]")) return groupEdit();
     if (t.closest("[data-ginvite]")) { var gi = groups[groupOpen.id]; return openPick("Come join " + gi.name + " on the Porch: " + (gi.slug ? "https://" + groupLink(gi) : location.origin + "/feed/porch.html?g=" + gi.id)); }
     if (t.closest("[data-gcopy]")) { var gc0 = groups[groupOpen.id]; try { await navigator.clipboard.writeText("https://" + groupLink(gc0)); toast("Address copied."); } catch (e3) { toast(groupLink(gc0)); } return; }
     if (t.closest("#gaddrgo")) return saveGroupAddr();
@@ -5261,6 +5296,7 @@ html.kb .ch-bar{padding-bottom:8px}
     }
     if ((b = t.closest("[data-gm]"))) {
       var what = b.dataset.gm, gid2 = groupOpen.id;
+      if (what === "pic" || what === "banner") { $(what === "pic" ? "gfav" : "gfcover").click(); return closeTop(); }   /* the picker opens inside the tap */
       if (what === "who") { await closeTop(); return groupWho(); }
       if (what === "rules") { await closeTop(); return showRules(); }
       if (what === "addr") {

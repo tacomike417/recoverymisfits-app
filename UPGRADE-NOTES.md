@@ -727,3 +727,9 @@ without making it confusing.
 - Typing # shows a picker: the tags people use most, then a starter list (path-neutral, in `feed/porch.html` STARTER_TAGS).
 - TAG A GROUP: in a new share, an edit, a win and a Spin. Only open (anybody can join) groups you're in. Shows as a button under it that opens the group. Checked on the server (porch + spins functions).
 - Not done yet: hashtags on a card-style share (the words on the picture) are counted but can't be tapped; reshares can't tag a group; no way to change the group on a Spin after it's posted.
+
+## SOBER RIOT + group pictures (4 Oct 2026, v163)
+- SOBER RIOT: the soberriot account (house account) and the open group recoverymisfits.org/groups/sober-riot, kept by soberriot and recoverymisfits (`porch_51_sober_riot.sql`). Art in `assets/house/soberriot/` (avatar, cover, logo).
+- A share on the Porch tagged with a group counts as the group being used, so a tagged group does not close after 90 quiet days.
+- GROUP PICTURES: any group can have a picture and a banner. Keepers (and moderators) tap Edit on the banner, or the ⋯ menu. Shows in the Groups list, the group page and the GROUP button under tagged shares (`porch_52_group_pictures.sql`, porch function `group_picture`).
+- STILL TO DO for SOBER RIOT: the memes (ChatGPT is drawing them from `sober-riot-300-lines.txt`), then the timer that posts a few a day from soberriot, each tagged to the group.

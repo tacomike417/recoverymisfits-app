@@ -742,5 +742,28 @@ Deno.serve(async (req) => {
     return json({ ok: true, path });
   }
 
+  /* GROUP PICTURES (4 Oct 2026): a group's picture or banner. Its two keepers, or a moderator. */
+  if (b.action === "group_picture") {
+    const gid = String(b.group || "");
+    if (!/^[0-9a-f-]{36}$/i.test(gid)) return json({ error: "That group isn't here." }, 400);
+    const { data: g } = await admin.from("porch_groups").select("id, keeper_id, cokeeper_id, status, avatar_path, cover_path").eq("id", gid).maybeSingle();
+    if (!g || g.status !== "open") return json({ error: "That group isn't open." }, 404);
+    let ok = g.keeper_id === user.id || g.cokeeper_id === user.id;
+    if (!ok) { const { data: m } = await admin.from("porch_moderators").select("user_id").eq("user_id", user.id).maybeSingle(); ok = !!m; }
+    if (!ok) return json({ error: "Only the group's keepers can change that." }, 403);
+    const slot = b.slot === "cover" ? "cover_path" : "avatar_path";
+    const b64 = String(b.photo || "").replace(/^data:image\/\w+;base64,/, "");
+    let bytes: Uint8Array;
+    try { bytes = decodeBase64(b64); } catch { return json({ error: "That photo couldn't be read." }, 400); }
+    const bad = await photoOk(bytes, b64, !!b.faces_ok);
+    if (bad === NEED_FACES) return json({ error: FACES_MSG, need: "faces" }, 400);
+    if (bad) return json({ error: bad }, 400);
+    const path = await storePhoto(user.id, bytes); if (!path) return json({ error: "The photo didn't upload. Try again." }, 500);
+    const old = (g as any)[slot];
+    await admin.from("porch_groups").update({ [slot]: path }).eq("id", gid);
+    if (old) await dropPhotos([old]);
+    return json({ ok: true, path });
+  }
+
   return json({ error: "Unknown action" }, 400);
 });
