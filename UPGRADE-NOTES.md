@@ -775,3 +775,8 @@ without making it confusing.
 - [x] v172: Spin view counts are just the eye and the number, no word "views".
 - [x] v173: the "Welcome to the Porch" tour never pops up by itself anymore (it was every visit until "Don't show me this again" was ticked; that checkbox is gone). Still opens from the menu, "How the Porch works", and from the small Getting started strip.
 - [x] v174: sticker editor on iPhone: the Words and Stickers lists were squashed ("menus all jacked up"); rows are a fixed height now. NOT tested on a real iPhone from here; Mike to confirm.
+
+## Filters (4 Oct 2026, v175)
+- [x] A Filters button on the share screen (photo shares only, not when editing an old share): Normal, Black & White, Glow, Golden Hour, Pop, Faded. Tap one and see it on the picture; it goes on every picture in the share, collage included.
+- Done by hand on the pixels in porch.html (`filtImg`, `FILT`), because iPhone's canvas has no built-in filters. `photos` stays unfiltered; `shownPhotos()` is what is shown and sent.
+- Known and left: the filter goes over stickers too (Black & White makes the stickers gray). No face-aware "sparkly eyes" filter; that needs a face-tracking add-on and is its own project.
