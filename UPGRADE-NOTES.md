@@ -57,6 +57,15 @@ Everything that has to happen to open the Porch. Nothing here before October 20.
       It does not post anywhere by itself. Table: porch_share_desk (porch_47_share_desk.sql).
 - [ ] Same desk for Infinite Pulls (Loops).
 
+## 🤖 WELCOME MATT, THE GREETER ROBOT (4 Oct 2026, Mike: "I love Welcome Matt lol")
+A humble worker robot who took the greeter job. He says plainly that he is a robot.
+- [x] Name welcomematt, shows as "Welcome Matt". Line: "Greeter robot. I set up the chairs, hold the door, and say hi. Glad you're here."
+- [x] Picture: assets/house/welcomematt/avatar.webp (Mike's art; the big one is in Downloads as welcomematt-full.jpg).
+- [x] v160: on the tester lists (account.html, feed/porch.html) and the house lists (porch.html HOUSE, porch-push, porch_house()).
+- [ ] Make the account on the site, then run porch_48_welcome_matt.sql.
+- [ ] NEXT: what he does. Same idea as Infinite Pulls: a welcome comment on a first share within minutes, a welcome message
+      in the first day. The words are Mike's to pick.
+
 ## 📝 THE BIG LIST (brainstorm 1 Oct 2026, Mike: "we're doing all this stuff")
 Order isn't set.
 

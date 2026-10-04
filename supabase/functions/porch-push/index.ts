@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
       .gt("created_at", since).is("hidden_at", null).is("group_id", null).order("created_at", { ascending: false }).limit(2000);
     if (!posts?.length) return json({ ok: true, sent: 0, why: "nobody shared" });
     // the house accounts share every day; an alert that comes every day no matter what stops meaning anything
-    const { data: house } = await admin.from("porch_members").select("user_id").in("handle", ["recoverymisfits", "spiritualmisfit", "shitmysponsorsays", "anotherdaysober"]);
+    const { data: house } = await admin.from("porch_members").select("user_id").in("handle", ["recoverymisfits", "spiritualmisfit", "shitmysponsorsays", "anotherdaysober", "welcomematt"]);
     const isHouse = new Set((house || []).map((h: any) => h.user_id));
     const posters = [...new Set(posts.map((x: any) => x.user_id))].filter((u) => !isHouse.has(u as string)) as string[];
     if (!posters.length) return json({ ok: true, sent: 0, why: "only the house shared" });
