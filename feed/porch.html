@@ -1031,7 +1031,9 @@ html.kb .ctools{display:none}
 .acts .rs1.mine{display:flex;align-items:center;gap:5px;padding:9px;min-height:44px;color:var(--muted)}
 .acts .rs1.mine .ico{width:25px;height:25px}
 .acts .rs1.mine:has(.an:empty){display:none}
-.acts button.on[data-react=proud]{color:#e0352b}
+.acts button[data-react=proud] .ico{stroke:#ff5fa2}        /* pink hearts (v179, Mike) */
+.acts button.on[data-react=proud]{color:#ff5fa2}
+.acts button.on[data-react=proud] .ico{fill:#ff5fa2}
 .acts .send1{margin-left:auto;flex:none;padding:9px!important}
 .acts .send1 .ico{width:24px;height:24px}
 
@@ -1298,7 +1300,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v178</span>
+  <span class="ver" id="ver">v179</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1996,7 +1998,7 @@ html.kb .ch-bar{padding-bottom:8px}
         (sv ? '<img src="' + SPIN_CDN + "/" + sv.video_guid + '/thumbnail.jpg" alt="" loading="lazy">' : "") +
         '<span class="fsp-tag"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.6" cy="7" r="2.7"/><circle cx="12.9" cy="6.2" r="3.5"/><path d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2z"/><path d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPIN</span>' +
         '<span class="fsp-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></span>' +
-        '<span class="fsp-bot"><span>Tap to watch' + (secs ? " · 0:" + (secs < 10 ? "0" : "") + secs : "") + (sv && sv.views > 0 ? ' · <svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> ' + fmtN(sv.views) : "") + "</span></span></button>";
+        '<span class="fsp-bot"><span>Tap to watch' + (secs ? " · 0:" + (secs < 10 ? "0" : "") + secs : "") + (sv && sv.views >= 2 ? ' · <svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> ' + fmtN(sv.views) : "") + "</span></span></button>";
     }
     var long = text.length > 420 || text.split("\n").length > 7;
     var mins = Math.max(1, Math.round(text.split(/\s+/).length / 200));
@@ -2012,7 +2014,7 @@ html.kb .ch-bar{padding-bottom:8px}
       (!photos.length && p.link_preview && p.link_preview.url ? previewHTML(p.link_preview) : "") +
       '<div class="acts">' +
         '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '" aria-label="Love this">' + ico("proud") + cntHTML(p.id, "h") + '</button>' +
-        '<button type="button" data-comments aria-label="Comment">' + ico("comment") + '<i class="an" data-cc="' + p.id + '">' + fmtN((comments[p.id] || []).length) + '</i></button>' +
+        '<button type="button" data-comments aria-label="Comment">' + ico("comment") + '<i class="an" data-cc="' + p.id + '">' + showN((comments[p.id] || []).length) + '</i></button>' +
         (p.user_id !== me.uid && !p.group_id && p.need !== "moment" ? '<button type="button" class="rs1" data-reshare aria-label="Reshare this on the Porch">' + ico("reshare") + cntHTML(p.id, "r") + "</button>"
           : !p.group_id && p.need !== "moment" ? '<span class="rs1 mine" aria-label="Reshares">' + ico("reshare") + cntHTML(p.id, "r") + "</span>" : "") +
         '<button type="button" class="send1" data-send aria-label="Send this share to somebody">' + ico("send") + "</button></div>" +
@@ -2040,21 +2042,24 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   function refreshComments(id) {
     var el = document.querySelector("#p-" + id + " .cm"); if (el) el.innerHTML = commentsPreview(id);
-    var n = (comments[id] || []).length; document.querySelectorAll('[data-cc="' + id + '"]').forEach(function (i) { i.textContent = fmtN(n); });
+    var n = (comments[id] || []).length; document.querySelectorAll('[data-cc="' + id + '"]').forEach(function (i) { i.textContent = showN(n); });
   }
   /* THE NUMBERS (4 Oct 2026, Mike: "views ... heart count, reshare count ... its what makes social media
      social media"). Real counts, shown when there is at least one. Hearts and reshares are looked up a
      screenful at a time and filled in; the comment count is already known. */
   function fmtN(n) { n = Number(n) || 0; return n < 1000 ? String(n) : n < 10000 ? (Math.floor(n / 100) / 10) + "K" : n < 1e6 ? Math.floor(n / 1000) + "K" : (Math.floor(n / 1e5) / 10) + "M"; }
+  /* NEVER A ZERO (v179, Mike: "we never want to show zero on the site ... the numbers only pick up after they've
+     had two or more"). A count shows at 2 and up; under that the icon stands alone. Real counts, nothing added. */
+  function showN(n) { n = Number(n) || 0; return n >= 2 ? fmtN(n) : ""; }
   var cnt = {}, cntQ = [], cntT = null;
   function cntHTML(id, k) {
     var ok = /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(String(id)), c = cnt[id];
     if (ok && c === undefined) { cnt[id] = null; cntQ.push(id); clearTimeout(cntT); cntT = setTimeout(cntLoad, 60); }
-    return '<i class="an" data-cn="' + esc(id) + '" data-ck="' + k + '">' + (c ? fmtN(c[k]) : ok ? "" : "0") + "</i>";      /* v178, Mike: "we need counts on this stuff" -- the number always shows, 0 included */
+    return '<i class="an" data-cn="' + esc(id) + '" data-ck="' + k + '">' + (c ? showN(c[k]) : "") + "</i>";      /* v178, Mike: "we need counts on this stuff" -- the number always shows, 0 included */
   }
   function cntFill(id) {
     var c = cnt[id]; if (!c) return;
-    document.querySelectorAll('[data-cn="' + id + '"]').forEach(function (i) { i.textContent = fmtN(c[i.dataset.ck]); });
+    document.querySelectorAll('[data-cn="' + id + '"]').forEach(function (i) { i.textContent = showN(c[i.dataset.ck]); });
   }
   async function cntLoad() {
     var ids = cntQ.splice(0, 100); if (!ids.length) return;
@@ -6423,7 +6428,7 @@ html.kb .ch-bar{padding-bottom:8px}
 })();
 </script>
 <script src="/feed/sound.js?v=3" defer></script>
-<script src="/feed/spins/spins.js?v=77" defer></script>
+<script src="/feed/spins/spins.js?v=78" defer></script>
 <script src="/feed/photo-fun.js?v=2" defer></script>
 <script src="/feed/tour.js?v=6" defer></script>
 </body>

@@ -197,7 +197,7 @@
 .sp-side{position:absolute;right:8px;bottom:calc(28px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;align-items:center}
 .sp-side button{width:64px;border:0;background:none;color:#fff;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font:800 11.5px/1.1 Arial,sans-serif;text-shadow:0 1px 3px #000;padding:0}
 .sp-side svg{width:34px;height:34px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.7));fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sp-side .on svg{fill:#e52e71;stroke:#ff8fb5}
+.sp-side .on svg{fill:#ff5fa2;stroke:#ff8fb5}
 .sp-side .on.re svg{fill:none;stroke:#e0bd6a}
 .sp-side .on{color:#f6e3a8}
 .sp-side button:active{transform:scale(.9)}
@@ -406,7 +406,7 @@
         return `<button type="button" class="sp-gt${dim ? ' sp-dim' : ''}" data-sp-open="${esc(key)}" data-sp-i="${i}" aria-label="Play Spin">
           ${l.status === 'ready' ? `<img src="${esc(thumbFor(l))}" alt="" loading="lazy">` : ''}
           ${badge ? `<span class="sp-badge">${esc(badge)}</span>` : ''}
-          ${Number(l.views) > 0 ? `<span class="sp-len">${EYE}${fmtN(l.views)}</span>` : l.length_s ? `<span class="sp-len">▶ ${Math.round(l.length_s)}s</span>` : ''}
+          ${Number(l.views) >= 2 ? `<span class="sp-len">${EYE}${fmtN(l.views)}</span>` : l.length_s ? `<span class="sp-len">▶ ${Math.round(l.length_s)}s</span>` : ''}
           ${l.respunBy ? `<span class="sp-re">↻ ${esc(at(l.user_id))}</span>` : ''}</button>`;
       }).join('')}</div>
       ${mine ? '<p class="sp-note">Spins last 30 days. Pin up to 3 from a Spin\'s ⋯ to keep them. Spins you Respin show here too.</p>' : ''}`;
@@ -426,7 +426,7 @@
      counts, for anybody, the maker included. Nothing is multiplied: each one is a real play. */
   const fmtN = (n) => { n = Number(n) || 0; return n < 1000 ? String(n) : n < 10000 ? (Math.floor(n / 100) / 10) + 'K' : n < 1e6 ? Math.floor(n / 1000) + 'K' : (Math.floor(n / 1e5) / 10) + 'M'; };
   const EYE = '<svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-  const viewsLabel = (l) => { const n = Number(l.views) || 0; return n ? fmtN(n) : ''; };      /* v172, Mike: "just make an eye take off the word views" */
+  const viewsLabel = (l) => { const n = Number(l.views) || 0; return n >= 2 ? fmtN(n) : ''; };      /* v179: never a zero, counts show at 2 and up. v172, Mike: "just make an eye take off the word views" */
   const lastView = new Map();
   function countView(l, el) {
     if (!l || !l.id || l.status !== 'ready') return;
@@ -436,8 +436,9 @@
     if (el) { const v = el.querySelector('.sp-views'); if (v) v.innerHTML = EYE + viewsLabel(l); }
     try { P().rpc('porch_spin_view', { p_spin: l.id }).catch(() => {}); } catch (_) {}
   }
-  const loveLabel = (l) => { const n = loveN.get(l.post_id) || 0; return n ? String(n) : 'Love'; };
-  const reLabel = (l) => { const n = reN.get(l.id) || 0; return n ? String(n) : (l.user_id === meId() ? '0' : 'Respin'); };
+  const talkLabel = (l) => { const n = talkN.get(l.post_id) || 0; return n >= 2 ? fmtN(n) : 'Talk'; };
+  const loveLabel = (l) => { const n = loveN.get(l.post_id) || 0; return n >= 2 ? fmtN(n) : 'Love'; };
+  const reLabel = (l) => { const n = reN.get(l.id) || 0; return n >= 2 ? fmtN(n) : (l.user_id === meId() ? '' : 'Respin'); };
   const paintSound = () => { if (sp) sp.classList.toggle('sound', soundOn); };
 
   const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/></svg>';
@@ -481,7 +482,7 @@
       <div class="sp-side">
         ${meId() ? camBtn('sp-sidecam', 'Make') : ''}
         <button type="button" data-sp-proud class="${proud.has(l.post_id) ? 'on' : ''}" aria-label="Love this">${HEART}<span class="n">${loveLabel(l)}</span></button>
-        <button type="button" data-sp-talk aria-label="Comments">${TALK}<span class="n">${talkN.get(l.post_id) || 0}</span></button>
+        <button type="button" data-sp-talk aria-label="Comments">${TALK}<span class="n">${talkLabel(l)}</span></button>
         ${own ? `<button type="button" class="re sp-recount" aria-label="Respins">${RESPIN}<span>${reLabel(l)}</span></button>`
               : `<button type="button" data-sp-respin class="re${isRe ? ' on' : ''}" aria-label="Respin to my Spins">${RESPIN}<span>${reLabel(l)}</span></button>`}
         <button type="button" data-sp-share aria-label="Share">${SHARE}<span>Share</span></button>
@@ -517,7 +518,7 @@
     if (!sp) return; const l = spList[i]; if (!l) return;
     const el = sp.querySelector(`[data-sp-item="${i}"]`); if (!el) return;
     const lv = el.querySelector('[data-sp-proud]'); lv.classList.toggle('on', proud.has(l.post_id)); lv.querySelector('.n').textContent = loveLabel(l);
-    el.querySelector('[data-sp-talk] .n').textContent = String(talkN.get(l.post_id) || 0);
+    el.querySelector('[data-sp-talk] .n').textContent = talkLabel(l);
     const r = el.querySelector('[data-sp-respin]');
     if (r) { r.classList.toggle('on', respun.has(l.id)); r.querySelector('span').textContent = reLabel(l); }
   }
