@@ -8,15 +8,58 @@ help me slow down so I don't rush something that is confusing for people."
 Launch means taking the Mike-only lock off feed/porch.html. Until Oct 20 it stays locked,
 and even then only once the UI update (layout A) is built and has been lived with for a while.
 
+## 🚀 THE LAUNCH LIST (Mike, 3 Oct 2026: "leave it until launch, make a launch list for us")
+Everything that has to happen to open the Porch. Nothing here before October 20.
+
+**The week before (Oct 13 to 19)**
+- [ ] Close the Gmail plus trick in porch-confirm (name+anything@gmail.com all count as one email). Mike, 3 Oct:
+      "leave it until launch." One function deploy.
+- [ ] Decide: do brand-new accounts still wait 3 days before they can post? (Today only testers skip the wait.
+      On launch day that means a new person can look but not share until day 4.)
+- [ ] Decide where the invite link sends new people (Mike, 3 Oct: "we will need to change the url on launch").
+- [ ] Welcome crew: a few real people lined up to say hi on day 1.
+- [ ] Welcome post written and ready to sit on top.
+- [ ] Check an iPhone: alerts, the number on the app icon, install as a web based app.
+- [ ] Check the 4:17am dated Spins are still posting on time (they run through Oct 22; five say "October 20").
+
+**Launch day (Oct 20), in this order**
+- [ ] account.html: flip PORCH_OPEN to true (opens "Pull up a chair" to everybody).
+- [ ] feed/porch.html: take the tester lock off.
+- [ ] feed/porch.html: INVITE.url set to the launch address.
+- [ ] Sample posts off.
+- [ ] Welcome post on top.
+- [ ] Beta door (beta.html): switch it off (the off switch is in porch_28_beta_door.sql).
+- [ ] Version bump, sw.js VERSION bump, push.
+- [ ] Sign up as a brand-new person on a phone, start to finish: email step, picture, first share, house says hi.
+- [ ] Home page Porch card says "Come hang out" (it switches by itself on Oct 20; just look).
+
+**The first week after**
+- [ ] Watch reports and the new folks rail every day.
+- [ ] Founding Misfit badge: decide when the door closes on it.
+- [ ] Quick comments (parked from the unclear list).
+
+## ☀️ "YOUR FRIENDS SHARED", ONCE A MORNING (4 Oct 2026, Mike)
+- [x] One phone alert a day at 8:30am Eastern to anybody with a friend who shared since yesterday morning:
+      "3 friends shared on the Porch". Nobody gets one on a day none of their friends shared. Group shares and the
+      house accounts do not count. Built in porch-push ({ digest: "friends" }); the knock is porch_46_friends_digest.sql
+      (cron job porch-friends-digest, 12:30 and 13:30 UTC so it is 8:30 summer and winter).
+      Stop it: select cron.unschedule('porch-friends-digest');
+
+- [x] v158 (4 Oct): the Porch tour has a "Turn on alerts" step, right after "Say something" (now 5 steps). The button asks the
+      phone for alerts right there; on an iPhone in a browser tab it shows the Home Screen steps. The after-hello pop-up
+      does not also ask while the tour is walking them through. (feed/tour.js, Porch.alertsState / alertsOn.)
+
 ## 📝 THE BIG LIST (brainstorm 1 Oct 2026, Mike: "we're doing all this stuff")
 Order isn't set.
 
 **Finish first**
 - [x] Spin music: pick the 50 clips (picker page), install them, push (done 1 Oct: 50 clips, 15 seconds)
 - [x] Play Store app rebuild (dropped: the Play Store app is parked on purpose, the web based app is the real one)
-- [ ] BEFORE LAUNCH: close the Gmail plus hole in porch-confirm (name+anything@gmail.com counts as a new email
+- [ ] (on THE LAUNCH LIST) close the Gmail plus hole in porch-confirm (name+anything@gmail.com counts as a new email
       today, so one Gmail can confirm many accounts). Left open on purpose while Mike tests with plus emails.
       The email step itself was tested for real on 3 Oct (test link: /feed/porch.html?testemail=1) and worked.
+- [ ] (on THE LAUNCH LIST) change the invite link (Mike, 3 Oct: "we will need to change the url on launch"). INVITE.url in
+      feed/porch.html points at /feed/porch.html for the testers; at launch point it where new people land.
 - [ ] WELCOME CREW (Mike, 3 Oct: "Number two will come"): a few real people get a "New here" list each day and
       one tap to go say hi. The house comment, the new folks rail and house accounts accepting friend requests
       are done (v141, porch_41). Later idea: a "Porch Greeter" card for welcoming 10 new people.

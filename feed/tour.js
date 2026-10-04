@@ -48,12 +48,15 @@
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   /* what they have already done, so a finished step says so instead of nagging */
-  const did = { profile: false, post: false, spin: false };
+  const did = { profile: false, post: false, spin: false, alerts: false };
+  let alertsState = 'off';   /* off | on | ios (iPhone, not on the Home Screen yet) | denied | no (this browser can't) */
   async function loadDid() {
     const p = P(); if (!p || !p.me || !p.me.uid) return;
     did.profile = !!(p.me.member && p.me.member.avatar_path);
     try { did.post = (await p.rest('porch_posts?user_id=eq.' + p.me.uid + '&select=id&limit=1')).length > 0; } catch (_) {}
     try { did.spin = (await p.rest('porch_spins?user_id=eq.' + p.me.uid + '&status=eq.ready&select=id&limit=1')).length > 0; } catch (_) {}
+    try { alertsState = p.alertsState ? await p.alertsState() : 'no'; } catch (_) { alertsState = 'no'; }
+    did.alerts = alertsState === 'on';
   }
   const doneCount = () => (did.profile ? 1 : 0) + (did.post ? 1 : 0) + (did.spin ? 1 : 0);
 
@@ -66,10 +69,16 @@
     { k: 'post', n: 2, title: 'Say something',
       body: () => pic('2-post.webp', 'The gold plus button open, with Say something ringed'),
       line: 'Say hi to the Porch. Anything at all.', go: 'Say something now' },
-    { k: 'spin', n: 3, title: 'Make a Spin',
+    /* TURN ON ALERTS (4 Oct 2026, Mike: "in the after sign up walk thru i want you to add in turn on
+       notifications"). Right after their hello, so they hear it when somebody says hi back. No
+       screenshot: a little drawing of what the alert looks like on a phone. */
+    { k: 'alerts', n: 3, title: 'Turn on alerts',
+      body: () => `<div class="pt-alert"><span class="pt-bell">&#128276;</span><div><b>grateful_gina commented on your share</b><small>&ldquo;Welcome! Glad you&rsquo;re here.&rdquo;</small></div></div>`,
+      line: 'Hear it when somebody says hi back. One buzz, not a bunch.', go: 'Turn them on' },
+    { k: 'spin', n: 4, title: 'Make a Spin',
       body: () => pic('3-spin.webp', 'The Spin maker with Record and Upload'),
       line: 'A short video. Record one, or use one from your phone.', go: 'Make one now' },
-    { k: 'share', n: 4, title: 'Put your Spin on YouTube, Facebook, TikTok, etc.', small: true,
+    { k: 'share', n: 5, title: 'Put your Spin on YouTube, Facebook, TikTok, etc.', small: true,
       body: () => `<div class="pt-two">
           <figure>${pic('4a-share.webp', 'A Spin with the share arrow ringed')}<figcaption><b>1</b> Open your Spin. Tap the arrow.</figcaption></figure>
           <figure>${pic('4b-video.webp', 'The share choices with Share this video ringed')}<figcaption><b>2</b> Tap <i>Share this video</i>.</figcaption></figure>
@@ -95,6 +104,10 @@
 .pt-two .pt-img{max-height:36vh}
 .pt-two figcaption{margin-top:7px;font:700 14px/1.3 Arial,sans-serif;text-align:left}
 .pt b.n,.pt-two figcaption b,.pt-line b{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:5px;border-radius:50%;background:#e0bd6a;color:#1a1408;font:400 14px "RM Head",Impact,sans-serif;vertical-align:1px}
+.pt-alert{display:flex;align-items:center;gap:12px;max-width:320px;margin:6px auto 0;padding:14px;border-radius:16px;background:#f7f1e3;color:#1b1a17;text-align:left;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.pt-alert .pt-bell{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#e0bd6a;font-size:22px}
+.pt-alert b{display:block;font:800 14.5px/1.3 Arial,sans-serif}
+.pt-alert small{display:block;margin-top:2px;font:14px/1.3 Arial,sans-serif;color:#5b5544}
 .pt-line{margin:12px 0 14px;font:700 17px/1.4 Arial,sans-serif}
 .pt-sub{margin:0 0 16px;font:15.5px/1.5 Arial,sans-serif;color:#cfc4a8}
 .pt-done{display:inline-block;margin:0 0 10px;padding:5px 12px;border-radius:999px;background:rgba(120,190,120,.16);color:#9fd49f;font:800 13px Arial,sans-serif}
@@ -142,11 +155,11 @@
     if (!el) return;
     const s = STEPS[at], last = STEPS.length - 1;
     const name = (P() && P().me && P().me.member && P().me.member.handle) || '';
-    const dots = `<div class="pt-dots">${[1, 2, 3, 4].map((n) => `<i class="${s.n && n <= s.n ? 'on' : ''}"></i>`).join('')}</div>`;
+    const dots = `<div class="pt-dots">${[1, 2, 3, 4, 5].map((n) => `<i class="${s.n && n <= s.n ? 'on' : ''}"></i>`).join('')}</div>`;
     let h = `<button type="button" class="pt-x" data-pt-x aria-label="Close">${XSVG}</button>`;
     if (s.k === 'hello') {
       h += `<p class="pt-k">WELCOME TO THE PORCH</p><h2>${name ? 'Hey ' + esc(name) : 'Hey there'}</h2>
-        <p class="pt-sub">Four quick things. You do each one for real, and I point at every button.</p>
+        <p class="pt-sub">Five quick things. You do each one for real, and I point at every button.</p>
         <div class="pt-tip"><span class="pt-q">?</span><span>This is in your menu any time: tap your picture, then <b>How the Porch works</b>.</span></div>
         <button type="button" class="pt-go" data-pt-next>Show me</button>
         <button type="button" class="pt-skip" data-pt-x>Not now</button>`;
@@ -164,12 +177,16 @@
       const done = did[s.k];
       const needSpin = s.k === 'share' && !did.spin;
       const c = cheer; cheer = '';
-      h += `${dots}${c ? `<p class="pt-cheer">&#10003; ${c}</p>` : ''}<p class="pt-k">${c ? 'NEXT: ' : ''}${s.n} OF 4</p><h2${s.small ? ' class="sm"' : ''}>${s.title}</h2>
+      h += `${dots}${c ? `<p class="pt-cheer">&#10003; ${c}</p>` : ''}<p class="pt-k">${c ? 'NEXT: ' : ''}${s.n} OF 5</p><h2${s.small ? ' class="sm"' : ''}>${s.title}</h2>
         ${done ? '<span class="pt-done">&#10003; Done</span>' : ''}
         ${s.body()}
         <p class="pt-line">${s.line}</p>
-        ${done ? '' : needSpin ? `<button type="button" class="pt-go" data-pt-go="spin">Make a Spin first</button>` : `<button type="button" class="pt-go" data-pt-go="${s.k}">${s.go}</button>`}
-        ${done ? '' : '<p class="pt-hand">I&rsquo;ll point at every button.</p>'}
+        ${done ? '' : s.k === 'alerts' ? (
+            alertsState === 'no' ? '<p class="pt-sub">This browser can&rsquo;t do alerts. You can still see everything under the bell.</p>'
+          : alertsState === 'denied' ? '<p class="pt-sub">Alerts are blocked for this site on this phone. You can allow them in your phone&rsquo;s settings.</p>'
+          : `<button type="button" class="pt-go" data-pt-alerts>${alertsState === 'ios' ? 'Show me how' : s.go}</button>`)
+          : needSpin ? `<button type="button" class="pt-go" data-pt-go="spin">Make a Spin first</button>` : `<button type="button" class="pt-go" data-pt-go="${s.k}">${s.go}</button>`}
+        ${done ? '' : s.k === 'alerts' ? (alertsState === 'off' ? '<p class="pt-hand">Your phone will ask. Tap <b>Allow</b>.</p>' : alertsState === 'ios' ? '<p class="pt-hand">On iPhone it goes on your Home Screen first.</p>' : '') : '<p class="pt-hand">I&rsquo;ll point at every button.</p>'}
         <button type="button" class="${done ? 'pt-go' : 'pt-next'}" data-pt-next>${done ? 'Show me more' : 'Skip this one'}</button>`;
     }
     h += `<label class="pt-off"><input type="checkbox" data-pt-off${get(OFF) === '1' ? ' checked' : ''}> Don&rsquo;t show me this again</label>`;
@@ -197,6 +214,17 @@
     el.addEventListener('click', (e) => {
       if (e.target === el || e.target.closest('[data-pt-x]')) { if (STEPS[at].k === 'more') set(AT, '0'); else set(AT, String(at)); return close(); }
       if (e.target.closest('[data-pt-next]')) { at = Math.min(STEPS.length - 1, at + 1); set(AT, String(at)); return draw(); }
+      if (e.target.closest('[data-pt-alerts]')) {
+        const btn = e.target.closest('[data-pt-alerts]');
+        if (alertsState === 'ios') { set(AT, String(at)); close(); setTimeout(() => { try { P().alertsOn(); } catch (_) {} }, 350); return; }
+        btn.disabled = true; btn.textContent = 'Turning on\u2026';
+        Promise.resolve().then(() => P().alertsOn()).catch(() => {}).then(loadDid).then(() => {
+          if (!el) return;
+          if (did.alerts) { at = Math.min(STEPS.length - 1, at + 1); set(AT, String(at)); cheer = 'Alerts are on.'; }
+          draw();
+        });
+        return;
+      }
       const g = e.target.closest('[data-pt-go]');
       if (g) { const k = g.getAttribute('data-pt-go'); set(AT, String(stepOf(k))); close(); setTimeout(() => coach(k), 350); return; }
       const m = e.target.closest('[data-pt-more]');
@@ -220,7 +248,7 @@
     s.innerHTML = `<span>Getting started<small>${n} of 3 done &middot; next: ${next}</small></span><span class="go">Show me &rsaquo;</span><button type="button" class="x" data-pt-hide aria-label="Hide this">&#10005;</button>`;
     s.onclick = (e) => {
       if (e.target.closest('[data-pt-hide]')) { set(HIDE, '1'); s.remove(); return; }
-      open(!did.profile ? 1 : !did.post ? 2 : 3);
+      open(stepOf(!did.profile ? 'profile' : !did.post ? 'post' : 'spin'));
     };
   }
 

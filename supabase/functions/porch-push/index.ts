@@ -76,8 +76,72 @@ Deno.serve(async (req) => {
   const secret = await setting("push_secret");
   if (!secret || req.headers.get("x-porch-secret") !== secret) return json({ error: "no" }, 403);
 
-  let note_id = "", dm_id = "", gdm_id = "", call_id = "";
-  try { const j = await req.json(); note_id = String(j.note_id || ""); dm_id = String(j.dm_id || ""); gdm_id = String(j.gdm_id || ""); call_id = String(j.call_id || ""); } catch { /* empty */ }
+  let note_id = "", dm_id = "", gdm_id = "", call_id = "", digest = "", force = false;
+  try { const j = await req.json(); note_id = String(j.note_id || ""); dm_id = String(j.dm_id || ""); gdm_id = String(j.gdm_id || ""); call_id = String(j.call_id || ""); digest = String(j.digest || ""); force = j.force === true; } catch { /* empty */ }
+
+  /* YOUR FRIENDS SHARED (4 Oct 2026, Mike: "do we send out phone notifications for new posts by
+     people you are friends with? ... a once a day version ... 8:30am"). One alert a day, in the
+     morning, to everybody who has a friend that shared since yesterday morning. Nobody gets one
+     on a day none of their friends shared. The database knocks at 8:30am Eastern (porch_46).
+     Group shares are left out: what's shared in a group stays in the group. */
+  if (digest === "friends") {
+    const p: Record<string, string> = {};
+    new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hourCycle: "h23" })
+      .formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
+    const day = `${p.year}-${p.month}-${p.day}`;
+    if (!force) {
+      if (Number(p.hour) !== 8) return json({ ok: true, skipped: "not 8am Eastern" });      // the knock comes twice (summer and winter clocks); only one is 8:30
+      if ((await setting("friends_digest_day")) === day) return json({ ok: true, skipped: "already sent today" });
+      await admin.from("porch_settings").upsert({ key: "friends_digest_day", value: day }, { onConflict: "key" });
+    }
+    const since = new Date(Date.now() - 24 * 3600_000).toISOString();
+    const { data: posts } = await admin.from("porch_posts").select("id, user_id, need, created_at")
+      .gt("created_at", since).is("hidden_at", null).is("group_id", null).order("created_at", { ascending: false }).limit(2000);
+    if (!posts?.length) return json({ ok: true, sent: 0, why: "nobody shared" });
+    // the house accounts share every day; an alert that comes every day no matter what stops meaning anything
+    const { data: house } = await admin.from("porch_members").select("user_id").in("handle", ["recoverymisfits", "spiritualmisfit", "shitmysponsorsays", "anotherdaysober"]);
+    const isHouse = new Set((house || []).map((h: any) => h.user_id));
+    const posters = [...new Set(posts.map((x: any) => x.user_id))].filter((u) => !isHouse.has(u as string)) as string[];
+    if (!posters.length) return json({ ok: true, sent: 0, why: "only the house shared" });
+    const { data: phones } = await admin.from("porch_push").select("*");
+    if (!phones?.length) return json({ ok: true, sent: 0, why: "no phones" });
+    const [{ data: fa }, { data: fb }, { data: names }] = await Promise.all([
+      admin.from("porch_friends").select("a, b").in("a", posters),
+      admin.from("porch_friends").select("a, b").in("b", posters),
+      admin.from("porch_members").select("user_id, handle").in("user_id", posters),
+    ]);
+    const handle: Record<string, string> = {};
+    (names || []).forEach((m: any) => { handle[m.user_id] = m.handle; });
+    // for each person: which of their friends shared (newest first)
+    const mine: Record<string, string[]> = {};
+    const add = (me: string, friend: string) => { (mine[me] = mine[me] || []); if (!mine[me].includes(friend)) mine[me].push(friend); };
+    const isPoster = new Set(posters);
+    [...(fa || []), ...(fb || [])].forEach((f: any) => { if (isPoster.has(f.a)) add(f.b, f.a); if (isPoster.has(f.b)) add(f.a, f.b); });
+    const order: Record<string, number> = {};
+    posts.forEach((x: any, i: number) => { if (order[x.user_id] === undefined) order[x.user_id] = i; });
+    await vapid();
+    let sent = 0, people = 0;
+    const done = new Set<string>();
+    for (const ph of phones) {
+      const friends = (mine[ph.user_id] || []).filter((f) => handle[f]).sort((x, y) => order[x] - order[y]);
+      if (!friends.length) continue;
+      if (!done.has(ph.user_id)) { done.add(ph.user_id); people++; }
+      const n1 = handle[friends[0]], n2 = friends[1] ? handle[friends[1]] : "";
+      const title = friends.length === 1 ? n1 + " shared on the Porch 👋"
+        : friends.length + " friends shared on the Porch 👋";
+      const body = friends.length === 1 ? "Go see what's new."
+        : friends.length === 2 ? n1 + " and " + n2 + "."
+        : n1 + ", " + n2 + " and " + (friends.length - 2) + " more.";
+      const payload = JSON.stringify({ title, body, url: "/feed/porch.html", tag: "porch-friends" });
+      try {
+        await webpush.sendNotification({ endpoint: ph.endpoint, keys: { p256dh: ph.p256dh, auth: ph.auth } }, payload, { TTL: 6 * 3600, urgency: "normal" });
+        sent++;
+      } catch (e: any) {
+        if (e?.statusCode === 404 || e?.statusCode === 410) await admin.from("porch_push").delete().eq("endpoint", ph.endpoint);
+      }
+    }
+    return json({ ok: true, sent, people });
+  }
 
   /* A CALL IS RINGING (1 Oct 2026): "grateful_gina is calling" / tap to answer. Only good
      while it's ringing, so it doesn't sit around after the call is gone. */
