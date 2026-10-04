@@ -39,7 +39,7 @@
     return longInfo;
   }
   const RAIL_N = 14;
-  const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at,tag_group_id';
+  const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at,tag_group_id,views';
 
   const P = () => window.Porch;
   const back = () => window.PorchBack;
@@ -191,6 +191,7 @@
 .sp-music i{font-style:normal;animation:spinme 4s linear infinite;display:inline-block}
 @keyframes spinme{to{transform:rotate(360deg)}}
 .sp-meta{margin-top:6px;font-size:12px;opacity:.8}
+.sp-views{margin-top:6px;font:800 13px/1 Arial,sans-serif;text-shadow:0 1px 3px #000}.sp-views:empty{display:none}
 .sp-side{position:absolute;right:8px;bottom:calc(28px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;align-items:center}
 .sp-side button{width:64px;border:0;background:none;color:#fff;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;font:800 11.5px/1.1 Arial,sans-serif;text-shadow:0 1px 3px #000;padding:0}
 .sp-side svg{width:34px;height:34px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.7));fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -403,7 +404,7 @@
         return `<button type="button" class="sp-gt${dim ? ' sp-dim' : ''}" data-sp-open="${esc(key)}" data-sp-i="${i}" aria-label="Play Spin">
           ${l.status === 'ready' ? `<img src="${esc(thumbFor(l))}" alt="" loading="lazy">` : ''}
           ${badge ? `<span class="sp-badge">${esc(badge)}</span>` : ''}
-          ${l.length_s ? `<span class="sp-len">▶ ${Math.round(l.length_s)}s</span>` : ''}
+          ${Number(l.views) > 0 ? `<span class="sp-len">▶ ${fmtN(l.views)}</span>` : l.length_s ? `<span class="sp-len">▶ ${Math.round(l.length_s)}s</span>` : ''}
           ${l.respunBy ? `<span class="sp-re">↻ ${esc(at(l.user_id))}</span>` : ''}</button>`;
       }).join('')}</div>
       ${mine ? '<p class="sp-note">Spins last 30 days. Pin up to 3 from a Spin\'s ⋯ to keep them. Spins you Respin show here too.</p>' : ''}`;
@@ -419,6 +420,19 @@
   const proud = new Set(), respun = new Set(), talkN = new Map(), reN = new Map(), loveN = new Map();
   /* the Respin button shows how many people respun it (1 Oct 2026, Mike) */
   /* hearts show how many people loved it, same as Respins (1 Oct 2026, Mike) */
+  /* VIEWS (4 Oct 2026, Mike: "do the most liberal counting method"). Every play counts and every loop
+     counts, for anybody, the maker included. Nothing is multiplied: each one is a real play. */
+  const fmtN = (n) => { n = Number(n) || 0; return n < 1000 ? String(n) : n < 10000 ? (Math.floor(n / 100) / 10) + 'K' : n < 1e6 ? Math.floor(n / 1000) + 'K' : (Math.floor(n / 1e5) / 10) + 'M'; };
+  const viewsLabel = (l) => { const n = Number(l.views) || 0; return n ? fmtN(n) + (n === 1 ? ' view' : ' views') : ''; };
+  const lastView = new Map();
+  function countView(l, el) {
+    if (!l || !l.id || l.status !== 'ready') return;
+    const now = Date.now(); if (now - (lastView.get(l.id) || 0) < 1500) return;      /* a stuck finger is not ten plays */
+    lastView.set(l.id, now);
+    l.views = (Number(l.views) || 0) + 1;
+    if (el) { const v = el.querySelector('.sp-views'); if (v) v.textContent = '▶ ' + viewsLabel(l); }
+    try { P().rpc('porch_spin_view', { p_spin: l.id }).catch(() => {}); } catch (_) {}
+  }
   const loveLabel = (l) => { const n = loveN.get(l.post_id) || 0; return n ? String(n) : 'Love'; };
   const reLabel = (l) => { const n = reN.get(l.id) || 0; return n ? String(n) : (l.user_id === meId() ? '0' : 'Respin'); };
   const paintSound = () => { if (sp) sp.classList.toggle('sound', soundOn); };
@@ -456,6 +470,7 @@
         ${l.respunBy ? `<span class="sp-respun">↻ Respun by <b data-sp-person="${esc(l.respunBy)}" style="cursor:pointer">${esc(at(l.respunBy))}</b></span><br>` : ''}
         <button type="button" class="sp-by" data-sp-person="${esc(l.user_id)}">${P().avatar(P().people[l.user_id])}<span>${esc(at(l.user_id))}</span></button>
         ${l.caption ? `<p class="sp-cap">${captionHTML(l.caption)}</p>` : ''}
+        <div class="sp-views">${viewsLabel(l) ? '▶ ' + viewsLabel(l) : ''}</div>
         ${l.tag_group_id && P().gtagHTML ? P().gtagHTML(l.tag_group_id) : ''}
         ${l.music && l.music.name ? `<button type="button" class="sp-music" data-sp-sound aria-label="Use this sound"><i>♫</i><span>${esc(l.music.name)}</span><b>Use this sound</b></button>` : ''}
         ${mine ? `<div class="sp-meta">${l.pinned ? '📌 Pinned, stays on your profile' : d > 0 ? `Gone in ${d} day${d === 1 ? '' : 's'} · pin it to keep it` : 'Gone soon · pin it to keep it'}</div>` : ''}
@@ -513,6 +528,11 @@
         const l = spList[k];
         v.muted = !soundOn || !!(l && l.muted);
         el.classList.remove('paused');
+        countView(l, el);
+        if (!v._spLoop) {                                   /* a loop is the clock going back to the start */
+          v._spLoop = true; let last = 0;
+          v.addEventListener('timeupdate', () => { const t = v.currentTime; if (t + 0.6 < last && !v.paused) countView(spList[Number(el.getAttribute('data-sp-item'))], el); last = t; });
+        }
         const p = v.play();
         if (p && p.catch) p.catch(() => { soundOn = false; paintSound(); v.muted = true; v.play().catch(() => {}); });
       } else { try { v.pause(); } catch (_) {} }

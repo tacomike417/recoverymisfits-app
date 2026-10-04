@@ -758,3 +758,9 @@ without making it confusing.
 - The little Preview by Share opens HOW IT'LL LOOK for every kind of share, with its own Share button.
 - Adding a photo to a words share makes it a photo share; taking the last photo off makes it words again. "Just words / Make a card" is now the Card button.
 - Class names to know: the button row is `.ctools` (NOT `.cbar`, that is the comments bar) and a greyed button is `.off` (NOT `.dim`, that is the dark overlay).
+
+## The numbers (4 Oct 2026, v169)
+- Mike reversed the old "no counts anywhere" rule: "its what makes social media social media."
+- VIEWS on Spins, counted the most liberal honest way: every play and every loop, by anybody, the maker included, signed in or not. Shown on the Spin, on its tile in the feed and on profile tiles (`porch_54_counts.sql`, `porch_spin_view`).
+- HEARTS, COMMENTS and RESHARES show as numbers next to their icons on every share (hidden at zero). FRIENDS count shows on profiles; the list itself stays private.
+- NOT DONE, ON PURPOSE: nothing is multiplied and no hearts are made up. Mike asked about 3x; Claude said no to that part and Mike is talking to his sponsor about it.
