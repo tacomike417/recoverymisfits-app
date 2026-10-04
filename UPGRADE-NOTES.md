@@ -739,3 +739,8 @@ without making it confusing.
 - A site moderator who has NOT joined a group can no longer read it, see who is in it, take people out, or change its address, picture or banner (`porch_53_groups_belong_to_keepers.sql`, porch function, page).
 - A moderator still: looks at a new group before it opens, can close or reopen a group, and sees a group share only if somebody reports it.
 - The wording on the Groups screens no longer says moderators can look in.
+
+## The group page shows its tagged Porch shares (4 Oct 2026, v166)
+- Shares out on the Porch that are tagged with a group show on that group's page under ON THE PORCH, to everybody, joined or not. So a newcomer who taps the GROUP button never lands in an empty room.
+- What members share inside the group is still members only, under IN THE GROUP.
+- SOBER RIOT memes: 60 in line (`data/sober-riot.json`), 3 a day. New batches from ChatGPT go in `Downloads`, Claude adds them.

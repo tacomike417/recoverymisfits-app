@@ -592,6 +592,10 @@ html.fullon #main{visibility:hidden}
    new people, etc on there"). The Spins row and the new folks strip stay on the other tabs. */
 .on-groups #spinrail,.on-groups #newrail{display:none!important}
 /* GROUP PICTURES (4 Oct 2026): a group can have its own picture and banner; keepers change them */
+.g-sec{margin:18px 14px 2px}
+.g-sec span{margin-left:6px;letter-spacing:.04em;color:var(--faint);font:400 12px Arial,sans-serif;text-transform:none}
+.g-quiet{margin:14px 16px 0;color:var(--faint);font:400 14px Arial,sans-serif}
+#gpage .gtag{display:none}      /* on its own page the group button would point at itself */
 .g-tile.pic{overflow:hidden;background:#000}
 .g-tile.pic img{display:block;width:100%;height:100%;object-fit:cover}
 .g-cover.has{height:152px;background-size:cover;background-position:center}
@@ -1179,7 +1183,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v165</span>
+  <span class="ver" id="ver">v166</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -5110,6 +5114,19 @@ html.kb .ch-bar{padding-bottom:8px}
       if (keeper && g.status === "open") { asks = await rest("porch_group_asks?group_id=eq." + id + "&select=user_id&order=created_at.asc"); who = who.concat(asks.map(function (a) { return a.user_id; })); }
       await loadPeople(who.concat(mem.slice(0, 8).map(function (m) { return m.user_id; })));
     } catch (e) { pg.innerHTML = '<div class="bkbar">' + BK + '</div><p class="pempty">The group didn\'t load. Check your signal.</p>'; return; }
+    /* ON THE PORCH (4 Oct 2026, Mike: "they are on the feed but not in the group ... build it that way").
+       Shares out on the Porch that are TAGGED with this group show on its page, to everybody, joined
+       or not, so nobody lands in an empty room. What members share inside stays members only. */
+    var tagged = [];
+    if (g.status === "open") {
+      try {
+        tagged = await rest("porch_posts?tag_group_id=eq." + id + "&group_id=is.null&select=" + POST_COLS + "&order=created_at.desc&limit=30");
+        tagged = tagged.filter(function (p) { return !muted[p.user_id]; });
+        await hydrate(tagged);
+        var tmo = tagged.filter(function (p) { return p.need === "moment" && !spinOf[p.id]; }).map(function (p) { return p.id; });
+        if (tmo.length) (await rest("porch_spins?post_id=in.(" + tmo.join(",") + ")&status=eq.ready&select=post_id,video_guid,length_s")).forEach(function (r) { spinOf[r.post_id] = r; });
+      } catch (e) { tagged = tagged || []; }
+    }
     groupOpen = { id: id, members: mem, keeper: keeper, inIt: inIt };
     var LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
     var head = '<div class="g-cover' + (g.cover_path ? ' has" style="background-image:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(17,17,15,.75)),url(\'' + esc(pic(g.cover_path)) + "\')" : "") + '">' + BK.replace('class="bk"', 'class="bk over"') +
@@ -5130,8 +5147,11 @@ html.kb .ch-bar{padding-bottom:8px}
     var asksHTML = asks.length ? '<div class="g-asks"><div class="g-lab" style="margin-top:0">ASKING TO JOIN</div>' + asks.map(function (a) {
       return '<div class="g-ask"><button type="button" class="ul" data-u="' + a.user_id + '">' + avatar(people[a.user_id]) + "<b>" + esc(name(a.user_id)) + '</b></button><button type="button" class="g-btn" data-ganswer="' + a.user_id + '" data-yes="1">Let in</button><button type="button" class="g-btn line" data-ganswer="' + a.user_id + '">Not now</button></div>';
     }).join("") + "</div>" : "";
-    var body = !canSee ? "" : list.length ? list.map(postHTML).join("").replace(/ id="p-[^"]*"/g, "") : '<p class="pempty">Nothing shared here yet.' + (inIt ? " Be the first." : "") + "</p>";
-    pg.innerHTML = head + asksHTML + '<div class="g-feed">' + body + "</div>";
+    var strip = function (l) { return l.map(postHTML).join("").replace(/ id="p-[^"]*"/g, ""); };
+    var inside = !canSee ? "" : list.length ? (tagged.length ? '<div class="g-lab g-sec">IN THE GROUP <span>members only</span></div>' : "") + strip(list)
+      : tagged.length ? '<p class="g-quiet">Nothing shared inside the group yet. Be the first.</p>' : '<p class="pempty">Nothing shared here yet.' + (inIt ? " Be the first." : "") + "</p>";
+    var porch = tagged.length ? '<div class="g-lab g-sec">ON THE PORCH <span>everybody sees these</span></div>' + strip(tagged) : "";
+    pg.innerHTML = head + asksHTML + '<div class="g-feed">' + inside + porch + "</div>";
   }
   function openGroupCompose() { if (!groupOpen) return; nextComposeGroup = groupOpen.id; gate(function () { openCompose("say"); }); }
   function groupWho() {
