@@ -1179,7 +1179,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v164</span>
+  <span class="ver" id="ver">v165</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -4957,7 +4957,7 @@ html.kb .ch-bar{padding-bottom:8px}
      Mike's rules: a GROUPS tab (mockup A). Two people start a group: a Keeper and a
      Co-keeper (never "admin" or "moderator"). Starting one is earned: an active member
      with 30 days APPLIES, the Co-keeper taps "I'm in", then a moderator approves every
-     group before it opens. Only members see what's shared; moderators can look in.
+     group before it opens. Only members see what's shared. A moderator sees a group share only if somebody reports it.
      Nobody shares for 90 days and it closes (heads-up at 75). No counts shown anywhere.
      Everything is checked again in the database (supabase/porch_20_groups.sql). */
   var groups = {}, myGroups = {}, myAsks = {}, groupOpen = null, nextComposeGroup = null, composeGroup = null;
@@ -5066,7 +5066,7 @@ html.kb .ch-bar{padding-bottom:8px}
       return '<div class="g-row" data-gname="' + esc(g.name.toLowerCase()) + '"><button type="button" class="g-open" data-g="' + g.id + '">' + gTile(g, 46) + '<span class="g-tx"><b>' + esc(g.name) + "</b><small>" + esc(g.about || keptBy(g)) + "</small></span></button>" + joinBtn(g) + "</div>";
     }).join("") + "</div>" : '<p class="g-none">' + (mineOpen.length ? "You're in every group there is." : "No groups yet. Be the first to start one.") + "</p>";
     html += '<button type="button" class="g-start" data-gstart>+ Apply to start a group</button>' +
-      '<p class="g-fine" style="text-align:center">Only members see what\'s shared in a group. Moderators can look in on any group.</p>';
+      '<p class="g-fine" style="text-align:center">Only members see what\'s shared in a group.</p>';
     feed.innerHTML = '<div class="g-wrap">' + html + "</div>";
   }
   document.addEventListener("input", function (e) {
@@ -5105,7 +5105,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var mem = await rest("porch_group_members?group_id=eq." + id + "&select=user_id&order=joined_at.asc&limit=200");
       var inIt = mem.some(function (m) { return m.user_id === me.uid; }), keeper = me.uid === g.keeper_id || me.uid === g.cokeeper_id;
       if (inIt) { myGroups[id] = true; groupSeen(id); } else delete myGroups[id];
-      var canSee = g.status === "open" && (inIt || isMod), list = [], asks = [];
+      var canSee = g.status === "open" && inIt, list = [], asks = [];      /* members only: a moderator who has not joined sees the front door like anybody else (4 Oct 2026) */
       if (canSee) { list = await rest("porch_posts?group_id=eq." + id + "&select=" + POST_COLS + "&order=created_at.desc&limit=40"); await hydrate(list); }
       if (keeper && g.status === "open") { asks = await rest("porch_group_asks?group_id=eq." + id + "&select=user_id&order=created_at.asc"); who = who.concat(asks.map(function (a) { return a.user_id; })); }
       await loadPeople(who.concat(mem.slice(0, 8).map(function (m) { return m.user_id; })));
@@ -5113,7 +5113,7 @@ html.kb .ch-bar{padding-bottom:8px}
     groupOpen = { id: id, members: mem, keeper: keeper, inIt: inIt };
     var LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
     var head = '<div class="g-cover' + (g.cover_path ? ' has" style="background-image:linear-gradient(180deg,rgba(0,0,0,0) 55%,rgba(17,17,15,.75)),url(\'' + esc(pic(g.cover_path)) + "\')" : "") + '">' + BK.replace('class="bk"', 'class="bk over"') +
-      ((keeper || isMod) && g.status === "open" ? '<button type="button" class="g-edit" data-gedit>✎ Edit</button>' : "") + gTile(g, 76) + "</div><div class=\"g-head\"><h2>" + esc(g.name) + "</h2>" +
+      (keeper && g.status === "open" ? '<button type="button" class="g-edit" data-gedit>✎ Edit</button>' : "") + gTile(g, 76) + "</div><div class=\"g-head\"><h2>" + esc(g.name) + "</h2>" +
       '<p class="g-meta">' + LOCK + (g.kind === "ask" ? "Ask to join" : "Anybody can join") + " · only members see what's shared here</p>" +
       (g.about ? '<p class="g-about">' + esc(g.about) + "</p>" : "") + (g.who_for ? '<p class="g-for">For: ' + esc(g.who_for) + "</p>" : "") +
       (g.slug && g.status === "open" ? '<button type="button" class="g-addr" data-gcopy aria-label="Copy this group\'s address">' + esc(groupLink(g)) + "<span>Copy</span></button>" : "") +
@@ -5124,7 +5124,8 @@ html.kb .ch-bar{padding-bottom:8px}
       if (!inIt) head += '<p class="g-note">You\'re looking in as a moderator.</p>';
       head += '<div class="g-acts">' + (inIt ? '<button type="button" class="g-btn big" data-gshare>+ Share here</button><button type="button" class="g-btn line big" data-ginvite>Invite</button>' : "") +
         '<button type="button" class="g-btn line big sq" data-gmore aria-label="Group options">⋯</button></div>';
-    } else head += '<div class="g-acts">' + joinBtn(g).replace('class="g-btn', 'class="g-btn big') + "</div>" + (myAsks[id] ? '<p class="g-note">You asked to join. A keeper will take a look.</p>' : "");
+    } else head += '<div class="g-acts">' + joinBtn(g).replace('class="g-btn', 'class="g-btn big') +
+      (isMod && g.status === "open" ? '<button type="button" class="g-btn line big sq" data-gmore aria-label="Group options">⋯</button>' : "") + "</div>" + (myAsks[id] ? '<p class="g-note">You asked to join. A keeper will take a look.</p>' : "");
     head += "</div>";
     var asksHTML = asks.length ? '<div class="g-asks"><div class="g-lab" style="margin-top:0">ASKING TO JOIN</div>' + asks.map(function (a) {
       return '<div class="g-ask"><button type="button" class="ul" data-u="' + a.user_id + '">' + avatar(people[a.user_id]) + "<b>" + esc(name(a.user_id)) + '</b></button><button type="button" class="g-btn" data-ganswer="' + a.user_id + '" data-yes="1">Let in</button><button type="button" class="g-btn line" data-ganswer="' + a.user_id + '">Not now</button></div>';
@@ -5142,11 +5143,11 @@ html.kb .ch-bar{padding-bottom:8px}
       $("mbody").innerHTML = '<p style="margin:0 0 6px;font:400 26px \'RM Head\',Impact,sans-serif">Who\'s here</p>' + groupOpen.members.map(function (m) {
         var k = m.user_id === g.keeper_id ? "Keeper" : m.user_id === g.cokeeper_id ? "Co-keeper" : "";
         return '<div class="bm-row"><span class="ul" data-u="' + m.user_id + '" style="display:flex">' + avatar(people[m.user_id]) + '</span><b class="ul" data-u="' + m.user_id + '">' + esc(name(m.user_id)) + (k ? ' <small class="g-k">' + k + "</small>" : "") + "</b>" +
-          ((groupOpen.keeper || isMod) && !k ? '<button type="button" data-gremove="' + m.user_id + '">Remove</button>' : "") + "</div>";
+          (groupOpen.keeper && !k ? '<button type="button" data-gremove="' + m.user_id + '">Remove</button>' : "") + "</div>";
       }).join("") + '<button type="button" data-close style="color:var(--muted)">Done</button>';
     });
   }
-  /* GROUP PICTURES: the Edit button on the banner (keepers and moderators) */
+  /* GROUP PICTURES: the Edit button on the banner (the two keepers only) */
   function groupEdit() {
     var g = groups[groupOpen.id];
     $("mbody").dataset.t = "{}"; $("mbody").dataset.uid = "";
@@ -5174,8 +5175,8 @@ html.kb .ch-bar{padding-bottom:8px}
     var g = groups[groupOpen.id];
     $("mbody").dataset.t = "{}"; $("mbody").dataset.uid = "";
     $("mbody").innerHTML = '<p style="margin:0 0 4px;font:400 26px \'RM Head\',Impact,sans-serif">' + esc(g.name) + "</p>" +
-      '<button type="button" data-gm="who">See who\'s here</button><button type="button" data-gm="rules">The Porch rules</button>' +
-      (groupOpen.keeper || isMod ? '<button type="button" data-gm="pic">Change the picture</button><button type="button" data-gm="banner">Change the banner</button><button type="button" data-gm="addr">Change the address</button>' : "") +
+      (groupOpen.inIt ? '<button type="button" data-gm="who">See who\'s here</button>' : "") + '<button type="button" data-gm="rules">The Porch rules</button>' +
+      (groupOpen.keeper ? '<button type="button" data-gm="pic">Change the picture</button><button type="button" data-gm="banner">Change the banner</button><button type="button" data-gm="addr">Change the address</button>' : "") +
       (groupOpen.inIt && !groupOpen.keeper ? '<button type="button" class="bad" data-gm="leave">Leave this group</button>' : "") +
       (groupOpen.keeper ? '<p class="g-fine">Keepers keep the light on. If you need to step away, message a moderator.</p>' : "") +
       (isMod ? '<button type="button" class="bad" data-gm="close">Close this group</button>' : "") +
@@ -5218,7 +5219,7 @@ html.kb .ch-bar{padding-bottom:8px}
       '<div class="lab">YOUR CO-KEEPER</div>' + (fr.length ? '<div class="gs-co">' + fr.map(function (u) {
         return '<button type="button" class="gs-f' + (gsCo === u ? " on" : "") + '" data-gsco="' + u + '">' + avatar(people[u]) + "<b>" + esc(name(u)) + '</b><i class="vr"></i></button>';
       }).join("") + "</div>" : '<p class="g-none">Add a friend first. Your Co-keeper is somebody you know.</p>') +
-      '<p class="g-fine">Only members see what\'s shared in a group, and moderators can look in. The Porch rules go in here too. If nobody shares for 90 days, the group closes.</p>' +
+      '<p class="g-fine">Only members see what\'s shared in a group. The Porch rules go in here too. If nobody shares for 90 days, the group closes.</p>' +
       '<p class="cerr" id="gserr" role="alert"></p>';
     $("gsname").value = keep.n; $("gsabout").value = keep.a; $("gswho").value = keep.w; $("gsslug").value = keep.s; if (keep.own) $("gsslug").dataset.own = "1";
   }

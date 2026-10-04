@@ -733,3 +733,9 @@ without making it confusing.
 - A share on the Porch tagged with a group counts as the group being used, so a tagged group does not close after 90 quiet days.
 - GROUP PICTURES: any group can have a picture and a banner. Keepers (and moderators) tap Edit on the banner, or the ⋯ menu. Shows in the Groups list, the group page and the GROUP button under tagged shares (`porch_52_group_pictures.sql`, porch function `group_picture`).
 - STILL TO DO for SOBER RIOT: the memes (ChatGPT is drawing them from `sober-riot-300-lines.txt`), then the timer that posts a few a day from soberriot, each tagged to the group.
+
+## A group belongs to its keepers and members (4 Oct 2026, v165)
+- Mike: "just keeper and co keeper and who they choose, i dont need to be a part of everything."
+- A site moderator who has NOT joined a group can no longer read it, see who is in it, take people out, or change its address, picture or banner (`porch_53_groups_belong_to_keepers.sql`, porch function, page).
+- A moderator still: looks at a new group before it opens, can close or reopen a group, and sees a group share only if somebody reports it.
+- The wording on the Groups screens no longer says moderators can look in.
