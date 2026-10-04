@@ -266,6 +266,15 @@ async function isMod(uid: string) {
   return !!data;
 }
 
+/* TAG A GROUP: is this an open, anybody-can-join group this person is in? Gives back its id, or null. */
+async function tagGroupOk(g: unknown, uid: string): Promise<string | null> {
+  if (typeof g !== "string" || !/^[0-9a-f-]{36}$/i.test(g)) return null;
+  const { data: grp } = await admin.from("porch_groups").select("id, status, kind").eq("id", g).maybeSingle();
+  if (!grp || grp.status !== "open" || grp.kind !== "open") return null;
+  const { data: inIt } = await admin.rpc("porch_in_group", { g, u: uid });
+  return inIt ? String(grp.id) : null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
@@ -460,6 +469,14 @@ Deno.serve(async (req) => {
       const { data: inIt } = await admin.rpc("porch_in_group", { g: groupId, u: user.id });
       if (!inIt) return json({ error: "Join the group to share in it." }, 403);
     }
+    /* TAG A GROUP (4 Oct 2026, Mike: "tag any group you've joined to promote the group if its
+       public"). One open, anybody-can-join group the person is in. Not on a share that is
+       already inside a group. */
+    let tagGroup: string | null = null;
+    if (b.tag_group && !groupId) {
+      tagGroup = await tagGroupOk(b.tag_group, user.id);
+      if (!tagGroup) return json({ error: "You can only tag an open group you're in." }, 400);
+    }
     const need = String(b.need || "talk");
     if (!["talk", "experience", "strength", "hope", "question", "win", "hard", "moment"].includes(need)) return json({ error: "Pick what you need." }, 400);
     const photos: string[] = Array.isArray(b.photos) ? b.photos.slice(0, 4) : [];
@@ -500,7 +517,7 @@ Deno.serve(async (req) => {
     const style = Number.isInteger(b.card_style) ? Math.max(0, Math.min(18, b.card_style)) : null;
     const link_preview = paths.length ? null : await previewFor(text);
     const { data, error } = await admin.from("porch_posts")
-      .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style, link_preview: reshareOf ? null : link_preview, ...(groupId ? { group_id: groupId } : {}), ...(reshareOf ? { reshare_of: reshareOf } : {}) })
+      .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style, link_preview: reshareOf ? null : link_preview, ...(groupId ? { group_id: groupId } : {}), ...(reshareOf ? { reshare_of: reshareOf } : {}), ...(tagGroup ? { tag_group_id: tagGroup } : {}) })
       .select("id").single();
     if (error) return json({ error: "That didn't go through. Try again." }, 500);
     return json({ ok: true, id: data.id, care });
@@ -653,6 +670,15 @@ Deno.serve(async (req) => {
     }
     if (isPost && (row as any).card_style != null && Number.isInteger(b.card_style)) change.card_style = Math.max(0, Math.min(18, b.card_style));
     if (isPost && !hasPhotos) change.link_preview = await previewFor(text);
+    /* the group tag can be changed or taken off when editing (tag_group: "" takes it off) */
+    if (isPost && "tag_group" in b) {
+      if (!b.tag_group) change.tag_group_id = null;
+      else {
+        const tg = await tagGroupOk(b.tag_group, user.id);
+        if (!tg) return json({ error: "You can only tag an open group you're in." }, 400);
+        change.tag_group_id = tg;
+      }
+    }
     const { error } = await admin.from(table).update(change).eq("id", id).eq("user_id", user.id);
     if (error) return json({ error: "That didn't save. Try again." }, 500);
     return json({ ok: true, edited_at, link_preview: change.link_preview ?? null, care: CARE.test(text) });

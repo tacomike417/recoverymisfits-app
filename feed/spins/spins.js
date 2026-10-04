@@ -39,7 +39,7 @@
     return longInfo;
   }
   const RAIL_N = 14;
-  const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at';
+  const COLS = 'id,user_id,post_id,video_guid,caption,muted,status,pinned,length_s,width,height,resolutions,music,created_at,expires_at,tag_group_id';
 
   const P = () => window.Porch;
   const back = () => window.PorchBack;
@@ -57,7 +57,9 @@
   const daysLeft = (l) => Math.ceil((new Date(l.expires_at).getTime() - Date.now()) / 86400000);
   function captionHTML(t) {
     return esc(t || '').replace(/(^|[^A-Za-z0-9_])@([A-Za-z0-9._-]{3,32})/g, (m, pre, h) =>
-      `${pre}<b class="sp-at" data-sp-name="${esc(h.replace(/[._-]+$/, ''))}">@${h}</b>`);
+      `${pre}<b class="sp-at" data-sp-name="${esc(h.replace(/[._-]+$/, ''))}">@${h}</b>`)
+      /* HASHTAGS (4 Oct 2026): the same rule as shares and comments */
+      .replace(/(^|[\s(])#([A-Za-z][A-Za-z0-9_]{1,39})/g, (m, pre, h) => `${pre}<b class="sp-at" data-sp-hash="${h.toLowerCase()}">#${h}</b>`);
   }
   const say = (t) => P() && P().toast(t);
 
@@ -173,6 +175,14 @@
 .sp-respun{display:inline-flex;align-items:center;gap:6px;margin:0 0 6px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.5);font:800 12px/1.2 Arial,sans-serif;color:#f6e3a8}
 .sp-cap{margin:0;white-space:pre-wrap;word-break:break-word;max-height:30vh;overflow:auto}
 .sp-at{color:#f6e3a8;cursor:pointer;font-weight:800}
+.sp-foot .gtag{margin:8px 0 0;max-width:100%;border-color:#f6e3a8;color:#fff;background:rgba(0,0,0,.35)}
+.sp-foot .gtag svg{stroke:#f6e3a8}.sp-foot .gtag small,.sp-foot .gtag i{color:#f6e3a8}
+.spn-form .atbar button{background:#15130e;border-color:#2e2a21;color:#f6e3a8}
+.spn-grp{margin:12px 0 0}
+.spn-grp p{margin:0 0 6px;font:800 13px/1.2 Arial,sans-serif;color:#c9bfa8}
+.spn-grp div{display:flex;flex-wrap:wrap;gap:8px}
+.spn-grp button{padding:10px 14px;border-radius:999px;border:2px solid #2e2a21;background:#15130e;color:#c9bfa8;font:800 14px/1 Arial,sans-serif;cursor:pointer}
+.spn-grp button.on{background:#f6e3a8;border-color:#f6e3a8;color:#1a1300}
 .spn-ok{display:flex;gap:10px;align-items:flex-start;margin:12px 0 4px;font:700 14px/1.35 Arial,sans-serif;color:#ddd2b8;text-align:left;cursor:pointer}
 .spn-ok input{flex:none;width:22px;height:22px;margin:0;accent-color:#e0bd6a}
 .sp-music{display:flex;align-items:center;gap:7px;max-width:100%;margin-top:8px;padding:5px 5px 5px 10px;border:0;border-radius:999px;background:rgba(0,0,0,.42);color:#fff;font:700 12.5px/1.2 Arial,sans-serif;cursor:pointer}
@@ -446,6 +456,7 @@
         ${l.respunBy ? `<span class="sp-respun">↻ Respun by <b data-sp-person="${esc(l.respunBy)}" style="cursor:pointer">${esc(at(l.respunBy))}</b></span><br>` : ''}
         <button type="button" class="sp-by" data-sp-person="${esc(l.user_id)}">${P().avatar(P().people[l.user_id])}<span>${esc(at(l.user_id))}</span></button>
         ${l.caption ? `<p class="sp-cap">${captionHTML(l.caption)}</p>` : ''}
+        ${l.tag_group_id && P().gtagHTML ? P().gtagHTML(l.tag_group_id) : ''}
         ${l.music && l.music.name ? `<button type="button" class="sp-music" data-sp-sound aria-label="Use this sound"><i>♫</i><span>${esc(l.music.name)}</span><b>Use this sound</b></button>` : ''}
         ${mine ? `<div class="sp-meta">${l.pinned ? '📌 Pinned, stays on your profile' : d > 0 ? `Gone in ${d} day${d === 1 ? '' : 's'} · pin it to keep it` : 'Gone soon · pin it to keep it'}</div>` : ''}
       </div>
@@ -564,6 +575,11 @@
     if (person) { const id = person.getAttribute('data-sp-person'); leavePlayer(); setTimeout(() => P().openProfile(id), 160); return; }
     const nm = e.target.closest('[data-sp-name]');
     if (nm) { const h = nm.getAttribute('data-sp-name'); leavePlayer(); setTimeout(() => P().openHandle(h), 160); return; }
+    /* a #tag or the group button on a Spin: leave the player, then open it */
+    const hs = e.target.closest('[data-sp-hash]');
+    if (hs) { const h = hs.getAttribute('data-sp-hash'); e.preventDefault(); e.stopPropagation(); leavePlayer(); setTimeout(() => P().openTag(h), 160); return; }
+    const gt = e.target.closest('[data-gtag]');
+    if (gt) { const g = gt.getAttribute('data-gtag'); e.preventDefault(); e.stopPropagation(); leavePlayer(); setTimeout(() => P().openGroup(g), 160); return; }
     if (!l) return;
     if (e.target.closest('[data-sp-snd]')) {
       soundOn = !soundOn; saveSound(); paintSound();
@@ -896,7 +912,9 @@
       <video class="spn-prev" src="${esc(pickedURL)}" playsinline autoplay loop muted></video>
       ${pickedMusic ? `<div class="spn-mus">♫ ${esc(pickedMusic.name)} · ${esc(pickedMusic.by)}</div>` : ''}
       <form class="spn-form">
-        <textarea maxlength="500" placeholder="Say something… @ to tag people"></textarea>
+        <textarea maxlength="500" placeholder="Say something… @ to tag people, # to add a tag"></textarea>
+        <div class="atbar"></div>
+        <div class="spn-grp" hidden><p>Tag a group (optional)</p><div></div><input type="hidden" name="taggroup" value=""></div>
         <div class="spn-snd"><p>Sound on your Spin</p><div>
           <button type="button" data-snd="on" class="on">🔊 Sound on</button><button type="button" data-snd="off">🔇 Sound off</button>
         </div><input type="hidden" name="muted" value=""></div>
@@ -906,6 +924,15 @@
         <p class="spn-fine">Lasts 30 days. Pin up to 3 to keep them. Only post video you have the right to share.</p>
       </form></div>`;
     const form = newEl.querySelector('form');
+    /* the @ and # pickers, and TAG A GROUP (4 Oct 2026): the open groups this person is in */
+    try { if (P().watchAt) P().watchAt(form.querySelector('textarea'), form.querySelector('.atbar')); } catch (_) {}
+    if (P().myOpenGroups) P().myOpenGroups().then((gs) => {
+      if (!gs.length) return;
+      const wrap = form.querySelector('.spn-grp'), box = wrap.querySelector('div'), inp = wrap.querySelector('input');
+      const paint = () => { box.innerHTML = gs.map((g) => `<button type="button" data-tg="${esc(g.id)}" class="${inp.value === g.id ? 'on' : ''}">${esc(g.name)}</button>`).join(''); };
+      box.addEventListener('click', (e) => { const b = e.target.closest('[data-tg]'); if (!b) return; inp.value = inp.value === b.getAttribute('data-tg') ? '' : b.getAttribute('data-tg'); paint(); });
+      paint(); wrap.hidden = false;
+    }, () => {});
     form.querySelectorAll('[data-snd]').forEach((b) => b.addEventListener('click', () => {
       form.querySelectorAll('[data-snd]').forEach((x) => x.classList.toggle('on', x === b));
       form.querySelector('[name=muted]').value = b.getAttribute('data-snd') === 'off' ? '1' : '';
@@ -916,7 +943,8 @@
       const okFaces = form.querySelector('[name=facesok]').checked;
       const f = picked, mu = pickedMusic; if (!f) return;
       form.querySelector('.spn-go').disabled = true;
-      leaveNew(); upload(f, caption, muted, mu, okFaces);
+      const tagGroup = form.querySelector('[name=taggroup]').value || '';
+      leaveNew(); upload(f, caption, muted, mu, okFaces, tagGroup);
     });
   }
   document.addEventListener('click', (e) => {
@@ -962,12 +990,12 @@
       return new File([buf], 'spin.mp4', { type: 'video/mp4' });
     } catch (_) { return file; }
   }
-  async function upload(file, caption, muted, music, okFaces) {
+  async function upload(file, caption, muted, music, okFaces, tagGroup) {
     uploading = true;
     pillSay('Getting your Spin ready… keep this page open<span class="bar"><i></i></span>');
     file = await shrink(file, (p) => { const pct = Math.round(p * 100); pillSay(`Getting your Spin ready… ${pct}% · keep this page open<span class="bar"><i style="width:${pct}%"></i></span>`); });
     pillSay('Starting your Spin…<span class="bar"><i></i></span>');
-    const [tus, made] = await Promise.all([loadTus().catch(() => null), callSpins({ action: 'start', caption, muted, bytes: file.size, music: music ? { id: music.id, name: music.name, by: music.by } : null })]);
+    const [tus, made] = await Promise.all([loadTus().catch(() => null), callSpins({ action: 'start', caption, muted, bytes: file.size, music: music ? { id: music.id, name: music.name, by: music.by } : null, tag_group: tagGroup || undefined })]);
     if (made.error || !tus) { uploading = false; pillSay('😕 ' + esc(made.error || "Couldn't load the uploader. Try again.")); pillGone(6000); return; }
     const up = new tus.Upload(file, {
       endpoint: TUS, retryDelays: [0, 3000, 5000, 10000, 20000], chunkSize: 8 * 1024 * 1024,

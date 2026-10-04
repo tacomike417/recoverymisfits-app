@@ -180,6 +180,14 @@ Deno.serve(async (req) => {
     if (bytes > MAX_BYTES) return json({ error: "That video is too big. Try a shorter clip." }, 400);
     const caption = String(b.caption || "").trim().slice(0, 500);
     const w = caption ? checkWords(caption) : null; if (w) return json({ error: w }, 400);
+    /* TAG A GROUP (4 Oct 2026): one open, anybody-can-join group the person is in */
+    let tagGroup: string | null = null;
+    if (typeof b.tag_group === "string" && /^[0-9a-f-]{36}$/i.test(b.tag_group)) {
+      const { data: grp } = await admin.from("porch_groups").select("id, status, kind").eq("id", b.tag_group).maybeSingle();
+      const { data: inIt } = grp ? await admin.rpc("porch_in_group", { g: b.tag_group, u: user.id }) : { data: false };
+      if (!grp || grp.status !== "open" || grp.kind !== "open" || !inIt) return json({ error: "You can only tag an open group you're in." }, 400);
+      tagGroup = String(grp.id);
+    }
     const muted = !!b.muted;
     const music = b.music && b.music.id ? { id: /^\d+$/.test(String(b.music.id)) ? Number(b.music.id) : String(b.music.id).replace(/[^a-z0-9-]/g, "").slice(0, 40), name: String(b.music.name || "").slice(0, 60), by: String(b.music.by || "").slice(0, 40) } : null;
 
@@ -192,7 +200,7 @@ Deno.serve(async (req) => {
     const guid = String((await made.json()).guid || "");
     if (!guid) return json({ error: "Couldn't start the upload." }, 502);
     const { data: row, error } = await admin.from("porch_spins")
-      .insert({ user_id: user.id, video_guid: guid, caption: caption || null, muted, music, status: "uploading" }).select("id").single();
+      .insert({ user_id: user.id, video_guid: guid, caption: caption || null, muted, music, status: "uploading", ...(tagGroup ? { tag_group_id: tagGroup } : {}) }).select("id").single();
     if (error || !row) { await dropVideo(guid); return json({ error: "Couldn't save the Spin." }, 500); }
 
     const expire = Math.floor(Date.now() / 1000) + 6 * 3600;
@@ -254,7 +262,7 @@ Deno.serve(async (req) => {
         return json({ status: "failed", error: ok === "faces" ? "There's more than one person in this Spin. Post it again and tick \"Everyone in it said OK\"." : "That video isn't allowed on the Porch." });
       }
       const { data: post, error } = await admin.from("porch_posts")
-        .insert({ user_id: spin.user_id, need: "moment", body: spin.caption || null }).select("id").single();
+        .insert({ user_id: spin.user_id, need: "moment", body: spin.caption || null, ...(spin.tag_group_id ? { tag_group_id: spin.tag_group_id } : {}) }).select("id").single();
       if (error || !post) return json({ status: "uploading", progress: 99 });
       await admin.from("porch_spins").update({
         status: "ready", post_id: post.id,

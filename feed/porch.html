@@ -706,6 +706,20 @@ html.fullon #main{visibility:hidden}
 /* @ suggestions */
 .atbar{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}
 .atbar:empty{display:none}
+/* HASHTAGS + TAG A GROUP (4 Oct 2026) */
+.hash{color:var(--gold);font-weight:700;cursor:pointer}
+.cm-paper .hash,#comments .hash{color:var(--pink)}
+.atbar button.tg{padding:6px 12px;color:var(--gold)}
+.gtag{display:flex;align-items:center;gap:8px;max-width:calc(100% - 28px);margin:10px 14px 0;padding:8px 14px 8px 10px;border-radius:999px;border:1px solid var(--gold);background:none;color:var(--cream);font:700 14px Arial,sans-serif;cursor:pointer;text-align:left}
+.gtag[hidden]{display:none}
+.gtag svg{flex:none;width:18px;height:18px;fill:none;stroke:var(--gold);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.gtag small{flex:none;font:500 10px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold)}
+.gtag span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gtag i{flex:none;font-style:normal;color:var(--gold)}
+.tgpick button.on{background:var(--gold);border-color:var(--gold)!important;color:#1a1300}
+.tg-head{padding:6px 16px 10px}
+.tg-head h2{margin:0;font:500 28px/1.1 "RM Rail",Oswald,sans-serif;letter-spacing:.04em;color:var(--gold);word-break:break-word}
+.tg-head p{margin:6px 0 0;color:var(--faint);font:400 14px Arial,sans-serif}
 .atbar button{flex:none;display:flex;align-items:center;gap:6px;padding:5px 11px 5px 5px;border-radius:999px;border:1px solid var(--line);background:var(--field);color:var(--cream);font:600 13px Arial,sans-serif;cursor:pointer}
 .atbar .av{width:24px;height:24px;font-size:11px}
 /* your menu */
@@ -1155,7 +1169,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v161</span>
+  <span class="ver" id="ver">v162</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1258,6 +1272,8 @@ html.kb .ch-bar{padding-bottom:8px}
     <h3>Celebrate a win</h3>
     <div id="winpick"></div>
     <textarea class="field" id="winbody" maxlength="2000" placeholder="Say something about it (optional)"></textarea>
+    <div class="atbar" id="atw"></div>
+    <div id="wgwrap" hidden><div class="lab">TAG A GROUP <span>optional</span></div><div class="needs tgpick" id="wgroups"></div></div>
     <button type="button" class="btn" id="wingo">Share it on the Porch</button>
     <p class="msg" id="winmsg" role="status"></p>
   </div>
@@ -1283,6 +1299,8 @@ html.kb .ch-bar{padding-bottom:8px}
       <button type="button" data-need="question"><span data-ico="question"></span>A question</button>
     </div>
     <p class="hint">What are you bringing to the Porch today?</p>
+    <div id="cgwrap" hidden><div class="lab">TAG A GROUP <span>optional</span></div><div class="needs tgpick" id="cgroups"></div>
+      <p class="hint">Puts a button to the group under your share, so people can find it.</p></div>
     <div class="lab">HOW IT'LL LOOK</div>
     <div id="cprev"></div>
     <div id="cardpick"><div class="styles" id="styles"></div><p class="hint" id="chint"></p></div>
@@ -1472,6 +1490,8 @@ html.kb .ch-bar{padding-bottom:8px}
 <!-- GROUPS (1 Oct 2026): inside a group, and applying to start one. Phone back = one step back. -->
 <div id="group" class="layer full" role="dialog" aria-modal="true" aria-label="Group"><div class="page" id="gpage"></div></div>
 <div id="gstart" class="layer full" role="dialog" aria-modal="true" aria-label="Start a group"><div class="page" id="gspage" style="padding-left:16px;padding-right:16px"></div></div>
+<!-- EVERYTHING WITH ONE #TAG (4 Oct 2026) -->
+<div id="tagl" class="layer full" role="dialog" aria-modal="true" aria-label="Tag"><div class="page" id="tgpage" style="padding-top:calc(10px + env(safe-area-inset-top,0px))"></div></div>
 <div id="single" class="layer full" role="dialog" aria-modal="true" aria-label="Share"><div class="page" id="sgpage" style="padding-top:calc(10px + env(safe-area-inset-top,0px))"></div></div>
 
 <!-- EDIT YOUR PROFILE -->
@@ -1722,8 +1742,14 @@ html.kb .ch-bar{padding-bottom:8px}
     }).replace(/(^|[^\w@\/.])@([A-Za-z0-9._-]{3,32})/g, function (m, pre, h) {
       h = h.replace(/[._-]+$/, "");
       return pre + '<span class="at" data-h="' + h + '">@' + h + "</span>";
+    }).replace(HASH_RE, function (m, pre, h) {
+      /* HASHTAGS (4 Oct 2026): a #word anywhere is a tag; tap it for everything with that tag */
+      return pre + '<span class="hash" role="link" tabindex="0" data-hash="' + h.toLowerCase() + '">#' + h + "</span>";
     });
   }
+  /* a tag starts with a letter, 2 to 40 long, at the start or after a space or "(" -- the same
+     rule the database uses (porch_50_tags.sql), so the # in a web link is never a tag */
+  var HASH_RE = /(^|[\s(])#([A-Za-z][A-Za-z0-9_]{1,39})/g;
   function ago(d) {
     var s = (Date.now() - new Date(d).getTime()) / 1000;
     if (s < 60) return "now";
@@ -1790,6 +1816,7 @@ html.kb .ch-bar{padding-bottom:8px}
         (isSpin ? "" : '<button type="button" class="more" data-more aria-label="Options">⋯</button>') + "</div>" +
       (text ? '<div class="body' + (long ? " clamp" : "") + '">' + linkify(text) + "</div>" +
         (long ? '<button type="button" class="chair" data-read>' + ico("read") + "Pull up a chair · " + mins + " min read</button>" : "") : "") + media +
+      gtagHTML(p.tag_group_id) +
       (p.reshare_of ? origHTML(p.reshare_of) : "") +
       (!photos.length && p.link_preview && p.link_preview.url ? previewHTML(p.link_preview) : "") +
       '<div class="acts">' +
@@ -1909,7 +1936,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (loading || done) return;
     loading = true;
     try {
-      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of&group_id=is.null&order=created_at.desc&limit=" + PAGE +
+      var q = "porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,tag_group_id&group_id=is.null&order=created_at.desc&limit=" + PAGE +
         (oldest ? "&created_at=lt." + encodeURIComponent(oldest) : "");
       var realFollows = Object.keys(friends).filter(function (k) { return !isSample(k); });
       var list = tab === "following" && !realFollows.length ? [] : await rest(q + (tab === "following" ? "&user_id=in.(" + realFollows.join(",") + ")" : ""));
@@ -2244,7 +2271,9 @@ html.kb .ch-bar{padding-bottom:8px}
 
   async function openCompose(m, fresh) {
     if (fresh !== false) editingPost = null;
-    if (fresh !== false) { composeGroup = nextComposeGroup; nextComposeGroup = null; }
+    if (fresh !== false) { composeGroup = nextComposeGroup; nextComposeGroup = null; tagGroup = null; }
+    var ed = editingPost && posts[editingPost];
+    groupPick("cgwrap", "cgroups", !composeGroup && !(ed && (ed.group_id || ed.reshare_of)), function () { return tagGroup; }, function (v) { tagGroup = v; });
     var cw = document.querySelector("#compose .cwho small");
     if (cw) cw.textContent = composeGroup && groups[composeGroup] ? "Only " + groups[composeGroup].name + " will see this" : "Everyone on the Porch will see this";
     if (fresh !== false) {
@@ -2343,11 +2372,12 @@ html.kb .ch-bar{padding-bottom:8px}
     if (editingPost) {
       var eid = editingPost, ep = posts[eid];
       $("csend").disabled = true; $("csend").textContent = "Saving…";
-      var er = await fn("porch", { action: "edit", post_id: eid, body: body, need: need, card_style: mode === "sign" ? style : undefined, sure: !!sure });
+      var canTag = !ep.group_id && !ep.reshare_of;
+      var er = await fn("porch", Object.assign({ action: "edit", post_id: eid, body: body, need: need, card_style: mode === "sign" ? style : undefined, sure: !!sure }, canTag ? { tag_group: tagGroup || "" } : {}));
       sending = false; paintCompose();
       if (er.pause) return open("pause");
       if (!er.ok) { $("cerr").textContent = er.error || "That didn't save. Try again."; return; }
-      ep.body = body || null; ep.need = need; ep.edited_at = er.edited_at; if ("link_preview" in er) ep.link_preview = er.link_preview; if (mode === "sign") ep.card_style = style;
+      ep.body = body || null; ep.need = need; ep.edited_at = er.edited_at; if (canTag) ep.tag_group_id = tagGroup || null; if ("link_preview" in er) ep.link_preview = er.link_preview; if (mode === "sign") ep.card_style = style;
       editingPost = null;
       /* 3 Oct 2026, Mike: "I click save and it takes me back to the main feed. It needs to take me
          back to the profile where they are." Only the editor closes; whatever you were on stays. */
@@ -2364,7 +2394,8 @@ html.kb .ch-bar{padding-bottom:8px}
     }
     $("csend").disabled = true; $("csend").textContent = photos.length ? "Checking photos…" : "Sharing…";
     var r = await fn("porch", { action: "post", need: need, body: body, photos: mode === "snap" ? photos : [],
-      card_style: mode === "sign" ? style : null, sure: !!sure, faces_ok: true, group_id: composeGroup || undefined });
+      card_style: mode === "sign" ? style : null, sure: !!sure, faces_ok: true, group_id: composeGroup || undefined,
+      tag_group: !composeGroup && tagGroup ? tagGroup : undefined });
     sending = false; paintCompose();
     if (r.pause) return open("pause");
     if (r.need === "confirm") { pending = function () { openCompose(mode, false); }; await closeTop(); cfReset(); return open("confirm"); }
@@ -2760,6 +2791,7 @@ html.kb .ch-bar{padding-bottom:8px}
     need = NEED[p.need] && ["experience", "strength", "hope", "question"].indexOf(p.need) >= 0 ? p.need : "talk";
     style = p.card_style != null ? p.card_style : 0;
     $("cbody").value = p.body || ""; photos = (p.photo_paths || []).slice();
+    tagGroup = p.tag_group_id || null;
     openCompose(mode, false);
   }
 
@@ -2823,7 +2855,7 @@ html.kb .ch-bar{padding-bottom:8px}
   function soberText(d) { var x = String(d).split("-"); return "Sober since " + MON[+x[1] - 1] + " " + (+x[2]) + ", " + x[0]; }
   async function postsFor(uid) {
     if (isSample(uid)) return Object.keys(posts).map(function (k) { return posts[k]; }).filter(function (p) { return p.user_id === uid; });
-    var list = await rest("porch_posts?user_id=eq." + uid + "&need=neq.moment&group_id=is.null&reshare_of=is.null&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of&order=created_at.desc&limit=60");
+    var list = await rest("porch_posts?user_id=eq." + uid + "&need=neq.moment&group_id=is.null&reshare_of=is.null&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,tag_group_id&order=created_at.desc&limit=60");
     var fresh = list.filter(function (p) { return !comments[p.id]; }), ids = fresh.map(function (p) { return p.id; });
     if (ids.length) {
       var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
@@ -2912,7 +2944,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var box = $("sgfeed"); if (!box || sgBusy || sgDone) return;
     sgBusy = true;
     try {
-      var list = await rest("porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of&group_id=is.null&order=created_at.desc&limit=" + PAGE +
+      var list = await rest("porch_posts?select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,tag_group_id&group_id=is.null&order=created_at.desc&limit=" + PAGE +
         (sgOldest ? "&created_at=lt." + encodeURIComponent(sgOldest) : ""));
       if (list.length < PAGE) sgDone = true;
       if (list.length) sgOldest = list[list.length - 1].created_at;
@@ -3467,6 +3499,16 @@ html.kb .ch-bar{padding-bottom:8px}
     var tmr;
     box.addEventListener("input", function () {
       clearTimeout(tmr);
+      /* THE # PICKER (4 Oct 2026): a starter list so it is never empty, plus what people use most */
+      var hm = box.value.slice(0, box.selectionStart).match(/(?:^|[\s(])#([A-Za-z0-9_]{0,39})$/);
+      if (hm) {
+        var hq = hm[1].toLowerCase();
+        topTags().then(function (list) {
+          var hit = list.filter(function (x) { return x.indexOf(hq) === 0 && x !== hq; }).slice(0, 10);
+          bar.innerHTML = hit.map(function (x) { return '<button type="button" class="tg" data-tagpick="' + esc(x) + '">#' + esc(x) + "</button>"; }).join("");
+        });
+        return;
+      }
       var m = box.value.slice(0, box.selectionStart).match(/(?:^|\s)@([A-Za-z0-9._-]{1,32})$/);
       if (!m) { bar.innerHTML = ""; return; }
       var q = m[1].toLowerCase();
@@ -3479,13 +3521,107 @@ html.kb .ch-bar{padding-bottom:8px}
       }, 150);
     });
     bar.addEventListener("click", function (e) {
+      var tg = e.target.closest("[data-tagpick]");
+      if (tg) {
+        var tp = box.selectionStart, tb = box.value.slice(0, tp).replace(/#([A-Za-z0-9_]{0,39})$/, "#" + tg.dataset.tagpick + " ");
+        box.value = tb + box.value.slice(tp); box.focus(); box.selectionStart = box.selectionEnd = tb.length;
+        bar.innerHTML = ""; box.dispatchEvent(new Event("input")); return;
+      }
       var b = e.target.closest("[data-pick]"); if (!b) return;
       var pos = box.selectionStart, before = box.value.slice(0, pos).replace(/@([A-Za-z0-9._-]{1,32})$/, "@" + b.dataset.pick + " ");
       box.value = before + box.value.slice(pos); box.focus(); box.selectionStart = box.selectionEnd = before.length;
       bar.innerHTML = ""; box.dispatchEvent(new Event("input"));
     });
   }
-  watchAt($("cbody"), $("atc")); watchAt($("cin"), $("atm"));
+  watchAt($("cbody"), $("atc")); watchAt($("cin"), $("atm")); watchAt($("winbody"), $("atw"));
+
+  /* ================================================================ HASHTAGS + TAG A GROUP (4 Oct 2026)
+     Mike: "build in the smart tagging with hash tags on all of it ... when you post or make a
+     reel ... the ability to tag any group you've joined to promote the group if its public."
+       * A #word in a share, a comment or a Spin's words is a tag. Tap it: everything with it.
+       * A share or a Spin can carry ONE open group the person is in, as a button under it.
+     Path-neutral starter tags: nothing here belongs to one program. */
+  var STARTER_TAGS = ["onedayatatime", "gratitude", "newcomer", "sober", "recovery", "justfortoday", "milestone", "hope", "strength",
+    "checkin", "win", "hardday", "askforhelp", "selfcare", "morningcoffee", "nightowls", "soberfun", "family", "misfits"];
+  var topTagsP = null;
+  function topTags() {
+    if (!topTagsP) topTagsP = rpc("porch_top_tags", {}).then(function (r) {
+      var used = (r || []).map(function (x) { return x.tag; });
+      return used.concat(STARTER_TAGS.filter(function (x) { return used.indexOf(x) < 0; }));
+    }, function () { topTagsP = null; return STARTER_TAGS.slice(); });
+    return topTagsP;
+  }
+  async function openTag(tag) {
+    tag = String(tag || "").toLowerCase().replace(/[^a-z0-9_]/g, ""); if (!tag) return;
+    var pg = $("tgpage");
+    var head = '<div class="bkbar">' + BK + '</div><div class="tg-head"><h2>#' + esc(tag) + "</h2><p>Shares and Spins with this tag, newest first.</p></div>";
+    pg.innerHTML = head + '<div class="skel" style="margin:16px"></div>';
+    open("tagl"); pg.scrollTop = 0; pg.dataset.tag = tag;
+    var list = [];
+    try {
+      var rows = await rest("porch_post_tags?tag=eq." + encodeURIComponent(tag) + "&select=post_id&order=created_at.desc&limit=60");
+      var ids = rows.map(function (r) { return r.post_id; });
+      if (ids.length) {
+        list = await rest("porch_posts?id=in.(" + ids.join(",") + ")&select=" + POST_COLS);
+        list = list.filter(function (p) { return !p.group_id && !muted[p.user_id]; }).sort(function (a, b) { return a.created_at < b.created_at ? 1 : -1; });
+        await hydrate(list);
+        var mo = list.filter(function (p) { return p.need === "moment" && !spinOf[p.id]; }).map(function (p) { return p.id; });
+        if (mo.length) { try { (await rest("porch_spins?post_id=in.(" + mo.join(",") + ")&status=eq.ready&select=post_id,video_guid,length_s")).forEach(function (r) { spinOf[r.post_id] = r; }); } catch (e) {} }
+      }
+    } catch (e) { if (pg.dataset.tag === tag) pg.innerHTML = head + '<p class="pempty">That didn\'t load. Check your signal.</p>'; return; }
+    if (pg.dataset.tag !== tag) return;
+    pg.innerHTML = head + (list.length ? list.map(function (p) { return postHTML(p).replace(' id="p-' + p.id + '"', ""); }).join("")
+      : '<p class="pempty">Nothing with #' + esc(tag) + " yet. Put it in a share and you're the first.</p>");
+  }
+
+  /* the group button under a share or a Spin. The name is looked up once and filled in. */
+  var tagG = {}, tagGQ = [], tagGT = null;
+  var GICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20c1.1-3.6 3.6-5.4 6.5-5.4s5.4 1.8 6.5 5.4"/><circle cx="17.5" cy="9" r="2.6"/><path d="M17 14.7c2.3.2 4 1.7 4.8 4.6"/></svg>';
+  function gtagInner(g) { return GICON + "<small>GROUP</small><span>" + esc(g.name) + "</span><i>›</i>"; }
+  function gtagHTML(id) {
+    if (!id) return "";
+    var g = tagG[id];
+    if (g === undefined) { tagG[id] = null; tagGQ.push(id); clearTimeout(tagGT); tagGT = setTimeout(gtagLoad, 40); }
+    return '<button type="button" class="gtag" data-gtag="' + esc(id) + '"' + (g ? "" : " hidden") + ">" + (g ? gtagInner(g) : "") + "</button>";
+  }
+  async function gtagLoad() {
+    var ids = tagGQ.splice(0); if (!ids.length) return;
+    try {
+      (await rest("porch_groups?id=in.(" + ids.join(",") + ")&status=eq.open&select=id,name")).forEach(function (g) { tagG[g.id] = g; });
+    } catch (e) { ids.forEach(function (id) { delete tagG[id]; }); return; }
+    ids.forEach(function (id) {
+      if (!tagG[id]) return;
+      document.querySelectorAll('[data-gtag="' + id + '"]').forEach(function (b) { b.innerHTML = gtagInner(tagG[id]); b.hidden = false; });
+    });
+  }
+  /* the open groups I'm in (anybody-can-join ones only: Mike picked "Open groups only") */
+  var myOpenP = null, myOpenAt = 0;
+  function myOpenGroups() {
+    if (!me.uid) return Promise.resolve([]);
+    if (myOpenP && Date.now() - myOpenAt < 60000) return myOpenP;
+    myOpenAt = Date.now();
+    myOpenP = (async function () {
+      var mem = await rest("porch_group_members?user_id=eq." + me.uid + "&select=group_id");
+      if (!mem.length) return [];
+      var gs = await rest("porch_groups?id=in.(" + mem.map(function (m) { return m.group_id; }).join(",") + ")&status=eq.open&kind=eq.open&select=id,name&order=name.asc");
+      gs.forEach(function (g) { tagG[g.id] = g; });
+      return gs;
+    })().catch(function () { myOpenP = null; return []; });
+    return myOpenP;
+  }
+  /* the "TAG A GROUP" chips: in a new share, an edit, and a win. One at a time; tap again to take it off. */
+  function groupPick(wrapId, boxId, allowed, get, set) {
+    var wrap = $(wrapId), box = $(boxId);
+    wrap.hidden = true; box.innerHTML = "";
+    if (!allowed) { set(null); return; }
+    myOpenGroups().then(function (gs) {
+      if (get() && !gs.some(function (g) { return g.id === get(); })) set(null);
+      if (!gs.length) return;
+      var paint = function () { box.innerHTML = gs.map(function (g) { return '<button type="button" data-tg="' + g.id + '" class="' + (get() === g.id ? "on" : "") + '" aria-pressed="' + (get() === g.id) + '">' + esc(g.name) + "</button>"; }).join(""); };
+      box.onclick = function (e) { var b = e.target.closest("[data-tg]"); if (!b) return; set(get() === b.dataset.tg ? null : b.dataset.tg); paint(); };
+      paint(); wrap.hidden = false;
+    });
+  }
 
   /* ================================================================ FRIENDS (30 Sep 2026, Mike: "i like friends")
      The Facebook way: Add Friend -> they Confirm -> Friends. Mutual, no counts
@@ -3765,7 +3901,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function openNoteTarget(postId, actor, commentId, kind) {
     if (!postId) return openProfile(actor);
     try {
-      var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of");
+      var r = await rest("porch_posts?id=eq." + postId + "&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,tag_group_id");
       if (!r[0]) return toast("That share is gone.");
       if (r[0].need === "moment") { if (window.PorchSpins) window.PorchSpins.openPost(postId, commentId); return; }
       var cs = await rest("porch_comments?post_id=eq." + postId + "&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
@@ -3810,7 +3946,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var s = await rest("porch_saves?user_id=eq." + me.uid + "&select=post_id,created_at&order=created_at.desc&limit=100");
       var ids = s.map(function (r) { return r.post_id; }), list = [];
       if (ids.length) {
-        var got = await rest("porch_posts?id=in.(" + ids.join(",") + ")&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of");
+        var got = await rest("porch_posts?id=in.(" + ids.join(",") + ")&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,tag_group_id");
         var byId = {}; got.forEach(function (p) { byId[p.id] = p; posts[p.id] = p; });
         list = ids.map(function (i) { return byId[i]; }).filter(Boolean);
         var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
@@ -4396,6 +4532,8 @@ html.kb .ch-bar{padding-bottom:8px}
   document.addEventListener("click", function (e) {
     var t = e.target, post = t.closest("[data-post]"), id = post && post.dataset.post;
     var u = t.closest("[data-u]"); if (u && !t.closest("#cprev")) { e.preventDefault(); return openProfile(u.dataset.u); }
+    var hs = t.closest("[data-hash]"); if (hs && !t.closest("#cprev")) { e.preventDefault(); return openTag(hs.dataset.hash); }
+    var gtb = t.closest("[data-gtag]"); if (gtb && !t.closest("#cprev")) { e.preventDefault(); return openGroup(gtb.dataset.gtag); }
     var at = t.closest("[data-h]"); if (at && !t.closest("#cprev")) return openHandle(at.dataset.h);
     var op = t.closest("[data-openpost]"); if (op) return openSingle(op.dataset.openpost);
     if (t.closest("[data-memenu]")) return openMeMenu();
@@ -4738,6 +4876,7 @@ html.kb .ch-bar{padding-bottom:8px}
     $("winpick").innerHTML = '<p class="fine" style="margin:0 0 10px">Pick a coin you\'ve earned.</p><div class="coinrow">' + list.map(function (c, i) {
       return '<button type="button" class="wc' + (i ? "" : " on") + '" data-wc="' + c.file + '"><img src="/assets/coins/' + c.file + '" alt="" loading="lazy"><span>' + c.label + "</span></button>";
     }).join("") + "</div>";
+    winTag = null; groupPick("wgwrap", "wgroups", true, function () { return winTag; }, function (v) { winTag = v; });
     open("win");
   }
   $("winpick").addEventListener("click", function (e) {
@@ -4748,7 +4887,7 @@ html.kb .ch-bar{padding-bottom:8px}
   $("wingo").addEventListener("click", async function () {
     if (!winCoin) return;
     var b = this; b.disabled = true; b.textContent = "Sharing…"; $("winmsg").textContent = "";
-    var r = await fn("porch", { action: "post", need: "win", body: $("winbody").value.trim(), coin: winCoin, sure: true });
+    var r = await fn("porch", { action: "post", need: "win", body: $("winbody").value.trim(), coin: winCoin, sure: true, tag_group: winTag || undefined });
     b.disabled = false; b.textContent = "Share it on the Porch";
     if (r.need === "confirm") { await closeTop(); cfReset(); return open("confirm"); }
     if (!r.ok) { $("winmsg").textContent = r.error || "That didn't go through. Try again."; return; }
@@ -4781,6 +4920,8 @@ html.kb .ch-bar{padding-bottom:8px}
     DB: DB, KEY: KEY, rest: rest, fn: fn, rpc: rpc, tok: tok, avatar: avatar, loadPeople: loadPeople, name: name,
     get people() { return people; }, get me() { return me; },
     toast: toast, gate: gate, open: open, closeTop: closeTop, openProfile: openProfile, openHandle: openHandle,
+    /* hashtags + tag a group, for the Spins (4 Oct 2026) */
+    openTag: openTag, openGroup: function (id) { return openGroup(id); }, watchAt: watchAt, myOpenGroups: myOpenGroups, gtagHTML: gtagHTML,
     openCommentsFor: openCommentsFor, isMuted: function (u) { return !!muted[u]; }, toggleMute: toggleMute, commentCount: function (id) { return (comments[id] || []).length; },
     pickFriendToSend: function (text, card) { openPick(text, card); },
     /* for the tour (feed/tour.js): the real screens behind its "do it now" buttons */
@@ -4808,7 +4949,8 @@ html.kb .ch-bar{padding-bottom:8px}
      Nobody shares for 90 days and it closes (heads-up at 75). No counts shown anywhere.
      Everything is checked again in the database (supabase/porch_20_groups.sql). */
   var groups = {}, myGroups = {}, myAsks = {}, groupOpen = null, nextComposeGroup = null, composeGroup = null;
-  var POST_COLS = "id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,group_id";
+  var tagGroup = null, winTag = null;      /* TAG A GROUP: the one picked in the composer / the win sheet */
+  var POST_COLS = "id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,tag_group_id,group_id";
   async function grpc(name, args) {
     try {
       var t = await tok();
@@ -5640,7 +5782,7 @@ html.kb .ch-bar{padding-bottom:8px}
 })();
 </script>
 <script src="/feed/sound.js?v=3" defer></script>
-<script src="/feed/spins/spins.js?v=73" defer></script>
+<script src="/feed/spins/spins.js?v=74" defer></script>
 <script src="/feed/tour.js?v=5" defer></script>
 </body>
 </html>

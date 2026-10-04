@@ -721,3 +721,9 @@ without making it confusing.
 - Three dancing-robot Spins (welcome to the party / one day at a time / saved you a seat), made in ChatGPT.
 - `scripts/upload_matt_spins.py` uploads them (numbers 4001 and up); `porch-daily` posts them from welcomematt, already pinned.
 - To swap one later: unpin and delete it as Matt, then upload a new one with the next number.
+
+## Hashtags + Tag a group (4 Oct 2026, v162)
+- A #word in a share, a comment or a Spin's words is a tag. Tap it: one page with everything that has it. `supabase/porch_50_tags.sql` keeps the list.
+- Typing # shows a picker: the tags people use most, then a starter list (path-neutral, in `feed/porch.html` STARTER_TAGS).
+- TAG A GROUP: in a new share, an edit, a win and a Spin. Only open (anybody can join) groups you're in. Shows as a button under it that opens the group. Checked on the server (porch + spins functions).
+- Not done yet: hashtags on a card-style share (the words on the picture) are counted but can't be tapped; reshares can't tag a group; no way to change the group on a Spin after it's posted.
