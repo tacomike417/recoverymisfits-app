@@ -639,6 +639,14 @@ html.fullon #main{visibility:hidden}
 .on-groups #spinrail,.on-groups #newrail{display:none!important}
 /* GROUP PICTURES (4 Oct 2026): a group can have its own picture and banner; keepers change them */
 .pa-fc b{color:var(--cream)}
+.pa-act{margin:4px 0 0;color:var(--muted);font:700 13px/1.2 Arial,sans-serif}
+.pa-act.now{color:#3ddc84}
+.pa-act.now:before{content:"";display:inline-block;width:9px;height:9px;margin-right:6px;border-radius:50%;background:#3ddc84;vertical-align:0}
+.pa-stats{display:flex;gap:22px;margin-top:8px}
+.pa-stats span,.pa-stats button{display:block;padding:0;border:0;background:none;text-align:left;color:var(--cream);font-family:Arial,sans-serif}
+.pa-stats button{cursor:pointer}
+.pa-stats b{display:block;font:800 20px/1.1 Arial,sans-serif;color:var(--gold)}
+.pa-stats small{display:block;margin-top:2px;color:var(--muted);font:700 12px/1 Arial,sans-serif}
 .g-sec{margin:18px 14px 2px}
 .g-sec span{margin-left:6px;letter-spacing:.04em;color:var(--faint);font:400 12px Arial,sans-serif;text-transform:none}
 .g-quiet{margin:14px 16px 0;color:var(--faint);font:400 14px Arial,sans-serif}
@@ -1300,7 +1308,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v179</span>
+  <span class="ver" id="ver">v180</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3385,7 +3393,8 @@ html.kb .ch-bar{padding-bottom:8px}
     $("pfpage").innerHTML =
       '<div class="pcover pa"' + (m.cover_path ? ' style="background-image:url(\'' + pic(m.cover_path) + '\')"' : "") + '>' + BK.replace('class="bk"', 'class="bk over"') + '</div>' +
       '<div class="pahead"><div class="pav pa">' + avatar(m) + '</div><div class="pa-nm"><h2>' + esc(m.handle) + "</h2>" + (m.real_name ? '<p class="pa-real">' + esc(m.real_name) + "</p>" : "") +
-        (TEST.indexOf(String(m.handle || "").toLowerCase()) >= 0 ? '<span class="pa-badge">FOUNDING MISFIT</span>' : "") + "</div></div>" +
+        (TEST.indexOf(String(m.handle || "").toLowerCase()) >= 0 ? '<span class="pa-badge">FOUNDING MISFIT</span>' : "") +
+        '<p class="pa-act" data-act="' + esc(uid) + '" hidden></p><div class="pa-stats" data-st="' + esc(uid) + '" hidden></div>' + "</div></div>" +
       '<div class="pa-body">' +
         (m.bio ? '<p class="pa-bio">' + linkify(m.bio) + "</p>" : mineP ? '<p class="pa-bio none">Add a line about you.</p>' : "") +
         '<div class="pa-meta">' + '<span class="pa-fc" data-fc="' + esc(uid) + '" hidden></span>' + (since ? "<span>" + ICAL + "Misfit since " + esc(since) + "</span>" : "") +
@@ -3399,10 +3408,31 @@ html.kb .ch-bar{padding-bottom:8px}
          tab: the Pile and coins stay off profiles, sober days are only ever theirs to share. */
       '<div class="pa-tabs" role="tablist"><button type="button" class="on" data-ptab="shares" role="tab">SHARES</button><button type="button" data-ptab="wins" role="tab">WINS</button></div>' +
       '<div data-ppane="shares"><div id="pfspins" class="sprow" hidden></div>' + tabBody.shares + '</div><div data-ppane="wins" hidden>' + tabBody.wins + "</div>";
-    if (!isSample(uid)) rpc("porch_friend_count", { p_user: uid }).then(function (n) {
-      n = Number(n) || 0; var el = document.querySelector('.pa-fc[data-fc="' + uid + '"]'); if (!el || !n) return;
-      el.innerHTML = "<b>" + fmtN(n) + "</b> " + (n === 1 ? "friend" : "friends"); el.hidden = false;
-    }, function () {});
+    /* THE ROW UNDER THE NAME (v180, Mike, pointing at his Infinite Pulls profile: "Active now ... we need those
+       counts ... and the online versus offline type thing"). Friends and Groups only: no followers ("you either
+       are their friend ... or you're not"), and nothing that gives away a sober date. Never a zero: a count
+       shows at 2 and up. porch_56_profile_stats.sql. */
+    if (!isSample(uid)) rpc("porch_profile_stats", { p_user: uid }).then(function (st) {
+      st = st || {};
+      var row = document.querySelector('.pa-stats[data-st="' + uid + '"]'), act = document.querySelector('.pa-act[data-act="' + uid + '"]');
+      if (row) {
+        var f = Number(st.friends) || 0, g = Number(st.groups) || 0;
+        row.innerHTML = (f >= 2 ? (mineP ? '<button type="button" data-allf>' : "<span>") + "<b>" + fmtN(f) + "</b><small>friends</small>" + (mineP ? "</button>" : "</span>") : "") +
+          (g >= 2 ? "<span><b>" + fmtN(g) + "</b><small>groups</small></span>" : "");
+        row.hidden = !row.innerHTML;
+      }
+      if (act) {
+        var isHouse = HOUSE.indexOf(String(m.handle || "").toLowerCase()) >= 0;
+        var mins = mineP ? 0 : st.seen_at ? (Date.now() - new Date(st.seen_at).getTime()) / 60000 : -1;
+        var txt = isHouse || mins < 0 ? "" : mins < 5 ? "Active now" : mins < 60 ? "Active " + Math.round(mins) + "m ago" : mins < 1440 ? "Active " + Math.round(mins / 60) + "h ago" : mins < 10080 ? "Active " + Math.round(mins / 1440) + "d ago" : "";
+        act.textContent = txt; act.classList.toggle("now", txt === "Active now"); act.hidden = !txt;
+      }
+    }, function () {
+      rpc("porch_friend_count", { p_user: uid }).then(function (n) {      /* before porch_56 is run: the friend count alone */
+        n = Number(n) || 0; var row = document.querySelector('.pa-stats[data-st="' + uid + '"]'); if (!row || n < 2) return;
+        row.innerHTML = "<span><b>" + fmtN(n) + "</b><small>friends</small></span>"; row.hidden = false;
+      }, function () {});
+    });
     if (window.PorchSpins && !isSample(uid)) {
       var row = $("pfspins");
       Promise.resolve(window.PorchSpins.profileGrid(row, uid)).then(function () { if ($("pfspins") === row) row.hidden = !row.querySelector(".sp-grid"); }, function () {});
@@ -6383,6 +6413,8 @@ html.kb .ch-bar{padding-bottom:8px}
     })();
     /* THE TOUR (2 Oct 2026): comes up by itself the first time, then leaves a small
        "Getting started" strip above the feed. feed/tour.js. */
+    /* "Active now": tell the Porch you're here, now and every few minutes while the page is showing (v180) */
+    (function seen() { if (signedIn() && !document.hidden) rpc("porch_ping", {}).catch(function () {}); setTimeout(seen, 180000); })();
     (function tourStart(n) { if (window.PorchTour) window.PorchTour.maybe(); else if (n < 20) setTimeout(function () { tourStart(n + 1); }, 300); })(0);
     var uh = new URLSearchParams(location.search).get("u");
     if (uh && /^[a-z0-9._-]{2,32}$/i.test(uh)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (uh === "me" && me.uid) openProfile(me.uid); else openHandle(uh); }

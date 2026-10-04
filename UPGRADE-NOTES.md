@@ -792,3 +792,9 @@ without making it confusing.
 - [x] v177: the 💨 button is in every one-on-one chat with a friend from the first message (dim until ready). Until Poof is ready for the two of them it opens the sheet: what Poof is, the switch, and a line saying what is left ("opens up once you've each sent 5 messages", "they don't have it on yet").
 - [x] v178: hearts, comments and reshares always show a number on every share, 0 included (they were blank at zero). A reshare now reads "username" with "💛 reshared" under it.
 - [x] v179: NEVER A ZERO. Hearts, comments, reshares and Spin views only show a number at 2 and up, on the feed and in the Spin player (`showN` in porch.html). Under 2 the icon stands alone (the Spin player shows its word: Love, Talk, Respin). Hearts are pink (#ff5fa2). This replaces v178's "0 included".
+
+## Profile row: Active now + Friends + Groups (4 Oct 2026, v180)
+- [x] Under the name on every profile: "Active now" (green dot) or "Active 2h ago", then Friends and Groups counts. Mike: no followers ("you either are their friend ... or you're not"); on for everybody, no off switch. Coins and Survival Pile stay off (they give away the sober date).
+- `porch_56_profile_stats.sql`: `porch_seen` (no phone can read it), `porch_ping()` (the page calls it every 3 minutes while showing), `porch_profile_stats(user)`. Last-on time is only told to signed-in people, never to someone blocked.
+- Never a zero applies: a count shows at 2 and up. House accounts never show Active. Nothing shown after 7 days away.
+- Not done: green dots on avatars elsewhere (feed, Messages, friends list). Profile only for now.
