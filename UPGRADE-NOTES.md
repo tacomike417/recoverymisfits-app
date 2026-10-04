@@ -750,3 +750,11 @@ without making it confusing.
 - All on the phone. What posts is one ordinary photo, so the photo check and everything else is unchanged.
 - Fonts: `assets/fonts/dancing-script-700.woff2`, `permanent-marker-400.woff2` (both free to use).
 - NOT DONE YET: writing a few words on each Polaroid (it was in the mockup); the collage hashtag is only in the picture, it is not added to the words under the share; stickers on photos in Messages.
+
+## The share screen, simpler (4 Oct 2026, v168)
+- Mike: "the full post ... its really what you should be editing, and the small post container is the preview hanging out on the right with share button by it." You now build the real post (your words, photos, tag pill and group button show on it as you add them).
+- One row of buttons at the bottom: Photos, Stickers, Collage, Card, Tags. A small number shows when you've used one.
+- TAGS is one sheet: what you're bringing, tag a group, and hashtags to tap.
+- The little Preview by Share opens HOW IT'LL LOOK for every kind of share, with its own Share button.
+- Adding a photo to a words share makes it a photo share; taking the last photo off makes it words again. "Just words / Make a card" is now the Card button.
+- Class names to know: the button row is `.ctools` (NOT `.cbar`, that is the comments bar) and a greyed button is `.off` (NOT `.dim`, that is the dark overlay).
