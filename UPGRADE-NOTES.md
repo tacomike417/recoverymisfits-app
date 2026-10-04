@@ -77,6 +77,19 @@ A humble worker robot who took the greeter job. He says plainly that he is a rob
       * Job: porch-matt-greets, every 2 minutes. Stop him: select cron.unschedule('porch-matt-greets');
       * People who were here before 4 Oct get nothing late.
 
+## 🏠 STARK RECOVERY SPINS (4 Oct 2026, Mike)
+"resources for guys getting sober and back out in the world ... professional and kind of dry ... same format as the logo."
+- [x] 18 how-to Spins (resume, cover letter, the gap, interview, a record, job help, email/voicemail, ID, birth certificate +
+      Social Security card, bank account, food, SNAP, a hot meal, the bus, phone bill, a meeting, a doctor, Medicaid).
+      Claude made the videos (not ChatGPT) so every word and number is exact: navy cards in the logo's colors, one step a card,
+      about 30 seconds, Mike's "corporate calm" track. End card: recoverymisfits.org/u/starkrecovery, "Check before you go."
+- [x] Every local fact was read on the organization's own page on 4 Oct 2026; sources are in
+      ~/Downloads/stark-recovery-18-scripts.txt. Local places are worded "Starting place:". Mike confirmed 2-1-1 and the bus fare.
+- [x] Posting: scripts/upload_stark_spins.py sends them up (numbers 3001+); porch-daily starkSpins() posts from starkrecovery:
+      the first THREE at once, then one every 3 days in the morning (first knock after 7am Eastern).
+- [ ] RECHECK THE FACTS every few months (fees, addresses, hours). A wrong address on a card is worse than no card.
+- [ ] Still unconfirmed: OhioMeansJobs walk-ins and hours (the card says "Call before you go").
+
 ## 📝 THE BIG LIST (brainstorm 1 Oct 2026, Mike: "we're doing all this stuff")
 Order isn't set.
 

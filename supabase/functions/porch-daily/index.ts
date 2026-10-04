@@ -73,6 +73,10 @@ const MISFIT_SPINS_FROM = 1001;             // recoverymisfits' own Spins are nu
 const MISFIT_SPIN_HOUR = 16, MISFIT_SPIN_MIN = 17;   // 4:17pm Eastern, every other day
 const MISFIT_DAILY_FROM = 2001;             // the dated batch (one a morning, each on its own day) is numbered from here
 const MISFIT_DAILY_HOUR = 4, MISFIT_DAILY_MIN = 17;  // 4:17am Eastern
+const STARK = "starkrecovery";              // the Stark Recovery resources account
+const STARK_FROM = 3001;                    // its Spins are numbered from here up
+const STARK_BACKLOG = 3;                    // how many go up to start
+const STARK_HOUR = 7;                       // then one every 3 days, at the first knock after 7am Eastern
 const HOUSE_KEY = Deno.env.get("HOUSE_KEY") || "";
 const BUNNY_KEY = Deno.env.get("BUNNY_STREAM_KEY") || "";
 const BUNNY_LIB = Deno.env.get("BUNNY_STREAM_LIBRARY") || "";
@@ -406,7 +410,7 @@ async function misfitSpins(hour: number, minute: number) {
 async function misfitDaily(day: string, hour: number, minute: number) {
   const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", HOUSE).maybeSingle();
   if (!m) return { posted: 0, error: "recoverymisfits is not on the Porch yet" };
-  const { data: all, error } = await admin.from("porch_house_reels").select("*").gte("n", MISFIT_DAILY_FROM).order("n", { ascending: true });
+  const { data: all, error } = await admin.from("porch_house_reels").select("*").gte("n", MISFIT_DAILY_FROM).lt("n", STARK_FROM).order("n", { ascending: true });
   if (error) return { posted: 0, why: "no list yet" };
   const queue = (all || []).filter((r: any) => r.status === "queued" && r.post_on);
   if (!queue.length) return { posted: 0, why: (all || []).length ? "they have all run" : "none waiting" };
@@ -420,6 +424,38 @@ async function misfitDaily(day: string, hour: number, minute: number) {
   if (why) { out.why = "spin " + todays[0].n + ": " + why; return out; }
   out.posted = 1; out.numbers = [todays[0].n]; out.waiting = queue.length - 1;
   return out;
+}
+
+/* STARK RECOVERY (4 Oct 2026, Mike: "post a spin ... on resources for guys getting sober and back
+ * out in the world ... backlog 3 of them, then post one every 3 days"). 18 plain how-to Spins
+ * (resume, cover letter, ID, food, the bus, a doctor ...), numbered 3001 and up, posted from the
+ * starkrecovery account. The first three go up at once, dated three days apart going back so the
+ * profile is not empty; after that, one every 3 days in the morning until they run out. */
+async function starkSpins(hour: number) {
+  const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", STARK).maybeSingle();
+  if (!m) return { posted: 0, error: "starkrecovery is not on the Porch yet" };
+  const { data: all, error } = await admin.from("porch_house_reels").select("*").gte("n", STARK_FROM).lt("n", STARK_FROM + 1000).order("n", { ascending: true });
+  if (error) return { posted: 0, why: "no list yet" };
+  const done = (all || []).filter((r: any) => r.status === "posted");
+  const queue = (all || []).filter((r: any) => r.status === "queued");
+  if (!queue.length) return { posted: 0, why: done.length ? "they have all run" : "none waiting", total: done.length };
+  const out: any = { posted: 0, numbers: [] as number[], waiting: queue.length };
+  if (done.length < STARK_BACKLOG) {
+    for (const row of queue.slice(0, STARK_BACKLOG - done.length)) {
+      const slot = done.length + out.posted;
+      const why = await publishReel(row, m.user_id, new Date(Date.now() - (STARK_BACKLOG - 1 - slot) * 3 * 86400000));
+      if (why) { out.why = "spin " + row.n + ": " + why; break; }
+      out.posted++; out.numbers.push(row.n);
+    }
+    out.waiting = queue.length - out.posted;
+    return out;
+  }
+  if (hour < STARK_HOUR) { out.why = "before 7am Eastern"; return out; }
+  const last = Math.max(...done.map((r: any) => Date.parse(r.posted_at || 0) || 0));
+  if (Date.now() - last < 68 * 3600 * 1000) { out.why = "not today (every 3 days)"; return out; }
+  const why = await publishReel(queue[0], m.user_id, new Date());
+  if (why) { out.why = "spin " + queue[0].n + ": " + why; return out; }
+  return { posted: 1, numbers: [queue[0].n], waiting: queue.length - 1 };
 }
 
 Deno.serve(async (req) => {
@@ -438,6 +474,7 @@ Deno.serve(async (req) => {
     try { out.reels = await reels(hour); } catch (e) { out.reels = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.misfit_spins = await misfitSpins(hour, minute); } catch (e) { out.misfit_spins = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.misfit_daily = await misfitDaily(day, hour, minute); } catch (e) { out.misfit_daily = { posted: 0, error: String((e as Error).message || e) }; }
+    try { out.stark = await starkSpins(hour); } catch (e) { out.stark = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.sponsor = await sponsor(day, hour); } catch (e) { out.sponsor = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.another_day_sober = await ads(day, hour); } catch (e) { out.another_day_sober = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.spiritual_memes = await spiritualMemes(hour); } catch (e) { out.spiritual_memes = { posted: 0, error: String((e as Error).message || e) }; }
