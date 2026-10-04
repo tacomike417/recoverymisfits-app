@@ -189,7 +189,6 @@
         ${done ? '' : s.k === 'alerts' ? (alertsState === 'off' ? '<p class="pt-hand">Your phone will ask. Tap <b>Allow</b>.</p>' : alertsState === 'ios' ? '<p class="pt-hand">On iPhone it goes on your Home Screen first.</p>' : '') : '<p class="pt-hand">I&rsquo;ll point at every button.</p>'}
         <button type="button" class="${done ? 'pt-go' : 'pt-next'}" data-pt-next>${done ? 'Show me more' : 'Skip this one'}</button>`;
     }
-    h += `<label class="pt-off"><input type="checkbox" data-pt-off${get(OFF) === '1' ? ' checked' : ''}> Don&rsquo;t show me this again</label>`;
     el.querySelector('.pt-box').innerHTML = h;
     el.querySelector('.pt-box').scrollTop = 0;
     const old = el.querySelector('.pt-ring'); if (old) old.remove();
@@ -447,11 +446,12 @@
     c.tmr = setInterval(tick, 300); setTimeout(tick, 250);
   }
 
-  /* every visit to the Porch signed in, until they tick "Don't show me this again" */
+  /* was: every visit until they ticked "Don't show me this again" */
   function maybe() {
     const p = P(); if (!p || !p.me || !p.me.uid) return;
     paintStrip();
-    if (get(OFF) !== '1') whenClear(() => { if (get(OFF) !== '1' && !el && !co) open(0); });       /* asked again: the sign-up walk turns this off */
+    /* v173 (4 Oct 2026, Mike: "I'm still getting this welcome to the porch ... That needs to go"): it never
+       comes up by itself anymore. It opens from the menu ("How the Porch works") and the Getting started strip. */
   }
 
   window.PorchTour = { open, maybe, coach, coaching: () => !!co, fresh: () => get(OFF) !== '1', refresh: paintStrip };
