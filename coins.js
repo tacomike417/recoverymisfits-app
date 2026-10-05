@@ -571,11 +571,23 @@
     var coin = coinFor(soberYMD());
     /* JUST SWITCHED ACCOUNTS (assets/account.js, 2 Oct 2026). This account's coin has
        never been noted on this phone, so note it quietly. A switch is not a milestone. */
+    /* AND JUST SIGNED IN (5 Oct 2026, Mike: "when I just logged back into the tacomike417 account
+       it shot my coin at me again"). What a phone has shown is remembered on that phone only, so a
+       private window, a new phone, or cleared browser data made an old coin look brand new the
+       moment you signed in. Signing in now sets the same quiet note, with the time on it. The
+       sober date arrives a moment AFTER the sign-in, so the note waits for a date before it is
+       spent, and it lets go by itself after two minutes: a date picked later still gets its coin. */
     try {
-      if (localStorage.getItem("rm_coin_quiet")) {
-        localStorage.removeItem("rm_coin_quiet");
-        if (coin && !coin.silent) markSeen(coin.file);
-        return;
+      var q = localStorage.getItem("rm_coin_quiet");
+      if (q) {
+        var at = Number(q) || 0;
+        if (at > 1 && Date.now() - at > 2 * 60 * 1000) localStorage.removeItem("rm_coin_quiet");   /* stale: carry on as normal */
+        else {
+          if (at > 1 && !soberYMD()) return;                 /* the date isn't here yet: keep the note */
+          localStorage.removeItem("rm_coin_quiet");
+          if (coin && !coin.silent) markSeen(coin.file);
+          return;
+        }
       }
     } catch (e) {}
     if (!coin || coin.silent) return;

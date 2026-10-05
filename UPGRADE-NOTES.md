@@ -856,3 +856,4 @@ The mission, in his words: a recovery network for people in recovery, by people 
 - v195: buttons 1 and 2 on the account screen each have their number in a gold circle beside them.
 - v196: "Delete my account" on the account page is pushed far below Sign Out, off the first screen. It stays because the privacy policy points to it and the Play Store requires it.
 - v197: "Delete my account" is off the account page for good (Mike: "it's in edit profile, that's enough"). The one in Edit profile on the Porch deletes the whole account, app and Porch. The privacy policy now points there. TO CHECK: that a no-email account can reach Edit profile, since it is their only way to delete.
+- v198: signing in no longer shoots the coin (or the pile card) at you. What a phone has shown is remembered on that phone only, so a private window, a new phone or cleared data made an old coin look new. Signing in now marks it quietly. A real new milestone still pops. NOT TESTED LIVE.

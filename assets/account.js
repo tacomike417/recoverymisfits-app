@@ -270,6 +270,17 @@
         return { ok: false, error: readError(json, "That name or password isn't right.") };
       }
       stash(json, cleanName(name));
+      /* SIGNING IN IS NOT A MILESTONE (5 Oct 2026). If this phone has no note of the coin or the
+         pile card this account is on (a private window, a new phone, cleared data), mark them
+         quietly instead of popping them. coins.js reads rm_coin_quiet; pile-reveal.js reads
+         rm_welcome_skip. Sign-UP never comes through here, so a new account still gets its first. */
+      try {
+        /* also when the notes on this phone were left by a DIFFERENT account (signed out of one, into another) */
+        var who = cleanName(name), other = localStorage.getItem("rm_last_in") !== who;
+        if (other || localStorage.getItem("rm_coin_seen") == null) localStorage.setItem("rm_coin_quiet", String(Date.now()));
+        if (other || localStorage.getItem("rm_pile_seen") == null) localStorage.setItem("rm_welcome_skip", "1");
+        localStorage.setItem("rm_last_in", who);
+      } catch (e2) {}
       return { ok: true };
     } catch (e) {
       return { ok: false, error: "No connection. Try again when you have signal." };
