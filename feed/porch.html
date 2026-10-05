@@ -647,6 +647,7 @@ html.fullon #main{visibility:hidden}
 .pa-stats button{cursor:pointer}
 .pa-stats b{display:block;font:800 20px/1.1 Arial,sans-serif;color:var(--gold)}
 .pa-stats small{display:block;margin-top:2px;color:var(--muted);font:700 12px/1 Arial,sans-serif}
+.pa-vw svg{display:block;width:17px;height:17px;margin-top:-2px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .g-sec{margin:18px 14px 2px}
 .g-sec span{margin-left:6px;letter-spacing:.04em;color:var(--faint);font:400 12px Arial,sans-serif;text-transform:none}
 .g-quiet{margin:14px 16px 0;color:var(--faint);font:400 14px Arial,sans-serif}
@@ -1325,7 +1326,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v188</span>
+  <span class="ver" id="ver">v189</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2093,6 +2094,24 @@ html.kb .ch-bar{padding-bottom:8px}
   /* NEVER A ZERO (v179, Mike: "we never want to show zero on the site ... the numbers only pick up after they've
      had two or more"). A count shows at 2 and up; under that the icon stands alone. Real counts, nothing added. */
   function showN(n) { n = Number(n) || 0; return n >= 2 ? fmtN(n) : ""; }
+  /* SHARES SEEN (v189): a share that is at least half on the screen counts one view for whoever shared it. Sent in
+     small batches. It only ever adds to a number; it never records who looked. */
+  var vwQ = [], vwIO = null;
+  function vwFlush() { if (!vwQ.length) return; var ids = vwQ.splice(0, 60); try { rpc("porch_post_views", { p_ids: ids }).then(function () {}, function () {}); } catch (e) {} }
+  try {
+    if ("IntersectionObserver" in window) {
+      vwIO = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (!e.isIntersecting) return; vwIO.unobserve(e.target); var id = e.target.getAttribute("data-post"); if (/^[0-9a-f-]{36}$/i.test(id || "")) vwQ.push(id); });
+      }, { threshold: 0.5 });
+      setInterval(function () {
+        if (document.hidden) return;
+        var n = document.querySelectorAll("article.post[data-post]:not([data-vw])");
+        for (var i = 0; i < n.length; i++) { n[i].setAttribute("data-vw", "1"); vwIO.observe(n[i]); }
+        vwFlush();
+      }, 2500);
+      window.addEventListener("pagehide", vwFlush);
+    }
+  } catch (e) {}
   var cnt = {}, cntQ = [], cntT = null;
   function cntHTML(id, k) {
     var ok = /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(String(id)), c = cnt[id];
@@ -3489,13 +3508,19 @@ html.kb .ch-bar{padding-bottom:8px}
        counts ... and the online versus offline type thing"). Friends and Groups only: no followers ("you either
        are their friend ... or you're not"), and nothing that gives away a sober date. Never a zero: a count
        shows at 2 and up. porch_56_profile_stats.sql. */
+    /* v189, ONE BIG VIEWS NUMBER (5 Oct 2026, Mike: "a little views counter ... super liberal ... combine the reel
+       stats ... and your post stats ... one big number"). Every open of somebody else's profile counts, every share
+       that lands on a screen counts (the watcher at the bottom of this file), every Spin play counts. An eye, a
+       number, no word, and never under 2. porch_60_profile_views.sql. */
+    if (!isSample(uid) && !mineP) rpc("porch_profile_view", { p_user: uid }).then(function () {}, function () {});
     if (!isSample(uid)) rpc("porch_profile_stats", { p_user: uid }).then(function (st) {
       st = st || {};
       var row = document.querySelector('.pa-stats[data-st="' + uid + '"]'), act = document.querySelector('.pa-act[data-act="' + uid + '"]');
       if (row) {
-        var f = Number(st.friends) || 0, g = Number(st.groups) || 0;
+        var f = Number(st.friends) || 0, g = Number(st.groups) || 0, vw = Number(st.views) || 0;
         row.innerHTML = (f >= 2 ? (mineP ? '<button type="button" data-allf>' : "<span>") + "<b>" + fmtN(f) + "</b><small>friends</small>" + (mineP ? "</button>" : "</span>") : "") +
-          (g >= 2 ? "<span><b>" + fmtN(g) + "</b><small>groups</small></span>" : "");
+          (g >= 2 ? "<span><b>" + fmtN(g) + "</b><small>groups</small></span>" : "") +
+          (vw >= 2 ? '<span class="pa-vw" aria-label="' + fmtN(vw) + ' views"><b>' + fmtN(vw) + '</b><small><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></small></span>' : "");
         row.hidden = !row.innerHTML;
       }
       if (act) {

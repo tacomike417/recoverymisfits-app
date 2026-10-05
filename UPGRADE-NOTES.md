@@ -820,3 +820,12 @@ without making it confusing.
 - [x] v186: a profile is ONE grid under the Spins row: their shares, the coins/wins they shared, and their RESHARES (the tile shows the share they passed along, with a small reshare mark bottom right). The WINS tab is gone. Still not on a profile: shares made inside a group.
 - [x] v187: tapping a name now ALWAYS shows that profile. Bug: a screen that was already open underneath (a profile, when the friends list was opened from it) got redrawn down below instead of coming to the front. `open()` now raises a screen that is already in the pile. Fixes names tapped in the friends list, comments, tag pages and groups opened over a profile.
 - [x] 5 Oct: SHARE DESK checked on the live site (it works: 1 to share, 5 done). Two gaps fixed: (1) it only listed recoverymisfits; now a picker at the top switches between recoverymisfits and realmrhyde. (2) no YouTube tick; videos now have YouTube / Instagram / Facebook (`porch_59_share_desk_youtube.sql`). realmrhyde's are done when YouTube is ticked; recoverymisfits' still need Instagram + Facebook. On a computer \"Get the video\" downloads the file; the share menu with YouTube only exists on a phone.
+
+## BEFORE OCT 20: THE SOCIAL LIST (5 Oct 2026, Mike: "make a list, we'll start working on these one by one")
+- [ ] 1. WHO TO FOLLOW ON DAY ONE. "Find your people" is switched off (SU_FIND). A new person finishes sign-up with nobody to follow.
+- [ ] 2. "YOUR VIDEO IS UP" ALERT. A bell alert and a phone alert when a Spin finishes uploading, so it is really obvious. (v185 only shows a card while the Porch is open.)
+- [ ] 3. SEE WHO LOVED IT. Tap the heart count, see the names.
+- [ ] 4. WHAT'S POPULAR. A most-loved / top of the week spot.
+- [ ] 5. PIN A SHARE to the top of your profile.
+- [ ] 6. TRY POOF between two real accounts on two real phones (never done).
+- [x] v189 (5 Oct): ONE BIG VIEWS NUMBER on every profile (eye + number, 2 and up). Profile opens + shares seen on a screen + Spin plays. `porch_60_profile_views.sql`. Your own profile opens don't count; everything else does, every time.
