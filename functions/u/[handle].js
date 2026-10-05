@@ -88,7 +88,7 @@ function profile(c, origin) {
   const url = origin + '/' + c.handle;
   const img = c.avatar_path ? pic(c.avatar_path) : origin + '/icon-512.png';
   const spins = Array.isArray(c.spins) ? c.spins : [];
-  return HEAD(`@${c.handle} on Recovery Misfits`, c.bio || 'On the Recovery Misfits Porch. Good company between meetings.', img, origin, url) + `
+  return HEAD(`@${c.handle} on Recovery Misfits`, c.bio || 'On the Recovery Misfits Porch. Good people between meetings.', img, origin, url) + `
 <main>
   <div class="cover"${c.cover_path ? ` style="background-image:url('${esc(pic(c.cover_path))}')"` : ''}></div>
   <div class="av">${c.avatar_path ? `<img src="${esc(pic(c.avatar_path))}" alt="">` : `<span>${esc(c.handle.slice(0, 2).toUpperCase())}</span>`}</div>

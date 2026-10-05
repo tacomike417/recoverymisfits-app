@@ -92,7 +92,7 @@ function page(s, id, origin) {
   const handle = s ? s.handle : '';
   const title = s ? `@${handle} on Recovery Misfits` : 'Recovery Misfits';
   const cap = s && s.caption ? String(s.caption).replace(/\s+/g, ' ').trim() : '';
-  const desc = cap ? (cap.length > 150 ? cap.slice(0, 147) + '…' : cap) : 'A Sober Spin from the Recovery Misfits Porch. Good company between meetings.';
+  const desc = cap ? (cap.length > 150 ? cap.slice(0, 147) + '…' : cap) : 'A Sober Spin from the Recovery Misfits Porch. Good people between meetings.';
   const thumb = s ? `${CDN}/${s.video_guid}/thumbnail.jpg` : origin + '/icon-512.png';
   const link = origin + '/s/' + id;
   const porch = '/feed/porch.html?spin=' + encodeURIComponent(id);
@@ -178,7 +178,7 @@ ${s.muted ? '' : '<button type="button" class="snd" id="snd">🔇 Tap for sound<
     if (a && a.name) {
       var go = document.getElementById('go'), sub = document.getElementById('sub');
       if (go) { go.href = ${JSON.stringify(porch)}; go.textContent = 'More Spins on the Porch'; }
-      if (sub) sub.textContent = 'Good company between meetings.';
+      if (sub) sub.textContent = 'Good people between meetings.';
     }
   } catch (e) {}
   if (!v) return;
