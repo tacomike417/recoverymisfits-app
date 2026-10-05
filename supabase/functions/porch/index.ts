@@ -125,12 +125,13 @@ async function checkLinks(text: string): Promise<string | null> {
   if (links.some((u) => SHORT.has(u.hostname.toLowerCase().replace(/^www\./, "")))) return "Short links hide where they go. Paste the full link instead.";
   if (links.some((u) => /^\d{1,3}(\.\d{1,3}){3}$/.test(u.hostname) || u.hostname.startsWith("["))) return "That link can't be posted.";
   if (links.some(looksAdult)) return "Adult sites aren't allowed on the Porch.";
-  if (!VISION) return "Links can't be checked right now, so that wasn't posted.";
+  /* ONE OUTSIDE CHECK (4 Oct 2026, Mike: "Use Cloudflare's check alone"). Google's scam check was answering 403 on
+     this key, which blocked every link on the Porch. Cloudflare's family filter (malware, scams, adult sites) is the
+     check now; the adult-word, short-link and bare-number rules above still apply. webRisk() is left in the file
+     unused in case the Google side ever gets switched on. */
   for (const u of links) {
     const f = await family(u);
     if (f !== "ok") { if (f !== "bad") linkWhy = "the family filter didn't answer"; return f === "bad" ? "That link goes to a blocked site." : "Links can't be checked right now, so that wasn't posted."; }
-    const w = await webRisk(u);
-    if (w !== "ok") return w === "bad" ? "That link is flagged for scams or malware." : "Links can't be checked right now, so that wasn't posted.";
   }
   return null;
 }
