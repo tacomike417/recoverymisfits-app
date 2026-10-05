@@ -1325,7 +1325,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v186</span>
+  <span class="ver" id="ver">v187</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2298,8 +2298,17 @@ html.kb .ch-bar{padding-bottom:8px}
     });
   })();
   function open(id) {
-    var el = $(id); if (stack.indexOf(el) >= 0) return;
-    el.classList.add("open"); stack.push(el); el.style.zIndex = 20000 + stack.length;
+    var el = $(id), at = stack.indexOf(el);
+    var topZ = stack.reduce(function (z, x) { var n = x && x.style ? parseInt(x.style.zIndex, 10) || 0 : 0; return n > z ? n : z; }, 20000);
+    /* ALREADY OPEN UNDERNEATH? BRING IT TO THE FRONT (v187, Mike: "I'm looking in the friends list ... I click on them,
+       I can't see their profile"). The friends list was opened FROM a profile, so the profile screen was already in
+       the pile; a tap on a name drew the new person on it down below, where nobody could see. Same for a name tapped
+       in comments, a tag page or a group that was opened over a profile. Now that screen moves to the top. */
+    if (at >= 0) {
+      if (at !== stack.length - 1) { stack.splice(at, 1); stack.push(el); el.style.zIndex = topZ + 1; var pg0 = el.querySelector(".page"); if (pg0) pg0.scrollTop = 0; syncRail(); }
+      return;
+    }
+    el.classList.add("open"); stack.push(el); el.style.zIndex = topZ + 1;
     document.documentElement.classList.add("locked"); syncRail();
     try { history.pushState({ porch: stack.length }, ""); } catch (e) {}
   }
