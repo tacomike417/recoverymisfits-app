@@ -817,3 +817,4 @@ without making it confusing.
 - Cost: uploads are bigger (a 15-second phone video is about 20 to 40 MB instead of about 6), so the "Uploading your Spin" bar takes longer on a slow connection.
 - Spins already posted are not repaired; they have to be uploaded again.
 - [x] v185: Spins upload in the background. No bar or percentages. A card says "You did it!" and to keep browsing; a card with **Watch it** when it's live (with the pop sound); a red card if it failed. The upload only runs while the Porch page is open, so the browser asks before leaving mid-upload. NOT done: a bell/phone alert when it's ready (the card only shows if they're still on the Porch).
+- [x] v186: a profile is ONE grid under the Spins row: their shares, the coins/wins they shared, and their RESHARES (the tile shows the share they passed along, with a small reshare mark bottom right). The WINS tab is gone. Still not on a profile: shares made inside a group.

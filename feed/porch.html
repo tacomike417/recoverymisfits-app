@@ -766,6 +766,9 @@ html.fullon #main{visibility:hidden}
 .grid img{width:100%;height:100%;object-fit:cover;display:block}
 .grid .gh{display:grid;place-items:center;width:100%;height:100%;padding:8px;font:600 15px/1.1 "RM Hand",cursive;text-align:center;overflow:hidden}
 .grid .gs{display:block;width:100%;height:100%;padding:9px;font:12px/1.35 Arial,sans-serif;text-align:left;overflow:hidden;color:var(--soft);-webkit-mask-image:linear-gradient(#000 70%,transparent)}
+.grid .rsm{position:absolute;right:6px;bottom:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.62);display:grid;place-items:center;color:#f6e3a8}
+.grid .rsm .ico{width:14px;height:14px}
+.pa-one{border-top:1px solid var(--line);margin-top:6px}
 .grid .many{position:absolute;top:6px;right:6px;width:16px;height:16px;border-radius:4px;border:2px solid #fff;box-shadow:3px -3px 0 -1px rgba(255,255,255,.7)}
 .pempty{padding:30px 16px;text-align:center;color:var(--faint)}
 /* names and faces are buttons now */
@@ -1322,7 +1325,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v185</span>
+  <span class="ver" id="ver">v186</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3391,7 +3394,18 @@ html.kb .ch-bar{padding-bottom:8px}
   function soberText(d) { var x = String(d).split("-"); return "Sober since " + MON[+x[1] - 1] + " " + (+x[2]) + ", " + x[0]; }
   async function postsFor(uid) {
     if (isSample(uid)) return Object.keys(posts).map(function (k) { return posts[k]; }).filter(function (p) { return p.user_id === uid; });
-    var list = await rest("porch_posts?user_id=eq." + uid + "&need=neq.moment&group_id=is.null&reshare_of=is.null&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,tag_group_id&order=created_at.desc&limit=60");
+    var list = await rest("porch_posts?user_id=eq." + uid + "&need=neq.moment&group_id=is.null&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,tag_group_id&order=created_at.desc&limit=60");
+    /* RESHARES ARE ON THE PROFILE TOO (v186, Mike: "let's add in reshares ... in the same card grid"). The tile shows
+       the share they passed along, with a small reshare mark. The originals are fetched here in one go. */
+    var rsIds = list.map(function (p) { return p.reshare_of; }).filter(function (x, i, a) { return x && origs[x] === undefined && a.indexOf(x) === i; });
+    if (rsIds.length) {
+      try {
+        var ro = await rest("porch_posts?id=in.(" + rsIds.join(",") + ")&select=id,user_id,need,body,photo_paths,card_style,created_at");
+        rsIds.forEach(function (x) { origs[x] = false; origAsk[x] = 1; });
+        ro.forEach(function (o) { origs[o.id] = o; });
+        await loadPeople(ro.map(function (o) { return o.user_id; }));
+      } catch (e) {}
+    }
     var fresh = list.filter(function (p) { return !comments[p.id]; }), ids = fresh.map(function (p) { return p.id; });
     if (ids.length) {
       var cs = await rest("porch_comments?post_id=in.(" + ids.join(",") + ")&select=id,post_id,user_id,body,created_at,parent_id,edited_at&order=created_at.asc");
@@ -3404,14 +3418,21 @@ html.kb .ch-bar{padding-bottom:8px}
     list.forEach(function (p) { posts[p.id] = p; });
     return list;
   }
-  function tileHTML(p) {
+  function tileHTML(p0) {
+    var p = p0, mark = "";
+    if (p0.reshare_of) {
+      var o = origs[p0.reshare_of];
+      p = o ? o : { body: p0.body || "A share that's gone now", photo_paths: [], card_style: null };
+      mark = '<i class="rsm" aria-label="Reshared">' + ico("reshare") + "</i>";
+    }
     var ph = p.photo_paths || [], inner;
     if (ph.length) inner = '<img src="' + pic(ph[0]) + '" alt="" loading="lazy">' + (ph.length > 1 ? '<i class="many"></i>' : "");
     else if (p.card_style != null && fitsCard(p.body || "")) {
       var c = CARDS[p.card_style % CARDS.length];
       inner = '<span class="gh" style="background:' + c.bg + ";color:" + c.ink + '">' + esc(p.body) + "</span>";
     } else inner = '<span class="gs">' + esc(p.body || "") + "</span>";
-    return '<button type="button" data-openpost="' + p.id + '">' + inner + "</button>";
+    if (ph.length && /^\/assets\//.test(ph[0])) inner = inner.replace(pic(ph[0]), ph[0]);      /* a house picture or a coin is its own address */
+    return '<button type="button" data-openpost="' + p0.id + '">' + inner + mark + "</button>";
   }
   async function openProfile(uid) {
     if (!uid) return;
@@ -3428,14 +3449,16 @@ html.kb .ch-bar{padding-bottom:8px}
        friends' faces, then Spins | Shares | Wins. No counts anywhere (house rule). */
     var TEST = ["tacomike417", "misfit_tester", "fire_l0ve", "krazyk226"];
     var since = m.created_at ? new Date(m.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "";
-    var wins = list.filter(function (p) { return p.need === "win"; }), shares = list.filter(function (p) { return p.need !== "win"; });
+    /* ONE GRID (v186): the WINS tab is gone. Mike thought it already was ("I don't even know why. I thought we got
+       rid of it"). Coins and wins they shared sit in the same grid as everything else, newest first. */
+    var shares = list;
     var fids = mineP ? realFriends() : [];
     /* friends lists are private (only you can read yours), so this strip only shows on your own profile */
     var I2 = function (d) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + d + "</svg>"; };
     var ICAL = I2('<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'), ILOCK = I2('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'), IGLOBE = I2('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>');
     var IEDIT = I2('<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M14.5 7.5l3 3"/>'), ISHARE = I2('<path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>'), IFIND = I2('<circle cx="9" cy="8" r="3.6"/><path d="M2.5 20c1.2-3.6 3.7-5.4 6.5-5.4s5.3 1.8 6.5 5.4"/><path d="M19 8v6M16 11h6"/>');
     var tabBody = { shares: shares.length ? '<div class="grid">' + shares.map(tileHTML).join("") + "</div>" : '<p class="pempty">' + (mineP ? "Nothing shared yet. Tap + on the Porch." : "Nothing shared yet.") + "</p>",
-      wins: wins.length ? '<div class="grid">' + wins.map(tileHTML).join("") + "</div>" : '<p class="pempty">' + (mineP ? "No wins shared yet. Share a coin and it lands here." : "No wins shared yet.") + "</p>" };
+      wins: "" };
     $("pfpage").innerHTML =
       '<div class="pcover pa"' + (m.cover_path ? ' style="background-image:url(\'' + pic(m.cover_path) + '\')"' : "") + '>' + BK.replace('class="bk"', 'class="bk over"') + '</div>' +
       '<div class="pahead"><div class="pav pa">' + avatar(m) + '</div><div class="pa-nm"><h2>' + esc(m.handle) + "</h2>" + (m.real_name ? '<p class="pa-real">' + esc(m.real_name) + "</p>" : "") +
@@ -3452,8 +3475,7 @@ html.kb .ch-bar{padding-bottom:8px}
       /* TWO TABS (2 Oct 2026, Mike): "do the slider at the top with the spins and then the
          shares underneath." Spins and Shares are one page now; Wins is the other. No third
          tab: the Pile and coins stay off profiles, sober days are only ever theirs to share. */
-      '<div class="pa-tabs" role="tablist"><button type="button" class="on" data-ptab="shares" role="tab">SHARES</button><button type="button" data-ptab="wins" role="tab">WINS</button></div>' +
-      '<div data-ppane="shares"><div id="pfspins" class="sprow" hidden></div>' + tabBody.shares + '</div><div data-ppane="wins" hidden>' + tabBody.wins + "</div>";
+      '<div data-ppane="shares" class="pa-one"><div id="pfspins" class="sprow" hidden></div>' + tabBody.shares + "</div>";
     /* THE ROW UNDER THE NAME (v180, Mike, pointing at his Infinite Pulls profile: "Active now ... we need those
        counts ... and the online versus offline type thing"). Friends and Groups only: no followers ("you either
        are their friend ... or you're not"), and nothing that gives away a sober date. Never a zero: a count
