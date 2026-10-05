@@ -334,9 +334,9 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
            asked once, right here. Nothing later that they weren't told about on this screen. -->
       <div class="deal" id="deal">
         <b>Here&rsquo;s the deal. No games.</b>
-        <p>A name, a password, and you&rsquo;re 18 or older. That gets you in to read everything.</p>
+        <p>A name, a password, and you&rsquo;re 18 or older. That gets you the readings, the tools, your sober counter and the house posts.</p>
         <p><b style="display:inline;font-size:inherit">Your sober date is for you and only you.</b> Nobody sees it unless you decide to share it.</p>
-        <p id="dealPost">Want to post? Add an email. We send one code, then we throw the email away. That&rsquo;s all we&rsquo;ll ever ask you for.</p>
+        <p id="dealPost">Want to see what members share, and post? Add an email. We send one code, then we throw the email away. That keeps outsiders from nosing around. It&rsquo;s all we&rsquo;ll ever ask you for.</p>
       </div>
       <div class="field">
         <label for="nm">Username</label>
@@ -370,10 +370,10 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       </div>
 
       <div class="field" id="emField">
-        <label for="em">Email <span style="font-weight:600;opacity:.8">&middot; only if you want to post</span></label>
+        <label for="em">Email <span style="font-weight:600;opacity:.8">&middot; for the Porch</span></label>
         <div class="box">
           <input id="em" name="email" type="email" inputmode="email" autocomplete="email"
-                 autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="leave blank to just read">
+                 autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="leave blank for now">
         </div>
         <p class="hint">We send one 6-digit code to it. Then it&rsquo;s scrambled and thrown away. Nobody ever sees it.</p>
       </div>
@@ -456,7 +456,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     </div>
     <p class="say" id="cdSay" role="status" aria-live="polite"></p>
     <button type="button" class="go" id="cdLater" style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:8px">Do This Later</button>
-    <p style="text-align:center;margin:10px 0 0;font-family:var(--ui);font-size:12.5px;line-height:1.5;color:var(--muted)">You&rsquo;re already in and can read everything. The code is only for posting.</p>
+    <p style="text-align:center;margin:10px 0 0;font-family:var(--ui);font-size:12.5px;line-height:1.5;color:var(--muted)">You&rsquo;re already in. The code is what opens the Porch.</p>
   </div>
 
   <!-- ============ JUST MADE ONE ============
@@ -821,8 +821,8 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     $("ageBlock").hidden = !nu;
     $("emField").hidden = !nu || !open;
     $("dealPost").innerHTML = open
-      ? "Want to post? Add an email. We send one code, then we throw the email away. That&rsquo;s all we&rsquo;ll ever ask you for."
-      : "Posting opens October 20. That&rsquo;s when we&rsquo;ll ask for an email, once, to send you one code. Nothing else, ever.";
+      ? "Want to see what members share, and post? Add an email. We send one code, then we throw the email away. That keeps outsiders from nosing around. It&rsquo;s all we&rsquo;ll ever ask you for."
+      : "The Porch, where members share, opens October 20. That&rsquo;s when we&rsquo;ll ask for an email, once, to send you one code. Nothing else, ever.";
     $("formLede").hidden = nu;
     $("pickedBar").hidden = true;
   }
@@ -962,7 +962,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     var joinMail = "";
     if (mode === "new") {
       joinMail = (lvl2Open() && !$("emField").hidden) ? $("em").value.trim() : "";
-      if (joinMail && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(joinMail)) return say($("say"), "That email doesn\u2019t look right. Fix it, or leave it blank to just read.", "bad");
+      if (joinMail && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(joinMail)) return say($("say"), "That email doesn\u2019t look right. Fix it, or leave it blank for now.", "bad");
       if (!$("ageOk").checked) {
         try { $("ageBlock").scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e2) {}
         return say($("say"), "Tick the box first: 18 or older, and the house rules.", "bad");

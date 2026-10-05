@@ -840,3 +840,14 @@ Mike: "Not for alcoholics, they want straight forward right out the gate. If the
 - NOT TESTED LIVE YET: checked the layout at phone width and that the tick is enforced. Nobody has made a real account or received a real code through this screen. Test on a beta phone before telling anyone.
 - The Porch still offers "Confirm an email" when somebody with no email goes to post. They were told on the sign-up screen, so it is not a surprise.
 - v191: "Your sober date is for you and only you" is now said in three places: the sign-up deal box, the date picker on every page (it used to say "Saved only on this device"), and the date step after sign-up (already there).
+
+## 5 Oct 2026: OUTSIDERS CAN'T NOSE AROUND (v192, SQL step 61)
+Mike: "On the site everything is fair game if you have the level 2 account. What I don't want is outsiders to be able to nose around."
+The mission, in his words: a recovery network for people in recovery, by people in recovery, where a boss googling your name before an interview does not find your recovery story.
+- SQL step 61 (porch_61_confirmed_read.sql): an account with no confirmed email reads only the house accounts and Public profiles, the same as somebody not signed in. Posts, profiles, comments, Spins, who-loved-what, the new folks row and most active are all covered. Enforced in the database, not just hidden on the screen.
+- Porch: a no-email account sees a gold line "You're seeing the house posts" with an Add my email button.
+- Sign-up deal box reworded to match: name + password = readings, tools, counter, house posts. Email = the Porch.
+- Already true before today: the Porch is closed to search engines, profiles start Members only, no real name asked, no email kept.
+- STILL TO CHECK (not done): the smaller counting functions (profile stats, post counts, friend count, top tags, groups list) still answer for a no-email account. They give numbers, not names or words. And the optional profile-name box: can members search by it.
+- STILL OPEN: a member who picks Public and shares a Spin to Facebook puts their @name and picture on Facebook. Nothing warns them at that moment.
+- TESTED on a pretend Porch (four kinds of people), NOT on the live one.

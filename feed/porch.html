@@ -1326,7 +1326,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v191</span>
+  <span class="ver" id="ver">v192</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1338,6 +1338,15 @@ html.kb .ch-bar{padding-bottom:8px}
     <p>Anonymous. Private. Every path counts.</p>
     <a class="btn" href="/account.html?next=feed">Join free</a>
     <a class="jb-in" href="/account.html?signin=1&next=feed">I have an account</a>
+  </section>
+  <!-- THE LOOK-AROUND LINE (5 Oct 2026, Mike: "what I don't want is outsiders to be able to nose around").
+       An account with no confirmed email only sees the house accounts and Public profiles now
+       (SQL step 61). This says so plainly, right where the quiet would otherwise look broken,
+       with the one button that fixes it. Hidden for confirmed members and for people not signed in. -->
+  <section id="lookbar" hidden style="margin:10px 12px 4px;padding:14px 16px;border-radius:16px;border:1.5px solid var(--gold);background:rgba(215,178,83,.10);color:var(--ivory);font:600 14.5px/1.45 Arial,sans-serif">
+    <b style="display:block;font-size:16px;color:#fff">You&rsquo;re seeing the house posts.</b>
+    <span>What members share is for members who confirmed an email. One code, then we throw the email away.</span>
+    <button type="button" class="btn" id="lookgo" style="margin-top:10px;width:100%">Add my email</button>
   </section>
   <div id="spinrail"></div>
   <section class="newrail" id="newrail" hidden></section>
@@ -1379,7 +1388,7 @@ html.kb .ch-bar{padding-bottom:8px}
          now (the rules sheet, right before this one). -->
     <div id="cf1">
       <h3>Confirm an email</h3>
-      <p>This is what lets you post and add a picture. We scramble it and never keep it. Nobody ever sees it.</p>
+      <p>This is what lets you see what members share, and post. We scramble it and never keep it. Nobody ever sees it.</p>
       <input class="field" id="cfemail" type="email" inputmode="email" autocomplete="email" placeholder="Your email">
       <button type="button" class="btn" id="cfsend" disabled>Send my code</button>
       <p class="msg" id="cfmsg1" role="status"></p>
@@ -1861,6 +1870,12 @@ html.kb .ch-bar{padding-bottom:8px}
     try { saved = {}; (await rest("porch_saves?user_id=eq." + me.uid + "&select=post_id")).forEach(function (r) { saved[r.post_id] = true; }); } catch (e) {}
     try { isMod = !!(await rest("porch_moderators?user_id=eq." + me.uid + "&select=user_id")).length; } catch (e) { isMod = false; }
     paintPin();
+    paintLook();
+  }
+  /* signed in, no confirmed email: say why the Porch is quiet (see #lookbar) */
+  function paintLook() {
+    var el = $("lookbar"); if (!el) return;
+    el.hidden = !(me.uid && !(me.member && me.member.verified_at) && !isMod);
   }
 
   /* ================================================================ YOUR PICTURE ON THE SOBER RAIL (30 Sep 2026)
@@ -2517,6 +2532,8 @@ html.kb .ch-bar{padding-bottom:8px}
 
   /* read them again any time (Edit profile, bottom) */
   function showRules() { $("rulesok").hidden = true; open("rulesheet"); }
+
+  $("lookgo").addEventListener("click", function () { gate(function () { location.reload(); }); });   /* confirmed: load the Porch again, now with everybody on it */
 
   /* ---- confirm who you are ---- */
   function cfReset() { $("cf1").hidden = false; $("cf2").hidden = true; $("cfmsg1").textContent = ""; $("cfmsg2").textContent = ""; $("cfcode").value = ""; cfReady(); }
