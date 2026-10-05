@@ -194,9 +194,35 @@ function meta(html: string, names: string[]) {
   return "";
 }
 const unent = (s: string) => s.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ").trim();
+/* a YouTube link: its 11-letter video id, or "" (watch?v=, youtu.be/, /shorts/, /live/, /embed/) */
+function ytId(u: URL): string {
+  const h = u.hostname.replace(/^www\.|^m\./, "");
+  let id = "";
+  if (h === "youtu.be") id = u.pathname.slice(1).split("/")[0];
+  else if (h === "youtube.com" || h === "music.youtube.com") {
+    if (u.pathname === "/watch") id = u.searchParams.get("v") || "";
+    else { const m = u.pathname.match(/^\/(?:shorts|live|embed)\/([^/?#]+)/); if (m) id = m[1]; }
+  }
+  return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : "";
+}
 async function previewFor(text: string) {
   const u = linksIn(text)[0];
   if (!u) return null;
+  /* YouTube (v183): ask YouTube itself for the title, so the card is right every time and the page can play
+     the video in place. The thumbnail gets the same picture check as any other preview. */
+  const yid = ytId(u);
+  if (yid) {
+    let title = "YouTube video", by = "";
+    try {
+      const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 5000);
+      const r = await fetch("https://www.youtube.com/oembed?format=json&url=" + encodeURIComponent(u.href), { signal: ctl.signal });
+      clearTimeout(t);
+      if (r.ok) { const j = await r.json(); title = String(j.title || title).slice(0, 140); by = String(j.author_name || "").slice(0, 60); }
+    } catch { /* the card still works without the title */ }
+    let image = "https://i.ytimg.com/vi/" + yid + "/hqdefault.jpg";
+    if (!(await imageOk(image))) image = "";
+    return { url: u.href, title, desc: by, site: "YouTube", image: image || null };
+  }
   try {
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 5000);
     const r = await fetch(u.href, { signal: ctl.signal, redirect: "follow", headers: { "User-Agent": "Mozilla/5.0 (compatible; RecoveryMisfitsBot/1.0; +https://recoverymisfits.org)", Accept: "text/html" } });
@@ -795,6 +821,12 @@ Deno.serve(async (req) => {
   /* SCAN (1 Oct 2026): before a photo goes anywhere, the app sends it here and gets back
      where the faces are (as fractions of the picture, for the boxes), plus whether it
      would be stopped for nudity or gore. Nothing is kept. { action: "scan", photo, where } */
+  /* the preview card while they are still writing (v183): the same safety check and the same card a post gets */
+  if (b.action === "link_preview") {
+    const bad = await checkLinks(text);
+    if (bad) return json({ ok: true, preview: null, blocked: bad });
+    return json({ ok: true, preview: await previewFor(text) });
+  }
   if (b.action === "scan") {
     if (!VISION) return json({ error: "Photos aren't switched on yet." }, 503);
     const b64 = String(b.photo || "").replace(/^data:image\/\w+;base64,/, "");

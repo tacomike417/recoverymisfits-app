@@ -1081,6 +1081,15 @@ html.kb .ctools{display:none}
 .lp{display:block;margin:0 12px 10px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--field);color:var(--cream);text-decoration:none}
 .lp img{display:block;width:100%;aspect-ratio:1.91/1;object-fit:cover;background:#0d0c0a}
 .lp span{display:block;padding:10px 12px}
+.lp.yt a{display:block;color:inherit;text-decoration:none}
+.lp.yt .yt-play{position:relative;display:block;width:100%;aspect-ratio:16/9;padding:0;border:0;background:#0d0c0a;cursor:pointer;overflow:hidden}
+.lp.yt.tall .yt-play{aspect-ratio:9/16;max-height:70vh;margin:0 auto}
+.lp.yt .yt-play img{width:100%;height:100%;aspect-ratio:auto;object-fit:cover}
+.lp.yt .yt-play i{position:absolute;left:50%;top:50%;width:68px;height:48px;margin:-24px 0 0 -34px;border-radius:14px;background:rgba(0,0,0,.72)}
+.lp.yt .yt-play i:after{content:"";position:absolute;left:27px;top:14px;border-left:18px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent}
+.lp.yt iframe{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}
+.lp.yt.tall iframe{aspect-ratio:9/16;max-height:70vh}
+#clp .lp{margin:10px 0 0}
 .lp small{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
 .lp b{display:block;margin-top:2px;font-size:15px;line-height:1.3}
 .lp em{display:-webkit-box;margin-top:3px;color:var(--soft);font-style:normal;font-size:13.5px;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -1313,7 +1322,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v182</span>
+  <span class="ver" id="ver">v183</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1447,6 +1456,7 @@ html.kb .ch-bar{padding-bottom:8px}
       <div class="count" id="ccount"></div>
       <div id="clive" hidden></div>
       <div class="thumbs" id="thumbs"></div>
+      <div id="clp"></div>
       <div class="cswitch" id="cswitch" hidden>
         <button type="button" data-csw="collage"><span class="cs-mini"><i class="cs-p a"></i><i class="cs-p b"></i></span>COLLAGE</button>
         <button type="button" data-csw="swipe"><span class="cs-mini sw"><i class="cs-p a"></i><i class="cs-p b"></i></span>SWIPE THROUGH</button>
@@ -2027,7 +2037,7 @@ html.kb .ch-bar{padding-bottom:8px}
         (long ? '<button type="button" class="chair" data-read>' + ico("read") + "Pull up a chair · " + mins + " min read</button>" : "") : "") + media +
       gtagHTML(p.tag_group_id) +
       (p.reshare_of ? origHTML(p.reshare_of) : "") +
-      (!photos.length && p.link_preview && p.link_preview.url ? previewHTML(p.link_preview) : "") +
+      (!photos.length && p.link_preview && p.link_preview.url ? linkCardHTML(p.link_preview) : "") +
       '<div class="acts">' +
         '<button type="button" data-react="proud" class="' + (r.proud ? "on" : "") + '" aria-label="Love this">' + ico("proud") + cntHTML(p.id, "h") + '</button>' +
         '<button type="button" data-comments aria-label="Comment">' + ico("comment") + '<i class="an" data-cc="' + p.id + '">' + showN((comments[p.id] || []).length) + '</i></button>' +
@@ -2037,7 +2047,20 @@ html.kb .ch-bar{padding-bottom:8px}
       '<div class="cm">' + commentsPreview(p.id) + "</div></article>";
   }
   /* LINK PREVIEWS (30 Sep 2026): the first link in a share shows as a card, like Facebook */
-  function previewHTML(l) {
+  /* YOUTUBE PLAYS RIGHT HERE (v183, Mike asked what a YouTube link does in Say something). A YouTube link's card
+     is a thumbnail with a play button; tap it and the video plays in the post, so nobody leaves the Porch. */
+  function ytOf(url) {
+    var m = String(url || "").match(/(?:youtube\.com\/(?:watch\?(?:[^#\s]*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    return m ? { id: m[1], tall: /\/shorts\//.test(url) } : null;
+  }
+  function firstUrl(t) { var m = String(t || "").match(/https?:\/\/[^\s<>"']+/); return m ? m[0].replace(/[.,!?)\]]+$/, "") : ""; }
+  /* named linkCardHTML since v183: a second function called previewHTML (the profile preview, further down) was
+     quietly replacing this one, so link cards on shares were coming out as a profile card. */
+  function linkCardHTML(l) {
+    var y = ytOf(l.url);
+    if (y) return '<div class="lp yt' + (y.tall ? " tall" : "") + '"><button type="button" class="yt-play" data-yt="' + y.id + '" aria-label="Play this video">' +
+      (l.image ? '<img src="' + esc(l.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : "") + "<i></i></button>" +
+      '<a href="' + esc(l.url) + '" target="_blank" rel="noopener nofollow ugc"><span><small>YouTube' + (l.desc ? " · " + esc(l.desc) : "") + "</small><b>" + esc(l.title || "YouTube video") + "</b></span></a></div>";
     return '<a class="lp" href="' + esc(l.url) + '" target="_blank" rel="noopener nofollow ugc">' +
       (l.image ? '<img src="' + esc(l.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : "") +
       '<span><small>' + esc(l.site || "") + "</small><b>" + esc(l.title) + "</b>" + (l.desc ? "<em>" + esc(l.desc) + "</em>" : "") + "</span></a>";
@@ -2562,11 +2585,25 @@ html.kb .ch-bar{padding-bottom:8px}
     var tg = !composeGroup && tagGroup && tagG[tagGroup];
     $("cgt").innerHTML = tg ? '<span class="gtag">' + gtagInner(tg) + "</span>" : "";
     $("chint").textContent = "Tap a card.";
+    /* THE LINK CARD WHILE YOU WRITE (v183): his Preview screen said "exactly what the Porch will see" and showed a
+       bare link. The card is fetched once per link (after a short pause in typing) and shown here and in Preview. */
+    var lu = !photos.length && mode !== "sign" ? firstUrl(t) : "", lcard = null;
+    if (lu) {
+      if (lpCache[lu] === undefined) {
+        var yq = ytOf(lu);
+        lpCache[lu] = yq ? { url: lu, title: "YouTube video", site: "YouTube", image: "https://i.ytimg.com/vi/" + yq.id + "/hqdefault.jpg", wait: true } : false;
+        clearTimeout(lpT); lpT = setTimeout(function () {
+          fn("porch", { action: "link_preview", body: lu }).then(function (r) { lpCache[lu] = (r && r.ok && r.preview) || (r && r.blocked ? null : (lpCache[lu] && lpCache[lu].wait ? lpCache[lu] : null)); paintCompose(); }, function () {});
+        }, 700);
+      }
+      lcard = lpCache[lu] || null;
+    }
+    $("clp").innerHTML = lcard ? linkCardHTML(lcard) : "";
     /* the preview IS the share, exactly as it will show on the Porch */
     $("cprev").innerHTML = postHTML({ id: "preview", user_id: me.uid, need: need,
       body: t || (mode === "sign" ? "Your words go on the card." : mode === "say" ? "Your words show up here." : ""),
       photo_paths: mode === "snap" ? shown : [], card_style: mode === "sign" ? style : null, created_at: new Date().toISOString(),
-      tag_group_id: tg ? tagGroup : null });
+      tag_group_id: tg ? tagGroup : null, link_preview: lcard });
     $("cminip").querySelector("em").style.backgroundImage = mode === "snap" && shown[0] ? "url('" + pic(shown[0]) + "')" : "";
     paintFilters();
     var can = !(sending || (mode === "snap" ? !photos.length : !t));
@@ -2685,7 +2722,7 @@ html.kb .ch-bar{padding-bottom:8px}
      ... be like, oh, that one looks cool"). One filter for the whole share. `photos` stays unfiltered (stickers and
      the collage are built from it); the filter is laid over the finished pictures for showing and for sending.
      Done by hand on the pixels: iPhone's canvas has no built-in filters. */
-  var filt = "none", filtCache = {}, filtBusy = false;
+  var filt = "none", filtCache = {}, filtBusy = false, lpCache = {}, lpT = null;
   var FILTERS = [["none", "Normal"], ["bw", "Black & White"], ["glow", "Glow"], ["golden", "Golden Hour"], ["pop", "Pop"], ["faded", "Faded"]];
   var FILT = { bw: { sat: 0, con: 1.12 }, glow: { sat: 1.08, con: 0.96, add: 6, r: 1.04, b: 0.97, bloom: 0.32 }, golden: { sat: 1.12, con: 1.05, add: 4, r: 1.1, g: 1.02, b: 0.84 },
     pop: { sat: 1.4, con: 1.16 }, faded: { sat: 0.78, con: 0.86, add: 14, r: 1.02, b: 1.04 } };
@@ -5168,6 +5205,16 @@ html.kb .ch-bar{padding-bottom:8px}
     open("menu");
   }
 
+  /* a YouTube card's play button: first in line, so nothing else on the post takes the tap */
+  document.addEventListener("click", function (e) {
+    var ytb = e.target.closest && e.target.closest("[data-yt]"); if (!ytb) return;
+    e.preventDefault(); e.stopPropagation();
+    var fr = document.createElement("iframe");
+    fr.src = "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(ytb.dataset.yt) + "?autoplay=1&playsinline=1&rel=0";
+    fr.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; fr.allowFullscreen = true; fr.title = "YouTube video";
+    fr.referrerPolicy = "strict-origin-when-cross-origin";
+    ytb.replaceWith(fr);
+  }, true);
   /* ================================================================ TAPS */
   document.addEventListener("click", function (e) {
     var t = e.target, post = t.closest("[data-post]"), id = post && post.dataset.post;
