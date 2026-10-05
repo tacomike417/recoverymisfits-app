@@ -187,6 +187,36 @@
   .mine b{display:block;color:#fff;font-size:15px;margin-bottom:2px}
   .porchcard{margin:16px 0 0;padding:15px 16px;border-radius:14px;border:1px solid rgba(215,178,83,.34);background:rgba(215,178,83,.07)}
   .porchcard.plain{margin:0;padding:0;border:0;background:none}
+  /* the front door (signed back in, all set) */
+  #datestep.homeon .signedas,#datestep.homeon #dsBox,#datestep.homeon #porchCard,#datestep.homeon #dsHome,
+  #datestep.homeon #dsSkip,#datestep.homeon #row1{display:none !important}
+  #homeView{font-family:var(--ui);color:var(--ivory)}
+  .hv-top{display:flex;align-items:center;gap:12px}
+  .hv-av{flex:none;width:58px;height:58px;border-radius:50%;border:2.5px solid var(--gold);background:rgba(215,178,83,.10) center/cover;display:grid;place-items:center;font-weight:800;font-size:18px;color:var(--gold)}
+  .hv-who{flex:1 1 auto;min-width:0}
+  .hv-who small{display:block;font-weight:800;font-size:10.5px;letter-spacing:1.7px;text-transform:uppercase;color:var(--gold)}
+  .hv-who b{display:block;font-size:22px;line-height:1.15;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hv-switch{flex:none;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--gold);font:800 13px var(--ui);cursor:pointer}
+  .hv-count{display:flex;align-items:center;gap:14px;margin-top:14px;padding:12px 16px;border-radius:16px;border:1px solid var(--line);background:rgba(238,230,213,.04)}
+  .hv-count b{font-size:40px;line-height:1;font-weight:800;color:#fff;letter-spacing:.5px}
+  .hv-count i{display:block;font-style:normal;font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)}
+  .hv-count span{display:block;margin-top:2px;font-size:12.5px;line-height:1.35;color:var(--ivory)}
+  .hv-porch{display:block;margin-top:12px;padding:18px 18px 16px;border-radius:20px;background:var(--gold);color:#12100b;text-decoration:none}
+  .hv-porch small{display:block;font-weight:800;font-size:10.5px;letter-spacing:2px;text-transform:uppercase}
+  .hv-porch b{display:block;margin-top:3px;font-size:28px;line-height:1.1;font-weight:800}
+  .hv-porch span{display:block;margin-top:6px;font-size:14px;line-height:1.4;font-weight:600}
+  .hv-pics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}
+  .hv-pics[hidden]{display:none}
+  .hv-pics i{display:block;aspect-ratio:1/1;border-radius:10px;background:#12100b center/cover;border:1.5px solid rgba(18,16,11,.55)}
+  .hv-porch em{display:inline-flex;align-items:center;gap:8px;margin-top:14px;min-height:44px;padding:0 18px;border-radius:999px;background:#12100b;color:var(--ivory);font-style:normal;font-weight:800;font-size:12px;letter-spacing:1.6px;text-transform:uppercase}
+  .hv-porch em svg{width:16px;height:16px}
+  .hv-row{display:flex;align-items:center;gap:14px;margin-top:10px;min-height:62px;padding:10px 16px;border-radius:16px;border:1px solid var(--line);background:rgba(238,230,213,.04);color:var(--ivory);text-decoration:none}
+  .hv-row[hidden]{display:none}
+  .hv-row > svg{flex:none;width:26px;height:26px;color:var(--gold)}
+  .hv-row > div{flex:1 1 auto;min-width:0}
+  .hv-row small{display:block;font-weight:800;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold)}
+  .hv-row b{display:block;margin-top:2px;font-size:15.5px;line-height:1.25;color:#fff}
+  .hv-row > i{flex:none;font-style:normal;font-size:24px;line-height:1;color:var(--muted)}
   .steprow{display:flex;align-items:center;gap:12px;margin-top:14px}
   .steprow[hidden],.steprow .num[hidden]{display:none}
   .steprow .go{flex:1 1 auto;min-width:0;margin:0 !important}
@@ -530,6 +560,49 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
        date here is the moment it pays off -- and then they are sent home,
        not left on a settings screen. -->
   <div id="datestep" hidden>
+    <!-- ============ THE FRONT DOOR (5 Oct 2026, Mike: "we need to make this way more interesting") ============
+         What a member with a sober date and a profile sees when they sign back in. It used to be a
+         box with the date and two profile buttons. Now, top to bottom:
+           your picture and name  ·  your day count (only ever shown to you)
+           THE PORCH, big, with a few recent pictures from your friends' shares
+           today's reading  ·  your next Survival Pile card (how many days, never which card)
+           my profile  ·  sign out
+         Rows that have nothing to show are left out, never drawn empty. Anybody who still has a
+         date or a profile to set up gets the numbered 1 and 2 screen below instead. -->
+    <div id="homeView" hidden>
+      <div class="hv-top">
+        <span class="hv-av" id="hvAv"></span>
+        <div class="hv-who"><small>Glad you&rsquo;re here</small><b id="hvName"></b></div>
+        <button type="button" class="hv-switch" id="hvSwitch">Switch</button>
+      </div>
+      <div class="hv-count">
+        <b id="hvDays"></b>
+        <div><i id="hvUnit">Days sober</i><span id="hvSince"></span></div>
+      </div>
+      <a class="hv-porch" id="hvPorch" href="/feed/porch.html">
+        <small>The Porch</small>
+        <b>Pull up a chair.</b>
+        <span id="hvPorchTxt">Good company between meetings. See what the misfits are up to.</span>
+        <div class="hv-pics" id="hvPics" hidden></div>
+        <em>Go hang out <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></em>
+      </a>
+      <a class="hv-row" id="hvRead" href="/another-day-sober.html" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M9 8h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><small>Today&rsquo;s reading</small><b id="hvReadT"></b></div>
+        <i aria-hidden="true">&rsaquo;</i>
+      </a>
+      <a class="hv-row" id="hvPile" href="/survival-pile.html" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 21h11V7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><small>Next milestone &middot; Survival Pile</small><b id="hvPileT"></b></div>
+        <i aria-hidden="true">&rsaquo;</i>
+      </a>
+      <a class="hv-row" id="hvProf" href="/feed/porch.html?u=me" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <div><small>My profile</small><b>See it or change it</b></div>
+        <i aria-hidden="true">&rsaquo;</i>
+      </a>
+    </div>
+
     <p class="signedas">Signed in as <b id="dsWho"></b>
       <button type="button" id="dsSwitchTop" style="margin-left:8px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--gold);font:800 13px var(--ui);cursor:pointer">Switch</button></p>
     <!-- THIS SCREEN, IN ORDER (5 Oct 2026, Mike: "I want this to be a little more organized").
@@ -709,6 +782,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       $("dsHome").hidden = true;
     }
     $("row1").hidden = $("dsPick").hidden;
+    paintHome(!!d && !signingUp && (profDone() || !porchFor(A.name())));
     /* the small link is always there, and its words say where it really goes */
     $("dsSkip").hidden = false;
     var to = skipTo();
@@ -742,12 +816,92 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   }
   $("dsSkip").addEventListener("click", function () { location.href = skipTo(); });
 
+  /* ---- THE FRONT DOOR (5 Oct 2026). See #homeView. ----------------------------------
+     Everything on it is the member's own, or something a confirmed member can already see on
+     the Porch. The sober date and the day count never leave this phone. */
+  var SB = "https://rlytvfehbglsjfvprtbp.supabase.co", homeFor = "";
+  function porchPic(p) { return String(p).charAt(0) === "/" ? p : SB + "/storage/v1/object/public/porch/" + p; }
+  function paintHome(on) {
+    $("datestep").classList.toggle("homeon", !!on);
+    $("homeView").hidden = !on;
+    if (!on) return;
+    var n = A.name(), d = soberDate(), days = daysSince(d);
+    $("hvName").textContent = n;
+    var av = $("hvAv");
+    if (profAv[n]) { av.style.backgroundImage = 'url("' + porchPic(profAv[n]).replace(/"/g, "%22") + '")'; av.textContent = ""; }
+    else { av.style.backgroundImage = ""; av.textContent = n.slice(0, 2).toUpperCase(); }
+    $("hvDays").textContent = days === null ? "" : days.toLocaleString();
+    $("hvUnit").textContent = days === 1 ? "Day sober" : "Days sober";
+    $("hvSince").textContent = "Since " + pretty(d) + ". Just for you.";
+    var porch = porchFor(n);
+    $("hvPorch").hidden = !porch; $("hvPorch").style.display = porch ? "" : "none";
+    $("hvProf").hidden = !porch;
+    if (homeFor === n) return;                       /* the slow parts are asked for once per account */
+    homeFor = n;
+    $("hvPics").hidden = true; $("hvPics").innerHTML = ""; $("hvRead").hidden = true; $("hvPile").hidden = true;
+    homeReading(); homePile(); if (porch) homePics();
+  }
+  /* today's reading: the title, from the same file the reading page uses */
+  function homeReading() {
+    var now = new Date(), p2 = function (x) { return (x < 10 ? "0" : "") + x; };
+    var key = p2(now.getMonth() + 1) + "-" + p2(now.getDate());
+    var LEAD = /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(?:,?\s*\d{4})?\s*[-\u2013\u2014]\s*/i;
+    fetch("/data/readings.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (all) {
+      var e = all && all[key]; if (!e) return;
+      var raw = String(e.title || "").trim(), t = raw.replace(LEAD, "").trim() || raw;
+      if (!t) return;
+      $("hvReadT").textContent = t; $("hvRead").hidden = false;
+    }).catch(function () {});
+  }
+  /* the next Survival Pile card: how many days, never which card (that is the pile's own rule).
+     Nothing shows until the pile is switched on. */
+  function homePile() {
+    var go = function (P) {
+      if (!P) return;
+      P.load().then(function (cards) {
+        if (!P.isOn(cards)) return;
+        var nx = P.next(cards, P.soberYMD(), P.todayYMD(), P.joinedYMD());
+        if (!nx || !(nx.days > 0)) return;
+        $("hvPileT").textContent = nx.days === 1 ? "A new card tomorrow" : "A new card in " + nx.days.toLocaleString() + " days";
+        $("hvPile").hidden = false;
+      }).catch(function () {});
+    };
+    if (window.RMPile) return go(window.RMPile);
+    var sc = document.createElement("script"); sc.src = "/assets/survival-pile.js";
+    sc.onload = function () { go(window.RMPile || null); }; document.head.appendChild(sc);
+  }
+  /* a few recent pictures from friends' shares, inside the Porch card. Friends only, real
+     photos only (not coin or pile cards), newest first, one per share, four at most. No
+     friends or no pictures: the row simply isn't there. */
+  async function homePics() {
+    try {
+      var t = await A.token(), me = A.uid(); if (!t || !me) return;
+      var H = { headers: { apikey: A.anonKey, Authorization: "Bearer " + t } };
+      var fr = await fetch(SB + "/rest/v1/porch_friends?or=(a.eq." + me + ",b.eq." + me + ")&select=a,b", H);
+      if (!fr.ok) return;
+      var ids = (await fr.json()).map(function (r) { return r.a === me ? r.b : r.a; }).filter(function (x) { return /^[0-9a-f-]{36}$/i.test(x); }).slice(0, 150);
+      if (!ids.length) return;
+      var pr = await fetch(SB + "/rest/v1/porch_posts?user_id=in.(" + ids.join(",") + ")&group_id=is.null&photo_paths=not.is.null&select=id,photo_paths&order=created_at.desc&limit=30", H);
+      if (!pr.ok) return;
+      var pics = [];
+      (await pr.json()).forEach(function (p) {
+        var first = (p.photo_paths || []).filter(function (x) { return x && String(x).charAt(0) !== "/" && String(x).indexOf("data:") !== 0; })[0];
+        if (first && pics.length < 4) pics.push(first);
+      });
+      if (pics.length < 2 || homeFor !== A.name()) return;          /* one lonely square looks broken */
+      $("hvPics").innerHTML = pics.map(function () { return "<i></i>"; }).join("");
+      [].forEach.call($("hvPics").children, function (el, i) { el.style.backgroundImage = 'url("' + porchPic(pics[i]).replace(/"/g, "%22") + '")'; });
+      $("hvPics").hidden = false;
+      $("hvPorchTxt").textContent = "Here\u2019s what your friends have been sharing.";
+    } catch (e) {}
+  }
+
   /* IS THE PROFILE SET UP? (2 Oct 2026, Mike: "I have my profile set up, and when I go click
      on my app account it says set up your profile, like I didn't do it already.") It used to
      go by a note this one browser kept after the setup screens, so a profile made on the
      phone, or by Edit Profile, looked brand new here. Now it asks the Porch: a picture, a
      bio or a profile name means it's set up. The note is still honored, per account. */
-  var profSeen = {};
+  var profSeen = {}, profAv = {};
   function profDone() {
     var n = A.name(), flag = false;
     try { flag = localStorage.getItem("rm_porch_setup_done_" + n) === "1"; } catch (e) {}
@@ -761,6 +915,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
         { headers: { apikey: A.anonKey, Authorization: "Bearer " + t } });
       if (!r.ok) return;
       var m = (await r.json())[0];
+      if (m && m.avatar_path) profAv[n] = m.avatar_path;
       if (m && (m.avatar_path || m.bio || m.real_name || m.cover_path)) {
         profSeen[n] = true;
         try { localStorage.setItem("rm_porch_setup_done_" + n, "1"); } catch (e) {}
@@ -1240,6 +1395,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
      Account button in the bottom rail. */
   $("dsSwitch").addEventListener("click", function () { if (A.switcher) A.switcher(); });
   $("dsSwitchTop").addEventListener("click", function () { if (A.switcher) A.switcher(); });
+  $("hvSwitch").addEventListener("click", function () { if (A.switcher) A.switcher(); });
   /* ON THIS PAGE THE ACCOUNT BUTTON IN THE BOTTOM BAR OPENS THE SWITCHER (2 Oct 2026, Mike:
      "as soon as I get to that page, I can't click account down there and switch"). Here a
      tap on it only reloaded this same page, which looked like a dead button. */
