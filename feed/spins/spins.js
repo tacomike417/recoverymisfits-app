@@ -258,6 +258,15 @@
 .spn-head{display:flex;align-items:center;gap:10px;margin:0 0 12px}
 .spn-head h2{margin:0}
 .sp-pill{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30001;max-width:calc(100% - 32px);padding:10px 16px;border-radius:999px;background:#100f0c;color:#fff;border:2px solid #e0bd6a;box-shadow:0 8px 26px rgba(0,0,0,.5);font:800 14px/1.2 Arial,sans-serif;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-card{position:fixed;left:12px;right:12px;bottom:calc(150px + env(safe-area-inset-bottom,0px));z-index:30001;max-width:440px;margin:0 auto;padding:16px 44px 16px 16px;border-radius:18px;background:#100f0c;color:#fff;border:2px solid #e0bd6a;box-shadow:0 14px 40px rgba(0,0,0,.7);font:600 15px/1.4 Arial,sans-serif;animation:spCardIn .28s ease}
+.sp-card.bad{border-color:#e5484d}
+.sp-card b{display:block;font:800 19px/1.2 Arial,sans-serif;margin-bottom:5px}
+.sp-card p{margin:0;color:#e9dfc8}
+.sp-card .sc-x{position:absolute;right:6px;top:6px;width:36px;height:36px;border:0;border-radius:50%;background:none;color:#c9bfa8;font:400 18px/1 Arial,sans-serif;cursor:pointer}
+.sp-card .sc-btns{display:flex;gap:10px;margin-top:12px}
+.sp-card .sc-btns button{flex:1;padding:12px;border-radius:12px;border:1px solid #3a3426;background:none;color:#e9dfc8;font:800 15px Arial,sans-serif;cursor:pointer}
+.sp-card .sc-btns .go{border:0;background:#e0bd6a;color:#17130b}
+@keyframes spCardIn{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
 .sp-pill .bar{display:block;height:4px;margin-top:6px;border-radius:2px;background:#2e2a21;overflow:hidden}
 .sp-pill .bar i{display:block;height:100%;background:#e0bd6a;width:0;transition:width .3s}
 /* the share sheet: three big doors */
@@ -1033,20 +1042,39 @@
       return small;
     } catch (_) { return file; }
   }
+  /* IT UPLOADS IN THE BACKGROUND (v185, Mike: "they don't want to sit there and watch it ... really over confirm
+     that they did the right thing ... then you get the notification, you click view, just like how Facebook and
+     Instagram does it"). No bar, no percentages. One card says they did it and can keep browsing; one card when it
+     is live, with Watch it; one card if it didn't work. The upload only lives while the Porch page is open, so the
+     browser asks before they leave it mid-upload. */
+  let card = null, cardT = 0;
+  function cardGone() { clearTimeout(cardT); if (card) { card.remove(); card = null; } }
+  function cardSay(o) {
+    cardGone();
+    card = document.createElement('div'); card.className = 'sp-card' + (o.bad ? ' bad' : ''); card.setAttribute('role', 'status');
+    card.innerHTML = `<button type="button" class="sc-x" data-sc-x aria-label="Close">✕</button><b>${o.title}</b><p>${o.text}</p>` +
+      (o.go ? `<div class="sc-btns"><button type="button" class="go" data-sc-go>${o.go}</button><button type="button" data-sc-x>${o.later || 'Later'}</button></div>` : '');
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('[data-sc-go]')) { const f = o.onGo; cardGone(); if (f) f(); return; }
+      if (e.target.closest('[data-sc-x]')) cardGone();
+    });
+    document.body.appendChild(card);
+    if (o.ms) cardT = setTimeout(cardGone, o.ms);
+  }
+  window.addEventListener('beforeunload', (e) => { if (uploading) { e.preventDefault(); e.returnValue = ''; } });
+  const spinFailed = (why) => { uploading = false; cardSay({ bad: true, title: "😕 Your Spin didn't go up", text: esc(why) + ' Nothing was posted. You can try it again.' }); refreshRows(); };
   async function upload(file, caption, muted, music, okFaces, tagGroup) {
     uploading = true;
-    if (file.size > SHRINK_OVER) pillSay('Getting your Spin ready… keep this page open<span class="bar"><i></i></span>');
-    file = await shrink(file, (p) => { const pct = Math.round(p * 100); pillSay(`Getting your Spin ready… ${pct}% · keep this page open<span class="bar"><i style="width:${pct}%"></i></span>`); });
-    pillSay('Starting your Spin…<span class="bar"><i></i></span>');
+    cardSay({ title: '🎉 You did it!', text: "Your Spin is on its way up. You don't have to wait here. Keep hanging out on the Porch and we'll tell you the second it's ready to watch.", ms: 9000 });
+    file = await shrink(file);
     const [tus, made] = await Promise.all([loadTus().catch(() => null), callSpins({ action: 'start', caption, muted, bytes: file.size, music: music ? { id: music.id, name: music.name, by: music.by } : null, tag_group: tagGroup || undefined })]);
-    if (made.error || !tus) { uploading = false; pillSay('😕 ' + esc(made.error || "Couldn't load the uploader. Try again.")); pillGone(6000); return; }
+    if (made.error || !tus) return spinFailed(made.error || "The uploader couldn't load.");
     const up = new tus.Upload(file, {
       endpoint: TUS, retryDelays: [0, 3000, 5000, 10000, 20000], chunkSize: 8 * 1024 * 1024,
       headers: { AuthorizationSignature: made.signature, AuthorizationExpire: String(made.expire), VideoId: made.guid, LibraryId: String(made.library) },
       metadata: { filetype: file.type || 'video/mp4', title: 'spin' },
-      onProgress: (sent, total) => { const pct = total ? Math.round((sent / total) * 100) : 0; pillSay(`Uploading your Spin… ${pct}% · keep this page open<span class="bar"><i style="width:${pct}%"></i></span>`); },
-      onError: () => { uploading = false; pillSay('😕 The upload stopped. Check your connection and try again.'); pillGone(6000); },
-      onSuccess: () => { pillSay('Almost there… getting it ready to play<span class="bar"><i style="width:100%"></i></span>'); waitReady(made.id, 0, okFaces); }
+      onError: () => spinFailed('The upload stopped. Check your connection.'),
+      onSuccess: () => waitReady(made.id, 0, okFaces)
     });
     up.start();
   }
@@ -1055,16 +1083,12 @@
       const r = await callSpins({ action: 'done', id, faces_ok: !!okFaces });
       if (r.status === 'ready') {
         uploading = false;
-        pillSay('🎉 Your Spin is live! Tap to watch', async () => {
-          pillGone(0);
-          const d = await P().rest('porch_spins?id=eq.' + id + '&select=' + COLS);
-          if (d[0]) openPlayer([d[0]], 0);
-        });
-        pillGone(9000); refreshRows(); return;
+        try { if (window.RMSound && window.RMSound.pop) window.RMSound.pop(); } catch (_) {}
+        cardSay({ title: '✅ Your Spin is live!', text: 'It uploaded and it looks good. Everybody on the Porch can see it now.', go: 'Watch it', later: 'Later', ms: 45000,
+          onGo: async () => { const d = await P().rest('porch_spins?id=eq.' + id + '&select=' + COLS); if (d[0]) openPlayer([d[0]], 0); } });
+        refreshRows(); return;
       }
-      if (r.status === 'failed' || tries > 90) { uploading = false; pillSay('😕 ' + esc(r.error || "That one didn't work. Try another video.")); pillGone(7000); refreshRows(); return; }
-      const pc = Math.max(0, Math.min(99, Math.round(Number(r.progress) || 0)));
-      pillSay(`Almost there… getting it ready to play${pc ? ' · ' + pc + '%' : ''}<span class="bar"><i style="width:${pc || 100}%"></i></span>`);
+      if (r.status === 'failed' || tries > 120) return spinFailed(r.error || "That video didn't work.");
       waitReady(id, tries + 1, okFaces);
     }, tries < 5 ? 2000 : 4000);
   }
