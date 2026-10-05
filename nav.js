@@ -1313,7 +1313,7 @@
           <div class="rm-wheel" id="rmWheelY" role="listbox" aria-label="Year" tabindex="0"></div>
         </div>
         <p class="rm-wheel-read" id="rmWheelRead" role="status" aria-live="polite"></p>
-        <div class="rm-modal-note">Saved only on this device.</div>
+        <div class="rm-modal-note">&#128272; This is for you and only you. Nobody sees your sober date unless you decide to share it.</div>   <!-- 5 Oct 2026 (Mike): "let people know that their sober date is just for them unless they want to share it". It said "Saved only on this device", which stopped being true when accounts came along. -->
         <div class="rm-modal-warn" id="rmSoberWarn" hidden>Heads up &mdash; moving your date later starts your coins and your Survival Pile over from the new date.</div>
         <div class="rm-modal-row">
           <button type="button" class="rm-modal-cancel" id="rmSoberDateCancel">Cancel</button>

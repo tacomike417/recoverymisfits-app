@@ -839,3 +839,4 @@ Mike: "Not for alcoholics, they want straight forward right out the gate. If the
 - UNTIL OCT 20: the email box only shows on a beta phone. Everyone else sees "Posting opens October 20" in the deal box and gets in to read. Flipping PORCH_OPEN in account.html turns the email box on for everybody.
 - NOT TESTED LIVE YET: checked the layout at phone width and that the tick is enforced. Nobody has made a real account or received a real code through this screen. Test on a beta phone before telling anyone.
 - The Porch still offers "Confirm an email" when somebody with no email goes to post. They were told on the sign-up screen, so it is not a surprise.
+- v191: "Your sober date is for you and only you" is now said in three places: the sign-up deal box, the date picker on every page (it used to say "Saved only on this device"), and the date step after sign-up (already there).
