@@ -634,6 +634,18 @@
         color: #f1e6cf;
       }
       .rm-modal-warn[hidden] { display: none; }
+      .rm-modal-mine {
+        margin: 2px 0 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1.5px solid #d6b36a;
+        background: rgba(214,179,106,.12);
+        font-size: 14px;
+        line-height: 1.35;
+        color: #f7efd9;
+        text-align: center;
+      }
+      .rm-modal-mine b { color: #fff; }
       .rm-modal-note {
         margin-top: 10px;
         font-size: 12px;
@@ -1306,6 +1318,7 @@
     modal.innerHTML = `
       <div class="rm-modal" role="dialog" aria-modal="true" aria-labelledby="rmSoberDateModalTitle">
         <h3 id="rmSoberDateModalTitle">Set Sober Date</h3>
+        <div class="rm-modal-mine">&#128272; <b>Just for you.</b> Nobody sees it unless you share it.</div>   <!-- 5 Oct 2026 (Mike): "less wordy, same powerful message, and put it above the sober date picker when they actually go to set it" -->
         <p>Spin to your date.</p>
         <div class="rm-wheels" id="rmWheels">
           <div class="rm-wheel" id="rmWheelM" role="listbox" aria-label="Month" tabindex="0"></div>
@@ -1313,7 +1326,6 @@
           <div class="rm-wheel" id="rmWheelY" role="listbox" aria-label="Year" tabindex="0"></div>
         </div>
         <p class="rm-wheel-read" id="rmWheelRead" role="status" aria-live="polite"></p>
-        <div class="rm-modal-note">&#128272; This is for you and only you. Nobody sees your sober date unless you decide to share it.</div>   <!-- 5 Oct 2026 (Mike): "let people know that their sober date is just for them unless they want to share it". It said "Saved only on this device", which stopped being true when accounts came along. -->
         <div class="rm-modal-warn" id="rmSoberWarn" hidden>Heads up &mdash; moving your date later starts your coins and your Survival Pile over from the new date.</div>
         <div class="rm-modal-row">
           <button type="button" class="rm-modal-cancel" id="rmSoberDateCancel">Cancel</button>

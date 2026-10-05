@@ -851,3 +851,4 @@ The mission, in his words: a recovery network for people in recovery, by people 
 - STILL TO CHECK (not done): the smaller counting functions (profile stats, post counts, friend count, top tags, groups list) still answer for a no-email account. They give numbers, not names or words. And the optional profile-name box: can members search by it.
 - STILL OPEN: a member who picks Public and shares a Spin to Facebook puts their @name and picture on Facebook. Nothing warns them at that moment.
 - TESTED on a pretend Porch (four kinds of people), NOT on the live one.
+- v193: the sober date line is shorter ("Just for you. Nobody sees it unless you share it.") and sits ABOVE the wheels in the date picker. It came off the date step screen. "Not Right Now" is now a small link lower down: "Nah, I'm good, take me to The Porch" (or "take me home" when that is where it goes).

@@ -335,7 +335,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       <div class="deal" id="deal">
         <b>Here&rsquo;s the deal. No games.</b>
         <p>A name, a password, and you&rsquo;re 18 or older. That gets you the readings, the tools, your sober counter and the house posts.</p>
-        <p><b style="display:inline;font-size:inherit">Your sober date is for you and only you.</b> Nobody sees it unless you decide to share it.</p>
+        <p><b style="display:inline;font-size:inherit">Your sober date is just for you.</b> Nobody sees it unless you share it.</p>
         <p id="dealPost">Want to see what members share, and post? Add an email. We send one code, then we throw the email away. That keeps outsiders from nosing around. It&rsquo;s all we&rsquo;ll ever ask you for.</p>
       </div>
       <div class="field">
@@ -534,9 +534,8 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
         <p class="dsDays" id="dsDays"></p>
       </div>
     </div>
-    <!-- PLAIN TO SEE (3 Oct 2026, Mike): "This is for you and only you. Nobody on the site sees your
-         sober date unless you decide to share it on the porch, period." -->
-    <p class="mine"><b>🔐 This is for you and only you.</b> Nobody on the site sees your sober date unless you decide to share it on the Porch.</p>
+    <!-- The "this is for you and only you" box lived here (3 Oct 2026). On 5 Oct Mike moved it: shorter, and
+         above the wheels in the date picker itself (nav.js, .rm-modal-mine), where they actually set the date. -->
 
     <!-- the phone and the account disagreed about the date (this markup was missing) -->
     <div class="clash" id="clash" hidden>
@@ -556,9 +555,6 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     <button class="go" type="button" id="dsPick" style="margin-top:14px">Pick My Sober Date</button>
     <a class="go" id="dsHome" href="/index.html" data-return hidden
        style="margin-top:14px;text-decoration:none">Take Me Home</a>
-    <button class="go" type="button" id="dsSkip"
-            style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:8px">
-      Not Right Now</button>
     <button class="go" type="button" id="dsSwitch"
             style="background:transparent;color:var(--gold);border-color:var(--line);margin-top:8px">
       Switch or Add Account</button>
@@ -566,6 +562,9 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
             style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:8px">
       Sign Out</button>
     <p class="say" id="say2" role="status" aria-live="polite"></p>
+    <!-- "NOT RIGHT NOW" WAS A BUTTON (5 Oct 2026, Mike): now a small link, lower down, in plain talk.
+         showDateStep() sets the words to match where it really goes (the Porch, or back home). -->
+    <button type="button" class="textlink" id="dsSkip" style="font-size:13px;margin-top:18px">Nah, I&rsquo;m good, take me to The Porch</button>
     <p id="dsOutNote" style="text-align:center;font-family:var(--ui);font-size:11.5px;color:var(--muted);margin:10px 0 0">
       Signing out stops the syncing. It does not erase anything on this phone.
     </p>
@@ -701,6 +700,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       $("dsDone").hidden = true;
       $("dsPick").hidden = false;
       $("dsSkip").hidden = false;
+      $("dsSkip").textContent = skipTo().indexOf("/feed/") === 0 ? "Nah, I\u2019m good, take me to The Porch" : "Nah, I\u2019m good, take me home";
       $("dsHome").hidden = true;
     }
     if (!signingUp && !next) $("dsHome").hidden = true;       /* only shown when it has somewhere particular to send them */
@@ -721,10 +721,12 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     }, 500);
   });
 
-  $("dsSkip").addEventListener("click", function () {
-    if (signingUp && porchFor(A.name())) { location.href = picked() === "2" ? "/feed/porch.html?setup=1" : "/feed/porch.html"; return; }
-    location.href = wantsPorch() && !profDone() ? "/feed/porch.html?setup=1" : RETURN_TO;
-  });
+  /* where "Nah, I'm good" goes: the same places "Not Right Now" always went */
+  function skipTo() {
+    if (signingUp && porchFor(A.name())) return picked() === "2" ? "/feed/porch.html?setup=1" : "/feed/porch.html";
+    return wantsPorch() && !profDone() ? "/feed/porch.html?setup=1" : RETURN_TO;
+  }
+  $("dsSkip").addEventListener("click", function () { location.href = skipTo(); });
 
   /* IS THE PROFILE SET UP? (2 Oct 2026, Mike: "I have my profile set up, and when I go click
      on my app account it says set up your profile, like I didn't do it already.") It used to
