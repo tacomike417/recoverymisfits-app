@@ -853,3 +853,5 @@ The mission, in his words: a recovery network for people in recovery, by people 
 - TESTED on a pretend Porch (four kinds of people), NOT on the live one.
 - v193: the sober date line is shorter ("Just for you. Nobody sees it unless you share it.") and sits ABOVE the wheels in the date picker. It came off the date step screen. "Not Right Now" is now a small link lower down: "Nah, I'm good, take me to The Porch" (or "take me home" when that is where it goes).
 - v194: the account screen is in order: 1. Pick My Sober Date, 2. Set Up My Profile, then lower the small "Nah, I'm good, take me to The Porch" link, then Sign Out. Gone: the "One more thing" box, the syncing line, and the big Switch or Add Account button (the Switch pill up top still does it). "Nah, I'm good" now goes to the plain Porch (not the profile screens) whenever the Porch is open for them.
+- v195: buttons 1 and 2 on the account screen each have their number in a gold circle beside them.
+- v196: "Delete my account" on the account page is pushed far below Sign Out, off the first screen. It stays because the privacy policy points to it and the Play Store requires it.

@@ -186,7 +186,12 @@
   .mine{margin:12px 0 0;padding:12px 14px;border-radius:16px;border:1.5px solid var(--gold);background:rgba(215,178,83,.10);font-family:var(--ui);font-size:14px;line-height:1.45;color:var(--ivory);text-align:center}
   .mine b{display:block;color:#fff;font-size:15px;margin-bottom:2px}
   .porchcard{margin:16px 0 0;padding:15px 16px;border-radius:14px;border:1px solid rgba(215,178,83,.34);background:rgba(215,178,83,.07)}
-  .porchcard.plain{margin:10px 0 0;padding:0;border:0;background:none}
+  .porchcard.plain{margin:0;padding:0;border:0;background:none}
+  .steprow{display:flex;align-items:center;gap:12px;margin-top:14px}
+  .steprow[hidden],.steprow .num[hidden]{display:none}
+  .steprow .go{flex:1 1 auto;min-width:0;margin:0 !important}
+  .steprow .num{flex:none;width:42px;height:42px;border-radius:50%;border:2px solid var(--gold);color:var(--gold);display:grid;place-items:center;font:800 19px/1 var(--ui);background:rgba(215,178,83,.10)}
+  .porchcard:not(.plain) .steprow{margin-top:0}
   .porchcard h2{font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.7px;text-transform:uppercase;color:var(--gold);margin:0 0 9px}
   .porchcard p{font-family:var(--ui);font-size:13px;line-height:1.6;color:var(--ivory);margin:0 0 10px}
   .go:active:not([disabled]){background:#e6c877}
@@ -548,14 +553,15 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       <button type="button" class="pick" id="pickLocal"><span>Keep this phone&rsquo;s</span><b id="pickLocalT"></b></button>
     </div>
 
-    <button class="go" type="button" id="dsPick" style="margin-top:14px">1. Pick My Sober Date</button>
+    <!-- A NUMBER IN A CIRCLE, THE BUTTON BESIDE IT (5 Oct 2026, Mike: "make it look really easy to understand") -->
+    <div class="steprow" id="row1"><span class="num" aria-hidden="true">1</span><button class="go" type="button" id="dsPick">Pick My Sober Date</button></div>
 
     <!-- LEVEL 2: your Porch profile. Plain button 2 while there is a profile to set up;
          the little card with words comes back for "Edit my profile" and "opens October 20". -->
     <div class="porchcard" id="porchCard" hidden>
       <h2 id="pcKick">Your Porch profile</h2>
       <p id="pcTxt"></p>
-      <a class="go" id="pcGo" href="/feed/porch.html?setup=1" style="text-decoration:none">Set up my profile</a>
+      <div class="steprow" id="row2"><span class="num" id="num2" aria-hidden="true" hidden>2</span><a class="go" id="pcGo" href="/feed/porch.html?setup=1" style="text-decoration:none">Set up my profile</a></div>
       <a class="go" id="pcMine" href="/feed/porch.html?u=me" hidden
          style="text-decoration:none;background:transparent;color:var(--gold);margin-top:8px">See my profile</a>
     </div>
@@ -571,7 +577,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     <button class="go" type="button" id="dsSwitch" hidden>Switch or Add Account</button>
     <p id="dsOutNote" hidden></p>
     <!-- DELETE MY APP ACCOUNT (1 Oct 2026, big list): small, at the very bottom -->
-    <button type="button" class="forgot" id="delAcct" style="margin-top:26px;color:var(--muted);font-size:12px">Delete my account</button>
+    <button type="button" class="forgot" id="delAcct" style="margin-top:420px;color:var(--muted);font-size:12px">Delete my account</button>   <!-- 5 Oct 2026 (Mike): pushed way down so it is off the first screen. It stays: the privacy policy points here and the Play Store requires it. -->
     <p class="say" id="sayDel" role="status" aria-live="polite"></p>
   </div>
 
@@ -702,6 +708,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       $("dsPick").hidden = false;
       $("dsHome").hidden = true;
     }
+    $("row1").hidden = $("dsPick").hidden;
     /* the small link is always there, and its words say where it really goes */
     $("dsSkip").hidden = false;
     var to = skipTo();
@@ -771,12 +778,14 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     if (!porchFor(A.name())) {
       $("pcKick").textContent = "Pull up a chair · the Porch";
       $("pcTxt").textContent = "Post, make Spins, add friends and message. It opens October 20.";
-      c.classList.remove("plain"); $("pcKick").hidden = false; $("pcTxt").hidden = false;
+      c.classList.remove("plain"); $("pcKick").hidden = false; $("pcTxt").hidden = false; $("num2").hidden = true; $("row2").hidden = true;
       $("pcGo").hidden = true; $("pcMine").hidden = true; return;
     }
     $("pcKick").textContent = "Your Porch profile";
     $("pcTxt").textContent = done ? "Picture, bio, who can see you and finding friends." : "";
-    $("pcGo").hidden = false; $("pcGo").textContent = done ? "Edit my profile" : (soberDate() ? "Set Up My Profile" : "2. Set Up My Profile");
+    $("row2").hidden = false;
+    $("pcGo").hidden = false; $("pcGo").textContent = done ? "Edit my profile" : "Set Up My Profile";
+    $("num2").hidden = done || !!soberDate();          /* the 2 only shows while button 1 is still there above it */
     $("pcMine").hidden = !done;
     /* nothing set up yet: a plain button, no card around it (5 Oct 2026) */
     c.classList.toggle("plain", !done);
