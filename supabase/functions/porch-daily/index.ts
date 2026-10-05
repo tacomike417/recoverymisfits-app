@@ -78,6 +78,8 @@ const STARK_FROM = 3001;                    // its Spins are numbered from here 
 const STARK_BACKLOG = 3;                    // how many go up to start
 const MATT = "welcomematt";                 // the greeter robot
 const MATT_FROM = 4001;                     // his pinned Spins are numbered from here up
+const HYDE = "realmrhyde";                 // the Original Manuscript shorts account (4 Oct 2026)
+const HYDE_FROM = 5001;                     // its Spins are numbered from here up
 const STARK_HOUR = 7;                       // then one every 3 days, at the first knock after 7am Eastern
 const HOUSE_KEY = Deno.env.get("HOUSE_KEY") || "";
 const BUNNY_KEY = Deno.env.get("BUNNY_STREAM_KEY") || "";
@@ -461,6 +463,27 @@ async function starkSpins(hour: number) {
   return { posted: 1, numbers: [queue[0].n], waiting: queue.length - 1 };
 }
 
+/* REALMRHYDE (4 Oct 2026, Mike: "set up your auto poster for realmrhyde and have them shoot out every morning at
+ * 6:13am"). The Original Manuscript shorts: one Spin a day from the realmrhyde account, at the first knock at or
+ * after 6:13am Eastern (porch_57 adds a knock at exactly 6:13). Never two in one day. Numbered 5001 and up, posted
+ * in order until they run out; new ones are added at the END. No backlog: the first one goes up the next morning. */
+async function hydeSpins(day: string, hour: number, minute: number) {
+  const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", HYDE).maybeSingle();
+  if (!m) return { posted: 0, error: "realmrhyde is not on the Porch yet" };
+  const { data: all, error } = await admin.from("porch_house_reels").select("*").gte("n", HYDE_FROM).lt("n", HYDE_FROM + 1000).order("n", { ascending: true });
+  if (error) return { posted: 0, why: "no list yet" };
+  const done = (all || []).filter((r: any) => r.status === "posted");
+  const queue = (all || []).filter((r: any) => r.status === "queued");
+  if (!queue.length) return { posted: 0, why: done.length ? "they have all run" : "none waiting", total: done.length };
+  if (hour < 6 || (hour === 6 && minute < 13)) return { posted: 0, why: "before 6:13am Eastern", waiting: queue.length };
+  if (hour >= 12) return { posted: 0, why: "missed this morning, tomorrow then", waiting: queue.length };
+  const easternDay = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+  if (done.some((r: any) => r.posted_at && easternDay(r.posted_at) === day)) return { posted: 0, why: "today's is already up", waiting: queue.length };
+  const why = await publishReel(queue[0], m.user_id, new Date());
+  if (why) return { posted: 0, why: "spin " + queue[0].n + ": " + why, waiting: queue.length };
+  return { posted: 1, numbers: [queue[0].n], waiting: queue.length - 1 };
+}
+
 /* SOBER RIOT (4 Oct 2026, Mike: "big rock and roll look at me style recovery group with simple
  * powerful memes that post a few times a day"). The soberriot account posts picture memes ON THE
  * PORCH (everybody sees them), each one tagged with the SOBER RIOT group so the button under it
@@ -553,6 +576,7 @@ Deno.serve(async (req) => {
     try { out.misfit_daily = await misfitDaily(day, hour, minute); } catch (e) { out.misfit_daily = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.stark = await starkSpins(hour); } catch (e) { out.stark = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.sober_riot = await soberRiot(day, hour); } catch (e) { out.sober_riot = { posted: 0, error: String((e as Error).message || e) }; }
+    try { out.hyde = await hydeSpins(day, hour, minute); } catch (e) { out.hyde = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.matt = await mattSpins(); } catch (e) { out.matt = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.sponsor = await sponsor(day, hour); } catch (e) { out.sponsor = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.another_day_sober = await ads(day, hour); } catch (e) { out.another_day_sober = { posted: 0, error: String((e as Error).message || e) }; }

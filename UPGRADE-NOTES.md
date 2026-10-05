@@ -799,3 +799,9 @@ without making it confusing.
 - Never a zero applies: a count shows at 2 and up. House accounts never show Active. Nothing shown after 7 days away.
 - Not done: green dots on avatars elsewhere (feed, Messages, friends list). Profile only for now.
 - [x] v181: Share moved to the right end of the bottom row on the share screen (always on screen). A Share shows in the top bar only while the keyboard is up, since the bottom row hides then. The "Look" button is gone (Mike: a collage is wood, "what you get is what you get"); that also drops the hashtag strip on the collage, Corkboard/Black, and Shuffle. Stickers and Filters only show once there is a picture.
+
+## realmrhyde: an Original Manuscript short every morning at 6:13 (4 Oct 2026, v182)
+- The 30 shorts (1938 original manuscript lines, words on screen + music) are in `~/Downloads/manuscript-shorts`. Made here with a small page + ffmpeg; the wording was checked against anonpress.org's copy through a reader tool, not letter by letter.
+- Porch: `scripts/upload_hyde_spins.py` sends them to the video host (numbers 5001+). `porch-daily` > `hydeSpins` posts ONE a morning from realmrhyde at the first knock at or after 6:13am Eastern (never after noon, never two in a day). `porch_57_realmrhyde.sql` makes it a house account and adds the 6:13 knock (`porch-hyde-613`, 10:13 and 11:13 world time to cover the clock change).
+- YouTube: `~/Downloads/manuscript-shorts/schedule_youtube.py` uploads them to @tacomike417 with the dev station's sign-in and tells YouTube to publish one a day at 6:13am Eastern. YouTube allows about 6 uploads a day through this door, so it takes 5 runs; it keeps its own list of what went up.
+- They run out after 30 days. Mike chose the realmrhyde account posting on the Porch (not a group).
