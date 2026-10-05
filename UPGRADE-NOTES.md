@@ -809,3 +809,10 @@ without making it confusing.
 - [x] v183 also fixed a real bug found on the way: two functions were both named `previewHTML` (link card and profile preview), so the second replaced the first and a link card on a share was drawing as a profile card. The link one is `linkCardHTML` now.
 - [x] 4 Oct, after v183: on the live site the link check answered "Links can't be checked right now" for every link, so NO link could be posted or previewed. YouTube links now skip the two outside checks (`TRUSTED` in the porch function). The function also reports which check is down (`why`, on the `link_preview` action only) so the real cause can be found; other links stay blocked until that check is fixed.
 - [x] 4 Oct: the cause was Google's scam check (Web Risk) answering 403 on the key. Mike chose Cloudflare's family filter as the ONE outside link check; the Google check is no longer called. All links can post again.
+- [x] 5 Oct: Welcome our new folks shows people with NO profile picture too (initials). `porch_58_new_folks_initials.sql`. Was pictures-only since porch_43; Mike couldn't find a buddy who had just joined.
+
+## Choppy Spins fixed (5 Oct 2026, v184)
+- Found: a member's uploaded Spin played at 25 frames a second with about 1 in 6 frames missing (everyone else's house Spins are 30). The re-make on the phone (`shrink` in spins.js, WebCodecs) was dropping frames.
+- [x] The phone no longer re-makes a normal video. The original goes straight to the video host, which converts it on its servers. Only a file over 80 MB is still re-made on the phone, and then the frames are counted; under 97% kept and the original goes up instead.
+- Cost: uploads are bigger (a 15-second phone video is about 20 to 40 MB instead of about 6), so the "Uploading your Spin" bar takes longer on a slow connection.
+- Spins already posted are not repaired; they have to be uploaded again.

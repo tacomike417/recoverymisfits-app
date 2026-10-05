@@ -994,29 +994,48 @@
     });
     return tusReady;
   }
-  /* SHRINK IT FIRST: re-made on the phone at 720p, about 3 Mbps, so it goes up
-     fast. Anything goes wrong and the original goes up instead. */
+  /* THE ORIGINAL GOES UP (v184, 5 Oct 2026). A member's Spin came out choppy: 389 frames where there were about
+     465. The re-make on the phone was losing one frame in six, and the video host then evened what was left out to
+     25 a second. So the phone no longer re-makes a normal video at all; the video host does that on real servers
+     and keeps every frame. Only a very big file (over SHRINK_OVER) is still re-made here to get it up at all, and
+     then the result is counted: if it kept under 97% of the frames, it is thrown away and the original goes up. */
+  const SHRINK_OVER = 80 * 1024 * 1024, HOST_MAX = 200 * 1024 * 1024;
+  async function framesIn(M, blob, upTo) {
+    try {
+      const inp = new M.Input({ source: new M.BlobSource(blob), formats: M.ALL_FORMATS });
+      const vt = await inp.getPrimaryVideoTrack(); if (!vt) return 0;
+      const st = await vt.computePacketStats();
+      const secs = Math.min(Number(await vt.computeDuration()) || 0, upTo || 1e9);
+      return Math.round((Number(st.averagePacketRate) || 0) * secs);
+    } catch (_) { return 0; }
+  }
   async function shrink(file, onP) {
-    if (!('VideoEncoder' in window) || file.size < 6 * 1024 * 1024) return file;
+    if (!('VideoEncoder' in window) || file.size <= SHRINK_OVER) return file;
     try {
       const M = await import(MB_LIB);
       const input = new M.Input({ source: new M.BlobSource(file), formats: M.ALL_FORMATS });
       const vt = await input.getPrimaryVideoTrack(); if (!vt) return file;
       const w = vt.displayWidth, h = vt.displayHeight, short = Math.min(w, h);
       const size = short > 720 ? (w <= h ? { width: 720 } : { height: 720 }) : {};
+      const end = MAX_S;
       const output = new M.Output({ format: new M.Mp4OutputFormat({ fastStart: 'in-memory' }), target: new M.BufferTarget() });
-      const conv = await M.Conversion.init({ input, output, video: Object.assign({ codec: 'avc', bitrate: 3000000 }, size), audio: { codec: 'aac', bitrate: 128000 }, trim: { start: 0, end: 15.5 }, showWarnings: false });
+      const conv = await M.Conversion.init({ input, output, video: Object.assign({ codec: 'avc', bitrate: 4000000 }, size), audio: { codec: 'aac', bitrate: 128000 }, trim: { start: 0, end }, showWarnings: false });
       if (!conv.isValid || (conv.discardedTracks || []).length) return file;
       conv.onProgress = (p) => onP && onP(p);
       await conv.execute();
       const buf = output.target.buffer;
       if (!buf || buf.byteLength < 1000 || buf.byteLength >= file.size) return file;
-      return new File([buf], 'spin.mp4', { type: 'video/mp4' });
+      const small = new File([buf], 'spin.mp4', { type: 'video/mp4' });
+      /* count the frames before trusting it */
+      const had = await framesIn(M, file, end), got = await framesIn(M, small, end);
+      const kept = had > 0 && got > 0 ? got / had : 0;
+      if (kept < 0.97 && file.size <= HOST_MAX) return file;      /* it lost frames (or couldn't be counted): send the real one */
+      return small;
     } catch (_) { return file; }
   }
   async function upload(file, caption, muted, music, okFaces, tagGroup) {
     uploading = true;
-    pillSay('Getting your Spin ready… keep this page open<span class="bar"><i></i></span>');
+    if (file.size > SHRINK_OVER) pillSay('Getting your Spin ready… keep this page open<span class="bar"><i></i></span>');
     file = await shrink(file, (p) => { const pct = Math.round(p * 100); pillSay(`Getting your Spin ready… ${pct}% · keep this page open<span class="bar"><i style="width:${pct}%"></i></span>`); });
     pillSay('Starting your Spin…<span class="bar"><i></i></span>');
     const [tus, made] = await Promise.all([loadTus().catch(() => null), callSpins({ action: 'start', caption, muted, bytes: file.size, music: music ? { id: music.id, name: music.name, by: music.by } : null, tag_group: tagGroup || undefined })]);
