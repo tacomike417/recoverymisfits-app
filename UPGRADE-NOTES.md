@@ -829,3 +829,13 @@ without making it confusing.
 - [ ] 5. PIN A SHARE to the top of your profile.
 - [ ] 6. TRY POOF between two real accounts on two real phones (never done).
 - [x] v189 (5 Oct): ONE BIG VIEWS NUMBER on every profile (eye + number, 2 and up). Profile opens + shares seen on a screen + Spin plays. `porch_60_profile_views.sql`. Your own profile opens don't count; everything else does, every time.
+
+## 5 Oct 2026: SIGN UP IS ONE HONEST SCREEN (v190)
+Mike: "Not for alcoholics, they want straight forward right out the gate. If they detect games they'll bail."
+- account.html: sign-up used to be seven screens. Now one: "Here's the deal. No games." then name, password, email (only if you want to post), one tick (18 or older + house rules), I'm In.
+- Typed an email: the next screen is the 6-digit code (same porch-confirm door the Porch uses). "Do This Later" is the way out.
+- No email: the write-it-down card, like before. Then the sober date (can skip).
+- The old "18 and up" and "pick a level" screens are still in the page but never shown.
+- UNTIL OCT 20: the email box only shows on a beta phone. Everyone else sees "Posting opens October 20" in the deal box and gets in to read. Flipping PORCH_OPEN in account.html turns the email box on for everybody.
+- NOT TESTED LIVE YET: checked the layout at phone width and that the tick is enforced. Nobody has made a real account or received a real code through this screen. Test on a beta phone before telling anyone.
+- The Porch still offers "Confirm an email" when somebody with no email goes to post. They were told on the sign-up screen, so it is not a surprise.

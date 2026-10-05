@@ -32,6 +32,9 @@
   .agelinks button,.agelinks a{min-height:44px;display:inline-flex;align-items:center;padding:0 4px;border:0;background:none;color:var(--gold);font:800 14px var(--ui);text-decoration:underline;cursor:pointer}
   .agerules ul{margin:0;padding-left:18px;font-size:13px;line-height:1.4}
   .agerules li{margin:3px 0}
+  .deal{margin:0 0 16px;padding:14px 16px;border-radius:16px;border:1.5px solid var(--gold);background:rgba(215,178,83,.10);font-family:var(--ui);color:var(--ivory)}
+  .deal b{display:block;font-size:17px;line-height:1.25;color:#fff}
+  .deal p{margin:8px 0 0;font-size:14.5px;line-height:1.45}
   .agecheck{display:flex;align-items:center;gap:12px;margin:10px 0 0;padding:14px 14px;line-height:1.3;border-radius:16px;border:1.5px solid var(--gold);background:rgba(215,178,83,.10);font-family:var(--ui);font-weight:800;font-size:16px;color:#fff;cursor:pointer}
   .agecheck input{width:26px;height:26px;flex:none;accent-color:#d7b253}
   /* 3 Oct 2026, Mike: "this page take off take me home, switch profile". The big Switch or Add
@@ -269,23 +272,6 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
          agreed to in one go, "with the least amount of hassle possible". The whole rules used to
          pop up later on the Porch with an "I'm in" button; they live here now, behind "What's this
          all about?", and the Porch never asks again. -->
-    <label class="agecheck"><input type="checkbox" id="ageOk"><span>I&rsquo;m 18 or older, and I agree to the house rules and the privacy policy.</span></label>
-    <div class="agelinks"><button type="button" id="ageWhat" aria-expanded="false" aria-controls="ageFull">What&rsquo;s this all about?</button><a href="/privacy.html" target="_blank" rel="noopener">Privacy policy</a></div>
-    <div class="agerules" id="ageFull" hidden>
-      <b class="ar-k">THE HOUSE RULES</b>
-      <p class="ar-1">We share experience, strength and hope.<br>Not opinion, strength and hope.</p>
-      <p class="ar-3">Opinions can hurt people, and in recovery we&rsquo;re not in the people-hurting business anymore. So the doctors get to be the doctors, the lawyers the lawyers and the counselors the counselors. Here, we&rsquo;re people in recovery helping each other out.</p>
-      <p class="ar-2">We&rsquo;re all adults here. Let&rsquo;s act like it.</p>
-      <ul>
-        <li>Share what happened to you, not what somebody else ought to do. No medical, legal or counseling advice.</li>
-        <li>Be kind. We&rsquo;re all in this together.</li>
-        <li>Every path counts. No bashing anybody&rsquo;s recovery.</li>
-        <li>No rated X behavior. No hate, slurs or threats.</li>
-        <li>Protect other people&rsquo;s anonymity. Ask before posting anybody&rsquo;s photo.</li>
-        <li>Say what you need. Somebody here gets it.</li>
-      </ul>
-      <p class="ar-3" style="margin-top:10px"><b style="color:#fff">Your privacy:</b> no ads, and we don&rsquo;t sell anything about you. Your sober date is only yours. The <a href="/privacy.html" target="_blank" rel="noopener" style="color:var(--gold)">privacy policy</a> has the rest.</p>
-    </div>
     <button type="button" class="go" id="ageGo" disabled style="margin-top:12px">Let&rsquo;s Go</button>
     <button type="button" class="textlink" id="ageHave">I already have an account</button>
   </div>
@@ -340,6 +326,17 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     </div>
 
     <form id="form" novalidate>
+      <!-- ============ ONE HONEST SCREEN (5 Oct 2026, Mike) ============
+           "Not for alcoholics, they want straight forward right out the gate. If they detect
+           games they'll bail." Signing up used to be seven screens: an 18+ gate, pick a level,
+           the form, write-it-down, the date, the profile, and then an email step nobody had
+           been told about, waiting on the Porch. Now the whole ask is said once, up top, and
+           asked once, right here. Nothing later that they weren't told about on this screen. -->
+      <div class="deal" id="deal">
+        <b>Here&rsquo;s the deal. No games.</b>
+        <p>A name, a password, and you&rsquo;re 18 or older. That gets you in to read everything.</p>
+        <p id="dealPost">Want to post? Add an email. We send one code, then we throw the email away. That&rsquo;s all we&rsquo;ll ever ask you for.</p>
+      </div>
       <div class="field">
         <label for="nm">Username</label>
         <div class="box">
@@ -371,7 +368,36 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
         <p class="hint" id="pwHint">At least 8 characters.</p>
       </div>
 
-      <button class="go" type="submit" id="submit">Create My Anonymous Account</button>
+      <div class="field" id="emField">
+        <label for="em">Email <span style="font-weight:600;opacity:.8">&middot; only if you want to post</span></label>
+        <div class="box">
+          <input id="em" name="email" type="email" inputmode="email" autocomplete="email"
+                 autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="leave blank to just read">
+        </div>
+        <p class="hint">We send one 6-digit code to it. Then it&rsquo;s scrambled and thrown away. Nobody ever sees it.</p>
+      </div>
+
+      <div id="ageBlock">
+    <label class="agecheck"><input type="checkbox" id="ageOk"><span>I&rsquo;m 18 or older, and I agree to the house rules and the privacy policy.</span></label>
+    <div class="agelinks"><button type="button" id="ageWhat" aria-expanded="false" aria-controls="ageFull">What&rsquo;s this all about?</button><a href="/privacy.html" target="_blank" rel="noopener">Privacy policy</a></div>
+    <div class="agerules" id="ageFull" hidden>
+      <b class="ar-k">THE HOUSE RULES</b>
+      <p class="ar-1">We share experience, strength and hope.<br>Not opinion, strength and hope.</p>
+      <p class="ar-3">Opinions can hurt people, and in recovery we&rsquo;re not in the people-hurting business anymore. So the doctors get to be the doctors, the lawyers the lawyers and the counselors the counselors. Here, we&rsquo;re people in recovery helping each other out.</p>
+      <p class="ar-2">We&rsquo;re all adults here. Let&rsquo;s act like it.</p>
+      <ul>
+        <li>Share what happened to you, not what somebody else ought to do. No medical, legal or counseling advice.</li>
+        <li>Be kind. We&rsquo;re all in this together.</li>
+        <li>Every path counts. No bashing anybody&rsquo;s recovery.</li>
+        <li>No rated X behavior. No hate, slurs or threats.</li>
+        <li>Protect other people&rsquo;s anonymity. Ask before posting anybody&rsquo;s photo.</li>
+        <li>Say what you need. Somebody here gets it.</li>
+      </ul>
+      <p class="ar-3" style="margin-top:10px"><b style="color:#fff">Your privacy:</b> no ads, and we don&rsquo;t sell anything about you. Your sober date is only yours. The <a href="/privacy.html" target="_blank" rel="noopener" style="color:var(--gold)">privacy policy</a> has the rest.</p>
+    </div>
+      </div>
+
+      <button class="go" type="submit" id="submit" style="margin-top:14px">I&rsquo;m In</button>
       <p class="say" id="say" role="status" aria-live="polite"></p>
       <button type="button" class="forgot" id="forgot" hidden>Forgot your password?</button>
       <p class="hint" style="text-align:center;margin-top:12px;font-size:11.5px;line-height:1.5;opacity:.8">By using Recovery Misfits you agree to our <a href="/privacy.html#terms" style="color:var(--gold)">terms</a>. See what we keep in <a href="/privacy.html" style="color:var(--gold)">privacy</a>.</p>
@@ -408,6 +434,28 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span id="backOutTxt">Back to Home</span>
     </a>
+  </div>
+
+  <!-- ============ THE CODE (5 Oct 2026) ============
+       Only for somebody who typed an email on the sign-up screen, so they knew it was coming.
+       "Do this later" is the way out: nobody is stranded because they can't get to their email. -->
+  <div id="codestep" hidden>
+    <div class="warn" style="text-align:center">
+      <h2>Check your email</h2>
+      <p id="cdTxt" style="text-align:center">We sent a 6-digit code. It works for 15 minutes. Check spam if you don&rsquo;t see it.</p>
+    </div>
+    <div id="cdCodeRow">
+      <div class="field"><label for="cdCode">Code</label><div class="box"><input id="cdCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 digits"></div></div>
+      <button type="button" class="go" id="cdVerify" disabled>Confirm</button>
+      <button type="button" class="textlink" id="cdAgain">Use a different email or send a new code</button>
+    </div>
+    <div id="cdMailRow" hidden>
+      <div class="field"><label for="cdMail">Email</label><div class="box"><input id="cdMail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false"></div></div>
+      <button type="button" class="go" id="cdSend">Send My Code</button>
+    </div>
+    <p class="say" id="cdSay" role="status" aria-live="polite"></p>
+    <button type="button" class="go" id="cdLater" style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:8px">Do This Later</button>
+    <p style="text-align:center;margin:10px 0 0;font-family:var(--ui);font-size:12.5px;line-height:1.5;color:var(--muted)">You&rsquo;re already in and can read everything. The code is only for posting.</p>
   </div>
 
   <!-- ============ JUST MADE ONE ============
@@ -553,7 +601,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
      signing up, and the one screen you land on whenever you are signed in
      -- which asks for your sober date if it does not have one and shows it
      if it does. There is no separate settings page to get stranded on. */
-  var STEP = { age:"agegate", levels:"levels", form:"out", fresh:"fresh", claim:"claimask", date:"datestep" };
+  var STEP = { age:"agegate", levels:"levels", form:"out", code:"codestep", fresh:"fresh", claim:"claimask", date:"datestep" };   /* age and levels are retired (5 Oct 2026): the form asks it all */
 
   /* LEVEL 2 = THE PORCH. Until the Porch opens (NOT before Oct 20, and only when Mike
      says so: see UPGRADE-NOTES.md) only the beta testers get it. Same list as the
@@ -578,8 +626,10 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     });
     /* the big header says where you are: Sign Up / Sign In / your account */
     var setup = (step === "claim" || step === "date") && signingUp;      /* the account is made; now setting up */
-    var n = step === "levels" ? 1 : step === "form" && mode === "new" ? 2 : step === "fresh" && signingUp ? 3 : setup ? 1 : 0;
-    $("pageName").textContent = setup ? "Set Up" : n || step === "age" ? "Sign Up" : step === "form" ? "Sign In" : "Your Account";
+    /* no "Step 2 of 3" while signing up any more: it is one screen. The steps bar is only for the set-up walk after. */
+    var n = setup ? 1 : 0;
+    var joining = (step === "form" && mode === "new") || step === "code" || (step === "fresh" && signingUp);
+    $("pageName").textContent = setup ? "Set Up" : joining ? "Sign Up" : step === "form" ? "Sign In" : "Your Account";
     $("steps").hidden = !n;
     if (n) {
       [].forEach.call($("steps").querySelectorAll("i"), function (b, i) { b.classList.toggle("on", i < n); });
@@ -736,8 +786,12 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     var go = afterAge; afterAge = null; (go || showLevels)();
   });
   $("ageHave").addEventListener("click", function () { goForm("", "old"); });
-  function showLevels() {
-    if (needAge(showLevels)) return;
+  /* THE DOOR IS THE FORM NOW (5 Oct 2026). Everything that used to open "18 and up" or "pick a
+     level" opens the one sign-up screen instead. The old two screens are still in the page,
+     never shown. */
+  function showLevels() { goForm("", "new"); }
+  function showLevelsOld() {
+    if (needAge(showLevelsOld)) return;
     var open = lvl2Open();
     $("lvl2").classList.toggle("locked", !open);
     $("lvl2soon").hidden = open;
@@ -752,24 +806,36 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       : betaPhone()
         ? "You&rsquo;re in the beta. Pick the name people will see on the Porch."
         : "Pick the name people will see on the Porch.<br>You&rsquo;ll confirm an email once so you can post. It&rsquo;s never kept or shown.";
-    if (mode === "new") $("submit").textContent = two ? "Create My Account" : "Create My Anonymous Account";
+    if (mode === "new") $("submit").textContent = "I\u2019m In";
     /* 3 Oct 2026, Mike's walk-through: say it before they forget it */
-    $("pwHint").innerHTML = two ? "At least 8 characters. <b>Write it down.</b>" : "At least 8 characters. <b>Write it down.</b> With no email, we can&rsquo;t reset it.";
+    $("pwHint").innerHTML = "At least 8 characters. <b>Write it down.</b> With no email, we can&rsquo;t reset it.";
+    joinWords();
+  }
+  /* what the one screen shows: the deal, the email box and the tick when signing UP; none of it
+     when signing IN. Before the Porch opens (and off a beta phone) there is no posting yet, so
+     the screen says that plainly instead of taking an email it can't use. */
+  function joinWords() {
+    var nu = mode === "new", open = lvl2Open();
+    $("deal").hidden = !nu;
+    $("ageBlock").hidden = !nu;
+    $("emField").hidden = !nu || !open;
+    $("dealPost").innerHTML = open
+      ? "Want to post? Add an email. We send one code, then we throw the email away. That&rsquo;s all we&rsquo;ll ever ask you for."
+      : "Posting opens October 20. That&rsquo;s when we&rsquo;ll ask for an email, once, to send you one code. Nothing else, ever.";
+    $("formLede").hidden = nu;
+    $("pickedBar").hidden = true;
   }
   function goForm(lvl, m) {
     if (lvl) pick(lvl);
-    $("pickedBar").hidden = m === "old";
-    $("pickedTxt").innerHTML = lvl === "2" ? "<b>Pull up a chair</b> · post, Spins, friends" : "<b>Look around</b> · anonymous";
     setMode(m || "new");
     levelWords();
     paint("form");
-    /* the phone's back button goes back to the two levels, not out of the app */
-    try { history.pushState({ acct: "form" }, ""); } catch (e) {}
-    setTimeout(function () { $("nm").focus(); }, 60);
+    /* no history step here any more: there is no "levels" screen behind this one to go back to,
+       so the phone's back button leaves the page like it does anywhere else */
+    if ((m || "new") === "old") setTimeout(function () { $("nm").focus(); }, 60);   /* signing up: let them read the deal first */
   }
   window.addEventListener("popstate", function () {
     if (!$("reset").hidden) return closeReset();
-    if (!A.signedIn() && !$("out").hidden) showLevels();
   });
 
   /* ---- forgot password ---- */
@@ -858,24 +924,20 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   /* ---- create / sign in ------------------------------------------------- */
   function setMode(next) {
     mode = next;
-    if ($("pickedBar")) {
-      $("pickedBar").hidden = next === "old";
-      if (next === "new" && !$("pickedTxt").innerHTML) $("pickedTxt").innerHTML = picked() === "2" ? "<b>Pull up a chair</b> · post, Spins, friends" : "<b>Look around</b> · anonymous";
-    }
     if ($("out") && !$("out").hidden) setTimeout(function () { paint("form"); }, 0);
-    /* the Sign Up / Sign In tabs live on the level screen now; here they only show while signing
-       in, so a new person isn't asked the same question twice (3 Oct 2026) */
-    var seg = $("tabNew").parentNode; if (seg) seg.hidden = next === "new";
+    /* Sign Up / Sign In are always up top now (5 Oct 2026): this is the only sign-up screen */
+    var seg = $("tabNew").parentNode; if (seg) seg.hidden = false;
     $("tabNew").setAttribute("aria-selected", next === "new" ? "true" : "false");
     $("tabOld").setAttribute("aria-selected", next === "old" ? "true" : "false");
-    $("submit").textContent = next === "new" ? (picked() === "2" ? "Create My Account" : "Create My Anonymous Account") : "Sign In";
+    $("submit").textContent = next === "new" ? "I\u2019m In" : "Sign In";
     $("pw").setAttribute("autocomplete", next === "new" ? "new-password" : "current-password");
     $("nmHint").hidden = next !== "new";
     $("forgot").hidden = next !== "old";
     $("pwHint").hidden = next !== "new";
+    joinWords();
     say($("say"), "");
   }
-  $("tabNew").addEventListener("click", function () { showLevels(); });        /* Sign Up starts at "pick your level" */
+  $("tabNew").addEventListener("click", function () { setMode("new"); levelWords(); });
   $("tabOld").addEventListener("click", function () { setMode("old"); });
 
   $("peek").addEventListener("click", function () {
@@ -895,6 +957,18 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     var NOT_NAMES = ['beta','s','u','api','app','admin','feed','porch','login','signin','signup','account','settings','help','about','privacy','terms','support','mod','mods','staff','team','official','recoverymisfits','me','home','index','www','static','assets','images','cdn','blog','news','shop','store','search','explore','notifications','messages','spins','spin','friends','groups','group','profile','user','users','null','undefined',
     'another-day-sober','share-in','assets-trudge','audio','audio-lag-test','basics','burn-pad','chapters','coins','corner','css','data','engine','fear-compass','fun','game','game2','gratitude-journal','halloween-game','meme','misfits','nightly-inventory','on-awakening','pile','qr','reader','readings','recovery-engine','recovery-misfits-first-five-coins','sober-date','story','survival-pile','test','tools','unofficial-story','untangler','white-knuckler'];
     if (mode === "new" && NOT_NAMES.indexOf(String(name).trim().toLowerCase()) >= 0) return say($("say"), "That name is taken. Try another.", "bad");
+    /* the email (only if they want to post) and the one tick, checked BEFORE the account is made */
+    var joinMail = "";
+    if (mode === "new") {
+      joinMail = (lvl2Open() && !$("emField").hidden) ? $("em").value.trim() : "";
+      if (joinMail && !/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(joinMail)) return say($("say"), "That email doesn\u2019t look right. Fix it, or leave it blank to just read.", "bad");
+      if (!$("ageOk").checked) {
+        try { $("ageBlock").scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e2) {}
+        return say($("say"), "Tick the box first: 18 or older, and the house rules.", "bad");
+      }
+      try { localStorage.setItem(AGE_KEY, "1"); } catch (e3) {}
+      pick(joinMail ? "2" : "1");
+    }
 
     busy = true;
     $("submit").disabled = true;
@@ -934,7 +1008,18 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
           navigator.clipboard.writeText(msg).then(done, function () {});
         }
       };
-      paint("fresh");
+      /* typed an email: the code is next, like the screen said. No email: the write-it-down card. */
+      if (joinMail) {
+        $("em").value = "";                       /* not kept on this phone */
+        cdShow("code"); paint("code");
+        say($("cdSay"), "Sending your code\u2026");
+        var sent = await pcCall({ action: "send", email: joinMail });
+        joinMail = "";
+        if (sent.ok) { say($("cdSay"), ""); try { $("cdCode").focus(); } catch (e4) {} }
+        else { cdShow("mail"); say($("cdSay"), sent.error || "The code didn\u2019t send. Try the email again.", "bad"); }
+      } else {
+        paint("fresh");
+      }
       await settle(true);
       return;
     }
@@ -945,7 +1030,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
 
   /* After the password card: if this phone is carrying an unsigned date, ask
      whose it is before anything adopts it. Otherwise straight to the date. */
-  $("freshDone").addEventListener("click", function () {
+  function afterCreds() {
     var d = soberDate();
     if (d && !A.localOwner()) {
       $("caDate").textContent = pretty(d);
@@ -953,7 +1038,51 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       return;
     }
     showDateStep();
+  }
+  $("freshDone").addEventListener("click", afterCreds);
+
+  /* ---- the code step (5 Oct 2026) ----
+     The same server door the Porch uses (porch-confirm: send, verify), called as the person who
+     just signed up. The email is sent once and never kept: not on this phone, not on the server. */
+  async function pcCall(body) {
+    try {
+      var t = await A.token();
+      if (!t) return { error: "Sign in first." };
+      var r = await fetch(RS_FN, { method: "POST", headers: { apikey: RS_KEY, Authorization: "Bearer " + t, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      var j = await r.json().catch(function () { return {}; });
+      return j || {};
+    } catch (e) { return { error: "No connection. Try again when you have signal." }; }
+  }
+  function cdShow(which) {
+    $("cdCodeRow").hidden = which !== "code";
+    $("cdMailRow").hidden = which !== "mail";
+    $("cdTxt").textContent = which === "code"
+      ? "We sent a 6-digit code. It works for 15 minutes. Check spam if you don\u2019t see it."
+      : "Type your email and we\u2019ll send a 6-digit code.";
+    $("cdCode").value = ""; $("cdVerify").disabled = true;
+  }
+  $("cdCode").addEventListener("input", function () { this.value = this.value.replace(/\D/g, "").slice(0, 6); $("cdVerify").disabled = this.value.length !== 6; });
+  $("cdAgain").addEventListener("click", function () { say($("cdSay"), ""); cdShow("mail"); try { $("cdMail").focus(); } catch (e) {} });
+  $("cdSend").addEventListener("click", async function () {
+    var b = this, e = $("cdMail").value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(e)) return say($("cdSay"), "That doesn\u2019t look like an email.", "bad");
+    b.disabled = true; b.textContent = "Sending\u2026"; say($("cdSay"), "");
+    var r = await pcCall({ action: "send", email: e });
+    b.disabled = false; b.textContent = "Send My Code";
+    if (!r.ok) return say($("cdSay"), r.error || "That didn\u2019t send. Try again.", "bad");
+    $("cdMail").value = "";
+    cdShow("code"); try { $("cdCode").focus(); } catch (e2) {}
   });
+  $("cdVerify").addEventListener("click", async function () {
+    var b = this; b.disabled = true; b.textContent = "Checking\u2026"; say($("cdSay"), "");
+    var r = await pcCall({ action: "verify", code: $("cdCode").value });
+    b.textContent = "Confirm";
+    if (!r.ok) { b.disabled = false; return say($("cdSay"), r.error || "That didn\u2019t work. Try again.", "bad"); }
+    /* confirmed: they can post, and the email can reset the password, so no write-it-down card */
+    afterCreds();
+  });
+  /* the way out: still in, still reading, and the Porch will offer the code again when they go to post */
+  $("cdLater").addEventListener("click", function () { paint("fresh"); });
 
   $("caYes").addEventListener("click", async function () {
     A.claimLocal();
@@ -1139,7 +1268,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     goForm("", "old");
   } else if (new URLSearchParams(location.search).get("beta") === "1") {
     /* from the beta invite: no levels to pick, straight to "pick a name and a password" */
-    if (!needAge(function () { goForm("2", "new"); })) goForm("2", "new");
+    goForm("", "new");      /* the one screen; the tick is on it */
   } else {
     showLevels();
   }
