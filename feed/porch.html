@@ -959,6 +959,11 @@ html.fullon #main{visibility:hidden}
 .ctools{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;justify-content:space-around;gap:2px;padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--line)}
 .ctools button{position:relative;flex:1;max-width:84px;padding:0;border:0;background:none;color:var(--soft);font:700 11.5px Arial,sans-serif;cursor:pointer}
 .ctools button[hidden]{display:none}
+.ctools{align-items:center}
+.ctools .csend{flex:none;max-width:none;margin:0 6px 0 4px;padding:15px 24px;border-radius:999px;background:var(--gold2);color:var(--ink);font:800 17px Arial,sans-serif;white-space:nowrap}
+.ctools .csend[disabled]{opacity:.4}
+#csendk{display:none}
+html.kb #compose:not(.starting) #csendk{display:block}
 .ctools button span{display:grid;place-items:center;width:46px;height:46px;margin:0 auto 3px;border-radius:50%;border:1px solid var(--fline);font-size:20px;color:var(--cream)}
 .ctools button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ctools button b{display:block;font-weight:700}
@@ -1308,7 +1313,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v180</span>
+  <span class="ver" id="ver">v181</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1426,7 +1431,7 @@ html.kb .ch-bar{padding-bottom:8px}
   <div class="page">
     <div class="ctop"><button type="button" class="bk xb" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><b id="ctitle">NEW SHARE</b>
       <button type="button" class="cmini" id="cmini" aria-label="See how it will look"><span class="cm-p" id="cminip"><i></i><i class="s"></i><em></em></span><small>Preview</small></button>
-      <button type="button" class="send" id="csend" disabled>Share</button></div>
+      <button type="button" class="send" id="csendk" disabled>Share</button></div>
     <div class="cmodes" id="cmodes" hidden><button type="button" data-cm="say">Just words</button><button type="button" data-cm="sign">Make a card</button></div>
     <!-- SHARE PHOTOS STARTS WITH TWO BIG BUTTONS (v171, Mike: "how can we widdle this down to two choices ...
          people want quick as well as versitile"). Collage is not a choice up front: pick 2 to 4 and it is one. -->
@@ -1457,9 +1462,12 @@ html.kb .ch-bar{padding-bottom:8px}
     <button type="button" data-ct="photos"><span data-ico="camera"></span><b>Photos</b></button>
     <button type="button" data-ct="stickers"><span>✨</span><b>Stickers</b><i></i></button>
     <button type="button" data-ct="filters"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9.5" r="5.5"/><circle cx="15" cy="9.5" r="5.5"/><circle cx="12" cy="15" r="5.5"/></svg></span><b>Filters</b></button>
-    <button type="button" data-ct="collage"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="9" height="11" rx="1.5" transform="rotate(-8 7.5 9.5)"/><rect x="12" y="8" width="9" height="11" rx="1.5" transform="rotate(7 16.5 13.5)"/></svg></span><b>Look</b></button>
     <button type="button" data-ct="card"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 15l2.6-6 2.6 6M8 13h3.2M15 10.5v4.5M15 12.2c.5-.9 2.6-1 2.6.6V15"/></svg></span><b>Card</b></button>
     <button type="button" data-ct="tags"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12.5V4.5h8l9 9-8 8z"/><circle cx="8" cy="9" r="1.4"/></svg></span><b>Tags</b><i></i></button>
+    <!-- SHARE LIVES DOWN HERE (v181, Mike: "by the time you scroll down and start working on it, it's like, okay,
+         how the hell do I make this thing"). Always on screen, by the thumb. The one in the top bar (#csendk) only
+         shows while the keyboard is up, because this row hides then. "Look" is gone: a collage is wood, period. -->
+    <button type="button" class="csend" id="csend" disabled>Share</button>
   </div>
   <div class="cpanel" id="cpanel" hidden>
     <div class="cp-dim" data-cpx></div>
@@ -2528,7 +2536,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var start = mode === "snap" && !photos.length && !editingPost;
     $("compose").classList.toggle("starting", start);
     $("cstart").classList.toggle("busy", adding); $("cstarthint").textContent = adding ? "Getting your picture ready…" : "You'll see it before anybody else does.";
-    if (!sending) $("csend").textContent = editingPost ? "Save" : "Share";
+    if (!sending) { $("csend").textContent = editingPost ? "Save" : "Share"; $("csendk").textContent = $("csend").textContent; }
     $("cbody").maxLength = mode === "sign" ? SIGN_MAX : 2000;
     $("cbody").style.minHeight = mode === "say" ? "150px" : mode === "sign" ? "70px" : "54px";
     document.querySelectorAll("#needs [data-need]").forEach(function (b) { b.classList.toggle("on", b.dataset.need === need); });
@@ -2562,7 +2570,7 @@ html.kb .ch-bar{padding-bottom:8px}
     $("cminip").querySelector("em").style.backgroundImage = mode === "snap" && shown[0] ? "url('" + pic(shown[0]) + "')" : "";
     paintFilters();
     var can = !(sending || (mode === "snap" ? !photos.length : !t));
-    $("csend").disabled = !can; $("csend2").disabled = !can;
+    $("csend").disabled = !can; $("csend2").disabled = !can; $("csendk").disabled = !can;
     paintBar();
   }
   /* THE ROW OF BUTTONS AT THE BOTTOM */
@@ -2580,8 +2588,8 @@ html.kb .ch-bar{padding-bottom:8px}
     };
     var sc = stickerCount(), tags = (NEED[need] && need !== "talk" ? 1 : 0) + (!composeGroup && tagGroup ? 1 : 0) + hashIn($("cbody").value).length;
     set("photos", !ed && mode !== "sign", (collage ? collage.src.length : photos.length) >= 4, false);
-    set("stickers", !ed && fun && mode !== "sign", !photos.length, sc > 0, sc);
-    set("filters", !ed && mode !== "sign", !photos.length, filtOn());
+    set("stickers", !ed && fun && mode !== "sign" && photos.length > 0, false, sc > 0, sc);      /* only once there's a picture: room for Share */
+    set("filters", !ed && mode !== "sign" && photos.length > 0, false, filtOn());
     set("collage", !ed && fun && !!collage, false, true);      /* "Look": only while it IS a collage; the switch under the picture turns one on */
     set("card", !photos.length && (!ed || mode === "sign"), false, mode === "sign");
     set("tags", true, false, tags > 0, tags);
@@ -2921,6 +2929,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   document.addEventListener("click", async function (e) { if (e.target.closest && e.target.closest("#invgo")) { await closeTop(); invite(); } });
   $("csend").addEventListener("click", function () { pauseFor = "post"; sendPost(false); });
+  $("csendk").addEventListener("click", function () { try { $("cbody").blur(); } catch (e) {} $("csend").click(); });
 
   /* ---- the pause ---- */
   var pauseFor = "post";

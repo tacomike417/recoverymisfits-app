@@ -798,3 +798,4 @@ without making it confusing.
 - `porch_56_profile_stats.sql`: `porch_seen` (no phone can read it), `porch_ping()` (the page calls it every 3 minutes while showing), `porch_profile_stats(user)`. Last-on time is only told to signed-in people, never to someone blocked.
 - Never a zero applies: a count shows at 2 and up. House accounts never show Active. Nothing shown after 7 days away.
 - Not done: green dots on avatars elsewhere (feed, Messages, friends list). Profile only for now.
+- [x] v181: Share moved to the right end of the bottom row on the share screen (always on screen). A Share shows in the top bar only while the keyboard is up, since the bottom row hides then. The "Look" button is gone (Mike: a collage is wood, "what you get is what you get"); that also drops the hashtag strip on the collage, Corkboard/Black, and Shuffle. Stickers and Filters only show once there is a picture.
