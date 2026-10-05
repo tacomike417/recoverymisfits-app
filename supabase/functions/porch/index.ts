@@ -109,11 +109,17 @@ async function webRisk(u: URL) {
   const q = new URLSearchParams();
   ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE"].forEach((t) => q.append("threatTypes", t));
   q.set("uri", u.href); q.set("key", VISION);
-  try { const r = await fetch("https://webrisk.googleapis.com/v1/uris:search?" + q); if (!r.ok) return "error"; return (await r.json())?.threat ? "bad" : "ok"; }
-  catch { return "error"; }
+  try { const r = await fetch("https://webrisk.googleapis.com/v1/uris:search?" + q); if (!r.ok) { linkWhy = "the scam check said " + r.status; return "error"; } return (await r.json())?.threat ? "bad" : "ok"; }
+  catch { linkWhy = "the scam check didn't answer"; return "error"; }
 }
+/* why the last link check couldn't finish (for finding out what is down; never shown to members) */
+let linkWhy = "";
+/* YouTube is YouTube (v184): its links skip the two outside checks, so a check being down never blocks a video.
+   The words on the post and the video's thumbnail are still checked like everything else. */
+const TRUSTED = ["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be"];
 async function checkLinks(text: string): Promise<string | null> {
-  const links = linksIn(text).filter((u) => !OURS.includes(u.hostname.toLowerCase()));
+  linkWhy = "";
+  const links = linksIn(text).filter((u) => !OURS.includes(u.hostname.toLowerCase()) && !TRUSTED.includes(u.hostname.toLowerCase()));
   if (!links.length) return null;
   if (links.length > 3) return "That's a lot of links. Use 3 or fewer.";
   if (links.some((u) => SHORT.has(u.hostname.toLowerCase().replace(/^www\./, "")))) return "Short links hide where they go. Paste the full link instead.";
@@ -122,7 +128,7 @@ async function checkLinks(text: string): Promise<string | null> {
   if (!VISION) return "Links can't be checked right now, so that wasn't posted.";
   for (const u of links) {
     const f = await family(u);
-    if (f !== "ok") return f === "bad" ? "That link goes to a blocked site." : "Links can't be checked right now, so that wasn't posted.";
+    if (f !== "ok") { if (f !== "bad") linkWhy = "the family filter didn't answer"; return f === "bad" ? "That link goes to a blocked site." : "Links can't be checked right now, so that wasn't posted."; }
     const w = await webRisk(u);
     if (w !== "ok") return w === "bad" ? "That link is flagged for scams or malware." : "Links can't be checked right now, so that wasn't posted.";
   }
@@ -824,7 +830,7 @@ Deno.serve(async (req) => {
   /* the preview card while they are still writing (v183): the same safety check and the same card a post gets */
   if (b.action === "link_preview") {
     const bad = await checkLinks(text);
-    if (bad) return json({ ok: true, preview: null, blocked: bad });
+    if (bad) return json({ ok: true, preview: null, blocked: bad, why: linkWhy || undefined });
     return json({ ok: true, preview: await previewFor(text) });
   }
   if (b.action === "scan") {
