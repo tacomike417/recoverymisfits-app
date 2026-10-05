@@ -186,6 +186,7 @@
   .mine{margin:12px 0 0;padding:12px 14px;border-radius:16px;border:1.5px solid var(--gold);background:rgba(215,178,83,.10);font-family:var(--ui);font-size:14px;line-height:1.45;color:var(--ivory);text-align:center}
   .mine b{display:block;color:#fff;font-size:15px;margin-bottom:2px}
   .porchcard{margin:16px 0 0;padding:15px 16px;border-radius:14px;border:1px solid rgba(215,178,83,.34);background:rgba(215,178,83,.07)}
+  .porchcard.plain{margin:10px 0 0;padding:0;border:0;background:none}
   .porchcard h2{font-family:var(--ui);font-weight:800;font-size:10px;letter-spacing:1.7px;text-transform:uppercase;color:var(--gold);margin:0 0 9px}
   .porchcard p{font-family:var(--ui);font-size:13px;line-height:1.6;color:var(--ivory);margin:0 0 10px}
   .go:active:not([disabled]){background:#e6c877}
@@ -526,16 +527,19 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   <div id="datestep" hidden>
     <p class="signedas">Signed in as <b id="dsWho"></b>
       <button type="button" id="dsSwitchTop" style="margin-left:8px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--gold);font:800 13px var(--ui);cursor:pointer">Switch</button></p>
-    <div class="warn" style="text-align:center">
-      <h2 id="dsKick">One more thing</h2>
-      <p id="dsAsk" style="text-align:center">When did you get sober?</p>
+    <!-- THIS SCREEN, IN ORDER (5 Oct 2026, Mike: "I want this to be a little more organized").
+         1. Pick My Sober Date   2. Set Up My Profile   then, a few lines down, the small
+         "Nah, I'm good" link, and Sign Out under that. The "One more thing / When did you get
+         sober?" box is gone, and so is the line about syncing. Once a date is picked, its box
+         (the date and the day count) takes the place of button 1. -->
+    <div class="warn" id="dsBox" style="text-align:center" hidden>
+      <h2 id="dsKick">You&rsquo;re all set</h2>
+      <p id="dsAsk" style="text-align:center" hidden>When did you get sober?</p>
       <div id="dsDone" hidden>
         <p class="dsDate" id="dsDate"></p>
         <p class="dsDays" id="dsDays"></p>
       </div>
     </div>
-    <!-- The "this is for you and only you" box lived here (3 Oct 2026). On 5 Oct Mike moved it: shorter, and
-         above the wheels in the date picker itself (nav.js, .rm-modal-mine), where they actually set the date. -->
 
     <!-- the phone and the account disagreed about the date (this markup was missing) -->
     <div class="clash" id="clash" hidden>
@@ -544,7 +548,10 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       <button type="button" class="pick" id="pickLocal"><span>Keep this phone&rsquo;s</span><b id="pickLocalT"></b></button>
     </div>
 
-    <!-- LEVEL 2: your Porch profile -->
+    <button class="go" type="button" id="dsPick" style="margin-top:14px">1. Pick My Sober Date</button>
+
+    <!-- LEVEL 2: your Porch profile. Plain button 2 while there is a profile to set up;
+         the little card with words comes back for "Edit my profile" and "opens October 20". -->
     <div class="porchcard" id="porchCard" hidden>
       <h2 id="pcKick">Your Porch profile</h2>
       <p id="pcTxt"></p>
@@ -552,22 +559,17 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       <a class="go" id="pcMine" href="/feed/porch.html?u=me" hidden
          style="text-decoration:none;background:transparent;color:var(--gold);margin-top:8px">See my profile</a>
     </div>
-    <button class="go" type="button" id="dsPick" style="margin-top:14px">Pick My Sober Date</button>
     <a class="go" id="dsHome" href="/index.html" data-return hidden
        style="margin-top:14px;text-decoration:none">Take Me Home</a>
-    <button class="go" type="button" id="dsSwitch"
-            style="background:transparent;color:var(--gold);border-color:var(--line);margin-top:8px">
-      Switch or Add Account</button>
-    <button class="go" type="button" id="dsOut"
-            style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:8px">
-      Sign Out</button>
     <p class="say" id="say2" role="status" aria-live="polite"></p>
-    <!-- "NOT RIGHT NOW" WAS A BUTTON (5 Oct 2026, Mike): now a small link, lower down, in plain talk.
-         showDateStep() sets the words to match where it really goes (the Porch, or back home). -->
-    <button type="button" class="textlink" id="dsSkip" style="font-size:13px;margin-top:18px">Nah, I&rsquo;m good, take me to The Porch</button>
-    <p id="dsOutNote" style="text-align:center;font-family:var(--ui);font-size:11.5px;color:var(--muted);margin:10px 0 0">
-      Signing out stops the syncing. It does not erase anything on this phone.
-    </p>
+
+    <button type="button" class="textlink" id="dsSkip" style="font-size:13px;margin-top:34px">Nah, I&rsquo;m good, take me to The Porch</button>
+    <button class="go" type="button" id="dsOut"
+            style="background:transparent;color:var(--muted);border-color:var(--line);margin-top:14px">
+      Sign Out</button>
+    <!-- kept in the page, never shown: the Switch pill up top does this job, and the syncing line is retired -->
+    <button class="go" type="button" id="dsSwitch" hidden>Switch or Add Account</button>
+    <p id="dsOutNote" hidden></p>
     <!-- DELETE MY APP ACCOUNT (1 Oct 2026, big list): small, at the very bottom -->
     <button type="button" class="forgot" id="delAcct" style="margin-top:26px;color:var(--muted);font-size:12px">Delete my account</button>
     <p class="say" id="sayDel" role="status" aria-live="polite"></p>
@@ -674,6 +676,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   function showDateStep() {
     var d = soberDate();
     if (d) {
+      $("dsBox").hidden = false;
       $("dsKick").textContent = "You're all set";
       $("dsAsk").hidden = true;
       $("dsDone").hidden = false;
@@ -681,7 +684,6 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       var n = daysSince(d);
       $("dsDays").textContent = n === null ? "" : n.toLocaleString() + (n === 1 ? " day" : " days");
       $("dsPick").hidden = true;
-      $("dsSkip").hidden = true;
       var setup = wantsPorch() && !profDone();
       $("dsHome").href = setup ? "/feed/porch.html?setup=1" : RETURN_TO;
       $("dsHome").textContent = setup ? "Next: Set Up My Profile" : next === "readings" ? "Back to Readings" : next === "feed" ? "Back to the Porch" : "Take Me Home";
@@ -695,17 +697,19 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
       }
       $("dsHome").hidden = false;
     } else {
-      $("dsKick").textContent = signingUp ? "You're in! Let's set you up." : "One more thing";
-      $("dsAsk").hidden = false;
+      $("dsBox").hidden = true;                 /* no "One more thing" box: button 1 says it */
       $("dsDone").hidden = true;
       $("dsPick").hidden = false;
-      $("dsSkip").hidden = false;
-      $("dsSkip").textContent = skipTo().indexOf("/feed/") === 0 ? "Nah, I\u2019m good, take me to The Porch" : "Nah, I\u2019m good, take me home";
       $("dsHome").hidden = true;
     }
+    /* the small link is always there, and its words say where it really goes */
+    $("dsSkip").hidden = false;
+    var to = skipTo();
+    $("dsSkip").textContent = to.indexOf("/feed/") === 0 ? "Nah, I\u2019m good, take me to The Porch"
+      : to === "/index.html" ? "Nah, I\u2019m good, take me home" : "Nah, I\u2019m good, take me back";
     if (!signingUp && !next) $("dsHome").hidden = true;       /* only shown when it has somewhere particular to send them */
     paintPorchCard();
-    $("porchCard").hidden = $("porchCard").hidden || (wantsPorch() && !profDone());   /* the big button already says it */
+    $("porchCard").hidden = $("porchCard").hidden || (wantsPorch() && !profDone() && !$("dsHome").hidden);   /* only when the big button already says it */
     paint("date");
   }
 
@@ -722,9 +726,12 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   });
 
   /* where "Nah, I'm good" goes: the same places "Not Right Now" always went */
+  /* The Porch, when it is open for them. Somebody sent here from Readings goes back to Readings.
+     Before the Porch opens (and off a beta phone) it is home. "Nah, I'm good" skips the set-up
+     too, so it is the plain Porch, never the profile screens. */
   function skipTo() {
-    if (signingUp && porchFor(A.name())) return picked() === "2" ? "/feed/porch.html?setup=1" : "/feed/porch.html";
-    return wantsPorch() && !profDone() ? "/feed/porch.html?setup=1" : RETURN_TO;
+    if (next && next !== "feed" && BACKS[next]) return RETURN_TO;
+    return porchFor(A.name()) ? "/feed/porch.html" : "/index.html";
   }
   $("dsSkip").addEventListener("click", function () { location.href = skipTo(); });
 
@@ -764,12 +771,16 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     if (!porchFor(A.name())) {
       $("pcKick").textContent = "Pull up a chair · the Porch";
       $("pcTxt").textContent = "Post, make Spins, add friends and message. It opens October 20.";
+      c.classList.remove("plain"); $("pcKick").hidden = false; $("pcTxt").hidden = false;
       $("pcGo").hidden = true; $("pcMine").hidden = true; return;
     }
     $("pcKick").textContent = "Your Porch profile";
-    $("pcTxt").textContent = done ? "Picture, bio, who can see you and finding friends." : "Picture, bio, who can see you, then find your people. About a minute.";
-    $("pcGo").hidden = false; $("pcGo").textContent = done ? "Edit my profile" : "Set up my profile";
+    $("pcTxt").textContent = done ? "Picture, bio, who can see you and finding friends." : "";
+    $("pcGo").hidden = false; $("pcGo").textContent = done ? "Edit my profile" : (soberDate() ? "Set Up My Profile" : "2. Set Up My Profile");
     $("pcMine").hidden = !done;
+    /* nothing set up yet: a plain button, no card around it (5 Oct 2026) */
+    c.classList.toggle("plain", !done);
+    $("pcKick").hidden = !done; $("pcTxt").hidden = !done;
   }
 
   /* ---- pick your level ---- */
