@@ -977,3 +977,13 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 ## v213 (6 Oct 2026) - a small sheet before a link opens
 - Tapping a link icon on a profile (or in the preview) slides up a sheet with what it is, the address, and an
   Open button. Mike picked this over jumping straight to the page.
+
+## v214 + v215 (6 Oct 2026) - an Ask is easier to follow, both ends
+- Mike tested a real Ask (realmrhyde -> tacomike417). It arrived, but tapping the phone buzz landed on the
+  asker's profile, not on the note.
+- `supabase/functions/porch-push/index.ts` (DEPLOY IT): the buzz for an Ask says "wants to ask you about ___",
+  shows the note, and a tap opens Alerts, where the note and Be Friends and Reply are.
+- The asker's profile shows a gold-edged card with their note until it's answered.
+- **Messages has a Sent tab** (Mike: "a sent messages tab to keep track"). Asks you sent that are still waiting:
+  who, what about, your note, how long ago, and Take it back. The tabs only show when something is waiting.
+  When they say yes the note moves to Messages as the first message.

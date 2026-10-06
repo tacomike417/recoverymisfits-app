@@ -710,6 +710,9 @@ html.fullon #main{visibility:hidden}
 .pa-body{padding:0 16px}
 .pa-bio{margin:10px 0 0;color:var(--soft);font:600 15px/1.4 Arial,sans-serif;white-space:pre-wrap}
 .pa-bio.none{color:var(--faint)}
+.pa-asked{margin-top:12px;padding:12px;border-radius:14px;border:1px solid var(--gold2);background:var(--field)}
+.pa-asked b{display:block;font:700 14.5px/1.35 Arial,sans-serif;color:var(--cream)}
+.pa-asked small{display:block;margin-top:8px;color:var(--soft);font:600 12.5px Arial,sans-serif}
 .pa-more{margin-top:10px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
 .pa-song{display:inline-flex;align-items:center;gap:9px;max-width:100%;min-height:40px;padding:0 14px 0 6px;border-radius:20px;border:1px solid var(--fline);background:var(--field);color:var(--cream);font:700 13.5px Arial,sans-serif;cursor:pointer;text-align:left}
 .pa-song span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1239,6 +1242,15 @@ html.kb .ctools{display:none}
 .dm-head h2{flex:1;margin:0;font:900 24px/1.1 -apple-system,Segoe UI,Roboto,Arial,sans-serif;letter-spacing:-.01em;color:#fff}
 .dm-pill{flex:none;display:flex;align-items:center;gap:6px;padding:9px 14px;border:0;border-radius:999px;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b;font:800 13.5px/1 Arial,sans-serif;cursor:pointer}
 .dm-pill .ico{width:16px;height:16px;stroke-width:2.4}
+.dm-tabs{display:flex;gap:8px;padding:8px 16px 4px}
+.dm-tabs button{min-height:40px;padding:0 18px;border-radius:20px;border:1.5px solid rgba(214,179,106,.45);background:none;color:#f4ecd8;font:700 14px Arial,sans-serif;cursor:pointer}
+.dm-tabs button.on{background:#e0bd6a;border-color:#e0bd6a;color:#17130b}
+.sent-row{display:flex;align-items:flex-start;gap:13px;padding:12px 16px}
+.sent-row .tw{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;color:#f4ecd8;font:15px -apple-system,Segoe UI,Roboto,Arial,sans-serif}
+.sent-row .tw small{color:#b9ae96;font-size:13.5px;line-height:1.35}
+.sent-row .tw i{font-style:normal;color:#e0bd6a;font:700 12px Arial,sans-serif}
+.sent-row button.back{flex:none;min-height:40px;padding:0 12px;border-radius:20px;border:1.5px solid rgba(214,179,106,.45);background:none;color:#f4ecd8;font:700 12.5px Arial,sans-serif;cursor:pointer}
+.dm-list[hidden]{display:none}
 .dm-list{flex:1;overflow-y:auto;padding:6px 0 calc(16px + env(safe-area-inset-bottom,0px))}
 .dmui .av{border:2px solid transparent;background-clip:padding-box;box-shadow:0 0 0 2px #0c0b09,0 0 0 3.5px #c9a253}
 .th-row{display:flex;align-items:center;gap:13px;width:100%;padding:11px 16px;border:0;background:none;color:#f4ecd8;text-align:left;cursor:pointer;font:15px -apple-system,Segoe UI,Roboto,Arial,sans-serif}
@@ -1383,7 +1395,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v213</span>
+  <span class="ver" id="ver">v215</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1659,7 +1671,9 @@ html.kb .ch-bar{padding-bottom:8px}
 <!-- MESSAGES: the inbox -->
 <div id="inbox" class="layer full dmui" role="dialog" aria-modal="true" aria-label="Messages"><div class="page dmpage">
   <div class="dm-head"><button type="button" class="bk" data-close aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Messages</h2><button type="button" class="dm-pill line" data-newgc>Group</button><button type="button" class="dm-pill" data-newdm><span data-ico="newdm"></span>New</button></div>
+  <div class="dm-tabs" id="dmtabs" hidden><button type="button" class="on" data-dmtab="in">Messages</button><button type="button" data-dmtab="sent">Sent</button></div>
   <div class="dm-list" id="thlist"></div>
+  <div class="dm-list" id="sentlist" hidden></div>
 </div></div>
 
 <!-- POOF (v176, Mike: "you flip the trade finder on or off, we should be able to flip this on or off too ...
@@ -3592,6 +3606,8 @@ html.kb .ch-bar{padding-bottom:8px}
         (TEST.indexOf(String(m.handle || "").toLowerCase()) >= 0 ? '<span class="pa-badge">FOUNDING MISFIT</span>' : "") +
         '<p class="pa-act" data-act="' + esc(uid) + '" hidden></p><div class="pa-stats" data-st="' + esc(uid) + '" hidden></div>' + "</div></div>" +
       '<div class="pa-body">' +
+        /* they asked you something and you haven't answered: say so right here, with their note */
+        (!mineP && reqIn[uid] && reqIn[uid].note ? '<div class="pa-asked"><b>' + esc(name(uid)) + " wants to be friends and ask you about " + esc(reqIn[uid].about || "something") + '</b><div class="nd-askq">' + esc(reqIn[uid].note) + "</div><small>Tap Be Friends and Reply to write back.</small></div>" : "") +
         (m.bio ? '<p class="pa-bio">' + esc(m.bio) + "</p>" : mineP ? '<p class="pa-bio none">Add a line about you.</p>' : "") +
         '<div class="pa-more" data-more="' + esc(uid) + '" hidden></div>' +
         '<div class="pa-links" data-lk="' + esc(uid) + '" hidden></div>' +
@@ -3839,7 +3855,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var j = await fn("porch", { action: "ask_send", to: uid, about: askTo.about, body: note });
     btn.disabled = false;
     var st = j && j.state;
-    if (st === "ok") { reqOut[uid] = true; await closeTop(); repaintFriend(uid); return toast("Sent. They'll see it next time they're on."); }
+    if (st === "ok") { reqOut[uid] = true; await closeTop(); repaintFriend(uid); return toast("Sent. It waits under Messages, Sent, until they answer."); }
     if (st === "friends_now" || st === "friends") {
       friends[uid] = true; delete reqIn[uid]; delete reqOut[uid]; await closeTop(); repaintFriend(uid);
       await openChat(uid); if (st === "friends") { $("dmin").value = note; paintDmBox(); } return;
@@ -5291,9 +5307,40 @@ html.kb .ch-bar{padding-bottom:8px}
   var otherOf = function (t) { return t.a === me.uid ? t.b : t.a; };
   var myReadOf = function (t) { return t.a === me.uid ? t.a_read_at : t.b_read_at; };
   var theirReadOf = function (t) { return t.a === me.uid ? t.b_read_at : t.a_read_at; };
+  /* SENT (6 Oct 2026, Mike: "in messages we had a sent messages tab to keep track"). An Ask you sent to
+     somebody who isn't a friend yet is not a message until they say yes, so it had nowhere to show. It
+     waits here. The tabs only appear when something is waiting, so Messages stays clean for everybody else. */
+  var sentAsks = [];
+  function dmTab(which) {
+    var sent = which === "sent" && sentAsks.length;
+    $("dmtabs").querySelectorAll("[data-dmtab]").forEach(function (b) { b.classList.toggle("on", (b.dataset.dmtab === "sent") === !!sent); });
+    $("thlist").hidden = !!sent; $("sentlist").hidden = !sent;
+  }
+  function paintSent() {
+    $("dmtabs").hidden = !sentAsks.length;
+    $("sentlist").innerHTML = sentAsks.map(function (r) {
+      return '<div class="sent-row"><span class="th-av" data-u="' + r.to_id + '">' + avatar(people[r.to_id]) + '</span><span class="tw"><b>' + esc(name(r.to_id)) + "</b>" +
+        "<small>You asked" + (r.about ? " about " + esc(r.about) : "") + ": “" + esc(r.note) + "”</small><i>Waiting · " + ago(r.created_at) + '</i></span>' +
+        '<button type="button" class="back" data-askback="' + r.to_id + '">Take it back</button></div>';
+    }).join("") + '<p class="dm-safe">When they say yes, your note moves to Messages as the first message.</p>';
+    if (!sentAsks.length) dmTab("in");
+  }
+  async function loadSent() {
+    sentAsks = [];
+    try { sentAsks = await rest("porch_friend_requests?from_id=eq." + me.uid + "&note=not.is.null&select=to_id,note,about,created_at&order=created_at.desc&limit=40"); await loadPeople(sentAsks.map(function (r) { return r.to_id; })); } catch (e) { sentAsks = []; }
+    paintSent();
+  }
+  $("dmtabs").addEventListener("click", function (e) { var b = e.target.closest("[data-dmtab]"); if (b) dmTab(b.dataset.dmtab); });
+  $("sentlist").addEventListener("click", async function (e) {
+    var b = e.target.closest("[data-askback]"); if (!b) return; e.stopPropagation();
+    var uid = b.dataset.askback; b.disabled = true;
+    try { await rest("porch_friend_requests?from_id=eq." + me.uid + "&to_id=eq." + uid, { method: "DELETE" }); } catch (x) { b.disabled = false; return toast("That didn't go through."); }
+    delete reqOut[uid]; sentAsks = sentAsks.filter(function (r) { return r.to_id !== uid; }); paintSent(); repaintFriend(uid); toast("Taken back.");
+  }, true);
   async function openInbox() {
     if (!signedIn()) return open("join");
-    $("thlist").innerHTML = '<div class="skel" style="height:160px;margin:12px"></div>'; open("inbox");
+    $("thlist").innerHTML = '<div class="skel" style="height:160px;margin:12px"></div>'; dmTab("in"); $("dmtabs").hidden = true; open("inbox");
+    loadSent();
     var list = [];
     try { list = await rest("porch_threads?or=(a.eq." + me.uid + ",b.eq." + me.uid + ")&select=*&order=last_at.desc&limit=60"); } catch (e) {}
     list = list.filter(function (t) { return t.last_from; });

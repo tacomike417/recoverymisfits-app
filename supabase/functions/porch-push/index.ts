@@ -259,13 +259,24 @@ Deno.serve(async (req) => {
   await vapid();
   // like Jeff's: the title says who did what, the body is what they said
   const who = actor?.handle || "Somebody";
-  const words = n.kind === "mention" ? (n.comment_id ? "tagged you in a comment" : "tagged you in a share") : (WORDS[n.kind] || "did something");
-  const text = String((said as any)?.body || "").replace(/\s+/g, " ").trim();
+  let words = n.kind === "mention" ? (n.comment_id ? "tagged you in a comment" : "tagged you in a share") : (WORDS[n.kind] || "did something");
+  let text = String((said as any)?.body || "").replace(/\s+/g, " ").trim();
+  /* ASK ME ABOUT (6 Oct 2026): a friend request that carries a note says so, shows the note, and a tap
+     lands on Alerts, where the note and "Be Friends and Reply" are. (Mike got "sent you a friend request",
+     landed on a profile, and went looking in Messages.) */
+  let isAsk = false;
+  if (n.kind === "friend_request") {
+    try {
+      const { data: rq } = await admin.from("porch_friend_requests").select("note, about").eq("from_id", n.actor_id).eq("to_id", n.user_id).maybeSingle();
+      if (rq?.note) { isAsk = true; words = "wants to ask you about " + (String(rq.about || "").trim() || "something"); text = String(rq.note).replace(/\s+/g, " ").trim(); }
+    } catch { /* plain friend request wording */ }
+  }
   const q = new URLSearchParams();
   if (n.post_id) { q.set("s", n.post_id); if (n.comment_id) q.set("c", n.comment_id); q.set("k", n.kind); q.set("a", n.actor_id); }
   else if (n.kind === "group_review" || n.kind === "group_cokeeper" || n.kind === "group_declined") q.set("groups", "1");
   else if (n.group_id) q.set("g", n.group_id);
   else if (n.kind === "report") q.set("mod", "1");
+  else if (isAsk) q.set("notes", "1");
   else if (n.kind === "friend_request" || n.kind === "friend_accept" || n.kind === "follow") q.set("who", n.actor_id);
   else q.set("notes", "1");
   /* ONE BUZZ, NOT A BUNCH (3 Oct 2026, Mike: "I don't want to bug the shit out of them on their

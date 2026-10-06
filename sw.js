@@ -31,7 +31,7 @@
    normal browser behavior after four seconds, so this can never be the
    reason somebody is staring at a blank screen. */
 
-const VERSION = "house106-2026-10-06";
+const VERSION = "house108-2026-10-06";
 
 /* SHARING INTO THE APP (1 Oct 2026, Mike: "would you like to share this to your
    spins or would you like to make a post?"). On Android, the app shows up in the
