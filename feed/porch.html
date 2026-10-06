@@ -1252,6 +1252,8 @@ html.kb .ctools{display:none}
 .dm-tabs{display:flex;gap:8px;padding:8px 16px 4px}
 .dm-tabs button{min-height:40px;padding:0 18px;border-radius:20px;border:1.5px solid rgba(214,179,106,.45);background:none;color:#f4ecd8;font:700 14px Arial,sans-serif;cursor:pointer}
 .dm-tabs button.on{background:#e0bd6a;border-color:#e0bd6a;color:#17130b}
+.dm-tabs button{display:inline-flex;align-items:center;gap:7px}
+.dm-tabs button i{font-style:normal;min-width:20px;padding:0 6px;border-radius:10px;background:#c4563c;color:#fff;font:800 12px/20px Arial,sans-serif;text-align:center}
 .sent-row{display:flex;align-items:flex-start;gap:13px;padding:12px 16px}
 .sent-row .tw{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;color:#f4ecd8;font:15px -apple-system,Segoe UI,Roboto,Arial,sans-serif}
 .sent-row .tw small{color:#b9ae96;font-size:13.5px;line-height:1.35}
@@ -1402,7 +1404,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v216</span>
+  <span class="ver" id="ver">v217</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -5329,18 +5331,19 @@ html.kb .ch-bar{padding-bottom:8px}
      waits here. The tabs only appear when something is waiting, so Messages stays clean for everybody else. */
   var sentAsks = [];
   function dmTab(which) {
-    var sent = which === "sent" && sentAsks.length;
+    var sent = which === "sent";
     $("dmtabs").querySelectorAll("[data-dmtab]").forEach(function (b) { b.classList.toggle("on", (b.dataset.dmtab === "sent") === !!sent); });
     $("thlist").hidden = !!sent; $("sentlist").hidden = !sent;
   }
   function paintSent() {
-    $("dmtabs").hidden = !sentAsks.length;
-    $("sentlist").innerHTML = sentAsks.map(function (r) {
+    var sb = $("dmtabs").querySelector('[data-dmtab="sent"]'); if (sb) sb.innerHTML = "Sent" + (sentAsks.length >= 1 ? " <i>" + sentAsks.length + "</i>" : "");
+    /* always there (6 Oct 2026, Mike: "where are my sent messages"), so nobody has to hunt for it */
+    $("dmtabs").hidden = false;
+    $("sentlist").innerHTML = !sentAsks.length ? '<div class="dm-empty"><b>Nothing waiting</b>When you tap an Ask me about on somebody who isn\'t your friend yet, your note waits here until they answer.</div>' : sentAsks.map(function (r) {
       return '<div class="sent-row"><span class="th-av" data-u="' + r.to_id + '">' + avatar(people[r.to_id]) + '</span><span class="tw"><b>' + esc(name(r.to_id)) + "</b>" +
         "<small>You asked" + (r.about ? " about " + esc(r.about) : "") + ": “" + esc(r.note) + "”</small><i>Waiting · " + ago(r.created_at) + '</i></span>' +
         '<button type="button" class="back" data-askback="' + r.to_id + '">Take it back</button></div>';
     }).join("") + '<p class="dm-safe">When they say yes, your note moves to Messages as the first message.</p>';
-    if (!sentAsks.length) dmTab("in");
   }
   async function loadSent() {
     sentAsks = [];
@@ -5356,7 +5359,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }, true);
   async function openInbox() {
     if (!signedIn()) return open("join");
-    $("thlist").innerHTML = '<div class="skel" style="height:160px;margin:12px"></div>'; dmTab("in"); $("dmtabs").hidden = true; open("inbox");
+    $("thlist").innerHTML = '<div class="skel" style="height:160px;margin:12px"></div>'; dmTab("in"); $("dmtabs").hidden = false; open("inbox");
     loadSent();
     var list = [];
     try { list = await rest("porch_threads?or=(a.eq." + me.uid + ",b.eq." + me.uid + ")&select=*&order=last_at.desc&limit=60"); } catch (e) {}

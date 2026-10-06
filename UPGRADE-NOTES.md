@@ -998,3 +998,9 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   card. It opens the same menu a chat's dots open. Blocking takes the request away.
 - **988 in chats**: one small line under the typing box in every chat: "Having a hard time? A real person
   answers. Call 988". Same words as the post screen.
+
+## v217 (6 Oct 2026) - the Sent tab is always there
+- Mike: "where are my sent messages." The Messages / Sent pills now always show at the top of Messages. Sent with
+  nothing in it says "Nothing waiting" and what shows up there. A red count sits on Sent when asks are waiting.
+- Leaving a group chat already existed: the dots at the top right of a group chat, "Leave this chat" at the
+  bottom, tap twice. Nothing changed there.
