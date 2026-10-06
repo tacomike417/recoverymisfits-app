@@ -749,6 +749,13 @@ html.fullon #main{visibility:hidden}
 .pa-link{display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 13px 0 11px;border-radius:18px;border:1px solid var(--fline);background:var(--field);color:var(--cream);text-decoration:none;font:700 13.5px Arial,sans-serif;max-width:100%}
 .pa-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pa-link svg,.elrow svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--gold);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pa-link.ico{width:40px;min-height:40px;padding:0;justify-content:center;border-radius:50%}
+.pa-link.ico svg{width:20px;height:20px}
+.elchips{display:flex;flex-wrap:wrap;gap:8px}
+.elchip{display:inline-flex;align-items:center;gap:6px;max-width:100%;min-height:40px;padding:0 2px 0 11px;border-radius:20px;border:1px solid var(--fline);background:var(--field)}
+.elchip svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--gold);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.elchip b{font:700 13.5px Arial,sans-serif;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}
+.elchip button{flex:none;width:36px;height:38px;border:0;background:none;color:var(--muted);font:400 22px/1 Arial,sans-serif;cursor:pointer}
 .elinks{display:flex;flex-direction:column;gap:8px}
 .elinks p{margin:0;color:var(--soft);font:600 13px/1.4 Arial,sans-serif}
 .elrow{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 6px 0 12px;border-radius:12px;border:1px solid var(--fline);background:var(--field)}
@@ -1376,7 +1383,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v207</span>
+  <span class="ver" id="ver">v208</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3965,7 +3972,7 @@ html.kb .ch-bar{padding-bottom:8px}
     try { var x = new URL(v); if (!/^https?:$/.test(x.protocol) || x.hostname.indexOf(".") < 1) return ""; return x.href.length <= 200 && !/[<>"']/.test(x.href) ? x.href : ""; } catch (e) { return ""; }
   }
   function linkChips(list) {
-    return (list || []).map(function (u) { var k = linkKind(u); return '<a class="pa-link" href="' + esc(u) + '" target="_blank" rel="noopener nofollow ugc">' + k.icon + "<span>" + esc(k.label) + "</span></a>"; }).join("");
+    return (list || []).map(function (u) { var k = linkKind(u); return '<a class="pa-link ico" href="' + esc(u) + '" target="_blank" rel="noopener nofollow ugc" aria-label="' + esc(k.label) + '" title="' + esc(k.label) + '">' + k.icon + "</a>"; }).join("");
   }
   async function fillLinks(uid) {
     if (!me.uid || !(uid === me.uid || isMod || (me.member && me.member.verified_at))) return;
@@ -3982,10 +3989,11 @@ html.kb .ch-bar{padding-bottom:8px}
     if (!linksCan.ok) {
       el.innerHTML = "<p>Links open up after 30 days on the Porch. " + linksCan.days_left + (linksCan.days_left === 1 ? " day" : " days") + " to go.</p>"; return;
     }
-    el.innerHTML = myLinks.map(function (u, i) {
+    /* just the icons, in one row (6 Oct 2026, Mike: "we just need to display the icons, this is getting bloated") */
+    el.innerHTML = (myLinks.length ? '<div class="elchips">' + myLinks.map(function (u, i) {
         var k = linkKind(u);
-        return '<div class="elrow">' + k.icon + '<span class="w"><b>' + esc(k.label) + "</b><small>" + esc(u.replace(/^https?:\/\/(www\.)?/i, "").replace(/\/$/, "")) + '</small></span><button type="button" data-lkx="' + i + '" aria-label="Remove this link">×</button></div>';
-      }).join("") +
+        return '<span class="elchip" title="' + esc(u) + '">' + k.icon + "<b>" + esc(k.label) + '</b><button type="button" data-lkx="' + i + '" aria-label="Remove ' + esc(k.label) + '">×</button></span>';
+      }).join("") + "</div>" : "") +
       (linkAdding ? '<div class="elnew"><input type="url" id="elin" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="200" placeholder="Paste a link" aria-label="Paste a link"><button type="button" data-lkok>Add</button></div><p>' + esc(msg || "Members can tap this. Only add it if you're good with that.") + "</p>"
         : myLinks.length < 5 ? '<button type="button" class="eladd" data-lkadd>+ Add a link</button>' : "<p>That's all 5. Take one off to add another.</p>");
     if (linkAdding) { var inp = $("elin"); if (inp) inp.focus(); }

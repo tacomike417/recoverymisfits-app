@@ -939,3 +939,8 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   answers kept a day), then Apple the script way. Waits 0.7s after typing and needs 3 letters, so fewer lookups.
   A search already done this visit is answered from memory.
 - His song got set to Simple Man / Lynyrd Skynyrd during that test. He can change it in Edit profile.
+
+## v208 (6 Oct 2026) - links are just icons
+- Mike: "we just need to display the icons, this is getting bloated." On a profile, links are small round icons
+  in one row (no words). In Edit profile they are small chips in one row (icon, name, X), not a tall list.
+  Still 5 links at most.
