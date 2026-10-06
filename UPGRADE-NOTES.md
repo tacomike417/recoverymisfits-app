@@ -969,3 +969,7 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   posts, so the new one replaced it and the feed sat on gray blocks forever. Renamed the new one `loadAskBox`.
 - Lesson for next time: before adding a function to porch.html, check the name isn't already there, and look at
   the FEED after every change, not just the screen that changed.
+
+## v212 (6 Oct 2026) - "View my profile" matches the profile
+- The preview in Edit profile now also shows the Founding Misfit badge, the Ask me about pills and the link icons.
+  Still not in the preview: the friends row, the Active now / friends / groups numbers, and the Spins and shares.
