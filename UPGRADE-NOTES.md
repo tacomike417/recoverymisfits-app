@@ -987,3 +987,14 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - **Messages has a Sent tab** (Mike: "a sent messages tab to keep track"). Asks you sent that are still waiting:
   who, what about, your note, how long ago, and Take it back. The tabs only show when something is waiting.
   When they say yes the note moves to Messages as the first message.
+
+## v216 (6 Oct 2026) - Poof icon and tip, report or block on an Ask, 988 in chats
+- **Poof icon**: Mike picked option 3 from his sheet (the puff cloud with sparkles). Drawn as our own little
+  cloud, sparkle and dots; replaces the wind emoji on the chat's Poof button.
+- **Poof tip**: when a one-on-one chat opens, a paper bubble points at the cloud: "This is Poof. A picture that
+  disappears after it's opened..." and what's left to do (turn it on, both say yes, trade a few messages).
+  Once a day at most, gone in 7 seconds or on a tap.
+- **Report or block right on an Ask**: a small "Report or block" link on the Ask alert and on the asker's profile
+  card. It opens the same menu a chat's dots open. Blocking takes the request away.
+- **988 in chats**: one small line under the typing box in every chat: "Having a hard time? A real person
+  answers. Call 988". Same words as the post screen.
