@@ -1004,3 +1004,7 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   nothing in it says "Nothing waiting" and what shows up there. A red count sits on Sent when asks are waiting.
 - Leaving a group chat already existed: the dots at the top right of a group chat, "Leave this chat" at the
   bottom, tap twice. Nothing changed there.
+
+## v218 (6 Oct 2026) - Give it a spin on your own profile
+- The gold camera on your profile faded out and the ring went red, but nobody slid in: that tile was missing the
+  drawing of the misfit taking a selfie. It has him now, same as the one in the feed's Spins row.

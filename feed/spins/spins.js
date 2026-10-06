@@ -353,7 +353,10 @@
      a gold glow now and then so the eye lands on it. */
   const CAM_ICO = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>';
   /* the same gold camera button, anywhere a Spin gets made: story row, player, profile */
-  const camBtn = (cls, label) => `<button type="button" class="sp-cambtn ${cls}" data-sp-make aria-label="Give it a spin"><span class="sp-ring"><span class="sp-cam">${CAM_ICO}</span><i class="sp-badge-plus">+</i></span>${label ? `<span class="sp-nm">${label}</span>` : ''}</button>`;
+  /* 6 Oct 2026: the profile's "Give it a spin" uses this with sp-mk, which fades the camera out and turns the
+     ring red, but it had no drawing of the misfit to slide in. So the camera just vanished. It gets him now. */
+  const SELFIE = '<img class="sp-selfie" src="/assets/spins/selfie-misfit.webp" alt="" aria-hidden="true">';
+  const camBtn = (cls, label) => `<button type="button" class="sp-cambtn ${cls}" data-sp-make aria-label="Give it a spin"><span class="sp-ring"><span class="sp-cam">${CAM_ICO}${/\bsp-mk\b/.test(cls) ? SELFIE : ''}</span><i class="sp-badge-plus">+</i></span>${label ? `<span class="sp-nm">${label}</span>` : ''}</button>`;
   const makeStory = () => `<button type="button" class="sp-story sp-mk" data-sp-make aria-label="Give it a spin"><span class="sp-ring"><span class="sp-cam">${CAM_ICO}<img class="sp-selfie" src="/assets/spins/selfie-misfit.webp" alt="" aria-hidden="true"></span><i class="sp-badge-plus">+</i></span><span class="sp-nm">Give it a spin</span></button>`;
 
   async function railHTML() {
