@@ -905,3 +905,28 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   Same check on the sign-up walk.
 - This is checked in the app, not in the database. A bio saved before today that has an address in it still shows,
   as plain words. Could add a database check later if anybody works around it.
+
+## v206 (6 Oct 2026) - ASK ME ABOUT + MY SONG (built; mockup: the "Ask me about" design)
+- **Ask me about**: up to 3 conversation starters under the bio. Members only. Type anything (Mike: "if they want
+  to act a fool they can"). Edit profile is a fill-in-the-blank with a changing example. No links allowed in them.
+- Tap a starter. Friends: Messages opens with the first line typed. Not friends yet: a paper sheet, the note already
+  written, one Send. It goes as a friend request with the note on it. One note per person until they answer.
+- The other person gets ONE alert with the note, "New this week" when they are, and **Be Friends and Reply** /
+  **Not Now**. Yes makes them friends and the note is the first message. Not Now is quiet, the asker still sees
+  "Requested".
+- SAME DOORS: every friend request button now says Be Friends / Not Now (was Confirm / Delete).
+- A brand-new account (under 3 days) can send an Ask, 3 a day. Plain Add Friend keeps its 3-day wait. (Mike picked this.)
+- **My song**: type a song, pick it from a short list, done. No pasting. Shows as a small record under the bio.
+  Tap it: Play on YouTube (a search for that exact song), Apple Music, Spotify. Also shows on the outside page of a
+  Public profile (YouTube link only).
+- The song list comes from Apple's free song search, straight from the phone. Only the title and artist are kept.
+  NO cover art and NO sound: Apple's rules only allow their art and previews on pages that promote Apple. The Apple
+  Music button is there partly for that reason.
+- Files: `supabase/porch_65_ask_and_song.sql` (run it), `supabase/functions/porch/index.ts` (deploy it: new
+  `ask_send` action), `feed/porch.html`, `functions/u/[handle].js`.
+- NOT DONE / OPEN:
+  - The phone buzz for an Ask still says "sent you a friend request" (porch-push not touched).
+  - Tap a starter to find other misfits who wrote the same thing: later, when there are more people.
+  - Only show starters on people who've been on lately, so a new person isn't left waiting? Not built.
+  - The YouTube tap is a search, not one hand-picked video.
+  - Not tried on the live site yet: the song lookup from a real phone, and a real Ask between two accounts.

@@ -506,6 +506,24 @@ Deno.serve(async (req) => {
   const { data: me } = await admin.from("porch_members").select("*").eq("user_id", user.id).maybeSingle();
   if (!me?.verified_at) return json({ error: "Confirm who you are to post.", need: "confirm" }, 403);
   if (me.frozen_at) return json({ error: "Your account is paused while someone looks at a report. Hang tight." }, 403);
+  /* ASK ME ABOUT (6 Oct 2026, Mike): tap a conversation starter on somebody who isn't your friend yet and
+     your note rides along on a friend request. This sits ABOVE the 3-day wait on purpose: the person it is
+     for is brand new. The database (porch_ask_send, SQL step 65) holds a new account to 3 asks a day and
+     one note per person until they answer. The words get the same checks as a message. */
+  if (b.action === "ask_send") {
+    const to = String(b.to || ""), note = String(b.body || "").trim(), about = String(b.about || "").trim().slice(0, 40);
+    if (!/^[0-9a-f-]{36}$/i.test(to) || to === user.id) return json({ error: "Pick somebody to ask." }, 400);
+    if (!note) return json({ error: "Say something first." }, 400);
+    if (note.length > 300) return json({ error: "That's too long. Keep it short." }, 400);
+    if (SLURS.test(note) || SLURS.test(about)) return json({ error: "That has a slur in it, so it wasn't sent." }, 400);
+    if (THREAT.test(note)) return json({ error: "That reads like a threat, so it wasn't sent." }, 400);
+    const al = await checkLinks(note); if (al) return json({ error: "No links in an ask. Just say hi." }, 400);
+    const { data: state, error: askErr } = await admin.rpc("porch_ask_send", { p_from: user.id, p_to: to, p_about: about, p_note: note });
+    if (askErr) return json({ error: /slow down/i.test(askErr.message || "") ? "That's a lot of requests. Take a breather." : "Asks aren't switched on yet." }, 400);
+    if (state === "no") return json({ error: "You can't ask them right now." }, 403);
+    return json({ ok: state === "ok" || state === "friends_now", state });
+  }
+
   // testers (porch_testers) and moderators skip the 3-day wait so Mike can test with a fresh account
   const { data: tester } = await admin.from("porch_testers").select("handle").eq("handle", me.handle).maybeSingle();
   const { data: modRow } = await admin.from("porch_moderators").select("user_id").eq("user_id", user.id).maybeSingle();

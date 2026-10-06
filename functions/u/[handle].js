@@ -84,6 +84,11 @@ h1{margin:10px 16px 0;font:400 32px/1.05 "RM Head",Impact,sans-serif;letter-spac
 .at{margin:4px 16px 0;text-align:center;font:600 14px Arial,sans-serif;color:#b9ae96}
 .tag{margin:8px 16px 0;text-align:center;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:#e0bd6a}
 .bio.mid{text-align:center;font-size:17px;color:#f1e7cf}
+.songp{margin:12px 16px 0;text-align:center}
+.song{display:inline-flex;align-items:center;gap:9px;max-width:100%;min-height:44px;padding:0 16px 0 8px;border-radius:22px;border:1px solid #3a352b;background:#1b1913;color:#f1e7cf;text-decoration:none;font:700 14px Arial,sans-serif}
+.song span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.song small{color:#b9ae96;font:600 13px Arial,sans-serif}
+.song .rec{flex:none;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,#11110f 0 2.5px,#d7b253 3px 7px,#11110f 7.5px 9px,#2a261d 9.5px 10.5px,#11110f 11px 12px,#2a261d 12.5px 13px,#11110f 13.5px)}
 .chair{margin:18px 16px 0;padding:18px 18px 16px;border-radius:22px;background:#e0bd6a;color:#12100b}
 .chair p{margin:0}
 .chair .k{font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.18em;word-break:break-word}
@@ -123,6 +128,10 @@ function profile(c, origin) {
   const name = c.real_name || '@' + c.handle;
   let since = '';
   try { if (c.created_at) since = new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }); } catch (_) {}
+  /* MY SONG (6 Oct 2026): the one extra thing a Public profile shows outside. Title and artist only,
+     no cover art and no sound here. A tap opens the song on YouTube. */
+  const sg = c.song && c.song.title ? c.song : null;
+  const song = sg ? `<p class="songp"><a class="song" href="https://www.youtube.com/results?search_query=${encodeURIComponent((sg.artist ? sg.artist + ' ' : '') + sg.title)}" target="_blank" rel="noopener nofollow" aria-label="Play ${esc(sg.title)} on YouTube"><i class="rec"></i><span>${esc(sg.title)}${sg.artist ? ` <small>· ${esc(sg.artist)}</small>` : ''}</span></a></p>` : '';
   const tag = [FOUNDERS.indexOf(c.handle) >= 0 ? 'FOUNDING MISFIT' : '', since ? (FOUNDERS.indexOf(c.handle) >= 0 ? 'SINCE ' : 'MISFIT SINCE ') + since.toUpperCase() : ''].filter(Boolean).join(' · ');
   return HEAD(`${name} on Recovery Misfits`, c.bio || 'On the Recovery Misfits Porch. Good people between meetings.', img, origin, url) + `
 <main class="inv">
@@ -135,6 +144,7 @@ function profile(c, origin) {
   ${c.real_name ? `<p class="at">@${esc(c.handle)}</p>` : ''}
   ${tag ? `<p class="tag">${esc(tag)}</p>` : ''}
   ${c.bio ? `<p class="bio mid">${esc(c.bio)}</p>` : ''}
+  ${song}
   <div class="chair">
     <p class="k">${esc(name.toUpperCase())} IS ON THE PORCH</p>
     <p class="big">Pull up a chair.</p>
