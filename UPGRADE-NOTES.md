@@ -973,3 +973,7 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 ## v212 (6 Oct 2026) - "View my profile" matches the profile
 - The preview in Edit profile now also shows the Founding Misfit badge, the Ask me about pills and the link icons.
   Still not in the preview: the friends row, the Active now / friends / groups numbers, and the Spins and shares.
+
+## v213 (6 Oct 2026) - a small sheet before a link opens
+- Tapping a link icon on a profile (or in the preview) slides up a sheet with what it is, the address, and an
+  Open button. Mike picked this over jumping straight to the page.

@@ -1383,7 +1383,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v212</span>
+  <span class="ver" id="ver">v213</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3980,8 +3980,18 @@ html.kb .ch-bar{padding-bottom:8px}
     try { var x = new URL(v); if (!/^https?:$/.test(x.protocol) || x.hostname.indexOf(".") < 1) return ""; return x.href.length <= 200 && !/[<>"']/.test(x.href) ? x.href : ""; } catch (e) { return ""; }
   }
   function linkChips(list) {
-    return (list || []).map(function (u) { var k = linkKind(u); return '<a class="pa-link ico" href="' + esc(u) + '" target="_blank" rel="noopener nofollow ugc" aria-label="' + esc(k.label) + '" title="' + esc(k.label) + '">' + k.icon + "</a>"; }).join("");
+    return (list || []).map(function (u) { var k = linkKind(u); return '<button type="button" class="pa-link ico" data-golink="' + esc(u) + '" aria-label="' + esc(k.label) + '" title="' + esc(k.label) + '">' + k.icon + "</button>"; }).join("");
   }
+  /* A SMALL SHEET FIRST (6 Oct 2026, Mike picked it): tapping a link icon shows where it goes, with an
+     Open button, so nobody gets thrown onto a strange page without seeing the address. */
+  function linkSheet(u) {
+    var k = linkKind(u), shown = u.replace(/^https?:\/\/(www\.)?/i, "").replace(/\/$/, "");
+    $("mbody").innerHTML = '<div class="songsheet"><h3>' + esc(k.label) + '</h3><p style="word-break:break-all">' + esc(shown.length > 90 ? shown.slice(0, 90) + "…" : shown) + "</p>" +
+      '<a href="' + esc(u) + '" target="_blank" rel="noopener nofollow ugc" data-close>Open</a></div>' +
+      '<button type="button" data-close style="color:var(--muted);text-align:center">Cancel</button>';
+    open("menu");
+  }
+  document.addEventListener("click", function (e) { var g = e.target.closest("[data-golink]"); if (g) { e.preventDefault(); e.stopPropagation(); linkSheet(g.dataset.golink); } }, true);
   async function fillLinks(uid) {
     if (!me.uid || !(uid === me.uid || isMod || (me.member && me.member.verified_at))) return;
     var list = [];
