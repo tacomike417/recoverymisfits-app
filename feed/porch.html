@@ -1383,7 +1383,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v210</span>
+  <span class="ver" id="ver">v211</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3922,7 +3922,9 @@ html.kb .ch-bar{padding-bottom:8px}
       catch (e) { if (mySeq === songSeq) { songHits = null; paintHits("down"); } }
     }, songMemo[q.toLowerCase()] ? 0 : 700);
   }
-  async function loadMore() {
+  /* NOT "loadMore": the feed already has a loadMore() that fetches the next posts. Giving this one the
+     same name replaced it and the feed never loaded (v206 to v210, 6 Oct 2026). */
+  async function loadAskBox() {
     moreOk = false; myAsks = []; mySong = null; songHits = null; paintMore();
     if (!me.member || !me.member.verified_at) return;
     try { var m = (await rpc("porch_more_of", { p_user: me.uid })) || {}; myAsks = m.asks || []; mySong = m.song && m.song.title ? m.song : null; moreOk = true; } catch (e) { moreOk = false; }
@@ -4040,7 +4042,7 @@ html.kb .ch-bar{padding-bottom:8px}
     $("ebio").value = m.bio || ""; $("ename").value = m.real_name || "";
     editVis = m.visibility === "public" ? "public" : "members";
     $("estatus").textContent = ""; edSay(""); edLast = edSnap(); edOpen = true;
-    paintEdit(); paintNearSet(); paintPoofSet(); loadMore(); loadLinks(); open("editp");
+    paintEdit(); paintNearSet(); paintPoofSet(); loadAskBox(); loadLinks(); open("editp");
   }
   /* IT SAVES ITSELF: a moment after you stop typing, and right away when you pick who can see it.
      Pictures already saved the second they were picked. Nothing here waits on a Save button. */

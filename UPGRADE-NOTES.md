@@ -963,3 +963,9 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
     `/api/song?q=simple+man&why=1` shows what each list answered.
   - YouTube's search would give the exact video, but it's about 100 lookups a day free and shares Mike's key.
 - Ask me about, links as icons, Be Friends / Not Now: all still on.
+
+## v211 (6 Oct 2026) - THE FEED WAS BROKEN v206 to v210. Fixed.
+- Claude named a new function `loadMore` (for the Ask me about box). The feed already had a `loadMore` that fetches
+  posts, so the new one replaced it and the feed sat on gray blocks forever. Renamed the new one `loadAskBox`.
+- Lesson for next time: before adding a function to porch.html, check the name isn't already there, and look at
+  the FEED after every change, not just the screen that changed.
