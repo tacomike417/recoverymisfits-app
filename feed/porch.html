@@ -1376,7 +1376,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v206</span>
+  <span class="ver" id="ver">v207</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3864,7 +3864,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   function paintHits(state) {
     var el = $("esonghits"); if (!el) return;
-    el.innerHTML = state === "wait" ? "<p>Looking…</p>" : state === "down" ? "<p>Song lookup isn't working right now. Try again in a bit.</p>"
+    el.innerHTML = state === "wait" ? "<p>Looking…</p>" : state === "down" ? "<p>The song list is busy. Give it a few seconds and type one more letter.</p>"
       : !songHits ? "" : !songHits.length ? "<p>Nothing found. Try the song and the band.</p>"
       : '<div class="songhits">' + songHits.map(function (h, i) { return '<button type="button" data-songpick="' + i + '"><span>' + esc(h.title) + "</span><small>" + esc(h.artist) + "</small></button>"; }).join("") + "</div>";
   }
@@ -3878,26 +3878,36 @@ html.kb .ch-bar{padding-bottom:8px}
       sc.src = u + "&callback=" + cb; document.head.appendChild(sc);
     });
   }
-  async function songFind(q) {
-    var u = "https://itunes.apple.com/search?media=music&entity=song&limit=10&term=" + encodeURIComponent(q), j;
-    try { var r = await fetch(u); if (!r.ok) throw new Error("no"); j = await r.json(); } catch (e) { j = await songJsonp(u); }
+  /* Three ways to find a song, in order: Apple straight from this phone, our own /api/song (asks Apple
+     from the server, kept for a day), then Apple the old script way. A search already done this visit
+     is answered from memory, so going back a letter doesn't ask again. */
+  var songMemo = {};
+  function songTidy(list) {
     var seen = {}, out = [];
-    ((j && j.results) || []).forEach(function (x) {
-      var t = String(x.trackName || "").slice(0, 120), a = String(x.artistName || "").slice(0, 120), k = (t + "|" + a).toLowerCase();
+    (list || []).forEach(function (x) {
+      var t = String(x.trackName || x.title || "").slice(0, 120), a = String(x.artistName || x.artist || "").slice(0, 120), k = (t + "|" + a).toLowerCase(), u = x.trackViewUrl || x.apple || "";
       if (!t || seen[k] || out.length >= 6) return; seen[k] = 1;
-      out.push({ title: t, artist: a, apple: /^https:\/\/(music|itunes)\.apple\.com\//.test(x.trackViewUrl || "") ? String(x.trackViewUrl).slice(0, 300) : null });
+      out.push({ title: t, artist: a, apple: /^https:\/\/(music|itunes)\.apple\.com\//.test(u) ? String(u).slice(0, 300) : null });
     });
     return out;
   }
+  async function songFind(q) {
+    var k = q.toLowerCase(); if (songMemo[k]) return songMemo[k];
+    var u = "https://itunes.apple.com/search?media=music&entity=song&limit=10&term=" + encodeURIComponent(q), j = null;
+    try { var r = await fetch(u); if (!r.ok) throw new Error("no"); j = await r.json(); } catch (e) { j = null; }
+    if (!j) { try { var r2 = await fetch("/api/song?q=" + encodeURIComponent(q)); if (!r2.ok) throw new Error("no"); j = await r2.json(); } catch (e) { j = null; } }
+    if (!j) j = await songJsonp(u);
+    return (songMemo[k] = songTidy(j && j.results));
+  }
   function songType() {
     var q = ($("esongin").value || "").trim(); clearTimeout(songT);
-    if (q.length < 2) { songHits = null; return paintHits(); }
+    if (q.length < 3) { songHits = null; ++songSeq; return paintHits(); }
     paintHits("wait");
     songT = setTimeout(async function () {
       var mySeq = ++songSeq;
       try { var h = await songFind(q); if (mySeq !== songSeq) return; songHits = h; paintHits(); }
       catch (e) { if (mySeq === songSeq) { songHits = null; paintHits("down"); } }
-    }, 450);
+    }, songMemo[q.toLowerCase()] ? 0 : 700);
   }
   async function loadMore() {
     moreOk = false; myAsks = []; mySong = null; songHits = null; paintMore();

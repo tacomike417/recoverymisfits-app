@@ -930,3 +930,12 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   - Only show starters on people who've been on lately, so a new person isn't left waiting? Not built.
   - The YouTube tap is a search, not one hand-picked video.
   - Not tried on the live site yet: the song lookup from a real phone, and a real Ask between two accounts.
+
+## v207 (6 Oct 2026) - song lookup backup
+- Mike got "song lookup isn't working" on first try. It worked from his computer's Chrome with his account
+  (typed, picked, saved), so the code path is good. Best guess: Apple's limit of about 20 lookups a minute from one
+  connection, or his phone blocking Apple. Not confirmed.
+- Now three tries in order: Apple from the phone, our own `functions/api/song.js` (asks Apple from the server,
+  answers kept a day), then Apple the script way. Waits 0.7s after typing and needs 3 letters, so fewer lookups.
+  A search already done this visit is answered from memory.
+- His song got set to Simple Man / Lynyrd Skynyrd during that test. He can change it in Edit profile.
