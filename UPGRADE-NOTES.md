@@ -868,3 +868,4 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - Already true (checked in the rules, not changed): a locked person's comment on a Public post does not show to outsiders, and outsiders never see who loved or reshared anything.
 - NOT DONE: the shared-link pages (recoverymisfits.org/name) still show no friends at all, which is the safe side. TO CHECK: that nothing locked leaks through the shared Spin and profile link pages.
 - TESTED on a pretend Porch (confirmed, no-email, outsider, own page, public and locked friends). NOT on the live one.
+- v202: while a profile is open on the Porch, the address bar shows recoverymisfits.org/<name> (yours and everybody else's). Going back restores the Porch address. A signed-in member who opens or reloads a /<name> link goes straight to that profile in the app. NOT TESTED LIVE: watch the phone's back button and a reload while on a profile.

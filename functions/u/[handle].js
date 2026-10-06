@@ -81,6 +81,9 @@ h1{margin:10px 16px 0;font:400 32px/1.05 "RM Head",Impact,sans-serif;letter-spac
 const MEMBER_JS = (inApp) => `<script>
 try { var a = JSON.parse(localStorage.getItem('rm_account_v1') || 'null');
   if (a && a.name) { var g = document.getElementById('go'); g.href = ${JSON.stringify(inApp)}; g.textContent = 'Open in the app';
+    /* signed in here: go straight to this profile in the app (5 Oct 2026). The app shows this same
+       address while a profile is open, so a reload has to land back on it, not on this page. */
+    try { location.replace(${JSON.stringify(inApp)}); } catch (e2) {}
     var s = document.getElementById('sub'); if (s) s.hidden = true; var t = document.getElementById('alt'); if (t) t.hidden = true; } } catch (e) {}
 </script>`;
 

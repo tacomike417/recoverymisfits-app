@@ -1326,7 +1326,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v201</span>
+  <span class="ver" id="ver">v202</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3488,6 +3488,16 @@ html.kb .ch-bar{padding-bottom:8px}
       if (!isSample(uid)) { var r = await rest("porch_members?user_id=eq." + uid + "&select=*"); if (r[0]) { m = r[0]; people[uid] = Object.assign(people[uid] || {}, m); } }
       var list = await postsFor(uid);
     } catch (e) { list = []; }
+    /* THE ADDRESS BAR SHOWS WHOSE PAGE IT IS (5 Oct 2026, Mike: "when I click my profile don't you think
+       my address bar should show up there anytime I am on my profile?"). recoverymisfits.org/<name>,
+       the same link the Share button hands out. Only this screen's own step in the phone's history is
+       renamed, so going back puts the Porch's address back by itself. Reloading that address comes
+       straight back here for a member (functions/u/[handle].js sends them into the app). */
+    try {
+      var pfEl = document.getElementById("profile");
+      if (!isSample(uid) && m.handle && /^[a-z0-9._-]{2,32}$/i.test(m.handle) && stack[stack.length - 1] === pfEl)
+        history.replaceState(history.state, "", "/" + String(m.handle).toLowerCase());
+    } catch (e) {}
     var mineP = uid === me.uid;
     /* PROFILE, LAYOUT A (1 Oct 2026, Mike picked it): cover with the picture over its
        edge, name + badge, bio, when they joined, one compact row of buttons, a strip of
