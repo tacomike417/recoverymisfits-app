@@ -869,3 +869,11 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - NOT DONE: the shared-link pages (recoverymisfits.org/name) still show no friends at all, which is the safe side. TO CHECK: that nothing locked leaks through the shared Spin and profile link pages.
 - TESTED on a pretend Porch (confirmed, no-email, outsider, own page, public and locked friends). NOT on the live one.
 - v202: while a profile is open on the Porch, the address bar shows recoverymisfits.org/<name> (yours and everybody else's). Going back restores the Porch address. A signed-in member who opens or reloads a /<name> link goes straight to that profile in the app. NOT TESTED LIVE: watch the phone's back button and a reload while on a profile.
+
+## v203 (5 Oct 2026) - the outside profile page is now "the big invite"
+- `functions/u/[handle].js`: what a non-member sees at recoverymisfits.org/<name> for a PUBLIC profile.
+  Big cover, picture and name in the middle, Founding Misfit + Misfit since, bio, a gold "Pull up a chair" box
+  with an I'm In button, up to 5 Spins, then a "The rest is inside" tile. Members-only profiles are unchanged.
+- `supabase/porch_63_public_card_name.sql`: the public card also hands over the name people see and the join date
+  (Public profiles only). Until it is run the page still works and shows @name with no "since".
+- Not on the outside page yet: Public friends strip, shares grid. Spins there still open the Spin link page.

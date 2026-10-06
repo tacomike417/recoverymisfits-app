@@ -2,8 +2,8 @@
  * recoverymisfits.org/<name> (functions/[handle].js) shows this same page.
  *
  * A Cloudflare Pages Function, like the Spin links in functions/s/.
- *   Public profile        -> header, picture, @name, bio and their Spins, plus one
- *                            button (join, or "Open in the app" for members)
+ *   Public profile        -> THE BIG INVITE: cover, picture, name, bio, a gold "Pull up a
+ *                            chair" box and a few Spins (members go straight to the app)
  *   Members only / no one -> the SAME "for members" page either way, so a link
  *                            never even confirms that somebody is on the Porch.
  *                            Members get a button that opens it in the app.
@@ -75,6 +75,29 @@ h1{margin:10px 16px 0;font:400 32px/1.05 "RM Head",Impact,sans-serif;letter-spac
 .gone h1{margin:0 16px 10px;font-size:34px;text-transform:uppercase}
 .gone p{margin:0 16px 4px;font:600 16px/1.4 Arial,sans-serif;color:#ddd2b8;max-width:320px}
 .gone .go{width:calc(100% - 32px);max-width:340px}
+.inv .cover.big{height:230px;position:relative}
+.inv .cover.big:after{content:"";position:absolute;inset:0;background:linear-gradient(#11110fcc,#11110f00 38%)}
+.wm{position:absolute;z-index:1;left:16px;top:16px;color:#e0bd6a;text-decoration:none;font:400 18px/1 "RM Head",Impact,sans-serif;letter-spacing:.04em}
+.si{position:absolute;z-index:1;right:6px;top:2px;min-height:44px;padding:0 10px;display:flex;align-items:center;color:#f1e7cf;font:700 14px Arial,sans-serif}
+.av.mid{margin:-56px auto 0}
+.nm{margin:10px 16px 0;text-align:center;font-size:40px;word-break:break-word}
+.at{margin:4px 16px 0;text-align:center;font:600 14px Arial,sans-serif;color:#b9ae96}
+.tag{margin:8px 16px 0;text-align:center;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:#e0bd6a}
+.bio.mid{text-align:center;font-size:17px;color:#f1e7cf}
+.chair{margin:18px 16px 0;padding:18px 18px 16px;border-radius:22px;background:#e0bd6a;color:#12100b}
+.chair p{margin:0}
+.chair .k{font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.18em;word-break:break-word}
+.chair .big{margin-top:6px;font:400 30px/1.05 "RM Head",Impact,sans-serif}
+.chair .w{margin-top:6px;font:600 15px/1.35 Arial,sans-serif}
+.chair .in{margin-top:14px;display:flex;align-items:center;justify-content:center;height:54px;border-radius:27px;background:#12100b;color:#f1e7cf;text-decoration:none;font:500 18px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.lab.row{display:flex;align-items:center;justify-content:space-between}
+.lab.row small{font:600 13px Arial,sans-serif;letter-spacing:0;color:#b9ae96}
+.inv .grid{gap:8px}
+.inv .grid a{border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid #3a352b}
+.inv .grid svg{width:34px;height:34px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 4px #000)}
+.inv .grid .more{flex-direction:column;gap:6px;padding:8px;background:#1b1913;color:#e0bd6a;text-decoration:none;text-align:center;font:700 12px Arial,sans-serif}
+.inv .grid .more svg{width:22px;height:22px;stroke:#e0bd6a;filter:none}
+.foot{margin:22px 16px 0;text-align:center;font:600 13px Arial,sans-serif;color:#b9ae96}
 [hidden]{display:none!important}
 </style></head><body>`;
 
@@ -87,20 +110,39 @@ try { var a = JSON.parse(localStorage.getItem('rm_account_v1') || 'null');
     var s = document.getElementById('sub'); if (s) s.hidden = true; var t = document.getElementById('alt'); if (t) t.hidden = true; } } catch (e) {}
 </script>`;
 
+const FOUNDERS = ['tacomike417', 'misfit_tester', 'fire_l0ve', 'krazyk226'];   // same list as the app (feed/porch.html)
+const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></svg>';
+const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+
+/* THE BIG INVITE (5 Oct 2026, Mike picked mockup B): big cover, name in the middle, a gold
+ * "Pull up a chair" box, a few Spins, the rest locked. Only what a Public person chose to show. */
 function profile(c, origin) {
   const url = origin + '/' + c.handle;
   const img = c.avatar_path ? pic(c.avatar_path) : origin + '/icon-512.png';
-  const spins = Array.isArray(c.spins) ? c.spins : [];
-  return HEAD(`@${c.handle} on Recovery Misfits`, c.bio || 'On the Recovery Misfits Porch. Good people between meetings.', img, origin, url) + `
-<main>
-  <div class="cover"${c.cover_path ? ` style="background-image:url('${esc(pic(c.cover_path))}')"` : ''}></div>
-  <div class="av">${c.avatar_path ? `<img src="${esc(pic(c.avatar_path))}" alt="">` : `<span>${esc(c.handle.slice(0, 2).toUpperCase())}</span>`}</div>
-  <h1>@${esc(c.handle)}</h1>
-  ${c.bio ? `<p class="bio">${esc(c.bio)}</p>` : ''}
-  ${spins.length ? `<div class="lab">SOBER SPINS</div><div class="grid">${spins.map((s) => `<a href="/s/${esc(s.id)}" style="background-image:url('${CDN}/${esc(s.video_guid)}/thumbnail.jpg')" aria-label="Watch a Spin"></a>`).join('')}</div>` : ''}
-  <a class="go" id="go" href="/account.html?next=feed">Join free</a>
-  <p class="sub" id="sub">Free. Anonymous. Every path welcome.</p>
-  <a class="alt" id="alt" href="/account.html?signin=1">I have an account</a>
+  const spins = (Array.isArray(c.spins) ? c.spins : []).slice(0, 5);
+  const name = c.real_name || '@' + c.handle;
+  let since = '';
+  try { if (c.created_at) since = new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }); } catch (_) {}
+  const tag = [FOUNDERS.indexOf(c.handle) >= 0 ? 'FOUNDING MISFIT' : '', since ? (FOUNDERS.indexOf(c.handle) >= 0 ? 'SINCE ' : 'MISFIT SINCE ') + since.toUpperCase() : ''].filter(Boolean).join(' · ');
+  return HEAD(`${name} on Recovery Misfits`, c.bio || 'On the Recovery Misfits Porch. Good people between meetings.', img, origin, url) + `
+<main class="inv">
+  <div class="cover big"${c.cover_path ? ` style="background-image:url('${esc(pic(c.cover_path))}')"` : ''}>
+    <a class="wm" href="/">RECOVERY MISFITS</a>
+    <a class="si" id="alt" href="/account.html?signin=1">Sign in</a>
+  </div>
+  <div class="av mid">${c.avatar_path ? `<img src="${esc(pic(c.avatar_path))}" alt="">` : `<span>${esc(c.handle.slice(0, 2).toUpperCase())}</span>`}</div>
+  <h1 class="nm">${esc(name)}</h1>
+  ${c.real_name ? `<p class="at">@${esc(c.handle)}</p>` : ''}
+  ${tag ? `<p class="tag">${esc(tag)}</p>` : ''}
+  ${c.bio ? `<p class="bio mid">${esc(c.bio)}</p>` : ''}
+  <div class="chair">
+    <p class="k">${esc(name.toUpperCase())} IS ON THE PORCH</p>
+    <p class="big">Pull up a chair.</p>
+    <p class="w">Good people between meetings. Free. Use any name you want.</p>
+    <a class="in" id="go" href="/account.html?next=feed">I&rsquo;m In</a>
+  </div>
+  ${spins.length ? `<div class="lab row"><span>LATEST SPINS</span><small>Tap one to watch</small></div><div class="grid">${spins.map((s) => `<a href="/s/${esc(s.id)}" style="background-image:url('${CDN}/${esc(s.video_guid)}/thumbnail.jpg')" aria-label="Watch a Spin">${PLAY}</a>`).join('')}<a class="more" href="/account.html?next=feed">${LOCK}<span>The rest is inside</span></a></div>` : ''}
+  <p class="foot">${esc(name)} chose to make this page public.</p>
 </main>
 ${MEMBER_JS('/feed/porch.html?u=' + encodeURIComponent(c.handle))}
 </body></html>`;
