@@ -877,3 +877,31 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - `supabase/porch_63_public_card_name.sql`: the public card also hands over the name people see and the join date
   (Public profiles only). Until it is run the page still works and shows @name with no "since".
 - Not on the outside page yet: Public friends strip, shares grid. Spins there still open the Spin link page.
+
+## IDEAS, parked (5 Oct 2026) - Mike is thinking, nothing built
+- "Go say hi to ___" card: the app hands a member one person a day to go to (brand new, been away, or posted and
+  got nothing back). Mike: recovery is "I go to you", not "you come to me". His worry: a new person who reaches
+  out and hears nothing back. Possible answer: only people who've been around get the card, new people never do
+  and are never told anyone was sent. Keep it from feeling like a dating app (no big photo, hello out in the open).
+- Dropped: the Porch Light ("rough night" button). Wrong direction, it has people waiting to be rescued.
+- **PASS THE COIN - Mike likes it. BRING IT UP AT 300 MEMBERS.** When someone hits a milestone and chooses to
+  share it, their coin goes around; members hold it and leave one line; it comes back with every name and line
+  on it, theirs to keep in the Survival Pile. Mockup: the "Pass the Coin" design (2 phone screens). Still his to
+  call: how long it goes around (guessed one day) and whether the finished coin is private (guessed yes).
+  Waiting on 300 so a coin never comes back near empty.
+
+## v204 (6 Oct 2026) - links on a profile
+- Edit profile has one "+ Add a link" box (like YouTube): paste any link, the app works out what it is
+  (Instagram, Facebook, TikTok, YouTube, X, Snapchat, Podcast, or a plain website). 5 at most. Plain icons, not logos.
+- MEMBERS ONLY, always: links never show on the outside page, even for a Public profile. They live in their own
+  table (`porch_links`) that only the step 64 functions can reach.
+- Earn it: 30 days on the Porch before adding links. Founding misfits and house accounts can right away.
+  Under 30 days the box says "Links open up after 30 days on the Porch. N days to go."
+- `supabase/porch_64_profile_links.sql` has to be run. Until then the Links box just doesn't show.
+
+## v205 (6 Oct 2026) - no links in the bio
+- Mike: "in the bio don't allow links." A bio shows as plain words now, never tappable, on profiles and in the preview.
+- A bio with a web address in it doesn't save. Edit profile says "No links in the bio. Add it under Links, right below."
+  Same check on the sign-up walk.
+- This is checked in the app, not in the database. A bio saved before today that has an address in it still shows,
+  as plain words. Could add a database check later if anybody works around it.
