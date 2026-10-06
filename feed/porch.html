@@ -1383,7 +1383,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v208</span>
+  <span class="ver" id="ver">v210</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3791,20 +3791,24 @@ html.kb .ch-bar{padding-bottom:8px}
      The song is found by typing (Apple's free song list) and only the title and artist are kept: no
      cover art, no sound. Tapping it opens the song on YouTube. */
   var ICHAT = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8.5A1.5 1.5 0 0 1 19 17h-7l-4.5 3.5V17H5a1.5 1.5 0 0 1-1.5-1.5V7A1.5 1.5 0 0 1 5 5.5z"/></svg>';
+  /* MY SONG IS PARKED (6 Oct 2026, Mike: "park this whole music thing for now until we figure it out").
+     The song lookup wasn't dependable (Apple doesn't answer iPhones or our server). Everything is still
+     here; flip SONG_ON to true to bring it back. Songs already saved stay saved, just not shown. */
+  var SONG_ON = false;
   var moreOf = {};
   function askLine(about) { return "Hey, I saw " + about + " on your profile. Could I ask you about it?"; }
   function songHTML(sg) { return '<span class="rmrec"></span><span>' + esc(sg.title) + (sg.artist ? " <small>· " + esc(sg.artist) + "</small>" : "") + "</span>"; }
   async function fillMore(uid) {
     if (!me.uid || !(uid === me.uid || isMod || (me.member && me.member.verified_at))) return;
     var m; try { m = await rpc("porch_more_of", { p_user: uid }); } catch (e) { return; }
-    m = m || {}; var asks = m.asks || [], sg = m.song && m.song.title ? m.song : null, mine = uid === me.uid;
+    m = m || {}; var asks = m.asks || [], sg = SONG_ON && m.song && m.song.title ? m.song : null, mine = uid === me.uid;
     moreOf[uid] = { asks: asks, song: sg };
     var el = $("pfpage").querySelector('[data-more="' + uid + '"]'); if (!el) return;
     var h = "";
     if (sg) h += '<button type="button" class="pa-song" data-song="' + esc(uid) + '" aria-label="Play ' + esc(sg.title) + '">' + songHTML(sg) + "</button>";
     if (asks.length) h += '<div class="pa-ask"><div class="pa-askh"><span class="pa-lab">ASK ME ABOUT</span>' + (mine ? "" : "<small>Tap one to ask</small>") + '</div><div class="pa-askr">' +
       asks.map(function (a, i) { return '<button type="button" class="pa-askp" data-ask="' + i + '" data-of="' + esc(uid) + '">' + ICHAT + "<span>" + esc(a) + "</span></button>"; }).join("") + "</div></div>";
-    if (mine && (!sg || !asks.length)) h += '<div class="pa-adds">' + (asks.length ? "" : '<button type="button" data-editp>+ Ask me about...</button>') + (sg ? "" : '<button type="button" data-editp>+ My song</button>') + "</div>";
+    if (mine && ((SONG_ON && !sg) || !asks.length)) h += '<div class="pa-adds">' + (asks.length ? "" : '<button type="button" data-editp>+ Ask me about...</button>') + (sg || !SONG_ON ? "" : '<button type="button" data-editp>+ My song</button>') + "</div>";
     if (!h) return;
     el.innerHTML = h; el.hidden = false;
   }
@@ -3865,7 +3869,9 @@ html.kb .ch-bar{padding-bottom:8px}
       }).join("") +
       (myAsks.length < 3 ? '<div class="elnew askrow"><span class="askpre">Ask me about</span><input type="text" id="easkin" maxlength="40" autocomplete="off" placeholder="' + ASKEX[(myAsks.length + new Date().getDate()) % ASKEX.length] + '"><button type="button" data-askadd>Add</button></div>' : "") +
       (msg ? "<p>" + esc(msg) + "</p>" : "");
-    $("esong").innerHTML = mySong
+    var sl = document.querySelector('#emorewrap label[for="esongin"]'); if (sl) sl.hidden = !SONG_ON;
+    $("esong").hidden = !SONG_ON;
+    $("esong").innerHTML = !SONG_ON ? "" : mySong
       ? '<div class="elrow"><span class="rmrec"></span><span class="w"><b>' + esc(mySong.title) + "</b><small>" + esc(mySong.artist || "") + '</small></span><button type="button" data-songx aria-label="Remove my song">×</button></div>'
       : '<div class="elnew"><input type="search" id="esongin" autocomplete="off" maxlength="80" placeholder="Type a song" aria-label="Type a song"></div><div id="esonghits"></div>';
   }

@@ -130,7 +130,8 @@ function profile(c, origin) {
   try { if (c.created_at) since = new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }); } catch (_) {}
   /* MY SONG (6 Oct 2026): the one extra thing a Public profile shows outside. Title and artist only,
      no cover art and no sound here. A tap opens the song on YouTube. */
-  const sg = c.song && c.song.title ? c.song : null;
+  const SONG_ON = false;   // parked 6 Oct 2026 (Mike), same switch as in feed/porch.html
+  const sg = SONG_ON && c.song && c.song.title ? c.song : null;
   const song = sg ? `<p class="songp"><a class="song" href="https://www.youtube.com/results?search_query=${encodeURIComponent((sg.artist ? sg.artist + ' ' : '') + sg.title)}" target="_blank" rel="noopener nofollow" aria-label="Play ${esc(sg.title)} on YouTube"><i class="rec"></i><span>${esc(sg.title)}${sg.artist ? ` <small>· ${esc(sg.artist)}</small>` : ''}</span></a></p>` : '';
   const tag = [FOUNDERS.indexOf(c.handle) >= 0 ? 'FOUNDING MISFIT' : '', since ? (FOUNDERS.indexOf(c.handle) >= 0 ? 'SINCE ' : 'MISFIT SINCE ') + since.toUpperCase() : ''].filter(Boolean).join(' · ');
   return HEAD(`${name} on Recovery Misfits`, c.bio || 'On the Recovery Misfits Porch. Good people between meetings.', img, origin, url) + `

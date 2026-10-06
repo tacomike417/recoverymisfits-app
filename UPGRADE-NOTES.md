@@ -944,3 +944,22 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - Mike: "we just need to display the icons, this is getting bloated." On a profile, links are small round icons
   in one row (no words). In Edit profile they are small chips in one row (icon, name, X), not a tall list.
   Still 5 links at most.
+
+## v209 (6 Oct 2026) - song lookup, second pass
+- Found: Apple answers a normal browser fine, but Mike's test tab was pretending to be an iPhone and Apple did not
+  answer that. And our own `/api/song` got a "no" from Apple too (503). So real iPhones would have had no song list.
+- `/api/song` now asks Apple the way a normal browser does, and if Apple still says no it asks Deezer's song list.
+  `/api/song?q=simple+man&why=1` shows what each one answered.
+- STILL TO CONFIRM on the live site after the push (Claude checks before Mike tries again).
+
+## v210 (6 Oct 2026) - MY SONG IS PARKED
+- Mike: "park this whole music thing for now until we figure it out, seems like we are pushing something janky."
+- Hidden everywhere: Edit profile, profiles, the outside page. One switch in two files: `SONG_ON = false` in
+  `feed/porch.html` and in `functions/u/[handle].js`. Flip both to true to bring it back. Nothing was deleted;
+  songs already saved (Mike's test one) stay in the database, not shown.
+- What has to be figured out first: a song lookup that answers every phone.
+  - Apple's free list answers a desktop browser but not an iPhone, and said no to our server.
+  - `functions/api/song.js` (asks Apple, then Deezer, from the server) is written but NEVER CONFIRMED live.
+    `/api/song?q=simple+man&why=1` shows what each list answered.
+  - YouTube's search would give the exact video, but it's about 100 lookups a day free and shares Mike's key.
+- Ask me about, links as icons, Be Friends / Not Now: all still on.
