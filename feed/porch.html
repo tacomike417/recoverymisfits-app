@@ -1326,7 +1326,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v200</span>
+  <span class="ver" id="ver">v201</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3498,7 +3498,19 @@ html.kb .ch-bar{padding-bottom:8px}
        rid of it"). Coins and wins they shared sit in the same grid as everything else, newest first. */
     var shares = list;
     var fids = mineP ? realFriends() : [];
-    /* friends lists are private (only you can read yours), so this strip only shows on your own profile */
+    /* FRIENDS SHOW ON EVERYBODY'S PROFILE (5 Oct 2026, Mike: "showing the list isn't harmful. I'd say
+       just show it", and the one rule for the whole site: "public people can show up, non public no").
+       porch_friends_of() (SQL step 62) decides who is on the list: a confirmed member sees all of that
+       person's friends; anybody else only sees a Public profile's Public friends. */
+    if (!mineP && !isSample(uid)) {
+      try {
+        var tf = (await rpc("porch_friends_of", { p_user: uid })) || [];
+        tf.forEach(function (f) { people[f.user_id] = Object.assign(people[f.user_id] || {}, f); });
+        fids = tf.map(function (f) { return f.user_id; });
+        theirFriends[uid] = fids;
+      } catch (e) { fids = []; }
+    }
+    var fullView = mineP || !!(me.member && me.member.verified_at) || isMod;
     var I2 = function (d) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + d + "</svg>"; };
     var ICAL = I2('<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'), ILOCK = I2('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'), IGLOBE = I2('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>');
     var IEDIT = I2('<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M14.5 7.5l3 3"/>'), ISHARE = I2('<path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>'), IFIND = I2('<circle cx="9" cy="8" r="3.6"/><path d="M2.5 20c1.2-3.6 3.7-5.4 6.5-5.4s5.3 1.8 6.5 5.4"/><path d="M19 8v6M16 11h6"/>');
@@ -3515,7 +3527,7 @@ html.kb .ch-bar{padding-bottom:8px}
           (mineP ? '<button type="button" data-editp>' + (m.visibility === "public" ? IGLOBE + "Public" : ILOCK + "Members only") + "</button>" : "") + "</div>" +
         (mineP ? '<div class="pa-btns"><button type="button" data-editp>' + IEDIT + "Edit</button><button type=\"button\" data-sharep>" + ISHARE + "Share</button><button type=\"button\" data-search>" + IFIND + "Find</button><button type=\"button\" data-invite>" + '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg>' + "Invite</button></div>"
           : '<div class="pa-btns pa-them">' + friendBtn(uid) + "</div>") +
-        (fids.length ? '<button type="button" class="pa-friends" data-allf><span class="pa-lab">FRIENDS</span><span class="pa-faces">' + fids.slice(0, 6).map(function (f) { return avatar(people[f]); }).join("") + "</span>" + (mineP ? '<span class="pa-all">See all ›</span>' : "") + "</button>" : "") +
+        (fids.length ? '<button type="button" class="pa-friends" data-allf' + (mineP ? "" : ' data-of="' + uid + '"') + '><span class="pa-lab">FRIENDS</span><span class="pa-faces">' + fids.slice(0, 6).map(function (f) { return avatar(people[f]); }).join("") + '</span><span class="pa-all">See all ›</span></button>' : "") +
       "</div>" +
       /* TWO TABS (2 Oct 2026, Mike): "do the slider at the top with the spins and then the
          shares underneath." Spins and Shares are one page now; Wins is the other. No third
@@ -3535,7 +3547,9 @@ html.kb .ch-bar{padding-bottom:8px}
       var row = document.querySelector('.pa-stats[data-st="' + uid + '"]'), act = document.querySelector('.pa-act[data-act="' + uid + '"]');
       if (row) {
         var f = Number(st.friends) || 0, g = Number(st.groups) || 0, vw = Number(st.views) || 0;
-        row.innerHTML = (f >= 2 ? (mineP ? '<button type="button" data-allf>' : "<span>") + "<b>" + fmtN(f) + "</b><small>friends</small>" + (mineP ? "</button>" : "</span>") : "") +
+        if (!fullView) f = fids.length;            /* somebody who only sees the Public friends gets that count, not the full one */
+        var tapF = mineP || fids.length;           /* the number opens the same list the strip does */
+        row.innerHTML = (f >= 2 ? (tapF ? '<button type="button" data-allf' + (mineP ? "" : ' data-of="' + uid + '"') + ">" : "<span>") + "<b>" + fmtN(f) + "</b><small>friends</small>" + (tapF ? "</button>" : "</span>") : "") +
           (g >= 2 ? "<span><b>" + fmtN(g) + "</b><small>groups</small></span>" : "") +
           (vw >= 2 ? '<span class="pa-vw" aria-label="' + fmtN(vw) + ' views"><b>' + fmtN(vw) + '</b><small><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></small></span>' : "");
         row.hidden = !row.innerHTML;
@@ -4392,6 +4406,18 @@ html.kb .ch-bar{padding-bottom:8px}
     await loadFriends();
     await loadPeople(Object.keys(friends).concat(Object.keys(reqIn), Object.keys(reqOut)).filter(function (k) { return !isSample(k); }));
     paintFriends();
+  }
+  /* SOMEBODY ELSE'S FRIENDS (5 Oct 2026): the same sheet, their list. Who is on it was already
+     decided by porch_friends_of() when their profile opened. Tap a face to go to that profile. */
+  var theirFriends = {};
+  function openFriendsOf(uid) {
+    var ids = (theirFriends[uid] || []).slice().sort(function (x, y) { return name(x).toLowerCase() < name(y).toLowerCase() ? -1 : 1; });
+    var can = !!(me.uid && me.member && me.member.verified_at);
+    $("frlist").innerHTML = '<p class="nd-sec">' + esc(name(uid)).toUpperCase() + "\u2019S FRIENDS</p>" +
+      (ids.length ? ids.map(function (u) {
+        return '<div class="fr-row"><button type="button" class="fr-who" data-u="' + u + '">' + avatar(people[u]) + "<b>" + esc(name(u)) + "</b></button>" + (can && u !== me.uid ? friendBtn(u, true) : "") + "</div>";
+      }).join("") : '<p class="pempty">Nobody to show.</p>');
+    open("friends");
   }
   function paintFriends() {
     function row(uid, right) {
@@ -5344,7 +5370,8 @@ html.kb .ch-bar{padding-bottom:8px}
     var ptab = t.closest("[data-ptab]"); if (ptab) { var pg2 = ptab.closest(".page") || document; pg2.querySelectorAll("[data-ptab]").forEach(function (b) { b.classList.toggle("on", b === ptab); }); pg2.querySelectorAll("[data-ppane]").forEach(function (d) { d.hidden = d.dataset.ppane !== ptab.dataset.ptab; }); return; }
     var cu = t.closest("[data-copyurl]"); if (cu) { var u = cu.dataset.copyurl; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(function () { cu.textContent = "Copied"; toast("Your link is copied."); }, function () { toast(u); }); return; }
     if (t.closest("[data-findf]")) return openSetup("friends");
-    if (t.closest("[data-allf]")) return openFriends();
+    var af = t.closest("[data-allf]");
+    if (af) return af.dataset.of ? openFriendsOf(af.dataset.of) : openFriends();
     if (t.closest("[data-close]")) { if (stack.length) closeTop(); return; }
     if (t.closest("[data-new]")) return toggleDial();
     if (t.closest("[data-dialx]")) return closeDial();
