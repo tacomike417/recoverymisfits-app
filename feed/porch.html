@@ -1451,7 +1451,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v221</span>
+  <span class="ver" id="ver">v222</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3403,8 +3403,11 @@ html.kb .ch-bar{padding-bottom:8px}
       var row = { reporter_id: me.uid, reason: b.dataset.why };
       if (t.post) row.post_id = t.post; else row.comment_id = t.comment;
       try { await rest("porch_reports", { method: "POST", body: row }); } catch (err) { if (err.status !== 409) { await closeTop(); return toast("That didn't send. Try again."); } }
-      this.innerHTML = '<p style="margin:0 0 4px;font:400 24px \'RM Head\',Impact,sans-serif">Thanks for looking out.</p><p>A real person will look at it.' +
+      /* v222 (step 66): a report hides it for everybody until a moderator looks. Danger reports stay up. */
+      var heldNow = b.dataset.why !== "self_harm";
+      this.innerHTML = '<p style="margin:0 0 4px;font:400 24px \'RM Head\',Impact,sans-serif">Thanks for looking out.</p><p>' + (heldNow ? "It's hidden now. A real person will look at it." : "A real person will look at it.") +
         (b.dataset.why === "self_harm" ? " If somebody's in danger right now, call 911." : "") + '</p><button type="button" data-m="block">Block ' + esc(name(uid)) + ' too</button><button type="button" data-close>Done</button>';
+      if (heldNow) { try { if (t.post) { document.querySelectorAll('[data-post="' + t.post + '"]').forEach(function (el) { el.remove(); }); } else if (t.comment && comments[openPost]) { comments[openPost] = comments[openPost].filter(function (c) { return c.id !== t.comment; }); paintComments(); } } catch (e) {} }
     } else if (m === "mute") {
       await closeTop(); gate(function () { toggleMute(uid); });
     } else if (m === "block") {
@@ -5294,15 +5297,15 @@ html.kb .ch-bar{padding-bottom:8px}
       var what = g.post_id && !g.comment_id ? "Their share" : g.comment_id ? "Their comment" : "Their profile";
       return '<div class="mr' + (g.danger ? " danger" : "") + '">' +
         (g.danger ? '<p class="dz">Somebody thinks this person might be in danger. Reach out if you can. Nobody gets paused for this.</p>' : "") +
-        '<button type="button" class="mwho" data-u="' + g.who + '">' + avatar({ handle: g.handle, avatar_path: g.avatar_path }) + "<span><b>" + esc(g.handle) + "</b><small>" + what + (g.hidden ? " · already taken down" : "") + (g.frozen ? " · paused" : "") + "</small></span></button>" +
+        '<button type="button" class="mwho" data-u="' + g.who + '">' + avatar({ handle: g.handle, avatar_path: g.avatar_path }) + "<span><b>" + esc(g.handle) + "</b><small>" + what + (g.held ? " · hidden until you look" : g.hidden ? " · already taken down" : "") + (g.frozen ? " · paused" : "") + "</small></span></button>" +
         (g.body ? '<p class="mb">' + esc(g.body) + "</p>" : "") +
         (g.photos && g.photos.length ? '<div class="mph">' + g.photos.map(function (x) { return '<img src="' + pic(x) + '" alt="">'; }).join("") + "</div>" : "") +
         (g.poofs && g.poofs.length ? '<p class="mn">Reported Poof:</p><div class="mph">' + g.poofs.map(function (x) { return '<a href="' + esc(x) + '" target="_blank" rel="noopener"><img src="' + esc(x) + '" alt=""></a>'; }).join("") + "</div>" : "") +
         '<div class="mwhy">' + Object.keys(g.reasons).map(function (k) { return "<span>" + esc(WHY[k] || k) + (g.reasons[k] > 1 ? " ×" + g.reasons[k] : "") + "</span>"; }).join("") + "</div>" +
         (g.notes.length ? g.notes.map(function (n) { return '<p class="mn">“' + esc(n) + "”</p>"; }).join("") : "") +
         '<div class="mbtn">' +
-          (!g.danger && g.key.charAt(0) !== "m" && !g.hidden ? '<button type="button" class="bad" data-modact="down" data-i="' + i + '">Take it down</button>' : "") +
-          '<button type="button" data-modact="fine" data-i="' + i + '">' + (g.danger ? "Seen it" : "It's fine") + "</button>" +
+          (!g.danger && g.key.charAt(0) !== "m" && (!g.hidden || g.held) ? '<button type="button" class="bad" data-modact="down" data-i="' + i + '">' + (g.held ? "Keep it down" : "Take it down") + '</button>' : "") +
+          '<button type="button" data-modact="fine" data-i="' + i + '">' + (g.danger ? "Seen it" : g.held ? "It's fine, put it back" : "It's fine") + "</button>" +
           (g.frozen ? '<button type="button" data-modact="unpause" data-i="' + i + '">Unpause them</button>' : "") +
         "</div></div>";
     }).join("") : '<p class="pempty">Nothing to look at. The Porch is behaving.</p>';

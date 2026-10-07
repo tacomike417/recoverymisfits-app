@@ -21,6 +21,12 @@
  *      Can't check = not posted.
  *   5. Photos: Google Vision SafeSearch. No nudity anywhere. Can't check =
  *      not posted.
+ *      7 Oct 2026, Mike: a normal summer selfie was refused ("that is going to
+ *      piss off so many people ... we have to use the honor system"). Google's
+ *      "racy" score (bare arms, summer clothes) no longer blocks anything. Only
+ *      a nudity score of VERY_LIKELY does, and gore. The honor system and the
+ *      Report button do the rest: one report hides a share until a moderator
+ *      looks (supabase/old sql/porch_66_report_holds.sql).
  *   6. THE PAUSE: if it reads heated, answer { pause: true } instead of
  *      posting. The app asks "Want to talk to a friend about this first?"
  *      and only sends it again with sure: true if they tap Post anyway.
@@ -169,7 +175,7 @@ async function photoOk(bytes: Uint8Array, b64: string, facesOk = false): Promise
     const res = (await r.json())?.responses?.[0], s = res?.safeSearchAnnotation;
     if (!s) return "Photos can't be checked right now, so that wasn't posted.";
     if (faceCount(res) > 0 && !facesOk) return NEED_FACES;
-    if ((LEVEL[s.adult] || 0) >= LEVEL.LIKELY || (LEVEL[s.racy] || 0) >= LEVEL.VERY_LIKELY) return "That photo isn't allowed on the Porch.";
+    if ((LEVEL[s.adult] || 0) >= LEVEL.VERY_LIKELY) return "That photo isn't allowed on the Porch.";   /* racy alone never blocks (7 Oct 2026) */
     if ((LEVEL[s.violence] || 0) >= LEVEL.VERY_LIKELY) return "That photo is too graphic for the Porch.";
     return null;
   } catch { return "Photos can't be checked right now, so that wasn't posted."; }
@@ -459,13 +465,13 @@ Deno.serve(async (req) => {
       }
       const out = [];
       for (const g of Object.values(groups) as any[]) {
-        let who = g.member_id, body = "", photos: string[] = [], post_id = g.post_id, hidden = null;
+        let who = g.member_id, body = "", photos: string[] = [], post_id = g.post_id, hidden = null, held = false;
         if (g.post_id) {
-          const { data: p } = await admin.from("porch_posts").select("user_id, body, photo_paths, hidden_at").eq("id", g.post_id).maybeSingle();
-          if (p) { who = p.user_id; body = p.body || ""; photos = p.photo_paths || []; hidden = p.hidden_at; }
+          const { data: p } = await admin.from("porch_posts").select("user_id, body, photo_paths, hidden_at, held_at").eq("id", g.post_id).maybeSingle();
+          if (p) { who = p.user_id; body = p.body || ""; photos = p.photo_paths || []; hidden = p.hidden_at; held = !!p.held_at; }
         } else if (g.comment_id) {
-          const { data: c } = await admin.from("porch_comments").select("user_id, body, post_id, hidden_at").eq("id", g.comment_id).maybeSingle();
-          if (c) { who = c.user_id; body = c.body; post_id = c.post_id; hidden = c.hidden_at; }
+          const { data: c } = await admin.from("porch_comments").select("user_id, body, post_id, hidden_at, held_at").eq("id", g.comment_id).maybeSingle();
+          if (c) { who = c.user_id; body = c.body; post_id = c.post_id; hidden = c.hidden_at; held = !!c.held_at; }
         }
         const { data: m } = await admin.from("porch_members").select("handle, avatar_path, frozen_at").eq("user_id", who).maybeSingle();
         /* a reported Poof: the picture is kept so a real person can look (a moderator only, for one hour per look) */
@@ -477,7 +483,7 @@ Deno.serve(async (req) => {
             if (pp.length) { const { data: sg } = await admin.storage.from("porch-poof").createSignedUrls(pp, 3600); for (const x of sg || []) if (x.signedUrl) poofs.push(x.signedUrl); }
           } catch { /* none */ }
         }
-        out.push({ ...g, poofs, who, handle: m?.handle || "misfit", avatar_path: m?.avatar_path || null, frozen: !!m?.frozen_at, body, photos, post_id, hidden,
+        out.push({ ...g, poofs, who, handle: m?.handle || "misfit", avatar_path: m?.avatar_path || null, frozen: !!m?.frozen_at, body, photos, post_id, hidden, held,
           danger: !!g.reasons.self_harm });
       }
       out.sort((a, b) => (b.danger ? 1 : 0) - (a.danger ? 1 : 0) || (a.first < b.first ? -1 : 1));
@@ -488,8 +494,14 @@ Deno.serve(async (req) => {
     const [kind, id] = [k.slice(0, 1), k.slice(2)];
     const col = kind === "p" ? "post_id" : kind === "c" ? "comment_id" : "member_id";
     if (!id || !["down", "fine", "unpause"].includes(what)) return json({ error: "Bad request." }, 400);
+    /* HELD BY A REPORT (step 66): one report hides a share or a comment until somebody here looks.
+       "Take it down" keeps it down for good. "It's fine" puts it back, but only if a report is what
+       hid it -- never something its owner or a moderator took down on purpose. */
     if (what === "down" && kind !== "m") {
-      await admin.from(kind === "p" ? "porch_posts" : "porch_comments").update({ hidden_at: new Date().toISOString() }).eq("id", id);
+      await admin.from(kind === "p" ? "porch_posts" : "porch_comments").update({ hidden_at: new Date().toISOString(), held_at: null }).eq("id", id);
+    }
+    if (what === "fine" && kind !== "m") {
+      await admin.from(kind === "p" ? "porch_posts" : "porch_comments").update({ hidden_at: null, held_at: null }).eq("id", id).not("held_at", "is", null);
     }
     if (kind === "m") {                       /* looked at: the reported Poofs from them come off the server now */
       try {
@@ -867,7 +879,7 @@ Deno.serve(async (req) => {
       if (!s) return json({ error: "Photos can't be checked right now. Try again in a minute." }, 503);
       const dm = b.where === "dm";
       let bad = "";
-      if (dm ? (LEVEL[s.adult] || 0) >= LEVEL.VERY_LIKELY : ((LEVEL[s.adult] || 0) >= LEVEL.LIKELY || (LEVEL[s.racy] || 0) >= LEVEL.VERY_LIKELY)) bad = dm ? "Full nudity can't be sent on Recovery Misfits." : "That photo isn't allowed on the Porch.";
+      if ((LEVEL[s.adult] || 0) >= LEVEL.VERY_LIKELY) bad = dm ? "Full nudity can't be sent on Recovery Misfits." : "That photo isn't allowed on the Porch.";   /* same line for the Porch and for messages now; racy alone never blocks (7 Oct 2026) */
       else if ((LEVEL[s.violence] || 0) >= LEVEL.VERY_LIKELY) bad = "That photo is too graphic for the Porch.";
       // where the faces are, as fractions of the picture's own size
       const W = Number(b.w) || 0, H = Number(b.h) || 0;

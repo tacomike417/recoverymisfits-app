@@ -1075,3 +1075,16 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   people in summer clothes can score racy = very likely with nothing wrong in it. The rule is in
   supabase/functions/porch/index.ts (photoOk and the "scan" action). Whether to loosen it is Mike's call.
 
+## v222 (7 Oct 2026) - the honor system: photos loosened, a report hides the post
+- Mike: "we need to loosen up that rule that is going to piss off so many people ... we have to use the honor
+  system and trust these guys will do the next right thing. but let the report button definitely flag and take
+  down the post until it has been moderated."
+- PHOTOS: Google's "racy" score no longer blocks anything. A photo is refused only when Google is very sure it is
+  nudity, or very sure it is gore. Same line for the Porch and for messages. (porch function: photoOk and "scan".)
+- REPORTS: ONE report on a share or a comment hides it for everybody right away. The moderators' Reports screen
+  says "hidden until you look" and the buttons are "Keep it down" and "It's fine, put it back".
+- NOT hidden by a report: "Somebody might be in danger" (a cry for help stays up), anything a moderator posted,
+  and a report on a whole profile.
+- KNOWN TRADE-OFF: any one confirmed member can hide any one post until a moderator looks. The caps that were
+  already there still apply (20 reports a day, the 3-day wait). The owner is not told their post was hidden.
+- SQL: supabase/old sql/porch_66_report_holds.sql. Function: porch (redeploy).
