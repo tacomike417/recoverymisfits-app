@@ -1127,3 +1127,5 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   push. A new feature (the Basket is next) gets its own cards.
 - Not in Help on purpose, because a member cannot reach them today: themes, "Celebrate a win", My Song.
 - TO DO: the Save toast still says "Find it under ME"; there is no ME, the row is "Saved shares".
+- v230, Mike: "where is it?" On the Porch the You button opens your menu, not the You page, so Help was not there.
+  Now "Help" is a row in your menu on the Porch too, under "How the Porch works".
