@@ -172,10 +172,7 @@ Deno.serve(async (req) => {
   if (action === "start") {
     if (!me?.verified_at) return json({ error: "Confirm who you are to post.", need: "confirm" }, 403);
     if (me.frozen_at) return json({ error: "Your account is paused while someone looks at a report. Hang tight." }, 403);
-    const { data: tester } = await admin.from("porch_testers").select("handle").eq("handle", me.handle).maybeSingle();
-    if (!tester && !isMod && Date.now() - new Date(user.created_at).getTime() < 3 * 24 * 3600_000) {
-      return json({ error: "Brand-new accounts can post after 3 days. Look around in the meantime." }, 403);
-    }
+    /* no 3-day wait for new accounts any more (7 Oct 2026, Mike: "let them post away and let the report button do the work") */
     const bytes = Number(b.bytes) || 0;
     if (bytes > MAX_BYTES) return json({ error: "That video is too big. Try a shorter clip." }, 400);
     const caption = String(b.caption || "").trim().slice(0, 500);

@@ -13,7 +13,7 @@
  *   mod_list / mod_act { key, what, who? }             -- moderators only: the reports screen
  *
  * Checks, in order, before anything is saved:
- *   1. Confirmed member, not paused by reports, account older than 3 days.
+ *   1. Confirmed member, not paused by reports. (The 3-day wait for new accounts came off 7 Oct 2026.)
  *   2. Rate limits: 10 posts and 60 comments an hour.
  *   3. Words. Rated R, not rated X: cussing is fine. Slurs, sexual talk and
  *      threats are refused.
@@ -536,12 +536,10 @@ Deno.serve(async (req) => {
     return json({ ok: state === "ok" || state === "friends_now", state });
   }
 
-  // testers (porch_testers) and moderators skip the 3-day wait so Mike can test with a fresh account
-  const { data: tester } = await admin.from("porch_testers").select("handle").eq("handle", me.handle).maybeSingle();
-  const { data: modRow } = await admin.from("porch_moderators").select("user_id").eq("user_id", user.id).maybeSingle();
-  if (!tester && !modRow && Date.now() - new Date(user.created_at).getTime() < 3 * 24 * 3600_000) {
-    return json({ error: "Brand-new accounts can post after 3 days. Look around in the meantime." }, 403);
-  }
+  /* NO 3-DAY WAIT (v231, 7 Oct 2026, Mike: "we might want to lift that 3 day posting ban. that's pretty rough
+     stuff ... i'd just let them post away and let the report button do the work"). A brand-new member can share
+     and comment the minute their email is confirmed. What still stands: one confirmed email per person, the
+     hourly limits, the word and link checks, and a report hides a share until a moderator looks. */
 
   const text = String(b.body || "").trim();
 

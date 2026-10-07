@@ -656,7 +656,7 @@
       if (err.status === 409) return;
       if (was) proud.add(l.post_id); else proud.delete(l.post_id);
       loveN.set(l.post_id, Math.max(0, (loveN.get(l.post_id) || 0) + (was ? 1 : -1)));
-      paintSame(l); say(err.status === 403 || err.status === 401 ? 'You can cheer people on once your account is 3 days old.' : "That didn't go through.");
+      paintSame(l); say(err.status === 403 || err.status === 401 ? 'Confirm your email first, then you can cheer people on.' : "That didn't go through.");
     }
   }
   /* RESPIN: puts their Spin on your profile (and tells them). Tap again to take it off. */
@@ -674,7 +674,7 @@
       if (err.status === 409) return;
       if (was) respun.add(l.id); else respun.delete(l.id);
       reN.set(l.id, Math.max(0, (reN.get(l.id) || 0) + (was ? 1 : -1)));
-      paintSame(l); say(err.status === 403 || err.status === 401 ? 'You can Respin once your account is 3 days old.' : "That didn't go through.");
+      paintSame(l); say(err.status === 403 || err.status === 401 ? 'Confirm your email first, then you can Respin.' : "That didn't go through.");
     }
   }
 

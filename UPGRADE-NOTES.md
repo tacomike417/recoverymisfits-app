@@ -1129,3 +1129,13 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - TO DO: the Save toast still says "Find it under ME"; there is no ME, the row is "Saved shares".
 - v230, Mike: "where is it?" On the Porch the You button opens your menu, not the You page, so Help was not there.
   Now "Help" is a row in your menu on the Porch too, under "How the Porch works".
+
+## v231 (7 Oct 2026) - the 3-day wait for new accounts is gone
+- Mike: "we might want to lift that 3 day posting ban. that's pretty rough stuff. i didnt realize we did that. i'd
+  just let them post away and let the report button do the work."
+- A new member can share, comment, heart, add friends and make Spins as soon as their email is confirmed.
+- Three places had the wait and all three changed: the porch function, the spins function, and the database rule
+  porch_can_act() (SQL step 67). The Help card "Why can't I share yet?" came out.
+- Still standing: one confirmed email per person, hourly limits, word and link checks, the photo check, a report
+  hides a share until a moderator looks, and a brand-new account can send 3 "Ask me about" notes a day.
+- Functions: porch AND spins (redeploy both). SQL: supabase/porch_67_no_three_day_wait.sql.
