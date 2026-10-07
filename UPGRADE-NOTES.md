@@ -1057,3 +1057,12 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - NOT TESTED ON A PHONE YET. Checked in a phone-size browser: the bar, the rail at 2, 4 and 5 digits, a 320px phone,
   and Today lit on Tools. The + dial on the live Porch still needs a look after the push.
 - Could do later: a one-time note for regulars, "Listen, Fun and Tools moved to Today."
+
+
+## v220 (6 Oct 2026) - the + works every time, and opens like Jeff's
+- THE BUG: the + in the bar opened the share choices and a second piece of code closed them in the same tap, so it
+  only worked once in a few tries. Fixed.
+- THE LOOK (Mike: "make it a little fancy for us drunks"): the three choices spring out of the + as brass coins,
+  the way the + on Infinite Pulls fans out. Give it a spin goes up, Say something left, Share photos right. A gold
+  ring bursts from the button, the page behind goes soft, each coin gets a slow shine, and the + turns into an X.
+- It opens above everything now, so it also works while you are looking at a profile.

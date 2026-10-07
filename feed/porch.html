@@ -108,11 +108,6 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 /* the + dial */
 .dfab{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(196px + env(safe-area-inset-bottom,0px));z-index:8100;width:62px;height:62px;border-radius:50%;border:0;display:grid;place-items:center;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);box-shadow:0 10px 26px rgba(0,0,0,.6),0 0 0 3px rgba(16,15,12,.9);cursor:pointer;transition:transform .2s}
 .dfab svg{width:30px;height:30px;fill:none;stroke:#17130b;stroke-width:3;stroke-linecap:round}
-/* 6 Oct 2026: THE + MOVED INTO THE BOTTOM BAR (nav.js). The floating one is switched off, not
-   deleted, because the dial code still flips its class. The choices now rise from the middle,
-   over the bar's +. */
-.dfab{display:none!important}
-.dial .dstack{right:auto!important;left:50%;transform:translateX(-50%);align-items:center!important;bottom:calc(196px + env(safe-area-inset-bottom,0px))!important}
 .dfab.x{transform:rotate(45deg)}
 .dial .ddim{position:fixed;inset:0;z-index:8050;background:rgba(5,5,4,.74);opacity:0;pointer-events:none;transition:opacity .2s}
 .dial .dstack{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(272px + env(safe-area-inset-bottom,0px));z-index:8090;display:flex;flex-direction:column;align-items:flex-end;gap:12px;pointer-events:none}
@@ -124,6 +119,48 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 .dial.open .dstack{pointer-events:auto}
 .dial.open .dstack button{opacity:1;transform:none}
 .dial.open .dstack button:nth-child(3){transition-delay:.03s}.dial.open .dstack button:nth-child(2){transition-delay:.06s}.dial.open .dstack button:nth-child(1){transition-delay:.09s}
+/* 6 Oct 2026: THE + MOVED INTO THE BOTTOM BAR (nav.js). The floating one is switched off, not
+   deleted, because the dial code still flips its class. The choices now rise from the middle,
+   over the bar's +. */
+.dfab{display:none!important}
+/* v220, Mike: "make the plus sign do the same thing as Jeff's site and open up like that, make it a
+   little fancy for us drunks." The three choices spring out of the + as brass coins: one up, one each
+   side. A gold ring bursts from the button, the page behind goes soft, and the + turns into an X right
+   where it was. --cx / --cy are the middle of the bar's +, measured when it opens (showDial). */
+.dial .ddim{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);background:rgba(5,5,4,.62)}
+.dial .dstack{position:fixed;inset:0;right:0;bottom:0;display:block;gap:0;pointer-events:none}
+.dial.open .dstack{pointer-events:none}
+.dial .dstack button{position:absolute;left:var(--cx,50%);top:var(--cy,88%);width:128px;margin:-40px 0 0 -64px;flex-direction:column-reverse;align-items:center;gap:8px;
+  pointer-events:auto;opacity:0;transform:translate(0,0) scale(.2);transition:transform .46s cubic-bezier(.2,1.6,.35,1),opacity .18s ease}
+.dial:not(.open) .dstack button{pointer-events:none}
+.dial .dstack span{width:80px;height:80px;margin:0;border:0;
+  background:radial-gradient(circle at 34% 26%,#fff3c4 0,#f0d27d 22%,#d6ac4f 55%,#8f6a22 100%);
+  box-shadow:0 10px 28px rgba(0,0,0,.6),inset 0 0 0 3px rgba(255,248,214,.35),inset 0 -6px 10px rgba(90,60,10,.35),0 0 0 4px rgba(224,189,106,.2);
+  transition:transform .12s}
+.dial .dstack button:active span{transform:scale(.9)}
+.dial .dstack svg{width:38px;height:38px;stroke:#1a1408;color:#1a1408!important}
+.dial .dstack b{padding:6px 12px;border-radius:999px;font-size:14px;opacity:0;transform:translateY(-6px);transition:opacity .2s ease .2s,transform .2s ease .2s}
+.dial.open .dstack b{opacity:1;transform:none}
+.dial.open .dstack button[data-go="say"]{transform:translate(-102px,-128px) scale(1);opacity:1;transition-delay:.02s}
+.dial.open .dstack button[data-go="spin"]{transform:translate(0,-230px) scale(1);opacity:1;transition-delay:.07s}
+.dial.open .dstack button[data-go="snap"]{transform:translate(102px,-128px) scale(1);opacity:1;transition-delay:.12s}
+/* a slow shine across each coin once it has landed */
+.dial .dstack span{position:relative;overflow:hidden}
+.dial .dstack span::after{content:"";position:absolute;top:-20%;bottom:-20%;left:-60%;width:38%;transform:skewX(-20deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);opacity:0}
+.dial.open .dstack span::after{animation:dshine 2.6s ease-in-out .5s infinite}
+@keyframes dshine{0%{left:-60%;opacity:0}12%{opacity:.9}30%{left:130%;opacity:0}100%{left:130%;opacity:0}}
+/* the ring that bursts out of the + */
+.dial .dburst{position:absolute;left:var(--cx,50%);top:var(--cy,88%);width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:3px solid #f0d27d;opacity:0;transform:scale(.6);pointer-events:none}
+.dial.open .dburst{animation:dburst .6s ease-out}
+.dial.open .dburst.b2{animation:dburst .8s ease-out .12s}
+@keyframes dburst{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(3.4)}}
+/* the + becomes an X, drawn on top of the dim right where the + is */
+.dial .dstack button.dx{width:56px;height:56px;margin:-28px 0 0 -28px;display:grid;place-items:center;border-radius:50%;border:3px solid #f0d27d;background:#14110b;color:#f0d27d;
+  box-shadow:0 0 0 6px rgba(240,210,125,.14),0 8px 24px rgba(0,0,0,.6);transform:none;transition:opacity .15s ease}
+.dial.open .dstack button.dx{opacity:1;transform:none;transition-delay:0s}
+.dial .dstack button.dx svg{width:28px;height:28px;stroke:#f0d27d;color:#f0d27d!important;stroke-width:2.8;transition:transform .4s cubic-bezier(.2,1.6,.35,1)}
+.dial.open .dstack button.dx svg{transform:rotate(135deg)}
+@media (prefers-reduced-motion:reduce){.dial .dstack button,.dial .dstack b,.dial .dstack button.dx svg{transition:none}.dial.open .dburst,.dial.open .dstack span::after{animation:none}}
 /* compose: words or a saying card */
 .cf-big{display:grid;place-items:center;margin:4px 0 12px}
 .cf-big img{display:block;max-width:100%;max-height:38vh;border-radius:12px}
@@ -1409,7 +1446,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v219</span>
+  <span class="ver" id="ver">v220</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1445,6 +1482,8 @@ html.kb .ch-bar{padding-bottom:8px}
     <button type="button" data-go="spin"><b>Give it a spin</b><span><svg viewBox="0 0 24 24" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg></span></button>
     <button type="button" data-go="snap"><b>Share photos</b><span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="12" cy="12.5" r="3.6"/><path d="M8 5l1.6-2h4.8L16 5"/></svg></span></button>
     <button type="button" data-go="say"><b>Say something</b><span><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1.1-4.6A8 8 0 1 1 21 12z"/></svg></span></button>
+    <i class="dburst" aria-hidden="true"></i><i class="dburst b2" aria-hidden="true"></i>
+    <button type="button" class="dx" data-dialx aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
   </div>
 </div>
 <button type="button" class="dfab" id="dfab" data-new aria-label="Share something"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
@@ -2461,12 +2500,16 @@ html.kb .ch-bar{padding-bottom:8px}
   document.addEventListener("click", function (e) {
     var a = e.target.closest && e.target.closest("#rm-bottom-nav [data-rm-new]");
     if (!a) return;
-    e.preventDefault(); e.stopPropagation(); toggleDial();
+    /* v220: stopIMMEDIATEPropagation. The + is a link to this page, so the "Porch tab while a screen
+       is open" handler just below also matched it, saw the dial that had opened a moment earlier in
+       this same tap, and closed everything. That is why it only opened once in a few tries. */
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); toggleDial();
   }, true);
   function barPlus(on) { var b = document.querySelector("#rm-bottom-nav [data-rm-new]"); if (b) b.classList.toggle("x", !!on); }
   /* the Porch tab while you're on a profile: back to the feed, not a page reload */
   document.addEventListener("click", function (e) {
     var a = e.target.closest && e.target.closest('#rm-bottom-nav a[href*="feed/porch.html"]');
+    if (a && a.hasAttribute("data-rm-new")) return;          /* the + has its own handler, above */
     if (a && stack.length) { e.preventDefault(); closeAll(); }
   }, true);
   var waiters = [];
@@ -6065,13 +6108,25 @@ html.kb .ch-bar{padding-bottom:8px}
   }, { passive: true });
 
   /* ================================================================ THE + DIAL (Layout A, 1 Oct 2026) */
-  function dialOpen() { return $("dial").classList.contains("open"); }
+  function showDial() {
+    if (dialOpen()) return;
+    var d = $("dial"), plus = document.querySelector("#rm-bottom-nav [data-rm-new] .plus") || document.querySelector("#rm-bottom-nav [data-rm-new]");
+    var r = plus ? plus.getBoundingClientRect() : null;
+    /* the middle of the bar's +. No bar yet (it loads a moment after the page)? Bottom middle. */
+    var cx = r && r.width ? r.left + r.width / 2 : window.innerWidth / 2;
+    var cy = r && r.width ? r.top + r.height / 2 : window.innerHeight - 56;
+    d.style.setProperty("--cx", cx + "px"); d.style.setProperty("--cy", cy + "px");
+    $("dfab").classList.add("x"); $("dfab").setAttribute("aria-label", "Close"); barPlus(true);
+    var z = window.PorchBack.push("dial", function () { d.classList.remove("open"); $("dfab").classList.remove("x"); $("dfab").setAttribute("aria-label", "Share something"); barPlus(false); });
+    /* above the bottom bar and above whatever screen is open (a profile, say), so the coins are never behind anything */
+    d.querySelector(".ddim").style.zIndex = String(z + 1); d.querySelector(".dstack").style.zIndex = String(z + 2);
+    /* next frame, so the coins really spring out of the button */
+    requestAnimationFrame(function () { requestAnimationFrame(function () { if (stack.length && stack[stack.length - 1]._tag === "dial") d.classList.add("open"); }); });
+  }
+  function dialOpen() { var t = stack[stack.length - 1]; return !!(t && t._tag === "dial") || $("dial").classList.contains("open"); }
   function toggleDial() {
     if (dialOpen()) return closeDial();
-    gate(function () {
-      $("dial").classList.add("open"); $("dfab").classList.add("x"); $("dfab").setAttribute("aria-label", "Close"); barPlus(true);
-      window.PorchBack.push("dial", function () { $("dial").classList.remove("open"); $("dfab").classList.remove("x"); $("dfab").setAttribute("aria-label", "Share something"); barPlus(false); });
-    });
+    gate(showDial);
   }
   function closeDial() {
     var top = stack[stack.length - 1];
