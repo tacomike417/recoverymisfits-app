@@ -427,7 +427,7 @@
       /* Both lines are centered in the well, the way they are in the
          mockup -- they are nearly the same width, so centering reads as one
          stacked block rather than two left-hung lines. */
-      .rm-rail-date{flex:0 0 76px;
+      .rm-rail-date{flex:0 0 104px;
         flex-direction:column;justify-content:center;
         gap:3px;padding:0 3px;cursor:pointer;text-align:center}
       .rm-rail-count{flex:1 1 auto;min-width:0;justify-content:center;gap:1px}
@@ -437,13 +437,13 @@
       .rm-rail-date:active,.rm-rail-act:active{filter:brightness(1.35)}
 
       .rm-rail-date .k{
-        color:#d9ab4e;font-size:9.5px;line-height:1;font-weight:500;
+        color:#d9ab4e;font-size:10.5px;line-height:1;font-weight:500;
         letter-spacing:.11em;text-transform:uppercase;white-space:nowrap;
         text-shadow:0 1px 0 #000;
       }
       .rm-rail-date .v{
         max-width:100%;overflow:hidden;color:#f4ecdb;
-        font-size:12.5px;line-height:1;font-weight:500;letter-spacing:.045em;
+        font-size:14px;line-height:1;font-weight:500;letter-spacing:.045em;
         text-transform:uppercase;white-space:nowrap;text-overflow:clip;
         text-shadow:0 1px 0 #000;
       }
@@ -454,18 +454,21 @@
          the tiles are sized per length: as big as the well allows, then
          stepped down only as far as each extra digit forces. Two days is
          not a reason to draw a small number. */
-      .rm-rail-tile{width:26px;height:35px;display:block;flex:none}
-      .rm-rail-count.d4 .rm-rail-tile{width:24px;height:32px}
-      .rm-rail-count.d5 .rm-rail-tile{width:20px;height:27px}
-      .rm-rail-count.d6 .rm-rail-tile{width:17px;height:23px}
+      /* 6 Oct 2026: with Account off the rail the counter's well is wider, and Mike wanted
+         the "crammed" look back, so the tiles grew to fill it instead of floating in it.
+         42 tall is the most a 44px well holds. */
+      .rm-rail-tile{width:31px;height:42px;display:block;flex:none}
+      .rm-rail-count.d4 .rm-rail-tile{width:31px;height:42px}
+      .rm-rail-count.d5 .rm-rail-tile{width:26px;height:35px}
+      .rm-rail-count.d6 .rm-rail-tile{width:23px;height:31px}
 
       .rm-rail-days{
-        margin-left:8px;color:#efe3c6;font-size:12.5px;font-weight:500;
+        margin-left:7px;color:#efe3c6;font-size:14.5px;font-weight:500;
         letter-spacing:.07em;line-height:1;flex:none;text-transform:uppercase;
         text-shadow:0 1px 0 #000;
       }
-      .rm-rail-count.d5 .rm-rail-days{margin-left:7px;font-size:11.5px}
-      .rm-rail-count.d6 .rm-rail-days{margin-left:6px;font-size:10.5px}
+      .rm-rail-count.d5 .rm-rail-days{margin-left:6px;font-size:13px}
+      .rm-rail-count.d6 .rm-rail-days{margin-left:5px;font-size:11.5px}
 
       .rm-rail-act{
         flex-direction:column;justify-content:center;gap:3px;
@@ -488,7 +491,7 @@
         flex: 1 1 auto;
         min-width: 0;
         display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 6px;
       }
 
@@ -530,6 +533,24 @@
         width: 24px;
         height: 24px;
       }
+
+      /* THE + IN THE MIDDLE OF THE BAR (6 Oct 2026). A gold button that stands a little
+         proud of the bar, where Instagram and TikTok put theirs. */
+      .navItem.navPlus { background: none !important; overflow: visible; }
+      .navItem.navPlus .plus {
+        width: 48px; height: 48px; margin-top: -14px; border-radius: 50%;
+        display: grid; place-items: center;
+        background: radial-gradient(circle at 35% 30%, #f3dc92, #c9a044);
+        box-shadow: 0 3px 10px rgba(0,0,0,.6), 0 0 0 3px rgba(10,10,10,.97);
+        transition: transform .18s ease;
+      }
+      .navItem.navPlus .plus svg { width: 26px; height: 26px; fill: none; stroke: #17130b; stroke-width: 3; stroke-linecap: round; }
+      .navItem.navPlus.x .plus { transform: rotate(45deg); }
+      .navItem.navPlus:active .plus { transform: scale(.93); }
+
+      /* YOU. The picture is painted in by assets/account.js (or by the Porch page). */
+      .navItem.navYou .ico { overflow: visible; }
+      .navItem.navYou .ico img { width: 22px; height: 22px; display: block; flex: none; }
 
       .rm-ico {
         width: 22px;
@@ -928,7 +949,7 @@
 
         .rm-nav-links {
           width: 100%;
-          grid-template-columns: repeat(6, minmax(0, 1fr));
+          grid-template-columns: repeat(5, minmax(0, 1fr));
         }
 
         .navItem {
@@ -955,7 +976,7 @@
 
         .rm-nav-links {
           gap: 4px;
-          grid-template-columns: repeat(6, minmax(0, 1fr));
+          grid-template-columns: repeat(5, minmax(0, 1fr));
         }
 
         .navItem {
@@ -1037,13 +1058,21 @@
        Porch; everybody else gets "coming at the end of October" (feed/soon.html).
        Memes are still on Today (Meme of the Day + the rail) and at /meme.html. */
     { href: "/feed/porch.html", label: "Porch", icon: ICONS.porch },
-    { href: "/audio.html", label: "Listen", icon: ICONS.audio },
-    { href: "/fun.html", label: "Fun", icon: ICONS.fun },
-    { href: "/tools.html", label: "Tools", icon: ICONS.tools },
+    /* 6 Oct 2026 (Mike: "I keep hitting that share button to get to account ... that's just
+       how social media has it"). The bar is five now: Today, Porch, +, Invite, You.
+       LISTEN, FUN AND TOOLS MOVED TO THE TODAY PAGE ("More on the shelf", under the stack).
+       They are still pages and still light the Today tab while you are on them. */
+    { href: "/feed/porch.html?new=1", label: "Share something", plus: true },
     /* SHARE, NOT A PAGE. It opens the code sheet rather than going anywhere,
        which is why it carries data-rm-share and a href that means "no
        destination" -- the click handler below stops it. */
-    { href: "#share", label: "Invite", icon: ICONS.share, share: true }   /* 3 Oct 2026: was "Share". Share what? It invites a friend. */
+    { href: "#share", label: "Invite", icon: ICONS.share, share: true },   /* 3 Oct 2026: was "Share". Share what? It invites a friend. */
+    /* YOU, BOTTOM RIGHT. This is the Account button that used to sit on the brass rail,
+       and it keeps that button's id on purpose: assets/account.js paints your picture on
+       #rmAccountBtn and opens the switcher when you hold it, account.html opens the
+       switcher on a tap, and the Porch turns it into your menu. All of that still works
+       because the id did not change -- only where the button lives. */
+    { href: "/account.html", label: "You", you: true }
   ];
 
   injectStyles();
@@ -1057,19 +1086,11 @@
   const soberPanel = document.createElement("div");
   soberPanel.className = "rm-rail";
   soberPanel.setAttribute("aria-label", "Sobriety counter");
+  /* 6 Oct 2026, Mike: Account came off the rail and went to the bar's bottom right, which
+     left a hole. His order for what is left: the coin on the left, the day count in the
+     middle, Sober Since on the right. The plate is plain metal, so nothing in the artwork
+     had to change. */
   soberPanel.innerHTML = `
-    <button type="button" class="rm-rail-date" id="rmSetSoberDateBtn"
-            aria-label="Set or change your sober date">
-      <span class="k">Sober Since</span>
-      <span class="v" id="rmSoberBarText">Set Date</span>
-    </button>
-
-    <i class="rm-rail-sep" aria-hidden="true"></i>
-
-    <div class="rm-rail-count" id="rmRailCount" aria-live="polite"></div>
-
-    <i class="rm-rail-sep" aria-hidden="true"></i>
-
     <a class="rm-rail-act rm-share" id="rmShareSoberDateBtn" href="/sober-date.html"
        aria-label="Share your sober date">
       <img src="/assets/rail/icon-share.webp" alt="" width="19" height="19">
@@ -1078,11 +1099,15 @@
 
     <i class="rm-rail-sep" aria-hidden="true"></i>
 
-    <a class="rm-rail-act rm-account" id="rmAccountBtn" href="/account.html"
-       aria-label="Your anonymous account">
-      <img src="/assets/rail/icon-account.webp" alt="" width="19" height="19">
-      <span>Account</span>
-    </a>
+    <div class="rm-rail-count" id="rmRailCount" aria-live="polite"></div>
+
+    <i class="rm-rail-sep" aria-hidden="true"></i>
+
+    <button type="button" class="rm-rail-date" id="rmSetSoberDateBtn"
+            aria-label="Set or change your sober date">
+      <span class="k">Sober Since</span>
+      <span class="v" id="rmSoberBarText">Set Date</span>
+    </button>
   `;
 
   /* ---- THE COUNTER ------------------------------------------------------
@@ -1406,7 +1431,11 @@
   // bar with no tab lit reads as though you have left the app.
   const file = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
   const declared = (document.body.getAttribute("data-rm-nav") || "").toLowerCase();
-  const cur = declared || file;
+  /* Listen, Fun and Tools came off the bar (6 Oct 2026) and are opened from the Today
+     page, so Today is the tab that belongs lit while you are in one of them. */
+  const MOVED = { "audio.html": 1, "fun.html": 1, "tools.html": 1 };
+  const cur0 = declared || file;
+  const cur = MOVED[cur0] ? "index.html" : cur0;
 
   items.forEach((it) => {
     const a = document.createElement("a");
@@ -1416,10 +1445,24 @@
     /* Strips "./" or a leading "/" alike, so the tab still lights up now
        that the hrefs above are root-absolute. */
     const hrefFile = it.href.replace(/^\.?\//, "").toLowerCase();
-    if (hrefFile === cur) a.classList.add("active");
+    if (hrefFile === cur && !it.plus && !it.you) a.classList.add("active");
 
     if (it.share) a.setAttribute("data-rm-share", "");
-    a.innerHTML = `<span class="ico">${it.icon}</span><span>${it.label}</span>`;
+    if (it.plus) {
+      /* THE + IN THE MIDDLE. On the Porch it opens the share dial right there (the Porch
+         page catches the tap). Anywhere else it goes to the Porch and opens the dial. */
+      a.classList.add("navPlus");
+      a.setAttribute("data-rm-new", "");
+      a.setAttribute("aria-label", it.label);
+      a.innerHTML = '<span class="plus"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>';
+    } else if (it.you) {
+      a.classList.add("navYou");
+      a.id = "rmAccountBtn";
+      a.setAttribute("aria-label", "Your account");
+      a.innerHTML = '<span class="ico"><img src="/assets/rail/icon-account.webp" alt="" width="24" height="24"></span><span>' + it.label + "</span>";
+    } else {
+      a.innerHTML = `<span class="ico">${it.icon}</span><span>${it.label}</span>`;
+    }
     navLinks.appendChild(a);
   });
 
@@ -1446,18 +1489,9 @@
      column on a phone, so a third child lands either beside the nav or
      underneath it depending on the width. Its own strip above the bar is
      the same thing on every screen. */
-  if (greetName) {
-    const greet = document.createElement("div");
-    greet.className = "rm-greet";
-    greet.innerHTML =
-      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
-      '<path d="M20 7.5L10 17l-5-4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-      '<span>Glad you&rsquo;re here, <b></b></span>';
-    /* textContent, not innerHTML: that name came out of a box somebody typed
-       into, and it is about to appear on every page of the app. */
-    greet.querySelector("b").textContent = greetName;
-    wrapper.appendChild(greet);
-  }
+  /* 6 Oct 2026, Mike: "Glad you're here can go away right now". The pill sat above the
+     rail's left end, right where the coin now stands. greetName is left alone above in
+     case something wants the name later. */
 
   /* THE RAIL GOES IN A BOX THAT MEASURES ITSELF.
 

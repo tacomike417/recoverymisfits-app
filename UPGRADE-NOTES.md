@@ -38,6 +38,40 @@ Everything that has to happen to open the Porch. Nothing here before October 20.
 - [ ] Founding Misfit badge: decide when the door closes on it.
 - [ ] Quick comments (parked from the unclear list).
 
+## 🧺 THE BASKET (6 Oct 2026, Mike: "we pass the basket to keep the site going") — DECIDED, NOT BUILT
+"We're self supporting through our own contributions." A menu item called Basket. No ads, no selling
+people, and the books open for every member to read. Don't build until Mike says.
+
+**Decided 6 Oct**
+- The money belongs to Mike's 501(c)(3) (he says it is alive; general sobriety purpose). TO DO before a
+  dollar comes in: confirm it on the IRS lookup, and open the nonprofit's own bank account (Huntington
+  or a business account). Never his personal account.
+- Site bills = every real bill the site runs on (hosting, database, domain, video storage, Buffer, Claude,
+  ChatGPT, and the rest). Nobody gets paid. Mike: "i dont need paid, i do this to stay sober."
+  Shared bills count only Recovery Misfits' share (Buffer: 4 of 6 channels = $24 of $36).
+- Keep 3 months of bills as a cushion. Anything above that is extra, and extra goes to a charity.
+- The charity: members suggest (real contact info, not just "give it to the intergroup"), members vote,
+  most votes wins. Mike checks each one is a real registered charity before it goes on the ballot.
+  One vote per confirmed member. No names on suggestions, no running tally until the vote closes.
+  ONCE A YEAR (Mike, 6 Oct, his wife's call: "yearly"). Idea on the table: tie it to the site's birthday,
+  October 20: the vote opens, the year's books go up, the gift goes out. At year's end keep 3 months of
+  bills, everything above that goes. The monthly books still show every dollar in between.
+- Giving: any amount, one time, with quick buttons ($1, $2, $5). No monthly subscription.
+- Members only. It lives inside the Porch. Outsiders are never asked.
+- The page shows: what the site costs on a sliding scale by member count (0 to 100, 101 to 250, ...),
+  a plain explanation (this costs money, this is how we stay away from ads, the tradition behind it,
+  and that Recovery Misfits is not AA), one Give button, and the books by month and year:
+  given, bills paid, cushion, extra, and where the extra went.
+- No donor names, no badges, no thank-you lists. Giving stays invisible.
+
+**Still open**
+- "Never show zeros": on day one nothing has been given. Show the bills first, the total only once there is one.
+- Google Play has rules for donations inside apps (friendlier to registered nonprofits). Check before the
+  Android app shows the Give button.
+- Which payment company (it never touches our pages: no card numbers on the site, no emails stored).
+- THE MENU SHUFFLE: DONE in v219 (see the bottom of this file). Still open: where Basket goes. The new
+  "You" spot (bottom right) or the "More on the shelf" box on Today are the two candidates.
+
 ## ☀️ "YOUR FRIENDS SHARED", ONCE A MORNING (4 Oct 2026, Mike)
 - [x] One phone alert a day at 8:30am Eastern to anybody with a friend who shared since yesterday morning:
       "3 friends shared on the Porch". Nobody gets one on a day none of their friends shared. Group shares and the
@@ -1008,3 +1042,18 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 ## v218 (6 Oct 2026) - Give it a spin on your own profile
 - The gold camera on your profile faded out and the ring went red, but nobody slid in: that tile was missing the
   drawing of the misfit taking a selfie. It has him now, same as the one in the feed's Spins row.
+
+## v219 (6 Oct 2026) - the bottom bar: Today, Porch, +, Invite, You
+- Mike: "I keep hitting that share button to get to account, it's intuitive, that's just how social media has it."
+- THE BAR IS FIVE NOW: Today, Porch, + (middle), Invite, You (bottom right). You is the old Account button moved off
+  the brass rail. It kept its id (rmAccountBtn), so your picture, hold-to-switch, and the Porch menu all still work.
+- LISTEN, FUN AND TOOLS came off the bar. They are three big tiles on the Today page in a box called "More on the
+  shelf", under the stack and above the memes. On those three pages the Today tab stays lit.
+- THE + opens the share dial (Give it a spin, Share photos, Say something). On the Porch it opens right there, and
+  the choices now rise from the middle. On any other page it goes to the Porch and opens it (porch.html?new=1).
+  The floating + on the Porch is switched off.
+- THE COIN RAIL: coin on the left, day count in the middle, Sober Since on the right. The plate graphic did not
+  change. The wheels are bigger so the count looks crammed again. "Glad you're here" is gone.
+- NOT TESTED ON A PHONE YET. Checked in a phone-size browser: the bar, the rail at 2, 4 and 5 digits, a 320px phone,
+  and Today lit on Tools. The + dial on the live Porch still needs a look after the push.
+- Could do later: a one-time note for regulars, "Listen, Fun and Tools moved to Today."

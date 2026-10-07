@@ -108,6 +108,11 @@ button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 /* the + dial */
 .dfab{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(196px + env(safe-area-inset-bottom,0px));z-index:8100;width:62px;height:62px;border-radius:50%;border:0;display:grid;place-items:center;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);box-shadow:0 10px 26px rgba(0,0,0,.6),0 0 0 3px rgba(16,15,12,.9);cursor:pointer;transition:transform .2s}
 .dfab svg{width:30px;height:30px;fill:none;stroke:#17130b;stroke-width:3;stroke-linecap:round}
+/* 6 Oct 2026: THE + MOVED INTO THE BOTTOM BAR (nav.js). The floating one is switched off, not
+   deleted, because the dial code still flips its class. The choices now rise from the middle,
+   over the bar's +. */
+.dfab{display:none!important}
+.dial .dstack{right:auto!important;left:50%;transform:translateX(-50%);align-items:center!important;bottom:calc(196px + env(safe-area-inset-bottom,0px))!important}
 .dfab.x{transform:rotate(45deg)}
 .dial .ddim{position:fixed;inset:0;z-index:8050;background:rgba(5,5,4,.74);opacity:0;pointer-events:none;transition:opacity .2s}
 .dial .dstack{position:fixed;right:max(16px,calc(50% - 224px));bottom:calc(272px + env(safe-area-inset-bottom,0px));z-index:8090;display:flex;flex-direction:column;align-items:flex-end;gap:12px;pointer-events:none}
@@ -1404,7 +1409,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v218</span>
+  <span class="ver" id="ver">v219</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2451,6 +2456,14 @@ html.kb .ch-bar{padding-bottom:8px}
     if (top && RAIL_ON[top.id]) { nav.style.zIndex = String((+top.style.zIndex || 20000) + 1); h.style.setProperty("--railh", nav.offsetHeight + "px"); }
     else nav.style.zIndex = "";
   }
+  /* THE + IN THE BOTTOM BAR (6 Oct 2026). nav.js draws it as a link to this page with ?new=1,
+     so on any other page it brings you here and opens the dial. Here it just opens the dial. */
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("#rm-bottom-nav [data-rm-new]");
+    if (!a) return;
+    e.preventDefault(); e.stopPropagation(); toggleDial();
+  }, true);
+  function barPlus(on) { var b = document.querySelector("#rm-bottom-nav [data-rm-new]"); if (b) b.classList.toggle("x", !!on); }
   /* the Porch tab while you're on a profile: back to the feed, not a page reload */
   document.addEventListener("click", function (e) {
     var a = e.target.closest && e.target.closest('#rm-bottom-nav a[href*="feed/porch.html"]');
@@ -6056,8 +6069,8 @@ html.kb .ch-bar{padding-bottom:8px}
   function toggleDial() {
     if (dialOpen()) return closeDial();
     gate(function () {
-      $("dial").classList.add("open"); $("dfab").classList.add("x"); $("dfab").setAttribute("aria-label", "Close");
-      window.PorchBack.push("dial", function () { $("dial").classList.remove("open"); $("dfab").classList.remove("x"); $("dfab").setAttribute("aria-label", "Share something"); });
+      $("dial").classList.add("open"); $("dfab").classList.add("x"); $("dfab").setAttribute("aria-label", "Close"); barPlus(true);
+      window.PorchBack.push("dial", function () { $("dial").classList.remove("open"); $("dfab").classList.remove("x"); $("dfab").setAttribute("aria-label", "Share something"); barPlus(false); });
     });
   }
   function closeDial() {
@@ -7033,6 +7046,8 @@ html.kb .ch-bar{padding-bottom:8px}
     if (gcq && /^[0-9a-f-]{36}$/i.test(gcq)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openGChat(gcq); }
     var gq = new URLSearchParams(location.search).get("g");
     if (gq && /^([0-9a-f-]{36}|[a-z0-9][a-z0-9-]{1,28}[a-z0-9])$/i.test(gq)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openGroup(gq); }
+    /* ?new=1 opens the share dial (6 Oct 2026): the + in the bottom bar, tapped on another page */
+    if (/[?&]new=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} setTimeout(function () { try { if (!dialOpen()) toggleDial(); } catch (e) {} }, 600); }
     /* ?invite=1 opens the invite card (4 Oct 2026): Welcome Matt's "invite a friend" message links here */
     if (/[?&]invite=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) setTimeout(function () { try { invite(); } catch (e) {} }, 700); }
     if (/[?&]groups=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (me.uid) showGroupsTab(); }
