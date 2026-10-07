@@ -1116,3 +1116,14 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   comments ride on the bottom edge of the picture. No function change, no SQL.
 - v228, Mike: "make the pic a rounded box and make those comments in pills that match the paper theme". The picture in
   the pop-up has round corners and a thin gold edge; the quick comments are paper-colored pills.
+
+## v229 (7 Oct 2026) - HELP
+- Mike: "add in a help section into the main profile ... how to do everything on the site and they can search" and
+  "if we change anything we can just update the help docs too".
+- New page /help.html, opened from a "Help" row on the You page (account.html), over Sign Out.
+- Search box (also finds same-meaning words: delete = take off, picture = photo), groups to jump to, one card per
+  job with numbered steps, a "Take me there" button where there is a link, and the blue 988 line at the bottom.
+- ALL THE WORDS ARE IN /help-cards.js. THE RULE FROM NOW ON: when a screen changes, its card changes in the same
+  push. A new feature (the Basket is next) gets its own cards.
+- Not in Help on purpose, because a member cannot reach them today: themes, "Celebrate a win", My Song.
+- TO DO: the Save toast still says "Find it under ME"; there is no ME, the row is "Saved shares".
