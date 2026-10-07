@@ -138,7 +138,7 @@
   <div class="acts">
     <!-- SHARE TO THE PORCH is the first choice (3 Oct 2026, Mike). It opens a new share on the Porch
          with the card in it; they still have to tap Share there. Their date only goes up if they do. -->
-    <button class="go" id="porchBtn" type="button" hidden>
+    <button class="go" id="porchBtn" type="button" hidden style="display:none">
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5 12 4l9.5 6.5"/><path d="M5 9.5V20M19 9.5V20M2.5 20h19"/><path d="M8.5 15h7M8.5 15v5M15.5 15v5"/></svg>
       Share to the Porch
     </button>
@@ -156,6 +156,7 @@
 
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
+<script src="/assets/share-sheet.js"></script>
 
 <script>
 (function () {
@@ -459,6 +460,26 @@
     } catch (e) { msg.textContent = "That didn't work. Try again."; }
   });
 
+  /* v232: "Share my card" opens the one share sheet: the Porch first, then Facebook, Instagram, TikTok, a text.
+     The "Share to the Porch" button over it is hidden; the sheet has that. The old way is kept underneath in
+     case the sheet didn't load. */
+  $("shareBtn").addEventListener("click", function (e) {
+    if (!state.has || !window.RMShare) return;
+    e.stopImmediatePropagation();
+    var pv = $("coinPreview");
+    RMShare.open({
+      title: "I’ve been sober " + state.days.toLocaleString() + (state.days === 1 ? " day" : " days"), sub: "Your name is not on the card.",
+      thumb: pv && !pv.hidden && pv.src ? pv.src : "",
+      picture: async function () {
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+        var blob = await toBlob(drawCard(await loadBg()));
+        if (!blob) throw new Error("no image");
+        return blob;
+      },
+      name: "sober-" + state.days + "-days.png",
+      text: "I’ve been sober " + state.days.toLocaleString() + " days. recoverymisfits.org"
+    });
+  });
   $("shareBtn").addEventListener("click", async function () {
     if (!state.has) return;
     msg.textContent = "Making your card…";

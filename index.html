@@ -1478,7 +1478,7 @@ body::after{
         <button class="memebtn" type="button" data-meme-share="picture" aria-label="Share today's meme" disabled>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-        <button class="memebtn" type="button" data-meme-share="link" aria-label="Share the link to today's meme" disabled>
+        <button class="memebtn" type="button" data-meme-share="link" aria-label="Share the link to today's meme" disabled style="display:none">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </span>
@@ -1742,6 +1742,7 @@ body::after{
 <div id="rm-bottom-nav"></div>
 <script src="./nav.js" defer></script>
 <script src="/assets/meme-share.js"></script>
+<script src="/assets/share-sheet.js"></script>
 <script src="./corner.js" defer></script>
 <script>
 /* THE MEME RAIL, AND TODAY'S ROW IN THE STACK. Both read /data/meme-days.json
@@ -1786,9 +1787,20 @@ body::after{
     row.querySelectorAll("[data-meme-share]").forEach(function (b) {
       b.disabled = false;
       if (b.getAttribute("data-meme-share") === "picture") {
-        if (!window.RMMemeShare || !RMMemeShare.hasSheet) b.setAttribute("aria-label", "Save today's meme");
         b.addEventListener("pointerdown", function () { if (window.RMMemeShare) RMMemeShare.warm(o); });
-        b.addEventListener("click", function () { if (window.RMMemeShare) RMMemeShare.picture(o); });
+        /* v232: the one share sheet, the same one the meme page opens (the link button next to it is hidden now) */
+        b.addEventListener("click", function () {
+          if (!window.RMMemeShare) return;
+          if (!window.RMShare) return RMMemeShare.picture(o);
+          RMShare.open({
+            title: "Meme of the Day", sub: new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }),
+            thumb: "/assets/memes/thumbs/" + id + ".webp",
+            picture: function () { return RMMemeShare.blob(o); },
+            porchPicture: function () { return fetch("/assets/memes/" + file).then(function (r) { if (!r.ok) throw new Error("meme"); return r.blob(); }); },
+            name: "recovery-misfits-" + id + ".jpg",
+            link: RMMemeShare.linkFor(id), text: "Recovery Misfits —"
+          });
+        });
       } else {
         b.addEventListener("click", function () { if (window.RMMemeShare) RMMemeShare.link(o); });
       }

@@ -1139,3 +1139,19 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - Still standing: one confirmed email per person, hourly limits, word and link checks, the photo check, a report
   hides a share until a moderator looks, and a brand-new account can send 3 "Ask me about" notes a day.
 - Functions: porch AND spins (redeploy both). SQL: supabase/porch_67_no_three_day_wait.sql.
+
+## v232 (7 Oct 2026) - ONE SHARE SHEET, with the Porch in it
+- Mike: "anywhere we have a share button for like memes, coins, etc ... have it share to the porch, facebook
+  instagram, tik tok etc, like include us in the sharing not keep us separate."
+- New file /assets/share-sheet.js (RMShare.open). Every share button opens the same sheet: a preview, THE PORCH
+  first, then Facebook, Instagram, TikTok, Text, Copy link, and a switch "Put it on the Porch too" (starts on,
+  remembered on the phone).
+- Using it now: the meme page, the Meme of the Day row on Today, the sober date card, Survival Pile cards. Each
+  page went from 3 or 4 share buttons to one. The old buttons are still in the pages, hidden.
+- Honest limits: a web page cannot post straight into Instagram or TikTok; those open the phone's share menu with
+  the picture ready. Nothing posts to the Porch by itself; it opens a new share with the picture in and they tap
+  Share. The icons are plain ones in our colors, not the companies' logos.
+- NOT DONE YET (asked the same day): the "you know something is happening" feel everywhere: a button spinner, a
+  bar while it works, and a done card with a sound. The sheet has the spinner and a "Sent" line only.
+- NOT DONE YET: the paper plane on a Porch share still has its own sheet (reshare, Misfit Messages, link).
+- No function change, no SQL.

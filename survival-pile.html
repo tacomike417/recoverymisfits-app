@@ -347,7 +347,7 @@
          Facebook gets its own button. -->
     <div class="dacts" id="dacts" hidden>
       <!-- SHARE TO THE PORCH is the first choice (3 Oct 2026, Mike) -->
-      <button class="dshare" type="button" id="dporch">
+      <button class="dshare" type="button" id="dporch" style="display:none">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 10.5 12 4l9.5 6.5"/><path d="M5 9.5V20M19 9.5V20M2.5 20h19"/><path d="M8.5 15h7M8.5 15v5M15.5 15v5"/></svg>
         <span>Share to the Porch</span>
       </button>
@@ -355,11 +355,11 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="dshareLabel">Share this card</span>
       </button>
-      <button class="dalt" type="button" id="dlink">
+      <button class="dalt" type="button" id="dlink" style="display:none">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="dlinkLabel">Share the link</span>
       </button>
-      <button class="dalt" type="button" id="dfb" hidden>
+      <button class="dalt" type="button" id="dfb" hidden style="display:none">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path class="fb" d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.8c0-.9.3-1.6 1.6-1.6h1.7V4.3c-.3 0-1.3-.1-2.5-.1-2.5 0-4.1 1.5-4.1 4.2v2.4H7.4V14h2.8v8h3.3z"/></svg>
         <span>Post to Facebook</span>
       </button>
@@ -371,6 +371,7 @@
 <div class="tailroom"></div>
 <div id="rm-bottom-nav"></div>
 <script src="/nav.js" defer></script>
+<script src="/assets/share-sheet.js"></script>
 <script src="/assets/survival-pile.js"></script>
 <script src="/corner.js"></script>
 
@@ -685,7 +686,7 @@
     $("dback").hidden = !got || !c.back;
     $("dyears").textContent = "";
     $("dacts").hidden = !got || !c.art || c.kind === "start";   /* card 000 is never shared */
-    $("dshareLabel").textContent = navigator.share ? "Share this card" : "Save the picture";
+    $("dshareLabel").textContent = "Share this card";       /* v232: one button, it opens the share sheet */
     $("dlinkLabel").textContent = navigator.share ? "Share the link" : "Copy the link";
     $("dfb").hidden = !!navigator.share;
     $("dsay").textContent = "";
@@ -864,6 +865,19 @@
     }, function () { say.textContent = "Couldn't get the picture. Try again."; });
   });
 
+  /* v232: the one share sheet. The Porch first, then Facebook, Instagram, TikTok, a text, or the link. */
+  $("dshare").addEventListener("click", function (e) {
+    if (!open || !window.RMShare) return;
+    e.stopImmediatePropagation();
+    var grp = open;
+    RMShare.open({
+      title: $("dname").textContent || "The Survival Pile", sub: "The Survival Pile",
+      thumb: ART + grp.card.code + ".webp",
+      picture: function () { return picture(grp); },
+      name: "survival-pile-" + grp.card.code + ".jpg",
+      link: linkFor(grp.card), text: "The Survival Pile — Recovery Misfits"
+    });
+  });
   $("dshare").addEventListener("click", function () {
     if (!open) return;
     var grp = open, say = $("dsay");

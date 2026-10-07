@@ -252,7 +252,7 @@ window.RM_HELP = {
       s: ["Tap \"Sober Since\" on the bar above the bottom buttons.", "Spin the wheels to your date.", "Tap \"Save\"."],
       n: "It is just for you. Nobody sees it unless you share it.", k: "clean date day count reset relapse" },
     { g: "date", q: "How do I share my sober date or a milestone?",
-      s: ["Tap the coin on the bar above the bottom buttons.", "Tap \"Share to the Porch\", or \"Share my card\" to send it somewhere else."],
+      s: ["Tap the coin on the bar above the bottom buttons.", "Tap \"Share my card\".", "Tap \"The Porch\", or pick Facebook, Instagram, TikTok, or Text."],
       n: "Your name is not on the card.",
       go: ["/sober-date.html", "Take me there"], k: "anniversary birthday celebrate" },
     { g: "date", q: "Where are my coins?",
@@ -277,8 +277,12 @@ window.RM_HELP = {
       s: ["Nightly Inventory.", "Burn Pad.", "Fear Compass.", "Gratitude.", "The Untangler.", "The Book Shelf."],
       go: ["/tools.html", "Take me there"], k: "step work journal big book" },
     { g: "today", q: "How do I share the meme of the day?",
-      s: ["On the Today page, tap \"Meme of the Day\".", "Tap \"Share to the Porch\", \"Share this one\", or \"Share the link\"."],
+      s: ["On the Today page, tap \"Meme of the Day\".", "Tap \"Share\".", "Tap \"The Porch\", or pick Facebook, Instagram, TikTok, Text, or \"Copy link\"."],
       go: ["/meme.html", "Take me there"], k: "funny picture" },
+
+    { g: "today", q: "How do I share to Facebook, Instagram, or TikTok?",
+      s: ["Tap \"Share\" on a meme, your sober date card, or a Survival Pile card.", "Tap Facebook, Instagram, TikTok, or Text.", "Instagram and TikTok open your phone's share menu with the picture ready. Pick the app there."],
+      n: "With \"Put it on the Porch too\" switched on, it opens a new share on the Porch after. You still tap Share.", k: "post outside social share sheet" },
 
     /* ------------------------------------------------ alerts */
     { g: "alert", q: "How do I turn alerts on or off?",

@@ -207,6 +207,7 @@
     link: link,
     facebook: facebook,
     warm: function (o) { try { blobFor(o); } catch (e) {} },
+    blob: blobFor,                    /* the square picture with the address on it, for the share sheet (v232) */
     linkFor: linkFor,
     hasSheet: !!navigator.share
   };
