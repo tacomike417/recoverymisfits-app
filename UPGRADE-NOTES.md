@@ -1095,4 +1095,7 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   storage. Not on a reshare, a Spin, a coin share or a card. Stickers, filters and collage are still new-share only.
 - Mike: "that 988 is easily confused for a text input box. move it to the bottom ... make it a different color."
   On the share screen it sits at the bottom, over the row of buttons, in blue, and "Call 988" looks like a button.
+- (v224) Mike: "move that bottom bar to under the picture ... add photos, tags, save right there so its easy to see."
+  The row of buttons (Add photos, Stickers, Filters, Card, Tags, Share/Save) sits right under the share now, on a new
+  share and on an edit. It is not pinned to the bottom of the screen any more. "Photos" now says "Add photos".
 - Function: porch (redeploy). No SQL.

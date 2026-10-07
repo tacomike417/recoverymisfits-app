@@ -1057,7 +1057,11 @@ html.fullon #main{visibility:hidden}
 #compose .help::before{content:"";display:none}
 #compose .help b{padding:10px 14px;border-radius:999px;background:#f1e7cf;color:#17130b;font:800 13.5px/1 Arial,sans-serif}
 #compose .help:active b{background:#fff}
-#compose .ccard,#compose .cerr{margin-bottom:16px}
+#compose .ccard{margin-bottom:12px}
+#compose .cerr:not(:empty){margin-bottom:12px}
+#compose .ctools{position:static;padding:0;margin:0 0 18px;border:0;background:none}
+#compose .ctools button{max-width:96px}
+#compose .page{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .ctop b{flex:1}
 .cmini{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;border:0;background:none;color:var(--gold);cursor:pointer}
 .cmini .cm-p{display:block;width:40px;height:48px;padding:4px;border-radius:8px;border:1.5px solid var(--gold);background:var(--field);overflow:hidden}
@@ -1459,7 +1463,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v223</span>
+  <span class="ver" id="ver">v224</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1612,15 +1616,10 @@ html.kb .ch-bar{padding-bottom:8px}
       <div id="cgt"></div>
     </div>
     <div class="cerr" id="cerr" role="alert"></div>
-    <!-- v223, Mike: "that 988 is easily confused for a text input box. move it to the bottom ... make it a
-         different color". It sits at the bottom of the screen now, just over the buttons, in its own blue,
-         and "Call 988" is drawn as a button. -->
-    <a class="help" href="tel:988"><span>Having a hard time? A real person answers, day or night.</span><b>Call 988</b></a>
-    <button type="button" class="addpic" id="addpic" hidden></button>
-    <input type="file" id="cfile" accept="image/*" multiple hidden><input type="file" id="cfilecam" accept="image/*" capture="environment" hidden>
-  </div>
-  <div class="ctools" id="cbar">
-    <button type="button" data-ct="photos"><span data-ico="camera"></span><b>Photos</b></button>
+    <!-- THE BUTTONS SIT RIGHT UNDER THE SHARE NOW (v223, 7 Oct 2026, Mike: "move that bottom bar to under the
+         picture ... add photos, tags, save right there so its easy to see"). Not pinned to the bottom any more. -->
+    <div class="ctools" id="cbar">
+    <button type="button" data-ct="photos"><span data-ico="camera"></span><b>Add photos</b></button>
     <button type="button" data-ct="stickers"><span>✨</span><b>Stickers</b><i></i></button>
     <button type="button" data-ct="filters"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9.5" r="5.5"/><circle cx="15" cy="9.5" r="5.5"/><circle cx="12" cy="15" r="5.5"/></svg></span><b>Filters</b></button>
     <button type="button" data-ct="card"><span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 15l2.6-6 2.6 6M8 13h3.2M15 10.5v4.5M15 12.2c.5-.9 2.6-1 2.6.6V15"/></svg></span><b>Card</b></button>
@@ -1629,6 +1628,13 @@ html.kb .ch-bar{padding-bottom:8px}
          how the hell do I make this thing"). Always on screen, by the thumb. The one in the top bar (#csendk) only
          shows while the keyboard is up, because this row hides then. "Look" is gone: a collage is wood, period. -->
     <button type="button" class="csend" id="csend" disabled>Share</button>
+  </div>
+    <!-- v223, Mike: "that 988 is easily confused for a text input box. move it to the bottom ... make it a
+         different color". It sits at the bottom of the screen now, just over the buttons, in its own blue,
+         and "Call 988" is drawn as a button. -->
+    <a class="help" href="tel:988"><span>Having a hard time? A real person answers, day or night.</span><b>Call 988</b></a>
+    <button type="button" class="addpic" id="addpic" hidden></button>
+    <input type="file" id="cfile" accept="image/*" multiple hidden><input type="file" id="cfilecam" accept="image/*" capture="environment" hidden>
   </div>
   <div class="cpanel" id="cpanel" hidden>
     <div class="cp-dim" data-cpx></div>
