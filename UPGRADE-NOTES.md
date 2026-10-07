@@ -1104,4 +1104,10 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - Mike: "does the user have the ability to hide or delete comments on their posts". Now yes: the three dots on
   somebody's comment under YOUR share has "Take this off my share" (tap twice). It is gone for everybody, replies
   under it go too, nobody is told. Function: porch, new action take_off (redeploy). No SQL.
-- TO DO (asked, mockup first): dress up the photo pop-up: name and words on top, dots, heart and a comment box.
+
+## v226 (7 Oct 2026) - the photo pop-up, dressed up
+- Mike: "its pretty plain jane ... carousel, maybe easy to comment on ... show the comments and add in some quick
+  comments for people to click and add". Tap a photo: who shared it and when on top, "1 of 2" pill, dots, the words,
+  heart / comments / send, the last two comments, and four quick comments (Love this, Glad you're here, Proud of you,
+  Looks like a good time) that send in ONE tap. The white box opens the comments screen to type.
+- Swipe, pinch, double tap and swipe-down-to-close still work on the picture. No function change, no SQL.

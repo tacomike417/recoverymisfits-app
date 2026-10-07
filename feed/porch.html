@@ -1153,6 +1153,43 @@ html.kb .ctools{display:none}
 #viewer,#viewer .vrow{touch-action:pan-x}
 #viewer.zoomed .vrow{touch-action:none;overflow:hidden}
 #viewer .vn{position:absolute;left:0;right:0;bottom:calc(20px + env(safe-area-inset-bottom,0px));text-align:center;color:#fff;font:700 13px Arial,sans-serif;text-shadow:0 1px 4px #000;pointer-events:none}
+/* v226: the dressed-up photo pop-up */
+#viewer.open{display:flex;flex-direction:column}
+#viewer .vrow{position:relative;inset:auto;flex:1;min-height:0}
+#viewer .vtop{flex:none;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;color:#f1e7cf}
+#viewer .vx{flex:none;width:40px;height:40px;padding:0;border:0;border-radius:50%;background:#1c1b17;color:#f1e7cf;display:grid;place-items:center;cursor:pointer}
+#viewer .vx svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+#viewer #vav .av{width:38px;height:38px;font-size:14px;line-height:38px}
+#viewer .vwho{flex:1;min-width:0;line-height:1.2}
+#viewer .vwho b{display:block;font:700 15px Arial,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#viewer .vwho small{color:#a59c88;font:12px Arial,sans-serif}
+#viewer .vn{position:static;flex:none;padding:6px 11px;border-radius:999px;background:#f1e7cf;color:#17130b;font:800 12.5px Arial,sans-serif;text-shadow:none}
+#viewer .vn:empty{display:none}
+#viewer .vbot{flex:none;max-height:46%;overflow-y:auto;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));color:#f1e7cf;font-family:Arial,sans-serif}
+#viewer .vbot:empty{display:none}
+#viewer .vdots{display:flex;justify-content:center;gap:7px;padding:10px 0 2px}
+#viewer .vdots i{width:7px;height:7px;border-radius:4px;background:#4a463c;transition:width .2s,background .2s}
+#viewer .vdots i.on{width:20px;background:#e0bb66}
+#viewer .vcap{margin:0;padding:8px 18px 2px;font-size:15.5px;line-height:1.35;white-space:pre-wrap;word-wrap:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#viewer .vact{display:flex;align-items:center;gap:18px;padding:8px 14px 4px}
+#viewer .vact button{display:flex;align-items:center;gap:6px;padding:4px;border:0;background:none;color:#f1e7cf;font:700 14px Arial,sans-serif;cursor:pointer}
+#viewer .vact svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#viewer .vact .vh{color:#e86a8a}
+#viewer .vact .vh.on svg{fill:#e86a8a}
+#viewer .vact .vgap{flex:1}
+#viewer .vall{display:block;padding:2px 18px;border:0;background:none;color:#e0bb66;font:700 13px Arial,sans-serif;cursor:pointer}
+#viewer .vcm{display:flex;gap:9px;align-items:flex-start;padding:5px 18px;font-size:14px;line-height:1.3}
+#viewer .vcm .av{flex:none;width:26px;height:26px;font-size:10px;line-height:26px}
+#viewer .vcm b{margin-right:6px}
+#viewer .vcm div span{color:#ded4bc;word-wrap:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#viewer .vcm div{min-width:0}
+#viewer .vquick{display:flex;gap:8px;overflow-x:auto;padding:10px 14px 8px;scrollbar-width:none;touch-action:pan-x}
+#viewer .vquick::-webkit-scrollbar{display:none}
+#viewer .vquick button{flex:none;padding:9px 14px;border-radius:999px;border:1.5px solid #caa24a;background:none;color:#f1e7cf;font:700 13.5px Arial,sans-serif;white-space:nowrap;cursor:pointer}
+#viewer .vquick button[disabled]{opacity:.45}
+#viewer .vsay{display:flex;align-items:center;gap:10px;width:calc(100% - 28px);margin:2px 14px 0;padding:7px 14px 7px 9px;border:0;border-radius:26px;background:#fffdf7;color:#8a8372;font:15px Arial,sans-serif;text-align:left;cursor:pointer}
+#viewer .vsay .av{flex:none;width:32px;height:32px;font-size:12px;line-height:32px}
+#viewer.zoomed .vtop,#viewer.zoomed .vbot{visibility:hidden}
 
 /* ---- SEND A SHARE OUT (30 Sep 2026): the paper plane, far right, like Instagram ---- */
 .acts{flex-wrap:nowrap!important;gap:4px!important;padding:8px 7px 6px!important}
@@ -1463,7 +1500,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v225</span>
+  <span class="ver" id="ver">v226</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1924,7 +1961,16 @@ html.kb .ch-bar{padding-bottom:8px}
 <!-- THE LONG ONES, full screen and easy on the eyes -->
 <div id="reader" class="layer" role="dialog" aria-modal="true" aria-label="Reading"><div class="page"><div class="bkbar"><button type="button" class="bk" data-close aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button></div><div class="who2" id="rwho"></div><div class="txt" id="rtxt"></div><p class="end"><button type="button" class="endback" data-close>Back to the Porch</button></p></div></div>
 
-<div id="viewer" class="layer" role="dialog" aria-modal="true" aria-label="Photos"><div class="vrow" id="vrow"></div><div class="vn" id="vn"></div><button type="button" class="bk xb over vx" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+<!-- THE PHOTO POP-UP, DRESSED UP (v226, 7 Oct 2026, Mike: "its pretty plain jane ... make it a little more fancy
+     for us ... carousel, maybe easy to comment on ... show the comments and add in some quick comments for people
+     to click"). Who shared it on top, the pictures in the middle (swipe, pinch, double tap, same as before), then
+     dots, the words, heart / comments / send, the last two comments, quick comments that send in one tap, and the
+     box that opens the comments. -->
+<div id="viewer" class="layer" role="dialog" aria-modal="true" aria-label="Photos">
+  <div class="vtop vchrome"><button type="button" class="vx" data-close aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span id="vav"></span><span class="vwho"><b id="vname"></b><small id="vago"></small></span><span class="vn" id="vn"></span></div>
+  <div class="vrow" id="vrow"></div>
+  <div class="vbot vchrome" id="vbot"></div>
+</div>
 
 <div id="rm-bottom-nav"></div>
 <script src="/nav.js" defer></script>
@@ -6016,6 +6062,7 @@ html.kb .ch-bar{padding-bottom:8px}
   var dist = function (a, b) { return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); };
   $("viewer").addEventListener("touchstart", function (e) {
     vTouchAt = Date.now();
+    if (e.target.closest(".vchrome")) { vt = null; return; }       /* v226: the bars are not the picture */
     var img = vImg(); if (!img) return;
     if (e.touches.length === 2) {
       clearTimeout(vTapTimer);
@@ -6071,7 +6118,52 @@ html.kb .ch-bar{padding-bottom:8px}
     vTapTimer = setTimeout(function () { if (vz.s <= 1.01 && $("viewer").classList.contains("open")) closeTop(); }, 300);
   }, { passive: true });
   /* a mouse click (computer) still closes it */
-  $("viewer").addEventListener("click", function () { if (Date.now() - vTouchAt > 600 && vz.s <= 1.01) closeTop(); });
+  $("viewer").addEventListener("click", function (e) { if (e.target.closest(".vchrome")) return; if (Date.now() - vTouchAt > 600 && vz.s <= 1.01) closeTop(); });
+
+  /* ---- v226: what sits around the picture ---- */
+  var vPost = null, vEl = null, VQUICK = ["Love this 💛", "Glad you're here", "Proud of you", "Looks like a good time"];
+  function vDots(i) { $("vbot").querySelectorAll(".vdots i").forEach(function (d, k) { d.classList.toggle("on", k === i); }); }
+  function paintViewer() {
+    var id = vPost, p0 = id && posts[id];
+    if (!p0) { $("vav").innerHTML = ""; $("vname").textContent = ""; $("vago").textContent = ""; $("vbot").innerHTML = ""; return; }
+    $("vav").innerHTML = avatar(people[p0.user_id]); $("vname").textContent = name(p0.user_id); $("vago").textContent = ago(p0.created_at);
+    var n = $("vrow").children.length, at = Math.round($("vrow").scrollLeft / Math.max(1, $("vrow").clientWidth));
+    var list = comments[id] || [], on = !!(mine[id] && mine[id].proud);
+    $("vbot").innerHTML =
+      (n > 1 ? '<div class="vdots">' + new Array(n + 1).join("<i></i>") + "</div>" : "") +
+      (p0.body ? '<p class="vcap">' + esc(p0.body) + "</p>" : "") +
+      '<div class="vact"><button type="button" class="vh' + (on ? " on" : "") + '" data-vh aria-label="Heart">' + ico("proud") + '</button>' +
+        '<button type="button" data-vc aria-label="Comments">' + ico("comment") + "<span>" + showN(list.length) + "</span></button><span class=\"vgap\"></span>" +
+        '<button type="button" data-vs aria-label="Send this share to somebody">' + ico("send") + "</button></div>" +
+      (list.length > 2 ? '<button type="button" class="vall" data-vc>See all ' + list.length + " comments</button>" : "") +
+      list.slice(-2).map(function (c) { return '<div class="vcm" data-vc>' + avatar(people[c.user_id]) + "<div><b>" + esc(name(c.user_id)) + "</b><span>" + esc(c.body) + "</span></div></div>"; }).join("") +
+      '<div class="vquick">' + VQUICK.map(function (q, k) { return '<button type="button" data-vq="' + k + '">' + q + "</button>"; }).join("") + "</div>" +
+      '<button type="button" class="vsay" data-vc="say">' + (me.member ? avatar(me.member) : "") + "<span>Say something kind…</span></button>";
+    vDots(at);
+  }
+  $("vbot").addEventListener("click", function (e) {
+    var id = vPost, t = e.target; if (!id) return;
+    var h = t.closest("[data-vh]"), q = t.closest("[data-vq]"), c = t.closest("[data-vc]");
+    if (h) return gate(function () {
+      var pb = vEl && vEl.querySelector('[data-react="proud"]');
+      react(id, "proud", pb || h).then(function () { if (vPost === id) h.classList.toggle("on", !!(mine[id] && mine[id].proud)); });
+      h.classList.toggle("on", !!(mine[id] && mine[id].proud)); if (h.classList.contains("on")) burst(h);
+    });
+    if (t.closest("[data-vs]")) return sendOut(id);
+    if (q) return gate(async function () {            /* a quick comment: one tap and it is sent */
+      var words = VQUICK[+q.dataset.vq]; q.disabled = true;
+      var r = isSample(id) ? { ok: true, id: "local-" + Date.now() } : await fn("porch", { action: "comment", post_id: id, body: words, sure: true });
+      if (!r.ok) { q.disabled = false; return toast(r.error || "That didn't send."); }
+      comments[id] = comments[id] || [];
+      comments[id].push({ id: r.id, post_id: id, user_id: me.uid, body: words, parent_id: null, created_at: new Date().toISOString() });
+      refreshComments(id); if (vPost === id) paintViewer(); toast("Sent 💛");
+    });
+    if (c) {
+      var say = c.dataset.vc === "say";
+      var go = function () { openCommentsFor(id, function () { if (vPost === id && $("viewer").classList.contains("open")) paintViewer(); }); if (say) setTimeout(function () { $("cin").focus(); }, 400); };
+      return say ? gate(go) : go();
+    }
+  });
 
   function openViewer(v) {
     var all = Array.prototype.slice.call(v.parentNode.querySelectorAll("img"));
@@ -6079,7 +6171,9 @@ html.kb .ch-bar{padding-bottom:8px}
     vReset(); $("viewer").style.background = "";
     open("viewer");
     var row = $("vrow"), i = +v.dataset.view; row.scrollLeft = i * row.clientWidth;
-    $("vn").textContent = all.length > 1 ? (i + 1) + " / " + all.length : "";
+    $("vn").textContent = all.length > 1 ? (i + 1) + " of " + all.length : "";
+    vEl = v.closest("[data-post]"); vPost = vEl && posts[vEl.dataset.post] ? vEl.dataset.post : null;
+    paintViewer(); vDots(i);
   }
   function burst(el) {
     var b = document.createElement("span"); b.className = "burst"; b.innerHTML = ico("proud");
@@ -6095,7 +6189,8 @@ html.kb .ch-bar{padding-bottom:8px}
   $("vrow").addEventListener("scroll", function () {
     if (vz.s > 1.01 || vz.x || vz.y) vReset();
     var n = this.children.length; if (n < 2) return;
-    $("vn").textContent = (Math.round(this.scrollLeft / this.clientWidth) + 1) + " / " + n;
+    var vi = Math.round(this.scrollLeft / this.clientWidth);
+    $("vn").textContent = (vi + 1) + " of " + n; vDots(vi);
   });
 
   function look() { var c = document.documentElement.classList; return c.contains("t-slate") ? "slate" : c.contains("t-classic") ? "classic" : "diner"; }
