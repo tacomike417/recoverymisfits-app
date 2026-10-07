@@ -97,6 +97,7 @@
     cam: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.500" y="6.500" width="17" height="13" rx="3"/><circle cx="12" cy="13" r="3.400"/><path d="M8.500 6.500l1.200-2h4.600l1.200 2"/></svg>',
     note: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17.500V5l8-1.500V15"/><circle cx="7.500" cy="17.500" r="2.500"/><circle cx="15.500" cy="15" r="2.500"/></svg>',
     msg: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.500c4.700 0 8.500 3.100 8.500 7s-3.800 7-8.500 7c-1 0-2-.100-2.900-.400L4.500 19.500l1.200-3.600A6.300 6.300 0 0 1 3.500 11.500c0-3.900 3.800-7 8.500-7z"/></svg>',
+    more: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.500" cy="12" r="1.300"/><circle cx="12" cy="12" r="1.300"/><circle cx="18.500" cy="12" r="1.300"/></svg>',
     link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1"/><path d="M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1"/></svg>'
   };
 
@@ -117,6 +118,7 @@
         '<button type="button" class="rs-app" data-rs="tt"><span>' + ICO.note + "</span>TikTok</button>" +
         '<button type="button" class="rs-app" data-rs="sms"><span>' + ICO.msg + "</span>Text</button>" +
         '<button type="button" class="rs-app lite" data-rs="copy" id="rsCopy"><span>' + ICO.link + "</span>Copy link</button>" +
+        '<button type="button" class="rs-app lite" data-rs="more" id="rsMore" hidden><span>' + ICO.more + "</span>More</button>" +
       "</div>" +
       '<button type="button" class="rs-too" data-rs="too" id="rsToo" role="switch"><span><b>Put it on the Porch too</b><small>when I send it out</small></span><span class="rs-sw"></span></button>' +
       '<p class="rs-say" id="rsSay" role="status" aria-live="polite"></p>' +
@@ -141,7 +143,12 @@
     $("rsToo").hidden = !canPorch;
     paintToo();
     $("rsCopy").hidden = !cur.link;
-    $("rsHint").textContent = navigator.share ? "Instagram and TikTok open your phone's share menu with the picture ready." : "On a computer, Instagram and TikTok save the picture so you can add it there.";
+    /* A LINK WITH NO PICTURE (a profile): Instagram and TikTok take pictures, not links, so they step aside
+       and "More" opens the phone's own share menu with the link. */
+    var noPic = !cur.picture;
+    el.querySelector('[data-rs="ig"]').hidden = noPic; el.querySelector('[data-rs="tt"]').hidden = noPic;
+    $("rsMore").hidden = !(noPic && cur.link && navigator.share);
+    $("rsHint").textContent = noPic ? "" : navigator.share ? "Instagram and TikTok open your phone's share menu with the picture ready." : "On a computer, Instagram and TikTok save the picture so you can add it there.";
     say("");
     el.querySelectorAll(".busy").forEach(function (b) { b.classList.remove("busy"); });
     el.classList.add("on");
@@ -149,7 +156,7 @@
     try { history.pushState({ rmShare: 1 }, ""); pushed = true; } catch (e) { pushed = false; }
     /* start building the picture NOW: a phone only lets a page open its share menu for a few
        seconds after a tap, so the picture has to be ready before the tap, not after it */
-    try { getBlob(); } catch (e) {}
+    if (cur.picture) { try { getBlob(); } catch (e) {} }
   }
   function hide() {
     if (!el) return;
@@ -260,6 +267,9 @@
     if (b.classList.contains("busy")) return;
     if (k === "porch") return toPorch(b);
     if (k === "copy") return copyLink(b);
+    if (k === "more") {
+      return navigator.share({ title: cur.title || "Recovery Misfits", text: cur.text || "", url: cur.link }).then(function () { sentOut(""); }, function (err) { if (!err || err.name !== "AbortError") copyLink(b); });
+    }
     if (k === "ig") return pictureOut(b, "Instagram");
     if (k === "tt") return pictureOut(b, "TikTok");
     if (k === "fb") {

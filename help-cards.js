@@ -64,6 +64,9 @@ window.RM_HELP = {
 
   CARDS: [
     /* ------------------------------------------------ getting started */
+    { g: "start", q: "How does the Porch work?",
+      s: ["Take the short tour. It walks you through your picture, your first share, alerts, and Spins."],
+      go: ["/feed/porch.html?tour=1", "Show me"], k: "tour getting started walk through how the porch works new here" },
     { g: "start", q: "How do I join?",
       s: ["Tap \"You\" at the bottom right.", "Tap \"Sign Up\".", "Pick a username and a password.", "Tick the box that says you are 18 or older.", "Tap \"I'm In\"."],
       n: "Your username is not your real name. No email or phone number in it.",
@@ -89,10 +92,10 @@ window.RM_HELP = {
       s: ["Tap \"Invite\" at the bottom.", "Let your friend point their phone camera at the code.", "Or tap \"Send link\" or \"Copy link\"."],
       k: "qr code tell a friend" },
     { g: "start", q: "Where is Help?",
-      s: ["On the Porch: tap your picture at the bottom right, then \"Help\".", "Anywhere else: tap \"You\" at the bottom right, then \"Help\"."],
+      s: ["On the Porch: tap your picture at the bottom right, then the \"?\" by your name.", "Anywhere else: tap \"You\" at the bottom right, then \"Help\"."],
       k: "this page how to" },
     { g: "start", q: "What are the Porch rules?",
-      s: ["On the Porch, tap your picture at the bottom right.", "Tap \"Edit profile\".", "Scroll to the bottom. Tap \"The Porch rules\"."],
+      s: ["On the Porch, tap your picture at the bottom right.", "Tap the pencil by your name.", "Scroll to the bottom. Tap \"The Porch rules\"."],
       k: "house rules guidelines" },
 
     /* ------------------------------------------------ sharing */
@@ -192,13 +195,13 @@ window.RM_HELP = {
     { g: "people", q: "How do I see just my friends' shares?",
       s: ["At the top of the Porch, tap \"FRIENDS\"."] },
     { g: "people", q: "How do I change my picture, name, or bio?",
-      s: ["On the Porch, tap your picture at the bottom right.", "Tap \"Edit profile\".", "Tap your picture to change it.", "Type in the name and bio boxes. It saves by itself.", "Tap \"I like it\"."],
+      s: ["On the Porch, tap your picture at the bottom right.", "Tap the pencil by your name.", "Tap your picture to change it.", "Type in the name and bio boxes. It saves by itself.", "Tap \"I like it\"."],
       go: ["/feed/porch.html?u=me", "Take me to my profile"], k: "profile photo avatar about me" },
     { g: "people", q: "Who can see my profile?",
-      s: ["Tap your picture, then \"Edit profile\".", "Find \"WHO CAN SEE MY PROFILE\".", "Pick \"Members only\" or \"Public\"."],
+      s: ["Tap your picture at the bottom right, then the pencil.", "Find \"WHO CAN SEE MY PROFILE\".", "Pick \"Members only\" or \"Public\"."],
       n: "Your sober date is never on your profile.", k: "private public privacy" },
     { g: "people", q: "How do I share my profile?",
-      s: ["Tap your picture at the bottom right.", "Tap \"Copy\" next to your link.", "Paste it anywhere."],
+      s: ["Tap your picture at the bottom right, then your name.", "On your profile, tap \"Share\".", "Pick Facebook, Text, or \"Copy link\"."],
       k: "link address" },
 
     /* ------------------------------------------------ messages */
@@ -215,7 +218,7 @@ window.RM_HELP = {
       s: ["Open your chat with them.", "Tap the phone or the video camera at the top."],
       n: "Friends only. Calls are never recorded.", k: "voice video call" },
     { g: "msg", q: "What's a Poof?",
-      s: ["A Poof is one picture a friend can open once.", "After 10 seconds it is gone.", "To turn it on: tap your picture, \"Edit profile\", then \"Turn Poof on\"."],
+      s: ["A Poof is one picture a friend can open once.", "After 10 seconds it is gone.", "To turn it on: tap your picture, the pencil, then \"Turn Poof on\"."],
       n: "You both need it turned on.", k: "disappearing photo" },
 
     /* ------------------------------------------------ groups */
@@ -300,13 +303,16 @@ window.RM_HELP = {
       s: ["Tap \"You\" at the bottom right.", "Tap \"Sign Out\"."],
       n: "On the Porch: tap your picture, then \"Sign out\".", k: "log out" },
     { g: "acct", q: "How do I switch accounts?",
-      s: ["Hold your finger on \"You\" for a second.", "Tap the account you want.", "Or tap \"Add account\"."],
-      k: "second account another" },
+      s: ["Hold your finger on \"You\" at the bottom right.", "Your accounts roll out.", "Slide to the one you want and let go. Or let go and tap it."],
+      n: "\"Add account\" is on top. \"Manage\" lets you take an account off this phone.", k: "second account another change user hold" },
+    { g: "acct", q: "What's in my menu?",
+      s: ["On the Porch, tap your picture at the bottom right.", "Tap your name to see your profile.", "The pencil edits your profile. The \"?\" opens Help.", "Under that: \"Friends\", \"Saved shares\", and \"Sign out\"."],
+      k: "your menu you button profile menu" },
     { g: "acct", q: "How do I take a break?",
-      s: ["On the Porch, tap your picture at the bottom right.", "Tap \"Edit profile\".", "Scroll to the bottom. Tap \"Delete my account\".", "Tap \"Take a break\"."],
+      s: ["On the Porch, tap your picture at the bottom right.", "Tap the pencil by your name.", "Scroll to the bottom. Tap \"Delete my account\".", "Tap \"Take a break\"."],
       n: "A break hides your profile and shares. Nothing is erased. You can come back.", k: "pause hide deactivate" },
     { g: "acct", q: "How do I delete my account?",
-      s: ["On the Porch, tap your picture at the bottom right.", "Tap \"Edit profile\".", "Scroll to the bottom. Tap \"Delete my account\".", "Wait for the count, tap \"Delete my account\", then tap it again."],
+      s: ["On the Porch, tap your picture at the bottom right.", "Tap the pencil by your name.", "Scroll to the bottom. Tap \"Delete my account\".", "Wait for the count, tap \"Delete my account\", then tap it again."],
       n: "This can't be undone. Everything is wiped and your username is retired for good.", k: "close quit remove erase" },
 
     /* ------------------------------------------------ staying safe */
@@ -326,7 +332,7 @@ window.RM_HELP = {
       s: ["Tap the three dots on their share.", "Tap \"Block\", then tap it again."],
       n: "You won't see each other at all.", k: "ban stop" },
     { g: "safe", q: "How do I unblock or unmute somebody?",
-      s: ["Tap your picture at the bottom right.", "Tap \"Edit profile\".", "Scroll to the bottom. Tap \"Blocked & muted\".", "Tap \"Unblock\" or \"Unmute\"."] },
+      s: ["Tap your picture at the bottom right.", "Tap the pencil by your name.", "Scroll to the bottom. Tap \"Blocked & muted\".", "Tap \"Unblock\" or \"Unmute\"."] },
     { g: "safe", q: "Who can see my sober date?",
       s: ["Nobody. It is just for you.", "It only goes out if you choose to share it."],
       k: "private anonymous" },

@@ -940,6 +940,17 @@ html.fullon #main{visibility:hidden}
 #memenu .mm-ico{width:20px;height:20px;fill:none;stroke:#e0bd6a;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 #memenu .menu .mm-out{margin-top:8px;min-height:42px;background:#fbe7e2;border-color:#e2a69a;color:#a8321f;font-weight:800}
 #memenu .menu .mm-out:active{background:#f6d5cd}
+/* v233: the compact menu's top line: you, a pencil, a question mark */
+#memenu .mmhead{gap:8px;padding-right:38px}   /* room for the sheet's own X in the corner */
+#memenu .mm-me{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:2px 0;border:0;background:none;color:#1b1a17;text-align:left;cursor:pointer;font-family:Arial,sans-serif}
+#memenu .mm-me .av{flex:none;width:48px;height:48px;font-size:18px}
+#memenu .mm-me span{min-width:0}
+#memenu .mm-me b{display:block;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#memenu .mm-me small{display:block;margin-top:2px;color:#8a6118;font:700 13px Arial,sans-serif}
+#memenu .mm-ic{flex:none;width:42px;height:42px;padding:0;border:1px solid #d8ceb6;border-radius:50%;background:#fffdf8;color:#1b1a17;font:800 19px Arial,sans-serif;display:grid;place-items:center;cursor:pointer}
+#memenu .mm-ic:active{background:#efe6d0}
+#memenu .mm-ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#memenu .menu .mm-mod{min-height:40px;font-size:13.500px;color:#6e675b}
 .mmhead .av{width:52px;height:52px;font-size:22px}
 .mmhead b{display:block;font-size:17px}
 .mmhead small{color:var(--muted)}
@@ -1513,7 +1524,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v232</span>
+  <span class="ver" id="ver">v233</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -3895,26 +3906,25 @@ html.kb .ch-bar{padding-bottom:8px}
     var mmEl = $("memenu");
     if (stack.indexOf(mmEl) >= 0) { while (stack.length && stack[stack.length - 1] !== mmEl) await closeTop(); return; }
     var m = me.member || { handle: A.name() };
-    /* 1 Oct 2026, Mike: picture, username, and underneath it their own link to visit or copy */
-    var plink = "recoverymisfits.org" + profPath(m.handle);
-    $("mmhead").innerHTML = '<span class="ul" data-mm="profile">' + avatar(m) + '</span><div style="min-width:0;flex:1"><b class="ul" data-mm="profile">' + esc(m.handle) + "</b>" +
-      '<div class="mmurl"><a href="' + profPath(m.handle) + '" target="_blank" rel="noopener">' + esc(plink) + '</a><button type="button" data-copyurl="https://' + esc(plink) + '">Copy</button></div></div>';
-    /* THE MENU, SMALLER AND ON PAPER (2 Oct 2026, Mike: "it's really an intimidatingly large
-       menu ... make this menu that paper color"). Two to a line. Notifications is the bell,
-       coins are on the bottom bar, so both are gone from here. Switch account wears the
-       round arrows; Sign out sits in red. Reports is a small line, moderators only. */
-    var SWAP = '<svg class="mm-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.2-4.4"/><path d="M5 3v4h4"/><path d="M4 13a8 8 0 0 0 14.2 4.4"/><path d="M19 21v-4h-4"/></svg>';
+    /* YOUR MENU, COMPACT (v233, 7 Oct 2026, Mike: "in the future this is where we are going to communicate to
+       the user. we'll put the basket donation button in here ... so lets compact what we can but still make it easy
+       to navigate and find"). What came out and where it went:
+         the link and Copy   -> gone ("when you click my profile it's on the right link"); your profile has Share
+         My profile          -> your picture and name, on top
+         Edit profile        -> the pencil beside your name
+         Help, How the Porch works -> the ? beside your name (the tour is the first Help card)
+         Invite a friend     -> the bottom bar has Invite on every page
+         Switch account      -> hold the You button and the accounts roll out (assets/account.js)
+       What is left: Friends, Saved shares, Sign out. Moderators also get Reports and Share desk.
+       THE BASKET goes right under the name when it is built. There is no dead row for it until then. */
+    $("mmhead").innerHTML = '<button type="button" class="mm-me" data-mm="profile">' + avatar(m) + '<span><b>' + esc(m.handle) + '</b><small>See my profile &rsaquo;</small></span></button>' +
+      '<button type="button" class="mm-ic" data-mm="edit" aria-label="Edit profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4L16.500 4.500a2.100 2.100 0 0 1 3 3L8 19z"/></svg></button>' +
+      '<button type="button" class="mm-ic" data-mm="help" aria-label="Help">?</button>';
     var cnt = function (n) { return n ? '<span class="mcount">' + n + "</span>" : ""; };
     $("mmbody").innerHTML = '<div class="mm-grid">' +
-        '<button type="button" data-mm="profile">My profile</button><button type="button" data-mm="edit">Edit profile</button>' +
         '<button type="button" data-mm="friends">Friends' + cnt(reqCount()) + '</button><button type="button" data-mm="saved">Saved shares</button>' +
-        /* 3 Oct 2026: "Find friends" came out of here. Finding people lives under Friends ("Find people"). */
-        '<button type="button" data-mm="invite">Invite a friend</button><button type="button" data-mm="tour">How the Porch works</button><button type="button" data-mm="help">Help</button>' +     /* v230: Help is in this menu too */
-        (isMod ? '<button type="button" class="wide" data-mm="mod">Reports' + cnt(modCount) + "</button>" : "") +
-        /* THE SHARE DESK (4 Oct 2026): moderators only. What the house has posted, and where Mike has shared it. */
-        (isMod ? '<button type="button" class="wide" data-mm="desk">Share desk</button>' : "") +
+        (isMod ? '<button type="button" class="mm-mod" data-mm="mod">Reports' + cnt(modCount) + '</button><button type="button" class="mm-mod" data-mm="desk">Share desk</button>' : "") +
       "</div>" +
-      '<button type="button" class="mm-switch" data-mm="switch">' + SWAP + "Switch account</button>" +
       '<button type="button" class="mm-out" data-mm="signout">Sign out</button>';
     open("memenu");
   }
@@ -4676,6 +4686,11 @@ html.kb .ch-bar{padding-bottom:8px}
   async function shareProfile() {
     var m = me.member || {}, url = location.origin + profPath(m.handle);
     var note = m.visibility === "public" ? "" : " Your profile is Members only, so people need to sign in to see it.";
+    /* v233: the one share sheet (Facebook, Text, Copy link, More). A profile is a link, not a picture. */
+    if (window.RMShare) return window.RMShare.open({
+      title: (m.real_name || m.handle) + " on Recovery Misfits", sub: "recoverymisfits.org" + profPath(m.handle) + (m.visibility === "public" ? "" : " · Members only"),
+      thumb: m.avatar_path ? pic(m.avatar_path) : "", link: url, text: "Find me on Recovery Misfits:", porch: false
+    });
     try { if (navigator.share) { await navigator.share({ title: "@" + m.handle + " on Recovery Misfits", url: url }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
     try { await navigator.clipboard.writeText(url); toast("Link copied." + note); } catch (e) { toast(url); }
   }
@@ -7238,7 +7253,10 @@ html.kb .ch-bar{padding-bottom:8px}
        "Getting started" strip above the feed. feed/tour.js. */
     /* "Active now": tell the Porch you're here, now and every few minutes while the page is showing (v180) */
     (function seen() { if (signedIn() && !document.hidden) rpc("porch_ping", {}).catch(function () {}); setTimeout(seen, 180000); })();
-    (function tourStart(n) { if (window.PorchTour) window.PorchTour.maybe(); else if (n < 20) setTimeout(function () { tourStart(n + 1); }, 300); })(0);
+    /* /feed/porch.html?tour=1 opens "How the Porch works" (v233: it moved out of your menu into Help) */
+    var wantTour = /[?&]tour=1/.test(location.search);
+    if (wantTour) { try { history.replaceState(null, "", location.pathname); } catch (e) {} }
+    (function tourStart(n) { if (window.PorchTour) { if (wantTour) window.PorchTour.open(0); else window.PorchTour.maybe(); } else if (n < 20) setTimeout(function () { tourStart(n + 1); }, 300); })(0);
     var uh = new URLSearchParams(location.search).get("u");
     if (uh && /^[a-z0-9._-]{2,32}$/i.test(uh)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} if (uh === "me" && me.uid) openProfile(me.uid); else openHandle(uh); }
     var who = new URLSearchParams(location.search).get("who");
@@ -7286,6 +7304,7 @@ html.kb .ch-bar{padding-bottom:8px}
 </script>
 <script src="/feed/sound.js?v=3" defer></script>
 <script src="/feed/spins/spins.js?v=82" defer></script>
+<script src="/assets/share-sheet.js" defer></script>
 <script src="/feed/photo-fun.js?v=2" defer></script>
 <script src="/feed/tour.js?v=6" defer></script>
 </body>

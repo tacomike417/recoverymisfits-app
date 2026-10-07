@@ -1155,3 +1155,20 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   bar while it works, and a done card with a sound. The sheet has the spinner and a "Sent" line only.
 - NOT DONE YET: the paper plane on a Porch share still has its own sheet (reshare, Misfit Messages, link).
 - No function change, no SQL.
+
+## v233 (7 Oct 2026) - your menu, compact; hold You and the accounts roll out
+- Mike: "in the future this is where we are going to communicate to the user. we'll put the basket donation button
+  in here ... lets compact what we can but still make it easy to navigate and find."
+- Your menu (the You button, on the Porch) went from 10 rows to: your picture and name (tap = your profile), a
+  pencil (Edit profile), a ? (Help), Friends, Saved shares, Sign out. Moderators also see Reports and Share desk.
+- Came out: the link and Copy, My profile, Edit profile, Invite a friend, How the Porch works, Help, Switch account.
+  Each one still has a home: see the note in openMeMenu.
+- THE BASKET goes right under the name when it is built. No dead row until then.
+- Hold the You button and the accounts roll out of it as pills (assets/account.js, rollout). Slide and let go, or
+  tap. "Add account" on top; "Manage" opens the old sheet, where an account can be taken off the phone. A one-time
+  note shows over the button for a phone with two or more accounts.
+- "Share" on your own profile opens the share sheet (Facebook, Text, Copy link, More). The sheet learned to share a
+  link with no picture.
+- How the Porch works is the first Help card (/feed/porch.html?tour=1). Help cards updated for all of this.
+- No function change, no SQL.
+

@@ -480,7 +480,7 @@
   /* ---- the switcher's sheet --------------------------------------------- */
   var swEl = null;
   var esc = function (v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); };
-  var SW_CSS = "#rmAccountBtn,[data-rm-switch]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}" +
+  var SW_CSS = "#rmAccountBtn,[data-rm-switch]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:none}" +
     ".rm-sw{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.66);font-family:Arial,sans-serif}" +
     ".rm-sw-box{position:relative;width:100%;max-width:480px;max-height:80vh;overflow:auto;padding:10px 14px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:#f7f1e3;color:#1b1a17;border-top:1px solid #d8ceb6}" +
     ".rm-sw-g{width:44px;height:5px;margin:2px auto 10px;border-radius:3px;background:#cfc4aa}" +
@@ -606,19 +606,123 @@
     loadFaces([session.name]).then(tick);
   })();
 
+  /* ---- THE ROLL-OUT (v233, 7 Oct 2026) -----------------------------------
+     Mike: "the account switcher ... can work like facebooks, where you hold down and it rolls out the profile
+     pics and you pick one. saves space, looks good."
+     Hold the You button and the accounts on this phone roll up out of it as pills: yours at the bottom, the
+     others over it, "Add account" on top. Keep your finger down, slide to one and let go; or let go first and
+     tap one. Tapping the dark closes it, and so does the phone's back button.
+     Taking an account OFF this phone still lives in the full sheet: the small "Manage" pill opens it. */
+  var roEl = null, roHot = null;
+  var RO_CSS = "#rmAccountBtn,[data-rm-switch]{touch-action:none}" +
+    ".rm-ro{position:fixed;inset:0;z-index:2147483600;font-family:Arial,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}" +
+    ".rm-ro-dim{position:absolute;inset:0;background:rgba(0,0,0,.6);opacity:0;transition:opacity .18s}" +
+    ".rm-ro.in .rm-ro-dim{opacity:1}" +
+    ".rm-ro-col{position:absolute;display:flex;flex-direction:column;align-items:flex-end;gap:10px;padding:6px}" +
+    ".rm-ro-p{display:flex;align-items:center;gap:10px;max-width:78vw;padding:6px 6px 6px 16px;border:0;border-radius:999px;background:#f7f1e3;color:#1b1a17;font:700 15px Arial,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.6);cursor:pointer;" +
+      "opacity:0;transform:translateY(26px) scale(.6);transform-origin:100% 100%;transition:transform .26s cubic-bezier(.2,1.5,.35,1),opacity .16s}" +
+    ".rm-ro.in .rm-ro-p{opacity:1;transform:none}" +
+    ".rm-ro-p b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}" +
+    ".rm-ro-p .rm-sw-av{width:44px;height:44px;font-size:15px}" +
+    ".rm-ro-p.me{box-shadow:0 0 0 3px #d8b45b,0 6px 20px rgba(0,0,0,.6)}" +
+    ".rm-ro-p.hot{background:#fff;transform:scale(1.07)!important}" +
+    ".rm-ro-p.add .rm-sw-av{background:#e9e0cc;border:0;color:#1b1a17;font-size:24px;font-weight:400}" +
+    ".rm-ro-p.mng{padding:9px 16px;background:rgba(247,241,227,.16);color:#f7f1e3;font-size:13px;box-shadow:none}" +
+    ".rm-ro-tip{position:fixed;z-index:2147483500;max-width:210px;padding:10px 14px;border-radius:14px;background:#f7f1e3;color:#1b1a17;font:700 13.500px/1.3 Arial,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.55);pointer-events:none;opacity:0;transition:opacity .25s}" +
+    ".rm-ro-tip.in{opacity:1}";
+  function roShut() { if (roEl) { roEl.remove(); roEl = null; roHot = null; } }
+  function roClose() {
+    if (!roEl) return;
+    if (window.PorchBack && window.PorchBack.pop && window.PorchBack.pop("rollout")) return;
+    if (roEl._own) { roEl._own = false; try { history.back(); return; } catch (e) {} }
+    roShut();
+  }
+  function roAct(pill) {
+    if (!pill) return;
+    var k = pill.getAttribute("data-ro");
+    if (k === "+") { location.href = "/account.html?add=1"; return; }
+    if (k === "*") { roClose(); setTimeout(switcher, 260); return; }
+    if (session && session.name === k) return roClose();
+    if (switchTo(k)) { roShut(); location.replace(location.pathname); }
+  }
+  function roPaint() {
+    if (!roEl) return; var f = faces();
+    roEl.querySelectorAll("[data-ro-av]").forEach(function (av) { var m = f[av.getAttribute("data-ro-av")]; if (m && m.av) av.innerHTML = '<img src="' + esc(faceURL(m.av)) + '" alt="">'; });
+  }
+  function rollout(btn) {
+    if (roEl || swEl) return;
+    swCSS(); if (!document.getElementById("rm-ro-css")) { var st = document.createElement("style"); st.id = "rm-ro-css"; st.textContent = RO_CSS; document.head.appendChild(st); }
+    var list = accounts(), cur = session && session.name;
+    if (!list.length) return switcher();
+    /* top to bottom on the screen: Manage, Add account, the others, then you (nearest your thumb) */
+    var others = list.filter(function (a) { return a.name !== cur; }), mine = list.filter(function (a) { return a.name === cur; });
+    var pill = function (a, i, me) { return '<button type="button" class="rm-ro-p' + (me ? " me" : "") + '" data-ro="' + esc(a.name) + '" style="transition-delay:' + (i * 40) + 'ms"><b>' + esc(a.name) + '</b><span class="rm-sw-av" data-ro-av="' + esc(a.name) + '">' + esc(a.name.slice(0, 2).toUpperCase()) + "</span></button>"; };
+    var n = others.length + mine.length;
+    var html = '<button type="button" class="rm-ro-p mng" data-ro="*" style="transition-delay:' + ((n + 1) * 40) + 'ms">Manage</button>' +
+      '<button type="button" class="rm-ro-p add" data-ro="+" style="transition-delay:' + (n * 40) + 'ms"><b>Add account</b><span class="rm-sw-av">+</span></button>' +
+      others.map(function (a, i) { return pill(a, others.length - i, false); }).join("") + mine.map(function (a) { return pill(a, 0, true); }).join("");
+    roEl = document.createElement("div"); roEl.className = "rm-ro"; roEl.setAttribute("role", "dialog"); roEl.setAttribute("aria-modal", "true"); roEl.setAttribute("aria-label", "Switch account");
+    roEl.innerHTML = '<div class="rm-ro-dim" data-ro-x></div><div class="rm-ro-col">' + html + "</div>";
+    var r = btn && btn.getBoundingClientRect ? btn.getBoundingClientRect() : { top: innerHeight - 70, right: innerWidth - 16 };
+    var col = roEl.querySelector(".rm-ro-col");
+    col.style.bottom = Math.max(70, innerHeight - r.top + 12) + "px"; col.style.right = Math.max(10, innerWidth - r.right - 6) + "px";
+    document.body.appendChild(roEl);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { if (roEl) roEl.classList.add("in"); }); });
+    if (window.PorchBack && window.PorchBack.push) { window.PorchBack.push("rollout", roShut); }
+    else { try { history.pushState({ rmro: 1 }, ""); roEl._own = true; window.addEventListener("popstate", function once() { window.removeEventListener("popstate", once); if (roEl) { roEl._own = false; roShut(); } }); } catch (e) {} }
+    roEl.addEventListener("click", function (e) {
+      if (e.target.closest("[data-ro-x]")) return roClose();
+      roAct(e.target.closest("[data-ro]"));
+    });
+    roPaint(); loadFaces(list.map(function (a) { return a.name; })).then(roPaint);
+    try { localStorage.setItem("rm_hold_tip", "1"); } catch (e) {}
+  }
+  /* finger still down after the hold: slide onto a pill and let go */
+  function roTrack(e) {
+    if (!roEl) return;
+    var t = document.elementFromPoint(e.clientX, e.clientY), pl = t && t.closest ? t.closest(".rm-ro-p") : null;
+    if (pl === roHot) return;
+    if (roHot) roHot.classList.remove("hot");
+    roHot = pl; if (pl) { pl.classList.add("hot"); try { if (navigator.vibrate) navigator.vibrate(6); } catch (x) {} }
+  }
+  /* ONE TIME, when there are two or more accounts on this phone and they have never held the button:
+     a small note over it, so the hold is not a secret. */
+  (function holdTip() {
+    try {
+      if (localStorage.getItem("rm_hold_tip") || accounts().length < 2) return;
+      setTimeout(function () {
+        var b = document.getElementById("rmAccountBtn"); if (!b || roEl || swEl) return;
+        swCSS(); if (!document.getElementById("rm-ro-css")) { var st = document.createElement("style"); st.id = "rm-ro-css"; st.textContent = RO_CSS; document.head.appendChild(st); }
+        var r = b.getBoundingClientRect(), tip = document.createElement("div");
+        tip.className = "rm-ro-tip"; tip.textContent = "Hold this button to switch accounts.";
+        tip.style.bottom = (innerHeight - r.top + 12) + "px"; tip.style.right = Math.max(10, innerWidth - r.right - 6) + "px";
+        document.body.appendChild(tip);
+        requestAnimationFrame(function () { tip.classList.add("in"); });
+        setTimeout(function () { tip.classList.remove("in"); setTimeout(function () { tip.remove(); }, 300); }, 6000);
+        try { localStorage.setItem("rm_hold_tip", "1"); } catch (e) {}
+      }, 2500);
+    } catch (e) {}
+  })();
+
   /* HOLD YOUR FINGER ON THE ACCOUNT BUTTON (the one in the bottom rail, on every
      page). Half a second and the switcher comes up; a plain tap still does what
      it always did. */
   (function holdToSwitch() {
-    var SEL = "#rmAccountBtn,[data-rm-switch]", tmr = 0, x0 = 0, y0 = 0, fired = 0;
+    var SEL = "#rmAccountBtn,[data-rm-switch]", tmr = 0, x0 = 0, y0 = 0, fired = 0, down = false;
     try { swCSS(); } catch (e) {}      /* so an iPhone never shows its own link bubble on the button */
     function stop() { clearTimeout(tmr); tmr = 0; }
     document.addEventListener("pointerdown", function (e) {
       var t = e.target.closest && e.target.closest(SEL); if (!t) return;
-      swCSS(); x0 = e.clientX; y0 = e.clientY; stop();
-      tmr = setTimeout(function () { tmr = 0; fired = Date.now(); try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {} switcher(); }, 480);
+      swCSS(); x0 = e.clientX; y0 = e.clientY; stop(); down = true;
+      /* v233: the hold rolls the accounts out of the button (the full sheet is still behind "Manage") */
+      tmr = setTimeout(function () { tmr = 0; fired = Date.now(); try { if (navigator.vibrate) navigator.vibrate(12); } catch (x) {} rollout(t); }, 480);
     }, true);
-    document.addEventListener("pointermove", function (e) { if (tmr && (Math.abs(e.clientX - x0) > 12 || Math.abs(e.clientY - y0) > 12)) stop(); }, true);
+    document.addEventListener("pointermove", function (e) {
+      if (tmr && (Math.abs(e.clientX - x0) > 12 || Math.abs(e.clientY - y0) > 12)) stop();
+      if (down && roEl) roTrack(e);
+    }, true);
+    document.addEventListener("pointerup", function () { if (down && roEl && roHot) { var h = roHot; roHot = null; h.classList.remove("hot"); roAct(h); } down = false; }, true);
+    document.addEventListener("pointercancel", function () { down = false; if (roHot) { roHot.classList.remove("hot"); roHot = null; } }, true);
     ["pointerup", "pointercancel", "scroll"].forEach(function (ev) { document.addEventListener(ev, stop, true); });
     /* the tap that ends a long press must not also open the button */
     document.addEventListener("click", function (e) {
@@ -633,6 +737,7 @@
     accounts: accounts,      /* every account signed in on this phone */
     switchTo: switchTo,      /* then reload the page */
     switcher: switcher,      /* the sheet */
+    rollout: rollout,        /* the pills that roll out of the You button (v233) */
     signedIn: function () { return !!session; },
     name: function () { return (session && session.name) || ""; },
     signUp: signUp,
