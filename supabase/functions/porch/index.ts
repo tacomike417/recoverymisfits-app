@@ -875,6 +875,21 @@ Deno.serve(async (req) => {
     return json({ ok: true, edited_at, link_preview: change.link_preview ?? null, care: CARE.test(text), ...(paths ? { photo_paths: paths } : {}) });
   }
 
+  /* TAKE A COMMENT OFF YOUR OWN SHARE (v225, 7 Oct 2026, Mike: "does the user have the ability to hide or
+     delete comments on their posts" -> "Take it off"). Whoever made the share can take anybody's comment off
+     it. Replies under that comment go with it. Nobody is told. { action: "take_off", comment_id } */
+  if (b.action === "take_off") {
+    const { data: c } = await admin.from("porch_comments").select("id, post_id").eq("id", b.comment_id).maybeSingle();
+    if (!c) return json({ error: "That's gone." }, 404);
+    const { data: p } = await admin.from("porch_posts").select("user_id").eq("id", (c as any).post_id).maybeSingle();
+    if (!p || (p as any).user_id !== user.id) return json({ error: "You can only do that on your own share." }, 403);
+    const now = new Date().toISOString();
+    const { error } = await admin.from("porch_comments").update({ hidden_at: now, held_at: null }).eq("id", (c as any).id);
+    if (error) return json({ error: "Couldn't take it off." }, 500);
+    await admin.from("porch_comments").update({ hidden_at: now }).eq("parent_id", (c as any).id).is("hidden_at", null);
+    return json({ ok: true });
+  }
+
   if (b.action === "remove") {
     const table = b.post_id ? "porch_posts" : "porch_comments";
     const id = b.post_id || b.comment_id;

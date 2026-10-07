@@ -1099,3 +1099,9 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   The row of buttons (Add photos, Stickers, Filters, Card, Tags, Share/Save) sits right under the share now, on a new
   share and on an edit. It is not pinned to the bottom of the screen any more. "Photos" now says "Add photos".
 - Function: porch (redeploy). No SQL.
+
+## v225 (7 Oct 2026) - take a comment off your own share
+- Mike: "does the user have the ability to hide or delete comments on their posts". Now yes: the three dots on
+  somebody's comment under YOUR share has "Take this off my share" (tap twice). It is gone for everybody, replies
+  under it go too, nobody is told. Function: porch, new action take_off (redeploy). No SQL.
+- TO DO (asked, mockup first): dress up the photo pop-up: name and words on top, dots, heart and a comment box.
