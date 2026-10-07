@@ -471,6 +471,11 @@ html.fullon #main{visibility:hidden}
 .scan-yes{display:block;width:100%;margin-top:14px;padding:16px;border:0;border-radius:16px;background:linear-gradient(135deg,#f6e3a8,#e0bd6a 55%,#c9922b);color:#17130b;font:400 21px/1 "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
 .scan-no{display:block;margin:12px auto 0;border:0;background:none;color:#ddd2b8;font:700 14px Arial,sans-serif;text-decoration:underline;cursor:pointer}
 [hidden].scan-yes,[hidden].scan-no{display:none}
+/* v221, Mike: "there's a dead end when a photo is not allowed". An X, top left, on every state of the
+   photo check. It just leaves. "Pick a different photo" still opens the chooser again. */
+.scan-x{position:absolute;left:6px;top:calc(8px + env(safe-area-inset-top,0px));z-index:2;width:48px;height:48px;border:0;border-radius:50%;background:none;color:#f1e7cf;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.scan-x svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.scan-x:active{background:rgba(255,255,255,.1)}
 .crop{position:fixed;inset:0;z-index:30000;display:flex;flex-direction:column;background:#000;color:#fff;touch-action:none}
 .crop-t{margin:0;padding:calc(16px + env(safe-area-inset-top,0px)) 16px 8px;text-align:center;font:800 16px Arial,sans-serif}
 .crop-stage{position:relative;flex:1;overflow:hidden;touch-action:none;cursor:grab}
@@ -1446,7 +1451,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v220</span>
+  <span class="ver" id="ver">v221</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -4229,7 +4234,7 @@ html.kb .ch-bar{padding-bottom:8px}
   function scanPhoto(data, kind, again) {
     return new Promise(function (done) {
       var el = document.createElement("div"); el.className = "scan"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Checking your photo");
-      el.innerHTML = '<p class="scan-t">Checking your photo…</p><div class="scan-stage"><div class="scan-pic"><img alt=""><div class="scan-grid"></div><div class="scan-line"></div><div class="scan-boxes"></div></div></div>' +
+      el.innerHTML = '<button type="button" class="scan-x" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><p class="scan-t">Checking your photo…</p><div class="scan-stage"><div class="scan-pic"><img alt=""><div class="scan-grid"></div><div class="scan-line"></div><div class="scan-boxes"></div></div></div>' +
         '<div class="scan-bot"><p class="scan-q"></p><p class="scan-sub"></p><button type="button" class="scan-yes" hidden></button><button type="button" class="scan-no" hidden>Pick a different photo</button></div>';
       document.body.appendChild(el);
       var finished = false;
@@ -4239,6 +4244,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var img = el.querySelector("img"), pic = el.querySelector(".scan-pic"), stage = el.querySelector(".scan-stage");
       var q = el.querySelector(".scan-q"), sub = el.querySelector(".scan-sub"), yes = el.querySelector(".scan-yes"), no = el.querySelector(".scan-no");
       no.addEventListener("click", function () { leave(false); if (again) again(); });
+      el.querySelector(".scan-x").addEventListener("click", function () { leave(false); });   /* just out. No chooser. */
       img.onload = async function () {
         var W = img.naturalWidth, H = img.naturalHeight, SW = stage.clientWidth - 24, SH = stage.clientHeight - 24;
         var k = Math.min(SW / W, SH / H, 1.6); pic.style.width = Math.round(W * k) + "px"; pic.style.height = Math.round(H * k) + "px";

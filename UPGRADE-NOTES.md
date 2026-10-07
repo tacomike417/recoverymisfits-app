@@ -1066,3 +1066,12 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   the way the + on Infinite Pulls fans out. Give it a spin goes up, Say something left, Share photos right. A gold
   ring bursts from the button, the page behind goes soft, each coin gets a slow shine, and the + turns into an X.
 - It opens above everything now, so it also works while you are looking at a profile.
+
+## v221 (7 Oct 2026) - a way out of the photo check
+- Mike: "there's a dead end when a photo is not allowed." The photo check screen (Checking your photo, 1 face found,
+  Can't use this one) has an X at the top left now. It just leaves. "Pick a different photo" still opens the chooser.
+- WHY A NORMAL SELFIE WAS REFUSED: Google's picture checker scores every photo for "adult" and for "racy" (its word
+  for bare skin or revealing clothes). The Porch refuses adult = likely, or racy = very likely. A close-up of two
+  people in summer clothes can score racy = very likely with nothing wrong in it. The rule is in
+  supabase/functions/porch/index.ts (photoOk and the "scan" action). Whether to loosen it is Mike's call.
+
