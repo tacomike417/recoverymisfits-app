@@ -813,10 +813,18 @@ Deno.serve(async (req) => {
     const isPost = !!b.post_id;
     const table = isPost ? "porch_posts" : "porch_comments";
     const id = b.post_id || b.comment_id;
-    const { data: row } = await admin.from(table).select(isPost ? "user_id, hidden_at, photo_paths, card_style" : "user_id, hidden_at").eq("id", id).maybeSingle();
+    const { data: row } = await admin.from(table).select(isPost ? "user_id, hidden_at, photo_paths, card_style, reshare_of, need" : "user_id, hidden_at").eq("id", id).maybeSingle();
     if (!row || (row as any).hidden_at) return json({ error: "That's gone." }, 404);
     if ((row as any).user_id !== user.id) return json({ error: "You can only edit your own." }, 403);
-    const hasPhotos = isPost && ((row as any).photo_paths || []).length > 0;
+    /* PHOTOS CAN CHANGE ON AN EDIT (v223, 7 Oct 2026, Mike: "went to edit, didn't find add more photos like
+       expected"). { photos: [...] } is the whole list, in order: a path the share already has is kept, a new
+       picture (a data: URL) is checked and stored the same as on a new share. Leave photos out and they are
+       not touched. Not for a reshare, a Spin, or a coin share -- those are not the person's own pictures. */
+    const had: string[] = isPost ? ((row as any).photo_paths || []) : [];
+    const photosEditable = isPost && !(row as any).reshare_of && (row as any).need !== "moment" && !had.some((p) => String(p).startsWith("/"));
+    const wanted: unknown[] | null = photosEditable && Array.isArray(b.photos) ? b.photos.slice(0, 4) : null;
+    if (wanted && wanted.some((p) => typeof p !== "string" || !(had.includes(p as string) || /^data:image\/\w+;base64,/.test(p as string)))) return json({ error: "That photo couldn't be read." }, 400);
+    const hasPhotos = wanted ? wanted.length > 0 : had.length > 0;
     if (!text && !hasPhotos) return json({ error: "Say something first." }, 400);
     if (text.length > (isPost ? 2000 : 1000)) return json({ error: "That's too long." }, 400);
     if (isPost && (row as any).card_style != null && !hasPhotos && text.length > 150) return json({ error: "Sayings are 150 characters or less." }, 400);
@@ -830,7 +838,6 @@ Deno.serve(async (req) => {
       change.need = String(b.need);
     }
     if (isPost && (row as any).card_style != null && Number.isInteger(b.card_style)) change.card_style = Math.max(0, Math.min(18, b.card_style));
-    if (isPost && !hasPhotos) change.link_preview = await previewFor(text);
     /* the group tag can be changed or taken off when editing (tag_group: "" takes it off) */
     if (isPost && "tag_group" in b) {
       if (!b.tag_group) change.tag_group_id = null;
@@ -840,9 +847,32 @@ Deno.serve(async (req) => {
         change.tag_group_id = tg;
       }
     }
+    /* the new pictures, last, so nothing is uploaded for an edit that was going to be refused anyway */
+    const fresh: string[] = [];
+    let paths: string[] | null = null;
+    if (wanted) {
+      paths = [];
+      for (const p of wanted as string[]) {
+        if (had.includes(p)) { paths.push(p); continue; }
+        const b64 = p.replace(/^data:image\/\w+;base64,/, "");
+        let bytes: Uint8Array;
+        try { bytes = decodeBase64(b64); } catch { if (fresh.length) await admin.storage.from("porch").remove(fresh); return json({ error: "That photo couldn't be read." }, 400); }
+        const bad = await photoOk(bytes, b64, !!b.faces_ok);
+        if (bad) { if (fresh.length) await admin.storage.from("porch").remove(fresh); return bad === NEED_FACES ? json({ error: FACES_MSG, need: "faces" }, 400) : json({ error: bad }, 400); }
+        const path = await storePhoto(user.id, bytes);
+        if (!path) { if (fresh.length) await admin.storage.from("porch").remove(fresh); return json({ error: "The photo didn't upload. Try again." }, 500); }
+        fresh.push(path); paths.push(path);
+      }
+      change.photo_paths = paths;
+      if (paths.length) change.card_style = null;          /* a share with a picture is not a card */
+    }
+    if (isPost && !hasPhotos) change.link_preview = await previewFor(text);
+    else if (isPost && wanted) change.link_preview = null;
     const { error } = await admin.from(table).update(change).eq("id", id).eq("user_id", user.id);
-    if (error) return json({ error: "That didn't save. Try again." }, 500);
-    return json({ ok: true, edited_at, link_preview: change.link_preview ?? null, care: CARE.test(text) });
+    if (error) { if (fresh.length) await admin.storage.from("porch").remove(fresh); return json({ error: "That didn't save. Try again." }, 500); }
+    /* pictures they took off come off the server too */
+    if (paths) { const gone = had.filter((p) => !paths!.includes(p) && p.startsWith(user.id + "/")); if (gone.length) { try { await admin.storage.from("porch").remove(gone); } catch { /* best effort */ } } }
+    return json({ ok: true, edited_at, link_preview: change.link_preview ?? null, care: CARE.test(text), ...(paths ? { photo_paths: paths } : {}) });
   }
 
   if (b.action === "remove") {

@@ -1050,6 +1050,14 @@ html.fullon #main{visibility:hidden}
 .cerr:empty{display:none}
 /* THE SHARE SCREEN, SIMPLER (4 Oct 2026) */
 #compose .page{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+/* v223: the page is a column so the 988 line can sit at the bottom of it, over the row of buttons */
+#compose .page{display:flex;flex-direction:column}
+#compose .page>*{flex:none}
+#compose .help{margin:auto 0 0;padding:9px 9px 9px 14px;border:0;border-radius:14px;background:#17324a;color:#dbe8f3;font-size:13px;line-height:1.3}
+#compose .help::before{content:"";display:none}
+#compose .help b{padding:10px 14px;border-radius:999px;background:#f1e7cf;color:#17130b;font:800 13.5px/1 Arial,sans-serif}
+#compose .help:active b{background:#fff}
+#compose .ccard,#compose .cerr{margin-bottom:16px}
 .ctop b{flex:1}
 .cmini{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;border:0;background:none;color:var(--gold);cursor:pointer}
 .cmini .cm-p{display:block;width:40px;height:48px;padding:4px;border-radius:8px;border:1.5px solid var(--gold);background:var(--field);overflow:hidden}
@@ -1451,7 +1459,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v222</span>
+  <span class="ver" id="ver">v223</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1604,7 +1612,10 @@ html.kb .ch-bar{padding-bottom:8px}
       <div id="cgt"></div>
     </div>
     <div class="cerr" id="cerr" role="alert"></div>
-    <a class="help" href="tel:988" style="margin:18px 0 0"><span>Having a hard time? A real person answers, day or night.</span><b>Call 988</b></a>
+    <!-- v223, Mike: "that 988 is easily confused for a text input box. move it to the bottom ... make it a
+         different color". It sits at the bottom of the screen now, just over the buttons, in its own blue,
+         and "Call 988" is drawn as a button. -->
+    <a class="help" href="tel:988"><span>Having a hard time? A real person answers, day or night.</span><b>Call 988</b></a>
     <button type="button" class="addpic" id="addpic" hidden></button>
     <input type="file" id="cfile" accept="image/*" multiple hidden><input type="file" id="cfilecam" accept="image/*" capture="environment" hidden>
   </div>
@@ -2763,8 +2774,8 @@ html.kb .ch-bar{padding-bottom:8px}
     $("ccount").textContent = mode === "sign" ? t.length + " / " + SIGN_MAX : t.length > 1500 ? t.length + " / 2000" : "";
     var shown = shownPhotos();
     if (!filtReady() && !filtBusy) { filtBusy = true; filtEnsure().then(function () { filtBusy = false; paintCompose(); }, function () { filtBusy = false; }); }
-    $("thumbs").innerHTML = shown.map(function (p, i) { return '<div><img src="' + pic(p) + '" alt="">' + (editingPost ? "" : (collage ? "" : '<button type="button" data-unpic="' + i + '" aria-label="Remove photo">✕</button>') +
-      (window.PorchPhotoFun ? '<button type="button" class="deco" data-deco="' + i + '" aria-label="Add stickers to this photo">✨</button>' : "")) + "</div>"; }).join("");
+    $("thumbs").innerHTML = shown.map(function (p, i) { return '<div><img src="' + pic(p) + '" alt="">' + (collage || (editingPost && !edPhotos()) ? "" : '<button type="button" data-unpic="' + i + '" aria-label="Remove photo">✕</button>') +
+      (!editingPost && window.PorchPhotoFun ? '<button type="button" class="deco" data-deco="' + i + '" aria-label="Add stickers to this photo">✨</button>' : "") + "</div>"; }).join("");
     $("thumbs").classList.toggle("one", photos.length === 1);
     paintFun();
     var sw = $("cswitch"), swOn = !editingPost && !!window.PorchPhotoFun && mode === "snap" && (!!collage || photos.length >= 2);
@@ -2818,7 +2829,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var i = b.querySelector("i"); if (i) i.textContent = n ? String(n) : "";
     };
     var sc = stickerCount(), tags = (NEED[need] && need !== "talk" ? 1 : 0) + (!composeGroup && tagGroup ? 1 : 0) + hashIn($("cbody").value).length;
-    set("photos", !ed && mode !== "sign", (collage ? collage.src.length : photos.length) >= 4, false);
+    set("photos", (!ed || edPhotos()) && mode !== "sign", (collage ? collage.src.length : photos.length) >= 4, false);      /* v223: on an edit too */
     set("stickers", !ed && fun && mode !== "sign" && photos.length > 0, false, sc > 0, sc);      /* only once there's a picture: room for Share */
     set("filters", !ed && mode !== "sign" && photos.length > 0, false, filtOn());
     set("collage", !ed && fun && !!collage, false, true);      /* "Look": only while it IS a collage; the switch under the picture turns one on */
@@ -2900,7 +2911,7 @@ html.kb .ch-bar{padding-bottom:8px}
   });
   $("thumbs").addEventListener("click", function (e) {
     var d = e.target.closest("[data-deco]"); if (d) return collage ? decoCollage() : decoPhoto(+d.dataset.deco);
-    var b = e.target.closest("[data-unpic]"); if (b) { photos.splice(+b.dataset.unpic, 1); if (!photos.length && !editingPost) mode = "say"; paintCompose(); }
+    var b = e.target.closest("[data-unpic]"); if (b) { photos.splice(+b.dataset.unpic, 1); if (!photos.length && mode === "snap") mode = "say"; paintCompose(); }
   });
 
   /* ================================================================ PHOTO FUN (4 Oct 2026)
@@ -3065,7 +3076,7 @@ html.kb .ch-bar{padding-bottom:8px}
       if (await scanPhoto(pd, "post", function () { $("cfile").click(); })) into.push(pd);
     }
     adding = false;
-    if (photos.length && !editingPost) mode = "snap";        /* a photo makes it a photo share */
+    if (photos.length && (!editingPost || mode !== "sign")) mode = "snap";        /* a photo makes it a photo share (on an edit too, v223) */
     /* 2 to 4 pictures ARE a collage unless they said "Swipe through" (v171) */
     if (!editingPost && window.PorchPhotoFun && mode === "snap") {
       if (collage) return drawCollage();
@@ -3096,13 +3107,15 @@ html.kb .ch-bar{padding-bottom:8px}
     var body = $("cbody").value.trim();
     if (editingPost) {
       var eid = editingPost, ep = posts[eid];
-      $("csend").disabled = true; $("csend").textContent = "Saving…";
+      var withPics = edPhotos() && mode !== "sign", newPics = withPics && photos.some(function (x) { return String(x).slice(0, 5) === "data:"; });
+      $("csend").disabled = true; $("csend").textContent = newPics ? "Checking photos…" : "Saving…";
       var canTag = !ep.group_id && !ep.reshare_of;
-      var er = await fn("porch", Object.assign({ action: "edit", post_id: eid, body: body, need: need, card_style: mode === "sign" ? style : undefined, sure: !!sure }, canTag ? { tag_group: tagGroup || "" } : {}));
+      var er = await fn("porch", Object.assign({ action: "edit", post_id: eid, body: body, need: need, card_style: mode === "sign" ? style : undefined, sure: !!sure }, canTag ? { tag_group: tagGroup || "" } : {}, withPics ? { photos: photos.slice(0, 4), faces_ok: true } : {}));
       sending = false; paintCompose();
       if (er.pause) return open("pause");
       if (!er.ok) { $("cerr").textContent = er.error || "That didn't save. Try again."; return; }
       ep.body = body || null; ep.need = need; ep.edited_at = er.edited_at; if (canTag) ep.tag_group_id = tagGroup || null; if ("link_preview" in er) ep.link_preview = er.link_preview; if (mode === "sign") ep.card_style = style;
+      if (er.photo_paths) { ep.photo_paths = er.photo_paths; if (er.photo_paths.length) ep.card_style = null; photos = []; }
       editingPost = null;
       /* 3 Oct 2026, Mike: "I click save and it takes me back to the main feed. It needs to take me
          back to the profile where they are." Only the editor closes; whatever you were on stays. */
@@ -3513,8 +3526,14 @@ html.kb .ch-bar{padding-bottom:8px}
   }
 
   /* ================================================================ EDIT YOUR SHARE (30 Sep 2026)
-     Same screen as a new share, filled in. Words, tag and card color can change;
-     photos stay (delete and share again to change them). "edited" shows next to the time. */
+     Same screen as a new share, filled in. Words, tag and card color can change.
+     v223 (7 Oct 2026, Mike: "went to edit, didn't find add more photos like expected"): PHOTOS CAN CHANGE TOO.
+     The Photos button adds more (4 at most) and each picture has its X. Stickers, filters and collage stay on
+     the new-share side. Not for a reshare, a Spin, a coin share or a card. "edited" shows next to the time. */
+  function edPhotos() {
+    var ep = editingPost && posts[editingPost];
+    return !!ep && !ep.reshare_of && ep.need !== "moment" && !(ep.photo_paths || []).some(function (x) { return String(x).charAt(0) === "/"; });
+  }
   var editingPost = null;
   function editShare(id) {
     var p = posts[id]; if (!p) return;

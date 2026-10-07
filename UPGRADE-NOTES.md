@@ -1088,3 +1088,11 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - KNOWN TRADE-OFF: any one confirmed member can hide any one post until a moderator looks. The caps that were
   already there still apply (20 reports a day, the 3-day wait). The owner is not told their post was hidden.
 - SQL: supabase/old sql/porch_66_report_holds.sql. Function: porch (redeploy).
+
+## v223 (7 Oct 2026) - add or take off photos when you edit a share, and the 988 line moved
+- Mike: "went to edit, didn't find add more photos like expected." Edit Share has the Photos button now (4 at most)
+  and each picture has an X. New pictures get the same check as on a new share. Pictures taken off are deleted from
+  storage. Not on a reshare, a Spin, a coin share or a card. Stickers, filters and collage are still new-share only.
+- Mike: "that 988 is easily confused for a text input box. move it to the bottom ... make it a different color."
+  On the share screen it sits at the bottom, over the row of buttons, in blue, and "Call 988" looks like a button.
+- Function: porch (redeploy). No SQL.
