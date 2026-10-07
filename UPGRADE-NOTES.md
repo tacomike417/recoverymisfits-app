@@ -1111,3 +1111,8 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
   heart / comments / send, the last two comments, and four quick comments (Love this, Glad you're here, Proud of you,
   Looks like a good time) that send in ONE tap. The white box opens the comments screen to type.
 - Swipe, pinch, double tap and swipe-down-to-close still work on the picture. No function change, no SQL.
+- v227, Mike: "make the comments that paper theme, and how about putting those quick comments right on the bottom of
+  the picture so its obvious". In the photo pop-up the comments sit on the same paper as the feed, and the four quick
+  comments ride on the bottom edge of the picture. No function change, no SQL.
+- v228, Mike: "make the pic a rounded box and make those comments in pills that match the paper theme". The picture in
+  the pop-up has round corners and a thin gold edge; the quick comments are paper-colored pills.
