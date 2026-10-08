@@ -9,18 +9,21 @@
 <link rel="icon" href="/icon-192.png">
 <style>html{background:#11110f}body{background:#11110f;color:#f1e7cf;margin:0}</style>
 <style>
-/* THE SHARE DESK (4 Oct 2026, Mike: "a list of spins, and memes recovery misfits has posted,
-   then almost like a share manager. i dont want to get confused on if i have shared it yet.
-   share to instagram story, or facebook reel. then i can click i did it, and it'll mark done
-   until the next one pops up and archive it").
+/* THE SHARE DESK, v3: A LOG (7 Oct 2026, Mike: "this misfits share desk just needs to be a log file for me,
+   easy to read, simple, like for a preschooler. let me know what was posted today, and what is scheduled for
+   later today, thats it since we have this all automated").
 
-   WHO CAN USE IT: moderators only (Mike). It is locked by being signed in as a moderator, and
-   the database checks that again (supabase/porch_47_share_desk.sql). There is no password in
-   this file on purpose: this repo is public, so a password written here would not be a lock.
+   It used to be a share manager (get the video, tick "I did it"). Posting is automatic now, so all of that is gone.
+   This page only READS. misfits-post, the poster on Mike's computer, writes one line to porch_post_log every time
+   something goes out (supabase/porch_68_post_log.sql).
 
-   WHAT IT DOES NOT DO: it does not post anywhere. "Get it" hands the video or picture to the
-   phone's own Share menu; Mike picks Instagram or Facebook there, on the right account. Then
-   he ticks what he did. Phone first, at 393. */
+   WHO CAN SEE IT: moderators only (Mike). The database checks that. No password in this file: the repo is public.
+
+   LATER TODAY comes from two places:
+     1. THE DAY below: the three posts that happen every day. The two videos are picked when they post, so there
+        is no name to show yet.
+     2. "planned" lines in porch_post_log: extras that are lined up for a set time.
+   Phone first, at 393. */
 @font-face{font-family:"RM Head";src:url("/assets/fonts/anton-400.woff2") format("woff2");font-display:swap}
 @font-face{font-family:"RM Rail";src:url("/assets/fonts/oswald-500.woff2") format("woff2");font-weight:500;font-display:swap}
 *{box-sizing:border-box}
@@ -33,36 +36,22 @@ main{max-width:480px;margin:0 auto;padding:0 12px calc(40px + env(safe-area-inse
 .back svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 h1{flex:1;margin:0;font:400 30px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em;text-transform:uppercase}
 .ver{flex:none;padding:3px 10px;border-radius:999px;background:#fff;color:#000;font:800 12px Arial,sans-serif}
-.who{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px;scrollbar-width:none}
-.who::-webkit-scrollbar{display:none}
-.who button{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line,#2e2a22);background:none;color:var(--muted,#a39b8a);font:800 13px Arial,sans-serif;cursor:pointer}
-.who button.on{border-color:var(--gold,#e0bd6a);color:var(--gold,#e0bd6a)}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
-.tabs button{min-height:46px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--muted);font:500 15px "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.14em;cursor:pointer}
-.tabs button.on{background:var(--gold);border-color:var(--gold);color:#1a1408}
+.date{margin:6px 0 0 54px;color:var(--muted);font-size:15px}
 .say{margin:26px 8px;text-align:center;color:var(--muted);font-size:16px}
 .say a{color:var(--gold);font-weight:800}
 .say b{display:block;margin-bottom:6px;color:#f1e7cf;font:400 26px "RM Head",Impact,sans-serif;text-transform:uppercase}
-.it{display:grid;grid-template-columns:104px 1fr;gap:12px;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
-.th{position:relative;width:104px;border-radius:10px;overflow:hidden;background:#0d0d0b;align-self:start}
-.th img{display:block;width:100%;height:auto;min-height:104px;object-fit:cover}
-.th.spin img{aspect-ratio:9/16}
-.kind{position:absolute;left:6px;top:6px;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,.72);color:var(--gold);font:500 11px "RM Rail",Oswald,sans-serif;letter-spacing:.14em}
-.tx{min-width:0;display:flex;flex-direction:column;gap:8px}
-.cap{margin:0;font:700 15px/1.3 Arial,sans-serif;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.when{margin:0;color:var(--muted);font-size:13px}
-.get{min-height:46px;border:0;border-radius:12px;background:var(--gold);color:#1a1408;font:400 18px "RM Head",Impact,sans-serif;letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
-.get:disabled{opacity:.6}
-.pl{display:grid;gap:6px}
-.pl button{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line);background:none;color:#f1e7cf;font:700 15px Arial,sans-serif;text-align:left;cursor:pointer}
-.pl button i{flex:none;width:24px;height:24px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center;font-style:normal;font-size:14px;color:transparent}
-.pl button.on{border-color:var(--ok);color:var(--ok)}
-.pl button.on i{border-color:var(--ok);background:var(--ok);color:#10210f}
-.pl small{margin-left:auto;color:var(--muted);font:600 12px Arial,sans-serif}
-.row2{display:flex;justify-content:space-between;gap:8px}
-.lnk{padding:8px 2px;border:0;background:none;color:var(--muted);font:700 13px Arial,sans-serif;text-decoration:underline;cursor:pointer}
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:88%;padding:11px 16px;border-radius:999px;background:#f7f1e3;color:#1b1a17;font:700 14px Arial,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s}
-.toast.on{opacity:1}
+h2{margin:22px 2px 8px;font:500 15px "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.16em;color:var(--gold)}
+.none{margin:0;padding:14px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:16px}
+.ln{display:grid;grid-template-columns:104px 1fr;gap:12px;align-items:start;margin-top:8px;padding:14px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.tm{white-space:nowrap;font:400 21px/1.1 "RM Head",Impact,sans-serif;letter-spacing:.02em;color:#f1e7cf}
+.tm small{display:block;margin-top:6px;font:800 12px Arial,sans-serif;letter-spacing:.04em}
+.done .tm small{color:var(--ok)}
+.next .tm small{color:var(--gold)}
+.wh{min-width:0}
+.wh b{display:block;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.16em;color:var(--muted)}
+.wh p{margin:3px 0 0;font:700 16px/1.3 Arial,sans-serif;overflow-wrap:anywhere}
+.wh i{display:block;margin-top:6px;font-style:normal;color:var(--muted);font-size:13px}
+.next{border-style:dashed;background:none}
 </style>
 </head>
 <body>
@@ -71,184 +60,84 @@ h1{flex:1;margin:0;font:400 30px/1 "RM Head",Impact,sans-serif;letter-spacing:.0
     <div class="bar">
       <a class="back" href="/feed/porch.html" aria-label="Back to the Porch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
       <h1>Share desk</h1>
-      <span class="ver">v2</span>
+      <span class="ver">v3</span>
     </div>
-    <div class="who" id="who" hidden></div>
-    <div class="tabs" id="tabs" hidden>
-      <button type="button" data-tab="todo" class="on">TO SHARE</button>
-      <button type="button" data-tab="done">DONE</button>
-    </div>
+    <p class="date" id="date"></p>
   </div>
   <div id="list"><p class="say">Loading…</p></div>
 </main>
-<div class="toast" id="toast" role="status"></div>
 <script src="/assets/account.js"></script>
 <script>
 (function () {
   "use strict";
   var DB = "https://rlytvfehbglsjfvprtbp.supabase.co";
-  var CDN = "https://vz-e533a6c3-9fe.b-cdn.net";
-  /* WHOSE POSTS THIS DESK LISTS (5 Oct 2026): recoverymisfits, and realmrhyde (the Original Manuscript shorts).
-     A row of buttons at the top picks which. NEED is what has to be ticked before an item moves to DONE:
-     recoverymisfits is Instagram + Facebook (as it always was), realmrhyde is YouTube. YouTube is a tick on every
-     video; pictures don't get one. porch_59_share_desk_youtube.sql lets the database store that tick. */
-  var HOUSES = ["recoverymisfits", "realmrhyde"], HOUSE = HOUSES[0], uidOf = {};
-  try { var hw = localStorage.getItem("rm_share_desk_who"); if (HOUSES.indexOf(hw) >= 0) HOUSE = hw; } catch (e) {}
-  var ALL_PLACES = [["youtube", "YouTube"], ["instagram", "Instagram"], ["facebook", "Facebook"]];
-  var NEED = { recoverymisfits: ["instagram", "facebook"], realmrhyde: ["youtube"] };
-  var placesFor = function (x) { return ALL_PLACES.filter(function (p) { return p[0] !== "youtube" || (x && x.kind === "spin"); }); };
-  var PLACES = ALL_PLACES;
   var A = window.RMAccount, KEY = A && A.anonKey;
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
-  var items = [], marks = {}, tab = "todo";
+  /* THE DAY (Mike, 6 Oct): 6:30 AM a video, 10 AM the meme of the day, 6:30 PM a video. Hours on a 24 hour clock. */
+  var DAY = [[6.5, "video", "A video"], [10, "meme", "Meme of the day"], [18.5, "video", "A video"]];
+  var KIND = { video: "VIDEO", picture: "PICTURE", meme: "MEME" };
 
-  function toast(m) { var t = $("toast"); t.textContent = m; t.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove("on"); }, 2600); }
-  async function rest(path, opt) {
-    opt = opt || {};
+  async function rest(path) {
     var t = await A.token();
-    var h = { apikey: KEY, Authorization: "Bearer " + (t || KEY) };
-    if (opt.body) { h["Content-Type"] = "application/json"; h.Prefer = "return=minimal,resolution=merge-duplicates"; }
-    var r = await fetch(DB + "/rest/v1/" + path, { method: opt.method || "GET", headers: h, body: opt.body ? JSON.stringify(opt.body) : undefined });
+    var r = await fetch(DB + "/rest/v1/" + path, { headers: { apikey: KEY, Authorization: "Bearer " + (t || KEY) } });
     if (!r.ok) { var e = new Error("rest " + r.status); e.status = r.status; throw e; }
-    return r.status === 204 || opt.method ? null : r.json();
-  }
-  var pic = function (p) { return p.charAt(0) === "/" || p.indexOf("data:") === 0 ? p : DB + "/storage/v1/object/public/porch/" + p; };
-  function spinSrc(s) {
-    var have = String(s.resolutions || "").match(/\d+/g), r = 480;
-    if (have && have.length) { var ok = have.map(Number).filter(function (n) { return n <= 720; }).sort(function (a, b) { return b - a; }); if (ok.length) r = ok[0]; }
-    return CDN + "/" + s.video_guid + "/play_" + r + "p.mp4";
-  }
-  function day(iso) {
-    var d = new Date(iso);
-    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) + ", " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    return r.json();
   }
   function say(big, small) { $("list").innerHTML = '<p class="say"><b>' + big + "</b>" + small + "</p>"; }
-
-  var doneOf = function (k) { return marks[k] || {}; };
-  /* archived = ticked for every place, or skipped */
-  var isDone = function (k) {
-    var m = doneOf(k), x = items.filter(function (i) { return i.key === k; })[0], shown = placesFor(x).map(function (p) { return p[0]; });
-    var need = (NEED[HOUSE] || ["instagram", "facebook"]).filter(function (n) { return shown.indexOf(n) >= 0; });
-    if (!need.length) need = ["instagram", "facebook"];           /* a picture from a YouTube-only account still has somewhere to go */
-    return !!m.skip || need.every(function (n) { return !!m[n]; });
-  };
-  function drawWho() {
-    var w = $("who"); if (!w) return;
-    w.hidden = HOUSES.length < 2;
-    w.innerHTML = HOUSES.map(function (h) { return '<button type="button" data-who="' + h + '" class="' + (h === HOUSE ? "on" : "") + '">' + h + "</button>"; }).join("");
+  var clock = function (d) { return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); };
+  /* "Instagram Reel, YouTube Short, Instagram Story" -> "Instagram, YouTube, Story" */
+  function places(s) {
+    var seen = {}, out = [];
+    String(s || "").split(",").forEach(function (p) {
+      p = p.trim(); if (!p) return;
+      p = /story/i.test(p) ? "Story" : p.replace(/\s+(reel|short|post)$/i, "");
+      if (!seen[p]) { seen[p] = 1; out.push(p); }
+    });
+    return out.join(", ");
+  }
+  function line(cls, when, tag, kind, words, where) {
+    return '<article class="ln ' + cls + '"><div class="tm">' + clock(when) + "<small>" + tag + "</small></div>" +
+      '<div class="wh"><b>' + (KIND[kind] || "POST") + "</b><p>" + esc(words) + "</p>" + (where ? "<i>Went to " + esc(where) + "</i>" : "") + "</div></article>";
   }
 
-  function draw() {
-    var todo = items.filter(function (x) { return !isDone(x.key); }), done = items.filter(function (x) { return isDone(x.key); });
-    var tabs = $("tabs"); tabs.hidden = false;
-    tabs.querySelector('[data-tab="todo"]').textContent = "TO SHARE" + (todo.length ? " · " + todo.length : "");
-    tabs.querySelector('[data-tab="done"]').textContent = "DONE" + (done.length ? " · " + done.length : "");
-    tabs.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b.dataset.tab === tab); });
-    var show = tab === "todo" ? todo : done;
-    if (!show.length) {
-      return say(tab === "todo" ? "All caught up" : "Nothing here yet",
-        tab === "todo" ? "Everything " + HOUSE + " has posted is shared. The next one shows up here when it posts." : "What you finish lands here.");
-    }
-    $("list").innerHTML = show.map(function (x) {
-      var m = doneOf(x.key);
-      return '<article class="it" data-key="' + x.key + '">' +
-        '<div class="th ' + x.kind + '"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"><span class="kind">' + (x.kind === "spin" ? "SPIN" : "MEME") + "</span></div>" +
-        '<div class="tx"><p class="cap">' + esc(x.cap || (x.kind === "spin" ? "A Spin" : "A picture")) + '</p><p class="when">Posted ' + day(x.at) + "</p>" +
-        '<button type="button" class="get" data-get>' + (x.kind === "spin" ? "Get the video" : "Get the picture") + "</button>" +
-        '<div class="pl">' + placesFor(x).map(function (p) {
-          return '<button type="button" data-place="' + p[0] + '" class="' + (m[p[0]] ? "on" : "") + '" aria-pressed="' + !!m[p[0]] + '"><i>&#10003;</i>' + p[1] +
-            "<small>" + (m[p[0]] ? "did it " + new Date(m[p[0]]).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "I did it") + "</small></button>";
-        }).join("") + "</div>" +
-        '<div class="row2"><a class="lnk" href="' + x.href + '">See it on the Porch</a>' +
-        (isDone(x.key) ? '<button type="button" class="lnk" data-undo>Put it back</button>' : '<button type="button" class="lnk" data-skip>Skip this one</button>') + "</div>" +
-        "</div></article>";
-    }).join("");
+  function draw(rows) {
+    var now = new Date(), y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+    var posted = rows.filter(function (r) { return r.state === "posted"; });
+    var later = rows.filter(function (r) { return r.state === "planned" && new Date(r.at) > now; }).map(function (r) {
+      return { at: new Date(r.at), kind: r.kind, words: r.caption || r.title };
+    });
+    DAY.forEach(function (s) {
+      var at = new Date(y, m, d, Math.floor(s[0]), Math.round((s[0] % 1) * 60));
+      if (at > now) later.push({ at: at, kind: s[1], words: s[2] });
+    });
+    later.sort(function (a, b) { return a.at - b.at; });
+    $("list").innerHTML =
+      "<h2>POSTED TODAY</h2>" +
+      (posted.length ? posted.map(function (r) { return line("done", new Date(r.at), "&#10003; POSTED", r.kind, r.caption || r.title, places(r.places)); }).join("")
+                     : '<p class="none">Nothing has posted yet today.</p>') +
+      "<h2>LATER TODAY</h2>" +
+      (later.length ? later.map(function (r) { return line("next", r.at, "COMING UP", r.kind, r.words, ""); }).join("")
+                    : '<p class="none">Nothing else today.</p>');
   }
-
-  async function mark(key, place, on) {
-    marks[key] = marks[key] || {};
-    var was = marks[key][place];
-    if (on) marks[key][place] = new Date().toISOString(); else delete marks[key][place];
-    draw();
-    try {
-      if (on) await rest("porch_share_desk?on_conflict=item,place", { method: "POST", body: { item: key, place: place } });
-      else await rest("porch_share_desk?item=eq." + encodeURIComponent(key) + "&place=eq." + place, { method: "DELETE" });
-    } catch (e) {
-      if (was) marks[key][place] = was; else delete marks[key][place];
-      draw(); toast("That didn't save. Try again.");
-    }
-  }
-
-  async function getIt(x, btn) {
-    var old = btn.textContent; btn.disabled = true; btn.textContent = "Getting it…";
-    try {
-      var r = await fetch(x.file); if (!r.ok) throw new Error("get");
-      var blob = await r.blob();
-      var f = new File([blob], x.name, { type: x.kind === "spin" ? "video/mp4" : (blob.type || "image/jpeg") });
-      if (navigator.canShare && navigator.canShare({ files: [f] })) {
-        try { await navigator.share({ files: [f], title: "Recovery Misfits" }); }
-        catch (err) { if (!err || err.name !== "AbortError") throw err; }
-      } else {
-        var a = document.createElement("a"); a.href = URL.createObjectURL(f); a.download = x.name; document.body.appendChild(a); a.click(); a.remove();
-        toast(x.kind === "spin" ? "Saved to this computer. On your phone this opens the share menu (YouTube, Instagram, Facebook)." : "Saved to this device.");
-      }
-    } catch (e) { toast("Couldn't get it. Check your signal and try again."); }
-    btn.disabled = false; btn.textContent = old;
-  }
-
-  document.addEventListener("click", function (e) {
-    var w = e.target.closest("[data-who]");
-    if (w) { HOUSE = w.dataset.who; tab = "todo"; try { localStorage.setItem("rm_share_desk_who", HOUSE); } catch (_) {} drawWho(); say("Loading…", ""); start(); return; }
-    var t = e.target.closest("[data-tab]");
-    if (t) { tab = t.dataset.tab; draw(); window.scrollTo(0, 0); return; }
-    var card = e.target.closest("[data-key]"); if (!card) return;
-    var key = card.getAttribute("data-key"), x = items.filter(function (i) { return i.key === key; })[0]; if (!x) return;
-    var g = e.target.closest("[data-get]"); if (g) return getIt(x, g);
-    var p = e.target.closest("[data-place]");
-    if (p) {
-      var on = !doneOf(key)[p.dataset.place];
-      mark(key, p.dataset.place, on);
-      if (on && isDone(key)) toast("Done. Moved to DONE.");
-      return;
-    }
-    if (e.target.closest("[data-skip]")) { mark(key, "skip", true); toast("Skipped. It's under DONE."); return; }
-    if (e.target.closest("[data-undo]")) {
-      var m = doneOf(key);
-      if (m.skip) mark(key, "skip", false); else ALL_PLACES.forEach(function (pl) { if (m[pl[0]]) mark(key, pl[0], false); });
-    }
-  });
 
   async function start() {
+    $("date").textContent = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
     if (!A || !A.signedIn()) return say("Sign in first", 'This page is for the moderators. <a href="/account.html">Sign in</a>, then come back.');
     try {
       var mod = await rest("porch_moderators?user_id=eq." + A.uid() + "&select=user_id");
       if (!mod.length) return say("Not for this account", 'The share desk is for moderators. <a href="/feed/porch.html">Back to the Porch</a>');
-    } catch (e) { return say("Couldn't load", "Check your signal and pull down to try again."); }
+    } catch (e) { return say("Couldn't load", "Check your signal and try again."); }
     try {
-      var who = await rest("porch_members?handle=eq." + HOUSE + "&select=user_id");
-      drawWho();
-      if (!who.length) return say("No house account", "There is no account named " + HOUSE + ".");
-      var uid = who[0].user_id;
-      var got = await Promise.all([
-        rest("porch_spins?user_id=eq." + uid + "&status=eq.ready&select=id,video_guid,caption,resolutions,created_at&order=created_at.desc&limit=300"),
-        rest("porch_posts?user_id=eq." + uid + "&need=neq.moment&group_id=is.null&hidden_at=is.null&reshare_of=is.null&select=id,body,photo_paths,created_at&order=created_at.desc&limit=300"),
-        rest("porch_share_desk?select=item,place,done_at&limit=5000")
-      ]);
-      items = got[0].map(function (s) {
-        return { key: "spin:" + s.id, kind: "spin", at: s.created_at, cap: s.caption, thumb: CDN + "/" + s.video_guid + "/thumbnail.jpg",
-          file: spinSrc(s), name: "recovery-misfits-spin.mp4", href: "/feed/porch.html?spin=" + s.id };
-      }).concat(got[1].filter(function (p) { return (p.photo_paths || []).length; }).map(function (p) {
-        var src = pic(p.photo_paths[0]), ext = (src.match(/\.(png|jpe?g|webp)(?:\?|$)/i) || [0, "jpg"])[1];
-        return { key: "post:" + p.id, kind: "meme", at: p.created_at, cap: p.body, thumb: src, file: src, name: "recovery-misfits." + ext, href: "/feed/porch.html?s=" + p.id };
-      })).sort(function (a, b) { return a.at < b.at ? 1 : -1; });
-      marks = {};
-      got[2].forEach(function (m) { (marks[m.item] = marks[m.item] || {})[m.place] = m.done_at; });
-      draw();
+      var n = new Date(), a = new Date(n.getFullYear(), n.getMonth(), n.getDate()), b = new Date(a.getTime() + 864e5);
+      draw(await rest("porch_post_log?at=gte." + encodeURIComponent(a.toISOString()) + "&at=lt." + encodeURIComponent(b.toISOString()) +
+        "&select=at,state,kind,title,caption,places&order=at.asc&limit=200"));
     } catch (e) {
-      say("Couldn't load", e && e.status === 404 ? "The share desk isn't switched on yet. Run porch_47_share_desk.sql." : "Check your signal and try again.");
+      say("Couldn't load", e && e.status === 404 ? "The log isn't switched on yet. Run porch_68_post_log.sql." : "Check your signal and try again.");
     }
   }
+  /* coming back to the page later in the day shows the new lines without a pull-down */
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) start(); });
   start();
 })();
 </script>

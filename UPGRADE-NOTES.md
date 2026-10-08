@@ -89,6 +89,9 @@ people, and the books open for every member to read. Don't build until Mike says
       newest first. "Get the video / picture" hands it to the phone's Share menu. Tick Instagram and Facebook ("I did it");
       when both are ticked it moves to DONE. "Skip this one" archives without sharing. "Put it back" undoes.
       It does not post anywhere by itself. Table: porch_share_desk (porch_47_share_desk.sql).
+- [x] Share desk v3 (7 Oct 2026): IT IS A LOG NOW. Mike: "just needs to be a log file for me, easy to read, simple.
+      let me know what was posted today, and what is scheduled for later today, thats it since we have this all automated."
+      Get it / I did it / Skip / DONE and the realmrhyde row all came out. See the entry at the bottom of this file.
 - [ ] Same desk for Infinite Pulls (Loops).
 
 ## 🤖 WELCOME MATT, THE GREETER ROBOT (4 Oct 2026, Mike: "I love Welcome Matt lol")
@@ -1172,3 +1175,16 @@ Mike: "by being on a recovery site, means most likely you are in recovery, and t
 - How the Porch works is the first Help card (/feed/porch.html?tour=1). Help cards updated for all of this.
 - No function change, no SQL.
 
+## Share desk v3 (7 Oct 2026) - the Share desk is a log
+Mike: "this misfits share desk just needs to be a log file for me, easy to read, simple, like for a preschooler. let me
+know what was posted today, and what is scheduled for later today, thats it since we have this all automated."
+- /feed/share-desk.html is two lists now: POSTED TODAY and LATER TODAY. It only reads. Pill says v3. Moderators only, as before.
+- New table porch_post_log (supabase/porch_68_post_log.sql). misfits-post v15, the poster on Mike's computer
+  (~/.local/bin/misfits-post, not in this repo), writes one line every time something goes out, and lists the
+  show- extras that are lined up. The old table porch_share_desk is left alone; nothing reads it.
+- LATER TODAY = the three posts of the normal day (6:30 AM video, 10 AM meme of the day, 6:30 PM video; those times
+  live in the page, in DAY) plus any "planned" lines from the table. The two normal videos are picked when they post,
+  so they show as "A video" until then.
+- If the computer is off and a post does not go out, nothing shows up under POSTED. That is the tell.
+- The porch.html pill did not change (porch.html was not touched). sw.js is house127.
+- NOT DONE: the same log for Infinite Pulls.
