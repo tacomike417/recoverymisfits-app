@@ -431,6 +431,7 @@ html.fullon #main{visibility:hidden}
 .nd-th{flex:none;width:50px;height:50px;border-radius:9px;overflow:hidden;background:var(--field);display:grid;place-items:center;font:600 11px/1.1 "RM Hand",cursive;text-align:center;padding:2px;color:var(--cream)}
 .nd-th img{width:100%;height:100%;object-fit:cover}
 .nd-th.txt{font:10px/1.2 Arial,sans-serif;color:var(--soft);padding:5px;text-align:left;align-content:start;overflow:hidden}
+.nd-qa{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.nd-qa .fwrap{display:inline-flex;gap:6px}.nd-qa .nd-fb{padding:6px 12px;font-size:12px}.nd-qa .nd-fb .ico{width:15px;height:15px}   /* v235 */
 .nd-fb{flex:none;padding:8px 12px;border:0;border-radius:999px;background:linear-gradient(90deg,var(--gold),#e8a33d);color:#17130b;font:800 12.5px Arial,sans-serif;cursor:pointer}
 .nd-dot{flex:none;width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--rust))}
 .nd-empty{padding:26px 18px 30px;text-align:center;color:var(--muted)}
@@ -1533,7 +1534,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v234</span>
+  <span class="ver" id="ver">v235</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -5027,6 +5028,13 @@ html.kb .ch-bar{padding-bottom:8px}
     /* the number on the app icon, where the phone supports it */
     try { if (unread && navigator.setAppBadge) navigator.setAppBadge(unread); else if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (e) {}
   }
+  /* v235 (Mike): "the menu notifications to be somewhat like instagram, where you get the add friend button right on the
+     notification for quick add". Anyone who isn't your friend yet gets a small Add Friend button under what they did:
+     comments, loves, Me too, tags, replies, reshares, Spins and messages. (Follows and friend requests already had it.) */
+  function quickAdd(uid) {
+    if (!uid || !me.uid || uid === me.uid || friends[uid] || isSample(uid)) return "";
+    return '<span class="nd-qa">' + friendBtn(uid, true) + "</span>";
+  }
   var NOTE = {
     comment: ["comment", "commented on your share"], reply: ["reply", "replied to your comment"],
     proud: ["proud", "loved your share"], metoo: ["metoo", "said Me too"],
@@ -5081,7 +5089,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var o = otherOf(t), isNew = !myReadOf(t) || t.last_at > myReadOf(t), pv = previewWords(t.last_preview);
       return '<div role="button" tabindex="0" class="nd-row' + (isNew ? " is-new" : "") + '" data-ndm="' + o + '">' +
         '<span class="nd-av" data-u="' + o + '">' + avatar(people[o]) + '<span class="nd-k dm">' + ico("comment") + "</span></span>" +
-        '<span class="nd-t"><span><b class="ul" data-u="' + o + '">' + esc(name(o)) + "</b> messaged you" + (pv ? ": “" + esc(pv.length > 90 ? pv.slice(0, 90) + "…" : pv) + "”" : "") + "</span><small>" + ago(t.last_at) + "</small></span>" +
+        '<span class="nd-t"><span><b class="ul" data-u="' + o + '">' + esc(name(o)) + "</b> messaged you" + (pv ? ": “" + esc(pv.length > 90 ? pv.slice(0, 90) + "…" : pv) + "”" : "") + "</span><small>" + ago(t.last_at) + "</small>" + quickAdd(o) + "</span>" +
         (isNew ? '<i class="nd-dot"></i>' : "") + "</div>";
     }
     /* GROUPS: who asked, what opened, what went quiet. Tap = the group (or the Groups tab). */
@@ -5113,7 +5121,8 @@ html.kb .ch-bar{padding-bottom:8px}
       return '<div role="button" tabindex="0" class="nd-row' + (isNew ? " is-new" : "") + '" data-note="' + n.id + '" data-nk="' + n.kind + '" data-np="' + (n.post_id || "") + '" data-nc="' + (n.comment_id || "") + '" data-na="' + n.actor_id + '">' +
         '<span class="nd-av" data-u="' + n.actor_id + '">' + avatar(people[n.actor_id]) + '<span class="nd-k ' + n.kind + '">' + ico(k[0]) + "</span></span>" +
         '<span class="nd-t"><span><b class="ul" data-u="' + n.actor_id + '">' + esc(name(n.actor_id)) + "</b> " + noteSays(n) +
-        (said ? ": “" + esc(said.length > 90 ? said.slice(0, 90) + "…" : said) + "”" : "") + "</span><small>" + ago(n.created_at) + "</small></span>" +
+        (said ? ": “" + esc(said.length > 90 ? said.slice(0, 90) + "…" : said) + "”" : "") + "</span><small>" + ago(n.created_at) + "</small>" +
+        (n.kind === "friend_request" || n.kind === "follow" || n.kind === "report" ? "" : quickAdd(n.actor_id)) + "</span>" +
         right + (isNew && !right ? '<i class="nd-dot"></i>' : "") + "</div>";
     }
     /* notes and messages together, newest first */
