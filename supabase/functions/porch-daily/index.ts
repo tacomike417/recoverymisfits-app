@@ -80,6 +80,9 @@ const MATT = "welcomematt";                 // the greeter robot
 const MATT_FROM = 4001;                     // his pinned Spins are numbered from here up
 const HYDE = "realmrhyde";                 // the Original Manuscript shorts account (4 Oct 2026)
 const HYDE_FROM = 5001;                     // its Spins are numbered from here up
+const SPONSOR = "shitmysponsorsays";         // the Sh*t My Sponsor Says videos (10 Oct 2026)
+const SPONSOR_FROM = 6001;                  // numbered 6000 + the episode number
+const SPONSOR_HOUR = 17;                    // one a day, at the first knock at or after 5pm Eastern
 const STARK_HOUR = 7;                       // then one every 3 days, at the first knock after 7am Eastern
 const HOUSE_KEY = Deno.env.get("HOUSE_KEY") || "";
 const BUNNY_KEY = Deno.env.get("BUNNY_STREAM_KEY") || "";
@@ -484,6 +487,27 @@ async function hydeSpins(day: string, hour: number, minute: number) {
   return { posted: 1, numbers: [queue[0].n], waiting: queue.length - 1 };
 }
 
+/* SH*T MY SPONSOR SAYS, THE VIDEOS (10 Oct 2026, Mike: "make sure these videos are posting on Infinite Pulls
+ * and Recovery Misfits the same way. Like they end up on the feed."). The same videos misfits-post sends to
+ * Instagram, Facebook, YouTube and TikTok also go on the Porch, as Spins from the shitmysponsorsays account:
+ * one a day at the first knock at or after 5pm Eastern, in episode order, until they run out. Never two in one day.
+ * Uploaded from Mike's computer by scripts/upload_sponsor_spins.py, numbered 6000 + the episode number. */
+async function sponsorSpins(day: string, hour: number) {
+  const { data: m } = await admin.from("porch_members").select("user_id").eq("handle", SPONSOR).maybeSingle();
+  if (!m) return { posted: 0, error: SPONSOR + " is not on the Porch yet" };
+  const { data: all, error } = await admin.from("porch_house_reels").select("*").gte("n", SPONSOR_FROM).lt("n", SPONSOR_FROM + 999).order("n", { ascending: true });
+  if (error) return { posted: 0, why: "no list yet" };
+  const done = (all || []).filter((r: any) => r.status === "posted");
+  const queue = (all || []).filter((r: any) => r.status === "queued");
+  if (!queue.length) return { posted: 0, why: done.length ? "they have all run" : "none waiting", total: done.length };
+  if (hour < SPONSOR_HOUR) return { posted: 0, why: "before 5pm Eastern", waiting: queue.length };
+  const easternDay = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+  if (done.some((r: any) => r.posted_at && easternDay(r.posted_at) === day)) return { posted: 0, why: "today's is already up", waiting: queue.length };
+  const why = await publishReel(queue[0], m.user_id, new Date());
+  if (why) return { posted: 0, why: "spin " + queue[0].n + ": " + why, waiting: queue.length };
+  return { posted: 1, numbers: [queue[0].n], waiting: queue.length - 1 };
+}
+
 /* SOBER RIOT (4 Oct 2026, Mike: "big rock and roll look at me style recovery group with simple
  * powerful memes that post a few times a day"). The soberriot account posts picture memes ON THE
  * PORCH (everybody sees them), each one tagged with the SOBER RIOT group so the button under it
@@ -576,6 +600,7 @@ Deno.serve(async (req) => {
     try { out.misfit_daily = await misfitDaily(day, hour, minute); } catch (e) { out.misfit_daily = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.stark = await starkSpins(hour); } catch (e) { out.stark = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.sober_riot = await soberRiot(day, hour); } catch (e) { out.sober_riot = { posted: 0, error: String((e as Error).message || e) }; }
+    try { out.sponsor_videos = await sponsorSpins(day, hour); } catch (e) { out.sponsor_videos = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.hyde = await hydeSpins(day, hour, minute); } catch (e) { out.hyde = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.matt = await mattSpins(); } catch (e) { out.matt = { posted: 0, error: String((e as Error).message || e) }; }
     try { out.sponsor = await sponsor(day, hour); } catch (e) { out.sponsor = { posted: 0, error: String((e as Error).message || e) }; }

@@ -1395,6 +1395,15 @@ html.kb .ctools{display:none}
 .dm-sec{margin:14px 16px 4px;color:#958c78;font:800 12px/1.2 Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase}
 .dm-empty{margin:40px 24px 0;color:#958c78;text-align:center;font-size:15px}
 .dm-empty b{display:block;margin-bottom:6px;color:#fff;font-size:18px}
+.dm-poofsw{display:flex;align-items:center;gap:12px;margin:10px 12px 2px;padding:12px 14px;border-radius:14px;background:#15130e;border:1px solid #2b261b}
+.dm-poofsw>span{flex:1;min-width:0}
+.dm-poofsw b{display:block;font:900 15px/1.2 Arial,sans-serif;color:#fff}
+.dm-poofsw small{display:block;margin-top:2px;color:#a39a85;font:600 12.5px/1.35 Arial,sans-serif}
+.dm-poofsw small button{padding:0;border:0;background:none;color:#e0bd6a;font:inherit;text-decoration:underline;cursor:pointer}
+.pf-switch{flex:none;position:relative;width:52px;height:30px;border-radius:999px;border:0;background:#3d382c;cursor:pointer;transition:background .15s}
+.pf-switch i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+.pf-switch.on{background:#22c55e}.pf-switch.on i{left:25px}.pf-switch[disabled]{opacity:.5}
+.ch-poofon{margin:14px auto 6px;max-width:300px;padding:9px 14px;border-radius:999px;background:rgba(224,189,106,.14);border:1px solid rgba(224,189,106,.35);color:#f1e3bd;text-align:center;font:700 13px/1.35 Arial,sans-serif}
 .dm-safe{margin:22px 16px 0;padding:11px 13px;border-radius:12px;background:#15130e;border:1px solid #26221a;color:#958c78;font-size:12.5px;line-height:1.45}
 .dm-safe b{color:#e9dfc6}
 /* the chat */
@@ -1524,7 +1533,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v233</span>
+  <span class="ver" id="ver">v234</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1807,6 +1816,7 @@ html.kb .ch-bar{padding-bottom:8px}
 <!-- MESSAGES: the inbox -->
 <div id="inbox" class="layer full dmui" role="dialog" aria-modal="true" aria-label="Messages"><div class="page dmpage">
   <div class="dm-head"><button type="button" class="bk" data-close aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Messages</h2><button type="button" class="dm-pill line" data-newgc>Group</button><button type="button" class="dm-pill" data-newdm><span data-ico="newdm"></span>New</button></div>
+  <div class="dm-poofsw" id="poofrow" hidden></div><!-- v234: Mike, 11 Oct 2026: the Poof switch up top, like Trades in Infinite Pulls -->
   <div class="dm-tabs" id="dmtabs" hidden><button type="button" class="on" data-dmtab="in">Messages</button><button type="button" data-dmtab="sent">Sent</button></div>
   <div class="dm-list" id="thlist"></div>
   <div class="dm-list" id="sentlist" hidden></div>
@@ -5536,6 +5546,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function openInbox() {
     if (!signedIn()) return open("join");
     $("thlist").innerHTML = '<div class="skel" style="height:160px;margin:12px"></div>'; dmTab("in"); $("dmtabs").hidden = false; open("inbox");
+    paintPoofRow(); if (poofMine === null) poofMineLoad().then(paintPoofRow);   /* v234 */
     loadSent();
     var list = [];
     try { list = await rest("porch_threads?or=(a.eq." + me.uid + ",b.eq." + me.uid + ")&select=*&order=last_at.desc&limit=60"); } catch (e) {}
@@ -5696,6 +5707,8 @@ html.kb .ch-bar{padding-bottom:8px}
     if (!chat.msgs.length && friends[chat.uid]) html = '<div class="dm-start"><span class="ul" data-u="' + chat.uid + '">' + avatar(people[chat.uid]) + "</span><h3>Say hi to <span class=\"ul\" data-u=\"" + chat.uid + "\">" + esc(name(chat.uid)) + "</span></h3><p>Only the two of you can see this chat.</p>" +
       '<div class="dm-quick">' + ["Hey!", "How's your day going?", "Thinking of you", "Proud of you"].map(function (q) { return '<button type="button" data-quick="' + q + '">' + q + "</button>"; }).join("") + "</div></div>";
     if (!friends[chat.uid]) html += '<div class="ch-note">You can message friends only.<br><br>' + friendBtn(chat.uid) + "</div>";
+    /* v234 (Mike): "they get a little notification that poof messages have been enabled on that chat" */
+    if (chat.msgs.length && poofSt.rapport && poofSt.me_on && poofSt.them_on) html += '<p class="ch-poofon">💨 Poof is on for you two. Tap the cloud to send a picture that disappears.</p>';
     l.innerHTML = html;
     if (stick || atBottom) l.scrollTop = l.scrollHeight;
   }
@@ -5799,8 +5812,10 @@ html.kb .ch-bar{padding-bottom:8px}
   $("pooftip").addEventListener("click", poofTipHide);
   async function poofLoad(uid) {
     poofAt = Date.now();
+    var was = !!(poofSt.rapport && poofSt.me_on && poofSt.them_on);
     try { var r = await rpc("porch_poof_state", { p_other: uid }); if (chat && chat.uid === uid && r) { poofSt = r; poofMine = !!r.me_on; } } catch (e) {}
-    paintPoofBtn();
+    paintPoofBtn(); paintPoofRow();
+    if (chat && chat.uid === uid && !was && poofSt.rapport && poofSt.me_on && poofSt.them_on) paintChat(false);   /* v234: show the "Poof is on" note */
     if (chat && chat.uid === uid) poofTip();
   }
   async function poofMineLoad() {
@@ -5811,12 +5826,22 @@ html.kb .ch-bar{padding-bottom:8px}
     return poofMine ? '<p>💨 On. Friends you\'ve really talked with can send you a Poof, if theirs is on too.</p><button type="button" class="nearbtn off" data-poofset="0">Turn Poof off</button>'
       : '<p>Off. Nobody can send you a Poof.</p><button type="button" class="nearbtn" data-poofset="1">💨 Turn Poof on</button>';
   }
+  /* v234 (11 Oct 2026, Mike): "the poof message needs to have a flip switch as soon as you load the messages up top, same
+     style as the trade tracker on infinite pulls messages, you decide right away". One switch for all your chats. */
+  function paintPoofRow() {
+    var r = $("poofrow"); if (!r) return;
+    r.hidden = poofMine === null; if (poofMine === null) return;
+    r.innerHTML = '<span><b>💨 Poof</b><small>' + (poofMine ? "On. Friends you've traded a couple messages with can send you a disappearing picture, if theirs is on too."
+      : "Disappearing pictures with friends. Off until you turn it on.") + ' <button type="button" data-poofwhat>What\'s that?</button></small></span>' +
+      '<button type="button" class="pf-switch' + (poofMine ? " on" : "") + '" role="switch" aria-checked="' + !!poofMine + '" aria-label="Poof" data-poofflip><i></i></button>';
+  }
   async function paintPoofSet() {
     var w = $("epoofwrap"); if (!w) return;
     if (poofMine === null) await poofMineLoad();
     w.hidden = poofMine === null;                 /* null: Poof isn't set up in the database yet */
     if (poofMine !== null) $("epoof").innerHTML = poofSwHTML() + '<button type="button" class="nearbtn off" data-poofwhat style="margin-top:2px">What\'s a Poof?</button>';
     if ($("poofsw")) $("poofsw").innerHTML = poofMine === null ? "" : poofSwHTML();
+    paintPoofRow();
   }
   /* the line on the sheet that says where the two of you stand (only when it was opened from a chat) */
   function poofWhy() {
@@ -5824,7 +5849,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var inChat = chat && !chat.gid && $("chat").classList.contains("open"), who = inChat ? esc(name(chat.uid)) : "";
     el.hidden = !inChat;
     if (!inChat) return;
-    el.innerHTML = !poofSt.rapport ? "💬 Poof with <b>" + who + "</b> opens up once you've each sent 5 messages."
+    el.innerHTML = !poofSt.rapport ? "💬 Poof with <b>" + who + "</b> opens up once you've each sent 2 messages."
       : !poofSt.me_on ? "Turn it on to send <b>" + who + "</b> a Poof."
       : !poofSt.them_on ? "<b>" + who + "</b> doesn't have Poof turned on yet."
       : "✓ You and <b>" + who + "</b> are all set. Tap 💨 to send one.";
@@ -5838,6 +5863,7 @@ html.kb .ch-bar{padding-bottom:8px}
   }
   document.addEventListener("click", function (e) {
     var s = e.target.closest("[data-poofset]"); if (s) { e.preventDefault(); return poofSet(s.dataset.poofset === "1"); }
+    var fl = e.target.closest("[data-poofflip]"); if (fl) { e.preventDefault(); fl.disabled = true; return poofSet(!poofMine); }
     if (e.target.closest("[data-poofwhat]")) { e.preventDefault(); return openPoofSheet(); }
   });
   $("dmpoof").addEventListener("click", function () {
