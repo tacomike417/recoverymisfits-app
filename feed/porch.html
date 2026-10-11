@@ -952,6 +952,10 @@ html.fullon #main{visibility:hidden}
 #memenu .mm-ic:active{background:#efe6d0}
 #memenu .mm-ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #memenu .menu .mm-mod{min-height:40px;font-size:13.500px;color:#6e675b}
+/* v236: the Cornerstones board folder (board only) */
+#memenu .menu .mm-board{background:#1b1a17;border-color:#1b1a17;color:#e0bd6a;font-weight:800}
+#memenu .menu .mm-board:active{background:#33312b}
+#memenu .menu .mm-board svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .mmhead .av{width:52px;height:52px;font-size:22px}
 .mmhead b{display:block;font-size:17px}
 .mmhead small{color:var(--muted)}
@@ -1534,7 +1538,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v235</span>
+  <span class="ver" id="ver">v236</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2102,6 +2106,9 @@ html.kb .ch-bar{padding-bottom:8px}
     if (me.member) people[me.uid] = me.member;
     try { saved = {}; (await rest("porch_saves?user_id=eq." + me.uid + "&select=post_id")).forEach(function (r) { saved[r.post_id] = true; }); } catch (e) {}
     try { isMod = !!(await rest("porch_moderators?user_id=eq." + me.uid + "&select=user_id")).length; } catch (e) { isMod = false; }
+    /* v236 (11 Oct 2026, Mike): the CORNERSTONES board folder, in your menu for the board only
+       (krazyk226, fire_l0ve, tacomike417). The database decides: supabase/porch_70_cornerstones.sql. */
+    try { isBoard = (await rpc("cornerstones_is_board", {})) === true; } catch (e) { isBoard = false; }
     paintPin();
     paintLook();
   }
@@ -2232,7 +2239,7 @@ html.kb .ch-bar{padding-bottom:8px}
 
   /* ================================================================ THE FEED */
   var posts = {}, comments = {}, mine = {}, oldest = null, loading = false, done = false;
-  var tab = "all", friends = {}, reqOut = {}, reqIn = {}, newest = null, saved = {}, isMod = false;
+  var tab = "all", friends = {}, reqOut = {}, reqIn = {}, newest = null, saved = {}, isMod = false, isBoard = false;
 
   /* RESHARE (1 Oct 2026): the original share, shown inside the reshare with its author's
      name. Tapping it opens the original. Loaded on demand, wherever a reshare shows up. */
@@ -3934,6 +3941,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var cnt = function (n) { return n ? '<span class="mcount">' + n + "</span>" : ""; };
     $("mmbody").innerHTML = '<div class="mm-grid">' +
         '<button type="button" data-mm="friends">Friends' + cnt(reqCount()) + '</button><button type="button" data-mm="saved">Saved shares</button>' +
+        (isBoard ? '<button type="button" class="wide mm-board" data-mm="board"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></svg>Cornerstones board</button>' : "") +
         (isMod ? '<button type="button" class="mm-mod" data-mm="mod">Reports' + cnt(modCount) + '</button><button type="button" class="mm-mod" data-mm="desk">Share desk</button>' : "") +
       "</div>" +
       '<button type="button" class="mm-out" data-mm="signout">Sign out</button>';
@@ -6006,12 +6014,13 @@ html.kb .ch-bar{padding-bottom:8px}
       var which = mm.dataset.mm, LAYER = { profile: "profile", notes: "notes", saved: "saved", friends: "friends", findf: "setup", mod: "mod", edit: "editp" };
       var go = function () {
         if (which === "desk") { location.href = "/feed/share-desk.html"; return; }
+        if (which === "board") { location.href = "/feed/cornerstones.html"; return; }
         if (which === "help") { location.href = "/help.html"; return; }
         if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends(); else if (which === "coins") location.href = "/coins.html"; else if (which === "invite") invite(); else if (which === "findf") openSetup("friends"); else if (which === "tour") { if (window.PorchTour) window.PorchTour.open(0); }
         else if (which === "switch") { if (A.switcher) A.switcher(); else location.href = "/account.html"; }
         else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else if (which === "signout") signOutHere(); else gate(openEdit);
       };
-      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout|tour|switch|help|desk)$/.test(which) ? "editp" : "");
+      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout|tour|switch|help|desk|board)$/.test(which) ? "editp" : "");
       /* already open underneath (say, your own profile)? close the menu to show it */
       if (lay && stack.indexOf($(lay)) < 0 && t.closest("#memenu")) return go();
       closeTop().then(go); return; }
