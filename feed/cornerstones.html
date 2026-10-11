@@ -9,17 +9,21 @@
 <link rel="icon" href="/icon-192.png">
 <style>html{background:#11110f}body{background:#11110f;color:#f1e7cf;margin:0}</style>
 <style>
-/* THE CORNERSTONES BOARD FOLDER, v1 (11 Oct 2026, Mike: "create a cornerstones folder and put all our
-   cornerstone stuff in there for the board members to see ... it only shows up for CrazyK226, that Fire
-   Love account, and the Taco Mike account ... I need the meeting minutes and all the 501c3 info in there.
-   And I need the ability to send that to the bank when I get there").
+/* THE CORNERSTONES BOARD FOLDER (11 Oct 2026, Mike: "create a cornerstones folder and put all our cornerstone
+   stuff in there for the board members to see ... it only shows up for CrazyK226, that Fire Love account, and
+   the Taco Mike account ... I need the ability to send that to the bank when I get there").
+
+   v2, same day (Mike: "put our profile pictures ... so we see each other", "organized in like rectangle icons",
+   "what the hell to even show the bank ... put that in its own separate container", newest minutes only):
+     THE BOARD     the three of us, picture, name, job, Porch name (tap it for their profile)
+     FOR THE BANK  the papers to show the bank, in the order to show them. Tap = full screen. Send = Share sheet.
+                   "One PDF of all of them" makes a single file with a cover page.
+     MINUTES       the newest minutes only (the old ones stay on Google Drive)
+     BOARD PAPERS  everything else
+   The papers' folder in the bucket says which box they land in: bank/, minutes/, papers/.
 
    WHO CAN SEE IT: the board only (supabase/porch_70_cornerstones.sql). The papers sit in a PRIVATE storage
-   bucket and the database says no to anybody else. No papers and no passwords in this file: the repo is public.
-
-   ON THE PAGE: the papers in three groups, a Share button on each, a full-screen viewer, "+ Add a paper"
-   (a signed set of minutes, a photo of a letter), and the BANK PACKET: tick the papers, one PDF comes out
-   with a cover page, and the phone's own Share sheet sends it (email, text, Drive).
+   bucket and the database says no to anybody else. No papers, names or passwords in this file: the repo is public.
    Phone first, at 393. */
 @font-face{font-family:"RM Head";src:url("/assets/fonts/anton-400.woff2") format("woff2");font-display:swap}
 @font-face{font-family:"RM Rail";src:url("/assets/fonts/oswald-500.woff2") format("woff2");font-weight:500;font-display:swap}
@@ -31,49 +35,59 @@ main{max-width:520px;margin:0 auto;padding:0 12px calc(40px + env(safe-area-inse
 .top{position:sticky;top:0;z-index:5;background:#11110f;padding:calc(10px + env(safe-area-inset-top)) 0 8px}
 .bar{display:flex;align-items:center;gap:10px}
 .back{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--gold);display:grid;place-items:center;text-decoration:none}
-.back svg,.ib svg,.row svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 h1{flex:1;margin:0;font:400 30px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em;text-transform:uppercase}
 .ver{flex:none;padding:3px 10px;border-radius:999px;background:#fff;color:#000;font:800 12px Arial,sans-serif}
-.sub{margin:6px 0 0 54px;color:var(--muted);font-size:14px}
 .say{margin:26px 8px;text-align:center;color:var(--muted);font-size:16px}
 .say a{color:var(--gold);font-weight:800}
 .say b{display:block;margin-bottom:6px;color:#f1e7cf;font:400 26px "RM Head",Impact,sans-serif;text-transform:uppercase}
-.big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;margin-top:14px;border:0;border-radius:16px;background:var(--gold);color:#11110f;font:400 22px "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
-.big svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.big.line{background:none;border:1.5px solid var(--gold);color:var(--gold);min-height:50px;font-size:19px}
-h2{margin:24px 2px 8px;font:500 14px "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
-.row{display:flex;align-items:center;gap:10px;margin-top:8px;padding:6px 6px 6px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
-.row .open{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:8px 0;border:0;background:none;text-align:left;cursor:pointer}
-.row .open svg{flex:none;color:var(--gold)}
-.row .t{min-width:0}
-.row .t b{display:block;font:700 16px/1.25 Arial,sans-serif;overflow-wrap:anywhere}
-.row .t small{display:block;margin-top:3px;color:var(--muted);font-size:13px}
-.ib{flex:none;width:48px;height:48px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--gold);display:grid;place-items:center;cursor:pointer}
-.none{margin:8px 0 0;padding:14px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:15px}
-.note{margin:22px 4px 0;color:var(--muted);font-size:13px;text-align:center}
-/* sheets (packet, add) */
-.sheet{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6)}
-.sheet.show{display:flex}
-.sheet .box{width:100%;max-width:520px;max-height:92vh;overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:#1b1a16;border-top:1px solid var(--line)}
-.sheet h3{margin:0 0 4px;font:400 26px "RM Head",Impact,sans-serif;text-transform:uppercase}
-.sheet p{margin:0 0 10px;color:var(--muted);font-size:14px}
-.tick{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid rgba(224,189,106,.14);cursor:pointer}
-.tick input{flex:none;width:24px;height:24px;accent-color:var(--gold)}
-.tick span{font-size:15px}
-.tick small{display:block;color:var(--muted);font-size:12px}
+h2{margin:26px 2px 10px;font:500 14px "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+/* THE BOARD */
+.org{margin:4px 2px 0;color:var(--muted);font-size:14px}
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.pp{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px 12px;border:1px solid var(--line);border-radius:16px;background:var(--card);text-align:center;text-decoration:none;color:inherit}
+.pp .av{width:64px;height:64px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#3a3427;border:2px solid var(--gold);font:400 24px "RM Head",Impact,sans-serif;color:#f1e7cf}
+.pp .av img{width:100%;height:100%;object-fit:cover}
+.pp b{font:700 14px/1.2 Arial,sans-serif}
+.pp .role{font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold);text-transform:uppercase}
+.pp small{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+/* THE BOXES OF TILES */
+.box{margin-top:6px;padding:14px 12px 14px;border-radius:20px;border:1px solid var(--line);background:#15140f}
+.box.bank{border:2px solid var(--gold);background:linear-gradient(180deg,#1f1b10,#15140f)}
+.box .lead{margin:0 2px 12px;color:var(--muted);font-size:14px}
+.box h2{margin-top:0}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{position:relative;display:flex;flex-direction:column;min-height:148px;border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+.tile .show{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 12px 8px;border:0;background:none;text-align:left;cursor:pointer}
+.tile .show .num{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--gold);color:#11110f;font:400 17px "RM Head",Impact,sans-serif}
+.tile .show svg{color:var(--gold)}
+.tile .show b{font:700 15px/1.25 Arial,sans-serif;overflow-wrap:anywhere}
+.tile .show small{color:var(--muted);font-size:12px}
+.tile .send{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border:0;border-top:1px solid var(--line);background:rgba(224,189,106,.08);color:var(--gold);font-weight:800;font-size:14px;cursor:pointer}
+.tile .send svg{width:18px;height:18px}
+.none{margin:0;padding:14px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:15px}
+.big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;margin-top:12px;border:0;border-radius:16px;background:var(--gold);color:#11110f;font:400 20px "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
+.big.line{background:none;border:1.5px solid var(--gold);color:var(--gold);min-height:50px;font-size:18px}
+.big:disabled{opacity:.5}
 .two{display:flex;gap:10px}
 .two .big{flex:1}
+.msg{min-height:0;margin:8px 2px 0;font-size:14px;color:var(--gold)}
+.msg.bad{color:var(--bad)}
+.note{margin:24px 4px 0;color:var(--muted);font-size:13px;text-align:center}
+/* add sheet */
+.sheet{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6)}
+.sheet.show{display:flex}
+.sheet .sbox{width:100%;max-width:520px;max-height:92vh;overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:#1b1a16;border-top:1px solid var(--line)}
+.sheet h3{margin:0 0 4px;font:400 26px "RM Head",Impact,sans-serif;text-transform:uppercase}
+.sheet p{margin:0 0 6px;color:var(--muted);font-size:14px}
 label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.04em}
 .in{width:100%;min-height:48px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#11110f;font-size:16px}
-.msg{min-height:20px;margin:10px 2px 0;font-size:14px;color:var(--gold)}
-.msg.bad{color:var(--bad)}
-.done{display:none;margin-top:12px;padding:12px;border-radius:14px;border:1px solid var(--ok);color:var(--ok);font-size:14px}
 /* the full-screen viewer */
 #view{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;background:#000}
 #view.show{display:flex}
 .vbar{flex:none;display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 8px 8px;background:#11110f;border-bottom:1px solid var(--line)}
 .vbar b{flex:1;min-width:0;font:700 15px/1.2 Arial,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vbar .ib{width:44px;height:44px}
+.ib{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--gold);display:grid;place-items:center;cursor:pointer}
 #pages{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:8px 0 calc(70px + env(safe-area-inset-bottom));text-align:center}
 #pages canvas,#pages img{display:block;margin:0 auto 8px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.6)}
 #pages .wait{color:var(--muted);margin-top:40px}
@@ -83,44 +97,31 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
 .conf{display:none;position:absolute;left:10px;right:10px;bottom:calc(68px + env(safe-area-inset-bottom));padding:14px;border-radius:16px;background:#1b1a16;border:1px solid var(--bad);text-align:center}
 .conf.show{display:block}
 .conf p{margin:0 0 10px}
+.toast{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:40;margin:0 auto;max-width:496px;padding:14px;border-radius:14px;background:#1b1a16;border:1px solid var(--line);color:var(--gold);font-size:15px;text-align:center}
+.toast.bad{color:var(--bad)}
 </style>
 </head>
 <body>
 <main>
   <div class="top">
     <div class="bar">
-      <a class="back" href="/feed/porch.html" aria-label="Back to the Porch"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+      <a class="back" href="/feed/porch.html" aria-label="Back to the Porch"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
       <h1>Cornerstones</h1>
-      <span class="ver">v1</span>
+      <span class="ver">v2</span>
     </div>
-    <p class="sub">Cornerstones Recovery Inc. · Board only</p>
   </div>
   <div id="list"><p class="say">Loading…</p></div>
 </main>
 
-<!-- BANK PACKET -->
-<div class="sheet" id="pk" role="dialog" aria-modal="true" aria-label="Bank packet">
-  <div class="box">
-    <h3>Bank packet</h3>
-    <p>Tick what the bank needs. One PDF comes out, with a cover page that lists what is inside.</p>
-    <div id="pklist"></div>
-    <div class="msg" id="pkmsg"></div>
-    <div class="two"><button type="button" class="big line" data-x="pk">Close</button><button type="button" class="big" id="pkgo">Make it</button></div>
-    <div class="done" id="pkdone">The packet is ready.
-      <div class="two" style="margin-top:10px"><button type="button" class="big line" id="pkview">See it</button><button type="button" class="big" id="pkshare">Send it</button></div>
-    </div>
-  </div>
-</div>
-
-<!-- ADD A PAPER -->
-<div class="sheet" id="add" role="dialog" aria-modal="true" aria-label="Add a paper">
-  <div class="box">
-    <h3>Add a paper</h3>
-    <p>A PDF, or a photo of the page (signed minutes, a letter from the IRS). Only the board can see it.</p>
+<!-- ADD -->
+<div class="sheet" id="add" role="dialog" aria-modal="true" aria-label="Add new minutes">
+  <div class="sbox">
+    <h3>Add new minutes</h3>
+    <p>After each meeting: a PDF of the minutes, or a photo of the signed page. Only the board can see it.</p>
     <label class="f" for="addfile">THE FILE</label>
     <input class="in" type="file" id="addfile" accept="application/pdf,image/*">
     <label class="f" for="addname">CALL IT</label>
-    <input class="in" type="text" id="addname" maxlength="80" placeholder="Signed minutes, Oct 19 2026">
+    <input class="in" type="text" id="addname" maxlength="80" placeholder="Board Minutes, Nov 14 2026">
     <label class="f" for="addsec">PUT IT IN</label>
     <select class="in" id="addsec"></select>
     <div class="msg" id="addmsg"></div>
@@ -131,9 +132,9 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
 <!-- FULL-SCREEN VIEWER -->
 <div id="view" role="dialog" aria-modal="true" aria-label="Paper">
   <div class="vbar">
-    <button type="button" class="ib" id="vclose" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button type="button" class="ib" id="vclose" aria-label="Close"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <b id="vtitle"></b>
-    <button type="button" class="ib" id="vshare" aria-label="Send this paper"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
+    <button type="button" class="ib" id="vshare" aria-label="Send this paper"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
   </div>
   <div id="pages"></div>
   <div class="conf" id="conf"><p>Take this paper out of the folder for the whole board?</p>
@@ -149,33 +150,41 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
   var A = window.RMAccount, KEY = A && A.anonKey;
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
-  /* THE GROUPS. A file's folder in the bucket says which group it is in. */
-  var SECS = [["501c3", "501(c)(3) and Ohio"], ["meetings", "Meetings and minutes"], ["planning", "Planning"]];
+  /* THE BOXES. A paper's folder in the bucket says which box it lands in. */
+  var SECS = [
+    ["bank", "For the bank", "Show them in this order. Tap one to put it full screen. Send opens your phone's share menu (text, email)."],
+    ["minutes", "Minutes", "The newest minutes. Older ones stay on Google Drive."],
+    ["papers", "Board papers", ""]
+  ];
+  var SVG = function (d, c) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + d + "</svg>"; };
   var ICO = {
-    doc: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
-    share: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>',
-    bank: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></svg>',
-    plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>'
+    doc: SVG('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'),
+    send: SVG('<path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>'),
+    plus: SVG('<path d="M12 5v14M5 12h14"/>'),
+    stack: SVG('<rect x="6" y="3" width="13" height="16" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h10"/>'),
+    eye: SVG('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>')
   };
-  var docs = [], blobs = {}, cur = null, zoom = 1, packet = null;
+  var docs = [], people = [], blobs = {}, cur = null, zoom = 1, packet = null;
 
-  /* "2_Catch-Up_Minutes__Jul_and_Aug_2025.pdf" -> "Catch-Up Minutes · Jul and Aug 2025" */
-  function title(name) { return name.replace(/\.[a-z0-9]+$/i, "").replace(/^\d+_/, "").replace(/__/g, " · ").replace(/_/g, " ").trim(); }
+  /* "1_IRS_501(c)(3)_Letter__Aug_12_2024.pdf" -> title "IRS 501(c)(3) Letter", line "Aug 12 2024" */
+  function parts(name) {
+    var bits = name.replace(/\.[a-z0-9]+$/i, "").replace(/^\d+_/, "").split("__").map(function (s) { return s.replace(/_/g, " ").trim(); });
+    return { title: bits[0], sub: bits.slice(1).join(" · ") };
+  }
   function order(name) { var m = /^(\d+)_/.exec(name); return m ? +m[1] : 0; }
-  function kb(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
   function enc(path) { return path.split("/").map(encodeURIComponent).join("/"); }
   function say(big, small) { $("list").innerHTML = '<p class="say"><b>' + big + "</b>" + small + "</p>"; }
+  function toast(t, bad) { var p = document.createElement("p"); p.className = "toast" + (bad ? " bad" : ""); p.textContent = t; document.body.appendChild(p); setTimeout(function () { p.remove(); }, 4500); }
 
   async function hdr(extra) {
     var t = await A.token(), h = { apikey: KEY, Authorization: "Bearer " + (t || KEY) };
     for (var k in extra || {}) h[k] = extra[k];
     return h;
   }
-  async function isBoard() {
-    var r = await fetch(DB + "/rest/v1/rpc/cornerstones_is_board", { method: "POST", headers: await hdr({ "Content-Type": "application/json" }), body: "{}" });
-    if (r.status === 404) { var e = new Error("missing"); e.status = 404; throw e; }
-    if (!r.ok) throw new Error("rpc " + r.status);
-    return (await r.json()) === true;
+  async function rpc(fn) {
+    var r = await fetch(DB + "/rest/v1/rpc/" + fn, { method: "POST", headers: await hdr({ "Content-Type": "application/json" }), body: "{}" });
+    if (!r.ok) { var e = new Error("rpc " + r.status); e.status = r.status; throw e; }
+    return r.json();
   }
   async function list(prefix) {
     var r = await fetch(DB + "/storage/v1/object/list/" + BUCKET, { method: "POST", headers: await hdr({ "Content-Type": "application/json" }),
@@ -188,50 +197,62 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
     var r = await fetch(DB + "/storage/v1/object/authenticated/" + BUCKET + "/" + enc(d.path), { headers: await hdr() });
     if (!r.ok) throw new Error("get " + r.status);
     var b = await r.blob();
-    blobs[d.path] = b.type ? b : new Blob([b], { type: d.type });
+    blobs[d.path] = b.type && b.type !== "application/octet-stream" ? b : new Blob([b], { type: d.type });
     return blobs[d.path];
   }
 
   async function load() {
     if (!A || !A.signedIn()) return say("Sign in first", 'This folder is for the Cornerstones board. <a href="/account.html">Sign in</a>, then come back.');
-    try { if (!(await isBoard())) return say("Not for this account", 'This folder is for the Cornerstones board. <a href="/feed/porch.html">Back to the Porch</a>'); }
+    try { if ((await rpc("cornerstones_is_board")) !== true) return say("Not for this account", 'This folder is for the Cornerstones board. <a href="/feed/porch.html">Back to the Porch</a>'); }
     catch (e) { return say("Couldn't load", e.status === 404 ? "The folder isn't switched on yet. Run porch_70_cornerstones.sql." : "Check your signal and try again."); }
+    try { people = await rpc("cornerstones_people"); } catch (e) { people = []; }
     try {
       var all = [];
-      var lists = await Promise.all(SECS.map(function (s) { return list(s[0] + "/"); }).concat([list("")]));
+      var lists = await Promise.all(SECS.map(function (s) { return list(s[0] + "/"); }));
       lists.forEach(function (rows, i) {
-        var sec = i < SECS.length ? SECS[i][0] : "";
         rows.forEach(function (o) {
-          all.push({ path: (sec ? sec + "/" : "") + o.name, name: o.name, sec: sec || "other", title: title(o.name), ord: order(o.name),
-            size: (o.metadata && o.metadata.size) || 0, type: (o.metadata && o.metadata.mimetype) || (/\.pdf$/i.test(o.name) ? "application/pdf" : "image/jpeg"),
-            at: o.created_at || o.updated_at || "" });
+          var p = parts(o.name);
+          all.push({ path: SECS[i][0] + "/" + o.name, name: o.name, sec: SECS[i][0], title: p.title, sub: p.sub, ord: order(o.name),
+            type: (o.metadata && o.metadata.mimetype) || (/\.pdf$/i.test(o.name) ? "application/pdf" : "image/jpeg"), at: o.created_at || "" });
         });
       });
-      var si = function (x) { for (var i = 0; i < SECS.length; i++) if (SECS[i][0] === x) return i; return 99; };
-      all.sort(function (a, b) { return si(a.sec) - si(b.sec) || a.ord - b.ord || (b.at > a.at ? 1 : b.at < a.at ? -1 : 0); });
+      all.sort(function (a, b) { return a.ord - b.ord || (b.at > a.at ? 1 : b.at < a.at ? -1 : 0); });
       docs = all; draw();
     } catch (e) { say("Couldn't load", "Check your signal and try again."); }
   }
 
+  function pic(p) { return p.charAt(0) === "/" || p.indexOf("data:") === 0 ? p : DB + "/storage/v1/object/public/porch/" + p; }
+  function initials(n) { return String(n || "?").split(/\s+/).map(function (w) { return w.charAt(0); }).join("").slice(0, 2).toUpperCase(); }
+  function tile(d, n) {
+    var i = docs.indexOf(d);
+    return '<div class="tile"><button type="button" class="show" data-open="' + i + '">' +
+      (n ? '<span class="num">' + n + "</span>" : ICO.doc) +
+      "<b>" + esc(d.title) + "</b>" + (d.sub ? "<small>" + esc(d.sub) + "</small>" : "") + "</button>" +
+      '<button type="button" class="send" data-share="' + i + '">' + ICO.send + "Send</button></div>";
+  }
   function draw() {
-    var groups = SECS.concat(docs.some(function (d) { return d.sec === "other"; }) ? [["other", "Other"]] : []);
-    var h = '<button type="button" class="big" id="bankbtn">' + ICO.bank + "Bank packet</button>" +
-            '<button type="button" class="big line" id="addbtn">' + ICO.plus + "Add a paper</button>";
-    groups.forEach(function (g) {
-      var mine = docs.filter(function (d) { return d.sec === g[0]; });
-      h += "<h2>" + esc(g[1]) + "</h2>";
-      h += mine.length ? mine.map(function (d) {
-        var i = docs.indexOf(d);
-        return '<div class="row"><button type="button" class="open" data-open="' + i + '">' + ICO.doc +
-          '<span class="t"><b>' + esc(d.title) + "</b><small>" + (/pdf/.test(d.type) ? "PDF" : "Picture") + " · " + kb(d.size) + "</small></span></button>" +
-          '<button type="button" class="ib" data-share="' + i + '" aria-label="Send ' + esc(d.title) + '">' + ICO.share + "</button></div>";
-      }).join("") : '<p class="none">Nothing here yet.</p>';
+    var h = '<p class="org">Cornerstones Recovery Inc. · doing its work as Recovery Misfits</p>';
+    if (people.length) h += '<div class="board">' + people.map(function (p) {
+      return '<a class="pp" href="/feed/porch.html?u=' + encodeURIComponent(p.handle) + '">' +
+        '<span class="av">' + (p.avatar_path ? '<img src="' + esc(pic(p.avatar_path)) + '" alt="">' : esc(initials(p.name || p.handle))) + "</span>" +
+        "<b>" + esc(p.name || p.handle) + '</b><span class="role">' + esc(p.role || "") + "</span><small>(" + esc(p.handle) + ")</small></a>";
+    }).join("") + "</div>";
+    SECS.forEach(function (s) {
+      var mine = docs.filter(function (d) { return d.sec === s[0]; }), bank = s[0] === "bank";
+      h += '<section class="box' + (bank ? " bank" : "") + '"><h2>' + esc(s[1]) + "</h2>" + (s[2] ? '<p class="lead">' + esc(s[2]) + "</p>" : "");
+      h += mine.length ? '<div class="tiles">' + mine.map(function (d, k) { return tile(d, bank ? k + 1 : 0); }).join("") + "</div>" : '<p class="none">Nothing here yet.</p>';
+      if (bank && mine.length > 1) h += '<button type="button" class="big line" id="pkgo">' + ICO.stack + "One PDF of all " + mine.length + "</button>" +
+        '<div class="two" id="pkdone" hidden><button type="button" class="big line" id="pkview">' + ICO.eye + 'See it</button><button type="button" class="big" id="pkshare">' + ICO.send + "Send it</button></div>" +
+        '<div class="msg" id="pkmsg"></div>';
+      if (s[0] === "minutes") h += '<button type="button" class="big line" id="addbtn">' + ICO.plus + "Add new minutes</button>";
+      h += "</section>";
     });
-    h += '<p class="note">Only krazyk226, fire_l0ve and tacomike417 can open this folder.</p>';
+    h += '<p class="note">Only the three of you can open this folder.</p>';
     $("list").innerHTML = h;
+    packet = null;
   }
 
-  /* SEND. The phone's own Share sheet (email, text, Drive). On a computer it saves the file instead. */
+  /* SEND. The phone's own share menu (text, email, Drive). On a computer it saves the file instead. */
   async function sendFile(blob, fname, label) {
     var f = new File([blob], fname, { type: blob.type || "application/pdf" });
     if (navigator.canShare && navigator.canShare({ files: [f] })) {
@@ -241,33 +262,33 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
     var u = URL.createObjectURL(f), a = document.createElement("a");
     a.href = u; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
+    return "";
   }
-  function niceName(d) { return "Cornerstones Recovery - " + d.title.replace(/[·]/g, "-").replace(/[\\/:*?"<>|]/g, "") + (/pdf/.test(d.type) ? ".pdf" : (d.name.match(/\.[a-z0-9]+$/i) || [".jpg"])[0]); }
+  function niceName(d) {
+    var t = (d.title + (d.sub ? " - " + d.sub : "")).replace(/[\\/:*?"<>|·]/g, "-");
+    return "Cornerstones Recovery - " + t + (/pdf/.test(d.type) ? ".pdf" : (d.name.match(/\.[a-z0-9]+$/i) || [".jpg"])[0]);
+  }
   async function shareDoc(d, btn) {
-    if (btn) btn.style.opacity = ".4";
+    if (btn) btn.disabled = true;
     try {
-      /* a big paper on slow signal: the phone only lets Share open right after a tap, so it asks for one more */
-      if ((await sendFile(await getBlob(d), niceName(d), d.title)) === "again") alertLine("It's ready. Tap Send again.", true);
-    } catch (e) { alertLine("Couldn't get that paper. Check your signal."); }
-    if (btn) btn.style.opacity = "";
+      /* a big paper on slow signal: the phone only opens Share right after a tap, so it asks for one more */
+      if ((await sendFile(await getBlob(d), niceName(d), d.title)) === "again") toast("It's ready. Tap Send again.");
+    } catch (e) { toast("Couldn't get that paper. Check your signal.", true); }
+    if (btn) btn.disabled = false;
   }
-  function alertLine(t, ok) { var p = document.createElement("p"); p.className = "none"; p.style.color = ok ? "var(--gold)" : "var(--bad)"; p.style.position = "fixed"; p.style.left = "12px"; p.style.right = "12px"; p.style.bottom = "calc(16px + env(safe-area-inset-bottom))"; p.style.zIndex = "40"; p.style.background = "#1b1a16"; p.textContent = t; document.body.appendChild(p); setTimeout(function () { p.remove(); }, 5000); }
 
   /* ---------------------------------------------------------------- THE VIEWER */
   var pdfjsReady = null;
+  function loadScript(src) { return new Promise(function (ok, no) { var s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); }); }
   function pdfjs() {
-    if (!pdfjsReady) pdfjsReady = new Promise(function (ok, no) {
-      var s = document.createElement("script"); s.src = "/assets/vendor/pdfjs/pdf.min.js";
-      s.onload = function () { window.pdfjsLib.GlobalWorkerOptions.workerSrc = "/assets/vendor/pdfjs/pdf.worker.min.js"; ok(window.pdfjsLib); };
-      s.onerror = no; document.head.appendChild(s);
+    if (!pdfjsReady) pdfjsReady = loadScript("/assets/vendor/pdfjs/pdf.min.js").then(function () {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = "/assets/vendor/pdfjs/pdf.worker.min.js"; return window.pdfjsLib;
     });
     return pdfjsReady;
   }
-  function loadScript(src) { return new Promise(function (ok, no) { var s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); }); }
-
   async function openView(d, blob) {
     cur = { d: d, blob: blob }; zoom = 1;
-    $("vtitle").textContent = d ? d.title : "Bank packet";
+    $("vtitle").textContent = d ? d.title : "Bank papers, all in one";
     $("vrm").style.display = d ? "" : "none";
     $("conf").classList.remove("show");
     $("view").classList.add("show");
@@ -280,12 +301,9 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
   var paintRun = 0;
   async function paint() {
     var run = ++paintRun, box = $("pages"), w = Math.min(box.clientWidth, 900) - 12, blob = cur.blob;
-    if (!/pdf/.test(blob.type)) {
-      var u = URL.createObjectURL(blob);
-      box.innerHTML = '<img alt="" src="' + u + '" style="width:' + Math.round(w * zoom) + 'px">'; return;
-    }
+    if (!/pdf/.test(blob.type)) { box.innerHTML = '<img alt="" src="' + URL.createObjectURL(blob) + '" style="width:' + Math.round(w * zoom) + 'px">'; return; }
     var lib = await pdfjs();
-    if (!cur.pdf || cur.pdfBlob !== blob) { cur.pdf = await lib.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise; cur.pdfBlob = blob; }
+    if (!cur.pdf) cur.pdf = await lib.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
     if (run !== paintRun) return;
     box.innerHTML = "";
     var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
@@ -309,22 +327,7 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
   }
   window.addEventListener("popstate", function () { closeView(true); });
 
-  /* ---------------------------------------------------------------- BANK PACKET */
-  var PICK_KEY = "rm_cs_packet_v1";
-  function defaultPick(d) {
-    if (d.sec === "501c3") return !/8822/.test(d.name);
-    return /signed|ein|irs|letter|bylaw/i.test(d.title);
-  }
-  function openPacket() {
-    var saved = null; try { saved = JSON.parse(localStorage.getItem(PICK_KEY) || "null"); } catch (e) {}
-    $("pklist").innerHTML = docs.map(function (d, i) {
-      var on = saved && saved[d.path] != null ? saved[d.path] : defaultPick(d);
-      return '<label class="tick"><input type="checkbox" data-pk="' + i + '"' + (on ? " checked" : "") + "><span>" + esc(d.title) + "<small>" + esc(groupName(d.sec)) + "</small></span></label>";
-    }).join("");
-    $("pkmsg").textContent = ""; $("pkmsg").className = "msg"; $("pkdone").style.display = "none"; $("pkgo").disabled = false;
-    $("pk").classList.add("show");
-  }
-  function groupName(s) { for (var i = 0; i < SECS.length; i++) if (SECS[i][0] === s) return SECS[i][1]; return "Other"; }
+  /* ---------------------------------------------------------------- ONE PDF OF THE BANK PAPERS */
   async function toJpeg(blob) {
     var bm = await createImageBitmap(blob), c = document.createElement("canvas");
     var s = Math.min(1, 2200 / Math.max(bm.width, bm.height));
@@ -333,11 +336,8 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
     return new Promise(function (ok) { c.toBlob(function (b) { b.arrayBuffer().then(ok); }, "image/jpeg", 0.9); });
   }
   async function makePacket() {
-    var pick = {}, chosen = [];
-    document.querySelectorAll("[data-pk]").forEach(function (el) { var d = docs[+el.dataset.pk]; pick[d.path] = el.checked; if (el.checked) chosen.push(d); });
-    try { localStorage.setItem(PICK_KEY, JSON.stringify(pick)); } catch (e) {}
-    if (!chosen.length) { $("pkmsg").textContent = "Tick at least one paper."; $("pkmsg").className = "msg bad"; return; }
-    $("pkgo").disabled = true; $("pkmsg").className = "msg"; $("pkmsg").textContent = "Getting the papers…";
+    var chosen = docs.filter(function (d) { return d.sec === "bank"; }), m = $("pkmsg");
+    $("pkgo").disabled = true; m.className = "msg"; m.textContent = "Getting the papers…";
     try {
       if (!window.PDFLib) await loadScript("/assets/vendor/pdf-lib.min.js");
       var L = window.PDFLib, out = await L.PDFDocument.create();
@@ -345,7 +345,7 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
       var cover = out.addPage([612, 792]), starts = [];
       for (var i = 0; i < chosen.length; i++) {
         var d = chosen[i];
-        $("pkmsg").textContent = "Adding " + (i + 1) + " of " + chosen.length + ": " + d.title;
+        m.textContent = "Adding " + (i + 1) + " of " + chosen.length + ": " + d.title;
         var b = await getBlob(d); starts.push(out.getPageCount() + 1);
         if (/pdf/.test(b.type)) {
           var src = await L.PDFDocument.load(await b.arrayBuffer(), { ignoreEncryption: true });
@@ -356,7 +356,6 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
           pg.drawImage(img, { x: (612 - img.width * sc) / 2, y: (792 - img.height * sc) / 2, width: img.width * sc, height: img.height * sc });
         }
       }
-      /* the cover: what is inside, and which page it starts on */
       var y = 720, ink = L.rgb(0.1, 0.1, 0.1), grey = L.rgb(0.4, 0.4, 0.4);
       cover.drawText("Cornerstones Recovery Inc.", { x: 60, y: y, size: 24, font: bold, color: ink }); y -= 28;
       cover.drawText("Papers for the bank", { x: 60, y: y, size: 16, font: font, color: grey }); y -= 22;
@@ -365,24 +364,23 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
       cover.drawText("WHAT IS INSIDE", { x: 60, y: y, size: 11, font: bold, color: ink }); y -= 22;
       chosen.forEach(function (d, i) {
         if (y < 70) return;
-        var t = d.title.replace(/·/g, "-"); if (t.length > 70) t = t.slice(0, 68) + "…";
+        var t = (d.title + (d.sub ? " - " + d.sub : "")).replace(/·/g, "-"); if (t.length > 70) t = t.slice(0, 68) + "...";
         cover.drawText((i + 1) + ".  " + t, { x: 60, y: y, size: 12, font: font, color: ink });
         cover.drawText("page " + starts[i], { x: 500, y: y, size: 11, font: font, color: grey }); y -= 22;
       });
-      var bytes = await out.save();
-      packet = new Blob([bytes], { type: "application/pdf" });
-      $("pkmsg").textContent = ""; $("pkdone").style.display = "block";
+      packet = new Blob([await out.save()], { type: "application/pdf" });
+      m.textContent = ""; $("pkgo").hidden = true; $("pkdone").hidden = false;
     } catch (e) {
-      $("pkmsg").className = "msg bad"; $("pkmsg").textContent = "Couldn't make it. Check your signal and try again.";
+      m.className = "msg bad"; m.textContent = "Couldn't make it. Check your signal and try again.";
     }
     $("pkgo").disabled = false;
   }
-  function packetName() { return "Cornerstones Recovery - Bank Packet - " + new Date().toISOString().slice(0, 10) + ".pdf"; }
+  function packetName() { return "Cornerstones Recovery - Bank Papers - " + new Date().toISOString().slice(0, 10) + ".pdf"; }
 
-  /* ---------------------------------------------------------------- ADD A PAPER */
+  /* ---------------------------------------------------------------- ADD */
   function openAdd() {
     $("addsec").innerHTML = SECS.map(function (s) { return '<option value="' + s[0] + '">' + esc(s[1]) + "</option>"; }).join("");
-    $("addsec").value = "meetings"; $("addfile").value = ""; $("addname").value = ""; $("addmsg").textContent = ""; $("addmsg").className = "msg"; $("addgo").disabled = false;
+    $("addsec").value = "minutes"; $("addfile").value = ""; $("addname").value = ""; $("addmsg").textContent = ""; $("addmsg").className = "msg"; $("addgo").disabled = false;
     $("add").classList.add("show");
   }
   $("addfile").addEventListener("change", function () {
@@ -395,6 +393,7 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
     if (f.size > 25 * 1048576) { m.textContent = "That file is over 25 MB. Try a smaller scan."; return; }
     if (!nm) { m.textContent = "Give it a name."; return; }
     var ext = /pdf/.test(f.type) ? ".pdf" : f.type === "image/png" ? ".png" : f.type === "image/webp" ? ".webp" : f.type === "image/heic" ? ".heic" : ".jpg";
+    /* "Board Minutes, Nov 14 2026" -> "Board_Minutes__Nov_14_2026": the comma turns into the small line under the title */
     var key = $("addsec").value + "/" + nm.replace(/\s+-\s+|\s*[·,]\s*/g, "__").replace(/[^A-Za-z0-9()'&+._ -]/g, "").replace(/ /g, "_").replace(/^\d+_/, "").slice(0, 90) + ext;
     if (docs.some(function (d) { return d.path === key; })) key = key.replace(/(\.[a-z]+)$/, "__" + Date.now().toString(36) + "$1");
     m.className = "msg"; m.textContent = "Saving…"; $("addgo").disabled = true;
@@ -419,16 +418,15 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
     var o = t.closest("[data-open]"); if (o) return openView(docs[+o.dataset.open]);
     var s = t.closest("[data-share]"); if (s) return shareDoc(docs[+s.dataset.share], s);
     var x = t.closest("[data-x]"); if (x) return $(x.dataset.x).classList.remove("show");
-    if (t.closest("#bankbtn")) return openPacket();
+    if (t.closest("#pkgo")) return makePacket();
+    if (t.closest("#pkshare")) { if (packet) sendFile(packet, packetName(), "Cornerstones Recovery - Bank Papers"); return; }
+    if (t.closest("#pkview")) { if (packet) openView(null, packet); return; }
     if (t.closest("#addbtn")) return openAdd();
     if (t.classList.contains("sheet")) return t.classList.remove("show");
   });
-  $("pkgo").onclick = makePacket;
-  $("pkshare").onclick = function () { if (packet) sendFile(packet, packetName(), "Cornerstones Recovery - Bank Packet"); };
-  $("pkview").onclick = function () { if (packet) openView(null, packet); };
   $("addgo").onclick = saveAdd;
   $("vclose").onclick = function () { closeView(false); };
-  $("vshare").onclick = function () { if (!cur) return; if (cur.d) shareDoc(cur.d); else sendFile(cur.blob, packetName(), "Cornerstones Recovery - Bank Packet"); };
+  $("vshare").onclick = function () { if (!cur) return; if (cur.d) shareDoc(cur.d); else sendFile(cur.blob, packetName(), "Cornerstones Recovery - Bank Papers"); };
   $("zin").onclick = function () { if (cur && zoom < 3) { zoom = Math.min(3, zoom + 0.5); paint(); } };
   $("zout").onclick = function () { if (cur && zoom > 1) { zoom = Math.max(1, zoom - 0.5); paint(); } };
   $("vrm").onclick = function () { $("conf").querySelector("p").textContent = "Take this paper out of the folder for the whole board?"; $("conf").classList.add("show"); };
