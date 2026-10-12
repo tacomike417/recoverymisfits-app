@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#15110d;--panel:#211910;--line:#4a3826;--cream:#f6ebcd;--ink:#211910;--gold:#e8b634;--red:#d53732;--green:#21945c;--pink:#ed3995;--dim:#b3a183;--up:#3fbf6f;--down:#ff4b3e}
+:root{--bg:#15110d;--panel:#211910;--line:#4a3826;--cream:#f6ebcd;--ink:#211910;--gold:#e8b634;--red:#d53732;--green:#21945c;--pink:#ed3995;--dim:#b3a183;--blue:#2f86de;--up:#3fbf6f;--down:#ff4b3e}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--cream);font-family:Poppins,system-ui,sans-serif;overscroll-behavior:none}
 body{background:var(--bg) url('ui/bg.webp') center top/cover fixed;min-height:100dvh}
@@ -28,7 +28,6 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 /* ---------- header ---------- */
 .top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px;padding:6px 10px 2px}
 .top .lft{display:flex;align-items:center;gap:2px}
-.top .logo{width:70px;height:auto}
 .count{text-align:center;line-height:1}
 .count .n{font-size:44px;line-height:.95}
 .count .l{font:800 11px Poppins;letter-spacing:.12em;color:var(--dim)}
@@ -40,7 +39,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .rgt .row2{display:flex;align-items:center;gap:2px}
 .hbtn{display:flex;align-items:center;gap:6px;border:2px solid var(--gold);border-radius:12px;min-height:44px;padding:0 10px;background:transparent;font-size:14px;color:var(--cream)}
 .hbtn img{width:20px;height:20px}
-@media (max-width:370px){.top .logo{display:none}}
+.top .logo{width:auto;height:58px;display:block}
 
 /* ---------- houses ---------- */
 .houses{display:grid;grid-template-columns:1.55fr 1fr;gap:8px;padding:8px 12px 4px}
@@ -57,7 +56,12 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .beds{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap}
 .bed{width:24px;height:20px;border-radius:5px;background:#3d3024;display:grid;place-items:center}
 .bed svg{width:18px;height:12px;fill:#6b5a45}
-.bed.on{background:var(--gold)}.bed.on svg{fill:var(--ink)}
+.bed.on{background:var(--blue)}.bed.on svg{fill:#fff}
+.bed.new{animation:newbed 1.2s ease-in-out 3;box-shadow:0 0 0 3px #fff}
+.bed.gone{background:transparent;border:2px dashed var(--red)}.bed.gone svg{fill:var(--red);opacity:.6}
+@keyframes newbed{50%{transform:scale(1.25)}}
+.bstrip{display:flex;justify-content:center;gap:5px;margin:6px 0 2px}.bstrip .bed{width:36px;height:28px;border-radius:7px}.bstrip .bed svg{width:26px;height:17px}
+.bwho{font:800 16px Poppins;margin-top:10px}
 .hs.them .bed{width:15px;height:12px;border-radius:3px}.hs.them .bed svg{display:none}
 .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .tag{font:800 11px Poppins;padding:2px 7px;border-radius:999px;background:var(--pink);color:#fff}
@@ -73,11 +77,13 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .crd.pink{background-image:url('ui/hand-row-pink.svg')}.crd.gold{background-image:url('ui/hand-row-gold.svg')}
 .crd .th{height:100%;min-height:66px;margin-right:8px;border-radius:9px;background-size:122% auto;background-position:50% 50%;background-repeat:no-repeat;border:2px solid var(--ink)}
 .crd .tx{padding:4px 4px 4px 12px;min-width:0}
-.crd .t{display:block;font-family:Bangers,Poppins;font-size:22px;line-height:1.02;letter-spacing:.03em}
-.crd .e{display:block;font:700 15.5px/1.25 Poppins;margin-top:3px}
+.crd .t{display:block;font-family:Bangers,Poppins;font-size:20px;line-height:1.02;letter-spacing:.03em}
+.crd .e{display:block;font:600 14px/1.28 Poppins;margin-top:3px}
 .crd .chev{font-size:24px;font-weight:800;color:var(--ink);opacity:.7}
-.crd.no{filter:saturate(.35) brightness(.85)}
-.crd .chip{display:inline-block;margin-top:5px;font:800 12px Poppins;background:#4a3d2c;color:var(--cream);padding:3px 9px;border-radius:999px}
+.crd.no{filter:grayscale(1) brightness(.72)}
+.crd .dup{position:absolute;left:12px;top:10px;background:var(--red);color:#fff;font:800 13px Poppins;padding:1px 7px;border-radius:999px;border:2px solid #fff}
+.crd.ro{cursor:default}
+.crd .chip{display:inline-block;margin:5px 4px 0 0;font:800 11px Poppins;background:#4a3d2c;color:var(--cream);padding:3px 9px;border-radius:999px}
 .who-you{color:var(--green)}.who-them{color:var(--red)}
 .crd.pulse{animation:glow 1.1s ease-in-out infinite}
 @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(232,182,52,0)}50%{box-shadow:0 0 0 5px rgba(246,235,205,.9)}}
@@ -119,6 +125,14 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .lines div{display:flex;justify-content:space-between;gap:8px;padding:7px 2px;border-bottom:1px solid #d8c7a0;font:700 16px Poppins;text-align:left}
 .lines div span:last-child{text-align:right;white-space:nowrap}
 .r{color:var(--red)}.g{color:var(--green)}
+.payrow{width:100%;padding:10px 4px;border-bottom:2px solid #d8c7a0}
+.payrow .w{font:800 17px Poppins;text-align:left}
+.pbeds{display:flex;justify-content:center;gap:4px;margin:6px 0}
+.pb{display:flex;flex-direction:column;align-items:center;gap:2px;font:800 12px Poppins;color:var(--green)}
+.pb .bed{width:40px;height:30px;border-radius:7px}.pb .bed svg{width:28px;height:18px}
+.pb.x{color:#9c8a6b}.pb.st{color:var(--red);text-decoration:line-through}
+.pay-eq{font-size:30px;line-height:1;color:var(--green)}.pay-eq.z{color:var(--red)}
+.pay-tot{font:800 16px Poppins;margin-top:4px}.pay-tot b{font-size:20px}
 .final{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
 .final>div{border-radius:14px;padding:10px;text-align:center;border:3px solid var(--line);background:var(--panel)}
 .final>div.win{background:var(--cream);color:var(--ink);border-color:var(--gold)}
@@ -171,7 +185,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 
 <div id="gameScreen" class="hidden" style="flex-direction:column;flex:1">
   <div class="top">
-    <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="ui/logo-sober-house.svg" alt="Sober House"></div>
+    <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="../cards/logo.webp" alt="Sober House"></div>
     <div class="count" id="count"><div class="n bang" id="left">18</div><div class="l" id="leftLbl">YOUR TURNS LEFT</div><div class="s" id="status"></div></div>
     <div class="rgt"><span class="pill">v6 TEST</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
   </div>
@@ -187,6 +201,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 
 <script>
 const DECK=[{"id":1,"kind":"green","title":"Car Wash Fundraiser","words":"Cha-ching. +$200.","img":"sh-001","cash":200},{"id":2,"kind":"green","title":"Car Wash Fundraiser","words":"Cha-ching. +$200.","img":"sh-001","cash":200},{"id":3,"kind":"green","title":"Church Donates Groceries","words":"Free food. +$100.","img":"sh-002","cash":100},{"id":4,"kind":"green","title":"Church Donates Groceries","words":"Free food. +$100.","img":"sh-002","cash":100},{"id":5,"kind":"green","title":"Guy's Grandma Sends a Check","words":"Grandma came through. Rent paid. +$150.","img":"sh-003","cash":150},{"id":6,"kind":"green","title":"Guy's Grandma Sends a Check","words":"Grandma came through. Rent paid. +$150.","img":"sh-003","cash":150},{"id":7,"kind":"green","title":"Guy Got a Job, Paid His Back Rent","words":"Bag secured. +$100.","img":"sh-004","cash":100},{"id":8,"kind":"green","title":"Guy Got a Job, Paid His Back Rent","words":"Bag secured. +$100.","img":"sh-004","cash":100},{"id":9,"kind":"green","title":"Landlord Forgot to Cash the Rent Check","words":"Shhh. +$200.","img":"sh-005","cash":200},{"id":10,"kind":"green","title":"Guy Sold Plasma to Pay His Rent","words":"Hustle. +$50.","img":"sh-006","cash":50},{"id":11,"kind":"green","title":"Church Brought Lasagna","words":"Dinner's handled. +$50.","img":"sh-007","cash":50},{"id":12,"kind":"green","title":"Found $40 in the Couch","words":"Score. +$40.","img":"sh-008","cash":40},{"id":13,"kind":"green","title":"House Won the Chili Cook-Off","words":"Champs. +$150.","img":"sh-009","cash":150},{"id":14,"kind":"green","title":"Community Rallies Behind You","words":"They got your back. +$300.","img":"sh-010","cash":300},{"id":15,"kind":"green","title":"Community Rallies Behind You","words":"They got your back. +$300.","img":"sh-010","cash":300},{"id":16,"kind":"green","title":"Community Rallies Behind You","words":"They got your back. +$300.","img":"sh-010","cash":300},{"id":17,"kind":"green","title":"New Guy Moves In","words":"Welcome home. Stay sober. Bed filled.","img":"sh-011","beds":1},{"id":18,"kind":"green","title":"New Guy Moves In","words":"Welcome home. Stay sober. Bed filled.","img":"sh-011","beds":1},{"id":19,"kind":"green","title":"New Guy Moves In","words":"Welcome home. Stay sober. Bed filled.","img":"sh-011","beds":1},{"id":20,"kind":"green","title":"New Guy Moves In","words":"Welcome home. Stay sober. Bed filled.","img":"sh-011","beds":1},{"id":21,"kind":"green","title":"New Guy Cooks for the House","words":"New guy can cook. Stay sober. Bed filled. +$50.","img":"sh-012","beds":1,"cash":50},{"id":22,"kind":"green","title":"New Guy Cooks for the House","words":"New guy can cook. Stay sober. Bed filled. +$50.","img":"sh-012","beds":1,"cash":50},{"id":23,"kind":"green","title":"Two Brothers Move In","words":"Two for one. Stay sober, boys. 2 beds filled.","img":"sh-013","beds":2},{"id":24,"kind":"green","title":"Two Brothers Move In","words":"Two for one. Stay sober, boys. 2 beds filled.","img":"sh-013","beds":2},{"id":25,"kind":"green","title":"New Guy Pays His First Week Up Front","words":"Pay up, new guy. Stay sober. Bed filled. +$100.","img":"sh-014","beds":1,"cash":100},{"id":26,"kind":"green","title":"He Came Back After Coffee and a Talk","words":"Welcome back. Stay sober. Bed filled.","img":"sh-015","beds":1},{"id":27,"kind":"green","title":"Court Sent You 3 Guys","words":"Judge sent 3. Stay sober, fellas. 3 beds filled.","img":"sh-016","beds":3},{"id":28,"kind":"green","title":"Hospital Social Worker Has Your Number","words":"She called you first. Stay sober. 2 beds filled.","img":"sh-017","beds":2},{"id":29,"kind":"green","title":"Probation Office Sends Referrals","words":"PO hooked you up. Stay sober. 2 beds filled.","img":"sh-018","beds":2},{"id":30,"kind":"green","title":"Peer Supporter Sends You a Guy","words":"New guy. Stay sober. More rent. Bed filled.","img":"sh-019","beds":1},{"id":31,"kind":"green","title":"Peer Supporter Sends You a Guy","words":"New guy. Stay sober. More rent. Bed filled.","img":"sh-019","beds":1},{"id":32,"kind":"green","title":"Your House Got a Shoutout at the Meeting","words":"Word got out. Stay sober. Bed filled.","img":"sh-020","beds":1},{"id":33,"kind":"green","title":"Your House Got a Shoutout at the Meeting","words":"Word got out. Stay sober. Bed filled.","img":"sh-020","beds":1},{"id":34,"kind":"green","title":"5 Stars on Google","words":"Five stars, baby. 2 beds filled.","img":"sh-021","beds":2},{"id":35,"kind":"green","title":"Detox Just Closed","words":"Packed house. Every bed filled.","img":"sh-022","fill":1},{"id":36,"kind":"green","title":"Treatment Center at Capacity","words":"No vacancy. Every bed filled.","img":"sh-023","fill":1},{"id":37,"kind":"green","title":"New Partnership With the Charity Down the Road","words":"Packed house. Every bed filled.","img":"sh-024","fill":1},{"id":38,"kind":"green","title":"Got Your Recovery Housing Certification","words":"Certified. No vacancy. Every bed filled.","img":"sh-025","fill":1},{"id":39,"kind":"red","title":"Toilet Backed Up","words":"GOTCHA. You pay the plumber $150.","img":"sh-000","wrench":1,"cash":-150},{"id":40,"kind":"red","title":"Toilet Backed Up","words":"GOTCHA. You pay the plumber $150.","img":"sh-000","wrench":1,"cash":-150},{"id":41,"kind":"red","title":"Water Heater Quits","words":"Cold showers. You pay $200.","img":"sh-026","wrench":1,"cash":-200},{"id":42,"kind":"red","title":"Washer Flooded the Basement","words":"Swimming pool. You pay $150.","img":"sh-027","wrench":1,"cash":-150},{"id":43,"kind":"red","title":"Grill Fire on the Porch","words":"Who left the grill on? You pay $200.","img":"sh-028","wrench":1,"cash":-200},{"id":44,"kind":"red","title":"State Inspector Shows Up","words":"You pay $100.","img":"sh-029","cash":-100},{"id":45,"kind":"red","title":"State Inspector Shows Up","words":"You pay $100.","img":"sh-029","cash":-100},{"id":46,"kind":"red","title":"Mystery Smell","words":"What IS that? You pay $75.","img":"sh-030","cash":-75},{"id":47,"kind":"red","title":"Raccoon in the Garbage","words":"Trash panda. Call the exterminator. You pay $50.","img":"sh-031","cash":-50},{"id":48,"kind":"red","title":"Somebody Fed One Stray Cat","words":"Now there's 14. Call the warden. You pay $100.","img":"sh-032","cash":-100},{"id":49,"kind":"red","title":"House Manager Hit a Deer","words":"Oh deer. You pay $250.","img":"sh-033","cash":-250},{"id":50,"kind":"red","title":"Neighbor Called the City About the Couch on the Porch","words":"Karen called the city. You pay $100.","img":"sh-034","cash":-100},{"id":51,"kind":"red","title":"Snuck His Girlfriend In","words":"Caught. He's out. You lose a bed.","img":"sh-035","beds":-1},{"id":52,"kind":"red","title":"Met Someone at the Meeting","words":"Love at first share. He's gone. You lose a bed.","img":"sh-036","beds":-1},{"id":53,"kind":"red","title":"Engaged After 3 Weeks","words":"Bye bye. You lose a bed.","img":"sh-037","beds":-1},{"id":54,"kind":"red","title":"Moved Back in With Mom","words":"You lose a bed.","img":"sh-038","beds":-1},{"id":55,"kind":"red","title":"Got a Job in Florida","words":"Good for him. You lose a bed.","img":"sh-039","beds":-1},{"id":56,"kind":"red","title":"Ate Everybody's Leftovers","words":"Packed his trash bag. You lose a bed.","img":"sh-040","beds":-1},{"id":57,"kind":"red","title":"Adopted a Cat Without Asking","words":"No pets. He's gone. You lose a bed.","img":"sh-041","beds":-1},{"id":58,"kind":"red","title":"Brought Home a Pit Bull \"Just for the Weekend\"","words":"No pets. Bye bye. You lose a bed.","img":"sh-042","beds":-1},{"id":59,"kind":"red","title":"Skipped His Meetings All Week","words":"House rules. He's out. You lose a bed.","img":"sh-043","beds":-1},{"id":60,"kind":"red","title":"Parole Officer Showed Up","words":"He's gone. You lose a bed.","img":"sh-044","beds":-1},{"id":61,"kind":"red","title":"Wood Chipper Business Out of His Bedroom","words":"Kicked out. You lose a bed.","img":"sh-045","beds":-1},{"id":62,"kind":"red","title":"Two Guys Got in a Fight","words":"Both gone. You lose 2 beds.","img":"sh-046","beds":-2},{"id":63,"kind":"red","title":"Two Guys Got an Apartment Together","words":"Peace out. You lose 2 beds.","img":"sh-047","beds":-2},{"id":64,"kind":"red","title":"His Mom Called the House 40 Times","words":"Go talk to his mom. You lose a turn.","img":"sh-048","skip":1},{"id":65,"kind":"red","title":"The Wi-Fi Went Down","words":"Riot. Pay the cable guy $75 or sit out a turn. Your call.","img":"sh-049","payorskip":75},{"id":66,"kind":"pink","title":"Dumped 12 Stray Cats in Your Yard","words":"GOTCHA. Meow. You pay the warden $200.","img":"sh-050","cash":-200},{"id":67,"kind":"pink","title":"Ordered 40 Pizzas to Your House","words":"Hope you're hungry. You pay $150.","img":"sh-051","cash":-150},{"id":68,"kind":"pink","title":"Ordered 40 Pizzas to Your House","words":"Hope you're hungry. You pay $150.","img":"sh-051","cash":-150},{"id":69,"kind":"pink","title":"Left a Goat in Your Yard","words":"Baaa. You pay $150.","img":"sh-052","cash":-150},{"id":70,"kind":"pink","title":"Called in a Noise Complaint on You","words":"Shut it down. You pay $100.","img":"sh-053","cash":-100},{"id":71,"kind":"pink","title":"Put a Fish in Your Heating Vent","words":"Smells fishy. You pay $100.","img":"sh-054","cash":-100},{"id":72,"kind":"pink","title":"Glitter Bombed Your Living Room","words":"Sparkle, sparkle. You pay $75.","img":"sh-055","cash":-75},{"id":73,"kind":"pink","title":"Signed You Up to Bring Coffee to Every Meeting","words":"Coffee's on you. You pay $50.","img":"sh-056","cash":-50},{"id":74,"kind":"pink","title":"Swapped Your Coffee With Decaf","words":"Decaf?! Buy real coffee for $75 or sit out a turn. Your call.","img":"sh-057","payorskip":75},{"id":75,"kind":"pink","title":"Hid Your Coffee Maker","words":"No coffee. Buy a new one for $75 or sit out a turn. Your call.","img":"sh-058","payorskip":75},{"id":76,"kind":"pink","title":"Changed Your Wi-Fi Password","words":"No Wi-Fi. Pay the cable guy $75 or sit out a turn. Your call.","img":"sh-059","payorskip":75},{"id":77,"kind":"pink","title":"Listed Your House on Zillow for $1","words":"Open house. Sit down. You lose a turn.","img":"sh-060","skip":1},{"id":78,"kind":"pink","title":"Listed Your Couch as \"Free\" on Facebook","words":"Strangers at the door. Benched. You lose a turn.","img":"sh-061","skip":1},{"id":79,"kind":"pink","title":"Sent Their Loudest Guy to Your House for Dinner","words":"He. Will. Not. Stop. Talking. You lose a turn.","img":"sh-062","skip":1},{"id":80,"kind":"pink","title":"Gave Your Number to Every Car Warranty Guy","words":"Phone won't stop. Benched. You lose a turn.","img":"sh-063","skip":1},{"id":81,"kind":"pink","title":"Told the Whole Meeting You Have Free Donuts Every Morning","words":"Every guy in town showed up. You pay $150.","img":"sh-064","cash":-150},{"id":82,"kind":"pink","title":"Ordered a Bouncy Castle to Your Front Yard","words":"Party time. You pay $150 for the rental.","img":"sh-065","cash":-150},{"id":83,"kind":"pink","title":"Hired a Clown to Sit on Your Porch","words":"He won't leave. Pay him $75 to go away or sit out a turn. Your call.","img":"sh-066","payorskip":75},{"id":84,"kind":"pink","title":"Saran-Wrapped Your Toilet Seat","words":"Oh no. Messy. You pay $100.","img":"sh-067","cash":-100},{"id":85,"kind":"pink","title":"Filled Your Mailbox With Crickets","words":"Chirp chirp. You pay the exterminator $150.","img":"sh-068","cash":-150},{"id":86,"kind":"pink","title":"Sent a Mariachi Band to Your House at 6 AM","words":"Wake up! Pay them $75 to leave or sit out a turn. Your call.","img":"sh-069","payorskip":75},{"id":87,"kind":"pink","title":"Sent a Guy Dressed Like the State Inspector","words":"Fake out. You cleaned all day for nothing. You lose a turn.","img":"sh-070","skip":1},{"id":88,"kind":"pink","title":"Signed You Up for 500 Magazines","words":"Mailbox exploded. You pay $100.","img":"sh-071","cash":-100},{"id":89,"kind":"pink","title":"Filled Your Van With Packing Peanuts","words":"Good luck. You pay $75 for the clean-out.","img":"sh-072","cash":-75},{"id":90,"kind":"gold","title":"House Manager Handled It","words":"Somebody hit you with a bad card? Throw this down. Nothing happens.","img":"sh-073","react":"block"},{"id":91,"kind":"gold","title":"House Manager Handled It","words":"Somebody hit you with a bad card? Throw this down. Nothing happens.","img":"sh-073","react":"block"},{"id":92,"kind":"gold","title":"Not My Problem","words":"Somebody hit you with a bad card? Throw this down. It goes right back to them.","img":"sh-074","react":"bounce"},{"id":93,"kind":"gold","title":"Not My Problem","words":"Somebody hit you with a bad card? Throw this down. It goes right back to them.","img":"sh-074","react":"bounce"},{"id":94,"kind":"gold","title":"Plunger","words":"Not today. Blocks any 🔧 broken-house card.","img":"sh-075","react":"wrench"},{"id":95,"kind":"gold","title":"Guy's Uncle Owns a Construction Company","words":"Uncle's got it. Blocks any 🔧 broken-house card.","img":"sh-076","react":"wrench"},{"id":96,"kind":"gold","title":"Handy Guy at the House Fixed It Himself","words":"Fixed it. Blocks any 🔧 broken-house card.","img":"sh-077","react":"wrench"},{"id":97,"kind":"gold","title":"Double Trouble","words":"Double whammy. Play 2 cards this turn.","img":"sh-078","self":"double"},{"id":98,"kind":"gold","title":"Double Trouble","words":"Double whammy. Play 2 cards this turn.","img":"sh-078","self":"double"},{"id":99,"kind":"gold","title":"Double Trouble","words":"Double whammy. Play 2 cards this turn.","img":"sh-078","self":"double"},{"id":100,"kind":"gold","title":"Called a House Meeting at Their House","words":"Play this on the other player. They lose their next turn.","img":"sh-079","hit":"skip"},{"id":101,"kind":"gold","title":"He Likes Your House Better","words":"Play this on the other player. One of their guys moves into YOUR house. They lose a bed, you gain one.","img":"sh-080","hit":"steal"},{"id":102,"kind":"gold","title":"The Bank Mixed Up Your Accounts","words":"Trade money with the other player. Their money is yours, and yours is theirs.","img":"sh-081","hit":"swap"},{"id":103,"kind":"gold","title":"Borrowed $100 and Never Paid It Back","words":"Play this on the other player. Take $100 out of their money and put it in yours.","img":"sh-082","hit":"raid"},{"id":104,"kind":"gold","title":"Their Guys Stiffed Them on Rent","words":"Play this on the other player. They get NO rent this Friday. It's gone.","img":"sh-083","hit":"norent"},{"id":105,"kind":"gold","title":"Everybody Paid a Week Ahead","words":"Play this on yourself. This Friday, every guy in your house pays double rent.","img":"sh-084","self":"dblrent"},{"id":106,"kind":"gold","title":"Peeked at Their Hand","words":"Play this on the other player. You get to see every card they're holding.","img":"sh-085","hit":"peek"}];
+const TEXT={"Car Wash Fundraiser": ["Your guys run a car wash. You make $200.", "{P}'s guys ran a car wash. {P} made $200."], "Church Donates Groceries": ["The church drops off groceries. You save $100.", "The church dropped off groceries. {P} saved $100."], "Guy's Grandma Sends a Check": ["A guy's grandma sends a check for his rent and then some. You get $150.", "{P}'s guy's grandma sent a check. {P} got $150."], "Guy Got a Job, Paid His Back Rent": ["A guy gets a job and pays his back rent. You get $100.", "{P}'s guy got a job and paid his back rent. {P} got $100."], "Landlord Forgot to Cash the Rent Check": ["Your landlord forgot to cash your check. You keep $200.", "{P}'s landlord forgot to cash the check. {P} kept $200."], "Guy Sold Plasma to Pay His Rent": ["A guy sells plasma and pays $50 toward his rent. You get $50.", "{P}'s guy sold plasma. {P} got $50."], "Church Brought Lasagna": ["The church brings dinner. You save $50.", "The church brought {P} dinner. {P} saved $50."], "Found $40 in the Couch": ["You find $40 in the couch. Score.", "{P} found $40 in the couch."], "House Won the Chili Cook-Off": ["Your house wins the chili cook-off. You win $150.", "{P}'s house won the chili cook-off. {P} won $150."], "Community Rallies Behind You": ["The community comes through for your house. You get $300.", "The community came through for {P}. {P} got $300."], "New Guy Moves In": ["A new guy moves in. One more guy paying rent.", "A new guy moved into {P}'s house."], "New Guy Cooks for the House": ["A new guy moves in. He can cook, so you cut him a deal: $50 now, and he gets you back when he can.", "A new guy moved into {P}'s house and paid $50."], "Two Brothers Move In": ["Two brothers move in. Two more guys paying rent.", "Two brothers moved into {P}'s house."], "New Guy Pays His First Week Up Front": ["A new guy moves in and pays his first week up front. You get $100.", "A new guy moved into {P}'s house and paid $100 up front."], "He Came Back After Coffee and a Talk": ["A guy comes back after coffee and a talk. One more guy paying rent.", "A guy came back to {P}'s house."], "Court Sent You 3 Guys": ["The court sends you 3 guys. Three more paying rent.", "The court sent {P} 3 guys."], "Hospital Social Worker Has Your Number": ["The hospital social worker sends you 2 guys.", "The hospital sent {P} 2 guys."], "Probation Office Sends Referrals": ["Probation sends you 2 guys.", "Probation sent {P} 2 guys."], "Peer Supporter Sends You a Guy": ["A peer supporter sends you a guy. One more paying rent.", "A peer supporter sent {P} a guy."], "Your House Got a Shoutout at the Meeting": ["Your house gets a shoutout at the meeting. A new guy moves in.", "{P}'s house got a shoutout at the meeting. A new guy moved in."], "5 Stars on Google": ["Your house gets 5 stars on Google. 2 new guys move in.", "{P}'s house got 5 stars on Google. 2 new guys moved in."], "Detox Just Closed": ["Detox closed down and those guys need a bed. Every bed in your house fills up.", "Detox closed. Every bed in {P}'s house filled up."], "Treatment Center at Capacity": ["The treatment center is full, so they send guys to you. Every bed fills up.", "The treatment center sent {P} guys. Every bed filled up."], "New Partnership With the Charity Down the Road": ["You team up with the charity down the road. Every bed fills up.", "{P} teamed up with a charity. Every bed filled up."], "Got Your Recovery Housing Certification": ["Your house gets certified. Every bed fills up.", "{P}'s house got certified. Every bed filled up."], "Toilet Backed Up": ["{O}'s toilet backs up. {O} pays the plumber $150.", "Your toilet backed up. You pay the plumber $150."], "Water Heater Quits": ["{O}'s water heater quits. {O} pays $200 for a new one.", "Your water heater quit. You pay $200 for a new one."], "Washer Flooded the Basement": ["{O}'s washer floods the basement. {O} pays $150.", "Your washer flooded the basement. You pay $150."], "Grill Fire on the Porch": ["Somebody leaves the grill on at {O}'s house. {O} pays $200 to fix the porch.", "Somebody left the grill on. You pay $200 to fix the porch."], "State Inspector Shows Up": ["The state inspector shows up at {O}'s house. {O} pays $100.", "The state inspector showed up. You pay $100."], "Mystery Smell": ["{O}'s house has a mystery smell. {O} pays $75 to find it.", "Your house has a mystery smell. You pay $75 to find it."], "Raccoon in the Garbage": ["A raccoon gets in {O}'s garbage. {O} pays the exterminator $50.", "A raccoon got in your garbage. You pay the exterminator $50."], "Somebody Fed One Stray Cat": ["Somebody at {O}'s house fed a stray cat. Now there's 14. {O} pays the warden $100.", "Somebody fed a stray cat. Now there's 14. You pay the warden $100."], "House Manager Hit a Deer": ["{O}'s house manager hits a deer. {O} pays $250 to fix the car.", "Your house manager hit a deer. You pay $250 to fix the car."], "Neighbor Called the City About the Couch on the Porch": ["{O}'s neighbor calls the city about the couch on the porch. {O} pays $100.", "Your neighbor called the city about the couch on the porch. You pay $100."], "Snuck His Girlfriend In": ["One of {O}'s guys sneaks his girlfriend in. He's out. {O} loses a guy.", "One of your guys snuck his girlfriend in. He's out. You lose a guy."], "Met Someone at the Meeting": ["One of {O}'s guys meets someone at the meeting and moves out. {O} loses a guy.", "One of your guys met someone at the meeting and moved out. You lose a guy."], "Engaged After 3 Weeks": ["One of {O}'s guys gets engaged after 3 weeks and moves out. {O} loses a guy.", "One of your guys got engaged after 3 weeks and moved out. You lose a guy."], "Moved Back in With Mom": ["One of {O}'s guys moves back in with his mom. {O} loses a guy.", "One of your guys moved back in with his mom. You lose a guy."], "Got a Job in Florida": ["One of {O}'s guys gets a job in Florida. {O} loses a guy.", "One of your guys got a job in Florida. You lose a guy."], "Ate Everybody's Leftovers": ["One of {O}'s guys eats everybody's leftovers. He's out. {O} loses a guy.", "One of your guys ate everybody's leftovers. He's out. You lose a guy."], "Adopted a Cat Without Asking": ["One of {O}'s guys adopts a cat without asking. No pets. {O} loses a guy.", "One of your guys adopted a cat without asking. No pets. You lose a guy."], "Brought Home a Pit Bull \"Just for the Weekend\"": ["One of {O}'s guys brings home a pit bull. No pets. {O} loses a guy.", "One of your guys brought home a pit bull. No pets. You lose a guy."], "Skipped His Meetings All Week": ["One of {O}'s guys skips his meetings all week. House rules. {O} loses a guy.", "One of your guys skipped his meetings all week. House rules. You lose a guy."], "Parole Officer Showed Up": ["A parole officer picks up one of {O}'s guys. {O} loses a guy.", "A parole officer picked up one of your guys. You lose a guy."], "Wood Chipper Business Out of His Bedroom": ["One of {O}'s guys runs a wood chipper business out of his bedroom. He's out. {O} loses a guy.", "One of your guys ran a wood chipper business out of his bedroom. He's out. You lose a guy."], "Two Guys Got in a Fight": ["Two of {O}'s guys get in a fight. Both are out. {O} loses 2 guys.", "Two of your guys got in a fight. Both are out. You lose 2 guys."], "Two Guys Got an Apartment Together": ["Two of {O}'s guys get an apartment together. {O} loses 2 guys.", "Two of your guys got an apartment together. You lose 2 guys."], "His Mom Called the House 40 Times": ["A guy's mom calls {O}'s house 40 times. {O} has to go talk to her and loses a turn.", "A guy's mom called your house 40 times. You have to go talk to her and lose a turn."], "The Wi-Fi Went Down": ["{O}'s Wi-Fi goes down. {O} pays the cable guy $75 or sits out a turn.", "Your Wi-Fi went down. Pay the cable guy $75 or sit out a turn."], "Dumped 12 Stray Cats in Your Yard": ["Dump 12 stray cats in {O}'s yard. {O} pays the warden $200.", "{P} dumped 12 stray cats in your yard. You pay the warden $200."], "Ordered 40 Pizzas to Your House": ["Order 40 pizzas to {O}'s house. {O} pays $150.", "{P} ordered 40 pizzas to your house. You pay $150."], "Left a Goat in Your Yard": ["Leave a goat in {O}'s yard. {O} pays $150 to get rid of it.", "{P} left a goat in your yard. You pay $150 to get rid of it."], "Called in a Noise Complaint on You": ["Call in a noise complaint on {O}'s house. {O} pays $100.", "{P} called in a noise complaint on your house. You pay $100."], "Put a Fish in Your Heating Vent": ["Put a fish in {O}'s heating vent. {O} pays $100 to air it out.", "{P} put a fish in your heating vent. You pay $100 to air it out."], "Glitter Bombed Your Living Room": ["Glitter bomb {O}'s living room. {O} pays $75 to clean it.", "{P} glitter bombed your living room. You pay $75 to clean it."], "Signed You Up to Bring Coffee to Every Meeting": ["Sign {O} up to bring coffee to every meeting. {O} pays $50.", "{P} signed you up to bring coffee to every meeting. You pay $50."], "Swapped Your Coffee With Decaf": ["Swap {O}'s coffee with decaf. {O} pays $75 for real coffee or sits out a turn.", "{P} swapped your coffee with decaf. Pay $75 for real coffee or sit out a turn."], "Hid Your Coffee Maker": ["Hide {O}'s coffee maker. {O} pays $75 for a new one or sits out a turn.", "{P} hid your coffee maker. Pay $75 for a new one or sit out a turn."], "Changed Your Wi-Fi Password": ["Change {O}'s Wi-Fi password. {O} pays the cable guy $75 or sits out a turn.", "{P} changed your Wi-Fi password. Pay the cable guy $75 or sit out a turn."], "Listed Your House on Zillow for $1": ["List {O}'s house on Zillow for $1. {O} gets stuck at the open house and loses a turn.", "{P} listed your house on Zillow for $1. You're stuck at the open house and lose a turn."], "Listed Your Couch as \"Free\" on Facebook": ["List {O}'s couch as free on Facebook. Strangers show up all day. {O} loses a turn.", "{P} listed your couch as free on Facebook. Strangers show up all day. You lose a turn."], "Sent Their Loudest Guy to Your House for Dinner": ["Send your loudest guy to {O}'s house for dinner. He won't stop talking. {O} loses a turn.", "{P} sent their loudest guy over for dinner. He won't stop talking. You lose a turn."], "Gave Your Number to Every Car Warranty Guy": ["Give {O}'s number to every car warranty guy. The phone won't stop. {O} loses a turn.", "{P} gave your number to every car warranty guy. The phone won't stop. You lose a turn."], "Told the Whole Meeting You Have Free Donuts Every Morning": ["Tell the whole meeting {O} has free donuts every morning. {O} pays $150 for donuts.", "{P} told the whole meeting you have free donuts. You pay $150 for donuts."], "Ordered a Bouncy Castle to Your Front Yard": ["Order a bouncy castle to {O}'s front yard. {O} pays the $150 rental.", "{P} ordered a bouncy castle to your yard. You pay the $150 rental."], "Hired a Clown to Sit on Your Porch": ["Hire a clown to sit on {O}'s porch. {O} pays him $75 to leave or sits out a turn.", "{P} hired a clown to sit on your porch. Pay him $75 to leave or sit out a turn."], "Saran-Wrapped Your Toilet Seat": ["Saran-wrap {O}'s toilet seat. {O} pays $100 to clean up.", "{P} saran-wrapped your toilet seat. You pay $100 to clean up."], "Filled Your Mailbox With Crickets": ["Fill {O}'s mailbox with crickets. {O} pays the exterminator $150.", "{P} filled your mailbox with crickets. You pay the exterminator $150."], "Sent a Mariachi Band to Your House at 6 AM": ["Send a mariachi band to {O}'s house at 6 AM. {O} pays them $75 to leave or sits out a turn.", "{P} sent a mariachi band at 6 AM. Pay them $75 to leave or sit out a turn."], "Sent a Guy Dressed Like the State Inspector": ["Send a guy dressed like the state inspector to {O}'s house. {O} cleans all day for nothing and loses a turn.", "{P} sent a fake state inspector. You cleaned all day for nothing and lose a turn."], "Signed You Up for 500 Magazines": ["Sign {O} up for 500 magazines. {O} pays $100 to cancel them.", "{P} signed you up for 500 magazines. You pay $100 to cancel them."], "Filled Your Van With Packing Peanuts": ["Fill {O}'s van with packing peanuts. {O} pays $75 for the clean-out.", "{P} filled your van with packing peanuts. You pay $75 for the clean-out."], "House Manager Handled It": ["Save this one. When {O} hits you with a bad card, throw it down. Your house manager handles it and nothing happens.", "{P}'s house manager handled it. Your card did nothing."], "Not My Problem": ["Save this one. When {O} hits you with a bad card, throw it down and it goes right back to {O}.", "{P} said not my problem. Your card bounced right back at you."], "Plunger": ["Save this one. When {O} hits you with a broken-house card, grab the plunger and fix it yourself for free.", "{P} grabbed the plunger and fixed it for free. Your card did nothing."], "Guy's Uncle Owns a Construction Company": ["A guy's uncle owns a construction company. He fixes your house for free. Save this for when {O} hits you with a broken-house card.", "{P}'s guy's uncle fixed it for free. Your card did nothing."], "Handy Guy at the House Fixed It Himself": ["Your handy guy fixes it himself for free. Save this for when {O} hits you with a broken-house card.", "{P}'s handy guy fixed it himself. Your card did nothing."], "Double Trouble": ["Play 2 more cards this turn.", "{P} played Double Trouble and plays 2 more cards."], "Called a House Meeting at Their House": ["Call a house meeting at {O}'s house. {O} loses the next turn.", "{P} called a house meeting at your house. You lose your next turn."], "He Likes Your House Better": ["One of {O}'s guys likes your house better and moves in. {O} loses a guy, you get one.", "One of your guys liked {P}'s house better and moved over."], "The Bank Mixed Up Your Accounts": ["The bank mixes up the accounts. You and {O} trade money.", "The bank mixed up the accounts. You and {P} traded money."], "Borrowed $100 and Never Paid It Back": ["Borrow $100 from {O} and never pay it back. You get $100, {O} loses $100.", "{P} borrowed $100 from you and never paid it back."], "Their Guys Stiffed Them on Rent": ["{O}'s guys stiff them on rent. {O} gets no rent this Friday.", "Your guys stiffed you on rent. You get no rent this Friday."], "Everybody Paid a Week Ahead": ["Everybody in your house pays a week ahead. You get double rent this Friday.", "{P}'s guys paid a week ahead. {P} gets double rent this Friday."], "Peeked at Their Hand": ["Peek at {O}'s hand and see every card they're holding.", "{P} peeked at your hand. Sneaky."]}; // plain-language lines: [what you read when you play it, what the other player reads]
 const BASE='../';
 const BOT='Big Ray';
 const START=800, BILLS=300, RENT=100, MAXB=6, WEEKS=6, DAYS=['MONDAY','WEDNESDAY','FRIDAY'], HAND=5;
@@ -250,7 +265,7 @@ async function howTo(){
   const steps=[
     ['Tap a card','Every card in your hand shows what it does. Tap one and it tells you exactly what will happen before you play it.'],
     ['Hit your friend','Green cards help your house. Red and pink cards hit the other house. Gold cards are sneaky moves. Some stop a hit when you get one.'],
-    ['Survive to payday','Monday the bills come out ($300). Friday every guy pays rent ($100). Most money when the turns run out wins. Under $0 after a Friday and your house closes.']];
+    ['Survive to payday','Wednesday the bills come out ($300). Friday every guy pays rent ($100). Most money when the turns run out wins. Under $0 after a Friday and your house closes.']];
   for(let i=0;i<steps.length;i++) await ask(`<h2 class="t bang" style="margin-top:20px">${steps[i][0]}</h2><p class="b">${steps[i][1]}</p><p class="hint">${i+1} of 3</p>`,[[i<2?'Next':'Got it']]);
 }
 
@@ -298,62 +313,64 @@ const nm=x=>isYou(x)?'You':x.name;
 const guys=n=>n+(n===1?' guy':' guys');
 
 // ---------- what a card does, in plain words ----------
-function effectLine(c,p,o){ // short line for the hand row
-  const O=`<span class="who-them">${esc(o.name)}:</span>`, Y='<span class="who-you">You:</span>';
-  if(c.kind==='green'){ const a=[]; if(c.fill) a.push('fill every bed'); if(c.beds) a.push('+'+guys(c.beds)); if(c.cash) a.push('+$'+c.cash); return `${Y} ${a.join(', ')}`; }
-  if(c.kind==='red'||c.kind==='pink'){ const pre=c.kind==='pink'?`<span class="who-them">Prank on ${esc(o.name)}:</span>`:O; const a=[];
-    if(c.cash) a.push('-$'+(-c.cash)); if(c.beds) a.push('loses '+guys(-c.beds)); if(c.skip) a.push('loses a turn'); if(c.payorskip) a.push(`pay $${c.payorskip} or sit out`);
-    return `${pre} ${a.join(', ')}`; }
-  if(c.react==='block') return 'Stops a bad card played on you';
-  if(c.react==='bounce') return 'Sends a bad card right back';
-  if(c.react==='wrench') return 'Stops a broken-house card &#128295;';
-  if(c.self==='double') return `${Y} play 2 more cards`;
-  if(c.self==='dblrent') return `${Y} double rent this Friday`;
-  if(c.hit==='skip') return `${O} loses a turn`;
-  if(c.hit==='steal') return `${O} one guy moves to you`;
-  if(c.hit==='swap') return 'Swap money with '+esc(o.name);
-  if(c.hit==='raid') return `${O} -$100 &rarr; you +$100`;
-  if(c.hit==='norent') return `${O} no rent this Friday`;
-  if(c.hit==='peek') return `See ${esc(o.name)}'s hand`;
-  return '';
+const fillT=(s,P,O)=>s.replace(/\{P\}/g,P).replace(/\{O\}/g,O);
+function doLine(c,p,o){ const t=TEXT[c.title]; return t?fillT(t[0],p.name,o.name):c.words; }   // read by the player who plays it
+function seeLine(c,p,o){ const t=TEXT[c.title]; return t?fillT(t[1],p.name,o.name):c.words; }  // read by the other player
+function shortFx(c,owner){ // used when peeking at the other hand
+  const w=esc(owner);
+  if(c.kind==='green'){ const a=[]; if(c.fill) a.push('fills every bed'); if(c.beds) a.push('+'+guys(c.beds)); if(c.cash) a.push('+$'+c.cash); return `Helps ${w}: ${a.join(', ')}`; }
+  if(c.kind==='red'||c.kind==='pink'){ const a=[]; if(c.cash) a.push(`you pay $${-c.cash}`); if(c.beds) a.push(`you lose ${guys(-c.beds)}`); if(c.skip) a.push('you lose a turn'); if(c.payorskip) a.push(`you pay $${c.payorskip} or sit out`); return 'Hits you: '+a.join(', '); }
+  if(c.react==='block') return 'Stops one of your bad cards';
+  if(c.react==='bounce') return 'Sends your bad card right back at you';
+  if(c.react==='wrench') return 'Stops your broken-house cards';
+  if(c.self==='double') return `${w} plays 2 more cards`;
+  if(c.self==='dblrent') return `${w} gets double rent Friday`;
+  return {skip:'You lose a turn',steal:'Takes one of your guys',swap:'Trades money with you',raid:'Takes $100 from you',norent:'You get no rent Friday',peek:'Peeks at your hand'}[c.hit]||'';
 }
-function preview(c,p,o){ // full sentence + before/after numbers, nothing changes yet
-  const O=nm(o), rows=[]; let say='', note='';
-  const cashRow=(x,to)=>rows.push([nm(x),money(x.cash),money(to),to>x.cash?'up':to<x.cash?'down':'']);
-  const bedRow=(x,to)=>rows.push([nm(x)+' beds',x.beds+'/'+MAXB,to+'/'+MAXB,to>x.beds?'up':to<x.beds?'down':'']);
-  if(c.kind==='green'){
-    const nb=c.fill?MAXB:Math.min(MAXB,p.beds+(c.beds||0)); const added=nb-p.beds;
-    const bits=[]; if(added) bits.push(added===1?'A new guy moves in':`${added} new guys move in`); if(c.cash) bits.push(`you get $${c.cash}`);
-    say=bits.join(' and ')+'.'; if(added) note=`Every guy pays $${RENT} rent on Friday.`;
-    if(c.cash) cashRow(p,p.cash+c.cash); if(added) bedRow(p,nb);
-  } else if(c.kind==='red'||c.kind==='pink'){
-    const bits=[];
-    if(c.cash){ bits.push(`${O} ${isYou(o)?'pay':'pays'} $${-c.cash}`); cashRow(o,o.cash+c.cash); }
-    if(c.beds){ const nb=Math.max(1,Math.min(MAXB,o.beds+c.beds)); if(nb<o.beds){ bits.push(`${O} ${isYou(o)?'lose':'loses'} a guy`); bedRow(o,nb);} else bits.push(`${O} ${isYou(o)?'are':'is'} down to the House Manager, so nobody leaves`); }
-    if(c.skip) bits.push(`${O} ${isYou(o)?'lose':'loses'} the next turn`);
-    if(c.payorskip) bits.push(`${O} ${isYou(o)?'pay':'pays'} $${c.payorskip} or ${isYou(o)?'sit':'sits'} out a turn. Their call`);
-    say=bits.join(' and ')+'.'; note=`${O} might be holding a card that stops it.`;
-  } else if(c.self==='double'){ say='You play 2 more cards this turn.'; }
-  else if(c.self==='dblrent'){ say=`This Friday your ${guys(p.beds)} pay double rent.`; note=`+$${p.beds*RENT*2} instead of +$${p.beds*RENT} (if your guy count stays the same).`; }
-  else if(c.hit==='skip'){ say=`${O} loses the next turn.`; }
-  else if(c.hit==='steal'){ if(o.beds>1&&p.beds<MAXB){ say=`One of ${O}'s guys moves into your house.`; bedRow(p,p.beds+1); bedRow(o,o.beds-1);} else { say=p.beds>=MAXB?'Your house is full, so nobody can move over. Nothing happens.':`${O} only has the House Manager left. Nothing happens.`; } }
-  else if(c.hit==='swap'){ say=`You trade money with ${O}.`; cashRow(p,o.cash); cashRow(o,p.cash); }
-  else if(c.hit==='raid'){ say=`You take $100 from ${O}.`; cashRow(p,p.cash+100); cashRow(o,o.cash-100); }
-  else if(c.hit==='norent'){ say=`${O} gets NO rent this Friday.`; note=`Right now that's $${o.beds*RENT} they won't collect.`; }
-  else if(c.hit==='peek'){ say=`You see every card ${O} is holding.`; }
-  return {say,note,rows};
+function bedStrip(from,to){ return `<div class="bstrip">${Array.from({length:MAXB},(_,i)=>{ let k=''; if(i<Math.min(from,to)) k='on'; else if(i<to) k='on new'; else if(i<from) k='gone'; return `<div class="bed ${k}">${BED}</div>`; }).join('')}</div>`; }
+function bedWords(x,from,to,past){ const d=to-from, you=isYou(x), w=nm(x);
+  if(d>0) return `${w} ${past?'got':(you?'get':'gets')} ${d===1?'a new guy':d+' new guys'}`;
+  return `${w} ${past?'lost':(you?'lose':'loses')} ${guys(-d)}`; }
+function visualHTML(items,past){
+  const cash=items.filter(it=>it.cash), beds=items.filter(it=>it.beds); let h='';
+  if(cash.length) h+=`<div class="chg">${cash.map(it=>{ const [a,b]=it.cash; return `<span class="k">${esc(nm(it.x)).toUpperCase()}</span><span>${money(a)}</span><span class="ar">&rarr;</span><span class="to ${b>a?'up':'down'}">${money(b)}</span>`; }).join('')}</div>`;
+  beds.forEach(it=>{ const [a,b]=it.beds; h+=`<div class="bwho">${esc(bedWords(it.x,a,b,past))}</div>${bedStrip(a,b)}`; });
+  return h;
 }
-function chgHTML(rows){ return rows.length?`<div class="chg">${rows.map(r=>`<span class="k">${esc(r[0]).toUpperCase()}</span><span>${r[1]}</span><span class="ar">&rarr;</span><span class="to ${r[3]}">${r[2]}</span>`).join('')}</div>`:''; }
+function preview(c,p,o){ // nothing changes yet
+  const items=[]; let note='';
+  const C=(x,to)=>items.push({x,cash:[x.cash,to]}), B=(x,to)=>{ if(to!==x.beds) items.push({x,beds:[x.beds,to]}); };
+  if(c.kind==='green'){ if(c.cash) C(p,p.cash+c.cash); B(p,c.fill?MAXB:Math.min(MAXB,p.beds+(c.beds||0))); if(c.beds||c.fill) note=`Every guy pays $${RENT} rent on Friday.`; }
+  else if(c.kind==='red'||c.kind==='pink'){
+    if(c.cash) C(o,o.cash+c.cash);
+    if(c.beds){ const nb=Math.max(1,o.beds+c.beds); if(nb<o.beds) B(o,nb); else note=`But ${o.name} is down to the House Manager, so nobody leaves. `; }
+    note+=`${o.name} might be holding a card that stops it.`;
+  }
+  else if(c.self==='dblrent') note=`Right now that's +$${p.beds*RENT*2} instead of +$${p.beds*RENT}.`;
+  else if(c.hit==='steal'){ if(o.beds>1&&p.beds<MAXB){ B(p,p.beds+1); B(o,o.beds-1); } else note=p.beds>=MAXB?'But your house is full, so nobody can move over. Nothing happens.':`But ${o.name} only has the House Manager left. Nothing happens.`; }
+  else if(c.hit==='swap'){ C(p,o.cash); C(o,p.cash); }
+  else if(c.hit==='raid'){ C(p,p.cash+100); C(o,o.cash-100); }
+  else if(c.hit==='norent') note=`Right now that's $${o.beds*RENT} ${o.name} won't collect.`;
+  return {items,note};
+}
 function snap(){ return S.p.map(x=>({cash:x.cash,beds:x.beds,skip:x.skip})); }
-function changes(before){ // what actually changed, as words + rows
-  const rows=[], bits=[];
-  S.p.forEach((x,i)=>{ const b=before[i], dc=x.cash-b.cash, db=x.beds-b.beds, ds=x.skip-b.skip, w=nm(x), you=isYou(x);
-    if(dc){ rows.push([w,money(b.cash),money(x.cash),dc>0?'up':'down']); bits.push(`${w} ${dc>0?(you?'got':'got'):(you?'paid':'paid')} $${Math.abs(dc)}`); }
-    if(db){ rows.push([w+' beds',b.beds+'/'+MAXB,x.beds+'/'+MAXB,db>0?'up':'down']); bits.push(`${w} ${db>0?'got':(you?'lost':'lost')} ${guys(Math.abs(db))}`); }
-    if(ds>0) bits.push(`${w} ${you?'lose':'loses'} the next turn`);
-  });
-  return {say:bits.length?bits.join('. ')+'.':'Nothing changed.',rows};
+function changes(before){ // what actually changed
+  const items=[]; let any=false;
+  S.p.forEach((x,i)=>{ const b=before[i];
+    if(x.cash!==b.cash){ items.push({x,cash:[b.cash,x.cash]}); any=true; }
+    if(x.beds!==b.beds){ items.push({x,beds:[b.beds,x.beds]}); any=true; }
+    if(x.skip!==b.skip) any=true; });
+  return {items,any};
 }
+function cardRow(c,n,p,o,opt={}){
+  const ok=opt.ro?true:playable(c,p);
+  const chips=(n>1?`<span class="chip">${opt.ro?esc(p.name)+' has':'You have'} ${n}</span>`:'')+(opt.ro?'':(c.react?'<span class="chip">Save it for when you get hit</span>':(!ok?'<span class="chip">House full</span>':'')));
+  return `<${opt.ro?'div':'button'} class="crd ${c.kind} ${ok?'':'no'} ${opt.ro?'ro':''} ${opt.pulse?'pulse':''}" data-i="${opt.i}" aria-label="${esc(c.title)}">
+      <span class="th" style="background-image:url('${img(c)}')"></span>${n>1?`<span class="dup">&times;${n}</span>`:''}
+      <span class="tx"><span class="t">${esc(c.title)}</span><span class="e">${esc(opt.ro?shortFx(c,p.name):doLine(c,p,o))}</span>${chips}</span>
+      <span class="chev">${opt.ro?'':'&rsaquo;'}</span></${opt.ro?'div':'button'}>`;
+}
+function groups(hand){ const g=[]; hand.forEach((c,i)=>{ const x=g.find(y=>y.c.title===c.title); if(x) x.n++; else g.push({c,i,n:1}); }); return g; }
 
 // ---------- render ----------
 function houseHTML(p,mine){
@@ -394,13 +411,8 @@ function render(){
   $('hand').classList.toggle('wait',botTurn);
   const tipI=(S.tutor&&!botTurn&&p.left>=16&&S.plays>0)?botPick(p,other()).i:-1;
   const o=other();
-  $('hand').innerHTML=(tipI>=0?'<div class="tipb">Tap a card to see what happens.</div>':'')+p.hand.map((c,i)=>{
-    const ok=playable(c,p);
-    const chip=c.react?'<span class="chip">Use when a card hits you</span>':(!ok?'<span class="chip">House full</span>':'');
-    return `<button class="crd ${c.kind} ${ok?'':'no'} ${i===tipI?'pulse':''}" data-i="${i}" aria-label="${esc(c.title)}">
-      <span class="th" style="background-image:url('${img(c)}')"></span>
-      <span class="tx"><span class="t">${esc(c.title)}</span><span class="e">${effectLine(c,p,o)}</span>${chip}</span>
-      <span class="chev">&rsaquo;</span></button>`; }).join('');
+  const tipT=tipI>=0?p.hand[tipI].title:null;
+  $('hand').innerHTML=(tipI>=0?'<div class="tipb">Tap a card to see what happens.</div>':'')+groups(p.hand).map(g=>cardRow(g.c,g.n,p,o,{i:g.i,pulse:g.c.title===tipT})).join('');
   floats();
   $('hand').querySelectorAll('.crd').forEach(el=>el.onclick=()=>tapCard(+el.dataset.i));
 }
@@ -419,11 +431,11 @@ async function tapCard(i){
   const ok=playable(c,p), any=p.hand.some(x=>playable(x,p));
   let body, btns;
   if(!myTurn){
-    body=`<div class="panel"><div class="cap">THIS CARD</div><div class="say">${effectLine(c,p,other()).replace(/<[^>]+>/g,'')}</div><div class="note">Wait for your turn to play it.</div></div>`;
+    body=`<div class="panel"><div class="cap">THIS CARD</div><div class="say">${esc(doLine(c,p,other()))}</div><div class="note">Wait for your turn to play it.</div></div>`;
     btns=[['Back']];
   } else if(ok){
     const pv=preview(c,p,them());
-    body=`<div class="panel"><div class="cap">HERE'S WHAT WILL HAPPEN</div><div class="say">${esc(pv.say)}</div>${chgHTML(pv.rows)}${pv.note?`<div class="note">${esc(pv.note)}</div>`:''}</div>`;
+    body=`<div class="panel"><div class="cap">HERE'S WHAT WILL HAPPEN</div><div class="say">${esc(doLine(c,p,them()))}</div>${visualHTML(pv.items,false)}${pv.note?`<div class="note">${esc(pv.note)}</div>`:''}</div>`;
     btns=[['Cancel','ghost'],['Play card']];
   } else {
     body=`<div class="panel"><div class="cap">CAN'T PLAY THIS ONE YET</div><div class="say">${esc(whyNot(c,p))}</div>${!any?'<div class="note">Nothing in your hand can be played. Toss one to get a fresh card next turn.</div>':''}</div>`;
@@ -436,7 +448,7 @@ async function tapCard(i){
   if(lbl==='Toss it'){ log(`<b>${esc(p.name)}</b> tossed a card.`); return afterPlay(); }
   const before=snap(); sfx('flip'); S.lock=true;
   await resolve(c,p,them()); render(); sfxAfter(before);
-  if(S.tutor && p.left>=15){ const ch=changes(before); await sleep(500); await ask(`<div class="kicker bang">YOU PLAYED</div><img class="big sm" src="${img(c)}" alt=""><div class="panel"><div class="say">${esc(ch.say)}</div>${chgHTML(ch.rows)}</div>`,[['Got it']],{back:0}); }
+  if(S.tutor && p.left>=15){ const ch=changes(before); await sleep(500); await ask(`<div class="kicker bang">YOU PLAYED</div><img class="big sm" src="${img(c)}" alt=""><div class="panel"><div class="cap">HERE'S WHAT HAPPENED</div>${ch.any?visualHTML(ch.items,true):`<div class="say">${esc(doLine(c,p,them()))}</div>`}</div>`,[['Got it']],{back:0}); }
   S.lock=false;
   afterPlay();
 }
@@ -463,7 +475,7 @@ async function resolve(c,p,o){
     if(c.hit==='raid'){ o.cash-=100; p.cash+=100; log(`${P} borrowed $100 from ${Ot} and never paid it back.`); }
     if(c.hit==='norent'){ o.norent=true; log(`${Ot}'s guys stiffed them. No rent for ${Ot} this Friday.`); }
     if(c.hit==='peek'&&p.bot){ log(`${P} peeked at your hand. Sneaky.`); }
-    else if(c.hit==='peek'){ await ask(`<div class="kicker bang">${Ot.toUpperCase()}'S HAND</div><div class="peek">${o.hand.map(x=>`<img src="${img(x)}" alt="${esc(x.title)}">`).join('')}</div><p class="hint">Only ${esc(p.name)} looks!</p>`,[['Done peeking']],{back:0}); log(`${P} peeked at ${Ot}'s hand.`); }
+    else if(c.hit==='peek'){ await ask(`<div class="kicker bang">${Ot.toUpperCase()}'S HAND</div><div class="hand" style="width:100%;padding:0">${groups(o.hand).map(g=>cardRow(g.c,g.n,o,p,{ro:1})).join('')}</div><p class="hint">Only you can see this.</p>`,[['Done peeking']],{back:0}); log(`${P} peeked at ${Ot}'s hand.`); }
     return;
   }
   await hit(c,p,o,true);
@@ -481,7 +493,7 @@ async function hit(c,from,to,canBounce){
   else if(opts.length){
     const pv=preview(c,from,to);
     const btns=opts.map(([x])=>['Throw down: '+esc(x.title)]).concat([['Take the hit','ghost']]);
-    const k=await ask(`${S.bot?'':`<p class="hint">Hand the phone to <b>${esc(to.name)}</b> for a sec</p>`}<div class="kicker bang">${esc(from.name).toUpperCase()} HIT ${S.bot?'YOU':esc(to.name).toUpperCase()}</div><img class="big sm" src="${img(c)}" alt="${esc(c.title)}"><div class="panel"><div class="cap">IF YOU TAKE IT</div><div class="say">${esc(pv.say)}</div>${chgHTML(pv.rows)}<div class="note">You're holding a card that can stop it. Throw it down?</div></div>`,btns,{stack:1});
+    const k=await ask(`${S.bot?'':`<p class="hint">Hand the phone to <b>${esc(to.name)}</b> for a sec</p>`}<div class="kicker bang">${esc(from.name).toUpperCase()} HIT ${S.bot?'YOU':esc(to.name).toUpperCase()}</div><img class="big sm" src="${img(c)}" alt="${esc(c.title)}"><div class="panel"><div class="cap">IF YOU TAKE IT</div><div class="say">${esc(seeLine(c,from,to))}</div>${visualHTML(pv.items,false)}<div class="note">You're holding a card that can stop it. Throw it down?</div></div>`,btns,{stack:1});
     if(k<opts.length){
       const [rc,ri]=opts[k]; to.hand.splice(ri,1); S.disc.push(rc); to.hand.push(draw(to));
       if(rc.react==='bounce'){ log(`<b>${esc(to.name)}</b>: Not my problem! It bounced right back at ${esc(from.name)}.`); return hit(c,to,from,false); }
@@ -489,7 +501,7 @@ async function hit(c,from,to,canBounce){
     }
   }
   if(c.payorskip){
-    const k=to.bot?(to.cash-c.payorskip>=200?0:1):await ask(`${S.bot?'':`<p class="hint">Hand the phone to <b>${esc(to.name)}</b></p>`}<div class="kicker bang">YOUR CALL</div><img class="big sm" src="${img(c)}" alt="${esc(c.title)}"><div class="panel"><div class="say">Pay $${c.payorskip}, or sit out your next turn.</div>${chgHTML([[nm(to),money(to.cash),money(to.cash-c.payorskip),'down']])}</div>`,[[`Pay $${c.payorskip}`],['Sit out','ghost']]);
+    const k=to.bot?(to.cash-c.payorskip>=200?0:1):await ask(`${S.bot?'':`<p class="hint">Hand the phone to <b>${esc(to.name)}</b></p>`}<div class="kicker bang">YOUR CALL</div><img class="big sm" src="${img(c)}" alt="${esc(c.title)}"><div class="panel"><div class="say">${esc(seeLine(c,from,to))}</div>${visualHTML([{x:to,cash:[to.cash,to.cash-c.payorskip]}],false)}</div>`,[[`Pay $${c.payorskip}`],['Sit out','ghost']]);
     if(k===0){ to.cash-=c.payorskip; log(`${esc(to.name)} paid $${c.payorskip}. (${esc(c.title)})`); } else { to.skip++; log(`${esc(to.name)} sits out a turn. (${esc(c.title)})`); }
     return;
   }
@@ -504,7 +516,7 @@ const TRASH=['GOTCHA.','Sucks to be you.','Welcome to the neighborhood.','Nothin
 const SMUG=['Easy money.','Another one moves in.','Business is good.','Watch and learn.'];
 async function showBlock(p,rc,c){
   sfx('nope');
-  await ask(`<div class="kicker bang">${esc(p.name).toUpperCase()} THREW DOWN</div><img class="big sm" src="${img(rc)}" alt="${esc(rc.title)}"><div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Nice try.</div></div><div class="panel"><div class="say">${rc.react==='bounce'?'Your card bounced right back at you!':'Your card got blocked. Nothing happens.'}</div></div>`,[['OK']],{back:0});
+  await ask(`<div class="kicker bang">${esc(p.name).toUpperCase()} THREW DOWN</div><img class="big sm" src="${img(rc)}" alt="${esc(rc.title)}"><div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Nice try.</div></div><div class="panel"><div class="say">${esc(seeLine(rc,p,p))}</div></div>`,[['OK']],{back:0});
 }
 function botPick(p,o){
   const val=c=>{ if(c.kind==='green'){ const empty=MAXB-p.beds; return (c.cash||0)+(c.fill?empty*250:0)+Math.min(c.beds||0,empty)*250; }
@@ -534,8 +546,9 @@ async function botTurn(){
     const before=snap(); sfx('flip');
     await resolve(c,p,o); render(); sfxAfter(before);
     const ch=changes(before);
+    let say=seeLine(c,p,o); if((c.kind==='red'||c.kind==='pink'||c.hit==='steal')&&!ch.any) say+=' Nothing happened this time.';
     const line=hits?(S.tutor?'Gotcha. That one hurt, huh?':TRASH[Math.random()*TRASH.length|0]):SMUG[Math.random()*SMUG.length|0];
-    await ask(`<div class="kicker bang">BIG RAY PLAYED</div><img class="big sm" src="${img(c)}" alt="${esc(c.title)}"><div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">${esc(line)}</div></div><div class="panel"><div class="say">${esc(ch.say)}</div>${chgHTML(ch.rows)}</div>`,[['OK']],{back:0});
+    await ask(`<div class="kicker bang">BIG RAY PLAYED</div><img class="big sm" src="${img(c)}" alt="${esc(c.title)}"><div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">${esc(line)}</div></div><div class="panel"><div class="say">${esc(say)}</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
   }
   S.lock=true; await sleep(400); endTurn();
 }
@@ -543,12 +556,12 @@ async function botTurn(){
 // ---------- turn flow (same as v4) ----------
 async function startTurn(first){
   const p=me(); S.lock=true; render();
-  if(S.turn===0 && S.day===0 && !S.billed){
+  if(S.turn===0 && S.day===1 && !S.billed && S.week>1){
     S.billed=true;
     const v=viewer(), o=other();
-    await ask(`<div class="receipt"><h2 class="bang">MONDAY BILLS</h2><img src="ui/monday-bills.webp" alt=""><div class="amt bang r">-$${BILLS}</div><div class="say">Rent, lights and food. Everybody pays.</div>
+    await ask(`<div class="receipt"><h2 class="bang">WEDNESDAY BILLS</h2><img src="ui/monday-bills.webp" alt=""><div class="amt bang r">-$${BILLS}</div><div class="say">Rent, lights and food. Everybody pays.</div>
       <div class="lines"><div><span>${esc(nm(v))}</span><span>${money(v.cash)} &rarr; <b class="${v.cash-BILLS<0?'r':''}">${money(v.cash-BILLS)}</b></span></div><div><span>${esc(o.name)}</span><span>${money(o.cash)} &rarr; <b class="${o.cash-BILLS<0?'r':''}">${money(o.cash-BILLS)}</b></span></div></div></div>`,[['Pay the bills']]);
-    sfx('bills'); S.p.forEach(x=>x.cash-=BILLS); log(`Monday bills. Everybody paid $${BILLS}.`); render(); await sleep(1000);
+    sfx('bills'); S.p.forEach(x=>x.cash-=BILLS); log(`Wednesday bills. Everybody paid $${BILLS}.`); render(); await sleep(1000);
   }
   if(S.bot){ if(!p.bot){ render(); await banner('YOUR TURN',900);} }
   else {
@@ -569,9 +582,10 @@ async function endTurn(skipped){
     if(S.day===2){
       const pay=S.p.map(x=>x.norent?0:x.beds*RENT*(x.dbl?2:1));
       const order=S.bot?[S.p[0],S.p[1]]:S.p;
-      await ask(`<div class="receipt"><h2 class="bang">FRIDAY PAYDAY</h2><img src="ui/friday-payday.webp" alt=""><div class="say">Every guy pays $${RENT} rent.</div>
-        <div class="lines">${order.map(x=>{ const i=S.p.indexOf(x); const why=x.norent?' (stiffed!)':x.dbl?` (${x.beds} &times; $${RENT*2}, double!)`:` (${x.beds} &times; $${RENT})`;
-          return `<div><span>${esc(nm(x))}<br><small class="${x.norent?'r':'g'}">+$${pay[i]}${why}</small></span><span>${money(x.cash)} &rarr; <b class="${x.cash+pay[i]<0?'r':'g'}">${money(x.cash+pay[i])}</b></span></div>`; }).join('')}</div></div>`,[['Collect rent']]);
+      await ask(`<div class="receipt"><h2 class="bang">FRIDAY PAYDAY</h2><img src="ui/friday-payday.webp" alt="" style="max-height:15dvh">
+        ${order.map(x=>{ const i=S.p.indexOf(x), per=RENT*(x.dbl?2:1);
+          const beds=Array.from({length:MAXB},(_,k)=>k<x.beds?`<div class="pb ${x.norent?'st':''}">$${per}<div class="bed on">${BED}</div></div>`:`<div class="pb x">&nbsp;<div class="bed">${BED}</div></div>`).join('');
+          return `<div class="payrow"><div class="w">${esc(nm(x))}${x.dbl?' <span class="g">&middot; double rent!</span>':''}${x.norent?' <span class="r">&middot; stiffed! no rent</span>':''}</div><div class="pbeds">${beds}</div><div class="pay-eq ${pay[i]?'':'z'}"><span style="font:800 26px Poppins">=</span> <span class="bang">+$${pay[i]}</span></div><div class="pay-tot">Total: <b class="${x.cash+pay[i]<0?'r':''}">${money(x.cash+pay[i])}</b></div></div>`; }).join('')}</div>`,[['Collect rent']]);
       sfx('payday');
       S.p.forEach((x,i)=>{ x.cash+=pay[i]; x.norent=false; x.dbl=false; }); log(`Friday payday. ${S.p.map((x,i)=>`${esc(x.name)} +$${pay[i]}`).join(', ')}.`); render(); await sleep(1300);
       const broke=S.p.filter(x=>x.cash<0);
