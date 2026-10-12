@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#15110d">
+<title>Sober House</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#15110d;--panel:#211910;--line:#4a3826;--cream:#f6ebcd;--ink:#211910;--gold:#e8b634;--red:#d53732;--green:#21945c;--pink:#ed3995;--dim:#b3a183;--up:#3fbf6f;--down:#ff4b3e}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--cream);font-family:Poppins,system-ui,sans-serif;overscroll-behavior:none}
+body{background:var(--bg) url('ui/bg.webp') center top/cover fixed;min-height:100dvh}
+.app{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.bang{font-family:Bangers,Poppins,sans-serif;letter-spacing:.04em;font-weight:400}
+button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;color:inherit}
+.btn{min-height:56px;background:var(--gold) url('ui/button-gold.svg') center/100% 100% no-repeat;color:var(--ink);padding:12px 16px;font-size:19px;line-height:1.15;width:100%;border-radius:14px;box-shadow:0 4px 0 #8c6516}
+.btn:active{background-image:url('ui/button-gold-pressed.svg');transform:translateY(2px);box-shadow:0 2px 0 #8c6516}
+.btn.ghost{background:transparent;color:var(--cream);border:2px solid var(--cream);box-shadow:none}
+.btn.red{background:var(--red);color:#fff;box-shadow:0 4px 0 #7a1712}
+.btn:disabled{background:#3a2e22;color:#8d7c62;box-shadow:none;cursor:default;transform:none}
+.btn.small{min-height:48px;font-size:16px}
+.ibtn{min-width:44px;min-height:44px;background:transparent;display:inline-grid;place-items:center;border-radius:12px;font-size:22px;color:var(--cream);text-decoration:none}
+.pill{background:#fff;color:#000;font-weight:800;font-size:11px;padding:3px 9px;border-radius:999px;white-space:nowrap}
+
+/* ---------- header ---------- */
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px;padding:6px 10px 2px}
+.top .lft{display:flex;align-items:center;gap:2px}
+.top .logo{width:70px;height:auto}
+.count{text-align:center;line-height:1}
+.count .n{font-size:44px;line-height:.95}
+.count .l{font:800 11px Poppins;letter-spacing:.12em;color:var(--dim)}
+.count .s{font:800 13px Poppins;letter-spacing:.06em;margin-top:3px;color:var(--dim)}
+.count .s b{color:var(--gold)}
+.count.low .n{color:var(--down);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.45}}
+.rgt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.rgt .row2{display:flex;align-items:center;gap:2px}
+.hbtn{display:flex;align-items:center;gap:6px;border:2px solid var(--gold);border-radius:12px;min-height:44px;padding:0 10px;background:transparent;font-size:14px;color:var(--cream)}
+.hbtn img{width:20px;height:20px}
+@media (max-width:370px){.top .logo{display:none}}
+
+/* ---------- houses ---------- */
+.houses{display:grid;grid-template-columns:1.55fr 1fr;gap:8px;padding:8px 12px 4px}
+.hs{border-radius:16px;padding:10px 12px;background:rgba(33,25,16,.92);border:2px solid var(--line);min-width:0}
+.hs.me{border:3px solid var(--gold)}
+.hs .nm{font-size:19px;line-height:1;color:var(--cream)}
+.hs.them .nm{font-size:16px;color:var(--dim)}
+.hs .money{font-size:40px;line-height:1;margin-top:2px}
+.hs.them .money{font-size:30px}
+.hs .money.neg{color:var(--down)}
+.hs .bd{font:700 15px Poppins;margin-top:2px}
+.hs .bd b{color:var(--gold);font-size:19px}
+.hs.them .bd{font-size:13px}.hs.them .bd b{font-size:16px}
+.beds{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap}
+.bed{width:24px;height:20px;border-radius:5px;background:#3d3024;display:grid;place-items:center}
+.bed svg{width:18px;height:12px;fill:#6b5a45}
+.bed.on{background:var(--gold)}.bed.on svg{fill:var(--ink)}
+.hs.them .bed{width:15px;height:12px;border-radius:3px}.hs.them .bed svg{display:none}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tag{font:800 11px Poppins;padding:2px 7px;border-radius:999px;background:var(--pink);color:#fff}
+.tag.g{background:var(--green)}
+
+/* ---------- hand ---------- */
+.handhead{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:10px 12px 2px;font-size:24px}
+.handhead small{font:800 13px Poppins;color:var(--dim);letter-spacing:.08em}
+.hand{display:flex;flex-direction:column;gap:8px;padding:6px 12px 18px}
+.hand.wait .crd{opacity:.55}
+.crd{position:relative;width:100%;min-height:84px;display:grid;grid-template-columns:27.9% 1fr 22px;align-items:center;gap:0;padding:8px 8px 8px 8px;text-align:left;color:var(--ink);background:transparent center/100% 100% no-repeat;border-radius:14px;font-family:Poppins}
+.crd.green{background-image:url('ui/hand-row-green.svg')}.crd.red{background-image:url('ui/hand-row-red.svg')}
+.crd.pink{background-image:url('ui/hand-row-pink.svg')}.crd.gold{background-image:url('ui/hand-row-gold.svg')}
+.crd .th{height:100%;min-height:66px;margin-right:8px;border-radius:9px;background-size:122% auto;background-position:50% 50%;background-repeat:no-repeat;border:2px solid var(--ink)}
+.crd .tx{padding:4px 4px 4px 12px;min-width:0}
+.crd .t{display:block;font-family:Bangers,Poppins;font-size:22px;line-height:1.02;letter-spacing:.03em}
+.crd .e{display:block;font:700 15.5px/1.25 Poppins;margin-top:3px}
+.crd .chev{font-size:24px;font-weight:800;color:var(--ink);opacity:.7}
+.crd.no{filter:saturate(.35) brightness(.85)}
+.crd .chip{display:inline-block;margin-top:5px;font:800 12px Poppins;background:#4a3d2c;color:var(--cream);padding:3px 9px;border-radius:999px}
+.who-you{color:var(--green)}.who-them{color:var(--red)}
+.crd.pulse{animation:glow 1.1s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(232,182,52,0)}50%{box-shadow:0 0 0 5px rgba(246,235,205,.9)}}
+.tipb{align-self:center;background:var(--cream);color:var(--ink);font:800 15px Poppins;padding:8px 14px;border-radius:12px;position:relative;margin:2px 0 4px}
+.tipb:after{content:'';position:absolute;left:30%;top:100%;border:8px solid transparent;border-top-color:var(--cream)}
+
+/* ---------- full-screen overlay ---------- */
+.ov{position:fixed;inset:0;z-index:20;display:none;flex-direction:column;background:rgba(15,11,8,.97) url('ui/bg.webp') center/cover}
+.ov.on{display:flex}
+.ov .sc{flex:1;overflow:auto;padding:calc(14px + env(safe-area-inset-top)) 16px 8px;display:flex;flex-direction:column;align-items:center;gap:12px;max-width:480px;width:100%;margin:0 auto}
+.ov .acts{display:flex;gap:12px;flex-wrap:wrap;padding:10px 16px calc(14px + env(safe-area-inset-bottom));max-width:480px;width:100%;margin:0 auto}
+.ov .acts>*{flex:1 1 40%}
+.ov .acts.stack>*{flex-basis:100%}
+.ov .acts.lead>*:first-child{flex-basis:100%}
+.kicker{display:flex;align-items:center;gap:12px;width:100%;font-size:30px;line-height:1;justify-content:center;text-align:center}
+.kicker:before,.kicker:after{content:'';flex:1;height:2px;background:var(--dim);opacity:.5;max-width:60px}
+.big{display:block;width:auto;max-width:min(72vw,270px);max-height:44dvh;aspect-ratio:400/560;border-radius:14px;box-shadow:0 10px 24px #000a}
+.big.sm{max-height:34dvh}
+.panel{width:100%;background:var(--cream);color:var(--ink);border-radius:14px;padding:12px 16px 14px;text-align:center;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.panel .cap{font:800 13px Poppins;letter-spacing:.12em;color:#7a6440;border-bottom:2px solid #d8c7a0;padding-bottom:6px;margin-bottom:8px}
+.panel .say{font:700 18px/1.3 Poppins}
+.panel .note{font:600 14px/1.3 Poppins;color:#6d5a3d;margin-top:6px}
+.chg{display:grid;grid-template-columns:auto auto auto auto;justify-content:center;align-items:baseline;gap:4px 10px;background:#ece0bf;border-radius:10px;padding:8px 12px;margin-top:10px;font:800 17px Poppins}
+.chg .k{font-size:13px;letter-spacing:.06em;color:#6d5a3d;text-align:right}
+.chg .to.up{color:var(--green)}.chg .to.down{color:var(--red)}
+.chg .ar{color:#6d5a3d}
+.ray{display:flex;align-items:center;gap:10px;width:100%}
+.ray img{width:72px;height:72px;border-radius:50%;border:3px solid var(--gold);flex:0 0 auto;object-fit:cover}
+.bubble{position:relative;background:var(--cream);color:var(--ink);font:800 17px/1.25 Poppins;padding:10px 14px;border-radius:14px;flex:1}
+.bubble:before{content:'';position:absolute;right:100%;top:50%;transform:translateY(-50%);border:9px solid transparent;border-right-color:var(--cream)}
+.hint{font:600 14px Poppins;color:var(--dim);text-align:center}
+.receipt{width:100%;background:url('ui/receipt-panel.svg') center/100% 100% no-repeat;color:var(--ink);padding:14px 16px 16px;text-align:center;border-radius:16px}
+.receipt h2{margin:0;font-size:52px;line-height:.95}
+.receipt img{width:100%;max-height:26dvh;object-fit:contain;margin:6px 0}
+.receipt .amt{font-size:60px;line-height:1}
+.receipt .amt.r{color:var(--red)}.receipt .amt.g{color:var(--green)}
+.receipt .say{font:700 17px/1.3 Poppins}
+.lines{width:100%;margin-top:8px;border-top:2px solid var(--gold)}
+.lines div{display:flex;justify-content:space-between;gap:8px;padding:7px 2px;border-bottom:1px solid #d8c7a0;font:700 16px Poppins;text-align:left}
+.lines div span:last-child{text-align:right;white-space:nowrap}
+.r{color:var(--red)}.g{color:var(--green)}
+.final{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.final>div{border-radius:14px;padding:10px;text-align:center;border:3px solid var(--line);background:var(--panel)}
+.final>div.win{background:var(--cream);color:var(--ink);border-color:var(--gold)}
+.final .m{font-size:38px;line-height:1}
+.final .k{font:800 12px Poppins;letter-spacing:.1em;opacity:.75}
+.winhead{width:100%;text-align:center;background:var(--cream);color:var(--ink);border:4px solid var(--gold);border-radius:16px;padding:8px 10px}
+.winhead h2{margin:0;font-size:60px;line-height:1}
+.winhead p{margin:2px 0 0;font:800 16px Poppins}
+.illo{width:100%;max-height:24dvh;object-fit:contain}
+.hist{width:100%}
+.hist p{text-align:left;font-size:15px;margin:0;padding:10px 2px;border-bottom:1px solid var(--line)}
+.hist .d{display:inline-block;min-width:40px;font:800 11px Poppins;color:var(--gold);letter-spacing:.06em}
+.ov h2.t{margin:0;font-size:38px;line-height:1;text-align:center}
+.ov p.b{margin:0;font-size:17px;text-align:center;line-height:1.35}
+.peek{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.peek img{width:100%;border-radius:8px}
+
+/* ---------- start ---------- */
+.start{flex:1;display:flex;flex-direction:column;align-items:center;padding:6px 20px 24px;gap:12px;text-align:center}
+.start .bar{width:100%;display:flex;align-items:center;justify-content:space-between}
+.start img.logo{width:78%;max-width:320px}
+.start .time{color:var(--dim);font-weight:700;font-size:14px}
+.start input{width:100%;padding:14px;border-radius:12px;border:2px solid var(--line);background:#0b0805;color:var(--cream);font:700 17px Poppins;text-align:center}
+.start .ray{justify-content:center}.start .bubble{flex:0 1 auto;text-align:left;font-size:15px}
+
+.banner{position:fixed;left:50%;top:40%;width:92vw;max-width:440px;text-align:center;line-height:1;transform:translate(-50%,-50%) scale(.6);opacity:0;font-size:clamp(44px,13vw,62px);z-index:30;pointer-events:none;text-shadow:0 4px 0 #000,0 0 30px #000;transition:all .35s;color:var(--gold)}
+.banner.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.hidden{display:none!important}
+.float{position:fixed;z-index:15;font-family:Bangers,Poppins,sans-serif;font-size:36px;pointer-events:none;white-space:nowrap;padding:2px 12px;border-radius:10px;color:#fff;box-shadow:0 3px 0 #000;animation:floatup 1.7s ease-out forwards}
+.float.up{background:var(--green)}.float.down{background:var(--red)}
+@keyframes floatup{0%{opacity:0;transform:translate(-50%,10px) scale(.7) rotate(-3deg)}15%{opacity:1;transform:translate(-50%,0) scale(1.1) rotate(-3deg)}100%{opacity:0;transform:translate(-50%,-80px) scale(1) rotate(-3deg)}}
+@media (prefers-reduced-motion:reduce){.float{animation-duration:2.2s}.crd.pulse{animation:none;box-shadow:0 0 0 4px var(--cream)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div id="startScreen" class="start">
+  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v6 TEST</span></span></div>
+  <img class="logo" src="../cards/logo.webp" alt="Sober House">
+  <div class="bang" style="font-size:26px;line-height:1.1">Run the house. Most money when the clock runs out wins.</div>
+  <div class="time">Takes about 15&ndash;20 minutes</div>
+  <input id="n0" maxlength="14" placeholder="Your name" autocomplete="off">
+  <button class="btn" id="goBot">Play Big Ray</button>
+  <div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">I run the house across the street. I play dirty.</div></div>
+  <input id="n1" maxlength="14" placeholder="Friend's name" autocomplete="off" class="hidden">
+  <button class="btn ghost" id="go">2 players, pass the phone</button>
+  <button class="btn ghost" id="howBtn">How to play</button>
+</div>
+
+<div id="gameScreen" class="hidden" style="flex-direction:column;flex:1">
+  <div class="top">
+    <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="ui/logo-sober-house.svg" alt="Sober House"></div>
+    <div class="count" id="count"><div class="n bang" id="left">18</div><div class="l" id="leftLbl">YOUR TURNS LEFT</div><div class="s" id="status"></div></div>
+    <div class="rgt"><span class="pill">v6 TEST</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
+  </div>
+  <div class="houses"><div class="hs me" id="myHouse"></div><div class="hs them" id="oppHouse"></div></div>
+  <div class="handhead bang" id="handHead">YOUR HAND</div>
+  <div class="hand" id="hand"></div>
+</div>
+
+</div>
+
+<div class="ov" id="ov"><div class="sc" id="ovBody"></div><div class="acts" id="ovActs"></div></div>
+<div class="banner bang" id="banner"></div>
+
+<script>
+const DECK=[{"id":1,"kind":"green","title":"Car Wash Fundraiser","words":"Cha-ching. +$200.","img":"sh-001","cash":200},{"id":2,"kind":"green","title":"Car Wash Fundraiser","words":"Cha-ching. +$200.","img":"sh-001","cash":200},{"id":3,"kind":"green","title":"Church Donates Groceries","words":"Free food. +$100.","img":"sh-002","cash":100},{"id":4,"kind":"green","title":"Church Donates Groceries","words":"Free food. +$100.","img":"sh-002","cash":100},{"id":5,"kind":"green","title":"Guy's Grandma Sends a Check","words":"Grandma came through. Rent paid. +$150.","img":"sh-003","cash":150},{"id":6,"kind":"green","title":"Guy's Grandma Sends a Check","words":"Grandma came through. Rent paid. +$150.","img":"sh-003","cash":150},{"id":7,"kind":"green","title":"Guy Got a Job, Paid His Back Rent","words":"Bag secured. +$100.","img":"sh-004","cash":100},{"id":8,"kind":"green","title":"Guy Got a Job, Paid His Back Rent","words":"Bag secured. +$100.","img":"sh-004","cash":100},{"id":9,"kind":"green","title":"Landlord Forgot to Cash the Rent Check","words":"Shhh. +$200.","img":"sh-005","cash":200},{"id":10,"kind":"green","title":"Guy Sold Plasma to Pay His Rent","words":"Hustle. +$50.","img":"sh-006","cash":50},{"id":11,"kind":"green","title":"Church Brought Lasagna","words":"Dinner's handled. +$50.","img":"sh-007","cash":50},{"id":12,"kind":"green","title":"Found $40 in the Couch","words":"Score. +$40.","img":"sh-008","cash":40},{"id":13,"kind":"green","title":"House Won the Chili Cook-Off","words":"Champs. +$150.","img":"sh-009","cash":150},{"id":14,"kind":"green","title":"Community Rallies Behind You","words":"They got your back. +$300.","img":"sh-010","cash":300},{"id":15,"kind":"green","title":"Community Rallies Behind You","words":"They got your back. +$300.","img":"sh-010","cash":300},{"id":16,"kind":"green","title":"Community Rallies Behind You","words":"They got your back. +$300.","img":"sh-010","cash":300},{"id":17,"kind":"green","title":"New Guy Moves In","words":"Welcome home. Stay sober. Bed filled.","img":"sh-011","beds":1},{"id":18,"kind":"green","title":"New Guy Moves In","words":"Welcome home. Stay sober. Bed filled.","img":"sh-011","beds":1},{"id":19,"kind":"green","title":"New Guy Moves In","words":"Welcome home. Stay sober. Bed filled.","img":"sh-011","beds":1},{"id":20,"kind":"green","title":"New Guy Moves In","words":"Welcome home. Stay sober. Bed filled.","img":"sh-011","beds":1},{"id":21,"kind":"green","title":"New Guy Cooks for the House","words":"New guy can cook. Stay sober. Bed filled. +$50.","img":"sh-012","beds":1,"cash":50},{"id":22,"kind":"green","title":"New Guy Cooks for the House","words":"New guy can cook. Stay sober. Bed filled. +$50.","img":"sh-012","beds":1,"cash":50},{"id":23,"kind":"green","title":"Two Brothers Move In","words":"Two for one. Stay sober, boys. 2 beds filled.","img":"sh-013","beds":2},{"id":24,"kind":"green","title":"Two Brothers Move In","words":"Two for one. Stay sober, boys. 2 beds filled.","img":"sh-013","beds":2},{"id":25,"kind":"green","title":"New Guy Pays His First Week Up Front","words":"Pay up, new guy. Stay sober. Bed filled. +$100.","img":"sh-014","beds":1,"cash":100},{"id":26,"kind":"green","title":"He Came Back After Coffee and a Talk","words":"Welcome back. Stay sober. Bed filled.","img":"sh-015","beds":1},{"id":27,"kind":"green","title":"Court Sent You 3 Guys","words":"Judge sent 3. Stay sober, fellas. 3 beds filled.","img":"sh-016","beds":3},{"id":28,"kind":"green","title":"Hospital Social Worker Has Your Number","words":"She called you first. Stay sober. 2 beds filled.","img":"sh-017","beds":2},{"id":29,"kind":"green","title":"Probation Office Sends Referrals","words":"PO hooked you up. Stay sober. 2 beds filled.","img":"sh-018","beds":2},{"id":30,"kind":"green","title":"Peer Supporter Sends You a Guy","words":"New guy. Stay sober. More rent. Bed filled.","img":"sh-019","beds":1},{"id":31,"kind":"green","title":"Peer Supporter Sends You a Guy","words":"New guy. Stay sober. More rent. Bed filled.","img":"sh-019","beds":1},{"id":32,"kind":"green","title":"Your House Got a Shoutout at the Meeting","words":"Word got out. Stay sober. Bed filled.","img":"sh-020","beds":1},{"id":33,"kind":"green","title":"Your House Got a Shoutout at the Meeting","words":"Word got out. Stay sober. Bed filled.","img":"sh-020","beds":1},{"id":34,"kind":"green","title":"5 Stars on Google","words":"Five stars, baby. 2 beds filled.","img":"sh-021","beds":2},{"id":35,"kind":"green","title":"Detox Just Closed","words":"Packed house. Every bed filled.","img":"sh-022","fill":1},{"id":36,"kind":"green","title":"Treatment Center at Capacity","words":"No vacancy. Every bed filled.","img":"sh-023","fill":1},{"id":37,"kind":"green","title":"New Partnership With the Charity Down the Road","words":"Packed house. Every bed filled.","img":"sh-024","fill":1},{"id":38,"kind":"green","title":"Got Your Recovery Housing Certification","words":"Certified. No vacancy. Every bed filled.","img":"sh-025","fill":1},{"id":39,"kind":"red","title":"Toilet Backed Up","words":"GOTCHA. You pay the plumber $150.","img":"sh-000","wrench":1,"cash":-150},{"id":40,"kind":"red","title":"Toilet Backed Up","words":"GOTCHA. You pay the plumber $150.","img":"sh-000","wrench":1,"cash":-150},{"id":41,"kind":"red","title":"Water Heater Quits","words":"Cold showers. You pay $200.","img":"sh-026","wrench":1,"cash":-200},{"id":42,"kind":"red","title":"Washer Flooded the Basement","words":"Swimming pool. You pay $150.","img":"sh-027","wrench":1,"cash":-150},{"id":43,"kind":"red","title":"Grill Fire on the Porch","words":"Who left the grill on? You pay $200.","img":"sh-028","wrench":1,"cash":-200},{"id":44,"kind":"red","title":"State Inspector Shows Up","words":"You pay $100.","img":"sh-029","cash":-100},{"id":45,"kind":"red","title":"State Inspector Shows Up","words":"You pay $100.","img":"sh-029","cash":-100},{"id":46,"kind":"red","title":"Mystery Smell","words":"What IS that? You pay $75.","img":"sh-030","cash":-75},{"id":47,"kind":"red","title":"Raccoon in the Garbage","words":"Trash panda. Call the exterminator. You pay $50.","img":"sh-031","cash":-50},{"id":48,"kind":"red","title":"Somebody Fed One Stray Cat","words":"Now there's 14. Call the warden. You pay $100.","img":"sh-032","cash":-100},{"id":49,"kind":"red","title":"House Manager Hit a Deer","words":"Oh deer. You pay $250.","img":"sh-033","cash":-250},{"id":50,"kind":"red","title":"Neighbor Called the City About the Couch on the Porch","words":"Karen called the city. You pay $100.","img":"sh-034","cash":-100},{"id":51,"kind":"red","title":"Snuck His Girlfriend In","words":"Caught. He's out. You lose a bed.","img":"sh-035","beds":-1},{"id":52,"kind":"red","title":"Met Someone at the Meeting","words":"Love at first share. He's gone. You lose a bed.","img":"sh-036","beds":-1},{"id":53,"kind":"red","title":"Engaged After 3 Weeks","words":"Bye bye. You lose a bed.","img":"sh-037","beds":-1},{"id":54,"kind":"red","title":"Moved Back in With Mom","words":"You lose a bed.","img":"sh-038","beds":-1},{"id":55,"kind":"red","title":"Got a Job in Florida","words":"Good for him. You lose a bed.","img":"sh-039","beds":-1},{"id":56,"kind":"red","title":"Ate Everybody's Leftovers","words":"Packed his trash bag. You lose a bed.","img":"sh-040","beds":-1},{"id":57,"kind":"red","title":"Adopted a Cat Without Asking","words":"No pets. He's gone. You lose a bed.","img":"sh-041","beds":-1},{"id":58,"kind":"red","title":"Brought Home a Pit Bull \"Just for the Weekend\"","words":"No pets. Bye bye. You lose a bed.","img":"sh-042","beds":-1},{"id":59,"kind":"red","title":"Skipped His Meetings All Week","words":"House rules. He's out. You lose a bed.","img":"sh-043","beds":-1},{"id":60,"kind":"red","title":"Parole Officer Showed Up","words":"He's gone. You lose a bed.","img":"sh-044","beds":-1},{"id":61,"kind":"red","title":"Wood Chipper Business Out of His Bedroom","words":"Kicked out. You lose a bed.","img":"sh-045","beds":-1},{"id":62,"kind":"red","title":"Two Guys Got in a Fight","words":"Both gone. You lose 2 beds.","img":"sh-046","beds":-2},{"id":63,"kind":"red","title":"Two Guys Got an Apartment Together","words":"Peace out. You lose 2 beds.","img":"sh-047","beds":-2},{"id":64,"kind":"red","title":"His Mom Called the House 40 Times","words":"Go talk to his mom. You lose a turn.","img":"sh-048","skip":1},{"id":65,"kind":"red","title":"The Wi-Fi Went Down","words":"Riot. Pay the cable guy $75 or sit out a turn. Your call.","img":"sh-049","payorskip":75},{"id":66,"kind":"pink","title":"Dumped 12 Stray Cats in Your Yard","words":"GOTCHA. Meow. You pay the warden $200.","img":"sh-050","cash":-200},{"id":67,"kind":"pink","title":"Ordered 40 Pizzas to Your House","words":"Hope you're hungry. You pay $150.","img":"sh-051","cash":-150},{"id":68,"kind":"pink","title":"Ordered 40 Pizzas to Your House","words":"Hope you're hungry. You pay $150.","img":"sh-051","cash":-150},{"id":69,"kind":"pink","title":"Left a Goat in Your Yard","words":"Baaa. You pay $150.","img":"sh-052","cash":-150},{"id":70,"kind":"pink","title":"Called in a Noise Complaint on You","words":"Shut it down. You pay $100.","img":"sh-053","cash":-100},{"id":71,"kind":"pink","title":"Put a Fish in Your Heating Vent","words":"Smells fishy. You pay $100.","img":"sh-054","cash":-100},{"id":72,"kind":"pink","title":"Glitter Bombed Your Living Room","words":"Sparkle, sparkle. You pay $75.","img":"sh-055","cash":-75},{"id":73,"kind":"pink","title":"Signed You Up to Bring Coffee to Every Meeting","words":"Coffee's on you. You pay $50.","img":"sh-056","cash":-50},{"id":74,"kind":"pink","title":"Swapped Your Coffee With Decaf","words":"Decaf?! Buy real coffee for $75 or sit out a turn. Your call.","img":"sh-057","payorskip":75},{"id":75,"kind":"pink","title":"Hid Your Coffee Maker","words":"No coffee. Buy a new one for $75 or sit out a turn. Your call.","img":"sh-058","payorskip":75},{"id":76,"kind":"pink","title":"Changed Your Wi-Fi Password","words":"No Wi-Fi. Pay the cable guy $75 or sit out a turn. Your call.","img":"sh-059","payorskip":75},{"id":77,"kind":"pink","title":"Listed Your House on Zillow for $1","words":"Open house. Sit down. You lose a turn.","img":"sh-060","skip":1},{"id":78,"kind":"pink","title":"Listed Your Couch as \"Free\" on Facebook","words":"Strangers at the door. Benched. You lose a turn.","img":"sh-061","skip":1},{"id":79,"kind":"pink","title":"Sent Their Loudest Guy to Your House for Dinner","words":"He. Will. Not. Stop. Talking. You lose a turn.","img":"sh-062","skip":1},{"id":80,"kind":"pink","title":"Gave Your Number to Every Car Warranty Guy","words":"Phone won't stop. Benched. You lose a turn.","img":"sh-063","skip":1},{"id":81,"kind":"pink","title":"Told the Whole Meeting You Have Free Donuts Every Morning","words":"Every guy in town showed up. You pay $150.","img":"sh-064","cash":-150},{"id":82,"kind":"pink","title":"Ordered a Bouncy Castle to Your Front Yard","words":"Party time. You pay $150 for the rental.","img":"sh-065","cash":-150},{"id":83,"kind":"pink","title":"Hired a Clown to Sit on Your Porch","words":"He won't leave. Pay him $75 to go away or sit out a turn. Your call.","img":"sh-066","payorskip":75},{"id":84,"kind":"pink","title":"Saran-Wrapped Your Toilet Seat","words":"Oh no. Messy. You pay $100.","img":"sh-067","cash":-100},{"id":85,"kind":"pink","title":"Filled Your Mailbox With Crickets","words":"Chirp chirp. You pay the exterminator $150.","img":"sh-068","cash":-150},{"id":86,"kind":"pink","title":"Sent a Mariachi Band to Your House at 6 AM","words":"Wake up! Pay them $75 to leave or sit out a turn. Your call.","img":"sh-069","payorskip":75},{"id":87,"kind":"pink","title":"Sent a Guy Dressed Like the State Inspector","words":"Fake out. You cleaned all day for nothing. You lose a turn.","img":"sh-070","skip":1},{"id":88,"kind":"pink","title":"Signed You Up for 500 Magazines","words":"Mailbox exploded. You pay $100.","img":"sh-071","cash":-100},{"id":89,"kind":"pink","title":"Filled Your Van With Packing Peanuts","words":"Good luck. You pay $75 for the clean-out.","img":"sh-072","cash":-75},{"id":90,"kind":"gold","title":"House Manager Handled It","words":"Somebody hit you with a bad card? Throw this down. Nothing happens.","img":"sh-073","react":"block"},{"id":91,"kind":"gold","title":"House Manager Handled It","words":"Somebody hit you with a bad card? Throw this down. Nothing happens.","img":"sh-073","react":"block"},{"id":92,"kind":"gold","title":"Not My Problem","words":"Somebody hit you with a bad card? Throw this down. It goes right back to them.","img":"sh-074","react":"bounce"},{"id":93,"kind":"gold","title":"Not My Problem","words":"Somebody hit you with a bad card? Throw this down. It goes right back to them.","img":"sh-074","react":"bounce"},{"id":94,"kind":"gold","title":"Plunger","words":"Not today. Blocks any 🔧 broken-house card.","img":"sh-075","react":"wrench"},{"id":95,"kind":"gold","title":"Guy's Uncle Owns a Construction Company","words":"Uncle's got it. Blocks any 🔧 broken-house card.","img":"sh-076","react":"wrench"},{"id":96,"kind":"gold","title":"Handy Guy at the House Fixed It Himself","words":"Fixed it. Blocks any 🔧 broken-house card.","img":"sh-077","react":"wrench"},{"id":97,"kind":"gold","title":"Double Trouble","words":"Double whammy. Play 2 cards this turn.","img":"sh-078","self":"double"},{"id":98,"kind":"gold","title":"Double Trouble","words":"Double whammy. Play 2 cards this turn.","img":"sh-078","self":"double"},{"id":99,"kind":"gold","title":"Double Trouble","words":"Double whammy. Play 2 cards this turn.","img":"sh-078","self":"double"},{"id":100,"kind":"gold","title":"Called a House Meeting at Their House","words":"Play this on the other player. They lose their next turn.","img":"sh-079","hit":"skip"},{"id":101,"kind":"gold","title":"He Likes Your House Better","words":"Play this on the other player. One of their guys moves into YOUR house. They lose a bed, you gain one.","img":"sh-080","hit":"steal"},{"id":102,"kind":"gold","title":"The Bank Mixed Up Your Accounts","words":"Trade money with the other player. Their money is yours, and yours is theirs.","img":"sh-081","hit":"swap"},{"id":103,"kind":"gold","title":"Borrowed $100 and Never Paid It Back","words":"Play this on the other player. Take $100 out of their money and put it in yours.","img":"sh-082","hit":"raid"},{"id":104,"kind":"gold","title":"Their Guys Stiffed Them on Rent","words":"Play this on the other player. They get NO rent this Friday. It's gone.","img":"sh-083","hit":"norent"},{"id":105,"kind":"gold","title":"Everybody Paid a Week Ahead","words":"Play this on yourself. This Friday, every guy in your house pays double rent.","img":"sh-084","self":"dblrent"},{"id":106,"kind":"gold","title":"Peeked at Their Hand","words":"Play this on the other player. You get to see every card they're holding.","img":"sh-085","hit":"peek"}];
+const BASE='../';
+const BOT='Big Ray';
+const START=800, BILLS=300, RENT=100, MAXB=6, WEEKS=6, DAYS=['MONDAY','WEDNESDAY','FRIDAY'], HAND=5;
+let S=null;
+const $=id=>document.getElementById(id);
+const img=c=>BASE+'cards/'+c.img+'.webp';
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const money=n=>(n<0?'-$':'$')+Math.abs(n).toLocaleString();
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const BED='<svg viewBox="0 0 24 16"><path d="M2 2h3v6h17a2 2 0 0 1 2 2v6h-3v-3H5v3H2z"/><rect x="6" y="4" width="6" height="4" rx="1.5"/></svg>';
+
+// ---------- full-screen overlay ----------
+let OV=null; // {res, backIdx}
+function ask(html,buttons,opt={}){ return new Promise(res=>{
+  $('ovBody').innerHTML=html; $('ovBody').scrollTop=0;
+  $('ovActs').className='acts'+(opt.lead?' lead':(opt.stack||buttons.length>2?' stack':''));
+  $('ovActs').innerHTML=buttons.map((b,i)=>`<button class="btn ${b[1]||''}" data-i="${i}" ${b[2]?'disabled':''}>${b[0]}</button>`).join('');
+  $('ov').classList.add('on');
+  OV={res,back:opt.back};
+  $('ovActs').querySelectorAll('[data-i]').forEach(el=>el.onclick=()=>{ const r=OV&&OV.res; OV=null; $('ov').classList.remove('on'); setTimeout(floats,60); if(r) r(+el.dataset.i); });
+});}
+function closeOv(i){ if(!OV) return false; const r=OV.res; OV=null; $('ov').classList.remove('on'); setTimeout(floats,60); r(i); return true; }
+async function banner(t,ms=1100){ const b=$('banner'); b.textContent=t; b.classList.add('on'); await sleep(ms); b.classList.remove('on'); await sleep(250); }
+
+// phone back button: closes a card you opened, otherwise asks to leave the game
+function armBack(){ try{ history.pushState({sh:1},''); }catch(e){} }
+window.addEventListener('popstate',()=>{
+  if($('gameScreen').classList.contains('hidden')) return;
+  armBack();
+  if(OV){ if(OV.back!=null) closeOv(OV.back); return; }
+  $('quitBtn').click();
+});
+
+// ---------- sound ----------
+const SFX={}; ['kaching','door','lose','flip','shuffle','aww','nope','draw','bills','laugh','win','payday'].forEach(n=>{const a=new Audio(BASE+'sfx/'+n+'.mp3'); a.preload='auto'; SFX[n]=a;});
+let MUTE=false; try{MUTE=localStorage.getItem('sh_mute')==='1'}catch(e){}
+function sfx(n){ if(MUTE||!SFX[n]) return; try{ const a=SFX[n]; a.currentTime=0; const p=a.play(); if(p) p.catch(()=>{}); }catch(e){} }
+function muteIcons(){ document.querySelectorAll('.mute').forEach(b=>{ b.innerHTML=MUTE?'&#128263;':'&#128266;'; b.style.opacity=MUTE?.55:1; }); }
+document.querySelectorAll('.mute').forEach(b=>b.onclick=()=>{ MUTE=!MUTE; try{localStorage.setItem('sh_mute',MUTE?'1':'0')}catch(e){} muteIcons(); if(!MUTE) sfx('flip'); });
+muteIcons();
+function sfxAfter(before){
+  const v=viewer(), vi=S.p.indexOf(v), oi=1-vi, b=before;
+  const vc=v.cash-b[vi].cash, vb=v.beds-b[vi].beds, vs=v.skip-b[vi].skip;
+  const o=S.p[oi], oc=o.cash-b[oi].cash, ob=o.beds-b[oi].beds, os=o.skip-b[oi].skip;
+  if(vb<0) return sfx('lose');
+  if(vc<0||vs>0) return sfx('aww');
+  if(vb>0) return sfx('door');
+  if(vc>0) return sfx('kaching');
+  if(oc<0||ob<0||os>0) return sfx('laugh');
+}
+const DSHORT=['MON','WED','FRI'];
+function log(t){ if(!S) return; S.hist.unshift(`<span class="d">${DSHORT[S.day]}</span>${t}`); S.hist=S.hist.slice(0,60); }
+async function showHistory(){
+  await ask(`<h2 class="t bang">What happened</h2><p class="hint">Newest on top</p><div class="hist">${S&&S.hist.length?S.hist.map(h=>`<p>${h}</p>`).join(''):'<p>Nothing yet.</p>'}</div>`,[['Back to the game']],{back:0});
+}
+$('histBtn').onclick=()=>{ if(!S||OV) return; showHistory(); };
+
+// ---------- how to play ----------
+async function howTo(){
+  const steps=[
+    ['Tap a card','Every card in your hand shows what it does. Tap one and it tells you exactly what will happen before you play it.'],
+    ['Hit your friend','Green cards help your house. Red and pink cards hit the other house. Gold cards are sneaky moves. Some stop a hit when you get one.'],
+    ['Survive to payday','Monday the bills come out ($300). Friday every guy pays rent ($100). Most money when the turns run out wins. Under $0 after a Friday and your house closes.']];
+  for(let i=0;i<steps.length;i++) await ask(`<h2 class="t bang" style="margin-top:20px">${steps[i][0]}</h2><p class="b">${steps[i][1]}</p><p class="hint">${i+1} of 3</p>`,[[i<2?'Next':'Got it']]);
+}
+
+// ---------- setup ----------
+$('howBtn').onclick=howTo;
+$('goBot').onclick=()=>begin(true);
+$('go').onclick=()=>{ if($('n1').classList.contains('hidden')){ $('n1').classList.remove('hidden'); $('n1').focus(); $('go').textContent='Start 2-player game'; return; } begin(false); };
+async function begin(bot){
+  const names=[$('n0').value.trim()||(bot?'You':'Player 1'),bot?BOT:($('n1').value.trim()||'Player 2')];
+  let seen=false; try{seen=localStorage.getItem('sh_seen')==='1'}catch(e){}
+  if(!seen){ await howTo(); try{localStorage.setItem('sh_seen','1')}catch(e){} }
+  newGame(names,bot);
+}
+$('quitBtn').onclick=async()=>{
+  if(OV) return;
+  const i=await ask('<h2 class="t bang" style="margin-top:30px">Leave this game?</h2><p class="b">This test game won\'t be saved.</p>',[['Keep playing'],['Leave','red']],{back:0});
+  if(i===1){ S=null; $('gameScreen').classList.add('hidden'); $('startScreen').classList.remove('hidden'); }
+};
+function newGame(names,bot){
+  S={deck:shuffle(DECK.map(c=>({...c}))),disc:[],week:1,day:0,turn:0,
+     p:names.map(n=>({name:n,cash:START,beds:2,hand:[],skip:0,left:WEEKS*3,norent:false,dbl:false})),plays:0,bot:!!bot,hist:[]};
+  if(bot) S.p[1].bot=true;
+  S.p.forEach(p=>{for(let i=0;i<HAND;i++)p.hand.push(draw(p))});
+  S.shown=S.p.map(x=>({cash:x.cash,beds:x.beds}));
+  let g=0; try{g=+localStorage.getItem('sh_games')||0; localStorage.setItem('sh_games',g+1);}catch(e){}
+  S.tutor=S.bot&&g<2;
+  sfx('shuffle');
+  $('startScreen').classList.add('hidden'); $('gameScreen').classList.remove('hidden');
+  armBack(); window.scrollTo(0,0);
+  startTurn(true);
+}
+function draw(p){ if(!S.deck.length){S.deck=shuffle(S.disc);S.disc=[];}
+  if(p && p.beds>=MAXB){ // smarter dealing: a full house doesn't get dealt new guys
+    for(let k=S.deck.length-1;k>=0;k--){ const c=S.deck[k]; if(!(c.kind==='green'&&(c.beds||c.fill)&&!c.cash)) return S.deck.splice(k,1)[0]; }
+  }
+  return S.deck.pop(); }
+function unstick(p){
+  if(p.hand.some(c=>playable(c,p))) return false;
+  let n=0; p.hand=p.hand.map(c=>{ if(c.kind==='green'&&(c.beds||c.fill)&&!c.cash&&p.beds>=MAXB){ S.deck.unshift(c); n++; return draw(p);} return c; });
+  return n>0; }
+const me=()=>S.p[S.turn], them=()=>S.p[1-S.turn];
+const viewer=()=>S.bot?S.p[0]:me(), other=()=>S.bot?S.p[1]:them();
+const isYou=x=>S.bot&&x===S.p[0];
+const nm=x=>isYou(x)?'You':x.name;
+const guys=n=>n+(n===1?' guy':' guys');
+
+// ---------- what a card does, in plain words ----------
+function effectLine(c,p,o){ // short line for the hand row
+  const O=`<span class="who-them">${esc(o.name)}:</span>`, Y='<span class="who-you">You:</span>';
+  if(c.kind==='green'){ const a=[]; if(c.fill) a.push('fill every bed'); if(c.beds) a.push('+'+guys(c.beds)); if(c.cash) a.push('+$'+c.cash); return `${Y} ${a.join(', ')}`; }
+  if(c.kind==='red'||c.kind==='pink'){ const pre=c.kind==='pink'?`<span class="who-them">Prank on ${esc(o.name)}:</span>`:O; const a=[];
+    if(c.cash) a.push('-$'+(-c.cash)); if(c.beds) a.push('loses '+guys(-c.beds)); if(c.skip) a.push('loses a turn'); if(c.payorskip) a.push(`pay $${c.payorskip} or sit out`);
+    return `${pre} ${a.join(', ')}`; }
+  if(c.react==='block') return 'Stops a bad card played on you';
+  if(c.react==='bounce') return 'Sends a bad card right back';
+  if(c.react==='wrench') return 'Stops a broken-house card &#128295;';
+  if(c.self==='double') return `${Y} play 2 more cards`;
+  if(c.self==='dblrent') return `${Y} double rent this Friday`;
+  if(c.hit==='skip') return `${O} loses a turn`;
+  if(c.hit==='steal') return `${O} one guy moves to you`;
+  if(c.hit==='swap') return 'Swap money with '+esc(o.name);
+  if(c.hit==='raid') return `${O} -$100 &rarr; you +$100`;
+  if(c.hit==='norent') return `${O} no rent this Friday`;
+  if(c.hit==='peek') return `See ${esc(o.name)}'s hand`;
+  return '';
+}
+function preview(c,p,o){ // full sentence + before/after numbers, nothing changes yet
+  const O=nm(o), rows=[]; let say='', note='';
+  const cashRow=(x,to)=>rows.push([nm(x),money(x.cash),money(to),to>x.cash?'up':to<x.cash?'down':'']);
+  const bedRow=(x,to)=>rows.push([nm(x)+' beds',x.beds+'/'+MAXB,to+'/'+MAXB,to>x.beds?'up':to<x.beds?'down':'']);
+  if(c.kind==='green'){
+    const nb=c.fill?MAXB:Math.min(MAXB,p.beds+(c.beds||0)); const added=nb-p.beds;
+    const bits=[]; if(added) bits.push(added===1?'A new guy moves in':`${added} new guys move in`); if(c.cash) bits.push(`you get $${c.cash}`);
+    say=bits.join(' and ')+'.'; if(added) note=`Every guy pays $${RENT} rent on Friday.`;
+    if(c.cash) cashRow(p,p.cash+c.cash); if(added) bedRow(p,nb);
+  } else if(c.kind==='red'||c.kind==='pink'){
+    const bits=[];
+    if(c.cash){ bits.push(`${O} ${isYou(o)?'pay':'pays'} $${-c.cash}`); cashRow(o,o.cash+c.cash); }
+    if(c.beds){ const nb=Math.max(1,Math.min(MAXB,o.beds+c.beds)); if(nb<o.beds){ bits.push(`${O} ${isYou(o)?'lose':'loses'} a guy`); bedRow(o,nb);} else bits.push(`${O} ${isYou(o)?'are':'is'} down to the House Manager, so nobody leaves`); }
+    if(c.skip) bits.push(`${O} ${isYou(o)?'lose':'loses'} the next turn`);
+    if(c.payorskip) bits.push(`${O} ${isYou(o)?'pay':'pays'} $${c.payorskip} or ${isYou(o)?'sit':'sits'} out a turn. Their call`);
+    say=bits.join(' and ')+'.'; note=`${O} might be holding a card that stops it.`;
+  } else if(c.self==='double'){ say='You play 2 more cards this turn.'; }
+  else if(c.self==='dblrent'){ say=`This Friday your ${guys(p.beds)} pay double rent.`; note=`+$${p.beds*RENT*2} instead of +$${p.beds*RENT} (if your guy count stays the same).`; }
+  else if(c.hit==='skip'){ say=`${O} loses the next turn.`; }
+  else if(c.hit==='steal'){ if(o.beds>1&&p.beds<MAXB){ say=`One of ${O}'s guys moves into your house.`; bedRow(p,p.beds+1); bedRow(o,o.beds-1);} else { say=p.beds>=MAXB?'Your house is full, so nobody can move over. Nothing happens.':`${O} only has the House Manager left. Nothing happens.`; } }
+  else if(c.hit==='swap'){ say=`You trade money with ${O}.`; cashRow(p,o.cash); cashRow(o,p.cash); }
+  else if(c.hit==='raid'){ say=`You take $100 from ${O}.`; cashRow(p,p.cash+100); cashRow(o,o.cash-100); }
+  else if(c.hit==='norent'){ say=`${O} gets NO rent this Friday.`; note=`Right now that's $${o.beds*RENT} they won't collect.`; }
+  else if(c.hit==='peek'){ say=`You see every card ${O} is holding.`; }
+  return {say,note,rows};
+}
+function chgHTML(rows){ return rows.length?`<div class="chg">${rows.map(r=>`<span class="k">${esc(r[0]).toUpperCase()}</span><span>${r[1]}</span><span class="ar">&rarr;</span><span class="to ${r[3]}">${r[2]}</span>`).join('')}</div>`:''; }
+function snap(){ return S.p.map(x=>({cash:x.cash,beds:x.beds,skip:x.skip})); }
+function changes(before){ // what actually changed, as words + rows
+  const rows=[], bits=[];
+  S.p.forEach((x,i)=>{ const b=before[i], dc=x.cash-b.cash, db=x.beds-b.beds, ds=x.skip-b.skip, w=nm(x), you=isYou(x);
+    if(dc){ rows.push([w,money(b.cash),money(x.cash),dc>0?'up':'down']); bits.push(`${w} ${dc>0?(you?'got':'got'):(you?'paid':'paid')} $${Math.abs(dc)}`); }
+    if(db){ rows.push([w+' beds',b.beds+'/'+MAXB,x.beds+'/'+MAXB,db>0?'up':'down']); bits.push(`${w} ${db>0?'got':(you?'lost':'lost')} ${guys(Math.abs(db))}`); }
+    if(ds>0) bits.push(`${w} ${you?'lose':'loses'} the next turn`);
+  });
+  return {say:bits.length?bits.join('. ')+'.':'Nothing changed.',rows};
+}
+
+// ---------- render ----------
+function houseHTML(p,mine){
+  const tags=[p.skip?'<span class="tag">Sits out next turn</span>':'',p.norent?'<span class="tag">No rent Friday</span>':'',p.dbl?'<span class="tag g">Double rent Friday</span>':''].join('');
+  return `<div class="nm bang">${mine?(S.bot?'Your house':esc(p.name)+"'s house"):esc(p.name)+"'s house"}</div>
+    <div class="money bang ${p.cash<0?'neg':''}">${money(p.cash)}</div>
+    <div class="bd"><b>${p.beds}/${MAXB}</b> beds filled</div>
+    <div class="beds">${Array.from({length:MAXB},(_,i)=>`<div class="bed ${i<p.beds?'on':''}">${BED}</div>`).join('')}</div>
+    ${tags?`<div class="tags">${tags}</div>`:''}`;
+}
+function floats(){
+  if(!S||!S.shown||$('ov').classList.contains('on')) return; // wait until the overlay closes
+  S.p.forEach((x,i)=>{ const was=S.shown[i];
+    const el=(x===viewer()?$('myHouse'):$('oppHouse')).querySelector('.money');
+    const r=el.getBoundingClientRect(); let y=r.top;
+    const pop=(txt,up)=>{ const f=document.createElement('div'); f.className='float '+(up?'up':'down'); f.textContent=txt; f.style.left=Math.max(60,Math.min(r.left+r.width/2, window.innerWidth-70))+'px'; f.style.top=y+'px'; document.body.appendChild(f); setTimeout(()=>f.remove(),1800); y+=40; };
+    const dc=x.cash-was.cash, db=x.beds-was.beds;
+    if(dc) pop((dc>0?'+':'-')+'$'+Math.abs(dc),dc>0);
+    if(db) pop((db>0?'+':'')+db+(Math.abs(db)===1?' guy':' guys'),db>0);
+    S.shown[i]={cash:x.cash,beds:x.beds};
+  });
+}
+function whyNot(c,p){
+  if(c.react) return 'Hang on to this one. When a bad card hits you, you\'ll get the chance to throw it down.';
+  if(!playable(c,p)) return `Your house is full (${p.beds}/${MAXB} beds). Hang on to him. Move him in when a bed opens up.`;
+  return '';
+}
+function render(){
+  const p=viewer(), cur=me();
+  $('myHouse').innerHTML=houseHTML(p,true); $('oppHouse').innerHTML=houseHTML(other(),false);
+  $('left').textContent=Math.max(0,p.left);
+  $('leftLbl').textContent=S.bot?'YOUR TURNS LEFT':esc(p.name).toUpperCase()+"'S TURNS LEFT";
+  const day=DAYS[S.day];
+  $('status').innerHTML=`${day} &middot; <b>${cur.bot?BOT.toUpperCase()+"'S TURN":(S.bot?'YOUR TURN':esc(cur.name).toUpperCase()+"'S TURN")}</b>`;
+  $('count').classList.toggle('low',p.left<=3);
+  const botTurn=!!cur.bot;
+  $('handHead').innerHTML=botTurn?`${BOT.toUpperCase()} IS THINKING...`:(S.plays>1?`PLAY ${S.plays} MORE CARDS`:`YOUR HAND <small>&middot; ${p.hand.length} CARDS</small>`);
+  $('hand').classList.toggle('wait',botTurn);
+  const tipI=(S.tutor&&!botTurn&&p.left>=16&&S.plays>0)?botPick(p,other()).i:-1;
+  const o=other();
+  $('hand').innerHTML=(tipI>=0?'<div class="tipb">Tap a card to see what happens.</div>':'')+p.hand.map((c,i)=>{
+    const ok=playable(c,p);
+    const chip=c.react?'<span class="chip">Use when a card hits you</span>':(!ok?'<span class="chip">House full</span>':'');
+    return `<button class="crd ${c.kind} ${ok?'':'no'} ${i===tipI?'pulse':''}" data-i="${i}" aria-label="${esc(c.title)}">
+      <span class="th" style="background-image:url('${img(c)}')"></span>
+      <span class="tx"><span class="t">${esc(c.title)}</span><span class="e">${effectLine(c,p,o)}</span>${chip}</span>
+      <span class="chev">&rsaquo;</span></button>`; }).join('');
+  floats();
+  $('hand').querySelectorAll('.crd').forEach(el=>el.onclick=()=>tapCard(+el.dataset.i));
+}
+
+// ---------- rules (same as v4) ----------
+function playable(c,p){
+  if(c.react) return false;
+  if(c.kind==='green' && (c.beds||c.fill) && !c.cash && p.beds>=MAXB) return false;
+  return true;
+}
+async function tapCard(i){
+  if(!S||OV) return;
+  const p=viewer(), c=p.hand[i];
+  const myTurn=!S.lock&&S.plays>0&&!me().bot&&me()===p;
+  if(!myTurn&&!me().bot&&me()===p) return; // your turn is still starting
+  const ok=playable(c,p), any=p.hand.some(x=>playable(x,p));
+  let body, btns;
+  if(!myTurn){
+    body=`<div class="panel"><div class="cap">THIS CARD</div><div class="say">${effectLine(c,p,other()).replace(/<[^>]+>/g,'')}</div><div class="note">Wait for your turn to play it.</div></div>`;
+    btns=[['Back']];
+  } else if(ok){
+    const pv=preview(c,p,them());
+    body=`<div class="panel"><div class="cap">HERE'S WHAT WILL HAPPEN</div><div class="say">${esc(pv.say)}</div>${chgHTML(pv.rows)}${pv.note?`<div class="note">${esc(pv.note)}</div>`:''}</div>`;
+    btns=[['Cancel','ghost'],['Play card']];
+  } else {
+    body=`<div class="panel"><div class="cap">CAN'T PLAY THIS ONE YET</div><div class="say">${esc(whyNot(c,p))}</div>${!any?'<div class="note">Nothing in your hand can be played. Toss one to get a fresh card next turn.</div>':''}</div>`;
+    btns=!any?[['Cancel','ghost'],['Toss it','red']]:[['Back','ghost'],['Play card','',1]];
+  }
+  const r=await ask(`<img class="big" src="${img(c)}" alt="${esc(c.title)}">${body}`,btns,{back:0});
+  const lbl=btns[r][0];
+  if(lbl!=='Play card'&&lbl!=='Toss it') return;
+  p.hand.splice(i,1); S.disc.push(c);
+  if(lbl==='Toss it'){ log(`<b>${esc(p.name)}</b> tossed a card.`); return afterPlay(); }
+  const before=snap(); sfx('flip'); S.lock=true;
+  await resolve(c,p,them()); render(); sfxAfter(before);
+  if(S.tutor && p.left>=15){ const ch=changes(before); await sleep(500); await ask(`<div class="kicker bang">YOU PLAYED</div><img class="big sm" src="${img(c)}" alt=""><div class="panel"><div class="say">${esc(ch.say)}</div>${chgHTML(ch.rows)}</div>`,[['Got it']],{back:0}); }
+  S.lock=false;
+  afterPlay();
+}
+async function afterPlay(){
+  S.plays--; render();
+  if(S.plays>0 && me().hand.length) return;
+  S.lock=true; await sleep(600); endTurn();
+}
+function addBeds(p,n){ p.beds=Math.max(1,Math.min(MAXB,p.beds+n)); }
+async function resolve(c,p,o){
+  const P=`<b>${esc(p.name)}</b>`, Ot=esc(o.name);
+  if(c.kind==='green'){
+    if(c.fill){ p.beds=MAXB; }
+    if(c.beds) addBeds(p,c.beds);
+    if(c.cash) p.cash+=c.cash;
+    log(`${P}: ${esc(c.title)}. ${esc(c.words)}`); return;
+  }
+  if(c.self==='double'){ S.plays+=2; log(`${P} played Double Trouble. 2 more cards.`); return; }
+  if(c.self==='dblrent'){ p.dbl=true; log(`${P}: double rent this Friday.`); return; }
+  if(c.hit){
+    if(c.hit==='skip'){ o.skip++; log(`${P} called a house meeting at ${Ot}'s house. ${Ot} loses a turn.`); }
+    if(c.hit==='steal'){ if(o.beds>1&&p.beds<MAXB){o.beds--;p.beds++;log(`One of ${Ot}'s guys moved into ${P}'s house.`);} else log(`${Ot}'s guy wanted to move, but there was no room. Nothing happened.`); }
+    if(c.hit==='swap'){ [p.cash,o.cash]=[o.cash,p.cash]; log(`The bank mixed up the accounts. ${P} and ${Ot} swapped money!`); }
+    if(c.hit==='raid'){ o.cash-=100; p.cash+=100; log(`${P} borrowed $100 from ${Ot} and never paid it back.`); }
+    if(c.hit==='norent'){ o.norent=true; log(`${Ot}'s guys stiffed them. No rent for ${Ot} this Friday.`); }
+    if(c.hit==='peek'&&p.bot){ log(`${P} peeked at your hand. Sneaky.`); }
+    else if(c.hit==='peek'){ await ask(`<div class="kicker bang">${Ot.toUpperCase()}'S HAND</div><div class="peek">${o.hand.map(x=>`<img src="${img(x)}" alt="${esc(x.title)}">`).join('')}</div><p class="hint">Only ${esc(p.name)} looks!</p>`,[['Done peeking']],{back:0}); log(`${P} peeked at ${Ot}'s hand.`); }
+    return;
+  }
+  await hit(c,p,o,true);
+}
+const stopsIt=(x,c,canBounce)=>x.react==='block'||(x.react==='bounce'&&canBounce)||(x.react==='wrench'&&c.wrench);
+async function hit(c,from,to,canBounce){
+  const opts=to.hand.map((x,i)=>[x,i]).filter(([x])=>stopsIt(x,c,canBounce));
+  if(opts.length && to.bot){
+    const dmg=-(c.cash||0)+(c.beds?-c.beds*250:0)+(c.skip?120:0)+(c.payorskip?75:0);
+    if(dmg>=100){ opts.sort((a,b)=>(b[0].react==='bounce')-(a[0].react==='bounce')); const [rc,ri]=opts[0]; to.hand.splice(ri,1); S.disc.push(rc); to.hand.push(draw(to));
+      await showBlock(to,rc,c);
+      if(rc.react==='bounce'){ log(`<b>${esc(to.name)}</b>: Not my problem! It bounced right back.`); return hit(c,to,from,false); }
+      log(`<b>${esc(to.name)}</b> threw down ${esc(rc.title)}. Nothing happens.`); return; }
+  }
+  else if(opts.length){
+    const pv=preview(c,from,to);
+    const btns=opts.map(([x])=>['Throw down: '+esc(x.title)]).concat([['Take the hit','ghost']]);
+    const k=await ask(`${S.bot?'':`<p class="hint">Hand the phone to <b>${esc(to.name)}</b> for a sec</p>`}<div class="kicker bang">${esc(from.name).toUpperCase()} HIT ${S.bot?'YOU':esc(to.name).toUpperCase()}</div><img class="big sm" src="${img(c)}" alt="${esc(c.title)}"><div class="panel"><div class="cap">IF YOU TAKE IT</div><div class="say">${esc(pv.say)}</div>${chgHTML(pv.rows)}<div class="note">You're holding a card that can stop it. Throw it down?</div></div>`,btns,{stack:1});
+    if(k<opts.length){
+      const [rc,ri]=opts[k]; to.hand.splice(ri,1); S.disc.push(rc); to.hand.push(draw(to));
+      if(rc.react==='bounce'){ log(`<b>${esc(to.name)}</b>: Not my problem! It bounced right back at ${esc(from.name)}.`); return hit(c,to,from,false); }
+      sfx('nope'); log(`<b>${esc(to.name)}</b> threw down ${esc(rc.title)}. Nothing happens.`); return;
+    }
+  }
+  if(c.payorskip){
+    const k=to.bot?(to.cash-c.payorskip>=200?0:1):await ask(`${S.bot?'':`<p class="hint">Hand the phone to <b>${esc(to.name)}</b></p>`}<div class="kicker bang">YOUR CALL</div><img class="big sm" src="${img(c)}" alt="${esc(c.title)}"><div class="panel"><div class="say">Pay $${c.payorskip}, or sit out your next turn.</div>${chgHTML([[nm(to),money(to.cash),money(to.cash-c.payorskip),'down']])}</div>`,[[`Pay $${c.payorskip}`],['Sit out','ghost']]);
+    if(k===0){ to.cash-=c.payorskip; log(`${esc(to.name)} paid $${c.payorskip}. (${esc(c.title)})`); } else { to.skip++; log(`${esc(to.name)} sits out a turn. (${esc(c.title)})`); }
+    return;
+  }
+  if(c.cash) to.cash+=c.cash;
+  if(c.beds) addBeds(to,c.beds);
+  if(c.skip) to.skip++;
+  log(`<b>${esc(nm(from))}</b> hit ${isYou(to)?'you':esc(to.name)}: ${esc(c.title)}.`);
+}
+
+// ---------- Big Ray (computer player) ----------
+const TRASH=['GOTCHA.','Sucks to be you.','Welcome to the neighborhood.','Nothing personal.','Big Ray sends his regards.','Enjoy the cold shower, boss.'];
+const SMUG=['Easy money.','Another one moves in.','Business is good.','Watch and learn.'];
+async function showBlock(p,rc,c){
+  sfx('nope');
+  await ask(`<div class="kicker bang">${esc(p.name).toUpperCase()} THREW DOWN</div><img class="big sm" src="${img(rc)}" alt="${esc(rc.title)}"><div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Nice try.</div></div><div class="panel"><div class="say">${rc.react==='bounce'?'Your card bounced right back at you!':'Your card got blocked. Nothing happens.'}</div></div>`,[['OK']],{back:0});
+}
+function botPick(p,o){
+  const val=c=>{ if(c.kind==='green'){ const empty=MAXB-p.beds; return (c.cash||0)+(c.fill?empty*250:0)+Math.min(c.beds||0,empty)*250; }
+    if(c.kind==='red'||c.kind==='pink') return -(c.cash||0)+(c.beds?Math.min(-c.beds,o.beds-1)*250:0)+(c.skip?120:0)+(c.payorskip?90:0);
+    if(c.self==='double') return p.hand.filter(x=>x.kind==='red'||x.kind==='pink'||(x.kind==='green'&&playable(x,p))).length>=2?220:-1;
+    if(c.self==='dblrent') return p.beds*100-50;
+    if(c.hit==='swap') return o.cash-p.cash;
+    if(c.hit==='steal') return (o.beds>1&&p.beds<MAXB)?380:-1;
+    if(c.hit==='raid') return 200; if(c.hit==='norent') return o.beds*100; if(c.hit==='skip') return 130; if(c.hit==='peek') return 20;
+    return -1; };
+  let best=-1,bv=-1e9;
+  p.hand.forEach((c,i)=>{ if(!playable(c,p)) return; const v=val(c); if(v>bv){bv=v;best=i;} });
+  if(best<0||bv<0){
+    let w=-1,wv=1e9; p.hand.forEach((c,i)=>{ if(c.react) return; const v=playable(c,p)?val(c):-5; if(v<wv){wv=v;w=i;} });
+    return {i:w<0?0:w,toss:best<0};
+  }
+  return {i:best,toss:false};
+}
+async function botTurn(){
+  const p=me(), o=them();
+  await sleep(1100);
+  while(S.plays>0 && p.hand.length){
+    const {i,toss}=botPick(p,o); const c=p.hand.splice(i,1)[0]; S.disc.push(c);
+    if(toss){ log(`<b>${esc(p.name)}</b> tossed a card.`); S.plays--; continue; }
+    const hits=c.kind==='red'||c.kind==='pink'||c.hit;
+    S.plays--;
+    const before=snap(); sfx('flip');
+    await resolve(c,p,o); render(); sfxAfter(before);
+    const ch=changes(before);
+    const line=hits?(S.tutor?'Gotcha. That one hurt, huh?':TRASH[Math.random()*TRASH.length|0]):SMUG[Math.random()*SMUG.length|0];
+    await ask(`<div class="kicker bang">BIG RAY PLAYED</div><img class="big sm" src="${img(c)}" alt="${esc(c.title)}"><div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">${esc(line)}</div></div><div class="panel"><div class="say">${esc(ch.say)}</div>${chgHTML(ch.rows)}</div>`,[['OK']],{back:0});
+  }
+  S.lock=true; await sleep(400); endTurn();
+}
+
+// ---------- turn flow (same as v4) ----------
+async function startTurn(first){
+  const p=me(); S.lock=true; render();
+  if(S.turn===0 && S.day===0 && !S.billed){
+    S.billed=true;
+    const v=viewer(), o=other();
+    await ask(`<div class="receipt"><h2 class="bang">MONDAY BILLS</h2><img src="ui/monday-bills.webp" alt=""><div class="amt bang r">-$${BILLS}</div><div class="say">Rent, lights and food. Everybody pays.</div>
+      <div class="lines"><div><span>${esc(nm(v))}</span><span>${money(v.cash)} &rarr; <b class="${v.cash-BILLS<0?'r':''}">${money(v.cash-BILLS)}</b></span></div><div><span>${esc(o.name)}</span><span>${money(o.cash)} &rarr; <b class="${o.cash-BILLS<0?'r':''}">${money(o.cash-BILLS)}</b></span></div></div></div>`,[['Pay the bills']]);
+    sfx('bills'); S.p.forEach(x=>x.cash-=BILLS); log(`Monday bills. Everybody paid $${BILLS}.`); render(); await sleep(1000);
+  }
+  if(S.bot){ if(!p.bot){ render(); await banner('YOUR TURN',900);} }
+  else {
+    await ask(`<img class="big" src="${BASE}cards/back.webp" alt="" style="max-height:40dvh;margin-top:20px"><h2 class="t bang">${esc(p.name)}'s turn</h2><p class="b">Pass the phone to ${esc(p.name)}.</p>`,[[`I'm ${esc(p.name)}`]]);
+  }
+  if(p.skip>0){ p.skip--; p.left--; render(); log(`<b>${esc(nm(p))}</b> ${isYou(p)?'sit':'sits'} this one out.`); await banner('SIT DOWN',900); return endTurn(true); }
+  while(p.hand.length<HAND+1) p.hand.push(draw(p));
+  unstick(p); if(!p.bot) sfx('draw');
+  S.plays=1; S.lock=false; render();
+  if(p.bot) return botTurn();
+  if(p.left===1) banner('LAST TURN',1000);
+}
+async function endTurn(skipped){
+  const p=me();
+  if(!skipped) p.left--;
+  while(p.hand.length>HAND+2){ S.disc.push(p.hand.shift()); }
+  if(S.turn===1){
+    if(S.day===2){
+      const pay=S.p.map(x=>x.norent?0:x.beds*RENT*(x.dbl?2:1));
+      const order=S.bot?[S.p[0],S.p[1]]:S.p;
+      await ask(`<div class="receipt"><h2 class="bang">FRIDAY PAYDAY</h2><img src="ui/friday-payday.webp" alt=""><div class="say">Every guy pays $${RENT} rent.</div>
+        <div class="lines">${order.map(x=>{ const i=S.p.indexOf(x); const why=x.norent?' (stiffed!)':x.dbl?` (${x.beds} &times; $${RENT*2}, double!)`:` (${x.beds} &times; $${RENT})`;
+          return `<div><span>${esc(nm(x))}<br><small class="${x.norent?'r':'g'}">+$${pay[i]}${why}</small></span><span>${money(x.cash)} &rarr; <b class="${x.cash+pay[i]<0?'r':'g'}">${money(x.cash+pay[i])}</b></span></div>`; }).join('')}</div></div>`,[['Collect rent']]);
+      sfx('payday');
+      S.p.forEach((x,i)=>{ x.cash+=pay[i]; x.norent=false; x.dbl=false; }); log(`Friday payday. ${S.p.map((x,i)=>`${esc(x.name)} +$${pay[i]}`).join(', ')}.`); render(); await sleep(1300);
+      const broke=S.p.filter(x=>x.cash<0);
+      if(broke.length) return gameOver(broke.length===2?'Both houses went broke!':(isYou(broke[0])?'Your house went broke.':`${broke[0].name}'s house went broke.`));
+      if(S.week===WEEKS) return gameOver('Most money when the turns ran out.');
+      S.week++; S.day=0; S.billed=false;
+    } else S.day++;
+    S.turn=0;
+  } else S.turn=1;
+  startTurn();
+}
+async function gameOver(why){
+  const [a,b]=S.p; let w;
+  const alive=S.p.filter(x=>x.cash>=0);
+  if(alive.length===1) w=alive[0];
+  else if(a.cash!==b.cash) w=a.cash>b.cash?a:b;
+  else if(a.beds!==b.beds) w=a.beds>b.beds?a:b;
+  render();
+  const rayWon=S.bot&&w===S.p[1];
+  sfx(rayWon?'lose':'win');
+  const head=!w?'DEAD TIE!':isYou(w)?'YOU WIN!':esc(w.name).toUpperCase()+' WINS!';
+  const order=S.bot?[S.p[0],S.p[1]]:S.p;
+  while(true){
+    const r=await ask(`<div class="winhead"><h2 class="bang">${head}</h2><p>${esc(why)}</p></div>
+      <img class="illo" src="ui/${rayWon?'big-ray':'house-victory'}.webp" alt="">
+      <div class="final">${order.map(x=>`<div class="${x===w?'win':''}"><div class="bang" style="font-size:20px">${S.bot&&isYou(x)?'YOUR HOUSE':esc(x.name).toUpperCase()}</div><div class="m bang">${money(x.cash)}</div><div class="k">FINAL MONEY &middot; ${guys(x.beds)}</div></div>`).join('')}</div>
+      ${S.bot?`<div class="ray">${rayWon?'':'<img src="ui/ray-face.webp" alt="">'}<div class="bubble">${rayWon?'Told you. I play dirty.':'Fine. You run a decent house.'}</div></div>`:''}`,
+      [['Play again'],['History','ghost'],['Done','ghost']],{lead:1});
+    if(r===1){ await showHistory(); continue; }
+    if(r===0) return newGame(S.p.map(x=>x.name),S.bot);
+    S=null; $('gameScreen').classList.add('hidden'); $('startScreen').classList.remove('hidden'); return;
+  }
+}
+</script>
+</body>
+</html>
