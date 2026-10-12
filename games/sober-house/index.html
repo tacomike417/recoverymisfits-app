@@ -40,7 +40,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;border-radius:14p
 .log{margin:6px 12px;padding:10px 12px;border-radius:12px;background:#0b0805;border:1px dashed var(--line);font-size:14px;min-height:46px;color:var(--cream)}
 .handwrap{margin-top:auto;padding:6px 0 14px}
 .handlabel{padding:0 14px 6px;font-size:12px;color:var(--dim);font-weight:700;letter-spacing:.06em}
-.hand{display:flex;gap:10px;overflow-x:auto;padding:4px 14px 10px;scroll-snap-type:x mandatory}
+.hand{display:flex;gap:10px;overflow-x:auto;padding:46px 14px 10px;scroll-snap-type:x mandatory}
 .hand img{width:31vw;max-width:150px;border-radius:10px;scroll-snap-align:start;box-shadow:0 6px 14px #0009;transition:transform .15s}
 .hand img.no{filter:grayscale(.7) brightness(.6)}
 .hand img:active{transform:scale(.96)}
@@ -61,13 +61,27 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;border-radius:14p
 .banner{position:fixed;left:50%;top:38%;width:92vw;max-width:440px;text-align:center;line-height:1;transform:translate(-50%,-50%) scale(.6);opacity:0;font-size:clamp(38px,12vw,56px);z-index:30;pointer-events:none;text-shadow:0 4px 0 #000,0 0 30px #000;transition:all .35s;}
 .banner.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .hidden{display:none!important}
+.float{position:fixed;z-index:40;font-family:Bangers,Poppins,sans-serif;font-size:38px;pointer-events:none;white-space:nowrap;text-shadow:0 3px 0 #000,0 0 14px #000;animation:floatup 1.6s ease-out forwards}
+.float.up{color:#4ade80}.float.down{color:#ff4b3e}
+@keyframes floatup{0%{opacity:0;transform:translate(-50%,10px) scale(.7)}15%{opacity:1;transform:translate(-50%,0) scale(1.1)}100%{opacity:0;transform:translate(-50%,-90px) scale(1)}}
+.hand .wrap{position:relative;flex:0 0 auto}
+.hand .wrap img{display:block}
+.hand .wiggle{animation:wig .9s ease-in-out infinite}
+@keyframes wig{0%,100%{transform:rotate(0)}20%{transform:rotate(-4deg) scale(1.04)}40%{transform:rotate(4deg) scale(1.04)}60%{transform:rotate(-2deg)}}
+.tip{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);background:var(--cream);color:#1b120a;font:800 12px Poppins;padding:7px 10px;border-radius:10px;width:118px;text-align:center;line-height:1.2;box-shadow:0 4px 10px #0008}
+.tip:after{content:'';position:absolute;left:50%;top:100%;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--cream)}
+.log{cursor:pointer}
+.log:after{content:'What happened? Tap';display:block;font-size:10px;color:var(--dim);margin-top:4px;letter-spacing:.05em}
+.hist p{text-align:left;font-size:14px;margin:0;padding:8px 0;border-bottom:1px solid var(--line)}
+.result{font-size:20px;line-height:1.25;margin:10px 0 4px}
+.result .g{color:#4ade80}.result .r{color:#ff4b3e}
 </style>
 </head>
 <body>
 <div class="app">
 
 <div id="startScreen" class="start">
-  <div class="topbar" style="width:100%;padding:0"><a class="back" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span class="pill">v2 TEST</span></div>
+  <div class="topbar" style="width:100%;padding:0"><a class="back" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span class="pill">v3 TEST</span></div>
   <img class="logo" src="cards/logo.webp" alt="Sober House">
   <div class="bang" style="font-size:26px">Run the house. Most money when the clock runs out wins.</div>
   <div class="time">Takes about 15&ndash;20 minutes</div>
@@ -83,7 +97,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;border-radius:14p
   <div class="topbar">
     <button class="back" id="quitBtn" aria-label="Leave game">&#8592;</button>
     <div class="clock" id="clock"><div class="n bang" id="left">18</div><div class="d" id="day">YOUR TURNS LEFT</div></div>
-    <span class="pill" style="margin-left:0">v2 TEST</span>
+    <span class="pill" style="margin-left:0">v3 TEST</span>
   </div>
   <div class="house" id="oppHouse"></div>
   <div class="log" id="log">Tap a card to play it.</div>
@@ -118,7 +132,8 @@ function ask(html,buttons){ return new Promise(res=>{
   $('box').querySelectorAll('[data-i]').forEach(el=>el.onclick=()=>{close();res(+el.dataset.i)});
 });}
 async function banner(t,ms=1100){ const b=$('banner'); b.textContent=t; b.classList.add('on'); await sleep(ms); b.classList.remove('on'); await sleep(250); }
-function log(t){ $('log').innerHTML=t; }
+function log(t){ $('log').innerHTML=t; if(S){ S.hist=S.hist||[]; S.hist.unshift(t); S.hist=S.hist.slice(0,15); } }
+$('log').onclick=()=>{ if(!S||!S.hist) return; ask(`<h2 class="bang">What happened</h2><div class="hist">${S.hist.map(h=>`<p>${h}</p>`).join('')}</div>`,[['Back to the game']]); };
 
 // ---------- how to play (3 screens) ----------
 async function howTo(){
@@ -147,11 +162,22 @@ function newGame(names,bot){
   S={deck:shuffle(DECK.map(c=>({...c}))),disc:[],week:1,day:0,turn:0,
      p:names.map(n=>({name:n,cash:START,beds:2,hand:[],skip:0,left:WEEKS*3,norent:false,dbl:false})),plays:0,bot:!!bot};
   if(bot) S.p[1].bot=true;
-  S.p.forEach(p=>{for(let i=0;i<HAND;i++)p.hand.push(draw())});
+  S.p.forEach(p=>{for(let i=0;i<HAND;i++)p.hand.push(draw(p))});
+  S.shown=S.p.map(x=>({cash:x.cash,beds:x.beds})); S.hist=[];
+  let g=0; try{g=+localStorage.getItem('sh_games')||0; localStorage.setItem('sh_games',g+1);}catch(e){}
+  S.tutor=S.bot&&g<2;
   $('startScreen').classList.add('hidden'); $('gameScreen').classList.remove('hidden');
   startTurn(true);
 }
-function draw(){ if(!S.deck.length){S.deck=shuffle(S.disc);S.disc=[];} return S.deck.pop(); }
+function draw(p){ if(!S.deck.length){S.deck=shuffle(S.disc);S.disc=[];}
+  if(p && p.beds>=MAXB){ // smarter dealing: a full house doesn't get dealt new guys
+    for(let k=S.deck.length-1;k>=0;k--){ const c=S.deck[k]; if(!(c.kind==='green'&&(c.beds||c.fill)&&!c.cash)) return S.deck.splice(k,1)[0]; }
+  }
+  return S.deck.pop(); }
+function unstick(p){ // full house + nothing to play: trade the stuck new guys for fresh cards
+  if(p.hand.some(c=>playable(c,p))) return false;
+  let n=0; p.hand=p.hand.map(c=>{ if(c.kind==='green'&&(c.beds||c.fill)&&!c.cash&&p.beds>=MAXB){ S.deck.unshift(c); n++; return draw(p);} return c; });
+  return n>0; }
 const me=()=>S.p[S.turn], them=()=>S.p[1-S.turn];
 const viewer=()=>S.bot?S.p[0]:me(), other=()=>S.bot?S.p[1]:them();
 
@@ -163,13 +189,42 @@ function houseHTML(p,mine){
     <div class="tags">${tags}</div></div>
     <div style="text-align:right"><div class="money bang ${p.cash<0?'neg':''}">${money(p.cash)}</div><div style="font-size:11px;color:var(--dim)">${p.beds} guys</div></div>`;
 }
+function floats(){
+  if(!S.shown) return;
+  S.p.forEach((x,i)=>{ const was=S.shown[i];
+    const el=(x===viewer()?$('myHouse'):$('oppHouse')).querySelector('.money');
+    const r=el.getBoundingClientRect(); let y=r.top;
+    const pop=(txt,up)=>{ const f=document.createElement('div'); f.className='float '+(up?'up':'down'); f.textContent=txt; f.style.left=Math.min(r.left+r.width/2, window.innerWidth-90)+'px'; f.style.top=y+'px'; document.body.appendChild(f); setTimeout(()=>f.remove(),1700); y+=34; };
+    const dc=x.cash-was.cash, db=x.beds-was.beds;
+    if(dc) pop((dc>0?'+':'-')+'$'+Math.abs(dc),dc>0);
+    if(db) pop((db>0?'+':'')+db+(Math.abs(db)===1?' guy':' guys'),db>0);
+    S.shown[i]={cash:x.cash,beds:x.beds};
+  });
+}
+function tipText(c){
+  if(c.kind==='green') return c.cash&&!(c.beds||c.fill)?`Play this. +$${c.cash} for you`:'Play this. A new guy pays rent';
+  if(c.kind==='red'||c.kind==='pink') return `Play this. It hits ${BOT}`;
+  return 'Play this one';
+}
+function snap(){ return S.p.map(x=>({cash:x.cash,beds:x.beds,skip:x.skip})); }
+function result(before){ // plain words for what just changed
+  return S.p.map((x,i)=>{ const b=before[i], dc=x.cash-b.cash, db=x.beds-b.beds, ds=x.skip-b.skip, you=x===viewer()&&S.bot;
+    const who=you?'You':x.name; const out=[];
+    if(dc) out.push(`<span class="${dc>0?'g':'r'}">${dc>0?(you?'got':'got'):(you?'are down':'is down')} $${Math.abs(dc)}</span>`);
+    if(db) out.push(`<span class="${db>0?'g':'r'}">${db>0?'got':'lost'} ${Math.abs(db)} ${Math.abs(db)===1?'guy':'guys'}</span>`);
+    if(ds>0) out.push(`<span class="r">${you?'lose':'loses'} a turn</span>`);
+    return out.length?`<div>${who} ${out.join(' and ')}.</div>`:''; }).join('');
+}
 function render(){
   const p=viewer();
   $('myHouse').innerHTML=houseHTML(p,true); $('oppHouse').innerHTML=houseHTML(other(),false);
   $('left').textContent=Math.max(0,p.left); $('day').textContent=`${S.bot?'YOUR':p.name.toUpperCase()+"'S"} TURNS LEFT · ${DAYS[S.day]}`;
   $('clock').classList.toggle('low',p.left<=3);
   $('handLabel').textContent=me().bot?`${BOT.toUpperCase()} IS THINKING...`:(S.plays>1?`PLAY ${S.plays} MORE CARDS`:'YOUR HAND · TAP A CARD');
-  $('hand').innerHTML=p.hand.map((c,i)=>`<img src="${img(c)}" data-i="${i}" class="${playable(c,p)?'':'no'}" alt="${c.title}">`).join('');
+  const tipI=(S.tutor&&!me().bot&&p.left>=16&&S.plays>0)?botPick(p,other()).i:-1;
+  $('hand').innerHTML=p.hand.map((c,i)=>`<div class="wrap">${i===tipI?`<div class="tip">${tipText(c)}</div>`:''}<img src="${img(c)}" data-i="${i}" class="${playable(c,p)?'':'no'} ${i===tipI?'wiggle':''}" alt="${c.title}"></div>`).join('');
+  floats();
+  const w=$('hand').querySelector('.wiggle'); if(w) w.parentElement.scrollIntoView({inline:'center',block:'nearest'});
   $('hand').querySelectorAll('img').forEach(el=>el.onclick=()=>tapCard(+el.dataset.i));
 }
 
@@ -191,7 +246,9 @@ async function tapCard(i){
   if(btns[r][0]==='Back') return;
   p.hand.splice(i,1); S.disc.push(c);
   if(btns[r][0]==='Toss it'){ log(`${p.name} tossed a card.`); return afterPlay(); }
-  await resolve(c,p,them());
+  const before=snap();
+  await resolve(c,p,them()); render();
+  if(S.tutor && p.left>=15){ const r=result(before); if(r) await ask(`<div class="result">${r}</div>`,[['Got it']]); }
   afterPlay();
 }
 async function afterPlay(){
@@ -227,7 +284,7 @@ async function hit(c,from,to,canBounce){
   if(r>=0 && to.bot){
     const opts=to.hand.map((x,i)=>[x,i]).filter(([x])=>x.react==='block'||(x.react==='bounce'&&canBounce)||(x.react==='wrench'&&c.wrench));
     const dmg=-(c.cash||0)+(c.beds?-c.beds*250:0)+(c.skip?120:0)+(c.payorskip?75:0);
-    if(dmg>=100){ opts.sort((a,b)=>(b[0].react==='bounce')-(a[0].react==='bounce')); const [rc,ri]=opts[0]; to.hand.splice(ri,1); S.disc.push(rc); to.hand.push(draw());
+    if(dmg>=100){ opts.sort((a,b)=>(b[0].react==='bounce')-(a[0].react==='bounce')); const [rc,ri]=opts[0]; to.hand.splice(ri,1); S.disc.push(rc); to.hand.push(draw(to));
       await showPlay(to,rc,'Nice try.');
       if(rc.react==='bounce'){ log(`<b>${to.name}</b>: Not my problem! It bounced right back at you.`); return hit(c,to,from,false); }
       log(`<b>${to.name}</b> threw down ${rc.title}. Nothing happens.`); return; }
@@ -237,7 +294,7 @@ async function hit(c,from,to,canBounce){
     const btns=opts.map(([x])=>[x.title,'']).concat([['Take the hit','ghost']]);
     const k=await ask(`${S.bot?"":`<p style="color:var(--dim);font-size:13px">Hand the phone to <b>${to.name}</b> for a sec</p>`}<h2 class="bang">${from.name} hit you!</h2><img class="big" src="${img(c)}" style="width:48%"><p>You're holding a card that can stop it. Throw it down?</p>`,btns);
     if(k<opts.length){
-      const [rc,ri]=opts[k]; to.hand.splice(ri,1); S.disc.push(rc); to.hand.push(draw());
+      const [rc,ri]=opts[k]; to.hand.splice(ri,1); S.disc.push(rc); to.hand.push(draw(to));
       if(rc.react==='bounce'){ log(`<b>${to.name}</b>: Not my problem! It bounced right back at ${from.name}.`); return hit(c,to,from,false); }
       log(`<b>${to.name}</b> threw down ${rc.title}. Nothing happens.`); return;
     }
@@ -256,8 +313,7 @@ async function hit(c,from,to,canBounce){
 // ---------- Big Ray (computer player) ----------
 const TRASH=['GOTCHA.','Sucks to be you.','Welcome to the neighborhood.','Nothing personal.','Big Ray sends his regards.','Enjoy.'];
 async function showPlay(p,c,line){
-  sheet(`<p style="color:var(--dim);font-size:13px;margin:0 0 8px"><b>${p.name}</b> played</p><img class="big" src="${img(c)}"><p class="bang" style="font-size:24px;margin-top:10px">${line||''}</p>`);
-  await sleep(2100); close(); await sleep(200);
+  await ask(`<p style="color:var(--dim);font-size:13px;margin:0 0 8px"><b>${p.name}</b> threw down</p><img class="big" src="${img(c)}"><p class="bang" style="font-size:24px;margin:10px 0 0">${line||''}</p><div class="result">${c.react==='bounce'?'Your card bounced right back at you!':'Your card got blocked. Nothing happens.'}</div>`,[['OK']]);
 }
 function botPick(p,o){
   const val=c=>{ if(c.kind==='green'){ const empty=MAXB-p.beds; return (c.cash||0)+(c.fill?empty*250:0)+Math.min(c.beds||0,empty)*250; }
@@ -283,9 +339,11 @@ async function botTurn(){
     const {i,toss}=botPick(p,o); const c=p.hand.splice(i,1)[0]; S.disc.push(c);
     if(toss){ log(`<b>${p.name}</b> tossed a card.`); S.plays--; continue; }
     const hits=c.kind==='red'||c.kind==='pink'||c.hit;
-    await showPlay(p,c,hits?TRASH[Math.random()*TRASH.length|0]:'');
     S.plays--;
-    await resolve(c,p,o); render(); await sleep(500);
+    const before=snap();
+    await resolve(c,p,o); render();
+    const r=result(before);
+    await ask(`<p style="color:var(--dim);font-size:13px;margin:0 0 8px"><b>${p.name}</b> played</p><img class="big" src="${img(c)}"><p class="bang" style="font-size:24px;margin:10px 0 0">${hits?(S.tutor?BOT+' screwed you.':TRASH[Math.random()*TRASH.length|0]):''}</p><div class="result">${r||'Nothing happened.'}</div>`,[['OK']]);
   }
   S.lock=true; await sleep(400); endTurn();
 }
@@ -293,13 +351,14 @@ async function botTurn(){
 // ---------- turn flow ----------
 async function startTurn(first){
   const p=me(); S.lock=true;
-  if(S.turn===0 && S.day===0 && !S.billed){ S.billed=true; S.p.forEach(x=>x.cash-=BILLS); render(); await banner(`WEEK ${S.week} · BILLS -$${BILLS}`); }
-  if(S.bot){ if(!p.bot) log(`Your turn. ${DAYS[S.day].charAt(0)+DAYS[S.day].slice(1).toLowerCase()}, week ${S.week}.`); }
+  if(S.turn===0 && S.day===0 && !S.billed){ S.billed=true; await ask(`<h2 class="bang">Monday, week ${S.week}</h2><p>Bills are due. Rent, lights and food.</p><div class="result"><span class="r">Everybody pays $${BILLS}.</span></div>`,[['Pay the bills']]); S.p.forEach(x=>x.cash-=BILLS); render(); await sleep(900); }
+  if(S.bot){ if(!p.bot){ log(`Your turn. ${DAYS[S.day].charAt(0)+DAYS[S.day].slice(1).toLowerCase()}, week ${S.week}.`); render(); await banner('YOUR TURN',900);} }
   else {
     await ask(`<img class="big" src="cards/back.webp" style="width:52%"><h2 class="bang" style="margin-top:12px">${p.name}'s turn</h2><p>Pass the phone to ${p.name}. ${DAYS[S.day].charAt(0)+DAYS[S.day].slice(1).toLowerCase()}, week ${S.week}.</p>`,[[`I'm ${p.name}`]]);
   }
   if(p.skip>0){ p.skip--; p.left--; render(); log(`<b>${p.name}</b> sits this one out.`); await banner('SIT DOWN',900); return endTurn(true); }
-  while(p.hand.length<HAND+1) p.hand.push(draw());
+  while(p.hand.length<HAND+1) p.hand.push(draw(p));
+  unstick(p);
   S.plays=1; S.lock=false; render();
   if(p.bot) return botTurn();
   if(p.left===1) banner('LAST TURN',1000);
@@ -310,9 +369,9 @@ async function endTurn(skipped){
   while(p.hand.length>HAND+2){ S.disc.push(p.hand.shift()); }
   if(S.turn===1){
     if(S.day===2){
-      for(const x of S.p){ const r=x.norent?0:x.beds*RENT*(x.dbl?2:1); x.cash+=r; x.norent=false; x.dbl=false; }
-      render(); await banner('PAYDAY',1100);
-      await ask(`<h2 class="bang">Friday payday</h2>${S.p.map(x=>`<p><b>${x.name}</b>: ${x.beds} guys → ${money(x.cash)}</p>`).join('')}`,[['Keep going']]);
+      const pay=S.p.map(x=>x.norent?0:x.beds*RENT*(x.dbl?2:1));
+      await ask(`<h2 class="bang">Friday payday</h2><p>Every guy pays $${RENT} rent.</p><div class="result">${S.p.map((x,i)=>`<div>${S.bot&&x===viewer()?'You':x.name}: ${x.beds} guys <span class="g">+$${pay[i]}</span>${x.norent?' (stiffed!)':''}${x.dbl?' (double rent!)':''}</div>`).join('')}</div>`,[['Collect rent']]);
+      S.p.forEach((x,i)=>{ x.cash+=pay[i]; x.norent=false; x.dbl=false; }); render(); await sleep(1300);
       const broke=S.p.filter(x=>x.cash<0);
       if(broke.length) return gameOver(broke.length===2?'Both houses closed!':`${broke[0].name}'s house closed.`);
       if(S.week===WEEKS) return gameOver('The clock ran out.');
