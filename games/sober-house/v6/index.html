@@ -178,8 +178,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
   <input id="n0" maxlength="14" placeholder="Your name" autocomplete="off">
   <button class="btn" id="goBot">Play Big Ray</button>
   <div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">I run the house across the street. I play dirty.</div></div>
-  <input id="n1" maxlength="14" placeholder="Friend's name" autocomplete="off" class="hidden">
-  <button class="btn ghost" id="go">2 players, pass the phone</button>
+  <button class="btn ghost" id="friendBtn">Play with a friend</button>
   <button class="btn ghost" id="howBtn">How to play</button>
 </div>
 
@@ -260,23 +259,23 @@ async function showHistory(){
 }
 $('histBtn').onclick=()=>{ if(!S||OV) return; showHistory(); };
 
-// ---------- how to play ----------
-async function howTo(){
-  const steps=[
-    ['Tap a card','Every card in your hand shows what it does. Tap one and it tells you exactly what will happen before you play it.'],
-    ['Hit your friend','Green cards help your house. Red and pink cards hit the other house. Gold cards are sneaky moves. Some stop a hit when you get one.'],
-    ['Survive to payday','Wednesday the bills come out ($300). Friday every guy pays rent ($100). Most money when the turns run out wins. Under $0 after a Friday and your house closes.']];
-  for(let i=0;i<steps.length;i++) await ask(`<h2 class="t bang" style="margin-top:20px">${steps[i][0]}</h2><p class="b">${steps[i][1]}</p><p class="hint">${i+1} of 3</p>`,[[i<2?'Next':'Got it']]);
+// ---------- intro (shown on first Play Big Ray, and any time from How to play) ----------
+function intro(btn){
+  return ask(`<h2 class="t bang" style="margin-top:12px;font-size:40px;color:var(--gold)">Congratulations, you own a Sober House!</h2>
+    <div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Ray across the street owns one too. He's a dick. You guys fight all the time.</div></div>
+    <div class="panel"><div class="say">You start with 2 out of the 6 beds filled and $800 bucks.</div>${bedStrip(2,2)}<div class="bang" style="font-size:40px;line-height:1;margin-top:4px">$800</div></div>
+    <p class="b">Play cards to get new guys and fight back against Ray's bull*%#!</p>`,[[btn]],{back:0});
 }
+async function howTo(){ await intro('Got it'); }
 
 // ---------- setup ----------
 $('howBtn').onclick=howTo;
 $('goBot').onclick=()=>begin(true);
-$('go').onclick=()=>{ if($('n1').classList.contains('hidden')){ $('n1').classList.remove('hidden'); $('n1').focus(); $('go').textContent='Start 2-player game'; return; } begin(false); };
+$('friendBtn').onclick=()=>ask(`<h2 class="t bang" style="margin-top:30px">Coming soon</h2><p class="b">Soon you'll pick a friend from Messages and play them right there.</p><p class="b">For now, go take on Big Ray.</p>`,[['OK']],{back:0});
 async function begin(bot){
-  const names=[$('n0').value.trim()||(bot?'You':'Player 1'),bot?BOT:($('n1').value.trim()||'Player 2')];
-  let seen=false; try{seen=localStorage.getItem('sh_seen')==='1'}catch(e){}
-  if(!seen){ await howTo(); try{localStorage.setItem('sh_seen','1')}catch(e){} }
+  const names=[$('n0').value.trim()||'You',BOT];
+  let seen=false; try{seen=localStorage.getItem('sh_intro1')==='1'}catch(e){}
+  if(!seen){ await intro('GO TAKE ON BIG RAY!'); try{localStorage.setItem('sh_intro1','1')}catch(e){} }
   newGame(names,bot);
 }
 $('quitBtn').onclick=async()=>{
