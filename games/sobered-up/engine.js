@@ -4,7 +4,7 @@
    v0.2 — build order steps 1 + 2: prototype gaps fixed, heat meter + locked-up game over.
 */
 
-const VERSION = 'v0.8';
+const VERSION = 'v0.9';
 const SAVE_KEY = 'sobered-up-v2';
 
 const CFG = {
@@ -163,7 +163,7 @@ function fresh(seed = Date.now()) {
     court: 0,
     result: null,
     lockedUp: null,       // set to {day, heat, odds} when the lights show up
-    look: { sex: 'guy', skin: 1, hair: 1, hairColor: 0, beard: 0, build: 0, done: false },
+    look: { sex: 'guy', skin: 1, hair: 1, hairColor: 0, beard: 0, build: 1, height: 1, ink: 0, done: false },
     goal: 'Steady footing',
     settings: { sound: false, reminders: true, introSeen: false },
     lastOutcome: null
@@ -182,6 +182,8 @@ function migrate(raw) {
   if (!Array.isArray(raw.reminders)) raw.reminders = [];
   if (!raw.look || typeof raw.look !== 'object') raw.look = f.look;
   if (raw.look.done === undefined) raw.look.done = true;   // an existing run keeps its guy
+  for (const k of ['height', 'ink']) if (raw.look[k] === undefined) raw.look[k] = f.look[k];
+  if (raw.look.build === 1 && raw.look.height === undefined) raw.look.build = 2;
   if (raw.event && !Array.isArray(raw.event.choices)) raw.event = null;
   // re-link the pending card to the live EVENTS entry so its choices carry functions/flags
   if (raw.event && raw.event.id) {

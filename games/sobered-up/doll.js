@@ -19,17 +19,21 @@ const HAIR_NAMES = {
   guy:  ['Buzz', 'Short', 'Curly', 'Pulled back'],
   girl: ['Bob', 'Ponytail', 'Long', 'Big curls']
 };
-const BEARD_NAMES = ['Clean', 'Stubble', 'Full beard'];
-const BUILD_NAMES = ['Slim', 'Solid'];
+const BEARD_NAMES = ['Clean', 'Stubble', 'Goatee', 'Mustache', 'Full beard'];
+const BUILD_NAMES = ['Slim', 'Average', 'Solid', 'Chunky'];
+const HEIGHT_NAMES = ['Short', 'Average', 'Tall'];
+const INK_NAMES = ['No tattoos', 'Already inked'];
 const INK = '#292720';
 
 function dollSVG(s, opts = {}) {
-  const L = s.look || { sex: 'guy', skin: 1, hair: 1, hairColor: 0, beard: 0, build: 0 };
+  const L = Object.assign({ sex: 'guy', skin: 1, hair: 1, hairColor: 0, beard: 0, build: 1, height: 1, ink: 0 }, s.look || {});
+  // height: short / average / tall → the whole doll scales from the feet (feet stay at y=282)
+  const hs = [0.9, 1, 1.08][L.height] || 1;
   const own = id => s.items && s.items.includes(id);
   const w = slot => (typeof worn === 'function' ? worn(s, slot) : null);
   const skin = SKIN[L.skin] || SKIN[1];
   const hc = HAIR_COLOR[L.hairColor] || HAIR_COLOR[0];
-  const wide = L.build === 1 ? 6 : 0;            // solid build = wider torso/arms
+  const wide = [-3, 0, 6, 12][L.build] || 0;       // slim / average / solid / chunky = torso and arm width
   const shirt = w('shirt') || 'tank';
   const pants = w('pants') || 'shorts';
   const shoes = w('shoes') || 'slides';
@@ -37,7 +41,7 @@ function dollSVG(s, opts = {}) {
   const chain = w('chain');
   const tattoo = w('tattoo');
   const stress = s.stress || 0, heat = s.heat || 0;
-  const beard = L.sex === 'guy' ? (own('trim') && L.beard === 2 ? 1.5 : L.beard) : 0;
+  const beard = L.sex === 'guy' ? (own('trim') && L.beard === 4 ? 1.5 : L.beard) : 0;   // 0 clean 1 stubble 2 goatee 3 mustache 4 full (1.5 = trimmed full)
   const S = `stroke="${INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
   const g = [];
 
@@ -61,6 +65,8 @@ function dollSVG(s, opts = {}) {
   g.push(`<rect x="91" y="84" width="18" height="24" fill="${skin.fill}" ${S}/>`);                                        // neck
   g.push(`<ellipse cx="100" cy="62" rx="27" ry="31" fill="${skin.fill}" ${S}/>`);                                         // head
 
+  // ---- starting ink (left arm) — picked at the start, not bought
+  if (L.ink === 1) g.push(`<path d="M${55 - wide} 140 l5 6 l5 -6 M${56 - wide} 152 h8 M${57 - wide} 162 l3 5 l3 -5" fill="none" stroke="${INK}" stroke-width="2.5"/>`);
   // ---- tattoo (right arm, before the shirt so sleeves can cover the top of it)
   if (tattoo === 'tattoo') g.push(`<path d="M${136 + wide} 150 l4 6 l4 -6 M${137 + wide} 160 h6" fill="none" stroke="${INK}" stroke-width="2.5"/>`);
   if (tattoo === 'tattoo2') g.push(`<rect x="${133 + wide}" y="108" width="14" height="72" rx="7" fill="${INK}" opacity=".35"/><path d="M${136 + wide} 120 q4 6 8 0 M${136 + wide} 135 q4 6 8 0 M${136 + wide} 150 q4 6 8 0 M${136 + wide} 165 q4 6 8 0" fill="none" stroke="${INK}" stroke-width="2.5"/>`);
@@ -97,12 +103,14 @@ function dollSVG(s, opts = {}) {
   // ---- beard
   if (beard === 1) g.push(`<path d="M78 70 Q80 94 100 96 Q120 94 122 70 Q112 86 100 86 Q88 86 78 70 Z" fill="${INK}" opacity=".28"/>`);
   if (beard === 1.5) g.push(`<path d="M76 66 Q78 96 100 98 Q122 96 124 66 Q114 84 100 84 Q86 84 76 66 Z" fill="${hc}" ${S}/>`);
-  if (beard === 2) g.push(`<path d="M74 62 Q74 104 100 108 Q126 104 126 62 Q116 82 100 80 Q84 82 74 62 Z" fill="${hc}" ${S}/>`);
+  if (beard === 2) g.push(`<path d="M90 84 Q90 100 100 102 Q110 100 110 84 Q100 90 90 84 Z" fill="${hc}" ${S}/><path d="M92 70 q8 5 16 0 l0 8 q-8 4 -16 0 z" fill="${hc}" ${S}/>`);
+  if (beard === 3) g.push(`<path d="M86 72 q14 -8 28 0 q-6 6 -14 4 q-8 2 -14 -4 z" fill="${hc}" ${S}/>`);
+  if (beard === 4) g.push(`<path d="M74 62 Q74 104 100 108 Q126 104 126 62 Q116 82 100 80 Q84 82 74 62 Z" fill="${hc}" ${S}/>`);
 
   // ---- face
   const mouth = stress >= 90 ? 'M90 80 q10 -7 20 0' : stress >= 70 ? 'M90 78 h20' : 'M89 76 q11 9 22 0';
   g.push(`<path d="${mouth}" fill="none" stroke="${INK}" stroke-width="3"/>`);
-  if (beard === 2) g.push(`<path d="M92 76 q8 4 16 0" fill="none" stroke="${INK}" stroke-width="2"/>`);
+  if (beard === 4 || beard === 1.5) g.push(`<path d="M92 76 q8 4 16 0" fill="none" stroke="${INK}" stroke-width="2"/>`);
   g.push(`<circle cx="89" cy="60" r="3" fill="${INK}"/><circle cx="111" cy="60" r="3" fill="${INK}"/>`);
   g.push(`<path d="M83 52 h12 M105 52 h12" stroke="${INK}" stroke-width="3" ${stress >= 70 ? 'transform="rotate(-8 89 52)"' : ''}/>`);
   if (heat >= 80) g.push(`<path d="M126 46 q5 8 0 10 q-5 -2 0 -10" fill="#7fb3e6" stroke="#2f5fb3" stroke-width="2"/>`);
@@ -133,7 +141,8 @@ function dollSVG(s, opts = {}) {
   if (phone === 'phone2') g.push(`<rect x="${133 + wide}" y="174" width="15" height="26" rx="3" fill="#1c1c1c" ${S}/><rect x="${136 + wide}" y="178" width="9" height="16" fill="#3a6fb0"/>`);
   if (phone === 'phone3') g.push(`<rect x="${132 + wide}" y="172" width="17" height="28" rx="4" fill="#111" ${S}/><rect x="${135 + wide}" y="176" width="11" height="19" fill="#e6b94d"/>`);
 
-  return `<g ${opts.transform ? 'transform="' + opts.transform + '"' : ''}>${g.join('')}</g>`;
+  const scale = hs === 1 ? '' : `translate(${100 - 100 * hs} ${282 - 282 * hs}) scale(${hs})`;
+  return `<g ${opts.transform ? 'transform="' + opts.transform + '"' : ''}><g ${scale ? 'transform="' + scale + '"' : ''}>${g.join('')}</g></g>`;
 }
 
 // The room. 440×220. The doll stands in the middle; bought room items show up around them.
@@ -167,4 +176,4 @@ function roomSVG(s) {
   return p.join('');
 }
 
-if (typeof module !== 'undefined') module.exports = { dollSVG, roomSVG, SKIN, HAIR_COLOR, HAIR_NAMES, BEARD_NAMES, BUILD_NAMES };
+if (typeof module !== 'undefined') module.exports = { dollSVG, roomSVG, SKIN, HAIR_COLOR, HAIR_NAMES, BEARD_NAMES, BUILD_NAMES, HEIGHT_NAMES, INK_NAMES };

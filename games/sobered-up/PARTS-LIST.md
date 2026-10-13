@@ -17,7 +17,7 @@ chain · beard · face · hair-front · shades · hat · phone
 `body-guy-1..4.png`, `body-girl-1..4.png` — head, neck, arms, hands, legs. No clothes. Neutral
 face (eyes + brows only, no mouth — the mouth is its own layer so it can change).
 Skin tones: light (#f1c9a5), tan (#d9a06f), brown (#b07248), dark (#6f4a30).
-Optional: `body-guy-solid-1..4.png` for the wider build (otherwise we scale).
+Builds: slim / average / solid / chunky — the game scales width for now; if you want real chunky art, add `body-guy-chunky-1..4.png`. Height (short / average / tall) is a scale — no extra files.
 
 ## Faces — 3 files
 `mouth-ok.png` (small smile), `mouth-flat.png` (stress 70+), `mouth-down.png` (stress 90+).
@@ -29,8 +29,8 @@ Girl: `hair-girl-bob`, `hair-girl-ponytail` (needs `-back`), `hair-girl-long` (n
 Colors: black (#1d1a16), brown (#5a3a22), blonde (#c9a04a), gray (#8a8a8a).
 `cut-line.png` — the sharp lineup edge that shows after buying "Fresh cut" (sits on the hair front).
 
-## Facial hair (guys) — 3 files
-`beard-stubble.png`, `beard-full.png`, `beard-trimmed.png` (full beard after "Beard trim"). Per hair color if you want them to match; otherwise dark only.
+## Facial hair (guys) — 5 files
+`beard-stubble.png`, `beard-goatee.png`, `beard-mustache.png`, `beard-full.png`, `beard-trimmed.png` (full beard after "Beard trim"). Per hair color if you want them to match; otherwise dark only.
 
 ## Clothes
 Shirts: `shirt-tank.png` (start), `shirt-tee.png`, `shirt-hoodie.png` + `hoodie-hood-back.png` (the hood behind the head)
@@ -39,7 +39,7 @@ Shoes: `shoes-slides.png` (start), `shoes-boots.png` (Work boots), `shoes-dunks.
 
 ## Stuff on you
 `hat-flatbill.png` · `shades.png` · `chain-fake.png` (gray) · `chain-real.png` (gold, thicker, pendant)
-`tattoo-small.png` (right forearm) · `tattoo-sleeve.png` (whole right arm) · `watch.png` (left wrist)
+`ink-start.png` (left forearm, the "already inked" start option) · `tattoo-small.png` (right forearm) · `tattoo-sleeve.png` (whole right arm) · `watch.png` (left wrist)
 `phone-cracked.png` · `phone-new.png` · `phone-newest.png` (held in the right hand, down by the hip)
 
 ## The room (440×220, separate canvas) — later

@@ -144,7 +144,7 @@ footer{font-size:11px;line-height:1.6;margin-top:24px;border-top:2px solid;paddi
 <main id="app"></main>
 <nav id="nav"></nav>
 <div id="modal"></div>
-<script src="engine.js?v=0.8"></script><script src="doll.js?v=0.8"></script><!-- bump ?v= with every VERSION change: GitHub Pages caches .js for 10 min and phones hold it longer -->
+<script src="engine.js?v=0.9"></script><script src="doll.js?v=0.9"></script><!-- bump ?v= with every VERSION change: GitHub Pages caches .js for 10 min and phones hold it longer -->
 <script>
 let s; let page = 'life'; let storageOK = true;
 try { s = migrate(JSON.parse(localStorage.getItem(SAVE_KEY))) || fresh(); } catch { s = fresh(); }
@@ -237,15 +237,17 @@ function picker(){
   const L = s.look;
   const chip = (on, onclick, label) => `<button class="chip ${on ? 'on' : ''}" onclick="${onclick}">${label}</button>`;
   const sw = (on, onclick, color) => `<button class="swatch ${on ? 'on' : ''}" style="background:${color}" onclick="${onclick}" aria-label="color"></button>`;
-  const set = (k, v) => `s.look.${k}=${JSON.stringify(v)};render()`;
+  const set = (k, v) => `s.look.${k}=${typeof v === 'string' ? "'" + v + "'" : v};render()`;
   return `<div class="section"><h2>BUILD YOUR ${L.sex === 'girl' ? 'GIRL' : 'GUY'}.</h2><span class="tag">YOU CAN CHANGE IT LATER</span></div>
-  <div class="pickdoll"><svg viewBox="40 10 120 290">${dollSVG(s)}</svg></div>
+  <div class="pickdoll"><svg viewBox="40 0 120 300">${dollSVG(s)}</svg></div>
   <div class="prow"><span>Who</span>${chip(L.sex === 'guy', set('sex', 'guy'), 'Guy')}${chip(L.sex === 'girl', set('sex', 'girl') + ';s.look.beard=0', 'Girl')}</div>
   <div class="prow"><span>Skin</span>${SKIN.map((c, i) => sw(L.skin === i, set('skin', i), c.fill)).join('')}</div>
   <div class="prow"><span>Hair</span>${HAIR_NAMES[L.sex].map((n, i) => chip(L.hair === i, set('hair', i), n)).join('')}</div>
   <div class="prow"><span>Color</span>${HAIR_COLOR.map((c, i) => sw(L.hairColor === i, set('hairColor', i), c)).join('')}</div>
   ${L.sex === 'guy' ? `<div class="prow"><span>Face</span>${BEARD_NAMES.map((n, i) => chip(L.beard === i, set('beard', i), n)).join('')}</div>` : ''}
+  <div class="prow"><span>Height</span>${HEIGHT_NAMES.map((n, i) => chip(L.height === i, set('height', i), n)).join('')}</div>
   <div class="prow"><span>Build</span>${BUILD_NAMES.map((n, i) => chip(L.build === i, set('build', i), n)).join('')}</div>
+  <div class="prow"><span>Ink</span>${INK_NAMES.map((n, i) => chip(L.ink === i, set('ink', i), n)).join('')}</div>
   <p class="note">Garbage bag of clothes, slides, shorts, tank top. Everything you buy from here on shows up on ${L.sex === 'girl' ? 'her' : 'him'}.</p>
   <button class="primary" onclick="s.look.done=true;page='life';render();window.scrollTo(0,0)">That’s ${L.sex === 'girl' ? 'her' : 'him'} →</button>`;
 }
@@ -259,7 +261,7 @@ function storeUI(){
     }).join('');
     return `<div class="section"><h2>${title}</h2><span class="tag">${esc(blurb)}</span></div>${rows}`;
   }).join('');
-  return `<div class="shopdoll"><svg viewBox="40 10 120 290">${dollSVG(s)}</svg><div><div class="section" style="margin:0 0 6px"><h2>THE SHOP.</h2></div><p class="note">$${s.cash} in your pocket · ${s.actions} move${s.actions === 1 ? '' : 's'} left<br>Each buy uses one move. Gear changes your options and your look, never your recovery.</p></div></div>${groups}`;
+  return `<div class="shopdoll"><svg viewBox="40 0 120 300">${dollSVG(s)}</svg><div><div class="section" style="margin:0 0 6px"><h2>THE SHOP.</h2></div><p class="note">$${s.cash} in your pocket · ${s.actions} move${s.actions === 1 ? '' : 's'} left<br>Each buy uses one move. Gear changes your options and your look, never your recovery.</p></div></div>${groups}`;
 }
 function progress(){
   return `<div class="section"><h2>LITTLE BIG WINS</h2></div>${s.milestones.length ? s.milestones.map(x=>'<div class="badge">★ '+esc(x)+'</div>').join('') : '<p class="note">The first milestone is waiting. Keeping a bed counts.</p>'}<div class="section"><h2>YOUR STORY</h2></div>${s.log.map(x=>'<div class="log">'+esc(x)+'</div>').join('')}`;
