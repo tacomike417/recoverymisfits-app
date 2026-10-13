@@ -175,6 +175,11 @@ window.RM_HELP = {
     { g: "talk", q: "Why don't I see a number next to the heart?",
       s: ["Numbers show up at 2 and higher.", "Below that you just see the heart."],
       k: "count zero likes views" },
+    /* v237, 13 Oct 2026: High five, Bob */
+    { g: "talk", q: "What is \"High five, Bob\"?",
+      s: ["Open the Porch and stay on \"EVERYONE\".", "Under \"Welcome our new folks\", tap Bob.", "That's it. You high-fived Bob."],
+      n: "Bob is one of the two guys in our logo. A high five means \"we're here, you're not alone.\" Yours counts once a day, and nobody sees who did it.",
+      go: ["/feed/porch.html", "Take me there"], k: "bob high five skull logo bill and bob hand slap wave" },
 
     /* ------------------------------------------------ people and friends */
     { g: "people", q: "How do I find somebody?",

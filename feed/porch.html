@@ -1491,6 +1491,51 @@ html.kb .ch-bar{padding-bottom:8px}
 
 .toast{position:fixed;left:50%;bottom:calc(270px + env(safe-area-inset-bottom,0px));z-index:30000;transform:translate(-50%,20px);max-width:88vw;padding:12px 18px;border-radius:999px;background:var(--cream);color:var(--bg);font:700 14px Arial,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
 .toast.on{opacity:1;transform:translate(-50%,0)}
+/* HIGH FIVE, BOB (v237, 13 Oct 2026, Mike): like thanking the bus driver in Fortnite. Bob, one of
+   the two skull men in the logo, sits under "Welcome our new folks" on the Everyone feed. Tap him
+   and you high-five him. It means "we're here, you're not alone" and does nothing else.
+   THE ART IS TWO FILES: /assets/bob/bob-idle.png (resting) and /assets/bob/bob-highfive.png (shown
+   during the slap). Swap those two files for new art and nothing else changes. The drawn hands are
+   for the stand-in art; when the new art has Bob's own raised hand, take data-hands off #bob. */
+.bob{display:flex;align-items:center;gap:14px;width:calc(100% - 24px);min-height:76px;margin:10px 12px 2px;padding:10px 12px 10px 14px;border-radius:16px;border:1.5px solid var(--postline);background:var(--field);color:var(--cream);text-align:left;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.bob:active{background:var(--btn)}
+.on-groups #bob,.on-friends #bob{display:none!important}
+.bob-pic{position:relative;flex:none;width:56px;height:56px}
+.bob-face{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:#000;box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--gold2)}
+.bob-face img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.bob-face .bob-hi{opacity:0}
+.bob-hand{position:absolute;top:-13px;width:28px;height:33px;opacity:0;pointer-events:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.bob-hand.bh-bob{right:7px}
+.bob-hand.bh-you{right:-12px}
+.bob:not([data-hands]) .bob-hand.bh-bob{display:none}
+.bob-burst{position:absolute;top:-6px;right:-1px;width:0;height:0;pointer-events:none}
+.bob-burst i{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--gold2);opacity:0;transform:rotate(var(--a)) translateX(0)}
+.bob-burst i:nth-child(odd){width:4px;height:4px;left:-2px;top:-2px;background:#fff6dc}
+.bob-words{flex:1;min-width:0}
+.bob-words b{display:block;font:400 21px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.03em;color:var(--cream)}
+.bob-line{display:block;margin-top:4px;color:var(--soft);font:600 13.5px/1.3 Arial,sans-serif}
+.bob-go{flex:none;display:flex;align-items:center;gap:5px;height:40px;padding:0 15px;border-radius:999px;background:var(--gold2);color:var(--ink);font:800 14px Arial,sans-serif;white-space:nowrap}
+.bob.done .bob-go{background:none;box-shadow:inset 0 0 0 1.5px var(--gold2);color:var(--gold2)}
+.bob-go em{font-style:normal;font-size:17px;line-height:1}
+/* the slap: Bob's hand comes up, yours swoops in, they meet, a little burst of gold */
+.bob.go .bh-bob{animation:bobUp 1.15s ease-out both}
+.bob.go .bh-you{animation:bobYou 1.15s cubic-bezier(.3,.7,.4,1) both}
+.bob.go .bob-burst i{animation:bobBurst .55s .4s ease-out both}
+.bob.go .bob-face{animation:bobJolt .35s .38s ease-out both}
+.bob.go .bob-face .bob-hi{animation:bobSwap 1.15s linear both}
+.bob.go .bob-go{animation:bobPop .3s .38s ease-out both}
+@keyframes bobUp{0%{opacity:0;transform:translate(-4px,20px) rotate(-14deg)}25%,42%{opacity:1;transform:translate(0,0) rotate(0)}50%{opacity:1;transform:translate(-4px,3px) rotate(-10deg)}80%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(0,6px)}}
+@keyframes bobYou{0%{opacity:0;transform:translate(46px,-10px) rotate(28deg)}30%{opacity:1;transform:translate(14px,-2px) rotate(12deg)}40%{opacity:1;transform:translate(0,0) rotate(0)}52%{opacity:1;transform:translate(5px,-2px) rotate(8deg)}80%{opacity:1;transform:translate(3px,0) rotate(4deg)}100%{opacity:0;transform:translate(22px,-6px) rotate(18deg)}}
+@keyframes bobBurst{0%{opacity:1;transform:rotate(var(--a)) translateX(2px) scale(1.2)}100%{opacity:0;transform:rotate(var(--a)) translateX(24px) scale(.4)}}
+@keyframes bobJolt{0%{transform:translate(0,0)}35%{transform:translate(-3px,1px) rotate(-4deg)}70%{transform:translate(1px,0) rotate(1deg)}100%{transform:none}}
+@keyframes bobSwap{0%,20%{opacity:0}30%,85%{opacity:1}100%{opacity:0}}
+@keyframes bobPop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+/* less motion: no flying hands, just a soft fade of the high five */
+@media (prefers-reduced-motion:reduce){
+  .bob.go .bh-bob,.bob.go .bh-you{animation:bobFade 1.15s linear both}
+  .bob.go .bob-burst i,.bob.go .bob-face,.bob.go .bob-go{animation:none}
+}
+@keyframes bobFade{0%{opacity:0;transform:none}25%,75%{opacity:1;transform:none}100%{opacity:0;transform:none}}
 </style>
 <script src="/assets/account.js"></script>
 <script>
@@ -1538,7 +1583,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v236</span>
+  <span class="ver" id="ver">v237</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1562,6 +1607,18 @@ html.kb .ch-bar{padding-bottom:8px}
   </section>
   <div id="spinrail"></div>
   <section class="newrail" id="newrail" hidden></section>
+  <!-- HIGH FIVE, BOB (v237, 13 Oct 2026, Mike). Everyone tab only. One counted high five a day;
+       tapping again just plays it again. Art: /assets/bob/bob-idle.png + bob-highfive.png -->
+  <button type="button" class="bob" id="bob" data-hands aria-label="High five, Bob">
+    <span class="bob-pic" aria-hidden="true">
+      <span class="bob-face"><img src="/assets/bob/bob-idle.png" alt="" width="56" height="56"><img class="bob-hi" src="/assets/bob/bob-highfive.png" alt="" width="56" height="56"></span>
+      <svg class="bob-hand bh-bob" viewBox="0 0 26 31"><g fill="#efe5cc" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><rect x="6.5" y="3" width="3.6" height="13" rx="1.8"/><rect x="10.3" y="1" width="3.6" height="14" rx="1.8"/><rect x="14.1" y="2" width="3.6" height="13" rx="1.8"/><rect x="17.9" y="5" width="3.4" height="11" rx="1.7"/><rect x="1.5" y="12" width="3.6" height="10" rx="1.8" transform="rotate(-35 3.3 17)"/><path d="M5.5 13h16v7c0 5-3.5 9-8 9s-8-4-8-9z"/></g></svg>
+      <svg class="bob-hand bh-you" viewBox="0 0 26 31"><g transform="translate(26 0) scale(-1 1)" fill="#f6d2a8" stroke="#111" stroke-width="1.6" stroke-linejoin="round"><rect x="6.5" y="3" width="3.6" height="13" rx="1.8"/><rect x="10.3" y="1" width="3.6" height="14" rx="1.8"/><rect x="14.1" y="2" width="3.6" height="13" rx="1.8"/><rect x="17.9" y="5" width="3.4" height="11" rx="1.7"/><rect x="1.5" y="12" width="3.6" height="10" rx="1.8" transform="rotate(-35 3.3 17)"/><path d="M5.5 13h16v7c0 5-3.5 9-8 9s-8-4-8-9z"/></g></svg>
+      <span class="bob-burst"><i style="--a:0deg"></i><i style="--a:45deg"></i><i style="--a:90deg"></i><i style="--a:135deg"></i><i style="--a:180deg"></i><i style="--a:225deg"></i><i style="--a:270deg"></i><i style="--a:315deg"></i></span>
+    </span>
+    <span class="bob-words"><b>High five, Bob</b><span class="bob-line" id="bobline" aria-live="polite">Give Bob a high five. We&rsquo;re here.</span></span>
+    <span class="bob-go" id="bobgo" aria-hidden="true">High five</span>
+  </button>
   <div id="feed" style="padding-top:2px"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
 </main>
@@ -2531,6 +2588,7 @@ html.kb .ch-bar{padding-bottom:8px}
     posts = {}; comments = {}; mine = {}; oldest = null; done = false; newest = null; $("newpill").hidden = true;
     $("feed").innerHTML = '<div class="skel"></div>';
     document.documentElement.classList.toggle("on-groups", tab === "groups");
+    document.documentElement.classList.toggle("on-friends", tab === "following");     /* v237: Bob is on Everyone only */
     if (window.PorchSpins) window.PorchSpins.paintRail();
     if (tab === "groups") return paintGroups();
     await loadMore();
@@ -7256,6 +7314,55 @@ html.kb .ch-bar{padding-bottom:8px}
     openProfile(b.getAttribute("data-nr"));
   });
 
+  /* HIGH FIVE, BOB (v237, 13 Oct 2026, Mike: like "thank the bus driver" in Fortnite). A tiny
+     gesture that means "we're here, you're not alone". It does nothing else: no names, no
+     streaks, no points, no alerts. The database keeps one row per person per day and only ever
+     hands back a number (supabase/porch_71_bob_high_five.sql). The house accounts each give Bob
+     one every morning between 4 and 10am Eastern, so the number is real.
+     Counting: only a confirmed member's high five counts, once a day (midnight Eastern). Anybody
+     else still gets the high five on screen. NO ZEROS (Mike): the number only shows at 2 or more.
+     No sound on purpose. */
+  var bob = { loaded: false, others: 0, mine: false, can: false, felt: false }, bobBusy = false, bobT = 0;
+  function bobLine() {
+    var n = bob.others, many = n >= 2, nn = many ? Number(n).toLocaleString("en-US") : "";
+    if (bob.mine) return many ? "You and " + nn + " misfits high-fived Bob today." : "You high-fived Bob today.";
+    if (bob.felt) return signedIn() ? "Bob felt that. Confirm your email and yours counts too." : "Bob felt that. Join free and yours counts too.";
+    return many ? nn + " misfits high-fived Bob today." : "Give Bob a high five. We’re here.";
+  }
+  function paintBob() {
+    var b = $("bob"); if (!b) return;
+    $("bobline").textContent = bobLine();
+    b.classList.toggle("done", bob.mine);
+    $("bobgo").innerHTML = bob.mine ? "<em>✋</em>Again" : "High five";
+    b.setAttribute("aria-label", bob.mine ? "High five Bob again" : "High five, Bob");
+  }
+  async function loadBob() {
+    try {
+      var s = await rpc("porch_bob_today", {});
+      if (s && typeof s === "object") { bob.loaded = true; bob.others = Number(s.others) || 0; bob.mine = !!s.mine; bob.can = !!s.can; }
+    } catch (e) { /* no signal: Bob still works, just no number */ }
+    paintBob();
+  }
+  function playBob() {
+    var b = $("bob");
+    b.classList.remove("go"); void b.offsetWidth; b.classList.add("go");
+    clearTimeout(bobT); bobT = setTimeout(function () { b.classList.remove("go"); }, 1300);
+  }
+  $("bob").addEventListener("click", async function () {
+    playBob();
+    if (bob.mine || bobBusy) return;                        /* already counted today: just the slap again */
+    var can = bob.loaded ? bob.can : !!(me.member && me.member.verified_at && !me.member.frozen_at);
+    if (!can) { bob.felt = true; return paintBob(); }       /* not counted, still a high five */
+    bobBusy = true; bob.mine = true; paintBob();
+    try {
+      var s = await rpc("porch_bob_high_five", {});
+      if (s && typeof s === "object") { bob.loaded = true; bob.others = Number(s.others) || 0; bob.mine = !!s.mine; bob.can = !!s.can; }
+    } catch (e) { bob.mine = false; toast("That high five didn't go through. Try again when you have signal."); }
+    bobBusy = false; paintBob();
+  });
+  /* a new day while the app sat open: ask again when it comes back on screen */
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && tab === "all") loadBob(); });
+
   /* ================================================================ GO */
   (async function () {
     await loadMe();
@@ -7264,6 +7371,7 @@ html.kb .ch-bar{padding-bottom:8px}
     loadNew();
     loadMore();
     loadNewFolks();
+    loadBob();
     if (window.PorchSpins) window.PorchSpins.paintRail(); else window.addEventListener("load", function () { if (window.PorchSpins) window.PorchSpins.paintRail(); });
     checkNotes(); checkDms(); checkGNew(); checkNew(); modCheck(); healPush();
     setTimeout(function () { if (unread) askPush(); }, 6000);
