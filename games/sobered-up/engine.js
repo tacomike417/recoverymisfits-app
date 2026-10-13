@@ -4,7 +4,7 @@
    v0.2 — build order steps 1 + 2: prototype gaps fixed, heat meter + locked-up game over.
 */
 
-const VERSION = 'v0.2';
+const VERSION = 'v0.4';
 const SAVE_KEY = 'sobered-up-v2';
 
 const CFG = {
@@ -46,6 +46,10 @@ const CFG = {
     repeatShift: [0, 5, 7],   // heat added for the 2nd, 3rd shift in a day
     noSupport: [0, 0, 4, 8, 12],  // nightly heat by days since last support (caps at last value)
     noRest: 2,           // nightly heat if you didn't rest
+    maxedStress: 80,     // stress at or above this adds heat every night...
+    maxedStressHeat: 6,
+    aloneBelow: 20,      // ...and so does connection under this
+    aloneHeat: 6,
     support: -15,
     rest: -5,
     help: -8,
@@ -102,7 +106,7 @@ function fresh(seed = Date.now()) {
     result: null,
     lockedUp: null,       // set to {day, heat, odds} when the lights show up
     goal: 'Steady footing',
-    settings: { sound: false, reminders: true },
+    settings: { sound: false, reminders: true, introSeen: false },
     lastOutcome: null
   };
 }
@@ -490,6 +494,9 @@ function endDay(s) {
   if (food < CFG.food) apply(s, { stress: CFG.shortFoodStress });
   // night
   if (!s.restToday) apply(s, { stress: CFG.nightStress, heat: H.noRest });
+  // running on empty and alone: heat creeps every night until you show up somewhere
+  if (s.stress >= H.maxedStress) { apply(s, { heat: H.maxedStressHeat }); record(s, 'Stress at ' + s.stress + ': +' + H.maxedStressHeat + ' heat.'); }
+  if (s.connection < H.aloneBelow) { apply(s, { heat: H.aloneHeat }); record(s, 'Nobody in your corner (connection ' + s.connection + '): +' + H.aloneHeat + ' heat.'); }
   apply(s, { connection: CFG.nightConnection });
   // heat from not showing up
   if (!s.supportToday) {
