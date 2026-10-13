@@ -43,7 +43,13 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 /* ---------- pinned top (header + houses + week strip) ---------- */
 #gameScreen{display:flex;height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));min-height:560px}
 .pin{position:sticky;top:0;z-index:5;flex:0 0 auto;background:var(--bg) url('ui/bg.webp') center top/cover;box-shadow:0 6px 14px rgba(0,0,0,.55);border-bottom:2px solid var(--line)}
-.week{display:grid;grid-template-columns:auto repeat(3,1fr);gap:6px;padding:4px 12px 8px;align-items:stretch}
+.week{display:grid;gap:5px;padding:4px 12px 4px;align-items:stretch}
+.wd.dbig{padding:4px 0 3px}.wd.dbig b{font:400 32px/1 Bangers,Poppins;letter-spacing:.04em}.wd.dbig i{font:800 11px Poppins;font-style:normal;letter-spacing:.04em}
+.wd.dsm b{font-size:12px}.wd.dsm i{font-size:8.5px}.wd.dsm{padding-top:8px}
+.nextup{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 14px 8px}
+.nextup .nt{font:700 12px/1.2 Poppins;color:var(--dim);min-width:0}.nextup .nt b{color:var(--cream)}
+.dots{display:flex;gap:2px;align-items:center;flex:0 0 auto}.dots s{width:6px;height:6px;border-radius:50%;background:#4a3826;text-decoration:none}
+.dots s.d{background:#8a7356}.dots s.on{background:var(--gold);box-shadow:0 0 6px var(--gold);width:9px;height:9px}.dots u{width:3px}
 .wk{border-radius:10px;background:rgba(33,25,16,.92);border:2px solid var(--line);text-align:center;padding:3px 9px 2px;line-height:1}
 .wk i{display:block;font:800 10px Poppins;font-style:normal;letter-spacing:.06em;color:var(--dim)}
 .wk b{display:block;font:800 21px Poppins;color:var(--cream)}
@@ -52,7 +58,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .wd i{display:block;font:700 10.5px Poppins;font-style:normal;color:var(--dim);min-height:12px;white-space:nowrap}
 .wd.bills{background:rgba(213,55,50,.22);border-color:rgba(213,55,50,.55)}.wd.bills b,.wd.bills i{color:#ff8d84}
 .wd.pay{background:rgba(33,148,92,.25);border-color:rgba(63,191,111,.55)}.wd.pay b,.wd.pay i{color:#7fe0a3}
-.wd.today{background:var(--gold);border:2px solid #fff3c4;box-shadow:0 0 14px rgba(232,182,52,.7);transform:scale(1.04)}
+.wd.today{background:var(--gold);border:2px solid #fff3c4;box-shadow:0 0 14px rgba(232,182,52,.7)}
 .wd.today b,.wd.today i{color:#1a1410}
 .wd.past{opacity:.35}
 .banner small{display:block;font-size:.4em;color:var(--cream);margin:8px 0;text-shadow:none}
@@ -249,7 +255,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 <div class="app">
 
 <div id="startScreen" class="start">
-  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v10</span></span></div>
+  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v11</span></span></div>
   <img class="logo" src="../cards/logo.webp" alt="Sober House">
   <div class="bang" style="font-size:26px;line-height:1.1">Run the house. Most money when the clock runs out wins.</div>
   <div class="time">Takes about 15&ndash;20 minutes</div>
@@ -265,10 +271,11 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
   <div class="top">
     <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="../cards/logo.webp" alt="Sober House"></div>
     <div class="count" id="count"><span class="n bang" id="left">18</span><span id="leftLbl">turns left</span></div>
-    <div class="rgt"><span class="pill">v10</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
+    <div class="rgt"><span class="pill">v11</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
   </div>
   <div class="houses"><div class="hs me" id="myHouse"></div><div class="hs them" id="oppHouse"></div></div>
   <div class="week" id="week" aria-label="This week"></div>
+  <div class="nextup" id="nextup"></div>
   </div>
   <div class="handhead bang" id="handHead">YOUR HAND</div>
   <div class="handwin" id="handWin"><div class="hand" id="hand"></div></div>
@@ -382,7 +389,7 @@ function intro(btn){
       <div><span class="dot gold"></span><span><b>Gold:</b> block Ray's crap or take his money.</span></div>
     </div>
     <div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Ray runs the house across the street. He's a dick. He'll call the city on you, then shake your hand at the meeting.</div></div>
-    <div class="panel"><div class="say">You start with 2 of 6 beds filled and $800 to your name.</div>${bedStrip(2,2)}<div class="bang" style="font-size:36px;line-height:1;margin-top:4px">$800</div></div>
+    <div class="panel"><div class="say">You start with 2 beds full, 4 empty, and $800 to your name.</div>${bedStrip(2,2)}<div class="bang" style="font-size:36px;line-height:1;margin-top:4px">$800</div></div>
     <p class="b">You play Monday, Wednesday and Friday for 6 weeks. Bills hit every Wednesday. Rent comes in Friday, if they pay. Go broke and you're done.</p>
     <p class="b" style="font-weight:700">Fill your beds and fight back against Ray's bullshit.</p>`,[[btn]],{back:0});
 }
@@ -538,7 +545,7 @@ function houseHTML(p,mine){
   const tags=[p.skip?'<span class="tag">Sits out next turn</span>':'',p.norent?'<span class="tag">$0 rent Friday</span>':'',p.dbl?'<span class="tag g">Double rent Friday</span>':''].join('');
   return `<div class="nm bang">${mine?(S.bot?'Your house':esc(p.name)+"'s house"):esc(p.name)+"'s house"}</div>
     <div class="money bang ${p.cash<0?'neg':''}">${money(p.cash)}</div>
-    <div class="bd"><b>${p.beds}/${MAXB}</b> beds filled</div>
+    <div class="bd">${p.beds>=MAXB?'<b>House full!</b>':`<b>${p.beds}</b> ${p.beds===1?'bed':'beds'} full`}</div>
     <div class="beds">${Array.from({length:MAXB},(_,i)=>`<div class="bed ${i<p.beds?'on':''}">${BED}</div>`).join('')}</div>
     ${tags?`<div class="tags">${tags}</div>`:''}`;
 }
@@ -557,15 +564,27 @@ function floats(){
 }
 function whyNot(c,p){
   if(c.react) return 'Hang on to this one. When a bad card hits you, you\'ll get the chance to throw it down.';
-  if(!playable(c,p)) return `Your house is full (${p.beds}/${MAXB} beds). Hang on to this one. Play it when a bed opens up.`;
+  if(!playable(c,p)) return `Your house is full. Hang on to this one. Play it when a bed opens up.`;
   return '';
 }
 // ---------- week strip: the game plays Mon / Wed / Fri; bills come out Wednesday, payday is Friday ----------
-const WEEKD=['MON','WED','FRI'];
+const WEEKD=['MON','WED','FRI'], DAYFULL=['MONDAY','WEDNESDAY','FRIDAY'];
+const billsOn=(w,d)=>d===1&&w>1; // no bills the first Wednesday
 function weekHTML(){ const today=S.day;
-  return `<div class="wk" aria-label="Week ${S.week} of ${WEEKS}"><i>WEEK</i><b>${S.week}/${WEEKS}</b></div>`+WEEKD.map((d,k)=>{ const cls=[k===1?'bills':'',k===2?'pay':'',k===today?'today':'',k<today?'past':''].join(' ');
-    const sub=k===today?(k===1?'TODAY · bills':k===2?'TODAY · payday':'TODAY'):k<today?'&#10003;':k===1?'bills':k===2?'payday':'';
-    return `<div class="wd ${cls}"${k===today?' aria-current="date"':''}><b>${d}</b><i>${sub}</i></div>`; }).join(''); }
+  $('week').style.gridTemplateColumns='auto '+[0,1,2].map(k=>k===today?'3.2fr':'1fr').join(' ');
+  return `<div class="wk" aria-label="${S.week===WEEKS?'Last week':'Week '+S.week}"><i>${S.week===WEEKS?'LAST':'WEEK'}</i><b>${S.week===WEEKS?'WEEK':S.week}</b></div>`+WEEKD.map((d,k)=>{
+    const bills=billsOn(S.week,k), pay=k===2;
+    if(k===today) return `<div class="wd dbig today ${bills?'bills':''} ${pay?'pay':''}" aria-current="date"><b>${DAYFULL[k]}</b><i>${bills?'TODAY &middot; BILLS DUE':pay?'TODAY &middot; PAYDAY':'TODAY'}</i></div>`;
+    return `<div class="wd dsm ${bills?'bills':''} ${pay?'pay':''} ${k<today?'past':''}"><b>${d}</b><i>${k<today?'&#10003;':bills?'bills':pay?'payday':''}</i></div>`; }).join(''); }
+function nextHTML(){
+  const w=S.week,d=S.day; let nt;
+  if(d===0) nt=billsOn(w,1)?`Next: <b>Wednesday bills, $${BILLS}</b>`:'Next: <b>Wednesday</b>, no bills yet';
+  else if(d===1) nt='Next: <b>Friday payday</b>';
+  else nt=w===WEEKS?'<b>Last day. Make it count.</b>':`Next: <b>Monday, ${w+1===WEEKS?'last week':'week '+(w+1)}</b>`;
+  const at=(w-1)*3+d; let dots='';
+  for(let i=0;i<WEEKS*3;i++){ if(i&&i%3===0) dots+='<u></u>'; dots+=`<s class="${i<at?'d':i===at?'on':''}"></s>`; }
+  return `<span class="nt">${nt}</span><span class="dots" aria-hidden="true">${dots}</span>`;
+}
 function handFade(){ const h=$('hand'); $('handWin').classList.toggle('end',h.scrollTop+h.clientHeight>=h.scrollHeight-4); }
 $('hand').addEventListener('scroll',handFade,{passive:true}); window.addEventListener('resize',handFade);
 function render(){
@@ -576,7 +595,7 @@ function render(){
   $('leftLbl').textContent=L===1?'turn left':'turns left';
   $('count').setAttribute('aria-label',(S.bot?'':p.name+': ')+L+(L===1?' turn left':' turns left')+', '+DAYS[S.day].toLowerCase()+', '+(cur.bot?BOT+"'s turn":(S.bot?'your turn':cur.name+"'s turn")));
   $('count').classList.toggle('low',p.left<=3);
-  $('week').innerHTML=weekHTML();
+  $('week').innerHTML=weekHTML(); $('nextup').innerHTML=nextHTML();
   const botTurn=!!cur.bot;
   $('handHead').innerHTML=botTurn?`${BOT.toUpperCase()} IS THINKING...`:(S.plays>1?`PLAY ${S.plays} MORE CARDS`:`YOUR HAND <small>&middot; ${p.hand.length} CARDS</small>`);
   $('hand').classList.toggle('wait',botTurn);
@@ -761,7 +780,7 @@ async function botTurn(){
 async function startTurn(first){
   const p=me(); S.lock=true; render();
   let dayShown=false;
-  if(S.turn===0 && S.bot){ sfx('flip'); await banner(`<small>WEEK ${S.week} OF ${WEEKS}</small>${DAYS[S.day]}${p.bot?'':'<small>YOUR TURN</small>'}`,1500); dayShown=true; }
+  if(S.turn===0 && S.bot){ sfx('flip'); await banner(`<small>${S.week===WEEKS?'LAST WEEK':'WEEK '+S.week}</small>${DAYS[S.day]}${p.bot?'':'<small>YOUR TURN</small>'}`,1500); dayShown=true; }
   if(S.turn===0 && S.day===1 && !S.billed && S.week>1){
     S.billed=true;
     const v=viewer(), o=other();
@@ -771,7 +790,7 @@ async function startTurn(first){
   }
   if(S.bot){ if(!p.bot&&!dayShown){ render(); await banner('YOUR TURN',900);} }
   else {
-    await ask(`<img class="big" src="${BASE}cards/back.webp" alt="" style="max-height:40dvh;margin-top:20px"><div class="kicker bang">${DAYS[S.day]} &middot; WEEK ${S.week} OF ${WEEKS}</div><h2 class="t bang">${esc(p.name)}'s turn</h2><p class="b">Pass the phone to ${esc(p.name)}.</p>`,[[`I'm ${esc(p.name)}`]]);
+    await ask(`<img class="big" src="${BASE}cards/back.webp" alt="" style="max-height:40dvh;margin-top:20px"><div class="kicker bang">${DAYS[S.day]} &middot; ${S.week===WEEKS?'LAST WEEK':'WEEK '+S.week}</div><h2 class="t bang">${esc(p.name)}'s turn</h2><p class="b">Pass the phone to ${esc(p.name)}.</p>`,[[`I'm ${esc(p.name)}`]]);
   }
   if(p.skip>0){ p.skip--; p.left--; render(); log(`<b>${esc(nm(p))}</b> ${isYou(p)?'sit':'sits'} this one out.`); await banner('SIT DOWN',900); return endTurn(true); }
   p.newFrom=S.dealN; // anything dealt from here on this turn gets the NEW tag
@@ -818,7 +837,7 @@ async function gameOver(why){
   while(true){
     const r=await ask(`<div class="winhead"><h2 class="bang">${head}</h2><p>${esc(why)}</p></div>
       <img class="illo" src="ui/${rayWon?'big-ray':'house-victory'}.webp" alt="">
-      <div class="final">${order.map(x=>`<div class="${x===w?'win':''}"><div class="bang" style="font-size:20px">${S.bot&&isYou(x)?'YOUR HOUSE':esc(x.name).toUpperCase()}</div><div class="m bang">${money(x.cash)}</div><div class="k">FINAL MONEY &middot; ${x.beds}/${MAXB} BEDS FILLED</div></div>`).join('')}</div>
+      <div class="final">${order.map(x=>`<div class="${x===w?'win':''}"><div class="bang" style="font-size:20px">${S.bot&&isYou(x)?'YOUR HOUSE':esc(x.name).toUpperCase()}</div><div class="m bang">${money(x.cash)}</div><div class="k">FINAL MONEY &middot; ${x.beds} ${x.beds===1?'BED':'BEDS'} FULL</div></div>`).join('')}</div>
       ${S.bot?`<div class="ray">${rayWon?'':'<img src="ui/ray-face.webp" alt="">'}<div class="bubble">${rayWon?'Told you. I play dirty.':'Fine. You run a decent house.'}</div></div>`:''}`,
       [['Play again'],['History','ghost'],['Done','ghost']],{lead:1});
     if(r===1){ await showHistory(); continue; }
