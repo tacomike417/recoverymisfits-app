@@ -28,11 +28,10 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 /* ---------- header ---------- */
 .top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px;padding:6px 10px 2px}
 .top .lft{display:flex;align-items:center;gap:2px}
-.count{text-align:center;line-height:1}
-.count .n{font-size:44px;line-height:.95}
-.count .l{font:800 11px Poppins;letter-spacing:.12em;color:var(--dim)}
-.count .s{font:800 13px Poppins;letter-spacing:.06em;margin-top:3px;color:var(--dim)}
-.count .s b{color:var(--gold)}
+.count{justify-self:center;display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap;border:2px solid var(--gold);border-radius:999px;padding:3px 10px 2px;background:rgba(33,25,16,.92);font:800 12px Poppins;color:var(--cream);line-height:1}
+.count .n{font-size:20px;line-height:1;color:var(--gold)}
+.count.low{border-color:var(--down)}
+@media (max-width:380px){.top{gap:2px;padding:6px 6px 2px}.top .logo{height:50px}.count{padding:3px 7px 2px;font-size:11px;gap:3px}.count .n{font-size:18px}.hbtn{padding:0 8px;gap:5px}}
 .count.low .n{color:var(--down);animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.45}}
 .rgt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
@@ -41,7 +40,20 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .hbtn img{width:20px;height:20px}
 .top .logo{width:auto;height:58px;display:block}
 
-/* ---------- houses ---------- */
+/* ---------- pinned top (header + houses + week strip) ---------- */
+#gameScreen{display:flex;height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));min-height:560px}
+.pin{position:sticky;top:0;z-index:5;flex:0 0 auto;background:var(--bg) url('ui/bg.webp') center top/cover;box-shadow:0 6px 14px rgba(0,0,0,.55);border-bottom:2px solid var(--line)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:4px 12px 8px}
+.wd{border-radius:9px;background:rgba(33,25,16,.92);border:2px solid var(--line);text-align:center;padding:3px 0 2px;min-width:0;line-height:1.05}
+.wd b{display:block;font:800 12px Poppins;letter-spacing:.04em;color:var(--dim)}
+.wd i{display:block;font:700 9.5px Poppins;font-style:normal;color:var(--dim);min-height:11px;white-space:nowrap}
+.wd.bills{background:rgba(213,55,50,.22);border-color:rgba(213,55,50,.55)}.wd.bills b,.wd.bills i{color:#ff8d84}
+.wd.pay{background:rgba(33,148,92,.25);border-color:rgba(63,191,111,.55)}.wd.pay b,.wd.pay i{color:#7fe0a3}
+.wd.today{border:2px solid var(--gold);box-shadow:0 0 0 2px rgba(232,182,52,.35)}
+.wd.today b{color:var(--cream)}
+.wd.past{opacity:.35}
+
+
 .houses{display:grid;grid-template-columns:1.55fr 1fr;gap:8px;padding:8px 12px 4px}
 .hs{border-radius:16px;padding:10px 12px;background:rgba(33,25,16,.92);border:2px solid var(--line);min-width:0}
 .hs.me{border:3px solid var(--gold)}
@@ -77,9 +89,15 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .bed.pop{animation:newbed .5s ease-in-out 3}
 
 /* ---------- hand ---------- */
-.handhead{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:10px 12px 2px;font-size:24px}
+.handhead{display:flex;align-items:baseline;justify-content:center;gap:8px;padding:8px 12px 4px;font-size:24px;flex:0 0 auto}
+.handwin{position:relative;flex:1 1 auto;min-height:190px;margin:0 10px 10px;border:2px solid var(--line);border-radius:16px;background:rgba(10,7,5,.35);overflow:hidden}
+.handwin:after{content:'';position:absolute;left:0;right:0;bottom:0;height:46px;pointer-events:none;border-radius:0 0 14px 14px;background:linear-gradient(rgba(21,17,13,0),rgba(21,17,13,.92));transition:opacity .25s}
+.handwin.end:after{opacity:0}
 .handhead small{font:800 13px Poppins;color:var(--dim);letter-spacing:.08em}
-.hand{display:flex;flex-direction:column;gap:8px;padding:6px 12px 18px}
+.hand{display:flex;flex-direction:column;gap:8px;padding:12px 8px 26px;position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.hand>*{flex-shrink:0}
+.newrow{position:relative}
+.newrow .newt{position:absolute;right:26px;top:-7px;z-index:2;background:var(--gold);color:var(--ink);font:800 11px/1 Poppins;letter-spacing:.08em;padding:4px 9px 3px;border-radius:999px;border:2px solid var(--ink);box-shadow:0 2px 0 rgba(0,0,0,.4)}
 .hand.wait .crd{opacity:.55}
 .crd{position:relative;width:100%;min-height:84px;display:grid;grid-template-columns:27.9% 1fr 22px;align-items:center;gap:0;padding:8px 8px 8px 8px;text-align:left;color:var(--ink);background:transparent center/100% 100% no-repeat;border-radius:14px;font-family:Poppins}
 .crd.green{background-image:url('ui/hand-row-green.svg')}.crd.red{background-image:url('ui/hand-row-red.svg')}
@@ -228,14 +246,17 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 </div>
 
 <div id="gameScreen" class="hidden" style="flex-direction:column;flex:1">
+  <div class="pin" id="pin">
   <div class="top">
     <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="../cards/logo.webp" alt="Sober House"></div>
-    <div class="count" id="count"><div class="n bang" id="left">18</div><div class="l" id="leftLbl">YOUR TURNS LEFT</div><div class="s" id="status"></div></div>
+    <div class="count" id="count"><span class="n bang" id="left">18</span><span id="leftLbl">turns left</span></div>
     <div class="rgt"><span class="pill">v6 TEST</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
   </div>
   <div class="houses"><div class="hs me" id="myHouse"></div><div class="hs them" id="oppHouse"></div></div>
+  <div class="week" id="week" aria-label="This week"></div>
+  </div>
   <div class="handhead bang" id="handHead">YOUR HAND</div>
-  <div class="hand" id="hand"></div>
+  <div class="handwin" id="handWin"><div class="hand" id="hand"></div></div>
 </div>
 
 </div>
@@ -367,8 +388,8 @@ $('quitBtn').onclick=async()=>{
   if(i===1){ S=null; $('gameScreen').classList.add('hidden'); $('startScreen').classList.remove('hidden'); }
 };
 function newGame(names,bot){
-  S={deck:shuffle(DECK.map(c=>({...c}))),disc:[],week:1,day:0,turn:0,
-     p:names.map(n=>({name:n,cash:START,beds:2,hand:[],skip:0,left:WEEKS*3,norent:false,dbl:false})),plays:0,bot:!!bot,hist:[]};
+  S={deck:shuffle(DECK.map(c=>({...c}))),disc:[],week:1,day:0,turn:0,dealN:0,
+     p:names.map(n=>({name:n,cash:START,beds:2,hand:[],skip:0,left:WEEKS*3,norent:false,dbl:false,newFrom:0})),plays:0,bot:!!bot,hist:[]};
   if(bot) S.p[1].bot=true;
   S.p.forEach(p=>{for(let i=0;i<HAND;i++)p.hand.push(draw(p))});
   S.shown=S.p.map(x=>({cash:x.cash,beds:x.beds}));
@@ -379,7 +400,8 @@ function newGame(names,bot){
   armBack(); window.scrollTo(0,0);
   startTurn(true);
 }
-function draw(p){ if(!S.deck.length){S.deck=shuffle(S.disc);S.disc=[];}
+function draw(p){ const c=draw0(p); if(c) c.dealt=++S.dealN; return c; } // dealt = deal order, so the newest card sorts to the top
+function draw0(p){ if(!S.deck.length){S.deck=shuffle(S.disc);S.disc=[];}
   if(p && p.beds>=MAXB){ // smarter dealing: a full house doesn't get dealt new guys
     for(let k=S.deck.length-1;k>=0;k--){ const c=S.deck[k]; if(!(c.kind==='green'&&(c.beds||c.fill)&&!c.cash)) return S.deck.splice(k,1)[0]; }
   }
@@ -437,13 +459,14 @@ function changes(before){ // what actually changed
     if(x.skip!==b.skip) any=true; });
   return {items,any};
 }
-function cardRow(c,n,p,o,opt={}){
+function cardRow(c,n,p,o,opt={}){ // opt.fresh: dealt this turn -> small gold NEW tag
   const ok=playable(c,p);
   const chips=(n>1?`<span class="chip">You have ${n}</span>`:'')+(c.repair?'<span class="chip rb">REPAIR BILL</span>':'')+(c.react?'<span class="chip">Save it for when you get hit</span>':(!ok?'<span class="chip">House full</span>':''));
-  return `<button class="crd ${c.kind} ${ok?'':'no'} ${opt.pulse?'pulse':''}" data-i="${opt.i}" aria-label="${esc(c.title)}">
+  // the NEW tag sits next to the button (not inside it) so a grayed-out card keeps a gold tag
+  return (opt.fresh?'<div class="newrow">':'')+`<button class="crd ${c.kind} ${ok?'':'no'} ${opt.pulse?'pulse':''}" data-i="${opt.i}" aria-label="${esc(c.title)}">
       ${thumb(c)}${n>1?`<span class="dup">&times;${n}</span>`:''}
       <span class="tx">${kindTag(c,p,o)}<span class="t">${esc(c.title)}</span><span class="e">${esc(doLine(c,p,o))}</span>${chips}</span>
-      <span class="chev">&rsaquo;</span></button>`;
+      <span class="chev">&rsaquo;</span></button>`+(opt.fresh?'<span class="newt">NEW</span></div>':'');
 }
 // The tag on each hand row: what the card does for the player holding it
 function tagWord(c,p,o){
@@ -462,7 +485,9 @@ function tagWord(c,p,o){
 function kindTag(c,p,o){
   return `<span class="kind"><span class="dot ${c.kind}"></span>${tagWord(c,p,o)}${c.rare?'<span class="rt">RARE</span>':''}</span>`;
 }
-function groups(hand){ const g=[]; hand.forEach((c,i)=>{ const x=g.find(y=>y.c.title===c.title); if(x) x.n++; else g.push({c,i,n:1}); }); return g; }
+function groups(hand){ const g=[]; hand.forEach((c,i)=>{ const x=g.find(y=>y.c.title===c.title); if(x){ x.n++; x.d=Math.max(x.d,c.dealt||0); } else g.push({c,i,n:1,d:c.dealt||0}); }); return g; }
+// newest dealt card first; i still points at the real card in p.hand
+const handOrder=hand=>groups(hand).sort((a,b)=>b.d-a.d);
 
 // ---------- render ----------
 function houseHTML(p,mine){
@@ -491,21 +516,34 @@ function whyNot(c,p){
   if(!playable(c,p)) return `Your house is full (${p.beds}/${MAXB} beds). Hang on to this one. Play it when a bed opens up.`;
   return '';
 }
+// ---------- week strip: the game plays Mon / Wed / Fri; bills come out Wednesday, payday is Friday ----------
+const WEEKD=['MON','TUE','WED','THU','FRI','SAT','SUN'], DAYCOL=[0,2,4];
+function weekHTML(){ const today=DAYCOL[S.day];
+  return WEEKD.map((d,k)=>{ const cls=[k===2?'bills':'',k===4?'pay':'',k===today?'today':'',k<today?'past':''].join(' ');
+    const sub=k===2?'bills':k===4?'payday':k===today?'today':'';
+    return `<div class="wd ${cls}"${k===today?' aria-current="date"':''}><b>${d}</b><i>${sub}</i></div>`; }).join(''); }
+function handFade(){ const h=$('hand'); $('handWin').classList.toggle('end',h.scrollTop+h.clientHeight>=h.scrollHeight-4); }
+$('hand').addEventListener('scroll',handFade,{passive:true}); window.addEventListener('resize',handFade);
 function render(){
   const p=viewer(), cur=me();
   $('myHouse').innerHTML=houseHTML(p,true); $('oppHouse').innerHTML=houseHTML(other(),false);
-  $('left').textContent=Math.max(0,p.left);
-  $('leftLbl').textContent=S.bot?'YOUR TURNS LEFT':esc(p.name).toUpperCase()+"'S TURNS LEFT";
-  const day=DAYS[S.day];
-  $('status').innerHTML=`${day} &middot; <b>${cur.bot?BOT.toUpperCase()+"'S TURN":(S.bot?'YOUR TURN':esc(cur.name).toUpperCase()+"'S TURN")}</b>`;
+  const L=Math.max(0,p.left);
+  $('left').textContent=L;
+  $('leftLbl').textContent=L===1?'turn left':'turns left';
+  $('count').setAttribute('aria-label',(S.bot?'':p.name+': ')+L+(L===1?' turn left':' turns left')+', '+DAYS[S.day].toLowerCase()+', '+(cur.bot?BOT+"'s turn":(S.bot?'your turn':cur.name+"'s turn")));
   $('count').classList.toggle('low',p.left<=3);
+  $('week').innerHTML=weekHTML();
   const botTurn=!!cur.bot;
   $('handHead').innerHTML=botTurn?`${BOT.toUpperCase()} IS THINKING...`:(S.plays>1?`PLAY ${S.plays} MORE CARDS`:`YOUR HAND <small>&middot; ${p.hand.length} CARDS</small>`);
   $('hand').classList.toggle('wait',botTurn);
   const tipI=(S.tutor&&!botTurn&&p.left>=16&&S.plays>0)?botPick(p,other()).i:-1;
   const o=other();
   const tipT=tipI>=0?p.hand[tipI].title:null;
-  $('hand').innerHTML=(tipI>=0?'<div class="tipb">Tap a card to see what happens.</div>':'')+groups(p.hand).map(g=>cardRow(g.c,g.n,p,o,{i:g.i,pulse:g.c.title===tipT})).join('');
+  const fresh=c=>(c.dealt||0)>(p.newFrom||0);
+  $('hand').innerHTML=(tipI>=0?'<div class="tipb">Tap a card to see what happens.</div>':'')+handOrder(p.hand).map(g=>cardRow(g.c,g.n,p,o,{i:g.i,pulse:g.c.title===tipT,fresh:p.hand.some(x=>x.title===g.c.title&&fresh(x))})).join('');
+  const top=Math.max(0,...p.hand.map(x=>x.dealt||0)); // a new card was dealt (or the phone changed hands) -> back to the top
+  if(S.handWho!==p || top>(p.seenTop||0)) $('hand').scrollTop=0;
+  S.handWho=p; p.seenTop=top; handFade();
   floats();
   $('hand').querySelectorAll('.crd').forEach(el=>el.onclick=()=>tapCard(+el.dataset.i));
 }
@@ -537,7 +575,7 @@ async function tapCard(i){
   const r=await ask(`${artBig(c)}${body}`,btns,{back:0});
   const lbl=btns[r][0];
   if(lbl!=='Play card'&&lbl!=='Toss it') return;
-  p.hand.splice(i,1); S.disc.push(c);
+  p.hand.splice(i,1); S.disc.push(c); p.newFrom=S.dealN; // played -> the NEW tag clears
   if(lbl==='Toss it'){ log(`<b>${esc(p.name)}</b> tossed a card.`); return afterPlay(); }
   const before=snap(); sfx('flip'); S.lock=true;
   await resolve(c,p,them()); render(); sfxAfter(before);
@@ -690,6 +728,7 @@ async function startTurn(first){
     await ask(`<img class="big" src="${BASE}cards/back.webp" alt="" style="max-height:40dvh;margin-top:20px"><h2 class="t bang">${esc(p.name)}'s turn</h2><p class="b">Pass the phone to ${esc(p.name)}.</p>`,[[`I'm ${esc(p.name)}`]]);
   }
   if(p.skip>0){ p.skip--; p.left--; render(); log(`<b>${esc(nm(p))}</b> ${isYou(p)?'sit':'sits'} this one out.`); await banner('SIT DOWN',900); return endTurn(true); }
+  p.newFrom=S.dealN; // anything dealt from here on this turn gets the NEW tag
   while(p.hand.length<HAND+1) p.hand.push(draw(p));
   unstick(p); if(!p.bot) sfx('draw');
   S.plays=1; S.lock=false; render();
