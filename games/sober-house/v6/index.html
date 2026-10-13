@@ -43,15 +43,21 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 /* ---------- pinned top (header + houses + week strip) ---------- */
 #gameScreen{display:flex;height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));min-height:560px}
 .pin{position:sticky;top:0;z-index:5;flex:0 0 auto;background:var(--bg) url('ui/bg.webp') center top/cover;box-shadow:0 6px 14px rgba(0,0,0,.55);border-bottom:2px solid var(--line)}
-.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:4px 12px 8px}
+.week{display:grid;grid-template-columns:auto repeat(3,1fr);gap:6px;padding:4px 12px 8px;align-items:stretch}
+.wk{border-radius:10px;background:rgba(33,25,16,.92);border:2px solid var(--line);text-align:center;padding:3px 9px 2px;line-height:1}
+.wk i{display:block;font:800 10px Poppins;font-style:normal;letter-spacing:.06em;color:var(--dim)}
+.wk b{display:block;font:800 21px Poppins;color:var(--cream)}
 .wd{border-radius:9px;background:rgba(33,25,16,.92);border:2px solid var(--line);text-align:center;padding:3px 0 2px;min-width:0;line-height:1.05}
-.wd b{display:block;font:800 12px Poppins;letter-spacing:.04em;color:var(--dim)}
-.wd i{display:block;font:700 9.5px Poppins;font-style:normal;color:var(--dim);min-height:11px;white-space:nowrap}
+.wd b{display:block;font:800 16px Poppins;letter-spacing:.04em;color:var(--dim)}
+.wd i{display:block;font:700 10.5px Poppins;font-style:normal;color:var(--dim);min-height:12px;white-space:nowrap}
 .wd.bills{background:rgba(213,55,50,.22);border-color:rgba(213,55,50,.55)}.wd.bills b,.wd.bills i{color:#ff8d84}
 .wd.pay{background:rgba(33,148,92,.25);border-color:rgba(63,191,111,.55)}.wd.pay b,.wd.pay i{color:#7fe0a3}
-.wd.today{border:2px solid var(--gold);box-shadow:0 0 0 2px rgba(232,182,52,.35)}
-.wd.today b{color:var(--cream)}
+.wd.today{background:var(--gold);border:2px solid #fff3c4;box-shadow:0 0 14px rgba(232,182,52,.7);transform:scale(1.04)}
+.wd.today b,.wd.today i{color:#1a1410}
 .wd.past{opacity:.35}
+.banner small{display:block;font-size:.4em;color:var(--cream);margin:8px 0;text-shadow:none}
+.banner.day{background:rgba(20,14,10,.94);border:3px solid var(--gold);border-radius:20px;padding:14px 10px 6px;box-shadow:0 10px 40px rgba(0,0,0,.8);text-shadow:none;font-size:clamp(48px,15vw,70px)}
+.banner.day small:last-child{color:var(--gold)}
 
 
 .houses{display:grid;grid-template-columns:1.55fr 1fr;gap:8px;padding:8px 12px 4px}
@@ -234,7 +240,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 <div class="app">
 
 <div id="startScreen" class="start">
-  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v7</span></span></div>
+  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v8</span></span></div>
   <img class="logo" src="../cards/logo.webp" alt="Sober House">
   <div class="bang" style="font-size:26px;line-height:1.1">Run the house. Most money when the clock runs out wins.</div>
   <div class="time">Takes about 15&ndash;20 minutes</div>
@@ -250,7 +256,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
   <div class="top">
     <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="../cards/logo.webp" alt="Sober House"></div>
     <div class="count" id="count"><span class="n bang" id="left">18</span><span id="leftLbl">turns left</span></div>
-    <div class="rgt"><span class="pill">v7</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
+    <div class="rgt"><span class="pill">v8</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
   </div>
   <div class="houses"><div class="hs me" id="myHouse"></div><div class="hs them" id="oppHouse"></div></div>
   <div class="week" id="week" aria-label="This week"></div>
@@ -313,7 +319,7 @@ function ask(html,buttons,opt={}){ return new Promise(res=>{
   $('ovActs').querySelectorAll('[data-i]').forEach(el=>el.onclick=()=>{ const r=OV&&OV.res; OV=null; $('ov').classList.remove('on'); setTimeout(floats,60); if(r) r(+el.dataset.i); });
 });}
 function closeOv(i){ if(!OV) return false; const r=OV.res; OV=null; $('ov').classList.remove('on'); setTimeout(floats,60); r(i); return true; }
-async function banner(t,ms=1100){ const b=$('banner'); b.textContent=t; b.classList.add('on'); await sleep(ms); b.classList.remove('on'); await sleep(250); }
+async function banner(t,ms=1100){ const b=$('banner'); b.innerHTML=t; b.classList.toggle('day',t.includes('<small>')); b.classList.add('on'); await sleep(ms); b.classList.remove('on'); await sleep(250); }
 
 // phone back button: closes a card you opened, otherwise asks to leave the game
 function armBack(){ try{ history.pushState({sh:1},''); }catch(e){} }
@@ -358,17 +364,18 @@ $('histBtn').onclick=()=>{ if(!S||OV) return; showHistory(); };
 
 // ---------- intro (shown on first Play Big Ray, and any time from How to play) ----------
 function intro(btn){
-  return ask(`<h2 class="t bang" style="margin-top:6px;font-size:36px;color:var(--gold)">Congratulations, you own a Sober House!</h2>
-    <p class="b" style="font-weight:700">Take turns playing cards against Big Ray. Fill your house. Wreck his. Most money at the end wins.</p>
+  return ask(`<h2 class="t bang" style="margin-top:6px;font-size:36px;color:var(--gold)">Congratulations. You own a Sober House. God help you.</h2>
+    <p class="b" style="font-weight:700">Six beds, a toilet that runs all night, and a phone that never stops ringing. Fill your beds, pay the damn bills, and wreck Big Ray's house. Most money at the end wins.</p>
     <div class="panel key">
-      <div><span class="dot green"></span><span><b>Green:</b> $$$ or filled beds for you!</span></div>
-      <div><span class="dot red"></span><span><b>Red:</b> bad luck you drop on Ray's house</span></div>
-      <div><span class="dot pink"></span><span><b>Pink:</b> pull a prank on Ray</span></div>
-      <div><span class="dot gold"></span><span><b>Gold:</b> block Ray or take his money!</span></div>
+      <div><span class="dot green"></span><span><b>Green:</b> money and full beds. Rent doesn't pay itself.</span></div>
+      <div><span class="dot red"></span><span><b>Red:</b> shit hits the fan. Make it hit Ray's house.</span></div>
+      <div><span class="dot pink"></span><span><b>Pink:</b> mess with Ray. He has it coming.</span></div>
+      <div><span class="dot gold"></span><span><b>Gold:</b> block Ray's crap or take his money.</span></div>
     </div>
-    <div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Ray across the street owns one too. He's a dick. You guys fight all the time.</div></div>
-    <div class="panel"><div class="say">You start with 2 out of the 6 beds filled and $800 bucks.</div>${bedStrip(2,2)}<div class="bang" style="font-size:36px;line-height:1;margin-top:4px">$800</div></div>
-    <p class="b">Play cards to fill your beds and fight back against Ray's bull*%#!</p>`,[[btn]],{back:0});
+    <div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Ray runs the house across the street. He's a dick. He'll call the city on you, then shake your hand at the meeting.</div></div>
+    <div class="panel"><div class="say">You start with 2 of 6 beds filled and $800 to your name.</div>${bedStrip(2,2)}<div class="bang" style="font-size:36px;line-height:1;margin-top:4px">$800</div></div>
+    <p class="b">You play Monday, Wednesday and Friday for 6 weeks. Bills hit every Wednesday. Rent comes in Friday, if they pay. Go broke and you're done.</p>
+    <p class="b" style="font-weight:700">Fill your beds and fight back against Ray's bullshit.</p>`,[[btn]],{back:0});
 }
 async function howTo(){ await intro('Got it'); }
 
@@ -517,10 +524,10 @@ function whyNot(c,p){
   return '';
 }
 // ---------- week strip: the game plays Mon / Wed / Fri; bills come out Wednesday, payday is Friday ----------
-const WEEKD=['MON','TUE','WED','THU','FRI','SAT','SUN'], DAYCOL=[0,2,4];
-function weekHTML(){ const today=DAYCOL[S.day];
-  return WEEKD.map((d,k)=>{ const cls=[k===2?'bills':'',k===4?'pay':'',k===today?'today':'',k<today?'past':''].join(' ');
-    const sub=k===2?'bills':k===4?'payday':k===today?'today':'';
+const WEEKD=['MON','WED','FRI'];
+function weekHTML(){ const today=S.day;
+  return `<div class="wk" aria-label="Week ${S.week} of ${WEEKS}"><i>WEEK</i><b>${S.week}/${WEEKS}</b></div>`+WEEKD.map((d,k)=>{ const cls=[k===1?'bills':'',k===2?'pay':'',k===today?'today':'',k<today?'past':''].join(' ');
+    const sub=k===today?(k===1?'TODAY · bills':k===2?'TODAY · payday':'TODAY'):k<today?'&#10003;':k===1?'bills':k===2?'payday':'';
     return `<div class="wd ${cls}"${k===today?' aria-current="date"':''}><b>${d}</b><i>${sub}</i></div>`; }).join(''); }
 function handFade(){ const h=$('hand'); $('handWin').classList.toggle('end',h.scrollTop+h.clientHeight>=h.scrollHeight-4); }
 $('hand').addEventListener('scroll',handFade,{passive:true}); window.addEventListener('resize',handFade);
@@ -716,6 +723,8 @@ async function botTurn(){
 // ---------- turn flow (same as v4) ----------
 async function startTurn(first){
   const p=me(); S.lock=true; render();
+  let dayShown=false;
+  if(S.turn===0 && S.bot){ sfx('flip'); await banner(`<small>WEEK ${S.week} OF ${WEEKS}</small>${DAYS[S.day]}${p.bot?'':'<small>YOUR TURN</small>'}`,1500); dayShown=true; }
   if(S.turn===0 && S.day===1 && !S.billed && S.week>1){
     S.billed=true;
     const v=viewer(), o=other();
@@ -723,9 +732,9 @@ async function startTurn(first){
       <div class="lines"><div><span>${esc(nm(v))}</span><span>${money(v.cash)} &rarr; <b class="${v.cash-BILLS<0?'r':''}">${money(v.cash-BILLS)}</b></span></div><div><span>${esc(o.name)}</span><span>${money(o.cash)} &rarr; <b class="${o.cash-BILLS<0?'r':''}">${money(o.cash-BILLS)}</b></span></div></div></div>`,[['Pay the bills']]);
     sfx('bills'); S.p.forEach(x=>x.cash-=BILLS); log(`Wednesday bills. Everybody paid $${BILLS}.`); render(); await sleep(1000);
   }
-  if(S.bot){ if(!p.bot){ render(); await banner('YOUR TURN',900);} }
+  if(S.bot){ if(!p.bot&&!dayShown){ render(); await banner('YOUR TURN',900);} }
   else {
-    await ask(`<img class="big" src="${BASE}cards/back.webp" alt="" style="max-height:40dvh;margin-top:20px"><h2 class="t bang">${esc(p.name)}'s turn</h2><p class="b">Pass the phone to ${esc(p.name)}.</p>`,[[`I'm ${esc(p.name)}`]]);
+    await ask(`<img class="big" src="${BASE}cards/back.webp" alt="" style="max-height:40dvh;margin-top:20px"><div class="kicker bang">${DAYS[S.day]} &middot; WEEK ${S.week} OF ${WEEKS}</div><h2 class="t bang">${esc(p.name)}'s turn</h2><p class="b">Pass the phone to ${esc(p.name)}.</p>`,[[`I'm ${esc(p.name)}`]]);
   }
   if(p.skip>0){ p.skip--; p.left--; render(); log(`<b>${esc(nm(p))}</b> ${isYou(p)?'sit':'sits'} this one out.`); await banner('SIT DOWN',900); return endTurn(true); }
   p.newFrom=S.dealN; // anything dealt from here on this turn gets the NEW tag
