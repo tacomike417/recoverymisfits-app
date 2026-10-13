@@ -4,7 +4,7 @@
    v0.2 — build order steps 1 + 2: prototype gaps fixed, heat meter + locked-up game over.
 */
 
-const VERSION = 'v0.7';
+const VERSION = 'v0.8';
 const SAVE_KEY = 'sobered-up-v2';
 
 const CFG = {
@@ -69,15 +69,66 @@ const jobs = [
 ];
 
 // [id, name, price, description]  — description is built from CFG where it mentions numbers
+/* THE SHOP. Every item: id, name, price, group (feel / big / save), and what it does.
+   slot  — which paper-doll layer it fills (one item per slot shows; higher tier wins)
+   room  — shows up in the room instead of on the doll
+   upgrades — must own that item first; this replaces it on the doll
+   feel  — stress it takes off when you buy it (pride is real)
+   guyOnly / girlOnly — only in that character's shop
+   Rule from the game plan: stuff is mostly looks and pride. Practical items open doors. Recovery can't be bought. */
 const shop = [
-  ['shoes',   'Decent shoes',          28,  'Unlock stock crew and maintenance.'],
-  ['phone',   'Working phone',         45,  'People can call you back: unlocks job referrals and support rides.'],
-  ['dresser', 'Actual dresser',        32,  'Rest removes ' + CFG.dresserBonus + ' extra stress.'],
-  ['pass',    'Bus pass',              24,  'Protects you from missed-bus setbacks.'],
-  ['hat',     'A very confident hat',  15,  'Pure style. No magic odds.'],
-  ['car',     'Beat-up car',           260, 'Unlock maintenance; repairs can cost $60.'],
-  ['couch',   'A non-curb couch',      75,  'Your room finally feels like home.']
+  // feel-good / cheap
+  { id: 'cut',     name: 'Fresh cut',        price: 20,  group: 'feel', slot: 'cut',     feel: 6,  desc: 'Lineup so sharp it has a credit score.' },
+  { id: 'trim',    name: 'Beard trim',       price: 12,  group: 'feel', slot: 'trim',    feel: 4,  desc: 'Shape it up. Chin visible again.', guyOnly: true },
+  { id: 'hat',     name: 'Flat-bill hat',    price: 15,  group: 'feel', slot: 'hat',     feel: 3,  desc: 'Pure style. No magic odds.' },
+  { id: 'shades',  name: 'Sunglasses',       price: 18,  group: 'feel', slot: 'shades',  feel: 3,  desc: 'Nobody can see you squint.' },
+  { id: 'tee',     name: 'New white tee',    price: 14,  group: 'feel', slot: 'shirt',   tier: 1, feel: 3,  desc: 'Crisp. For about a day.' },
+  { id: 'hoodie',  name: 'Hoodie',           price: 35,  group: 'feel', slot: 'shirt',   tier: 2, feel: 4,  desc: 'The uniform.', upgrades: 'tee' },
+  { id: 'jeans',   name: 'Real pants',       price: 30,  group: 'feel', slot: 'pants',   feel: 4,  desc: 'Jeans. With a belt. Look at you.' },
+  { id: 'dunks',   name: 'Dunks',            price: 110, group: 'feel', slot: 'shoes',   feel: 8,  desc: 'Everybody in the house is going to say something.', tier: 2 },
+  { id: 'cologne', name: 'Cologne',          price: 22,  group: 'feel',                  feel: 5,  desc: 'You smell like a job interview.' },
+  // bigger
+  { id: 'shoes',   name: 'Work boots',       price: 28,  group: 'big',  slot: 'shoes',   tier: 1,  desc: 'Unlock stock crew and maintenance.' },
+  { id: 'phone',   name: 'Cracked phone',    price: 45,  group: 'big',  slot: 'phone',   tier: 1,  desc: 'People can call you back: unlocks referrals and rides.' },
+  { id: 'phone2',  name: 'New phone',        price: 140, group: 'big',  slot: 'phone',   tier: 2,  feel: 5, desc: 'Buzzes more.', upgrades: 'phone' },
+  { id: 'phone3',  name: 'Newest phone',     price: 320, group: 'big',  slot: 'phone',   tier: 3,  feel: 6, desc: 'Buzzes constantly. You love it.', upgrades: 'phone2' },
+  { id: 'chain',   name: 'Chain (fake)',     price: 25,  group: 'big',  slot: 'chain',   tier: 1,  feel: 4, desc: 'Turns your neck green by Thursday.' },
+  { id: 'chain2',  name: 'Chain (real)',     price: 260, group: 'big',  slot: 'chain',   tier: 2,  feel: 8, desc: 'Gold. Actual gold.', upgrades: 'chain' },
+  { id: 'tattoo',  name: 'Small tattoo',     price: 80,  group: 'big',  slot: 'tattoo',  tier: 1,  feel: 5, desc: 'Something that means something.' },
+  { id: 'tattoo2', name: 'Sleeve',           price: 400, group: 'big',  slot: 'tattoo',  tier: 2,  feel: 10, desc: 'Three sittings. Worth it.', upgrades: 'tattoo' },
+  { id: 'watch',   name: 'Watch',            price: 60,  group: 'big',  slot: 'watch',   feel: 3,  desc: 'Shows up on time now. Allegedly.' },
+  { id: 'pass',    name: 'Bus pass',         price: 24,  group: 'big',                   desc: 'Protects you from missed-bus setbacks.' },
+  { id: 'bike',    name: 'Bike',             price: 90,  group: 'big',  room: true,      feel: 4, desc: 'Beats the bus. Beats walking. Gets stolen if you leave it out (later).' },
+  { id: 'dresser', name: 'Actual dresser',   price: 32,  group: 'big',  room: true,      desc: 'Rest removes ' + CFG.dresserBonus + ' extra stress.' },
+  // big saves
+  { id: 'car',     name: 'Beater car',       price: 260, group: 'save', room: true,      desc: 'Unlock maintenance; repairs can cost $60.' },
+  { id: 'car2',    name: 'Nice car',         price: 1200, group: 'save', room: true,     feel: 12, desc: 'The one you park where people can see it. (License + insurance come with the ladders.)', upgrades: 'car' },
+  { id: 'couch',   name: 'A non-curb couch', price: 75,  group: 'save', room: true,      feel: 4, desc: 'Your room finally feels like home.' },
+  { id: 'tv',      name: 'TV',               price: 120, group: 'save', room: true,      feel: 4, desc: 'Something to not watch.' },
+  { id: 'dog',     name: 'The dog',          price: 150, group: 'save', room: true,      feel: 10, desc: 'Comes with vet bills, chewed shoes, and the best welcome home you’ve ever had.' }
 ];
+const SHOP_GROUPS = [['feel', 'FEEL GOOD', 'Cheap. Shows up on you today.'], ['big', 'BIGGER', 'Opens doors, or just looks right.'], ['save', 'BIG SAVES', 'The stuff you work a month for.']];
+function item(id) { return shop.find(x => x.id === id); }
+// Can this item be bought right now? Returns a reason string if not, or '' if yes.
+function cantBuy(s, id) {
+  const p = item(id);
+  if (!p) return 'no such thing';
+  if (s.items.includes(id)) return 'owned';
+  if (p.guyOnly && s.look.sex !== 'guy') return 'n/a';
+  if (p.girlOnly && s.look.sex !== 'girl') return 'n/a';
+  if (p.upgrades && !s.items.includes(p.upgrades)) return 'needs ' + item(p.upgrades).name.toLowerCase() + ' first';
+  if (s.event) return 'resolve today’s card first';
+  if (s.result || s.lockedUp) return 'chapter over';
+  if (s.actions < 1) return 'no moves left today';
+  if (s.cash < p.price) return 'short $' + (p.price - s.cash);
+  return '';
+}
+// What's showing in a given doll slot (highest tier owned).
+function worn(s, slot) {
+  let best = null;
+  for (const p of shop) if (p.slot === slot && s.items.includes(p.id) && (!best || (p.tier || 0) > (best.tier || 0))) best = p;
+  return best ? best.id : null;
+}
 
 function fresh(seed = Date.now()) {
   return {
@@ -112,6 +163,7 @@ function fresh(seed = Date.now()) {
     court: 0,
     result: null,
     lockedUp: null,       // set to {day, heat, odds} when the lights show up
+    look: { sex: 'guy', skin: 1, hair: 1, hairColor: 0, beard: 0, build: 0, done: false },
     goal: 'Steady footing',
     settings: { sound: false, reminders: true, introSeen: false },
     lastOutcome: null
@@ -128,6 +180,8 @@ function migrate(raw) {
   if (!Array.isArray(raw.seen)) raw.seen = [];
   if (!Array.isArray(raw.milestones)) raw.milestones = [];
   if (!Array.isArray(raw.reminders)) raw.reminders = [];
+  if (!raw.look || typeof raw.look !== 'object') raw.look = f.look;
+  if (raw.look.done === undefined) raw.look.done = true;   // an existing run keeps its guy
   if (raw.event && !Array.isArray(raw.event.choices)) raw.event = null;
   // re-link the pending card to the live EVENTS entry so its choices carry functions/flags
   if (raw.event && raw.event.id) {
@@ -497,12 +551,14 @@ function action(s, id) {
 }
 
 function buy(s, id) {
-  const p = shop.find(x => x[0] === id);
-  if (!p || s.event || s.result || s.lockedUp || s.actions < 1 || s.cash < p[2] || s.items.includes(id)) return false;
-  s.actions--; s.cash -= p[2]; s.items.push(id);
-  apply(s, { heat: CFG.heat.shop });
-  record(s, 'Bought ' + p[1] + '.');
+  if (cantBuy(s, id)) return false;
+  const p = item(id);
+  s.actions--; s.cash -= p.price; s.items.push(id);
+  apply(s, { heat: CFG.heat.shop, stress: -(p.feel || 0) });
+  record(s, 'Bought ' + p.name + '.' + (p.feel ? ' Felt good: −' + p.feel + ' stress.' : ''));
   if (id === 'couch') badge(s, 'A couch nobody found on the curb.');
+  if (id === 'dog') badge(s, 'Somebody’s glad to see you every single day.');
+  if (id === 'car2') badge(s, 'Saved up for the nice one.');
   return true;
 }
 
@@ -578,4 +634,4 @@ function endDay(s) {
   return true;
 }
 
-if (typeof module !== 'undefined') module.exports = { VERSION, SAVE_KEY, CFG, jobs, shop, fresh, migrate, action, call, endDay, choose, buy, EVENTS, score, draw, allowed, lockOdds, heatLabel, heatWords, danger, jobHuntTarget, rentDue, nextRentDay };
+if (typeof module !== 'undefined') module.exports = { VERSION, SAVE_KEY, CFG, jobs, shop, SHOP_GROUPS, item, cantBuy, worn, fresh, migrate, action, call, endDay, choose, buy, EVENTS, score, draw, allowed, lockOdds, heatLabel, heatWords, danger, jobHuntTarget, rentDue, nextRentDay };

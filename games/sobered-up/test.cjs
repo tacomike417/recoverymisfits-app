@@ -69,6 +69,8 @@ s = E.fresh(9); for (let i = 0; i < 5; i++) { s.event = null; E.endDay(s); asser
 s = E.fresh(); for (let i = 0; i < 3; i++) { s.event = null; E.call(s); E.endDay(s); } assert.equal(s.streak, 3); assert(s.milestones.some(m => m.startsWith('3 days')));
 // shop
 s = E.fresh(); s.cash = 28; assert(E.buy(s, 'shoes')); assert.equal(s.cash, 0);
+s = E.fresh(); s.cash = 500; assert(!E.buy(s, 'phone2'), 'upgrade needs base'); assert(E.buy(s, 'phone')); assert(E.buy(s, 'phone2')); assert.equal(E.worn(s, 'phone'), 'phone2'); assert(s.items.includes('phone'), 'base stays for card gates');
+s = E.fresh(); s.cash = 500; s.look.sex = 'girl'; assert(!E.buy(s, 'trim'));
 // migrate
 assert.equal(E.migrate(null), null); assert.equal(E.migrate({ version: 1 }), null);
 const m = E.migrate({ version: 2, day: 5 }); assert.equal(m.day, 5); assert.equal(m.heat, E.CFG.heat.start);
