@@ -2,7 +2,7 @@
 const assert = require('node:assert/strict');
 const E = require('./engine.js');
 
-assert.equal(E.EVENTS.length, 40, '40 cards');
+assert.equal(E.EVENTS.length, 43, '43 cards');
 
 const outcomes = { balanced: [], grind: [], social: [] };
 const locked = { balanced: 0, grind: 0, social: 0 };
@@ -60,6 +60,13 @@ s = E.fresh(); s.event = E.EVENTS.find(c => c.id === 'sleep'); E.choose(s, 0); a
 // phone gates: referral card and ride need a phone
 s = E.fresh(); s.connection = 60; assert(!E.allowed(s, E.EVENTS.find(c => c.id === 'bus').choices[2])); s.items.push('phone'); assert(E.allowed(s, E.EVENTS.find(c => c.id === 'bus').choices[2]));
 s = E.fresh(); s.items = ['shoes']; assert.equal(E.jobHuntTarget(s), 1); s.items.push('phone'); assert.equal(E.jobHuntTarget(s), 2);
+// sober call: free, once a day, softens no-support heat
+s = E.fresh(); s.heat = 60; assert(E.call(s)); assert.equal(s.actions, 3); assert.equal(s.heat, 60 + E.CFG.heat.call); assert(!E.call(s));
+// follow-up cards only after their flag, and they jump the line
+s = E.fresh(9); s.event = E.EVENTS.find(c => c.id === 'wallet'); E.choose(s, 0); assert(s.flags.includes('returnedWallet')); s.event = null; E.endDay(s); assert.equal(s.event.id, 'wallet2');
+s = E.fresh(9); for (let i = 0; i < 5; i++) { s.event = null; E.endDay(s); assert(!(s.event && s.event.needsFlag), 'no follow-up without flag'); }
+// streak
+s = E.fresh(); for (let i = 0; i < 3; i++) { s.event = null; E.call(s); E.endDay(s); } assert.equal(s.streak, 3); assert(s.milestones.some(m => m.startsWith('3 days')));
 // shop
 s = E.fresh(); s.cash = 28; assert(E.buy(s, 'shoes')); assert.equal(s.cash, 0);
 // migrate

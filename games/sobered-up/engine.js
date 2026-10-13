@@ -4,7 +4,7 @@
    v0.2 — build order steps 1 + 2: prototype gaps fixed, heat meter + locked-up game over.
 */
 
-const VERSION = 'v0.4';
+const VERSION = 'v0.6';
 const SAVE_KEY = 'sobered-up-v2';
 
 const CFG = {
@@ -54,7 +54,10 @@ const CFG = {
     rest: -5,
     help: -8,
     chores: -3,
-    shop: 0
+    shop: 0,
+    call: -6,            // free sober call: heat it takes off
+    callConnection: 3,
+    callSoftens: 0.5     // a call halves that night's no-support heat
   }
 };
 
@@ -95,6 +98,10 @@ function fresh(seed = Date.now()) {
     workToday: 0,
     restToday: false,
     supportToday: false,
+    calledToday: false,
+    streak: 0,            // days in a row you showed up (support or a call)
+    bestStreak: 0,
+    flags: [],            // things that happened that later cards remember
     daysSinceSupport: 0,
     missed: 0,
     reminders: [],
@@ -150,6 +157,7 @@ function apply(s, e) {
 function record(s, t) { s.log.unshift(t); s.log = s.log.slice(0, 100); }
 function choice(label, e = {}, extra = {}) { return { label, e, ...extra }; }
 function card(id, title, text, choices, extra = {}) { return { id, title, text, choices, ...extra }; }
+function eligibleFlags(s, c) { return (!c.needsFlag || s.flags.includes(c.needsFlag)) && (!c.notFlag || !s.flags.includes(c.notFlag)); }
 function has(s, req) { if (!req) return true; return (Array.isArray(req) ? req : [req]).every(x => s.items.includes(x)); }
 function reqText(req) { return (Array.isArray(req) ? req : [req]).join(' + '); }
 
@@ -175,8 +183,8 @@ const EVENTS = [
     choice('Let it ring', { connection: -5, heat: 4 }, { miss: true })
   ]),
   card('wallet', 'THE WALLET IN THE COUCH', 'A wallet with $80. Your brain starts a very creative accounting department.', [
-    choice('Return it', { connection: 10, heat: -4 }, { risk: .25, good: { cash: 20 }, bad: {}, note: '25% chance of a $20 thank-you.' }),
-    choice('Keep the cash', { cash: 80, stress: 20, connection: -12, heat: 20 }, { risk: .3, bad: { court: true, stress: 10 }, good: {}, note: '30% chance the owner reports the theft; court date in 3 days. Heat +20 either way.' })
+    choice('Return it', { connection: 10, heat: -4 }, { risk: .25, good: { cash: 20 }, bad: {}, note: '25% chance of a $20 thank-you.', sets: 'returnedWallet' }),
+    choice('Keep the cash', { cash: 80, stress: 20, connection: -12, heat: 20 }, { risk: .3, bad: { court: true, stress: 10 }, good: {}, note: '30% chance the owner reports the theft; court date in 3 days. Heat +20 either way.', sets: 'keptWallet' })
   ]),
   card('bus', 'THE BUS LEAVES WITHOUT YOU', 'You made eye contact. The bus chose violence.', [
     choice('Walk and breathe', { stress: 6 }),
@@ -215,7 +223,7 @@ const EVENTS = [
     choice('Community meal', { stress: -4, connection: 4 }, { cost: 1 })
   ]),
   card('friend', 'A FRIEND NEEDS AN EAR', 'No grand rescue. Just ten minutes of listening.', [
-    choice('Listen', { connection: 10, stress: -3, heat: -5 }, { cost: 1 }),
+    choice('Listen', { connection: 10, stress: -3, heat: -5 }, { cost: 1, sets: 'listened' }),
     choice('Set a kind boundary', { connection: 3 }),
     choice('Dodge it', { connection: -4 })
   ]),
@@ -326,7 +334,20 @@ const EVENTS = [
   ]),
   card('windfall', 'THE BIG LITTLE BREAK', 'A neighborhood cleanup fund picks your name for a $150 starter grant. Free draw, no entry fee.', [
     choice('Accept the help', { cash: 150, stress: -10 })
-  ])
+  ]),
+  // CARDS THAT REMEMBER. Only show up if an earlier card went a certain way.
+  card('wallet2', 'THE GUY FROM THE WALLET', 'New dishwasher starts today. He looks at you twice. “You’re the one who brought my wallet back.” He tells the manager.', [
+    choice('“Just doing the right thing.”', { connection: 10, stress: -6, heat: -4 }, { badge: 'The right thing came back around.' }),
+    choice('Ask him to put in a word', { job: 2, stress: 3 }, { cost: 1, requires: 'shoes', note: 'He vouches for you. Stock crew.' })
+  ], { needsFlag: 'returnedWallet' }),
+  card('wallet3', 'HE RECOGNIZED YOU', 'The guy whose wallet you kept is in line behind you at the gas station. He doesn’t say anything. He doesn’t have to.', [
+    choice('Own it and pay him back', { cash: -80, stress: -10, heat: -10 }, { cost: 1, badge: 'Cleaned up a mess you made.' }),
+    choice('Pretend you don’t see him', { stress: 14, heat: 8 })
+  ], { needsFlag: 'keptWallet' }),
+  card('friend2', 'THEY REMEMBERED', 'The friend you listened to last week shows up with two coffees. “You didn’t fix anything. You just stayed. Thanks.”', [
+    choice('Take the coffee', { connection: 8, stress: -6, heat: -4 }),
+    choice('Walk and talk', { connection: 10, stress: -8, heat: -5 }, { cost: 1 })
+  ], { needsFlag: 'listened' })
 ];
 
 // The court card. Missing the hearing no longer means a jail chapter: it's a big heat spike (a warrant is out).
@@ -361,12 +382,22 @@ function heatLabel(s) {
   if (s.heat < 80) return 'Hot';
   return 'Burning';
 }
+// the plain-words version people actually read
+function heatWords(s) {
+  if (s.heat <= CFG.heat.safe) return 'You’re good.';
+  if (s.heat < 70) return 'Watch it.';
+  return 'Tonight’s a gamble.';
+}
 
 function draw(s) {
   if (s.court && s.day >= s.court) { s.event = courtCard(); return; }
   if (s.reminders.includes(s.day)) { s.reminders = s.reminders.filter(d => d !== s.day); s.event = callbackCard(); return; }
-  let pool = EVENTS.filter(c => has(s, c.requires) && (!c.network || s.connection >= c.network) && !s.seen.includes(c.id));
-  if (!pool.length) { s.seen = []; pool = EVENTS.filter(c => has(s, c.requires)); }
+  let pool = EVENTS.filter(c => has(s, c.requires) && (!c.network || s.connection >= c.network) && eligibleFlags(s, c) && !s.seen.includes(c.id));
+  if (!pool.length) { s.seen = s.seen.filter(id => EVENTS.find(c => c.id === id && c.needsFlag)); pool = EVENTS.filter(c => has(s, c.requires) && eligibleFlags(s, c) && !s.seen.includes(c.id)); }
+  if (!pool.length) pool = EVENTS.filter(c => has(s, c.requires) && !c.needsFlag);
+  // a follow-up card jumps the line the first day it's eligible
+  const followUp = pool.find(c => c.needsFlag);
+  if (followUp) { s.event = followUp; s.seen.push(followUp.id); return; }
   const risk = rng(s) < danger(s);
   let eligible = pool.filter(c => risk ? c.type === 'risk' : c.type !== 'risk');
   if (!eligible.length) eligible = pool;
@@ -397,6 +428,7 @@ function choose(s, i) {
   if (c.miss) s.missed++;
   if (c.rest) s.restToday = true;
   if (c.badge) badge(s, c.badge);
+  if (c.sets && !s.flags.includes(c.sets)) s.flags.push(c.sets);
   record(s, title + ': ' + c.label + '.' + out);
   s.lastOutcome = title + ': ' + c.label + '.' + out;
   s.event = null;
@@ -413,6 +445,14 @@ function jobHuntTarget(s) {
   return 1;
 }
 
+function call(s) {
+  if (s.event || s.result || s.lockedUp || s.calledToday) return false;
+  const H = CFG.heat;
+  apply(s, { heat: H.call, connection: H.callConnection });
+  s.calledToday = true; s.missed = 0;
+  record(s, 'Made a sober call. Two minutes. Heat ' + H.call + '.');
+  return true;
+}
 function action(s, id) {
   if (s.event || s.actions < 1 || s.result || s.lockedUp) return false;
   s.actions--;
@@ -501,7 +541,7 @@ function endDay(s) {
   // heat from not showing up
   if (!s.supportToday) {
     s.daysSinceSupport++;
-    const add = H.noSupport[Math.min(s.daysSinceSupport, H.noSupport.length - 1)];
+    const add = Math.round(H.noSupport[Math.min(s.daysSinceSupport, H.noSupport.length - 1)] * (s.calledToday ? H.callSoftens : 1));
     if (add) { apply(s, { heat: add }); record(s, s.daysSinceSupport + ' days without support: +' + add + ' heat.'); }
   }
   // rent
@@ -529,10 +569,13 @@ function endDay(s) {
   }
 
   s.day++; s.actions = CFG.actions;
-  s.workToday = 0; s.restToday = false; s.supportToday = false; s.lastOutcome = null;
+  // streak: showed up today (support or a call)?
+  if (s.supportToday || s.calledToday) { s.streak++; s.bestStreak = Math.max(s.bestStreak, s.streak); if ([3, 7, 14, 30].includes(s.streak)) badge(s, s.streak + ' days in a row showing up.'); }
+  else if (s.streak) { record(s, 'Streak ended at ' + s.streak + ' days.'); s.streak = 0; }
+  s.workToday = 0; s.restToday = false; s.supportToday = false; s.calledToday = false; s.lastOutcome = null;
   if (s.day > CFG.days) { s.result = score(s); record(s, 'Thirty days. A chapter built, not a verdict.'); }
   else draw(s);
   return true;
 }
 
-if (typeof module !== 'undefined') module.exports = { VERSION, SAVE_KEY, CFG, jobs, shop, fresh, migrate, action, endDay, choose, buy, EVENTS, score, draw, allowed, lockOdds, heatLabel, danger, jobHuntTarget, rentDue, nextRentDay };
+if (typeof module !== 'undefined') module.exports = { VERSION, SAVE_KEY, CFG, jobs, shop, fresh, migrate, action, call, endDay, choose, buy, EVENTS, score, draw, allowed, lockOdds, heatLabel, heatWords, danger, jobHuntTarget, rentDue, nextRentDay };
