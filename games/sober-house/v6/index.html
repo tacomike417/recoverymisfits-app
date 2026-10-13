@@ -66,7 +66,15 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .banner.day small:last-child{color:var(--gold)}
 
 
-.houses{display:grid;grid-template-columns:1.55fr 1fr;gap:8px;padding:8px 12px 4px}
+.houses{display:grid;grid-template-columns:1.55fr 1fr;gap:10px;padding:26px 12px 4px}
+.hs{position:relative;border-top-left-radius:3px!important;border-top-right-radius:3px!important}
+.hs .roof{position:absolute;left:-9px;right:-9px;bottom:calc(100% - 3px);height:26px;overflow:visible;pointer-events:none}
+.hs .roof path{fill:#211910;stroke:var(--line);stroke-width:2px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.hs.me .roof path{stroke:var(--gold);stroke-width:3px}
+.hs .door{position:absolute;right:12px;bottom:-2px;width:22px;height:30px;border:2px solid var(--line);border-bottom:0;border-radius:11px 11px 0 0;background:rgba(0,0,0,.25)}
+.hs.me .door{border-color:rgba(232,182,52,.6);width:26px;height:36px}
+.hs .door:after{content:'';position:absolute;right:4px;top:52%;width:4px;height:4px;border-radius:50%;background:var(--line)}
+.hs.me .door:after{background:var(--gold)}
 .hs{border-radius:16px;padding:10px 12px;background:rgba(33,25,16,.92);border:2px solid var(--line);min-width:0}
 .hs.me{border:3px solid var(--gold)}
 .hs .nm{font-size:19px;line-height:1;color:var(--cream)}
@@ -87,6 +95,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .bstrip{display:flex;justify-content:center;gap:5px;margin:6px 0 2px}.bstrip .bed{width:36px;height:28px;border-radius:7px}.bstrip .bed svg{width:26px;height:17px}
 .bwho{font:800 16px Poppins;margin-top:10px}
 .hs.them .bed{width:15px;height:12px;border-radius:3px}.hs.them .bed svg{display:none}
+@media (max-width:380px){.hs.them .beds{gap:2px}.hs.them .bed{width:13px}}
 .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .tag{font:800 11px Poppins;padding:2px 7px;border-radius:999px;background:var(--pink);color:#fff}
 .tag.g{background:var(--green)}
@@ -151,6 +160,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .kicker:before,.kicker:after{content:'';flex:1;height:2px;background:var(--dim);opacity:.5;max-width:60px}
 .big{display:block;width:auto;max-width:min(72vw,270px);max-height:44dvh;aspect-ratio:400/560;border-radius:14px;box-shadow:0 10px 24px #000a}
 .big.sm{max-height:34dvh}
+.big.play{max-width:min(90vw,400px);max-height:calc(100dvh - 330px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
 .panel{width:100%;background:var(--cream);color:var(--ink);border-radius:14px;padding:12px 16px 14px;text-align:center;box-shadow:0 4px 0 rgba(0,0,0,.35)}
 .panel .cap{font:800 13px Poppins;letter-spacing:.12em;color:#7a6440;border-bottom:2px solid #d8c7a0;padding-bottom:6px;margin-bottom:8px}
 .panel .say{font:700 18px/1.3 Poppins}
@@ -256,7 +266,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 <div class="app">
 
 <div id="startScreen" class="start">
-  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v12</span></span></div>
+  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v13</span></span></div>
   <img class="logo" src="../cards/logo.webp" alt="Sober House">
   <div class="bang" style="font-size:26px;line-height:1.1">Run the house. Most money when the clock runs out wins.</div>
   <div class="time">Takes about 15&ndash;20 minutes</div>
@@ -272,7 +282,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
   <div class="top">
     <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="../cards/logo.webp" alt="Sober House"></div>
     <div class="count" id="count"><span class="n bang" id="left">18</span><span id="leftLbl">turns left</span></div>
-    <div class="rgt"><span class="pill">v12</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
+    <div class="rgt"><span class="pill">v13</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
   </div>
   <div class="houses"><div class="hs me" id="myHouse"></div><div class="hs them" id="oppHouse"></div></div>
   <div class="week" id="week" aria-label="This week"></div>
@@ -567,7 +577,7 @@ const handOrder=hand=>groups(hand).sort((a,b)=>b.d-a.d);
 // ---------- render ----------
 function houseHTML(p,mine){
   const tags=[p.skip?'<span class="tag">Sits out next turn</span>':'',p.norent?'<span class="tag">$0 rent Friday</span>':'',p.dbl?'<span class="tag g">Double rent Friday</span>':''].join('');
-  return `<div class="nm bang">${mine?(S.bot?'Your house':esc(p.name)+"'s house"):esc(p.name)+"'s house"}</div>
+  return `<svg class="roof" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true"><path d="M74 13.5 V3 h8 V19.6"/><path d="M0 26 L50 1 L100 26"/></svg><div class="nm bang">${mine?(S.bot?'Your house':esc(p.name)+"'s house"):esc(p.name)+"'s house"}</div>
     <div class="money bang ${p.cash<0?'neg':''}">${money(p.cash)}</div>
     <div class="bd">${p.beds>=MAXB?'<b>House full!</b>':`<b>${p.beds}</b> ${p.beds===1?'bed':'beds'} full`}</div>
     <div class="beds">${Array.from({length:MAXB},(_,i)=>`<div class="bed ${i<p.beds?'on':''}">${BED}</div>`).join('')}</div>
@@ -659,7 +669,7 @@ async function tapCard(i){
     body=`<div class="panel"><div class="cap">CAN'T PLAY THIS ONE YET</div><div class="say">${esc(whyNot(c,p))}</div>${!any?'<div class="note">Nothing in your hand can be played. Toss one to get a fresh card next turn.</div>':''}</div>`;
     btns=!any?[['Cancel','ghost'],['Toss it','red']]:[['Back','ghost'],['Play card','',1]];
   }
-  const r=await ask(`${artBig(c)}${body}`,btns,{back:0});
+  const r=await ask(`${artBig(c,'play')}${body}`,btns,{back:0});
   const lbl=btns[r][0];
   if(lbl!=='Play card'&&lbl!=='Toss it') return;
   p.hand.splice(i,1); S.disc.push(c); p.newFrom=S.dealN; // played -> the NEW tag clears
