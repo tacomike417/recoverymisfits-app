@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#292720">
+<meta name="robots" content="noindex">
+<title>Sobered Up · Recovery Misfits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800;900&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f5ead2;--ink:#292720;--gold:#e6b94d;--red:#aa4635;--green:#4c6552;--orange:#d9772f;--blue:#2f5fb3}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;color:var(--ink);background:#292720;font-family:'DM Sans',system-ui,sans-serif}
+button{font:inherit;cursor:pointer;min-height:48px;color:inherit}
+button:disabled{opacity:.42;cursor:not-allowed}
+button:focus-visible{outline:3px solid #3686a0;outline-offset:3px}
+h1,h2,h3,.display{font-family:'Barlow Condensed',Impact,sans-serif;font-weight:900;line-height:1;text-transform:uppercase}
+main{max-width:480px;margin:auto;background:var(--paper);min-height:100vh;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Ccircle cx='1' cy='1' r='.5' fill='%23292720' opacity='.06'/%3E%3C/svg%3E");padding:calc(10px + env(safe-area-inset-top)) 16px 100px}
+.brand{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:2px;border-bottom:2px solid;padding-bottom:10px}
+.brand a.out{display:grid;place-items:center;width:34px;height:34px;color:var(--ink);text-decoration:none;font-size:22px;margin-left:-8px}
+.brand .name{flex:1}
+.stamp{transform:rotate(-4deg);background:var(--red);color:var(--paper);padding:5px 8px;letter-spacing:1px}
+.vpill{background:#fff;color:#000;font-weight:800;font-size:11px;padding:4px 9px;border-radius:999px;letter-spacing:0}
+.title{font-size:48px;margin:14px 0 2px;letter-spacing:-1px}
+.sub{font-size:13px;margin:0 0 14px}
+.day{display:flex;justify-content:space-between;align-items:center;font-size:15px}
+.pips{color:var(--red);font-size:24px;letter-spacing:3px}
+.scene{margin:12px 0 0;border:3px solid;background:#d5c5a7;position:relative}
+.scene svg{width:100%;display:block}
+.scene-label{position:absolute;bottom:9px;left:10px;background:var(--paper);padding:5px 9px;font-size:11px;font-weight:800;transform:rotate(-2deg)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border:3px solid;border-top:0;background:var(--gold)}
+.stat{padding:10px 9px;border-right:2px solid}
+.stat:last-child{border:0}
+.stat small{display:block;font-weight:800;font-size:10px;letter-spacing:1px}
+.stat strong{font-family:'Barlow Condensed',Impact;font-size:30px}
+.bar{height:4px;background:#29272030;margin-top:3px}
+.bar span{display:block;height:100%;background:var(--ink)}
+/* HEAT METER */
+.heat{border:3px solid;border-top:0;background:var(--paper);padding:10px 12px}
+.heat .row{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;font-weight:800;letter-spacing:1px}
+.heat .row strong{font-family:'Barlow Condensed',Impact;font-size:26px;letter-spacing:0}
+.heat .track{height:14px;border:2px solid var(--ink);background:linear-gradient(90deg,#e6b94d 0%,#d9772f 50%,#aa4635 100%);margin:6px 0 6px;position:relative;overflow:hidden}
+.heat .fill{position:absolute;top:0;right:0;bottom:0;background:#fff8e8;transition:width .4s}
+.heat .safe{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.5}
+.heat .odds{font-size:13px;line-height:1.5;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.heat .odds b{font-family:'Barlow Condensed',Impact;font-size:22px;white-space:nowrap}
+.heat.hot .odds b{color:var(--red)}
+.heat.burning{animation:heatpulse 1.4s infinite}
+@keyframes heatpulse{50%{background:#aa463522}}
+.strip{background:var(--ink);color:var(--paper);padding:10px 12px;font-size:12px;line-height:1.5;margin-top:12px}
+.section{display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px}
+.section h2{font-size:26px;margin:0}
+.tag{font-size:10px;font-weight:800;letter-spacing:1px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.action{border:2px solid;background:var(--paper);text-align:left;padding:12px;box-shadow:2px 2px 0 var(--ink)}
+.action strong{font-size:16px;display:block}
+.action small{display:block;font-size:11px;margin-top:5px;line-height:1.5}
+.action .h{color:var(--red);font-weight:800}
+.action .c{color:var(--green);font-weight:800}
+.primary{width:100%;background:var(--ink);color:var(--paper);border:2px solid var(--ink);padding:14px;margin-top:13px;font-weight:800;box-shadow:3px 3px 0 var(--red)}
+.event{background:#fff5dd;border:3px solid;box-shadow:5px 5px 0 var(--red);padding:18px;margin:17px 0}
+.event h2{font-size:34px;margin:10px 0}
+.event p{font-size:14px;line-height:1.6}
+.choice{display:block;width:100%;text-align:left;background:var(--paper);border:2px solid;margin:9px 0;padding:12px}
+.choice strong{display:block}
+.choice small{display:block;font-size:11px;line-height:1.6;margin-top:5px}
+.note{font-size:12px;line-height:1.6;color:#575248}
+.warning{border-left:4px solid var(--red);padding:8px 11px;background:#aa463511;font-size:12px;margin:8px 0;line-height:1.6}
+nav{position:fixed;bottom:0;width:min(480px,100%);left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(4,1fr);background:var(--ink);padding:8px 8px max(8px,env(safe-area-inset-bottom));gap:4px;z-index:4}
+nav button{border:0;background:transparent;color:#f5ead2a0;font-size:12px;font-weight:800}
+nav button.active{background:var(--gold);color:var(--ink)}
+.item{padding:15px 0;border-bottom:2px solid #29272030;display:flex;gap:14px;justify-content:space-between}
+.item p{font-size:12px;line-height:1.5;margin:5px 0}
+.item button{min-width:84px;background:var(--gold);border:2px solid;font-weight:800}
+.badge{padding:13px;border:2px solid;margin:8px 0;background:#e6b94d44;font-size:13px}
+.log{font-size:12px;border-bottom:1px solid #29272030;padding:11px 0;line-height:1.6}
+.score{display:flex;justify-content:space-between;border-bottom:2px solid;padding:16px 0}
+.score strong{font-size:26px}
+.modal{position:fixed;inset:0;background:#0009;z-index:10;display:grid;place-items:center;padding:20px}
+.modal>div{background:var(--paper);border:3px solid;max-width:420px;width:100%;padding:24px;max-height:90vh;overflow:auto;position:relative}
+.modal h2{font-size:36px;margin:0 0 12px;padding-right:36px}
+.modal p{line-height:1.6;font-size:14px}
+.modal button{width:100%;margin-top:8px;border:2px solid;background:var(--gold);padding:12px}
+.modal button.x{position:absolute;top:8px;right:8px;width:36px;min-height:36px;margin:0;padding:0;background:transparent;border:0;font-size:26px;line-height:1}
+.toast{font-size:13px;padding:12px;border:2px solid var(--green);background:#4c655215;line-height:1.5;margin:12px 0}
+select{width:100%;font:inherit;padding:12px;background:var(--paper);border:2px solid}
+footer{font-size:11px;line-height:1.6;margin-top:24px;border-top:2px solid;padding-top:12px}
+/* LOCKED UP */
+.lockup{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px;color:#fff;text-align:center;animation:lights .35s steps(1) 8,settle 0s 2.8s forwards;background:#1a1340}
+@keyframes lights{0%{background:#c8102e}50%{background:#1f4fd8}}
+@keyframes settle{to{background:#141127}}
+.lockup>div{max-width:400px;animation:fadein .5s 2.6s both}
+@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.lockup h1{font-size:72px;margin:0 0 8px;letter-spacing:-2px;text-shadow:4px 4px 0 #000}
+.lockup p{font-size:15px;line-height:1.6;opacity:.9}
+.lockup .had{background:#ffffff14;border:2px solid #ffffff44;padding:12px;font-size:13px;line-height:1.6;margin:14px 0;text-align:left}
+.lockup button{width:100%;border:2px solid #fff;background:#fff;color:#000;padding:14px;font-weight:800;margin-top:6px}
+.lockup button.ghost{background:transparent;color:#fff}
+@media (prefers-reduced-motion:reduce){.lockup{animation:none;background:#141127}.lockup>div{animation:none}.heat.burning{animation:none}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav id="nav"></nav>
+<div id="modal"></div>
+<script src="engine.js"></script>
+<script>
+let s; let page = 'life'; let storageOK = true;
+try { s = migrate(JSON.parse(localStorage.getItem(SAVE_KEY))) || fresh(); } catch { s = fresh(); }
+
+function esc(v){ return String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function save(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } catch { storageOK = false; } }
+function pct(x){ return Math.round(x * 100); }
+
+function scene(){
+  const own = x => s.items.includes(x);
+  return `<div class="scene"><svg viewBox="0 0 440 220" role="img" aria-label="Your living space and character, with purchased items visible"><defs><pattern id="dots" width="6" height="6" patternUnits="userSpaceOnUse"><circle r="1" fill="#292720" opacity=".13"/></pattern></defs><path d="M0 0h440v220H0z" fill="#d8c39f"/><path d="M0 162h440v58H0z" fill="#bd8b5d" stroke="#292720" stroke-width="3"/><path d="M22 16h88v110H22z" fill="#f2dcaa" stroke="#292720" stroke-width="4"/><path d="M66 17v107M24 66h85" stroke="#292720" stroke-width="3"/><path d="M24 68l20-19 21 8 23-29 20 42" fill="#799081"/><path d="M268 145h146v34H268z" fill="#a94736" stroke="#292720" stroke-width="4"/><path d="M270 135h45v18h-45z" fill="#f5ead2" stroke="#292720" stroke-width="3"/><path d="M277 179v21m130-21v21" stroke="#292720" stroke-width="6"/>${own('dresser')?'<path d="M20 118h72v73H20z" fill="#b78845" stroke="#292720" stroke-width="4"/><path d="M21 141h70m-70 24h70" stroke="#292720" stroke-width="3"/><circle cx="56" cy="130" r="3"/><circle cx="56" cy="154" r="3"/><circle cx="56" cy="178" r="3"/>':'<path d="M31 195q-25-15-7-44l13-15 25 4q35 45 12 58z" fill="#49453b" stroke="#292720" stroke-width="4"/><path d="M36 141l18-8" stroke="#292720" stroke-width="5"/>'}${own('couch')?'<path d="M300 190v-22q0-15 17-15h93q17 0 17 15v22z" fill="#e6b94d" stroke="#292720" stroke-width="4"/>':''}<ellipse cx="185" cy="204" rx="52" ry="7" fill="#29272030"/><path d="M161 149l-7 47h23l10-40 8 40h24l-10-49" fill="#b7976d" stroke="#292720" stroke-width="4"/><path d="M150 91q37-18 66 0l-5 62h-53z" fill="#ebe4d3" stroke="#292720" stroke-width="4"/><path d="M151 97l-13 44 13 6 12-37m49-13 16 43-13 6-14-39" fill="#b77854" stroke="#292720" stroke-width="4"/><path d="M140 120l11 2m-13 5 12 2m68-8 10-3" stroke="#292720" stroke-width="3"/><path d="M171 76v16q14 14 28 0V76" fill="#b77854" stroke="#292720" stroke-width="3"/><ellipse cx="185" cy="57" rx="28" ry="33" fill="#bc805c" stroke="#292720" stroke-width="4"/><path d="M158 51q-5-39 29-34 29 3 25 31l-15-16-28 4z" fill="#3c352f" stroke="#292720" stroke-width="3"/><path d="M168 54h10m14 0h10m-29 19q13 9 23-1" fill="none" stroke="#292720" stroke-width="3"/><path d="M155 196h25v9h-33q-4-5 8-9m40 0h24l9 9h-35z" fill="${own('shoes')?'#aa4635':'#544a3c'}" stroke="#292720" stroke-width="3"/>${own('hat')?'<path d="M156 37q1-28 31-27 29 2 26 28z" fill="#e6b94d" stroke="#292720" stroke-width="4"/><path d="M185 37h45v7h-45z" fill="#e6b94d" stroke="#292720" stroke-width="3"/>':''}${own('phone')?'<rect x="215" y="127" width="13" height="22" rx="2" fill="#343b38" stroke="#292720" stroke-width="3"/>':''}<path d="M0 0h440v220H0z" fill="url(#dots)"/></svg><span class="scene-label">${esc(s.housing)}</span></div>`;
+}
+
+function heatUI(){
+  const odds = lockOdds(s), label = heatLabel(s);
+  const cls = s.heat >= 80 ? 'burning' : s.heat >= 60 ? 'hot' : '';
+  const oddsText = odds === 0
+    ? '<span>Tonight: nobody’s looking for you.</span><b>SAFE</b>'
+    : `<span>Chance the lights show up tonight:</span><b>${pct(odds)}%</b>`;
+  return `<div class="heat ${cls}"><div class="row"><span>HEAT · ${label.toUpperCase()}</span><strong>${s.heat}</strong></div><div class="track"><div class="fill" style="width:${100 - s.heat}%"></div><div class="safe" style="left:${CFG.heat.safe}%"></div></div><div class="odds">${oddsText}</div></div>`;
+}
+
+function effects(c){
+  const a = [];
+  if (c.cost) a.push(c.cost + ' action' + (c.cost > 1 ? 's' : ''));
+  for (const k of ['cash','stress','connection','heat']) if (c.e[k]) a.push((k==='cash'?'$':'') + (c.e[k] > 0 ? '+' : '') + c.e[k] + (k==='cash' ? '' : ' ' + k));
+  if (c.e.job !== undefined) a.push(jobs[c.e.job].name);
+  if (c.e.housing) a.push(c.e.housing);
+  if (c.requires) a.push('Needs ' + reqText(c.requires));
+  if (c.network) a.push('Needs connection ' + c.network);
+  if (c.reminder) a.push('Callback due tomorrow');
+  if (c.rest) a.push('Counts as tonight’s rest');
+  if (c.e.warning) a.push('+1 house warning');
+  if (c.e.court) a.push('Hearing in 3 days');
+  return a.join(' · ') || 'No resource cost';
+}
+
+function cardUI(){
+  const e = s.event;
+  return `<section class="event"><span class="tag">LIFE CARD / ${e.type==='risk' ? 'PRESSURE' : 'TODAY’S SURPRISE'}</span><h2>${esc(e.title)}</h2><p>${esc(e.text)}</p>${e.choices.map((c,i)=>`<button class="choice" onclick="pick(${i})" ${allowed(s,c)?'':'disabled'}><strong>${esc(c.label)}</strong><small>${esc(effects(c))}${c.note ? '<br>⚄ ' + esc(c.note) : ''}</small></button>`).join('')}<div class="note">Known effects shown above. Chance outcomes are rolled only when you choose. No paid rerolls.</div></section>`;
+}
+
+function warnings(){
+  const a = [];
+  if (s.heat > CFG.heat.safe) a.push('Heat is up. Support, rest, and helping out bring it down. The odds are right there on the meter.');
+  if (s.stress >= 60) a.push('You’re running hot. Rest lowers pressure before the next card.');
+  if (s.connection < 25) a.push('Your network is getting quiet. Make time for support.');
+  if (s.missed >= 2) a.push('You’ve missed two calls. They still want to hear from you.');
+  if (s.day % CFG.rentDays === CFG.rentDays - 1) a.push('Rent is due tomorrow. Keep $' + rentDue(s) + ' available.');
+  if (s.arrears) a.push('$' + s.arrears + ' unpaid fees. Handle responsibilities to pay what you can; $' + CFG.bedLossArrears + ' owed puts your bed at risk.');
+  if (s.warnings) a.push(s.warnings + '/' + CFG.bedLossWarnings + ' house warnings. Handle responsibilities to repair your footing.');
+  if (s.court) a.push('Court date: day ' + s.court + '. Attend to avoid escalation.');
+  return a.map(x => '<div class="warning">' + x + '</div>').join('');
+}
+
+function life(){
+  if (s.result) return `<div class="event"><span class="tag">${CFG.days}-DAY CHAPTER COMPLETE</span><h2>LOOK WHAT YOU BUILT.</h2><p>A score is feedback, not your worth. Your goal was housing, income, and people in your corner.</p>${Object.entries(s.result).map(([k,v])=>`<div class="score"><span>${k}</span><strong>${v}/100</strong></div>`).join('')}<p>${esc(s.housing)} · ${jobs[Math.max(0,s.job)].name} · $${s.cash} cash · heat ${s.heat}</p><button class="primary" onclick="restart()">Start another chapter</button></div>${progress()}`;
+  const j = jobs[Math.max(0, s.job)];
+  const H = CFG.heat;
+  const shiftHeat = H.repeatShift[Math.min(s.workToday, H.repeatShift.length - 1)];
+  const a = [
+    ['work', 'Work a shift', '+$' + j.wage + ' · +' + (j.stress + (s.workToday ? CFG.repeatShiftStress : 0)) + ' stress' + (s.workToday ? ' · ' + CFG.repeatShiftConnection + ' connection · <span class="h">+' + shiftHeat + ' heat</span>' : '')],
+    ['rest', 'Take a breath', '−' + (CFG.restStress + (s.items.includes('dresser') ? CFG.dresserBonus : 0)) + ' stress · <span class="c">' + H.rest + ' heat</span>'],
+    ['responsibility', 'Handle your stuff', CFG.choresStress + ' stress · chores · pay arrears · <span class="c">' + H.chores + ' heat</span>'],
+    ['support', 'Sober support', '+' + CFG.supportConnection + ' connection · ' + CFG.supportStress + ' stress · <span class="c">' + H.support + ' heat</span>'],
+    ['help', 'Ask for help', '+' + CFG.helpConnection + ' connection · ' + CFG.helpStress + ' stress' + (s.cash < CFG.helpMealBelow ? ' · $' + CFG.helpMeal + ' meal help' : '') + ' · <span class="c">' + H.help + ' heat</span>'],
+    ['job', 'Find better work', '+' + CFG.jobHuntStress + ' stress · ' + (jobHuntTarget(s) > s.job ? jobs[jobHuntTarget(s)].name : 'nothing better yet') + (s.items.includes('phone') ? '' : ' · no phone = nobody can call you back')]
+  ];
+  return `<div class="day"><strong>DAY ${s.day} / ${CFG.days}</strong><span><span class="pips">${'●'.repeat(s.actions)+'○'.repeat(CFG.actions - s.actions)}</span></span></div>${scene()}<div class="stats"><div class="stat"><small>CASH</small><strong>$${s.cash}</strong></div><div class="stat"><small>STRESS</small><strong>${s.stress}</strong><div class="bar"><span style="width:${s.stress}%"></span></div></div><div class="stat"><small>CONNECTION</small><strong>${s.connection}</strong><div class="bar"><span style="width:${s.connection}%"></span></div></div></div>${heatUI()}<div class="strip">GOAL: ${esc(s.goal)}<br>Next rent: day ${nextRentDay(s)} · $${rentDue(s)} / week<br>Food: up to $${CFG.food} nightly · Job: ${j.name}</div>${warnings()}${s.lastOutcome ? '<div class="toast" role="status">' + esc(s.lastOutcome) + '</div>' : ''}${s.event ? cardUI() : ''}<div class="section"><h2>YOUR THREE MOVES</h2><span class="tag">${s.actions} LEFT</span></div><div class="actions">${a.map(([id,label,fx])=>`<button class="action" ${s.event || !s.actions ? 'disabled' : ''} onclick="confirmAction('${id}')"><strong>${label}</strong><small>${fx}</small></button>`).join('')}</div><button class="primary" ${s.event ? 'disabled' : ''} onclick="night()">${s.actions ? 'Call it a day →' : 'Next day →'}</button><p class="note">Each move uses 1 action. Night adds +${CFG.nightStress} stress without rest, ${CFG.nightConnection} connection, food costs, and heat if you skipped support. Resolve your card first.</p><button class="choice" onclick="rules()">How the odds work <small>Pressure-card chance: ${pct(danger(s))}% · Lock-up chance tonight: ${pct(lockOdds(s))}%</small></button>`;
+}
+// stash the action labels for the confirm modal
+const ACTION_LABEL = { work:'Work a shift', rest:'Take a breath', responsibility:'Handle your stuff', support:'Sober support', help:'Ask for help', job:'Find better work' };
+
+function storeUI(){
+  return `<div class="section"><h2>SMALL UPGRADES.</h2><span class="tag">$${s.cash} IN YOUR POCKET</span></div><p class="note">Each purchase uses one action. Gear changes your options, never your recovery. Resolve today's card before shopping.</p>${shop.map(([id,n,p,d])=>`<div class="item"><div><strong>${n}</strong><p>${d}</p></div><button onclick="purchase('${id}')" ${s.items.includes(id)||s.cash<p||!s.actions||s.event||s.result||s.lockedUp?'disabled':''}>${s.items.includes(id)?'OWNED':'$'+p}</button></div>`).join('')}`;
+}
+function progress(){
+  return `<div class="section"><h2>LITTLE BIG WINS</h2></div>${s.milestones.length ? s.milestones.map(x=>'<div class="badge">★ '+esc(x)+'</div>').join('') : '<p class="note">The first milestone is waiting. Keeping a bed counts.</p>'}<div class="section"><h2>YOUR STORY</h2></div>${s.log.map(x=>'<div class="log">'+esc(x)+'</div>').join('')}`;
+}
+function settings(){
+  return `<h2>MAKE IT YOURS.</h2><p class="note">Choose what a better life means for this run.</p><select onchange="s.goal=this.value;save()">${['Steady footing','My own place','Meaningful friendships','Room for creativity','Money without burnout'].map(x=>`<option ${s.goal===x?'selected':''}>${x}</option>`).join('')}</select><button class="choice" onclick="s.settings.reminders=!s.settings.reminders;save();render()">In-game reminders: ${s.settings.reminders?'ON':'OFF'}<small>Callbacks still occur. This toggles the reminder list, not device notifications.</small></button><button class="choice" onclick="s.settings.sound=!s.settings.sound;save();render()">Choice chime: ${s.settings.sound?'ON':'OFF'}</button>${s.settings.reminders?'<p class="note">Callback days: '+(s.reminders.join(', ')||'none scheduled')+'</p>':''}<button class="choice" onclick="rules()">Rules & strategy</button><button class="choice" onclick="show('<h2>THANK YOU.</h2><p>Payment setup is not connected yet. This placeholder does not collect money. Donations never change resources, consequences, or odds.</p><button onclick=closeModal()>Back to the game</button>')">Enjoying the game? Give $1 to support Recovery Misfits.<small>Donation placeholder · no payment collected</small></button><button class="choice" onclick="restart()">Start a new run<small>Clears this browser’s current run after confirmation.</small></button><footer>Sobered Up ${VERSION} · Single player · Saves on this browser automatically. No real-money wagering. A life simulator, not recovery advice. “Covered up” is part of the title, not an ending.</footer>`;
+}
+
+function lockupUI(){
+  const L = s.lockedUp;
+  const had = [jobs[Math.max(0,s.job)].name, '$' + s.cash, s.housing].concat(s.items.map(i => shop.find(x=>x[0]===i)[1])).join(' · ');
+  return `<div class="lockup" role="alertdialog" aria-label="Locked up"><div><h1>LOCKED UP.</h1><p>Night ${L.day}. Heat was ${L.heat}. The odds said ${L.odds}% and tonight they hit.</p><div class="had"><b>What you had:</b><br>${esc(had)}<br><b>${s.milestones.length}</b> little big wins · <b>${L.day}</b> days</div><p>It’s not a verdict. It’s a do-over. Keep showing up and the heat stays down.</p><button onclick="s=fresh();page='life';render();window.scrollTo(0,0)">Start over</button><button class="ghost" onclick="page='progress';document.querySelector('.lockup').style.display='none';render()">Read my story first</button></div></div>`;
+}
+
+function render(){
+  save();
+  document.getElementById('app').innerHTML = `<header class="brand"><a class="out" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span class="name">RECOVERY MISFITS</span><span class="stamp">ONE DAY AT A TIME</span><span class="vpill">${VERSION}</span></header><h1 class="title">SOBERED UP.</h1><p class="sub">A beat-up little life. A brand-new chapter.</p>${!storageOK ? '<div class="warning">Saving is unavailable in this browser. Keep this tab open.</div>' : ''}${page==='life' ? life() : page==='shop' ? storeUI() : page==='progress' ? progress() : settings()}${s.lockedUp && page !== 'progress' ? lockupUI() : ''}${s.lockedUp && page === 'progress' ? '<button class="primary" onclick="s=fresh();page=\'life\';render();window.scrollTo(0,0)">Start over</button>' : ''}`;
+  document.getElementById('nav').innerHTML = ['life','shop','progress','settings'].map(x=>`<button class="${page===x?'active':''}" onclick="page='${x}';render();window.scrollTo(0,0)">${x==='life'?'TODAY':x.toUpperCase()}</button>`).join('');
+}
+function show(t){ document.getElementById('modal').innerHTML = '<div class="modal" onclick="if(event.target===this)closeModal()"><div><button class="x" onclick="closeModal()" aria-label="Close">×</button>' + t + '</div></div>'; }
+function closeModal(){ document.getElementById('modal').innerHTML = ''; }
+function chime(){ if (!s.settings.sound) return; try { const a = new (window.AudioContext||window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); g.gain.value = .025; o.frequency.value = 440; o.start(); o.stop(a.currentTime + .1); o.onended = () => a.close(); } catch {} }
+function confirmAction(id){
+  const btn = [...document.querySelectorAll('.action')].find(b => b.getAttribute('onclick').includes("'" + id + "'"));
+  const fx = btn ? btn.querySelector('small').innerHTML : '';
+  show('<h2>' + ACTION_LABEL[id] + '</h2><p>1 action · ' + fx + '</p><button onclick="action(s,\'' + id + '\');closeModal();chime();render()">Do it</button><button onclick="closeModal()">Keep thinking</button>');
+}
+function pick(i){ choose(s, i); chime(); render(); }
+function purchase(id){ const p = shop.find(x=>x[0]===id); show('<h2>' + p[1] + '</h2><p>$' + p[2] + ' · 1 action<br>' + p[3] + '</p><button onclick="buy(s,\'' + id + '\');closeModal();render()">Buy it</button><button onclick="closeModal()">Keep saving</button>'); }
+function night(){
+  const odds = pct(lockOdds(s));
+  const oddsLine = odds ? '<br><b>Heat ' + s.heat + ': ' + odds + '% chance the lights show up tonight.</b>' : '';
+  if (s.actions) show('<h2>CALL IT A DAY?</h2><p>' + s.actions + ' unused action(s) will expire. Food, rent when due, and nightly stress / connection changes still apply.' + oddsLine + '</p><button onclick="endDay(s);closeModal();render();window.scrollTo(0,0)">Finish today</button><button onclick="closeModal()">Use my time</button>');
+  else if (odds) show('<h2>LIGHTS OUT.</h2><p>Heat ' + s.heat + '. ' + odds + '% chance the lights show up tonight. Nothing left to do today but find out.</p><button onclick="endDay(s);closeModal();render();window.scrollTo(0,0)">Go to sleep</button>');
+  else { endDay(s); render(); window.scrollTo(0,0); }
+}
+function restart(){ show('<h2>A NEW CHAPTER?</h2><p>This clears your saved run on this browser.</p><button onclick="s=fresh();page=\'life\';closeModal();render()">Start with $' + CFG.startCash + ' again</button><button onclick="closeModal()">Keep this run</button>'); }
+function rules(){
+  const H = CFG.heat;
+  show('<h2>BUILD. BREATHE. REPEAT.</h2><p>Three actions each day. First shift pays $' + jobs[0].wage + '–' + jobs[jobs.length-1].wage + '. Second and third shifts add ' + CFG.repeatShiftStress + ' extra stress, cost ' + Math.abs(CFG.repeatShiftConnection) + ' connection, and add heat. Rest removes ' + CFG.restStress + ' stress; support adds ' + CFG.supportConnection + ' connection and removes ' + Math.abs(CFG.supportStress) + ' stress.</p>'
+  + '<p><b>Heat</b> is how close you are to getting locked up. It goes up when you skip support (day 2 without it: +' + H.noSupport[2] + ', then +' + H.noSupport[3] + ', +' + H.noSupport[4] + ' a night), overwork, rush big decisions, or take sketchy deals. It comes down when you show up: support ' + H.support + ', help ' + H.help + ', rest ' + H.rest + ', chores ' + H.chores + '. At ' + H.safe + ' or below, nothing happens. Above that, the chance the lights show up tonight is on the meter, up to ' + pct(H.maxOdds) + '% at 100. If it hits: locked up, start over. It never blindsides you.</p>'
+  + '<p>Rent is $' + CFG.rent + ' every ' + CFG.rentDays + ' days. Food is up to $' + CFG.food + ' nightly; if short, stress rises and help stays available. Each week needs at least one responsibilities action. ' + CFG.bedLossWarnings + ' warnings or $' + CFG.bedLossArrears + ' unpaid fees can cost your house bed. Shelter and rebuilding remain available. At stress ' + CFG.exhaustStress + '+, each night has a ' + pct(CFG.exhaustChance) + '% exhaustion-setback chance: up to $' + CFG.exhaustLoss + ' lost and a return to day labor.</p>'
+  + '<p>Every day after day 1 draws one eligible card without repeats until the eligible deck runs out. Pressure-card chance rises with stress, low connection, and heat, capped at 45%. Uncertain choices show exact odds. Court only follows an explicit legal event; missing a hearing is a heat spike, not a jail chapter.</p>'
+  + '<p>Try one shift, one restorative move, and one flexible move. Save $' + CFG.rent + ' for rent and aim for a $' + CFG.cushion + ' cushion. No odds depend on donations.</p><button onclick="closeModal()">Let’s go</button>');
+}
+render();
+</script>
+</body>
+</html>
