@@ -122,13 +122,14 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .crd.no{filter:grayscale(1) brightness(.72)}
 .crd .dup{position:absolute;left:12px;top:10px;background:var(--red);color:#fff;font:800 13px Poppins;padding:1px 7px;border-radius:999px;border:2px solid #fff}
 .crd.ro{cursor:default}
-.crd.fxrow{grid-template-columns:24% 1fr auto;min-height:92px}
-.crd.fxrow .t{font-size:19px}
-.crd .cap{display:block;margin-top:5px;font:800 10.5px/1.15 Poppins;letter-spacing:.06em}
+.crd.fxrow{grid-template-columns:24% 1fr;min-height:92px}
+.crd.fxrow .t{font-size:20px}
+.crd .fxl{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.crd .cap{display:block;font:800 13.5px/1.2 Poppins;letter-spacing:0;min-width:0}
 .cap.w-you{color:#15734a}.cap.w-them,.cap.w-steal{color:#b3261e}.cap.w-both,.cap.w-hold{color:#5c4a2e}
-.crd .stamps{display:flex;flex-direction:column;gap:5px;align-items:flex-end;padding:0 4px 0 6px}
-.stmp{display:block;font:400 27px/1 Bangers,Poppins;letter-spacing:.03em;padding:6px 10px 4px;border:3.5px solid currentColor;border-radius:8px;transform:rotate(-7deg);background:rgba(255,255,255,.35);box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);white-space:nowrap}
-.stmp+.stmp{transform:rotate(-4deg)}
+.crd .stamps{display:flex;gap:4px;align-items:center;flex:0 0 auto;padding-right:2px}
+.stmp{display:block;font:400 18px/1 Bangers,Poppins;letter-spacing:.03em;padding:4px 7px 3px;border:2.5px solid currentColor;border-radius:6px;transform:rotate(-7deg);background:rgba(255,255,255,.35);white-space:nowrap}
+.stmp+.stmp{transform:rotate(-3deg)}
 .stmp.w-you{color:#15834f}.stmp.w-them,.stmp.w-steal{color:#c42a22}.stmp.w-both,.stmp.w-hold{color:#211910}
 .crd .rt2{display:inline-block;margin-bottom:3px;font:800 10px Poppins;letter-spacing:.08em;background:var(--ink);color:var(--gold);padding:2px 8px;border-radius:999px}
 .crd .chip{display:inline-block;margin:5px 4px 0 0;font:800 11px Poppins;background:#4a3d2c;color:var(--cream);padding:3px 9px;border-radius:999px}
@@ -255,7 +256,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 <div class="app">
 
 <div id="startScreen" class="start">
-  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v11</span></span></div>
+  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v12</span></span></div>
   <img class="logo" src="../cards/logo.webp" alt="Sober House">
   <div class="bang" style="font-size:26px;line-height:1.1">Run the house. Most money when the clock runs out wins.</div>
   <div class="time">Takes about 15&ndash;20 minutes</div>
@@ -271,7 +272,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
   <div class="top">
     <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="../cards/logo.webp" alt="Sober House"></div>
     <div class="count" id="count"><span class="n bang" id="left">18</span><span id="leftLbl">turns left</span></div>
-    <div class="rgt"><span class="pill">v11</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
+    <div class="rgt"><span class="pill">v12</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
   </div>
   <div class="houses"><div class="hs me" id="myHouse"></div><div class="hs them" id="oppHouse"></div></div>
   <div class="week" id="week" aria-label="This week"></div>
@@ -488,7 +489,7 @@ function cardRow(c,n,p,o,opt={}){ // opt.fresh: dealt this turn -> small gold NE
   // the NEW tag sits next to the button (not inside it) so a grayed-out card keeps a gold tag
   return (opt.fresh?'<div class="newrow">':'')+`<button class="crd fxrow ${c.kind} ${ok?'':'no'} ${opt.pulse?'pulse':''}" data-i="${opt.i}" aria-label="${esc(c.title)}">
       ${thumb(c)}${n>1?`<span class="dup">&times;${n}</span>`:''}
-      ${fxHTML(c,p,o,chips)}</button>`+(opt.fresh?'<span class="newt">NEW</span></div>':'');
+      ${fxHTML(c,p,o,chips)}</button>`+(opt.fresh?'<span class="newt">NEWEST CARD</span></div>':'');
 }
 // At-a-glance effect tokens on each hand row (the full wording is one tap away)
 function fxParts(c,p,o){
@@ -511,13 +512,36 @@ function fxParts(c,p,o){
   if(c.gain) return [P('steal','$'+c.gain)];
   return [P('them',$n(c.cash))];
 }
-// At-a-glance hand row: title + one small caption on the left, rubber stamps on the right (full wording is one tap away)
+// What the card does, in plain English (shown in red/green under the title)
+function fxSay(c,p,o){
+  const R=esc(o.name), F='&#128405; '+R; // middle finger at the other house
+  const bucks=v=>'$'+Math.abs(v), bd=n=>n+' '+(n===1?'bed':'beds');
+  if(c.react==='block') return 'Save it. Blocks '+R+"'s next hit";
+  if(c.react==='bounce') return 'Save it. Sends '+R+"'s hit right back";
+  if(c.react==='repair') return 'Save it. Fixes a repair bill free';
+  if(c.self==='cash') return 'You get '+bucks(c.cash);
+  if(c.self==='dblrent') return 'You get double rent Friday';
+  if(c.self==='double') return 'You play 2 more cards';
+  if(c.hit==='raid') return '&#128405; You take $100 from '+R;
+  if(c.hit==='swap') return 'You and '+R+' swap all your money';
+  if(c.hit==='norent') return F+' gets $0 rent Friday';
+  if(c.hit==='skip') return F+' skips a turn';
+  if(c.kind==='green'){
+    if(c.fill) return 'You fill every bed';
+    if(c.beds&&c.cash) return 'You fill '+bd(c.beds)+' and get '+bucks(c.cash);
+    if(c.beds) return 'You fill '+bd(c.beds);
+    return 'You get '+bucks(c.cash);
+  }
+  if(c.payorskip) return F+' pays '+bucks(c.payorskip)+' or skips a turn';
+  if(c.skip) return F+' skips a turn';
+  if(c.beds) return F+' loses '+bd(-c.beds);
+  if(c.gain) return '&#128405; You take '+bucks(c.gain)+' from '+R;
+  return F+' pays '+bucks(c.cash)+(c.repair?' for repairs':'');
+}
 function fxHTML(c,p,o,chips){
-  const R=esc(o.name).toUpperCase(), parts=fxParts(c,p,o), w=parts[0].w;
-  const cap={you:'YOU GET',them:R+' EATS IT',steal:'YOU TAKE FROM '+R,both:'BOTH HOUSES',hold:'SAVE IT FOR WHEN YOU GET HIT'}[w]
-    +(c.repair?' &middot; REPAIR BILL':'')+(c.self==='dblrent'?' &middot; FRIDAY':'')+(c.hit==='norent'?' &middot; FRIDAY':'');
-  return `<span class="tx">${c.rare?'<span class="rt2">RARE</span>':''}<span class="t">${esc(c.title)}</span><span class="cap w-${w}">${cap}</span>${chips}</span>`
-    +`<span class="stamps">${parts.map(x=>`<span class="stmp w-${x.w}">${x.m}</span>`).join('')}</span>`;
+  const parts=fxParts(c,p,o), w=parts[0].w;
+  return `<span class="tx">${c.rare?'<span class="rt2">RARE</span>':''}<span class="t">${esc(c.title)}</span>`
+    +`<span class="fxl"><span class="cap w-${w}">${fxSay(c,p,o)}</span><span class="stamps">${parts.map(x=>`<span class="stmp w-${x.w}">${x.m}</span>`).join('')}</span></span>${chips}</span>`;
 }
 // The tag on each hand row: what the card does for the player holding it
 function tagWord(c,p,o){
