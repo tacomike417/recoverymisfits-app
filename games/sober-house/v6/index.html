@@ -116,6 +116,16 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .crd.no{filter:grayscale(1) brightness(.72)}
 .crd .dup{position:absolute;left:12px;top:10px;background:var(--red);color:#fff;font:800 13px Poppins;padding:1px 7px;border-radius:999px;border:2px solid #fff}
 .crd.ro{cursor:default}
+.fxs{display:flex;align-items:flex-end;gap:5px;margin-top:6px;flex-wrap:wrap}
+.fx{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.fx i{font:800 9.5px/1 Poppins;font-style:normal;letter-spacing:.07em;opacity:.8;white-space:nowrap}
+.fx b{display:flex;align-items:center;justify-content:center;gap:3px;min-width:52px;height:52px;padding:0 9px;border-radius:999px;font:400 23px/1 Bangers,Poppins;letter-spacing:.02em;color:#fff;border:3px solid var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.35);white-space:nowrap}
+.fx b small{font:400 14px/1 Bangers,Poppins;letter-spacing:.04em;text-align:center}
+.fx b svg{width:25px;height:17px;fill:currentColor;flex:0 0 auto}
+.fx.g b{background:var(--green)}.fx.r b{background:var(--red)}.fx.y b{background:var(--gold);color:var(--ink)}.fx.k b{background:var(--ink);color:var(--cream)}.fx.p b{background:var(--pink)}
+.fxa{font:800 20px Poppins;align-self:center;margin-top:12px;opacity:.75}
+.fxo{font:800 11px Poppins;align-self:center;margin-top:12px;opacity:.75}
+.crd .rt2{display:inline-block;margin-bottom:3px;font:800 10px Poppins;letter-spacing:.08em;background:var(--ink);color:var(--gold);padding:2px 8px;border-radius:999px}
 .crd .chip{display:inline-block;margin:5px 4px 0 0;font:800 11px Poppins;background:#4a3d2c;color:var(--cream);padding:3px 9px;border-radius:999px}
 .who-you{color:var(--green)}.who-them{color:var(--red)}
 .crd.pulse{animation:glow 1.1s ease-in-out infinite}
@@ -240,7 +250,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 <div class="app">
 
 <div id="startScreen" class="start">
-  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v8</span></span></div>
+  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v9</span></span></div>
   <img class="logo" src="../cards/logo.webp" alt="Sober House">
   <div class="bang" style="font-size:26px;line-height:1.1">Run the house. Most money when the clock runs out wins.</div>
   <div class="time">Takes about 15&ndash;20 minutes</div>
@@ -256,7 +266,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
   <div class="top">
     <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="../cards/logo.webp" alt="Sober House"></div>
     <div class="count" id="count"><span class="n bang" id="left">18</span><span id="leftLbl">turns left</span></div>
-    <div class="rgt"><span class="pill">v8</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
+    <div class="rgt"><span class="pill">v9</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
   </div>
   <div class="houses"><div class="hs me" id="myHouse"></div><div class="hs them" id="oppHouse"></div></div>
   <div class="week" id="week" aria-label="This week"></div>
@@ -468,12 +478,43 @@ function changes(before){ // what actually changed
 }
 function cardRow(c,n,p,o,opt={}){ // opt.fresh: dealt this turn -> small gold NEW tag
   const ok=playable(c,p);
-  const chips=(n>1?`<span class="chip">You have ${n}</span>`:'')+(c.repair?'<span class="chip rb">REPAIR BILL</span>':'')+(c.react?'<span class="chip">Save it for when you get hit</span>':(!ok?'<span class="chip">House full</span>':''));
+  const chips=(!c.react&&!ok)?'<span class="chip">House full</span>':'';
   // the NEW tag sits next to the button (not inside it) so a grayed-out card keeps a gold tag
   return (opt.fresh?'<div class="newrow">':'')+`<button class="crd ${c.kind} ${ok?'':'no'} ${opt.pulse?'pulse':''}" data-i="${opt.i}" aria-label="${esc(c.title)}">
       ${thumb(c)}${n>1?`<span class="dup">&times;${n}</span>`:''}
-      <span class="tx">${kindTag(c,p,o)}<span class="t">${esc(c.title)}</span><span class="e">${esc(doLine(c,p,o))}</span>${chips}</span>
+      <span class="tx">${c.rare?'<span class="rt2">RARE</span>':''}<span class="t">${esc(c.title)}</span>${fxHTML(c,p,o)}${chips}</span>
       <span class="chev">&rsaquo;</span></button>`+(opt.fresh?'<span class="newt">NEW</span></div>':'');
+}
+// At-a-glance effect tokens on each hand row (the full wording is one tap away)
+function fxHTML(c,p,o){
+  const them=esc(o.name).toUpperCase(), ME='YOU';
+  const T=(cls,lab,inner)=>`<span class="fx ${cls}"><i>${lab}</i><b>${inner}</b></span>`;
+  const $n=v=>(v<0?'&minus;':'+')+'$'+Math.abs(v);
+  const W=s=>`<small>${s}</small>`, A='<span class="fxa">&rarr;</span>', OR='<span class="fxo">or</span>';
+  const bed=v=>(v<0?'&minus;':'+')+Math.abs(v)+BED;
+  let h='';
+  if(c.react==='block') h=T('k','WHEN HIT',W('BLOCK<br>IT'));
+  else if(c.react==='bounce') h=T('k','WHEN HIT',W('SEND IT<br>BACK'));
+  else if(c.react==='repair') h=T('k','REPAIR BILL',W('FIX IT<br>FREE'));
+  else if(c.self==='cash') h=T('g',ME,$n(c.cash));
+  else if(c.self==='dblrent') h=T('g',ME,W('2&times; RENT<br>FRIDAY'));
+  else if(c.self==='double') h=T('y',ME,W('PLAY 2<br>MORE'));
+  else if(c.hit==='raid') h=T('r',them,$n(-100))+A+T('g',ME,$n(100));
+  else if(c.hit==='swap') h=T('y','BOTH HOUSES',W('SWAP ALL<br>THE MONEY'));
+  else if(c.hit==='norent') h=T('r',them,W('$0 RENT<br>FRIDAY'));
+  else if(c.hit==='skip') h=T('r',them,W('LOSES<br>A TURN'));
+  else if(c.kind==='green'){
+    if(c.fill) h=T('g',ME,W('FILL<br>ALL')+BED);
+    if(c.beds) h+=T('g',ME,bed(c.beds));
+    if(c.cash) h+=T('g',c.beds?'&nbsp;':ME,$n(c.cash));
+  } else { // red / pink: lands on the other house
+    const lab=them+(c.repair?' &middot; REPAIR':'');
+    if(c.payorskip) h=T('r',them,$n(-c.payorskip))+OR+T('r',them,W('LOSES<br>A TURN'));
+    else if(c.skip) h=T('r',them,W('LOSES<br>A TURN'));
+    else if(c.beds) h=T('r',them,bed(c.beds));
+    else if(c.cash) h=T('r',lab,$n(c.cash))+(c.gain?A+T('g',ME,$n(c.gain)):'');
+  }
+  return `<span class="fxs">${h}</span>`;
 }
 // The tag on each hand row: what the card does for the player holding it
 function tagWord(c,p,o){
