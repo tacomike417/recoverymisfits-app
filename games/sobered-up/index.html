@@ -119,7 +119,10 @@ input.eyecolor::-moz-range-track{background:linear-gradient(90deg,#3b2314,#6b4a2
 input.haircolor::-webkit-slider-runnable-track{background:linear-gradient(90deg,#15120f,#2e2019,#4a2f1c,#7a4b26,#a8452a,#c97a3a,#d8b25c,#e8d8a8,#a3a3a3,#efefef)}
 input.haircolor::-moz-range-track{background:linear-gradient(90deg,#15120f,#2e2019,#4a2f1c,#7a4b26,#a8452a,#c97a3a,#d8b25c,#e8d8a8,#a3a3a3,#efefef)}
 .shopdoll{display:flex;gap:12px;align-items:stretch;margin-top:4px}
-.shopdoll svg{height:150px;width:auto;flex:none;border:3px solid;background:#d5c5a7}
+.shopdoll .mirror{flex:none;border:3px solid;background:#d5c5a7;padding:0;display:flex;flex-direction:column;align-items:center;box-shadow:3px 3px 0 var(--ink)}
+.shopdoll .mirror svg{height:130px;width:auto;display:block}
+.shopdoll .mirror span{font-size:10px;font-weight:800;letter-spacing:1px;line-height:1.3;padding:4px 8px;background:var(--ink);color:var(--paper);width:100%;text-align:center}
+.shopdoll .mirror small{font-weight:600;letter-spacing:0;font-size:9px;opacity:.8}
 .item.owned{opacity:.55}
 .item .slot{font-size:9px;font-weight:800;letter-spacing:1px;background:#29272018;padding:2px 6px;margin-left:6px;vertical-align:middle}
 .item .why{color:var(--red);font-weight:700}
@@ -159,7 +162,7 @@ input.haircolor::-moz-range-track{background:linear-gradient(90deg,#15120f,#2e20
 <main id="app"></main>
 <nav id="nav"></nav>
 <div id="modal"></div>
-<script src="engine.js?v=0.15"></script><script src="doll.js?v=0.15"></script><!-- bump ?v= with every VERSION change: GitHub Pages caches .js for 10 min and phones hold it longer -->
+<script src="engine.js?v=0.16"></script><script src="doll.js?v=0.16"></script><!-- bump ?v= with every VERSION change: GitHub Pages caches .js for 10 min and phones hold it longer -->
 <script>
 let s; let page = 'life'; let storageOK = true;
 try { s = migrate(JSON.parse(localStorage.getItem(SAVE_KEY))) || fresh(); } catch { s = fresh(); }
@@ -169,7 +172,7 @@ function save(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } catc
 function pct(x){ return Math.round(x * 100); }
 
 function scene(){
-  return `<div class="scene"><svg viewBox="0 0 440 220" role="img" aria-label="Your room and your character, with what you own showing"><defs><pattern id="dots" width="6" height="6" patternUnits="userSpaceOnUse"><circle r="1" fill="#292720" opacity=".13"/></pattern></defs>${roomSVG(s)}<path d="M0 0h440v220H0z" fill="url(#dots)"/></svg><span class="scene-label">${esc(s.housing)}</span></div>`;
+  return `<div class="scene"><svg viewBox="0 0 440 220" role="img" aria-label="Your room and your character, with what you own showing">${roomSVG(s)}</svg><span class="scene-label">${esc(s.housing)}</span></div>`;
 }
 
 function heatUI(){
@@ -277,7 +280,7 @@ function storeUI(){
     }).join('');
     return `<div class="section"><h2>${title}</h2><span class="tag">${esc(blurb)}</span></div>${rows}`;
   }).join('');
-  return `<div class="shopdoll"><svg viewBox="40 0 120 300">${dollSVG(s)}</svg><div><div class="section" style="margin:0 0 6px"><h2>THE SHOP.</h2></div><p class="note">$${s.cash} in your pocket · ${s.actions} move${s.actions === 1 ? '' : 's'} left<br>Each buy uses one move. Gear changes your options and your look, never your recovery.</p></div></div>${groups}`;
+  return `<div class="shopdoll"><button class="mirror" onclick="s.look.done=false;page='life';render();window.scrollTo(0,0)" aria-label="Change my look"><svg viewBox="30 -20 140 320">${dollSVG(s)}</svg><span>MIRROR<br><small>tap to change your look</small></span></button><div><div class="section" style="margin:0 0 6px"><h2>THE SHOP.</h2></div><p class="note">$${s.cash} in your pocket · ${s.actions} move${s.actions === 1 ? '' : 's'} left<br>Each buy uses one move. Gear changes your options and your look, never your recovery.</p></div></div>${groups}`;
 }
 function progress(){
   return `<div class="section"><h2>LITTLE BIG WINS</h2></div>${s.milestones.length ? s.milestones.map(x=>'<div class="badge">★ '+esc(x)+'</div>').join('') : '<p class="note">The first milestone is waiting. Keeping a bed counts.</p>'}<div class="section"><h2>YOUR STORY</h2></div>${s.log.map(x=>'<div class="log">'+esc(x)+'</div>').join('')}`;

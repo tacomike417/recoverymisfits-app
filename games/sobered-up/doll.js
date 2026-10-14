@@ -235,30 +235,53 @@ function dollSVG(s, opts = {}) {
   return `<g ${opts.transform ? 'transform="' + opts.transform + '"' : ''}><g transform="${scale}">${g.join('')}</g></g>`;
 }
 
-// The room. 440×220. The doll stands in the middle; bought room items show up around them.
+// The room. 440×220, same vinyl look as the doll: no outlines, soft shade, one highlight.
+// The doll stands in the middle; bought room items show up around them.
 function roomSVG(s) {
   const own = id => s.items.includes(id);
-  const INK = '#292720';
+  const uid = 'r' + Math.floor(Math.random() * 1e6);
   const p = [];
-  p.push(`<path d="M0 0h440v220H0z" fill="#d8c39f"/><path d="M0 162h440v58H0z" fill="#bd8b5d" stroke="${INK}" stroke-width="3"/>`);
-  p.push(`<path d="M22 16h88v110H22z" fill="#cfe3ea" stroke="${INK}" stroke-width="4"/>`);
-  if (own('car2')) p.push(`<path d="M30 92 l10 -14 h40 l10 14 h8 v18 h-76 z" fill="#aa4635" stroke="${INK}" stroke-width="3"/><circle cx="44" cy="110" r="6" fill="${INK}"/><circle cx="84" cy="110" r="6" fill="${INK}"/>`);
-  else if (own('car')) p.push(`<path d="M30 94 l8 -12 h38 l8 12 h6 v16 h-68 z" fill="#8b8f7a" stroke="${INK}" stroke-width="3"/><circle cx="42" cy="110" r="5" fill="${INK}"/><circle cx="78" cy="110" r="5" fill="${INK}"/><path d="M52 86 l10 6" stroke="${INK}" stroke-width="2"/>`);
-  else p.push(`<path d="M24 68l20-19 21 8 23-29 20 42" fill="#799081"/>`);
-  p.push(`<path d="M66 17v107M24 66h85" stroke="${INK}" stroke-width="3"/>`);
-  p.push(`<path d="M268 145h146v34H268z" fill="#a94736" stroke="${INK}" stroke-width="4"/><path d="M270 135h45v18h-45z" fill="#f5ead2" stroke="${INK}" stroke-width="3"/><path d="M277 179v21m130-21v21" stroke="${INK}" stroke-width="6"/>`);
+  p.push(`<defs>
+    <linearGradient id="${uid}wall" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e3cfae"/><stop offset="1" stop-color="#d2bb95"/></linearGradient>
+    <linearGradient id="${uid}floor" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#a9784e"/><stop offset="1" stop-color="#8e6239"/></linearGradient>
+    <linearGradient id="${uid}sky" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#9fd0e8"/><stop offset="1" stop-color="#d9eef7"/></linearGradient>
+    <linearGradient id="${uid}sh" x1="0" x2="1"><stop offset=".5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".16"/></linearGradient>
+    <linearGradient id="${uid}dn" x1="0" x2="0" y1="0" y2="1"><stop offset=".4" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></linearGradient>
+  </defs>`);
+  const sh = `url(#${uid}sh)`, dn = `url(#${uid}dn)`;
+  // wall + baseboard + floor planks
+  p.push(`<rect width="440" height="220" fill="url(#${uid}wall)"/>`);
+  p.push(`<rect y="158" width="440" height="6" fill="#c9b48f"/><rect y="164" width="440" height="56" fill="url(#${uid}floor)"/>`);
+  for (let x = -20; x < 460; x += 44) p.push(`<path d="M${x} 164 l-14 56" stroke="#7d5531" stroke-width="1.5" opacity=".5"/>`);
+  // rug
+  p.push(`<ellipse cx="220" cy="206" rx="86" ry="11" fill="#9a4a3a" opacity=".55"/><ellipse cx="220" cy="206" rx="70" ry="8" fill="#b35a46" opacity=".5"/>`);
+  // window: frame, sky, what's outside
+  p.push(`<rect x="18" y="14" width="98" height="112" rx="4" fill="#f0e2c4"/><rect x="24" y="20" width="86" height="100" rx="2" fill="url(#${uid}sky)"/>`);
+  if (own('car2')) p.push(`<path d="M30 96 l10 -14 h42 l10 14 h6 v18 h-74 z" fill="#c43e2e"/><path d="M42 84 h36 l6 12 h-48 z" fill="#8fc3dd"/><circle cx="44" cy="114" r="6" fill="#2a241f"/><circle cx="84" cy="114" r="6" fill="#2a241f"/><circle cx="44" cy="114" r="2.5" fill="#9a9a9a"/><circle cx="84" cy="114" r="2.5" fill="#9a9a9a"/>`);
+  else if (own('car')) p.push(`<path d="M32 98 l8 -12 h40 l8 12 h6 v16 h-70 z" fill="#8b8f7a"/><path d="M44 88 h32 l5 10 h-42 z" fill="#b9c9cf"/><circle cx="44" cy="114" r="5" fill="#2a241f"/><circle cx="80" cy="114" r="5" fill="#2a241f"/><path d="M52 90 l10 6" stroke="#5f6354" stroke-width="2"/><rect x="60" y="100" width="10" height="4" fill="#6b6f60"/>`);
+  else p.push(`<path d="M24 90 q14 -22 28 -8 q10 -24 24 -6 q12 -20 34 2 v42 h-86 z" fill="#7f9a86"/><circle cx="92" cy="40" r="9" fill="#fff4c2"/>`);
+  p.push(`<rect x="66" y="20" width="4" height="100" fill="#f0e2c4"/><rect x="24" y="68" width="86" height="4" fill="#f0e2c4"/><rect x="18" y="124" width="98" height="6" rx="2" fill="#e2cf9f"/>`);
+  // bed (vinyl: no outline, blanket fold, pillow, soft shade)
+  p.push(`<rect x="266" y="150" width="152" height="12" rx="3" fill="#6b4a2b"/><rect x="266" y="150" width="152" height="12" rx="3" fill="${sh}"/>`);
+  p.push(`<rect x="262" y="128" width="160" height="32" rx="8" fill="#b14b3a"/><rect x="262" y="128" width="160" height="32" rx="8" fill="${dn}"/><path d="M262 140 h160" stroke="#8f3a2c" stroke-width="3"/>`);
+  p.push(`<rect x="268" y="118" width="46" height="18" rx="7" fill="#f5ead2"/><rect x="268" y="118" width="46" height="18" rx="7" fill="${sh}"/>`);
+  p.push(`<rect x="270" y="162" width="8" height="22" rx="3" fill="#4e3620"/><rect x="408" y="162" width="8" height="22" rx="3" fill="#4e3620"/>`);
+  // dresser or garbage bag
   if (own('dresser')) {
-    p.push(`<path d="M20 118h72v73H20z" fill="#b78845" stroke="${INK}" stroke-width="4"/><path d="M21 141h70m-70 24h70" stroke="${INK}" stroke-width="3"/><circle cx="56" cy="130" r="3"/><circle cx="56" cy="154" r="3"/><circle cx="56" cy="178" r="3"/>`);
-    if (own('tv')) p.push(`<rect x="28" y="92" width="56" height="30" rx="2" fill="#1c1c1c" stroke="${INK}" stroke-width="3"/><rect x="32" y="96" width="48" height="22" fill="#3a6fb0"/>`);
+    p.push(`<rect x="18" y="116" width="76" height="70" rx="4" fill="#b78845"/><rect x="18" y="116" width="76" height="70" rx="4" fill="${sh}"/>`);
+    for (const y of [124, 146, 168]) p.push(`<rect x="24" y="${y}" width="64" height="16" rx="3" fill="#a3773a"/><circle cx="56" cy="${y + 8}" r="2.5" fill="#f5ead2"/>`);
+    if (own('tv')) p.push(`<rect x="26" y="88" width="60" height="30" rx="3" fill="#1c1c1c"/><rect x="30" y="92" width="52" height="22" rx="1" fill="#3a6fb0"/><rect x="30" y="92" width="52" height="22" rx="1" fill="${dn}"/><path d="M38 98 q10 -4 20 2 q8 6 18 0" fill="none" stroke="#9fd0e8" stroke-width="2" opacity=".6"/>`);
   } else {
-    p.push(`<path d="M31 195q-25-15-7-44l13-15 25 4q35 45 12 58z" fill="#49453b" stroke="${INK}" stroke-width="4"/><path d="M36 141l18-8" stroke="${INK}" stroke-width="5"/>`);
-    if (own('tv')) p.push(`<rect x="118" y="150" width="50" height="28" rx="2" fill="#1c1c1c" stroke="${INK}" stroke-width="3"/><rect x="122" y="154" width="42" height="20" fill="#3a6fb0"/><path d="M130 178 v8 h26 v-8" fill="none" stroke="${INK}" stroke-width="3"/>`);
+    p.push(`<path d="M36 192 q-26 -12 -10 -40 q6 -16 22 -14 q10 2 18 16 q22 30 4 40 z" fill="#4a463c"/><path d="M36 192 q-26 -12 -10 -40 q6 -16 22 -14 q10 2 18 16 q22 30 4 40 z" fill="${sh}"/><path d="M40 140 l16 -10" stroke="#f5ead2" stroke-width="4" stroke-linecap="round"/><ellipse cx="38" cy="156" rx="6" ry="3" fill="#fff" opacity=".18" transform="rotate(-20 38 156)"/>`);
+    if (own('tv')) p.push(`<rect x="112" y="146" width="54" height="32" rx="3" fill="#1c1c1c"/><rect x="116" y="150" width="46" height="24" rx="1" fill="#3a6fb0"/><rect x="116" y="150" width="46" height="24" rx="1" fill="${dn}"/><rect x="128" y="178" width="22" height="6" rx="2" fill="#2a241f"/>`);
   }
-  if (own('couch')) p.push(`<path d="M300 190v-22q0-15 17-15h93q17 0 17 15v22z" fill="#e6b94d" stroke="${INK}" stroke-width="4"/>`);
-  if (own('bike')) p.push(`<g transform="translate(98 152)"><circle cx="0" cy="26" r="14" fill="none" stroke="${INK}" stroke-width="3"/><circle cx="44" cy="26" r="14" fill="none" stroke="${INK}" stroke-width="3"/><path d="M0 26 l14 -22 h22 l8 22 M14 4 l8 22 l-22 0 M22 4 h-8" fill="none" stroke="#aa4635" stroke-width="3"/></g>`);
-  p.push(`<ellipse cx="220" cy="206" rx="46" ry="6" fill="#29272030"/>`);
+  if (own('couch')) p.push(`<rect x="300" y="166" width="124" height="26" rx="8" fill="#d9a23a"/><rect x="300" y="166" width="124" height="26" rx="8" fill="${dn}"/><rect x="306" y="156" width="112" height="18" rx="8" fill="#e6b94d"/><rect x="296" y="160" width="14" height="30" rx="6" fill="#c8902c"/><rect x="414" y="160" width="14" height="30" rx="6" fill="#c8902c"/>`);
+  if (own('bike')) p.push(`<g transform="translate(102 150)"><circle cx="0" cy="26" r="14" fill="none" stroke="#2a241f" stroke-width="3.5"/><circle cx="44" cy="26" r="14" fill="none" stroke="#2a241f" stroke-width="3.5"/><circle cx="0" cy="26" r="4" fill="#2a241f"/><circle cx="44" cy="26" r="4" fill="#2a241f"/><path d="M0 26 l14 -22 h22 l8 22 M14 4 l8 22 l-22 0 M22 4 h-8" fill="none" stroke="#c43e2e" stroke-width="3.5" stroke-linecap="round"/><path d="M10 2 h8" stroke="#2a241f" stroke-width="3"/></g>`);
+  // shadow + the doll
+  p.push(`<ellipse cx="222" cy="206" rx="40" ry="6" fill="#000" opacity=".16"/>`);
   p.push(dollSVG(s, { transform: 'translate(160 58) scale(0.56)' }));
-  if (own('dog')) p.push(`<g transform="translate(246 168)"><ellipse cx="18" cy="18" rx="18" ry="11" fill="#b07248" stroke="${INK}" stroke-width="3"/><circle cx="36" cy="10" r="9" fill="#b07248" stroke="${INK}" stroke-width="3"/><path d="M30 2 l-2 -8 l6 4 M40 2 l2 -8 l-6 4" fill="#b07248" stroke="${INK}" stroke-width="2"/><circle cx="40" cy="9" r="1.8" fill="${INK}"/><path d="M0 14 q-10 -8 -4 -16" fill="none" stroke="${INK}" stroke-width="3"/><path d="M8 28 v6 M26 28 v6" stroke="${INK}" stroke-width="3"/></g>`);
+  // the dog (vinyl)
+  if (own('dog')) p.push(`<g transform="translate(248 170)"><ellipse cx="18" cy="18" rx="19" ry="11" fill="#b07248"/><ellipse cx="18" cy="18" rx="19" ry="11" fill="${sh}"/><circle cx="37" cy="9" r="9" fill="#b07248"/><path d="M31 2 q-2 -9 5 -6 z M43 2 q2 -9 -5 -6 z" fill="#8a5636"/><circle cx="41" cy="8" r="1.8" fill="#2a241f"/><circle cx="45" cy="11" r="2" fill="#2a241f"/><path d="M0 14 q-10 -8 -4 -16" fill="none" stroke="#b07248" stroke-width="4" stroke-linecap="round"/><rect x="6" y="26" width="5" height="8" rx="2" fill="#8a5636"/><rect x="24" y="26" width="5" height="8" rx="2" fill="#8a5636"/><ellipse cx="18" cy="34" rx="18" ry="3" fill="#000" opacity=".12"/></g>`);
   return p.join('');
 }
 
