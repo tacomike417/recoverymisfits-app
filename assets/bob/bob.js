@@ -1,9 +1,8 @@
 /* HIGH FIVE BOB, approved art (v238, 14 Oct 2026). The ChatGPT handoff component (bob.js), changed
    only where Mike decided on 14 Oct:
    - asset paths point at /assets/bob/
-   - the count box shows a short line ("You + 23 / Misfits today"); the full sentence
-     "You and 23 other Misfits high-fived Bob today." is the screen-reader text. NO ZEROS: the
-     number only shows at 2 or more, under that it's "You high-fived / Bob today".
+   - v241 (Mike): the gold box just says "You high-fived Bob today." The count sentence lives
+     under Bob on the Porch; screen readers hear it here too. NO ZEROS: number only at 2 or more.
    - after your high five, tapping the gold panel plays the slap again (still counts once a day)
    - somebody whose high five can't count (not a confirmed member) gets the slap, then Bob goes
      back to waiting; the Porch shows them a note.
@@ -22,8 +21,8 @@ window.HighFiveBob={mount:async function(root,api){
     btn.setAttribute('aria-label',done?'High five Bob again':'High five Bob');
     count.hidden=!done;btm.hidden=!done;
     if(done){const n=Math.max(0,Number(s.others)||0),nn=n.toLocaleString('en-US');
-      if(n>=2){count.innerHTML='<b>You + '+nn+'</b><span>Misfits today</span>';count.setAttribute('aria-label','You and '+nn+' other Misfits high-fived Bob today.')}
-      else{count.innerHTML='<span>You high-fived</span><span>Bob today</span>';count.setAttribute('aria-label','You high-fived Bob today.')}}};
+      count.innerHTML='<span>You high-fived</span><span>Bob today</span>';
+      count.setAttribute('aria-label',n>=2?'You and '+nn+' other Misfits high-fived Bob today.':'You high-fived Bob today.')}};
   const slap=(ms)=>new Promise(r=>{img.src=A+'bob-slap.webp';count.hidden=true;btm.hidden=true;setTimeout(r,ms)});
   let last={highFived:false,others:0};
   const paint=(s)=>{if(s)last=s;set(last)};
