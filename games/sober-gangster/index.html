@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <title>Sober Gangster · Recovery Misfits</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#14110f;--cream:#f3e6c4;--gold:#e8b23a;--gold2:#f7cf5c;--red:#a8141a;--red2:#d0262b;--A:'assets/ui/'}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
@@ -17,7 +17,8 @@ body{color:var(--ink);font-family:'Barlow',system-ui,sans-serif;font-size:15px;l
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 button:disabled{opacity:.45;cursor:not-allowed}
 button:focus-visible{outline:3px solid var(--gold2);outline-offset:2px}
-.mk{font-family:'Permanent Marker',cursive;font-weight:400;letter-spacing:.5px;line-height:1.05}
+.mk{font-family:'Caveat Brush',cursive;font-weight:400;letter-spacing:.3px;line-height:1;-webkit-text-stroke:.7px currentColor;paint-order:stroke fill}
+.lb{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.2px;line-height:1.05}
 .cn{font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:.5px}
 #app{max-width:430px;margin:auto;min-height:100vh;padding:0 12px calc(86px + env(safe-area-inset-bottom));position:relative}
 #app.nonav{padding-bottom:24px}
@@ -25,54 +26,59 @@ button:focus-visible{outline:3px solid var(--gold2);outline-offset:2px}
 /* top bar */
 .top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 2px 8px;margin:0 -12px 8px;padding-left:12px;padding-right:12px;
   background:linear-gradient(#0d0b0aee,#0d0b0acc 75%,#0d0b0a00)}
-.xbtn{width:40px;height:40px;flex:none;display:grid;place-items:center;background:url(assets/ui/tex-cream.webp) center/cover;border:3px solid var(--ink);border-radius:6px;box-shadow:0 0 0 2px var(--gold);font-size:22px;font-weight:800}
-.top .ttl{flex:1;color:#fff;font-size:28px;text-shadow:2px 2px 0 #000,0 0 10px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xbtn{width:42px;height:42px;flex:none;display:grid;place-items:center;border-style:solid;border-width:8px;border-image:url(assets/ui/card-square.webp) 52 52 70 / 8px 8px 9px stretch;background:#f1e2bd;background-clip:padding-box;font-size:20px;font-weight:900;color:var(--ink)}
+.top .ttl{flex:1;color:#fff6dc;font-size:34px;text-shadow:2px 3px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 14px 6px 10px;margin-right:auto;flex:0 1 auto;background:url(assets/ui/banner-red.webp) center/100% 100% no-repeat}
+.top .grow{flex:1}
 .top .ttl b{color:var(--gold2);font-weight:400}
 .pips{display:flex;gap:4px}.pips i{width:13px;height:13px;border-radius:50%;border:2px solid var(--gold);background:#000}.pips i.on{background:var(--gold2)}
+.snd{width:36px;height:36px;flex:none;display:grid;place-items:center;color:var(--gold2);filter:drop-shadow(1px 2px 0 #000)}
+.snd svg{width:26px;height:26px}
 .vpill{background:#fff;color:#000;border-radius:20px;padding:3px 9px;font:800 12px 'Barlow Condensed';flex:none}
 .cash-pill{background:var(--gold2);color:#000;border:2px solid #000;border-radius:20px;padding:2px 9px;font:800 15px 'Barlow Condensed'}
 
 /* paper panels */
-.paper{background:var(--cream) url(assets/ui/tex-cream.webp) center/260px;border:3px solid var(--ink);border-radius:7px;box-shadow:0 0 0 2px var(--gold),3px 5px 0 2px #000;position:relative}
-.paper.red{background:var(--red) url(assets/ui/tex-red.webp) center/cover;color:#fff}
-.drip::after{content:"";position:absolute;left:12%;right:12%;bottom:-11px;height:12px;pointer-events:none;
+.paper{position:relative;border-style:solid;border-width:13px 13px 16px;border-image:url(assets/ui/card-square.webp) 52 52 70 / 13px 13px 16px / 0 0 6px stretch;background:#f1e2bd url(assets/ui/tex-cream.webp) center/230px;background-clip:padding-box;filter:drop-shadow(2px 4px 0 #000a)}
+.paper.red{border-width:14px 20px 20px;border-image:url(assets/ui/btn-red.webp) 58 90 92 fill / 14px 20px 20px / 0 0 8px stretch;background:none;color:#fff6dc}
+.drip.off::after{content:"";position:absolute;left:12%;right:12%;bottom:-11px;height:12px;pointer-events:none;
   background:radial-gradient(circle at 8% 0,var(--gold) 3px,transparent 4px),radial-gradient(circle at 37% 0,#111 3px,transparent 4px),radial-gradient(circle at 71% 0,var(--gold) 2.5px,transparent 3.5px),radial-gradient(circle at 93% 0,#111 2px,transparent 3px);
   background-size:100% 100%}
 
 /* buttons */
-.big{display:block;width:100%;padding:14px 10px;text-align:center;font-size:30px;color:#fff6dc;text-shadow:2px 2px 0 #000;margin:14px 0 6px}
-.big.cream{color:var(--ink);text-shadow:none;font-size:24px;padding:11px}
+.big{display:block;width:100%;padding:4px 6px;text-align:center;font-size:34px;color:#fff6dc;text-shadow:2px 3px 0 #000;margin:12px 0 6px}
+.big.cream{color:var(--ink);text-shadow:none;font-size:26px;padding:2px}
 .big .crown{width:34px;vertical-align:-4px;margin-left:8px}
 .ghost{display:block;width:100%;text-align:center;color:#f3e6c4;font:700 15px 'Barlow';padding:12px;text-decoration:underline}
 
 /* room */
-.room{position:relative;aspect-ratio:3/2;overflow:hidden;border-radius:5px;background:#000 center/cover}
-.room .fig{position:absolute;left:50%;bottom:3%;height:86%;transform:translateX(-50%);filter:drop-shadow(0 10px 8px #000a)}
+.room{position:relative;aspect-ratio:1.32/1;overflow:hidden;border-radius:3px;background:#000 center/cover;border:2px solid #000}
+.room .fig{position:absolute;left:50%;bottom:2%;height:88%;transform:translateX(-50%);filter:drop-shadow(0 10px 8px #000a)}
 .room .pet{position:absolute;left:66%;bottom:4%;height:34%;filter:drop-shadow(0 6px 5px #000a)}
-.lvltag{position:absolute;left:8px;top:8px;padding:4px 9px;font-size:16px;color:var(--ink);background:url(assets/ui/tex-cream.webp) center/cover;border:2px solid var(--ink);border-radius:4px;box-shadow:0 0 0 2px var(--gold)}
-.lvltag b{font-weight:400;font-size:20px}
+.lvltag{position:absolute;left:6px;top:6px;padding:0 6px;font-size:22px;color:var(--ink);border-style:solid;border-width:8px 10px 10px;border-image:url(assets/ui/panel-wide.webp) 40 60 60 / 8px 10px 10px stretch;background:#f1e2bd url(assets/ui/tex-cream.webp) center/200px;background-clip:padding-box}
+.lvltag b{font-weight:400;font-size:26px}
 .room .where{position:absolute;right:8px;bottom:8px;color:#fff;font:800 13px 'Barlow Condensed';letter-spacing:1px;background:#000b;padding:3px 7px;border-radius:3px}
-.roomwrap{padding:4px}
+.roomwrap{padding:0;border-width:9px 9px 12px}
+.nextline{display:flex;align-items:center;gap:6px;padding:5px 4px 2px;font:700 13px 'Barlow Condensed';color:var(--ink);width:100%;text-align:left}
+.nextline b{font:400 17px 'Caveat Brush';white-space:nowrap}
 .stuff{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 2px;scrollbar-width:none}
 .stuff img{height:42px;flex:none;filter:drop-shadow(0 2px 2px #000)}
 
 /* stats */
-.stats{display:grid;grid-template-columns:.88fr .88fr 1.24fr;gap:8px;margin:14px 0 0}
+.stats{display:grid;grid-template-columns:1fr 1fr 1.12fr;gap:4px;margin:8px 0 0}
 .stat{min-width:0}
-.stat{padding:7px 8px 8px}
-.stat .lab{display:flex;align-items:center;gap:3px;font-size:13px;white-space:nowrap;letter-spacing:0}
-.stat .lab img{width:22px}
-.stat strong{display:block;font-size:30px;line-height:1;margin-top:2px}
+.stat{padding:0 2px 2px}
+.stat .lab{display:flex;align-items:center;gap:3px;font:800 15px 'Barlow Condensed';white-space:nowrap;letter-spacing:.3px}
+.stat .lab img{width:24px}
+.stat strong{display:block;font-size:34px;line-height:.95;margin:1px 0 0 2px}
 .bar{height:10px;border:2px solid var(--ink);background:#fff6dc;border-radius:2px;margin-top:5px;overflow:hidden}
 .bar span{display:block;height:100%;background:var(--red2)}
 .bar.gold span{background:var(--gold)}
-.heat{margin-top:14px;padding:8px 10px 10px}
+.heat{margin-top:6px;padding:0 4px 2px}
 .heat .row{display:flex;align-items:center;gap:6px}
 .heat .row img{width:34px;margin:-6px 0}
-.heat .row .mk{font-size:26px}
-.heat .tag{margin-left:auto;background:#111;color:var(--gold2);padding:3px 9px;font-size:16px;border-radius:3px;transform:rotate(-2deg)}
+.heat .row .mk{font-size:32px}
+.heat .tag{margin-left:auto;background:#111;color:var(--gold2);padding:2px 12px 4px;font-size:22px;border-radius:2px;transform:rotate(-2deg);clip-path:polygon(2% 8%,100% 0,97% 92%,0 100%)}
 .heat .bar{height:16px}
-.heat .odds{font:700 13px 'Barlow';margin-top:5px}
+.heat .odds{display:none}
 .heat.hot .tag{background:var(--red2);color:#fff}
 .heat.burning{animation:burn 1.2s ease-in-out infinite alternate}
 @keyframes burn{to{box-shadow:0 0 0 2px var(--red2),0 0 18px 4px #ff3b1f99}}
@@ -80,18 +86,20 @@ button:focus-visible{outline:3px solid var(--gold2);outline-offset:2px}
 .next .mk{font-size:17px}
 
 /* section banner */
-.banner{display:flex;align-items:center;justify-content:space-between;margin:20px 0 8px}
-.banner .mk{color:#fff;font-size:28px;padding:4px 18px 6px 12px;background:url(assets/ui/banner-red.webp) center/100% 100%;text-shadow:2px 2px 0 #000;transform:rotate(-2deg)}
+.banner{display:flex;align-items:center;justify-content:space-between;margin:10px 0 4px}
+.banner .mk{color:#fff6dc;font-size:34px;padding:2px 22px 6px 14px;background:url(assets/ui/banner-red.webp) center/100% 100%;text-shadow:2px 2px 0 #000;transform:rotate(-2deg)}
 .banner .left{background:var(--red);color:#fff;font-size:18px;padding:3px 12px;border-radius:14px;border:2px solid #000}
 
 /* moves */
-.moves{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.mv{display:flex;align-items:center;gap:8px;padding:8px 7px;text-align:left;min-height:66px}
-.mv img{width:42px;flex:none}
-.mv .mk{font-size:16px;display:block}
-.mv small{display:block;font:600 13px 'Barlow';color:#3a2e22}
-.call{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;margin-top:12px;text-align:left}
-.call .mk{font-size:18px}.call small{display:block;font:600 13px 'Barlow'}
+.moves{display:grid;grid-template-columns:1fr 1fr;gap:2px 4px}
+.mv{min-width:0;overflow:hidden;display:flex;align-items:center;gap:5px;padding:0 1px;text-align:left;min-height:56px}
+.mv img{width:34px;flex:none}
+.mv .lb{font-size:16.5px;display:block;color:var(--ink);line-height:1}
+.mv small{display:block;font:600 14px 'Barlow Condensed';color:#3a2e22}
+.mv .box{width:21px;height:21px;flex:none;border:3px solid var(--ink);border-radius:2px;background:#fff8e6;position:relative}
+.mv .box.on::after{content:'✓';position:absolute;left:1px;top:-9px;font:400 30px 'Caveat Brush';color:var(--red2)}
+.call{display:flex;align-items:center;gap:10px;width:100%;padding:0 6px;margin-top:4px;text-align:left}
+.call .lb{font-size:19px}.call small{display:block;font:600 14px 'Barlow Condensed'}
 .call .free{margin-left:auto;background:#111;color:var(--gold2);padding:4px 9px;border-radius:3px;font-size:15px}
 
 /* life card */
@@ -106,9 +114,9 @@ button:focus-visible{outline:3px solid var(--gold2);outline-offset:2px}
 .onwall{color:#e9dcc0;text-shadow:1px 1px 0 #000}
 
 /* nav */
-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;background:#0b0908f2;border-top:3px solid var(--gold);padding-bottom:env(safe-area-inset-bottom)}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;background:#0b0908 url(assets/ui/wall.webp) center 85%/cover;box-shadow:inset 0 0 0 999px #000a;border-top:3px solid var(--gold);padding-bottom:env(safe-area-inset-bottom)}
 nav .in{display:grid;grid-template-columns:repeat(4,1fr);width:100%;max-width:430px}
-nav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 0 6px;color:#e9dcc0;font-family:'Permanent Marker';font-size:14px}
+nav button{display:flex;flex-direction:column;align-items:center;gap:0;padding:6px 0 5px;color:#e9dcc0;font-family:'Caveat Brush';font-size:19px;-webkit-text-stroke:.5px currentColor;border-right:2px solid #0008}
 nav img{width:36px;height:36px;object-fit:contain;opacity:.75}
 nav .on{color:var(--gold2);background:radial-gradient(ellipse at 50% 60%,#e8b23a33,transparent 70%)}
 nav .on img{opacity:1}
@@ -136,16 +144,16 @@ nav .on img{opacity:1}
 
 /* shop */
 .tabs{display:flex;gap:8px;margin-bottom:12px}
-.tabs button{flex:1;padding:8px 2px;font-family:'Permanent Marker';font-size:16px}
-.tabs .on{background:var(--red) url(assets/ui/tex-red.webp) center/cover;color:#fff;text-shadow:1px 1px 0 #000}
+.tabs button{flex:1;padding:0 2px;font-family:'Barlow Condensed';font-weight:800;font-size:18px;letter-spacing:.5px}
+.tabs .on{border-image:url(assets/ui/btn-red.webp) 58 90 92 fill / 14px 20px 20px stretch;background:none;color:#fff6dc;text-shadow:1px 1px 0 #000}
 .sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
-.it{padding:6px 5px 7px;text-align:center}
-.it .ph{height:78px;display:flex;align-items:center;justify-content:center}
-.it .ph img{max-height:74px;max-width:92%;filter:drop-shadow(0 3px 2px #0006)}
-.it .mk{display:block;font-size:14px;margin-top:3px;min-height:30px;display:flex;align-items:center;justify-content:center}
-.it .pr{font:800 17px 'Barlow Condensed'}
+.it{padding:0;text-align:center;border-width:9px 9px 13px;border-image:url(assets/ui/card-square.webp) 52 52 70 / 9px 9px 13px stretch}
+.it .ph{height:104px;display:flex;align-items:center;justify-content:center;background:#140f0d url(assets/ui/wall.webp) center 40%/240px;margin:-2px -2px 0;border-radius:2px}
+.it .ph img{max-height:88px;max-width:88%;filter:drop-shadow(0 4px 3px #000c)}
+.it .lb{display:flex;align-items:center;justify-content:center;font-size:16px;margin-top:3px;min-height:20px}
+.it .pr{font:800 19px 'Barlow Condensed';display:block;line-height:1.1}
 .it.own .ph img,.it.lock .ph img{opacity:.35}
-.stamp{position:absolute;top:30px;left:50%;transform:translateX(-50%) rotate(-12deg);border:3px solid var(--red2);color:var(--red2);font:400 15px 'Permanent Marker';padding:0 6px;background:#fff8;border-radius:3px}
+.stamp{position:absolute;top:30px;left:50%;transform:translateX(-50%) rotate(-12deg);border:3px solid var(--red2);color:var(--red2);font:400 19px 'Caveat Brush';padding:0 6px;background:#fff8;border-radius:3px}
 .it.lock .stamp{color:#111;border-color:#111;display:flex;align-items:center;gap:3px}
 .it.lock .stamp img{width:18px}
 .shopnote{margin-top:14px;text-align:center}
@@ -204,7 +212,7 @@ footer{color:#b9ab90;font-size:12px;margin-top:18px;text-align:center}
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="engine.js?v=1.0"></script><!-- bump ?v= with every VERSION change -->
+<script src="engine.js?v=1.1"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -241,7 +249,7 @@ addEventListener('popstate', e => {
 
 function topbar(title){
   const pill = `<span class="vpill">${VERSION}</span>`;
-  return `<header class="top"><button class="xbtn" onclick="topX()" aria-label="${page === 'title' ? 'Leave the game' : 'Back to the start screen'}">✕</button><span class="ttl mk">${title}</span>${page === 'shop' ? `<span class="cash-pill">$${s.cash}</span>` : ''}${page === 'life' && !s.result ? `<span class="pips">${[0,1,2].map(i => `<i class="${i < s.actions ? 'on' : ''}"></i>`).join('')}</span>` : ''}${pill}</header>`;
+  return `<header class="top"><button class="xbtn" onclick="topX()" aria-label="${page === 'title' ? 'Leave the game' : 'Back to the start screen'}">✕</button>${title ? `<span class="ttl mk">${title}</span>` : ''}<span class="grow"></span><button class="snd" onclick="toggleSound()" aria-label="${s.settings.mute ? 'Turn sound on' : 'Turn sound off'}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 4V5L7 9H3z"/>${s.settings.mute ? '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/>' : '<path d="M15.5 8.5a5 5 0 010 7M18 6a8.5 8.5 0 010 12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/>'}</svg></button>${page === 'shop' ? `<span class="cash-pill">$${s.cash}</span>` : ''}${page === 'life' && !s.result ? `<span class="pips">${[0,1,2].map(i => `<i class="${i < s.actions ? 'on' : ''}"></i>`).join('')}</span>` : ''}${pill}</header>`;
 }
 
 /* ---------- title ---------- */
@@ -270,6 +278,22 @@ function choose_fig(){
   go('life'); if (!changing && !s.settings.introSeen) intro();
 }
 
+/* ---------- moves done today (just for the check boxes) ---------- */
+function doneToday(id){ return s.ui && s.ui.day === s.day && s.ui.done.includes(id); }
+function markDone(id){ if (!s.ui || s.ui.day !== s.day) s.ui = { day: s.day, done: [] }; if (!s.ui.done.includes(id)) s.ui.done.push(id); }
+
+/* ---------- sound: music + 5 effects. Phones only allow sound after the first tap. ---------- */
+const SFX = {}; let music = null, soundReady = false;
+function sfx(n){ if (s.settings.mute) return; try { const a = (SFX[n] ||= new Audio(A + 'sfx/' + n + '.mp3')); a.currentTime = 0; a.volume = n === 'locked' ? .6 : .8; a.play().catch(() => {}); } catch {} }
+function startMusic(){
+  if (s.settings.mute) return;
+  if (!music) { music = new Audio(A + 'sfx/music.mp3'); music.loop = true; music.volume = .32; }
+  music.play().catch(() => {});
+}
+function toggleSound(){ s.settings.mute = !s.settings.mute; save(); if (s.settings.mute) { if (music) music.pause(); } else startMusic(); render(); }
+addEventListener('pointerdown', () => { if (!soundReady) { soundReady = true; startMusic(); } }, { capture: true });
+document.addEventListener('visibilitychange', () => { if (!music) return; if (document.hidden) music.pause(); else if (!s.settings.mute && soundReady) music.play().catch(() => {}); });
+
 /* ---------- today ---------- */
 const ACTIONS = () => {
   const j = jobs[Math.max(0, s.job)], H = CFG.heat, t = jobHuntTarget(s);
@@ -286,7 +310,7 @@ function room(){
   const lv = s.housing === 'Temporary shelter' ? 1 : s.level;
   const pet = s.items.includes('dog') ? `<img class="pet" src="${A}item/dog.webp" alt="your dog">` : '';
   const stuff = s.items.filter(i => i !== 'dog' && !(item(i).upgrades === undefined && s.items.some(j => item(j).upgrades === i)));
-  return `<div class="paper roomwrap"><div class="room" style="background-image:url(${A}room/${lv}.webp)"><img class="fig" src="${myFig()}" alt="${esc(fig().name)}, level ${s.level}">${pet}<button class="lvltag mk" onclick="go('progress')">LVL <b>${s.level}</b> · ${esc(levelInfo(s.level).name.toUpperCase())}</button><span class="where">${esc(s.housing.toUpperCase())}</span></div>${stuff.length ? `<div class="stuff" aria-label="Your stuff">${stuff.map(i => `<img src="${A}item/${i}.webp" alt="${esc(item(i).name)}" title="${esc(item(i).name)}">`).join('')}</div>` : ''}</div>`;
+  return `<div class="paper roomwrap"><div class="room" style="background-image:url(${A}room/${lv}.webp)"><img class="fig" src="${myFig()}" alt="${esc(fig().name)}, level ${s.level}">${pet}<button class="lvltag mk" onclick="go('progress')">LVL <b>${s.level}</b> · ${esc(levelInfo(s.level).name.toUpperCase())}</button><span class="where">${esc(s.housing.toUpperCase())}</span></div>${s.level < 4 ? `<button class="nextline" onclick="go('progress')"><b>NEXT: LVL ${s.level + 1}</b><span>${esc(nextNeeds(s).join(' · ') || 'one more good night')}</span></button>` : ''}${stuff.length ? `<div class="stuff" aria-label="Your stuff">${stuff.map(i => `<img src="${A}item/${i}.webp" alt="${esc(item(i).name)}" title="${esc(item(i).name)}">`).join('')}</div>` : ''}</div>`;
 }
 function heatUI(){
   const odds = lockOdds(s), cls = s.heat >= 80 ? 'burning hot' : s.heat > CFG.heat.safe ? 'hot' : '';
@@ -314,15 +338,14 @@ function life(){
   if (s.result) return `${topbar('DAY <b>' + CFG.days + '</b> DONE')}${room()}<section class="paper event"><span class="kicker">${CFG.days}-DAY CHAPTER COMPLETE</span><h2 class="mk">LOOK WHAT YOU BUILT.</h2><p>Level ${s.level}: ${esc(levelInfo(s.level).name)}. ${esc(jobs[Math.max(0, s.job)].name)}. $${s.cash} in your pocket.</p>${Object.entries(s.result).map(([k,v]) => `<div class="choice" style="display:flex;justify-content:space-between"><span class="mk">${k}</span><b>${v}/100</b></div>`).join('')}<button class="paper red big mk" onclick="restart()">NEW CHAPTER</button></section>`;
   const needs = nextNeeds(s);
   return `${topbar('DAY <b>' + s.day + '</b> / ' + CFG.days)}${room()}
-  <div class="stats"><div class="paper stat"><span class="lab mk"><img src="${ic('cash')}" alt="">CASH</span><strong class="mk">$${s.cash}</strong></div>
-  <div class="paper stat"><span class="lab mk"><img src="${ic('stress')}" alt="">STRESS</span><strong class="mk">${s.stress}</strong><div class="bar"><span style="width:${s.stress}%"></span></div></div>
-  <div class="paper stat"><span class="lab mk"><img src="${ic('connection')}" alt="">CONNECTION</span><strong class="mk">${s.connection}</strong><div class="bar gold"><span style="width:${s.connection}%"></span></div></div></div>
+  <div class="stats"><div class="paper stat"><span class="lab"><img src="${ic('cash')}" alt="">CASH</span><strong class="mk">$${s.cash}</strong></div>
+  <div class="paper stat"><span class="lab"><img src="${ic('stress')}" alt="">STRESS</span><strong class="mk">${s.stress}</strong><div class="bar"><span style="width:${s.stress}%"></span></div></div>
+  <div class="paper stat"><span class="lab"><img src="${ic('connection')}" alt="">CONNECTION</span><strong class="mk">${s.connection}</strong><div class="bar gold"><span style="width:${s.connection}%"></span></div></div></div>
   ${heatUI()}
-  ${s.level < 4 ? `<button class="paper next" style="display:block;width:100%;text-align:left" onclick="go('progress')"><span class="mk">NEXT: LVL ${s.level + 1} · ${esc(levelInfo(s.level + 1).name.toUpperCase())}</span><br>Needs ${esc(needs.join(', ')) || 'one more good night'}. <span style="opacity:.7">${s.balanced} balanced day${s.balanced === 1 ? '' : 's'} so far.</span></button>` : ''}
   ${s.event ? cardUI() : ''}
   <div class="banner"><span class="mk">YOUR MOVES</span><span class="left mk">${s.actions} left</span></div>
-  <div class="moves">${ACTIONS().map(([id,label,fx,icon]) => `<button class="paper mv" ${s.event || !s.actions ? 'disabled' : ''} onclick="confirmAction('${id}')"><img src="${ic(icon)}" alt=""><span><span class="mk">${label}</span><small>${esc(fx)}</small></span></button>`).join('')}</div>
-  <button class="paper call" ${s.event || s.calledToday ? 'disabled' : ''} onclick="call(s);chime();render()"><span><span class="mk">${s.calledToday ? 'Called. Good.' : 'Make a sober call'}</span><small>${s.calledToday ? 'Tonight’s skipped-support heat is cut in half.' : 'Two minutes. Doesn’t use a move. Heat ' + CFG.heat.call + '.'}</small></span><span class="free mk">${s.calledToday ? 'DONE' : 'FREE'}</span></button>
+  <div class="moves">${ACTIONS().map(([id,label,fx,icon]) => `<button class="paper mv" ${s.event || !s.actions ? 'disabled' : ''} onclick="confirmAction('${id}')"><span class="box ${doneToday(id) ? 'on' : ''}"></span><img src="${ic(icon)}" alt=""><span><span class="lb">${label}</span><small>${esc(fx)}</small></span></button>`).join('')}</div>
+  <button class="paper call" ${s.event || s.calledToday ? 'disabled' : ''} onclick="if(call(s))sfx('move');render()"><span class="box ${s.calledToday ? 'on' : ''}" style="width:24px;height:24px;flex:none;border:3px solid var(--ink);background:#fff8e6;position:relative"></span><span><span class="lb">${s.calledToday ? 'Called. Good.' : 'Make a sober call'}</span><small>${s.calledToday ? 'Tonight’s skipped-support heat is cut in half.' : 'Two minutes. Doesn’t use a move. Heat ' + CFG.heat.call + '.'}</small></span><span class="free mk">${s.calledToday ? 'DONE' : 'FREE'}</span></button>
   <button class="paper red big mk drip" ${s.event ? 'disabled' : ''} onclick="night()">${s.actions ? 'CALL IT A DAY' : 'NEXT DAY'}<img class="crown" src="${ic('crown')}" alt=""></button>
   <p class="note onwall" style="text-align:center">${s.event ? 'Handle today’s life card first.' : 'Food is $' + CFG.food + ' a night. Rent $' + rentDue(s) + ' on day ' + nextRentDay(s) + '.'}</p>`;
 }
@@ -331,13 +354,13 @@ function life(){
 function shopUI(){
   const rows = shop.filter(p => p.group === shopTab && !(p.guyOnly && s.look.sex !== 'guy') && !(p.girlOnly && s.look.sex !== 'girl')).map(p => {
     const why = cantBuy(s, p.id), own = why === 'owned', lock = /^level /.test(why);
-    return `<button class="paper it ${own ? 'own' : ''} ${lock ? 'lock' : ''}" onclick="purchase('${p.id}')"><div class="ph"><img src="${A}item/${p.id}.webp" alt=""></div>${own ? '<span class="stamp">OWNED</span>' : lock ? `<span class="stamp"><img src="${ic('lock')}" alt="">LVL ${p.minLevel}</span>` : ''}<span class="mk">${esc(p.name)}</span><span class="pr">${own ? 'OWNED' : '$' + p.price}</span></button>`;
+    return `<button class="paper it ${own ? 'own' : ''} ${lock ? 'lock' : ''}" onclick="purchase('${p.id}')"><div class="ph"><img src="${A}item/${p.id}.webp" alt=""></div>${own ? '<span class="stamp">OWNED</span>' : lock ? `<span class="stamp"><img src="${ic('lock')}" alt="">LVL ${p.minLevel}</span>` : ''}<span class="lb">${esc(p.name)}</span><span class="pr">${own ? 'OWNED' : '$' + p.price}</span></button>`;
   }).join('');
   return `${topbar('THE <b>SHOP</b>')}<div class="tabs">${SHOP_GROUPS.map(([g,t]) => `<button class="paper ${shopTab === g ? 'on' : ''}" onclick="shopTab='${g}';render()">${t}</button>`).join('')}</div><p class="onwall" style="font-weight:600;margin:-4px 0 10px;font-size:13px">${esc(SHOP_GROUPS.find(x => x[0] === shopTab)[2])} ${s.actions} move${s.actions === 1 ? '' : 's'} left today.</p><div class="sgrid">${rows}</div><p class="note onwall shopnote">Each buy uses one move. Stuff can’t buy recovery, but it can feel good. Your stuff shows up under your room.</p>`;
 }
 function purchase(id){
   const p = item(id), why = cantBuy(s, id);
-  const btn = why ? `<button class="paper big cream mk" disabled>${why === 'owned' ? 'YOU GOT IT' : /^level /.test(why) ? 'UNLOCKS AT ' + why.toUpperCase() : esc(why.toUpperCase())}</button>` : `<button class="paper red big mk" onclick="buy(s,'${id}');closeModal();chime();render()">BUY IT · $${p.price}</button>`;
+  const btn = why ? `<button class="paper big cream mk" disabled>${why === 'owned' ? 'YOU GOT IT' : /^level /.test(why) ? 'UNLOCKS AT ' + why.toUpperCase() : esc(why.toUpperCase())}</button>` : `<button class="paper red big mk" onclick="if(buy(s,'${id}'))sfx('buy');closeModal();render()">BUY IT · $${p.price}</button>`;
   show(`<div style="text-align:center"><img src="${A}item/${id}.webp" alt="" style="max-height:120px;max-width:70%;filter:drop-shadow(0 4px 3px #0006)"></div><h2 class="mk">${esc(p.name)}</h2><p>$${p.price} · 1 move<br>${esc(p.desc)}${p.feel ? '<br>Feels good: −' + p.feel + ' stress.' : ''}</p>${btn}<button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep saving</button>`);
 }
 
@@ -351,7 +374,7 @@ function progress(){
 function settings(){
   return `${topbar('<b>SETTINGS</b>')}
   <button class="paper set" onclick="go('pick')"><span class="mk">Change my homie</span><small>Same run, different figure. Now: ${esc(fig().name)}.</small></button>
-  <button class="paper set" onclick="s.settings.sound=!s.settings.sound;save();render()"><span class="mk">Chime: ${s.settings.sound ? 'ON' : 'OFF'}</span><small>A little ding when you make a move.</small></button>
+  <button class="paper set" onclick="toggleSound()"><span class="mk">Sound: ${s.settings.mute ? 'OFF' : 'ON'}</span><small>The music and the sound effects. Same as the speaker up top.</small></button>
   <button class="paper set" onclick="intro()"><span class="mk">How to play</span><small>The short version.</small></button>
   <button class="paper set" onclick="rules()"><span class="mk">How the odds work</span><small>All the numbers. Lock-up chance tonight: ${pct(lockOdds(s))}%.</small></button>
   <button class="paper set" onclick="restart()"><span class="mk">Start a new run</span><small>Back to level 1, day 1. Keeps your homie.</small></button>
@@ -386,25 +409,27 @@ function closeModal(fromBack){
 function chime(){ if (!s.settings.sound) return; try { const a = new (window.AudioContext||window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); g.gain.value = .025; o.frequency.value = 440; o.start(); o.stop(a.currentTime + .1); o.onended = () => a.close(); } catch {} }
 function confirmAction(id){
   const a = ACTIONS().find(x => x[0] === id);
-  show(`<div style="text-align:center"><img src="${ic(a[3])}" alt="" style="width:80px"></div><h2 class="mk">${a[1]}</h2><p>${esc(a[4])}</p><p class="note">Uses 1 move · ${esc(a[2])}</p><button class="paper red big mk" onclick="closeModal();action(s,'${id}');chime();render()">DO IT</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep thinking</button>`);
+  show(`<div style="text-align:center"><img src="${ic(a[3])}" alt="" style="width:80px"></div><h2 class="mk">${a[1]}</h2><p>${esc(a[4])}</p><p class="note">Uses 1 move · ${esc(a[2])}</p><button class="paper red big mk" onclick="closeModal();if(action(s,'${id}')){markDone('${id}');sfx('move')};render()">DO IT</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep thinking</button>`);
 }
-function pickCard(i){ choose(s, i); chime(); render(); }
+function pickCard(i){ choose(s, i);  render(); }
 function levelUpUI(){
+  sfx('levelup');
   const L = levelInfo(s.levelUp), from = Math.max(1, s.levelUp - 1);
   const unlocks = shop.filter(p => p.minLevel === s.levelUp).map(p => p.name);
   show(`<div class="burst"></div><h1 class="mk">LEVEL UP!</h1><div class="row"><img class="was" src="${myFig(from)}" alt=""><span class="arrow mk">→</span><img src="${myFig(s.levelUp)}" alt=""></div><div class="lname mk">LEVEL ${L.n} · ${esc(L.name.toUpperCase())}</div><p>${s.housing === 'Temporary shelter' ? 'You’re climbing.' : 'New place: ' + esc(L.housing) + '.'} ${s.balanced} balanced days and the work to show for it.</p>${unlocks.length ? `<p class="note" style="margin-top:0">Unlocked in the shop: ${esc(unlocks.join(', '))}.</p>` : ''}${L.n === 4 ? '<p>Moved out. A ' + (fig().sex === 'girl' ? 'lady' : 'gentleman') + '. Keep living.</p>' : ''}<button class="paper red big mk" onclick="s.levelUp=null;save();closeModal()">LET'S GO<img class="crown" src="${ic('crown')}" alt=""></button>`, 'lvup');
 }
 function lockupUI(){
-  const L = s.lockedUp;
+  const L = s.lockedUp; sfx('locked'); if (music) music.pause();
   document.getElementById('modal').innerHTML = `<div class="ov"><div class="paper locked"><h1 class="mk">LOCKED <b>UP.</b></h1><div class="cell"><img src="${myFig()}" alt=""></div><p>Night ${L.day}. Heat was ${L.heat}. The odds said ${L.odds}% and tonight they hit.</p><p>Back to level 1, fresh off the bus. It’s not a verdict. It’s a do-over.</p><button class="paper red big mk" onclick="startOver()">START OVER</button><button class="paper big cream mk" onclick="document.getElementById('modal').innerHTML='';go('progress')">SEE WHAT HAPPENED</button></div></div>`;
 }
-function startOver(){ s = restartKeepFigure(s); document.getElementById('modal').innerHTML = ''; save(); go('life'); }
+function startOver(){ startMusic(); s = restartKeepFigure(s); document.getElementById('modal').innerHTML = ''; save(); go('life'); }
 function night(){
   const odds = pct(lockOdds(s));
   if (s.actions) show(`<h2 class="mk">CALL IT A DAY?</h2><p>${s.actions} move${s.actions === 1 ? '' : 's'} left. They don’t carry over. Food, rent when it’s due, and the night still happen.${odds ? '<br><b>Heat ' + s.heat + ': ' + odds + '% chance the lights show up tonight.</b>' : ''}</p><button class="paper red big mk" onclick="closeModal();sleep()">FINISH TODAY</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Use my time</button>`);
   else sleep();
 }
 function sleep(){
+  sfx('night');
   const day = s.day, odds = pct(lockOdds(s)), heat = s.heat;
   const m = document.getElementById('modal');
   m.innerHTML = `<div class="night"><div><h1 class="mk">NIGHT ${day}</h1><p>${odds ? 'Heat ' + heat + '. ' + odds + '% chance the lights show up.' : 'Heat ' + heat + '. Nobody’s looking for you.'}</p><div class="dots">● ● ●</div></div></div>`;

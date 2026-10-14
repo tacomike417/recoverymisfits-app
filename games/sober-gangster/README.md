@@ -12,3 +12,7 @@ Levels: a balanced day = you go to bed with stress under 70, connection 30+, hea
 L2 Working: 5 balanced days + dishwasher. L3 Stacking money: 11 + stock crew + $150. L4 Moved out: 18 + maintenance + $300 + rent paid.
 Getting locked up = start over at level 1 with the same figure. Shop items unlock by level (minLevel in the shop list).
 Art made in ChatGPT (Oct 2026). Original characters.
+
+Sound (v1.1): assets/sfx/. Music = "EPIC West Coast G Funk Type Beat 'Shake'" by 5XBeatz (Pixabay), first 20 seconds trimmed.
+Effects from Pixabay: cash register (buy), aerosol spray (a move), DJ air horn (level up), police siren (locked up), record scratch (night).
+All under the Pixabay Content License (free in a game, no credit required). Music starts on the first tap; the speaker in the top bar mutes everything.
