@@ -176,7 +176,22 @@ function dollSVG(s, opts = {}) {
     if (L.hair === 2) { g.push(cap(0, 8)); const n = 8, r = 11 + hl * 7; for (let i = 0; i < n; i++) { const a = -Math.PI * .95 + i * (Math.PI * .9 / (n - 1)); g.push(`<circle cx="${cx + Math.cos(a) * (headRx - 2)}" cy="${headY - 6 + Math.sin(a) * (headRy - 2 + hl * 12)}" r="${r}" fill="${i % 2 ? hair : hair2}"/>`); } }
     if (L.hair === 3) g.push(cap(0, 2), `<path d="M${cx - 26} ${topY + 2} q26 -8 52 0 M${cx - 30} ${topY + 10} q30 -8 60 0" fill="none" stroke="${hair2}" stroke-width="2" opacity=".6"/>`);
     if (L.hair === 4) g.push(cap(2, 12));
-    if (L.hair === 5) g.push(`<path d="M${cx - headRx + 2} ${headY - 10} q4 -20 14 -24 M${cx + headRx - 2} ${headY - 10} q-4 -20 -14 -24" fill="none" stroke="${hair}" stroke-width="7" stroke-linecap="round"/>`);
+    if (L.hair === 5 && hl > .06) {
+      // bald: nothing at "short". Slide it long and the sides grow out into Rick-style spikes.
+      const len = 8 + hl * 75, spikes = 3 + Math.round(hl * 4);
+      for (const side of [-1, 1]) {
+        const bx = cx + side * (headRx - 6), by = headY - 6;
+        for (let i = 0; i < spikes; i++) {
+          const t = i / Math.max(1, spikes - 1);
+          const ang = (-20 - t * 85) * Math.PI / 180;            // from out-sideways up toward the top
+          const l = len * (0.6 + 0.4 * Math.sin(t * Math.PI));
+          const tipX = bx + side * Math.cos(ang) * l, tipY = by + Math.sin(ang) * l;
+          const w = 8 + hl * 12;
+          g.push(`<path d="M${bx - side * 2} ${by - w} Q${bx + side * Math.cos(ang) * l * .55} ${by + Math.sin(ang) * l * .4 - w * .5} ${tipX} ${tipY} Q${bx + side * Math.cos(ang) * l * .55} ${by + Math.sin(ang) * l * .4 + w * .8} ${bx - side * 2} ${by + w} z" fill="${i % 2 ? hair : hair2}"/>`);
+        }
+      }
+      if (hl > .5) g.push(`<path d="M${cx - 2} ${headY - headRy + 2} q${-6 - hl * 10} -${10 + hl * 26} ${2 - hl * 14} -${16 + hl * 30} q${hl * 10} ${8 + hl * 14} ${4 + hl * 10} ${14 + hl * 26} z" fill="${hair}"/>`);
+    }
     if (own('cut') && L.hair !== 4 && L.hair !== 5) g.push(`<path d="M${cx - 32} ${headY - 26 - hl * 8} h64" stroke="${hair2}" stroke-width="2.5" stroke-linecap="round"/>`);
   } else {
     if (L.hair === 0) g.push(cap(2, 14));
