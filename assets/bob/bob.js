@@ -12,19 +12,19 @@
 window.HighFiveBob={mount:async function(root,api){
   if(!root||!api?.getStatus||!api?.onHighFive)throw Error('HighFiveBob requires getStatus and onHighFive callbacks');
   const A='/assets/bob/';
-  root.innerHTML='<div class="bob" aria-label="High Five Bob"><img alt="Bob sitting on the porch drinking coffee" src="'+A+'bob-idle.webp"><button class="bob-action" aria-label="High five Bob" type="button">High Five Bob</button><div class="bob-count" hidden aria-live="polite"></div></div>';
+  root.innerHTML='<div class="bob" aria-label="High Five Bob"><img alt="Bob sitting on the porch drinking coffee" src="'+A+'bob-idle.webp"><button class="bob-action" aria-label="High five Bob" type="button">High Five Bob</button><div class="bob-count" hidden aria-live="polite"></div><i class="bob-btm" hidden></i></div>';
   [A+'bob-slap.webp',A+'bob-done.webp'].forEach(s=>{const i=new Image();i.src=s});
-  const box=root.querySelector('.bob'),img=box.querySelector('img'),btn=box.querySelector('button'),count=box.querySelector('.bob-count');
+  const box=root.querySelector('.bob'),img=box.querySelector('img'),btn=box.querySelector('button'),count=box.querySelector('.bob-count'),btm=box.querySelector('.bob-btm');
   let done=false;
   const set=(s)=>{done=!!(s&&s.highFived);
     img.src=A+'bob-'+(done?'done':'idle')+'.webp';
     img.alt=done?'Bob smiling, giving a thumbs-up and saying Keep coming back':'Bob sitting on the porch drinking coffee';
     btn.setAttribute('aria-label',done?'High five Bob again':'High five Bob');
-    count.hidden=!done;
+    count.hidden=!done;btm.hidden=!done;
     if(done){const n=Math.max(0,Number(s.others)||0),nn=n.toLocaleString('en-US');
       if(n>=2){count.innerHTML='<b>You + '+nn+'</b><span>Misfits today</span>';count.setAttribute('aria-label','You and '+nn+' other Misfits high-fived Bob today.')}
       else{count.innerHTML='<span>You high-fived</span><span>Bob today</span>';count.setAttribute('aria-label','You high-fived Bob today.')}}};
-  const slap=(ms)=>new Promise(r=>{img.src=A+'bob-slap.webp';count.hidden=true;setTimeout(r,ms)});
+  const slap=(ms)=>new Promise(r=>{img.src=A+'bob-slap.webp';count.hidden=true;btm.hidden=true;setTimeout(r,ms)});
   let last={highFived:false,others:0};
   const paint=(s)=>{if(s)last=s;set(last)};
   paint(await api.getStatus().catch(()=>null));
