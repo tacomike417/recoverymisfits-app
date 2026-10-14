@@ -14,6 +14,7 @@ const HAIR_NAMES = {
   guy:  ['Buzz', 'Short', 'Curly', 'Slicked back', 'Long', 'Bald'],
   girl: ['Bob', 'Ponytail', 'Long', 'Big curls', 'Buzz', 'Braids']
 };
+const HEAD_NAMES = ['Oval', 'Round', 'Alien', 'Cabbage Patch', 'Blocky'];
 const BEARD_NAMES = ['Clean', 'Stubble', 'Goatee', 'Mustache', 'Full beard'];
 const EYE_NAMES = ['Round', 'Chill', 'Narrow', 'Wide'];
 const NOSE_NAMES = ['Small', 'Button', 'Big'];
@@ -42,7 +43,7 @@ function lighter(hex, k = .25) {
 }
 
 function dollSVG(s, opts = {}) {
-  const L = Object.assign({ sex: 'guy', skin: 40, hairColor: 10, hair: 1, hairLen: 40, beard: 0, beardLen: 40, width: 45, height: 50, eyes: 0, brows: 50, nose: 1, eyeSize: 40, eyeColor: 10, ink: 0 }, s.look || {});
+  const L = Object.assign({ sex: 'guy', skin: 40, hairColor: 10, hair: 1, hairLen: 40, beard: 0, beardLen: 40, width: 45, height: 50, eyes: 0, brows: 50, nose: 1, eyeSize: 40, eyeColor: 10, head: 0, headSize: 35, ink: 0 }, s.look || {});
   const own = id => s.items && s.items.includes(id);
   const w = slot => (typeof worn === 'function' ? worn(s, slot) : null);
   const skin = ramp(SKIN_RAMP, L.skin), skin2 = darker(skin, .84), skin3 = darker(skin, .72);
@@ -60,7 +61,19 @@ function dollSVG(s, opts = {}) {
   const g = [];
 
   // geometry
-  const cx = 100, headY = 72, headRx = 42 + (W - 1) * 4, headRy = 46;
+  const cx = 100, headY = 72;
+  // head shape: pick one, then the size slider blows it up (scales around the neck)
+  const HS = [[40, 48], [46, 46], [48, 50], [46, 48], [44, 46]][L.head] || [42, 46];
+  const headRx = HS[0] + (W - 1) * 3, headRy = HS[1];
+  const headPath = L.head === 2
+    ? `M${cx - headRx} ${headY - 8} C${cx - headRx} ${headY - headRy - 18} ${cx + headRx} ${headY - headRy - 18} ${cx + headRx} ${headY - 8} C${cx + headRx} ${headY + 30} ${cx + 16} ${headY + headRy} ${cx} ${headY + headRy + 4} C${cx - 16} ${headY + headRy} ${cx - headRx} ${headY + 30} ${cx - headRx} ${headY - 8} z`
+    : L.head === 3
+    ? `M${cx - headRx + 12} ${headY - 22} C${cx - headRx + 12} ${headY - headRy - 10} ${cx + headRx - 12} ${headY - headRy - 10} ${cx + headRx - 12} ${headY - 22} C${cx + headRx + 8} ${headY + 6} ${cx + headRx} ${headY + headRy + 2} ${cx} ${headY + headRy + 4} C${cx - headRx} ${headY + headRy + 2} ${cx - headRx - 8} ${headY + 6} ${cx - headRx + 12} ${headY - 22} z`
+    : L.head === 4
+    ? `M${cx - headRx + 10} ${headY - headRy} h${headRx * 2 - 20} q10 0 10 10 v${headRy * 2 - 20} q0 10 -10 10 h-${headRx * 2 - 20} q-10 0 -10 -10 v-${headRy * 2 - 20} q0 -10 10 -10 z`
+    : `M${cx - headRx} ${headY} a${headRx} ${headRy} 0 1 0 ${headRx * 2} 0 a${headRx} ${headRy} 0 1 0 -${headRx * 2} 0 z`;
+  const hsz = .8 + (L.headSize / 100) * .7;          // 0.8 → 1.5
+  const headScale = `translate(${cx - cx * hsz} ${(headY + headRy) - (headY + headRy) * hsz}) scale(${hsz})`;
   const shW = 34 * W;                                // half shoulder width
   const armW = 16 * Math.max(.85, W);
   const lax = cx - shW - armW / 2 + 2, rax = cx + shW + armW / 2 - 2;
@@ -69,7 +82,7 @@ function dollSVG(s, opts = {}) {
   const shade = `url(#${uid}sh)`;
 
   g.push(`<defs><linearGradient id="${uid}sh" x1="0" x2="1"><stop offset=".5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="${VINYL_SHADE}"/></linearGradient>
-  <clipPath id="${uid}head"><ellipse cx="${cx}" cy="${headY}" rx="${headRx}" ry="${headRy}"/></clipPath></defs>`);
+  <clipPath id="${uid}head"><path d="${headPath}"/></clipPath></defs>`);
 
   // ---- hair, BACK layer (behind body and head). Length slider really swings these.
   const back = [];
@@ -84,7 +97,7 @@ function dollSVG(s, opts = {}) {
     if (L.hair === 3) { const r = 13 + hl * 7, rx0 = headRx + 8 + hl * 10, ry = headRy + 4 + hl * 22; for (let i = 0; i < 11; i++) { const a = -Math.PI * 1.05 + i * (Math.PI * 1.1 / 10) * 2; const rr = r * (i % 2 ? 1 : .8); back.push(`<circle cx="${cx + Math.cos(a) * rx0}" cy="${headY + 4 + Math.sin(a) * ry}" r="${rr}" fill="${i % 2 ? hair : hair2}"/>`); } back.push(`<ellipse cx="${cx}" cy="${headY + 4}" rx="${rx0 - 2}" ry="${ry - 2}" fill="${hair}"/>`); }
     if (L.hair === 5) { const len = 50 + hl * 110; for (const side of [-1, 1]) { back.push(`<path d="M${cx + side * (headRx - 6)} ${headY} q${side * 14} ${len * .5} ${side * 6} ${len} q-${side * 10} 10 -${side * 16} 0 q-${side * 4} -${len * .5} ${side * 2} -${len} z" fill="${hair}"/>`); for (let k = 1; k < 5; k++) back.push(`<path d="M${cx + side * (headRx - 12)} ${headY + k * len / 5} q${side * 10} 4 ${side * 20} 0" fill="none" stroke="${hair2}" stroke-width="2.5"/>`); } }
   }
-  g.push(...back);
+  g.push(`<g transform="${headScale}">`, ...back, '</g>');
 
   // ---- legs + feet
   const lx = cx - legW - legGap / 2, rx = cx + legGap / 2;
@@ -131,7 +144,8 @@ function dollSVG(s, opts = {}) {
 
   // ---- neck + head
   g.push(`<rect x="${cx - 11 - (W - 1) * 4}" y="${headY + headRy - 12}" width="${22 + (W - 1) * 8}" height="22" rx="5" fill="${skin2}"/>`);
-  g.push(`<ellipse cx="${cx}" cy="${headY}" rx="${headRx}" ry="${headRy}" fill="${skin}"/><ellipse cx="${cx}" cy="${headY}" rx="${headRx}" ry="${headRy}" fill="${shade}"/>`);
+  g.push(`<g transform="${headScale}">`);
+  g.push(`<path d="${headPath}" fill="${skin}"/><path d="${headPath}" fill="${shade}"/>`);
   g.push(`<circle cx="${cx - headRx + 1}" cy="${headY + 4}" r="7" fill="${skin}"/><circle cx="${cx + headRx - 1}" cy="${headY + 4}" r="7" fill="${skin}"/><circle cx="${cx + headRx - 1}" cy="${headY + 4}" r="7" fill="${shade}"/><circle cx="${cx - headRx + 1}" cy="${headY + 4}" r="3" fill="${skin2}"/><circle cx="${cx + headRx - 1}" cy="${headY + 4}" r="3" fill="${skin3}"/>`);
   // cheeks (a little life)
   g.push(`<ellipse cx="${cx - 24}" cy="${headY + 12}" rx="8" ry="4" fill="#c25a3c" opacity=".14"/><ellipse cx="${cx + 24}" cy="${headY + 12}" rx="8" ry="4" fill="#c25a3c" opacity=".14"/>`);
@@ -208,13 +222,14 @@ function dollSVG(s, opts = {}) {
   // ---- hat (flat bill)
   if (own('hat')) g.push(`<path d="M${cx - headRx - 1} ${headY - 18} q0 -42 ${headRx + 1} -42 q${headRx + 1} 0 ${headRx + 1} 42 z" fill="#aa4635"/><path d="M${cx - headRx - 1} ${headY - 18} q0 -42 ${headRx + 1} -42 q${headRx + 1} 0 ${headRx + 1} 42 z" fill="${shade}"/><path d="M${cx - 6} ${headY - 23} h${headRx + 24} q7 0 7 6 q0 6 -7 6 h-${headRx + 24} z" fill="#aa4635"/><path d="M${cx - headRx - 1} ${headY - 18} h${headRx * 2 + 2}" stroke="#8c3328" stroke-width="3"/><circle cx="${cx}" cy="${headY - 58}" r="3" fill="#8c3328"/>`);
 
+  // ---- the one highlight (vinyl)
+  g.push(`<ellipse cx="${cx - 22}" cy="${headY - 30}" rx="9" ry="4" fill="#fff" opacity=".35" transform="rotate(-28 ${cx - 22} ${headY - 30})"/>`);
+  g.push('</g>');   // end of the head group
+
   // ---- phone (right hand)
   if (phone === 'phone') g.push(`<rect x="${rax - 6}" y="${torsoTop + 72}" width="13" height="22" rx="3" fill="#343b38"/><path d="M${rax - 2} ${torsoTop + 76} l4 7 l-3 6" fill="none" stroke="#9fb0ad" stroke-width="1.5"/>`);
   if (phone === 'phone2') g.push(`<rect x="${rax - 7}" y="${torsoTop + 70}" width="15" height="25" rx="4" fill="#1c1c1c"/><rect x="${rax - 4}" y="${torsoTop + 74}" width="9" height="16" rx="1" fill="#3a6fb0"/>`);
   if (phone === 'phone3') g.push(`<rect x="${rax - 8}" y="${torsoTop + 68}" width="17" height="28" rx="5" fill="#111"/><rect x="${rax - 5}" y="${torsoTop + 72}" width="11" height="19" rx="1" fill="#e6b94d"/>`);
-
-  // ---- the one highlight (vinyl)
-  g.push(`<ellipse cx="${cx - 22}" cy="${headY - 30}" rx="9" ry="4" fill="#fff" opacity=".35" transform="rotate(-28 ${cx - 22} ${headY - 30})"/>`);
 
   const scale = `translate(${cx - cx * H} ${footY - footY * H}) scale(${H})`;
   return `<g ${opts.transform ? 'transform="' + opts.transform + '"' : ''}><g transform="${scale}">${g.join('')}</g></g>`;
@@ -247,4 +262,4 @@ function roomSVG(s) {
   return p.join('');
 }
 
-if (typeof module !== 'undefined') module.exports = { dollSVG, roomSVG, HAIR_NAMES, BEARD_NAMES, EYE_NAMES, NOSE_NAMES, INK_NAMES, SKIN_RAMP, HAIR_RAMP, EYE_RAMP, ramp };
+if (typeof module !== 'undefined') module.exports = { dollSVG, roomSVG, HAIR_NAMES, HEAD_NAMES, BEARD_NAMES, EYE_NAMES, NOSE_NAMES, INK_NAMES, SKIN_RAMP, HAIR_RAMP, EYE_RAMP, ramp };
