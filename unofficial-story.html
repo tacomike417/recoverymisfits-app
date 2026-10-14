@@ -40,10 +40,41 @@
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
+
+    /* WAY OUT (14 Oct 2026, Mike: no dead ends). A small X back to where you started the game
+       (the Porch's Games sheet or the Fun page). Chapters move by changing the page address,
+       so "back" would only go to the last chapter; the starting page is remembered instead. */
+    #rmExit {
+      position: fixed;
+      top: calc(8px + env(safe-area-inset-top, 0px));
+      left: calc(8px + env(safe-area-inset-left, 0px));
+      z-index: 99999;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, .55);
+      color: #fff;
+      font: 700 20px/34px Arial, sans-serif;
+      text-align: center;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
   </style>
 </head>
 
 <body>
+
+  <a id="rmExit" href="/fun.html" aria-label="Leave the game">&#10005;</a>
+  <script>
+    (function () {
+      var K = "rm_game_from", r = document.referrer || "";
+      try {
+        if (r.indexOf(location.origin) === 0 && r.indexOf("unofficial-story") < 0) sessionStorage.setItem(K, r.slice(location.origin.length));
+        var from = sessionStorage.getItem(K);
+        if (from && from.charAt(0) === "/") document.getElementById("rmExit").href = from;
+      } catch (e) {}
+    })();
+  </script>
 
   <canvas id="game"></canvas>
 
