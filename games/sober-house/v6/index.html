@@ -160,8 +160,11 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .rayhd img{width:52px;height:52px;border-radius:50%;border:3px solid var(--red);flex:0 0 auto}
 .rayhd b{display:block;font:400 32px/1 Bangers,Poppins;color:#ff6b5e;letter-spacing:.03em}
 .rayhd i{display:block;font:800 12px Poppins;font-style:normal;color:var(--cream);letter-spacing:.05em}
-.rayst{position:absolute;left:50%;top:44%;font:400 44px/.95 Bangers,Poppins;letter-spacing:.04em;color:var(--red);border:6px solid var(--red);border-radius:12px;padding:8px 16px 4px;background:rgba(246,235,205,.9);white-space:nowrap;box-shadow:0 6px 18px #0009;text-align:center;pointer-events:none;opacity:0;transform:translate(-50%,-50%) rotate(-14deg) scale(2.4);animation:slam 2.6s ease-out .35s forwards}
+.rayst{position:absolute;left:50%;top:44%;width:max-content;max-width:94%;font:400 clamp(30px,10vw,44px)/.95 Bangers,Poppins;letter-spacing:.04em;color:var(--red);border:6px solid var(--red);border-radius:12px;padding:8px 16px 4px;background:rgba(246,235,205,.9);white-space:normal;box-shadow:0 6px 18px #0009;text-align:center;pointer-events:none;opacity:0;transform:translate(-50%,-50%) rotate(-14deg) scale(2.4);animation:slam 2.6s ease-out .35s forwards}
 .rayst small{display:block;font-size:22px;color:var(--ink)}
+.rayst.g{color:#15834f;border-color:#15834f}.rayst.n{color:var(--ink);border-color:var(--ink)}
+.rayst em{display:block;font-style:normal;font-size:.55em;margin-top:3px;color:var(--ink)}
+.stw{position:relative;display:inline-block;line-height:0}
 @keyframes slam{0%{opacity:0;transform:translate(-50%,-50%) rotate(-14deg) scale(2.4)}10%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(.94)}16%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}70%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}}
 @media (prefers-reduced-motion:reduce){.rayst{animation:none;opacity:1;transform:translate(-50%,-50%) rotate(-14deg)}}
 .kicker{display:flex;align-items:center;gap:12px;width:100%;font-size:30px;line-height:1;justify-content:center;text-align:center}
@@ -274,7 +277,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 <div class="app">
 
 <div id="startScreen" class="start">
-  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v15</span></span></div>
+  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v16</span></span></div>
   <img class="logo" src="../cards/logo.webp" alt="Sober House">
   <div class="bang" style="font-size:26px;line-height:1.1">Run the house. Most money when the clock runs out wins.</div>
   <div class="time">Takes about 15&ndash;20 minutes</div>
@@ -290,7 +293,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
   <div class="top">
     <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="../cards/logo.webp" alt="Sober House"></div>
     <div class="count" id="count"><span class="n bang" id="left">18</span><span id="leftLbl">turns left</span></div>
-    <div class="rgt"><span class="pill">v15</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
+    <div class="rgt"><span class="pill">v16</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
   </div>
   <div class="houses"><div class="hs me" id="myHouse"></div><div class="hs them" id="oppHouse"></div></div>
   <div class="week" id="week" aria-label="This week"></div>
@@ -347,12 +350,41 @@ const BED='<svg viewBox="0 0 24 16"><path d="M2 2h3v6h17a2 2 0 0 1 2 2v6h-3v-3H5
 let OV=null; // {res, backIdx}
 // Every card picture on a full screen gets as big as the screen allows: full width, or as tall as the
 // space left over once the words and buttons fit (no scrolling). Runs on open, when art loads, and on rotate.
+// RUBBER STAMP: what a played card actually did, slammed onto the card, then faded.
+// Built from the real before/after numbers, so it never lies (house full, blocked, etc.).
+function stampOut(before,c,actor){
+  const nm2=x=>isYou(x)?'YOU':esc(x.name).toUpperCase(), V=(x,a,b)=>isYou(x)?a:b;
+  const bd=n=>n+' '+(n===1?'BED':'BEDS');
+  const rows=S.p.map((x,i)=>{ const b=before[i], r=[]; let good=0;
+    if(x.beds>b.beds){ r.push(V(x,'FILL ','FILLS ')+bd(x.beds-b.beds)); good++; }
+    if(x.beds<b.beds){ r.push(V(x,'LOSE ','LOSES ')+bd(b.beds-x.beds)); good--; }
+    if(x.cash>b.cash){ r.push(V(x,'GET','GETS')+' $'+(x.cash-b.cash)); good++; }
+    if(x.cash<b.cash){ r.push(V(x,'PAY','PAYS')+' $'+(b.cash-x.cash)); good--; }
+    if(x.skip>b.skip){ r.push(V(x,'SKIP','SKIPS')+' A TURN'); good--; }
+    return {x,r,good}; }).filter(o=>o.r.length);
+  let who,main,sub='',cls;
+  const goodFor=(x,g)=>(isYou(x)?g>0:g<0)?'g':'';
+  if(rows.length===2&&actor&&c.hit==='raid'||rows.length===2&&actor&&c.gain){
+    const a=rows.find(o=>o.x===actor)||rows[0]; who=nm2(a.x); main=V(a.x,'TAKE','TAKES')+' $'+(a.x.cash-before[S.p.indexOf(a.x)].cash); cls=isYou(a.x)?'g':'';
+  } else if(rows.length){
+    const a=rows[0]; who=nm2(a.x); main=a.r[0]; sub=a.r.slice(1).join(' + '); cls=goodFor(a.x,a.good);
+    if(rows[1]){ sub=(sub?sub+' &middot; ':'')+nm2(rows[1].x)+' '+rows[1].r.join(' + '); }
+  } else if(S.lastOut==='blocked'){ who=''; main='BLOCKED!'; cls='n'; }
+  else if(actor&&c.self==='double'){ who=nm2(actor); main=V(actor,'PLAY 2 MORE','PLAYS 2 MORE'); cls=isYou(actor)?'g':''; }
+  else if(actor&&c.self==='dblrent'){ who=nm2(actor); main='DOUBLE RENT'; sub='THIS FRIDAY'; cls=isYou(actor)?'g':''; }
+  else if(actor&&c.hit==='norent'){ const o=S.p.find(x=>x!==actor); who=nm2(o); main='$0 RENT'; sub='THIS FRIDAY'; cls=isYou(o)?'':'g'; }
+  else { who=''; main='NOTHING HAPPENED'; cls='n'; }
+  return `<span class="rayst ${cls}">${who?`<small>${who}</small>`:''}${main}${sub?`<em>${sub}</em>`:''}</span>`;
+}
+function stamped(c,stampHTML){ return `<div class="stw">${artBig(c,'sm')}${stampHTML}</div>`; }
 function fitArt(){
   const sc=$('ovBody'), im=sc&&sc.querySelector('img.big:not(.back)');
   if(!im||!$('ov').classList.contains('on')) return;
   im.style.maxWidth='min(90vw,400px)'; im.style.maxHeight='none';
   const h=im.getBoundingClientRect().height, over=sc.scrollHeight-sc.clientHeight;
   im.style.maxHeight=Math.round(Math.max(200,h-Math.max(0,over)))+'px';
+  const st=sc.querySelector('.rayst'); // stamp scales with the card so it never hangs off the edge
+  if(st) st.style.fontSize=Math.round(Math.max(22,Math.min(44,im.getBoundingClientRect().width*.125)))+'px';
 }
 document.addEventListener('load',e=>{ if(e.target.closest&&e.target.closest('#ovBody')) fitArt(); },true);
 window.addEventListener('resize',fitArt);
@@ -362,6 +394,7 @@ function ask(html,buttons,opt={}){ return new Promise(res=>{
   $('ovActs').innerHTML=buttons.map((b,i)=>`<button class="btn ${b[1]||''}" data-i="${i}" ${b[2]?'disabled':''}>${b[0]}</button>`).join('');
   $('ov').classList.add('on'); fitArt();
   OV={res,back:opt.back};
+  if(opt.auto){ const mine=OV; setTimeout(()=>{ if(OV===mine){ const b=$('ovActs').querySelector('[data-i]'); if(b) b.click(); } },opt.auto); }
   $('ovActs').querySelectorAll('[data-i]').forEach(el=>el.onclick=()=>{ const r=OV&&OV.res; OV=null; $('ov').classList.remove('on'); setTimeout(floats,60); if(r) r(+el.dataset.i); });
 });}
 function closeOv(i){ if(!OV) return false; const r=OV.res; OV=null; $('ov').classList.remove('on'); setTimeout(floats,60); r(i); return true; }
@@ -695,9 +728,10 @@ async function tapCard(i){
   if(lbl==='Toss it'){ log(`<b>${esc(p.name)}</b> tossed a card.`); return afterPlay(); }
   const before=snap(); sfx('flip'); S.lock=true;
   await resolve(c,p,them()); render(); sfxAfter(before);
-  const gained=p.cash-before[S.p.indexOf(p)].cash;
-  if(gained>0) bigMoney(gained); // money cards: big, obvious +$
-  if(S.tutor && p.left>=15){ const ch=changes(before); await sleep(gained>0?1600:500); await ask(`<div class="kicker bang">YOU PLAYED</div>${artBig(c,'sm')}<div class="panel"><div class="cap">HERE'S WHAT HAPPENED</div>${ch.any?visualHTML(ch.items,true):`<div class="say">${esc(doLine(c,p,them()))}</div>`}</div>`,[['Got it']],{back:0}); }
+  if(!(c.rare||S.lastOut==='bounced')){ // those already had their own big screen
+    const ch=changes(before);
+    await ask(`<div class="kicker bang">YOU PLAYED</div>${stamped(c,stampOut(before,c,p))}<div class="panel"><div class="say">${esc(doLine(c,p,them()))}</div>${ch.any?visualHTML(ch.items,true):''}</div>`,[['OK']],{back:0,auto:S.tutor?0:3400});
+  }
   S.lock=false;
   afterPlay();
 }
@@ -733,7 +767,7 @@ async function rareMoment(c,p,o){
   rareSfx(); const v=viewer(), w=other();
   const bub=p.bot?`<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Rare card, baby. Your money's mine.</div></div>`:'';
   const items=[{x:v,cash:[v.cash,w.cash]},{x:w,cash:[w.cash,v.cash]}];
-  await ask(`<div class="rarebar bang">RARE CARD!</div><div class="holo">${artBig(c,'sm')}</div>${bub}<div class="panel"><div class="cap">THE BANK MIXED UP THE ACCOUNTS</div><div class="swapg"><div class="sl">${esc(nm(v)).toUpperCase()}</div><div class="sl">${esc(nm(w)).toUpperCase()}</div><div class="mc a bang">${money(v.cash)}</div><div class="mc b bang">${money(w.cash)}</div></div><div class="say" style="margin-top:8px">Both houses trade ALL their money.</div>${visualHTML(items,false)}</div>`,[[p.bot?'OK':'Sweet!']],{back:0});
+  await ask(`<div class="rarebar bang">RARE CARD!</div><div class="holo">${stamped(c,'<span class="rayst n"><small>BOTH HOUSES</small>SWAP ALL THE MONEY</span>')}</div>${bub}<div class="panel"><div class="cap">THE BANK MIXED UP THE ACCOUNTS</div><div class="swapg"><div class="sl">${esc(nm(v)).toUpperCase()}</div><div class="sl">${esc(nm(w)).toUpperCase()}</div><div class="mc a bang">${money(v.cash)}</div><div class="mc b bang">${money(w.cash)}</div></div><div class="say" style="margin-top:8px">Both houses trade ALL their money.</div>${visualHTML(items,false)}</div>`,[[p.bot?'OK':'Sweet!']],{back:0});
 }
 const stopsIt=(x,c,canBounce)=>x.react==='block'||(x.react==='bounce'&&canBounce)||(x.react==='repair'&&c.repair);
 const Wn=x=>isYou(x)?'You':esc(x.name), Vb=(x,a,b)=>isYou(x)?a:b;
@@ -783,7 +817,7 @@ async function sendBack(c,bouncer,victim){
   const who=vy?'Your own card':`${victim.name}'s own card`;
   const line=ch.any?`${who} hit ${vy?'you':victim.bot?'him':'them'}.`:`${who} came back, but ${vy?'you':victim.bot?'he':'they'} stopped it.`;
   log(`<b>${Wn(bouncer)}</b> threw down Not My Problem and sent it back. ${esc(line)}`);
-  await ask(`<div class="sendback bang">${isYou(bouncer)?'YOU':esc(bouncer.name).toUpperCase()} SENT IT BACK!</div>${artBig(c,'sm')}${bouncer.bot?'<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Not my problem.</div></div>':''}<div class="panel"><div class="cap">SEND IT BACK</div><div class="say big2">${esc(line)}</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
+  await ask(`<div class="sendback bang">${isYou(bouncer)?'YOU':esc(bouncer.name).toUpperCase()} SENT IT BACK!</div>${stamped(c,stampOut(b,c,null).replace('NOTHING HAPPENED','STOPPED IT'))}${bouncer.bot?'<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Not my problem.</div></div>':''}<div class="panel"><div class="cap">SEND IT BACK</div><div class="say big2">${esc(line)}</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
 }
 
 // ---------- Big Ray (computer player) ----------
@@ -791,7 +825,7 @@ const TRASH=['GOTCHA.','Sucks to be you.','Welcome to the neighborhood.','Nothin
 const SMUG=['Easy money.','Another bed filled.','Business is good.','Watch and learn.'];
 async function showBlock(p,rc,c){
   sfx('nope');
-  await ask(`<div class="kicker bang">${esc(p.name).toUpperCase()} THREW DOWN</div>${artBig(rc,'sm')}<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Nice try.</div></div><div class="panel"><div class="say">${esc(seeLine(rc,p,p))}</div></div>`,[['OK']],{back:0});
+  await ask(`<div class="kicker bang">${esc(p.name).toUpperCase()} THREW DOWN</div>${stamped(rc,`<span class="rayst ${isYou(p)?'g':''}"><small>${isYou(p)?'YOU':esc(p.name).toUpperCase()}</small>BLOCKED IT!</span>`)}<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Nice try.</div></div><div class="panel"><div class="say">${esc(seeLine(rc,p,p))}</div></div>`,[['OK']],{back:0});
 }
 function botPick(p,o){
   const val=c=>{ if(c.kind==='green'){ const empty=MAXB-p.beds; return (c.cash||0)+(c.fill?empty*250:0)+Math.min(c.beds||0,empty)*250; }
@@ -828,10 +862,10 @@ async function botTurn(){
       const b=before[S.p.indexOf(p)], d$=p.cash-b.cash, db=p.beds-b.beds, R=esc(p.name).toUpperCase();
       const what=c.self==='double'?'PLAYS 2 MORE':c.self==='dblrent'?'DOUBLE RENT':[db>0?`FILLS ${db} ${db===1?'BED':'BEDS'}`:'',d$>0?`GETS $${d$}`:''].filter(Boolean).join(' + ')||'GETS NOTHING';
       const plain=c.self==='double'?`${p.name} plays 2 more cards.`:c.self==='dblrent'?`${p.name} gets double rent Friday.`:`${p.name} ${[db>0?`fills ${db} ${db===1?'bed':'beds'}`:'',d$>0?`gets $${d$}`:''].filter(Boolean).join(' and ')||'gets nothing (his house is full)'}.`;
-      await ask(`<div class="rayhd"><img src="ui/ray-face.webp" alt=""><div><b>${R} HELPED HIMSELF</b><i>THIS ONE'S FOR HIS HOUSE, NOT YOURS</i></div></div><div class="artw" style="position:relative">${artBig(c,'sm')}<span class="rayst"><small>${R}</small>${what}</span></div><div class="panel"><div class="say">${esc(plain)} Your money didn't change.</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
+      await ask(`<div class="rayhd"><img src="ui/ray-face.webp" alt=""><div><b>${R} HELPED HIMSELF</b><i>THIS ONE'S FOR HIS HOUSE, NOT YOURS</i></div></div>${stamped(c,stampOut(before,c,p))}<div class="panel"><div class="say">${esc(plain)} Your money didn't change.</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
       continue;
     }
-    await ask(`<div class="kicker bang">BIG RAY PLAYED</div>${artBig(c,'sm')}<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">${esc(line)}</div></div><div class="panel"><div class="say">${esc(say)}</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
+    await ask(`<div class="kicker bang">BIG RAY PLAYED</div>${stamped(c,stampOut(before,c,p))}<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">${esc(line)}</div></div><div class="panel"><div class="say">${esc(say)}</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
   }
   S.lock=true; await sleep(400); endTurn();
 }
