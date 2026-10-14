@@ -115,6 +115,7 @@ button:focus-visible{outline:3px solid var(--gold2);outline-offset:2px}
 
 /* nav */
 nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;background:#0b0908 url(assets/ui/wall.webp) center 85%/cover;box-shadow:inset 0 0 0 999px #000a;border-top:3px solid var(--gold);padding-bottom:env(safe-area-inset-bottom)}
+nav[hidden]{display:none!important}
 nav .in{display:grid;grid-template-columns:repeat(4,1fr);width:100%;max-width:430px}
 nav button{display:flex;flex-direction:column;align-items:center;gap:0;padding:6px 0 5px;color:#e9dcc0;font-family:'Caveat Brush';font-size:19px;-webkit-text-stroke:.5px currentColor;border-right:2px solid #0008}
 nav img{width:36px;height:36px;object-fit:contain;opacity:.75}
@@ -212,7 +213,7 @@ footer{color:#b9ab90;font-size:12px;margin-top:18px;text-align:center}
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="engine.js?v=1.1"></script><!-- bump ?v= with every VERSION change -->
+<script src="engine.js?v=1.2"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -377,7 +378,7 @@ function settings(){
   <button class="paper set" onclick="toggleSound()"><span class="mk">Sound: ${s.settings.mute ? 'OFF' : 'ON'}</span><small>The music and the sound effects. Same as the speaker up top.</small></button>
   <button class="paper set" onclick="intro()"><span class="mk">How to play</span><small>The short version.</small></button>
   <button class="paper set" onclick="rules()"><span class="mk">How the odds work</span><small>All the numbers. Lock-up chance tonight: ${pct(lockOdds(s))}%.</small></button>
-  <button class="paper set" onclick="restart()"><span class="mk">Start a new run</span><small>Back to level 1, day 1. Keeps your homie.</small></button>
+  <button class="paper set" onclick="restart()"><span class="mk">Start a new run</span><small>Back to level 1, day 1. Pick a new homie or keep this one.</small></button>
   <footer>Sober Gangster ${VERSION} · Recovery Misfits · Saves on this phone automatically.<br>A life game, not recovery advice. Original characters.</footer>`;
 }
 
@@ -452,7 +453,8 @@ function intro(){
   + '<p><b>Busy day? Make a sober call.</b> It’s free and keeps the heat down.</p>'
   + '<button class="paper red big mk" onclick="s.settings.introSeen=true;save();closeModal()">GOT IT</button>');
 }
-function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, level 1, $${CFG.startCash}. You keep your homie.</p><button class="paper red big mk" onclick="s=restartKeepFigure(s);closeModal();save();go('life')">START OVER</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
+function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, level 1, $${CFG.startCash}. This run gets wiped.</p><button class="paper red big mk" onclick="newRun(true)">PICK A NEW HOMIE</button><button class="paper big cream mk" onclick="newRun(false)">SAME HOMIE</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
+function newRun(pickNew){ const was = s.look.fig; s = restartKeepFigure(s); if (pickNew) { s.look.done = false; pickSel = was; } closeModal(); save(); go(pickNew ? 'pick' : 'life'); }
 function rules(){
   const H = CFG.heat;
   show('<h2 class="mk">THE NUMBERS.</h2><p>First shift pays $' + jobs[0].wage + '–' + jobs[jobs.length-1].wage + ' depending on your job. A second or third shift in a day adds stress, costs connection, and adds heat. Rest −' + CFG.restStress + ' stress. Support +' + CFG.supportConnection + ' connection, ' + CFG.supportStress + ' stress.</p>'
