@@ -7,7 +7,8 @@
    - after your high five, tapping the gold panel plays the slap again (still counts once a day)
    - somebody whose high five can't count (not a confirmed member) gets the slap, then Bob goes
      back to waiting; the Porch shows them a note.
-   getStatus() and onHighFive() return {highFived, others}: others = people besides you today. */
+   getStatus() and onHighFive() return {highFived, others}: others = people besides you today.
+   onHighFive() can return null: nothing changed, Bob goes back to how he was. */
 window.HighFiveBob={mount:async function(root,api){
   if(!root||!api?.getStatus||!api?.onHighFive)throw Error('HighFiveBob requires getStatus and onHighFive callbacks');
   const A='/assets/bob/';

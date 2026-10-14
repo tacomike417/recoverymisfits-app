@@ -1495,9 +1495,12 @@ html.kb .ch-bar{padding-bottom:8px}
    in /assets/bob/bob.css; this is only where it sits on the Porch and that it's on Everyone only. */
 #bob{margin:10px 12px 2px}
 .on-groups #bob,.on-friends #bob{display:none!important}
+/* v239 (14 Oct 2026, Mike: "I like the feeling of belonging"): the count, in a full sentence, under Bob */
+.bob-under{margin:7px 4px 0;text-align:center;color:var(--soft);font:600 13.5px/1.3 Arial,sans-serif}
+.bob-under:empty{display:none}
 </style>
-<link rel="stylesheet" href="/assets/bob/bob.css?v=238">
-<script src="/assets/bob/bob.js?v=238"></script>
+<link rel="stylesheet" href="/assets/bob/bob.css?v=239">
+<script src="/assets/bob/bob.js?v=239"></script>
 <script src="/assets/account.js"></script>
 <script>
 /* MIKE ONLY, FOR NOW (30 Sep 2026). The real Porch, locked to Mike's account while he
@@ -1544,7 +1547,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v238</span>
+  <span class="ver" id="ver">v239</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1570,7 +1573,7 @@ html.kb .ch-bar{padding-bottom:8px}
   <section class="newrail" id="newrail" hidden></section>
   <!-- HIGH FIVE, BOB (v238, 14 Oct 2026, Mike: the approved art). Everyone tab only. One counted high
        five a day; tapping again just plays the slap. Drawn by /assets/bob/bob.js -->
-  <div id="bob"></div>
+  <div id="bob"><div id="bobart"></div><p class="bob-under" id="bobline" aria-hidden="true"></p></div>
   <div id="feed" style="padding-top:2px"><div class="skel"></div><div class="skel"></div></div>
   <div id="sentinel" style="height:1px"></div>
 </main>
@@ -7276,16 +7279,24 @@ html.kb .ch-bar{padding-bottom:8px}
      else still gets the slap, then a note. The picture and the count box: /assets/bob/bob.js.
      No sound on purpose. */
   var bobUI = null, bobMounting = null;
-  function bobStatus(s) { return { highFived: !!(s && s.mine), others: Number(s && s.others) || 0, can: !!(s && s.can) }; }
+  function bobStatus(s) { var st = { highFived: !!(s && s.mine), others: Number(s && s.others) || 0, can: !!(s && s.can) }; bobLine(st); return st; }
+  /* the line under Bob (v239). NO ZEROS: the number only shows at 2 or more. When it's under 2 and
+     you already high-fived, the gold box on Bob already says it, so the line stays empty. */
+  function bobLine(st) {
+    var n = st.others, nn = Number(n).toLocaleString("en-US"), t;
+    if (st.highFived) t = n >= 2 ? "You and " + nn + " other Misfits high-fived Bob today." : "";
+    else t = n >= 2 ? nn + " Misfits high-fived Bob today." : "Give Bob a high five. We’re here.";
+    $("bobline").textContent = t;
+  }
   async function loadBob() {
     if (!window.HighFiveBob) return;
     if (bobUI) return bobUI.refresh();
     if (bobMounting) return;                                  /* already on its way in */
-    bobMounting = window.HighFiveBob.mount($("bob"), {
+    bobMounting = window.HighFiveBob.mount($("bobart"), {
       getStatus: async function () { return bobStatus(await rpc("porch_bob_today", {})); },
       onHighFive: async function () {
         /* not signed in: the database won't take it, so it's just the slap and a note */
-        if (!signedIn()) { toast("Bob felt that. Join free and yours counts too."); return { highFived: false, others: 0 }; }
+        if (!signedIn()) { toast("Bob felt that. Join free and yours counts too."); return null; }   /* null: Bob keeps today's count */
         try {
           var st = bobStatus(await rpc("porch_bob_high_five", {}));
           if (!st.highFived) toast("Bob felt that. Confirm your email and yours counts too.");   /* not a confirmed member */
