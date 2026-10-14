@@ -223,7 +223,7 @@ function roomSVG(s) {
   if (own('couch')) p.push(`<path d="M300 190v-22q0-15 17-15h93q17 0 17 15v22z" fill="#e6b94d" stroke="${INK}" stroke-width="4"/>`);
   if (own('bike')) p.push(`<g transform="translate(98 152)"><circle cx="0" cy="26" r="14" fill="none" stroke="${INK}" stroke-width="3"/><circle cx="44" cy="26" r="14" fill="none" stroke="${INK}" stroke-width="3"/><path d="M0 26 l14 -22 h22 l8 22 M14 4 l8 22 l-22 0 M22 4 h-8" fill="none" stroke="#aa4635" stroke-width="3"/></g>`);
   p.push(`<ellipse cx="220" cy="206" rx="46" ry="6" fill="#29272030"/>`);
-  p.push(dollSVG(s, { transform: 'translate(150 30) scale(0.67)' }));
+  p.push(dollSVG(s, { transform: 'translate(160 58) scale(0.56)' }));
   if (own('dog')) p.push(`<g transform="translate(246 168)"><ellipse cx="18" cy="18" rx="18" ry="11" fill="#b07248" stroke="${INK}" stroke-width="3"/><circle cx="36" cy="10" r="9" fill="#b07248" stroke="${INK}" stroke-width="3"/><path d="M30 2 l-2 -8 l6 4 M40 2 l2 -8 l-6 4" fill="#b07248" stroke="${INK}" stroke-width="2"/><circle cx="40" cy="9" r="1.8" fill="${INK}"/><path d="M0 14 q-10 -8 -4 -16" fill="none" stroke="${INK}" stroke-width="3"/><path d="M8 28 v6 M26 28 v6" stroke="${INK}" stroke-width="3"/></g>`);
   return p.join('');
 }
