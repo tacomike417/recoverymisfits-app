@@ -301,13 +301,13 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 <div class="app">
 
 <div id="startScreen" class="start">
-  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v17</span></span></div>
+  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v18</span></span></div>
   <img class="logo" src="../cards/logo.webp" alt="Sober House">
   <div class="bang" style="font-size:26px;line-height:1.1">Run the house. Most money when the clock runs out wins.</div>
   <div class="time">Takes about 15&ndash;20 minutes</div>
   <input id="n0" maxlength="14" placeholder="Your name" autocomplete="off">
   <button class="btn" id="goBot">Play Big Ray</button>
-  <div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">I run the house across the street. I play dirty.</div></div>
+  <div class="ray"><img src="ui/ray-face.webp?v=18" alt=""><div class="bubble">I run the house across the street. I play dirty.</div></div>
   <button class="btn ghost" id="friendBtn">Play with a friend</button>
   <button class="btn ghost" id="howBtn">How to play</button>
 </div>
@@ -317,7 +317,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
   <div class="top">
     <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="../cards/logo.webp" alt="Sober House"></div>
     <div class="count" id="count"><span class="n bang" id="left">18</span><span id="leftLbl">turns left</span></div>
-    <div class="rgt"><span class="pill">v17</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
+    <div class="rgt"><span class="pill">v18</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
   </div>
   <div class="houses"><div class="hs me" id="myHouse"></div><div class="hs them" id="oppHouse"></div></div>
   <div class="week" id="week" aria-label="This week"></div>
@@ -475,7 +475,7 @@ function intro(btn){
       <div><span class="dot pink"></span><span><b>Pink:</b> mess with Ray. He has it coming.</span></div>
       <div><span class="dot gold"></span><span><b>Gold:</b> block Ray's crap or take his money.</span></div>
     </div>
-    <div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Ray runs the house across the street. He's a dick. He'll call the city on you, then shake your hand at the meeting.</div></div>
+    <div class="ray"><img src="ui/ray-face.webp?v=18" alt=""><div class="bubble">Ray runs the house across the street. He's a dick. He'll call the city on you, then shake your hand at the meeting.</div></div>
     <div class="panel"><div class="say">You start with 2 beds full, 4 empty, and $800 to your name.</div>${bedStrip(2,2)}<div class="bang" style="font-size:36px;line-height:1;margin-top:4px">$800</div></div>
     <p class="b">You play Monday, Wednesday and Friday for 6 weeks. Bills hit every Wednesday. Rent comes in Friday, if they pay. Go broke and you're done.</p>
     <p class="b" style="font-weight:700">Fill your beds and fight back against Ray's bullshit.</p>`,[[btn]],{back:0});
@@ -789,7 +789,7 @@ async function resolve(c,p,o){
 // The RARE card: banner, holo card, both money totals fly across and swap, its own sound
 async function rareMoment(c,p,o){
   rareSfx(); const v=viewer(), w=other();
-  const bub=p.bot?`<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Rare card, baby. Your money's mine.</div></div>`:'';
+  const bub=p.bot?`<div class="ray"><img src="ui/ray-face.webp?v=18" alt=""><div class="bubble">Rare card, baby. Your money's mine.</div></div>`:'';
   const items=[{x:v,cash:[v.cash,w.cash]},{x:w,cash:[w.cash,v.cash]}];
   await ask(`<div class="rarebar bang">RARE CARD!</div><div class="holo">${stamped(c,'<span class="rayst n"><small>BOTH HOUSES</small>SWAP ALL THE MONEY</span>')}</div>${bub}<div class="panel"><div class="cap">THE BANK MIXED UP THE ACCOUNTS</div><div class="swapg"><div class="sl">${esc(nm(v)).toUpperCase()}</div><div class="sl">${esc(nm(w)).toUpperCase()}</div><div class="mc a bang">${money(v.cash)}</div><div class="mc b bang">${money(w.cash)}</div></div><div class="say" style="margin-top:8px">Both houses trade ALL their money.</div>${visualHTML(items,false)}</div>`,[[p.bot?'OK':'Sweet!']],{back:0});
 }
@@ -841,7 +841,7 @@ async function sendBack(c,bouncer,victim){
   const who=vy?'Your own card':`${victim.name}'s own card`;
   const line=ch.any?`${who} hit ${vy?'you':victim.bot?'him':'them'}.`:`${who} came back, but ${vy?'you':victim.bot?'he':'they'} stopped it.`;
   log(`<b>${Wn(bouncer)}</b> threw down Not My Problem and sent it back. ${esc(line)}`);
-  await ask(`<div class="sendback bang">${isYou(bouncer)?'YOU':esc(bouncer.name).toUpperCase()} SENT IT BACK!</div>${stamped(c,stampOut(b,c,null).replace('NOTHING HAPPENED','STOPPED IT'))}${bouncer.bot?'<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Not my problem.</div></div>':''}<div class="panel"><div class="cap">SEND IT BACK</div><div class="say big2">${esc(line)}</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
+  await ask(`<div class="sendback bang">${isYou(bouncer)?'YOU':esc(bouncer.name).toUpperCase()} SENT IT BACK!</div>${stamped(c,stampOut(b,c,null).replace('NOTHING HAPPENED','STOPPED IT'))}${bouncer.bot?'<div class="ray"><img src="ui/ray-face.webp?v=18" alt=""><div class="bubble">Not my problem.</div></div>':''}<div class="panel"><div class="cap">SEND IT BACK</div><div class="say big2">${esc(line)}</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
 }
 
 // ---------- Big Ray (computer player) ----------
@@ -849,7 +849,7 @@ const TRASH=['GOTCHA.','Sucks to be you.','Welcome to the neighborhood.','Nothin
 const SMUG=['Easy money.','Another bed filled.','Business is good.','Watch and learn.'];
 async function showBlock(p,rc,c){
   sfx('nope');
-  await ask(`<div class="kicker bang">${esc(p.name).toUpperCase()} THREW DOWN</div>${stamped(rc,`<span class="rayst ${isYou(p)?'g':''}"><small>${isYou(p)?'YOU':esc(p.name).toUpperCase()}</small>BLOCKED IT!</span>`)}<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">Nice try.</div></div><div class="panel"><div class="say">${esc(seeLine(rc,p,p))}</div></div>`,[['OK']],{back:0});
+  await ask(`<div class="kicker bang">${esc(p.name).toUpperCase()} THREW DOWN</div>${stamped(rc,`<span class="rayst ${isYou(p)?'g':''}"><small>${isYou(p)?'YOU':esc(p.name).toUpperCase()}</small>BLOCKED IT!</span>`)}<div class="ray"><img src="ui/ray-face.webp?v=18" alt=""><div class="bubble">Nice try.</div></div><div class="panel"><div class="say">${esc(seeLine(rc,p,p))}</div></div>`,[['OK']],{back:0});
 }
 function botPick(p,o){
   const val=c=>{ if(c.kind==='green'){ const empty=MAXB-p.beds; return (c.cash||0)+(c.fill?empty*250:0)+Math.min(c.beds||0,empty)*250; }
@@ -886,10 +886,10 @@ async function botTurn(){
       const b=before[S.p.indexOf(p)], d$=p.cash-b.cash, db=p.beds-b.beds, R=esc(p.name).toUpperCase();
       const what=c.self==='double'?'PLAYS 2 MORE':c.self==='dblrent'?'DOUBLE RENT':[db>0?`FILLS ${db} ${db===1?'BED':'BEDS'}`:'',d$>0?`GETS $${d$}`:''].filter(Boolean).join(' + ')||'GETS NOTHING';
       const plain=c.self==='double'?`${p.name} plays 2 more cards.`:c.self==='dblrent'?`${p.name} gets double rent Friday.`:`${p.name} ${[db>0?`fills ${db} ${db===1?'bed':'beds'}`:'',d$>0?`gets $${d$}`:''].filter(Boolean).join(' and ')||'gets nothing (his house is full)'}.`;
-      await ask(`<div class="rayhd"><img src="ui/ray-face.webp" alt=""><div><b>${R} HELPED HIMSELF</b><i>THIS ONE'S FOR HIS HOUSE, NOT YOURS</i></div></div>${stamped(c,stampOut(before,c,p))}<div class="panel"><div class="say">${esc(plain)} Your money didn't change.</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
+      await ask(`<div class="rayhd"><img src="ui/ray-face.webp?v=18" alt=""><div><b>${R} HELPED HIMSELF</b><i>THIS ONE'S FOR HIS HOUSE, NOT YOURS</i></div></div>${stamped(c,stampOut(before,c,p))}<div class="panel"><div class="say">${esc(plain)} Your money didn't change.</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
       continue;
     }
-    await ask(`<div class="kicker bang">BIG RAY PLAYED</div>${stamped(c,stampOut(before,c,p))}<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">${esc(line)}</div></div><div class="panel"><div class="say">${esc(say)}</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
+    await ask(`<div class="kicker bang">BIG RAY PLAYED</div>${stamped(c,stampOut(before,c,p))}<div class="ray"><img src="ui/ray-face.webp?v=18" alt=""><div class="bubble">${esc(line)}</div></div><div class="panel"><div class="say">${esc(say)}</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
   }
   S.lock=true; await sleep(400); endTurn();
 }
@@ -955,9 +955,9 @@ async function gameOver(why){
   const order=S.bot?[S.p[0],S.p[1]]:S.p;
   while(true){
     const r=await ask(`<div class="winhead"><h2 class="bang">${head}</h2><p>${esc(why)}</p></div>
-      <img class="illo" src="ui/${rayWon?'big-ray':'house-victory'}.webp" alt="">
+      <img class="illo" src="ui/${rayWon?'big-ray':'house-victory'}.webp?v=18" alt="">
       <div class="final">${order.map(x=>`<div class="${x===w?'win':''}"><div class="bang" style="font-size:20px">${S.bot&&isYou(x)?'YOUR HOUSE':esc(x.name).toUpperCase()}</div><div class="m bang">${money(x.cash)}</div><div class="k">FINAL MONEY &middot; ${x.beds} ${x.beds===1?'BED':'BEDS'} FULL</div></div>`).join('')}</div>
-      ${S.bot?`<div class="ray">${rayWon?'':'<img src="ui/ray-face.webp" alt="">'}<div class="bubble">${rayWon?'Told you. I play dirty.':'Fine. You run a decent house.'}</div></div>`:''}`,
+      ${S.bot?`<div class="ray">${rayWon?'':'<img src="ui/ray-face.webp?v=18" alt="">'}<div class="bubble">${rayWon?'Told you. I play dirty.':'Fine. You run a decent house.'}</div></div>`:''}`,
       [['Play again'],['History','ghost'],['Done','ghost']],{lead:1});
     if(r===1){ await showHistory(); continue; }
     if(r===0) return newGame(S.p.map(x=>x.name),S.bot);
