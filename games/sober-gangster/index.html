@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#120f0d">
+<meta name="robots" content="noindex">
+<title>Sober Gangster · Recovery Misfits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14110f;--cream:#f3e6c4;--gold:#e8b23a;--gold2:#f7cf5c;--red:#a8141a;--red2:#d0262b;--A:'assets/ui/'}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html{background:#0d0b0a}
+body{color:var(--ink);font-family:'Barlow',system-ui,sans-serif;font-size:15px;line-height:1.3;min-height:100vh;
+  background:#0d0b0a url(assets/ui/wall.webp) center top/cover fixed}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible{outline:3px solid var(--gold2);outline-offset:2px}
+.mk{font-family:'Permanent Marker',cursive;font-weight:400;letter-spacing:.5px;line-height:1.05}
+.cn{font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:.5px}
+#app{max-width:430px;margin:auto;min-height:100vh;padding:0 12px calc(86px + env(safe-area-inset-bottom));position:relative}
+#app.nonav{padding-bottom:24px}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 2px 8px;margin:0 -12px 8px;padding-left:12px;padding-right:12px;
+  background:linear-gradient(#0d0b0aee,#0d0b0acc 75%,#0d0b0a00)}
+.xbtn{width:40px;height:40px;flex:none;display:grid;place-items:center;background:url(assets/ui/tex-cream.webp) center/cover;border:3px solid var(--ink);border-radius:6px;box-shadow:0 0 0 2px var(--gold);font-size:22px;font-weight:800}
+.top .ttl{flex:1;color:#fff;font-size:28px;text-shadow:2px 2px 0 #000,0 0 10px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .ttl b{color:var(--gold2);font-weight:400}
+.pips{display:flex;gap:4px}.pips i{width:13px;height:13px;border-radius:50%;border:2px solid var(--gold);background:#000}.pips i.on{background:var(--gold2)}
+.vpill{background:#fff;color:#000;border-radius:20px;padding:3px 9px;font:800 12px 'Barlow Condensed';flex:none}
+.cash-pill{background:var(--gold2);color:#000;border:2px solid #000;border-radius:20px;padding:2px 9px;font:800 15px 'Barlow Condensed'}
+
+/* paper panels */
+.paper{background:var(--cream) url(assets/ui/tex-cream.webp) center/260px;border:3px solid var(--ink);border-radius:7px;box-shadow:0 0 0 2px var(--gold),3px 5px 0 2px #000;position:relative}
+.paper.red{background:var(--red) url(assets/ui/tex-red.webp) center/cover;color:#fff}
+.drip::after{content:"";position:absolute;left:12%;right:12%;bottom:-11px;height:12px;pointer-events:none;
+  background:radial-gradient(circle at 8% 0,var(--gold) 3px,transparent 4px),radial-gradient(circle at 37% 0,#111 3px,transparent 4px),radial-gradient(circle at 71% 0,var(--gold) 2.5px,transparent 3.5px),radial-gradient(circle at 93% 0,#111 2px,transparent 3px);
+  background-size:100% 100%}
+
+/* buttons */
+.big{display:block;width:100%;padding:14px 10px;text-align:center;font-size:30px;color:#fff6dc;text-shadow:2px 2px 0 #000;margin:14px 0 6px}
+.big.cream{color:var(--ink);text-shadow:none;font-size:24px;padding:11px}
+.big .crown{width:34px;vertical-align:-4px;margin-left:8px}
+.ghost{display:block;width:100%;text-align:center;color:#f3e6c4;font:700 15px 'Barlow';padding:12px;text-decoration:underline}
+
+/* room */
+.room{position:relative;aspect-ratio:3/2;overflow:hidden;border-radius:5px;background:#000 center/cover}
+.room .fig{position:absolute;left:50%;bottom:3%;height:86%;transform:translateX(-50%);filter:drop-shadow(0 10px 8px #000a)}
+.room .pet{position:absolute;left:66%;bottom:4%;height:34%;filter:drop-shadow(0 6px 5px #000a)}
+.lvltag{position:absolute;left:8px;top:8px;padding:4px 9px;font-size:16px;color:var(--ink);background:url(assets/ui/tex-cream.webp) center/cover;border:2px solid var(--ink);border-radius:4px;box-shadow:0 0 0 2px var(--gold)}
+.lvltag b{font-weight:400;font-size:20px}
+.room .where{position:absolute;right:8px;bottom:8px;color:#fff;font:800 13px 'Barlow Condensed';letter-spacing:1px;background:#000b;padding:3px 7px;border-radius:3px}
+.roomwrap{padding:4px}
+.stuff{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 2px;scrollbar-width:none}
+.stuff img{height:42px;flex:none;filter:drop-shadow(0 2px 2px #000)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:.88fr .88fr 1.24fr;gap:8px;margin:14px 0 0}
+.stat{min-width:0}
+.stat{padding:7px 8px 8px}
+.stat .lab{display:flex;align-items:center;gap:3px;font-size:13px;white-space:nowrap;letter-spacing:0}
+.stat .lab img{width:22px}
+.stat strong{display:block;font-size:30px;line-height:1;margin-top:2px}
+.bar{height:10px;border:2px solid var(--ink);background:#fff6dc;border-radius:2px;margin-top:5px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--red2)}
+.bar.gold span{background:var(--gold)}
+.heat{margin-top:14px;padding:8px 10px 10px}
+.heat .row{display:flex;align-items:center;gap:6px}
+.heat .row img{width:34px;margin:-6px 0}
+.heat .row .mk{font-size:26px}
+.heat .tag{margin-left:auto;background:#111;color:var(--gold2);padding:3px 9px;font-size:16px;border-radius:3px;transform:rotate(-2deg)}
+.heat .bar{height:16px}
+.heat .odds{font:700 13px 'Barlow';margin-top:5px}
+.heat.hot .tag{background:var(--red2);color:#fff}
+.heat.burning{animation:burn 1.2s ease-in-out infinite alternate}
+@keyframes burn{to{box-shadow:0 0 0 2px var(--red2),0 0 18px 4px #ff3b1f99}}
+.next{margin-top:12px;padding:8px 10px;font:600 14px 'Barlow'}
+.next .mk{font-size:17px}
+
+/* section banner */
+.banner{display:flex;align-items:center;justify-content:space-between;margin:20px 0 8px}
+.banner .mk{color:#fff;font-size:28px;padding:4px 18px 6px 12px;background:url(assets/ui/banner-red.webp) center/100% 100%;text-shadow:2px 2px 0 #000;transform:rotate(-2deg)}
+.banner .left{background:var(--red);color:#fff;font-size:18px;padding:3px 12px;border-radius:14px;border:2px solid #000}
+
+/* moves */
+.moves{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mv{display:flex;align-items:center;gap:8px;padding:8px 7px;text-align:left;min-height:66px}
+.mv img{width:42px;flex:none}
+.mv .mk{font-size:16px;display:block}
+.mv small{display:block;font:600 13px 'Barlow';color:#3a2e22}
+.call{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;margin-top:12px;text-align:left}
+.call .mk{font-size:18px}.call small{display:block;font:600 13px 'Barlow'}
+.call .free{margin-left:auto;background:#111;color:var(--gold2);padding:4px 9px;border-radius:3px;font-size:15px}
+
+/* life card */
+.event{margin-top:14px;padding:12px}
+.event .kicker{display:inline-block;background:#111;color:var(--gold2);font:800 12px 'Barlow Condensed';letter-spacing:1px;padding:3px 8px;border-radius:3px}
+.event h2{font-size:24px;margin:8px 0 4px}
+.event p{font-weight:600}
+.choice{display:block;width:100%;text-align:left;margin-top:9px;padding:10px 12px;background:#fff8e6;border:2px solid var(--ink);border-radius:5px;box-shadow:2px 3px 0 #000}
+.choice .mk{font-size:17px;display:block}
+.choice small{display:block;font:600 13px 'Barlow';color:#4a3b2c;margin-top:2px}
+.note{font:600 12px 'Barlow';color:#5a4836;margin-top:8px}
+.onwall{color:#e9dcc0;text-shadow:1px 1px 0 #000}
+
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;background:#0b0908f2;border-top:3px solid var(--gold);padding-bottom:env(safe-area-inset-bottom)}
+nav .in{display:grid;grid-template-columns:repeat(4,1fr);width:100%;max-width:430px}
+nav button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 0 6px;color:#e9dcc0;font-family:'Permanent Marker';font-size:14px}
+nav img{width:36px;height:36px;object-fit:contain;opacity:.75}
+nav .on{color:var(--gold2);background:radial-gradient(ellipse at 50% 60%,#e8b23a33,transparent 70%)}
+nav .on img{opacity:1}
+
+/* title */
+.title{text-align:center;padding-top:6px}
+.title .logo{width:100%;border-radius:8px;border:3px solid #000;box-shadow:0 0 0 2px var(--gold),0 8px 20px #000}
+.title .tag{display:inline-block;margin:14px 0 12px;padding:8px 14px;font-size:17px}
+.crew{position:relative;height:250px;margin:4px 0 4px;border-radius:7px;overflow:hidden;background:url(assets/room/1.webp) center/cover}
+.crew::before{content:"";position:absolute;inset:0;background:linear-gradient(#0006,#0000 40%,#000a)}
+.crew img{position:absolute;bottom:4px;height:72%;filter:drop-shadow(0 6px 5px #000)}
+.crew .say{position:absolute;left:10px;top:8px;color:#fff;font-size:20px;text-align:left;transform:rotate(-4deg);text-shadow:2px 2px 0 #000;line-height:1}
+.crew .say2{left:auto;right:10px;top:10px;color:var(--gold2);transform:rotate(3deg)}
+
+/* pick */
+.pickgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pk{padding:6px 6px 8px;text-align:center}
+.pk .ph{height:170px;border-radius:4px;background:#1a1512 url(assets/ui/wall.webp) center 30%/cover;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.pk .ph img{height:94%;filter:drop-shadow(0 5px 4px #000)}
+.pk .mk{display:block;font-size:19px;margin-top:6px}
+.pk small{display:block;font:600 12px 'Barlow';color:#4a3b2c;min-height:30px}
+.pk.sel{box-shadow:0 0 0 4px var(--gold2),0 0 22px 6px #f7cf5c88,3px 5px 0 2px #000}
+.pk.sel::before{content:"";position:absolute;top:-16px;left:-10px;width:40px;height:36px;background:url(assets/ui/crown.webp) center/contain no-repeat;transform:rotate(-18deg);z-index:2}
+.stick{position:sticky;bottom:10px;z-index:5}
+
+/* shop */
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tabs button{flex:1;padding:8px 2px;font-family:'Permanent Marker';font-size:16px}
+.tabs .on{background:var(--red) url(assets/ui/tex-red.webp) center/cover;color:#fff;text-shadow:1px 1px 0 #000}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.it{padding:6px 5px 7px;text-align:center}
+.it .ph{height:78px;display:flex;align-items:center;justify-content:center}
+.it .ph img{max-height:74px;max-width:92%;filter:drop-shadow(0 3px 2px #0006)}
+.it .mk{display:block;font-size:14px;margin-top:3px;min-height:30px;display:flex;align-items:center;justify-content:center}
+.it .pr{font:800 17px 'Barlow Condensed'}
+.it.own .ph img,.it.lock .ph img{opacity:.35}
+.stamp{position:absolute;top:30px;left:50%;transform:translateX(-50%) rotate(-12deg);border:3px solid var(--red2);color:var(--red2);font:400 15px 'Permanent Marker';padding:0 6px;background:#fff8;border-radius:3px}
+.it.lock .stamp{color:#111;border-color:#111;display:flex;align-items:center;gap:3px}
+.it.lock .stamp img{width:18px}
+.shopnote{margin-top:14px;text-align:center}
+
+/* progress */
+.badge{padding:8px 10px;margin-top:8px;font-weight:700}
+.log{color:#e9dcc0;border-bottom:1px solid #fff2;padding:7px 2px;font-size:14px}
+.ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ladder .rung{text-align:center;padding:4px 2px 6px;font-size:12px}
+.ladder .rung img{height:84px;display:block;margin:0 auto 2px}
+.ladder .rung.no img{filter:grayscale(1) brightness(.5)}
+.ladder .rung .mk{font-size:13px}
+.ladder .rung.cur{box-shadow:0 0 0 3px var(--gold2),3px 5px 0 2px #000}
+.set{display:block;width:100%;text-align:left;padding:11px 12px;margin-top:10px}
+.set .mk{font-size:18px}.set small{display:block;font:600 13px 'Barlow';color:#4a3b2c}
+footer{color:#b9ab90;font-size:12px;margin-top:18px;text-align:center}
+
+/* overlays */
+#modal:empty{display:none}
+.ov{position:fixed;inset:0;z-index:50;background:#000c;display:flex;align-items:center;justify-content:center;padding:18px;overflow:auto}
+.ov>.paper{width:100%;max-width:390px;padding:16px 14px 12px;max-height:calc(100vh - 36px);overflow:auto}
+.ov .x{position:absolute;right:6px;top:6px;width:38px;height:38px;font-size:24px;font-weight:800}
+.ov h2{font-size:28px;margin:2px 36px 8px 0}
+.ov p{font-weight:600;margin-bottom:8px}
+.ov .big{font-size:24px;padding:11px}
+.lvup{text-align:center;overflow:visible!important}
+.lvup h1{font-size:52px;color:var(--gold2);-webkit-text-stroke:2px #000;text-shadow:3px 4px 0 #000;transform:rotate(-4deg);margin:-34px 0 6px}
+.lvup .row{display:flex;align-items:flex-end;justify-content:center;gap:4px;margin:4px 0 8px}
+.lvup .row img{height:190px;filter:drop-shadow(0 6px 5px #0008)}
+.lvup .row img.was{height:120px;opacity:.55}
+.lvup .arrow{font-size:40px;color:var(--gold);padding-bottom:40px}
+.lvup .lname{font-size:24px}
+.lvup .burst{position:absolute;inset:-30px -10px auto;height:200px;background:radial-gradient(circle,#f7cf5c66,transparent 65%);pointer-events:none}
+.lvup ul{list-style:none;font:700 14px 'Barlow';margin:4px 0}
+.locked h1{font-size:50px;color:#fff;-webkit-text-stroke:2px #000;text-shadow:3px 4px 0 #000;text-align:center;margin:-6px 0 8px}
+.locked h1 b{color:var(--red2);font-weight:400}
+.cell{position:relative;aspect-ratio:3/2;border-radius:5px;overflow:hidden;background:url(assets/room/jail.webp) center/cover;margin-bottom:10px}
+.cell img{position:absolute;left:50%;bottom:4%;height:74%;transform:translateX(-50%);filter:brightness(.8) saturate(.7) drop-shadow(0 6px 5px #000)}
+.cell::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 30px,#1b1d22 30px 38px,#5b616b 38px 40px,transparent 40px 70px)}
+.locked{box-shadow:0 0 0 2px var(--gold),0 0 30px 8px #2a5cff66,0 0 60px 10px #ff1e1e44!important}
+.night{position:fixed;inset:0;z-index:60;background:#05060c;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center}
+.night h1{font-size:56px;color:var(--gold2);text-shadow:3px 3px 0 #000}
+.night p{font:600 16px 'Barlow';margin-top:8px}
+.night .made{font-size:30px;margin-top:10px}
+.night small{display:block;margin-top:16px;opacity:.6}
+.dots{font-size:22px;letter-spacing:6px;margin-top:12px;animation:dots 1s infinite alternate}
+@keyframes dots{to{opacity:.2}}
+.notices{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom));width:min(400px,calc(100% - 24px));z-index:40;display:flex;flex-direction:column;gap:6px}
+.notice{background:#111;color:#f3e6c4;border:2px solid var(--gold);border-radius:6px;padding:9px 12px;font:600 14px 'Barlow';box-shadow:0 4px 12px #000;transition:opacity .3s,transform .3s}
+.notice.warn{border-color:var(--red2)}.notice.good{border-color:#58b26a}
+.notice.out{opacity:0;transform:translateY(8px)}
+@media (prefers-reduced-motion:reduce){.heat.burning,.dots{animation:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav id="nav" hidden></nav>
+<div id="modal"></div>
+<script src="engine.js?v=1.0"></script><!-- bump ?v= with every VERSION change -->
+<script>
+const A = 'assets/';
+let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
+try { s = migrate(JSON.parse(localStorage.getItem(SAVE_KEY))) || fresh(); } catch { s = fresh(); }
+
+function esc(v){ return String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function save(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } catch { storageOK = false; } }
+function pct(x){ return Math.round(x * 100); }
+const ic = n => A + 'ui/' + n + '.webp';
+const figImg = (id, lvl) => A + 'fig/' + id + '-' + lvl + '.webp';
+const myFig = (lvl = s.level) => figImg(s.look.fig, lvl);
+const fig = () => FIGURES.find(f => f.id === s.look.fig) || FIGURES[0];
+
+/* ---------- moving around: every screen has a way out, and the phone's back button works ---------- */
+function go(p, push = true){
+  page = p; if (push) history.pushState({ p }, '');
+  render(); window.scrollTo(0, 0);
+}
+function leaveGame(){
+  // back where they came from if that was this site, otherwise the Recovery Misfits home page
+  let to = '/';
+  try { const r = new URL(document.referrer); if (r.origin === location.origin && r.pathname !== location.pathname) to = r.pathname + r.search; } catch {}
+  location.href = to;
+}
+function topX(){ return page === 'title' ? leaveGame() : go('title'); }
+let skipPop = false;
+addEventListener('popstate', e => {
+  if (skipPop) { skipPop = false; return; }
+  if (document.querySelector('#modal .ov')) { closeModal(true); return; }
+  const p = e.state && e.state.p;
+  if (!p) { leaveGame(); return; }
+  page = p; render(); window.scrollTo(0, 0);
+});
+
+function topbar(title){
+  const pill = `<span class="vpill">${VERSION}</span>`;
+  return `<header class="top"><button class="xbtn" onclick="topX()" aria-label="${page === 'title' ? 'Leave the game' : 'Back to the start screen'}">✕</button><span class="ttl mk">${title}</span>${page === 'shop' ? `<span class="cash-pill">$${s.cash}</span>` : ''}${page === 'life' && !s.result ? `<span class="pips">${[0,1,2].map(i => `<i class="${i < s.actions ? 'on' : ''}"></i>`).join('')}</span>` : ''}${pill}</header>`;
+}
+
+/* ---------- title ---------- */
+function title(){
+  const crew = ['lady-ink','pops','lil-smoke','big-country','party-girl'];
+  const pos = [[-2,62],[16,66],[34,76],[54,66],[74,62]];
+  return `${topbar('')}<div class="title"><img class="logo" src="${ic('logo')}" alt="Sober Gangster"><div class="paper tag mk">LOCKED UP, COVERED UP, OR SOBERED UP</div>
+  <div class="crew paper">${crew.map((c,i)=>`<img src="${figImg(c,1)}" alt="" style="left:${pos[i][0]}%;height:${pos[i][1]}%">`).join('')}<span class="say mk">SAME PEOPLE.<br>DIFFERENT PLANS.</span><span class="say say2 mk">ONE DAY<br>AT A TIME</span></div>
+  <button class="paper red big mk drip" onclick="play()">${s.look.done && !s.lockedUp && s.day > 1 ? 'KEEP GOING' : 'PLAY'}<img class="crown" src="${ic('crown')}" alt=""></button>
+  <button class="paper big cream mk" onclick="intro()">HOW TO PLAY</button>
+  ${s.look.done ? `<button class="ghost" onclick="restart()">Start a new run</button>` : ''}</div>`;
+}
+function play(){ go(s.look.done ? 'life' : 'pick'); if (s.look.done && !s.settings.introSeen) intro(); }
+
+/* ---------- pick your homie ---------- */
+function pick(){
+  const sel = pickSel || s.look.fig;
+  return `${topbar('PICK YOUR <b>HOMIE</b>')}<p class="onwall" style="font-weight:600;margin-bottom:10px">Everybody starts fresh off the bus. Where they end up is on you.</p>
+  <div class="pickgrid">${FIGURES.map(f => `<button class="paper pk ${sel === f.id ? 'sel' : ''}" onclick="pickSel='${f.id}';render()" aria-pressed="${sel === f.id}"><div class="ph"><img src="${figImg(f.id,1)}" alt=""></div><span class="mk">${esc(f.name.toUpperCase())}</span><small>${esc(f.who)}</small></button>`).join('')}</div>
+  <div class="stick"><button class="paper red big mk drip" ${sel ? '' : 'disabled'} onclick="choose_fig()">${sel ? "THAT'S ME" : 'PICK ONE'}<img class="crown" src="${ic('crown')}" alt=""></button></div>`;
+}
+function choose_fig(){
+  const f = FIGURES.find(x => x.id === (pickSel || s.look.fig)); if (!f) return;
+  const changing = s.look.done;
+  s.look = { fig: f.id, sex: f.sex, done: true }; pickSel = null; save();
+  go('life'); if (!changing && !s.settings.introSeen) intro();
+}
+
+/* ---------- today ---------- */
+const ACTIONS = () => {
+  const j = jobs[Math.max(0, s.job)], H = CFG.heat, t = jobHuntTarget(s);
+  return [
+    ['work', 'Work a shift', '+$' + j.wage + (s.workToday ? ' · +heat' : ''), 'work', 'Pays $' + j.wage + '. ' + (s.workToday ? 'Another shift today: more stress, and heat.' : 'Stress +' + j.stress + '.')],
+    ['rest', 'Take a breath', '−' + (CFG.restStress + (s.items.includes('dresser') ? CFG.dresserBonus : 0)) + ' stress', 'rest', 'Cools you off. Heat ' + H.rest + '.'],
+    ['responsibility', 'Handle your stuff', 'chores' + (s.arrears ? ' · pay $' + Math.min(s.cash, s.arrears) : ''), 'chores', 'Chores, bills, house warnings. Keeps your bed. Heat ' + H.chores + '.'],
+    ['support', 'Sober support', H.support + ' heat', 'support', 'A meeting, a coffee. +' + CFG.supportConnection + ' connection, ' + CFG.supportStress + ' stress. Drops heat the most.'],
+    ['help', 'Ask for help', s.cash < CFG.helpMealBelow ? 'a meal' : 'a plan', 'help', 'A meal, a plan. +' + CFG.helpConnection + ' connection. Heat ' + H.help + '.' + (s.housing === 'Temporary shelter' ? ' Gets your bed back.' : '')],
+    ['job', 'Better work', t > s.job ? jobs[t].name : s.items.includes('phone') ? 'nothing open' : 'need a phone', 'job', t > s.job ? 'Step up to ' + jobs[t].name.toLowerCase() + ' ($' + jobs[t].wage + ' a shift).' : s.items.includes('phone') ? 'Nothing better open yet. Work boots open stock crew; a car opens maintenance.' : 'Nobody can call you back without a phone. Get one in the shop.']
+  ];
+};
+function room(){
+  const lv = s.housing === 'Temporary shelter' ? 1 : s.level;
+  const pet = s.items.includes('dog') ? `<img class="pet" src="${A}item/dog.webp" alt="your dog">` : '';
+  const stuff = s.items.filter(i => i !== 'dog' && !(item(i).upgrades === undefined && s.items.some(j => item(j).upgrades === i)));
+  return `<div class="paper roomwrap"><div class="room" style="background-image:url(${A}room/${lv}.webp)"><img class="fig" src="${myFig()}" alt="${esc(fig().name)}, level ${s.level}">${pet}<button class="lvltag mk" onclick="go('progress')">LVL <b>${s.level}</b> · ${esc(levelInfo(s.level).name.toUpperCase())}</button><span class="where">${esc(s.housing.toUpperCase())}</span></div>${stuff.length ? `<div class="stuff" aria-label="Your stuff">${stuff.map(i => `<img src="${A}item/${i}.webp" alt="${esc(item(i).name)}" title="${esc(item(i).name)}">`).join('')}</div>` : ''}</div>`;
+}
+function heatUI(){
+  const odds = lockOdds(s), cls = s.heat >= 80 ? 'burning hot' : s.heat > CFG.heat.safe ? 'hot' : '';
+  return `<div class="paper heat ${cls}"><div class="row"><img src="${ic('heat')}" alt=""><span class="mk">HEAT ${s.heat}</span><span class="tag mk">${odds ? pct(odds) + '% tonight' : 'Safe tonight'}</span></div><div class="bar"><span style="width:${s.heat}%"></span></div><div class="odds">${odds ? 'Chance the lights show up tonight: ' + pct(odds) + '%. ' + heatWords(s) : 'Nobody’s looking for you. Keep it under ' + CFG.heat.safe + '.'}</div></div>`;
+}
+function effects(c){
+  const a = [];
+  if (c.cost) a.push(c.cost + ' move' + (c.cost > 1 ? 's' : ''));
+  for (const k of ['cash','stress','connection','heat']) if (c.e[k]) a.push((k === 'cash' ? (c.e[k] > 0 ? '+$' : '−$') + Math.abs(c.e[k]) : (c.e[k] > 0 ? '+' : '') + c.e[k] + ' ' + k));
+  if (c.e.job !== undefined) a.push(jobs[c.e.job].name);
+  if (c.e.housing) a.push(c.e.housing);
+  if (c.requires) a.push('needs ' + reqText(c.requires));
+  if (c.network) a.push('needs connection ' + c.network);
+  if (c.reminder) a.push('callback tomorrow');
+  if (c.rest) a.push('counts as tonight’s rest');
+  if (c.e.warning) a.push('+1 house warning');
+  if (c.e.court) a.push('hearing in 3 days');
+  return a.join(' · ') || 'nothing changes';
+}
+function cardUI(){
+  const e = s.event;
+  return `<section class="paper event drip"><span class="kicker">${e.type === 'risk' ? 'PRESSURE' : 'TODAY’S LIFE CARD'}</span><h2 class="mk">${esc(e.title)}</h2><p>${esc(e.text)}</p>${e.choices.map((c,i) => `<button class="choice" onclick="pickCard(${i})" ${allowed(s,c) ? '' : 'disabled'}><span class="mk">${esc(c.label)}</span><small>${esc(effects(c))}${c.note ? '<br>🎲 ' + esc(c.note) : ''}</small></button>`).join('')}<div class="note">Pick one to get on with your day. Chance outcomes roll when you choose.</div></section>`;
+}
+function life(){
+  if (s.result) return `${topbar('DAY <b>' + CFG.days + '</b> DONE')}${room()}<section class="paper event"><span class="kicker">${CFG.days}-DAY CHAPTER COMPLETE</span><h2 class="mk">LOOK WHAT YOU BUILT.</h2><p>Level ${s.level}: ${esc(levelInfo(s.level).name)}. ${esc(jobs[Math.max(0, s.job)].name)}. $${s.cash} in your pocket.</p>${Object.entries(s.result).map(([k,v]) => `<div class="choice" style="display:flex;justify-content:space-between"><span class="mk">${k}</span><b>${v}/100</b></div>`).join('')}<button class="paper red big mk" onclick="restart()">NEW CHAPTER</button></section>`;
+  const needs = nextNeeds(s);
+  return `${topbar('DAY <b>' + s.day + '</b> / ' + CFG.days)}${room()}
+  <div class="stats"><div class="paper stat"><span class="lab mk"><img src="${ic('cash')}" alt="">CASH</span><strong class="mk">$${s.cash}</strong></div>
+  <div class="paper stat"><span class="lab mk"><img src="${ic('stress')}" alt="">STRESS</span><strong class="mk">${s.stress}</strong><div class="bar"><span style="width:${s.stress}%"></span></div></div>
+  <div class="paper stat"><span class="lab mk"><img src="${ic('connection')}" alt="">CONNECTION</span><strong class="mk">${s.connection}</strong><div class="bar gold"><span style="width:${s.connection}%"></span></div></div></div>
+  ${heatUI()}
+  ${s.level < 4 ? `<button class="paper next" style="display:block;width:100%;text-align:left" onclick="go('progress')"><span class="mk">NEXT: LVL ${s.level + 1} · ${esc(levelInfo(s.level + 1).name.toUpperCase())}</span><br>Needs ${esc(needs.join(', ')) || 'one more good night'}. <span style="opacity:.7">${s.balanced} balanced day${s.balanced === 1 ? '' : 's'} so far.</span></button>` : ''}
+  ${s.event ? cardUI() : ''}
+  <div class="banner"><span class="mk">YOUR MOVES</span><span class="left mk">${s.actions} left</span></div>
+  <div class="moves">${ACTIONS().map(([id,label,fx,icon]) => `<button class="paper mv" ${s.event || !s.actions ? 'disabled' : ''} onclick="confirmAction('${id}')"><img src="${ic(icon)}" alt=""><span><span class="mk">${label}</span><small>${esc(fx)}</small></span></button>`).join('')}</div>
+  <button class="paper call" ${s.event || s.calledToday ? 'disabled' : ''} onclick="call(s);chime();render()"><span><span class="mk">${s.calledToday ? 'Called. Good.' : 'Make a sober call'}</span><small>${s.calledToday ? 'Tonight’s skipped-support heat is cut in half.' : 'Two minutes. Doesn’t use a move. Heat ' + CFG.heat.call + '.'}</small></span><span class="free mk">${s.calledToday ? 'DONE' : 'FREE'}</span></button>
+  <button class="paper red big mk drip" ${s.event ? 'disabled' : ''} onclick="night()">${s.actions ? 'CALL IT A DAY' : 'NEXT DAY'}<img class="crown" src="${ic('crown')}" alt=""></button>
+  <p class="note onwall" style="text-align:center">${s.event ? 'Handle today’s life card first.' : 'Food is $' + CFG.food + ' a night. Rent $' + rentDue(s) + ' on day ' + nextRentDay(s) + '.'}</p>`;
+}
+
+/* ---------- shop ---------- */
+function shopUI(){
+  const rows = shop.filter(p => p.group === shopTab && !(p.guyOnly && s.look.sex !== 'guy') && !(p.girlOnly && s.look.sex !== 'girl')).map(p => {
+    const why = cantBuy(s, p.id), own = why === 'owned', lock = /^level /.test(why);
+    return `<button class="paper it ${own ? 'own' : ''} ${lock ? 'lock' : ''}" onclick="purchase('${p.id}')"><div class="ph"><img src="${A}item/${p.id}.webp" alt=""></div>${own ? '<span class="stamp">OWNED</span>' : lock ? `<span class="stamp"><img src="${ic('lock')}" alt="">LVL ${p.minLevel}</span>` : ''}<span class="mk">${esc(p.name)}</span><span class="pr">${own ? 'OWNED' : '$' + p.price}</span></button>`;
+  }).join('');
+  return `${topbar('THE <b>SHOP</b>')}<div class="tabs">${SHOP_GROUPS.map(([g,t]) => `<button class="paper ${shopTab === g ? 'on' : ''}" onclick="shopTab='${g}';render()">${t}</button>`).join('')}</div><p class="onwall" style="font-weight:600;margin:-4px 0 10px;font-size:13px">${esc(SHOP_GROUPS.find(x => x[0] === shopTab)[2])} ${s.actions} move${s.actions === 1 ? '' : 's'} left today.</p><div class="sgrid">${rows}</div><p class="note onwall shopnote">Each buy uses one move. Stuff can’t buy recovery, but it can feel good. Your stuff shows up under your room.</p>`;
+}
+function purchase(id){
+  const p = item(id), why = cantBuy(s, id);
+  const btn = why ? `<button class="paper big cream mk" disabled>${why === 'owned' ? 'YOU GOT IT' : /^level /.test(why) ? 'UNLOCKS AT ' + why.toUpperCase() : esc(why.toUpperCase())}</button>` : `<button class="paper red big mk" onclick="buy(s,'${id}');closeModal();chime();render()">BUY IT · $${p.price}</button>`;
+  show(`<div style="text-align:center"><img src="${A}item/${id}.webp" alt="" style="max-height:120px;max-width:70%;filter:drop-shadow(0 4px 3px #0006)"></div><h2 class="mk">${esc(p.name)}</h2><p>$${p.price} · 1 move<br>${esc(p.desc)}${p.feel ? '<br>Feels good: −' + p.feel + ' stress.' : ''}</p>${btn}<button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep saving</button>`);
+}
+
+/* ---------- progress + settings ---------- */
+function progress(){
+  return `${topbar('YOUR <b>STORY</b>')}<div class="paper" style="padding:10px"><div class="ladder">${LEVELS.map(L => `<div class="rung ${L.n > s.level ? 'no' : ''} ${L.n === s.level ? 'cur paper' : ''}"><img src="${myFig(L.n)}" alt=""><span class="mk">LVL ${L.n}</span><br>${esc(L.name)}</div>`).join('')}</div>
+  <p class="note">${s.level < 4 ? 'Next level needs ' + esc(nextNeeds(s).join(', ') || 'one more good night') + '. ' : 'You made it. Keep living. '}A balanced day = stress under ${CFG.balance.stress}, connection ${CFG.balance.connection}+, heat ${CFG.heat.safe} or less when you go to bed. Get locked up and it’s back to level 1.</p></div>
+  <div class="banner"><span class="mk">LITTLE BIG WINS</span></div>${s.milestones.length ? s.milestones.map(x => `<div class="paper badge">★ ${esc(x)}</div>`).join('') : '<p class="onwall">The first one’s waiting. Keeping a bed counts.</p>'}
+  <div class="banner"><span class="mk">WHAT HAPPENED</span></div>${s.log.map(x => `<div class="log">${esc(x)}</div>`).join('')}`;
+}
+function settings(){
+  return `${topbar('<b>SETTINGS</b>')}
+  <button class="paper set" onclick="go('pick')"><span class="mk">Change my homie</span><small>Same run, different figure. Now: ${esc(fig().name)}.</small></button>
+  <button class="paper set" onclick="s.settings.sound=!s.settings.sound;save();render()"><span class="mk">Chime: ${s.settings.sound ? 'ON' : 'OFF'}</span><small>A little ding when you make a move.</small></button>
+  <button class="paper set" onclick="intro()"><span class="mk">How to play</span><small>The short version.</small></button>
+  <button class="paper set" onclick="rules()"><span class="mk">How the odds work</span><small>All the numbers. Lock-up chance tonight: ${pct(lockOdds(s))}%.</small></button>
+  <button class="paper set" onclick="restart()"><span class="mk">Start a new run</span><small>Back to level 1, day 1. Keeps your homie.</small></button>
+  <footer>Sober Gangster ${VERSION} · Recovery Misfits · Saves on this phone automatically.<br>A life game, not recovery advice. Original characters.</footer>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  save();
+  const app = document.getElementById('app'), nav = document.getElementById('nav');
+  if (!s.look.done && page !== 'title' && page !== 'pick') page = 'pick';
+  const inGame = ['life','shop','progress','settings'].includes(page);
+  app.className = inGame ? '' : 'nonav';
+  app.innerHTML = page === 'title' ? title() : page === 'pick' ? pick() : page === 'shop' ? shopUI() : page === 'progress' ? progress() : page === 'settings' ? settings() : life();
+  nav.hidden = !inGame;
+  if (inGame) nav.innerHTML = '<div class="in">' + [['life','TODAY','nav-today'],['shop','SHOP','nav-shop'],['progress','PROGRESS','nav-progress'],['settings','SETTINGS','nav-settings']].map(([p,t,i]) => `<button class="${page === p ? 'on' : ''}" onclick="${page === p ? '' : `go('${p}')`}" aria-current="${page === p}"><img src="${ic(i)}" alt="">${t}</button>`).join('') + '</div>';
+  if (inGame && s.lockedUp && !document.querySelector('#modal .locked')) lockupUI();
+  else if (inGame && s.levelUp && !document.querySelector('#modal .ov')) levelUpUI();
+  setTimeout(flushNotices, 60);
+}
+
+/* ---------- overlays ---------- */
+function show(html, cls = ''){
+  document.getElementById('modal').innerHTML = `<div class="ov" onclick="if(event.target===this)closeModal()"><div class="paper ${cls}"><button class="x xbtn" onclick="closeModal()" aria-label="Close">✕</button>${html}</div></div>`;
+  history.pushState({ p: page, m: 1 }, '');
+}
+function closeModal(fromBack){
+  const m = document.getElementById('modal'); if (!m.innerHTML) return;
+  m.innerHTML = '';
+  if (!fromBack && history.state && history.state.m) { skipPop = true; history.back(); }
+}
+function chime(){ if (!s.settings.sound) return; try { const a = new (window.AudioContext||window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); g.gain.value = .025; o.frequency.value = 440; o.start(); o.stop(a.currentTime + .1); o.onended = () => a.close(); } catch {} }
+function confirmAction(id){
+  const a = ACTIONS().find(x => x[0] === id);
+  show(`<div style="text-align:center"><img src="${ic(a[3])}" alt="" style="width:80px"></div><h2 class="mk">${a[1]}</h2><p>${esc(a[4])}</p><p class="note">Uses 1 move · ${esc(a[2])}</p><button class="paper red big mk" onclick="closeModal();action(s,'${id}');chime();render()">DO IT</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep thinking</button>`);
+}
+function pickCard(i){ choose(s, i); chime(); render(); }
+function levelUpUI(){
+  const L = levelInfo(s.levelUp), from = Math.max(1, s.levelUp - 1);
+  const unlocks = shop.filter(p => p.minLevel === s.levelUp).map(p => p.name);
+  show(`<div class="burst"></div><h1 class="mk">LEVEL UP!</h1><div class="row"><img class="was" src="${myFig(from)}" alt=""><span class="arrow mk">→</span><img src="${myFig(s.levelUp)}" alt=""></div><div class="lname mk">LEVEL ${L.n} · ${esc(L.name.toUpperCase())}</div><p>${s.housing === 'Temporary shelter' ? 'You’re climbing.' : 'New place: ' + esc(L.housing) + '.'} ${s.balanced} balanced days and the work to show for it.</p>${unlocks.length ? `<p class="note" style="margin-top:0">Unlocked in the shop: ${esc(unlocks.join(', '))}.</p>` : ''}${L.n === 4 ? '<p>Moved out. A ' + (fig().sex === 'girl' ? 'lady' : 'gentleman') + '. Keep living.</p>' : ''}<button class="paper red big mk" onclick="s.levelUp=null;save();closeModal()">LET'S GO<img class="crown" src="${ic('crown')}" alt=""></button>`, 'lvup');
+}
+function lockupUI(){
+  const L = s.lockedUp;
+  document.getElementById('modal').innerHTML = `<div class="ov"><div class="paper locked"><h1 class="mk">LOCKED <b>UP.</b></h1><div class="cell"><img src="${myFig()}" alt=""></div><p>Night ${L.day}. Heat was ${L.heat}. The odds said ${L.odds}% and tonight they hit.</p><p>Back to level 1, fresh off the bus. It’s not a verdict. It’s a do-over.</p><button class="paper red big mk" onclick="startOver()">START OVER</button><button class="paper big cream mk" onclick="document.getElementById('modal').innerHTML='';go('progress')">SEE WHAT HAPPENED</button></div></div>`;
+}
+function startOver(){ s = restartKeepFigure(s); document.getElementById('modal').innerHTML = ''; save(); go('life'); }
+function night(){
+  const odds = pct(lockOdds(s));
+  if (s.actions) show(`<h2 class="mk">CALL IT A DAY?</h2><p>${s.actions} move${s.actions === 1 ? '' : 's'} left. They don’t carry over. Food, rent when it’s due, and the night still happen.${odds ? '<br><b>Heat ' + s.heat + ': ' + odds + '% chance the lights show up tonight.</b>' : ''}</p><button class="paper red big mk" onclick="closeModal();sleep()">FINISH TODAY</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Use my time</button>`);
+  else sleep();
+}
+function sleep(){
+  const day = s.day, odds = pct(lockOdds(s)), heat = s.heat;
+  const m = document.getElementById('modal');
+  m.innerHTML = `<div class="night"><div><h1 class="mk">NIGHT ${day}</h1><p>${odds ? 'Heat ' + heat + '. ' + odds + '% chance the lights show up.' : 'Heat ' + heat + '. Nobody’s looking for you.'}</p><div class="dots">● ● ●</div></div></div>`;
+  window.scrollTo(0, 0);
+  setTimeout(() => {
+    endDay(s); save();
+    if (s.lockedUp) { m.innerHTML = ''; render(); return; }
+    const box = m.querySelector('.night > div');
+    if (box) { box.innerHTML = `<h1 class="mk">NIGHT ${day}</h1><div class="made mk">${odds ? 'You made it.' : 'Slept fine.'}</div><p>${s.event ? 'Morning. A life card’s waiting.' : 'Morning.'}</p><small>Tap anywhere</small>`; m.querySelector('.night').onclick = () => { m.innerHTML = ''; render(); }; }
+    setTimeout(() => { if (m.querySelector('.night')) { m.innerHTML = ''; render(); } }, 1400);
+  }, odds ? 1600 : 900);
+}
+function intro(){
+  show('<h2 class="mk">HOW TO PLAY.</h2>'
+  + '<p><b>Pick your homie.</b> Everybody starts fresh off the bus: a bed in a sober house, twelve bucks, a garbage bag.</p>'
+  + '<p><b>One day = three moves.</b> Work, rest, hit support, handle your stuff, ask for help, or shop. Then <b>Call it a day</b>.</p>'
+  + '<p><b>Level up</b> by staying in balance (stress down, people in your corner, heat low) and moving up the job ladder. Four levels: Fresh off the bus, Working, Stacking money, Moved out.</p>'
+  + '<p><b>HEAT gets you locked up.</b> It climbs when you overwork, skip support, or take sketchy deals. Over ' + CFG.heat.safe + ', the meter shows your odds tonight. Locked up = back to level 1.</p>'
+  + '<p><b>The shop is the fun part.</b> New stuff unlocks as you level up. Stuff can’t buy recovery, but it can feel good.</p>'
+  + '<p><b>Busy day? Make a sober call.</b> It’s free and keeps the heat down.</p>'
+  + '<button class="paper red big mk" onclick="s.settings.introSeen=true;save();closeModal()">GOT IT</button>');
+}
+function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, level 1, $${CFG.startCash}. You keep your homie.</p><button class="paper red big mk" onclick="s=restartKeepFigure(s);closeModal();save();go('life')">START OVER</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
+function rules(){
+  const H = CFG.heat;
+  show('<h2 class="mk">THE NUMBERS.</h2><p>First shift pays $' + jobs[0].wage + '–' + jobs[jobs.length-1].wage + ' depending on your job. A second or third shift in a day adds stress, costs connection, and adds heat. Rest −' + CFG.restStress + ' stress. Support +' + CFG.supportConnection + ' connection, ' + CFG.supportStress + ' stress.</p>'
+  + '<p><b>Heat</b> goes up when you skip support (+' + H.noSupport[2] + ', then +' + H.noSupport[3] + ', +' + H.noSupport[4] + ' a night), overwork, rush big decisions, or take sketchy deals; also every night your stress is ' + H.maxedStress + '+ or connection is under ' + H.aloneBelow + '. It comes down when you show up: support ' + H.support + ', help ' + H.help + ', rest ' + H.rest + ', chores ' + H.chores + ', a sober call ' + H.call + '. At ' + H.safe + ' or less nothing happens. Above that, up to ' + pct(H.maxOdds) + '% at 100.</p>'
+  + '<p><b>Levels:</b> ' + LEVELS.slice(1).map(L => 'Level ' + L.n + ' needs ' + L.need.balanced + ' balanced days, ' + jobs[L.need.job].name.toLowerCase() + ' or better' + (L.need.cash ? ', $' + L.need.cash + ' saved' : '') + (L.need.noDebt ? ', rent paid up' : '')).join('. ') + '.</p>'
+  + '<p>Rent is $' + CFG.rent + ' every ' + CFG.rentDays + ' days. ' + CFG.bedLossWarnings + ' house warnings or $' + CFG.bedLossArrears + ' owed costs you the bed; asking for help gets it back.</p><button class="paper red big mk" onclick="closeModal()">LET’S GO</button>');
+}
+
+/* ---------- little pop-up notices (same as Sobered Up) ---------- */
+function warnings(){
+  const a = [];
+  if (s.heat >= 70) a.push(['warn', 'Heat ' + s.heat + '. Tonight’s a gamble. Hit support.']);
+  else if (s.heat > CFG.heat.safe) a.push(['warn', 'Heat’s up. Support or a call brings it down.']);
+  if (s.stress >= CFG.heat.maxedStress) a.push(['warn', 'Stress ' + s.stress + '. Rest.']);
+  if (s.connection < CFG.heat.aloneBelow) a.push(['warn', 'Connection ' + s.connection + '. Nobody’s in your corner.']);
+  if (s.day % CFG.rentDays === CFG.rentDays - 1) a.push(['', 'Rent’s tomorrow: $' + rentDue(s) + '.']);
+  if (s.arrears) a.push(['warn', 'You owe $' + s.arrears + '. At $' + CFG.bedLossArrears + ' you lose the bed.']);
+  if (s.warnings) a.push(['warn', s.warnings + ' of ' + CFG.bedLossWarnings + ' house warnings.']);
+  if (s.court) a.push(['warn', 'Court: day ' + s.court + '. Show up.']);
+  return a;
+}
+const noticed = new Set();
+function notify(text, kind = '', ms = 4500){
+  let box = document.getElementById('notices');
+  if (!box) { box = document.createElement('div'); box.id = 'notices'; box.className = 'notices'; document.body.appendChild(box); }
+  const n = document.createElement('div'); n.className = 'notice ' + kind; n.textContent = text;
+  const gone = () => { if (!n.classList.contains('out')) { n.classList.add('out'); setTimeout(() => n.remove(), 300); } };
+  n.onclick = gone; box.appendChild(n); setTimeout(gone, ms);
+}
+function flushNotices(){
+  if (page !== 'life' || s.lockedUp || s.result || document.querySelector('#modal .ov')) return;
+  let i = 0;
+  if (s.lastOutcome) { const k = 'out:' + s.day + ':' + s.lastOutcome; if (!noticed.has(k)) { noticed.add(k); notify(s.lastOutcome, 'good'); i++; } }
+  for (const [kind, text] of warnings()) { const k = s.day + ':' + text; if (!noticed.has(k)) { noticed.add(k); setTimeout(() => notify(text, kind), 700 * i++); } }
+}
+
+history.replaceState({ p: 'title' }, '');
+render();
+</script>
+</body>
+</html>
