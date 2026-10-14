@@ -19,7 +19,9 @@ const EYE_NAMES = ['Round', 'Chill', 'Narrow', 'Wide'];
 const NOSE_NAMES = ['Small', 'Button', 'Big'];
 const INK_NAMES = ['No tattoos', 'Already inked'];
 // color ramps: a slider from 0 to 100 walks these stops
-const SKIN_RAMP = ['#f7e0c8', '#efc7a4', '#dfa877', '#c4865a', '#a46a44', '#80502f', '#5b3620', '#3d2415'];
+// natural tones first, then it keeps going: gray, green, blue, purple. Push the slider and see.
+const SKIN_RAMP = ['#f7e0c8', '#efc7a4', '#dfa877', '#c4865a', '#a46a44', '#80502f', '#5b3620', '#3d2415', '#8a8f8a', '#7fb36b', '#5ea0c9', '#9a6fc4'];
+const EYE_RAMP = ['#3b2314', '#6b4a2b', '#8a7a3a', '#4f8a4a', '#3f7fb5', '#7a8a99', '#b8302a', '#0a0a0a'];
 const HAIR_RAMP = ['#15120f', '#2e2019', '#4a2f1c', '#7a4b26', '#a8452a', '#c97a3a', '#d8b25c', '#e8d8a8', '#a3a3a3', '#efefef'];
 const VINYL_SHADE = .16;
 
@@ -40,11 +42,12 @@ function lighter(hex, k = .25) {
 }
 
 function dollSVG(s, opts = {}) {
-  const L = Object.assign({ sex: 'guy', skin: 40, hairColor: 10, hair: 1, hairLen: 40, beard: 0, beardLen: 40, width: 45, height: 50, eyes: 0, brows: 50, nose: 1, ink: 0 }, s.look || {});
+  const L = Object.assign({ sex: 'guy', skin: 40, hairColor: 10, hair: 1, hairLen: 40, beard: 0, beardLen: 40, width: 45, height: 50, eyes: 0, brows: 50, nose: 1, eyeSize: 40, eyeColor: 10, ink: 0 }, s.look || {});
   const own = id => s.items && s.items.includes(id);
   const w = slot => (typeof worn === 'function' ? worn(s, slot) : null);
   const skin = ramp(SKIN_RAMP, L.skin), skin2 = darker(skin, .84), skin3 = darker(skin, .72);
   const hair = ramp(HAIR_RAMP, L.hairColor), hair2 = darker(hair, .75);
+  const iris = ramp(EYE_RAMP, L.eyeColor), es = .7 + (L.eyeSize / 100) * 1.3;   // eye size 0.7× → 2×
   const W = .7 + (L.width / 100) * .9;              // 0.7 skinny → 1.6 chunky
   const H = .8 + (L.height / 100) * .45;            // 0.8 short → 1.25 tall
   const hl = L.hairLen / 100, bl = L.beardLen / 100;
@@ -148,10 +151,11 @@ function dollSVG(s, opts = {}) {
   g.push(`<path d="${mouth}" fill="none" stroke="${mouthColor}" stroke-width="3" stroke-linecap="round"/>`);
   if (!own('shades')) {
     const eye = (x) => {
-      if (L.eyes === 1) return `<path d="M${x - 7} ${ey} q7 -8 14 0 q-7 6 -14 0z" fill="#fff"/><circle cx="${x + 1}" cy="${ey + 1}" r="3.2" fill="#2a241f"/><path d="M${x - 8} ${ey - 1} q8 -8 16 0" fill="none" stroke="${skin3}" stroke-width="2"/>`;
-      if (L.eyes === 2) return `<path d="M${x - 7} ${ey} q7 -5 14 0 q-7 5 -14 0z" fill="#fff"/><circle cx="${x + 1}" cy="${ey}" r="2.6" fill="#2a241f"/>`;
-      if (L.eyes === 3) return `<ellipse cx="${x}" cy="${ey}" rx="7.5" ry="9" fill="#fff"/><circle cx="${x + 1}" cy="${ey + 1}" r="4.5" fill="#2a241f"/><circle cx="${x + 3}" cy="${ey - 1}" r="1.6" fill="#fff"/>`;
-      return `<ellipse cx="${x}" cy="${ey}" rx="6" ry="7" fill="#fff"/><circle cx="${x + 1}" cy="${ey + 1}" r="3.6" fill="#2a241f"/><circle cx="${x + 2.5}" cy="${ey - .5}" r="1.2" fill="#fff"/>`;
+      const t = `transform="translate(${x} ${ey}) scale(${es}) translate(${-x} ${-ey})"`;
+      if (L.eyes === 1) return `<g ${t}><path d="M${x - 7} ${ey} q7 -8 14 0 q-7 6 -14 0z" fill="#fff"/><circle cx="${x + 1}" cy="${ey + 1}" r="3.4" fill="${iris}"/><circle cx="${x + 1}" cy="${ey + 1}" r="1.8" fill="#111"/><path d="M${x - 8} ${ey - 1} q8 -8 16 0" fill="none" stroke="${skin3}" stroke-width="2"/></g>`;
+      if (L.eyes === 2) return `<g ${t}><path d="M${x - 7} ${ey} q7 -5 14 0 q-7 5 -14 0z" fill="#fff"/><circle cx="${x + 1}" cy="${ey}" r="2.8" fill="${iris}"/><circle cx="${x + 1}" cy="${ey}" r="1.5" fill="#111"/></g>`;
+      if (L.eyes === 3) return `<g ${t}><ellipse cx="${x}" cy="${ey}" rx="7.5" ry="9" fill="#fff"/><circle cx="${x + 1}" cy="${ey + 1}" r="5" fill="${iris}"/><circle cx="${x + 1}" cy="${ey + 1}" r="2.6" fill="#111"/><circle cx="${x + 3}" cy="${ey - 1}" r="1.6" fill="#fff"/></g>`;
+      return `<g ${t}><ellipse cx="${x}" cy="${ey}" rx="6" ry="7" fill="#fff"/><circle cx="${x + 1}" cy="${ey + 1}" r="3.8" fill="${iris}"/><circle cx="${x + 1}" cy="${ey + 1}" r="2" fill="#111"/><circle cx="${x + 2.5}" cy="${ey - .5}" r="1.2" fill="#fff"/></g>`;
     };
     g.push(eye(cx - ex), eye(cx + ex));
   }
@@ -228,4 +232,4 @@ function roomSVG(s) {
   return p.join('');
 }
 
-if (typeof module !== 'undefined') module.exports = { dollSVG, roomSVG, HAIR_NAMES, BEARD_NAMES, EYE_NAMES, NOSE_NAMES, INK_NAMES, SKIN_RAMP, HAIR_RAMP, ramp };
+if (typeof module !== 'undefined') module.exports = { dollSVG, roomSVG, HAIR_NAMES, BEARD_NAMES, EYE_NAMES, NOSE_NAMES, INK_NAMES, SKIN_RAMP, HAIR_RAMP, EYE_RAMP, ramp };

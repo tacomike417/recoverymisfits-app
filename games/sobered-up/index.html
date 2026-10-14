@@ -112,8 +112,10 @@ input[type=range]::-webkit-slider-runnable-track{height:10px;border:2px solid va
 input[type=range]::-moz-range-track{height:10px;border:2px solid var(--ink);background:#fff8e8}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);margin-top:-11px}
 input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--gold);border:3px solid var(--ink)}
-input.skin::-webkit-slider-runnable-track{background:linear-gradient(90deg,#f7e0c8,#efc7a4,#dfa877,#c4865a,#a46a44,#80502f,#5b3620,#3d2415)}
-input.skin::-moz-range-track{background:linear-gradient(90deg,#f7e0c8,#efc7a4,#dfa877,#c4865a,#a46a44,#80502f,#5b3620,#3d2415)}
+input.skin::-webkit-slider-runnable-track{background:linear-gradient(90deg,#f7e0c8,#efc7a4,#dfa877,#c4865a,#a46a44,#80502f,#5b3620,#3d2415,#8a8f8a,#7fb36b,#5ea0c9,#9a6fc4)}
+input.skin::-moz-range-track{background:linear-gradient(90deg,#f7e0c8,#efc7a4,#dfa877,#c4865a,#a46a44,#80502f,#5b3620,#3d2415,#8a8f8a,#7fb36b,#5ea0c9,#9a6fc4)}
+input.eyecolor::-webkit-slider-runnable-track{background:linear-gradient(90deg,#3b2314,#6b4a2b,#8a7a3a,#4f8a4a,#3f7fb5,#7a8a99,#b8302a,#0a0a0a)}
+input.eyecolor::-moz-range-track{background:linear-gradient(90deg,#3b2314,#6b4a2b,#8a7a3a,#4f8a4a,#3f7fb5,#7a8a99,#b8302a,#0a0a0a)}
 input.haircolor::-webkit-slider-runnable-track{background:linear-gradient(90deg,#15120f,#2e2019,#4a2f1c,#7a4b26,#a8452a,#c97a3a,#d8b25c,#e8d8a8,#a3a3a3,#efefef)}
 input.haircolor::-moz-range-track{background:linear-gradient(90deg,#15120f,#2e2019,#4a2f1c,#7a4b26,#a8452a,#c97a3a,#d8b25c,#e8d8a8,#a3a3a3,#efefef)}
 .shopdoll{display:flex;gap:12px;align-items:stretch;margin-top:4px}
@@ -157,7 +159,7 @@ input.haircolor::-moz-range-track{background:linear-gradient(90deg,#15120f,#2e20
 <main id="app"></main>
 <nav id="nav"></nav>
 <div id="modal"></div>
-<script src="engine.js?v=0.12"></script><script src="doll.js?v=0.12"></script><!-- bump ?v= with every VERSION change: GitHub Pages caches .js for 10 min and phones hold it longer -->
+<script src="engine.js?v=0.13"></script><script src="doll.js?v=0.13"></script><!-- bump ?v= with every VERSION change: GitHub Pages caches .js for 10 min and phones hold it longer -->
 <script>
 let s; let page = 'life'; let storageOK = true;
 try { s = migrate(JSON.parse(localStorage.getItem(SAVE_KEY))) || fresh(); } catch { s = fresh(); }
@@ -255,9 +257,9 @@ function picker(){
   const him = L.sex === 'girl' ? 'her' : 'him';
   return `<div class="pickdoll"><svg id="pickdoll" viewBox="10 -24 180 300">${dollSVG(s)}</svg><div class="pickhead"><h2>BUILD YOUR ${L.sex === 'girl' ? 'GIRL' : 'GUY'}</h2><small>Make ${him} look like you.</small></div></div>
   ${section('WHO', `<div class="prow"><span></span>${chip(L.sex === 'guy', set('sex', 'guy'), 'Guy')}${chip(L.sex === 'girl', set('sex', 'girl') + ';s.look.beard=0', 'Girl')}</div>`)}
-  ${section('BODY', slider('skin', 'Skin', 'light', 'dark', 'skin') + slider('width', 'Build', 'skinny', 'chunky') + slider('height', 'Height', 'short', 'tall'))}
+  ${section('BODY', slider('skin', 'Skin', 'light', 'dark… and beyond', 'skin') + slider('width', 'Build', 'skinny', 'chunky') + slider('height', 'Height', 'short', 'tall'))}
   ${section('HAIR', `<div class="prow"><span>Style</span>${HAIR_NAMES[L.sex].map((n, i) => chip(L.hair === i, set('hair', i), n)).join('')}</div>` + slider('hairColor', 'Color', 'black', 'white', 'haircolor') + slider('hairLen', 'Length', 'short', 'long'))}
-  ${section('FACE', `<div class="prow"><span>Eyes</span>${EYE_NAMES.map((n, i) => chip(L.eyes === i, set('eyes', i), n)).join('')}</div>` + slider('brows', 'Brows', 'thin', 'heavy') + `<div class="prow"><span>Nose</span>${NOSE_NAMES.map((n, i) => chip(L.nose === i, set('nose', i), n)).join('')}</div>` + (L.sex === 'guy' ? `<div class="prow"><span>Beard</span>${BEARD_NAMES.map((n, i) => chip(L.beard === i, set('beard', i), n)).join('')}</div>` + (L.beard >= 2 ? slider('beardLen', 'Length', 'short', 'long') : '') : ''))}
+  ${section('FACE', `<div class="prow"><span>Eyes</span>${EYE_NAMES.map((n, i) => chip(L.eyes === i, set('eyes', i), n)).join('')}</div>` + slider('eyeSize', 'Size', 'small', 'huge') + slider('eyeColor', 'Color', 'brown', 'black', 'eyecolor') + slider('brows', 'Brows', 'thin', 'heavy') + `<div class="prow"><span>Nose</span>${NOSE_NAMES.map((n, i) => chip(L.nose === i, set('nose', i), n)).join('')}</div>` + (L.sex === 'guy' ? `<div class="prow"><span>Beard</span>${BEARD_NAMES.map((n, i) => chip(L.beard === i, set('beard', i), n)).join('')}</div>` + (L.beard >= 2 ? slider('beardLen', 'Length', 'short', 'long') : '') : ''))}
   ${section('INK', `<div class="prow"><span></span>${INK_NAMES.map((n, i) => chip(L.ink === i, set('ink', i), n)).join('')}</div>`)}
   <p class="note">${L.sex === 'girl' ? 'She starts' : 'He starts'} with a garbage bag of clothes, slides, shorts, a tank top. Everything from the shop shows up on ${him}. You can change your look later in Settings.</p>
   <button class="primary" onclick="s.look.done=true;page='life';render();window.scrollTo(0,0)">That’s ${him} →</button>`;
