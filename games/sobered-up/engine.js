@@ -4,7 +4,7 @@
    v0.2 — build order steps 1 + 2: prototype gaps fixed, heat meter + locked-up game over.
 */
 
-const VERSION = 'v0.16';
+const VERSION = 'v0.17';
 const SAVE_KEY = 'sobered-up-v2';
 
 const CFG = {

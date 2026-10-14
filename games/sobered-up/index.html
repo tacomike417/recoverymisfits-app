@@ -95,7 +95,10 @@ nav button.active{background:var(--gold);color:var(--ink)}
 select{width:100%;font:inherit;padding:12px;background:var(--paper);border:2px solid}
 footer{font-size:11px;line-height:1.6;margin-top:24px;border-top:2px solid;padding-top:12px}
 /* PICKER + SHOP */
-.pickdoll{position:sticky;top:0;z-index:3;border:3px solid;background:#d5c5a7;margin:0 0 12px;display:flex;align-items:center;gap:6px;padding:4px 10px 4px 0}
+.pickwrap{position:fixed;left:50%;transform:translateX(-50%);top:0;bottom:calc(60px + env(safe-area-inset-bottom));width:min(480px,100%);display:flex;flex-direction:column;background:var(--paper);z-index:3}
+.picktop{flex:none;padding:calc(10px + env(safe-area-inset-top)) 16px 0}
+.pickscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 16px 24px}
+.pickdoll{border:3px solid;background:#d5c5a7;margin:10px 0 0;display:flex;align-items:center;gap:6px;padding:4px 10px 4px 0}
 .pickdoll svg{height:210px;width:auto;display:block;flex:none}
 .pickhead h2{font-size:28px;margin:0;line-height:.95}.pickhead small{display:block;font-size:12px;margin-top:6px;color:#575248}
 .pcard{border:2px solid;background:var(--paper);box-shadow:3px 3px 0 var(--ink);padding:10px 12px 6px;margin:0 0 12px}
@@ -162,7 +165,7 @@ input.haircolor::-moz-range-track{background:linear-gradient(90deg,#15120f,#2e20
 <main id="app"></main>
 <nav id="nav"></nav>
 <div id="modal"></div>
-<script src="engine.js?v=0.16"></script><script src="doll.js?v=0.16"></script><!-- bump ?v= with every VERSION change: GitHub Pages caches .js for 10 min and phones hold it longer -->
+<script src="engine.js?v=0.17"></script><script src="doll.js?v=0.17"></script><!-- bump ?v= with every VERSION change: GitHub Pages caches .js for 10 min and phones hold it longer -->
 <script>
 let s; let page = 'life'; let storageOK = true;
 try { s = migrate(JSON.parse(localStorage.getItem(SAVE_KEY))) || fresh(); } catch { s = fresh(); }
@@ -258,7 +261,7 @@ function picker(){
   const slider = (k, label, lo, hi, cls = '') => `<div class="prow"><span>${label}</span><div class="sl"><input type="range" class="${cls}" min="0" max="100" value="${L[k]}" oninput="s.look.${k}=+this.value;dollLive()" onchange="save()"><div class="ends"><span>${lo}</span><span>${hi}</span></div></div></div>`;
   const section = (title, body) => `<div class="pcard"><div class="ptitle">${title}</div>${body}</div>`;
   const him = L.sex === 'girl' ? 'her' : 'him';
-  return `<div class="pickdoll"><svg id="pickdoll" viewBox="0 -70 200 340">${dollSVG(s)}</svg><div class="pickhead"><h2>BUILD YOUR ${L.sex === 'girl' ? 'GIRL' : 'GUY'}</h2><small>Make ${him} look like you.</small></div></div>
+  return `<div class="pickwrap"><div class="picktop">${brandBar()}<div class="pickdoll"><svg id="pickdoll" viewBox="0 -70 200 340">${dollSVG(s)}</svg><div class="pickhead"><h2>BUILD YOUR ${L.sex === 'girl' ? 'GIRL' : 'GUY'}</h2><small>Make ${him} look like you.</small></div></div></div><div class="pickscroll">
   ${section('WHO', `<div class="prow"><span></span>${chip(L.sex === 'guy', set('sex', 'guy'), 'Guy')}${chip(L.sex === 'girl', set('sex', 'girl') + ';s.look.beard=0', 'Girl')}</div>`)}
   ${section('BODY', slider('skin', 'Skin', 'light', 'dark… and beyond', 'skin') + slider('width', 'Build', 'skinny', 'chunky') + slider('height', 'Height', 'short', 'tall'))}
   ${section('HAIR', `<div class="prow"><span>Style</span>${HAIR_NAMES[L.sex].map((n, i) => chip(L.hair === i, set('hair', i), n)).join('')}</div>` + slider('hairColor', 'Color', 'black', 'white', 'haircolor') + slider('hairLen', 'Length', 'short', 'long'))}
@@ -266,7 +269,7 @@ function picker(){
   ${section('FACE', `<div class="prow"><span>Eyes</span>${EYE_NAMES.map((n, i) => chip(L.eyes === i, set('eyes', i), n)).join('')}</div>` + slider('eyeSize', 'Size', 'small', 'huge') + slider('eyeColor', 'Color', 'brown', 'black', 'eyecolor') + slider('brows', 'Brows', 'thin', 'heavy') + `<div class="prow"><span>Nose</span>${NOSE_NAMES.map((n, i) => chip(L.nose === i, set('nose', i), n)).join('')}</div>` + (L.sex === 'guy' ? `<div class="prow"><span>Beard</span>${BEARD_NAMES.map((n, i) => chip(L.beard === i, set('beard', i), n)).join('')}</div>` + (L.beard >= 2 ? slider('beardLen', 'Length', 'short', 'long') : '') : ''))}
   ${section('INK', `<div class="prow"><span></span>${INK_NAMES.map((n, i) => chip(L.ink === i, set('ink', i), n)).join('')}</div>`)}
   <p class="note">${L.sex === 'girl' ? 'She starts' : 'He starts'} with a garbage bag of clothes, slides, shorts, a tank top. Everything from the shop shows up on ${him}. You can change your look later in Settings.</p>
-  <button class="primary" onclick="s.look.done=true;page='life';render();window.scrollTo(0,0)">That’s ${him} →</button>`;
+  <button class="primary" onclick="s.look.done=true;page='life';render();window.scrollTo(0,0)">That’s ${him} →</button></div></div>`;
 }
 // sliders redraw just the doll, not the whole page (keeps your thumb on the slider)
 function dollLive(){ const el = document.getElementById('pickdoll'); if (el) el.innerHTML = dollSVG(s); }
@@ -297,10 +300,11 @@ function lockupUI(){
 
 function render(){
   save();
-  document.getElementById('app').innerHTML = `<header class="brand"><a class="out" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span class="name">RECOVERY MISFITS</span><span class="stamp">ONE DAY AT A TIME</span><span class="vpill">${VERSION}</span></header><h1 class="title">SOBERED UP.</h1><p class="sub">A beat-up little life. A brand-new chapter.</p>${!storageOK ? '<div class="warning">Saving is unavailable in this browser. Keep this tab open.</div>' : ''}${!s.look.done ? picker() : page==='life' ? life() : page==='shop' ? storeUI() : page==='progress' ? progress() : settings()}${s.lockedUp && page !== 'progress' ? lockupUI() : ''}${s.lockedUp && page === 'progress' ? '<button class="primary" onclick="s=fresh();page=\'life\';render();window.scrollTo(0,0)">Start over</button>' : ''}`;
+  document.getElementById('app').innerHTML = !s.look.done ? picker() : `${brandBar()}<h1 class="title">SOBERED UP.</h1><p class="sub">A beat-up little life. A brand-new chapter.</p>${!storageOK ? '<div class="warning">Saving is unavailable in this browser. Keep this tab open.</div>' : ''}${page==='life' ? life() : page==='shop' ? storeUI() : page==='progress' ? progress() : settings()}${s.lockedUp && page !== 'progress' ? lockupUI() : ''}${s.lockedUp && page === 'progress' ? '<button class="primary" onclick="s=fresh();page=\'life\';render();window.scrollTo(0,0)">Start over</button>' : ''}`;
   setTimeout(flushNotices, 50);
   document.getElementById('nav').innerHTML = ['life','shop','progress','settings'].map(x=>`<button class="${page===x?'active':''}" onclick="page='${x}';render();window.scrollTo(0,0)">${x==='life'?'TODAY':x.toUpperCase()}</button>`).join('');
 }
+function brandBar(){ return `<header class="brand"><a class="out" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span class="name">RECOVERY MISFITS</span><span class="stamp">ONE DAY AT A TIME</span><span class="vpill">${VERSION}</span></header>`; }
 function show(t){ document.getElementById('modal').innerHTML = '<div class="modal" onclick="if(event.target===this)closeModal()"><div><button class="x" onclick="closeModal()" aria-label="Close">×</button>' + t + '</div></div>'; }
 function closeModal(){ document.getElementById('modal').innerHTML = ''; }
 function chime(){ if (!s.settings.sound) return; try { const a = new (window.AudioContext||window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); g.gain.value = .025; o.frequency.value = 440; o.start(); o.stop(a.currentTime + .1); o.onended = () => a.close(); } catch {} }

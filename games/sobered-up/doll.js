@@ -73,6 +73,8 @@ function dollSVG(s, opts = {}) {
     ? `M${cx - headRx + 10} ${headY - headRy} h${headRx * 2 - 20} q10 0 10 10 v${headRy * 2 - 20} q0 10 -10 10 h-${headRx * 2 - 20} q-10 0 -10 -10 v-${headRy * 2 - 20} q0 -10 10 -10 z`
     : `M${cx - headRx} ${headY} a${headRx} ${headRy} 0 1 0 ${headRx * 2} 0 a${headRx} ${headRy} 0 1 0 -${headRx * 2} 0 z`;
   const hsz = .8 + (L.headSize / 100) * .7;          // 0.8 → 1.5
+  // where the top of the skull really is for this shape, so hair and hats sit ON the head, not across it
+  const crownDy = [0, 0, -15, -4, -2][L.head] || 0;
   const headScale = `translate(${cx - cx * hsz} ${(headY + headRy) - (headY + headRy) * hsz}) scale(${hsz})`;
   const shW = 34 * W;                                // half shoulder width
   const armW = 16 * Math.max(.85, W);
@@ -97,7 +99,7 @@ function dollSVG(s, opts = {}) {
     if (L.hair === 3) { const r = 13 + hl * 7, rx0 = headRx + 8 + hl * 10, ry = headRy + 4 + hl * 22; for (let i = 0; i < 11; i++) { const a = -Math.PI * 1.05 + i * (Math.PI * 1.1 / 10) * 2; const rr = r * (i % 2 ? 1 : .8); back.push(`<circle cx="${cx + Math.cos(a) * rx0}" cy="${headY + 4 + Math.sin(a) * ry}" r="${rr}" fill="${i % 2 ? hair : hair2}"/>`); } back.push(`<ellipse cx="${cx}" cy="${headY + 4}" rx="${rx0 - 2}" ry="${ry - 2}" fill="${hair}"/>`); }
     if (L.hair === 5) { const len = 50 + hl * 110; for (const side of [-1, 1]) { back.push(`<path d="M${cx + side * (headRx - 6)} ${headY} q${side * 14} ${len * .5} ${side * 6} ${len} q-${side * 10} 10 -${side * 16} 0 q-${side * 4} -${len * .5} ${side * 2} -${len} z" fill="${hair}"/>`); for (let k = 1; k < 5; k++) back.push(`<path d="M${cx + side * (headRx - 12)} ${headY + k * len / 5} q${side * 10} 4 ${side * 20} 0" fill="none" stroke="${hair2}" stroke-width="2.5"/>`); } }
   }
-  g.push(`<g transform="${headScale}">`, ...back, '</g>');
+  g.push(`<g transform="${headScale}"><g transform="translate(0 ${crownDy})">`, ...back, '</g></g>');
 
   // ---- legs + feet
   const lx = cx - legW - legGap / 2, rx = cx + legGap / 2;
@@ -181,7 +183,8 @@ function dollSVG(s, opts = {}) {
   g.push(nose);
   if (heat >= 80) g.push(`<path d="M${cx + headRx - 8} ${headY - 26} q7 11 0 13 q-7 -2 0 -13" fill="#7fb3e6"/>`);
 
-  // ---- hair, FRONT layer
+  // ---- hair, FRONT layer (shifted to the crown of whatever head shape is picked)
+  g.push(`<g transform="translate(0 ${crownDy})">`);
   const topY = headY - headRy;
   const cap = (ext, bang) => `<path d="M${cx - headRx} ${headY - 4 + ext} q0 -${headRy + 4 + ext + hl * 6} ${headRx} -${headRy + 4 + ext + hl * 6} q${headRx} 0 ${headRx} ${headRy + 4 + ext + hl * 6} q-${bang} -${18 + hl * 8} -${headRx} -${22 + hl * 8} q-${headRx - bang} 4 -${headRx} ${22 + hl * 8}z" fill="${hair}"/>`;
   if (guy) {
@@ -216,12 +219,15 @@ function dollSVG(s, opts = {}) {
     if (L.hair === 5) g.push(cap(0, 4), `<path d="M${cx} ${topY + 2} v${headRy}" stroke="${hair2}" stroke-width="2" opacity=".6"/>`);
   }
 
+  g.push('</g>');
   // ---- shades
   if (own('shades')) g.push(`<path d="M${cx - 32} ${ey - 2} h64" stroke="#2a241f" stroke-width="3"/><rect x="${cx - 32}" y="${ey - 9}" width="26" height="16" rx="7" fill="#2a241f"/><rect x="${cx + 6}" y="${ey - 9}" width="26" height="16" rx="7" fill="#2a241f"/><path d="M${cx - 28} ${ey - 5} h8 M${cx + 10} ${ey - 5} h8" stroke="#fff" stroke-width="2" opacity=".45"/>`);
 
   // ---- hat (flat bill)
+  g.push(`<g transform="translate(0 ${crownDy})">`);
   if (own('hat')) g.push(`<path d="M${cx - headRx - 1} ${headY - 18} q0 -42 ${headRx + 1} -42 q${headRx + 1} 0 ${headRx + 1} 42 z" fill="#aa4635"/><path d="M${cx - headRx - 1} ${headY - 18} q0 -42 ${headRx + 1} -42 q${headRx + 1} 0 ${headRx + 1} 42 z" fill="${shade}"/><path d="M${cx - 6} ${headY - 23} h${headRx + 24} q7 0 7 6 q0 6 -7 6 h-${headRx + 24} z" fill="#aa4635"/><path d="M${cx - headRx - 1} ${headY - 18} h${headRx * 2 + 2}" stroke="#8c3328" stroke-width="3"/><circle cx="${cx}" cy="${headY - 58}" r="3" fill="#8c3328"/>`);
 
+  g.push('</g>');
   // ---- the one highlight (vinyl)
   g.push(`<ellipse cx="${cx - 22}" cy="${headY - 30}" rx="9" ry="4" fill="#fff" opacity=".35" transform="rotate(-28 ${cx - 22} ${headY - 30})"/>`);
   g.push('</g>');   // end of the head group
