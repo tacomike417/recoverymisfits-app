@@ -153,7 +153,7 @@ input.haircolor::-moz-range-track{background:linear-gradient(90deg,#15120f,#2e20
 <main id="app"></main>
 <nav id="nav"></nav>
 <div id="modal"></div>
-<script src="engine.js?v=0.10"></script><script src="doll.js?v=0.10"></script><!-- bump ?v= with every VERSION change: GitHub Pages caches .js for 10 min and phones hold it longer -->
+<script src="engine.js?v=0.11"></script><script src="doll.js?v=0.11"></script><!-- bump ?v= with every VERSION change: GitHub Pages caches .js for 10 min and phones hold it longer -->
 <script>
 let s; let page = 'life'; let storageOK = true;
 try { s = migrate(JSON.parse(localStorage.getItem(SAVE_KEY))) || fresh(); } catch { s = fresh(); }
@@ -254,7 +254,10 @@ function picker(){
   <div class="prow"><span>Hair</span>${HAIR_NAMES[L.sex].map((n, i) => chip(L.hair === i, set('hair', i), n)).join('')}</div>
   ${slider('hairColor', 'Color', 'haircolor')}
   ${slider('hairLen', 'Length')}
-  ${L.sex === 'guy' ? `<div class="prow"><span>Face</span>${BEARD_NAMES.map((n, i) => chip(L.beard === i, set('beard', i), n)).join('')}</div>` + (L.beard >= 2 ? slider('beardLen', 'Beard') : '') : ''}
+  <div class="prow"><span>Eyes</span>${EYE_NAMES.map((n, i) => chip(L.eyes === i, set('eyes', i), n)).join('')}</div>
+  ${slider('brows', 'Brows')}
+  <div class="prow"><span>Nose</span>${NOSE_NAMES.map((n, i) => chip(L.nose === i, set('nose', i), n)).join('')}</div>
+  ${L.sex === 'guy' ? `<div class="prow"><span>Beard</span>${BEARD_NAMES.map((n, i) => chip(L.beard === i, set('beard', i), n)).join('')}</div>` + (L.beard >= 2 ? slider('beardLen', 'Length') : '') : ''}
   ${slider('width', 'Build')}
   ${slider('height', 'Height')}
   <div class="prow"><span>Ink</span>${INK_NAMES.map((n, i) => chip(L.ink === i, set('ink', i), n)).join('')}</div>

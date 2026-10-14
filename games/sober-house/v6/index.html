@@ -156,6 +156,14 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 .ov .acts>*{flex:1 1 40%}
 .ov .acts.stack>*{flex-basis:100%}
 .ov .acts.lead>*:first-child{flex-basis:100%}
+.rayhd{display:flex;align-items:center;gap:10px;justify-content:center;width:100%}
+.rayhd img{width:52px;height:52px;border-radius:50%;border:3px solid var(--red);flex:0 0 auto}
+.rayhd b{display:block;font:400 32px/1 Bangers,Poppins;color:#ff6b5e;letter-spacing:.03em}
+.rayhd i{display:block;font:800 12px Poppins;font-style:normal;color:var(--cream);letter-spacing:.05em}
+.rayst{position:absolute;left:50%;top:44%;font:400 44px/.95 Bangers,Poppins;letter-spacing:.04em;color:var(--red);border:6px solid var(--red);border-radius:12px;padding:8px 16px 4px;background:rgba(246,235,205,.9);white-space:nowrap;box-shadow:0 6px 18px #0009;text-align:center;pointer-events:none;opacity:0;transform:translate(-50%,-50%) rotate(-14deg) scale(2.4);animation:slam 2.6s ease-out .35s forwards}
+.rayst small{display:block;font-size:22px;color:var(--ink)}
+@keyframes slam{0%{opacity:0;transform:translate(-50%,-50%) rotate(-14deg) scale(2.4)}10%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(.94)}16%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}70%{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}}
+@media (prefers-reduced-motion:reduce){.rayst{animation:none;opacity:1;transform:translate(-50%,-50%) rotate(-14deg)}}
 .kicker{display:flex;align-items:center;gap:12px;width:100%;font-size:30px;line-height:1;justify-content:center;text-align:center}
 .kicker:before,.kicker:after{content:'';flex:1;height:2px;background:var(--dim);opacity:.5;max-width:60px}
 .big{display:block;width:auto;max-width:min(72vw,270px);max-height:44dvh;aspect-ratio:400/560;border-radius:14px;box-shadow:0 10px 24px #000a}
@@ -266,7 +274,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
 <div class="app">
 
 <div id="startScreen" class="start">
-  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v14</span></span></div>
+  <div class="bar"><a class="ibtn" href="/" aria-label="Back to Recovery Misfits">&#8592;</a><span style="display:flex;align-items:center;gap:4px"><button class="ibtn mute" aria-label="Sound on or off"></button><span class="pill">v15</span></span></div>
   <img class="logo" src="../cards/logo.webp" alt="Sober House">
   <div class="bang" style="font-size:26px;line-height:1.1">Run the house. Most money when the clock runs out wins.</div>
   <div class="time">Takes about 15&ndash;20 minutes</div>
@@ -282,7 +290,7 @@ button{font-family:Poppins,sans-serif;font-weight:800;border:0;cursor:pointer;co
   <div class="top">
     <div class="lft"><button class="ibtn" id="quitBtn" aria-label="Leave game">&#8592;</button><img class="logo" src="../cards/logo.webp" alt="Sober House"></div>
     <div class="count" id="count"><span class="n bang" id="left">18</span><span id="leftLbl">turns left</span></div>
-    <div class="rgt"><span class="pill">v14</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
+    <div class="rgt"><span class="pill">v15</span><div class="row2"><button class="ibtn mute" aria-label="Sound on or off"></button><button class="hbtn" id="histBtn"><img src="ui/icon-history-cream.svg" alt="">History</button></div></div>
   </div>
   <div class="houses"><div class="hs me" id="myHouse"></div><div class="hs them" id="oppHouse"></div></div>
   <div class="week" id="week" aria-label="This week"></div>
@@ -816,6 +824,13 @@ async function botTurn(){
     const ch=changes(before);
     let say=seeLine(c,p,o); if((c.kind==='red'||c.kind==='pink')&&!ch.any) say+=S.lastOut==='blocked'?' You blocked it. Nothing happened.':' Nothing happened this time.';
     const line=hits?(S.tutor?'Gotcha. That one hurt, huh?':TRASH[Math.random()*TRASH.length|0]):SMUG[Math.random()*SMUG.length|0];
+    if(!hits){ // Ray helped his own house: make it impossible to think it was for you
+      const b=before[S.p.indexOf(p)], d$=p.cash-b.cash, db=p.beds-b.beds, R=esc(p.name).toUpperCase();
+      const what=c.self==='double'?'PLAYS 2 MORE':c.self==='dblrent'?'DOUBLE RENT':[db>0?`FILLS ${db} ${db===1?'BED':'BEDS'}`:'',d$>0?`GETS $${d$}`:''].filter(Boolean).join(' + ')||'GETS NOTHING';
+      const plain=c.self==='double'?`${p.name} plays 2 more cards.`:c.self==='dblrent'?`${p.name} gets double rent Friday.`:`${p.name} ${[db>0?`fills ${db} ${db===1?'bed':'beds'}`:'',d$>0?`gets $${d$}`:''].filter(Boolean).join(' and ')||'gets nothing (his house is full)'}.`;
+      await ask(`<div class="rayhd"><img src="ui/ray-face.webp" alt=""><div><b>${R} HELPED HIMSELF</b><i>THIS ONE'S FOR HIS HOUSE, NOT YOURS</i></div></div><div class="artw" style="position:relative">${artBig(c,'sm')}<span class="rayst"><small>${R}</small>${what}</span></div><div class="panel"><div class="say">${esc(plain)} Your money didn't change.</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
+      continue;
+    }
     await ask(`<div class="kicker bang">BIG RAY PLAYED</div>${artBig(c,'sm')}<div class="ray"><img src="ui/ray-face.webp" alt=""><div class="bubble">${esc(line)}</div></div><div class="panel"><div class="say">${esc(say)}</div>${visualHTML(ch.items,true)}</div>`,[['OK']],{back:0});
   }
   S.lock=true; await sleep(400); endTurn();

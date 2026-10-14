@@ -4,7 +4,7 @@
    v0.2 — build order steps 1 + 2: prototype gaps fixed, heat meter + locked-up game over.
 */
 
-const VERSION = 'v0.10';
+const VERSION = 'v0.11';
 const SAVE_KEY = 'sobered-up-v2';
 
 const CFG = {
@@ -163,7 +163,7 @@ function fresh(seed = Date.now()) {
     court: 0,
     result: null,
     lockedUp: null,       // set to {day, heat, odds} when the lights show up
-    look: { sex: 'guy', skin: 40, hairColor: 10, hair: 1, hairLen: 40, beard: 0, beardLen: 40, width: 45, height: 50, ink: 0, done: false },
+    look: { sex: 'guy', skin: 40, hairColor: 10, hair: 1, hairLen: 40, beard: 0, beardLen: 40, width: 45, height: 50, eyes: 0, brows: 50, nose: 1, ink: 0, done: false },
     goal: 'Steady footing',
     settings: { sound: false, reminders: true, introSeen: false },
     lastOutcome: null
