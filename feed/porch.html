@@ -952,6 +952,20 @@ html.fullon #main{visibility:hidden}
 #memenu .mm-ic:active{background:#efe6d0}
 #memenu .mm-ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #memenu .menu .mm-mod{min-height:40px;font-size:13.500px;color:#6e675b}
+/* v243: Just me (pinned in Messages) */
+.jm-row .jm-av{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:#1b1a17;font-size:22px}
+.jm-row .jm-pin{font-style:normal;color:var(--gold2);font:700 11px Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+#justme .jm-body{padding:14px 14px 30px;overflow-y:auto}
+#justme .jm-b{max-width:82%;margin:0 0 8px;padding:10px 14px;border-radius:18px 18px 18px 6px;background:var(--field);color:var(--cream);font:500 15.5px/1.35 Arial,sans-serif}
+#justme .jm-picks{display:flex;flex-direction:column;gap:10px;margin:14px 0 0}
+#justme .jm-pick{display:flex;align-items:center;gap:12px;width:100%;padding:14px;border:1.5px solid var(--gold2);border-radius:16px;background:none;color:var(--cream);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#justme .jm-pick:active{background:rgba(214,179,106,.12)}
+#justme .jm-pi{flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:#1b1a17;font-size:22px}
+#justme .jm-pick b{display:block;font:800 16px Arial,sans-serif}
+#justme .jm-pick small{display:block;margin-top:3px;color:var(--soft);font:600 13px/1.3 Arial,sans-serif}
+#justme .jm-fine{margin:18px 2px 0;color:var(--faint);font:600 12.5px Arial,sans-serif}
+#jmtool .jm-toolpage{display:flex;flex-direction:column;height:100%}
+#jmtool .jm-frame{flex:1;width:100%;min-height:0;border:0;background:#11110f;display:block}
 /* v242: Games in your menu, and the Games sheet */
 #memenu .menu .mm-games{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:800}
 #memenu .menu .mm-games svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -1557,7 +1571,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v242</span>
+  <span class="ver" id="ver">v243</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1857,6 +1871,25 @@ html.kb .ch-bar{padding-bottom:8px}
   <div class="dm-tabs" id="dmtabs" hidden><button type="button" class="on" data-dmtab="in">Messages</button><button type="button" data-dmtab="sent">Sent</button></div>
   <div class="dm-list" id="thlist"></div>
   <div class="dm-list" id="sentlist" hidden></div>
+</div></div>
+
+<!-- JUST ME (v243): the pinned thread in Messages. Pick a tool; it opens in the next screen. -->
+<div id="justme" class="layer full dmui" role="dialog" aria-modal="true" aria-label="Just me"><div class="page dmpage">
+  <div class="dm-head"><button type="button" class="bk" data-close aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Just me</h2></div>
+  <div class="jm-body">
+    <div class="jm-b">Just you in here. 🌙</div>
+    <div class="jm-b">Nothing you write in here leaves this phone. Nobody sees it, not even us.</div>
+    <div class="jm-b">What do you want to do?</div>
+    <div class="jm-picks">
+      <button type="button" class="jm-pick" data-jmtool="nightly"><span class="jm-pi" aria-hidden="true">🌙</span><span><b>Nightly inventory</b><small>Clear out the day before bed.</small></span></button>
+      <button type="button" class="jm-pick" data-jmtool="gratitude"><span class="jm-pi" aria-hidden="true">⭐</span><span><b>Gratitude journal</b><small>Where were you happy, at peace, useful today?</small></span></button>
+    </div>
+    <p class="jm-fine">Not AI. Not therapy. In crisis? Call or text <b>988</b>.</p>
+  </div>
+</div></div>
+<div id="jmtool" class="layer full dmui" role="dialog" aria-modal="true" aria-label="Just me"><div class="page dmpage jm-toolpage">
+  <div class="dm-head"><button type="button" class="bk" data-close aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 id="jmtitle">Just me</h2></div>
+  <iframe id="jmframe" class="jm-frame" title="Just me" src="about:blank"></iframe>
 </div></div>
 
 <!-- POOF (v176, Mike: "you flip the trade finder on or off, we should be able to flip this on or off too ...
@@ -5606,7 +5639,7 @@ html.kb .ch-bar{padding-bottom:8px}
     var gcs = []; try { gcs = await loadGChats(); } catch (e) {}
     var both = list.map(function (t) { return { at: t.last_at, t: t }; }).concat(gcs.map(function (c) { return { at: c.last_at, c: c }; }))
       .sort(function (x, y) { return x.at < y.at ? 1 : -1; });
-    $("thlist").innerHTML = both.length ? both.map(function (x) {
+    $("thlist").innerHTML = justMeRow() + (both.length ? both.map(function (x) {
       if (x.c) return gcRowHTML(x.c);
       var t = x.t;
       var o = otherOf(t), unread = t.last_from !== me.uid && (!myReadOf(t) || t.last_at > myReadOf(t));
@@ -5614,7 +5647,25 @@ html.kb .ch-bar{padding-bottom:8px}
         '<span class="tw"><b>' + esc(name(o)) + "</b><small>" + (t.last_from === me.uid ? "You: " : "") + esc(previewWords(t.last_preview)) + "</small></span><em>" + ago(t.last_at) + "</em>" +
         (unread ? '<i class="th-dot"></i>' : "") + "</button>";
     }).join("") + startChatsHTML(list) + '<p class="dm-safe"><b>Private.</b> Only the people in a chat can see it. Report or block anybody from the ⋯ in a chat.</p>'
-      : (realFriends().length ? startChatsHTML([]) : '<div class="dm-empty"><b>No messages yet</b>You can message any of your friends. Tap somebody\'s name or face on the Porch, then Add Friend.</div>');
+      : (realFriends().length ? startChatsHTML([]) : '<div class="dm-empty"><b>No messages yet</b>You can message any of your friends. Tap somebody\'s name or face on the Porch, then Add Friend.</div>'));
+  }
+  /* JUST ME (v243, 14 Oct 2026, Mike): a pinned thread at the top of Messages where you do the nightly
+     inventory or the gratitude journal as a chat with yourself. It opens the same two tools from the
+     Tools page (in "embed" mode, no app bars), so the answers are the same answers. NOTHING you write
+     here goes to our server: it stays on this phone, exactly like the Tools page. */
+  function justMeRow() {
+    return '<button type="button" class="th-row jm-row" data-justme><span class="th-av"><span class="jm-av" aria-hidden="true">\u{1F319}</span></span>' +
+      '<span class="tw"><b>Just me</b><small>Nightly inventory · Gratitude journal</small></span><em class="jm-pin">Pinned</em></button>';
+  }
+  var JM = { nightly: { title: "Nightly Inventory", src: "/nightly-inventory.html?embed=1" }, gratitude: { title: "Gratitude Journal", src: "/gratitude-journal.html?embed=1" } };
+  function openJustMe() { open("justme"); }
+  /* leaving a tool empties it, so it starts clean next time (the tool keeps nothing of the chat itself) */
+  $("jmtool")._close = function () { this.classList.remove("open"); $("jmframe").src = "about:blank"; };
+  function openJMTool(k) {
+    var t = JM[k]; if (!t) return;
+    $("jmtitle").textContent = t.title;
+    $("jmframe").src = t.src;
+    open("jmtool");
   }
   function previewWords(p) { var s = shareOf(p); if (!s) return p || ""; return s.rest || (s.spin ? "Sent a Spin" : "Sent a share"); }
   /* START A CHAT (1 Oct 2026, Mike: "messaging needs to be easy without having to search by
@@ -6100,7 +6151,9 @@ html.kb .ch-bar{padding-bottom:8px}
     }
     if (t.closest("[data-spin-post]") && id) { if (window.PorchSpins) window.PorchSpins.openPost(id); else toast("Spins are loading. Try again in a sec."); return; }
     if (t.closest("[data-more]") && id) return gate(function () { menu({ post: id }); });
-    if (t.closest("[data-games]")) return open("games");   /* v242: no sign-in needed to play */
+    if (t.closest("[data-games]")) return open("games");
+    if (t.closest("[data-justme]")) return openJustMe();
+    var jmt = t.closest("[data-jmtool]"); if (jmt) return openJMTool(jmt.dataset.jmtool);   /* v242: no sign-in needed to play */
     if (t.closest("[data-msgs]")) return gate(openInbox);
     if (t.closest("[data-spins]")) { if (window.PorchSpins) window.PorchSpins.openLatest(); else toast("Spins are loading. Try again in a sec."); return; }
     if (t.closest("[data-newdm]")) return openPick();

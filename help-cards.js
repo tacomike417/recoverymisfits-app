@@ -180,6 +180,16 @@ window.RM_HELP = {
       s: ["Open the Porch and stay on \"EVERYONE\".", "Under \"Welcome our new folks\", tap Bob.", "That's it. You high-fived Bob."],
       n: "Bob is one of the two guys in our logo. A high five means \"we're here, you're not alone.\" Yours counts once a day, and nobody sees who did it.",
       go: ["/feed/porch.html", "Take me there"], k: "bob high five skull logo bill and bob hand slap wave" },
+    /* v242, 14 Oct 2026: Games on the Porch */
+    { g: "talk", q: "Where are the games?",
+      s: ["Open the Porch.", "At the top, tap the game controller (next to Messages).", "Pick Sober House or the Unofficial Story."],
+      n: "You can also find Games in your menu (your picture, bottom right). Tap the X or the back arrow in a game to come back.",
+      go: ["/feed/porch.html", "Take me there"], k: "games play sober house big ray unofficial story controller fun" },
+    /* v243, 14 Oct 2026: Just me, pinned in Messages */
+    { g: "talk", q: "What is \"Just me\" in Messages?",
+      s: ["Open Messages on the Porch.", "Tap \"Just me\" at the top.", "Pick Nightly inventory or Gratitude journal and answer as you go."],
+      n: "It is a chat with yourself. What you write stays on your phone. Nobody sees it, not even us.",
+      go: ["/feed/porch.html", "Take me there"], k: "just me nightly inventory gratitude journal private myself chat" },
 
     /* ------------------------------------------------ people and friends */
     { g: "people", q: "How do I find somebody?",
