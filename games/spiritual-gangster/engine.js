@@ -1,4 +1,4 @@
-/* SOBER GANGSTER — game engine (Recovery Misfits). Locked Up, Covered Up, or Sobered Up.
+/* SPIRITUAL GANGSTER (was Sober Gangster) — game engine (Recovery Misfits). Locked Up, Covered Up, or Sobered Up.
    v4: an RPG.
      MOVES    3 a day, 10 buttons in 3 rows. SPIRITUAL always helps. WORK adds heat unless you did a
               spiritual move first that day. LIFE feels good now, costs a lot of heat, and leaves a receipt.
@@ -9,7 +9,7 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v5.2';
+const VERSION = 'v5.3';
 const SAVE_KEY = 'sober-gangster-v5';
 const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'quit', 'argue', 'ignore', 'fkit'];
 const ROWS = [   // top to bottom on the screen (Mike: life, work, spiritual)

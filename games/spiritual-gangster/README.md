@@ -1,4 +1,6 @@
-# Sober Gangster (Locked Up, Covered Up, or Sobered Up)
+# Spiritual Gangster (Locked Up, Covered Up, or Sobered Up)
+Renamed from Sober Gangster on 15 Oct 2026 (Mike). Folder moved to games/spiritual-gangster. The save key stays sober-gangster-v5 so saves carry over.
+
 A Recovery Misfits game. Phone first (390 wide). Buildless: index.html + engine.js + assets/.
 Replaces the old "Sobered Up" (games/sobered-up stays as it was, untouched).
 
