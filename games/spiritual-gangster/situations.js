@@ -5505,6 +5505,4226 @@ const SITUATIONS = [
 },
 "say": "Saturday came and went, and Jaz got tired of waiting for me to say what I actually wanted."
 }
+},
+{
+"id": "trip_moves_in",
+"ch": 3,
+"scale": "week",
+"title": "THE NEW GUY",
+"who": "house",
+"setup": "Big Ray moved a guy named Trip into the room next to yours. Forty, prison tats, a laugh that never reaches his eyes. By Tuesday your charger is gone, Shorty’s shoes are gone, and Trip is wearing them. Everybody in the house is scared of him except Big Ray, and Big Ray hasn’t noticed yet.",
+"now": 12,
+"daily": 8,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": 0,
+"n": 8,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You took it to a meeting instead of to Trip’s face. An old-timer said “you don’t have to attend every fight you’re invited to.” You didn’t. Yet."
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": 0,
+"n": 7,
+"trust": {
+"pops": 1
+},
+"end": false,
+"gives": [],
+"say": "Pops: “Is he your business? No. Is he gonna be? Probably. Tell Ray. Tonight. In front of people.”"
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": 0,
+"n": 12,
+"trust": {
+"ray": 2,
+"shorty": 2
+},
+"end": true,
+"gives": [
+"trip_out"
+],
+"say": "You and Shorty walked into Ray’s office together. Ray listened, then went and opened Trip’s locker. Shorty’s shoes were in it. Trip’s out by Friday."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You bought a padlock. Trip watched you put it on and smiled. You slept with your wallet in your sock."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 80,
+"n": -2,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "Six shifts. You were barely home. Trip was. So was your charger, until it wasn’t."
+},
+"double": {
+"h": 8,
+"s": 18,
+"c": 0,
+"n": -5,
+"trust": {
+"darlene": 1
+},
+"end": false,
+"gives": [],
+"say": "Twelve-hour days. You came home to sleep and left before Trip woke up. That’s not a plan. That’s hiding."
+},
+"argue": {
+"h": 18,
+"s": -10,
+"c": 0,
+"n": -4,
+"trust": {
+"shorty": 2,
+"ray": 1
+},
+"end": true,
+"gives": [
+"trip_out"
+],
+"say": "You told Trip to give Shorty his shoes back. Trip laughed, took them off, and threw them at your chest. Ray came running. Trip’s gone. So is your jaw, for a day."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"shorty": -3
+},
+"end": true,
+"gives": [],
+"say": "You put your headphones in. Shorty walked around in socks for a week and stopped talking to you."
+},
+"fkit": {
+"h": 30,
+"s": -20,
+"c": -20,
+"n": -15,
+"trust": {
+"ray": -4,
+"pops": -2,
+"ghost": 2
+},
+"end": true,
+"gives": [],
+"say": "You caught Trip in the parking lot. Big Ray caught you. Both of you are out of the house tonight."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ray": -2,
+"ghost": 1
+},
+"end": false,
+"gives": [],
+"say": "The old crew came by and stood on the porch. Trip didn’t blink. Big Ray did. Now Ray thinks YOU brought the trouble."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 3,
+"pops": -2
+},
+"end": true,
+"gives": [
+"trip_out",
+"oldcontact"
+],
+"say": "Ghost said “say less.” Trip moved out two days later with a fat lip. Now you owe Ghost, and Ghost always collects."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You spent the week on the old block instead of the house. Trip helped himself to your room while you were gone."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You sat at the bar every night to avoid Trip. The bartender knows your soda order now. That’s a bad thing to be known for."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "Four nights out. You came home to a stripped room and a note that said “thanks.”"
+}
+},
+"expire": {
+"h": 10,
+"s": 12,
+"c": -40,
+"n": -4,
+"trust": {
+"shorty": -1
+},
+"say": "You let it ride. Trip took forty bucks out of your jacket and dared you with his eyes to say something."
+},
+"need": [
+"soberhouse",
+"notrip"
+],
+"once": true,
+"weight": 1,
+"late": false
+},
+{
+"id": "trip_knife",
+"ch": 3,
+"scale": "week",
+"title": "TRIP PULLED A KNIFE",
+"who": "shorty",
+"setup": "Shorty’s whispering in the dark at 2 AM. Trip pulled a knife on him in the kitchen over the last of the milk. Then Trip told Shorty that if anybody says a word to Big Ray, the house is going to “have an accident.” Shorty wants to know what you’re going to do. Shorty is shaking.",
+"now": 18,
+"daily": 12,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": 0,
+"n": 8,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You sat in a meeting while Shorty sat alone with a man who pulled a knife on him. The coffee was good. Your conscience wasn’t."
+},
+"call": {
+"h": -5,
+"s": -5,
+"c": 0,
+"n": 8,
+"trust": {
+"pops": 2,
+"shorty": 3,
+"ray": 1
+},
+"end": true,
+"gives": [
+"trip_out"
+],
+"say": "Pops picked up on the second ring. “Call Ray now. Then call the police. Then call me back.” You did all three. Trip was gone by noon."
+},
+"help": {
+"h": -2,
+"s": -6,
+"c": 0,
+"n": 10,
+"trust": {
+"shorty": 3,
+"ray": 2
+},
+"end": true,
+"gives": [
+"trip_out"
+],
+"say": "You went with Shorty to Big Ray’s room at 2 AM. Ray came out in a robe with a baseball bat. Trip was on the porch with his trash bag by sunrise."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You slept on it. Trip didn’t. He was in your doorway at 5 AM, just looking."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 80,
+"n": -2,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You worked. Shorty didn’t sleep. Trip knows you know."
+},
+"argue": {
+"h": 20,
+"s": -8,
+"c": 0,
+"n": -2,
+"trust": {
+"shorty": 2,
+"ray": -1
+},
+"end": true,
+"gives": [
+"trip_out"
+],
+"say": "You told Trip the knife was going to be a problem. He showed it to you. Big Ray walked in on the end of it. Trip’s out. Ray’s not thrilled with you either."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"shorty": -4,
+"pops": -1
+},
+"end": true,
+"gives": [],
+"say": "“Just stay out of the kitchen.” Shorty looked at you like you were somebody else. Maybe you were."
+},
+"fkit": {
+"h": 28,
+"s": -15,
+"c": -30,
+"n": -10,
+"trust": {
+"ray": -5,
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "You went to the pawn shop. Big Ray found it in a bunk check. House rule: weapons, you’re out. Shelter tonight."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"ray": -3,
+"shorty": 1
+},
+"end": true,
+"gives": [
+"trip_out"
+],
+"say": "The crew rolled up deep. Trip saw them and left on his own. Big Ray saw them and wrote your name in the black book."
+},
+"ghostlink": {
+"h": 12,
+"s": -10,
+"c": 0,
+"n": 0,
+"trust": {
+"ghost": 3,
+"pops": -3
+},
+"end": true,
+"gives": [
+"trip_out",
+"oldcontact"
+],
+"say": "Ghost said Trip owes him from county anyway. Trip disappeared. Nobody asked where. You stopped sleeping anyway."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You sat at the bar with a Coke and thought about knives. The bartender asked if you were okay. You said yes. You lied."
+}
+},
+"expire": {
+"h": 15,
+"s": 18,
+"c": 0,
+"n": -6,
+"trust": {
+"shorty": -3
+},
+"say": "You did nothing. Shorty moved to his cousin’s couch. Trip took Shorty’s bunk and your peace of mind."
+},
+"need": [
+"soberhouse",
+"trip"
+],
+"once": true,
+"weight": 3,
+"late": false
+},
+{
+"id": "insurance_and_flat",
+"ch": 3,
+"scale": "week",
+"title": "THE CAR HAS BILLS",
+"who": "mechanic",
+"setup": "The car you were so proud of has a flat, a check engine light, and an insurance bill that came the same day as rent. The mechanic says $180 for the tire and “don’t ask about the light.” Shorty needs a ride to court Thursday. Pops needs one to the doctor Friday. Everybody needs you now that you have wheels.",
+"now": 8,
+"daily": 6,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": -40,
+"n": 10,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "You hit the meeting and asked the room. A guy named Sal fixes tires out of his garage. $40 and a story about 1987."
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": -90,
+"n": 7,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "Pops: “Welcome to owning things. Things own you back.” He knows a guy. $90."
+},
+"help": {
+"h": -8,
+"s": 0,
+"c": -180,
+"n": 14,
+"trust": {
+"shorty": 2,
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "You drove Shorty to court on the spare and Pops to the doctor on a prayer. Fixed the tire Saturday. Felt like a person."
+},
+"rides": {
+"h": -10,
+"s": -4,
+"c": -60,
+"n": 12,
+"trust": {
+"shorty": 1,
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "You drove everybody and asked for gas money. Nobody minded. The tire got fixed off the tips."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You parked the car for a week. Shorty took the bus to court. Pops missed the doctor. The light’s still on."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": -180,
+"n": -4,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "Six shifts, then the tire. You missed Thursday and Friday for Shorty and Pops. The car works. Nobody called it fixed."
+},
+"double": {
+"h": 8,
+"s": 18,
+"c": -180,
+"n": -6,
+"trust": {
+"darlene": 1,
+"love": -1
+},
+"end": true,
+"gives": [],
+"say": "You pulled doubles to pay for the car you pulled doubles for. The light’s still on. So are you, barely."
+},
+"argue": {
+"h": 15,
+"s": -12,
+"c": -180,
+"n": -6,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You told the mechanic he was a crook. He agreed and charged you anyway."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"shorty": -2,
+"pops": -1
+},
+"end": true,
+"gives": [],
+"say": "You turned the radio up and told everybody you were busy. The car ran fine for exactly one week."
+},
+"fkit": {
+"h": 20,
+"s": -20,
+"c": 300,
+"n": -8,
+"trust": {
+"ghost": 2,
+"pops": -2
+},
+"end": true,
+"gives": [
+"car_sold"
+],
+"say": "Ghost gave you $300 for a car worth more. You walked home. You’re walking everywhere now."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You sat at the bar instead of under the car. The tire didn’t fix itself. The bartender didn’t charge you for the soda. He’s waiting."
+},
+"carfund": {
+"h": 0,
+"s": -5,
+"c": -180,
+"n": 0,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You emptied what was left in the car envelope. Tire fixed. The light stayed on. It always does."
+}
+},
+"expire": {
+"h": 8,
+"s": 14,
+"c": -120,
+"n": -5,
+"trust": {
+"shorty": -1,
+"pops": -1
+},
+"say": "You drove on the spare for a week until it blew on the highway. Tow truck: $120. Shorty missed court."
+},
+"need": [
+"car"
+],
+"once": false,
+"weight": 1,
+"late": false
+},
+{
+"id": "darlene_lead",
+"ch": 3,
+"scale": "week",
+"title": "DARLENE’S CLIPBOARD",
+"who": "darlene",
+"setup": "Darlene calls you into the office. The lead on second shift walked out. She wants you to run the dock: $120 a shift, your own clipboard, and everybody’s problems. Catch: lead works the schedule Darlene posts, and Darlene posts meetings-night. “I need an answer by Friday. I need somebody who shows up.”",
+"now": 6,
+"daily": 5,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": 0,
+"n": 8,
+"trust": {
+"pops": 1
+},
+"end": false,
+"gives": [],
+"say": "You asked the meeting. Half said take it, half said don’t. Pops said “both halves are right.” Helpful."
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": 0,
+"n": 7,
+"trust": {
+"pops": 1,
+"darlene": 2
+},
+"end": true,
+"gives": [
+"lead"
+],
+"say": "Pops: “Take the job. Find a morning meeting. The program don’t care what time it is.” You took it."
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": 0,
+"n": 14,
+"trust": {
+"darlene": 2,
+"shorty": 1
+},
+"end": true,
+"gives": [],
+"say": "You found out Benny needs it more: custody case, lawyer bills. You told Darlene to give it to him. She looked at you different."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {
+"darlene": 1
+},
+"end": true,
+"gives": [
+"lead"
+],
+"say": "You slept on it. Friday came. You said yes with your eyes half open."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 80,
+"n": -2,
+"trust": {
+"darlene": 2
+},
+"end": true,
+"gives": [
+"lead"
+],
+"say": "$120 a shift. A radio on your hip. Six people who hate you by lunch. You’re lead."
+},
+"double": {
+"h": 10,
+"s": 22,
+"c": 0,
+"n": -6,
+"trust": {
+"darlene": 3,
+"love": -2,
+"mom": -1
+},
+"end": true,
+"gives": [
+"lead"
+],
+"say": "Lead on second, doubles on weekends. Darlene said “don’t burn out on me.” You said you don’t burn out. You have before."
+},
+"quit": {
+"h": 8,
+"s": -20,
+"c": 0,
+"n": -5,
+"trust": {
+"darlene": -5
+},
+"end": true,
+"gives": [],
+"say": "You quit instead of deciding. Freedom tasted like unemployment by Monday."
+},
+"argue": {
+"h": 15,
+"s": -12,
+"c": 0,
+"n": -8,
+"trust": {
+"darlene": -2,
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "You told her meetings come first. She said “then you’re not lead.” Benny is."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"darlene": -2
+},
+"end": true,
+"gives": [],
+"say": "You ducked the office all week. Friday she stopped asking."
+},
+"fkit": {
+"h": 22,
+"s": -20,
+"c": 0,
+"n": -10,
+"trust": {
+"darlene": -4,
+"ray": -1
+},
+"end": true,
+"gives": [],
+"say": "Loud. In front of the dock. Benny is lead. You’re on the list."
+},
+"betterjob": {
+"h": 5,
+"s": 8,
+"c": -10,
+"n": 4,
+"trust": {
+"darlene": -3
+},
+"end": true,
+"gives": [],
+"say": "You told the temp agency you’d been offered lead. They had something better. Darlene heard."
+},
+"date": {
+"h": 0,
+"s": -8,
+"c": -60,
+"n": 6,
+"trust": {
+"love": 2,
+"darlene": 1
+},
+"end": true,
+"gives": [
+"lead",
+"love_touch"
+],
+"say": "Jaz: “you’re asking ME? take the money, baby.” You took the money."
+}
+},
+"expire": {
+"h": 6,
+"s": 10,
+"c": 0,
+"n": -3,
+"trust": {
+"darlene": -2
+},
+"say": "You never answered. Darlene gave it to a guy named Benny who’s been there two months. He wears the clipboard like a badge."
+},
+"need": [
+"job",
+"nolead",
+"nobiz"
+],
+"once": true,
+"weight": 1,
+"late": false
+},
+{
+"id": "jaz_cookout",
+"ch": 3,
+"scale": "week",
+"title": "MEET THE FAMILY",
+"who": "love",
+"setup": "Jaz’s mom is having the cookout. The whole family. Her uncle who “doesn’t believe in rehab,” her cousin who sells pills, and a cooler the size of a casket. Jaz wants you there. “They need to see you’re real.” It’s the same Saturday as the speaker meeting Pops asked you to drive him to.",
+"now": 8,
+"daily": 6,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": 0,
+"n": 10,
+"trust": {
+"love": 2,
+"pops": 2
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You brought Jaz to the speaker meeting instead. She cried at the end and squeezed your hand. “Okay. Now I get it.” Her mom is still mad."
+},
+"call": {
+"h": -8,
+"s": -6,
+"c": 0,
+"n": 8,
+"trust": {
+"love": 2,
+"pops": 1
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "Pops: “Go to the cookout. Drink the pop. Leave at the first ‘one won’t hurt.’ I’ll get a ride.” You lasted till 7."
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": -20,
+"n": 12,
+"trust": {
+"love": 1,
+"pops": 2
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You drove Pops, then showed up at dusk with a pie. Jaz’s mom said “at least he brought something.”"
+},
+"rides": {
+"h": -10,
+"s": -4,
+"c": -15,
+"n": 12,
+"trust": {
+"love": 1,
+"pops": 2
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "Pops to the meeting at noon, cookout by three, out by six. Everybody got a piece of you."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You said you were sick. Jaz said “of what?” You didn’t have an answer."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 80,
+"n": -2,
+"trust": {
+"darlene": 1,
+"love": -2
+},
+"end": false,
+"gives": [],
+"say": "Darlene needed the hands. Jaz needed you. Darlene pays better. Jaz remembers longer."
+},
+"argue": {
+"h": 15,
+"s": -12,
+"c": 0,
+"n": -8,
+"trust": {
+"love": -3
+},
+"end": true,
+"gives": [],
+"say": "You said her family is a bad place for you. True. You said it like an accusation. Not true."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"love": -4
+},
+"end": true,
+"gives": [],
+"say": "Saturday came and went. Sunday you texted “my bad.” She left YOU on read."
+},
+"fkit": {
+"h": 22,
+"s": -25,
+"c": 0,
+"n": -5,
+"trust": {
+"love": -2,
+"pops": -3,
+"ghost": 1
+},
+"end": true,
+"gives": [],
+"say": "You went. You sat by the cooler. Her cousin offered. You said no the first three times."
+},
+"bar": {
+"h": 8,
+"s": -18,
+"c": -30,
+"n": 3,
+"trust": {
+"love": -2
+},
+"end": true,
+"gives": [],
+"say": "You skipped the cookout and met her at a bar after. She was already annoyed. The bar didn’t help."
+},
+"party": {
+"h": 6,
+"s": -20,
+"c": -20,
+"n": 4,
+"trust": {
+"love": -2
+},
+"end": true,
+"gives": [],
+"say": "You treated it like a party. Her uncle treated you like a punchline. Jaz drove you home early."
+},
+"look": {
+"h": 0,
+"s": -6,
+"c": -80,
+"n": 6,
+"trust": {
+"love": 3,
+"mom": 1
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "New fit, fresh cut, a store-bought pie. Her mom said “he clean up alright.” Jaz said “told you.”"
+},
+"date": {
+"h": 0,
+"s": -10,
+"c": -70,
+"n": 8,
+"trust": {
+"love": 3
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You went. Two hours. Then you took her to dinner, just you two. She said that was the best part."
+}
+},
+"expire": {
+"h": 8,
+"s": 14,
+"c": 0,
+"n": -5,
+"trust": {
+"love": -3,
+"pops": -1
+},
+"say": "You didn’t go to either. Jaz went alone and told her mom you had to work. Her mom said “mm-hm.”"
+},
+"need": [
+"together"
+],
+"once": true,
+"weight": 1,
+"late": false
+},
+{
+"id": "dre_first_meeting",
+"ch": 3,
+"scale": "week",
+"title": "DRE’S FIRST MEETING",
+"who": "newcomer",
+"setup": "Dre, the new kid, has been at the house two weeks and hasn’t been to a meeting. Big Ray’s about to put him out for it. Dre asked you, not Shorty, not Pops, YOU, to take him. “You the only one here who don’t look at me like I already failed.” He’s scared of the room.",
+"now": 6,
+"daily": 5,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -10,
+"c": 0,
+"n": 14,
+"trust": {
+"pops": 2,
+"shorty": 1,
+"ray": 1
+},
+"end": true,
+"gives": [
+"dre_in"
+],
+"say": "You walked in together. Dre sat on his hands the whole hour and said “thanks” twice in the car. He went back Tuesday on his own."
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": 0,
+"n": 8,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [
+"dre_in"
+],
+"say": "Pops took him. Dre came back quiet. “Pops said you told him to. Thanks for not making it a thing.”"
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": 0,
+"n": 14,
+"trust": {
+"pops": 2,
+"shorty": 1
+},
+"end": true,
+"gives": [
+"dre_in"
+],
+"say": "You went early and saved two seats. He almost didn’t come in. Then he did."
+},
+"rides": {
+"h": -10,
+"s": -4,
+"c": -15,
+"n": 14,
+"trust": {
+"pops": 2,
+"shorty": 1
+},
+"end": true,
+"gives": [
+"dre_in"
+],
+"say": "Five nights. Five meetings. By Friday Dre was talking to people in the parking lot."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You said next week. Big Ray said Sunday. Dre’s gone."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 80,
+"n": -2,
+"trust": {
+"ray": -1
+},
+"end": false,
+"gives": [],
+"say": "You worked. Nobody else did. Big Ray did what Big Ray does."
+},
+"argue": {
+"h": 15,
+"s": -12,
+"c": 0,
+"n": -8,
+"trust": {
+"ray": -1
+},
+"end": false,
+"gives": [],
+"say": "You told Big Ray to give the kid a minute. Ray said “minutes cost $100 a week.” He gave him one more week anyway."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"shorty": -2
+},
+"end": true,
+"gives": [],
+"say": "You said you had enough on your plate. Dre nodded like he expected it."
+},
+"fkit": {
+"h": 20,
+"s": -20,
+"c": 0,
+"n": -10,
+"trust": {
+"pops": -3,
+"ghost": 2
+},
+"end": true,
+"gives": [],
+"say": "You told him the whole thing’s a scam and the house is a racket. He believed you. He was gone in three days, with Ghost."
+},
+"crew": {
+"h": 10,
+"s": -18,
+"c": -15,
+"n": 2,
+"trust": {
+"ghost": 2,
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "You showed Dre the old crew. He fit right in. That’s the worst part."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You took Dre around the old block to “show him what not to do.” He got three phone numbers."
+}
+},
+"expire": {
+"h": 6,
+"s": 8,
+"c": 0,
+"n": -6,
+"trust": {
+"pops": -1
+},
+"say": "You didn’t take him. Big Ray put Dre out Sunday. He left his trash bag on the porch. Nobody knows where he went."
+},
+"need": [],
+"once": true,
+"weight": 1,
+"late": false
+},
+{
+"id": "mom_amends",
+"ch": 3,
+"scale": "week",
+"title": "THE AMENDS",
+"who": "mom",
+"setup": "Pops says it’s time. Mom. Not a sorry: a list. The money, the lies, the night with the police in her kitchen. She said she’d see you Sunday. She also said “don’t make a speech.” You’ve had thirty days to think about what you did. She’s had years.",
+"now": 6,
+"daily": 4,
+"days": 3,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -10,
+"c": 0,
+"n": 12,
+"trust": {
+"mom": 3,
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "You went to a meeting first and said it out loud to strangers. Then you said it to her. She didn’t say “it’s okay.” She said “thank you for saying it.”"
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": 0,
+"n": 10,
+"trust": {
+"mom": 3,
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "You read it to Pops first. He crossed out half. “That’s you feeling better. This half is for her.” Sunday went better than it should have."
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": -30,
+"n": 14,
+"trust": {
+"mom": 4
+},
+"end": true,
+"gives": [],
+"say": "You fixed the step she’s been asking about for three years, then sat down and told her. She listened with a hand on your back."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You wrote four pages. Threw out three. Sunday’s still coming."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 80,
+"n": -2,
+"trust": {
+"mom": -1,
+"darlene": 1
+},
+"end": false,
+"gives": [],
+"say": "You picked up a shift. Mom said “of course.” It wasn’t mean. It was tired."
+},
+"argue": {
+"h": 15,
+"s": -12,
+"c": 0,
+"n": -8,
+"trust": {
+"mom": -3,
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "Halfway through, you brought up her stuff. The step work says you don’t. You did. She got up and did the dishes."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"mom": -1
+},
+"end": true,
+"gives": [],
+"say": "You sent a long text. She replied “ok.” Two letters."
+},
+"fkit": {
+"h": 22,
+"s": -20,
+"c": -25,
+"n": -8,
+"trust": {
+"mom": -3,
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "You didn’t go. You hit the bar after work “just for the game.” Mom heard. She always hears."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -2,
+"love": -3
+},
+"end": true,
+"gives": [],
+"say": "You brought the ex for backup. Mom took one look and said “really?” Nobody ate."
+},
+"date": {
+"h": -5,
+"s": -8,
+"c": -20,
+"n": 10,
+"trust": {
+"mom": 3,
+"love": 2
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You brought Jaz. Mom held her hand through the hard part and kept holding it after. “This one,” Mom said."
+},
+"look": {
+"h": 0,
+"s": -6,
+"c": -60,
+"n": 8,
+"trust": {
+"mom": 3
+},
+"end": true,
+"gives": [],
+"say": "New shirt, clean shoes, a haircut. She noticed before you said a word. Then you said the words."
+}
+},
+"expire": {
+"h": 6,
+"s": 16,
+"c": 0,
+"n": -4,
+"trust": {
+"mom": -2,
+"pops": -1
+},
+"say": "You kept putting Sunday off. Mom stopped asking if you were coming. That’s its own kind of answer."
+},
+"need": [],
+"once": true,
+"weight": 1,
+"late": false
+},
+{
+"id": "ghost_collects",
+"ch": 3,
+"scale": "week",
+"title": "GHOST’S INVOICE",
+"who": "ghost",
+"setup": "Ghost texts a number: $400. “From back when. I let it ride ’cause you was sick. You got a job now.” You don’t remember owing it. You don’t remember a lot of back then. He’s parked outside the warehouse at quitting time, engine running, friendly as hell.",
+"now": 16,
+"daily": 12,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -14,
+"s": -8,
+"c": 0,
+"n": 10,
+"trust": {
+"pops": 2,
+"ghost": -2
+},
+"end": true,
+"gives": [],
+"say": "You said it in the meeting: a dealer says I owe him. Three guys stayed after. “You don’t owe a dealer. You owe the people you robbed to pay him.”"
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": 0,
+"n": 6,
+"trust": {
+"pops": 2,
+"ray": 1,
+"ghost": -3
+},
+"end": true,
+"gives": [],
+"say": "Pops: “You pay that, you’re buying. Block him. If he comes to the house, Ray handles it.” You blocked him. He came by once. Ray handled it."
+},
+"help": {
+"h": -6,
+"s": -5,
+"c": 0,
+"n": 8,
+"trust": {
+"darlene": 2,
+"ghost": -1
+},
+"end": true,
+"gives": [],
+"say": "You told Darlene a guy was waiting on you. She walked you out the loading dock side for a week and never asked why."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You went straight home all week. Ghost texted a picture of the house. “Nice porch.”"
+},
+"work": {
+"h": 8,
+"s": -10,
+"c": -400,
+"n": -2,
+"trust": {
+"ghost": 3,
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "You handed Ghost $400 in the lot. He said “see, that wasn’t hard.” He’ll be back for the rest of what you don’t owe."
+},
+"argue": {
+"h": 15,
+"s": -12,
+"c": 0,
+"n": -6,
+"trust": {
+"ghost": 1
+},
+"end": false,
+"gives": [],
+"say": "You told him in the lot, loud. He laughed. “Okay. Okay. We’ll see.” He’s still parked there."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"ghost": -2
+},
+"end": true,
+"gives": [],
+"say": "You blocked the number. He got a new one. You blocked that. Three numbers in, he stopped. For now."
+},
+"fkit": {
+"h": 35,
+"s": -25,
+"c": 100,
+"n": -10,
+"trust": {
+"ghost": 4,
+"pops": -3
+},
+"end": true,
+"gives": [
+"oldcontact"
+],
+"say": "He said you could work it off. One ride. One package. You didn’t open it. You know what was in it."
+},
+"crew": {
+"h": 8,
+"s": -15,
+"c": -100,
+"n": 4,
+"trust": {
+"ghost": 2
+},
+"end": true,
+"gives": [],
+"say": "The crew said yeah, you owed him, and some of them too. Now everybody’s got an invoice."
+},
+"ghostlink": {
+"h": 14,
+"s": -18,
+"c": -150,
+"n": 0,
+"trust": {
+"ghost": 3,
+"pops": -2
+},
+"end": true,
+"gives": [
+"oldcontact"
+],
+"say": "You got in the car “to talk.” $150 and a favor you’ll hear about later."
+},
+"block": {
+"h": 6,
+"s": -10,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": -1
+},
+"end": true,
+"gives": [],
+"say": "The block said Ghost does this to everybody who gets clean. Tax on getting better."
+}
+},
+"expire": {
+"h": 18,
+"s": 15,
+"c": -200,
+"n": -5,
+"trust": {
+"ghost": 2
+},
+"say": "You stalled. Ghost took $200 off you in the parking lot “as a down payment” and smiled the whole time."
+},
+"need": [],
+"once": false,
+"weight": 2,
+"late": false
+},
+{
+"id": "shorty_relapse",
+"ch": 3,
+"scale": "week",
+"title": "SHORTY WENT OUT",
+"who": "shorty",
+"setup": "Shorty didn’t come home Tuesday. Wednesday either. His phone goes to voicemail. Thursday he texts you from a number you don’t know: “im ok dont tell ray.” You know the block he’s on. You know the house. You know exactly what’s in it.",
+"now": 14,
+"daily": 10,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -10,
+"s": -6,
+"c": 0,
+"n": 14,
+"trust": {
+"shorty": 3,
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "You said it in the meeting. Four guys went with you, in two cars, in daylight. Shorty came out on his own when he saw Pops."
+},
+"call": {
+"h": -8,
+"s": -8,
+"c": 0,
+"n": 12,
+"trust": {
+"shorty": 3,
+"pops": 2,
+"ray": 1
+},
+"end": true,
+"gives": [],
+"say": "Pops: “You don’t go in that house. You call Ray, you call me, we go together.” Three of you. Shorty cried in the back seat."
+},
+"help": {
+"h": -5,
+"s": -5,
+"c": 0,
+"n": 14,
+"trust": {
+"shorty": 4,
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "You went at noon with Pops in the passenger seat and the engine running. Two minutes. Shorty came out."
+},
+"rides": {
+"h": -6,
+"s": -2,
+"c": -20,
+"n": 12,
+"trust": {
+"shorty": 3
+},
+"end": true,
+"gives": [],
+"say": "You drove past every day and honked. Day three he got in. Day four he detoxed on your floor."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {
+"shorty": -1
+},
+"end": false,
+"gives": [],
+"say": "You gave him space. The house gave him a locked door."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 0,
+"n": 0,
+"trust": {
+"ray": 2,
+"shorty": 1
+},
+"end": true,
+"gives": [],
+"say": "You told Big Ray straight. Ray went himself. Shorty’s back on probation with the house. He’s alive."
+},
+"argue": {
+"h": 15,
+"s": -12,
+"c": 0,
+"n": -8,
+"trust": {
+"shorty": -2
+},
+"end": false,
+"gives": [],
+"say": "You yelled. He hung up. The new number stopped answering."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"ray": -3,
+"shorty": -1
+},
+"end": true,
+"gives": [],
+"say": "You kept his secret for a week. Ray found out anyway. Now you’re both in the black book."
+},
+"fkit": {
+"h": 30,
+"s": -20,
+"c": -40,
+"n": -5,
+"trust": {
+"shorty": 1,
+"ghost": 2,
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "You went in alone at night. You found him. You also found the table. You sat down for a minute. Just a minute."
+},
+"ghostlink": {
+"h": 14,
+"s": -10,
+"c": 0,
+"n": 2,
+"trust": {
+"ghost": 2,
+"shorty": 1
+},
+"end": true,
+"gives": [
+"oldcontact"
+],
+"say": "Ghost knew. Of course Ghost knew. “Tell Shorty his tab’s open.”"
+},
+"block": {
+"h": 10,
+"s": -10,
+"c": -5,
+"n": 6,
+"trust": {
+"shorty": 2
+},
+"end": true,
+"gives": [],
+"say": "You walked the block asking. Everybody knew where. Nobody wanted to say. Three days later he walked up to you on that same corner."
+}
+},
+"expire": {
+"h": 12,
+"s": 18,
+"c": 0,
+"n": -8,
+"trust": {
+"shorty": -2,
+"ray": -1
+},
+"say": "You waited. Big Ray found out Friday and boxed Shorty’s stuff. Shorty came home to a locked door."
+},
+"need": [],
+"once": false,
+"weight": 2,
+"late": false
+},
+{
+"id": "lights_notice",
+"ch": 4,
+"scale": "month",
+"title": "THE PINK NOTICE",
+"who": "landlord",
+"setup": "Your own place. Your own door. Your own pink notice from the electric company. Rent took everything, the car took the rest, and the lights are $140 behind. The landlord texts: “FYI utilities are in your name. Not mine. Not my problem.” It is the first of the month and you have $60.",
+"now": 6,
+"daily": 5,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": -40,
+"n": 10,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "A woman at the meeting works at the county. There’s a program. Forms, a wait, and the lights stayed on."
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": 0,
+"n": 6,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "Pops gave you $140 and a lecture about budgets. “Pay me back $20 a week. In person.” You did."
+},
+"help": {
+"h": -6,
+"s": 0,
+"c": 150,
+"n": 10,
+"trust": {},
+"end": true,
+"gives": [
+"bizseed"
+],
+"say": "The old guy across the hall needed his yard cleared. $150 cash and a lead on two more."
+},
+"rest": {
+"h": -5,
+"s": -10,
+"c": 0,
+"n": 0,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You sat in the dark with a notebook and did math for the first time since school. It didn’t fix the bill. It fixed the next one."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": -180,
+"n": -2,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You worked. Paid on the 20th with the late fee. Lights stayed on. Barely."
+},
+"double": {
+"h": 8,
+"s": 18,
+"c": -140,
+"n": -6,
+"trust": {
+"darlene": 1,
+"love": -2
+},
+"end": true,
+"gives": [],
+"say": "Two weeks of doubles. Paid in full on the 10th. You didn’t see daylight or Jaz."
+},
+"quit": {
+"h": 10,
+"s": -15,
+"c": 0,
+"n": -6,
+"trust": {
+"ray": 1,
+"mom": -2
+},
+"end": true,
+"gives": [
+"moved_back"
+],
+"say": "You gave up the place and went back to the sober house. Big Ray didn’t even look surprised."
+},
+"argue": {
+"h": 12,
+"s": -8,
+"c": 0,
+"n": -2,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "Forty minutes on hold, ten minutes yelling. They put a note in your file. The note was not helpful."
+},
+"ignore": {
+"h": 10,
+"s": -10,
+"c": 0,
+"n": -6,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You ignored it. Pink turned red. Red turned dark."
+},
+"fkit": {
+"h": 18,
+"s": -20,
+"c": 60,
+"n": -4,
+"trust": {
+"pops": -1
+},
+"end": true,
+"gives": [],
+"say": "Pawned the TV, paid the light bill, blew the rest at the bar celebrating lights."
+},
+"crew": {
+"h": 8,
+"s": -12,
+"c": 140,
+"n": 4,
+"trust": {
+"ghost": 1
+},
+"end": true,
+"gives": [],
+"say": "The crew fronted you $140 and a “we got you.” Now you’re in the crew’s book."
+},
+"ghostlink": {
+"h": 14,
+"s": -15,
+"c": 140,
+"n": 0,
+"trust": {
+"ghost": 3,
+"pops": -2
+},
+"end": true,
+"gives": [
+"oldcontact"
+],
+"say": "Ghost paid your light bill directly. Online. From his phone. Now he has your account number."
+},
+"bizfund": {
+"h": 0,
+"s": -4,
+"c": 200,
+"n": 6,
+"trust": {},
+"end": true,
+"gives": [
+"bizseed"
+],
+"say": "You bought a used mower with the stack money and knocked on doors. Six yards. $200. The lights stayed on."
+}
+},
+"expire": {
+"h": 8,
+"s": 18,
+"c": 0,
+"n": -4,
+"trust": {},
+"say": "The lights went off on the 14th. You charged your phone at the gas station for two weeks like it was day one."
+},
+"need": [
+"ownplace"
+],
+"once": true,
+"weight": 2,
+"late": false
+},
+{
+"id": "dre_asks",
+"ch": 4,
+"scale": "month",
+"title": "DRE WANTS A SPONSOR",
+"who": "newcomer",
+"setup": "Dre has sixty days. He waited for you after the meeting, hands in his pockets, and asked you to sponsor him. You, with barely a hundred days. Pops is standing by the coffee pot pretending not to listen. Dre has a court date, a kid he’s not allowed to see, and a mother who stopped picking up. He needs somebody. He picked you.",
+"now": 4,
+"daily": 4,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -6,
+"c": 0,
+"n": 14,
+"trust": {
+"pops": 2,
+"shorty": 1
+},
+"end": true,
+"gives": [
+"sponsee"
+],
+"say": "You said yes right there. Pops nodded once. Dre calls at 10 PM every night now. You pick up every time."
+},
+"call": {
+"h": -10,
+"s": -8,
+"c": 0,
+"n": 10,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [
+"sponsee"
+],
+"say": "Pops: “Nobody’s ready. You got a phone and a year of mistakes. That’s the job.” You said yes."
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": 0,
+"n": 12,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [
+"sponsee"
+],
+"say": "You told Dre you’d do it together with Pops. Three-way calls. Pops does the big book, you do the 2 AM."
+},
+"rest": {
+"h": -5,
+"s": -10,
+"c": 0,
+"n": 6,
+"trust": {},
+"end": true,
+"gives": [
+"sponsee"
+],
+"say": "You said give me a week. He gave you two. You said yes on a Tuesday in the rain."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 80,
+"n": -2,
+"trust": {
+"pops": -1
+},
+"end": false,
+"gives": [],
+"say": "You said you can’t right now. True. He said “it’s cool.” Not true."
+},
+"argue": {
+"h": 4,
+"s": -6,
+"c": 0,
+"n": -2,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "You pushed him to Pops. Pops took him. Pops also said “he asked YOU.”"
+},
+"ignore": {
+"h": 10,
+"s": -10,
+"c": 0,
+"n": -8,
+"trust": {
+"pops": -2,
+"shorty": -1
+},
+"end": true,
+"gives": [],
+"say": "You dodged him at every meeting. He stopped coming to that one."
+},
+"fkit": {
+"h": 15,
+"s": -18,
+"c": 0,
+"n": -8,
+"trust": {
+"pops": -2,
+"ghost": 1
+},
+"end": true,
+"gives": [],
+"say": "“I can’t even keep my own lights on.” Dre laughed. Then he went and found somebody else. Somebody worse."
+},
+"date": {
+"h": 0,
+"s": -8,
+"c": -60,
+"n": 8,
+"trust": {
+"love": 2,
+"pops": 1
+},
+"end": true,
+"gives": [
+"sponsee",
+"love_touch"
+],
+"say": "Jaz: “you make time for the bar, you can make time for a kid who’s trying.” She wasn’t wrong."
+}
+},
+"expire": {
+"h": 6,
+"s": 10,
+"c": 0,
+"n": -6,
+"trust": {
+"pops": -1
+},
+"say": "You never gave him an answer. Dre asked a guy with a nicer car instead. That guy relapsed in March and took Dre with him."
+},
+"need": [
+"sponsor",
+"nosponsee"
+],
+"once": true,
+"weight": 2,
+"late": false
+},
+{
+"id": "jaz_pregnant",
+"ch": 3,
+"scale": "week",
+"title": "WE NEED TO TALK",
+"who": "love",
+"setup": "Jaz texts “we need to talk” and then nothing for four hours. She comes over with a bag from the pharmacy and sits on the couch you got off the curb. Two lines. She’s crying and laughing at the same time. You have $300, a hundred and twenty days, and a car with a check engine light. She’s looking at you like whatever you say next is going to matter for the rest of your life.",
+"now": 10,
+"daily": 8,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -10,
+"s": -6,
+"c": 0,
+"n": 14,
+"trust": {
+"love": 4,
+"pops": 2
+},
+"end": true,
+"gives": [
+"pregnant",
+"love_touch"
+],
+"say": "You went to a meeting and said it out loud. Then you went back and said the only thing that mattered: “I’m here. I’m not going anywhere.”"
+},
+"call": {
+"h": -8,
+"s": -8,
+"c": 0,
+"n": 10,
+"trust": {
+"love": 3,
+"pops": 2
+},
+"end": true,
+"gives": [
+"pregnant",
+"love_touch"
+],
+"say": "Pops: “You scared?” Yes. “Good. Scared men show up. Go back in there.” You did."
+},
+"help": {
+"h": -6,
+"s": -4,
+"c": -40,
+"n": 14,
+"trust": {
+"love": 4,
+"mom": 1
+},
+"end": true,
+"gives": [
+"pregnant",
+"love_touch"
+],
+"say": "You drove her to the first appointment and held the clipboard. The nurse called you “Dad.” You almost dropped it."
+},
+"rest": {
+"h": -5,
+"s": -10,
+"c": 0,
+"n": 6,
+"trust": {
+"love": 2
+},
+"end": true,
+"gives": [
+"pregnant",
+"love_touch"
+],
+"say": "You didn’t say anything. You stayed. By morning that was the answer."
+},
+"work": {
+"h": 8,
+"s": 14,
+"c": 0,
+"n": -2,
+"trust": {
+"love": 1,
+"darlene": 1
+},
+"end": true,
+"gives": [
+"pregnant"
+],
+"say": "You pulled a double the next day. She understood. Sort of. Money’s a kind of showing up. Not the only kind."
+},
+"argue": {
+"h": 18,
+"s": -10,
+"c": 0,
+"n": -10,
+"trust": {
+"love": -5
+},
+"end": true,
+"gives": [
+"pregnant"
+],
+"say": "You asked. Out loud. She left. She came back a week later because she had nowhere else to go. Not because of you."
+},
+"ignore": {
+"h": 14,
+"s": -12,
+"c": -20,
+"n": -10,
+"trust": {
+"love": -4,
+"mom": -2
+},
+"end": true,
+"gives": [
+"pregnant"
+],
+"say": "You said you needed air. You drove for three hours. She was gone when you got back."
+},
+"fkit": {
+"h": 25,
+"s": -20,
+"c": -30,
+"n": -8,
+"trust": {
+"love": -3,
+"pops": -3
+},
+"end": true,
+"gives": [
+"pregnant"
+],
+"say": "You thought at the bar. Six sodas. The bartender asked if you were celebrating. You didn’t know."
+},
+"ex": {
+"h": 10,
+"s": -10,
+"c": 0,
+"n": -8,
+"trust": {
+"love": -6
+},
+"end": true,
+"gives": [
+"pregnant"
+],
+"say": "You texted the ex. Jaz saw the phone. There is no coming back from the ex’s name on your screen that night."
+},
+"date": {
+"h": -4,
+"s": -8,
+"c": -40,
+"n": 14,
+"trust": {
+"love": 4,
+"mom": 3
+},
+"end": true,
+"gives": [
+"pregnant",
+"love_touch"
+],
+"say": "You drove Jaz to Mom’s and said it together at the kitchen table. Mom cried, then started making a list."
+},
+"look": {
+"h": 0,
+"s": -8,
+"c": -200,
+"n": 8,
+"trust": {
+"love": 3
+},
+"end": true,
+"gives": [
+"pregnant",
+"love_touch"
+],
+"say": "You bought a crib that night. Jaz said “you’re insane.” She was smiling."
+}
+},
+"expire": {
+"h": 10,
+"s": 22,
+"c": 0,
+"n": -8,
+"trust": {
+"love": -4,
+"mom": -1
+},
+"say": "You said nothing for a week. She stopped waiting for you to say something. Her mom’s doing the doctor visits now."
+},
+"need": [
+"together",
+"notpregnant",
+"sober45"
+],
+"once": true,
+"weight": 3,
+"late": true,
+"girl": {
+"setup": "You’ve been sick for a week and blaming the warehouse. Marc brought the bag from the pharmacy without being asked. Two lines. You’re sitting on the couch you got off the curb, crying and laughing at the same time. You have $300, a hundred and twenty days, and a car with a check engine light. Marc is looking at you like whatever you say next is going to matter for the rest of your life."
+}
+},
+{
+"id": "ex_amends",
+"ch": 4,
+"scale": "month",
+"title": "THE EX WANTS TO TALK",
+"who": "ex",
+"setup": "The ex calls from a number you don’t have blocked. Not 3 AM this time. Noon. Sober voice. “I’m in a program too now. I owe you an amends. Can we meet?” You owe one back. You also know how it ends every time you two are in a room. Pops says amends don’t require a reunion.",
+"now": 8,
+"daily": 6,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": 0,
+"n": 10,
+"trust": {
+"pops": 2,
+"love": 1
+},
+"end": true,
+"gives": [],
+"say": "You said “meet me at the Thursday meeting.” Public, bright, Pops in the room. Two amends, one hug, no number exchanged."
+},
+"call": {
+"h": -10,
+"s": -8,
+"c": -10,
+"n": 8,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "Pops: “Coffee shop. Daytime. Thirty minutes. Say yours, hear theirs, leave.” You followed it to the minute."
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": -5,
+"n": 6,
+"trust": {
+"pops": 1,
+"love": 1
+},
+"end": true,
+"gives": [],
+"say": "You wrote your amends and mailed it. A letter. The ex sent one back. That was enough."
+},
+"rest": {
+"h": -5,
+"s": -10,
+"c": 0,
+"n": -2,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You said not yet. Pops said that’s allowed. The ex said “okay” like it was a door closing."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 80,
+"n": -2,
+"trust": {
+"love": 1
+},
+"end": false,
+"gives": [],
+"say": "You hid behind the schedule. The ex saw through it. So did you."
+},
+"argue": {
+"h": 12,
+"s": -10,
+"c": 0,
+"n": -6,
+"trust": {
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "You met and spent the whole hour on their list instead of yours. The ex cried. You felt like garbage, correctly."
+},
+"ignore": {
+"h": 6,
+"s": -8,
+"c": 0,
+"n": -4,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "Blocked. Again. It felt like strength. Pops said it looked like fear."
+},
+"fkit": {
+"h": 25,
+"s": -20,
+"c": -30,
+"n": -6,
+"trust": {
+"love": -5,
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "The old bar. Just talking. Then the ex’s hand on your arm. You left at midnight, sober and sick about it. Jaz saw the time stamp."
+},
+"ex": {
+"h": 22,
+"s": -22,
+"c": 0,
+"n": -8,
+"trust": {
+"love": -6,
+"pops": -3
+},
+"end": true,
+"gives": [],
+"say": "You went to the apartment. Nothing good happens at the ex’s apartment. Nothing good did."
+},
+"date": {
+"h": -4,
+"s": -6,
+"c": -20,
+"n": 10,
+"trust": {
+"love": 3,
+"pops": 1
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You told Jaz before you went. She said “okay. text me when you leave.” You texted at 1:34 PM: “done. love you.”"
+}
+},
+"expire": {
+"h": 8,
+"s": 10,
+"c": 0,
+"n": -3,
+"trust": {
+"love": -1
+},
+"say": "You never called back. The ex left a long voicemail you listened to twice and deleted once."
+},
+"need": [],
+"once": true,
+"weight": 1,
+"late": false
+},
+{
+"id": "dre_court",
+"ch": 4,
+"scale": "month",
+"title": "DRE’S COURT DATE",
+"who": "newcomer",
+"setup": "Dre’s court date is the 15th at 9 AM. Downtown. He has no car and no suit. If he misses it there’s a warrant. The 15th is also the day the property manager wants to meet about the lots, the day Darlene’s doing the quarterly, and Jaz’s ultrasound is at 10:30. You’re his sponsor. You have one body.",
+"now": 8,
+"daily": 6,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -10,
+"s": -6,
+"c": 0,
+"n": 12,
+"trust": {
+"pops": 2,
+"love": 1
+},
+"end": true,
+"gives": [],
+"say": "You asked the room. Sal drove Dre in a suit from the church closet. You made the ultrasound."
+},
+"call": {
+"h": -10,
+"s": -8,
+"c": 0,
+"n": 8,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "Pops took Dre to court in Pops’ Buick and his own funeral suit. Judge gave Dre probation. Pops gave Dre a lecture."
+},
+"help": {
+"h": -8,
+"s": -4,
+"c": -20,
+"n": 14,
+"trust": {
+"pops": 3,
+"shorty": 1,
+"love": -1,
+"darlene": -1
+},
+"end": true,
+"gives": [],
+"say": "You drove Dre downtown at 8, sat in the back row, and watched a judge give the kid a second chance. Jaz went to the ultrasound with her mom."
+},
+"rides": {
+"h": -8,
+"s": 0,
+"c": -120,
+"n": 14,
+"trust": {
+"pops": 2,
+"love": 2
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You did both. Barely. Speeding. Dre got probation, Jaz got a picture, you got a ticket."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {
+"pops": -2
+},
+"end": false,
+"gives": [],
+"say": "You told him the bus. He missed the transfer. Warrant."
+},
+"work": {
+"h": 6,
+"s": 12,
+"c": 0,
+"n": -6,
+"trust": {
+"darlene": 2,
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "You chose the quarterly. Darlene noticed. So did the judge, in a way: Dre showed up alone and got the max."
+},
+"double": {
+"h": 8,
+"s": 18,
+"c": -400,
+"n": -2,
+"trust": {
+"pops": 1,
+"darlene": 1,
+"love": -1
+},
+"end": true,
+"gives": [],
+"say": "You couldn’t be there, so you paid for a real lawyer with double money. Dre got probation. He still wanted you in the room."
+},
+"argue": {
+"h": 12,
+"s": -8,
+"c": 0,
+"n": -8,
+"trust": {
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "You said a sponsor isn’t a chauffeur. True in the book. Dre heard “you’re on your own.”"
+},
+"ignore": {
+"h": 14,
+"s": -10,
+"c": 0,
+"n": -10,
+"trust": {
+"pops": -3,
+"shorty": -1
+},
+"end": true,
+"gives": [],
+"say": "You forgot. He didn’t. Warrant."
+},
+"fkit": {
+"h": 22,
+"s": -15,
+"c": 0,
+"n": -10,
+"trust": {
+"pops": -3,
+"ghost": 1
+},
+"end": true,
+"gives": [],
+"say": "“Warrants don’t mean nothing.” He skipped it. Warrants mean something."
+},
+"date": {
+"h": -6,
+"s": -6,
+"c": -30,
+"n": 14,
+"trust": {
+"love": 3,
+"pops": 2
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You went to the ultrasound at 8 (they moved it), then flew downtown. Dre was on the steps, waiting. You walked in together."
+}
+},
+"expire": {
+"h": 10,
+"s": 16,
+"c": 0,
+"n": -6,
+"trust": {
+"pops": -2
+},
+"say": "Dre missed court. There’s a warrant. He’s back at the house, scared to leave it. You told yourself it wasn’t your job."
+},
+"need": [
+"sponsee"
+],
+"once": true,
+"weight": 2,
+"late": false
+},
+{
+"id": "first_client",
+"ch": 4,
+"scale": "month",
+"title": "THE LADY WITH THE LOTS",
+"who": "client",
+"setup": "Ms. Patel manages six rental properties and watched you clear your neighbor’s yard from her car. She wants a quote for all six, every two weeks, through October. It’s real money: $900 a month. It’s also a truck you don’t have, a mower that starts on the third pull, and a lot of Saturdays. “I need somebody who shows up,” she says. Everybody keeps saying that.",
+"now": 4,
+"daily": 4,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -10,
+"s": -6,
+"c": -50,
+"n": 10,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [
+"bizseed"
+],
+"say": "You asked the meeting. Sal has a truck he doesn’t use. $50 a weekend. You sent the quote. She said yes."
+},
+"call": {
+"h": -8,
+"s": -8,
+"c": 0,
+"n": 8,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [
+"bizseed"
+],
+"say": "Pops: “Can you push a mower? Can you show up? Then you can run a business. Everything else is paperwork.”"
+},
+"help": {
+"h": -6,
+"s": -2,
+"c": -60,
+"n": 12,
+"trust": {
+"pops": 2,
+"shorty": 1
+},
+"end": true,
+"gives": [
+"bizseed"
+],
+"say": "You hired Dre for $15 an hour. He showed up early. You sent the quote. She said yes."
+},
+"rest": {
+"h": -5,
+"s": -12,
+"c": 0,
+"n": -2,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You thought about it for three weeks. She hired a company with a logo."
+},
+"work": {
+"h": 6,
+"s": 4,
+"c": 0,
+"n": -2,
+"trust": {
+"darlene": 1
+},
+"end": true,
+"gives": [],
+"say": "You said no. Safe. Darlene was glad. You still look at the lots when you drive past."
+},
+"double": {
+"h": 10,
+"s": 22,
+"c": 900,
+"n": -4,
+"trust": {
+"darlene": 1,
+"love": -2,
+"mom": -1
+},
+"end": true,
+"gives": [
+"bizseed"
+],
+"say": "Warehouse all week, lots all weekend. $900 extra a month. You slept in the truck once."
+},
+"quit": {
+"h": 12,
+"s": -10,
+"c": 400,
+"n": 2,
+"trust": {
+"darlene": -3,
+"pops": 1
+},
+"end": true,
+"gives": [
+"bizseed"
+],
+"say": "You quit Darlene and went all in on six lots and a mower. Month one was terrifying. Month two was $900."
+},
+"argue": {
+"h": 8,
+"s": -8,
+"c": 0,
+"n": -4,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You quoted $1,500 a month out of fear. She said “no thank you” nicely. Nicely is worse."
+},
+"ignore": {
+"h": 6,
+"s": -6,
+"c": 0,
+"n": -4,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You didn’t send it. Logos. Trucks. Every day."
+},
+"fkit": {
+"h": 20,
+"s": -15,
+"c": 300,
+"n": -12,
+"trust": {
+"pops": -2,
+"ghost": 1
+},
+"end": true,
+"gives": [],
+"say": "You took a $300 deposit, did one lot, and stopped answering. She told everybody."
+},
+"bizfund": {
+"h": 0,
+"s": -6,
+"c": 0,
+"n": 8,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [
+"bizseed"
+],
+"say": "You emptied the stack on a used truck and a mower that starts first pull. Quote sent. “When can you start?”"
+},
+"date": {
+"h": 0,
+"s": -8,
+"c": -30,
+"n": 8,
+"trust": {
+"love": 2
+},
+"end": true,
+"gives": [
+"bizseed",
+"love_touch"
+],
+"say": "Jaz did the quote on her laptop in twenty minutes with a logo and everything. “You’re welcome. I get ten percent.”"
+}
+},
+"expire": {
+"h": 6,
+"s": 8,
+"c": 0,
+"n": -3,
+"trust": {},
+"say": "You never sent the quote. Ms. Patel hired a company with a logo. You drive past their trucks every day."
+},
+"need": [
+"nobiz",
+"ownplace"
+],
+"once": true,
+"weight": 2,
+"late": false
+},
+{
+"id": "warrant_check",
+"ch": 4,
+"scale": "month",
+"title": "THE OLD WARRANT",
+"who": "unknown",
+"setup": "A letter from a county you haven’t been to in years. A bench warrant from a case you walked away from before you got sober. Failure to appear. Pops says you handle it: show up, turn yourself in, take the hit. The lawyer on the bus ad says $500 to make it go away. Ghost says just don’t drive through that county.",
+"now": 14,
+"daily": 10,
+"days": 3,
+"moves": {
+"meeting": {
+"h": -16,
+"s": -10,
+"c": -150,
+"n": 10,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "You went to a meeting, then walked into the courthouse with Pops. Two hours, a fine, a date. Done. The judge said “good luck.”"
+},
+"call": {
+"h": -14,
+"s": -10,
+"c": -150,
+"n": 8,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "Pops drove you. You turned yourself in at 8 AM with a coffee in your hand. Processed and out by noon. A fine. A clean name."
+},
+"help": {
+"h": -10,
+"s": -6,
+"c": -100,
+"n": 4,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You called the public defender. A kid in a bad suit got it reduced to a fine over the phone."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You stayed in the apartment for a week. The warrant stayed in the system."
+},
+"work": {
+"h": -8,
+"s": -8,
+"c": -500,
+"n": 0,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "$500 to the lawyer on the bus. He made one call. It worked. You’re broke and clean."
+},
+"double": {
+"h": -6,
+"s": 10,
+"c": -500,
+"n": -4,
+"trust": {
+"love": -1,
+"darlene": 1
+},
+"end": true,
+"gives": [],
+"say": "You doubled for two weeks and paid the lawyer. Jaz asked if you were avoiding her. You were avoiding a warrant."
+},
+"argue": {
+"h": 12,
+"s": -8,
+"c": 0,
+"n": -2,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "You argued with a clerk for an hour. She added a note to your file. Clerks always win."
+},
+"ignore": {
+"h": 20,
+"s": -6,
+"c": -300,
+"n": -6,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You avoided the county. Then you drove through it to get Dre’s mom to a funeral. The stop took four hours."
+},
+"fkit": {
+"h": 22,
+"s": -18,
+"c": 0,
+"n": -6,
+"trust": {
+"ghost": 1
+},
+"end": true,
+"gives": [],
+"say": "You tore up the letter. They have copies."
+},
+"ghostlink": {
+"h": 14,
+"s": -12,
+"c": 0,
+"n": 0,
+"trust": {
+"ghost": 2,
+"pops": -2
+},
+"end": true,
+"gives": [
+"oldcontact"
+],
+"say": "Ghost: “Just don’t go there, and don’t get pulled over.” That’s not a trick. That’s a countdown."
+},
+"block": {
+"h": 10,
+"s": -8,
+"c": -200,
+"n": 2,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "The block knew a guy who knew a guy. The guy took $200 and vanished."
+}
+},
+"expire": {
+"h": 20,
+"s": 15,
+"c": 0,
+"n": -4,
+"trust": {},
+"say": "You did nothing. A traffic stop in March ran your name. The old county had a surprise waiting."
+},
+"need": [],
+"once": true,
+"weight": 1,
+"late": false
+},
+{
+"id": "pops_diagnosis",
+"ch": 5,
+"scale": "month",
+"title": "POPS IS SICK",
+"who": "pops",
+"setup": "Pops didn’t make the Thursday meeting. Pops always makes the Thursday meeting. He calls you from a hospital bed like it’s nothing. “It’s the pancreas. They’re gonna try some things.” He’s got nobody. Twenty-four years sober, a hundred sponsees, and nobody on the emergency contact line. He asks if you’d mind being on it.",
+"now": 6,
+"daily": 6,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -14,
+"s": -10,
+"c": 0,
+"n": 16,
+"trust": {
+"pops": 4,
+"shorty": 1
+},
+"end": true,
+"gives": [
+"pops_sick"
+],
+"say": "You brought the Thursday meeting to the hospital. Eleven folding chairs in a room built for two. The nurses let it slide."
+},
+"call": {
+"h": -10,
+"s": -12,
+"c": 0,
+"n": 12,
+"trust": {
+"pops": 4
+},
+"end": true,
+"gives": [
+"pops_sick"
+],
+"say": "You said yes. Then you learned what it means: forms, 3 AM calls, a doctor who talks to you like family. You are, apparently."
+},
+"help": {
+"h": -8,
+"s": -8,
+"c": -40,
+"n": 14,
+"trust": {
+"pops": 4,
+"mom": 1
+},
+"end": true,
+"gives": [
+"pops_sick"
+],
+"say": "Every night after work. He pretended to hate it. He asked what time you were coming the next day."
+},
+"rides": {
+"h": -10,
+"s": -6,
+"c": -60,
+"n": 14,
+"trust": {
+"pops": 4
+},
+"end": true,
+"gives": [
+"pops_sick"
+],
+"say": "Chemo Tuesdays. Scans Fridays. You know the hospital parking garage better than your own street."
+},
+"rest": {
+"h": -5,
+"s": -10,
+"c": 0,
+"n": 2,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [
+"pops_sick"
+],
+"say": "You went once. He looked small. You didn’t go back for two weeks. He noticed."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 0,
+"n": 4,
+"trust": {
+"pops": 2,
+"darlene": 1
+},
+"end": true,
+"gives": [
+"pops_sick"
+],
+"say": "You worked all week and sat with him Saturdays. He said that was plenty. He was lying to make it easy on you."
+},
+"double": {
+"h": 8,
+"s": 16,
+"c": -300,
+"n": 6,
+"trust": {
+"pops": 3,
+"love": -1
+},
+"end": true,
+"gives": [
+"pops_sick"
+],
+"say": "You paid his copays with double money. He found out and yelled. Then he cried. Then he yelled again."
+},
+"argue": {
+"h": 6,
+"s": -8,
+"c": 0,
+"n": 4,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [
+"pops_sick"
+],
+"say": "You told him to fight. He said “son, I been fighting since before you were born. Sit down.” You sat."
+},
+"ignore": {
+"h": 14,
+"s": -10,
+"c": 0,
+"n": -8,
+"trust": {
+"pops": -2,
+"shorty": -1
+},
+"end": true,
+"gives": [
+"pops_sick"
+],
+"say": "You couldn’t do hospitals. You told yourself he’d understand. He did. That’s what made it worse."
+},
+"fkit": {
+"h": 24,
+"s": -20,
+"c": -30,
+"n": -6,
+"trust": {
+"pops": -2,
+"ghost": 1
+},
+"end": true,
+"gives": [
+"pops_sick"
+],
+"say": "You sat at the bar with a soda, thinking about Pops dying. The bartender left you alone. The smell didn’t."
+},
+"date": {
+"h": -6,
+"s": -8,
+"c": -30,
+"n": 12,
+"trust": {
+"pops": 3,
+"love": 3
+},
+"end": true,
+"gives": [
+"pops_sick",
+"love_touch"
+],
+"say": "You brought Jaz. Pops told her every embarrassing story he had. She brought him soup every week after."
+}
+},
+"expire": {
+"h": 8,
+"s": 20,
+"c": 0,
+"n": -6,
+"trust": {
+"pops": -3
+},
+"say": "You said you’d visit and kept not visiting. Pops stopped mentioning it. Pops never mentions anything twice."
+},
+"need": [
+"popswell",
+"sponsor",
+"sober200"
+],
+"once": true,
+"weight": 3,
+"late": false
+},
+{
+"id": "pops_hospital",
+"ch": 5,
+"scale": "month",
+"title": "POPS’ BAD WEEK",
+"who": "pops",
+"setup": "The hospital calls at 4 AM. Pops took a turn. He’s asking for you, and he never asks for anything. It’s the same week as the biggest job your business has ever had: twelve lots, a $2,000 check, Ms. Patel watching. Dre is supposed to run the crew but Dre has never run anything. Pops is asking for you.",
+"now": 8,
+"daily": 8,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -6,
+"c": -300,
+"n": 14,
+"trust": {
+"pops": 4,
+"shorty": 1
+},
+"end": true,
+"gives": [],
+"say": "You went to a meeting, then to Pops. Dre ran the crew. He lost a rake and a client. He also finished all twelve lots."
+},
+"call": {
+"h": -10,
+"s": -8,
+"c": -200,
+"n": 12,
+"trust": {
+"pops": 4
+},
+"end": true,
+"gives": [],
+"say": "You handed Dre the keys and the clipboard. He called you nine times. He did it. Pops held your hand and said “good.”"
+},
+"help": {
+"h": -8,
+"s": -10,
+"c": -1200,
+"n": 14,
+"trust": {
+"pops": 5,
+"mom": 1
+},
+"end": true,
+"gives": [],
+"say": "You sat with Pops for five days. Ms. Patel hired the logo company. You’d do it again."
+},
+"rides": {
+"h": -8,
+"s": 10,
+"c": 0,
+"n": 12,
+"trust": {
+"pops": 4
+},
+"end": true,
+"gives": [],
+"say": "5 AM hospital, noon lots, 8 PM hospital. Seven days. You lost six pounds and no clients. Pops noticed the sunburn."
+},
+"rest": {
+"h": -5,
+"s": -6,
+"c": 0,
+"n": 0,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "You went once, then worked. He understood. He always understands. You wish he didn’t have to."
+},
+"work": {
+"h": 6,
+"s": 12,
+"c": 0,
+"n": -4,
+"trust": {
+"pops": -1,
+"darlene": 1
+},
+"end": true,
+"gives": [],
+"say": "You finished the lots. Pops was asleep when you got there every night. You left the check on his tray. He didn’t need a check."
+},
+"double": {
+"h": 10,
+"s": 26,
+"c": 0,
+"n": 6,
+"trust": {
+"pops": 3,
+"love": -1
+},
+"end": true,
+"gives": [],
+"say": "You did it all. Hospital, lots, Jaz. You fell asleep at a red light. Nobody got hurt. That was luck."
+},
+"argue": {
+"h": 10,
+"s": -6,
+"c": 0,
+"n": -4,
+"trust": {
+"pops": -1
+},
+"end": true,
+"gives": [],
+"say": "You snapped at a nurse. She’d been up thirty hours too. Pops heard it. “That’s not you, son.”"
+},
+"ignore": {
+"h": 16,
+"s": -10,
+"c": 400,
+"n": -10,
+"trust": {
+"pops": -4,
+"shorty": -2
+},
+"end": true,
+"gives": [],
+"say": "You didn’t go. You told yourself you’d go tomorrow. You finished the lots. Tomorrow kept moving."
+},
+"fkit": {
+"h": 28,
+"s": -25,
+"c": -60,
+"n": -8,
+"trust": {
+"pops": -3,
+"ghost": 2
+},
+"end": true,
+"gives": [
+"oldcontact"
+],
+"say": "You went to the old block to not feel it. It worked for an hour. Ghost found you on the corner. “Rough week?”"
+},
+"date": {
+"h": -4,
+"s": -4,
+"c": 0,
+"n": 12,
+"trust": {
+"love": 3,
+"pops": 3
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "Jaz sat with Pops every afternoon while you worked. He told her every embarrassing story he had left. She wrote them down."
+}
+},
+"expire": {
+"h": 10,
+"s": 24,
+"c": -500,
+"n": -8,
+"trust": {
+"pops": -3
+},
+"say": "You tried to do all of it. You did none of it well. Pops slept through your visit. Ms. Patel found somebody with a logo."
+},
+"need": [
+"popssick",
+"biz"
+],
+"once": true,
+"weight": 3,
+"late": false
+},
+{
+"id": "dre_relapse",
+"ch": 5,
+"scale": "month",
+"title": "DRE WENT OUT",
+"who": "newcomer",
+"setup": "Dre calls at 2:40 AM from the block. High. Crying. “I messed up. I messed up. Don’t tell Pops.” He wants you to come get him. You know the corner. You know what’s on it. You have two hundred days and Jaz asleep in the next room. Pops always said: you don’t go alone. Pops is in the hospital.",
+"now": 16,
+"daily": 12,
+"days": 1,
+"moves": {
+"meeting": {
+"h": -10,
+"s": -8,
+"c": 0,
+"n": 16,
+"trust": {
+"pops": 3,
+"shorty": 2
+},
+"end": true,
+"gives": [],
+"say": "You called Sal and Benny. Three of you went. Dre got in the car without a word. He detoxed on your couch with Jaz making him eggs."
+},
+"call": {
+"h": -8,
+"s": -8,
+"c": 0,
+"n": 14,
+"trust": {
+"shorty": 3,
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "Shorty was in the car in four minutes. You drove, Shorty talked Dre into the back seat. Nobody got out of the car."
+},
+"help": {
+"h": 0,
+"s": -5,
+"c": 0,
+"n": 14,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "You pulled up, honked twice, kept the engine running. Dre came out. Two minutes. Your hands shook the whole way home."
+},
+"rides": {
+"h": -4,
+"s": -4,
+"c": 0,
+"n": 12,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "You stayed in the car with the doors locked and the phone on speaker. He walked to you. That was the deal."
+},
+"rest": {
+"h": -6,
+"s": -8,
+"c": -20,
+"n": 12,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [],
+"say": "You told him the gas station, four blocks off. He made it. You bought him a coffee at 3 AM and drove him to detox."
+},
+"work": {
+"h": 6,
+"s": 12,
+"c": -40,
+"n": -6,
+"trust": {
+"pops": -2
+},
+"end": true,
+"gives": [],
+"say": "You sent a cab. He didn’t get in it. He called at 5 AM, worse."
+},
+"argue": {
+"h": 8,
+"s": -8,
+"c": 0,
+"n": 2,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "You yelled. He hung up. He was at your door at 7 AM anyway, still high, still crying. You let him in."
+},
+"ignore": {
+"h": 14,
+"s": -10,
+"c": 0,
+"n": -12,
+"trust": {
+"pops": -3,
+"shorty": -2
+},
+"end": true,
+"gives": [],
+"say": "You let it ring. You lay there and listened to it ring."
+},
+"fkit": {
+"h": 30,
+"s": -15,
+"c": -40,
+"n": 4,
+"trust": {
+"pops": -1,
+"ghost": 2
+},
+"end": true,
+"gives": [
+"oldcontact"
+],
+"say": "You went alone. You found him. You found everything else too. You stayed a minute. Then another. Then you got in the car with him and drove. Sober. Barely."
+},
+"ghostlink": {
+"h": 18,
+"s": -12,
+"c": 0,
+"n": -2,
+"trust": {
+"ghost": 3,
+"pops": -3
+},
+"end": true,
+"gives": [
+"oldcontact"
+],
+"say": "Ghost went and got him. Ghost was already there. That’s how Ghost knew."
+},
+"block": {
+"h": 6,
+"s": -6,
+"c": 0,
+"n": 10,
+"trust": {
+"love": 2,
+"pops": 1
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You woke Jaz. She said “I’m coming.” Jaz in the passenger seat at 3 AM with her arms crossed. Dre took one look at her and got in."
+}
+},
+"expire": {
+"h": 14,
+"s": 24,
+"c": 0,
+"n": -8,
+"trust": {
+"pops": -2,
+"shorty": -1
+},
+"say": "You didn’t pick up. Dre walked home at dawn. He never called you again. He calls Ghost now."
+},
+"need": [
+"sponsee"
+],
+"once": false,
+"weight": 3,
+"late": false
+},
+{
+"id": "big_contract",
+"ch": 5,
+"scale": "month",
+"title": "TWELVE LOTS",
+"who": "client",
+"setup": "Ms. Patel’s boss owns forty-one properties. He wants a bid on twelve of them, year-round. $2,000 a month. It needs a second truck, a second crew, and insurance you don’t have. If you land it you’re a real company. If you take it and can’t deliver, you’re the guy with the logo who didn’t show up.",
+"now": 4,
+"daily": 4,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -10,
+"s": -6,
+"c": -200,
+"n": 12,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [
+"bigjob"
+],
+"say": "You asked the meeting. Four guys with six months and nothing to do Saturdays. Bid sent. Bid won."
+},
+"call": {
+"h": -8,
+"s": -8,
+"c": 0,
+"n": 8,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [
+"bigjob"
+],
+"say": "Pops, from a hospital bed: “You were ready when you started showing up. Bid it.” You bid it."
+},
+"help": {
+"h": -6,
+"s": -4,
+"c": -300,
+"n": 12,
+"trust": {
+"pops": 2,
+"shorty": 1
+},
+"end": true,
+"gives": [
+"bigjob"
+],
+"say": "You made Dre a foreman. He bought a clipboard with his own money. Bid won."
+},
+"rest": {
+"h": -5,
+"s": -8,
+"c": 0,
+"n": -2,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You said no. Safe. The lots stayed six. The logo company got twelve."
+},
+"work": {
+"h": 8,
+"s": 16,
+"c": 500,
+"n": 4,
+"trust": {},
+"end": true,
+"gives": [
+"bigjob"
+],
+"say": "You bid it. You won it. You figured it out one lot at a time. Sleep is for people without twelve lots."
+},
+"double": {
+"h": 10,
+"s": 24,
+"c": 900,
+"n": 2,
+"trust": {
+"love": -2,
+"pops": 1
+},
+"end": true,
+"gives": [
+"bigjob"
+],
+"say": "Eighteen lots. Two crews. One you. Jaz said she forgot what you look like."
+},
+"quit": {
+"h": 6,
+"s": -10,
+"c": 4000,
+"n": -4,
+"trust": {
+"darlene": 1,
+"pops": -1
+},
+"end": true,
+"gives": [],
+"say": "They offered $4,000 for your clients. You took it. Back to the warehouse Monday."
+},
+"argue": {
+"h": 10,
+"s": 10,
+"c": 300,
+"n": 0,
+"trust": {},
+"end": true,
+"gives": [
+"bigjob"
+],
+"say": "You bid too low to beat the logo guys. You won. You’re losing money on every lot."
+},
+"ignore": {
+"h": 6,
+"s": -4,
+"c": 0,
+"n": -4,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "The bid was due Friday. You remembered Monday."
+},
+"fkit": {
+"h": 20,
+"s": -20,
+"c": -300,
+"n": -6,
+"trust": {
+"pops": -2,
+"ghost": 1
+},
+"end": true,
+"gives": [],
+"say": "You threw a party for a contract you hadn’t won. Ms. Patel’s boss saw the pictures."
+},
+"bizfund": {
+"h": 0,
+"s": -6,
+"c": 0,
+"n": 8,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [
+"bigjob"
+],
+"say": "You bought the truck, then bid. “Already equipped.” That line won it."
+},
+"date": {
+"h": 0,
+"s": -8,
+"c": -50,
+"n": 10,
+"trust": {
+"love": 3
+},
+"end": true,
+"gives": [
+"bigjob",
+"love_touch"
+],
+"say": "Jaz built a bid with a spreadsheet and a cover letter. Ms. Patel’s boss said it was the only professional one he got."
+}
+},
+"expire": {
+"h": 6,
+"s": 10,
+"c": 0,
+"n": -2,
+"trust": {},
+"say": "You never bid. The logo company got it. You still do Ms. Patel’s six. She says “I tried” every time she sees you."
+},
+"need": [
+"biz"
+],
+"once": true,
+"weight": 2,
+"late": false
+},
+{
+"id": "truck_dies",
+"ch": 5,
+"scale": "month",
+"title": "THE TRUCK DIED",
+"who": "mechanic",
+"setup": "The truck died on the highway with a trailer full of mowers and twelve lots due Friday. The mechanic says transmission. $1,800 or a new truck. You have four days, a crew waiting on a text, and a client who’s heard every excuse from every guy with a logo.",
+"now": 8,
+"daily": 8,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -10,
+"s": -6,
+"c": -900,
+"n": 10,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "You asked the room. Sal’s truck for a week, and Benny knows a transmission guy. Friday got done."
+},
+"call": {
+"h": -8,
+"s": -8,
+"c": -1100,
+"n": 6,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "Pops’ guy rebuilt it for $1,100 and a case of ginger ale. “Tell Pops he still owes me from ’94.”"
+},
+"help": {
+"h": -6,
+"s": 4,
+"c": -400,
+"n": 12,
+"trust": {
+"shorty": 1,
+"pops": 1
+},
+"end": true,
+"gives": [],
+"say": "You and Dre pushed the mowers four blocks to the three closest lots. Ms. Patel drove by, laughed, and extended the contract."
+},
+"rest": {
+"h": -5,
+"s": -12,
+"c": -1800,
+"n": 8,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You called and said the truck died and you’d be three days late. She said “you’re the first one who ever called.”"
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": -1800,
+"n": 0,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "$1,800. The whole month’s profit. Truck fixed Wednesday. Lots done Friday. Jaz did the math out loud at dinner."
+},
+"double": {
+"h": 8,
+"s": 20,
+"c": -700,
+"n": 2,
+"trust": {
+"love": -1
+},
+"end": true,
+"gives": [],
+"say": "A rental, headlights, and two 16-hour days. Friday done. You slept Saturday. All of it."
+},
+"quit": {
+"h": 6,
+"s": -12,
+"c": 800,
+"n": -4,
+"trust": {
+"darlene": 2,
+"pops": -1
+},
+"end": true,
+"gives": [],
+"say": "You sold the mowers and went back to the warehouse. Darlene said “I kept your locker.”"
+},
+"argue": {
+"h": 10,
+"s": -6,
+"c": -1800,
+"n": -2,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You said transmission was a scam. He showed you the transmission. In pieces. On the floor."
+},
+"ignore": {
+"h": 8,
+"s": -6,
+"c": 0,
+"n": -8,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "Trucks don’t. Friday came. The crew went home."
+},
+"fkit": {
+"h": 22,
+"s": -18,
+"c": 500,
+"n": -6,
+"trust": {
+"ghost": 3,
+"pops": -2
+},
+"end": true,
+"gives": [
+"oldcontact"
+],
+"say": "Ghost bought the mowers for a third of what they cost and asked if you wanted to make some real money."
+},
+"bizfund": {
+"h": 0,
+"s": -4,
+"c": 0,
+"n": 6,
+"trust": {},
+"end": true,
+"gives": [],
+"say": "You pulled the stack and bought a second truck. Two trucks, one works. That’s a fleet."
+}
+},
+"expire": {
+"h": 10,
+"s": 18,
+"c": -600,
+"n": -6,
+"trust": {},
+"say": "You missed Friday. Then the next Friday. Ms. Patel’s boss hired the logo guys. The truck sat in the driveway all winter like a monument."
+},
+"need": [
+"biz"
+],
+"once": true,
+"weight": 1,
+"late": false
+},
+{
+"id": "baby_comes",
+"ch": 5,
+"scale": "month",
+"title": "THE BABY",
+"who": "love",
+"setup": "Jaz’s water breaks at 3 AM in the kitchen. You have a car with a check engine light, a crew that starts at 7, and a hospital bag by the door that she packed two weeks ago because she knew you wouldn’t. Twenty-six hours later, somebody hands you a person. The nurse asks for the father’s name. It takes you a second to realize she means you.",
+"now": 6,
+"daily": 6,
+"days": 1,
+"moves": {
+"meeting": {
+"h": -10,
+"s": -8,
+"c": -100,
+"n": 16,
+"trust": {
+"love": 4,
+"pops": 2,
+"mom": 2
+},
+"end": true,
+"gives": [
+"love_touch",
+"baby_born"
+],
+"say": "You texted the Thursday meeting from the hallway: “it’s a girl.” Forty replies in a minute. Pops sent a thumbs up from his hospital bed."
+},
+"call": {
+"h": -8,
+"s": -6,
+"c": -100,
+"n": 14,
+"trust": {
+"love": 3,
+"mom": 4
+},
+"end": true,
+"gives": [
+"love_touch",
+"baby_born"
+],
+"say": "You called Mom at 3:15 AM. She was dressed before you hung up. She was there before you parked."
+},
+"help": {
+"h": -6,
+"s": -4,
+"c": -200,
+"n": 16,
+"trust": {
+"love": 5,
+"mom": 2
+},
+"end": true,
+"gives": [
+"love_touch",
+"baby_born"
+],
+"say": "Twenty-six hours. You didn’t leave. You didn’t check your phone. Dre ran the crew. The nurse said “that’s a good one” about you, to Jaz."
+},
+"rides": {
+"h": -8,
+"s": 0,
+"c": -100,
+"n": 14,
+"trust": {
+"love": 4
+},
+"end": true,
+"gives": [
+"love_touch",
+"baby_born"
+],
+"say": "3 AM, check engine light, forty over. You made the hospital in eleven minutes. Then you waited twenty-six hours."
+},
+"rest": {
+"h": -5,
+"s": -10,
+"c": -100,
+"n": 12,
+"trust": {
+"love": 3
+},
+"end": true,
+"gives": [
+"love_touch",
+"baby_born"
+],
+"say": "You slept in the chair. Jaz woke you up to hold her. Her. The baby. Both."
+},
+"work": {
+"h": 6,
+"s": 14,
+"c": 300,
+"n": -2,
+"trust": {
+"love": -1,
+"mom": -1
+},
+"end": true,
+"gives": [
+"baby_born"
+],
+"say": "You dropped her off and went to work. She said go. She didn’t mean it. You got back at the end. Her mom was already holding the baby."
+},
+"double": {
+"h": 8,
+"s": 20,
+"c": 600,
+"n": -4,
+"trust": {
+"love": -2,
+"darlene": 1
+},
+"end": true,
+"gives": [
+"baby_born"
+],
+"say": "You worked. Twelve lots. Then the hospital bill came and you understood why you worked. Jaz understood too. Eventually."
+},
+"argue": {
+"h": 8,
+"s": -6,
+"c": -100,
+"n": 6,
+"trust": {
+"love": 1
+},
+"end": true,
+"gives": [
+"love_touch",
+"baby_born"
+],
+"say": "You argued with a nurse about the parking validation during a contraction. Jaz says it’s her favorite story about you now."
+},
+"ignore": {
+"h": 10,
+"s": -10,
+"c": -100,
+"n": -2,
+"trust": {
+"love": -2,
+"mom": -1
+},
+"end": true,
+"gives": [
+"baby_born"
+],
+"say": "You sat in the parking garage for four hours. You went up eventually. She didn’t ask where you’d been. She knew."
+},
+"fkit": {
+"h": 26,
+"s": -20,
+"c": -60,
+"n": -6,
+"trust": {
+"love": -4,
+"pops": -3
+},
+"end": true,
+"gives": [
+"baby_born"
+],
+"say": "You went to the bar after. To celebrate. With a soda. The guy next to you bought you a shot. It sat there. You looked at it for a long time."
+},
+"date": {
+"h": -6,
+"s": -6,
+"c": -150,
+"n": 16,
+"trust": {
+"love": 5,
+"mom": 3
+},
+"end": true,
+"gives": [
+"love_touch",
+"baby_born"
+],
+"say": "Both moms. One room. They fought over the baby’s name and agreed on yours. “He stayed.” That’s what they said about you."
+}
+},
+"expire": {
+"h": 6,
+"s": 20,
+"c": 0,
+"n": -6,
+"trust": {
+"love": -3,
+"mom": -2
+},
+"say": "You missed it. You were at the lots. Her mom cut the cord. Jaz says it’s fine. Jaz says a lot of things are fine now."
+},
+"need": [
+"pregnant",
+"together",
+"baby_due"
+],
+"once": true,
+"weight": 4,
+"late": false,
+"girl": {
+"setup": "Your water breaks at 3 AM in the kitchen. Marc has the bag by the door that you packed two weeks ago because you knew he wouldn’t. The car has a check engine light. Twenty-six hours later, somebody hands you a person. The nurse asks for your name for the bracelet. It takes you a second to say it like it belongs to a mother."
+}
+},
+{
+"id": "thanksgiving",
+"ch": 5,
+"scale": "month",
+"title": "FIRST THANKSGIVING SOBER",
+"who": "mom",
+"setup": "Mom’s table. The whole family. Your uncle, who brings a cooler and an opinion. Your cousin, who “just wants to see if you’re really different.” Jaz on one side, Mom on the other, and a bottle of wine open in the middle of the table because nobody thought about it, because why would they. It’s the first holiday you’ve been invited to in six years.",
+"now": 6,
+"daily": 6,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": -20,
+"n": 14,
+"trust": {
+"mom": 3,
+"love": 2,
+"pops": 1
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You hit the 9 AM gratitude meeting, then drove to Mom’s with a pie. Your uncle offered. You said “I’m good.” You were."
+},
+"call": {
+"h": -10,
+"s": -8,
+"c": 0,
+"n": 10,
+"trust": {
+"mom": 2,
+"pops": 2,
+"love": 1
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You sat in the driveway and called Pops. “Go in. Eat. Leave when you want. Call me from the driveway after.” You did both calls."
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": 0,
+"n": 12,
+"trust": {
+"mom": 3
+},
+"end": true,
+"gives": [],
+"say": "You did every dish. Your uncle came in to “help,” stood there, and said “I’m proud of you” to the sink."
+},
+"rest": {
+"h": -5,
+"s": -8,
+"c": 0,
+"n": 6,
+"trust": {
+"mom": 2,
+"love": 1
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You lasted till the pie, kissed Mom, and left. She said “thank you for coming.” She meant it."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 200,
+"n": -2,
+"trust": {
+"darlene": 2,
+"mom": -1,
+"love": 1
+},
+"end": true,
+"gives": [],
+"say": "Darlene paid double. Mom set a plate anyway. Jaz brought you a plate at the dock at 9 PM."
+},
+"argue": {
+"h": 14,
+"s": -10,
+"c": 0,
+"n": -4,
+"trust": {
+"mom": -1
+},
+"end": true,
+"gives": [],
+"say": "Your uncle said rehab’s for the weak. You said some things. Mom said “not at my table.” You both shut up."
+},
+"ignore": {
+"h": 6,
+"s": -10,
+"c": 0,
+"n": -2,
+"trust": {
+"mom": 1,
+"love": 1
+},
+"end": true,
+"gives": [],
+"say": "You sat on the porch all dinner. Jaz brought you a plate. Mom brought you a blanket. Nobody made you come in."
+},
+"fkit": {
+"h": 28,
+"s": -20,
+"c": 0,
+"n": -8,
+"trust": {
+"love": -2,
+"pops": -2,
+"mom": -1
+},
+"end": true,
+"gives": [],
+"say": "Your cousin poured. You picked it up. You looked at Jaz. You put it down. Your hand shook for an hour."
+},
+"crew": {
+"h": 12,
+"s": -18,
+"c": -20,
+"n": 0,
+"trust": {
+"ghost": 1,
+"mom": -2
+},
+"end": true,
+"gives": [],
+"say": "You left Mom’s for the crew’s “Friendsgiving.” It was a party with a turkey. You left that one early too."
+},
+"date": {
+"h": -8,
+"s": -10,
+"c": -20,
+"n": 16,
+"trust": {
+"mom": 4,
+"love": 3
+},
+"end": true,
+"gives": [
+"love_touch"
+],
+"say": "You brought Jaz. Nobody looked at the wine all night. Your uncle told her every story about you and cried at two of them."
+}
+},
+"expire": {
+"h": 8,
+"s": 12,
+"c": 0,
+"n": -6,
+"trust": {
+"mom": -2,
+"love": -1
+},
+"say": "You skipped it. Mom set a plate anyway. Jaz went without you and came home quiet."
+},
+"need": [],
+"once": true,
+"weight": 2,
+"late": false
+},
+{
+"id": "year_speaker",
+"ch": 5,
+"scale": "month",
+"title": "THE ONE-YEAR MEETING",
+"who": "pops",
+"setup": "Pops, thin, out of the hospital for now, asks you to be the speaker at the Thursday meeting. Your one-year meeting. “Twenty minutes. Say what it was like, what happened, what it’s like now. Don’t make a speech.” Mom wants to come. Jaz wants to come. Dre wants to come. Big Ray says he might. You have never once talked for twenty minutes without lying.",
+"now": 4,
+"daily": 4,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -14,
+"s": -10,
+"c": 0,
+"n": 18,
+"trust": {
+"pops": 4,
+"mom": 2,
+"love": 2
+},
+"end": true,
+"gives": [
+"year_ready"
+],
+"say": "You said yes and sweated for a month. Then you stood up and told the truth for twenty-two minutes. Nobody checked their phone."
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": 0,
+"n": 12,
+"trust": {
+"pops": 4
+},
+"end": true,
+"gives": [
+"year_ready"
+],
+"say": "You practiced on Pops every night for a month. He fell asleep twice. “That part’s boring. Cut it.” You cut it."
+},
+"help": {
+"h": -8,
+"s": -6,
+"c": 0,
+"n": 16,
+"trust": {
+"pops": 3,
+"shorty": 2
+},
+"end": true,
+"gives": [
+"year_ready"
+],
+"say": "You asked Dre to introduce you. He wrote it on a napkin and read it with shaking hands. “This is my sponsor.” That was the whole intro."
+},
+"rest": {
+"h": -5,
+"s": -10,
+"c": 0,
+"n": 6,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [
+"year_ready"
+],
+"say": "You wrote it out. Then Pops said “no notes.” You threw it away. You knew it anyway."
+},
+"work": {
+"h": 6,
+"s": 10,
+"c": 0,
+"n": 10,
+"trust": {
+"pops": 3
+},
+"end": true,
+"gives": [
+"year_ready"
+],
+"say": "You said yes and didn’t prepare. You stood up with nothing and said everything. It was the best one anybody’d heard in years."
+},
+"argue": {
+"h": 4,
+"s": -6,
+"c": 0,
+"n": 4,
+"trust": {
+"pops": 2
+},
+"end": true,
+"gives": [
+"year_ready"
+],
+"say": "You told Pops you’re not a speaker. He said “I know. That’s why I asked.” You said yes to shut him up."
+},
+"ignore": {
+"h": 6,
+"s": -8,
+"c": 0,
+"n": 2,
+"trust": {
+"pops": 1
+},
+"end": true,
+"gives": [
+"year_ready"
+],
+"say": "You said you’d think about it. Pops is sick. Thinking about it is not a thing you get to do anymore. You said yes a week later."
+},
+"fkit": {
+"h": 18,
+"s": -12,
+"c": 0,
+"n": -8,
+"trust": {
+"pops": -3
+},
+"end": true,
+"gives": [],
+"say": "You said ask Benny. Benny spoke. You sat in the back and felt it. Pops didn’t look at you once."
+},
+"date": {
+"h": -6,
+"s": -8,
+"c": 0,
+"n": 14,
+"trust": {
+"love": 3,
+"pops": 3
+},
+"end": true,
+"gives": [
+"year_ready",
+"love_touch"
+],
+"say": "You said yes because Jaz said she’d be in the front row. She was. She cried at the part about the shoes."
+}
+},
+"expire": {
+"h": 6,
+"s": 10,
+"c": 0,
+"n": -4,
+"trust": {
+"pops": -2
+},
+"say": "You said you weren’t ready. Pops nodded. He asked Benny. Benny said yes."
+},
+"need": [
+"year",
+"sponsor"
+],
+"once": true,
+"weight": 5,
+"late": false
 }
 ];
 if (typeof module !== "undefined") module.exports = { SITUATIONS };

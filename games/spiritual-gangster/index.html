@@ -162,9 +162,9 @@ nav .on img{opacity:1}
 /* progress */
 .badge{padding:8px 10px;margin-top:8px;font-weight:700}
 .log{color:#e9dcc0;border-bottom:1px solid #fff2;padding:7px 2px;font-size:14px}
-.ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .ladder .rung{text-align:center;padding:4px 2px 6px;font-size:12px}
-.ladder .rung img{height:84px;display:block;margin:0 auto 2px}
+.ladder .rung img{height:70px;display:block;margin:0 auto 2px}
 .ladder .rung.no img{filter:grayscale(1) brightness(.5)}
 .ladder .rung .mk{font-size:13px}
 .ladder .rung.cur{box-shadow:0 0 0 3px var(--gold2),3px 5px 0 2px #000}
@@ -235,6 +235,8 @@ footer{color:#b9ab90;font-size:12px;margin-top:18px;text-align:center}
 .stuff2 img{height:calc(var(--u)*46);filter:drop-shadow(0 2px 2px #000)}
 .dnum,.dtot{position:absolute;font-size:calc(var(--u)*72);line-height:1;text-shadow:3px 4px 0 #000;-webkit-text-stroke:calc(var(--u)*2) #000;paint-order:stroke fill}
 .dnum{color:var(--gold2);text-align:right}.dtot{color:#fff6dc}
+.dturn{position:absolute;display:flex;align-items:center;gap:.25em;padding-left:.2em;font-size:calc(var(--u)*62);line-height:1;color:#fff6dc;text-shadow:3px 4px 0 #000;-webkit-text-stroke:calc(var(--u)*2) #000;paint-order:stroke fill;background:#1a0d0b;border-radius:6px}
+.dturn b{color:var(--gold2);font-weight:400}
 .lvl{position:absolute;text-align:left;color:var(--ink);font-size:calc(var(--u)*40);white-space:nowrap;overflow:hidden;padding-left:calc(var(--u)*8);-webkit-text-stroke:calc(var(--u)*1.2) currentColor}
 .lvl b{font-weight:400;font-size:calc(var(--u)*50)}
 .nexttxt{position:absolute;text-align:left;color:#fff;font:700 calc(var(--u)*24)/1.15 'Barlow Condensed';text-shadow:1px 2px 0 #000,0 0 6px #000}
@@ -363,6 +365,7 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
   background:#f1e2bd url(assets/ui/tex-cream.webp) center/220px;border:3px solid #111;border-radius:6px;box-shadow:0 5px 0 #111,0 7px 8px #0007;transition:transform .08s,box-shadow .08s;cursor:pointer}
 .mb:active{transform:translateY(4px);box-shadow:0 1px 0 #111,0 2px 3px #0007}
 .mb .mi{width:40px;height:40px;object-fit:contain;display:block}
+.mb .mi.dbl{filter:drop-shadow(3px 0 0 #b07a12)}
 .mb.life .mi{filter:drop-shadow(0 0 2px #fff6dc)}
 .mb svg.mi{color:#14110f}
 .mb .ml{font:800 15px/1.02 'Barlow Condensed';letter-spacing:.2px;text-transform:uppercase}
@@ -432,7 +435,7 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .chip{width:100%;height:100%;display:block;filter:drop-shadow(2px 3px 0 #000a)}
 .chipbig{width:150px;height:150px;margin:6px auto;animation:spin 1.2s cubic-bezier(.3,1.4,.6,1)}
 @keyframes spin{from{transform:rotateY(540deg) scale(.3)}to{transform:none}}
-.chiprow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:4px 10px 10px}
+.chiprow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:4px 10px 10px}
 .chiprow>div{aspect-ratio:1}.chiprow .nochip{filter:grayscale(1) brightness(.35);opacity:.6}
 .pp img.pi{object-fit:cover;object-position:50% 20%;padding:0}
 .trust span img{width:20px;height:20px;border-radius:50%;object-fit:cover;object-position:50% 20%;vertical-align:-5px;margin-right:4px}
@@ -516,7 +519,7 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="cards.js?v=6.4"></script><script src="situations.js?v=6.4"></script><script src="engine.js?v=6.4"></script><script src="words.js?v=6.4"></script><script src="convos.js?v=6.4"></script><!-- bump ?v= with every VERSION change -->
+<script src="cards.js?v=7.0"></script><script src="situations.js?v=7.0"></script><script src="engine.js?v=7.0"></script><script src="words.js?v=7.0"></script><script src="convos.js?v=7.0"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -526,7 +529,7 @@ function esc(v){ return String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 function save(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); } catch { storageOK = false; } }
 function pct(x){ return Math.round(x * 100); }
 const ic = n => A + 'ui/' + n + '.webp';
-const figImg = (id, lvl) => A + 'fig/' + id + '-' + lvl + '.webp';
+const figImg = (id, lvl) => A + 'fig/' + id + '-' + Math.min(4, lvl) + '.webp';
 const myFig = (lvl = s.level) => figImg(s.look.fig, lvl);
 const fig = () => FIGURES.find(f => f.id === s.look.fig) || FIGURES[0];
 
@@ -658,7 +661,7 @@ function levelUpUI(){
   const unlocks = shop.filter(p => p.minLevel === s.levelUp).map(p => p.name);
   document.getElementById('modal').innerHTML = `<div class="ov skinov" onclick="if(event.target===this)lvDone()"><div class="pop" style="aspect-ratio:817/1135"><img class="skin" src="${SK}pop-levelup.webp" alt="Level up!">
   <img class="pfig was" style="${pat(70, 440, 247, 300)}" src="${myFig(from)}" alt=""><img class="pfig" style="${pat(400, 330, 352, 420)}" src="${myFig(s.levelUp)}" alt="">
-  <div class="ptext" style="${pat(80, 770, 657, 130)}"><b class="mk">CHAPTER ${L.n} · ${esc(L.name.toUpperCase())}</b><span>${L.n === 4 ? 'Your name on a lease. Moving in cost $' + CFG.moveIn + '.' : L.n === 3 ? 'Next up: a sponsor and some wheels.' : 'You got a job. Now keep it.'}${unlocks.length ? ' Unlocked: ' + esc(unlocks.join(', ')) + '.' : ''}${L.n === 4 ? ' A ' + (fig().sex === 'girl' ? 'lady' : 'gentleman') + '.' : ''}</span></div>
+  <div class="ptext" style="${pat(80, 770, 657, 130)}"><b class="mk">CHAPTER ${L.n} · ${esc(L.name.toUpperCase())}</b><span>${L.n === 5 ? 'Six months. Now you’re the one people call at 2 AM. Give it back.' : L.n === 4 ? 'Your name on a lease. Moving in cost $' + CFG.moveIn + '. A turn is a month now.' : L.n === 3 ? 'Thirty days. A turn is a week now. Next up: a sponsor and some wheels.' : 'You got a job. Now keep it.'}${unlocks.length ? ' Unlocked: ' + esc(unlocks.join(', ')) + '.' : ''}${L.n === 4 ? ' A ' + (fig().sex === 'girl' ? 'lady' : 'gentleman') + '.' : ''}</span></div>
   <button class="hot" style="${pat(52, 946, 713, 129)}" onclick="lvDone()" aria-label="Let's go"></button></div></div>`;
   history.pushState({ p: page, m: 1 }, '');
 }
@@ -679,6 +682,13 @@ function homieSays(){
   const g = fig().sex === 'girl', h = (s.day * 7 + s.level * 3) % 5, c = s.scen && sitById(s.scen.id);
   const pick = a => a[h % a.length];
   if (s.day === 1) return 'Day one. Again. Let’s not mess this one up.';
+  if (s.lightsOff) return pick(['Charging my phone at the gas station like it’s day one.', 'Cold shower. Again. Catch me up on the bills.']);
+  if (s.pregnant && !s.baby && h < 2) return loveSwap(s, G() ? 'Marc keeps reading baby books out loud. I keep working.' : 'Jaz is reading baby books. Out loud. To me.');
+  if (s.baby && h === 2) return 'Two hours of sleep. Best two hours of my life.';
+  if (s.flags.includes('pops_sick') && h === 3) return 'Pops says don’t make a fuss. I’m making a fuss.';
+  if (s.biz && h === 4) return 'My name’s on the truck. Spelled right and everything.';
+  if (turnKind(s) === 'month' && h === 1) return 'A month at a time now. Still one day at a time. Both somehow.';
+  if (turnKind(s) === 'week' && h === 0) return 'Weeks go faster when you got somewhere to be.';
   if (s.heat >= 70) return pick(['Every car that slows down, I flinch.', 'I can feel it. Somebody’s knocking tonight.', 'I’m running way too hot. Get me to a meeting.']);
   if (s.cash < CFG.food) return pick(['Stomach’s talking louder than my sponsor.', 'Twelve bucks for food and I ain’t got it.', 'Broke is a full-time job.']);
   if (s.day % CFG.rentDays === 0) return 'Rent’s due tonight. Ray’s already got his hand out.';
@@ -706,8 +716,8 @@ function phone(who, title, text, extra, btn){
 // how a move reads during a situation, in your words
 function moveWords(id){ const w = s.scen && WORDS[s.scen.id]; return w && w[id] ? w[id] : null; }
 // the sobriety chip
-const CHIP = n => `<svg class="chip" viewBox="0 0 100 100"><defs><radialGradient id="cg${n}" cx="40%" cy="35%"><stop offset="0" stop-color="#fff3c4"/><stop offset=".55" stop-color="#e8b23a"/><stop offset="1" stop-color="#8a5a10"/></radialGradient></defs><circle cx="50" cy="50" r="47" fill="url(#cg${n})" stroke="#111" stroke-width="4"/><circle cx="50" cy="50" r="37" fill="none" stroke="#7a4d0c" stroke-width="2" stroke-dasharray="3 4"/><text x="50" y="${n.length > 1 ? 61 : 63}" text-anchor="middle" font-family="Caveat Brush" font-size="${n.length > 1 ? 36 : 40}" fill="#3a2406">${n}</text><text x="50" y="82" text-anchor="middle" font-family="Barlow Condensed" font-weight="800" font-size="10" fill="#3a2406">${n === '24' ? 'HOURS' : 'DAYS'}</text></svg>`;
-const CHIP_ORDER = [['chip1', '24'], ['chip7', '7'], ['chip14', '14'], ['chip30', '30']];
+const CHIP = (n, unit) => `<svg class="chip" viewBox="0 0 100 100"><defs><radialGradient id="cg${n}${unit || ''}" cx="40%" cy="35%"><stop offset="0" stop-color="#fff3c4"/><stop offset=".55" stop-color="#e8b23a"/><stop offset="1" stop-color="#8a5a10"/></radialGradient></defs><circle cx="50" cy="50" r="47" fill="url(#cg${n}${unit || ''})" stroke="#111" stroke-width="4"/><circle cx="50" cy="50" r="37" fill="none" stroke="#7a4d0c" stroke-width="2" stroke-dasharray="3 4"/><text x="50" y="${n.length > 1 ? 61 : 63}" text-anchor="middle" font-family="Caveat Brush" font-size="${n.length > 1 ? 36 : 40}" fill="#3a2406">${n}</text><text x="50" y="82" text-anchor="middle" font-family="Barlow Condensed" font-weight="800" font-size="10" fill="#3a2406">${unit || (n === '24' ? 'HOURS' : 'DAYS')}</text></svg>`;
+const CHIP_ORDER = [['chip1', '24'], ['chip7', '7'], ['chip14', '14'], ['chip30', '30'], ['chip60', '60'], ['chip90', '90'], ['chip180', '6', 'MONTHS'], ['chip270', '9', 'MONTHS'], ['chip365', '1', 'YEAR']];
 // the night recap: how the homie made out
 function recap(day, before, lines){
   const g = fig().sex === 'girl', dc = s.cash - before.cash;
@@ -798,8 +808,12 @@ function revealDone(){ s.revealSeen = true; if (s.show[0] === 'reveal') s.show.s
 /* THE EVENING: how the day went, and what he's SUPPOSED to do tonight */
 function dayStory(){
   const d = (s.ui && s.ui.day === s.day ? s.ui.done : []), bits = [];
-  if (d.includes('work')) bits.push('worked eight hours and made $' + (s.trust.darlene <= 2 ? CFG.lowTrustWage : s.wage));
-  if (d.includes('meeting')) bits.push('hit a meeting');
+  const k = turnKind(s), sh = shiftsIn(s), w = s.biz ? bizPay(s) : s.trust.darlene <= 2 ? CFG.lowTrustWage : s.wage;
+  if (d.includes('work')) bits.push(k === 'day' ? (s.biz ? 'ran the crew and cleared $' + w : 'worked eight hours and made $' + w) : (s.biz ? 'ran the crew all ' + k : 'worked ' + sh + ' shifts') + ' and made $' + w * sh);
+  if (d.includes('double')) bits.push((k === 'day' ? 'pulled a double' : 'pulled doubles all ' + k) + ' for $' + Math.round(w * sh * 1.5));
+  if (d.includes('meeting')) bits.push(k === 'day' ? 'hit a meeting' : 'hit meetings all ' + k);
+  if (d.includes('date')) bits.push('took ' + personFor(s, 'love').name + ' out');
+  if (d.includes('bizfund')) bits.push('put money into the business');
   if (d.includes('call')) bits.push(s.sponsor ? 'called Pops' : 'called somebody sober');
   if (d.includes('help')) bits.push('helped somebody out');
   if (d.includes('rides')) bits.push('drove people around');
@@ -811,7 +825,7 @@ function dayStory(){
   if (d.includes('argue')) bits.push('got into it with somebody');
   if (d.includes('ignore')) bits.push('ignored everybody');
   if (d.includes('fkit')) bits.push('said f**k it');
-  if (!bits.length) return Guy() + ' laid low today.';
+  if (!bits.length) return Guy() + ' laid low ' + turnWord() + '.';
   return Guy() + ' ' + (bits.length > 1 ? bits.slice(0, -1).join(', ') + ' and ' + bits.at(-1) : bits[0]) + '.';
 }
 function evening(){
@@ -819,21 +833,24 @@ function evening(){
   const mood = o === 'good' ? 'Tired, but feeling pretty good.' : o === 'okay' ? 'Worn down, but steady.' : o === 'shaky' ? 'Wired. Can’t sit still.' : 'Running hot. Jaw tight. Phone in hand.';
   const end = o === 'good' || o === 'okay' ? hs('He grabs something to eat, sets the alarm, and drops onto the bed.') : hs('He says he’s going to bed. He’s still scrolling at midnight.');
   const say = o === 'good' ? (s.job ? 'Work at seven. Meeting tomorrow. I’m actually getting my shit together.' : 'Tomorrow I find work. Tonight I sleep.') : o === 'okay' ? 'Long day. Just gotta get through the night.' : o === 'shaky' ? 'I’m fine. I’m FINE.' : 'Don’t worry about me.';
-  const plan = ['Get some sleep'];
-  if (s.day % CFG.rentDays === 0) plan.push('Pay rent tonight: $' + (rentDue(s) + billsDue(s)));
-  if (s.job && tomorrow !== 7) plan.push('Make it to work tomorrow');
+  const k = turnKind(s), plan = [k === 'day' ? 'Get some sleep' : 'Keep the routine'];
+  if (rentEvent(s)) plan.push((k === 'day' ? 'Pay rent tonight: $' : k === 'week' ? 'Bills this week: $' : 'Bills this month: $') + billsDueNow(s) + (s.cash < billsDueNow(s) ? ' (short $' + (billsDueNow(s) - s.cash) + ')' : ''));
+  if ((s.job || s.biz) && (k !== 'day' || tomorrow !== 7)) plan.push(k === 'day' ? 'Make it to work tomorrow' : s.biz ? 'Keep the crew working' : 'Keep showing up at the warehouse');
+  if (s.together && s.loveCold >= (k === 'day' ? 3 : 1)) plan.push('Call ' + personFor(s, 'love').name + ' back');
+  if (s.sponsee) plan.push('Pick up when Dre calls');
+  if (s.lightsOff) plan.push('Get the lights back on');
   const c = s.scen && sitById(s.scen.id);
   if (c && c.who === 'ghost') plan.push('Stay away from Ghost');
-  else if (c) plan.push('Deal with ' + c.title.toLowerCase() + ' (' + s.scen.left + ' day' + (s.scen.left === 1 ? '' : 's') + ' left)');
+  else if (c) plan.push('Deal with ' + c.title.toLowerCase() + ' (' + s.scen.left + ' ' + (k === 'day' ? 'day' : k) + (s.scen.left === 1 ? '' : 's') + ' left)');
   if (s.riskToday) plan.push(s.riskToday >= 30 ? 'Stay home. Do NOT go back out.' : 'Don’t pick up when the crew calls');
   plan.push('Stay out of trouble', 'Stay sober');
   const warn = { good: '', okay: 'Should be a quiet one. Should be.', shaky: hs(Guy() + '’s running on fumes. Might wanna get his ass to a meeting tomorrow.'), bad: hs('Tonight could go sideways. He’s hot, stressed and running on empty.') }[o];
   const bar = (v, cls = '') => `<span class="ebar ${cls}"><i style="width:${v}%"></i></span>`;
-  show(`<div class="cine-time mk">DAY ${s.day} — ${o === 'good' ? '9:38 PM' : o === 'okay' ? '10:12 PM' : '11:47 PM'}</div>
+  show(`<div class="cine-time mk">${turnLabel(s)} — ${k === 'day' ? (o === 'good' ? '9:38 PM' : o === 'okay' ? '10:12 PM' : '11:47 PM') : k === 'week' ? 'SUNDAY' : 'THE 30TH'}</div>
   <div class="cine-room night" style="background-image:url(${A}room/${Math.min(s.housing === 'Shelter' ? 1 : s.level, 4)}.webp)"><img src="${myFig()}" alt=""></div>
   <p class="cine-p"><b>${esc(hs(dayStory()))}</b> ${esc(mood)} ${esc(end)}</p>
   <p class="cine-q">“${esc(say)}”</p>
-  <div class="plan"><b class="mk">TONIGHT’S PLAN</b><ul>${plan.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
+  <div class="plan"><b class="mk">${k === 'day' ? 'TONIGHT’S PLAN' : k === 'week' ? 'THE PLAN FOR THE WEEK' : 'THE PLAN FOR THE MONTH'}</b><ul>${plan.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
   ${heatMeter(s.heat)}
   <div class="emeters">
     <div><span>STRESS</span>${bar(s.stress, 'red')}<b>${s.stress}/100 · ${stressWord(s.stress)}</b></div>
@@ -841,12 +858,12 @@ function evening(){
     <div><span>CONNECTION</span>${bar(s.connection, 'gold')}<b>${s.connection}/100 · ${peopleWord(s.connection)}</b></div>
     <div class="row2"><span>CASH <b>$${s.cash}</b></span><span>SOBER <b>${s.sober} day${s.sober === 1 ? '' : 's'}</b></span></div>
   </div>
-  ${warn ? `<p class="ewarn">${esc(warn)}</p>` : ''}${s.riskToday ? `<p class="ewarn">${esc(hs('He had fun today. The people and places he was around don’t clock out at bedtime.'))}</p>` : ''}
-  <p class="note">That’s the plan. ${G() ? 'She' : 'He'} might follow it. ${G() ? 'She' : 'He'} might not. You’ll find out in the morning.</p>
+  ${warn ? `<p class="ewarn">${esc(warn)}</p>` : ''}${s.riskToday ? `<p class="ewarn">${esc(hs('He had fun ' + turnWord() + '. The people and places he was around don’t clock out at bedtime.'))}</p>` : ''}
+  <p class="note">That’s the plan. ${G() ? 'She' : 'He'} might follow it. ${G() ? 'She' : 'He'} might not. ${k === 'day' ? 'You’ll find out in the morning.' : 'A lot of nights in a ' + k + '. You’ll hear about the one that mattered.'}</p>
   <button class="paper red big mk" onclick="lightsOut()">LIGHTS OUT</button>${s.actions ? '<button class="ghost" style="color:var(--ink)" onclick="closeModal()">Wait, I still have moves</button>' : ''}`, 'card cine');
 }
 function night(){
-  if (s.actions) show(`<h2 class="mk">CALL IT A DAY?</h2><p>${s.actions} move${s.actions === 1 ? '' : 's'} left. They don’t carry over.</p><button class="paper red big mk" onclick="closeModal();setTimeout(evening,120)">SEE HOW THE DAY WENT</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Use my time</button>`);
+  if (s.actions) show(`<h2 class="mk">CALL IT ${turnKind(s) === 'day' ? 'A DAY' : 'A ' + turnKind(s).toUpperCase()}?</h2><p>${s.actions} move${s.actions === 1 ? '' : 's'} left. They don’t carry over.</p><button class="paper red big mk" onclick="closeModal();setTimeout(evening,120)">SEE HOW ${turnKind(s) === 'day' ? 'THE DAY' : 'THE ' + turnKind(s).toUpperCase()} WENT</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Use my time</button>`);
   else evening();
 }
 function lightsOut(){
@@ -877,10 +894,10 @@ setInterval(() => { if (s && s.asleep && Date.now() >= s.asleep.wake) wakeUp(); 
 document.addEventListener('visibilitychange', () => { if (!document.hidden && s && s.asleep) wakeUp(); });
 
 /* ---------- v5.2: real text conversations (convos.js, written by ChatGPT) ---------- */
-const WHO_NAME = { love: 'Jaz', crew: 'Old crew', bartender: 'Bartender', pops: 'Pops', ray: 'Big Ray', darlene: 'Darlene', mom: 'Mom', shorty: 'Shorty', ghost: 'Ghost', house: 'House', mechanic: 'Mechanic', seller: 'Seller', newcomer: 'Dre', ex: 'The Ex', unknown: 'Unknown' };
+const WHO_NAME = { love: 'Jaz', crew: 'Old crew', bartender: 'Bartender', trip: 'Trip', landlord: 'Landlord', client: 'Ms. Patel', nurse: 'Mercy General', pops: 'Pops', ray: 'Big Ray', darlene: 'Darlene', mom: 'Mom', shorty: 'Shorty', ghost: 'Ghost', house: 'House', mechanic: 'Mechanic', seller: 'Seller', newcomer: 'Dre', ex: 'The Ex', unknown: 'Unknown' };
 const hasFace = w => ['pops', 'ray', 'darlene', 'mom', 'shorty', 'ghost', 'love'].includes(w);
 const whoName = w => w === 'love' ? personFor(s, 'love').name : WHO_NAME[w] || w;
-function convoFor(key){ return typeof CONVOS !== 'undefined' && CONVOS[key] ? CONVOS[key] : null; }
+function convoFor(key){ if (typeof CONVOS === 'undefined') return null; if (G() && CONVOS[key + '_girl']) return CONVOS[key + '_girl']; return CONVOS[key] || null; }
 // a whole conversation on the cracked phone. Messages type in one at a time; tap the phone to see it all.
 // your homie by name in the texts. The "Pops" figure goes by Old Timer so he isn't mixed up with Pops the sponsor.
 const homieName = () => fig().name === 'Pops' ? 'Old Timer' : fig().name;
@@ -931,7 +948,8 @@ const SVG = {
   rides: '<svg class="mi" viewBox="0 0 48 48"><path fill="currentColor" d="M6 26l4-10c1-2 2-3 5-3h18c3 0 4 1 5 3l4 10h2v12h-5v-4H9v4H4V26zm7-1h22l-3-8H16z"/><circle cx="13" cy="31" r="3" fill="#fff6dc"/><circle cx="35" cy="31" r="3" fill="#fff6dc"/></svg>'
 };
 const MOVE_IMG = { meeting: 'support', help: 'help', rest: 'rest', work: 'work' };
-const moveIcon = id => `<img class="mi" src="${MOVE_IMG[id] ? ic(MOVE_IMG[id]) : A + 'ui/mv/' + id + '.webp'}" alt="">`;   // ChatGPT's icons
+const MV_ALIAS = { date: 'look', bizfund: 'movefund', double: 'work' };
+const moveIcon = id => { const k = MV_ALIAS[id] || id; return `<img class="mi ${id === 'double' ? 'dbl' : ''}" src="${MOVE_IMG[k] ? ic(MOVE_IMG[k]) : A + 'ui/mv/' + k + '.webp'}" alt="">`; };   // ChatGPT's icons
 const FLAME = (w, h) => `<svg width="${w}" height="${h}" viewBox="0 0 24 32"><path fill="#d0262b" d="M12 0c2 8 11 12 11 21a11 11 0 01-22 0c0-5 3-8 5-11 0 4 2 6 4 6-2-6 1-12 2-16z"/><path fill="#f08a24" d="M12 11c1 5 7 8 7 13a7 7 0 01-14 0c0-3 2-5 3-7 0 3 1 4 3 4-1-4 0-7 1-10z"/><path fill="#f7cf5c" d="M12 20c1 3 4 4 4 7a4 4 0 01-8 0c0-2 1-3 2-4 0 1 1 2 2 2 0-2 0-3 0-5z"/></svg>`;
 const heatLevel = h => h <= CFG.heat.safe ? 'cool' : h < 70 ? 'warm' : 'hot';
 function flames(h){
@@ -974,21 +992,42 @@ function nudge(){
 }
 function moveBtn(id, wig){
   const why = whyNot(s, id), p = preview(s, id), row = ROW_OF[id];
-  const street = row === 'people' || row === 'places', goal = id === 'carfund' ? [s.jar.car, CFG.carJar] : id === 'movefund' ? [s.jar.move, NEED.l3] : null;
+  const street = row === 'people' || row === 'places', goal = id === 'carfund' ? [s.jar.car, CFG.carJar] : id === 'movefund' ? [s.jar.move, NEED.l3] : id === 'bizfund' ? [s.jar.biz, CFG.bizJar] : null;
   const fxs = why && why !== 'no moves left' ? `<span class="why">${esc(why.toUpperCase())}</span>` : `${heatPip(p.e.h, p.zeroed)}${money(p.e.c)}${street ? '<span class="risk">RISKY NIGHT</span>' : ''}${p.end ? '<span class="ok">✔ ENDS IT</span>' : ''}`;
   const jar = goal ? `<span class="jar"><i style="width:${Math.min(100, Math.round(goal[0] / goal[1] * 100))}%"></i></span><span class="mg">$${goal[0]} / $${goal[1]}</span>` : '';
-  return `<button class="mb ${row} ${doneToday(id) ? 'done' : ''} ${why ? 'off' : ''} ${p.end && !why && !['life', 'people', 'places'].includes(row) ? 'ends' : ''} ${wig === id ? 'wig' : ''}" onclick="confirmAction('${id}')" aria-label="${esc(MOVES[id].label)}">${moveIcon(id)}<span class="ml">${esc(moveWords(id) || MOVES[id].label)}</span>${moveWords(id) ? `<span class="mg">${esc(MOVES[id].label)}</span>` : ''}${jar}<span class="mf">${fxs}</span></button>`;
+  return `<button class="mb ${row} ${doneToday(id) ? 'done' : ''} ${why ? 'off' : ''} ${p.end && !why && !['life', 'people', 'places'].includes(row) ? 'ends' : ''} ${wig === id ? 'wig' : ''}" onclick="confirmAction('${id}')" aria-label="${esc(MOVES[id].label)}">${moveIcon(id)}<span class="ml">${esc(moveWords(id) || labelFor(id))}</span>${moveWords(id) ? `<span class="mg">${esc(labelFor(id))}</span>` : ''}${jar}<span class="mf">${fxs}</span></button>`;
 }
 function board(wig){
-  return `<section class="board">${ROWS.map(([key, name, hint, ids]) => { const list = ids.filter(id => id !== 'rides' || s.car); return `<div class="mrow ${key}"><div class="mhead"><b class="mk">${name}</b><span>${esc(hint)}</span></div>${key === 'spiritual' ? `<div class="spiritrow"><span class="mk">SPIRITUAL ENERGY</span><span class="ebar green"><i style="width:${s.spirit}%"></i></span><b>${spiritWord(s.spirit).toUpperCase()}</b><span class="sob mk">SOBER ${s.sober}d</span></div>` : ''}<div class="mgrid ${list.length === 3 ? 'c3' : 'c2'}">${list.map(id => moveBtn(id, wig)).join('')}</div></div>`; }).join('')}
-  <p class="boardnote">${s.actions} move${s.actions === 1 ? '' : 's'} left today. ${s.spiritToday ? '<b>Spiritual move done: work adds no heat today.</b>' : 'Do a spiritual move first and work adds no heat.'}</p></section>`;
+  return `<section class="board">${ROWS.map(([key, name, hint]) => { const list = rowIds(s, key); hint = hintFor(key, hint); return `<div class="mrow ${key}"><div class="mhead"><b class="mk">${name}</b><span>${esc(hint)}</span></div>${key === 'spiritual' ? `<div class="spiritrow"><span class="mk">SPIRITUAL ENERGY</span><span class="ebar green"><i style="width:${s.spirit}%"></i></span><b>${spiritWord(s.spirit).toUpperCase()}</b><span class="sob mk">SOBER ${s.sober}d</span></div>` : ''}<div class="mgrid ${list.length === 3 ? 'c3' : 'c2'}">${list.map(id => moveBtn(id, wig)).join('')}</div></div>`; }).join('')}
+  <p class="boardnote">${s.actions} move${s.actions === 1 ? '' : 's'} left ${turnWord()}. ${s.spiritToday ? '<b>Spiritual move done: work adds no heat ' + turnWord() + '.</b>' : s.workToday ? '<b>You worked first, so the meeting’s gone ' + turnWord() + '. You can still call.</b>' : 'Do a spiritual move first and work adds no heat. Work first and the meeting’s gone.'}</p></section>`;
+}
+// v7: words that change with the length of a turn
+const turnWord = () => ({ day: 'today', week: 'this week', month: 'this month' })[turnKind(s)];
+function labelFor(id){
+  const k = turnKind(s);
+  if (id === 'work') return s.biz ? (k === 'day' ? 'Run the crew' : 'Run the crew all ' + k) : k === 'day' ? 'Go to work' : 'Work the ' + k;
+  if (id === 'double') return k === 'day' ? 'Pull a double' : 'Doubles all ' + k;
+  if (id === 'meeting') return k === 'day' ? 'Hit a meeting' : k === 'week' ? 'Meetings all week' : 'Meetings all month';
+  if (id === 'date') return (s.together ? 'Take ' : 'Ask ') + personFor(s, 'love').name + (s.together ? ' out' : ' out');
+  if (id === 'bizfund') return s.biz ? 'Grow the business' : 'Stack for the business';
+  if (id === 'quit') return s.biz ? 'Shut it down' : 'Quit your job';
+  if (id === 'movefund' && s.level >= 4) return 'Stack for a new place';
+  return MOVES[id].label;
+}
+function hintFor(key, hint){
+  const k = turnKind(s);
+  if (key === 'work') return 'Pays the bills. Adds heat unless you did a spiritual move first. Work first and the meeting’s gone.';
+  if (key === 'things') return s.level >= 4 ? 'The look, the business, your people. What you’re working for.' : hint;
+  if (key === 'people' && k !== 'day') return 'Fun right now. The ' + k + ' gets riskier.';
+  if (key === 'places' && k !== 'day') return 'The best time in months. The ' + k + ' gets a lot riskier.';
+  return hint;
 }
 function life(){
   if (s.result) return chapterDone();
   if (s.asleep) return asleepUI();
-  const lv = s.housing === 'Shelter' ? 1 : s.level, odds = lockOdds(s);
+  const lv = s.housing === 'Shelter' ? 1 : s.housing === 'Sober house' ? Math.min(3, s.level) : 4, odds = lockOdds(s);
   const needs = nextNeeds(s), L = levelInfo(s.level), wig = nudge();
-  const cashGoal = s.level === 2 ? 400 : s.level === 3 ? 750 : rentDue(s);
+  const cashGoal = s.level === 2 ? 400 : s.level === 3 ? 900 : billsDueNow(s);
   const stuff = s.items.filter(i => i !== 'dog' && item(i) && !s.items.some(j => item(j) && item(j).upgrades === i));
   const sc = s.scen && scenFor(s, s.scen.id);
   return `<div class="stage today" style="height:${U(1138)}">
@@ -996,12 +1035,12 @@ function life(){
     ${stuff.length ? `<div class="stuff2">${stuff.slice(-7).map(i => `<img src="${A}item/${i}.webp" alt="${esc(item(i).name)}">`).join('')}</div>` : ''}</div>
   <img class="skin" src="${SK}today-top.webp" alt="">
   <button class="hot" style="${at(30, 28, 80, 74)}" onclick="topX()" aria-label="Back to the start screen"></button>
-  <span class="dnum mk" style="${at(222, 26, 76, 80)}">${s.day}</span><span class="dtot mk" style="${at(322, 26, 120, 80)}">${dayName(s)}</span>
+  ${turnKind(s) === 'day' ? `<span class="dnum mk" style="${at(222, 26, 76, 80)}">${s.day}</span><span class="dtot mk" style="${at(322, 26, 120, 80)}">${dayName(s)}</span>` : `<span class="dturn mk" style="${at(104, 22, 350, 88)}">${turnKind(s) === 'week' ? 'WEEK' : 'MONTH'} <b>${turnKind(s) === 'week' ? Math.ceil(s.day / 7) : Math.ceil(s.day / 30)}</b></span>`}
   <div class="tr" style="${at(470, 34, 360, 60)}">${topRight(`<span class="pips">${[0,1,2].map(i => `<i class="${i < s.actions ? 'on' : ''}"></i>`).join('')}</span>`)}</div>
   <button class="lvl mk" style="${at(64, 150, 410, 62)}" onclick="go('progress')">CH <b>${s.level}</b> · ${esc(L.name.toUpperCase())}</button>
-  <button class="nexttxt" style="${at(50, 222, 560, 70)}" onclick="go('progress')"><b class="mk">${s.level < 4 ? 'NEXT CHAPTER:' : 'SOBERED UP:'}</b> ${esc(needs.join(' · ') || 'one more good night')}</button>
+  <button class="nexttxt" style="${at(50, 222, 560, 70)}" onclick="go('progress')"><b class="mk">${s.level < 5 ? 'NEXT CHAPTER:' : 'ONE YEAR:'}</b> ${esc(needs.join(' · ') || 'one more good night')}</button>
   ${sc ? `<button class="cardflag env mk ${wig === 'env' ? 'wig' : ''}" style="${at(470, 140, 345, 96)}" onclick="scenPopup(false)">${ENVELOPE}<span><b>${esc(sc.title)}</b><small>${s.scen.left} day${s.scen.left === 1 ? '' : 's'} left · tap to read</small></span></button>` : ''}
-  <span class="where2" style="${at(560, 700, 255, 42)}">${esc(s.housing.toUpperCase())}${s.job ? ' · EMPLOYED' : ''}</span>
+  <span class="where2" style="${at(560, 700, 255, 42)}">${esc(s.housing.toUpperCase())}${s.biz ? ' · IN BUSINESS' : s.job ? ' · EMPLOYED' : ''}${s.lightsOff ? ' · LIGHTS OFF' : ''}</span>
   <span class="val mk" style="${at(48, 834, 230, 58)}">$${s.cash}</span>
   <span class="bar2 gold" style="${at(49, 892, 218, 19)}"><i style="width:${Math.min(100, Math.round(s.cash / cashGoal * 100))}%"></i></span>
   <span class="val mk c" style="${at(312, 832, 240, 58)}">${s.stress}</span>
@@ -1012,14 +1051,21 @@ function life(){
   <span class="htag mk ${odds ? 'hot' : ''}" style="${at(584, 952, 236, 52)}">${odds >= 1 ? 'TONIGHT' : odds ? pct(odds) + '% tonight' : 'Safe tonight'}</span>
   <div class="heatslot" style="${at(112, 1016, 682, 26)}">${heatMeter(s.heat, null, false)}</div>
   </div>
-  ${board(wig)}${wig && wig !== 'env' ? `<button class="gohint mk" onclick="toWig()">${wig === 'end' ? (s.actions ? 'DONE? CALL IT A DAY ↓' : 'OUT OF MOVES · NEXT DAY ↓') : `MOVE ${CFG.actions - s.actions + 1} OF ${CFG.actions} · TIP: ${esc(MOVES[wig].label.toUpperCase())} ↓`}</button>` : ''}
+  ${board(wig)}${wig && wig !== 'env' ? `<button class="gohint mk" onclick="toWig()">${wig === 'end' ? (s.actions ? 'DONE? CALL IT A DAY ↓' : 'OUT OF MOVES · NEXT DAY ↓') : `MOVE ${CFG.actions - s.actions + 1} OF ${CFG.actions} · TIP: ${esc(labelFor(wig).toUpperCase())} ↓`}</button>` : ''}
   <div class="endstage"><img src="${SK}today-bottom.webp" alt=""><button class="hot endbtn ${wig === 'end' ? 'wig' : ''}" onclick="night()" aria-label="${s.actions ? 'Call it a day' : 'Next day'}"></button></div>`;
 }
 function chapterDone(){
-  const g = fig().sex === 'girl';
-  return `${topbar('<b>SOBERED UP</b>')}<section class="paper event win"><span class="kicker">DAY ${s.result.day}</span><h1 class="mk">SOBERED UP.</h1><div style="text-align:center"><img src="${myFig(4)}" alt="" style="max-height:220px"></div>
-  <p>Twelve bucks and a bottom bunk, ${s.result.day} days ago. Now ${g ? 'she’s' : 'he’s'} got a lease, a job, a sponsor and people who pick up the phone. Nobody handed ${g ? 'her' : 'him'} that. You did it one day at a time.</p>
-  <p class="note">${s.milestones.length} little big wins on the way. Check your story.</p>
+  const g = fig().sex === 'girl', cv = convoFor('year_chip');
+  const wins = s.milestones.filter(m => !/^Dealt with/.test(m)).slice(0, 14);
+  const life = [s.housing === 'My own place' ? 'a place with ' + (g ? 'her' : 'his') + ' name on the lease' : 'a bed', s.biz ? 'a business with ' + (g ? 'her' : 'his') + ' name on the truck' : s.job ? 'a job ' + (g ? 'she' : 'he') + ' kept' : null, s.car ? 'a car that mostly starts' : null, s.sponsor ? 'Pops' : null, s.sponsee ? 'Dre, who calls ' + (g ? 'her' : 'him') + ' at 2 AM' : null, s.together ? personFor(s, 'love').name : null, s.baby ? 'a baby who has never seen ' + (g ? 'her' : 'him') + ' drunk' : null].filter(Boolean);
+  setTimeout(textsPlay, 200);
+  return `${topbar('<b>ONE YEAR</b>')}<section class="paper event win"><span class="kicker">DAY ${s.result.day} · ${s.relapses ? s.relapses + ' RELAPSE' + (s.relapses === 1 ? '' : 'S') + ' · ' : ''}${s.turn} TURNS</span><h1 class="mk">ONE YEAR.</h1>
+  <div class="chipbig">${CHIP('1', 'YEAR')}</div>
+  <p>Twelve bucks and a bottom bunk, ${s.result.day} days ago. Now ${g ? 'she’s' : 'he’s'} got ${life.length > 1 ? life.slice(0, -1).join(', ') + ' and ' + life.at(-1) : life[0] || 'a year'}. Nobody handed ${g ? 'her' : 'him'} that. You did it one day at a time. Then one week. Then one month.</p>
+  ${cv ? textThread(cv, '8:52 PM') : ''}
+  <div class="banner"><span class="mk">THE YEAR</span></div><ul class="rec">${wins.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+  <p class="note">${s.milestones.length} little big wins. ${s.relapses ? 'The relapse' + (s.relapses === 1 ? '' : 's') + ' count too. ' + (g ? 'She' : 'He') + ' came back.' : 'Not one relapse. That’s rare. Don’t tell ' + (g ? 'her' : 'him') + ' that.'}</p>
+  <p class="cine-q">“One year. Now go do another day.”</p>
   <button class="paper red big mk" onclick="go('progress')">SEE THE STORY</button><button class="paper big cream mk" onclick="restart()">NEW RUN</button></section>`;
 }
 // THE MORNING: cards that came due (receipts, streaks, rent), last night's card, then the envelope.
@@ -1029,7 +1075,7 @@ function cardPop(c){
   const fx = `${c.h ? heatMeter(s.heat, s.heat - c.h) : ''}${chips ? `<div class="chips">${chips}</div>` : ''}${trustLine(c.t)}`;
   const btn = `<button class="paper red big mk" onclick="s.cards.shift();save();closeModal();render()">GOT IT</button>`;
   if (c.kind === 'receipt' && c.who) { const cv = convoFor(c.rid); show(`<div class="lolt mk red">${kick}</div>` + (cv ? textThread(cv, '9:4' + (s.day % 10) + ' AM') + `<h2 class="mk" style="margin-top:8px">${esc(c.title)}</h2>` + fx + btn : phone(c.who, c.title, c.text, fx, btn)), 'card phonecard'); return setTimeout(textsPlay, 60); }
-  if (c.kind === 'chip') { sfx('levelup'); return show(`<div class="lolt mk">${kick}</div><div class="chipbig">${CHIP(c.chip)}</div><h2 class="mk" style="text-align:center">${esc(c.title)}</h2><p class="say">${esc(c.text)}</p>${btn}`, 'card'); }
+  if (c.kind === 'chip') { sfx('levelup'); return show(`<div class="lolt mk">${kick}</div><div class="chipbig">${CHIP(c.chip, c.unit)}</div><h2 class="mk" style="text-align:center">${esc(c.title)}</h2><p class="say">${esc(c.text)}</p>${btn}`, 'card'); }
   return show(`<div class="lolt mk ${c.kind === 'streak' ? '' : 'red'}">${kick}</div>${c.who ? `<p class="note" style="margin:0">${esc(personFor(s, c.who).name)}</p>` : ''}<h2 class="mk">${esc(c.title)}</h2><p class="say">${esc(c.text)}</p>${fx}${btn}`, 'card');
 }
 function trustLine(t){
@@ -1052,7 +1098,7 @@ function scenPopup(fromMorning){
   const c = scenFor(s, s.scen.id), fresh = s.scen.fresh && fromMorning;
   const cv = convoFor(c.id), tm = c.who === 'ghost' ? '3:17 AM' : c.who === 'mom' ? '7:02 AM' : c.who === 'darlene' ? '5:48 AM' : '8:1' + (s.day % 10) + ' AM';
   show((cv ? textThread(cv, tm) : phone(c.who, c.title, forSex(s, c.setup))) + `<h2 class="mk" style="margin-top:8px">${esc(c.title)}</h2>${heatMeter(s.heat, fresh ? s.heat - c.now : null)}
-  <p class="note"><b>Every night you leave it, the heat climbs.</b> ${s.scen.left} day${s.scen.left === 1 ? '' : 's'} to deal with it. Moves marked <b>✔ ENDS IT</b> handle it.</p>` + `<button class="paper red big mk" onclick="${fromMorning ? 's.show=[];' : ''}save();closeModal();render()">GOT IT</button>`, 'card phonecard');
+  <p class="note"><b>Every ${turnKind(s) === 'day' ? 'night' : turnKind(s)} you leave it, the heat climbs.</b> ${s.scen.left} ${turnKind(s) === 'day' ? 'day' : turnKind(s)}${s.scen.left === 1 ? '' : 's'} to deal with it. Moves marked <b>✔ ENDS IT</b> handle it.</p>` + `<button class="paper red big mk" onclick="${fromMorning ? 's.show=[];' : ''}save();closeModal();render()">GOT IT</button>`, 'card phonecard');
   setTimeout(textsPlay, 60);
 }
 
@@ -1061,11 +1107,11 @@ function confirmAction(id){
   const after = Math.max(0, Math.min(100, s.heat + p.e.h));
   const chips = [p.e.c ? `<span class="chip2 ${p.e.c > 0 ? 'good' : 'bad'}">${p.e.c > 0 ? '+$' : '−$'}${Math.abs(p.e.c)}</span>` : '', p.e.s ? `<span class="chip2 ${p.e.s > 0 ? 'bad' : 'good'}">${p.e.s > 0 ? '+' : '−'}${Math.abs(p.e.s)} STRESS</span>` : '', p.e.n ? `<span class="chip2 ${p.e.n > 0 ? 'good' : 'bad'}">${p.e.n > 0 ? '+' : '−'}${Math.abs(p.e.n)} CONNECTION</span>` : ''].join('');
   const rowWord = { spiritual: 'SPIRITUAL MOVE', work: 'WORK MOVE', life: 'LIFE MOVE', people: 'PEOPLE', places: 'PLACES', things: 'THINGS' }[row], hot = ['life', 'people', 'places'].includes(row);
-  show(`<div style="text-align:center;color:var(--ink)">${moveIcon(id).replace('class="mi"', 'class="mi" style="width:70px;height:70px"')}</div><div class="lolt mk ${hot ? 'red' : ''}">${rowWord}</div><h2 class="mk">${esc(moveWords(id) || MOVES[id].label)}</h2><p class="mline">${moveWords(id) ? esc(MOVES[id].label) + ' · ' : ''}“${esc(MOVES[id].line)}”</p>
+  show(`<div style="text-align:center;color:var(--ink)">${moveIcon(id).replace('class="mi"', 'class="mi" style="width:70px;height:70px"')}</div><div class="lolt mk ${hot ? 'red' : ''}">${rowWord}</div><h2 class="mk">${esc(moveWords(id) || labelFor(id))}</h2><p class="mline">${moveWords(id) ? esc(labelFor(id)) + ' · ' : ''}“${esc(MOVES[id].line)}”</p>
   ${sc ? `<p class="note" style="margin:0 0 4px">vs. <b>${esc(sc.title)}</b> · ${p.end ? '<b>this ends it</b>' : 'it’s still on you after this'}</p>` : ''}
   ${heatMeter(after, s.heat)}
   ${p.zeroed ? '<p class="zero">You did a spiritual move first, so this adds no heat.</p>' : row === 'work' && p.e.h > 0 ? '<p class="note">Do a spiritual move first and this adds no heat.</p>' : ''}
-  ${row === 'life' ? '<p class="note"><b>Feels good now.</b> It leaves a receipt, and it comes back in a few days.</p>' : ''}${row === 'people' || row === 'places' ? `<p class="note"><b>Real fun right now.</b> Tonight gets riskier: cravings, cops, Ghost, the ex. ${esc(hs('Do the spiritual work today and he can probably handle it.'))}</p>` : ''}
+  ${row === 'life' ? '<p class="note"><b>Feels good now.</b> It leaves a receipt, and it comes back in a few days.</p>' : ''}${(id === 'work' || id === 'double') && !s.meetToday ? '<p class="note"><b>The meeting is during your shift.</b> Do this and the meeting’s gone ' + turnWord() + '. You can still call sober support.</p>' : ''}${id === 'double' ? '<p class="note">Pays half again as much. Costs sleep, and the people waiting on you.</p>' : ''}${row === 'people' || row === 'places' ? `<p class="note"><b>Real fun right now.</b> Tonight gets riskier: cravings, cops, Ghost, the ex. ${esc(hs('Do the spiritual work today and he can probably handle it.'))}</p>` : ''}
   ${chips ? `<div class="chips">${chips}</div>` : ''}${trustLine(p.t)}${p.note ? `<p class="note">${esc(p.note)}</p>` : ''}
   <button class="paper red big mk" ${why ? 'disabled' : ''} onclick="doMove('${id}')">${why ? esc(why.toUpperCase()) : 'DO IT'}</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep thinking</button>`);
 }
@@ -1074,8 +1120,8 @@ function doMove(id){
   const was = s.heat, r = action(s, id); if (!r) return render();
   markDone(id); sfx('move'); save(); render();
   const cv = !r.scen && !s.scen && convoFor('move_' + id);
-  if (cv && !(s.seenMove || []).includes(id)) { s.seenMove = (s.seenMove || []).concat(id); save(); return setTimeout(() => { show(textThread(cv, ['crew', 'bar', 'party', 'ghostlink'].includes(id) ? '10:4' + (s.day % 10) + ' PM' : '2:1' + (s.day % 10) + ' PM') + `<h2 class="mk" style="margin-top:8px">${esc(MOVES[id].label.toUpperCase())}.</h2><p class="say">${esc(hs(r.say))}</p>${heatMeter(s.heat, was)}${trustLine(r.trust)}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`, 'card phonecard'); textsPlay(); }, 120); }
-  setTimeout(() => show(`<span class="kicker">${esc(r.title)}</span><h2 class="mk">${r.end ? (ROW_OF[id] === 'life' ? 'THAT’S ONE WAY TO END IT.' : 'HANDLED.') : esc(MOVES[id].label.toUpperCase()) + '.'}</h2><p class="say">${esc(r.say)}</p>${heatMeter(s.heat, was)}${trustLine(r.trust)}${r.still ? '<p class="note">It’s still on you.</p>' : ''}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`), 120);
+  if (cv && !(s.seenMove || []).includes(id)) { s.seenMove = (s.seenMove || []).concat(id); save(); return setTimeout(() => { show(textThread(cv, ['crew', 'bar', 'party', 'ghostlink'].includes(id) ? '10:4' + (s.day % 10) + ' PM' : '2:1' + (s.day % 10) + ' PM') + `<h2 class="mk" style="margin-top:8px">${esc(labelFor(id).toUpperCase())}.</h2><p class="say">${esc(hs(r.say))}</p>${heatMeter(s.heat, was)}${trustLine(r.trust)}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`, 'card phonecard'); textsPlay(); }, 120); }
+  setTimeout(() => show(`<span class="kicker">${esc(r.title)}</span><h2 class="mk">${r.end ? (ROW_OF[id] === 'life' ? 'THAT’S ONE WAY TO END IT.' : 'HANDLED.') : esc(labelFor(id).toUpperCase()) + '.'}</h2><p class="say">${esc(r.say)}</p>${heatMeter(s.heat, was)}${trustLine(r.trust)}${r.still ? '<p class="note">It’s still on you.</p>' : ''}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`), 120);
 }
 function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, chapter 1, $${CFG.startCash}. This run gets wiped.</p><button class="paper red big mk" onclick="newRun(true)">PICK A NEW HOMIE</button><button class="paper big cream mk" onclick="newRun(false)">SAME HOMIE</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
 function rules(){
@@ -1087,7 +1133,9 @@ function rules(){
   + '<p><b>People and places</b> (the old crew, the ex, Ghost, the block, the bar, the party) are real fun right now: big stress relief. But they make tonight riskier: cravings, cops, Ghost pulling up. <b>Things</b> are what you’re working for: fresh clothes for ' + personFor(s, 'love').name + ', the car fund ($' + CFG.carJar + ' buys the car) and the move-out fund.</p>'
   + '<p><b>People remember.</b> Pops, Big Ray, Darlene, Mom and Shorty like you more or less with every move. Ghost too, and that’s the problem.</p>'
   + '<p><b>Money:</b> a shift takes 2 of your 3 moves and pays $' + CFG.wage + ' (the raise makes it $' + CFG.raiseWage + '). The warehouse is closed Sundays. Food is $' + CFG.food + ' a night. Every Sunday night: rent ($' + CFG.rent.slice(1).join(', $') + ' as you move up) plus about $' + (CFG.bills.bus + CFG.bills.fees) + ' for the bus and court fees, $' + CFG.bills.phone + ' more with a phone. Owe two weeks and you lose the bed.</p>'
-  + '<p><b>Chapters:</b> 1 get hired, 3 meetings, survive rent day. 2 a week employed, the raise, 2 rents on time, $' + NEED.l2 + ' saved. 3 Pops as sponsor, a car, connection 60, $' + NEED.l3 + ' for move-in. 4 pay your first rent, ' + WIN.cool + ' days under the line, day ' + WIN.standing + ' standing: SOBERED UP.</p>'
+  + '<p><b>One year.</b> That’s the game. Under 30 days a turn is a day. From 30 to 90 a turn is a week. After 90 a turn is a month. Relapse and the clock goes to zero and it’s one day at a time again, but ' + (G() ? 'she keeps her' : 'he keeps his') + ' life. Locked up is the real game over.</p>'
+  + '<p><b>The squeeze:</b> everything ' + (G() ? 'she' : 'he') + ' gains comes with a bill. The car, the lights at ' + (G() ? 'her' : 'his') + ' own place, ' + personFor(s, 'love').name + '’s time, old court fees. Work first and the meeting is during ' + (G() ? 'her' : 'his') + ' shift: only the call is left. Doubles pay more and cost sleep. Fall behind twice with a car and it gets repo’d. Behind at your own place: lights off, then evicted back to Big Ray’s.</p>'
+  + '<p><b>Chapters:</b> 1 get hired, 3 meetings, survive rent day. 2 a week employed, the raise, 2 rents on time, $' + NEED.l2 + ' saved, the 30 day chip. 3 Pops as sponsor, a car, connection 60, $' + NEED.l3 + ' for move-in, the 90 day chip. 4 your own place: rent paid, ' + WIN.cool + ' cool months, 6 months sober. 5 Giving it back: sponsor Dre, the business, the family, Pops. One year: the chip, the room standing up.</p>'
   + '<button class="paper red big mk" onclick="closeModal()">LET’S GO</button>');
 }
 function warnings(){
@@ -1096,16 +1144,16 @@ function warnings(){
   else if (s.heat > CFG.heat.safe) a.push(['warn', 'You’re past the line. Hit a meeting or make a call.']);
   if (s.stress >= CFG.heat.maxedStress) a.push(['warn', 'Stress ' + s.stress + '. Rest.']);
   if (s.connection < CFG.heat.aloneBelow) a.push(['warn', 'Connection ' + s.connection + '. Nobody’s in your corner.']);
-  if (s.day % CFG.rentDays === 0) a.push(['', 'Rent’s due tonight: $' + rentDue(s) + '.']);
-  else if (s.day % CFG.rentDays === CFG.rentDays - 1) a.push(['', 'Rent’s tomorrow night: $' + rentDue(s) + '.']);
+  if (rentEvent(s)) a.push(['', (turnKind(s) === 'day' ? 'Rent’s due tonight: $' : 'Bills ' + turnWord() + ': $') + billsDueNow(s) + '.']);
+  else if (s.day % CFG.rentDays === CFG.rentDays - 1) a.push(['', 'Rent’s tomorrow night: $' + billsDueNow(s) + '.']);
   if (s.arrears) a.push(['warn', 'You owe $' + s.arrears + '. Owe two weeks and you lose the bed.']);
   if (!s.job && s.day > 1) a.push(['warn', 'No job. Look for a better job to find one.']);
   return a;
 }
 function progress(){
   return `${topbar('YOUR <b>STORY</b>')}${s.lockedUp ? '<button class="paper red big mk" onclick="startOver()">START OVER</button>' : ''}<div class="paper" style="padding:10px"><div class="ladder">${LEVELS.map(L => `<div class="rung ${L.n > s.level ? 'no' : ''} ${L.n === s.level ? 'cur paper' : ''}"><img src="${myFig(L.n)}" alt=""><span class="mk">CH ${L.n}</span><br>${esc(L.name)}</div>`).join('')}</div>
-  <p class="note">${s.result ? 'SOBERED UP on day ' + s.result.day + '.' : (s.level < 4 ? 'Next chapter needs: ' : 'SOBERED UP needs: ') + esc(nextNeeds(s).join(', ') || 'one more good night') + '.'} Get locked up and it’s back to chapter 1.</p></div>
-  <div class="banner"><span class="mk">YOUR CHIPS</span></div><div class="chiprow">${CHIP_ORDER.map(([k, n]) => `<div class="${s.got.includes(k) ? '' : 'nochip'}">${CHIP(n)}</div>`).join('')}</div><div class="banner"><span class="mk">YOUR PEOPLE</span></div><div class="ppl">${PEOPLE.filter(p => (p.id !== 'darlene' || s.job || s.flags.includes('darlene_introduced')) && (p.id !== 'love' || s.level >= 2 || s.looks)).map(p0 => { const p = personFor(s, p0.id); return `<div class="paper pp t-${p.id}"><img class="pi" src="${face(p.id)}" alt=""><div class="pt"><b class="mk">${esc(p.name)}</b>${p.id === 'pops' && s.sponsor ? ' · <b>YOUR SPONSOR</b>' : ''}<small>${esc(p.role)}</small><div class="tb">${Array.from({ length: 10 }, (_, i) => `<i class="${i < s.trust[p.id] ? 'on' : ''}"></i>`).join('')}</div><small><i>“${esc(p.say)}”</i></small></div></div>`; }).join('')}</div>
+  <p class="note">${s.result ? 'ONE YEAR on day ' + s.result.day + '.' : (s.level < 5 ? 'Next chapter needs: ' : 'ONE YEAR needs: ') + esc(nextNeeds(s).join(', ') || 'one more good night') + '.'} Get locked up and it’s back to chapter 1. Relapse and the clock resets, but ${G() ? 'she keeps her' : 'he keeps his'} life.</p></div>
+  <div class="banner"><span class="mk">YOUR CHIPS</span></div><div class="chiprow">${CHIP_ORDER.map(([k, n, u]) => `<div class="${s.got.includes(k) ? '' : 'nochip'}">${CHIP(n, u)}</div>`).join('')}</div><div class="banner"><span class="mk">YOUR PEOPLE</span></div><div class="ppl">${PEOPLE.filter(p => (p.id !== 'darlene' || s.job || s.flags.includes('darlene_introduced')) && (p.id !== 'love' || s.level >= 2 || s.looks)).map(p0 => { const p = personFor(s, p0.id); return `<div class="paper pp t-${p.id}"><img class="pi" src="${face(p.id)}" alt=""><div class="pt"><b class="mk">${esc(p.name)}</b>${p.id === 'pops' && s.sponsor ? ' · <b>YOUR SPONSOR</b>' : ''}<small>${esc(p.role)}</small><div class="tb">${Array.from({ length: 10 }, (_, i) => `<i class="${i < s.trust[p.id] ? 'on' : ''}"></i>`).join('')}</div><small><i>“${esc(p.say)}”</i></small></div></div>`; }).join('')}</div>
   <div class="banner"><span class="mk">LITTLE BIG WINS</span></div>${s.milestones.length ? s.milestones.map(x => `<div class="paper badge">★ ${esc(x)}</div>`).join('') : '<p class="onwall">The first one’s waiting. Getting hired counts.</p>'}
   <div class="banner"><span class="mk">WHAT HAPPENED</span></div>${s.log.map(x => `<div class="log">${esc(x)}</div>`).join('')}`;
 }
@@ -1150,6 +1198,7 @@ function intro(){
   + H('CHECK ON THE LITTLE BASTARD.', 'Show up every day. See how he\'s doing. Life\'s gonna throw some shit at him, and you\'re the one helping him deal with it.')
   + H('YOU GET 3 MOVES A DAY.', 'Get him to work. Call somebody. Handle some business. Make a bad decision. It\'s your call.<br><b>But every move has consequences.</b>')
   + H('THEN LIFE HAPPENS.', 'See how he makes out over the next 24 hours. Maybe he gets ahead. Maybe he gets knocked on his ass.<br>Tomorrow? New day. New problems.')
+  + H('GET HIM A YEAR.', 'Thirty days and a turn becomes a week. Ninety and it’s a month. The cops don’t get nicer. His life gets fuller: a car, a girl, rent, a kid who needs a sponsor. Fit the program into all of it. One year sober is the finish line.')
   + H('KEEP HIM OUT OF TROUBLE.', 'Watch his money, stress, connections, and HEAT. Too much heat and the cops might come knocking.')
   + H('BUILD HIM A LIFE.', 'Get him working. Get him connected. Get him his own place. Give the little bastard something worth staying sober for.<br>And somewhere along the way, you might actually start giving a shit about him.')
   + '<h3 class="mk howh big2">LOCKED UP. COVERED UP. OR SOBERED UP.</h3><p>' + w('Choose wisely. He\'s counting on you.') + '</p>'

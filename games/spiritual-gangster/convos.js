@@ -2577,6 +2577,1048 @@ const CONVOS = {
     "I want that for you too. I'm proud of you. Love, Mom ❤️"
    ]
   ]
+ },
+ "trip_moves_in": {
+  "narr": "A new guy named Trip moved in next to {N}. By Tuesday, half the house is missing something.",
+  "thread": "SOBER HOUSE 🏠",
+  "msgs": [
+   [
+    "ray",
+    "NEW RESIDENT IN ROOM 4. TRIP. BE RESPECTFUL."
+   ],
+   [
+    "shorty",
+    "yo my shoes are gone"
+   ],
+   [
+    "house",
+    "my charger too"
+   ],
+   [
+    "shorty",
+    "he WEARING my shoes. right now. in the kitchen"
+   ],
+   [
+    "you",
+    "you tell ray?"
+   ],
+   [
+    "shorty",
+    "you tell ray. he looked at me"
+   ],
+   [
+    "house",
+    "he looks at everybody"
+   ],
+   [
+    "shorty",
+    "not like that"
+   ]
+  ]
+ },
+ "trip_knife": {
+  "narr": "2 AM. Shorty on the edge of {N}’s bunk, whispering. Trip has a knife.",
+  "thread": "SHORTY",
+  "msgs": [
+   [
+    "shorty",
+    "u up"
+   ],
+   [
+    "you",
+    "yeah"
+   ],
+   [
+    "shorty",
+    "trip pulled a knife on me"
+   ],
+   [
+    "shorty",
+    "in the kitchen. over MILK"
+   ],
+   [
+    "you",
+    "where is he now"
+   ],
+   [
+    "shorty",
+    "his room. he said if anybody tells ray the house gonna have an accident"
+   ],
+   [
+    "shorty",
+    "what do i do"
+   ],
+   [
+    "you",
+    "dont go back in the kitchen"
+   ],
+   [
+    "shorty",
+    "i cant stay here man"
+   ],
+   [
+    "shorty",
+    "what are YOU gonna do"
+   ]
+  ]
+ },
+ "insurance_and_flat": {
+  "narr": "{N}’s car has a flat, a light, and an insurance bill. Everybody needs a ride this week.",
+  "thread": "MECHANIC",
+  "msgs": [
+   [
+    "mechanic",
+    "Tire $180. Light = don’t ask."
+   ],
+   [
+    "you",
+    "whats the light"
+   ],
+   [
+    "mechanic",
+    "I said don’t ask"
+   ],
+   [
+    "shorty",
+    "yo can u take me to court thurs 9am"
+   ],
+   [
+    "pops",
+    "Doctor Friday at 2. If you can."
+   ],
+   [
+    "you",
+    "yeah"
+   ],
+   [
+    "you",
+    "yeah"
+   ],
+   [
+    "love",
+    "insurance due today btw 😬"
+   ],
+   [
+    "you",
+    "i know"
+   ]
+  ]
+ },
+ "darlene_lead": {
+  "narr": "Darlene wants {N} to run the dock. $120 a shift. The schedule eats meeting night.",
+  "thread": "DARLENE",
+  "msgs": [
+   [
+    "darlene",
+    "Office. Before your shift."
+   ],
+   [
+    "you",
+    "what i do"
+   ],
+   [
+    "darlene",
+    "Nothing. That’s the problem with everybody else."
+   ],
+   [
+    "darlene",
+    "Lead on second shift. $120. Clipboard. My schedule."
+   ],
+   [
+    "you",
+    "your schedule is meeting night"
+   ],
+   [
+    "darlene",
+    "My schedule is the schedule."
+   ],
+   [
+    "darlene",
+    "Friday. Yes or no."
+   ]
+  ]
+ },
+ "jaz_cookout": {
+  "narr": "The cookout. Jaz’s whole family, a cooler full of beer, and Pops needing a ride the same day. {N} can’t be two places.",
+  "thread": "JAZ",
+  "msgs": [
+   [
+    "love",
+    "sat is the cookout 🍖"
+   ],
+   [
+    "love",
+    "my whole family. they need to see you’re real"
+   ],
+   [
+    "you",
+    "your uncle gonna be there"
+   ],
+   [
+    "love",
+    "my uncle lives there lol"
+   ],
+   [
+    "pops",
+    "Speaker meeting Saturday. Can you drive me? Buick’s down."
+   ],
+   [
+    "you",
+    "what time"
+   ],
+   [
+    "pops",
+    "Noon."
+   ],
+   [
+    "love",
+    "cookout starts at 1. and my cousin’s bringing his cooler so"
+   ],
+   [
+    "love",
+    "so just stay near me ok"
+   ]
+  ]
+ },
+ "dre_first_meeting": {
+  "narr": "Dre’s been at the house two weeks. No meetings. Big Ray’s counting. Dre asked {N} to take him.",
+  "thread": "DRE",
+  "msgs": [
+   [
+    "newcomer",
+    "its dre"
+   ],
+   [
+    "newcomer",
+    "ray said i gotta hit a meeting or im out"
+   ],
+   [
+    "newcomer",
+    "can you take me"
+   ],
+   [
+    "you",
+    "why me"
+   ],
+   [
+    "newcomer",
+    "you the only one dont look at me like i already failed"
+   ],
+   [
+    "newcomer",
+    "i dont know what to do in there"
+   ],
+   [
+    "you",
+    "sit down and shut up mostly"
+   ],
+   [
+    "newcomer",
+    "i can do that"
+   ],
+   [
+    "newcomer",
+    "probably"
+   ]
+  ]
+ },
+ "mom_amends": {
+  "narr": "Sunday. The amends. Mom said “don’t make a speech.” {N} has a list.",
+  "thread": "MOM",
+  "msgs": [
+   [
+    "mom",
+    "Sunday still good?"
+   ],
+   [
+    "you",
+    "yeah"
+   ],
+   [
+    "mom",
+    "I’ll make the chicken."
+   ],
+   [
+    "mom",
+    "Don’t make a speech, baby. Just come."
+   ],
+   [
+    "pops",
+    "Did you write the list?"
+   ],
+   [
+    "you",
+    "4 pages"
+   ],
+   [
+    "pops",
+    "Cut three."
+   ],
+   [
+    "you",
+    "which three"
+   ],
+   [
+    "pops",
+    "The ones that make YOU feel better."
+   ]
+  ]
+ },
+ "ghost_collects": {
+  "narr": "Ghost says {N} owes him $400 from back when. He’s parked outside the warehouse. Friendly as hell.",
+  "thread": "GHOST",
+  "msgs": [
+   [
+    "ghost",
+    "400"
+   ],
+   [
+    "you",
+    "for what"
+   ],
+   [
+    "ghost",
+    "from back when. i let it ride cause you was sick"
+   ],
+   [
+    "ghost",
+    "you got a job now"
+   ],
+   [
+    "you",
+    "i dont remember owing you"
+   ],
+   [
+    "ghost",
+    "you dont remember a lot lol"
+   ],
+   [
+    "ghost",
+    "im outside the warehouse. no rush"
+   ],
+   [
+    "ghost",
+    "friendly"
+   ]
+  ]
+ },
+ "shorty_relapse": {
+  "narr": "Shorty’s been gone three days. Texted from a strange number: “dont tell ray.” {N} knows the house.",
+  "thread": "SHORTY",
+  "msgs": [
+   [
+    "ray",
+    "ANYBODY SEEN SHORTY"
+   ],
+   [
+    "house",
+    "not since tuesday"
+   ],
+   [
+    "unknown",
+    "im ok"
+   ],
+   [
+    "unknown",
+    "its shorty. dont tell ray"
+   ],
+   [
+    "you",
+    "where u at"
+   ],
+   [
+    "unknown",
+    "you know where"
+   ],
+   [
+    "you",
+    "im coming to get you"
+   ],
+   [
+    "unknown",
+    "dont come here"
+   ],
+   [
+    "unknown",
+    "please dont"
+   ]
+  ]
+ },
+ "lights_notice": {
+  "narr": "{N}’s first month in {his} own place. Rent, the car, and a pink notice from the electric company.",
+  "thread": "LANDLORD",
+  "msgs": [
+   [
+    "landlord",
+    "FYI utilities are in your name. Not mine."
+   ],
+   [
+    "landlord",
+    "Not my problem."
+   ],
+   [
+    "you",
+    "i know"
+   ],
+   [
+    "love",
+    "did u see the pink paper on the door"
+   ],
+   [
+    "you",
+    "yeah"
+   ],
+   [
+    "love",
+    "its $140 by the 14th"
+   ],
+   [
+    "you",
+    "i got 60"
+   ],
+   [
+    "love",
+    "..."
+   ],
+   [
+    "love",
+    "ok. we figure it out"
+   ]
+  ]
+ },
+ "dre_asks": {
+  "narr": "Dre, sixty days, asked {N} to sponsor him. Pops is pretending not to listen.",
+  "thread": "DRE",
+  "msgs": [
+   [
+    "newcomer",
+    "can i ask u something"
+   ],
+   [
+    "newcomer",
+    "like in person"
+   ],
+   [
+    "you",
+    "whats up"
+   ],
+   [
+    "newcomer",
+    "60 days today"
+   ],
+   [
+    "you",
+    "thats big"
+   ],
+   [
+    "newcomer",
+    "pops said ask you"
+   ],
+   [
+    "newcomer",
+    "will you sponsor me"
+   ],
+   [
+    "newcomer",
+    "you dont gotta answer now"
+   ],
+   [
+    "newcomer",
+    "but like"
+   ],
+   [
+    "newcomer",
+    "kinda now"
+   ]
+  ]
+ },
+ "jaz_pregnant": {
+  "narr": "Jaz: “we need to talk.” A bag from the pharmacy. Two lines. {N} has $300 and a check engine light.",
+  "thread": "JAZ",
+  "msgs": [
+   [
+    "love",
+    "we need to talk"
+   ],
+   [
+    "you",
+    "ok"
+   ],
+   [
+    "you",
+    "jaz?"
+   ],
+   [
+    "you",
+    "you ok?"
+   ],
+   [
+    "love",
+    "coming over"
+   ],
+   [
+    "love",
+    "4 hrs later"
+   ],
+   [
+    "love",
+    "im outside"
+   ],
+   [
+    "love",
+    "dont freak out"
+   ]
+  ]
+ },
+ "jaz_pregnant_girl": {
+  "narr": "Two lines. Marc brought the test. {N} has $300 and a check engine light.",
+  "thread": "MARC",
+  "msgs": [
+   [
+    "love",
+    "you still sick?"
+   ],
+   [
+    "you",
+    "its the warehouse"
+   ],
+   [
+    "love",
+    "its been a week"
+   ],
+   [
+    "love",
+    "im bringing something over"
+   ],
+   [
+    "you",
+    "what"
+   ],
+   [
+    "love",
+    "just open the door"
+   ],
+   [
+    "love",
+    "and dont freak out"
+   ],
+   [
+    "love",
+    "ok maybe freak out a little"
+   ]
+  ]
+ },
+ "ex_amends": {
+  "narr": "The ex. Noon this time. Sober voice. “I owe you an amends.” {N} owes one back.",
+  "thread": "THE EX",
+  "msgs": [
+   [
+    "ex",
+    "hey. new number"
+   ],
+   [
+    "ex",
+    "im in a program now. 94 days"
+   ],
+   [
+    "ex",
+    "i owe you an amends"
+   ],
+   [
+    "ex",
+    "can we meet? daytime. public. i know"
+   ],
+   [
+    "you",
+    "let me think"
+   ],
+   [
+    "pops",
+    "Amends don’t require a reunion. Coffee. Daylight. Thirty minutes."
+   ],
+   [
+    "ex",
+    "whenever you’re ready"
+   ]
+  ]
+ },
+ "dre_court": {
+  "narr": "The 15th. Dre’s court date, Jaz’s ultrasound, Darlene’s quarterly, the property manager. {N} has one body.",
+  "thread": "DRE",
+  "msgs": [
+   [
+    "newcomer",
+    "court is the 15th 9am"
+   ],
+   [
+    "newcomer",
+    "downtown"
+   ],
+   [
+    "newcomer",
+    "i dont got a suit or a ride"
+   ],
+   [
+    "love",
+    "ultrasound moved to the 15th!! 10:30 🥹"
+   ],
+   [
+    "darlene",
+    "Quarterly is the 15th. I need you."
+   ],
+   [
+    "client",
+    "Can we meet the 15th re: the lots? Morning works."
+   ],
+   [
+    "you",
+    "..."
+   ],
+   [
+    "newcomer",
+    "if i miss it its a warrant"
+   ]
+  ]
+ },
+ "first_client": {
+  "narr": "Ms. Patel. Six properties. $900 a month. {N} has a mower that starts on the third pull.",
+  "thread": "MS. PATEL",
+  "msgs": [
+   [
+    "client",
+    "Hi, this is Ms. Patel. I manage the duplexes on Carver."
+   ],
+   [
+    "client",
+    "I saw you clear Mr. Henry’s yard."
+   ],
+   [
+    "client",
+    "I have six properties. Every two weeks through October."
+   ],
+   [
+    "you",
+    "how much you thinking"
+   ],
+   [
+    "client",
+    "You tell me. $900/mo is my budget."
+   ],
+   [
+    "client",
+    "I need somebody who shows up."
+   ],
+   [
+    "you",
+    "i can show up"
+   ]
+  ]
+ },
+ "warrant_check": {
+  "narr": "A bench warrant from a county {N} hasn’t been to in years. Pops says turn yourself in. Ghost says just don’t drive there.",
+  "thread": "UNKNOWN",
+  "msgs": [
+   [
+    "unknown",
+    "COUNTY OF MERCER. NOTICE OF BENCH WARRANT. FAILURE TO APPEAR."
+   ],
+   [
+    "you",
+    "pops i got a warrant"
+   ],
+   [
+    "pops",
+    "From when?"
+   ],
+   [
+    "you",
+    "before"
+   ],
+   [
+    "pops",
+    "Then handle it like after. Turn yourself in. I’ll drive."
+   ],
+   [
+    "ghost",
+    "just dont drive thru mercer lol"
+   ],
+   [
+    "ghost",
+    "and dont get pulled over"
+   ]
+  ]
+ },
+ "pops_diagnosis": {
+  "narr": "Pops missed Thursday. Pops never misses Thursday. He’s calling {N} from a hospital bed.",
+  "thread": "POPS",
+  "msgs": [
+   [
+    "pops",
+    "Missing Thursday."
+   ],
+   [
+    "you",
+    "you never miss thursday"
+   ],
+   [
+    "pops",
+    "Hospital. Pancreas. They’re gonna try some things."
+   ],
+   [
+    "you",
+    "which hospital"
+   ],
+   [
+    "pops",
+    "Don’t make a fuss."
+   ],
+   [
+    "pops",
+    "They want an emergency contact."
+   ],
+   [
+    "pops",
+    "I don’t have one."
+   ],
+   [
+    "pops",
+    "Would you mind."
+   ]
+  ]
+ },
+ "pops_hospital": {
+  "narr": "4 AM. The hospital. Pops is asking for {N}. It’s the biggest week the business has ever had.",
+  "thread": "4:02 AM",
+  "msgs": [
+   [
+    "nurse",
+    "This is Mercy General. Mr. Washington took a turn. He’s asking for you."
+   ],
+   [
+    "client",
+    "Twelve lots start Monday. Check’s ready Friday. Counting on you."
+   ],
+   [
+    "newcomer",
+    "i can run the crew. i think. can i?"
+   ],
+   [
+    "love",
+    "cant sleep. come home when you can. or dont. go be with him"
+   ],
+   [
+    "you",
+    "..."
+   ],
+   [
+    "nurse",
+    "He’s asking for you by name."
+   ]
+  ]
+ },
+ "dre_relapse": {
+  "narr": "2:40 AM. Dre on the block. High. “Don’t tell Pops.” Pops is in the hospital. {N} knows the corner.",
+  "thread": "DRE",
+  "msgs": [
+   [
+    "newcomer",
+    "i messed up"
+   ],
+   [
+    "newcomer",
+    "i messed up i messed up"
+   ],
+   [
+    "you",
+    "where are you"
+   ],
+   [
+    "newcomer",
+    "the block. the house. you know"
+   ],
+   [
+    "newcomer",
+    "dont tell pops"
+   ],
+   [
+    "newcomer",
+    "please come get me"
+   ],
+   [
+    "you",
+    "is anybody with you"
+   ],
+   [
+    "newcomer",
+    "everybody is with me"
+   ],
+   [
+    "newcomer",
+    "thats the problem"
+   ]
+  ]
+ },
+ "big_contract": {
+  "narr": "Twelve lots. $2,000 a month. A second truck {N} doesn’t have. The logo company is bidding too.",
+  "thread": "MS. PATEL",
+  "msgs": [
+   [
+    "client",
+    "My boss saw your work. 41 properties."
+   ],
+   [
+    "client",
+    "He wants a bid on 12. Year-round. $2k/mo."
+   ],
+   [
+    "client",
+    "Needs a second truck, second crew, liability insurance."
+   ],
+   [
+    "client",
+    "The logo company is bidding too."
+   ],
+   [
+    "you",
+    "when is it due"
+   ],
+   [
+    "client",
+    "Friday."
+   ],
+   [
+    "love",
+    "you can do this. i’ll do the paperwork"
+   ]
+  ]
+ },
+ "truck_dies": {
+  "narr": "The truck died on the highway. Transmission. Twelve lots due Friday. {N} has four days.",
+  "thread": "MECHANIC",
+  "msgs": [
+   [
+    "newcomer",
+    "truck wont go"
+   ],
+   [
+    "newcomer",
+    "like at all. on the highway"
+   ],
+   [
+    "you",
+    "what happened"
+   ],
+   [
+    "newcomer",
+    "it made a noise then no noise"
+   ],
+   [
+    "mechanic",
+    "Transmission. $1,800 or a new truck."
+   ],
+   [
+    "client",
+    "Still on for Friday?"
+   ],
+   [
+    "you",
+    "yeah"
+   ],
+   [
+    "you",
+    "yeah we’re on"
+   ]
+  ]
+ },
+ "baby_comes": {
+  "narr": "3 AM. Jaz’s water broke in the kitchen. {N}’s car has a check engine light and the hospital bag is by the door.",
+  "thread": "JAZ",
+  "msgs": [
+   [
+    "love",
+    "my water broke"
+   ],
+   [
+    "love",
+    "in the KITCHEN"
+   ],
+   [
+    "love",
+    "get up"
+   ],
+   [
+    "you",
+    "im up"
+   ],
+   [
+    "love",
+    "the bag is by the door"
+   ],
+   [
+    "love",
+    "the one i packed. because i knew"
+   ],
+   [
+    "you",
+    "car light is on"
+   ],
+   [
+    "love",
+    "I DONT CARE ABOUT THE LIGHT"
+   ]
+  ]
+ },
+ "baby_comes_girl": {
+  "narr": "3 AM. {N}’s water broke in the kitchen. Marc has the bag. The car has a check engine light.",
+  "thread": "MARC",
+  "msgs": [
+   [
+    "you",
+    "my water broke"
+   ],
+   [
+    "love",
+    "ok. ok. ok"
+   ],
+   [
+    "love",
+    "im getting the bag"
+   ],
+   [
+    "you",
+    "the kitchen floor is"
+   ],
+   [
+    "love",
+    "dont worry about the floor"
+   ],
+   [
+    "love",
+    "car light is on"
+   ],
+   [
+    "you",
+    "I DONT CARE ABOUT THE LIGHT"
+   ],
+   [
+    "love",
+    "getting the keys"
+   ]
+  ]
+ },
+ "thanksgiving": {
+  "narr": "Thanksgiving. Mom’s table. An open bottle in the middle nobody thought about. First invite in six years for {N}.",
+  "thread": "MOM",
+  "msgs": [
+   [
+    "mom",
+    "Thanksgiving. 2:00. You’re coming."
+   ],
+   [
+    "mom",
+    "Bring Jaz."
+   ],
+   [
+    "you",
+    "is uncle ray coming"
+   ],
+   [
+    "mom",
+    "He lives here, baby."
+   ],
+   [
+    "mom",
+    "He’s bringing the cooler. I told him no. He’s bringing it."
+   ],
+   [
+    "love",
+    "what do i wear to meet your whole family"
+   ],
+   [
+    "you",
+    "armor"
+   ]
+  ]
+ },
+ "year_speaker": {
+  "narr": "Pops wants {N} to speak at the one-year meeting. Twenty minutes. No lying. Mom’s coming.",
+  "thread": "POPS",
+  "msgs": [
+   [
+    "pops",
+    "Thursday. Your year."
+   ],
+   [
+    "pops",
+    "Twenty minutes. What it was like, what happened, what it’s like now."
+   ],
+   [
+    "pops",
+    "Don’t make a speech."
+   ],
+   [
+    "you",
+    "i cant talk for 20 min"
+   ],
+   [
+    "pops",
+    "You talked for 20 years. Try the truth this time."
+   ],
+   [
+    "mom",
+    "Pops said you’re speaking?? I’m coming."
+   ],
+   [
+    "love",
+    "front row. im bringing tissues"
+   ],
+   [
+    "newcomer",
+    "can i introduce you"
+   ]
+  ]
+ },
+ "year_chip": {
+  "narr": "Thursday. The room is full. {N} has one year.",
+  "thread": "THE ROOM 🪑",
+  "msgs": [
+   [
+    "pops",
+    "Stand up."
+   ],
+   [
+    "you",
+    "i cant even type rn"
+   ],
+   [
+    "mom",
+    "He’s standing. He’s standing up."
+   ],
+   [
+    "shorty",
+    "WE ALL STANDING"
+   ],
+   [
+    "newcomer",
+    "thats my sponsor. thats him"
+   ],
+   [
+    "love",
+    "im crying. everybody’s crying. ray is crying"
+   ],
+   [
+    "ray",
+    "Told you most of them don’t make it. Glad you did."
+   ],
+   [
+    "darlene",
+    "Don’t be late Monday."
+   ],
+   [
+    "pops",
+    "One year. Now go do another day."
+   ]
+  ]
  }
 };
 if (typeof module !== "undefined") module.exports = { CONVOS };

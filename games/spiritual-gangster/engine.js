@@ -9,18 +9,25 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v6.4';
+const VERSION = 'v7.0';
 const SAVE_KEY = 'sober-gangster-v5';
-const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'quit', 'argue', 'ignore', 'fkit', 'crew', 'ex', 'ghostlink', 'block', 'bar', 'party', 'look', 'carfund', 'movefund'];
+const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'double', 'quit', 'argue', 'ignore', 'fkit', 'crew', 'ex', 'ghostlink', 'block', 'bar', 'party', 'look', 'carfund', 'movefund', 'date', 'bizfund'];
 const ROWS = [   // top to bottom on the screen (Mike: life, work, spiritual; then people, places and things)
   ['life', 'LIFE', 'Feels good right now. Costs a lot of heat, and it comes back.', ['argue', 'ignore', 'fkit']],
   ['people', 'PEOPLE', 'Fun right now. Tonight gets riskier.', ['crew', 'ex', 'ghostlink']],
   ['places', 'PLACES', 'The best time in weeks. Tonight gets a lot riskier.', ['block', 'bar', 'party']],
-  ['things', 'THINGS', 'The look, the car, your own place. Stack it up.', ['look', 'carfund', 'movefund']],
-  ['work', 'WORK', 'Pays the bills. Adds heat unless you did a spiritual move first today.', ['work', 'betterjob', 'quit']],
+  ['things', 'THINGS', 'The look, the car, your own place. Stack it up.', ['look', 'carfund', 'movefund', 'date', 'bizfund']],
+  ['work', 'WORK', 'Pays the bills. Adds heat unless you did a spiritual move first today.', ['work', 'betterjob', 'double', 'quit']],
   ['spiritual', 'SPIRITUAL', 'Always helps. Do one first and work adds no heat.', ['meeting', 'call', 'help', 'rest', 'rides']]
 ];
 const ROW_OF = {}; ROWS.forEach(r => r[3].forEach(id => ROW_OF[id] = r[0]));
+// v7: the buttons a row shows right now. Things and work change as his life fills up.
+function rowIds(s, key) {
+  if (key === 'things') return ['look', s.car ? 'date' : 'carfund', s.level >= 4 && s.housing !== 'Sober house' && s.housing !== 'Shelter' ? 'bizfund' : 'movefund'];
+  if (key === 'work') return ['work', (s.job || s.biz) && s.wage >= CFG.raiseWage ? 'double' : 'betterjob', 'quit'];
+  if (key === 'spiritual') return ['meeting', 'call', 'help', 'rest'].concat(s.car ? ['rides'] : []);
+  return ROWS.find(r => r[0] === key)[3];
+}
 // base effects (the story bible). h heat, s stress, c cash, n connection; t = trust changes
 const MOVES = {
   meeting:   { label: 'Hit a meeting',        line: 'Show up. Shut up. Listen.',   h: -12, s: -8,  c: 0,   n: 8,   t: { pops: 1, ghost: -1 } },
@@ -42,6 +49,9 @@ const MOVES = {
   look:      { label: 'The fresh look',       line: 'Kicks, cut, cologne.',        h: 0,   s: -6,  c: -60, n: 2,   t: { love: 3 } },
   carfund:   { label: 'Stack for the car',    line: 'Put it where you can’t touch it.', h: 0, s: -2, c: -100, n: 0, t: {} },
   movefund:  { label: 'Stack for move-out',   line: 'Your name on a lease.',       h: 0,   s: -2,  c: -100, n: 0, t: { mom: 1 } },
+  date:      { label: 'Take Jaz out',         line: 'Put the phone down. Look at her.', h: 0, s: -8, c: -60, n: 4, t: { love: 2 } },
+  bizfund:   { label: 'Stack for the business', line: 'A truck, a mower, your name on the door.', h: 0, s: -2, c: -100, n: 0, t: { pops: 1 } },
+  double:    { label: 'Pull doubles',         line: 'Sleep is for people who ain’t behind.', h: 8, s: 18, c: 0, n: -5, t: { darlene: 1, love: -1, mom: -1 } },
   fkit:      { label: 'Say f**k it',          line: 'F**k it. I’m done.',          h: 25,  s: -25, c: -20, n: -15, t: { pops: -2, ray: -2, darlene: -2, mom: -2, shorty: -1, ghost: 2 } }
 };
 const ACTION_LABEL = Object.fromEntries(Object.entries(MOVES).map(([k, v]) => [k, v.label]));
@@ -95,21 +105,32 @@ const STREAKS = {
   chip1:    { chip: '24', title: '24 HOURS', text: 'One whole day. Somebody at the meeting hands you a chip. It weighs nothing. You hold onto it like it weighs a ton.' },
   chip7:    { chip: '7', title: 'ONE WEEK CHIP', text: 'Seven days. You don’t say much when they call your name. You don’t have to.' },
   chip14:   { chip: '14', title: 'TWO WEEK CHIP', text: 'Two weeks. Pops says the hard part is it never stops being one day at a time. He says it like good news.' },
-  chip30:   { chip: '30', title: '30 DAY CHIP', text: 'Thirty days. The whole room claps. You almost leave. You stay. That’s the whole program right there.' },
+  chip30:   { chip: '30', title: '30 DAY CHIP', text: 'Thirty days. The whole room claps. You almost leave. You stay. That’s the whole program right there. From here, a turn is a whole week.' },
+  chip60:   { chip: '60', title: '60 DAY CHIP', text: 'Sixty days. Pops shakes your hand and holds on a beat too long. “Now the real work starts. Life’s about to get busy.”' },
+  chip90:   { chip: '90', title: '90 DAY CHIP', text: 'Ninety days. Big Ray says it in front of the house: “Most of y’all won’t see this one.” From here, a turn is a whole month.' },
+  chip180:  { chip: '6', unit: 'MONTHS', title: 'SIX MONTH CHIP', text: 'Six months. Mom came to the meeting. Sat in the back. Cried at the wrong part. You didn’t mind.' },
+  chip270:  { chip: '9', unit: 'MONTHS', title: 'NINE MONTH CHIP', text: 'Nine months. Somebody new is sitting in your old chair with a trash bag and a thousand-yard stare. You bring them a coffee.' },
+  chip365:  { chip: '1', unit: 'YEAR', title: 'ONE YEAR', text: 'One year. You stand up. The room stands up with you.' },
+  sponsee:  { title: 'DRE ASKED', text: 'Dre catches you after the meeting, shoes shuffling. “Pops said ask you. Will you… you know. Sponsor me.” You hear Pops laughing from the coffee pot.' },
+  biz:      { title: 'OPEN FOR BUSINESS', text: 'A used truck, a mower that starts on the third pull, and your name on a magnet sign. Shorty says it looks like a ransom note. It’s a business. Work pays what YOU charge now.' },
+  biz2:     { title: 'SECOND TRUCK', text: 'Two trucks. A trailer. Dre runs the second crew and only lost one rake. People call YOU for work now.' },
+  biz3:     { title: 'THE BIG ACCOUNT', text: 'The property manager signed for all twelve lots. You’re the guy who shows up. Turns out that was the whole secret.' },
+  lead:     { title: 'LEAD', text: 'Darlene hands you the clipboard. “Don’t let it go to your head.” It goes to your head a little. Work pays $120 a shift.' },
   love:     { title: 'TOGETHER', text: 'Jaz texts first now. Good morning texts, “you eat?”, a picture of a dog she saw. You are somebody’s person. Don’t blow it.' },
-  thirty:   { title: 'THIRTY DAYS STANDING', text: 'Thirty days ago you had twelve dollars and a bed somebody else owned. Now you’ve got a life worth protecting.' }
+  thirty:   { title: 'THIRTY DAYS STANDING', text: 'Thirty days ago you had twelve dollars and a bed somebody else owned. Now you’ve got a life worth protecting.' },
+  baby:     { title: 'THE BABY', text: 'Six pounds, nine ounces. Ten fingers. Jaz asleep, finally. You hold a person who has never once seen you drunk. Keep it that way.' }
 };
 
 const CFG = {
   actions: 3,
   startCash: 12, startStress: 35, startConnection: 20,
   food: 12, rentDays: 7,
-  rent: [0, 100, 140, 150, 175],   // a week: sober house bed, then your own room ($750 a month)
-  wage: 72, raiseWage: 96, lowTrustWage: 54,   // take-home for a shift: $13/hr part time, then $16/hr
+  rent: [0, 100, 140, 150, 175, 175],   // a week: sober house bed, then your own room ($750 a month)
+  wage: 72, raiseWage: 96, lowTrustWage: 54, leadWage: 120,   // take-home for a shift: $13/hr part time, then $16/hr
   shiftMoves: 2,               // a shift eats most of your day: 2 of your 3 moves
-  bills: { bus: 20, fees: 25, phone: 15 },   // every rent day: bus fare, court fines/probation fees, the phone (if you have one)
+  bills: { bus: 20, fees: 25, phone: 15, car: 35, utilities: 35, pregnant: 30, baby: 60, support: 45 },   // a week: bus fare (no car), court fees, phone, car insurance+gas, lights, the baby, child support
   jobless: 8,                  // stress every morning with no job (after day 1)
-  moveIn: 350, carJar: 900,   // the car stack buys a used car at $900 (Shorty's Honda deal is $400 if it comes up)                 // deposit + keys on a room of your own (first rent comes on rent day)
+  moveIn: 1200, carJar: 900, bizJar: 2500,   // first+last+deposit on a room; the car stack; a used truck and a mower   // the car stack buys a used car at $900 (Shorty's Honda deal is $400 if it comes up)                 // deposit + keys on a room of your own (first rent comes on rent day)
   heat: {
     start: 10, safe: 45, maxOdds: 0.5,
     noSpirit: [0, 3, 6, 9, 12], // nightly heat by days without a spiritual move
@@ -124,7 +145,8 @@ const LEVELS = [
   { n: 1, name: 'The Bottom Bunk',        housing: 'Sober house' },
   { n: 2, name: 'Clock In or Clock Out',  housing: 'Sober house' },
   { n: 3, name: 'Wheels and Wisdom',      housing: 'Sober house' },
-  { n: 4, name: 'Keys to Your Own Place', housing: 'My own place' }
+  { n: 4, name: 'Keys to Your Own Place', housing: 'My own place' },
+  { n: 5, name: 'Giving It Back',         housing: 'My own place' }
 ];
 
 const FIGURES = [
@@ -181,12 +203,33 @@ function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function rng(s) { s.seed = (1664525 * s.seed + 1013904223) >>> 0; return s.seed / 4294967296; }
 function record(s, t) { s.log.unshift(t); s.log = s.log.slice(0, 150); s.logN = (s.logN || 0) + 1; }
 function badge(s, b) { if (!s.milestones.includes(b)) s.milestones.push(b); }
-function levelInfo(n) { return LEVELS[Math.max(1, Math.min(4, n)) - 1]; }
-function rentDue(s) { return CFG.rent[s.level]; }
-function billsDue(s) { return CFG.bills.bus + CFG.bills.fees + (s.items.some(i => /^phone/.test(i)) ? CFG.bills.phone : 0); }
+function levelInfo(n) { return LEVELS[Math.max(1, Math.min(5, n)) - 1]; }
+function rentDue(s) { return s.level >= 4 && s.housing === 'Sober house' ? CFG.rent[3] : CFG.rent[Math.min(s.level, 5)]; }
+function billsDue(s) { const b = weeklyBills(s); return b.total - b.rent; }
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 function dayName(s, d = s.day) { return DAYS[(d - 1) % 7]; }
-function weekend(s) { return (s.day - 1) % 7 === 6; }   // the warehouse runs Mon-Sat; Sunday it's closed
+function weekend(s) { return (s.tl || 1) === 1 && (s.day - 1) % 7 === 6; }   // the warehouse runs Mon-Sat; Sunday it's closed (day turns only)
+/* ---------- v7: ONE YEAR. Time speeds up as he gets sober time. ----------
+   Under 30 days sober: one DAY a turn. 30-89: one WEEK a turn. 90+: one MONTH a turn.
+   A relapse puts him back on day turns until he has 30 days again. He keeps his life. */
+const SCALE = { 1: { kind: 'day', shifts: 1, weeks: 0 }, 7: { kind: 'week', shifts: 6, weeks: 1 }, 30: { kind: 'month', shifts: 24, weeks: 4 } };
+function turnLenFor(sober) { return sober < 30 ? 1 : sober < 90 ? 7 : 30; }
+function turnKind(s) { return SCALE[s.tl || 1].kind; }
+function shiftsIn(s) { return SCALE[s.tl || 1].shifts; }    // shifts in one work move
+function weeksIn(s) { return SCALE[s.tl || 1].weeks; }      // rent periods charged at the end of this turn (day turns: on rent day)
+function turnLabel(s) { const k = turnKind(s); return k === 'day' ? 'DAY ' + s.day : k === 'week' ? 'WEEK ' + Math.ceil(s.day / 7) : 'MONTH ' + Math.ceil(s.day / 30); }
+function rentEvent(s) { return (s.tl || 1) > 1 || s.day % CFG.rentDays === 0; }
+// what he owes every week, item by item (v7: the squeeze)
+function weeklyBills(s) {
+  const b = { rent: rentDue(s), bus: s.car ? 0 : CFG.bills.bus, fees: CFG.bills.fees, phone: s.items.some(i => /^phone/.test(i)) ? CFG.bills.phone : 0 };
+  if (s.car) b.car = CFG.bills.car;
+  if (s.level >= 4 && s.housing === 'My own place') b.utilities = CFG.bills.utilities;
+  if (s.support) b.support = s.support;
+  if (s.baby) b.baby = CFG.bills.baby; else if (s.pregnant) b.baby = CFG.bills.pregnant;
+  b.total = Object.entries(b).reduce((a, [k, v]) => k === 'total' ? a : a + v, 0);
+  return b;
+}
+function billsDueNow(s) { return weeklyBills(s).total * Math.max(1, weeksIn(s)); }
 function extraShift(s) { const c = s.scen && sitById(s.scen.id); return !!(c && c.moves.work && c.moves.work.c > 80); }
 function nextRentDay(s) { return Math.ceil(s.day / CFG.rentDays) * CFG.rentDays; }
 
@@ -206,7 +249,9 @@ function fresh(seed = Date.now()) {
     streak: 0, bestStreak: 0, daysSinceSupport: 0, meetStreak: 0, helpStreak: 0,
     meetings: 0, shifts: 0, employedDays: 0, searchPts: 0,
     rentDays: 0, rentsOnTime: 0, rentsL4: 0, coolDays: 0, standing: 0,
-    jar: { car: 0, move: 0 }, riskToday: 0, wildBoost: {}, looks: 0, together: false,
+    jar: { car: 0, move: 0, biz: 0 }, riskToday: 0, wildBoost: {}, looks: 0, together: false,
+    // v7
+    tl: 1, turn: 1, behind: 0, lightsOff: false, loveCold: 0, togetherTurns: 0, biz: 0, bizMonths: 0, bizJobs: 0, support: 0, pregnant: false, pregDay: 0, baby: false, sponsee: false, seenCards: [],
     spirit: SPIRIT.start, sober: 0, relapses: 0, lifeToday: 0, reveal: null, asleep: null, missingDay: false,
     receipts: [],          // { id, due }
     cards: [],             // morning cards waiting: { kind, title, text, h, s, c, n, t }
@@ -223,6 +268,8 @@ function migrate(raw) {
   for (const k of Object.keys(f)) if (raw[k] === undefined) raw[k] = f[k];
   if (!FIGURES.find(x => x.id === raw.look.fig)) raw.look.done = false;
   if (raw.scen && !SITUATIONS.find(x => x.id === raw.scen.id)) raw.scen = null;
+  if (raw.jar && raw.jar.biz === undefined) raw.jar.biz = 0;
+  if (!raw.tl) raw.tl = turnLenFor(raw.sober || 0);
   return raw;
 }
 function restartKeepFigure(s, seed) {
@@ -255,8 +302,9 @@ function forSex(s, t, who) {
 
 /* ---------- situations ---------- */
 function sitById(id) { return SITUATIONS.find(x => x.id === id); }
-function scenFor(s, id) { return sitById(id); }
+function scenFor(s, id) { const c = sitById(id); return c && c.girl && s.look.sex === 'girl' ? { ...c, ...c.girl } : c; }
 function sitOK(s, c) {
+  if (c.need && !c.need.every(k => needOK(s, k))) return false;
   if (c.id === 'first_job') return !s.job;
   if (c.id === 'buy_the_car') return !s.car;
   if (c.id === 'car_trouble') return s.car;
@@ -266,14 +314,52 @@ function sitOK(s, c) {
   if (c.id === 'love_birthday_bar') return s.seenScen.includes('love_first_date') && s.trust.love >= 4;
   return true;
 }
+// v7 situation requirements (the "need" list on a situation)
+function needOK(s, k) {
+  switch (k) {
+    case 'soberhouse': return s.housing === 'Sober house';
+    case 'ownplace': return s.housing === 'My own place';
+    case 'together': return s.together;
+    case 'notogether': return !s.together;
+    case 'car': return s.car;
+    case 'job': return !!s.job;
+    case 'sponsor': return s.sponsor;
+    case 'sponsee': return s.sponsee;
+    case 'nosponsee': return !s.sponsee;
+    case 'biz': return !!s.biz;
+    case 'nobiz': return !s.biz;
+    case 'bizseed': return s.flags.includes('bizseed') && !s.biz;
+    case 'pregnant': return s.pregnant && !s.baby;
+    case 'notpregnant': return !s.pregnant && !s.baby;
+    case 'baby': return s.baby;
+    case 'popssick': return s.flags.includes('pops_sick');
+    case 'popswell': return !s.flags.includes('pops_sick');
+    case 'trip': return s.flags.includes('trip_in');
+    case 'notrip': return !s.flags.includes('trip_in');
+    case 'lead': return s.flags.includes('lead');
+    case 'nolead': return !s.flags.includes('lead');
+    case 'raise': return s.wage >= CFG.raiseWage;
+    case 'sober45': return s.sober >= 45;
+    case 'sober150': return s.sober >= 150;
+    case 'sober200': return s.sober >= 200;
+    case 'sober300': return s.sober >= 300;
+    case 'year': return s.sober >= 330;
+    default: return s.flags.includes(k);
+  }
+}
 function pickScen(s) {
   // the very first morning, and any morning you're out of work with 3 job leads, the job finds you
   if (!s.job && (s.day === 1 || s.searchPts >= 3)) { s.searchPts = 0; return sitById('first_job'); }
-  const ch = Math.min(s.level, 3);
-  let pool = SITUATIONS.filter(c => (s.level >= 4 ? c.ch >= 2 : c.ch === ch) && sitOK(s, c) && !s.seenScen.includes(c.id));
-  if (!pool.length) { s.seenScen = s.seenScen.filter(id => !SITUATIONS.some(c => c.ch === ch && c.id === id)); pool = SITUATIONS.filter(c => (s.level >= 4 ? c.ch >= 2 : c.ch === ch) && sitOK(s, c)); }
+  // v7: the pool is this chapter's situations at this turn's pace (day / week / month). Chapter 4 and 5 share the month pool.
+  const kind = turnKind(s), ch = s.level;
+  const inCh = c => c.late ? c.ch <= ch : ch >= 4 ? c.ch >= 4 && c.ch <= ch : c.ch === ch;
+  const paced = c => c.late ? kind !== 'day' : (c.scale || 'day') === kind;
+  let pool = SITUATIONS.filter(c => inCh(c) && paced(c) && sitOK(s, c) && !s.seenScen.includes(c.id));
+  if (!pool.length) pool = SITUATIONS.filter(c => inCh(c) && sitOK(s, c) && !s.seenScen.includes(c.id));
+  if (!pool.length && ch >= 2) pool = SITUATIONS.filter(c => c.ch >= 2 && c.ch < ch && paced(c) && sitOK(s, c) && !s.seenScen.includes(c.id));
+  if (!pool.length) { s.seenScen = s.seenScen.filter(id => !SITUATIONS.some(c => inCh(c) && c.id === id && !c.once)); pool = SITUATIONS.filter(c => inCh(c) && sitOK(s, c) && !s.seenScen.includes(c.id)); }
   if (!pool.length) return null;
-  const g = s.trust.ghost, w = c => c.who === 'ghost' ? (g >= 8 ? 3 : g <= 2 ? 0.3 : 1) : 1;
+  const g = s.trust.ghost, w = c => (c.who === 'ghost' ? (g >= 8 ? 3 : g <= 2 ? 0.3 : 1) : 1) * (c.weight || 1);
   let r = rng(s) * pool.reduce((a, c) => a + w(c), 0);
   for (const c of pool) { r -= w(c); if (r <= 0) { s.seenScen.push(c.id); return c; } }
   s.seenScen.push(pool[0].id); return pool[0];
@@ -310,12 +396,25 @@ function startDay(s, first = false, picked = null) {
     card(s, { kind: 'receipt', rid: r.id, who: R.who, title: R.title, text: R.text, h: R.h, s: R.s, t: R.t });
     record(s, 'It came back: ' + R.title + '.');
   }
+  // v7: wreckage from the old life shows up on month turns, once each
+  if (!first && turnKind(s) === 'month' && s.level >= 4) {
+    const W = WRECKAGE.filter(w => !s.seenCards.includes(w.id) && (!w.need || w.need(s)));
+    if (W.length && rng(s) < 0.3) { const w = W[Math.floor(rng(s) * W.length)]; s.seenCards.push(w.id); w.hit(s); card(s, { kind: 'news', title: w.title, text: w.text(s), c: w.c || 0, s: w.s || 0 }); record(s, w.title + '.'); }
+  }
   if (!s.scen) {
     const c = pickScen(s);
-    if (c) { s.scen = { id: c.id, left: c.days, fresh: true }; apply(s, { h: c.now }); record(s, 'New trouble: ' + c.title + '.'); }
+    if (c) { s.scen = { id: c.id, left: c.days, fresh: true }; apply(s, { h: c.now }); record(s, 'New trouble: ' + c.title + '.'); if (c.id === 'trip_moves_in' && !s.flags.includes('trip_in')) s.flags.push('trip_in'); }
   } else s.scen.fresh = false;
   if (s.scen) s.show.push('scen');
 }
+
+// v7: the old life sends a bill
+const WRECKAGE = [
+  { id: 'collections', title: 'COLLECTIONS', c: -300, s: 10, text: s => 'A letter with a red stripe. A credit card from the old life, sold to a collections outfit that calls six times a day. $300 to make it stop.', hit: s => { const pay = Math.min(s.cash, 300); s.cash -= pay; s.arrears += 300 - pay; apply(s, { s: 10 }); } },
+  { id: 'courtfine', title: 'THE COURT REMEMBERS', c: -250, s: 8, text: s => 'A fine from a case you barely remember. Pay $250 or the license gets flagged. The judge does not care that you’re a different person now.', hit: s => { const pay = Math.min(s.cash, 250); s.cash -= pay; s.arrears += 250 - pay; apply(s, { s: 8 }); } },
+  { id: 'support', title: 'THE COUNTY', s: 12, text: s => 'The county found your paycheck. Back support and fees: $' + CFG.bills.support + ' a week out of every check, starting now. You wanted to be the kind of person who pays it. Here’s your chance.', hit: s => { s.support = CFG.bills.support; apply(s, { s: 12 }); }, need: s => !!(s.job || s.biz) },
+  { id: 'ghost_debt', title: 'GHOST’S MATH', c: -200, s: 10, text: s => 'Ghost pulls up outside your place. Your new place. “You know you still owe me from back then, right? $200. I ain’t pressed. I’m just saying I know where you live now.”', hit: s => { const pay = Math.min(s.cash, 200); s.cash -= pay; if (pay < 200) trustUp(s, { ghost: 2 }); apply(s, { s: 10, h: 6 }); } }
+];
 
 /* ---------- moves ---------- */
 function moveLine(s, id) {
@@ -328,16 +427,22 @@ function preview(s, id) {
   const e = m ? { h: m.h, s: m.s, c: m.c, n: m.n } : { h: B.h, s: B.s, c: B.c, n: B.n };
   let t = m ? m.trust : B.t;
   let zeroed = false, note = '';
-  if (id === 'work') {
-    const w = s.trust.darlene <= 2 ? CFG.lowTrustWage : s.wage;
-    e.c = m && m.c > 80 ? Math.max(Math.round(m.c * 0.9), w) : w;   // the situation's extra shift pays a little more
-    if (s.trust.darlene <= 2) note = 'Darlene cut your hours.';
+  const sh = shiftsIn(s);
+  if (id === 'work' || id === 'double') {
+    const w = s.biz ? bizPay(s) : s.trust.darlene <= 2 ? CFG.lowTrustWage : s.wage;
+    e.c = (m && m.c > 80 && sh === 1 ? Math.max(Math.round(m.c * 0.9), w) : w) * sh;   // the situation's extra shift pays a little more
+    if (id === 'double') { e.c = Math.round(e.c * 1.5); if (!m) e.h = MOVES.double.h; }
+    if (s.trust.darlene <= 2 && !s.biz) note = 'Darlene cut your hours.';
+    if (s.biz) note = 'Your business. You set the price.';
   }
+  if (['crew', 'block', 'bar', 'party', 'betterjob'].includes(id) && sh > 1) e.c = e.c * (sh === 6 ? 4 : 12);   // a week or a month of it
   if (id === 'rides' && !m) Object.assign(e, { h: B.h, s: B.s, c: B.c, n: B.n });
   if (id === 'betterjob' && s.cash < -e.c) e.c = -s.cash;   // broke: you walk to the interviews
-  if (id === 'carfund' || id === 'movefund') { const jar = id === 'carfund' ? 'car' : 'move', goal = id === 'carfund' ? CFG.carJar : NEED.l3; e.c = -Math.min(100, s.cash, goal - s.jar[jar]); }
+  if (id === 'carfund' || id === 'movefund' || id === 'bizfund') { const jar = id === 'carfund' ? 'car' : id === 'movefund' ? 'move' : 'biz', goal = id === 'carfund' ? CFG.carJar : id === 'movefund' ? NEED.l3 : CFG.bizJar; e.c = -Math.min(100 * sh, s.cash, goal - s.jar[jar]); }
   if (id === 'look' && s.looks >= 3) { t = { love: 1 }; e.s = -3; }
+  if (id === 'date' && !s.together) { t = { love: 1 }; e.c = -40; e.n = 3; }
   if (ROW_OF[id] === 'work' && e.h > 0 && s.spiritToday) { e.h = 0; zeroed = true; }
+  if (id === 'meeting' && s.workToday) note = 'The meeting was during your shift.';
   if (id === 'call' && (s.sponsor || s.trust.pops >= 8)) { e.h -= 5; note = 'Your sponsor picks up. −5 more heat.'; }
   else if (id === 'call' && s.trust.pops <= 1) { e.h = Math.round(e.h / 2); note = 'Pops let it ring. Half the help.'; }
   return { e, t, end: !!(m && m.end), gives: m ? m.gives : [], say: m ? forSex(s, m.say) : null, scen: m ? c : null, zeroed, note };
@@ -346,15 +451,20 @@ function preview(s, id) {
 function whyNot(s, id) {
   if (s.result || s.lockedUp) return 'game over';
   if (s.actions < 1) return 'no moves left';
-  if (id === 'work' && s.actions < CFG.shiftMoves) return 'a shift takes 2 moves';
-  if (id === 'work' && weekend(s) && !extraShift(s)) return 'closed sundays';
-  if ((id === 'work' || id === 'quit') && !s.job) return 'no job';
+  if ((id === 'work' || id === 'double') && s.actions < CFG.shiftMoves) return 'a shift takes 2 moves';
+  if ((id === 'work' || id === 'double') && weekend(s) && !extraShift(s)) return 'closed sundays';
+  if ((id === 'work' || id === 'quit' || id === 'double') && !s.job && !s.biz) return 'no job';
+  if (id === 'double' && s.workToday) return 'already worked';
+  if (id === 'meeting' && s.workToday) return 'during your shift';
+  if (id === 'bizfund' && s.biz >= 3) return 'maxed out';
+  if (id === 'date' && s.trust.love <= 0) return s.look.sex === 'girl' ? 'marc’s done' : 'jaz is done';
   if (id === 'rides' && !s.car) return 'need a car';
   if (id === 'rest' && s.restToday) return 'rested today';
   if (id === 'carfund' && s.car) return 'got wheels';
   if (id === 'movefund' && s.level < 3) return 'chapter 3';
-  if (id === 'movefund' && (s.jar.move >= NEED.l3 || s.level >= 4)) return 'stacked';
-  if ((id === 'carfund' || id === 'movefund') && s.cash < 20) return 'need $20';
+  if (id === 'movefund' && s.jar.move >= NEED.l3) return 'stacked';
+  if (id === 'movefund' && s.level >= 4 && s.housing === 'My own place') return 'stacked';
+  if ((id === 'carfund' || id === 'movefund' || id === 'bizfund') && s.cash < 20) return 'need $20';
   const { e } = preview(s, id);
   if (ROW_OF[id] !== 'life' && s.cash + (e.c || 0) < 0) return 'need $' + (-e.c);   // f**k it is always on the table
   return '';
@@ -385,7 +495,7 @@ const BASE_SAY = {
 function action(s, id) {
   if (!canDo(s, id)) return null;
   const p = preview(s, id), row = ROW_OF[id];
-  s.actions -= id === 'work' ? CFG.shiftMoves : 1;
+  s.actions -= id === 'work' || id === 'double' ? CFG.shiftMoves : 1;
   apply(s, p.e);
   if (row === 'spiritual') { s.spiritToday = true; s.supportToday = true; s.daysSinceSupport = 0; s.spirit = clamp(s.spirit + (SPIRIT[id] || 0), 0, 100); }
   if (row === 'life') { s.lifeToday = (s.lifeToday || 0) + 1; s.spirit = clamp(s.spirit + SPIRIT.life, 0, 100); }
@@ -395,14 +505,16 @@ function action(s, id) {
     if (id === 'ghostlink' && !s.flags.includes('oldcontact')) s.flags.push('oldcontact');
   }
   if (id === 'carfund') { s.jar.car -= p.e.c; if (s.jar.car >= CFG.carJar && !s.car) { s.car = true; s.jar.car = 0; if (!s.items.includes('car')) s.items.push('car'); got(s, 'wheels'); badge(s, 'Bought a car with your own stack.'); } }
-  if (id === 'movefund') s.jar.move -= p.e.c;
+  if (id === 'movefund') { s.jar.move -= p.e.c; if (s.level >= 4 && s.jar.move >= NEED.l3 && s.housing !== 'My own place') { s.jar.move = 0; s.housing = 'My own place'; s.lightsOff = false; s.behind = 0; badge(s, 'Got your own place back.'); record(s, 'Signed a new lease. Your own door again.'); } }
+  if (id === 'bizfund') { s.jar.biz -= p.e.c; if (s.jar.biz >= CFG.bizJar) { s.jar.biz = 0; s.biz = Math.min(3, (s.biz || 0) + 1); got(s, s.biz === 1 ? 'biz' : s.biz === 2 ? 'biz2' : 'biz3'); badge(s, s.biz === 1 ? 'Started the landscaping business.' : 'Grew the business.'); if (s.biz === 1) { s.job = true; s.wage = Math.max(s.wage, CFG.raiseWage); } } }
+  if (id === 'date' || id === 'look') { s.loveCold = 0; }
   if (id === 'look') { s.looks++; const nx = LOOK_ITEMS.find(i => !s.items.includes(i)); if (nx) s.items.push(nx); }
   if (id === 'meeting') { s.meetToday = true; s.meetings++; }
   if (id === 'help' || id === 'rides') s.helpToday = true;
   if (id === 'rest') s.restToday = true;
-  if (id === 'work') { s.workToday++; s.shifts++; }
+  if (id === 'work' || id === 'double') { s.workToday++; s.shifts++; if (s.biz && turnKind(s) === 'month') s.bizMonths++; }
   if (id === 'betterjob') s.searchPts++;
-  if (id === 'quit') { s.job = false; s.employedDays = 0; record(s, 'Quit the job.'); }
+  if (id === 'quit') { if (s.biz) { s.biz = 0; s.jar.biz = 0; record(s, 'Shut the business down.'); } s.job = false; s.employedDays = 0; record(s, 'Quit the job.'); }
   if (p.zeroed) s.zeroedToday = true;
   let gotReceipt = false;
   for (const g of p.gives || []) {
@@ -411,6 +523,16 @@ function action(s, id) {
     else if (g === 'unemployed') { s.job = false; s.employedDays = 0; }
     else if (g === 'car') { if (!s.car) { s.car = true; if (!s.items.includes('car')) s.items.push('car'); got(s, 'wheels'); badge(s, 'Bought a car.'); } }
     else if (g === 'sponsor_active') { if (!s.sponsor) { s.sponsor = true; badge(s, 'Pops is your sponsor.'); } }
+    else if (g === 'lead') { if (!s.flags.includes('lead')) { s.flags.push('lead'); s.wage = CFG.leadWage; got(s, 'lead'); } }
+    else if (g === 'sponsee') { if (!s.sponsee) { s.sponsee = true; got(s, 'sponsee'); badge(s, 'Sponsoring Dre.'); } }
+    else if (g === 'pregnant') { if (!s.pregnant) { s.pregnant = true; s.pregDay = s.day; badge(s, loveSwap(s, 'Jaz is pregnant.')); record(s, loveSwap(s, 'Jaz is pregnant.')); } }
+    else if (g === 'bizseed') { if (!s.flags.includes(g)) { s.flags.push(g); s.jar.biz = Math.max(s.jar.biz, 300); } }
+    else if (g === 'trip_out') { s.flags = s.flags.filter(f => f !== 'trip_in'); }
+    else if (g === 'moved_back') { s.housing = 'Sober house'; s.lightsOff = false; s.behind = 0; record(s, 'Gave up the apartment. Back at Big Ray’s.'); }
+    else if (g === 'car_sold') { s.car = false; s.items = s.items.filter(i => i !== 'car' && i !== 'car2'); }
+    else if (g === 'bigjob') { s.bizJobs++; if (!s.flags.includes(g)) s.flags.push(g); }
+    else if (g === 'baby_born') { if (!s.baby) { s.baby = true; s.pregnant = false; got(s, 'baby'); apply(s, { n: 10 }); trustUp(s, { mom: 2 }); } }
+    else if (g === 'love_touch') { s.loveCold = 0; }
     else if (g === 'job_search_point') { if (id !== 'betterjob') s.searchPts++; }
     else if (RECEIPTS[g]) { gotReceipt = true; queueReceipt(s, g); }
     else if (!s.flags.includes(g)) s.flags.push(g);
@@ -423,7 +545,7 @@ function action(s, id) {
   let title = MOVES[id].label;
   if (p.scen) {
     title = p.scen.title;
-    if (p.end) { s.scen = null; badge(s, 'Dealt with: ' + p.scen.title.toLowerCase() + '.'); }
+    if (p.end) { s.scen = null; badge(s, 'Dealt with: ' + p.scen.title.toLowerCase() + '.'); if (p.scen.who === 'love') s.loveCold = 0; }
     record(s, p.scen.title + ' — ' + MOVES[id].label + '. ' + say);
   } else record(s, MOVES[id].label + '. ' + say);
   (s.today ||= []).push(say);
@@ -432,12 +554,12 @@ function action(s, id) {
 }
 function queueReceipt(s, id) {
   const R = RECEIPTS[id]; if (!R || s.receipts.some(r => r.id === id)) return;
-  s.receipts.push({ id, due: s.day + R.days });
+  s.receipts.push({ id, due: s.day + Math.min(R.days, s.tl || 1) });
 }
 function got(s, id) {
   if (s.got.includes(id)) return false;
   s.got.push(id); const S = STREAKS[id];
-  card(s, { kind: S.chip ? 'chip' : 'streak', chip: S.chip, title: S.title, text: loveSwap(s, S.text) });
+  card(s, { kind: S.chip ? 'chip' : 'streak', chip: S.chip, unit: S.unit, title: S.title, text: loveSwap(s, S.text) });
   badge(s, S.title.charAt(0) + S.title.slice(1).toLowerCase() + '.');
   return true;
 }
@@ -466,7 +588,10 @@ function cantBuy(s, id) {
 }
 
 /* ---------- chapters ---------- */
-// what's left before the next chapter (or the win at level 4)
+// the business pays per "shift": more as it grows
+function bizPay(s) { return Math.round(CFG.raiseWage * [1, 1.3, 1.8, 2.4][Math.min(3, s.biz || 0)]); }
+const employed = s => !!(s.job || s.biz);
+// what's left before the next chapter (or the win at level 5)
 function nextNeeds(s) {
   const a = [];
   if (s.level === 1) {
@@ -478,31 +603,39 @@ function nextNeeds(s) {
     if (s.wage < CFG.raiseWage) a.push('the raise');
     if (s.rentsOnTime < 2) a.push((2 - s.rentsOnTime) + ' rent' + (2 - s.rentsOnTime === 1 ? '' : 's') + ' on time');
     if (s.cash < NEED.l2) a.push('$' + NEED.l2 + ' saved');
+    if (s.sober < 30) a.push('the 30 day chip');
   } else if (s.level === 3) {
     if (!s.sponsor) a.push('a sponsor');
     if (!s.car) a.push('a car');
     if (!s.job) a.push('a job');
     if (s.connection < 60) a.push('connection 60');
     if (s.jar.move < NEED.l3) a.push('$' + (NEED.l3 - s.jar.move) + ' more in the move-out stack');
-  } else {
+    if (s.sober < 90) a.push('the 90 day chip');
+  } else if (s.level === 4) {
     if (s.rentsL4 < WIN.rents) a.push((WIN.rents - s.rentsL4) + ' rent' + (WIN.rents - s.rentsL4 === 1 ? '' : 's') + ' on time');
-    if (!s.job) a.push('a job');
+    if (!employed(s)) a.push('a job');
     if (s.connection < 60) a.push('connection 60');
-    if (s.coolDays < WIN.cool) a.push((WIN.cool - s.coolDays) + ' cool days');
+    if (s.coolDays < WIN.cool) a.push((WIN.cool - s.coolDays) + ' cool month' + (WIN.cool - s.coolDays === 1 ? '' : 's'));
+    if (s.sober < 180) a.push('the 6 month chip');
+  } else {
+    if (!employed(s)) a.push('a job');
+    if (s.housing !== 'My own place') a.push('your own place');
+    if (s.connection < 60) a.push('connection 60');
+    if (s.arrears) a.push('pay off the $' + s.arrears);
     if (s.sober < WIN.standing) a.push((WIN.standing - s.sober) + ' more days sober');
   }
   return a;
 }
-const WIN = { rents: 1, cool: 7, standing: 30 };
-const NEED = { l2: 150, l3: 350 };   // cash to leave chapter 2, and the move-in money to leave chapter 3
+const WIN = { rents: 1, cool: 2, standing: 365 };
+const NEED = { l2: 150, l3: 1200 };   // cash to leave chapter 2, and the move-in money to leave chapter 3 (first, last, deposit)
 function checkLevel(s) {
-  if (s.level >= 4) {
-    if (!nextNeeds(s).length) { s.result = { won: true, day: s.day }; badge(s, 'SOBERED UP.'); record(s, 'SOBERED UP. Day ' + s.day + '.'); }
+  if (s.level >= 5) {
+    if (!nextNeeds(s).length) { s.result = { won: true, day: s.day }; badge(s, 'ONE YEAR.'); record(s, 'ONE YEAR. Day ' + s.day + '.'); }
     return false;
   }
   if (nextNeeds(s).length) return false;
   s.level++;
-  if (s.level === 4) { s.jar.move = Math.max(0, s.jar.move - CFG.moveIn); s.housing = 'My own place'; s.rentsL4 = 0; record(s, 'Signed the lease. First and last: $' + CFG.moveIn + '.'); }
+  if (s.level === 4) { s.jar.move = Math.max(0, s.jar.move - CFG.moveIn); s.housing = 'My own place'; s.rentsL4 = 0; record(s, 'Signed the lease. First, last and deposit: $' + CFG.moveIn + '.'); }
   badge(s, 'Chapter ' + s.level + ': ' + levelInfo(s.level).name + '.');
   record(s, 'NEW CHAPTER: ' + levelInfo(s.level).name + '.');
   s.levelUp = s.level;
@@ -588,13 +721,15 @@ function lockOdds(s) {
   return Math.min(0.5, Math.round(pBad * Math.min(0.35, (R - 55) / 60) * 100) / 100 + (s.heat >= 60 ? 0.03 : 0));
 }
 function relapse(s) {
-  s.sober = 0; s.relapses = (s.relapses || 0) + 1; s.spirit = 0;
+  const had = s.sober; s.sober = 0; s.relapses = (s.relapses || 0) + 1; s.spirit = 0;
   apply(s, { h: 15, s: 15, c: -Math.min(s.cash, 40) });
   trustUp(s, { pops: -1, mom: -2, shorty: -1, ghost: 2 });
   if (s.job) trustUp(s, { darlene: -2 });
   s.got = s.got.filter(g => !/^chip|^twoweeks$|^thirty$/.test(g));
+  if (s.together) trustUp(s, { love: s.pregnant ? -3 : -2 });
+  if (s.sponsee) { apply(s, { s: 8 }); }
   if (!s.flags.includes('oldcontact')) s.flags.push('oldcontact');
-  record(s, 'Relapsed. Sober time back to zero.');
+  record(s, 'Relapsed. ' + had + ' days, gone.' + (had >= 30 ? ' Back to one day at a time.' : ''));
 }
 // THE NIGHT, resolved exactly once. Returns the morning reveal.
 function overnight(s) {
@@ -642,9 +777,10 @@ function endDay(s) {
   const H = CFG.heat, n0 = s.logN || 0, nightDay = s.day;
   // debt first, then food
   if (s.arrears && s.cash) { const pay = Math.min(s.cash, s.arrears); s.cash -= pay; s.arrears -= pay; if (!s.arrears && s.housing === 'Shelter') { s.housing = levelInfo(s.level).housing; record(s, 'Debt paid. You got your bed back.'); } }
-  if (s.cash >= CFG.food) s.cash -= CFG.food;
-  else if (s.trust.shorty >= 8) { s.cash = 0; record(s, 'Broke. Shorty split his dinner with you.'); }
-  else { s.cash = 0; apply(s, { s: 12, n: -3 }); record(s, 'Couldn’t eat tonight.'); }
+  const tl = s.tl || 1, food = CFG.food * tl;
+  if (s.cash >= food) s.cash -= food;
+  else if (s.trust.shorty >= 8 && tl === 1) { s.cash = 0; record(s, 'Broke. Shorty split his dinner with you.'); }
+  else { s.cash = 0; apply(s, { s: 12, n: -3 }); record(s, tl === 1 ? 'Couldn’t eat tonight.' : 'Ate like it was the old days: whatever was free.'); }
   // the spiritual stuff
   if (s.spiritToday) { s.streak++; s.bestStreak = Math.max(s.bestStreak, s.streak); }
   else { s.streak = 0; s.daysSinceSupport++; const add = H.noSpirit[Math.min(s.daysSinceSupport, H.noSpirit.length - 1)]; if (add) { apply(s, { h: add }); record(s, s.daysSinceSupport + ' day' + (s.daysSinceSupport === 1 ? '' : 's') + ' with nothing spiritual: +' + add + ' heat.'); } }
@@ -677,26 +813,41 @@ function endDay(s) {
     if (s.trust.darlene <= 0) { s.job = false; s.employedDays = 0; card(s, { kind: 'news', title: 'DARLENE LET YOU GO', text: 'She didn’t yell. She just handed you a check and said don’t come back. Look for a better job to find another one.', s: 15 }); apply(s, { s: 15 }); record(s, 'Fired.'); }
     else if (s.level >= 2 && s.wage < CFG.raiseWage && s.employedDays >= 7 && s.shifts >= 5) { s.wage = CFG.raiseWage; got(s, 'raise'); trustUp(s, { darlene: 1 }); }
   }
+  // v7: the squeeze. Jaz needs time. Lights-off and the shelter wear on him. The baby comes.
+  if (s.together) {
+    s.togetherTurns++;
+    if (s.loveCold >= (tl === 1 ? 4 : 2)) { trustUp(s, { love: -1 }); if (s.loveCold === (tl === 1 ? 4 : 2)) card(s, { kind: 'news', who: 'love', title: 'YOU STILL ALIVE?', text: loveSwap(s, 'Jaz: “you still alive? asking for me.” She’s not mad. That’s worse. Take her out. Put her first for one turn.'), s: 6 }); apply(s, { s: 6 }); }
+    s.loveCold++;
+  } else s.loveCold = 0;
+  if (s.lightsOff) apply(s, { s: 6, h: 4 });
+  if (s.pregnant && !s.baby && s.day - s.pregDay >= 240 && !s.flags.includes('baby_due')) s.flags.push('baby_due');
+  if (s.pregnant && !s.baby && s.day - s.pregDay >= 300) { s.baby = true; s.pregnant = false; got(s, 'baby'); apply(s, { n: 10, s: 10 }); trustUp(s, { mom: 2, love: 1 }); }
   // rent day
-  if (s.day % CFG.rentDays === 0 && s.housing === 'Shelter') {
+  const own = s.housing === 'My own place', wks = Math.max(1, weeksIn(s)), periodWord = tl === 1 ? 'RENT DAY' : tl === 7 ? 'END OF THE WEEK' : 'END OF THE MONTH';
+  if (rentEvent(s) && s.housing === 'Shelter') {
     // the debt is frozen while he's out: the shelter charges nothing, Big Ray just waits for what's owed
     s.rentDays++;
-    card(s, { kind: 'rent', title: 'RENT DAY: SHELTER', text: 'No rent at the shelter. Big Ray still has your name on a list: you owe him $' + s.arrears + '. Pay it off and the bed is yours again.' + (s.job ? '' : ' That means a job.') });
-  } else if (s.day % CFG.rentDays === 0) {
-    const due = rentDue(s) + billsDue(s), paid = Math.min(s.cash, due);
+    card(s, { kind: 'rent', title: periodWord + ': SHELTER', text: 'No rent at the shelter. Big Ray still has your name on a list: you owe him $' + s.arrears + '. Pay it off and the bed is yours again.' + (employed(s) ? '' : ' That means a job.') });
+  } else if (rentEvent(s)) {
+    const B = weeklyBills(s), due = B.total * wks, paid = Math.min(s.cash, due);
+    const list = [['rent', own ? 'rent' : 'Big Ray'], ['utilities', 'lights and water'], ['car', 'the car'], ['bus', 'the bus'], ['fees', 'court fees'], ['phone', 'the phone'], ['support', 'child support'], ['baby', s.baby ? 'the baby' : 'baby stuff']].filter(([k]) => B[k]).map(([k, w]) => w + ' $' + B[k] * wks).join(', ');
     s.cash -= paid; s.rentDays++;
     if (paid === due && !s.arrears) {
-      s.rentsOnTime++; if (s.level >= 4) s.rentsL4++;
-      apply(s, { s: -8, h: -5 }); trustUp(s, { ray: 2, mom: 1 });
-      card(s, { kind: 'rent', title: 'RENT DAY: PAID', text: RENT_TALK[s.level] + ' Rent $' + rentDue(s) + ', plus $' + billsDue(s) + ' for the bus, the court fees' + (billsDue(s) > 45 ? ' and the phone' : '') + '. You paid all $' + due + '.', h: -5, s: -8 });
+      s.rentsOnTime++; if (s.level >= 4) s.rentsL4++; s.behind = 0; if (s.lightsOff) { s.lightsOff = false; record(s, 'Lights back on.'); }
+      apply(s, { s: -8, h: -5 }); trustUp(s, own ? { mom: 1 } : { ray: 2, mom: 1 });
+      card(s, { kind: 'rent', title: periodWord + ': PAID', text: RENT_TALK[Math.min(s.level, 4)] + ' ' + list + '. You paid all $' + due + '.', h: -5, s: -8 });
       if (s.rentsOnTime >= 3) got(s, 'rent3');
     } else {
-      s.arrears += due - paid; s.rentsOnTime = 0; if (s.level >= 4) s.rentsL4 = 0;
-      const soft = s.trust.ray >= 8 && s.level < 4;
+      s.arrears += due - paid; s.rentsOnTime = 0; if (s.level >= 4) s.rentsL4 = 0; s.behind++;
+      const soft = s.trust.ray >= 8 && !own;
       const e = soft ? { s: 10, h: 6, n: -2 } : { s: 20, h: 12, n: -5 };
-      apply(s, e); trustUp(s, { ray: -3, mom: -1 });
-      card(s, { kind: 'rent', title: 'RENT DAY: SHORT', text: RENT_TALK[s.level] + ' You had $' + paid + ' of $' + due + '. You owe $' + s.arrears + '.' + (soft ? ' Ray likes you, so he’ll wait. Barely.' : ''), ...e });
-      if (s.arrears >= 2 * due && s.housing !== 'Shelter') { s.housing = 'Shelter'; const why = !s.job ? 'Pops didn’t sugarcoat it: “Meetings keep you sober. They don’t pay Big Ray. Faith without works, kid. Go get a job.”'
+      apply(s, e); trustUp(s, own ? { mom: -1 } : { ray: -3, mom: -1 });
+      card(s, { kind: 'rent', title: periodWord + ': SHORT', text: RENT_TALK[Math.min(s.level, 4)] + ' Due: ' + list + '. You had $' + paid + ' of $' + due + '. You owe $' + s.arrears + '.' + (soft ? ' Ray likes you, so he’ll wait. Barely.' : ''), ...e });
+      // the squeeze: what gets taken
+      if (s.car && s.behind >= 2) { s.car = false; s.items = s.items.filter(i => i !== 'car' && i !== 'car2'); card(s, { kind: 'news', title: 'REPO', text: 'A flatbed at 5 AM. Two guys who’ve done this a thousand times. The car’s gone. The debt isn’t. Give rides is locked till you’ve got wheels again.', s: 15 }); apply(s, { s: 15 }); record(s, 'The car got repo’d.'); }
+      if (own && !s.lightsOff && s.behind >= 1) { s.lightsOff = true; card(s, { kind: 'news', title: 'LIGHTS OFF', text: 'A pink notice on the door, then a click. No lights, no hot water, phone charging at the gas station. Every turn like this wears on him. Catch up and they come back on.', s: 10 }); }
+      if (own && s.behind >= 3) { s.housing = 'Sober house'; s.lightsOff = false; s.behind = 0; s.arrears = Math.min(s.arrears, 300); card(s, { kind: 'news', who: 'ray', title: 'EVICTED', text: 'Three behind. The landlord changed the locks while you were at work. Big Ray took you back, bottom bunk, $150 a week, like you never left. “Told you the world don’t care how sober you are.” Stack for move-out to get your own door again.', s: 20, h: 10 }); apply(s, { s: 20, h: 10 }); record(s, 'Evicted. Back at Big Ray’s.'); }
+      if (!own && s.arrears >= 2 * due && s.housing !== 'Shelter') { s.housing = 'Shelter'; const why = !s.job ? 'Pops didn’t sugarcoat it: “Meetings keep you sober. They don’t pay Big Ray. Faith without works, kid. Go get a job.”'
         : s.trust.darlene <= 2 ? 'Pops didn’t sugarcoat it: “Darlene cut your hours because you keep giving her reasons. Show up, and the money shows up.”'
         : 'Pops didn’t sugarcoat it: “You’re working, but the money’s leaking out somewhere. More shifts, less spending, till you’re caught up.”';
       card(s, { kind: 'news', who: 'pops', title: 'LOST THE BED', text: 'You owe Big Ray $' + s.arrears + ', two weeks behind. Your stuff is in a garbage bag on the porch. Shelter tonight. ' + why + ' The debt stops growing while you’re out. Pay it off and the bed is yours again.' }); record(s, 'Lost the bed.'); }
@@ -712,15 +863,16 @@ function endDay(s) {
   if (s.lockedUp) { record(s, 'Night ' + nightDay + ': locked up.'); return true; }
   s.spirit = clamp(s.spirit + SPIRIT.nightly, 0, 100);
   s.standing++;
-  if (rv.tier !== 'relapse' && !(rv.after && rv.after.tier === 'relapse')) s.sober++;
-  if (s.sober >= 1) got(s, 'chip1');
-  if (s.sober >= 7) got(s, 'chip7');
-  if (s.sober >= 14) { got(s, 'chip14'); got(s, 'twoweeks') && apply(s, { s: -20, h: -10 }); }
-  if (s.sober >= 30) { got(s, 'chip30'); got(s, 'thirty'); }
+  const relapsed = rv.tier === 'relapse' || (rv.after && rv.after.tier === 'relapse');
+  if (!relapsed) s.sober += tl;
+  for (const [n, id] of [[1, 'chip1'], [7, 'chip7'], [14, 'chip14'], [30, 'chip30'], [60, 'chip60'], [90, 'chip90'], [180, 'chip180'], [270, 'chip270'], [365, 'chip365']]) if (s.sober >= n) got(s, id);
+  if (s.sober >= 14) got(s, 'twoweeks') && apply(s, { s: -20, h: -10 });
+  if (s.sober >= 30) got(s, 'thirty');
   s.coolDays = s.heat <= H.safe ? s.coolDays + 1 : 0;
   checkLevel(s);
   if (s.result) return true;
-  s.day++; s.actions = s.missingDay ? 1 : CFG.actions; s.missingDay = false; s.lifeToday = 0; s.riskToday = 0; s.wildBoost = {};
+  s.day += tl; s.turn = (s.turn || 1) + 1; s.tl = turnLenFor(s.sober);
+  s.actions = s.missingDay ? 1 : CFG.actions; s.missingDay = false; s.lifeToday = 0; s.riskToday = 0; s.wildBoost = {};
   s.spiritToday = false; s.supportToday = false; s.restToday = false; s.meetToday = false; s.helpToday = false; s.workToday = 0; s.zeroedToday = false; s.lastOutcome = null; s.today = [];
   startDay(s, false);
   return true;
@@ -736,5 +888,5 @@ const RENT_TALK = [
 if (typeof module !== 'undefined') {
   const C = require('./cards.js'), S = require('./situations.js');
   Object.assign(globalThis, C, S);
-  module.exports = { LOOK_ITEMS, personFor, loveSwap, NIGHT, SPIRIT, WILD, foundation, riskOf, overnight, nightOutlook, sheHe, NEED, DAYS, dayName, weekend, extraShift, billsDue, VERSION, SAVE_KEY, CFG, WIN, LEVELS, FIGURES, shop, SHOP_GROUPS, ACTION_IDS, ACTION_LABEL, MOVES, ROWS, ROW_OF, PEOPLE, RECEIPTS, STREAKS, person, item, has, fresh, migrate, restartKeepFigure, startDay, scenFor, sitById, nightCard, preview, whyNot, canDo, action, buy, cantBuy, nextNeeds, checkLevel, lockOdds, heatWords, endDay, levelInfo, rentDue, nextRentDay, ...C, ...S };
+  module.exports = { relapse, rowIds, turnKind, turnLenFor, shiftsIn, weeksIn, turnLabel, weeklyBills, billsDueNow, rentEvent, bizPay, employed, needOK, WRECKAGE, LOOK_ITEMS, personFor, loveSwap, NIGHT, SPIRIT, WILD, foundation, riskOf, overnight, nightOutlook, sheHe, NEED, DAYS, dayName, weekend, extraShift, billsDue, VERSION, SAVE_KEY, CFG, WIN, LEVELS, FIGURES, shop, SHOP_GROUPS, ACTION_IDS, ACTION_LABEL, MOVES, ROWS, ROW_OF, PEOPLE, RECEIPTS, STREAKS, person, item, has, fresh, migrate, restartKeepFigure, startDay, scenFor, sitById, nightCard, preview, whyNot, canDo, action, buy, cantBuy, nextNeeds, checkLevel, lockOdds, heatWords, endDay, levelInfo, rentDue, nextRentDay, ...C, ...S };
 }

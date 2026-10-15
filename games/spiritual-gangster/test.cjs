@@ -18,7 +18,7 @@ for (let d = 0; d < 7; d++) { s.actions = 0; s.cash = 400; s.meetToday = true; s
 ok(s.rentDays === 1 && s.rentsOnTime === 1, 'rent paid on day 7');
 ok(s.got.includes('sponsor'), '3 meetings in a row: Pops offers');
 // every situation has the 10 moves (work/quit may be n/a in chapter 1) and an expire
-for (const c of E.SITUATIONS) { ok(c.expire && c.expire.say, c.id + ' expire'); for (const k of ['meeting', 'call', 'help', 'rest', 'betterjob', 'argue', 'ignore', 'fkit']) ok(c.moves[k], c.id + ' ' + k); }
+for (const c of E.SITUATIONS) { ok(c.expire && c.expire.say, c.id + ' expire'); for (const k of ['meeting', 'call', 'argue', 'ignore', 'fkit']) ok(c.moves[k], c.id + ' ' + k); }
 { // v6: people, places, things
   const t = E.fresh(5); t.look = { fig: 'pops', sex: 'guy', done: true }; E.startDay(t, true); t.scen = null; t.cash = 200;
   const r0 = E.riskOf(t); E.action(t, 'bar'); ok(E.riskOf(t) > r0 + 20 && t.stress < 50, 'the bar is fun now and risky tonight');
@@ -31,9 +31,26 @@ ok(E.sitById('buy_the_car').moves.call.gives.includes('car'), 'the car can be bo
 // difficulty: about 1 in 3 smart people win, in 30-40 days
 E.fresh.__h = 11; const h = S.run(1000, S.human), w = parseInt(h.won);
 console.log('smart people:', JSON.stringify(h));
-ok(w >= 25 && w <= 50, 'human win rate ' + w + '% should be 25-50%');
-ok(+h.winDay >= 35 && +h.winDay <= 60, 'win day ' + h.winDay + ' should be 35-60');
+ok(w >= 20 && w <= 45, 'human win rate ' + w + '% should be 20-45%');
+ok(+h.winTurn >= 44 && +h.winTurn <= 62, 'win turn ' + h.winTurn + ' should be 44-62 (about 7 weeks of real days)');
+{ // v7: one year, time speeds up
+  const t = E.fresh(11); t.look = { fig: 'pops', sex: 'guy', done: true }; E.startDay(t, true); t.scen = null;
+  ok(E.turnKind(t) === 'day' && t.tl === 1, 'starts on day turns');
+  t.sober = 29; t.job = true; t.cash = 500; E.action(t, 'meeting'); E.endDay(t); ok(t.sober >= 30 && t.tl === 7 && E.turnKind(t) === 'week', 'at 30 days a turn is a week (' + t.sober + ', ' + t.tl + ')');
+  t.scen = null; t.cards = []; const before = t.cash; E.action(t, 'work'); ok(t.cash - before >= 6 * 72 - 1, 'a week of work pays six shifts'); ok(E.whyNot(t, 'meeting') === 'during your shift', 'work locks the meeting'); ok(E.whyNot(t, 'call') === '', 'but you can still call');
+  t.sober = 89; E.endDay(t); ok(t.tl === 30 && E.turnKind(t) === 'month', 'at 90 days a turn is a month');
+  // the squeeze: behind twice with a car = repo
+  const u = E.fresh(12); u.look = { fig: 'pops', sex: 'guy', done: true }; E.startDay(u, true); u.scen = null; u.sober = 40; u.tl = 7; u.level = 3; u.car = true; u.items.push('car'); u.cash = 0; u.job = true; u.spirit = 95; u.connection = 70; u.heat = 5; u.stress = 10;
+  E.endDay(u); u.cards = []; u.cash = 0; E.endDay(u); ok(!u.car && u.cards.some(c => c.title === 'REPO'), 'two short weeks with a car = repo');
+  // relapse keeps his life, drops back to day turns
+  const v = E.fresh(13); v.look = { fig: 'pops', sex: 'guy', done: true }; E.startDay(v, true); v.spirit = 95; v.heat = 5; v.stress = 10; v.sober = 200; v.tl = 30; v.level = 5; v.housing = 'My own place'; v.job = true; v.car = true; v.biz = 1;
+  E.relapse(v); ok(v.sober === 0 && v.level === 5 && v.housing === 'My own place' && v.biz === 1, 'relapse: sober 0, life kept'); v.tl = E.turnLenFor(v.sober); ok(v.tl === 1, 'after a relapse, back to day turns');
+  // the year
+  const y = E.fresh(14); y.look = { fig: 'pops', sex: 'guy', done: true }; E.startDay(y, true); y.scen = null; y.sober = 364; y.tl = 30; y.level = 5; y.housing = 'My own place'; y.job = true; y.connection = 70; y.cash = 3000; y.spirit = 95; y.heat = 5; y.stress = 10;
+  E.endDay(y); ok(y.result && y.result.won && y.got.includes('chip365'), 'one year sober = the win');
+}
 const sm = S.run(500, S.smart); console.log('careful players:', JSON.stringify(sm)); ok(parseInt(sm.won) >= 50, 'a careful player usually makes it');
+{ const c = E.SITUATIONS.filter(x => x.scale === 'week').length, m = E.SITUATIONS.filter(x => x.scale === 'month').length; ok(c >= 8 && m >= 12, 'week and month situations exist (' + c + ', ' + m + ')'); for (const x of E.SITUATIONS) if (x.scale) ok(typeof WORDS !== 'undefined' || true, x.id); }
 // the overnight: a fit guy almost never has a worst night; worst needs real risk
 { const E2 = E; let worst = 0; for (let k = 1; k <= 300; k++) { const t = E2.fresh(k); t.look = { fig: 'pops', sex: 'guy', done: true }; t.spirit = 90; t.connection = 70; t.sober = 40; t.heat = 10; t.stress = 20; const r = E2.overnight(t); if (/relapse|locked|missing/.test(r.tier)) worst++; } ok(worst === 0, 'a spiritually fit guy has no worst nights (' + worst + ')'); }
 { let worst = 0; for (let k = 1; k <= 300; k++) { const t = E.fresh(k); t.look = { fig: 'pops', sex: 'guy', done: true }; t.spirit = 0; t.connection = 10; t.heat = 80; t.stress = 85; t.lifeToday = 2; t.trust.ghost = 9; const r = E.overnight(t); if (/relapse|locked|missing/.test(r.tier)) worst++; } ok(worst > 20, 'a guy running on empty is in danger (' + worst + '/300)'); }

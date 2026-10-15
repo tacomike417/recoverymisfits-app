@@ -1,7 +1,21 @@
 # Spiritual Gangster (Locked Up, Covered Up, or Sobered Up)
 Renamed from Sober Gangster on 15 Oct 2026 (Mike). Folder moved to games/spiritual-gangster. The save key stays sober-gangster-v5 so saves carry over.
 
-v6.0 (15 Oct 2026): six rows of moves, top to bottom: LIFE, PEOPLE (old crew, the ex, Ghost), PLACES (the old block, the bar, a party),
+v7.0 (15 Oct 2026): ONE YEAR. See V7-PLAN.md for Mike's decisions. Time speeds up with sober time: under 30 days a turn is a DAY,
+30-89 a WEEK, 90+ a MONTH (engine: s.tl, turnLenFor, SCALE). Pay, food and bills scale with the turn. Still one turn per real day (6 AM reset).
+Chapters gate on chips: ch3 needs 30 days, ch4 needs 90, ch5 ("Giving It Back") needs 6 months, the win is 365 days sober (chip365).
+Relapse: sober clock to 0, back to day turns, keeps his life. Locked up: start over. Same overnight odds all year.
+The squeeze (weeklyBills): car $35, utilities $35 at your own place, child support, the baby; s.behind counts short pay periods:
+car + 2 behind = REPO, own place + 1 behind = LIGHTS OFF, + 3 = EVICTED back to Big Ray's (stack for move-out to get a new place).
+Work first and the meeting is locked ("during your shift"); call still works. New moves: double (Pull doubles, 1.5x pay, blocks the
+meeting), date (Take Jaz out, resets s.loveCold; Jaz loses trust when ignored), bizfund (stack $2,500 for the landscaping business;
+work then pays bizPay(), grow it twice more). rowIds(s, key) picks the buttons a row shows.
+24 new situations in situations.js (scale: week/month, need: [...] conditions, once, weight, late, girl variant): Trip the psychopath,
+Darlene's clipboard, Jaz's family, Dre (first meeting, sponsor, court, relapse), Mom's amends, the ex's amends, lights off, the
+warrant, Ms. Patel and the landscaping business, Pops sick, the baby, Thanksgiving, the one-year meeting. Text threads in convos.js,
+button words in words.js, written by Claude this time (v4/v7content.py generates them). WRECKAGE cards hit on month turns.
+Ending: ONE YEAR page with the chip, the room's group text (year_chip) and the year's wins.
+ six rows of moves, top to bottom: LIFE, PEOPLE (old crew, the ex, Ghost), PLACES (the old block, the bar, a party),
 THINGS (the fresh look, car stack $900, move-out stack), WORK, SPIRITUAL. People and places = real fun now (big stress relief), riskier
 night (riskToday + wildBoost feed the overnight wild cards). Things = goals: jars in s.jar, and the love interest (Jaz for guys, Marc for
 girls, trust 'love'; 8 = together, 2 = it's over). 3 love situations in chapter 2. move_<id> text threads show the first time you do a move.
