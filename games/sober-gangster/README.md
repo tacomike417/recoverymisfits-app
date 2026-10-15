@@ -21,3 +21,9 @@ v2.0 — THE SKIN: the screens now use ChatGPT's own finished mockups (assets/sk
 (numbers, figure, room, items, version pill). index.html lays the live game on top at the same spots, measured in the
 mockup's own pixels (853 wide; see U()/at() in index.html). Title, Today, the level-up and locked-up pop-ups are the
 full mockups; the shop and pick screens reuse the mockup's own card tiles so they can hold any number of items.
+
+v3.0 — THE DAY, SIMPLE (Mike, 14 Oct 2026): every morning a "Life on Life's Terms" card (what happened while you slept;
+more likely to be bad if you skipped the sober stuff) sets your heat, then a scenario lands. Your 3 moves deal with it:
+each move button shows what it does to the scenario (✔ = ends it), and every choice costs something. Ignore it and it
+adds heat every night until it ends badly. Cards are in cards.js (written by ChatGPT in Mike's voice, approved by Mike).
+sim.cjs is the test player; test.cjs checks that about 1 in 3 smart players reach Moved Out.
