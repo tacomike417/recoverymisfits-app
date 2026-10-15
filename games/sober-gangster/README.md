@@ -27,3 +27,13 @@ more likely to be bad if you skipped the sober stuff) sets your heat, then a sce
 each move button shows what it does to the scenario (✔ = ends it), and every choice costs something. Ignore it and it
 adds heat every night until it ends badly. Cards are in cards.js (written by ChatGPT in Mike's voice, approved by Mike).
 sim.cjs is the test player; test.cjs checks that about 1 in 3 smart players reach Moved Out.
+
+## NEXT (Mike, 15 Oct 2026) — FELLOWSHIP: working a program is how you survive
+Save this for when it's time. Today "Sober support" is one generic move. Next it opens up into real fellowship
+actions, and a homie who actively works a program gets their survival odds up to about 75% (vs ~1 in 3 now).
+- Things to do: grab coffee with people, make a meeting, volunteer to read, get a sponsor (later: sponsor someone),
+  give rides once you have a car, pray, meditate, volunteer, start a meeting that fits your schedule, etc.
+- They build on each other (a sponsor, a home group, service) and keep paying off: less heat, better night cards,
+  scenarios get cheaper to handle, relapse pull gets weaker.
+- Tuning target: a player who works the program ~75% reach Moved Out; one who skips it stays ~1 in 3 or worse.
+  Check it with sim.cjs (add a "works the program" test player) before shipping.
