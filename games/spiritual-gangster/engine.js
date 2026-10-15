@@ -9,7 +9,7 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v6.3';
+const VERSION = 'v6.4';
 const SAVE_KEY = 'sober-gangster-v5';
 const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'quit', 'argue', 'ignore', 'fkit', 'crew', 'ex', 'ghostlink', 'block', 'bar', 'party', 'look', 'carfund', 'movefund'];
 const ROWS = [   // top to bottom on the screen (Mike: life, work, spiritual; then people, places and things)
@@ -678,7 +678,11 @@ function endDay(s) {
     else if (s.level >= 2 && s.wage < CFG.raiseWage && s.employedDays >= 7 && s.shifts >= 5) { s.wage = CFG.raiseWage; got(s, 'raise'); trustUp(s, { darlene: 1 }); }
   }
   // rent day
-  if (s.day % CFG.rentDays === 0) {
+  if (s.day % CFG.rentDays === 0 && s.housing === 'Shelter') {
+    // the debt is frozen while he's out: the shelter charges nothing, Big Ray just waits for what's owed
+    s.rentDays++;
+    card(s, { kind: 'rent', title: 'RENT DAY: SHELTER', text: 'No rent at the shelter. Big Ray still has your name on a list: you owe him $' + s.arrears + '. Pay it off and the bed is yours again.' + (s.job ? '' : ' That means a job.') });
+  } else if (s.day % CFG.rentDays === 0) {
     const due = rentDue(s) + billsDue(s), paid = Math.min(s.cash, due);
     s.cash -= paid; s.rentDays++;
     if (paid === due && !s.arrears) {
@@ -692,7 +696,10 @@ function endDay(s) {
       const e = soft ? { s: 10, h: 6, n: -2 } : { s: 20, h: 12, n: -5 };
       apply(s, e); trustUp(s, { ray: -3, mom: -1 });
       card(s, { kind: 'rent', title: 'RENT DAY: SHORT', text: RENT_TALK[s.level] + ' You had $' + paid + ' of $' + due + '. You owe $' + s.arrears + '.' + (soft ? ' Ray likes you, so he’ll wait. Barely.' : ''), ...e });
-      if (s.arrears >= 2 * due && s.housing !== 'Shelter') { s.housing = 'Shelter'; card(s, { kind: 'news', title: 'LOST THE BED', text: 'You owe two weeks. Your stuff is in a garbage bag on the porch. Shelter tonight. Pay what you owe and the bed is yours again.' }); record(s, 'Lost the bed.'); }
+      if (s.arrears >= 2 * due && s.housing !== 'Shelter') { s.housing = 'Shelter'; const why = !s.job ? 'Pops didn’t sugarcoat it: “Meetings keep you sober. They don’t pay Big Ray. Faith without works, kid. Go get a job.”'
+        : s.trust.darlene <= 2 ? 'Pops didn’t sugarcoat it: “Darlene cut your hours because you keep giving her reasons. Show up, and the money shows up.”'
+        : 'Pops didn’t sugarcoat it: “You’re working, but the money’s leaking out somewhere. More shifts, less spending, till you’re caught up.”';
+      card(s, { kind: 'news', who: 'pops', title: 'LOST THE BED', text: 'You owe Big Ray $' + s.arrears + ', two weeks behind. Your stuff is in a garbage bag on the porch. Shelter tonight. ' + why + ' The debt stops growing while you’re out. Pay it off and the bed is yours again.' }); record(s, 'Lost the bed.'); }
     }
   }
   // the love story
