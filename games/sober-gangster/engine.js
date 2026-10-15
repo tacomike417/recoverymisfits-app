@@ -7,7 +7,7 @@
               and if heat is over the safe line the cops might show up. Locked up = back to level 1.
    Cards live in cards.js. Every tunable number is in CFG. Buildless; loaded by index.html and test.cjs. */
 
-const VERSION = 'v3.0';
+const VERSION = 'v3.1';
 const SAVE_KEY = 'sober-gangster-v3';
 
 const CFG = {

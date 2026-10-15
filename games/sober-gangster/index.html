@@ -306,13 +306,15 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .gl{font:600 14px 'Barlow';margin:2px 0}
 .cardflag small{display:block;font:700 calc(var(--u)*20) 'Barlow Condensed';letter-spacing:.5px}
 .cardflag{line-height:1;font-size:calc(var(--u)*28)!important;white-space:normal;padding:calc(var(--u)*4) calc(var(--u)*8)}
+.howh{font-size:24px;margin:12px 0 2px;color:var(--ink)}
+.howh.big2{color:var(--red2);font-size:26px}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="cards.js?v=3.0"></script><script src="engine.js?v=3.0"></script><!-- bump ?v= with every VERSION change -->
+<script src="cards.js?v=3.1"></script><script src="engine.js?v=3.1"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -610,13 +612,19 @@ function sleep(){
   }, odds ? 1600 : 900);
 }
 function intro(){
-  show('<h2 class="mk">HOW TO PLAY.</h2>'
-  + '<p><b>You just got out.</b> A bed in a sober house, forty bucks, a garbage bag. Build a life from there.</p>'
-  + '<p><b>Every morning:</b> a <b>Life on Life’s Terms</b> card tells you what happened while you slept. Then life hands you a <b>situation</b>.</p>'
-  + '<p><b>You get 3 moves a day. Use them well.</b> Every move button shows what it does to the situation. ✔ means it ends it. Every choice costs something.</p>'
-  + '<p><b>HEAT gets you locked up.</b> Skip the sober stuff, let a situation ride, run yourself ragged, and it climbs. Over ' + CFG.heat.safe + ', the cops might show up at night. Locked up = back to level 1.</p>'
-  + '<p><b>Level up</b> by stringing together balanced days and moving up the job ladder. Stuff from the shop feels good. It can’t buy recovery.</p>'
-  + '<button class="paper red big mk" onclick="s.settings.introSeen=true;save();closeModal();render()">GOT IT</button>');
+  // Mike's words (15 Oct 2026). Girl homies get "her" instead of "him".
+  const g = s.look.done && fig().sex === 'girl';
+  const w = txt => !g ? txt : txt.replace(/\bYOUR GUY\b/g, 'YOUR GIRL').replace(/\bHIM\b/g, 'HER').replace(/\bHe's\b/g, "She's").replace(/\bHis\b/g, 'Her').replace(/\bhis\b/g, 'her').replace(/\bhim\b/g, 'her').replace(/\bhe\b/g, 'she').replace(/\bHe\b/g, 'She').replace(/\bguy\b/g, 'girl');
+  const H = (h, p) => `<h3 class="mk howh">${w(h)}</h3><p>${w(p)}</p>`;
+  show('<div class="lolt mk">HOW TO PLAY</div>'
+  + H('MEET YOUR GUY.', 'He\'s broke. His life\'s a mess. He\'s trying to get sober and start over.<br>And lucky for him, he\'s got you.')
+  + H('CHECK ON THE LITTLE BASTARD.', 'Show up every day. See how he\'s doing. Life\'s gonna throw some shit at him, and you\'re the one helping him deal with it.')
+  + H('YOU GET 3 MOVES A DAY.', 'Get him to work. Call somebody. Handle some business. Make a bad decision. It\'s your call.<br><b>But every move has consequences.</b>')
+  + H('THEN LIFE HAPPENS.', 'See how he makes out over the next 24 hours. Maybe he gets ahead. Maybe he gets knocked on his ass.<br>Tomorrow? New day. New problems.')
+  + H('KEEP HIM OUT OF TROUBLE.', 'Watch his money, stress, connections, and HEAT. Too much heat and the cops might come knocking.')
+  + H('BUILD HIM A LIFE.', 'Get him working. Get him connected. Get him his own place. Give the little bastard something worth staying sober for.<br>And somewhere along the way, you might actually start giving a shit about him.')
+  + '<h3 class="mk howh big2">LOCKED UP. COVERED UP. OR SOBERED UP.</h3><p>' + w('Choose wisely. He\'s counting on you.') + '</p>'
+  + '<button class="paper red big mk" onclick="s.settings.introSeen=true;save();closeModal();render()">GOT IT</button>', 'card');
 }
 function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, level 1, $${CFG.startCash}. This run gets wiped.</p><button class="paper red big mk" onclick="newRun(true)">PICK A NEW HOMIE</button><button class="paper big cream mk" onclick="newRun(false)">SAME HOMIE</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
 function newRun(pickNew){ const was = s.look.fig; s = restartKeepFigure(s); if (pickNew) { s.look.done = false; pickSel = was; } closeModal(); save(); go(pickNew ? 'pick' : 'life'); }
