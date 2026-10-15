@@ -2125,6 +2125,458 @@ const CONVOS = {
 "nothing. couldnt sleep. my head was loud"
 ]
 ]
+},
+"love_dingy_shoes": {
+"narr": "Outside the corner store. Jaz looks at your shoes, then your face. That smile means trouble.",
+"thread": "JAZ",
+"msgs": [
+[
+"love",
+"okay i gotta ask you something 😂"
+],
+[
+"you",
+"what"
+],
+[
+"love",
+"them shoes come with the sober house or you brought those yourself"
+],
+[
+"you",
+"damn. good morning to you too"
+],
+[
+"love",
+"lmao i'm serious. you cute but them shoes been through a whole court case"
+],
+[
+"you",
+"they still work"
+],
+[
+"love",
+"so does a shopping cart. you taking me on a date looking like that?"
+]
+]
+},
+"love_first_date": {
+"narr": "Friday. $20 in the account. Big Ray's rent envelope on the dresser. Jaz just texted.",
+"thread": "JAZ",
+"msgs": [
+[
+"love",
+"so where we going tonight? 👀"
+],
+[
+"you",
+"you hungry?"
+],
+[
+"love",
+"always lol. you picking me up?"
+],
+[
+"you",
+"working on that part"
+],
+[
+"love",
+"what does that mean 😂"
+],
+[
+"you",
+"transportation situation"
+],
+[
+"love",
+"wait. do you even have a car?"
+],
+[
+"you",
+"define have"
+]
+]
+},
+"love_birthday_bar": {
+"narr": "Jaz sent the address. You recognize the bar before the map even loads.",
+"thread": "JAZ",
+"msgs": [
+[
+"love",
+"hey my girl's birthday is saturday. come with me?"
+],
+[
+"you",
+"where at"
+],
+[
+"love",
+"that bar over on 8th. we're just doing cake and hanging out"
+],
+[
+"you",
+"you know i don't do bars"
+],
+[
+"love",
+"i know. nobody's asking you to drink"
+],
+[
+"you",
+"it's not just about drinking"
+],
+[
+"love",
+"okay but i really want you there"
+],
+[
+"love",
+"so are you coming or not?"
+]
+]
+},
+"move_crew": {
+"narr": "A group chat you swore you were done with. Same names. Same jokes. For a minute it feels like you never left.",
+"thread": "THE BLOCK BOYZ",
+"msgs": [
+[
+"crew",
+"YOOOO look who still got a phone 😂"
+],
+[
+"you",
+"damn y'all still alive?"
+],
+[
+"crew",
+"barely lol where you hiding at"
+],
+[
+"you",
+"working. staying out the way."
+],
+[
+"crew",
+"listen to this responsible ass 💀"
+],
+[
+"you",
+"somebody gotta grow up"
+],
+[
+"crew",
+"we riding around tonight. same spot. pull up."
+],
+[
+"you",
+"shit. i do miss y'all."
+]
+]
+},
+"move_ex": {
+"narr": "You know exactly which name to search. Your thumb finds it before your brain gets a vote.",
+"thread": "THE EX",
+"msgs": [
+[
+"you",
+"you up?"
+],
+[
+"ex",
+"wow. look who remembered I exist"
+],
+[
+"you",
+"just checking on you"
+],
+[
+"ex",
+"lol you never just check on me"
+],
+[
+"you",
+"damn can't even say hi?"
+],
+[
+"ex",
+"you still got that same attitude 😂"
+],
+[
+"you",
+"some things don't change"
+],
+[
+"ex",
+"yeah. that's what worries me."
+]
+]
+},
+"move_ghostlink": {
+"narr": "Ghost answers before the second ring. Some people never change their number. Some people never change anything.",
+"thread": "GHOST",
+"msgs": [
+[
+"you",
+"yo"
+],
+[
+"ghost",
+"THERE IT IS 😂"
+],
+[
+"you",
+"what"
+],
+[
+"ghost",
+"knew you'd hit me eventually"
+],
+[
+"you",
+"just seeing what's good"
+],
+[
+"ghost",
+"everything good over here. you know that"
+],
+[
+"you",
+"i'm doing alright actually"
+],
+[
+"ghost",
+"then why you texting me at midnight?"
+]
+]
+},
+"move_block": {
+"narr": "The corner store. The payphone's gone, but the same faces are still outside. Somebody recognizes you.",
+"thread": "THE BLOCK",
+"msgs": [
+[
+"crew",
+"AYYYY look who came home"
+],
+[
+"you",
+"just passing through"
+],
+[
+"crew",
+"passing through my ass 😂 where you been"
+],
+[
+"you",
+"working. trying to stay straight."
+],
+[
+"crew",
+"damn they got you domesticated"
+],
+[
+"you",
+"nah just tired of being broke"
+],
+[
+"crew",
+"we about to ride. you coming?"
+],
+[
+"you",
+"i ain't said no yet."
+]
+]
+},
+"move_bar": {
+"narr": "A barstool and a soda. The bartender remembers your face. The smell, the music, the glasses clinking. The soda tastes fine. That's not the problem.",
+"thread": "THE BAR",
+"msgs": [
+[
+"bartender",
+"well damn. haven't seen you in forever."
+],
+[
+"you",
+"yeah. just a coke tonight."
+],
+[
+"bartender",
+"good for you. same old crowd's still here."
+],
+[
+"you",
+"i can see that."
+],
+[
+"bartender",
+"want me to tell them you're here?"
+],
+[
+"you",
+"nah. i'm just killing time."
+],
+[
+"bartender",
+"alright. you need anything, holler."
+],
+[
+"you",
+"you still got that jukebox working?"
+]
+]
+},
+"move_party": {
+"narr": "The door opens before you knock. Music shakes the walls. A stranger hands you a red cup. You set it down. Nobody notices.",
+"thread": "THE HOUSE PARTY",
+"msgs": [
+[
+"house",
+"YOOOO come in come in!"
+],
+[
+"you",
+"damn how many people in here"
+],
+[
+"house",
+"everybody 😂 kitchen's got food"
+],
+[
+"you",
+"i'm just stopping through"
+],
+[
+"house",
+"that's what everybody says"
+],
+[
+"you",
+"i ain't staying long"
+],
+[
+"house",
+"yo your old people are out back"
+],
+[
+"you",
+"wait. who's out back?"
+]
+]
+},
+"move_look": {
+"narr": "Fresh cut. Clean shirt. New kicks. You catch your reflection in a store window and almost don't recognize who's looking back.",
+"thread": "JAZ",
+"msgs": [
+[
+"you",
+"[photo of new shoes]"
+],
+[
+"love",
+"OHHHH OKAY 👀"
+],
+[
+"you",
+"what"
+],
+[
+"love",
+"somebody finally retired them crime scene sneakers 😂"
+],
+[
+"you",
+"cost me sixty damn dollars"
+],
+[
+"love",
+"lol you look good though"
+],
+[
+"you",
+"so we going out or what"
+],
+[
+"love",
+"maybe. now let's see if you can show up on time 😏"
+]
+]
+},
+"move_carfund": {
+"narr": "Another stack into the envelope marked CAR. Shorty already sent six pictures of used Hondas. Four look like they survived a demolition derby.",
+"thread": "SHORTY",
+"msgs": [
+[
+"you",
+"put more in the car fund"
+],
+[
+"shorty",
+"AYYYY BIG MONEY 😂"
+],
+[
+"you",
+"don't start"
+],
+[
+"shorty",
+"yo i found a civic for 450"
+],
+[
+"you",
+"does it run"
+],
+[
+"shorty",
+"define run lol"
+],
+[
+"you",
+"shorty i swear"
+],
+[
+"shorty",
+"it STARTS. stopping is a separate conversation 💀"
+]
+]
+},
+"move_movefund": {
+"narr": "A few more bills into the envelope marked MY PLACE. Not much, but for the first time in a long time, the money isn't already gone.",
+"thread": "MOM ❤️",
+"msgs": [
+[
+"you",
+"saved more for my own place"
+],
+[
+"mom",
+"Oh honey!! ❤️❤️"
+],
+[
+"you",
+"still got a long way to go"
+],
+[
+"mom",
+"That's okay. You're doing it."
+],
+[
+"you",
+"can't wait to get out of Big Ray's"
+],
+[
+"mom",
+"Just don't rush into something you can't afford."
+],
+[
+"you",
+"i know. just want my own key."
+],
+[
+"mom",
+"I want that for you too. I'm proud of you. Love, Mom ❤️"
+]
+]
 }
 };
 if (typeof module !== "undefined") module.exports = { CONVOS };

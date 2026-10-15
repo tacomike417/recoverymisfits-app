@@ -19,6 +19,14 @@ ok(s.rentDays === 1 && s.rentsOnTime === 1, 'rent paid on day 7');
 ok(s.got.includes('sponsor'), '3 meetings in a row: Pops offers');
 // every situation has the 10 moves (work/quit may be n/a in chapter 1) and an expire
 for (const c of E.SITUATIONS) { ok(c.expire && c.expire.say, c.id + ' expire'); for (const k of ['meeting', 'call', 'help', 'rest', 'betterjob', 'argue', 'ignore', 'fkit']) ok(c.moves[k], c.id + ' ' + k); }
+{ // v6: people, places, things
+  const t = E.fresh(5); t.look = { fig: 'pops', sex: 'guy', done: true }; E.startDay(t, true); t.scen = null; t.cash = 200;
+  const r0 = E.riskOf(t); E.action(t, 'bar'); ok(E.riskOf(t) > r0 + 20 && t.stress < 50, 'the bar is fun now and risky tonight');
+  E.action(t, 'carfund'); ok(t.jar.car === 100, 'car fund fills the jar');
+  t.jar.car = 850; t.actions = 1; E.action(t, 'carfund'); ok(t.car && t.got.includes('wheels'), 'a full car jar buys the car');
+  const g = E.fresh(6); g.look = { fig: 'x', sex: 'girl', done: true }; ok(E.personFor(g, 'love').name === 'Marc' && E.loveSwap(g, 'Jaz said she') === 'Marc said he', 'girl homies get Marc');
+  t.trust.love = 8; E.endDay(t); ok(t.together, 'love 8 = together');
+}
 ok(E.sitById('buy_the_car').moves.call.gives.includes('car'), 'the car can be bought');
 // difficulty: about 1 in 3 smart people win, in 30-40 days
 E.fresh.__h = 11; const h = S.run(1000, S.human), w = parseInt(h.won);

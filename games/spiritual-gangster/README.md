@@ -1,6 +1,12 @@
 # Spiritual Gangster (Locked Up, Covered Up, or Sobered Up)
 Renamed from Sober Gangster on 15 Oct 2026 (Mike). Folder moved to games/spiritual-gangster. The save key stays sober-gangster-v5 so saves carry over.
 
+v6.0 (15 Oct 2026): six rows of moves, top to bottom: LIFE, PEOPLE (old crew, the ex, Ghost), PLACES (the old block, the bar, a party),
+THINGS (the fresh look, car stack $900, move-out stack), WORK, SPIRITUAL. People and places = real fun now (big stress relief), riskier
+night (riskToday + wildBoost feed the overnight wild cards). Things = goals: jars in s.jar, and the love interest (Jaz for guys, Marc for
+girls, trust 'love'; 8 = together, 2 = it's over). 3 love situations in chapter 2. move_<id> text threads show the first time you do a move.
+Faces: assets/people/love-girl.webp, love-guy.webp. Icons: assets/ui/mv/<move>.webp.
+
 A Recovery Misfits game. Phone first (390 wide). Buildless: index.html + engine.js + assets/.
 Replaces the old "Sobered Up" (games/sobered-up stays as it was, untouched).
 

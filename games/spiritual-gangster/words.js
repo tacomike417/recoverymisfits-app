@@ -10,7 +10,13 @@ const WORDS = {
 "quit": "Walk off the damn job",
 "argue": "Tell Shorty keep his fork",
 "ignore": "Pretend my stomach's fine",
-"fkit": "Blow twelve bucks on junk"
+"fkit": "Blow twelve bucks on junk",
+"crew": "Find food with crew",
+"ex": "Ask my ex for dinner",
+"ghostlink": "Ask Ghost for food",
+"block": "Hunt food on block",
+"bar": "Spend my grocery money",
+"party": "Crash party for food"
 },
 "ray_inspection": {
 "meeting": "Vent about Ray's bullshit",
@@ -22,7 +28,13 @@ const WORDS = {
 "quit": "Tell my boss I'm done",
 "argue": "Call Ray a slumlord",
 "ignore": "Shut the door on Ray",
-"fkit": "Kick the damn trash can"
+"fkit": "Kick the damn trash can",
+"crew": "Roast Ray with crew",
+"ex": "Send my ex stain pics",
+"ghostlink": "Ask Ghost for fifty",
+"block": "Trash Ray on block",
+"bar": "Sulk at the bar over fee",
+"party": "Ditch Ray for party"
 },
 "mom_voicemail": {
 "meeting": "Talk about Mom's calls",
@@ -34,7 +46,13 @@ const WORDS = {
 "quit": "Quit to go see Mom",
 "argue": "Tell Mom stop checking",
 "ignore": "Let Mom's calls ring",
-"fkit": "Throw my phone down"
+"fkit": "Throw my phone down",
+"crew": "Ignore Mom with crew",
+"ex": "Text my ex instead",
+"ghostlink": "Tell Ghost Mom's calling",
+"block": "Walk away from Mom",
+"bar": "Silence Mom at bar",
+"party": "Drown out Mom's calls"
 },
 "ghost_at_gate": {
 "meeting": "Get my ass to a meeting",
@@ -46,7 +64,13 @@ const WORDS = {
 "quit": "Walk away from my shift",
 "argue": "Yell at Ray for watching",
 "ignore": "Walk past without looking",
-"fkit": "March out to Ghost"
+"fkit": "March out to Ghost",
+"crew": "Ride off with crew",
+"ex": "Tell my ex about Ghost",
+"ghostlink": "Get in Ghost's car",
+"block": "Circle back to Ghost",
+"bar": "Hide from Ghost inside",
+"party": "Follow Ghost to party"
 },
 "shorty_laundry": {
 "meeting": "Share the underwear circus",
@@ -58,7 +82,13 @@ const WORDS = {
 "quit": "Quit over house drama",
 "argue": "Tell Shorty check himself",
 "ignore": "Close my damn door",
-"fkit": "Dump the laundry basket"
+"fkit": "Dump the laundry basket",
+"crew": "Roast Shorty's underwear",
+"ex": "Tell my ex laundry drama",
+"ghostlink": "Laugh with Ghost about Shorty",
+"block": "Escape the laundry room",
+"bar": "Tell bartender underwear story",
+"party": "Drag Shorty to party"
 },
 "first_job": {
 "meeting": "Talk about interview nerves",
@@ -70,7 +100,13 @@ const WORDS = {
 "quit": "Walk out before starting",
 "argue": "Mouth off at the interview",
 "ignore": "Silence my phone",
-"fkit": "Blow off the interview"
+"fkit": "Blow off the interview",
+"crew": "Hang before my interview",
+"ex": "Text my ex all night",
+"ghostlink": "Hear Ghost's money pitch",
+"block": "Wander before interview day",
+"bar": "Blow off tomorrow's interview",
+"party": "Party before my interview"
 },
 "darlene_raise": {
 "meeting": "Talk about burning out",
@@ -82,7 +118,13 @@ const WORDS = {
 "quit": "Tell Darlene I'm finished",
 "argue": "Demand more per hour",
 "ignore": "Leave Darlene hanging",
-"fkit": "Tell Darlene shove it"
+"fkit": "Tell Darlene shove it",
+"crew": "Brag about extra hours",
+"ex": "Tell my ex payday's growing",
+"ghostlink": "Tell Ghost about raise",
+"block": "Skip checking work schedule",
+"bar": "Celebrate money not earned",
+"party": "Miss my extra shift"
 },
 "payday_pocket": {
 "meeting": "Take my paycheck to a meeting",
@@ -94,7 +136,13 @@ const WORDS = {
 "quit": "Quit while I'm ahead",
 "argue": "Snap at everybody",
 "ignore": "Leave everybody on read",
-"fkit": "Spend it like an idiot"
+"fkit": "Spend it like an idiot",
+"crew": "Treat my old crew",
+"ex": "Flash paycheck to ex",
+"ghostlink": "Celebrate payday with Ghost",
+"block": "Show cash on block",
+"bar": "Blow payday at bar",
+"party": "Fund the payday party"
 },
 "shorty_borrow": {
 "meeting": "Talk about lending money",
@@ -106,7 +154,13 @@ const WORDS = {
 "quit": "Quit over everyone's problems",
 "argue": "Call Shorty a mooch",
 "ignore": "Walk right past Shorty",
-"fkit": "Blow twenty on nothing"
+"fkit": "Blow twenty on nothing",
+"crew": "Ditch Shorty for crew",
+"ex": "Ask ex about Shorty",
+"ghostlink": "Ask Ghost for forty",
+"block": "Avoid Shorty's rent problem",
+"bar": "Spend Shorty's possible loan",
+"party": "Party instead of helping"
 },
 "ghost_warehouse": {
 "meeting": "Tell the room Ghost's back",
@@ -118,7 +172,13 @@ const WORDS = {
 "quit": "Walk off Darlene's dock",
 "argue": "Tell Ghost quit stalking",
 "ignore": "Walk straight past Ghost",
-"fkit": "Get into Ghost's car"
+"fkit": "Get into Ghost's car",
+"crew": "Wave crew toward warehouse",
+"ex": "Text ex about Ghost",
+"ghostlink": "Meet Ghost outside work",
+"block": "Circle warehouse back lot",
+"bar": "Walk out for bar",
+"party": "Fake sick for party"
 },
 "ray_rent_hike": {
 "meeting": "Vent about Ray's rent",
@@ -130,7 +190,13 @@ const WORDS = {
 "quit": "Quit so Ray gets nothing",
 "argue": "Call Ray a greedy bastard",
 "ignore": "Walk past Ray",
-"fkit": "Tell Ray kiss my ass"
+"fkit": "Tell Ray kiss my ass",
+"crew": "Roast Ray's rent hike",
+"ex": "Complain about rent to ex",
+"ghostlink": "Ask Ghost for rent",
+"block": "Trash Ray around town",
+"bar": "Hit the bar over rent",
+"party": "Party away rent money"
 },
 "saturday_shift": {
 "meeting": "Hit the Saturday meeting",
@@ -142,7 +208,13 @@ const WORDS = {
 "quit": "Tell Darlene I quit",
 "argue": "Demand Saturday off anyway",
 "ignore": "Ghost Pops and Mom",
-"fkit": "Blow off everybody"
+"fkit": "Blow off everybody",
+"crew": "Choose crew over Saturday",
+"ex": "Make Saturday plans with ex",
+"ghostlink": "Ask Ghost about Saturday",
+"block": "Avoid everybody on block",
+"bar": "Skip Saturday for bar",
+"party": "Blow off both for party"
 },
 "pops_step_work": {
 "meeting": "Share my fear of writing",
@@ -154,7 +226,13 @@ const WORDS = {
 "quit": "Quit work to avoid everything",
 "argue": "Tell Pops he's no therapist",
 "ignore": "Leave that notebook shut",
-"fkit": "Throw the notebook"
+"fkit": "Throw the notebook",
+"crew": "Mock homework with crew",
+"ex": "Rehash past with ex",
+"ghostlink": "Tell Ghost about steps",
+"block": "Walk instead of writing",
+"bar": "Ditch notebook for bar",
+"party": "Bring notebook to party"
 },
 "buy_the_car": {
 "meeting": "Share my four hundred dream",
@@ -166,7 +244,13 @@ const WORDS = {
 "quit": "Quit before buying the car",
 "argue": "Call Shorty's Honda junk",
 "ignore": "Let the seller keep calling",
-"fkit": "Burn twenty bucks instead"
+"fkit": "Burn twenty bucks instead",
+"crew": "Flash car cash around",
+"ex": "Brag about future wheels",
+"ghostlink": "Tell Ghost about Honda",
+"block": "Show off imaginary wheels",
+"bar": "Celebrate before buying car",
+"party": "Party with car money"
 },
 "shorty_slipping": {
 "meeting": "Save Shorty a chair",
@@ -178,7 +262,13 @@ const WORDS = {
 "quit": "Quit to babysit Shorty",
 "argue": "Tell Shorty quit lying",
 "ignore": "Pretend Shorty's doing fine",
-"fkit": "Give up on Shorty"
+"fkit": "Give up on Shorty",
+"crew": "Laugh off Shorty's warning",
+"ex": "Gossip about Shorty's texts",
+"ghostlink": "Ask Ghost about Shorty",
+"block": "Hunt Shorty's mystery contact",
+"bar": "Leave Shorty for bar",
+"party": "Drag slipping Shorty out"
 },
 "moms_sunday": {
 "meeting": "Share my family dinner nerves",
@@ -190,7 +280,13 @@ const WORDS = {
 "quit": "Quit to free up Sunday",
 "argue": "Tell Mom stop pressuring me",
 "ignore": "Don't answer Mom",
-"fkit": "Blow off Sunday dinner"
+"fkit": "Blow off Sunday dinner",
+"crew": "Skip Mom for crew",
+"ex": "Relive old family drama",
+"ghostlink": "Answer Ghost instead of Mom",
+"block": "Wander past old hangouts",
+"bar": "Spend Sunday at the bar",
+"party": "Trade Mom's roast for party"
 },
 "car_trouble": {
 "meeting": "Share my busted Honda blues",
@@ -202,7 +298,13 @@ const WORDS = {
 "quit": "Quit because Honda's busted",
 "argue": "Blame Shorty for the car",
 "ignore": "Turn the radio up louder",
-"fkit": "Drive until something falls off"
+"fkit": "Drive until something falls off",
+"crew": "Ride with crew instead",
+"ex": "Complain about Honda to ex",
+"ghostlink": "Ask Ghost for mechanic",
+"block": "Drive grinding Honda around",
+"bar": "Blow repair money at bar",
+"party": "Show off broken Honda"
 },
 "new_kid": {
 "meeting": "Bring the newcomer along",
@@ -214,7 +316,70 @@ const WORDS = {
 "quit": "Quit to avoid house drama",
 "argue": "Tell Ray this place is a jail",
 "ignore": "Walk past the bottom bunk",
-"fkit": "Tell the kid figure it out"
+"fkit": "Tell the kid figure it out",
+"crew": "Ditch newcomer for crew",
+"ex": "Tell ex about newcomer",
+"ghostlink": "Mention new kid to Ghost",
+"block": "Leave newcomer with Ray",
+"bar": "Ignore newcomer's question",
+"party": "Take newcomer partying"
+},
+"love_dingy_shoes": {
+"meeting": "Meeting before shopping",
+"call": "Ask Pops about shoes",
+"help": "Help Shorty move a dresser",
+"rest": "Scrub these sneakers",
+"work": "Clock in for new kicks",
+"betterjob": "Chase better pay",
+"quit": "Quit and \"focus on me\"",
+"argue": "Tell Jaz buy them herself",
+"ignore": "Leave Jaz on read",
+"fkit": "Tell Jaz kick rocks",
+"crew": "Crew don't care about shoes",
+"ex": "Text my ex instead",
+"ghostlink": "Hit up Ghost",
+"block": "Walk the old block",
+"bar": "Spend shoe money at bar",
+"party": "Party in busted shoes",
+"look": "Get fresh for Jaz"
+},
+"love_first_date": {
+"meeting": "Meeting before the date",
+"call": "Admit to Pops I got $20",
+"help": "Fix Shorty's bike",
+"rest": "Plan a cheap date",
+"work": "Work for date money",
+"betterjob": "Chase better pay",
+"quit": "Quit for \"more time\"",
+"argue": "Call Jaz a princess",
+"ignore": "Leave Jaz hanging",
+"fkit": "Blow the $20, skip it",
+"crew": "Ride with the crew instead",
+"ex": "Text my ex",
+"ghostlink": "Ask Ghost for a ride",
+"block": "Hit the block for money",
+"bar": "Date night at the bar",
+"party": "Call a house party a date",
+"look": "Buy a fit, stay home"
+},
+"love_birthday_bar": {
+"meeting": "Meeting before Saturday",
+"call": "Ask Pops how to say no",
+"help": "Take a newcomer to a meeting",
+"rest": "Stay home Saturday",
+"work": "Take the Saturday shift",
+"betterjob": "Chase work, not barstools",
+"quit": "Quit to party with Jaz",
+"argue": "Call Jaz selfish",
+"ignore": "Leave Jaz hanging",
+"fkit": "Walk right into that bar",
+"crew": "Turn it into a crew night",
+"ex": "Text my ex for drama",
+"ghostlink": "Let Ghost plan Saturday",
+"block": "Dodge it on the block",
+"bar": "Go. Ginger ale. Bulletproof.",
+"party": "Crash a party instead",
+"look": "Buy a fit for the bar"
 }
 };
 if (typeof module !== "undefined") module.exports = { WORDS };

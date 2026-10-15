@@ -347,6 +347,15 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .mrow.spiritual .mhead b{background:#2f6b3a;box-shadow:2px 2px 0 #000}
 .mrow.work .mhead b{background:#b07a12;box-shadow:2px 2px 0 #000}
 .mrow.life .mhead b{background:var(--red2);box-shadow:2px 2px 0 #000}
+.mrow.people .mhead b{background:#5a2470;box-shadow:2px 2px 0 #000}
+.mrow.places .mhead b{background:#24365a;box-shadow:2px 2px 0 #000}
+.mrow.things .mhead b{background:#1f6b6b;box-shadow:2px 2px 0 #000}
+.mb.people{background:#4a1d5e;color:#fff6dc}.mb.places{background:#1d2b48;color:#fff6dc}
+.mb.people .mf,.mb.places .mf,.mb.people .mg,.mb.places .mg{color:#e6d2ff}
+.mb.people .mi,.mb.places .mi{filter:drop-shadow(0 0 2px #fff6dc)}
+.mb.people.done::after,.mb.places.done::after{color:var(--gold2)}
+.mb .jar{display:block;width:84%;height:7px;background:#0004;border:1.5px solid #111;border-radius:4px;overflow:hidden;margin-top:1px}.mb .jar i{display:block;height:100%;background:#1f8b6b}
+.mf .risk{color:#fff;background:#5a2470;border-radius:9px;padding:0 5px;line-height:15px}
 .mgrid{display:grid;gap:7px}
 .mgrid.c2{grid-template-columns:1fr 1fr}.mgrid.c3{grid-template-columns:1fr 1fr 1fr}
 .mgrid.c2>.mb:last-child:nth-child(odd){grid-column:span 2}
@@ -503,7 +512,7 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="cards.js?v=5.3"></script><script src="situations.js?v=5.3"></script><script src="engine.js?v=5.3"></script><script src="words.js?v=5.3"></script><script src="convos.js?v=5.3"></script><!-- bump ?v= with every VERSION change -->
+<script src="cards.js?v=6.0"></script><script src="situations.js?v=6.0"></script><script src="engine.js?v=6.0"></script><script src="words.js?v=6.0"></script><script src="convos.js?v=6.0"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -660,7 +669,7 @@ function lockupUI(){
 }
 
 /* ---------- v4.1: making it feel like a game ---------- */
-const face = id => `${A}people/${id}.webp`;
+const face = id => id === 'love' ? `${A}people/love-${s && s.look && s.look.sex === 'girl' ? 'guy' : 'girl'}.webp` : `${A}people/${id}.webp`;
 // your homie says something every morning, based on how the day looks
 function homieSays(){
   const g = fig().sex === 'girl', h = (s.day * 7 + s.level * 3) % 5, c = s.scen && sitById(s.scen.id);
@@ -684,7 +693,7 @@ function homieSays(){
 }
 // a situation (or a receipt) shows up as texts on a cracked phone
 function phone(who, title, text, extra, btn){
-  const P = person(who), parts = String(text).match(/[^.!?]+[.!?”"]*/g) || [text];
+  const P = personFor(s, who), parts = String(text).match(/[^.!?]+[.!?”"]*/g) || [text];
   const time = who === 'ghost' ? '3:17 AM' : who === 'mom' ? '7:02 AM' : who === 'darlene' ? '5:48 AM' : '8:1' + (s.day % 10) + ' AM';
   return `<div class="ph"><div class="phtop"><span>${time}</span><span>▮▮▮ ${s.day % 3 ? '12%' : '4%'}</span></div>
   <div class="phwho">${P ? `<img src="${face(who)}" alt="">` : ''}<div><b>${esc(P ? P.name : 'Unknown')}</b><small>${esc(title)}</small></div></div>
@@ -792,6 +801,8 @@ function dayStory(){
   if (d.includes('rides')) bits.push('drove people around');
   if (d.includes('rest')) bits.push('actually rested');
   if (d.includes('betterjob')) bits.push('chased a job lead');
+  const lv = personFor(s, 'love').name;
+  for (const [k, w] of [['crew', 'kicked it with the old crew'], ['ex', 'texted the ex'], ['ghostlink', 'linked up with Ghost'], ['block', 'hung out on the old block'], ['bar', 'sat at the bar'], ['party', 'hit a party'], ['look', 'got fresh for ' + lv], ['carfund', 'put money in the car stack'], ['movefund', 'put money toward moving out']]) if (d.includes(k)) bits.push(w);
   if (d.includes('quit')) bits.push('quit the job');
   if (d.includes('argue')) bits.push('got into it with somebody');
   if (d.includes('ignore')) bits.push('ignored everybody');
@@ -810,6 +821,7 @@ function evening(){
   const c = s.scen && sitById(s.scen.id);
   if (c && c.who === 'ghost') plan.push('Stay away from Ghost');
   else if (c) plan.push('Deal with ' + c.title.toLowerCase() + ' (' + s.scen.left + ' day' + (s.scen.left === 1 ? '' : 's') + ' left)');
+  if (s.riskToday) plan.push(s.riskToday >= 30 ? 'Stay home. Do NOT go back out.' : 'Don’t pick up when the crew calls');
   plan.push('Stay out of trouble', 'Stay sober');
   const warn = { good: '', okay: 'Should be a quiet one. Should be.', shaky: hs(Guy() + '’s running on fumes. Might wanna get his ass to a meeting tomorrow.'), bad: hs('Tonight could go sideways. He’s hot, stressed and running on empty.') }[o];
   const bar = (v, cls = '') => `<span class="ebar ${cls}"><i style="width:${v}%"></i></span>`;
@@ -825,7 +837,7 @@ function evening(){
     <div><span>CONNECTION</span>${bar(s.connection, 'gold')}<b>${s.connection}/100 · ${peopleWord(s.connection)}</b></div>
     <div class="row2"><span>CASH <b>$${s.cash}</b></span><span>SOBER <b>${s.sober} day${s.sober === 1 ? '' : 's'}</b></span></div>
   </div>
-  ${warn ? `<p class="ewarn">${esc(warn)}</p>` : ''}
+  ${warn ? `<p class="ewarn">${esc(warn)}</p>` : ''}${s.riskToday ? `<p class="ewarn">${esc(hs('He had fun today. The people and places he was around don’t clock out at bedtime.'))}</p>` : ''}
   <p class="note">That’s the plan. ${G() ? 'She' : 'He'} might follow it. ${G() ? 'She' : 'He'} might not. You’ll find out in the morning.</p>
   <button class="paper red big mk" onclick="lightsOut()">LIGHTS OUT</button>${s.actions ? '<button class="ghost" style="color:var(--ink)" onclick="closeModal()">Wait, I still have moves</button>' : ''}`, 'card cine');
 }
@@ -861,20 +873,22 @@ setInterval(() => { if (s && s.asleep && Date.now() >= s.asleep.wake) wakeUp(); 
 document.addEventListener('visibilitychange', () => { if (!document.hidden && s && s.asleep) wakeUp(); });
 
 /* ---------- v5.2: real text conversations (convos.js, written by ChatGPT) ---------- */
-const WHO_NAME = { pops: 'Pops', ray: 'Big Ray', darlene: 'Darlene', mom: 'Mom', shorty: 'Shorty', ghost: 'Ghost', house: 'House', mechanic: 'Mechanic', seller: 'Seller', newcomer: 'Newcomer', ex: 'The Ex', unknown: 'Unknown' };
-const hasFace = w => ['pops', 'ray', 'darlene', 'mom', 'shorty', 'ghost'].includes(w);
+const WHO_NAME = { love: 'Jaz', crew: 'Old crew', bartender: 'Bartender', pops: 'Pops', ray: 'Big Ray', darlene: 'Darlene', mom: 'Mom', shorty: 'Shorty', ghost: 'Ghost', house: 'House', mechanic: 'Mechanic', seller: 'Seller', newcomer: 'Newcomer', ex: 'The Ex', unknown: 'Unknown' };
+const hasFace = w => ['pops', 'ray', 'darlene', 'mom', 'shorty', 'ghost', 'love'].includes(w);
+const whoName = w => w === 'love' ? personFor(s, 'love').name : WHO_NAME[w] || w;
 function convoFor(key){ return typeof CONVOS !== 'undefined' && CONVOS[key] ? CONVOS[key] : null; }
 // a whole conversation on the cracked phone. Messages type in one at a time; tap the phone to see it all.
 function textThread(c, time){
+  if (s.look.sex === 'girl' && (c.msgs.some(m => m[0] === 'love') || /JAZ/i.test(c.thread))) c = { ...c, thread: loveSwap(s, c.thread), narr: loveSwap(s, c.narr), msgs: c.msgs.map(([w, t]) => [w, loveSwap(s, t)]) };
   const who = [...new Set(c.msgs.map(m => m[0]).filter(w => w !== 'you'))], group = who.length > 1 || /🏠|CREW|GROUP|CHAT/i.test(c.thread);
   const head = !group && hasFace(who[0]) ? `<img src="${face(who[0])}" alt="">` : `<span class="grp">${group ? '👥' : '💬'}</span>`;
   const lastYou = c.msgs.map(m => m[0]).lastIndexOf('you');
   const msgs = c.msgs.map(([w, t], i) => {
     const me = w === 'you';
-    return `<div class="tm ${me ? 'me' : 'them'}" data-i="${i}">${!me && group ? `<span class="tn">${esc(WHO_NAME[w] || w)}</span>` : ''}${!me && hasFace(w) && group ? `<img class="ta" src="${face(w)}" alt="">` : ''}<p>${esc(hs(t))}</p>${i === lastYou ? `<small class="rd">${i === c.msgs.length - 1 ? 'Delivered' : 'Read ' + time}</small>` : ''}</div>`;
+    return `<div class="tm ${me ? 'me' : 'them'}" data-i="${i}">${!me && group ? `<span class="tn">${esc(whoName(w))}</span>` : ''}${!me && hasFace(w) && group ? `<img class="ta" src="${face(w)}" alt="">` : ''}<p>${esc(hs(t))}</p>${i === lastYou ? `<small class="rd">${i === c.msgs.length - 1 ? 'Delivered' : 'Read ' + time}</small>` : ''}</div>`;
   }).join('');
   return `${c.narr ? `<p class="tnarr">${esc(hs(c.narr))}</p>` : ''}<div class="ph tx" onclick="textsAll(this)"><div class="phtop"><span>${time}</span><span>▮▮▮ ${s.day % 3 ? '12%' : '4%'}</span></div>
-  <div class="phwho">${head}<div><b>${esc(c.thread)}</b><small>${group ? who.map(w => WHO_NAME[w] || w).join(', ') : 'iMessage'}</small></div></div>
+  <div class="phwho">${head}<div><b>${esc(c.thread)}</b><small>${group ? who.map(whoName).join(', ') : 'iMessage'}</small></div></div>
   <div class="txs">${msgs}<div class="typing them"><p><i></i><i></i><i></i></p></div></div></div>`;
 }
 // play the messages in, one at a time, with the typing dots
@@ -940,8 +954,10 @@ function nudge(){
 }
 function moveBtn(id, wig){
   const why = whyNot(s, id), p = preview(s, id), row = ROW_OF[id];
-  const fxs = why && why !== 'no moves left' ? `<span class="why">${esc(why.toUpperCase())}</span>` : `${heatPip(p.e.h, p.zeroed)}${money(p.e.c)}${p.end ? '<span class="ok">✔ ENDS IT</span>' : ''}`;
-  return `<button class="mb ${row} ${doneToday(id) ? 'done' : ''} ${why ? 'off' : ''} ${p.end && !why && row !== 'life' ? 'ends' : ''} ${wig === id ? 'wig' : ''}" onclick="confirmAction('${id}')" aria-label="${esc(MOVES[id].label)}">${moveIcon(id)}<span class="ml">${esc(moveWords(id) || MOVES[id].label)}</span>${moveWords(id) ? `<span class="mg">${esc(MOVES[id].label)}</span>` : ''}<span class="mf">${fxs}</span></button>`;
+  const street = row === 'people' || row === 'places', goal = id === 'carfund' ? [s.jar.car, CFG.carJar] : id === 'movefund' ? [s.jar.move, NEED.l3] : null;
+  const fxs = why && why !== 'no moves left' ? `<span class="why">${esc(why.toUpperCase())}</span>` : `${heatPip(p.e.h, p.zeroed)}${money(p.e.c)}${street ? '<span class="risk">RISKY NIGHT</span>' : ''}${p.end ? '<span class="ok">✔ ENDS IT</span>' : ''}`;
+  const jar = goal ? `<span class="jar"><i style="width:${Math.min(100, Math.round(goal[0] / goal[1] * 100))}%"></i></span><span class="mg">$${goal[0]} / $${goal[1]}</span>` : '';
+  return `<button class="mb ${row} ${doneToday(id) ? 'done' : ''} ${why ? 'off' : ''} ${p.end && !why && !['life', 'people', 'places'].includes(row) ? 'ends' : ''} ${wig === id ? 'wig' : ''}" onclick="confirmAction('${id}')" aria-label="${esc(MOVES[id].label)}">${moveIcon(id)}<span class="ml">${esc(moveWords(id) || MOVES[id].label)}</span>${moveWords(id) ? `<span class="mg">${esc(MOVES[id].label)}</span>` : ''}${jar}<span class="mf">${fxs}</span></button>`;
 }
 function board(wig){
   return `<section class="board">${ROWS.map(([key, name, hint, ids]) => { const list = ids.filter(id => id !== 'rides' || s.car); return `<div class="mrow ${key}"><div class="mhead"><b class="mk">${name}</b><span>${esc(hint)}</span></div>${key === 'spiritual' ? `<div class="spiritrow"><span class="mk">SPIRITUAL ENERGY</span><span class="ebar green"><i style="width:${s.spirit}%"></i></span><b>${spiritWord(s.spirit).toUpperCase()}</b><span class="sob mk">SOBER ${s.sober}d</span></div>` : ''}<div class="mgrid ${list.length === 3 ? 'c3' : 'c2'}">${list.map(id => moveBtn(id, wig)).join('')}</div></div>`; }).join('')}
@@ -994,11 +1010,11 @@ function cardPop(c){
   const btn = `<button class="paper red big mk" onclick="s.cards.shift();save();closeModal();render()">GOT IT</button>`;
   if (c.kind === 'receipt' && c.who) { const cv = convoFor(c.rid); show(`<div class="lolt mk red">${kick}</div>` + (cv ? textThread(cv, '9:4' + (s.day % 10) + ' AM') + `<h2 class="mk" style="margin-top:8px">${esc(c.title)}</h2>` + fx + btn : phone(c.who, c.title, c.text, fx, btn)), 'card phonecard'); return setTimeout(textsPlay, 60); }
   if (c.kind === 'chip') { sfx('levelup'); return show(`<div class="lolt mk">${kick}</div><div class="chipbig">${CHIP(c.chip)}</div><h2 class="mk" style="text-align:center">${esc(c.title)}</h2><p class="say">${esc(c.text)}</p>${btn}`, 'card'); }
-  return show(`<div class="lolt mk ${c.kind === 'streak' ? '' : 'red'}">${kick}</div>${c.who ? `<p class="note" style="margin:0">${esc(person(c.who).name)}</p>` : ''}<h2 class="mk">${esc(c.title)}</h2><p class="say">${esc(c.text)}</p>${fx}${btn}`, 'card');
+  return show(`<div class="lolt mk ${c.kind === 'streak' ? '' : 'red'}">${kick}</div>${c.who ? `<p class="note" style="margin:0">${esc(personFor(s, c.who).name)}</p>` : ''}<h2 class="mk">${esc(c.title)}</h2><p class="say">${esc(c.text)}</p>${fx}${btn}`, 'card');
 }
 function trustLine(t){
   const e = Object.entries(t || {}).filter(([k, v]) => v && person(k));
-  return e.length ? `<div class="trust">${e.map(([k, v]) => `<span class="t-${k} ${v > 0 ? 'up' : 'dn'}"><img src="${face(k)}" alt="">${esc(person(k).name)} ${v > 0 ? '▲' : '▼'}</span>`).join('')}</div>` : '';
+  return e.length ? `<div class="trust">${e.map(([k, v]) => `<span class="t-${k} ${v > 0 ? 'up' : 'dn'}"><img src="${face(k)}" alt="">${esc(personFor(s, k).name)} ${v > 0 ? '▲' : '▼'}</span>`).join('')}</div>` : '';
 }
 function morning(){
   if (page !== 'life' || s.lockedUp || s.levelUp || document.querySelector('#modal .ov')) return;
@@ -1024,12 +1040,12 @@ function confirmAction(id){
   const p = preview(s, id), why = whyNot(s, id), row = ROW_OF[id], sc = p.scen;
   const after = Math.max(0, Math.min(100, s.heat + p.e.h));
   const chips = [p.e.c ? `<span class="chip2 ${p.e.c > 0 ? 'good' : 'bad'}">${p.e.c > 0 ? '+$' : '−$'}${Math.abs(p.e.c)}</span>` : '', p.e.s ? `<span class="chip2 ${p.e.s > 0 ? 'bad' : 'good'}">${p.e.s > 0 ? '+' : '−'}${Math.abs(p.e.s)} STRESS</span>` : '', p.e.n ? `<span class="chip2 ${p.e.n > 0 ? 'good' : 'bad'}">${p.e.n > 0 ? '+' : '−'}${Math.abs(p.e.n)} CONNECTION</span>` : ''].join('');
-  const rowWord = { spiritual: 'SPIRITUAL MOVE', work: 'WORK MOVE', life: 'LIFE MOVE' }[row];
-  show(`<div style="text-align:center;color:var(--ink)">${moveIcon(id).replace('class="mi"', 'class="mi" style="width:70px;height:70px"')}</div><div class="lolt mk ${row === 'life' ? 'red' : ''}">${rowWord}</div><h2 class="mk">${esc(moveWords(id) || MOVES[id].label)}</h2><p class="mline">${moveWords(id) ? esc(MOVES[id].label) + ' · ' : ''}“${esc(MOVES[id].line)}”</p>
+  const rowWord = { spiritual: 'SPIRITUAL MOVE', work: 'WORK MOVE', life: 'LIFE MOVE', people: 'PEOPLE', places: 'PLACES', things: 'THINGS' }[row], hot = ['life', 'people', 'places'].includes(row);
+  show(`<div style="text-align:center;color:var(--ink)">${moveIcon(id).replace('class="mi"', 'class="mi" style="width:70px;height:70px"')}</div><div class="lolt mk ${hot ? 'red' : ''}">${rowWord}</div><h2 class="mk">${esc(moveWords(id) || MOVES[id].label)}</h2><p class="mline">${moveWords(id) ? esc(MOVES[id].label) + ' · ' : ''}“${esc(MOVES[id].line)}”</p>
   ${sc ? `<p class="note" style="margin:0 0 4px">vs. <b>${esc(sc.title)}</b> · ${p.end ? '<b>this ends it</b>' : 'it’s still on you after this'}</p>` : ''}
   ${heatMeter(after, s.heat)}
   ${p.zeroed ? '<p class="zero">You did a spiritual move first, so this adds no heat.</p>' : row === 'work' && p.e.h > 0 ? '<p class="note">Do a spiritual move first and this adds no heat.</p>' : ''}
-  ${row === 'life' ? '<p class="note"><b>Feels good now.</b> It leaves a receipt, and it comes back in a few days.</p>' : ''}
+  ${row === 'life' ? '<p class="note"><b>Feels good now.</b> It leaves a receipt, and it comes back in a few days.</p>' : ''}${row === 'people' || row === 'places' ? `<p class="note"><b>Real fun right now.</b> Tonight gets riskier: cravings, cops, Ghost, the ex. ${esc(hs('Do the spiritual work today and he can probably handle it.'))}</p>` : ''}
   ${chips ? `<div class="chips">${chips}</div>` : ''}${trustLine(p.t)}${p.note ? `<p class="note">${esc(p.note)}</p>` : ''}
   <button class="paper red big mk" ${why ? 'disabled' : ''} onclick="doMove('${id}')">${why ? esc(why.toUpperCase()) : 'DO IT'}</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep thinking</button>`);
 }
@@ -1037,6 +1053,8 @@ function doMove(id){
   closeModal();
   const was = s.heat, r = action(s, id); if (!r) return render();
   markDone(id); sfx('move'); save(); render();
+  const cv = !r.scen && !s.scen && convoFor('move_' + id);
+  if (cv && !(s.seenMove || []).includes(id)) { s.seenMove = (s.seenMove || []).concat(id); save(); return setTimeout(() => { show(textThread(cv, ['crew', 'bar', 'party', 'ghostlink'].includes(id) ? '10:4' + (s.day % 10) + ' PM' : '2:1' + (s.day % 10) + ' PM') + `<h2 class="mk" style="margin-top:8px">${esc(MOVES[id].label.toUpperCase())}.</h2><p class="say">${esc(hs(r.say))}</p>${heatMeter(s.heat, was)}${trustLine(r.trust)}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`, 'card phonecard'); textsPlay(); }, 120); }
   setTimeout(() => show(`<span class="kicker">${esc(r.title)}</span><h2 class="mk">${r.end ? (ROW_OF[id] === 'life' ? 'THAT’S ONE WAY TO END IT.' : 'HANDLED.') : esc(MOVES[id].label.toUpperCase()) + '.'}</h2><p class="say">${esc(r.say)}</p>${heatMeter(s.heat, was)}${trustLine(r.trust)}${r.still ? '<p class="note">It’s still on you.</p>' : ''}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`), 120);
 }
 function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, chapter 1, $${CFG.startCash}. This run gets wiped.</p><button class="paper red big mk" onclick="newRun(true)">PICK A NEW HOMIE</button><button class="paper big cream mk" onclick="newRun(false)">SAME HOMIE</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
@@ -1046,6 +1064,7 @@ function rules(){
   + '<p><b>Heat</b> is the meter with the flames. Life on life’s terms adds heat every night, more if you skipped the spiritual stuff, and every night a situation sits there. Past the white line the cops might come, up to ' + pct(H.maxOdds) + '% a night. Fill it all the way and they come for sure. Locked up = back to chapter 1.</p>'
   + '<p><b>Overnight he’s on his own.</b> After your moves you see the plan. Lights out. At 6 AM you find out what really happened. Spiritual energy (meetings, calls, helping, rest) is what keeps him straight when nobody’s watching. Heat, stress, life moves, Ghost and being alone make bad nights more likely. Nothing bad happens to a guy who’s been doing the work and staying cool. Relapse resets sober time, not the whole run.</p>'
   + '<p><b>Spiritual moves</b> always help. Do one first and work adds no heat that day. <b>Life moves</b> feel good, cost a lot of heat, and leave a receipt that comes back.</p>'
+  + '<p><b>People and places</b> (the old crew, the ex, Ghost, the block, the bar, the party) are real fun right now: big stress relief. But they make tonight riskier: cravings, cops, Ghost pulling up. <b>Things</b> are what you’re working for: fresh clothes for ' + personFor(s, 'love').name + ', the car fund ($' + CFG.carJar + ' buys the car) and the move-out fund.</p>'
   + '<p><b>People remember.</b> Pops, Big Ray, Darlene, Mom and Shorty like you more or less with every move. Ghost too, and that’s the problem.</p>'
   + '<p><b>Money:</b> a shift takes 2 of your 3 moves and pays $' + CFG.wage + ' (the raise makes it $' + CFG.raiseWage + '). The warehouse is closed Sundays. Food is $' + CFG.food + ' a night. Every Sunday night: rent ($' + CFG.rent.slice(1).join(', $') + ' as you move up) plus about $' + (CFG.bills.bus + CFG.bills.fees) + ' for the bus and court fees, $' + CFG.bills.phone + ' more with a phone. Owe two weeks and you lose the bed.</p>'
   + '<p><b>Chapters:</b> 1 get hired, 3 meetings, survive rent day. 2 a week employed, the raise, 2 rents on time, $' + NEED.l2 + ' saved. 3 Pops as sponsor, a car, connection 60, $' + NEED.l3 + ' for move-in. 4 pay your first rent, ' + WIN.cool + ' days under the line, day ' + WIN.standing + ' standing: SOBERED UP.</p>'
@@ -1066,7 +1085,7 @@ function warnings(){
 function progress(){
   return `${topbar('YOUR <b>STORY</b>')}${s.lockedUp ? '<button class="paper red big mk" onclick="startOver()">START OVER</button>' : ''}<div class="paper" style="padding:10px"><div class="ladder">${LEVELS.map(L => `<div class="rung ${L.n > s.level ? 'no' : ''} ${L.n === s.level ? 'cur paper' : ''}"><img src="${myFig(L.n)}" alt=""><span class="mk">CH ${L.n}</span><br>${esc(L.name)}</div>`).join('')}</div>
   <p class="note">${s.result ? 'SOBERED UP on day ' + s.result.day + '.' : (s.level < 4 ? 'Next chapter needs: ' : 'SOBERED UP needs: ') + esc(nextNeeds(s).join(', ') || 'one more good night') + '.'} Get locked up and it’s back to chapter 1.</p></div>
-  <div class="banner"><span class="mk">YOUR CHIPS</span></div><div class="chiprow">${CHIP_ORDER.map(([k, n]) => `<div class="${s.got.includes(k) ? '' : 'nochip'}">${CHIP(n)}</div>`).join('')}</div><div class="banner"><span class="mk">YOUR PEOPLE</span></div><div class="ppl">${PEOPLE.filter(p => p.id !== 'darlene' || s.job || s.flags.includes('darlene_introduced')).map(p => `<div class="paper pp t-${p.id}"><img class="pi" src="${face(p.id)}" alt=""><div class="pt"><b class="mk">${esc(p.name)}</b>${p.id === 'pops' && s.sponsor ? ' · <b>YOUR SPONSOR</b>' : ''}<small>${esc(p.role)}</small><div class="tb">${Array.from({ length: 10 }, (_, i) => `<i class="${i < s.trust[p.id] ? 'on' : ''}"></i>`).join('')}</div><small><i>“${esc(p.say)}”</i></small></div></div>`).join('')}</div>
+  <div class="banner"><span class="mk">YOUR CHIPS</span></div><div class="chiprow">${CHIP_ORDER.map(([k, n]) => `<div class="${s.got.includes(k) ? '' : 'nochip'}">${CHIP(n)}</div>`).join('')}</div><div class="banner"><span class="mk">YOUR PEOPLE</span></div><div class="ppl">${PEOPLE.filter(p => (p.id !== 'darlene' || s.job || s.flags.includes('darlene_introduced')) && (p.id !== 'love' || s.level >= 2 || s.looks)).map(p0 => { const p = personFor(s, p0.id); return `<div class="paper pp t-${p.id}"><img class="pi" src="${face(p.id)}" alt=""><div class="pt"><b class="mk">${esc(p.name)}</b>${p.id === 'pops' && s.sponsor ? ' · <b>YOUR SPONSOR</b>' : ''}<small>${esc(p.role)}</small><div class="tb">${Array.from({ length: 10 }, (_, i) => `<i class="${i < s.trust[p.id] ? 'on' : ''}"></i>`).join('')}</div><small><i>“${esc(p.say)}”</i></small></div></div>`; }).join('')}</div>
   <div class="banner"><span class="mk">LITTLE BIG WINS</span></div>${s.milestones.length ? s.milestones.map(x => `<div class="paper badge">★ ${esc(x)}</div>`).join('') : '<p class="onwall">The first one’s waiting. Getting hired counts.</p>'}
   <div class="banner"><span class="mk">WHAT HAPPENED</span></div>${s.log.map(x => `<div class="log">${esc(x)}</div>`).join('')}`;
 }

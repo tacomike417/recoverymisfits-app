@@ -9,11 +9,14 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v5.3';
+const VERSION = 'v6.0';
 const SAVE_KEY = 'sober-gangster-v5';
-const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'quit', 'argue', 'ignore', 'fkit'];
-const ROWS = [   // top to bottom on the screen (Mike: life, work, spiritual)
+const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'quit', 'argue', 'ignore', 'fkit', 'crew', 'ex', 'ghostlink', 'block', 'bar', 'party', 'look', 'carfund', 'movefund'];
+const ROWS = [   // top to bottom on the screen (Mike: life, work, spiritual; then people, places and things)
   ['life', 'LIFE', 'Feels good right now. Costs a lot of heat, and it comes back.', ['argue', 'ignore', 'fkit']],
+  ['people', 'PEOPLE', 'Fun right now. Tonight gets riskier.', ['crew', 'ex', 'ghostlink']],
+  ['places', 'PLACES', 'The best time in weeks. Tonight gets a lot riskier.', ['block', 'bar', 'party']],
+  ['things', 'THINGS', 'The look, the car, your own place. Stack it up.', ['look', 'carfund', 'movefund']],
   ['work', 'WORK', 'Pays the bills. Adds heat unless you did a spiritual move first today.', ['work', 'betterjob', 'quit']],
   ['spiritual', 'SPIRITUAL', 'Always helps. Do one first and work adds no heat.', ['meeting', 'call', 'help', 'rest', 'rides']]
 ];
@@ -30,6 +33,15 @@ const MOVES = {
   quit:      { label: 'Quit your job',        line: 'Take this job and shove it.', h: 8,   s: -20, c: 0,   n: -5,  t: { darlene: -4, ray: -1, mom: -1 } },
   argue:     { label: 'Argue your point',     line: 'Nah. You’re gonna hear me.',  h: 15,  s: -12, c: 0,   n: -8,  t: { ray: -2, darlene: -2, shorty: -2 } },
   ignore:    { label: 'Put everyone on ignore', line: 'Everybody can kiss my ass.', h: 12,  s: -15, c: 0,   n: -12, t: { pops: -1, mom: -2, shorty: -2, ghost: 1 } },
+  crew:      { label: 'Hit up the old crew',  line: 'Just like old times.',         h: 4,   s: -20, c: -15, n: 6,   t: { ghost: 1, pops: -1, love: -1 }, risk: 18, wild: { craving: 2, cop: 1 } },
+  ex:        { label: 'Text the ex',          line: 'You up?',                     h: 3,   s: -15, c: 0,   n: 4,   t: { mom: -1, love: -3 }, risk: 14, wild: { ex: 4 } },
+  ghostlink: { label: 'Kick it with Ghost',   line: 'Just to talk.',               h: 8,   s: -18, c: 0,   n: 3,   t: { ghost: 2, pops: -1, love: -2 }, risk: 25, wild: { ghost: 4, craving: 1 } },
+  block:     { label: 'The old block',        line: 'Everybody knows your name.',  h: 8,   s: -15, c: -5,  n: 5,   t: { ghost: 1 }, risk: 16, wild: { cop: 2, ghost: 1 } },
+  bar:       { label: 'The bar',              line: 'Just one. For the music.',    h: 6,   s: -22, c: -25, n: 6,   t: { pops: -2, love: -2 }, risk: 28, wild: { craving: 3, cop: 2 } },
+  party:     { label: 'The party',            line: 'Best night in weeks.',        h: 5,   s: -25, c: -20, n: 8,   t: { shorty: 1, pops: -1, love: -1 }, risk: 22, wild: { craving: 2, cop: 1 } },
+  look:      { label: 'The fresh look',       line: 'Kicks, cut, cologne.',        h: 0,   s: -6,  c: -60, n: 2,   t: { love: 3 } },
+  carfund:   { label: 'Stack for the car',    line: 'Put it where you can’t touch it.', h: 0, s: -2, c: -100, n: 0, t: {} },
+  movefund:  { label: 'Stack for move-out',   line: 'Your name on a lease.',       h: 0,   s: -2,  c: -100, n: 0, t: { mom: 1 } },
   fkit:      { label: 'Say f**k it',          line: 'F**k it. I’m done.',          h: 25,  s: -25, c: -20, n: -15, t: { pops: -2, ray: -2, darlene: -2, mom: -2, shorty: -1, ghost: 2 } }
 };
 const ACTION_LABEL = Object.fromEntries(Object.entries(MOVES).map(([k, v]) => [k, v.label]));
@@ -40,9 +52,16 @@ const PEOPLE = [
   { id: 'darlene', name: 'Darlene',  role: 'Your boss at the warehouse. Heard every excuse.', start: 5, say: 'I don’t need your life story. I need these boxes on that truck.' },
   { id: 'mom',     name: 'Mom',      role: 'Loves you. Tired of being scared.', start: 3, say: 'I love you. I’m just tired of being scared every time the phone rings.' },
   { id: 'shorty',  name: 'Shorty',   role: 'Your housemate. Loud, funny, 3 months sober.', start: 4, say: 'Man, we both broke. At least we ain’t broke AND wanted.' },
+  { id: 'love',    name: 'Jaz',      role: '27. Front desk at a dental office, nails on weekends. Likes effort. Hates the bar, the old crew and the ex.', start: 2, say: 'you cute but them shoes been through a whole court case', guy: { name: 'Marc', role: '29. Auto parts counter, fixes cars on weekends. Likes effort. Hates the bar, the old crew and the ex.', say: 'not big on rescue missions. show up and we good.' } },
   { id: 'ghost',   name: 'Ghost',    role: 'The plug. The more he trusts you, the worse it gets.', start: 5, say: 'I ain’t asking you to do nothing. Just saying I’m here.' }
 ];
 const person = id => PEOPLE.find(p => p.id === id);
+// the love interest is Jaz for guy homies and Marc for girl homies
+function personFor(s, id) { const p = person(id); return p && p.guy && s.look.sex === 'girl' ? { ...p, ...p.guy } : p; }
+function loveSwap(s, t) {
+  if (!t || s.look.sex !== 'girl') return t;
+  return t.replace(/\bJaz\b/g, 'Marc').replace(/\bJAZ\b/g, 'MARC').replace(/my girl's/g, 'my boy\'s').replace(/\bShe's\b/g, 'He\'s').replace(/\bshe's\b/g, 'he\'s').replace(/\bShe\b/g, 'He').replace(/\bshe\b/g, 'he').replace(/\bher\b/g, 'him').replace(/\bHer\b/g, 'His').replace(/SHE DON'T DATE SCRUBS/g, 'HE DON\'T DATE SCRUBS');
+}
 
 // life moves leave receipts; they come back as a morning card
 const RECEIPTS = {
@@ -77,6 +96,7 @@ const STREAKS = {
   chip7:    { chip: '7', title: 'ONE WEEK CHIP', text: 'Seven days. You don’t say much when they call your name. You don’t have to.' },
   chip14:   { chip: '14', title: 'TWO WEEK CHIP', text: 'Two weeks. Pops says the hard part is it never stops being one day at a time. He says it like good news.' },
   chip30:   { chip: '30', title: '30 DAY CHIP', text: 'Thirty days. The whole room claps. You almost leave. You stay. That’s the whole program right there.' },
+  love:     { title: 'TOGETHER', text: 'Jaz texts first now. Good morning texts, “you eat?”, a picture of a dog she saw. You are somebody’s person. Don’t blow it.' },
   thirty:   { title: 'THIRTY DAYS STANDING', text: 'Thirty days ago you had twelve dollars and a bed somebody else owned. Now you’ve got a life worth protecting.' }
 };
 
@@ -89,7 +109,7 @@ const CFG = {
   shiftMoves: 2,               // a shift eats most of your day: 2 of your 3 moves
   bills: { bus: 20, fees: 25, phone: 15 },   // every rent day: bus fare, court fines/probation fees, the phone (if you have one)
   jobless: 8,                  // stress every morning with no job (after day 1)
-  moveIn: 350,                 // deposit + keys on a room of your own (first rent comes on rent day)
+  moveIn: 350, carJar: 900,   // the car stack buys a used car at $900 (Shorty's Honda deal is $400 if it comes up)                 // deposit + keys on a room of your own (first rent comes on rent day)
   heat: {
     start: 10, safe: 45, maxOdds: 0.5,
     noSpirit: [0, 3, 6, 9, 12], // nightly heat by days without a spiritual move
@@ -186,6 +206,7 @@ function fresh(seed = Date.now()) {
     streak: 0, bestStreak: 0, daysSinceSupport: 0, meetStreak: 0, helpStreak: 0,
     meetings: 0, shifts: 0, employedDays: 0, searchPts: 0,
     rentDays: 0, rentsOnTime: 0, rentsL4: 0, coolDays: 0, standing: 0,
+    jar: { car: 0, move: 0 }, riskToday: 0, wildBoost: {}, looks: 0, together: false,
     spirit: SPIRIT.start, sober: 0, relapses: 0, lifeToday: 0, reveal: null, asleep: null, missingDay: false,
     receipts: [],          // { id, due }
     cards: [],             // morning cards waiting: { kind, title, text, h, s, c, n, t }
@@ -226,8 +247,9 @@ function trustUp(s, t) {
 }
 
 /* ---------- words for girl homies ---------- */
-function forSex(s, t) {
+function forSex(s, t, who) {
   if (!t || s.look.sex !== 'girl') return t;
+  if (who === 'love' || /\bJaz\b/.test(t)) t = loveSwap(s, t);
   return t.replace(/another man's underwear/g, 'somebody else’s underwear');
 }
 
@@ -240,6 +262,8 @@ function sitOK(s, c) {
   if (c.id === 'car_trouble') return s.car;
   if (['darlene_raise', 'payday_pocket', 'ghost_warehouse', 'saturday_shift'].includes(c.id)) return s.job;
   if (c.who === 'ray' && s.level >= 4) return false;
+  if (c.id === 'love_first_date') return s.seenScen.includes('love_dingy_shoes') && s.trust.love >= 3;
+  if (c.id === 'love_birthday_bar') return s.seenScen.includes('love_first_date') && s.trust.love >= 4;
   return true;
 }
 function pickScen(s) {
@@ -302,7 +326,7 @@ function moveLine(s, id) {
 function preview(s, id) {
   const B = MOVES[id], { c, m } = moveLine(s, id);
   const e = m ? { h: m.h, s: m.s, c: m.c, n: m.n } : { h: B.h, s: B.s, c: B.c, n: B.n };
-  const t = m ? m.trust : B.t;
+  let t = m ? m.trust : B.t;
   let zeroed = false, note = '';
   if (id === 'work') {
     const w = s.trust.darlene <= 2 ? CFG.lowTrustWage : s.wage;
@@ -311,6 +335,8 @@ function preview(s, id) {
   }
   if (id === 'rides' && !m) Object.assign(e, { h: B.h, s: B.s, c: B.c, n: B.n });
   if (id === 'betterjob' && s.cash < -e.c) e.c = -s.cash;   // broke: you walk to the interviews
+  if (id === 'carfund' || id === 'movefund') { const jar = id === 'carfund' ? 'car' : 'move', goal = id === 'carfund' ? CFG.carJar : NEED.l3; e.c = -Math.min(100, s.cash, goal - s.jar[jar]); }
+  if (id === 'look' && s.looks >= 3) { t = { love: 1 }; e.s = -3; }
   if (ROW_OF[id] === 'work' && e.h > 0 && s.spiritToday) { e.h = 0; zeroed = true; }
   if (id === 'call' && (s.sponsor || s.trust.pops >= 8)) { e.h -= 5; note = 'Your sponsor picks up. −5 more heat.'; }
   else if (id === 'call' && s.trust.pops <= 1) { e.h = Math.round(e.h / 2); note = 'Pops let it ring. Half the help.'; }
@@ -325,6 +351,10 @@ function whyNot(s, id) {
   if ((id === 'work' || id === 'quit') && !s.job) return 'no job';
   if (id === 'rides' && !s.car) return 'need a car';
   if (id === 'rest' && s.restToday) return 'rested today';
+  if (id === 'carfund' && s.car) return 'got wheels';
+  if (id === 'movefund' && s.level < 3) return 'chapter 3';
+  if (id === 'movefund' && (s.jar.move >= NEED.l3 || s.level >= 4)) return 'stacked';
+  if ((id === 'carfund' || id === 'movefund') && s.cash < 20) return 'need $20';
   const { e } = preview(s, id);
   if (ROW_OF[id] !== 'life' && s.cash + (e.c || 0) < 0) return 'need $' + (-e.c);   // f**k it is always on the table
   return '';
@@ -341,7 +371,16 @@ const BASE_SAY = {
   quit: 'You walked out. Felt like freedom for about an hour. Rent didn’t quit.',
   argue: 'You said your piece. Loud. Felt good for about four seconds.',
   ignore: 'Phone face down. Door shut. The quiet felt great until it didn’t.',
-  fkit: 'You said f**k it. Twenty bucks gone, and the old life smiled at you.'
+  fkit: 'You said f**k it. Twenty bucks gone, and the old life smiled at you.',
+  crew: 'The old crew. Same jokes, same corner, same look in everybody’s eyes. You laughed harder than you have in months.',
+  ex: 'You texted the ex. Felt like home. That’s the problem with home.',
+  ghostlink: 'You sat in Ghost’s car “just to talk.” He didn’t offer. He didn’t have to.',
+  block: 'The old block. Everybody knows your name, and half of them know your old number.',
+  bar: 'You ordered a soda at the bar. The bartender poured it like a joke. The music was good. The smell was better. That’s the problem.',
+  party: 'Best night in weeks. Loud music, real laughs, and red cups everywhere you looked.',
+  look: 'Fresh look. You caught yourself in a window and almost didn’t recognize the person looking back.',
+  carfund: 'You put money in the car stack, where your hands can’t get to it.',
+  movefund: 'You put money in the move-out stack. A lease with your name on it is getting real.'
 };
 function action(s, id) {
   if (!canDo(s, id)) return null;
@@ -350,6 +389,14 @@ function action(s, id) {
   apply(s, p.e);
   if (row === 'spiritual') { s.spiritToday = true; s.supportToday = true; s.daysSinceSupport = 0; s.spirit = clamp(s.spirit + (SPIRIT[id] || 0), 0, 100); }
   if (row === 'life') { s.lifeToday = (s.lifeToday || 0) + 1; s.spirit = clamp(s.spirit + SPIRIT.life, 0, 100); }
+  if (row === 'people' || row === 'places') {
+    s.riskToday = (s.riskToday || 0) + (MOVES[id].risk || 0); s.spirit = clamp(s.spirit + SPIRIT.street, 0, 100);
+    for (const [k, v] of Object.entries(MOVES[id].wild || {})) s.wildBoost[k] = (s.wildBoost[k] || 0) + v;
+    if (id === 'ghostlink' && !s.flags.includes('oldcontact')) s.flags.push('oldcontact');
+  }
+  if (id === 'carfund') { s.jar.car -= p.e.c; if (s.jar.car >= CFG.carJar && !s.car) { s.car = true; s.jar.car = 0; if (!s.items.includes('car')) s.items.push('car'); got(s, 'wheels'); badge(s, 'Bought a car with your own stack.'); } }
+  if (id === 'movefund') s.jar.move -= p.e.c;
+  if (id === 'look') { s.looks++; const nx = LOOK_ITEMS.find(i => !s.items.includes(i)); if (nx) s.items.push(nx); }
   if (id === 'meeting') { s.meetToday = true; s.meetings++; }
   if (id === 'help' || id === 'rides') s.helpToday = true;
   if (id === 'rest') s.restToday = true;
@@ -390,7 +437,7 @@ function queueReceipt(s, id) {
 function got(s, id) {
   if (s.got.includes(id)) return false;
   s.got.push(id); const S = STREAKS[id];
-  card(s, { kind: S.chip ? 'chip' : 'streak', chip: S.chip, title: S.title, text: S.text });
+  card(s, { kind: S.chip ? 'chip' : 'streak', chip: S.chip, title: S.title, text: loveSwap(s, S.text) });
   badge(s, S.title.charAt(0) + S.title.slice(1).toLowerCase() + '.');
   return true;
 }
@@ -436,7 +483,7 @@ function nextNeeds(s) {
     if (!s.car) a.push('a car');
     if (!s.job) a.push('a job');
     if (s.connection < 60) a.push('connection 60');
-    if (s.cash < NEED.l3) a.push('$' + NEED.l3 + ' for move-in');
+    if (s.jar.move < NEED.l3) a.push('$' + (NEED.l3 - s.jar.move) + ' more in the move-out stack');
   } else {
     if (s.rentsL4 < WIN.rents) a.push((WIN.rents - s.rentsL4) + ' rent' + (WIN.rents - s.rentsL4 === 1 ? '' : 's') + ' on time');
     if (!s.job) a.push('a job');
@@ -455,7 +502,7 @@ function checkLevel(s) {
   }
   if (nextNeeds(s).length) return false;
   s.level++;
-  if (s.level === 4) { s.cash -= Math.min(s.cash, CFG.moveIn); s.housing = 'My own place'; s.rentsL4 = 0; record(s, 'Signed the lease. First and last: $' + CFG.moveIn + '.'); }
+  if (s.level === 4) { s.jar.move = Math.max(0, s.jar.move - CFG.moveIn); s.housing = 'My own place'; s.rentsL4 = 0; record(s, 'Signed the lease. First and last: $' + CFG.moveIn + '.'); }
   badge(s, 'Chapter ' + s.level + ': ' + levelInfo(s.level).name + '.');
   record(s, 'NEW CHAPTER: ' + levelInfo(s.level).name + '.');
   s.levelUp = s.level;
@@ -471,13 +518,14 @@ function checkLevel(s) {
    Good choices really do protect him. The worst outcomes (relapse, locked up) can only happen when RISK is high:
    no unfair random game overs. */
 const NIGHT = { pGoodShift: -15, pGoodSoft: 12, worstAt: 40, worstCap: 0.4 };   // tuned with sim.cjs
-const SPIRIT = { meeting: 12, call: 8, help: 10, rest: 5, rides: 10, life: -12, nightly: -12, start: 20 };
+const LOOK_ITEMS = ['cut', 'dunks', 'cologne', 'jeans', 'hoodie', 'tee', 'hat', 'shades'];
+const SPIRIT = { street: -6, meeting: 12, call: 8, help: 10, rest: 5, rides: 10, life: -12, nightly: -12, start: 20 };
 function foundation(s) {
   return 0.4 * s.spirit + 0.15 * s.connection + 20 * Math.min(s.sober, 60) / 60 + (s.sponsor ? 5 : 0) + (s.trust.pops >= 8 ? 3 : 0);
 }
 function riskOf(s) {
   const c = s.scen && sitById(s.scen.id);
-  return 0.5 * s.heat + 0.4 * s.stress + 10 * (s.lifeToday || 0) + (s.trust.ghost >= 7 ? 10 : 0) + (s.connection < 20 ? 8 : 0) + (c && c.who === 'ghost' ? 8 : 0) + (s.cash < CFG.food ? 6 : 0) + (s.spirit < 20 ? 10 : 0);
+  return (s.riskToday || 0) + 0.5 * s.heat + 0.4 * s.stress + 10 * (s.lifeToday || 0) + (s.trust.ghost >= 7 ? 10 : 0) + (s.connection < 20 ? 8 : 0) + (c && c.who === 'ghost' ? 8 : 0) + (s.cash < CFG.food ? 6 : 0) + (s.spirit < 20 ? 10 : 0);
 }
 // the wild cards. text uses "he"; girl homies get "she" (sheHe()).
 const WILD = {
@@ -552,7 +600,7 @@ function relapse(s) {
 function overnight(s) {
   if (s.heat >= 100) { s.lockedUp = { day: s.day, heat: s.heat, odds: 100, why: 'heat' }; return { tier: 'locked', time: '4:40 AM', title: 'THEY CAME FOR HIM', text: 'Too much heat for too long. Red and blue in the window at 4:40 AM.' }; }
   const F = foundation(s), R = riskOf(s), edge = F - R;
-  const pool = Object.entries(WILD).map(([id, c]) => [id, Math.max(0, c.w(s))]);
+  const pool = Object.entries(WILD).map(([id, c]) => [id, Math.max(0, c.w(s)) + ((s.wildBoost || {})[id] || 0)]);
   pool.push(['quiet', 5 + Math.max(0, edge) / 10]);
   let r = rng(s) * pool.reduce((a, x) => a + x[1], 0), id = 'quiet';
   for (const [k, w] of pool) { r -= w; if (r <= 0) { id = k; break; } }
@@ -647,6 +695,10 @@ function endDay(s) {
       if (s.arrears >= 2 * due && s.housing !== 'Shelter') { s.housing = 'Shelter'; card(s, { kind: 'news', title: 'LOST THE BED', text: 'You owe two weeks. Your stuff is in a garbage bag on the porch. Shelter tonight. Pay what you owe and the bed is yours again.' }); record(s, 'Lost the bed.'); }
     }
   }
+  // the love story
+  if (!s.together && s.trust.love >= 8) { s.together = true; got(s, 'love'); apply(s, { n: 10, s: -10 }); }
+  else if (s.together && s.trust.love <= 2) { s.together = false; s.got = s.got.filter(g => g !== 'love'); card(s, { kind: 'news', who: 'love', title: 'IT’S OVER', text: loveSwap(s, 'Jaz sent one text: “i can’t keep doing this.” Then nothing. You keep checking anyway.'), s: 15 }); apply(s, { s: 15 }); record(s, loveSwap(s, 'Jaz ended it.')); }
+  if (s.together) apply(s, { s: -3 });
   // OVERNIGHT: he's on his own now
   const rv = overnight(s);
   s.reveal = { ...rv, day: nightDay, facts: s.log.slice(0, Math.max(0, (s.logN || 0) - n0)).reverse().filter(x => !/^(THE |MOM CALLED|NEW CHAPTER)/.test(x)) };
@@ -661,7 +713,7 @@ function endDay(s) {
   s.coolDays = s.heat <= H.safe ? s.coolDays + 1 : 0;
   checkLevel(s);
   if (s.result) return true;
-  s.day++; s.actions = s.missingDay ? 1 : CFG.actions; s.missingDay = false; s.lifeToday = 0;
+  s.day++; s.actions = s.missingDay ? 1 : CFG.actions; s.missingDay = false; s.lifeToday = 0; s.riskToday = 0; s.wildBoost = {};
   s.spiritToday = false; s.supportToday = false; s.restToday = false; s.meetToday = false; s.helpToday = false; s.workToday = 0; s.zeroedToday = false; s.lastOutcome = null; s.today = [];
   startDay(s, false);
   return true;
@@ -677,5 +729,5 @@ const RENT_TALK = [
 if (typeof module !== 'undefined') {
   const C = require('./cards.js'), S = require('./situations.js');
   Object.assign(globalThis, C, S);
-  module.exports = { NIGHT, SPIRIT, WILD, foundation, riskOf, overnight, nightOutlook, sheHe, NEED, DAYS, dayName, weekend, extraShift, billsDue, VERSION, SAVE_KEY, CFG, WIN, LEVELS, FIGURES, shop, SHOP_GROUPS, ACTION_IDS, ACTION_LABEL, MOVES, ROWS, ROW_OF, PEOPLE, RECEIPTS, STREAKS, person, item, has, fresh, migrate, restartKeepFigure, startDay, scenFor, sitById, nightCard, preview, whyNot, canDo, action, buy, cantBuy, nextNeeds, checkLevel, lockOdds, heatWords, endDay, levelInfo, rentDue, nextRentDay, ...C, ...S };
+  module.exports = { LOOK_ITEMS, personFor, loveSwap, NIGHT, SPIRIT, WILD, foundation, riskOf, overnight, nightOutlook, sheHe, NEED, DAYS, dayName, weekend, extraShift, billsDue, VERSION, SAVE_KEY, CFG, WIN, LEVELS, FIGURES, shop, SHOP_GROUPS, ACTION_IDS, ACTION_LABEL, MOVES, ROWS, ROW_OF, PEOPLE, RECEIPTS, STREAKS, person, item, has, fresh, migrate, restartKeepFigure, startDay, scenFor, sitById, nightCard, preview, whyNot, canDo, action, buy, cantBuy, nextNeeds, checkLevel, lockOdds, heatWords, endDay, levelInfo, rentDue, nextRentDay, ...C, ...S };
 }

@@ -128,6 +128,94 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You blew your money on nonsense. Hunger's coming back."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1
+},
+"end": false,
+"gives": [
+"old_crew_contact"
+],
+"say": "You spend your last fifteen bucks riding around with the old crew, laughing at stories that almost killed you."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about getting dinner and end up talking about everything except food."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -1
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You ask Ghost who's got food, and he offers you a different kind of delivery."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You walk the old block hungry and somehow find five dollars worth of trouble."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"love": -2
+},
+"end": true,
+"gives": [
+"fridge_money_blown"
+],
+"say": "You put your grocery money on the bar and come home with an empty wallet and an empty stomach."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1
+},
+"end": false,
+"gives": [
+"party_contact"
+],
+"say": "You hit a house party for free food and stay long after the pizza's gone."
 }
 },
 "expire": {
@@ -271,6 +359,99 @@ const SITUATIONS = [
 "receipt_ray_black_book"
 ],
 "say": "You kicked the trash can. Ray added it to your bill."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1,
+"ray": -2
+},
+"end": false,
+"gives": [
+"old_crew_contact"
+],
+"say": "You invite the old crew to laugh about Big Ray's inspection and give him three more reasons to inspect."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"ray": -1
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex pictures of the stain and get twenty minutes of sympathy instead of a solution."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -1,
+"ray": -2
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You ask Ghost how to get fifty bucks fast, and he says you already know."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"ray": -1
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You storm down the old block talking trash about Ray while the fifty-dollar fee sits on your bed."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"ray": -3
+},
+"end": false,
+"gives": [
+"bar_visit"
+],
+"say": "You spend twenty-five dollars complaining to strangers about a fifty-dollar stain."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1,
+"ray": -2
+},
+"end": false,
+"gives": [
+"party_contact"
+],
+"say": "You ditch the inspection for a party and give Ray an empty room to write up."
 }
 },
 "expire": {
@@ -414,6 +595,99 @@ const SITUATIONS = [
 "receipt_mom_stopped"
 ],
 "say": "You tossed the phone aside. Mom kept calling."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1,
+"mom": -3
+},
+"end": false,
+"gives": [
+"mom_ignored"
+],
+"say": "You silence Mom's calls and let the old crew tell you how grown you are."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -2
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex instead of calling Mom because old drama asks fewer questions."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -1,
+"mom": -2
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You tell Ghost your mom keeps calling, and he reminds you how easy it is to disappear."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"mom": -2,
+"ghost": 1
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You walk the old block with your phone on silent and pretend nobody's worried."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"mom": -3,
+"love": -1
+},
+"end": false,
+"gives": [
+"bar_visit"
+],
+"say": "You sit at the bar ignoring Mom while your phone lights up beside the napkins."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1,
+"mom": -2
+},
+"end": false,
+"gives": [
+"party_contact"
+],
+"say": "You bury three missed calls under loud music and people who don't know your last name."
 }
 },
 "expire": {
@@ -562,6 +836,100 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You got in the car. That relief has a price."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 2,
+"pops": -2,
+"ray": -1
+},
+"end": true,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You climb into the crew's car with Ghost and leave the sober house gate behind you."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"ghost": 1
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about Ghost outside and get talked into remembering the old days."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 4,
+"pops": -3,
+"ray": -2
+},
+"end": true,
+"gives": [
+"ghost_gate_contact"
+],
+"say": "You walk across the street and get into Ghost's car before your better judgment catches up."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 2,
+"ray": -1
+},
+"end": true,
+"gives": [
+"ghost_followed"
+],
+"say": "You take the long way around the block and still end up standing beside Ghost's window."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"ghost": 1,
+"love": -2
+},
+"end": false,
+"gives": [
+"bar_visit"
+],
+"say": "You duck into the bar to avoid Ghost and find three people who know him."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -2,
+"ghost": 2
+},
+"end": true,
+"gives": [
+"ghost_party"
+],
+"say": "You accept Ghost's party invitation and stop pretending you were just going for a ride."
 }
 },
 "expire": {
@@ -706,6 +1074,101 @@ const SITUATIONS = [
 "receipt_ray_black_book"
 ],
 "say": "You threw a laundry basket. Ray started writing."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1,
+"shorty": -2,
+"ray": -1
+},
+"end": false,
+"gives": [
+"old_crew_contact"
+],
+"say": "You turn Shorty's missing underwear into a group-chat joke and let him deal with Ray alone."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"shorty": -1
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about the underwear investigation and forget Shorty still needs help."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -1,
+"shorty": -2
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You ask Ghost if he remembers sober house laundry drama and end up discussing worse things."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"shorty": -2
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You leave Shorty arguing with the dryer and walk the block until the laundry room closes."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"shorty": -3,
+"ray": -2
+},
+"end": false,
+"gives": [
+"bar_visit"
+],
+"say": "You spend twenty-five bucks telling a bartender about another grown adult's missing underwear."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1,
+"ray": -2
+},
+"end": false,
+"gives": [
+"party_contact"
+],
+"say": "You drag Shorty to a party and leave the laundry mess waiting for Ray."
 }
 },
 "expire": {
@@ -855,6 +1318,99 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You blew off the interview. Darlene hired somebody else."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1,
+"darlene": -2
+},
+"end": false,
+"gives": [
+"interview_unprepared"
+],
+"say": "You spend interview night with the old crew and forget to set an alarm."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"darlene": -1
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex until two in the morning and call it preparing for tomorrow."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -1,
+"darlene": -2
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You tell Ghost about the warehouse interview and listen while he offers easier money."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"darlene": -1
+},
+"end": false,
+"gives": [
+"interview_unprepared"
+],
+"say": "You walk the old block rehearsing excuses instead of interview answers."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"darlene": -4
+},
+"end": true,
+"gives": [
+"interview_missed"
+],
+"say": "You stay at the bar past closing and sleep through Darlene's interview."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1,
+"darlene": -3
+},
+"end": false,
+"gives": [
+"interview_unprepared"
+],
+"say": "You party until your interview clothes smell like somebody else's couch."
 }
 },
 "expire": {
@@ -1034,6 +1590,100 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You blew your cash celebrating a raise you never got."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1,
+"darlene": -2
+},
+"end": false,
+"gives": [
+"work_unreliable"
+],
+"say": "You brag about extra hours to the old crew and start thinking you deserve a day off."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"darlene": -1
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You tell your ex about the extra money and get asked why you never had any before."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -1,
+"darlene": -3
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You tell Ghost your paycheck's getting bigger and watch him suddenly become interested."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"darlene": -2
+},
+"end": false,
+"gives": [
+"work_unreliable"
+],
+"say": "You spend the afternoon on the block instead of checking the extra-hours schedule."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"darlene": -2,
+"love": -1
+},
+"end": false,
+"gives": [
+"bar_visit"
+],
+"say": "You celebrate money you haven't earned yet and put twenty-five dollars on a tab."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1,
+"darlene": -3
+},
+"end": true,
+"gives": [
+"extra_hours_lost"
+],
+"say": "You party through the first extra shift and Darlene gives those hours to somebody else."
 }
 },
 "expire": {
@@ -1215,6 +1865,97 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "Twenty bucks gone in a flash. The craving didn't leave with it."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 2,
+"pops": -1,
+"love": -1
+},
+"end": false,
+"gives": [
+"payday_crew"
+],
+"say": "You buy the old crew food and suddenly everybody remembers your number."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"love": -2
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You tell your ex you got paid and immediately regret mentioning a dollar amount."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 3,
+"pops": -2
+},
+"end": false,
+"gives": [
+"ghost_payday"
+],
+"say": "You tell Ghost your check cleared and he says he's got something worth celebrating."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 2
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You flash your paycheck money on the old block and attract every broke friend you ever had."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"love": -3
+},
+"end": true,
+"gives": [
+"payday_blown"
+],
+"say": "You turn payday into a bar tab and walk out wondering where your rent went."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1,
+"love": -2
+},
+"end": true,
+"gives": [
+"payday_party"
+],
+"say": "You throw twenty bucks into a party fund and spend the night surrounded by people who love payday."
 }
 },
 "expire": {
@@ -1394,6 +2135,98 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You wasted twenty bucks. Shorty still needs forty."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1,
+"shorty": -3
+},
+"end": false,
+"gives": [
+"shorty_abandoned"
+],
+"say": "You spend fifteen bucks with the crew while Shorty counts the forty dollars he doesn't have."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"shorty": -2
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You ask your ex what to do about Shorty and get a lecture you didn't order."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -1,
+"shorty": -3
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You ask Ghost about a quick forty and learn the favor costs more than the money."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"shorty": -2
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You walk the block avoiding Shorty's texts while Ray keeps asking where the rent is."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"shorty": -4
+},
+"end": true,
+"gives": [
+"shorty_refused"
+],
+"say": "You spend twenty-five bucks at the bar and tell Shorty you can't spare a dime."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": -2,
+"pops": -1
+},
+"end": false,
+"gives": [
+"shorty_abandoned"
+],
+"say": "You invite Shorty to forget his rent at a party, but Ray won't forget a cent."
 }
 },
 "expire": {
@@ -1579,6 +2412,100 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You got in Ghost's car. Darlene watched you leave."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 2,
+"pops": -1,
+"darlene": -3
+},
+"end": false,
+"gives": [
+"warehouse_suspicion"
+],
+"say": "You wave the old crew over to Ghost's car while Darlene watches from the loading dock."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"darlene": -1
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about Ghost outside and let the warehouse clock keep running."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 4,
+"pops": -3,
+"darlene": -5
+},
+"end": true,
+"gives": [
+"warehouse_ghost_contact"
+],
+"say": "You walk straight to Ghost's window and let Darlene see exactly who you're meeting."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 2,
+"darlene": -3
+},
+"end": false,
+"gives": [
+"warehouse_suspicion"
+],
+"say": "You leave work through the back lot and circle around to Ghost on the block."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"darlene": -4,
+"love": -2
+},
+"end": true,
+"gives": [
+"warehouse_walkout"
+],
+"say": "You leave your shift early for the bar and Darlene marks you absent."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1,
+"darlene": -4
+},
+"end": false,
+"gives": [
+"work_unreliable"
+],
+"say": "You tell Darlene you feel sick and spend the evening at a party instead."
 }
 },
 "expire": {
@@ -1758,6 +2685,99 @@ const SITUATIONS = [
 "receipt_ray_black_book"
 ],
 "say": "You spent twenty bucks in protest. Ray still wants his cut."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1,
+"ray": -2
+},
+"end": false,
+"gives": [
+"rent_resentment"
+],
+"say": "You complain about Ray's rent hike to the crew and get fifteen dollars poorer."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"ray": -1
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about Ray's greed and hear how much better things used to be."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -1,
+"ray": -2
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You ask Ghost how to make up the rent difference and he offers his usual shortcuts."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"ray": -2
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You walk the block telling anybody who listens that Ray runs a damn robbery."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"ray": -3
+},
+"end": false,
+"gives": [
+"rent_money_spent"
+],
+"say": "You spend twenty-five dollars protesting a rent increase to a bartender who charges by the glass."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1,
+"ray": -2
+},
+"end": false,
+"gives": [
+"rent_money_spent"
+],
+"say": "You throw twenty dollars at a party and come home to Ray's new rent notice."
 }
 },
 "expire": {
@@ -1940,6 +2960,105 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You blew twenty bucks doing nothing. Everybody else had plans."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -2,
+"mom": -2,
+"darlene": -2
+},
+"end": false,
+"gives": [
+"saturday_crew"
+],
+"say": "You blow off the cookout for the old crew and forget Darlene still expects you at work."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -2,
+"pops": -1,
+"love": -2
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about Saturday plans and let Mom's dinner invitation sit unanswered."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -2,
+"darlene": -2
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You ask Ghost what he's doing Saturday and get offered a third option worse than the first two."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"pops": -2,
+"mom": -2
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You wander the old block while Pops grills burgers and Mom keeps checking her phone."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -3,
+"mom": -3,
+"darlene": -4,
+"love": -2
+},
+"end": true,
+"gives": [
+"saturday_shift_missed"
+],
+"say": "You skip work and Pops' cookout for a barstool that doesn't pay overtime or serve Mom's potato salad."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -3,
+"mom": -2,
+"darlene": -3
+},
+"end": true,
+"gives": [
+"saturday_party"
+],
+"say": "You spend Saturday at a stranger's party while Darlene loses a worker and Pops saves you a cold burger."
 }
 },
 "expire": {
@@ -2120,6 +3239,96 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You threw the notebook across the room. The memories stayed."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -3
+},
+"end": false,
+"gives": [
+"step_work_avoided"
+],
+"say": "You show the crew your empty notebook and get laughs from people who never wanted you to change."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"pops": -2
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about the past instead of writing it down and end up arguing over whose memory is worse."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -3
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You tell Ghost Pops wants you writing about your mistakes and Ghost reminds you how to make new ones."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"pops": -2
+},
+"end": false,
+"gives": [
+"step_work_avoided"
+],
+"say": "You walk the old block looking at places that belong in the notebook without writing a damn word."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -4,
+"love": -2
+},
+"end": true,
+"gives": [
+"step_work_abandoned"
+],
+"say": "You leave Pops' notebook on the dresser and head for the bar because nobody there asks you to be honest."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -3
+},
+"end": false,
+"gives": [
+"step_work_avoided"
+],
+"say": "You take the notebook to a party as a joke and come home with a stain on the cover."
 }
 },
 "expire": {
@@ -2296,6 +3505,100 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You burned twenty bucks. The Honda's still four hundred."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1,
+"shorty": -1
+},
+"end": false,
+"gives": [
+"car_fund_dented"
+],
+"say": "You spend fifteen bucks showing off the four hundred you saved while Shorty's Honda sits waiting for a buyer."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"love": -2
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You tell your ex you're buying a car and get asked for a ride before you even own the damn thing."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -2,
+"shorty": -1
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You tell Ghost about the Honda and he starts talking about all the places you could drive together."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"shorty": -1
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You walk the old block bragging about wheels you haven't bought while somebody else calls Shorty about the Honda."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"shorty": -3,
+"love": -2
+},
+"end": true,
+"gives": [
+"car_deal_lost"
+],
+"say": "You spend the night celebrating your future car at the bar and wake up to Shorty's text saying the Honda sold."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": -2,
+"pops": -1,
+"love": -1
+},
+"end": false,
+"gives": [
+"car_fund_dented"
+],
+"say": "You blow twenty bucks at a party telling everybody about your new ride while the keys still belong to somebody else."
 }
 },
 "expire": {
@@ -2478,6 +3781,99 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You gave up on Shorty. That look in his eyes didn't leave."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -2,
+"shorty": -3
+},
+"end": false,
+"gives": [
+"shorty_warning_ignored"
+],
+"say": "You tell the old crew Shorty's acting weird and laugh along when they call him a lost cause."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"shorty": -2
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about Shorty's secret messages and get dragged into your own unfinished mess."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 3,
+"pops": -3,
+"shorty": -4
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You ask Ghost if he's heard from Shorty and get a long silence followed by a change of subject."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 2,
+"shorty": -3
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You walk the old block looking for Shorty's mystery contact and end up seeing faces you worked hard to forget."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -3,
+"shorty": -5,
+"love": -2
+},
+"end": true,
+"gives": [
+"shorty_left_alone"
+],
+"say": "You leave Shorty staring at his phone and head to the bar, telling yourself his problems aren't yours."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": -4,
+"pops": -2
+},
+"end": true,
+"gives": [
+"shorty_party_risk"
+],
+"say": "You invite Shorty to a party to cheer him up and watch him disappear into the crowd with somebody he won't introduce."
 }
 },
 "expire": {
@@ -2659,6 +4055,100 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You blew off dinner. Mom put your plate in the fridge."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1,
+"mom": -4
+},
+"end": false,
+"gives": [
+"mom_dinner_missed"
+],
+"say": "You ride around with the crew while Mom keeps dinner warm and tells everybody you're probably running late."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -3,
+"love": -2
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about Sunday dinner and end up remembering every holiday that went sideways."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -1,
+"mom": -4
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You answer Ghost's message instead of Mom's and spend Sunday listening to promises you've heard before."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"mom": -3
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "You walk past the old hangouts while Mom's roast dries out under the kitchen light."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"mom": -5,
+"love": -2
+},
+"end": true,
+"gives": [
+"mom_sunday_ruined"
+],
+"say": "You spend Sunday at the bar and send Mom a two-word excuse while she puts your untouched plate away."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1,
+"mom": -4
+},
+"end": true,
+"gives": [
+"mom_dinner_missed"
+],
+"say": "You choose a loud house party over Mom's dinner and come home hungry enough to remember what you missed."
 }
 },
 "expire": {
@@ -2837,6 +4327,97 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You drove it anyway and blew twenty bucks. Something underneath snapped."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -1,
+"shorty": -1
+},
+"end": false,
+"gives": [
+"car_repair_delayed"
+],
+"say": "You ride with the crew complaining about your grinding Honda while the mechanic's quote sits in your pocket."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"love": -1
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about the broken Honda and get reminded of every car you ever destroyed."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -2
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You ask Ghost for a cheap mechanic and he gives you a number that comes with a favor attached."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1
+},
+"end": false,
+"gives": [
+"car_repair_delayed"
+],
+"say": "You drive the grinding Honda around the old block looking for a backyard mechanic and make the noise twice as bad."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -2,
+"love": -2
+},
+"end": false,
+"gives": [
+"repair_money_spent"
+],
+"say": "You spend twenty-five dollars whining about a hundred-twenty-dollar repair while the Honda sits crooked outside the bar."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -1,
+"love": -1
+},
+"end": false,
+"gives": [
+"car_repair_delayed"
+],
+"say": "You take the grinding Honda to a party and let three loud experts tell you the transmission sounds fine."
 }
 },
 "expire": {
@@ -3017,6 +4598,100 @@ const SITUATIONS = [
 "receipt_ghost_message"
 ],
 "say": "You told the newcomer to figure it out. Somebody once told you that too."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"ghost": 1,
+"pops": -2,
+"ray": -1
+},
+"end": false,
+"gives": [
+"newcomer_ignored"
+],
+"say": "You leave the new kid standing with one trash bag while the old crew picks you up outside."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"mom": -1,
+"pops": -1
+},
+"end": false,
+"gives": [
+"ex_contact"
+],
+"say": "You text your ex about the scared newcomer and spend an hour talking about how bad you had it."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"ghost": 2,
+"pops": -3,
+"ray": -1
+},
+"end": false,
+"gives": [
+"ghost_reconnected"
+],
+"say": "You tell Ghost a new kid just moved in and hear him ask questions that make your stomach turn."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"ghost": 1,
+"pops": -2
+},
+"end": false,
+"gives": [
+"newcomer_ignored"
+],
+"say": "You walk the old block instead of showing the newcomer around and leave the kid to figure out Big Ray alone."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"pops": -3,
+"ray": -2,
+"love": -2
+},
+"end": true,
+"gives": [
+"newcomer_abandoned"
+],
+"say": "You head to the bar while the newcomer asks where the meetings are, and you pretend you didn't hear."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"shorty": 1,
+"pops": -3,
+"ray": -2
+},
+"end": true,
+"gives": [
+"newcomer_party_risk"
+],
+"say": "You invite the newcomer to a party on the first night and call it making friends while every warning sign lights up."
 }
 },
 "expire": {
@@ -3029,6 +4704,806 @@ const SITUATIONS = [
 "pops": -1
 },
 "say": "The newcomer packed their trash bag and left. Nobody knew where they went."
+}
+},
+{
+"id": "love_dingy_shoes",
+"ch": 2,
+"title": "SHE DON'T DATE SCRUBS",
+"who": "love",
+"setup": "Jaz caught you outside the corner store wearing the same busted shoes you showed up to the sober house in. She likes you, but she's wondering if you put any effort into anything besides surviving. She's giving you a shot to prove otherwise.",
+"now": 4,
+"daily": 3,
+"days": 3,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": 0,
+"n": 8,
+"trust": {
+"love": 1,
+"pops": 2
+},
+"end": false,
+"gives": [],
+"say": "Hit a meeting before I start buying shit to impress somebody."
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": 0,
+"n": 7,
+"trust": {
+"love": 1,
+"pops": 2
+},
+"end": false,
+"gives": [],
+"say": "Call Pops and ask if clean shoes count as character development."
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": 0,
+"n": 12,
+"trust": {
+"love": 2,
+"pops": 2
+},
+"end": false,
+"gives": [],
+"say": "Help Shorty move his busted dresser instead of staring at my own shoes."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "Wash these nasty sneakers and hope the soles don't fall off."
+},
+"work": {
+"h": 0,
+"s": 10,
+"c": 72,
+"n": -2,
+"trust": {
+"love": 2,
+"darlene": 1
+},
+"end": false,
+"gives": [
+"love_work_ethic"
+],
+"say": "Clock in and make enough money to quit dressing like a crime scene."
+},
+"betterjob": {
+"h": 5,
+"s": 8,
+"c": -10,
+"n": 2,
+"trust": {
+"love": 2,
+"darlene": -1
+},
+"end": false,
+"gives": [
+"love_ambition"
+],
+"say": "Apply somewhere that pays enough for shoes AND rent."
+},
+"quit": {
+"h": 8,
+"s": -20,
+"c": 0,
+"n": -5,
+"trust": {
+"love": -5,
+"darlene": -5
+},
+"end": true,
+"gives": [
+"love_red_flag"
+],
+"say": "Quit my job and tell Jaz I'm focusing on myself."
+},
+"argue": {
+"h": 15,
+"s": -12,
+"c": 0,
+"n": -8,
+"trust": {
+"love": -6
+},
+"end": true,
+"gives": [
+"love_shoe_fight"
+],
+"say": "Tell Jaz she can buy me shoes if she's that worried."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"love": -5
+},
+"end": true,
+"gives": [
+"love_ghosted"
+],
+"say": "Leave Jaz on read because my pride costs more than sneakers."
+},
+"fkit": {
+"h": 25,
+"s": -25,
+"c": -20,
+"n": -15,
+"trust": {
+"love": -8,
+"pops": -2
+},
+"end": true,
+"gives": [
+"love_red_flag"
+],
+"say": "Blow twenty bucks on junk and tell Jaz to kick rocks."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"love": -5,
+"ghost": 1
+},
+"end": true,
+"gives": [
+"love_old_crew"
+],
+"say": "Go hang with the old crew because they never cared about my shoes."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"love": -7
+},
+"end": true,
+"gives": [
+"love_ex_drama"
+],
+"say": "Text my ex because at least somebody used to like these shoes."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"love": -8,
+"ghost": 5,
+"pops": -3
+},
+"end": true,
+"gives": [
+"ghost_reconnected"
+],
+"say": "Hit up Ghost and forget why I was trying to look decent."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"love": -4,
+"ghost": 2
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "Walk the old block where these shoes got their mileage."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"love": -8,
+"pops": -3
+},
+"end": true,
+"gives": [
+"love_bar_flag"
+],
+"say": "Spend my shoe money at the bar like a damn genius."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"love": -6,
+"shorty": 1
+},
+"end": true,
+"gives": [
+"love_party_flag"
+],
+"say": "Show up at a party dressed like a broke rock star."
+},
+"look": {
+"h": 0,
+"s": -6,
+"c": -60,
+"n": 2,
+"trust": {
+"love": 8,
+"mom": 1
+},
+"end": true,
+"gives": [
+"love_fresh_look"
+],
+"say": "Buy clean kicks, get a cut, and show Jaz I give a damn."
+}
+},
+"expire": {
+"h": 6,
+"s": 10,
+"c": 0,
+"n": -3,
+"trust": {
+"love": -3
+},
+"say": "Three days later I'm still wearing the same beat-up shoes, and Jaz stopped asking when we're going out."
+}
+},
+{
+"id": "love_first_date",
+"ch": 2,
+"title": "TWENTY BUCKS, NO WHEELS",
+"who": "love",
+"setup": "Jaz finally said yes to a date. She wants to get out, grab something to eat, and have a real conversation. You got twenty dollars, no car, and Big Ray wants rent Friday.",
+"now": 6,
+"daily": 4,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": 0,
+"n": 8,
+"trust": {
+"love": 1,
+"pops": 2
+},
+"end": false,
+"gives": [],
+"say": "Hit a meeting and figure out how to date without acting desperate."
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": 0,
+"n": 7,
+"trust": {
+"love": 2,
+"pops": 2
+},
+"end": false,
+"gives": [
+"love_honest_plan"
+],
+"say": "Call Pops and admit I got twenty bucks and big ideas."
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": 0,
+"n": 12,
+"trust": {
+"love": 2,
+"shorty": 2
+},
+"end": false,
+"gives": [],
+"say": "Help Shorty fix his bike instead of begging him for a ride."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {},
+"end": false,
+"gives": [],
+"say": "Stay home and plan a cheap date that doesn't involve stealing flowers."
+},
+"work": {
+"h": 0,
+"s": 10,
+"c": 72,
+"n": -2,
+"trust": {
+"love": 4,
+"darlene": 1
+},
+"end": true,
+"gives": [
+"love_date_fund"
+],
+"say": "Pick up a shift and earn enough to take Jaz somewhere decent."
+},
+"betterjob": {
+"h": 5,
+"s": 8,
+"c": -10,
+"n": 2,
+"trust": {
+"love": 2,
+"darlene": -1
+},
+"end": false,
+"gives": [
+"love_ambition"
+],
+"say": "Apply for better work so twenty bucks stops being my whole personality."
+},
+"quit": {
+"h": 8,
+"s": -20,
+"c": 0,
+"n": -5,
+"trust": {
+"love": -7,
+"darlene": -5
+},
+"end": true,
+"gives": [
+"love_red_flag"
+],
+"say": "Quit my job and tell Jaz we'll have more time together."
+},
+"argue": {
+"h": 15,
+"s": -12,
+"c": 0,
+"n": -8,
+"trust": {
+"love": -6
+},
+"end": true,
+"gives": [
+"love_date_fight"
+],
+"say": "Tell Jaz she must think she's some kind of princess."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"love": -7
+},
+"end": true,
+"gives": [
+"love_stood_up"
+],
+"say": "Don't answer Jaz because admitting I'm broke hurts worse."
+},
+"fkit": {
+"h": 25,
+"s": -25,
+"c": -20,
+"n": -15,
+"trust": {
+"love": -9,
+"ray": -2
+},
+"end": true,
+"gives": [
+"love_stood_up"
+],
+"say": "Blow my last twenty and pretend the date never existed."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"love": -6,
+"ghost": 1
+},
+"end": true,
+"gives": [
+"love_old_crew"
+],
+"say": "Go ride around with the old crew instead of showing up for Jaz."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"love": -8
+},
+"end": true,
+"gives": [
+"love_ex_drama"
+],
+"say": "Text my ex to see if I still got game."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"love": -10,
+"ghost": 5,
+"pops": -3
+},
+"end": true,
+"gives": [
+"ghost_reconnected"
+],
+"say": "Ask Ghost for a ride and invite a whole different kind of trouble."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"love": -5,
+"ghost": 2
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "Walk the old block looking for somebody who owes me money."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"love": -10,
+"pops": -3
+},
+"end": true,
+"gives": [
+"love_bar_flag"
+],
+"say": "Spend date night at the bar without my actual date."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"love": -8,
+"shorty": 1
+},
+"end": true,
+"gives": [
+"love_party_flag"
+],
+"say": "Hit a house party and tell myself that's basically a date."
+},
+"look": {
+"h": 0,
+"s": -6,
+"c": -60,
+"n": 2,
+"trust": {
+"love": 2,
+"mom": 1
+},
+"end": false,
+"gives": [
+"love_fresh_look"
+],
+"say": "Buy fresh clothes and realize I can't afford to leave the house."
+}
+},
+"expire": {
+"h": 8,
+"s": 12,
+"c": 0,
+"n": -5,
+"trust": {
+"love": -6
+},
+"say": "Jaz got dressed, waited for a plan, and went home when I never gave her one."
+}
+},
+{
+"id": "love_birthday_bar",
+"ch": 2,
+"title": "LOVE AIN'T WORTH A BARSTOOL",
+"who": "love",
+"setup": "Jaz wants you to come to her friend's birthday party at a bar Saturday night. She says nobody expects you to drink, but you know exactly what that place smells like and who might be there. She wants you beside her, not in trouble.",
+"now": 8,
+"daily": 6,
+"days": 2,
+"moves": {
+"meeting": {
+"h": -12,
+"s": -8,
+"c": 0,
+"n": 8,
+"trust": {
+"love": 2,
+"pops": 3
+},
+"end": false,
+"gives": [
+"love_boundary"
+],
+"say": "Hit a meeting and remember why I quit hanging around bars."
+},
+"call": {
+"h": -10,
+"s": -10,
+"c": 0,
+"n": 7,
+"trust": {
+"love": 3,
+"pops": 3
+},
+"end": true,
+"gives": [
+"love_boundary"
+],
+"say": "Call Pops and ask how to tell Jaz no without acting like a jerk."
+},
+"help": {
+"h": -8,
+"s": -5,
+"c": 0,
+"n": 12,
+"trust": {
+"love": 2,
+"pops": 2
+},
+"end": false,
+"gives": [],
+"say": "Help a newcomer get to a meeting instead of worrying about missing the party."
+},
+"rest": {
+"h": -5,
+"s": -15,
+"c": 0,
+"n": 1,
+"trust": {
+"love": 1
+},
+"end": false,
+"gives": [],
+"say": "Stay home, order food, and let Saturday night be somebody else's circus."
+},
+"work": {
+"h": 0,
+"s": 10,
+"c": 72,
+"n": -2,
+"trust": {
+"love": 1,
+"darlene": 1
+},
+"end": false,
+"gives": [
+"love_work_ethic"
+],
+"say": "Take a Saturday shift and tell Jaz I can't make the bar."
+},
+"betterjob": {
+"h": 5,
+"s": 8,
+"c": -10,
+"n": 2,
+"trust": {
+"love": 1,
+"darlene": -1
+},
+"end": false,
+"gives": [
+"love_ambition"
+],
+"say": "Spend Saturday chasing better work instead of a barstool."
+},
+"quit": {
+"h": 8,
+"s": -20,
+"c": 0,
+"n": -5,
+"trust": {
+"love": -5,
+"darlene": -5
+},
+"end": true,
+"gives": [
+"love_red_flag"
+],
+"say": "Quit my job so I can party with Jaz whenever she wants."
+},
+"argue": {
+"h": 15,
+"s": -12,
+"c": 0,
+"n": -8,
+"trust": {
+"love": -6
+},
+"end": true,
+"gives": [
+"love_bar_fight"
+],
+"say": "Tell Jaz she's selfish for even asking me to go."
+},
+"ignore": {
+"h": 12,
+"s": -15,
+"c": 0,
+"n": -12,
+"trust": {
+"love": -5
+},
+"end": true,
+"gives": [
+"love_ghosted"
+],
+"say": "Leave Jaz hanging because saying no takes a backbone."
+},
+"fkit": {
+"h": 25,
+"s": -25,
+"c": -20,
+"n": -15,
+"trust": {
+"love": -9,
+"pops": -4
+},
+"end": true,
+"gives": [
+"love_bar_flag"
+],
+"say": "Say screw it and walk straight into the place I swore off."
+},
+"crew": {
+"h": 4,
+"s": -20,
+"c": -15,
+"n": 6,
+"trust": {
+"love": -7,
+"ghost": 2
+},
+"end": true,
+"gives": [
+"love_old_crew"
+],
+"say": "Hit up the old crew and turn one bad invitation into five."
+},
+"ex": {
+"h": 3,
+"s": -15,
+"c": 0,
+"n": 4,
+"trust": {
+"love": -8
+},
+"end": true,
+"gives": [
+"love_ex_drama"
+],
+"say": "Text my ex because apparently I need more drama tonight."
+},
+"ghostlink": {
+"h": 8,
+"s": -18,
+"c": 0,
+"n": 3,
+"trust": {
+"love": -10,
+"ghost": 5,
+"pops": -4
+},
+"end": true,
+"gives": [
+"ghost_reconnected"
+],
+"say": "Text Ghost and let the wrong person decide my Saturday."
+},
+"block": {
+"h": 8,
+"s": -15,
+"c": -5,
+"n": 5,
+"trust": {
+"love": -6,
+"ghost": 2
+},
+"end": false,
+"gives": [
+"old_block_visit"
+],
+"say": "Walk the old block instead of facing the conversation with Jaz."
+},
+"bar": {
+"h": 6,
+"s": -22,
+"c": -25,
+"n": 6,
+"trust": {
+"love": -7,
+"pops": -4,
+"ghost": 2
+},
+"end": true,
+"gives": [
+"love_bar_flag"
+],
+"say": "Walk into that bar and pretend ginger ale makes me bulletproof."
+},
+"party": {
+"h": 5,
+"s": -25,
+"c": -20,
+"n": 8,
+"trust": {
+"love": -5,
+"pops": -3
+},
+"end": true,
+"gives": [
+"love_party_flag"
+],
+"say": "Skip the bar and crash a house party like that's somehow smarter."
+},
+"look": {
+"h": 0,
+"s": -6,
+"c": -60,
+"n": 2,
+"trust": {
+"love": 1
+},
+"end": false,
+"gives": [
+"love_fresh_look"
+],
+"say": "Buy a fresh outfit for a place I shouldn't be going."
+}
+},
+"expire": {
+"h": 10,
+"s": 12,
+"c": 0,
+"n": -6,
+"trust": {
+"love": -4
+},
+"say": "Saturday came and went, and Jaz got tired of waiting for me to say what I actually wanted."
 }
 }
 ];

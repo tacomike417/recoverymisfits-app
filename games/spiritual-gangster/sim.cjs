@@ -8,6 +8,7 @@ function smart(s) {
     const ends = ids => { let b = null, bv = -1e9; for (const id of ids) { if (!E.canDo(s, id)) continue; const p = E.preview(s, id); if (!p.end) continue; const v = val(p.e, true); if (v > bv) { bv = v; b = id; } } return b; };
     const spirit = ['meeting', 'call', 'help', 'rest', 'rides'];
     if (s.actions === 3) pick = (s.scen && ends(spirit)) || (s.stress > 70 && E.canDo(s, 'rest') ? 'rest' : s.heat > 50 ? 'call' : 'meeting');
+    else if (s.level >= 3 && s.jar.move < E.NEED.l3 && s.cash >= 150 && E.canDo(s, 'movefund')) pick = 'movefund';
     else if (E.canDo(s, 'work') && s.heat < 70) pick = 'work';
     else if (s.scen) pick = ends(spirit.concat(['betterjob']));
     if (!pick) {
@@ -26,6 +27,8 @@ function smart(s) {
 function human(s) {
   const r = () => (E.fresh.__h = ((E.fresh.__h || 11) * 48271) % 2147483647) / 2147483647;
   if (s.stress > 55 && r() < 0.35) { E.action(s, ['argue', 'ignore', 'fkit'][Math.floor(r() * 3)]); }
+  else if (s.cash > 90 && s.level >= 2 && r() < 0.15) { E.action(s, s.looks < 4 ? 'look' : 'carfund'); }
+  else if (s.stress > 45 && r() < 0.3) { E.action(s, ['crew', 'ex', 'block', 'bar', 'party', 'ghostlink'][Math.floor(r() * 6)]); }
   if (r() < 0.15) { while (s.actions > 0) { const id = ['meeting', 'call', 'help', 'rest', 'betterjob'][Math.floor(r() * 5)]; if (!E.action(s, id)) break; } return; }
   smart(s);
 }
@@ -36,7 +39,7 @@ function sloppy(s) {
   const r = () => E.fresh.__r = ((E.fresh.__r || 7) * 48271) % 2147483647;
   while (s.actions > 0) {
     const x = (r() % 100);
-    let id = x < 15 ? ['argue', 'ignore', 'fkit'][x % 3] : x < 45 ? (s.job ? 'work' : 'betterjob') : ['meeting', 'call', 'help', 'rest'][x % 4];
+    let id = x < 15 ? ['argue', 'ignore', 'fkit', 'crew', 'bar', 'party'][x % 6] : x < 45 ? (s.job ? 'work' : 'betterjob') : ['meeting', 'call', 'help', 'rest'][x % 4];
     if (!E.canDo(s, id)) id = E.ACTION_IDS.find(k => E.canDo(s, k));
     if (!id) break; E.action(s, id);
   }
