@@ -68,3 +68,7 @@ v5.0 — HE HAS A MIND OF HIS OWN (Mike's brief, 15 Oct 2026).
   a cop lockup needs heat 60+. Missing = he's gone in the morning, comes back at 4:52 PM; 1 move that day.
 - Morning cinematic reveal: time, scene, last night, his words (grow with sober time), STATUS.
 - Tuned (NIGHT in engine.js): careful players win ~6 in 10 around day 38, a player who slips ~4 in 10.
+
+v5.2 — REAL TEXTS (Mike, 15 Oct 2026): every situation, receipt and overnight wild card is a real text thread
+(convos.js, 51 threads written by ChatGPT). Blue bubbles = your homie, gray = them, group chats like SOBER HOUSE 🏠,
+typing dots, Read/Delivered. Messages play in one at a time; tap the phone to show them all.

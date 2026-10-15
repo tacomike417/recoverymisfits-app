@@ -472,13 +472,38 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .spiritrow .mk{font-size:15px;white-space:nowrap}.spiritrow .ebar{flex:1}
 .spiritrow b{font:800 11px 'Barlow Condensed';color:#9fe0a8;white-space:nowrap}
 .spiritrow .sob{color:var(--gold2);font-size:16px}
+
+/* ---------- v5.2: real texts ---------- */
+.tnarr{font:italic 600 14px/1.35 'Barlow';color:#4a3b2c;margin:2px 0 6px}
+.ph.tx{cursor:pointer}
+.ph .grp{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#2a211b;border:2px solid var(--gold);font-size:22px}
+.txs{display:flex;flex-direction:column;gap:5px;max-height:46vh;overflow-y:auto;padding:2px 2px 4px;scroll-behavior:smooth}
+.tm{display:flex;flex-direction:column;max-width:82%;position:relative}
+.tm.them{align-self:flex-start;padding-left:0}
+.tm.me{align-self:flex-end;align-items:flex-end}
+.tm p{margin:0;font:500 14.5px/1.3 'Barlow';padding:7px 11px;border-radius:17px;word-wrap:break-word}
+.tm.them p{background:#2c2c30;color:#f2f2f2;border-bottom-left-radius:4px}
+.tm.me p{background:#0a84ff;color:#fff;border-bottom-right-radius:4px}
+.tm .tn{font:700 11px 'Barlow Condensed';color:#9a9aa2;margin:2px 0 1px 30px}
+.tm .ta{position:absolute;left:0;bottom:0;width:24px;height:24px;border-radius:50%;object-fit:cover;object-position:50% 20%}
+.tm.them:has(.ta) p{margin-left:30px}
+.tm .rd{font:600 10.5px 'Barlow Condensed';color:#9a9aa2;margin-top:2px}
+.tm.wait{display:none}
+.tm.in{animation:bubin .25s ease-out}
+.typing{display:none;align-self:flex-start}.typing.me{align-self:flex-end}
+.typing p{display:flex;gap:4px;margin:0;background:#2c2c30;padding:10px 12px;border-radius:17px}
+.typing.me p{background:#0a84ff}
+.typing i{width:7px;height:7px;border-radius:50%;background:#bbb;animation:tdot 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes tdot{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+.cine-night .ph{margin:6px 0}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="cards.js?v=5.1"></script><script src="situations.js?v=5.1"></script><script src="engine.js?v=5.1"></script><script src="words.js?v=5.1"></script><!-- bump ?v= with every VERSION change -->
+<script src="cards.js?v=5.2"></script><script src="situations.js?v=5.2"></script><script src="engine.js?v=5.2"></script><script src="words.js?v=5.2"></script><script src="convos.js?v=5.2"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -730,7 +755,7 @@ function revealUI(phase2){
     body = `<div class="cine-time mk">DAY ${day} — ${TIME.missing}</div><h1 class="cine-h mk">WHERE THE HELL IS ${G() ? 'SHE' : 'HE'}?</h1>
     <div class="cine-room empty" style="background-image:url(${A}room/${Math.min(s.level, 4)}.webp)"></div>
     <p class="cine-p">Empty bed. Phone goes straight to voicemail. Big Ray says he hasn’t seen ${G() ? 'her' : 'him'} since midnight.</p>
-    ${phone('ghost', 'just now', `Yo. Your ${G() ? 'girl' : 'boy'}’s with me.`)}
+    ${convoFor('wild_ghost_bad') ? textThread(convoFor('wild_ghost_bad'), '5:40 AM') : ''}${phone('ghost', 'just now', `Yo. Your ${G() ? 'girl' : 'boy'}’s with me.`)}
     <p class="cine-status">STATUS: MISSING. OUTCOME UNKNOWN.</p>
     <button class="paper red big mk" onclick="revealUI(true)">WAIT FOR ${G() ? 'HER' : 'HIM'}</button>`;
   } else if (phase2 && r.after) {
@@ -745,14 +770,14 @@ function revealUI(phase2){
     body = `<div class="cine-time mk">DAY ${day} — ${TIME[tier] || '6:42 AM'}</div>
     <div class="cine-room ${tier === 'locked' ? 'cell' : tier === 'relapse' || tier === 'bad' ? 'night' : ''}" style="background-image:url(${A}room/${tier === 'locked' ? 'jail' : Math.min(s.level, 4)}.webp)"><img src="${myFig()}" alt=""></div>
     <p class="cine-p"><b>${Guy()} ${esc(hs(sc))}</b></p>
-    <div class="cine-night"><span class="kicker">LAST NIGHT${r.time ? ' · ' + r.time : ''} · ${esc(r.title)}</span><p>${esc(r.text)}</p>${r.e && r.e.h ? heatMeter(s.heat, s.heat - r.e.h) : ''}${trustLine(r.t)}</div>
+    <div class="cine-night"><span class="kicker">LAST NIGHT${r.time ? ' · ' + r.time : ''} · ${esc(r.title)}</span>${convoFor('wild_' + r.id + '_' + r.wt) ? textThread(convoFor('wild_' + r.id + '_' + r.wt), r.time || '2:00 AM') : `<p>${esc(r.text)}</p>`}${r.e && r.e.h ? heatMeter(s.heat, s.heat - r.e.h) : ''}${trustLine(r.t)}</div>
     <p class="cine-q">“${esc(quote(tier))}”</p>
     <p class="cine-status">STATUS: ${status(tier)}</p>${tier === 'relapse' ? relapseNote() : ''}
     ${r.facts && r.facts.length ? `<ul class="cine-facts">${r.facts.slice(0, 5).map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
     <button class="paper red big mk" onclick="revealDone()">${tier === 'locked' ? 'WHAT NOW' : 'LET’S GO'}</button>`;
   }
   sfx(tier === 'locked' ? 'locked' : 'night');
-  show(body, 'card cine');
+  show(body, 'card cine'); setTimeout(textsPlay, 60);
 }
 function relapseNote(){ return `<div class="relapse"><b>This isn’t the end of the story.</b> Sober time starts over, but the chapter, the job and the people are still here. Pops left a voicemail: “Call me. Not tomorrow. Today.”</div>`; }
 function revealDone(){ s.revealSeen = true; if (s.show[0] === 'reveal') s.show.shift(); save(); closeModal(); render(); }
@@ -834,6 +859,39 @@ function wakeUp(force){
 }
 setInterval(() => { if (s && s.asleep && Date.now() >= s.asleep.wake) wakeUp(); else if (s && s.asleep && page === 'life') { const w = document.querySelector('.wake'); if (w) { const left = Math.max(0, s.asleep.wake - Date.now()); w.textContent = 'MORNING IN ' + Math.floor(left / 3600000) + 'h ' + String(Math.floor(left % 3600000 / 60000)).padStart(2, '0') + 'm'; } } }, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && s && s.asleep) wakeUp(); });
+
+/* ---------- v5.2: real text conversations (convos.js, written by ChatGPT) ---------- */
+const WHO_NAME = { pops: 'Pops', ray: 'Big Ray', darlene: 'Darlene', mom: 'Mom', shorty: 'Shorty', ghost: 'Ghost', house: 'House', mechanic: 'Mechanic', seller: 'Seller', newcomer: 'Newcomer', ex: 'The Ex', unknown: 'Unknown' };
+const hasFace = w => ['pops', 'ray', 'darlene', 'mom', 'shorty', 'ghost'].includes(w);
+function convoFor(key){ return typeof CONVOS !== 'undefined' && CONVOS[key] ? CONVOS[key] : null; }
+// a whole conversation on the cracked phone. Messages type in one at a time; tap the phone to see it all.
+function textThread(c, time){
+  const who = [...new Set(c.msgs.map(m => m[0]).filter(w => w !== 'you'))], group = who.length > 1 || /🏠|CREW|GROUP|CHAT/i.test(c.thread);
+  const head = !group && hasFace(who[0]) ? `<img src="${face(who[0])}" alt="">` : `<span class="grp">${group ? '👥' : '💬'}</span>`;
+  const lastYou = c.msgs.map(m => m[0]).lastIndexOf('you');
+  const msgs = c.msgs.map(([w, t], i) => {
+    const me = w === 'you';
+    return `<div class="tm ${me ? 'me' : 'them'}" data-i="${i}">${!me && group ? `<span class="tn">${esc(WHO_NAME[w] || w)}</span>` : ''}${!me && hasFace(w) && group ? `<img class="ta" src="${face(w)}" alt="">` : ''}<p>${esc(hs(t))}</p>${i === lastYou ? `<small class="rd">${i === c.msgs.length - 1 ? 'Delivered' : 'Read ' + time}</small>` : ''}</div>`;
+  }).join('');
+  return `${c.narr ? `<p class="tnarr">${esc(hs(c.narr))}</p>` : ''}<div class="ph tx" onclick="textsAll(this)"><div class="phtop"><span>${time}</span><span>▮▮▮ ${s.day % 3 ? '12%' : '4%'}</span></div>
+  <div class="phwho">${head}<div><b>${esc(c.thread)}</b><small>${group ? who.map(w => WHO_NAME[w] || w).join(', ') : 'iMessage'}</small></div></div>
+  <div class="txs">${msgs}<div class="typing them"><p><i></i><i></i><i></i></p></div></div></div>`;
+}
+// play the messages in, one at a time, with the typing dots
+function textsPlay(){
+  const box = document.querySelector('#modal .tx'); if (!box) return;
+  const ms = [...box.querySelectorAll('.tm')], dots = box.querySelector('.typing'), sc = box.querySelector('.txs');
+  ms.forEach(m => m.classList.add('wait')); let i = 0;
+  const step = () => {
+    if (!document.body.contains(box) || box.dataset.all) return;
+    if (i >= ms.length) { dots.style.display = 'none'; return; }
+    const m = ms[i], me = m.classList.contains('me');
+    dots.className = 'typing ' + (me ? 'me' : 'them'); dots.style.display = 'flex'; sc.appendChild(dots); sc.scrollTop = sc.scrollHeight;
+    setTimeout(() => { if (box.dataset.all) return; dots.style.display = 'none'; m.classList.remove('wait'); m.classList.add('in'); sc.scrollTop = sc.scrollHeight; i++; setTimeout(step, me ? 350 : 250); }, me ? 650 : 400 + Math.min(1200, m.textContent.length * 22));
+  };
+  setTimeout(step, 350);
+}
+function textsAll(box){ box.dataset.all = 1; box.querySelectorAll('.tm').forEach(m => { m.classList.remove('wait'); m.classList.add('in'); }); const d = box.querySelector('.typing'); if (d) d.style.display = 'none'; }
 
 /* ---------- today ---------- */
 // icons: ChatGPT's where we have them, hand-drawn ink for the new moves
@@ -934,7 +992,7 @@ function cardPop(c){
   const chips = [c.s ? `<span class="chip2 ${c.s > 0 ? 'bad' : 'good'}">${c.s > 0 ? '+' : '−'}${Math.abs(c.s)} STRESS</span>` : '', c.c ? `<span class="chip2 ${c.c > 0 ? 'good' : 'bad'}">${c.c > 0 ? '+$' : '−$'}${Math.abs(c.c)}</span>` : '', c.n ? `<span class="chip2 ${c.n > 0 ? 'good' : 'bad'}">${c.n > 0 ? '+' : '−'}${Math.abs(c.n)} CONNECTION</span>` : ''].join('');
   const fx = `${c.h ? heatMeter(s.heat, s.heat - c.h) : ''}${chips ? `<div class="chips">${chips}</div>` : ''}${trustLine(c.t)}`;
   const btn = `<button class="paper red big mk" onclick="s.cards.shift();save();closeModal();render()">GOT IT</button>`;
-  if (c.kind === 'receipt' && c.who) return show(`<div class="lolt mk red">${kick}</div>` + phone(c.who, c.title, c.text, fx, btn), 'card phonecard');
+  if (c.kind === 'receipt' && c.who) { const cv = convoFor(c.rid); show(`<div class="lolt mk red">${kick}</div>` + (cv ? textThread(cv, '9:4' + (s.day % 10) + ' AM') + `<h2 class="mk" style="margin-top:8px">${esc(c.title)}</h2>` + fx + btn : phone(c.who, c.title, c.text, fx, btn)), 'card phonecard'); return setTimeout(textsPlay, 60); }
   if (c.kind === 'chip') { sfx('levelup'); return show(`<div class="lolt mk">${kick}</div><div class="chipbig">${CHIP(c.chip)}</div><h2 class="mk" style="text-align:center">${esc(c.title)}</h2><p class="say">${esc(c.text)}</p>${btn}`, 'card'); }
   return show(`<div class="lolt mk ${c.kind === 'streak' ? '' : 'red'}">${kick}</div>${c.who ? `<p class="note" style="margin:0">${esc(person(c.who).name)}</p>` : ''}<h2 class="mk">${esc(c.title)}</h2><p class="say">${esc(c.text)}</p>${fx}${btn}`, 'card');
 }
@@ -956,9 +1014,10 @@ function scenPopup(fromMorning){
   if (!s.scen) return;
   if (!s.ui || s.ui.day !== s.day) s.ui = { day: s.day, done: [] }; s.ui.read = true;
   const c = scenFor(s, s.scen.id), fresh = s.scen.fresh && fromMorning;
-  show(phone(c.who, c.title, forSex(s, c.setup), `<h2 class="mk" style="margin-top:8px">${esc(c.title)}</h2>${heatMeter(s.heat, fresh ? s.heat - c.now : null)}
-  <p class="note"><b>Every night you leave it, the heat climbs.</b> ${s.scen.left} day${s.scen.left === 1 ? '' : 's'} to deal with it. Moves marked <b>✔ ENDS IT</b> handle it.</p>`,
-  `<button class="paper red big mk" onclick="${fromMorning ? 's.show=[];' : ''}save();closeModal();render()">GOT IT</button>`), 'card phonecard');
+  const cv = convoFor(c.id), tm = c.who === 'ghost' ? '3:17 AM' : c.who === 'mom' ? '7:02 AM' : c.who === 'darlene' ? '5:48 AM' : '8:1' + (s.day % 10) + ' AM';
+  show((cv ? textThread(cv, tm) : phone(c.who, c.title, forSex(s, c.setup))) + `<h2 class="mk" style="margin-top:8px">${esc(c.title)}</h2>${heatMeter(s.heat, fresh ? s.heat - c.now : null)}
+  <p class="note"><b>Every night you leave it, the heat climbs.</b> ${s.scen.left} day${s.scen.left === 1 ? '' : 's'} to deal with it. Moves marked <b>✔ ENDS IT</b> handle it.</p>` + `<button class="paper red big mk" onclick="${fromMorning ? 's.show=[];' : ''}save();closeModal();render()">GOT IT</button>`, 'card phonecard');
+  setTimeout(textsPlay, 60);
 }
 
 function confirmAction(id){

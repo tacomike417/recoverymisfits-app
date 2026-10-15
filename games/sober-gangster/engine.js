@@ -9,7 +9,7 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v5.1';
+const VERSION = 'v5.2';
 const SAVE_KEY = 'sober-gangster-v5';
 const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'quit', 'argue', 'ignore', 'fkit'];
 const ROWS = [   // top to bottom on the screen (Mike: life, work, spiritual)
@@ -283,7 +283,7 @@ function startDay(s, first = false, picked = null) {
     const R = RECEIPTS[r.id]; if (!R) continue;
     apply(s, R); trustUp(s, R.t);
     if (r.id === 'receipt_ghost_message' && !s.flags.includes('oldcontact')) s.flags.push('oldcontact');
-    card(s, { kind: 'receipt', who: R.who, title: R.title, text: R.text, h: R.h, s: R.s, t: R.t });
+    card(s, { kind: 'receipt', rid: r.id, who: R.who, title: R.title, text: R.text, h: R.h, s: R.s, t: R.t });
     record(s, 'It came back: ' + R.title + '.');
   }
   if (!s.scen) {
@@ -568,7 +568,7 @@ function overnight(s) {
     tier = x < pWorst ? 'worst' : (R > 35 && x < pWorst + 0.5 && c.bad) ? 'bad' : c.shaky ? 'shaky' : 'bad';
   }
   if (!c[tier]) tier = c.shaky ? 'shaky' : 'good';
-  const o = c[tier], out = { id, tier, time: c.time, title: c.title, text: sheHe(s, o.text), e: o.e || {}, t: o.t || {} };
+  const o = c[tier], out = { id, wt: tier, tier, time: c.time, title: c.title, text: sheHe(s, o.text), e: o.e || {}, t: o.t || {} };
   if (o.e) apply(s, o.e);
   if (o.t) out.t = trustUp(s, o.t);
   if (o.sp) s.spirit = clamp(s.spirit + o.sp, 0, 100);
