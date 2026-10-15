@@ -383,6 +383,9 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .boardnote b{color:var(--gold2)}
 /* wiggle: the thing to tap next, for the first couple of days */
 .wig{animation:wig 1.3s ease-in-out infinite}
+.gohint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(74px + env(safe-area-inset-bottom));z-index:29;background:var(--gold);color:#111;border:3px solid #111;border-radius:22px;padding:6px 16px 7px;font-size:19px;box-shadow:0 4px 0 #111,0 6px 12px #000a;white-space:nowrap;animation:hintbob 1.2s ease-in-out infinite}
+.gohint.gone{display:none}
+@keyframes hintbob{0%,100%{transform:translateX(-50%)}50%{transform:translateX(-50%) translateY(-5px)}}
 @keyframes wig{0%,55%,100%{transform:rotate(0)}62%{transform:rotate(-3deg) scale(1.04)}70%{transform:rotate(3deg) scale(1.04)}78%{transform:rotate(-2deg)}86%{transform:rotate(1.5deg)}}
 .cardflag.wig{animation:wig 1.3s ease-in-out infinite}
 .hot.wig,.endbtn.wig{animation:wig 1.3s ease-in-out infinite}
@@ -411,7 +414,7 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .win h1{font-size:46px;color:var(--red2);text-align:center;margin:4px 0}
 
 /* ---------- v4.1: game feel ---------- */
-.bubble{position:absolute;right:4%;top:22%;max-width:46%;z-index:4;background:#fff;color:#111;font:700 14px/1.2 'Barlow';padding:8px 10px;border:3px solid #111;border-radius:14px;box-shadow:3px 3px 0 #0008;animation:pop .45s cubic-bezier(.3,1.6,.6,1) both .3s}
+.bubble{position:absolute;right:2%;top:16%;max-width:34%;z-index:4;background:#fff;color:#111;font:700 13px/1.18 'Barlow';padding:7px 9px;border:3px solid #111;border-radius:14px;box-shadow:3px 3px 0 #0008;animation:pop .45s cubic-bezier(.3,1.6,.6,1) both .3s}
 .bubble::after{content:'';position:absolute;left:-14px;bottom:12px;border:8px solid transparent;border-right:12px solid #111}
 @keyframes pop{from{transform:scale(.2);opacity:0}to{transform:none;opacity:1}}
 .mb .mg{font:700 10.5px 'Barlow Condensed';opacity:.7;text-transform:uppercase;letter-spacing:.3px;margin-top:-1px}
@@ -512,7 +515,7 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="cards.js?v=6.0"></script><script src="situations.js?v=6.0"></script><script src="engine.js?v=6.0"></script><script src="words.js?v=6.0"></script><script src="convos.js?v=6.0"></script><!-- bump ?v= with every VERSION change -->
+<script src="cards.js?v=6.1"></script><script src="situations.js?v=6.1"></script><script src="engine.js?v=6.1"></script><script src="words.js?v=6.1"></script><script src="convos.js?v=6.1"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -944,6 +947,14 @@ const money = c => c ? `<span>${c > 0 ? '+$' : '−$'}${Math.abs(c)}</span>` : '
 const ENVELOPE = `<img class="envimg" src="${A}ui/mv/envelope.webp" alt="">`, ENVELOPE_OLD = '<svg viewBox="0 0 78 56"><rect x="3" y="4" width="72" height="48" rx="3" fill="#f3e6c4" stroke="#111" stroke-width="4"/><path d="M5 7l34 26L73 7" fill="none" stroke="#111" stroke-width="4"/><path d="M5 50l24-20M73 50L49 30" stroke="#111" stroke-width="3"/><circle cx="39" cy="33" r="9" fill="#a8141a" stroke="#111" stroke-width="2"/><path d="M35 33h8M39 29v8" stroke="#f7cf5c" stroke-width="2"/></svg>';
 
 // what we nudge the player toward for the first couple of days
+// the "start here" pill: jumps to the wiggling button, and hides once that button is on screen
+function toWig(){ const w = document.querySelector('.board .wig, .endbtn.wig'); if (w) w.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+let wigObs = null;
+function watchWig(){
+  if (wigObs) wigObs.disconnect();
+  const w = document.querySelector('.board .wig, .endbtn.wig'), h = document.querySelector('.gohint'); if (!w || !h) return;
+  wigObs = new IntersectionObserver(([e]) => h.classList.toggle('gone', e.isIntersecting), { threshold: 0.6 }); wigObs.observe(w);
+}
 function nudge(){
   if (s.day > 2 || s.lockedUp || s.result) return null;
   if (!s.actions) return 'end';
@@ -992,7 +1003,7 @@ function life(){
   <span class="htag mk ${odds ? 'hot' : ''}" style="${at(584, 952, 236, 52)}">${odds >= 1 ? 'TONIGHT' : odds ? pct(odds) + '% tonight' : 'Safe tonight'}</span>
   <div class="heatslot" style="${at(112, 1016, 682, 26)}">${heatMeter(s.heat, null, false)}</div>
   </div>
-  ${board(wig)}
+  ${board(wig)}${wig && wig !== 'env' ? `<button class="gohint mk" onclick="toWig()">START HERE: ${esc(wig === 'end' ? (s.actions ? 'CALL IT A DAY' : 'NEXT DAY') : MOVES[wig].label.toUpperCase())} ↓</button>` : ''}
   <div class="endstage"><img src="${SK}today-bottom.webp" alt=""><button class="hot endbtn ${wig === 'end' ? 'wig' : ''}" onclick="night()" aria-label="${s.actions ? 'Call it a day' : 'Next day'}"></button></div>`;
 }
 function chapterDone(){
@@ -1105,6 +1116,7 @@ function render(){
   else if (inGame && s.levelUp && !document.querySelector('#modal .ov')) levelUpUI();
   else if (page === 'life' && ((s.cards && s.cards.length) || (s.show && s.show.length))) setTimeout(morning, 350);
   setTimeout(flushNotices, 60);
+  if (page === 'life') setTimeout(watchWig, 30);
 }
 
 /* ---------- overlays ---------- */
