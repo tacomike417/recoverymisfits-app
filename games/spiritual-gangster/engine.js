@@ -9,7 +9,7 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v7.0';
+const VERSION = 'v7.1';
 const SAVE_KEY = 'sober-gangster-v5';
 const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'double', 'quit', 'argue', 'ignore', 'fkit', 'crew', 'ex', 'ghostlink', 'block', 'bar', 'party', 'look', 'carfund', 'movefund', 'date', 'bizfund'];
 const ROWS = [   // top to bottom on the screen (Mike: life, work, spiritual; then people, places and things)
@@ -305,7 +305,7 @@ function sitById(id) { return SITUATIONS.find(x => x.id === id); }
 function scenFor(s, id) { const c = sitById(id); return c && c.girl && s.look.sex === 'girl' ? { ...c, ...c.girl } : c; }
 function sitOK(s, c) {
   if (c.need && !c.need.every(k => needOK(s, k))) return false;
-  if (c.id === 'first_job') return !s.job;
+  if (c.id === 'first_job') return false;   // only ever comes on day 1, or after 3 job leads (pickScen)
   if (c.id === 'buy_the_car') return !s.car;
   if (c.id === 'car_trouble') return s.car;
   if (['darlene_raise', 'payday_pocket', 'ghost_warehouse', 'saturday_shift'].includes(c.id)) return s.job;
