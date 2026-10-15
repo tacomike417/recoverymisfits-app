@@ -54,3 +54,17 @@ v4.1 — REAL MONEY + GAME FEEL (Mike, 15 Oct 2026).
 - Moves in your words: words.js (ChatGPT), per situation, shown on the buttons.
 - Night recap "How he made out" + sobriety chips (24 hours, 7, 14, 30 days) on the story page.
 - Icons, envelope and flames: assets/ui/mv/ (ChatGPT).
+
+v5.0 — HE HAS A MIND OF HIS OWN (Mike's brief, 15 Oct 2026).
+- Spiritual energy (0-100): meetings +12, calls +8, help +10, rest +5, rides +10; life moves -12; -12 every night.
+- Sober days (s.sober) drive the chips and the win (30 days sober). Relapse = sober back to 0, money/trust hit,
+  chips re-earnable, chapter/job/people kept. Locked up still = back to chapter 1.
+- Evening cinematic after the moves: how the day went, TONIGHT'S PLAN, meters, warning. LIGHTS OUT.
+- Real time: the night resolves at the next 6 AM local, exactly once (s.asleep.wake). Missed days = one night.
+  Refresh can't reroll (the night is resolved and saved before it's shown). Add ?dev to the URL for a skip button.
+- Overnight wild cards (engine WILD): craving, ex, cop, Ghost, newcomer call, paycheck, Mom, the ceiling, or a quiet
+  night (the old dream cards). Outcome tier from FOUNDATION (spirit, sober time, people, sponsor) vs RISK (heat,
+  stress, life moves today, Ghost, alone, broke). Worst outcomes (relapse, locked up, missing) need RISK >= 40;
+  a cop lockup needs heat 60+. Missing = he's gone in the morning, comes back at 4:52 PM; 1 move that day.
+- Morning cinematic reveal: time, scene, last night, his words (grow with sober time), STATUS.
+- Tuned (NIGHT in engine.js): careful players win ~6 in 10 around day 38, a player who slips ~4 in 10.

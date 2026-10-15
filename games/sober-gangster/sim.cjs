@@ -42,16 +42,17 @@ function sloppy(s) {
   }
 }
 function run(N = 1000, policy = smart) {
-  const lv = { 1: 0, 2: 0, 3: 0, 4: 0 }; let locked = 0, won = 0; const winDay = [], lockDay = [], chDay = { 2: [], 3: [], 4: [] };
+  const lv = { 1: 0, 2: 0, 3: 0, 4: 0 }; let locked = 0, won = 0, rel = 0; const winDay = [], lockDay = [], chDay = { 2: [], 3: [], 4: [] };
   for (let seed = 1; seed <= N; seed++) {
     const s = E.fresh(seed); s.look = { fig: 'pops', sex: 'guy', done: true }; E.startDay(s, true); let g = 0;
     while (!s.result && !s.lockedUp && g++ < 70) { policy(s); E.endDay(s); if (s.levelUp) { chDay[s.levelUp].push(s.day); s.levelUp = null; } s.cards = []; }
     if (s.lockedUp) { locked++; lockDay.push(s.lockedUp.day); }
     if (s.result) { won++; winDay.push(s.result.day); }
+    rel += s.relapses || 0;
     lv[s.level]++;
   }
   const avg = a => a.length ? (a.reduce((x, y) => x + y, 0) / a.length).toFixed(0) : '-';
-  return { won: (won / N * 100).toFixed(0) + '%', winDay: avg(winDay), locked: (locked / N * 100).toFixed(0) + '%', lockDay: avg(lockDay), lv, chDay: { 2: avg(chDay[2]), 3: avg(chDay[3]), 4: avg(chDay[4]) } };
+  return { won: (won / N * 100).toFixed(0) + '%', relapsesPerRun: (rel / N).toFixed(2), winDay: avg(winDay), locked: (locked / N * 100).toFixed(0) + '%', lockDay: avg(lockDay), lv, chDay: { 2: avg(chDay[2]), 3: avg(chDay[3]), 4: avg(chDay[4]) } };
 }
 if (require.main === module) { console.log('smart  ', JSON.stringify(run(1000, smart))); console.log('human  ', JSON.stringify(run(1000, human))); console.log('grinder', JSON.stringify(run(500, grinder))); console.log('sloppy ', JSON.stringify(run(500, sloppy))); }
 module.exports = { run, smart, human, grinder, sloppy };

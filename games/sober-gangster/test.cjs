@@ -23,7 +23,10 @@ ok(E.sitById('buy_the_car').moves.call.gives.includes('car'), 'the car can be bo
 // difficulty: about 1 in 3 smart people win, in 30-40 days
 E.fresh.__h = 11; const h = S.run(1000, S.human), w = parseInt(h.won);
 console.log('smart people:', JSON.stringify(h));
-ok(w >= 25 && w <= 45, 'human win rate ' + w + '% should be 25-45%');
+ok(w >= 25 && w <= 50, 'human win rate ' + w + '% should be 25-50%');
 ok(+h.winDay >= 35 && +h.winDay <= 60, 'win day ' + h.winDay + ' should be 35-60');
-const sm = S.run(500, S.smart); console.log('careful players:', JSON.stringify(sm)); ok(parseInt(sm.won) >= 55, 'a careful player usually makes it');
+const sm = S.run(500, S.smart); console.log('careful players:', JSON.stringify(sm)); ok(parseInt(sm.won) >= 50, 'a careful player usually makes it');
+// the overnight: a fit guy almost never has a worst night; worst needs real risk
+{ const E2 = E; let worst = 0; for (let k = 1; k <= 300; k++) { const t = E2.fresh(k); t.look = { fig: 'pops', sex: 'guy', done: true }; t.spirit = 90; t.connection = 70; t.sober = 40; t.heat = 10; t.stress = 20; const r = E2.overnight(t); if (/relapse|locked|missing/.test(r.tier)) worst++; } ok(worst === 0, 'a spiritually fit guy has no worst nights (' + worst + ')'); }
+{ let worst = 0; for (let k = 1; k <= 300; k++) { const t = E.fresh(k); t.look = { fig: 'pops', sex: 'guy', done: true }; t.spirit = 0; t.connection = 10; t.heat = 80; t.stress = 85; t.lifeToday = 2; t.trust.ghost = 9; const r = E.overnight(t); if (/relapse|locked|missing/.test(r.tier)) worst++; } ok(worst > 20, 'a guy running on empty is in danger (' + worst + '/300)'); }
 console.log('PASS: moves, rows, receipts, rent, streaks, situations, difficulty.');

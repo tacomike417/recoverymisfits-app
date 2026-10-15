@@ -9,8 +9,8 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v4.1';
-const SAVE_KEY = 'sober-gangster-v4';
+const VERSION = 'v5.0';
+const SAVE_KEY = 'sober-gangster-v5';
 const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'quit', 'argue', 'ignore', 'fkit'];
 const ROWS = [
   ['spiritual', 'SPIRITUAL', 'Always helps. Do one first and work adds no heat.', ['meeting', 'call', 'help', 'rest', 'rides']],
@@ -172,7 +172,7 @@ function nextRentDay(s) { return Math.ceil(s.day / CFG.rentDays) * CFG.rentDays;
 
 function fresh(seed = Date.now()) {
   return {
-    version: 4, seed: seed >>> 0,
+    version: 5, seed: seed >>> 0,
     day: 1, actions: CFG.actions,
     cash: CFG.startCash, stress: CFG.startStress, connection: CFG.startConnection, heat: CFG.heat.start,
     job: false, wage: CFG.wage, level: 1, housing: 'Sober house', levelUp: null,
@@ -186,6 +186,7 @@ function fresh(seed = Date.now()) {
     streak: 0, bestStreak: 0, daysSinceSupport: 0, meetStreak: 0, helpStreak: 0,
     meetings: 0, shifts: 0, employedDays: 0, searchPts: 0,
     rentDays: 0, rentsOnTime: 0, rentsL4: 0, coolDays: 0, standing: 0,
+    spirit: SPIRIT.start, sober: 0, relapses: 0, lifeToday: 0, reveal: null, asleep: null, missingDay: false,
     receipts: [],          // { id, due }
     cards: [],             // morning cards waiting: { kind, title, text, h, s, c, n, t }
     scen: null, seenScen: [],
@@ -196,7 +197,7 @@ function fresh(seed = Date.now()) {
   };
 }
 function migrate(raw) {
-  if (!raw || typeof raw !== 'object' || raw.version !== 4) return null;
+  if (!raw || typeof raw !== 'object' || raw.version !== 5) return null;
   const f = fresh();
   for (const k of Object.keys(f)) if (raw[k] === undefined) raw[k] = f[k];
   if (!FIGURES.find(x => x.id === raw.look.fig)) raw.look.done = false;
@@ -272,10 +273,7 @@ function card(s, c) { s.cards.push(c); }
 function startDay(s, first = false, picked = null) {
   s.show = [];
   if (!first) {
-    const n = picked || pickNight(s);
-    s.night = n.id; apply(s, { h: n.heat, s: n.stress });
-    record(s, 'Night: ' + n.title + '.');
-    s.show.push('night');
+    if (s.reveal) s.show.push('reveal');
     if (!s.job) { apply(s, { s: CFG.jobless }); }
   }
   // receipts that came due
@@ -350,7 +348,8 @@ function action(s, id) {
   const p = preview(s, id), row = ROW_OF[id];
   s.actions -= id === 'work' ? CFG.shiftMoves : 1;
   apply(s, p.e);
-  if (row === 'spiritual') { s.spiritToday = true; s.supportToday = true; s.daysSinceSupport = 0; }
+  if (row === 'spiritual') { s.spiritToday = true; s.supportToday = true; s.daysSinceSupport = 0; s.spirit = clamp(s.spirit + (SPIRIT[id] || 0), 0, 100); }
+  if (row === 'life') { s.lifeToday = (s.lifeToday || 0) + 1; s.spirit = clamp(s.spirit + SPIRIT.life, 0, 100); }
   if (id === 'meeting') { s.meetToday = true; s.meetings++; }
   if (id === 'help' || id === 'rides') s.helpToday = true;
   if (id === 'rest') s.restToday = true;
@@ -443,7 +442,7 @@ function nextNeeds(s) {
     if (!s.job) a.push('a job');
     if (s.connection < 60) a.push('connection 60');
     if (s.coolDays < WIN.cool) a.push((WIN.cool - s.coolDays) + ' cool days');
-    if (s.standing < WIN.standing) a.push('day ' + WIN.standing + ' standing');
+    if (s.sober < WIN.standing) a.push((WIN.standing - s.sober) + ' more days sober');
   }
   return a;
 }
@@ -464,12 +463,135 @@ function checkLevel(s) {
 }
 
 /* ---------- night ---------- */
-function lockOdds(s) { const h = CFG.heat; if (s.heat >= 100) return 1; return s.heat <= h.safe ? 0 : Math.min(h.maxOdds, (s.heat - h.safe) / (100 - h.safe) * h.maxOdds); }
+
+/* ---------- v5: THE LITTLE BASTARD HAS A MIND OF HIS OWN ----------
+   After your 3 moves, he's on his own overnight. What he does depends on how you've been raising him:
+   FOUNDATION (spiritual energy most of all, then sober time, people, a sponsor) against
+   RISK (heat, stress, life moves today, Ghost, being alone, being broke).
+   Good choices really do protect him. The worst outcomes (relapse, locked up) can only happen when RISK is high:
+   no unfair random game overs. */
+const NIGHT = { pGoodShift: -15, pGoodSoft: 12, worstAt: 40, worstCap: 0.4 };   // tuned with sim.cjs
+const SPIRIT = { meeting: 12, call: 8, help: 10, rest: 5, rides: 10, life: -12, nightly: -12, start: 20 };
+function foundation(s) {
+  return 0.4 * s.spirit + 0.15 * s.connection + 20 * Math.min(s.sober, 60) / 60 + (s.sponsor ? 5 : 0) + (s.trust.pops >= 8 ? 3 : 0);
+}
+function riskOf(s) {
+  const c = s.scen && sitById(s.scen.id);
+  return 0.5 * s.heat + 0.4 * s.stress + 10 * (s.lifeToday || 0) + (s.trust.ghost >= 7 ? 10 : 0) + (s.connection < 20 ? 8 : 0) + (c && c.who === 'ghost' ? 8 : 0) + (s.cash < CFG.food ? 6 : 0) + (s.spirit < 20 ? 10 : 0);
+}
+// the wild cards. text uses "he"; girl homies get "she" (sheHe()).
+const WILD = {
+  craving: { time: '1:12 AM', title: 'THE CRAVING',
+    w: s => 1 + Math.max(0, 60 - s.spirit) / 20 + (s.stress > 60 ? 1 : 0),
+    good:   { text: 'Woke up at 1 AM wanting it bad. Called Pops instead. Pops picked up, mumbled something about God and coffee, and stayed on till it passed.', e: { h: -5, s: -5 }, t: { pops: 1 }, sp: 5 },
+    shaky:  { text: 'Laid there white-knuckling it till sunrise. Didn’t use. Didn’t sleep either.', e: { s: 10 } },
+    bad:    { text: 'Walked to the corner store at 2 AM “for chips.” Stood in front of the cooler for twenty minutes. Walked out with chips. Barely.', e: { h: 8, s: 12 }, sp: -10 },
+    worst:  { relapse: true, text: 'Woke up at 1 AM wanting it. Didn’t call anybody. Went and got it.' } },
+  ex: { time: '3:17 AM', title: 'THE EX',
+    w: s => 1 + (s.stress > 55 ? 1 : 0),
+    good:   { text: 'The ex texted: “You awake?” He left it on read. Then texted Pops: “my ex just hit me up.” Pops: “Go back to sleep. Proud of you.”', e: { s: -3 }, t: { pops: 1 }, sp: 3 },
+    shaky:  { text: 'The ex texted: “You awake?” He typed “hey” and deleted it nine times. Never sent it. Never slept.', e: { s: 8 } },
+    bad:    { text: 'The ex texted: “You awake?” He went over there. Nothing good happens at 3 AM, and nothing good did. Made it home by six, sober and sick about it.', e: { h: 10, s: 15 }, t: { mom: -1 }, sp: -15 },
+    worst:  { relapse: true, text: 'The ex texted: “You awake?” He went over there. They had something. He said yes.' } },
+  cop: { time: '12:46 AM', title: 'THE COP',
+    w: s => Math.max(0, s.heat - 30) / 12, worstNeeds: s => s.heat >= 60,
+    good:   { text: 'A cruiser rolled up while he was walking home. Hands out of pockets, “yes sir, no sir,” showed his ID. Cop let him go. That’s growth.', e: { h: -5 } },
+    shaky:  { text: 'A cop stopped him on the walk home. He mouthed off a little. Got a warning and a name the cop is going to remember.', e: { h: 12, s: 6 } },
+    bad:    { text: 'A cop stopped him at 12:46. He argued for ten minutes. Got a citation and a court fine.', e: { h: 18, s: 10, c: -40 } },
+    worst:  { locked: true, text: 'A cop stopped him at 12:46. Arguing at 2 AM wasn’t enough. He threw a punch.' } },
+  ghost: { time: '2:11 AM', title: 'THE GHOST',
+    w: s => s.trust.ghost / 3 + (s.flags.includes('oldcontact') ? 2 : 0) + ((s.scen && sitById(s.scen.id) || {}).who === 'ghost' ? 2 : 0),
+    good:   { text: 'Ghost pulled up outside at 2:11, honking. He turned off the light and texted Pops instead. Ghost gave up after twenty minutes.', e: { h: -3 }, t: { ghost: -2, pops: 1 }, sp: 3 },
+    shaky:  { text: 'Ghost pulled up at 2:11. He went out to the curb “just to talk.” Twenty minutes in the passenger seat. Came back in empty-handed and shaking.', e: { h: 12, s: 8 }, t: { ghost: 1 } },
+    bad:    { missing: true, text: 'Ghost pulled up at 2:11. He went out to the car. Nobody saw him come back.' },
+    worst:  { relapse: true, text: 'Ghost pulled up at 2:11. He got in the car. You know the rest.' } },
+  newcomer: { time: '11:28 PM', title: 'THE PHONE CALL',
+    w: s => s.spirit / 35 + (s.sober >= 14 ? 1 : 0),
+    good:   { text: 'A newcomer from the meeting called at 11:28, scared out of their mind. He answered and talked them down for an hour. Nobody told him to.', e: { n: 8, s: -3 }, t: { pops: 1, shorty: 1 }, sp: 8 },
+    shaky:  { text: 'Phone rang at 11:28. A newcomer. He saw who it was and let it ring. Felt like garbage about it all night.', e: { s: 5 }, sp: -3 } },
+  bonus: { time: '6:15 AM', title: 'THE PAYCHECK',
+    w: s => s.job ? 0.6 : 0,
+    good:   { text: 'Found an extra $25 in the paycheck. “Well, would you look at that. Somebody thinks I’m employable.”', e: { c: 25, s: -4 }, t: { darlene: 1 } },
+    bad:    { text: 'Extra $25 in the paycheck and a bad idea to go with it. Blew it on nothing before sunrise.', e: { s: 5 } } },
+  mom: { time: '10:40 PM', title: 'MOM CALLED',
+    w: s => s.trust.mom >= 5 ? 0.8 : 0.25,
+    good:   { text: 'Mom called late just to say goodnight. They talked for forty minutes. She laughed twice.', e: { n: 6, s: -6 }, t: { mom: 1 }, sp: 3 },
+    shaky:  { text: 'Mom called at 10:40. He was too tired and too ashamed to pick up. She left a voicemail anyway.', e: { s: 4 }, t: { mom: -1 } } },
+  ceiling: { time: '4:03 AM', title: 'THE CEILING',
+    w: s => s.stress / 35,
+    good:   { text: 'Couldn’t sleep, so he got up and read meeting literature on the floor till his eyes gave out.', e: { s: -3 }, sp: 5 },
+    shaky:  { text: 'Stared at the ceiling till 4 AM. The committee in his head had a full agenda.', e: { s: 8 } } }
+};
+const TIERS = ['good', 'shaky', 'bad', 'worst'];
+function sheHe(s, t) {
+  if (!t || s.look.sex !== 'girl') return t;
+  return t.replace(/\bhe\b/g, 'she').replace(/\bHe\b/g, 'She').replace(/\bhim\b/g, 'her').replace(/\bhis\b/g, 'her').replace(/\bHis\b/g, 'Her').replace(/\bhimself\b/g, 'herself').replace(/\byour guy\b/gi, 'your girl');
+}
+// tonight's danger, in words (what the evening shows)
+function nightOutlook(s) {
+  const edge = foundation(s) - riskOf(s);
+  return edge >= 25 ? 'good' : edge >= 5 ? 'okay' : edge >= -15 ? 'shaky' : 'bad';
+}
+// the chance something really bad happens tonight (shown as %; never a promise)
+function lockOdds(s) {
+  if (s.heat >= 100) return 1;
+  const R = riskOf(s); if (R < 55) return 0;
+  const pBad = 1 - 1 / (1 + Math.exp(-(foundation(s) - R + 5) / 12));
+  return Math.min(0.5, Math.round(pBad * Math.min(0.35, (R - 55) / 60) * 100) / 100 + (s.heat >= 60 ? 0.03 : 0));
+}
+function relapse(s) {
+  s.sober = 0; s.relapses = (s.relapses || 0) + 1; s.spirit = 0;
+  apply(s, { h: 15, s: 15, c: -Math.min(s.cash, 40) });
+  trustUp(s, { pops: -1, mom: -2, shorty: -1, ghost: 2 });
+  if (s.job) trustUp(s, { darlene: -2 });
+  s.got = s.got.filter(g => !/^chip|^twoweeks$|^thirty$/.test(g));
+  if (!s.flags.includes('oldcontact')) s.flags.push('oldcontact');
+  record(s, 'Relapsed. Sober time back to zero.');
+}
+// THE NIGHT, resolved exactly once. Returns the morning reveal.
+function overnight(s) {
+  if (s.heat >= 100) { s.lockedUp = { day: s.day, heat: s.heat, odds: 100, why: 'heat' }; return { tier: 'locked', time: '4:40 AM', title: 'THEY CAME FOR HIM', text: 'Too much heat for too long. Red and blue in the window at 4:40 AM.' }; }
+  const F = foundation(s), R = riskOf(s), edge = F - R;
+  const pool = Object.entries(WILD).map(([id, c]) => [id, Math.max(0, c.w(s))]);
+  pool.push(['quiet', 5 + Math.max(0, edge) / 10]);
+  let r = rng(s) * pool.reduce((a, x) => a + x[1], 0), id = 'quiet';
+  for (const [k, w] of pool) { r -= w; if (r <= 0) { id = k; break; } }
+  if (id === 'quiet') {
+    const n = pickNight(s); apply(s, { h: n.heat, s: n.stress });
+    return { tier: n.heat <= 0 ? 'good' : 'shaky', time: '', title: n.title, text: n.text, dream: true, e: { h: n.heat, s: n.stress } };
+  }
+  const c = WILD[id], pGood = 1 / (1 + Math.exp(-(edge + NIGHT.pGoodShift) / NIGHT.pGoodSoft));
+  let tier = 'good';
+  if (rng(s) >= pGood) {
+    const canWorst = c.worst && R >= NIGHT.worstAt && (!c.worstNeeds || c.worstNeeds(s));
+    const pWorst = canWorst ? Math.min(NIGHT.worstCap, (R - NIGHT.worstAt) / 60) : 0, x = rng(s);
+    tier = x < pWorst ? 'worst' : (R > 35 && x < pWorst + 0.5 && c.bad) ? 'bad' : c.shaky ? 'shaky' : 'bad';
+  }
+  if (!c[tier]) tier = c.shaky ? 'shaky' : 'good';
+  const o = c[tier], out = { id, tier, time: c.time, title: c.title, text: sheHe(s, o.text), e: o.e || {}, t: o.t || {} };
+  if (o.e) apply(s, o.e);
+  if (o.t) out.t = trustUp(s, o.t);
+  if (o.sp) s.spirit = clamp(s.spirit + o.sp, 0, 100);
+  if (o.relapse) { relapse(s); out.tier = 'relapse'; }
+  if (o.locked) { s.lockedUp = { day: s.day, heat: s.heat, odds: 0, why: id }; out.tier = 'locked'; }
+  if (o.missing) {
+    out.tier = 'missing';
+    const back = rng(s) < 1 / (1 + Math.exp(-(F - 30) / 10));   // decided now so a refresh can't change it
+    out.after = back
+      ? { tier: 'shaky', time: '4:52 PM', text: sheHe(s, 'The door opens at 4:52 PM. He’s sober. Sat in Ghost’s car all night, said no to everything, and walked home at noon. “I’m okay. I’m not okay. But I’m sober.”'), e: { s: 10, h: 5 } }
+      : { tier: 'relapse', time: '4:52 PM', text: sheHe(s, 'The door opens at 4:52 PM. You can tell before he says a word. He used. He’s home, he’s alive, and he’s ashamed.') };
+    if (back) apply(s, out.after.e); else relapse(s);
+    s.missingDay = true;
+  }
+  record(s, c.title + ': ' + out.text);
+  return out;
+}
+
 function heatWords(s) { return s.heat <= CFG.heat.safe ? 'You’re good.' : s.heat < 70 ? 'Watch it.' : s.heat < 100 ? 'Tonight’s a gamble.' : 'They’re coming.'; }
 
 function endDay(s) {
   if (s.result || s.lockedUp) return false;
-  const H = CFG.heat;
+  const H = CFG.heat, n0 = s.logN || 0, nightDay = s.day;
   // debt first, then food
   if (s.arrears && s.cash) { const pay = Math.min(s.cash, s.arrears); s.cash -= pay; s.arrears -= pay; if (!s.arrears && s.housing === 'Shelter') { s.housing = levelInfo(s.level).housing; record(s, 'Debt paid. You got your bed back.'); } }
   if (s.cash >= CFG.food) s.cash -= CFG.food;
@@ -525,21 +647,23 @@ function endDay(s) {
       if (s.arrears >= 2 * due && s.housing !== 'Shelter') { s.housing = 'Shelter'; card(s, { kind: 'news', title: 'LOST THE BED', text: 'You owe two weeks. Your stuff is in a garbage bag on the porch. Shelter tonight. Pay what you owe and the bed is yours again.' }); record(s, 'Lost the bed.'); }
     }
   }
+  // OVERNIGHT: he's on his own now
+  const rv = overnight(s);
+  s.reveal = { ...rv, day: nightDay, facts: s.log.slice(0, Math.max(0, (s.logN || 0) - n0)).reverse().filter(x => !/^(THE |MOM CALLED|NEW CHAPTER)/.test(x)) };
+  if (s.lockedUp) { record(s, 'Night ' + nightDay + ': locked up.'); return true; }
+  s.spirit = clamp(s.spirit + SPIRIT.nightly, 0, 100);
   s.standing++;
-  if (s.standing >= 1) got(s, 'chip1');
-  if (s.standing >= 7) got(s, 'chip7');
-  if (s.standing >= 14) { got(s, 'chip14'); got(s, 'twoweeks') && apply(s, { s: -20, h: -10 }); }
-  if (s.standing >= 30) { got(s, 'chip30'); got(s, 'thirty'); }
-  // the roll
-  const odds = lockOdds(s);
-  if (odds > 0 && (odds >= 1 || rng(s) < odds)) { s.lockedUp = { day: s.day, heat: s.heat, odds: Math.round(odds * 100) }; record(s, 'Night ' + s.day + ': red and blue in the window. Locked up.'); return true; }
+  if (rv.tier !== 'relapse' && !(rv.after && rv.after.tier === 'relapse')) s.sober++;
+  if (s.sober >= 1) got(s, 'chip1');
+  if (s.sober >= 7) got(s, 'chip7');
+  if (s.sober >= 14) { got(s, 'chip14'); got(s, 'twoweeks') && apply(s, { s: -20, h: -10 }); }
+  if (s.sober >= 30) { got(s, 'chip30'); got(s, 'thirty'); }
   s.coolDays = s.heat <= H.safe ? s.coolDays + 1 : 0;
   checkLevel(s);
   if (s.result) return true;
-  const tonight = pickNight(s);
-  s.day++; s.actions = CFG.actions;
+  s.day++; s.actions = s.missingDay ? 1 : CFG.actions; s.missingDay = false; s.lifeToday = 0;
   s.spiritToday = false; s.supportToday = false; s.restToday = false; s.meetToday = false; s.helpToday = false; s.workToday = 0; s.zeroedToday = false; s.lastOutcome = null; s.today = [];
-  startDay(s, false, tonight);
+  startDay(s, false);
   return true;
 }
 const RENT_TALK = [
@@ -553,5 +677,5 @@ const RENT_TALK = [
 if (typeof module !== 'undefined') {
   const C = require('./cards.js'), S = require('./situations.js');
   Object.assign(globalThis, C, S);
-  module.exports = { NEED, DAYS, dayName, weekend, extraShift, billsDue, VERSION, SAVE_KEY, CFG, WIN, LEVELS, FIGURES, shop, SHOP_GROUPS, ACTION_IDS, ACTION_LABEL, MOVES, ROWS, ROW_OF, PEOPLE, RECEIPTS, STREAKS, person, item, has, fresh, migrate, restartKeepFigure, startDay, scenFor, sitById, nightCard, preview, whyNot, canDo, action, buy, cantBuy, nextNeeds, checkLevel, lockOdds, heatWords, endDay, levelInfo, rentDue, nextRentDay, ...C, ...S };
+  module.exports = { NIGHT, SPIRIT, WILD, foundation, riskOf, overnight, nightOutlook, sheHe, NEED, DAYS, dayName, weekend, extraShift, billsDue, VERSION, SAVE_KEY, CFG, WIN, LEVELS, FIGURES, shop, SHOP_GROUPS, ACTION_IDS, ACTION_LABEL, MOVES, ROWS, ROW_OF, PEOPLE, RECEIPTS, STREAKS, person, item, has, fresh, migrate, restartKeepFigure, startDay, scenFor, sitById, nightCard, preview, whyNot, canDo, action, buy, cantBuy, nextNeeds, checkLevel, lockOdds, heatWords, endDay, levelInfo, rentDue, nextRentDay, ...C, ...S };
 }

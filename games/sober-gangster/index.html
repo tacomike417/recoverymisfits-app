@@ -431,13 +431,54 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .recs{display:flex;justify-content:center;gap:12px;font:800 14px 'Barlow Condensed';color:#e9dcc0;letter-spacing:.4px}
 .recs b{color:var(--gold2)}
 .recheat{background:#f1e2bd;border-radius:6px;padding:2px 6px 0;margin:8px 0}
+
+/* ---------- v5: the show ---------- */
+.ov>.paper.cine{padding-top:12px}
+.cine-time{font-size:22px;color:var(--red);letter-spacing:.5px}
+.cine-h{font-size:34px;margin:0 0 6px;color:var(--red2)}
+.cine-room{position:relative;height:170px;margin:6px 0 8px;border:3px solid #111;border-radius:6px;background:#222 center/cover;overflow:hidden;box-shadow:inset 0 0 40px #000a}
+.cine-room img{position:absolute;left:50%;bottom:-6px;height:94%;transform:translateX(-50%);filter:drop-shadow(0 6px 6px #000a);animation:pop .5s ease-out both}
+.cine-room.night{filter:brightness(.55) saturate(.8)}.cine-room.night img{filter:brightness(1.4)}
+.cine-room.empty::after{content:'';position:absolute;inset:0;background:#0006}
+.cine-room.cell{background-color:#333}
+.cine-room.asleep{filter:brightness(.35) saturate(.6);height:220px}
+.cine-room .zz{position:absolute;right:22%;top:18%;color:#fff;font-size:30px;filter:none;animation:zz 2.4s ease-in-out infinite}
+@keyframes zz{0%{opacity:0;transform:translateY(10px)}40%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}
+.cine-p{font:500 15.5px/1.4 'Barlow';color:#2a2118;margin:6px 0}
+.cine-q{font:400 22px/1.15 'Caveat Brush';color:var(--red);margin:8px 0}
+.cine-status{font:800 15px 'Barlow Condensed';letter-spacing:.6px;background:#111;color:var(--gold2);padding:6px 10px;border-radius:3px;margin:8px 0}
+.cine-night{background:#fff8e6;border:2px solid #111;border-radius:5px;padding:8px 10px;margin:6px 0;box-shadow:2px 3px 0 #000}
+.cine-night p{margin:4px 0;font:500 14.5px/1.35 'Barlow'}
+.cine-facts{list-style:none;padding:0;margin:6px 0;font:600 13px/1.3 'Barlow Condensed';color:#4a3b2c}
+.cine-facts li::before{content:'· '}
+.relapse{background:#2a211b;color:#f3e6c4;border-left:5px solid var(--red2);padding:8px 10px;font:500 14px/1.35 'Barlow';margin:8px 0;border-radius:3px}
+.relapse b{color:var(--gold2)}
+.plan{background:#111;color:#f3e6c4;border-radius:5px;padding:8px 12px;margin:8px 0}
+.plan b{color:var(--gold2);font-size:20px}.plan ul{margin:4px 0 0;padding-left:18px;font:600 14.5px/1.45 'Barlow'}
+.emeters{display:grid;gap:6px;margin:6px 0}
+.emeters>div{display:grid;grid-template-columns:118px 1fr;align-items:center;gap:2px 8px;font:800 12.5px 'Barlow Condensed';letter-spacing:.3px}
+.emeters>div b{grid-column:2;font-weight:700;color:#4a3b2c;font-size:12px}
+.emeters .row2{display:flex;justify-content:space-between;font-size:15px}.emeters .row2 b{color:var(--ink);font-size:16px}
+.ebar{display:block;height:11px;border:2px solid #111;border-radius:3px;background:#fff8e6;overflow:hidden}
+.ebar i{display:block;height:100%}
+.ebar.red i{background:linear-gradient(#e0262b,#9d1018)}.ebar.green i{background:linear-gradient(#5fbf6b,#2f6b3a)}.ebar.gold i{background:linear-gradient(#f7cf5c,#c98d12)}
+.ewarn{background:var(--red2);color:#fff;font:700 14.5px/1.3 'Barlow';padding:8px 10px;border-radius:4px;box-shadow:2px 3px 0 #000}
+.sleepy{position:relative;min-height:100vh;max-width:430px;margin:0 auto;padding:60px 18px 120px;text-align:center;color:#e9dcc0;background:#07060a}
+.sleepy h1{font-size:46px;color:#fff6dc;margin:0 0 10px}
+.sleepy p{font:500 16px/1.4 'Barlow'}
+.sleepy .wake{font-size:30px;color:var(--gold2);margin:14px 0 4px}
+.sleepy small{font:600 13px 'Barlow Condensed';opacity:.75}
+.spiritrow{display:flex;align-items:center;gap:8px;padding:6px 8px;margin:2px 0 8px;background:#111c;border:2px solid #2f6b3a;border-radius:5px;color:#e9dcc0}
+.spiritrow .mk{font-size:15px;white-space:nowrap}.spiritrow .ebar{flex:1}
+.spiritrow b{font:800 11px 'Barlow Condensed';color:#9fe0a8;white-space:nowrap}
+.spiritrow .sob{color:var(--gold2);font-size:16px}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="cards.js?v=4.1"></script><script src="situations.js?v=4.1"></script><script src="engine.js?v=4.1"></script><script src="words.js?v=4.1"></script><!-- bump ?v= with every VERSION change -->
+<script src="cards.js?v=5.0"></script><script src="situations.js?v=5.0"></script><script src="engine.js?v=5.0"></script><script src="words.js?v=5.0"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -588,7 +629,7 @@ function lockupUI(){
   const Lk = s.lockedUp; sfx('locked'); if (music) music.pause();
   document.getElementById('modal').innerHTML = `<div class="ov skinov"><div class="pop" style="aspect-ratio:817/1346"><img class="skin" src="${SK}pop-locked.webp" alt="Locked up.">
   <img class="pfig jail" style="${pat(300, 560, 260, 320)}" src="${myFig()}" alt=""><span class="pbars" style="${pat(60, 400, 722, 499)}">${[154, 257, 398, 532, 669].map(x => `<i style="left:${P(x - 60)}"></i>`).join('')}</span>
-  <div class="ptext" style="${pat(70, 930, 677, 100)}"><span>Night ${Lk.day}. Heat was ${Lk.heat}. The odds said ${Lk.odds}% and tonight they hit. Back to chapter 1, fresh off the bus.</span></div>
+  <div class="ptext" style="${pat(70, 930, 677, 100)}"><span>Night ${Lk.day}. ${Lk.why === 'heat' ? 'Too much heat for too long.' : 'One bad night, one bad decision.'} Back to chapter 1, fresh off the bus.</span></div>
   <button class="hot" style="${pat(51, 1054, 726, 129)}" onclick="startOver()" aria-label="Start over"></button>
   <button class="hot" style="${pat(51, 1208, 722, 104)}" onclick="document.getElementById('modal').innerHTML='';go('progress')" aria-label="See what happened"></button></div></div>`;
 }
@@ -637,6 +678,162 @@ function recap(day, before, lines){
   <div class="recs"><span>$${before.cash} → <b>$${s.cash}</b></span><span>STRESS ${s.stress}</span><span>PEOPLE ${s.connection}</span></div>
   <div class="recheat">${heatMeter(s.heat, before.heat)}</div><small>Tap for the morning</small>`;
 }
+
+/* ---------- v5: the show. Evening plan, lights out, real 6 AM, morning reveal. ---------- */
+const DEV = /[?&]dev\b/.test(location.search);
+const G = () => fig().sex === 'girl';
+const guy = () => G() ? 'your girl' : 'your guy';
+const Guy = () => G() ? 'Your girl' : 'Your guy';
+const hs = t => sheHe(s, t);
+// next 6 AM after a time
+function next6(t){ const d = new Date(t); d.setHours(6, 0, 0, 0); if (d.getTime() <= t) d.setDate(d.getDate() + 1); return d.getTime(); }
+const word = (v, a) => a.find(([lim]) => v <= lim)[1];
+const stressWord = v => word(v, [[30, 'Chill'], [55, 'Holding'], [70, 'Getting high'], [100, 'Cooked']]);
+const spiritWord = v => word(v, [[20, 'Running on empty'], [40, 'Running low'], [65, 'Solid'], [100, 'Fired up']]);
+const peopleWord = v => word(v, [[20, 'Alone'], [40, 'A couple people'], [60, 'Decent support'], [100, 'Got a crew']]);
+// he talks, and how he talks grows with sober time
+function quote(tier){
+  const st = s.sober < 14 ? 0 : s.sober < 60 ? 1 : 2, h = s.day % 2;
+  const Q = {
+    good: [['Look at this shit. I’m becoming responsible.', 'You really gonna make me go to another meeting?'], ['Think I’ll call Pops before I do something stupid.', 'Coffee, meeting, work. Boring is beautiful.'], ['New guy needs a ride. Guess I better put some pants on.', 'Another day. I know how to do one of these now.']],
+    shaky: [['Man, don’t even start with me today.', 'I’m up. Don’t push it.'], ['Rough night. Still here. Still sober.', 'Didn’t sleep. Didn’t use. That’s the score.'], ['Bad nights still happen. I just don’t use over them.', 'Tired. Grateful. Mostly tired.']],
+    bad: [['I know. I know. Don’t say it.', 'That was close. Way too close.'], ['That was close. Too close.', 'I need a meeting. Like, now.'], ['Years in and the old stuff still knocks. I didn’t answer.', 'I’m calling my sponsor before I do anything else.']],
+    relapse: [['I’m sorry. I don’t even know what else to say.', 'Day one. Again.'], ['I threw it away. I know. I’m still here.', 'Don’t look at me like that. I’m looking at me like that.'], ['Years. Gone in one night. Pops says it’s not gone. I don’t believe him yet.', 'Day one. I know the way back. I just have to walk it.']],
+    locked: [['Yeah… I might’ve handled that differently.', 'Yeah… I might’ve handled that differently.'], ['Yeah… I might’ve handled that differently.', 'Yeah… I might’ve handled that differently.'], ['Yeah… I might’ve handled that differently.', 'Yeah… I might’ve handled that differently.']]
+  };
+  return (Q[tier] || Q.good)[st][h];
+}
+const SCENE = {
+  good: ['is sitting at the kitchen table drinking coffee.', 'already made the bed. Hospital corners.', 'is out on the porch with Shorty, arguing about breakfast.'],
+  shaky: ['is asleep on the couch in yesterday’s clothes.', 'is sitting on the edge of the bed staring at the phone.', 'is up. Barely.'],
+  bad: ['is home. Eyes red, jaw tight, hands still shaking.', 'is sitting on the back steps chain-drinking coffee.'],
+  relapse: ['is on the bathroom floor. Sober now, and sick about it.', 'is sitting in the dark with the curtains shut.']
+};
+const TIME = { good: '6:42 AM', shaky: '7:15 AM', bad: '7:58 AM', relapse: '9:20 AM', missing: '8:03 AM', locked: '9:12 AM' };
+function status(tier){
+  if (tier === 'locked') return 'LOCKED UP.';
+  if (tier === 'missing') return 'MISSING. OUTCOME UNKNOWN.';
+  if (tier === 'relapse') return 'RELAPSED. SOBER TIME: 0. STILL HERE.';
+  const a = ['SOBER'];
+  if (s.stress >= 60) a.push('STRESSED'); if (s.spirit <= 25) a.push('SPIRITUAL ENERGY LOW'); if (s.heat > CFG.heat.safe) a.push('HEAT RISING');
+  return (tier === 'good' && a.length === 1 ? 'HOME. SOBER. READY FOR ANOTHER DAY.' : a.join('. ') + '.');
+}
+function pickOf(a){ return a[(s.day * 5 + s.level) % a.length]; }
+
+/* THE MORNING: what the hell did this little bastard do while you were gone? */
+function revealUI(phase2){
+  const r = s.reveal; if (!r) return;
+  const tier = phase2 && r.after ? r.after.tier : r.tier;
+  const day = r.day + 1;
+  let body;
+  if (r.tier === 'missing' && !phase2) {
+    body = `<div class="cine-time mk">DAY ${day} — ${TIME.missing}</div><h1 class="cine-h mk">WHERE THE HELL IS ${G() ? 'SHE' : 'HE'}?</h1>
+    <div class="cine-room empty" style="background-image:url(${A}room/${Math.min(s.level, 4)}.webp)"></div>
+    <p class="cine-p">Empty bed. Phone goes straight to voicemail. Big Ray says he hasn’t seen ${G() ? 'her' : 'him'} since midnight.</p>
+    ${phone('ghost', 'just now', `Yo. Your ${G() ? 'girl' : 'boy'}’s with me.`)}
+    <p class="cine-status">STATUS: MISSING. OUTCOME UNKNOWN.</p>
+    <button class="paper red big mk" onclick="revealUI(true)">WAIT FOR ${G() ? 'HER' : 'HIM'}</button>`;
+  } else if (phase2 && r.after) {
+    body = `<div class="cine-time mk">DAY ${day} — ${r.after.time}</div><h1 class="cine-h mk">${r.after.tier === 'relapse' ? (G() ? 'SHE' : 'HE') + ' CAME HOME.' : (G() ? 'SHE' : 'HE') + ' MADE IT BACK.'}</h1>
+    <div class="cine-room" style="background-image:url(${A}room/${Math.min(s.level, 4)}.webp)"><img src="${myFig()}" alt=""></div>
+    <p class="cine-p">${esc(r.after.text)}</p><p class="cine-q">“${esc(quote(r.after.tier))}”</p>
+    <p class="cine-status">STATUS: ${status(r.after.tier)}</p>${r.after.tier === 'relapse' ? relapseNote() : ''}
+    <p class="note">${G() ? 'She' : 'He'} lost most of the day. You get 1 move today.</p>
+    <button class="paper red big mk" onclick="revealDone()">GOT IT</button>`;
+  } else {
+    const sc = tier === 'locked' ? 'isn’t in the bed. ' + (G() ? 'She’s' : 'He’s') + ' sitting in a holding cell.' : pickOf(SCENE[tier] || SCENE.good);
+    body = `<div class="cine-time mk">DAY ${day} — ${TIME[tier] || '6:42 AM'}</div>
+    <div class="cine-room ${tier === 'locked' ? 'cell' : tier === 'relapse' || tier === 'bad' ? 'night' : ''}" style="background-image:url(${A}room/${tier === 'locked' ? 'jail' : Math.min(s.level, 4)}.webp)"><img src="${myFig()}" alt=""></div>
+    <p class="cine-p"><b>${Guy()} ${esc(hs(sc))}</b></p>
+    <div class="cine-night"><span class="kicker">LAST NIGHT${r.time ? ' · ' + r.time : ''} · ${esc(r.title)}</span><p>${esc(r.text)}</p>${r.e && r.e.h ? heatMeter(s.heat, s.heat - r.e.h) : ''}${trustLine(r.t)}</div>
+    <p class="cine-q">“${esc(quote(tier))}”</p>
+    <p class="cine-status">STATUS: ${status(tier)}</p>${tier === 'relapse' ? relapseNote() : ''}
+    ${r.facts && r.facts.length ? `<ul class="cine-facts">${r.facts.slice(0, 5).map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    <button class="paper red big mk" onclick="revealDone()">${tier === 'locked' ? 'WHAT NOW' : 'LET’S GO'}</button>`;
+  }
+  sfx(tier === 'locked' ? 'locked' : 'night');
+  show(body, 'card cine');
+}
+function relapseNote(){ return `<div class="relapse"><b>This isn’t the end of the story.</b> Sober time starts over, but the chapter, the job and the people are still here. Pops left a voicemail: “Call me. Not tomorrow. Today.”</div>`; }
+function revealDone(){ s.revealSeen = true; if (s.show[0] === 'reveal') s.show.shift(); save(); closeModal(); render(); }
+
+/* THE EVENING: how the day went, and what he's SUPPOSED to do tonight */
+function dayStory(){
+  const d = (s.ui && s.ui.day === s.day ? s.ui.done : []), bits = [];
+  if (d.includes('work')) bits.push('worked eight hours and made $' + (s.trust.darlene <= 2 ? CFG.lowTrustWage : s.wage));
+  if (d.includes('meeting')) bits.push('hit a meeting');
+  if (d.includes('call')) bits.push(s.sponsor ? 'called Pops' : 'called somebody sober');
+  if (d.includes('help')) bits.push('helped somebody out');
+  if (d.includes('rides')) bits.push('drove people around');
+  if (d.includes('rest')) bits.push('actually rested');
+  if (d.includes('betterjob')) bits.push('chased a job lead');
+  if (d.includes('quit')) bits.push('quit the job');
+  if (d.includes('argue')) bits.push('got into it with somebody');
+  if (d.includes('ignore')) bits.push('ignored everybody');
+  if (d.includes('fkit')) bits.push('said f**k it');
+  if (!bits.length) return Guy() + ' laid low today.';
+  return Guy() + ' ' + (bits.length > 1 ? bits.slice(0, -1).join(', ') + ' and ' + bits.at(-1) : bits[0]) + '.';
+}
+function evening(){
+  const o = nightOutlook(s), tomorrow = (s.day % 7) + 1;   // 7 = Sunday
+  const mood = o === 'good' ? 'Tired, but feeling pretty good.' : o === 'okay' ? 'Worn down, but steady.' : o === 'shaky' ? 'Wired. Can’t sit still.' : 'Running hot. Jaw tight. Phone in hand.';
+  const end = o === 'good' || o === 'okay' ? hs('He grabs something to eat, sets the alarm, and drops onto the bed.') : hs('He says he’s going to bed. He’s still scrolling at midnight.');
+  const say = o === 'good' ? (s.job ? 'Work at seven. Meeting tomorrow. I’m actually getting my shit together.' : 'Tomorrow I find work. Tonight I sleep.') : o === 'okay' ? 'Long day. Just gotta get through the night.' : o === 'shaky' ? 'I’m fine. I’m FINE.' : 'Don’t worry about me.';
+  const plan = ['Get some sleep'];
+  if (s.day % CFG.rentDays === 0) plan.push('Pay rent tonight: $' + (rentDue(s) + billsDue(s)));
+  if (s.job && tomorrow !== 7) plan.push('Make it to work tomorrow');
+  const c = s.scen && sitById(s.scen.id);
+  if (c && c.who === 'ghost') plan.push('Stay away from Ghost');
+  else if (c) plan.push('Deal with ' + c.title.toLowerCase() + ' (' + s.scen.left + ' day' + (s.scen.left === 1 ? '' : 's') + ' left)');
+  plan.push('Stay out of trouble', 'Stay sober');
+  const warn = { good: '', okay: 'Should be a quiet one. Should be.', shaky: hs(Guy() + '’s running on fumes. Might wanna get his ass to a meeting tomorrow.'), bad: hs('Tonight could go sideways. He’s hot, stressed and running on empty.') }[o];
+  const bar = (v, cls = '') => `<span class="ebar ${cls}"><i style="width:${v}%"></i></span>`;
+  show(`<div class="cine-time mk">DAY ${s.day} — ${o === 'good' ? '9:38 PM' : o === 'okay' ? '10:12 PM' : '11:47 PM'}</div>
+  <div class="cine-room night" style="background-image:url(${A}room/${Math.min(s.housing === 'Shelter' ? 1 : s.level, 4)}.webp)"><img src="${myFig()}" alt=""></div>
+  <p class="cine-p"><b>${esc(hs(dayStory()))}</b> ${esc(mood)} ${esc(end)}</p>
+  <p class="cine-q">“${esc(say)}”</p>
+  <div class="plan"><b class="mk">TONIGHT’S PLAN</b><ul>${plan.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
+  ${heatMeter(s.heat)}
+  <div class="emeters">
+    <div><span>STRESS</span>${bar(s.stress, 'red')}<b>${s.stress}/100 · ${stressWord(s.stress)}</b></div>
+    <div><span>SPIRITUAL ENERGY</span>${bar(s.spirit, 'green')}<b>${s.spirit}/100 · ${spiritWord(s.spirit)}</b></div>
+    <div><span>CONNECTION</span>${bar(s.connection, 'gold')}<b>${s.connection}/100 · ${peopleWord(s.connection)}</b></div>
+    <div class="row2"><span>CASH <b>$${s.cash}</b></span><span>SOBER <b>${s.sober} day${s.sober === 1 ? '' : 's'}</b></span></div>
+  </div>
+  ${warn ? `<p class="ewarn">${esc(warn)}</p>` : ''}
+  <p class="note">That’s the plan. ${G() ? 'She' : 'He'} might follow it. ${G() ? 'She' : 'He'} might not. You’ll find out in the morning.</p>
+  <button class="paper red big mk" onclick="lightsOut()">LIGHTS OUT</button>${s.actions ? '<button class="ghost" style="color:var(--ink)" onclick="closeModal()">Wait, I still have moves</button>' : ''}`, 'card cine');
+}
+function night(){
+  if (s.actions) show(`<h2 class="mk">CALL IT A DAY?</h2><p>${s.actions} move${s.actions === 1 ? '' : 's'} left. They don’t carry over.</p><button class="paper red big mk" onclick="closeModal();setTimeout(evening,120)">SEE HOW THE DAY WENT</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Use my time</button>`);
+  else evening();
+}
+function lightsOut(){
+  closeModal(); sfx('night');
+  s.asleep = { at: Date.now(), wake: next6(Date.now()), day: s.day }; s.revealSeen = false;
+  save(); render();
+}
+// the sleeping screen until 6 AM
+function asleepUI(){
+  const left = Math.max(0, s.asleep.wake - Date.now()), hh = Math.floor(left / 3600000), mm = Math.floor(left % 3600000 / 60000);
+  return `<div class="sleepy"><div class="tr" style="position:absolute;right:12px;top:12px">${topRight()}</div>
+  <h1 class="mk">LIGHTS OUT</h1>
+  <div class="cine-room asleep" style="background-image:url(${A}room/${Math.min(s.level, 4)}.webp)"><img src="${myFig()}" alt=""><span class="zz mk">z z z</span></div>
+  <p>${G() ? 'She’s' : 'He’s'} on ${G() ? 'her' : 'his'} own now. Let’s hope you taught ${G() ? 'her' : 'him'} something.</p>
+  <div class="wake mk">MORNING IN ${hh}h ${String(mm).padStart(2, '0')}m</div>
+  <small>Come back after 6:00 AM to find out what happened.</small>
+  ${DEV ? '<button class="paper red big mk" style="margin-top:14px" onclick="wakeUp(true)">DEV: SKIP TO MORNING</button>' : ''}</div>`;
+}
+// resolve the night exactly once, however long they were gone
+function wakeUp(force){
+  if (!s.asleep || (!force && Date.now() < s.asleep.wake)) return false;
+  s.asleep = null;
+  endDay(s);
+  save(); render();
+  return true;
+}
+setInterval(() => { if (s && s.asleep && Date.now() >= s.asleep.wake) wakeUp(); else if (s && s.asleep && page === 'life') { const w = document.querySelector('.wake'); if (w) { const left = Math.max(0, s.asleep.wake - Date.now()); w.textContent = 'MORNING IN ' + Math.floor(left / 3600000) + 'h ' + String(Math.floor(left % 3600000 / 60000)).padStart(2, '0') + 'm'; } } }, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && s && s.asleep) wakeUp(); });
 
 /* ---------- today ---------- */
 // icons: ChatGPT's where we have them, hand-drawn ink for the new moves
@@ -689,11 +886,12 @@ function moveBtn(id, wig){
   return `<button class="mb ${row} ${doneToday(id) ? 'done' : ''} ${why ? 'off' : ''} ${p.end && !why && row !== 'life' ? 'ends' : ''} ${wig === id ? 'wig' : ''}" onclick="confirmAction('${id}')" aria-label="${esc(MOVES[id].label)}">${moveIcon(id)}<span class="ml">${esc(moveWords(id) || MOVES[id].label)}</span>${moveWords(id) ? `<span class="mg">${esc(MOVES[id].label)}</span>` : ''}<span class="mf">${fxs}</span></button>`;
 }
 function board(wig){
-  return `<section class="board">${ROWS.map(([key, name, hint, ids]) => { const list = ids.filter(id => id !== 'rides' || s.car); return `<div class="mrow ${key}"><div class="mhead"><b class="mk">${name}</b><span>${esc(hint)}</span></div><div class="mgrid ${list.length === 3 ? 'c3' : 'c2'}">${list.map(id => moveBtn(id, wig)).join('')}</div></div>`; }).join('')}
+  return `<section class="board"><div class="spiritrow"><span class="mk">SPIRITUAL ENERGY</span><span class="ebar green"><i style="width:${s.spirit}%"></i></span><b>${spiritWord(s.spirit).toUpperCase()}</b><span class="sob mk">SOBER ${s.sober}d</span></div>${ROWS.map(([key, name, hint, ids]) => { const list = ids.filter(id => id !== 'rides' || s.car); return `<div class="mrow ${key}"><div class="mhead"><b class="mk">${name}</b><span>${esc(hint)}</span></div><div class="mgrid ${list.length === 3 ? 'c3' : 'c2'}">${list.map(id => moveBtn(id, wig)).join('')}</div></div>`; }).join('')}
   <p class="boardnote">${s.actions} move${s.actions === 1 ? '' : 's'} left today. ${s.spiritToday ? '<b>Spiritual move done: work adds no heat today.</b>' : 'Do a spiritual move first and work adds no heat.'}</p></section>`;
 }
 function life(){
   if (s.result) return chapterDone();
+  if (s.asleep) return asleepUI();
   const lv = s.housing === 'Shelter' ? 1 : s.level, odds = lockOdds(s);
   const needs = nextNeeds(s), L = levelInfo(s.level), wig = nudge();
   const cashGoal = s.level === 2 ? 400 : s.level === 3 ? 750 : rentDue(s);
@@ -746,10 +944,12 @@ function trustLine(t){
 }
 function morning(){
   if (page !== 'life' || s.lockedUp || s.levelUp || document.querySelector('#modal .ov')) return;
+  if (s.show && s.show[0] === 'reveal') return revealUI();   // what happened last night comes first
   if (s.cards && s.cards.length) return cardPop(s.cards[0]);
   const next = s.show && s.show[0]; if (!next) return;
   if (next === 'night') { const n = nightCard(s.night); if (!n) { s.show.shift(); return morning(); }
     return show(`<div class="lolt mk">LIFE ON LIFE’S TERMS</div><p class="note" style="margin:0">Last night</p><h2 class="mk">${esc(n.title)}</h2><p class="say">${esc(n.text)}</p>${heatMeter(s.heat, s.heat - n.heat)}${n.stress ? `<div class="chips"><span class="chip2 ${n.stress > 0 ? 'bad' : 'good'}">${n.stress > 0 ? '+' : '−'}${Math.abs(n.stress)} STRESS</span></div>` : ''}<button class="paper red big mk" onclick="s.show.shift();save();closeModal();render()">GOT IT</button>`, 'card'); }
+  if (next === 'reveal') return revealUI();
   if (next === 'scen') return scenPopup(true);
 }
 function scenPopup(fromMorning){
@@ -780,31 +980,12 @@ function doMove(id){
   markDone(id); sfx('move'); save(); render();
   setTimeout(() => show(`<span class="kicker">${esc(r.title)}</span><h2 class="mk">${r.end ? (ROW_OF[id] === 'life' ? 'THAT’S ONE WAY TO END IT.' : 'HANDLED.') : esc(MOVES[id].label.toUpperCase()) + '.'}</h2><p class="say">${esc(r.say)}</p>${heatMeter(s.heat, was)}${trustLine(r.trust)}${r.still ? '<p class="note">It’s still on you.</p>' : ''}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`), 120);
 }
-function night(){
-  const odds = lockOdds(s);
-  if (s.actions) show(`<h2 class="mk">CALL IT A DAY?</h2><p>${s.actions} move${s.actions === 1 ? '' : 's'} left. They don’t carry over. Food, rent when it’s due, and the night still happen. Life on life’s terms adds heat every night.</p>${heatMeter(s.heat)}<button class="paper red big mk" onclick="closeModal();sleep()">FINISH TODAY</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Use my time</button>`);
-  else sleep();
-}
-function sleep(){
-  sfx('night');
-  const day = s.day, odds = pct(lockOdds(s)), before = { cash: s.cash, heat: s.heat }, n0 = s.logN || 0, today = (s.today || []).slice();
-  const m = document.getElementById('modal');
-  m.innerHTML = `<div class="night"><div><h1 class="mk">NIGHT ${day}</h1><p>${odds ? odds + '% chance the lights show up.' : 'Nobody’s looking for you.'}</p><div class="dots">● ● ●</div></div></div>`;
-  window.scrollTo(0, 0);
-  setTimeout(() => {
-    endDay(s); save();
-    if (s.lockedUp || s.result) { m.innerHTML = ''; render(); return; }
-    const night = s.log.slice(0, Math.max(0, (s.logN || 0) - n0)).reverse().filter(x => !/^(Night:|New trouble|It came back|NEW CHAPTER)/.test(x));
-    const lines = today.map(x => x.split(/(?<=[.!?])\s/)[0]).concat(night.length ? night : ['Ate. Slept. Woke up sober.']).slice(0, 6);
-    const box = m.querySelector('.night > div');
-    if (box) { box.className = 'recapbox'; box.innerHTML = recap(day, before, lines); m.querySelector('.night').onclick = () => { m.innerHTML = ''; render(); }; }
-  }, odds ? 1600 : 900);
-}
 function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, chapter 1, $${CFG.startCash}. This run gets wiped.</p><button class="paper red big mk" onclick="newRun(true)">PICK A NEW HOMIE</button><button class="paper big cream mk" onclick="newRun(false)">SAME HOMIE</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
 function rules(){
   const H = CFG.heat;
   show('<h2 class="mk">HOW IT WORKS.</h2>'
   + '<p><b>Heat</b> is the meter with the flames. Life on life’s terms adds heat every night, more if you skipped the spiritual stuff, and every night a situation sits there. Past the white line the cops might come, up to ' + pct(H.maxOdds) + '% a night. Fill it all the way and they come for sure. Locked up = back to chapter 1.</p>'
+  + '<p><b>Overnight he’s on his own.</b> After your moves you see the plan. Lights out. At 6 AM you find out what really happened. Spiritual energy (meetings, calls, helping, rest) is what keeps him straight when nobody’s watching. Heat, stress, life moves, Ghost and being alone make bad nights more likely. Nothing bad happens to a guy who’s been doing the work and staying cool. Relapse resets sober time, not the whole run.</p>'
   + '<p><b>Spiritual moves</b> always help. Do one first and work adds no heat that day. <b>Life moves</b> feel good, cost a lot of heat, and leave a receipt that comes back.</p>'
   + '<p><b>People remember.</b> Pops, Big Ray, Darlene, Mom and Shorty like you more or less with every move. Ghost too, and that’s the problem.</p>'
   + '<p><b>Money:</b> a shift takes 2 of your 3 moves and pays $' + CFG.wage + ' (the raise makes it $' + CFG.raiseWage + '). The warehouse is closed Sundays. Food is $' + CFG.food + ' a night. Every Sunday night: rent ($' + CFG.rent.slice(1).join(', $') + ' as you move up) plus about $' + (CFG.bills.bus + CFG.bills.fees) + ' for the bus and court fees, $' + CFG.bills.phone + ' more with a phone. Owe two weeks and you lose the bed.</p>'
@@ -841,7 +1022,8 @@ function render(){
   app.innerHTML = page === 'title' ? title() : page === 'pick' ? pick() : page === 'shop' ? shopUI() : page === 'progress' ? progress() : page === 'settings' ? settings() : life();
   nav.hidden = !inGame;
   if (inGame) nav.innerHTML = navBar();
-  if (inGame && s.lockedUp && page !== 'progress' && !document.querySelector('#modal .pop')) lockupUI();
+  if (inGame && s.lockedUp && s.reveal && !s.revealSeen && page === 'life' && !document.querySelector('#modal .ov')) setTimeout(revealUI, 300);
+  else if (inGame && s.lockedUp && page !== 'progress' && !document.querySelector('#modal .pop')) lockupUI();
   else if (inGame && s.levelUp && !document.querySelector('#modal .ov')) levelUpUI();
   else if (page === 'life' && ((s.cards && s.cards.length) || (s.show && s.show.length))) setTimeout(morning, 350);
   setTimeout(flushNotices, 60);
@@ -890,6 +1072,7 @@ function flushNotices(){
 }
 
 history.replaceState({ p: 'title' }, '');
+if (s.asleep && Date.now() >= s.asleep.wake) { s.asleep = null; endDay(s); save(); }
 render();
 </script>
 </body>
