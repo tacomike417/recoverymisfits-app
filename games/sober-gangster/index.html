@@ -202,18 +202,107 @@ footer{color:#b9ab90;font-size:12px;margin-top:18px;text-align:center}
 .night small{display:block;margin-top:16px;opacity:.6}
 .dots{font-size:22px;letter-spacing:6px;margin-top:12px;animation:dots 1s infinite alternate}
 @keyframes dots{to{opacity:.2}}
-.notices{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom));width:min(400px,calc(100% - 24px));z-index:40;display:flex;flex-direction:column;gap:6px}
+.notices{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + min(100vw,430px) / 853 * 112);width:min(400px,calc(100% - 24px));z-index:40;display:flex;flex-direction:column;gap:6px}
 .notice{background:#111;color:#f3e6c4;border:2px solid var(--gold);border-radius:6px;padding:9px 12px;font:600 14px 'Barlow';box-shadow:0 4px 12px #000;transition:opacity .3s,transform .3s}
 .notice.warn{border-color:var(--red2)}.notice.good{border-color:#58b26a}
 .notice.out{opacity:0;transform:translateY(8px)}
 @media (prefers-reduced-motion:reduce){.heat.burning,.dots{animation:none}}
+
+/* ===== the ChatGPT skin ===== */
+:root{--W:min(100vw,430px);--u:calc(var(--W) / 853)}
+#app.pg-life,#app.pg-title,#app.pg-pick,#app.pg-shop{padding-left:0;padding-right:0;max-width:430px}
+#app.pg-life{padding-bottom:calc(var(--u) * 154 + env(safe-area-inset-bottom))}
+#app.pg-shop{padding-bottom:calc(var(--u) * 187 + env(safe-area-inset-bottom) + 10px)}
+#app.pg-progress,#app.pg-settings{padding-bottom:calc(var(--u) * 154 + env(safe-area-inset-bottom) + 14px)}
+.stage{position:relative;width:var(--W);margin:0 auto;overflow:hidden}
+.stage .skin{position:absolute;left:0;top:0;width:100%;height:auto;display:block;pointer-events:none;z-index:1}
+.stage>*:not(.skin):not(.room2){z-index:2}
+.hot{position:absolute;display:block;background:transparent;border:0;padding:0;cursor:pointer;z-index:3;-webkit-tap-highlight-color:rgba(255,215,90,.25)}
+.hot:active{background:rgba(255,215,90,.12)}
+.hot:focus-visible{outline:3px solid var(--gold2)}
+.tr{position:absolute;display:flex;align-items:center;justify-content:flex-end;gap:calc(var(--u)*12)}
+.tr .vpill{font-size:calc(var(--u)*26);padding:calc(var(--u)*4) calc(var(--u)*16)}
+.tr .snd{width:calc(var(--u)*64);height:calc(var(--u)*64)}.tr .snd svg{width:calc(var(--u)*44);height:calc(var(--u)*44)}
+.tr .pips{gap:calc(var(--u)*8)}.tr .pips i{width:calc(var(--u)*22);height:calc(var(--u)*22)}
+.tr .cash-pill{font-size:calc(var(--u)*32);padding:calc(var(--u)*2) calc(var(--u)*16)}
+.keep{position:absolute;text-align:center;color:var(--gold2);font-size:calc(var(--u)*30);text-shadow:2px 2px 0 #000;pointer-events:none}
+.newrun{position:absolute;color:#f3e6c4;font-size:calc(var(--u)*40);text-shadow:2px 3px 0 #000;text-decoration:underline;text-underline-offset:4px}
+/* today */
+.room2{position:absolute;background:#000 center/cover;overflow:hidden;z-index:0}
+.room2 .fig{position:absolute;left:50%;bottom:3%;height:84%;transform:translateX(-50%);filter:drop-shadow(0 10px 8px #000a)}
+.room2 .pet{position:absolute;left:67%;bottom:4%;height:32%;filter:drop-shadow(0 6px 5px #000a)}
+.stuff2{position:absolute;right:2%;top:24%;display:flex;flex-direction:column;gap:calc(var(--u)*6);align-items:flex-end}
+.stuff2 img{height:calc(var(--u)*46);filter:drop-shadow(0 2px 2px #000)}
+.dnum,.dtot{position:absolute;font-size:calc(var(--u)*72);line-height:1;text-shadow:3px 4px 0 #000;-webkit-text-stroke:calc(var(--u)*2) #000;paint-order:stroke fill}
+.dnum{color:var(--gold2);text-align:right}.dtot{color:#fff6dc}
+.lvl{position:absolute;text-align:left;color:var(--ink);font-size:calc(var(--u)*40);white-space:nowrap;overflow:hidden;padding-left:calc(var(--u)*8);-webkit-text-stroke:calc(var(--u)*1.2) currentColor}
+.lvl b{font-weight:400;font-size:calc(var(--u)*50)}
+.nexttxt{position:absolute;text-align:left;color:#fff;font:700 calc(var(--u)*24)/1.15 'Barlow Condensed';text-shadow:1px 2px 0 #000,0 0 6px #000}
+.nexttxt b{color:var(--gold2);font-weight:400;font-size:calc(var(--u)*30)}
+.cardflag{position:absolute;background:var(--red2);color:#fff;font-size:calc(var(--u)*34);border:3px solid #000;border-radius:4px;box-shadow:0 0 0 2px var(--gold2),0 0 16px #ff3b1f;transform:rotate(3deg);animation:pulse 1s ease-in-out infinite alternate}
+@keyframes pulse{to{transform:rotate(3deg) scale(1.07)}}
+.callst{position:absolute;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:0 calc(var(--u)*16);background:#f1e2bd url(assets/ui/tex-cream.webp) center/200px;border:calc(var(--u)*5) solid #111;border-radius:calc(var(--u)*6);box-shadow:0 0 0 calc(var(--u)*3) var(--gold),2px 4px 0 #000;color:var(--ink);text-align:left}
+.callst .mk{font-size:calc(var(--u)*32);line-height:1}.callst small{font:700 calc(var(--u)*20) 'Barlow Condensed';color:#4a3b2c}
+.callst.done{opacity:.6}
+.where2{position:absolute;display:flex;align-items:center;justify-content:center;color:#fff;font:800 calc(var(--u)*22) 'Barlow Condensed';letter-spacing:1px;background:#000c;border-radius:3px}
+.val{position:absolute;color:var(--ink);font-size:calc(var(--u)*62);line-height:1;padding-left:calc(var(--u)*14);-webkit-text-stroke:calc(var(--u)*1.6) currentColor}
+.val.c{text-align:center;padding:0}
+.bar2{position:absolute;overflow:hidden;border-radius:2px}
+.bar2 i{display:block;height:100%;background:linear-gradient(#e0262b,#9d1018)}
+.bar2.gold i{background:linear-gradient(#f7cf5c,#c98d12)}
+.bar2.heat2 b{position:absolute;top:-2px;bottom:-2px;width:2px;background:#111}
+.htag{position:absolute;display:flex;align-items:center;justify-content:center;background:#111;color:var(--gold2);font-size:calc(var(--u)*36);clip-path:polygon(2% 10%,100% 0,97% 92%,0 100%);transform:rotate(-2deg)}
+.htag.hot{background:var(--red2);color:#fff}
+.left2{position:absolute;display:flex;align-items:center;justify-content:center;color:#fff;font-size:calc(var(--u)*38);text-shadow:2px 2px 0 #000}
+.sub2{position:absolute;color:#4a3b2c;font:600 calc(var(--u)*27)/1.2 'Barlow Condensed';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.tick{position:absolute;color:var(--red2);font-size:calc(var(--u)*80);line-height:1;pointer-events:none;text-shadow:1px 1px 0 #000}
+.mvhot.off{background:rgba(20,15,10,.32)}
+/* tiles (pick + shop) */
+.tiles{display:grid;width:var(--W);margin:0 auto;padding:0 calc(var(--u)*18)}
+.tiles.two{grid-template-columns:1fr 1fr;gap:calc(var(--u)*10)}
+.tiles.three{grid-template-columns:1fr 1fr 1fr;gap:calc(var(--u)*8)}
+.tile{position:relative;background:center/100% 100% no-repeat;border:0;padding:0;cursor:pointer}
+.tfig{position:absolute;left:50%;bottom:22%;height:70%;transform:translateX(-50%);filter:drop-shadow(0 6px 4px #000)}
+.tname{position:absolute;left:8%;right:8%;bottom:6.5%;height:12%;display:flex;align-items:center;justify-content:center;color:var(--ink);font-size:calc(var(--u)*36);-webkit-text-stroke:calc(var(--u)*1) currentColor}
+.pk2.sel{filter:drop-shadow(0 0 calc(var(--u)*10) #f7cf5c) drop-shadow(0 0 calc(var(--u)*4) #f7cf5c)}
+.pk2.sel::before{content:"";position:absolute;top:-6%;left:-4%;width:24%;height:18%;background:url(assets/ui/crown.webp) center/contain no-repeat;transform:rotate(-18deg);z-index:2}
+.pickline{color:#e9dcc0;font:600 14px 'Barlow';text-align:center;margin:6px 16px 10px;text-shadow:1px 1px 0 #000}
+.pickwho{color:var(--gold2);font:700 15px 'Barlow Condensed';text-align:center;margin:12px 16px 4px;text-shadow:1px 1px 0 #000;min-height:20px}
+.imgbtn{display:block;width:calc(var(--u)*795);margin:0 auto;padding:0;border:0;background:none}
+.imgbtn img{width:100%;display:block;filter:drop-shadow(0 4px 6px #000)}
+.titem{position:absolute;left:50%;top:9%;height:52%;max-width:80%;object-fit:contain;transform:translateX(-50%);filter:drop-shadow(0 5px 4px #000c)}
+.tlab{position:absolute;left:10%;right:10%;bottom:7%;height:20%;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;color:var(--ink)}
+.tlab .lb{font-size:calc(var(--u)*30)}.tlab .pr{font:800 calc(var(--u)*34) 'Barlow Condensed'}
+.it2.own .titem,.it2.lock .titem{opacity:.4}
+.stamp2{position:absolute;top:28%;left:50%;transform:translateX(-50%) rotate(-12deg);border:calc(var(--u)*5) solid var(--red2);color:var(--red2);font-size:calc(var(--u)*36);padding:0 calc(var(--u)*8);background:#fff8;border-radius:3px}
+.tab2{position:absolute;border:0;background:none;padding:0;z-index:3}
+.tab2.on{border-style:solid;border-width:calc(var(--u)*12) calc(var(--u)*18) calc(var(--u)*16);border-image:url(assets/ui/btn-red.webp) 58 90 92 fill / calc(var(--u)*12) calc(var(--u)*18) calc(var(--u)*16) stretch;color:#fff6dc;font-size:calc(var(--u)*36);text-shadow:1px 2px 0 #000;display:flex;align-items:center;justify-content:center}
+.noteimg{display:block;width:var(--W);margin:calc(var(--u)*10) auto 0}
+/* nav */
+nav{background:none!important;border:0!important;box-shadow:none!important}
+nav .navin{position:relative;width:var(--W);margin:0 auto}
+nav .navin img{width:100%;height:100%;display:block}
+nav .navin .hot{position:absolute;top:0}
+nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),transparent 70%);box-shadow:inset 0 calc(var(--u)*-6) 0 var(--gold2)}
+/* pop-ups */
+.skinov{padding:12px}
+.pop{position:relative;width:min(94vw,400px);--p:calc(min(94vw,400px) / 817)}
+.pop .skin{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.pfig{position:absolute;object-fit:contain;object-position:bottom;filter:drop-shadow(0 6px 5px #0008)}
+.pfig.was{opacity:.6}
+.pfig.jail{filter:brightness(.8) saturate(.7) hue-rotate(-10deg) drop-shadow(0 6px 5px #000)}
+.pbars{position:absolute;pointer-events:none}
+.pbars i{position:absolute;top:0;bottom:0;width:calc(var(--p)*20);background:linear-gradient(90deg,#2a2c31,#8a909a 45%,#3a3d44)}
+.ptext{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--ink);font:600 calc(var(--p)*26)/1.2 'Barlow Condensed'}
+.ptext b{font-weight:400;font-size:calc(var(--p)*44);line-height:1}
+.pop .hot{z-index:3}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="engine.js?v=1.2"></script><!-- bump ?v= with every VERSION change -->
+<script src="engine.js?v=2.0"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -253,25 +342,8 @@ function topbar(title){
   return `<header class="top"><button class="xbtn" onclick="topX()" aria-label="${page === 'title' ? 'Leave the game' : 'Back to the start screen'}">✕</button>${title ? `<span class="ttl mk">${title}</span>` : ''}<span class="grow"></span><button class="snd" onclick="toggleSound()" aria-label="${s.settings.mute ? 'Turn sound on' : 'Turn sound off'}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 4V5L7 9H3z"/>${s.settings.mute ? '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/>' : '<path d="M15.5 8.5a5 5 0 010 7M18 6a8.5 8.5 0 010 12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/>'}</svg></button>${page === 'shop' ? `<span class="cash-pill">$${s.cash}</span>` : ''}${page === 'life' && !s.result ? `<span class="pips">${[0,1,2].map(i => `<i class="${i < s.actions ? 'on' : ''}"></i>`).join('')}</span>` : ''}${pill}</header>`;
 }
 
-/* ---------- title ---------- */
-function title(){
-  const crew = ['lady-ink','pops','lil-smoke','big-country','party-girl'];
-  const pos = [[-2,62],[16,66],[34,76],[54,66],[74,62]];
-  return `${topbar('')}<div class="title"><img class="logo" src="${ic('logo')}" alt="Sober Gangster"><div class="paper tag mk">LOCKED UP, COVERED UP, OR SOBERED UP</div>
-  <div class="crew paper">${crew.map((c,i)=>`<img src="${figImg(c,1)}" alt="" style="left:${pos[i][0]}%;height:${pos[i][1]}%">`).join('')}<span class="say mk">SAME PEOPLE.<br>DIFFERENT PLANS.</span><span class="say say2 mk">ONE DAY<br>AT A TIME</span></div>
-  <button class="paper red big mk drip" onclick="play()">${s.look.done && !s.lockedUp && s.day > 1 ? 'KEEP GOING' : 'PLAY'}<img class="crown" src="${ic('crown')}" alt=""></button>
-  <button class="paper big cream mk" onclick="intro()">HOW TO PLAY</button>
-  ${s.look.done ? `<button class="ghost" onclick="restart()">Start a new run</button>` : ''}</div>`;
-}
 function play(){ go(s.look.done ? 'life' : 'pick'); if (s.look.done && !s.settings.introSeen) intro(); }
 
-/* ---------- pick your homie ---------- */
-function pick(){
-  const sel = pickSel || s.look.fig;
-  return `${topbar('PICK YOUR <b>HOMIE</b>')}<p class="onwall" style="font-weight:600;margin-bottom:10px">Everybody starts fresh off the bus. Where they end up is on you.</p>
-  <div class="pickgrid">${FIGURES.map(f => `<button class="paper pk ${sel === f.id ? 'sel' : ''}" onclick="pickSel='${f.id}';render()" aria-pressed="${sel === f.id}"><div class="ph"><img src="${figImg(f.id,1)}" alt=""></div><span class="mk">${esc(f.name.toUpperCase())}</span><small>${esc(f.who)}</small></button>`).join('')}</div>
-  <div class="stick"><button class="paper red big mk drip" ${sel ? '' : 'disabled'} onclick="choose_fig()">${sel ? "THAT'S ME" : 'PICK ONE'}<img class="crown" src="${ic('crown')}" alt=""></button></div>`;
-}
 function choose_fig(){
   const f = FIGURES.find(x => x.id === (pickSel || s.look.fig)); if (!f) return;
   const changing = s.look.done;
@@ -296,6 +368,7 @@ addEventListener('pointerdown', () => { if (!soundReady) { soundReady = true; st
 document.addEventListener('visibilitychange', () => { if (!music) return; if (document.hidden) music.pause(); else if (!s.settings.mute && soundReady) music.play().catch(() => {}); });
 
 /* ---------- today ---------- */
+const ACTION_LABEL = { work:'Work a shift', rest:'Take a breath', responsibility:'Handle your stuff', support:'Sober support', help:'Ask for help', job:'Better work' };
 const ACTIONS = () => {
   const j = jobs[Math.max(0, s.job)], H = CFG.heat, t = jobHuntTarget(s);
   return [
@@ -307,16 +380,6 @@ const ACTIONS = () => {
     ['job', 'Better work', t > s.job ? jobs[t].name : s.items.includes('phone') ? 'nothing open' : 'need a phone', 'job', t > s.job ? 'Step up to ' + jobs[t].name.toLowerCase() + ' ($' + jobs[t].wage + ' a shift).' : s.items.includes('phone') ? 'Nothing better open yet. Work boots open stock crew; a car opens maintenance.' : 'Nobody can call you back without a phone. Get one in the shop.']
   ];
 };
-function room(){
-  const lv = s.housing === 'Temporary shelter' ? 1 : s.level;
-  const pet = s.items.includes('dog') ? `<img class="pet" src="${A}item/dog.webp" alt="your dog">` : '';
-  const stuff = s.items.filter(i => i !== 'dog' && !(item(i).upgrades === undefined && s.items.some(j => item(j).upgrades === i)));
-  return `<div class="paper roomwrap"><div class="room" style="background-image:url(${A}room/${lv}.webp)"><img class="fig" src="${myFig()}" alt="${esc(fig().name)}, level ${s.level}">${pet}<button class="lvltag mk" onclick="go('progress')">LVL <b>${s.level}</b> · ${esc(levelInfo(s.level).name.toUpperCase())}</button><span class="where">${esc(s.housing.toUpperCase())}</span></div>${s.level < 4 ? `<button class="nextline" onclick="go('progress')"><b>NEXT: LVL ${s.level + 1}</b><span>${esc(nextNeeds(s).join(' · ') || 'one more good night')}</span></button>` : ''}${stuff.length ? `<div class="stuff" aria-label="Your stuff">${stuff.map(i => `<img src="${A}item/${i}.webp" alt="${esc(item(i).name)}" title="${esc(item(i).name)}">`).join('')}</div>` : ''}</div>`;
-}
-function heatUI(){
-  const odds = lockOdds(s), cls = s.heat >= 80 ? 'burning hot' : s.heat > CFG.heat.safe ? 'hot' : '';
-  return `<div class="paper heat ${cls}"><div class="row"><img src="${ic('heat')}" alt=""><span class="mk">HEAT ${s.heat}</span><span class="tag mk">${odds ? pct(odds) + '% tonight' : 'Safe tonight'}</span></div><div class="bar"><span style="width:${s.heat}%"></span></div><div class="odds">${odds ? 'Chance the lights show up tonight: ' + pct(odds) + '%. ' + heatWords(s) : 'Nobody’s looking for you. Keep it under ' + CFG.heat.safe + '.'}</div></div>`;
-}
 function effects(c){
   const a = [];
   if (c.cost) a.push(c.cost + ' move' + (c.cost > 1 ? 's' : ''));
@@ -331,34 +394,7 @@ function effects(c){
   if (c.e.court) a.push('hearing in 3 days');
   return a.join(' · ') || 'nothing changes';
 }
-function cardUI(){
-  const e = s.event;
-  return `<section class="paper event drip"><span class="kicker">${e.type === 'risk' ? 'PRESSURE' : 'TODAY’S LIFE CARD'}</span><h2 class="mk">${esc(e.title)}</h2><p>${esc(e.text)}</p>${e.choices.map((c,i) => `<button class="choice" onclick="pickCard(${i})" ${allowed(s,c) ? '' : 'disabled'}><span class="mk">${esc(c.label)}</span><small>${esc(effects(c))}${c.note ? '<br>🎲 ' + esc(c.note) : ''}</small></button>`).join('')}<div class="note">Pick one to get on with your day. Chance outcomes roll when you choose.</div></section>`;
-}
-function life(){
-  if (s.result) return `${topbar('DAY <b>' + CFG.days + '</b> DONE')}${room()}<section class="paper event"><span class="kicker">${CFG.days}-DAY CHAPTER COMPLETE</span><h2 class="mk">LOOK WHAT YOU BUILT.</h2><p>Level ${s.level}: ${esc(levelInfo(s.level).name)}. ${esc(jobs[Math.max(0, s.job)].name)}. $${s.cash} in your pocket.</p>${Object.entries(s.result).map(([k,v]) => `<div class="choice" style="display:flex;justify-content:space-between"><span class="mk">${k}</span><b>${v}/100</b></div>`).join('')}<button class="paper red big mk" onclick="restart()">NEW CHAPTER</button></section>`;
-  const needs = nextNeeds(s);
-  return `${topbar('DAY <b>' + s.day + '</b> / ' + CFG.days)}${room()}
-  <div class="stats"><div class="paper stat"><span class="lab"><img src="${ic('cash')}" alt="">CASH</span><strong class="mk">$${s.cash}</strong></div>
-  <div class="paper stat"><span class="lab"><img src="${ic('stress')}" alt="">STRESS</span><strong class="mk">${s.stress}</strong><div class="bar"><span style="width:${s.stress}%"></span></div></div>
-  <div class="paper stat"><span class="lab"><img src="${ic('connection')}" alt="">CONNECTION</span><strong class="mk">${s.connection}</strong><div class="bar gold"><span style="width:${s.connection}%"></span></div></div></div>
-  ${heatUI()}
-  ${s.event ? cardUI() : ''}
-  <div class="banner"><span class="mk">YOUR MOVES</span><span class="left mk">${s.actions} left</span></div>
-  <div class="moves">${ACTIONS().map(([id,label,fx,icon]) => `<button class="paper mv" ${s.event || !s.actions ? 'disabled' : ''} onclick="confirmAction('${id}')"><span class="box ${doneToday(id) ? 'on' : ''}"></span><img src="${ic(icon)}" alt=""><span><span class="lb">${label}</span><small>${esc(fx)}</small></span></button>`).join('')}</div>
-  <button class="paper call" ${s.event || s.calledToday ? 'disabled' : ''} onclick="if(call(s))sfx('move');render()"><span class="box ${s.calledToday ? 'on' : ''}" style="width:24px;height:24px;flex:none;border:3px solid var(--ink);background:#fff8e6;position:relative"></span><span><span class="lb">${s.calledToday ? 'Called. Good.' : 'Make a sober call'}</span><small>${s.calledToday ? 'Tonight’s skipped-support heat is cut in half.' : 'Two minutes. Doesn’t use a move. Heat ' + CFG.heat.call + '.'}</small></span><span class="free mk">${s.calledToday ? 'DONE' : 'FREE'}</span></button>
-  <button class="paper red big mk drip" ${s.event ? 'disabled' : ''} onclick="night()">${s.actions ? 'CALL IT A DAY' : 'NEXT DAY'}<img class="crown" src="${ic('crown')}" alt=""></button>
-  <p class="note onwall" style="text-align:center">${s.event ? 'Handle today’s life card first.' : 'Food is $' + CFG.food + ' a night. Rent $' + rentDue(s) + ' on day ' + nextRentDay(s) + '.'}</p>`;
-}
-
 /* ---------- shop ---------- */
-function shopUI(){
-  const rows = shop.filter(p => p.group === shopTab && !(p.guyOnly && s.look.sex !== 'guy') && !(p.girlOnly && s.look.sex !== 'girl')).map(p => {
-    const why = cantBuy(s, p.id), own = why === 'owned', lock = /^level /.test(why);
-    return `<button class="paper it ${own ? 'own' : ''} ${lock ? 'lock' : ''}" onclick="purchase('${p.id}')"><div class="ph"><img src="${A}item/${p.id}.webp" alt=""></div>${own ? '<span class="stamp">OWNED</span>' : lock ? `<span class="stamp"><img src="${ic('lock')}" alt="">LVL ${p.minLevel}</span>` : ''}<span class="lb">${esc(p.name)}</span><span class="pr">${own ? 'OWNED' : '$' + p.price}</span></button>`;
-  }).join('');
-  return `${topbar('THE <b>SHOP</b>')}<div class="tabs">${SHOP_GROUPS.map(([g,t]) => `<button class="paper ${shopTab === g ? 'on' : ''}" onclick="shopTab='${g}';render()">${t}</button>`).join('')}</div><p class="onwall" style="font-weight:600;margin:-4px 0 10px;font-size:13px">${esc(SHOP_GROUPS.find(x => x[0] === shopTab)[2])} ${s.actions} move${s.actions === 1 ? '' : 's'} left today.</p><div class="sgrid">${rows}</div><p class="note onwall shopnote">Each buy uses one move. Stuff can’t buy recovery, but it can feel good. Your stuff shows up under your room.</p>`;
-}
 function purchase(id){
   const p = item(id), why = cantBuy(s, id);
   const btn = why ? `<button class="paper big cream mk" disabled>${why === 'owned' ? 'YOU GOT IT' : /^level /.test(why) ? 'UNLOCKS AT ' + why.toUpperCase() : esc(why.toUpperCase())}</button>` : `<button class="paper red big mk" onclick="if(buy(s,'${id}'))sfx('buy');closeModal();render()">BUY IT · $${p.price}</button>`;
@@ -367,7 +403,7 @@ function purchase(id){
 
 /* ---------- progress + settings ---------- */
 function progress(){
-  return `${topbar('YOUR <b>STORY</b>')}<div class="paper" style="padding:10px"><div class="ladder">${LEVELS.map(L => `<div class="rung ${L.n > s.level ? 'no' : ''} ${L.n === s.level ? 'cur paper' : ''}"><img src="${myFig(L.n)}" alt=""><span class="mk">LVL ${L.n}</span><br>${esc(L.name)}</div>`).join('')}</div>
+  return `${topbar('YOUR <b>STORY</b>')}${s.lockedUp ? '<button class="paper red big mk" onclick="startOver()">START OVER</button>' : ''}<div class="paper" style="padding:10px"><div class="ladder">${LEVELS.map(L => `<div class="rung ${L.n > s.level ? 'no' : ''} ${L.n === s.level ? 'cur paper' : ''}"><img src="${myFig(L.n)}" alt=""><span class="mk">LVL ${L.n}</span><br>${esc(L.name)}</div>`).join('')}</div>
   <p class="note">${s.level < 4 ? 'Next level needs ' + esc(nextNeeds(s).join(', ') || 'one more good night') + '. ' : 'You made it. Keep living. '}A balanced day = stress under ${CFG.balance.stress}, connection ${CFG.balance.connection}+, heat ${CFG.heat.safe} or less when you go to bed. Get locked up and it’s back to level 1.</p></div>
   <div class="banner"><span class="mk">LITTLE BIG WINS</span></div>${s.milestones.length ? s.milestones.map(x => `<div class="paper badge">★ ${esc(x)}</div>`).join('') : '<p class="onwall">The first one’s waiting. Keeping a bed counts.</p>'}
   <div class="banner"><span class="mk">WHAT HAPPENED</span></div>${s.log.map(x => `<div class="log">${esc(x)}</div>`).join('')}`;
@@ -382,18 +418,138 @@ function settings(){
   <footer>Sober Gangster ${VERSION} · Recovery Misfits · Saves on this phone automatically.<br>A life game, not recovery advice. Original characters.</footer>`;
 }
 
+/* ---------- THE SKIN: ChatGPT's own screens, with the changing parts laid on top in the same spots.
+   Every position below is in the design's own pixels (853 wide). U(n) turns that into real size. ---------- */
+const U = n => `calc(var(--u) * ${n})`;
+const at = (x, y, w, h) => `left:${U(x)};top:${U(y)};width:${U(w)};height:${U(h)}`;
+const SK = A + 'skin/';
+function topRight(extra = ''){
+  return `${extra}<button class="snd" onclick="toggleSound()" aria-label="${s.settings.mute ? 'Turn sound on' : 'Turn sound off'}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 4V5L7 9H3z"/>${s.settings.mute ? '<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/>' : '<path d="M15.5 8.5a5 5 0 010 7M18 6a8.5 8.5 0 010 12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/>'}</svg></button><span class="vpill">${VERSION}</span>`;
+}
+function navBar(){
+  const img = page === 'life' ? 'nav-today' : page === 'shop' ? 'nav-shop' : 'nav-none';
+  const h = img === 'nav-shop' ? 187 : 154;
+  const cells = [['life', 0, 212], ['shop', 212, 220], ['progress', 432, 210], ['settings', 642, 211]];
+  return `<div class="navin" style="height:${U(h)}"><img src="${SK + img}.webp" alt="">${cells.map(([p, x, w]) => `<button class="hot ${page === p && img === 'nav-none' ? 'navon' : ''}" style="left:${U(x)};top:0;width:${U(w)};height:100%" onclick="${page === p ? '' : `go('${p}')`}" aria-label="${p === 'life' ? 'Today' : p}"></button>`).join('')}</div>`;
+}
+
+/* title: the whole screen is ChatGPT's */
+function title(){
+  return `<div class="stage" style="height:${U(1844)}"><img class="skin" src="${SK}title.webp" alt="Sober Gangster. Locked up, covered up, or sobered up.">
+  <button class="hot" style="${at(27, 26, 73, 69)}" onclick="topX()" aria-label="Leave the game"></button>
+  <div class="tr" style="${at(560, 34, 270, 60)}">${topRight()}</div>
+  <button class="hot" style="${at(70, 1290, 705, 137)}" onclick="play()" aria-label="${s.look.done && s.day > 1 && !s.lockedUp ? 'Keep going' : 'Play'}"></button>
+  ${s.look.done && s.day > 1 && !s.lockedUp ? `<span class="keep mk" style="${at(70, 1418, 705, 40)}">KEEP GOING · DAY ${s.day}</span>` : ''}
+  <button class="hot" style="${at(105, 1461, 645, 104)}" onclick="intro()" aria-label="How to play"></button>
+  ${s.look.done ? `<button class="newrun mk" style="${at(170, 1600, 513, 70)}" onclick="restart()">Start a new run</button>` : ''}</div>`;
+}
+
+/* pick your homie: header + repeating card tiles + the THAT'S ME button, all ChatGPT's */
+function pick(){
+  const sel = pickSel || s.look.fig;
+  return `<div class="stage" style="height:${U(125)}"><img class="skin" src="${SK}pick-head.webp" alt="Pick your homie"><button class="hot" style="${at(25, 20, 80, 78)}" onclick="topX()" aria-label="Back to the start screen"></button><div class="tr" style="${at(640, 30, 190, 60)}">${topRight()}</div></div>
+  <p class="pickline">Everybody starts fresh off the bus. Where they end up is on you.</p>
+  <div class="tiles two">${FIGURES.map((f, i) => `<button class="tile pk2 ${sel === f.id ? 'sel' : ''}" style="background-image:url(${SK}pick-card-${i % 6}.webp);aspect-ratio:401/414" onclick="pickSel='${f.id}';render()" aria-pressed="${sel === f.id}"><img class="tfig" src="${figImg(f.id, 1)}" alt=""><span class="tname mk">${esc(f.name.toUpperCase())}</span></button>`).join('')}</div>
+  <p class="pickwho">${esc((FIGURES.find(f => f.id === sel) || {}).who || 'Tap one.')}</p>
+  <div class="stick"><button class="imgbtn" ${sel ? '' : 'disabled'} onclick="choose_fig()" aria-label="That's me"><img src="${SK}pick-btn.webp" alt="That's me"></button></div>`;
+}
+
+/* today */
+function life(){
+  if (s.result) return chapterDone();
+  const lv = s.housing === 'Temporary shelter' ? 1 : s.level, H = CFG.heat, odds = lockOdds(s);
+  const acts = ACTIONS(), needs = nextNeeds(s), L = levelInfo(s.level);
+  const cashGoal = (LEVELS[s.level] && LEVELS[s.level].need.cash) || CFG.cushion;
+  const blocked = !!s.event || !s.actions;
+  // card spots: [x, y, w, h, subX, subY, boxX, boxY]
+  const spot = [[25,1150,393,107,205,1206,44,1176],[435,1150,393,107,612,1206,452,1176],[25,1268,393,114,200,1332,44,1300],[435,1268,393,114,628,1332,455,1300],[25,1392,393,110,205,1455,44,1420],[435,1392,393,110,620,1455,455,1422]];
+  const stuff = s.items.filter(i => i !== 'dog' && !s.items.some(j => item(j).upgrades === i));
+  return `<div class="stage today" style="height:${U(1690)}">
+  <div class="room2" style="${at(26, 135, 802, 623)};background-image:url(${A}room/${lv}.webp)"><img class="fig" src="${myFig()}" alt="${esc(fig().name)}, level ${s.level}">${s.items.includes('dog') ? `<img class="pet" src="${A}item/dog.webp" alt="your dog">` : ''}
+    ${stuff.length ? `<div class="stuff2">${stuff.slice(-7).map(i => `<img src="${A}item/${i}.webp" alt="${esc(item(i).name)}">`).join('')}</div>` : ''}</div>
+  <img class="skin" src="${SK}today.webp" alt="">
+  <button class="hot" style="${at(30, 28, 80, 74)}" onclick="topX()" aria-label="Back to the start screen"></button>
+  <span class="dnum mk" style="${at(222, 26, 76, 80)}">${s.day}</span><span class="dtot mk" style="${at(322, 26, 110, 80)}">${CFG.days}</span>
+  <div class="tr" style="${at(470, 34, 360, 60)}">${topRight(`<span class="pips">${[0,1,2].map(i => `<i class="${i < s.actions ? 'on' : ''}"></i>`).join('')}</span>`)}</div>
+  <button class="lvl mk" style="${at(64, 150, 410, 62)}" onclick="go('progress')">LVL <b>${s.level}</b> · ${esc(L.name.toUpperCase())}</button>
+  ${s.level < 4 ? `<button class="nexttxt" style="${at(50, 222, 560, 70)}" onclick="go('progress')"><b class="mk">NEXT: LVL ${s.level + 1}</b> ${esc(needs.join(' · ') || 'one more good night')}</button>` : ''}
+  ${s.event ? `<button class="cardflag mk" style="${at(612, 150, 200, 64)}" onclick="cardUI()">LIFE CARD!</button>` : ''}
+  <button class="callst ${s.calledToday ? 'done' : ''}" style="${at(40, 680, 300, 64)}" ${s.calledToday || s.event ? 'disabled' : ''} onclick="if(call(s))sfx('move');render()"><span class="mk">${s.calledToday ? 'CALLED. GOOD.' : 'SOBER CALL'}</span><small>${s.calledToday ? 'heat ' + H.call : 'free · heat ' + H.call}</small></button>
+  <span class="where2" style="${at(560, 700, 255, 42)}">${esc(s.housing.toUpperCase())}</span>
+  <span class="val mk" style="${at(48, 834, 230, 58)}">$${s.cash}</span>
+  <span class="bar2 gold" style="${at(49, 892, 218, 19)}"><i style="width:${Math.min(100, Math.round(s.cash / cashGoal * 100))}%"></i></span>
+  <span class="val mk c" style="${at(312, 832, 240, 58)}">${s.stress}</span>
+  <span class="bar2" style="${at(316, 892, 232, 19)}"><i style="width:${s.stress}%"></i></span>
+  <span class="val mk c" style="${at(597, 832, 220, 58)}">${s.connection}</span>
+  <span class="bar2 gold" style="${at(601, 892, 210, 19)}"><i style="width:${s.connection}%"></i></span>
+  <span class="val mk" style="${at(228, 950, 180, 62)}">${s.heat}</span>
+  <span class="htag mk ${odds ? 'hot' : ''}" style="${at(584, 952, 236, 52)}">${odds ? pct(odds) + '% tonight' : 'Safe tonight'}</span>
+  <span class="bar2 heat2" style="${at(112, 1018, 682, 22)}"><i style="width:${s.heat}%"></i><b style="left:${H.safe}%"></b></span>
+  <span class="left2 mk" style="${at(700, 1086, 128, 50)}">${s.actions} left</span>
+  ${acts.map(([id, , fx], i) => { const [x, y, w, h, sx, sy, bx, by] = spot[i]; return `<button class="hot mvhot ${blocked ? 'off' : ''}" style="${at(x, y, w, h)}" onclick="${s.event ? 'cardUI()' : `confirmAction('${id}')`}" aria-label="${ACTION_LABEL[id]}"></button><span class="sub2" style="${at(sx, sy, w - (sx - x) - 12, 36)}">${esc(fx)}</span>${doneToday(id) ? `<span class="tick mk" style="${at(bx - 4, by - 26, 70, 80)}">✓</span>` : ''}`; }).join('')}
+  ${s.calledToday ? '' : ''}
+  <button class="hot" style="${at(38, 1520, 780, 122)}" onclick="${s.event ? 'cardUI()' : 'night()'}" aria-label="${s.actions ? 'Call it a day' : 'Next day'}"></button>
+  </div>`;
+}
+function chapterDone(){
+  return `${topbar('DAY <b>' + CFG.days + '</b> DONE')}<section class="paper event"><span class="kicker">${CFG.days}-DAY CHAPTER COMPLETE</span><h2 class="mk">LOOK WHAT YOU BUILT.</h2><p>Level ${s.level}: ${esc(levelInfo(s.level).name)}. ${esc(jobs[Math.max(0, s.job)].name)}. $${s.cash} in your pocket.</p>${Object.entries(s.result).map(([k, v]) => `<div class="choice" style="display:flex;justify-content:space-between"><span class="mk">${k}</span><b>${v}/100</b></div>`).join('')}<button class="paper red big mk" onclick="restart()">NEW CHAPTER</button></section>`;
+}
+// the life card, as a pop-up
+function cardUI(){
+  const e = s.event; if (!e) return;
+  show(`<span class="kicker">${e.type === 'risk' ? 'PRESSURE' : 'TODAY’S LIFE CARD'}</span><h2 class="mk">${esc(e.title)}</h2><p>${esc(e.text)}</p>${e.choices.map((c, i) => `<button class="choice" onclick="closeModal();pickCard(${i})" ${allowed(s, c) ? '' : 'disabled'}><span class="mk">${esc(c.label)}</span><small>${esc(effects(c))}${c.note ? '<br>🎲 ' + esc(c.note) : ''}</small></button>`).join('')}<div class="note">Pick one to get on with your day.</div>`);
+}
+
+/* shop: header + repeating card tiles + the note, all ChatGPT's */
+function shopUI(){
+  const list = shop.filter(p => p.group === shopTab && !(p.guyOnly && s.look.sex !== 'guy') && !(p.girlOnly && s.look.sex !== 'girl'));
+  const tabs = [['feel', 25, 262], ['big', 303, 247], ['save', 563, 265]];
+  return `<div class="stage" style="height:${U(232)}"><img class="skin" src="${SK}shop-head.webp" alt="The shop">
+  <button class="hot" style="${at(25, 20, 80, 78)}" onclick="topX()" aria-label="Back to the start screen"></button>
+  <div class="tr" style="${at(470, 30, 360, 60)}">${topRight(`<span class="cash-pill">$${s.cash}</span>`)}</div>
+  ${tabs.map(([g, x, w]) => `<button class="tab2 ${shopTab === g ? 'on mk' : ''}" style="${at(x, 148, w, 76)}" onclick="shopTab='${g}';render()" aria-pressed="${shopTab === g}">${shopTab === g ? SHOP_GROUPS.find(t => t[0] === g)[1] : ''}</button>`).join('')}</div>
+  <p class="pickline">${esc(SHOP_GROUPS.find(x => x[0] === shopTab)[2])} ${s.actions} move${s.actions === 1 ? '' : 's'} left today.</p>
+  <div class="tiles three">${list.map((p, i) => { const why = cantBuy(s, p.id), own = why === 'owned', lock = /^level /.test(why);
+    return `<button class="tile it2 ${own ? 'own' : ''} ${lock ? 'lock' : ''}" style="background-image:url(${SK}shop-card-${i % 9}.webp);aspect-ratio:266/368" onclick="purchase('${p.id}')"><img class="titem" src="${A}item/${p.id}.webp" alt=""><span class="tlab"><span class="lb">${esc(p.name)}</span><span class="pr">${own ? 'OWNED' : lock ? 'LVL ' + p.minLevel : '$' + p.price}</span></span>${own ? '<span class="stamp2 mk">OWNED</span>' : lock ? '<span class="stamp2 mk">LOCKED</span>' : ''}</button>`; }).join('')}</div>
+  <img class="noteimg" src="${SK}shop-note.webp" alt="Each buy uses one move. Stuff can't buy recovery, but it can feel good.">`;
+}
+
+/* level up + locked up: ChatGPT's pop-ups with the figure and words laid in */
+const P = n => `calc(var(--p) * ${n})`;
+const pat = (x, y, w, h) => `left:${P(x)};top:${P(y)};width:${P(w)};height:${P(h)}`;
+function levelUpUI(){
+  sfx('levelup');
+  const L = levelInfo(s.levelUp), from = Math.max(1, s.levelUp - 1);
+  const unlocks = shop.filter(p => p.minLevel === s.levelUp).map(p => p.name);
+  document.getElementById('modal').innerHTML = `<div class="ov skinov" onclick="if(event.target===this)lvDone()"><div class="pop" style="aspect-ratio:817/1135"><img class="skin" src="${SK}pop-levelup.webp" alt="Level up!">
+  <img class="pfig was" style="${pat(70, 440, 247, 300)}" src="${myFig(from)}" alt=""><img class="pfig" style="${pat(400, 330, 352, 420)}" src="${myFig(s.levelUp)}" alt="">
+  <div class="ptext" style="${pat(80, 770, 657, 130)}"><b class="mk">LEVEL ${L.n} · ${esc(L.name.toUpperCase())}</b><span>${s.housing === 'Temporary shelter' ? 'You’re climbing.' : 'New place: ' + esc(L.housing) + '.'}${unlocks.length ? ' Unlocked: ' + esc(unlocks.join(', ')) + '.' : ''}${L.n === 4 ? ' A ' + (fig().sex === 'girl' ? 'lady' : 'gentleman') + '.' : ''}</span></div>
+  <button class="hot" style="${pat(52, 946, 713, 129)}" onclick="lvDone()" aria-label="Let's go"></button></div></div>`;
+  history.pushState({ p: page, m: 1 }, '');
+}
+function lvDone(){ s.levelUp = null; save(); closeModal(); render(); }
+function lockupUI(){
+  const Lk = s.lockedUp; sfx('locked'); if (music) music.pause();
+  document.getElementById('modal').innerHTML = `<div class="ov skinov"><div class="pop" style="aspect-ratio:817/1346"><img class="skin" src="${SK}pop-locked.webp" alt="Locked up.">
+  <img class="pfig jail" style="${pat(300, 560, 260, 320)}" src="${myFig()}" alt=""><span class="pbars" style="${pat(60, 400, 722, 499)}">${[154, 257, 398, 532, 669].map(x => `<i style="left:${P(x - 60)}"></i>`).join('')}</span>
+  <div class="ptext" style="${pat(70, 930, 677, 100)}"><span>Night ${Lk.day}. Heat was ${Lk.heat}. The odds said ${Lk.odds}% and tonight they hit. Back to level 1, fresh off the bus.</span></div>
+  <button class="hot" style="${pat(51, 1054, 726, 129)}" onclick="startOver()" aria-label="Start over"></button>
+  <button class="hot" style="${pat(51, 1208, 722, 104)}" onclick="document.getElementById('modal').innerHTML='';go('progress')" aria-label="See what happened"></button></div></div>`;
+}
+
 /* ---------- render ---------- */
 function render(){
   save();
   const app = document.getElementById('app'), nav = document.getElementById('nav');
   if (!s.look.done && page !== 'title' && page !== 'pick') page = 'pick';
-  const inGame = ['life','shop','progress','settings'].includes(page);
-  app.className = inGame ? '' : 'nonav';
+  const inGame = ['life', 'shop', 'progress', 'settings'].includes(page);
+  app.className = (inGame ? 'ingame ' : 'nonav ') + 'pg-' + page;
   app.innerHTML = page === 'title' ? title() : page === 'pick' ? pick() : page === 'shop' ? shopUI() : page === 'progress' ? progress() : page === 'settings' ? settings() : life();
   nav.hidden = !inGame;
-  if (inGame) nav.innerHTML = '<div class="in">' + [['life','TODAY','nav-today'],['shop','SHOP','nav-shop'],['progress','PROGRESS','nav-progress'],['settings','SETTINGS','nav-settings']].map(([p,t,i]) => `<button class="${page === p ? 'on' : ''}" onclick="${page === p ? '' : `go('${p}')`}" aria-current="${page === p}"><img src="${ic(i)}" alt="">${t}</button>`).join('') + '</div>';
-  if (inGame && s.lockedUp && !document.querySelector('#modal .locked')) lockupUI();
+  if (inGame) nav.innerHTML = navBar();
+  if (inGame && s.lockedUp && page !== 'progress' && !document.querySelector('#modal .pop')) lockupUI();
   else if (inGame && s.levelUp && !document.querySelector('#modal .ov')) levelUpUI();
+  else if (page === 'life' && s.event && !document.querySelector('#modal .ov') && s.cardShown !== s.day) { s.cardShown = s.day; setTimeout(cardUI, 350); }
   setTimeout(flushNotices, 60);
 }
 
@@ -413,16 +569,6 @@ function confirmAction(id){
   show(`<div style="text-align:center"><img src="${ic(a[3])}" alt="" style="width:80px"></div><h2 class="mk">${a[1]}</h2><p>${esc(a[4])}</p><p class="note">Uses 1 move · ${esc(a[2])}</p><button class="paper red big mk" onclick="closeModal();if(action(s,'${id}')){markDone('${id}');sfx('move')};render()">DO IT</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep thinking</button>`);
 }
 function pickCard(i){ choose(s, i);  render(); }
-function levelUpUI(){
-  sfx('levelup');
-  const L = levelInfo(s.levelUp), from = Math.max(1, s.levelUp - 1);
-  const unlocks = shop.filter(p => p.minLevel === s.levelUp).map(p => p.name);
-  show(`<div class="burst"></div><h1 class="mk">LEVEL UP!</h1><div class="row"><img class="was" src="${myFig(from)}" alt=""><span class="arrow mk">→</span><img src="${myFig(s.levelUp)}" alt=""></div><div class="lname mk">LEVEL ${L.n} · ${esc(L.name.toUpperCase())}</div><p>${s.housing === 'Temporary shelter' ? 'You’re climbing.' : 'New place: ' + esc(L.housing) + '.'} ${s.balanced} balanced days and the work to show for it.</p>${unlocks.length ? `<p class="note" style="margin-top:0">Unlocked in the shop: ${esc(unlocks.join(', '))}.</p>` : ''}${L.n === 4 ? '<p>Moved out. A ' + (fig().sex === 'girl' ? 'lady' : 'gentleman') + '. Keep living.</p>' : ''}<button class="paper red big mk" onclick="s.levelUp=null;save();closeModal()">LET'S GO<img class="crown" src="${ic('crown')}" alt=""></button>`, 'lvup');
-}
-function lockupUI(){
-  const L = s.lockedUp; sfx('locked'); if (music) music.pause();
-  document.getElementById('modal').innerHTML = `<div class="ov"><div class="paper locked"><h1 class="mk">LOCKED <b>UP.</b></h1><div class="cell"><img src="${myFig()}" alt=""></div><p>Night ${L.day}. Heat was ${L.heat}. The odds said ${L.odds}% and tonight they hit.</p><p>Back to level 1, fresh off the bus. It’s not a verdict. It’s a do-over.</p><button class="paper red big mk" onclick="startOver()">START OVER</button><button class="paper big cream mk" onclick="document.getElementById('modal').innerHTML='';go('progress')">SEE WHAT HAPPENED</button></div></div>`;
-}
 function startOver(){ startMusic(); s = restartKeepFigure(s); document.getElementById('modal').innerHTML = ''; save(); go('life'); }
 function night(){
   const odds = pct(lockOdds(s));

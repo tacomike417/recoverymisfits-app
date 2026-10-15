@@ -5,7 +5,7 @@
    v0.2 — build order steps 1 + 2: prototype gaps fixed, heat meter + locked-up game over.
 */
 
-const VERSION = 'v1.2';
+const VERSION = 'v2.0';
 const SAVE_KEY = 'sober-gangster-v1';
 
 const CFG = {

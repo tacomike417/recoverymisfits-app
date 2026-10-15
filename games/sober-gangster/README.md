@@ -16,3 +16,8 @@ Art made in ChatGPT (Oct 2026). Original characters.
 Sound (v1.1): assets/sfx/. Music = "EPIC West Coast G Funk Type Beat 'Shake'" by 5XBeatz (Pixabay), first 20 seconds trimmed.
 Effects from Pixabay: cash register (buy), aerosol spray (a move), DJ air horn (level up), police siren (locked up), record scratch (night).
 All under the Pixabay Content License (free in a game, no credit required). Music starts on the first tap; the speaker in the top bar mutes everything.
+
+v2.0 — THE SKIN: the screens now use ChatGPT's own finished mockups (assets/skin/), with only the changing parts erased
+(numbers, figure, room, items, version pill). index.html lays the live game on top at the same spots, measured in the
+mockup's own pixels (853 wide; see U()/at() in index.html). Title, Today, the level-up and locked-up pop-ups are the
+full mockups; the shop and pick screens reuse the mockup's own card tiles so they can hold any number of items.
