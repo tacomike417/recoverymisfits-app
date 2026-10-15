@@ -9,13 +9,13 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v5.0';
+const VERSION = 'v5.1';
 const SAVE_KEY = 'sober-gangster-v5';
 const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'quit', 'argue', 'ignore', 'fkit'];
-const ROWS = [
-  ['spiritual', 'SPIRITUAL', 'Always helps. Do one first and work adds no heat.', ['meeting', 'call', 'help', 'rest', 'rides']],
+const ROWS = [   // top to bottom on the screen (Mike: life, work, spiritual)
+  ['life', 'LIFE', 'Feels good right now. Costs a lot of heat, and it comes back.', ['argue', 'ignore', 'fkit']],
   ['work', 'WORK', 'Pays the bills. Adds heat unless you did a spiritual move first today.', ['work', 'betterjob', 'quit']],
-  ['life', 'LIFE', 'Feels good right now. Costs a lot of heat, and it comes back.', ['argue', 'ignore', 'fkit']]
+  ['spiritual', 'SPIRITUAL', 'Always helps. Do one first and work adds no heat.', ['meeting', 'call', 'help', 'rest', 'rides']]
 ];
 const ROW_OF = {}; ROWS.forEach(r => r[3].forEach(id => ROW_OF[id] = r[0]));
 // base effects (the story bible). h heat, s stress, c cash, n connection; t = trust changes

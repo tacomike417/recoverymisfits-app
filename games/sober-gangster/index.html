@@ -478,7 +478,7 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="cards.js?v=5.0"></script><script src="situations.js?v=5.0"></script><script src="engine.js?v=5.0"></script><script src="words.js?v=5.0"></script><!-- bump ?v= with every VERSION change -->
+<script src="cards.js?v=5.1"></script><script src="situations.js?v=5.1"></script><script src="engine.js?v=5.1"></script><script src="words.js?v=5.1"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -886,7 +886,7 @@ function moveBtn(id, wig){
   return `<button class="mb ${row} ${doneToday(id) ? 'done' : ''} ${why ? 'off' : ''} ${p.end && !why && row !== 'life' ? 'ends' : ''} ${wig === id ? 'wig' : ''}" onclick="confirmAction('${id}')" aria-label="${esc(MOVES[id].label)}">${moveIcon(id)}<span class="ml">${esc(moveWords(id) || MOVES[id].label)}</span>${moveWords(id) ? `<span class="mg">${esc(MOVES[id].label)}</span>` : ''}<span class="mf">${fxs}</span></button>`;
 }
 function board(wig){
-  return `<section class="board"><div class="spiritrow"><span class="mk">SPIRITUAL ENERGY</span><span class="ebar green"><i style="width:${s.spirit}%"></i></span><b>${spiritWord(s.spirit).toUpperCase()}</b><span class="sob mk">SOBER ${s.sober}d</span></div>${ROWS.map(([key, name, hint, ids]) => { const list = ids.filter(id => id !== 'rides' || s.car); return `<div class="mrow ${key}"><div class="mhead"><b class="mk">${name}</b><span>${esc(hint)}</span></div><div class="mgrid ${list.length === 3 ? 'c3' : 'c2'}">${list.map(id => moveBtn(id, wig)).join('')}</div></div>`; }).join('')}
+  return `<section class="board">${ROWS.map(([key, name, hint, ids]) => { const list = ids.filter(id => id !== 'rides' || s.car); return `<div class="mrow ${key}"><div class="mhead"><b class="mk">${name}</b><span>${esc(hint)}</span></div>${key === 'spiritual' ? `<div class="spiritrow"><span class="mk">SPIRITUAL ENERGY</span><span class="ebar green"><i style="width:${s.spirit}%"></i></span><b>${spiritWord(s.spirit).toUpperCase()}</b><span class="sob mk">SOBER ${s.sober}d</span></div>` : ''}<div class="mgrid ${list.length === 3 ? 'c3' : 'c2'}">${list.map(id => moveBtn(id, wig)).join('')}</div></div>`; }).join('')}
   <p class="boardnote">${s.actions} move${s.actions === 1 ? '' : 's'} left today. ${s.spiritToday ? '<b>Spiritual move done: work adds no heat today.</b>' : 'Do a spiritual move first and work adds no heat.'}</p></section>`;
 }
 function life(){
