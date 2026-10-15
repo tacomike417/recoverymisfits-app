@@ -9,7 +9,7 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v6.1';
+const VERSION = 'v6.2';
 const SAVE_KEY = 'sober-gangster-v5';
 const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'quit', 'argue', 'ignore', 'fkit', 'crew', 'ex', 'ghostlink', 'block', 'bar', 'party', 'look', 'carfund', 'movefund'];
 const ROWS = [   // top to bottom on the screen (Mike: life, work, spiritual; then people, places and things)
@@ -555,8 +555,8 @@ const WILD = {
     worst:  { relapse: true, text: 'Ghost pulled up at 2:11. He got in the car. You know the rest.' } },
   newcomer: { time: '11:28 PM', title: 'THE PHONE CALL',
     w: s => s.spirit / 35 + (s.sober >= 14 ? 1 : 0),
-    good:   { text: 'A newcomer from the meeting called at 11:28, scared out of their mind. He answered and talked them down for an hour. Nobody told him to.', e: { n: 8, s: -3 }, t: { pops: 1, shorty: 1 }, sp: 8 },
-    shaky:  { text: 'Phone rang at 11:28. A newcomer. He saw who it was and let it ring. Felt like garbage about it all night.', e: { s: 5 }, sp: -3 } },
+    good:   { text: 'Dre, the new kid from the house, called at 11:28, scared out of his mind. He answered and talked Dre down for an hour. Nobody told him to.', e: { n: 8, s: -3 }, t: { pops: 1, shorty: 1 }, sp: 8 },
+    shaky:  { text: 'Phone rang at 11:28. Dre, the new kid. He saw who it was and let it ring. Felt like garbage about it all night.', e: { s: 5 }, sp: -3 } },
   bonus: { time: '6:15 AM', title: 'THE PAYCHECK',
     w: s => s.job ? 0.6 : 0,
     good:   { text: 'Found an extra $25 in the paycheck. “Well, would you look at that. Somebody thinks I’m employable.”', e: { c: 25, s: -4 }, t: { darlene: 1 } },

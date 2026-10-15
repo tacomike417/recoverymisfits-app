@@ -4436,7 +4436,7 @@ const SITUATIONS = [
 "ch": 3,
 "title": "THE NEW ONE",
 "who": "ray",
-"setup": "Big Ray brings in a new resident with one trash bag and the thousand-yard stare. They sit on the bottom bunk staring at the floor, looking exactly how you looked when you first got here. Shorty whispers, \"That one's gonna be trouble.\" You remember somebody saying that about you.",
+"setup": "Big Ray brings in a new resident named Dre with one trash bag and the thousand-yard stare. Dre sits on the bottom bunk staring at the floor, looking exactly how you looked when you first got here. Shorty whispers, \"That one's gonna be trouble.\" You remember somebody saying that about you.",
 "now": 5,
 "daily": 4,
 "days": 4,
@@ -4454,7 +4454,7 @@ const SITUATIONS = [
 "gives": [
 "newcomer_invited"
 ],
-"say": "You saved the newcomer a seat. They sat in the back."
+"say": "You saved Dre a seat. He sat in the back anyway."
 },
 "call": {
 "h": -10,
@@ -4489,7 +4489,7 @@ const SITUATIONS = [
 "newcomer_friend",
 "newcomer_supported"
 ],
-"say": "You helped unpack the trash bag. They finally looked you in the eye."
+"say": "You helped Dre unpack the trash bag. He finally looked you in the eye."
 },
 "rest": {
 "h": -5,
@@ -4499,7 +4499,7 @@ const SITUATIONS = [
 "trust": {},
 "end": false,
 "gives": [],
-"say": "You slept through their first day. Nobody showed them the ropes."
+"say": "You slept through Dre's first day. Nobody showed him the ropes."
 },
 "work": {
 "h": 6,
@@ -4577,7 +4577,7 @@ const SITUATIONS = [
 "gives": [
 "newcomer_isolated"
 ],
-"say": "You walked past their bunk. They went back to staring at the floor."
+"say": "You walked past Dre's bunk. He went back to staring at the floor."
 },
 "fkit": {
 "h": 25,
@@ -4703,7 +4703,7 @@ const SITUATIONS = [
 "ray": -1,
 "pops": -1
 },
-"say": "The newcomer packed their trash bag and left. Nobody knew where they went."
+"say": "Dre packed his trash bag and left. Nobody knows where he went."
 }
 },
 {

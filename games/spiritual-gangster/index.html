@@ -486,7 +486,7 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .spiritrow .sob{color:var(--gold2);font-size:16px}
 
 /* ---------- v5.2: real texts ---------- */
-.tnarr{font:italic 600 14px/1.35 'Barlow';color:#4a3b2c;margin:2px 0 6px}
+.tnarr{font:italic 600 14px/1.35 'Barlow';color:#4a3b2c;margin:2px 0 6px;padding-right:44px}
 .ph.tx{cursor:pointer}
 .ph .grp{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#2a211b;border:2px solid var(--gold);font-size:22px}
 .txs{display:flex;flex-direction:column;gap:5px;max-height:46vh;overflow-y:auto;padding:2px 2px 4px;scroll-behavior:smooth}
@@ -497,6 +497,7 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .tm.them p{background:#2c2c30;color:#f2f2f2;border-bottom-left-radius:4px}
 .tm.me p{background:#0a84ff;color:#fff;border-bottom-right-radius:4px}
 .tm .tn{font:700 11px 'Barlow Condensed';color:#9a9aa2;margin:2px 0 1px 30px}
+.tm.me .tn{margin:2px 6px 1px 0;color:#7fb8ff}
 .tm .ta{position:absolute;left:0;bottom:0;width:24px;height:24px;border-radius:50%;object-fit:cover;object-position:50% 20%}
 .tm.them:has(.ta) p{margin-left:30px}
 .tm .rd{font:600 10.5px 'Barlow Condensed';color:#9a9aa2;margin-top:2px}
@@ -515,7 +516,7 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="cards.js?v=6.1"></script><script src="situations.js?v=6.1"></script><script src="engine.js?v=6.1"></script><script src="words.js?v=6.1"></script><script src="convos.js?v=6.1"></script><!-- bump ?v= with every VERSION change -->
+<script src="cards.js?v=6.2"></script><script src="situations.js?v=6.2"></script><script src="engine.js?v=6.2"></script><script src="words.js?v=6.2"></script><script src="convos.js?v=6.2"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -876,22 +877,30 @@ setInterval(() => { if (s && s.asleep && Date.now() >= s.asleep.wake) wakeUp(); 
 document.addEventListener('visibilitychange', () => { if (!document.hidden && s && s.asleep) wakeUp(); });
 
 /* ---------- v5.2: real text conversations (convos.js, written by ChatGPT) ---------- */
-const WHO_NAME = { love: 'Jaz', crew: 'Old crew', bartender: 'Bartender', pops: 'Pops', ray: 'Big Ray', darlene: 'Darlene', mom: 'Mom', shorty: 'Shorty', ghost: 'Ghost', house: 'House', mechanic: 'Mechanic', seller: 'Seller', newcomer: 'Newcomer', ex: 'The Ex', unknown: 'Unknown' };
+const WHO_NAME = { love: 'Jaz', crew: 'Old crew', bartender: 'Bartender', pops: 'Pops', ray: 'Big Ray', darlene: 'Darlene', mom: 'Mom', shorty: 'Shorty', ghost: 'Ghost', house: 'House', mechanic: 'Mechanic', seller: 'Seller', newcomer: 'Dre', ex: 'The Ex', unknown: 'Unknown' };
 const hasFace = w => ['pops', 'ray', 'darlene', 'mom', 'shorty', 'ghost', 'love'].includes(w);
 const whoName = w => w === 'love' ? personFor(s, 'love').name : WHO_NAME[w] || w;
 function convoFor(key){ return typeof CONVOS !== 'undefined' && CONVOS[key] ? CONVOS[key] : null; }
 // a whole conversation on the cracked phone. Messages type in one at a time; tap the phone to see it all.
+// your homie by name in the texts. The "Pops" figure goes by Old Timer so he isn't mixed up with Pops the sponsor.
+const homieName = () => fig().name === 'Pops' ? 'Old Timer' : fig().name;
+function named(t){
+  if (!t) return t;
+  const g = G();
+  return t.replace(/\{N\}/g, homieName()).replace(/\{he\}/g, g ? 'she' : 'he').replace(/\{He\}/g, g ? 'She' : 'He').replace(/\{his\}/g, g ? 'her' : 'his').replace(/\{His\}/g, g ? 'Her' : 'His').replace(/\{him\}/g, g ? 'her' : 'him');
+}
 function textThread(c, time){
+  c = { ...c, narr: named(c.narr) };
   if (s.look.sex === 'girl' && (c.msgs.some(m => m[0] === 'love') || /JAZ/i.test(c.thread))) c = { ...c, thread: loveSwap(s, c.thread), narr: loveSwap(s, c.narr), msgs: c.msgs.map(([w, t]) => [w, loveSwap(s, t)]) };
   const who = [...new Set(c.msgs.map(m => m[0]).filter(w => w !== 'you'))], group = who.length > 1 || /🏠|CREW|GROUP|CHAT/i.test(c.thread);
   const head = !group && hasFace(who[0]) ? `<img src="${face(who[0])}" alt="">` : `<span class="grp">${group ? '👥' : '💬'}</span>`;
   const lastYou = c.msgs.map(m => m[0]).lastIndexOf('you');
   const msgs = c.msgs.map(([w, t], i) => {
     const me = w === 'you';
-    return `<div class="tm ${me ? 'me' : 'them'}" data-i="${i}">${!me && group ? `<span class="tn">${esc(whoName(w))}</span>` : ''}${!me && hasFace(w) && group ? `<img class="ta" src="${face(w)}" alt="">` : ''}<p>${esc(hs(t))}</p>${i === lastYou ? `<small class="rd">${i === c.msgs.length - 1 ? 'Delivered' : 'Read ' + time}</small>` : ''}</div>`;
+    return `<div class="tm ${me ? 'me' : 'them'}" data-i="${i}">${group ? `<span class="tn">${esc(me ? homieName() : whoName(w))}</span>` : ''}${!me && hasFace(w) && group ? `<img class="ta" src="${face(w)}" alt="">` : ''}<p>${esc(hs(t))}</p>${i === lastYou ? `<small class="rd">${i === c.msgs.length - 1 ? 'Delivered' : 'Read ' + time}</small>` : ''}</div>`;
   }).join('');
   return `${c.narr ? `<p class="tnarr">${esc(hs(c.narr))}</p>` : ''}<div class="ph tx" onclick="textsAll(this)"><div class="phtop"><span>${time}</span><span>▮▮▮ ${s.day % 3 ? '12%' : '4%'}</span></div>
-  <div class="phwho">${head}<div><b>${esc(c.thread)}</b><small>${group ? who.map(whoName).join(', ') : 'iMessage'}</small></div></div>
+  <div class="phwho">${head}<div><b>${esc(c.thread)}</b><small>${esc(homieName())}’s phone${group ? ' · ' + who.map(whoName).join(', ') : ''}</small></div></div>
   <div class="txs">${msgs}<div class="typing them"><p><i></i><i></i><i></i></p></div></div></div>`;
 }
 // play the messages in, one at a time, with the typing dots
