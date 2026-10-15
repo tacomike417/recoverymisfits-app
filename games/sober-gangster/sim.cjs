@@ -3,52 +3,31 @@
 const E = require('./engine.js');
 const val = (e, end) => -e.h * 1.6 + e.c / 10 - e.s / 3 + e.n / 3 + (end ? 25 : 0);
 function smart(s) {
-  let n = 0;
   while (s.actions > 0) {
     let pick = null;
-    // the morning spiritual move: a meeting builds the sponsor streak; rest if stress is cooked
-    if (n === 0) pick = s.stress > 70 && E.canDo(s, 'rest') ? 'rest' : 'meeting';
-    // deal with the situation the best non-life way
-    if (!pick && s.scen) {
-      let bv = -1e9;
-      for (const id of E.ACTION_IDS) { if (E.ROW_OF[id] === 'life' || !E.canDo(s, id)) continue; const p = E.preview(s, id); if (!p.end) continue; const v = val(p.e, true); if (v > bv) { bv = v; pick = id; } }
-      if (pick && s.cash + E.preview(s, pick).e.c < 30 && pick !== 'betterjob') pick = null;
-    }
+    const ends = ids => { let b = null, bv = -1e9; for (const id of ids) { if (!E.canDo(s, id)) continue; const p = E.preview(s, id); if (!p.end) continue; const v = val(p.e, true); if (v > bv) { bv = v; b = id; } } return b; };
+    const spirit = ['meeting', 'call', 'help', 'rest', 'rides'];
+    if (s.actions === 3) pick = (s.scen && ends(spirit)) || (s.stress > 70 && E.canDo(s, 'rest') ? 'rest' : s.heat > 50 ? 'call' : 'meeting');
+    else if (E.canDo(s, 'work') && s.heat < 70) pick = 'work';
+    else if (s.scen) pick = ends(spirit.concat(['betterjob']));
     if (!pick) {
-      if (s.heat > 40) pick = s.car && s.cash > 40 ? 'rides' : 'call';
-      else if (s.stress > 68 && E.canDo(s, 'rest')) pick = 'rest';
-      else if (s.connection < 45 && s.level >= 3) pick = s.car && s.cash > 40 ? 'rides' : 'help';
-      else if (s.job) pick = 'work';
-      else pick = 'betterjob';
+      if (!s.job) pick = 'betterjob';
+      else if (s.heat > 30) pick = s.car && s.cash > 60 ? 'rides' : 'call';
+      else if (s.stress > 60 && E.canDo(s, 'rest')) pick = 'rest';
+      else pick = s.connection < 50 ? 'help' : 'meeting';
     }
     if (!E.canDo(s, pick)) pick = ['call', 'help', 'rest', 'meeting'].find(id => E.canDo(s, id));
     if (!pick) break;
-    E.action(s, pick); n++;
+    E.action(s, pick);
   }
 }
 // a smart PERSON: same plan, but only watches heat once it's obviously bad, and when stress runs high
 // the life moves start looking good (1 in 6 moves)
 function human(s) {
   const r = () => (E.fresh.__h = ((E.fresh.__h || 11) * 48271) % 2147483647) / 2147483647;
-  let n = 0;
-  while (s.actions > 0) {
-    let pick = null;
-    if (s.stress > 55 && r() < 0.17) pick = ['argue', 'ignore', 'fkit'][Math.floor(r() * 3)];
-    if (!pick && n === 0 && r() < 0.8) pick = s.stress > 70 && E.canDo(s, 'rest') ? 'rest' : 'meeting';
-    if (!pick && s.scen && r() < 0.7) {
-      let bv = -1e9;
-      for (const id of E.ACTION_IDS) { if (E.ROW_OF[id] === 'life' || !E.canDo(s, id)) continue; const p = E.preview(s, id); if (!p.end) continue; const v = val(p.e, true); if (v > bv) { bv = v; pick = id; } }
-    }
-    if (!pick) {
-      if (s.heat > 55) pick = 'call';
-      else if (s.stress > 75 && E.canDo(s, 'rest')) pick = 'rest';
-      else if (s.job) pick = 'work';
-      else pick = 'betterjob';
-    }
-    if (!E.canDo(s, pick)) pick = ['call', 'help', 'meeting', 'rest'].find(id => E.canDo(s, id));
-    if (!pick) break;
-    E.action(s, pick); n++;
-  }
+  if (s.stress > 55 && r() < 0.35) { E.action(s, ['argue', 'ignore', 'fkit'][Math.floor(r() * 3)]); }
+  if (r() < 0.15) { while (s.actions > 0) { const id = ['meeting', 'call', 'help', 'rest', 'betterjob'][Math.floor(r() * 5)]; if (!E.action(s, id)) break; } return; }
+  smart(s);
 }
 // works hard, skips the spiritual stuff unless heat is bad
 function grinder(s) { while (s.actions > 0) { const id = s.heat > 55 ? 'meeting' : s.job ? 'work' : 'betterjob'; if (!E.action(s, id) && !E.action(s, 'call')) break; } }

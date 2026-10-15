@@ -43,3 +43,14 @@ ChatGPT, approved by Mike), cards.js the night cards. Story bible: Pops, Big Ray
 - First 2 days: the next thing to tap wiggles (nudge() in index.html).
 - TODO: chapter 4 situations (ChatGPT went blank 15 Oct; chapter 4 reuses chapter 2-3 situations for now),
   ChatGPT art for the envelope, flames and the 7 new move icons (hand-drawn SVG stand-ins in index.html).
+
+v4.1 — REAL MONEY + GAME FEEL (Mike, 15 Oct 2026).
+- Money scaled to Ohio: a shift takes 2 of your 3 moves and pays $72 take-home ($96 after the raise). Warehouse
+  runs Mon-Sat, closed Sunday. Every Sunday night: rent (100/140/150/175) + bus $20 + court/probation fees $25 (+$15 phone).
+  Shop prices up (kicks $110, phone $120, car $1,200). Shorty's Honda is the deal: $400. Move-in $350.
+  Tuned: careful player wins ~3 in 4 around day 33; a player who slips wins ~1 in 3 around day 50.
+- Faces: assets/people/<id>.webp (ChatGPT). Situations and receipts arrive as texts on a cracked phone.
+- Your homie talks: a speech bubble every morning (homieSays()).
+- Moves in your words: words.js (ChatGPT), per situation, shown on the buttons.
+- Night recap "How he made out" + sobriety chips (24 hours, 7, 14, 30 days) on the story page.
+- Icons, envelope and flames: assets/ui/mv/ (ChatGPT).

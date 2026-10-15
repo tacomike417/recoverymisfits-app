@@ -9,7 +9,7 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v4.0';
+const VERSION = 'v4.1';
 const SAVE_KEY = 'sober-gangster-v4';
 const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'quit', 'argue', 'ignore', 'fkit'];
 const ROWS = [
@@ -73,6 +73,10 @@ const STREAKS = {
   twoweeks: { title: 'FOURTEEN DAYS', text: 'Two weeks. You still have problems, but for once they’re the kind of problems regular people have.' },
   rent3:    { title: 'THREE RENTS ON TIME', text: 'Three weeks of paying your own way. Big Ray counts the money twice, then looks almost disappointed he can’t complain.' },
   wheels:   { title: 'FIRST SET OF WHEELS', text: 'Keys in your hand. Nobody’s picking you up, nobody’s dropping you off. For the first time in a long time, you’re the one driving. Give rides is unlocked.' },
+  chip1:    { chip: '24', title: '24 HOURS', text: 'One whole day. Somebody at the meeting hands you a chip. It weighs nothing. You hold onto it like it weighs a ton.' },
+  chip7:    { chip: '7', title: 'ONE WEEK CHIP', text: 'Seven days. You don’t say much when they call your name. You don’t have to.' },
+  chip14:   { chip: '14', title: 'TWO WEEK CHIP', text: 'Two weeks. Pops says the hard part is it never stops being one day at a time. He says it like good news.' },
+  chip30:   { chip: '30', title: '30 DAY CHIP', text: 'Thirty days. The whole room claps. You almost leave. You stay. That’s the whole program right there.' },
   thirty:   { title: 'THIRTY DAYS STANDING', text: 'Thirty days ago you had twelve dollars and a bed somebody else owned. Now you’ve got a life worth protecting.' }
 };
 
@@ -80,17 +84,19 @@ const CFG = {
   actions: 3,
   startCash: 12, startStress: 35, startConnection: 20,
   food: 12, rentDays: 7,
-  rent: [0, 100, 140, 175, 250],
-  wage: 80, raiseWage: 100, lowTrustWage: 60,
+  rent: [0, 100, 140, 150, 175],   // a week: sober house bed, then your own room ($750 a month)
+  wage: 72, raiseWage: 96, lowTrustWage: 54,   // take-home for a shift: $13/hr part time, then $16/hr
+  shiftMoves: 2,               // a shift eats most of your day: 2 of your 3 moves
+  bills: { bus: 20, fees: 25, phone: 15 },   // every rent day: bus fare, court fines/probation fees, the phone (if you have one)
   jobless: 8,                  // stress every morning with no job (after day 1)
-  moveIn: 500,                 // first and last when you get your own place
+  moveIn: 350,                 // deposit + keys on a room of your own (first rent comes on rent day)
   heat: {
-    start: 10, safe: 45, maxOdds: 0.55,
+    start: 10, safe: 45, maxOdds: 0.5,
     noSpirit: [0, 3, 6, 9, 12], // nightly heat by days without a spiritual move
     maxedStress: 75, maxedStressHeat: 5,
     aloneBelow: 15, aloneHeat: 5,
     ghostHigh: 4,               // nightly heat while Ghost's trust is 8+
-    street: 12                  // every night, no matter what: life on life's terms
+    street: 8                   // every night, no matter what: life on life's terms
   },
   maxTrust: 10
 };
@@ -125,25 +131,25 @@ const shop = [
   { id: 'tee',     name: 'New white tee',    price: 25,  group: 'feel', feel: 3,  desc: 'Crisp. For about a day.' },
   { id: 'hoodie',  name: 'Hoodie',           price: 60,  group: 'feel', feel: 4,  desc: 'The uniform.' },
   { id: 'jeans',   name: 'Real pants',       price: 55,  group: 'feel', feel: 4,  desc: 'Jeans. With a belt. Look at you.' },
-  { id: 'dunks',   name: 'Fresh kicks',      price: 90,  group: 'feel', feel: 8,  desc: 'Clean. Everybody in the house is going to say something.' },
+  { id: 'dunks',   name: 'Fresh kicks',      price: 110, group: 'feel', feel: 8,  desc: 'Clean. Everybody in the house is going to say something.' },
   { id: 'cologne', name: 'Cologne',          price: 45,  group: 'feel', feel: 5,  desc: 'You smell like a job interview.' },
   { id: 'shoes',   name: 'Work boots',       price: 70,  group: 'big', desc: 'Unlocks stock crew and maintenance.' },
-  { id: 'phone',   name: 'Cracked phone',    price: 90,  group: 'big', desc: 'People can call you back. Unlocks better work. Also: the plug can text you.' },
-  { id: 'phone2',  name: 'New phone',        price: 300, group: 'big', minLevel: 2, feel: 5, desc: 'Buzzes more.', upgrades: 'phone' },
-  { id: 'phone3',  name: 'Newest phone',     price: 700, group: 'big', minLevel: 3, feel: 6, desc: 'Buzzes constantly. You love it.', upgrades: 'phone2' },
+  { id: 'phone',   name: 'Cracked phone',    price: 120,  group: 'big', desc: 'People can call you back. Unlocks better work. Also: the plug can text you.' },
+  { id: 'phone2',  name: 'New phone',        price: 450, group: 'big', minLevel: 2, feel: 5, desc: 'Buzzes more.', upgrades: 'phone' },
+  { id: 'phone3',  name: 'Newest phone',     price: 1000, group: 'big', minLevel: 3, feel: 6, desc: 'Buzzes constantly. You love it.', upgrades: 'phone2' },
   { id: 'chain',   name: 'Chain (fake)',     price: 50,  group: 'big', feel: 4, desc: 'Turns your neck green by Thursday.' },
-  { id: 'chain2',  name: 'Chain (real)',     price: 600, group: 'big', minLevel: 3, feel: 8, desc: 'Gold. Actual gold.', upgrades: 'chain' },
-  { id: 'tattoo',  name: 'Small tattoo',     price: 150, group: 'big', minLevel: 2, feel: 5, desc: 'Something that means something.' },
-  { id: 'tattoo2', name: 'Sleeve',           price: 900, group: 'big', minLevel: 3, feel: 10, desc: 'Three sittings. Worth it.', upgrades: 'tattoo' },
+  { id: 'chain2',  name: 'Chain (real)',     price: 900, group: 'big', minLevel: 3, feel: 8, desc: 'Gold. Actual gold.', upgrades: 'chain' },
+  { id: 'tattoo',  name: 'Small tattoo',     price: 180, group: 'big', minLevel: 2, feel: 5, desc: 'Something that means something.' },
+  { id: 'tattoo2', name: 'Sleeve',           price: 1200, group: 'big', minLevel: 3, feel: 10, desc: 'Three sittings. Worth it.', upgrades: 'tattoo' },
   { id: 'watch',   name: 'Watch',            price: 120, group: 'big', minLevel: 2, feel: 3, desc: 'Shows up on time now. Allegedly.' },
   { id: 'pass',    name: 'Bus pass',         price: 60,  group: 'big', desc: 'Two hours of your life back every day. Takes the edge off: −5 stress.' },
-  { id: 'bike',    name: 'Bike',             price: 200, group: 'big', minLevel: 2, feel: 4, desc: 'Beats the bus. Beats walking.' },
+  { id: 'bike',    name: 'Bike',             price: 250, group: 'big', minLevel: 2, feel: 4, desc: 'Beats the bus. Beats walking.' },
   { id: 'dresser', name: 'Actual dresser',   price: 80,  group: 'big', desc: 'Taking a breath takes off 4 more stress.' },
-  { id: 'car',     name: 'Beater car',       price: 600, group: 'save', minLevel: 3, desc: 'Wheels. Unlocks Give rides.' },
-  { id: 'car2',    name: 'Nice car',         price: 2500, group: 'save', minLevel: 4, feel: 12, desc: 'The one you park where people can see it.', upgrades: 'car' },
-  { id: 'couch',   name: 'A non-curb couch', price: 200, group: 'save', minLevel: 2, feel: 4, desc: 'Your room finally feels like home.' },
+  { id: 'car',     name: 'Beater car',       price: 1200, group: 'save', minLevel: 3, desc: 'Wheels. Unlocks Give rides.' },
+  { id: 'car2',    name: 'Nice car',         price: 4500, group: 'save', minLevel: 4, feel: 12, desc: 'The one you park where people can see it.', upgrades: 'car' },
+  { id: 'couch',   name: 'A non-curb couch', price: 250, group: 'save', minLevel: 2, feel: 4, desc: 'Your room finally feels like home.' },
   { id: 'tv',      name: 'TV',               price: 300, group: 'save', minLevel: 2, feel: 4, desc: 'Something to not watch.' },
-  { id: 'dog',     name: 'The dog',          price: 350, group: 'save', minLevel: 3, feel: 10, desc: 'Vet bills, chewed shoes, and the best welcome home you’ve ever had.' }
+  { id: 'dog',     name: 'The dog',          price: 450, group: 'save', minLevel: 3, feel: 10, desc: 'Vet bills, chewed shoes, and the best welcome home you’ve ever had.' }
 ];
 const SHOP_GROUPS = [['feel', 'FEEL GOOD', 'Cheap. Feels good today.'], ['big', 'BIGGER', 'Opens doors, or just looks right.'], ['save', 'BIG SAVES', 'The stuff you work a month for.']];
 
@@ -153,10 +159,15 @@ function item(id) { return shop.find(x => x.id === id); }
 function has(s, id) { return s.items.includes(id); }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function rng(s) { s.seed = (1664525 * s.seed + 1013904223) >>> 0; return s.seed / 4294967296; }
-function record(s, t) { s.log.unshift(t); s.log = s.log.slice(0, 150); }
+function record(s, t) { s.log.unshift(t); s.log = s.log.slice(0, 150); s.logN = (s.logN || 0) + 1; }
 function badge(s, b) { if (!s.milestones.includes(b)) s.milestones.push(b); }
 function levelInfo(n) { return LEVELS[Math.max(1, Math.min(4, n)) - 1]; }
 function rentDue(s) { return CFG.rent[s.level]; }
+function billsDue(s) { return CFG.bills.bus + CFG.bills.fees + (s.items.some(i => /^phone/.test(i)) ? CFG.bills.phone : 0); }
+const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+function dayName(s, d = s.day) { return DAYS[(d - 1) % 7]; }
+function weekend(s) { return (s.day - 1) % 7 === 6; }   // the warehouse runs Mon-Sat; Sunday it's closed
+function extraShift(s) { const c = s.scen && sitById(s.scen.id); return !!(c && c.moves.work && c.moves.work.c > 80); }
 function nextRentDay(s) { return Math.ceil(s.day / CFG.rentDays) * CFG.rentDays; }
 
 function fresh(seed = Date.now()) {
@@ -297,10 +308,11 @@ function preview(s, id) {
   let zeroed = false, note = '';
   if (id === 'work') {
     const w = s.trust.darlene <= 2 ? CFG.lowTrustWage : s.wage;
-    e.c = m && m.c > CFG.wage ? Math.max(m.c, w) : w;
+    e.c = m && m.c > 80 ? Math.max(Math.round(m.c * 0.9), w) : w;   // the situation's extra shift pays a little more
     if (s.trust.darlene <= 2) note = 'Darlene cut your hours.';
   }
   if (id === 'rides' && !m) Object.assign(e, { h: B.h, s: B.s, c: B.c, n: B.n });
+  if (id === 'betterjob' && s.cash < -e.c) e.c = -s.cash;   // broke: you walk to the interviews
   if (ROW_OF[id] === 'work' && e.h > 0 && s.spiritToday) { e.h = 0; zeroed = true; }
   if (id === 'call' && (s.sponsor || s.trust.pops >= 8)) { e.h -= 5; note = 'Your sponsor picks up. −5 more heat.'; }
   else if (id === 'call' && s.trust.pops <= 1) { e.h = Math.round(e.h / 2); note = 'Pops let it ring. Half the help.'; }
@@ -310,6 +322,8 @@ function preview(s, id) {
 function whyNot(s, id) {
   if (s.result || s.lockedUp) return 'game over';
   if (s.actions < 1) return 'no moves left';
+  if (id === 'work' && s.actions < CFG.shiftMoves) return 'a shift takes 2 moves';
+  if (id === 'work' && weekend(s) && !extraShift(s)) return 'closed sundays';
   if ((id === 'work' || id === 'quit') && !s.job) return 'no job';
   if (id === 'rides' && !s.car) return 'need a car';
   if (id === 'rest' && s.restToday) return 'rested today';
@@ -334,7 +348,7 @@ const BASE_SAY = {
 function action(s, id) {
   if (!canDo(s, id)) return null;
   const p = preview(s, id), row = ROW_OF[id];
-  s.actions--;
+  s.actions -= id === 'work' ? CFG.shiftMoves : 1;
   apply(s, p.e);
   if (row === 'spiritual') { s.spiritToday = true; s.supportToday = true; s.daysSinceSupport = 0; }
   if (id === 'meeting') { s.meetToday = true; s.meetings++; }
@@ -366,6 +380,7 @@ function action(s, id) {
     if (p.end) { s.scen = null; badge(s, 'Dealt with: ' + p.scen.title.toLowerCase() + '.'); }
     record(s, p.scen.title + ' — ' + MOVES[id].label + '. ' + say);
   } else record(s, MOVES[id].label + '. ' + say);
+  (s.today ||= []).push(say);
   s.lastOutcome = say;
   return { say, e: p.e, end: p.end, title, trust: td, zeroed: p.zeroed, note: p.note, still: !!(p.scen && !p.end) };
 }
@@ -376,7 +391,7 @@ function queueReceipt(s, id) {
 function got(s, id) {
   if (s.got.includes(id)) return false;
   s.got.push(id); const S = STREAKS[id];
-  card(s, { kind: 'streak', title: S.title, text: S.text });
+  card(s, { kind: S.chip ? 'chip' : 'streak', chip: S.chip, title: S.title, text: S.text });
   badge(s, S.title.charAt(0) + S.title.slice(1).toLowerCase() + '.');
   return true;
 }
@@ -416,13 +431,13 @@ function nextNeeds(s) {
     if (!s.job || s.employedDays < 7) a.push((7 - (s.job ? s.employedDays : 0)) + ' days working');
     if (s.wage < CFG.raiseWage) a.push('the raise');
     if (s.rentsOnTime < 2) a.push((2 - s.rentsOnTime) + ' rent' + (2 - s.rentsOnTime === 1 ? '' : 's') + ' on time');
-    if (s.cash < 400) a.push('$400 saved');
+    if (s.cash < NEED.l2) a.push('$' + NEED.l2 + ' saved');
   } else if (s.level === 3) {
     if (!s.sponsor) a.push('a sponsor');
     if (!s.car) a.push('a car');
     if (!s.job) a.push('a job');
     if (s.connection < 60) a.push('connection 60');
-    if (s.cash < 750) a.push('$750 saved');
+    if (s.cash < NEED.l3) a.push('$' + NEED.l3 + ' for move-in');
   } else {
     if (s.rentsL4 < WIN.rents) a.push((WIN.rents - s.rentsL4) + ' rent' + (WIN.rents - s.rentsL4 === 1 ? '' : 's') + ' on time');
     if (!s.job) a.push('a job');
@@ -432,7 +447,8 @@ function nextNeeds(s) {
   }
   return a;
 }
-const WIN = { rents: 2, cool: 10, standing: 30 };
+const WIN = { rents: 1, cool: 7, standing: 30 };
+const NEED = { l2: 150, l3: 350 };   // cash to leave chapter 2, and the move-in money to leave chapter 3
 function checkLevel(s) {
   if (s.level >= 4) {
     if (!nextNeeds(s).length) { s.result = { won: true, day: s.day }; badge(s, 'SOBERED UP.'); record(s, 'SOBERED UP. Day ' + s.day + '.'); }
@@ -493,12 +509,12 @@ function endDay(s) {
   }
   // rent day
   if (s.day % CFG.rentDays === 0) {
-    const due = rentDue(s), paid = Math.min(s.cash, due);
+    const due = rentDue(s) + billsDue(s), paid = Math.min(s.cash, due);
     s.cash -= paid; s.rentDays++;
     if (paid === due && !s.arrears) {
       s.rentsOnTime++; if (s.level >= 4) s.rentsL4++;
       apply(s, { s: -8, h: -5 }); trustUp(s, { ray: 2, mom: 1 });
-      card(s, { kind: 'rent', title: 'RENT DAY: PAID', text: RENT_TALK[s.level] + ' You paid all $' + due + '.', h: -5, s: -8 });
+      card(s, { kind: 'rent', title: 'RENT DAY: PAID', text: RENT_TALK[s.level] + ' Rent $' + rentDue(s) + ', plus $' + billsDue(s) + ' for the bus, the court fees' + (billsDue(s) > 45 ? ' and the phone' : '') + '. You paid all $' + due + '.', h: -5, s: -8 });
       if (s.rentsOnTime >= 3) got(s, 'rent3');
     } else {
       s.arrears += due - paid; s.rentsOnTime = 0; if (s.level >= 4) s.rentsL4 = 0;
@@ -510,8 +526,10 @@ function endDay(s) {
     }
   }
   s.standing++;
-  if (s.standing >= 14) got(s, 'twoweeks') && apply(s, { s: -20, h: -10 });
-  if (s.standing >= 30) got(s, 'thirty');
+  if (s.standing >= 1) got(s, 'chip1');
+  if (s.standing >= 7) got(s, 'chip7');
+  if (s.standing >= 14) { got(s, 'chip14'); got(s, 'twoweeks') && apply(s, { s: -20, h: -10 }); }
+  if (s.standing >= 30) { got(s, 'chip30'); got(s, 'thirty'); }
   // the roll
   const odds = lockOdds(s);
   if (odds > 0 && (odds >= 1 || rng(s) < odds)) { s.lockedUp = { day: s.day, heat: s.heat, odds: Math.round(odds * 100) }; record(s, 'Night ' + s.day + ': red and blue in the window. Locked up.'); return true; }
@@ -520,7 +538,7 @@ function endDay(s) {
   if (s.result) return true;
   const tonight = pickNight(s);
   s.day++; s.actions = CFG.actions;
-  s.spiritToday = false; s.supportToday = false; s.restToday = false; s.meetToday = false; s.helpToday = false; s.workToday = 0; s.zeroedToday = false; s.lastOutcome = null;
+  s.spiritToday = false; s.supportToday = false; s.restToday = false; s.meetToday = false; s.helpToday = false; s.workToday = 0; s.zeroedToday = false; s.lastOutcome = null; s.today = [];
   startDay(s, false, tonight);
   return true;
 }
@@ -528,12 +546,12 @@ const RENT_TALK = [
   '',
   'Big Ray’s in the hallway like the IRS with a gold chain. “I don’t care how spiritual you got this week. Where’s my money?”',
   'Ray wants $140 now because you’ve got income. Almost two days of wages, while he tells you how lucky you are.',
-  '$175 to share one refrigerator with seventeen grown adults. Every rent day is another reason to get the hell out.',
+  '$150 to share one refrigerator with seventeen grown adults. Every rent day is another reason to get the hell out.',
   'No Big Ray. No house meeting. Just you, a landlord who expects payment, and keys nobody can take as long as you handle your shit.'
 ];
 
 if (typeof module !== 'undefined') {
   const C = require('./cards.js'), S = require('./situations.js');
   Object.assign(globalThis, C, S);
-  module.exports = { VERSION, SAVE_KEY, CFG, WIN, LEVELS, FIGURES, shop, SHOP_GROUPS, ACTION_IDS, ACTION_LABEL, MOVES, ROWS, ROW_OF, PEOPLE, RECEIPTS, STREAKS, person, item, has, fresh, migrate, restartKeepFigure, startDay, scenFor, sitById, nightCard, preview, whyNot, canDo, action, buy, cantBuy, nextNeeds, checkLevel, lockOdds, heatWords, endDay, levelInfo, rentDue, nextRentDay, ...C, ...S };
+  module.exports = { NEED, DAYS, dayName, weekend, extraShift, billsDue, VERSION, SAVE_KEY, CFG, WIN, LEVELS, FIGURES, shop, SHOP_GROUPS, ACTION_IDS, ACTION_LABEL, MOVES, ROWS, ROW_OF, PEOPLE, RECEIPTS, STREAKS, person, item, has, fresh, migrate, restartKeepFigure, startDay, scenFor, sitById, nightCard, preview, whyNot, canDo, action, buy, cantBuy, nextNeeds, checkLevel, lockOdds, heatWords, endDay, levelInfo, rentDue, nextRentDay, ...C, ...S };
 }

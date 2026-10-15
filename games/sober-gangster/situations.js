@@ -789,7 +789,7 @@ const SITUATIONS = [
 "betterjob": {
 "h": 5,
 "s": 8,
-"c": -10,
+"c": 0,
 "n": 2,
 "trust": {
 "mom": 1,
@@ -801,7 +801,7 @@ const SITUATIONS = [
 "work_unlocked",
 "darlene_introduced"
 ],
-"say": "Darlene looked you over. \"Monday. Six sharp. Don't be late.\""
+"say": "You walked across town in the smelly shirt. Darlene looked you over. \"Monday. Six sharp. Don't be late.\""
 },
 "argue": {
 "h": 15,
@@ -2138,7 +2138,7 @@ const SITUATIONS = [
 "ch": 3,
 "title": "FOUR WHEELS AND A PRAYER",
 "who": "shorty",
-"setup": "Shorty found a used Honda for six hundred bucks. The paint's peeling, the radio only plays one station, and the seller says the engine is \"mostly solid.\" You've been saving for weeks, and those keys look like freedom with a check-engine light. Call your people and they will help you buy it right, once you have $600.",
+"setup": "Shorty found a used Honda for four hundred bucks. The paint's peeling, the radio only plays one station, and the seller says the engine is \"mostly solid.\" You've been saving for weeks, and those keys look like freedom with a check-engine light. Call your people and they will help you buy it right, once you have $400.",
 "now": 5,
 "daily": 4,
 "days": 5,
@@ -2159,7 +2159,7 @@ const SITUATIONS = [
 "call": {
 "h": -10,
 "s": -10,
-"c": -600,
+"c": -400,
 "n": 7,
 "trust": {
 "pops": 1,
@@ -2295,7 +2295,7 @@ const SITUATIONS = [
 "gives": [
 "receipt_ghost_message"
 ],
-"say": "You burned twenty bucks. The Honda's still six hundred."
+"say": "You burned twenty bucks. The Honda's still four hundred."
 }
 },
 "expire": {
