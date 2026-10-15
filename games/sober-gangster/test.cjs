@@ -1,30 +1,28 @@
-// node test.cjs — rules checks + 1000 simulated smart players (should be about 1 in 3 reaching Moved Out).
-const assert = require('node:assert/strict');
-const E = require('./engine.js');
-const { run } = require('./sim.cjs');
-assert.equal(E.NIGHTS.length, 12); assert.equal(E.SCENARIOS.length, 10);
-for (const c of E.SCENARIOS) for (const id of E.ACTION_IDS) assert(c.moves[id], c.id + ' has ' + id);
-// first morning: a scenario, no night card
-let s = E.fresh(1); s.look = { fig: 'pops', sex: 'guy', done: true }; E.startDay(s, true);
-assert(s.scen); assert.deepEqual(s.show, ['scen']);
-// a move that ends it clears it
-const id = E.ACTION_IDS.find(k => E.scenById ? 0 : E.preview(s, k).end && E.canDo(s, k));
-if (id) { E.action(s, id); assert.equal(s.scen, null); }
-// next morning: night card + new scenario
-s.actions = 0; E.endDay(s); assert.equal(s.show[0], 'night'); assert(s.night); assert(s.scen);
-// ignoring a scenario adds heat every night and it expires
-s = E.fresh(2); s.look = { fig: 'pops', sex: 'guy', done: true }; E.startDay(s, true); const sc = s.scen.id, days = s.scen.left;
-for (let i = 0; i < days; i++) { s.heat = 0; s.supportToday = true; E.endDay(s); s.lockedUp = null; }
-assert(s.expired && s.log.some(l => l.includes('you let it ride')));
-// girl homies get her version of the love scenarios
-s = E.fresh(3); s.look = { fig: 'lady-ink', sex: 'girl', done: true };
-assert(E.scenFor(s, 'shoes').setup.includes("don't date girls")); assert(!E.scenFor(s, 'shoes').moves.support.lose.includes('Girl'));
-// heat odds, lock-up, restart keeps the homie at level 1
-s = E.fresh(4); s.heat = 100; assert.equal(E.lockOdds(s), E.CFG.heat.maxOdds); s.heat = E.CFG.heat.safe; assert.equal(E.lockOdds(s), 0);
-s = E.fresh(5); s.look = { fig: 'suit', sex: 'guy', done: true }; s.level = 3; const r = E.restartKeepFigure(s, 9); assert.equal(r.level, 1); assert.equal(r.look.fig, 'suit'); assert(r.scen);
-// shop gating
-s = E.fresh(6); s.cash = 2000; assert.equal(E.cantBuy(s, 'dog'), 'level 3'); s.level = 3; assert.equal(E.cantBuy(s, 'dog'), '');
-// simulated players
-const res = run(1000); console.log('smart players:', JSON.stringify(res));
-const pct = parseInt(res.reach4); assert(pct >= 20 && pct <= 50, 'about 1 in 3 smart players reach Moved Out (got ' + pct + '%)');
-console.log('PASS: cards, morning, scenarios end + expire, girl versions, heat odds, restart, shop, difficulty.');
+// node test.cjs — Sober Gangster v4 checks
+const E = require('./engine.js'), S = require('./sim.cjs');
+const ok = (c, m) => { if (!c) { console.error('FAIL: ' + m); process.exit(1); } };
+let s = E.restartKeepFigure(null, 3); s.look = { fig: 'lady-ink', sex: 'girl', done: true };
+ok(s.cash === 12 && s.scen && s.scen.id === 'first_job', 'day 1: $12 and the first job lands');
+ok(E.whyNot(s, 'work') === 'no job' && E.whyNot(s, 'rides') === 'need a car', 'work and rides locked');
+E.action(s, 'meeting');
+const p = E.preview(s, 'betterjob'); ok(p.zeroed && p.e.h === 0 && p.end, 'spiritual first zeroes work heat; better job ends it');
+E.action(s, 'betterjob'); ok(s.job && !s.scen, 'hired');
+ok(E.whyNot(s, 'rest') === '', 'rest ok'); E.action(s, 'rest'); ok(E.whyNot(s, 'rest') === 'no moves left', 'out of moves');
+// life move leaves a receipt that comes back
+s = E.restartKeepFigure(null, 4); s.scen = null; E.action(s, 'fkit'); ok(s.receipts.some(r => r.id === 'receipt_ghost_message'), 'f**k it leaves a receipt');
+ok(s.trust.ghost === 7 && s.trust.pops === 1, 'trust moves');
+E.endDay(s); ok(s.cards.some(c => c.kind === 'receipt'), 'receipt came back next morning');
+// rent day + streaks
+s = E.restartKeepFigure(null, 5);
+for (let d = 0; d < 7; d++) { s.actions = 0; s.meetToday = true; s.spiritToday = true; s.cash = 300; s.heat = 0; E.endDay(s); }
+ok(s.rentDays === 1 && s.rentsOnTime === 1, 'rent paid on day 7');
+ok(s.got.includes('sponsor'), '3 meetings in a row: Pops offers');
+// every situation has the 10 moves (work/quit may be n/a in chapter 1) and an expire
+for (const c of E.SITUATIONS) { ok(c.expire && c.expire.say, c.id + ' expire'); for (const k of ['meeting', 'call', 'help', 'rest', 'betterjob', 'argue', 'ignore', 'fkit']) ok(c.moves[k], c.id + ' ' + k); }
+ok(E.sitById('buy_the_car').moves.call.gives.includes('car'), 'the car can be bought');
+// difficulty: about 1 in 3 smart people win, in 30-40 days
+E.fresh.__h = 11; const h = S.run(1000, S.human), w = parseInt(h.won);
+console.log('smart people:', JSON.stringify(h));
+ok(w >= 25 && w <= 45, 'human win rate ' + w + '% should be 25-45%');
+ok(+h.winDay >= 30 && +h.winDay <= 40, 'win day ' + h.winDay + ' should be 30-40');
+console.log('PASS: moves, rows, receipts, rent, streaks, situations, difficulty.');

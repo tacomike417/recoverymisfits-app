@@ -28,12 +28,18 @@ each move button shows what it does to the scenario (✔ = ends it), and every c
 adds heat every night until it ends badly. Cards are in cards.js (written by ChatGPT in Mike's voice, approved by Mike).
 sim.cjs is the test player; test.cjs checks that about 1 in 3 smart players reach Moved Out.
 
-## NEXT (Mike, 15 Oct 2026) — FELLOWSHIP: working a program is how you survive
-Save this for when it's time. Today "Sober support" is one generic move. Next it opens up into real fellowship
-actions, and a homie who actively works a program gets their survival odds up to about 75% (vs ~1 in 3 now).
-- Things to do: grab coffee with people, make a meeting, volunteer to read, get a sponsor (later: sponsor someone),
-  give rides once you have a car, pray, meditate, volunteer, start a meeting that fits your schedule, etc.
-- They build on each other (a sponsor, a home group, service) and keep paying off: less heat, better night cards,
-  scenarios get cheaper to handle, relapse pull gets weaker.
-- Tuning target: a player who works the program ~75% reach Moved Out; one who skips it stays ~1 in 3 or worse.
-  Check it with sim.cjs (add a "works the program" test player) before shipping.
+v4.0 — THE RPG (Mike, 15 Oct 2026). engine.js has the rules, situations.js the 18 situations (chapters 1-3, written by
+ChatGPT, approved by Mike), cards.js the night cards. Story bible: Pops, Big Ray, Darlene, Mom, Shorty, Ghost.
+- 3 moves a day, 10 buttons in 3 rows. SPIRITUAL (meeting, call sober support, help someone, rest, + give rides once you
+  have a car) always helps. WORK (go to work, better job, quit) adds heat unless a spiritual move came first that day.
+  LIFE (argue, ignore, say f**k it) = quick stress relief, lots of heat, and a receipt that comes back days later.
+- Every move moves somebody's trust. Streaks: 3 meetings in a row = Pops offers to sponsor; a week employed = the raise
+  ($100 a shift); a car = Give rides; 14 and 30 days standing.
+- Start $12. Food $12 a night. Rent every 7 days: $100, $140, $175, $250 by chapter. Owe two weeks = lose the bed.
+  No job = +8 stress every morning. 3 job leads (better job) = an interview.
+- Chapters: 1 The Bottom Bunk, 2 Clock In or Clock Out, 3 Wheels and Wisdom, 4 Keys to Your Own Place -> SOBERED UP.
+- Heat: no numbers on screen, a flame meter. Life on life's terms adds 12 every night (CFG.heat.street).
+  Tuned with sim.cjs: a smart person (the 'human' bot) wins about 1 in 3, around day 33.
+- First 2 days: the next thing to tap wiggles (nudge() in index.html).
+- TODO: chapter 4 situations (ChatGPT went blank 15 Oct; chapter 4 reuses chapter 2-3 situations for now),
+  ChatGPT art for the envelope, flames and the 7 new move icons (hand-drawn SVG stand-ins in index.html).

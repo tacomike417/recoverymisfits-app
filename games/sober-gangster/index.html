@@ -308,13 +308,104 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .cardflag{line-height:1;font-size:calc(var(--u)*28)!important;white-space:normal;padding:calc(var(--u)*4) calc(var(--u)*8)}
 .howh{font-size:24px;margin:12px 0 2px;color:var(--ink)}
 .howh.big2{color:var(--red2);font-size:26px}
+
+/* ---------- v4: heat meter (flames instead of numbers) ---------- */
+.hm{position:relative;height:14px;border:2px solid #111;border-radius:3px;background:#2a211b;overflow:visible;margin:22px 4px 4px}
+.hm .fill{position:absolute;left:0;top:0;bottom:0;border-radius:1px;background:linear-gradient(90deg,#f7cf5c,#f08a24 45%,#d0262b 75%,#8a0d12);transition:width .6s}
+.hm .was{position:absolute;left:0;top:0;bottom:0;background:repeating-linear-gradient(135deg,#fff3 0 4px,#0000 4px 8px);border-right:2px dashed #fff8}
+.hm .hl{position:absolute;top:-5px;bottom:-5px;width:3px;background:#fff6dc;box-shadow:0 0 0 1px #000;z-index:2}
+.hm .flames{position:absolute;right:-12px;bottom:2px;display:flex;align-items:flex-end;gap:0;pointer-events:none}
+.hm .flames svg{display:block;transform-origin:50% 100%;animation:flick .5s ease-in-out infinite alternate;filter:drop-shadow(0 0 4px #ff5a1f)}
+.hm .flames svg:nth-child(2){animation-delay:.15s}.hm .flames svg:nth-child(3){animation-delay:.3s}.hm .flames svg:nth-child(4){animation-delay:.08s}
+.hm.hot{box-shadow:0 0 12px 3px #ff3b1f88;animation:burn .9s ease-in-out infinite alternate}
+@keyframes flick{from{transform:scaleY(.86) skewX(-4deg)}to{transform:scaleY(1.08) skewX(4deg)}}
+.hmw{display:flex;justify-content:space-between;font:800 13px 'Barlow Condensed';letter-spacing:.4px;color:#5a4636;margin:0 4px 6px}
+.hmw b{color:var(--red2)}
+.hm.big{height:18px}
+/* the heat bar on the Today skin */
+.heatslot{position:absolute;z-index:3}
+.heatslot .hm{margin:0;height:100%;border-width:1px}
+.heatslot .hm .flames{transform:scale(.55);transform-origin:100% 100%;right:-6px}
+.hword{position:absolute;display:flex;align-items:center;color:var(--ink);font:800 calc(var(--u)*34) 'Barlow Condensed';letter-spacing:.5px;white-space:nowrap}
+.hword.hot{color:var(--red2)}
+
+/* ---------- v4: the envelope on the trouble notice ---------- */
+.cardflag.env{display:flex;align-items:center;gap:calc(var(--u)*10);text-align:left;transform:rotate(2deg)}
+.cardflag.env svg{flex:none;width:calc(var(--u)*78);height:calc(var(--u)*56);filter:drop-shadow(1px 2px 0 #000)}
+.cardflag.env span{display:block;min-width:0}
+.cardflag.env span b{display:block;font-weight:400;font-size:calc(var(--u)*30);line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.envtop{display:flex;align-items:center;gap:10px;margin:-2px 0 6px}
+.envtop svg{width:58px;height:42px;flex:none;filter:drop-shadow(1px 2px 0 #0008)}
+.envtop .lolt{margin:0}
+
+/* ---------- v4: the move board ---------- */
+.board{width:var(--W);margin:0 auto;padding:4px 10px 6px;background:#16120f url(assets/ui/wall.webp) center top/100% auto}
+.mrow{margin:0 0 8px}
+.mhead{display:flex;align-items:baseline;gap:8px;margin:2px 2px 4px}
+.mhead b{font-size:21px;color:#fff6dc;text-shadow:2px 2px 0 #000;padding:0 10px 2px 6px;transform:rotate(-1.5deg)}
+.mhead span{font:700 12px/1.15 'Barlow Condensed';color:#e9dcc0;text-shadow:1px 1px 0 #000}
+.mrow.spiritual .mhead b{background:#2f6b3a;box-shadow:2px 2px 0 #000}
+.mrow.work .mhead b{background:#b07a12;box-shadow:2px 2px 0 #000}
+.mrow.life .mhead b{background:var(--red2);box-shadow:2px 2px 0 #000}
+.mgrid{display:grid;gap:7px}
+.mgrid.c2{grid-template-columns:1fr 1fr}.mgrid.c3{grid-template-columns:1fr 1fr 1fr}
+.mgrid.c2>.mb:last-child:nth-child(odd){grid-column:span 2}
+.mb{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:78px;padding:6px 4px 7px;text-align:center;color:var(--ink);
+  background:#f1e2bd url(assets/ui/tex-cream.webp) center/220px;border:3px solid #111;border-radius:6px;box-shadow:0 5px 0 #111,0 7px 8px #0007;transition:transform .08s,box-shadow .08s;cursor:pointer}
+.mb:active{transform:translateY(4px);box-shadow:0 1px 0 #111,0 2px 3px #0007}
+.mb .mi{width:38px;height:38px;object-fit:contain;display:block}
+.mb svg.mi{color:#14110f}
+.mb .ml{font:800 15px/1.02 'Barlow Condensed';letter-spacing:.2px;text-transform:uppercase}
+.mb .mf{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:3px;font:800 12px 'Barlow Condensed';color:#4a3b2c;min-height:16px}
+.mf .hp{display:inline-flex;align-items:center;gap:0;padding:0 4px;border-radius:9px;color:#fff;line-height:15px}
+.mf .hp.up{background:var(--red2)}.mf .hp.dn{background:#2f6b3a}.mf .hp.zero{background:#555}
+.mf .hp svg{width:9px;height:12px}
+.mf .ok{color:#fff;background:#111;border-radius:9px;padding:0 5px;line-height:15px}
+.mb.life{background:#7d1015 url(assets/ui/tex-red.webp) center/220px;color:#fff6dc}
+.mb.life .mf{color:#ffd9b0}.mb.life svg.mi{color:#fff6dc}
+.mb.done::after{content:'✓';position:absolute;right:5px;top:-4px;font:400 34px 'Caveat Brush';color:var(--red2);text-shadow:1px 1px 0 #000}
+.mb.life.done::after{color:var(--gold2)}
+.mb.off{filter:grayscale(.85);opacity:.55;box-shadow:0 2px 0 #111}
+.mb.off .mf{color:#3a2a1a}
+.mb .why{font:800 12px 'Barlow Condensed';background:#111;color:var(--gold2);border-radius:9px;padding:0 6px;line-height:15px}
+.mb.ends{outline:3px solid var(--gold2);outline-offset:-6px}
+.boardnote{font:700 12.5px/1.25 'Barlow Condensed';color:#e9dcc0;text-shadow:1px 1px 0 #000;margin:0 2px 8px}
+.boardnote b{color:var(--gold2)}
+/* wiggle: the thing to tap next, for the first couple of days */
+.wig{animation:wig 1.3s ease-in-out infinite}
+@keyframes wig{0%,55%,100%{transform:rotate(0)}62%{transform:rotate(-3deg) scale(1.04)}70%{transform:rotate(3deg) scale(1.04)}78%{transform:rotate(-2deg)}86%{transform:rotate(1.5deg)}}
+.cardflag.wig{animation:wig 1.3s ease-in-out infinite}
+.hot.wig,.endbtn.wig{animation:wig 1.3s ease-in-out infinite}
+.tapme{position:absolute;z-index:5;pointer-events:none;font:400 18px 'Caveat Brush';color:var(--gold2);text-shadow:2px 2px 0 #000;white-space:nowrap}
+.endstage{position:relative;width:var(--W);margin:0 auto}
+.endstage img{display:block;width:100%}
+.endstage button{position:absolute;inset:6% 4% 14% 4%}
+
+/* ---------- v4: popups ---------- */
+.trust{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.trust span{font:800 13px 'Barlow Condensed';padding:3px 8px;border-radius:3px;border:2px solid #111;background:#fff8e6}
+.trust span.up{background:#d9efd5}.trust span.dn{background:#f6d0cc}
+.trust span.t-ghost.up{background:#f6d0cc}.trust span.t-ghost.dn{background:#d9efd5}
+.mline{font:400 22px 'Caveat Brush';color:var(--red);margin:-4px 0 4px}
+.zero{font:700 14px 'Barlow Condensed';color:#2f6b3a}
+/* people on the story page */
+.ppl{display:grid;gap:8px}
+.pp{display:flex;gap:10px;align-items:center;padding:8px}
+.pp .pi{width:44px;height:44px;flex:none;border-radius:50%;background:#111;color:var(--gold2);display:grid;place-items:center;font-size:24px;border:2px solid var(--gold)}
+.pp .pt{flex:1;min-width:0}
+.pp .pt b{font-size:20px}
+.pp .pt small{display:block;font:600 12.5px/1.2 'Barlow';color:#4a3b2c}
+.tb{display:flex;gap:2px;margin-top:4px}.tb i{flex:1;height:8px;border:1px solid #111;background:#fff8e6;border-radius:1px}
+.tb i.on{background:#2f6b3a}.pp.t-ghost .tb i.on{background:var(--red2)}
+.gotlist .badge{margin:6px 0}
+.win h1{font-size:46px;color:var(--red2);text-align:center;margin:4px 0}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <nav id="nav" hidden></nav>
 <div id="modal"></div>
-<script src="cards.js?v=3.1"></script><script src="engine.js?v=3.1"></script><!-- bump ?v= with every VERSION change -->
+<script src="cards.js?v=4.0"></script><script src="situations.js?v=4.0"></script><script src="engine.js?v=4.0"></script><!-- bump ?v= with every VERSION change -->
 <script>
 const A = 'assets/';
 let s, page = 'title', pickSel = null, storageOK = true, shopTab = 'feel';
@@ -380,20 +471,6 @@ function toggleSound(){ s.settings.mute = !s.settings.mute; save(); if (s.settin
 addEventListener('pointerdown', () => { if (!soundReady) { soundReady = true; startMusic(); } }, { capture: true });
 document.addEventListener('visibilitychange', () => { if (!music) return; if (document.hidden) music.pause(); else if (!s.settings.mute && soundReady) music.play().catch(() => {}); });
 
-/* ---------- today ---------- */
-// the six moves, with what each one does RIGHT NOW (to the scenario hanging over you, if there is one)
-const MOVE_ICON = { work: 'work', rest: 'rest', responsibility: 'chores', support: 'support', help: 'help', job: 'job' };
-function fx(e, end){
-  const a = [];
-  if (e.h) a.push((e.h > 0 ? '+' : '−') + Math.abs(e.h) + ' heat');
-  if (e.c) a.push((e.c > 0 ? '+$' : '−$') + Math.abs(e.c));
-  if (e.s) a.push((e.s > 0 ? '+' : '−') + Math.abs(e.s) + ' stress');
-  if (e.n) a.push((e.n > 0 ? '+' : '−') + Math.abs(e.n) + ' people');
-  return a.join(' · ') + (end ? ' · ENDS IT' : '');
-}
-function short(e, end){ const a = []; if (e.h) a.push((e.h > 0 ? '+' : '−') + Math.abs(e.h) + ' heat'); if (e.c) a.push((e.c > 0 ? '+$' : '−$') + Math.abs(e.c)); if (!a.length && e.s) a.push((e.s > 0 ? '+' : '−') + Math.abs(e.s) + ' stress'); return (end ? '✔ ' : '') + a.join(' · '); }
-const ACTIONS = () => ACTION_IDS.map(id => { const p = preview(s, id); const broke = s.cash + (p.e.c || 0) < 0; return [id, ACTION_LABEL[id], broke ? 'need $' + (-p.e.c) : short(p.e, p.end), MOVE_ICON[id], p]; });
-
 /* ---------- shop ---------- */
 function purchase(id){
   const p = item(id), why = cantBuy(s, id);
@@ -401,20 +478,13 @@ function purchase(id){
   show(`<div style="text-align:center"><img src="${A}item/${id}.webp" alt="" style="max-height:120px;max-width:70%;filter:drop-shadow(0 4px 3px #0006)"></div><h2 class="mk">${esc(p.name)}</h2><p>$${p.price} · 1 move<br>${esc(p.desc)}${p.feel ? '<br>Feels good: −' + p.feel + ' stress.' : ''}</p>${btn}<button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep saving</button>`);
 }
 
-/* ---------- progress + settings ---------- */
-function progress(){
-  return `${topbar('YOUR <b>STORY</b>')}${s.lockedUp ? '<button class="paper red big mk" onclick="startOver()">START OVER</button>' : ''}<div class="paper" style="padding:10px"><div class="ladder">${LEVELS.map(L => `<div class="rung ${L.n > s.level ? 'no' : ''} ${L.n === s.level ? 'cur paper' : ''}"><img src="${myFig(L.n)}" alt=""><span class="mk">LVL ${L.n}</span><br>${esc(L.name)}</div>`).join('')}</div>
-  <p class="note">${s.level < 4 ? 'Next level needs ' + esc(nextNeeds(s).join(', ') || 'one more good night') + '. ' : 'You made it. Keep living. '}A balanced day = stress under ${CFG.balance.stress}, connection ${CFG.balance.connection}+, heat ${CFG.heat.safe} or less when you go to bed. Get locked up and it’s back to level 1.</p></div>
-  <div class="banner"><span class="mk">LITTLE BIG WINS</span></div>${s.milestones.length ? s.milestones.map(x => `<div class="paper badge">★ ${esc(x)}</div>`).join('') : '<p class="onwall">The first one’s waiting. Keeping a bed counts.</p>'}
-  <div class="banner"><span class="mk">WHAT HAPPENED</span></div>${s.log.map(x => `<div class="log">${esc(x)}</div>`).join('')}`;
-}
 function settings(){
   return `${topbar('<b>SETTINGS</b>')}
   <button class="paper set" onclick="go('pick')"><span class="mk">Change my homie</span><small>Same run, different figure. Now: ${esc(fig().name)}.</small></button>
   <button class="paper set" onclick="toggleSound()"><span class="mk">Sound: ${s.settings.mute ? 'OFF' : 'ON'}</span><small>The music and the sound effects. Same as the speaker up top.</small></button>
   <button class="paper set" onclick="intro()"><span class="mk">How to play</span><small>The short version.</small></button>
-  <button class="paper set" onclick="rules()"><span class="mk">How the odds work</span><small>All the numbers. Lock-up chance tonight: ${pct(lockOdds(s))}%.</small></button>
-  <button class="paper set" onclick="restart()"><span class="mk">Start a new run</span><small>Back to level 1, day 1. Pick a new homie or keep this one.</small></button>
+  <button class="paper set" onclick="rules()"><span class="mk">How it works</span><small>Heat, people, money, chapters.</small></button>
+  <button class="paper set" onclick="restart()"><span class="mk">Start a new run</span><small>Back to chapter 1, day 1. Pick a new homie or keep this one.</small></button>
   <footer>Sober Gangster ${VERSION} · Recovery Misfits · Saves on this phone automatically.<br>A life game, not recovery advice. Original characters.</footer>`;
 }
 
@@ -454,63 +524,6 @@ function pick(){
   <div class="stick"><button class="imgbtn" ${sel ? '' : 'disabled'} onclick="choose_fig()" aria-label="That's me"><img src="${SK}pick-btn.webp" alt="That's me"></button></div>`;
 }
 
-/* today */
-function life(){
-  if (s.result) return chapterDone();
-  const lv = s.housing === 'Temporary shelter' ? 1 : s.level, H = CFG.heat, odds = lockOdds(s);
-  const acts = ACTIONS(), needs = nextNeeds(s), L = levelInfo(s.level);
-  const cashGoal = (LEVELS[s.level] && LEVELS[s.level].need.cash) || CFG.cushion;
-  const blocked = !s.actions;
-  // card spots: [x, y, w, h, subX, subY, boxX, boxY]
-  const spot = [[25,1150,393,107,205,1206,44,1176],[435,1150,393,107,612,1206,452,1176],[25,1268,393,114,200,1332,44,1300],[435,1268,393,114,628,1332,455,1300],[25,1392,393,110,205,1455,44,1420],[435,1392,393,110,620,1455,455,1422]];
-  const stuff = s.items.filter(i => i !== 'dog' && !s.items.some(j => item(j).upgrades === i));
-  return `<div class="stage today" style="height:${U(1690)}">
-  <div class="room2" style="${at(26, 135, 802, 623)};background-image:url(${A}room/${lv}.webp)"><img class="fig" src="${myFig()}" alt="${esc(fig().name)}, level ${s.level}">${s.items.includes('dog') ? `<img class="pet" src="${A}item/dog.webp" alt="your dog">` : ''}
-    ${stuff.length ? `<div class="stuff2">${stuff.slice(-7).map(i => `<img src="${A}item/${i}.webp" alt="${esc(item(i).name)}">`).join('')}</div>` : ''}</div>
-  <img class="skin" src="${SK}today.webp" alt="">
-  <button class="hot" style="${at(30, 28, 80, 74)}" onclick="topX()" aria-label="Back to the start screen"></button>
-  <span class="dnum mk" style="${at(222, 26, 76, 80)}">${s.day}</span><span class="dtot mk" style="${at(322, 26, 110, 80)}">${CFG.days}</span>
-  <div class="tr" style="${at(470, 34, 360, 60)}">${topRight(`<span class="pips">${[0,1,2].map(i => `<i class="${i < s.actions ? 'on' : ''}"></i>`).join('')}</span>`)}</div>
-  <button class="lvl mk" style="${at(64, 150, 410, 62)}" onclick="go('progress')">LVL <b>${s.level}</b> · ${esc(L.name.toUpperCase())}</button>
-  ${s.level < 4 ? `<button class="nexttxt" style="${at(50, 222, 560, 70)}" onclick="go('progress')"><b class="mk">NEXT: LVL ${s.level + 1}</b> ${esc(needs.join(' · ') || 'one more good night')}</button>` : ''}
-  ${s.scen ? `<button class="cardflag mk" style="${at(500, 150, 312, 70)}" onclick="scenPopup(false)">⚠ ${esc(scenFor(s, s.scen.id).title)}<small>${s.scen.left} day${s.scen.left === 1 ? '' : 's'} left · tap</small></button>` : ''}
-  <button class="callst ${s.calledToday ? 'done' : ''}" style="${at(40, 680, 300, 64)}" ${s.calledToday ? 'disabled' : ''} onclick="if(call(s))sfx('move');render()"><span class="mk">${s.calledToday ? 'CALLED. GOOD.' : 'SOBER CALL'}</span><small>${s.calledToday ? 'heat ' + H.call : 'free · heat ' + H.call}</small></button>
-  <span class="where2" style="${at(560, 700, 255, 42)}">${esc(s.housing.toUpperCase())}</span>
-  <span class="val mk" style="${at(48, 834, 230, 58)}">$${s.cash}</span>
-  <span class="bar2 gold" style="${at(49, 892, 218, 19)}"><i style="width:${Math.min(100, Math.round(s.cash / cashGoal * 100))}%"></i></span>
-  <span class="val mk c" style="${at(312, 832, 240, 58)}">${s.stress}</span>
-  <span class="bar2" style="${at(316, 892, 232, 19)}"><i style="width:${s.stress}%"></i></span>
-  <span class="val mk c" style="${at(597, 832, 220, 58)}">${s.connection}</span>
-  <span class="bar2 gold" style="${at(601, 892, 210, 19)}"><i style="width:${s.connection}%"></i></span>
-  <span class="val mk" style="${at(228, 950, 180, 62)}">${s.heat}</span>
-  <span class="htag mk ${odds ? 'hot' : ''}" style="${at(584, 952, 236, 52)}">${odds ? pct(odds) + '% tonight' : 'Safe tonight'}</span>
-  <span class="bar2 heat2" style="${at(112, 1018, 682, 22)}"><i style="width:${s.heat}%"></i><b style="left:${H.safe}%"></b></span>
-  <span class="left2 mk" style="${at(700, 1086, 128, 50)}">${s.actions} left</span>
-  ${acts.map(([id, , fx], i) => { const [x, y, w, h, sx, sy, bx, by] = spot[i]; return `<button class="hot mvhot ${blocked ? 'off' : ''}" style="${at(x, y, w, h)}" onclick="confirmAction('${id}')" aria-label="${ACTION_LABEL[id]}"></button><span class="sub2" style="${at(sx, sy, w - (sx - x) - 12, 36)}">${esc(fx)}</span>${doneToday(id) ? `<span class="tick mk" style="${at(bx - 4, by - 26, 70, 80)}">✓</span>` : ''}`; }).join('')}
-  ${s.calledToday ? '' : ''}
-  <button class="hot" style="${at(38, 1520, 780, 122)}" onclick="night()" aria-label="${s.actions ? 'Call it a day' : 'Next day'}"></button>
-  </div>`;
-}
-function chapterDone(){
-  return `${topbar('DAY <b>' + CFG.days + '</b> DONE')}<section class="paper event"><span class="kicker">${CFG.days}-DAY CHAPTER COMPLETE</span><h2 class="mk">LOOK WHAT YOU BUILT.</h2><p>Level ${s.level}: ${esc(levelInfo(s.level).name)}. ${esc(jobs[Math.max(0, s.job)].name)}. $${s.cash} in your pocket.</p>${Object.entries(s.result).map(([k, v]) => `<div class="choice" style="display:flex;justify-content:space-between"><span class="mk">${k}</span><b>${v}/100</b></div>`).join('')}<button class="paper red big mk" onclick="restart()">NEW CHAPTER</button></section>`;
-}
-// THE MORNING: last night's Life on Life's Terms card, then the scenario. One GOT IT each.
-function morning(){
-  if (page !== 'life' || s.lockedUp || s.levelUp || document.querySelector('#modal .ov')) return;
-  if (s.expired) { const x = s.expired; return show(`<span class="kicker">YOU LET IT RIDE</span><h2 class="mk">${esc(x.title)}</h2><p class="say">${esc(x.text)}</p><p class="fxline">+${x.h} heat</p><button class="paper red big mk" onclick="s.expired=null;save();closeModal();morning()">GOT IT</button>`, 'card'); }
-  const next = s.show && s.show[0]; if (!next) return;
-  if (next === 'night') { const n = nightCard(s.night); if (!n) { s.show.shift(); return morning(); }
-    return show(`<div class="lolt mk">LIFE ON LIFE’S TERMS</div><p class="note" style="margin:0">Last night</p><h2 class="mk">${esc(n.title)}</h2><p class="say">${esc(n.text)}</p><div class="chips"><span class="chip2 ${n.heat > 0 ? 'bad' : 'good'}">${n.heat > 0 ? '+' : '−'}${Math.abs(n.heat)} HEAT</span>${n.stress ? `<span class="chip2 ${n.stress > 0 ? 'bad' : 'good'}">${n.stress > 0 ? '+' : '−'}${Math.abs(n.stress)} STRESS</span>` : ''}</div><button class="paper red big mk" onclick="s.show.shift();save();closeModal();render()">GOT IT</button>`, 'card'); }
-  if (next === 'scen') return scenPopup(true);
-}
-function scenPopup(fromMorning){
-  if (!s.scen) return;
-  const c = scenFor(s, s.scen.id), fresh = c.days === s.scen.left && fromMorning;
-  show(`<div class="lolt mk red">${esc(c.tag || 'TODAY')}</div><h2 class="mk">${esc(c.title)}</h2><p class="say">${esc(c.setup)}</p>
-  <div class="chips">${fresh ? `<span class="chip2 bad">+${c.now} HEAT NOW</span>` : ''}<span class="chip2 bad">+${c.daily} HEAT EVERY NIGHT IT’S ON YOU</span><span class="chip2">${s.scen.left} DAY${s.scen.left === 1 ? '' : 'S'} LEFT</span></div>
-  <p class="note">Your 3 moves deal with it. Each move button shows what it does to this. ✔ = ends it. Every choice costs something.</p>
-  <button class="paper red big mk" onclick="${fromMorning ? 's.show=[];save();' : ''}closeModal();render()">GOT IT</button>`, 'card');
-}
 /* shop:/* shop: header + repeating card tiles + the note, all ChatGPT's */
 function shopUI(){
   const list = shop.filter(p => p.group === shopTab && !(p.guyOnly && s.look.sex !== 'guy') && !(p.girlOnly && s.look.sex !== 'girl'));
@@ -534,7 +547,7 @@ function levelUpUI(){
   const unlocks = shop.filter(p => p.minLevel === s.levelUp).map(p => p.name);
   document.getElementById('modal').innerHTML = `<div class="ov skinov" onclick="if(event.target===this)lvDone()"><div class="pop" style="aspect-ratio:817/1135"><img class="skin" src="${SK}pop-levelup.webp" alt="Level up!">
   <img class="pfig was" style="${pat(70, 440, 247, 300)}" src="${myFig(from)}" alt=""><img class="pfig" style="${pat(400, 330, 352, 420)}" src="${myFig(s.levelUp)}" alt="">
-  <div class="ptext" style="${pat(80, 770, 657, 130)}"><b class="mk">LEVEL ${L.n} · ${esc(L.name.toUpperCase())}</b><span>${s.housing === 'Temporary shelter' ? 'You’re climbing.' : 'New place: ' + esc(L.housing) + '.'}${unlocks.length ? ' Unlocked: ' + esc(unlocks.join(', ')) + '.' : ''}${L.n === 4 ? ' A ' + (fig().sex === 'girl' ? 'lady' : 'gentleman') + '.' : ''}</span></div>
+  <div class="ptext" style="${pat(80, 770, 657, 130)}"><b class="mk">CHAPTER ${L.n} · ${esc(L.name.toUpperCase())}</b><span>${L.n === 4 ? 'Your name on a lease. Moving in cost $' + CFG.moveIn + '.' : L.n === 3 ? 'Next up: a sponsor and some wheels.' : 'You got a job. Now keep it.'}${unlocks.length ? ' Unlocked: ' + esc(unlocks.join(', ')) + '.' : ''}${L.n === 4 ? ' A ' + (fig().sex === 'girl' ? 'lady' : 'gentleman') + '.' : ''}</span></div>
   <button class="hot" style="${pat(52, 946, 713, 129)}" onclick="lvDone()" aria-label="Let's go"></button></div></div>`;
   history.pushState({ p: page, m: 1 }, '');
 }
@@ -543,9 +556,200 @@ function lockupUI(){
   const Lk = s.lockedUp; sfx('locked'); if (music) music.pause();
   document.getElementById('modal').innerHTML = `<div class="ov skinov"><div class="pop" style="aspect-ratio:817/1346"><img class="skin" src="${SK}pop-locked.webp" alt="Locked up.">
   <img class="pfig jail" style="${pat(300, 560, 260, 320)}" src="${myFig()}" alt=""><span class="pbars" style="${pat(60, 400, 722, 499)}">${[154, 257, 398, 532, 669].map(x => `<i style="left:${P(x - 60)}"></i>`).join('')}</span>
-  <div class="ptext" style="${pat(70, 930, 677, 100)}"><span>Night ${Lk.day}. Heat was ${Lk.heat}. The odds said ${Lk.odds}% and tonight they hit. Back to level 1, fresh off the bus.</span></div>
+  <div class="ptext" style="${pat(70, 930, 677, 100)}"><span>Night ${Lk.day}. Heat was ${Lk.heat}. The odds said ${Lk.odds}% and tonight they hit. Back to chapter 1, fresh off the bus.</span></div>
   <button class="hot" style="${pat(51, 1054, 726, 129)}" onclick="startOver()" aria-label="Start over"></button>
   <button class="hot" style="${pat(51, 1208, 722, 104)}" onclick="document.getElementById('modal').innerHTML='';go('progress')" aria-label="See what happened"></button></div></div>`;
+}
+
+/* ---------- today ---------- */
+// icons: ChatGPT's where we have them, hand-drawn ink for the new moves
+const SVG = {
+  call: '<svg class="mi" viewBox="0 0 48 48"><path fill="currentColor" d="M14 4c2 0 3 1 4 3l3 7c1 2 0 4-1 5l-3 3c2 5 6 9 11 11l3-3c1-1 3-2 5-1l7 3c2 1 3 2 3 4v6c0 3-2 5-5 5C21 47 1 27 1 9c0-3 2-5 5-5h8z"/></svg>',
+  betterjob: '<svg class="mi" viewBox="0 0 48 48"><circle cx="20" cy="20" r="13" fill="none" stroke="currentColor" stroke-width="6"/><path d="M29 29l13 13" stroke="currentColor" stroke-width="8" stroke-linecap="round"/><path fill="currentColor" d="M15 15h10v3H15zM15 21h7v3h-7z"/></svg>',
+  quit: '<svg class="mi" viewBox="0 0 48 48"><path fill="currentColor" d="M6 4h22v8h-5V9H11v30h12v-3h5v8H6z"/><path fill="currentColor" d="M30 14l12 10-12 10v-6H18v-8h12z"/></svg>',
+  argue: '<svg class="mi" viewBox="0 0 48 48"><path fill="currentColor" d="M4 6h34v24H18l-9 9v-9H4z"/><path fill="#d0262b" d="M19 10h5l-1 12h-3zM19.5 24h4v4h-4z"/><path fill="currentColor" d="M41 14h4v22h-4v7l-7-7H22v-3h19z"/></svg>',
+  ignore: '<svg class="mi" viewBox="0 0 48 48"><rect x="12" y="3" width="24" height="42" rx="4" fill="currentColor"/><rect x="15" y="8" width="18" height="28" fill="#fff6dc" opacity=".25"/><path d="M5 5l38 38" stroke="#d0262b" stroke-width="6" stroke-linecap="round"/></svg>',
+  fkit: '<svg class="mi" viewBox="0 0 48 48"><circle cx="21" cy="29" r="15" fill="currentColor"/><path d="M30 16l5-5" stroke="currentColor" stroke-width="5"/><path fill="#f7cf5c" d="M37 3l2 5 5-1-3 5 4 3-6 1-1 5-3-5-5 1 3-5-3-4 5 1z"/><path fill="#fff6dc" opacity=".35" d="M13 24a9 9 0 019-6v4a5 5 0 00-5 4z"/></svg>',
+  rides: '<svg class="mi" viewBox="0 0 48 48"><path fill="currentColor" d="M6 26l4-10c1-2 2-3 5-3h18c3 0 4 1 5 3l4 10h2v12h-5v-4H9v4H4V26zm7-1h22l-3-8H16z"/><circle cx="13" cy="31" r="3" fill="#fff6dc"/><circle cx="35" cy="31" r="3" fill="#fff6dc"/></svg>'
+};
+const MOVE_IMG = { meeting: 'support', help: 'help', rest: 'rest', work: 'work' };
+const moveIcon = id => MOVE_IMG[id] ? `<img class="mi" src="${ic(MOVE_IMG[id])}" alt="">` : SVG[id];
+const FLAME = (w, h) => `<svg width="${w}" height="${h}" viewBox="0 0 24 32"><path fill="#d0262b" d="M12 0c2 8 11 12 11 21a11 11 0 01-22 0c0-5 3-8 5-11 0 4 2 6 4 6-2-6 1-12 2-16z"/><path fill="#f08a24" d="M12 11c1 5 7 8 7 13a7 7 0 01-14 0c0-3 2-5 3-7 0 3 1 4 3 4-1-4 0-7 1-10z"/><path fill="#f7cf5c" d="M12 20c1 3 4 4 4 7a4 4 0 01-8 0c0-2 1-3 2-4 0 1 1 2 2 2 0-2 0-3 0-5z"/></svg>`;
+const heatLevel = h => h <= CFG.heat.safe ? 'cool' : h < 70 ? 'warm' : 'hot';
+function flames(h){
+  const n = h < 15 ? 0 : h < 35 ? 1 : h <= CFG.heat.safe ? 2 : h < 70 ? 3 : 4, sz = 12 + Math.round(h / 4);
+  return Array.from({ length: n }, (_, i) => FLAME(Math.round(sz * (i === n - 1 ? 1 : .7)), Math.round(sz * 1.35 * (i === n - 1 ? 1 : .7)))).join('');
+}
+// the heat meter: no numbers, just how hot it is. from = where it was (shows the change).
+function heatMeter(h, from = null, words = true){
+  const odds = h > CFG.heat.safe ? Math.min(CFG.heat.maxOdds, (h - CFG.heat.safe) / (100 - CFG.heat.safe) * CFG.heat.maxOdds) : 0;
+  const tag = h >= 100 ? '<b>THEY’RE COMING TONIGHT</b>' : h > CFG.heat.safe ? `<b>COPS MIGHT COME · ${pct(odds)}%</b>` : 'SAFE TONIGHT';
+  const ch = from === null || from === h ? '' : h > from ? '<b>HEAT UP ▲</b>' : '<span style="color:#2f6b3a">HEAT DOWN ▼</span>';
+  return `<div class="hm big ${heatLevel(h)}">${from !== null && from !== h ? `<i class="was" style="width:${Math.min(from, 100)}%"></i>` : ''}<i class="fill" style="width:${Math.max(3, h)}%"><span class="flames">${flames(h)}</span></i><b class="hl" style="left:${CFG.heat.safe}%"></b></div>${words ? `<div class="hmw"><span>${ch || 'HEAT'}</span><span>${tag}</span></div>` : ''}`;
+}
+// a heat change on a button: flames up (red) or down (green), sized by how much
+function heatPip(dh, zero){
+  if (zero) return '<span class="hp zero">no heat</span>';
+  if (!dh) return '';
+  const n = Math.abs(dh) >= 15 ? 3 : Math.abs(dh) >= 8 ? 2 : 1, f = '<svg viewBox="0 0 24 32"><path fill="currentColor" d="M12 0c2 8 11 12 11 21a11 11 0 01-22 0c0-5 3-8 5-11 0 4 2 6 4 6-2-6 1-12 2-16z"/></svg>';
+  return `<span class="hp ${dh > 0 ? 'up' : 'dn'}">${dh > 0 ? '▲' : '▼'}${f.repeat(n)}</span>`;
+}
+const money = c => c ? `<span>${c > 0 ? '+$' : '−$'}${Math.abs(c)}</span>` : '';
+const ENVELOPE = '<svg viewBox="0 0 78 56"><rect x="3" y="4" width="72" height="48" rx="3" fill="#f3e6c4" stroke="#111" stroke-width="4"/><path d="M5 7l34 26L73 7" fill="none" stroke="#111" stroke-width="4"/><path d="M5 50l24-20M73 50L49 30" stroke="#111" stroke-width="3"/><circle cx="39" cy="33" r="9" fill="#a8141a" stroke="#111" stroke-width="2"/><path d="M35 33h8M39 29v8" stroke="#f7cf5c" stroke-width="2"/></svg>';
+
+// what we nudge the player toward for the first couple of days
+function nudge(){
+  if (s.day > 2 || s.lockedUp || s.result) return null;
+  if (!s.actions) return 'end';
+  if (s.scen && !(s.ui && s.ui.day === s.day && s.ui.read)) return 'env';
+  if (!s.spiritToday) return 'meeting';
+  if (s.scen) { let best = null, bv = -1e9; for (const id of ACTION_IDS) { if (ROW_OF[id] === 'life' || !canDo(s, id)) continue; const p = preview(s, id); if (!p.end) continue; const v = -p.e.h + p.e.c / 10; if (v > bv) { bv = v; best = id; } } if (best) return best; }
+  return s.job ? 'work' : 'betterjob';
+}
+function moveBtn(id, wig){
+  const why = whyNot(s, id), p = preview(s, id), row = ROW_OF[id];
+  const fxs = why && why !== 'no moves left' ? `<span class="why">${esc(why.toUpperCase())}</span>` : `${heatPip(p.e.h, p.zeroed)}${money(p.e.c)}${p.end ? '<span class="ok">✔ ENDS IT</span>' : ''}`;
+  return `<button class="mb ${row} ${doneToday(id) ? 'done' : ''} ${why ? 'off' : ''} ${p.end && !why ? 'ends' : ''} ${wig === id ? 'wig' : ''}" onclick="confirmAction('${id}')" aria-label="${esc(MOVES[id].label)}">${moveIcon(id)}<span class="ml">${esc(MOVES[id].label)}</span><span class="mf">${fxs}</span></button>`;
+}
+function board(wig){
+  return `<section class="board">${ROWS.map(([key, name, hint, ids]) => { const list = ids.filter(id => id !== 'rides' || s.car); return `<div class="mrow ${key}"><div class="mhead"><b class="mk">${name}</b><span>${esc(hint)}</span></div><div class="mgrid ${list.length === 3 ? 'c3' : 'c2'}">${list.map(id => moveBtn(id, wig)).join('')}</div></div>`; }).join('')}
+  <p class="boardnote">${s.actions} move${s.actions === 1 ? '' : 's'} left today. ${s.spiritToday ? '<b>Spiritual move done: work adds no heat today.</b>' : 'Do a spiritual move first and work adds no heat.'}</p></section>`;
+}
+function life(){
+  if (s.result) return chapterDone();
+  const lv = s.housing === 'Shelter' ? 1 : s.level, odds = lockOdds(s);
+  const needs = nextNeeds(s), L = levelInfo(s.level), wig = nudge();
+  const cashGoal = s.level === 2 ? 400 : s.level === 3 ? 750 : rentDue(s);
+  const stuff = s.items.filter(i => i !== 'dog' && item(i) && !s.items.some(j => item(j) && item(j).upgrades === i));
+  const sc = s.scen && scenFor(s, s.scen.id);
+  return `<div class="stage today" style="height:${U(1138)}">
+  <div class="room2" style="${at(26, 135, 802, 623)};background-image:url(${A}room/${lv}.webp)"><img class="fig" src="${myFig()}" alt="${esc(fig().name)}, chapter ${s.level}">${s.items.includes('dog') ? `<img class="pet" src="${A}item/dog.webp" alt="your dog">` : ''}
+    ${stuff.length ? `<div class="stuff2">${stuff.slice(-7).map(i => `<img src="${A}item/${i}.webp" alt="${esc(item(i).name)}">`).join('')}</div>` : ''}</div>
+  <img class="skin" src="${SK}today-top.webp" alt="">
+  <button class="hot" style="${at(30, 28, 80, 74)}" onclick="topX()" aria-label="Back to the start screen"></button>
+  <span class="dnum mk" style="${at(222, 26, 76, 80)}">${s.day}</span><span class="dtot mk" style="${at(322, 26, 110, 80)}">${s.day <= WIN.standing ? WIN.standing : ''}</span>
+  <div class="tr" style="${at(470, 34, 360, 60)}">${topRight(`<span class="pips">${[0,1,2].map(i => `<i class="${i < s.actions ? 'on' : ''}"></i>`).join('')}</span>`)}</div>
+  <button class="lvl mk" style="${at(64, 150, 410, 62)}" onclick="go('progress')">CH <b>${s.level}</b> · ${esc(L.name.toUpperCase())}</button>
+  <button class="nexttxt" style="${at(50, 222, 560, 70)}" onclick="go('progress')"><b class="mk">${s.level < 4 ? 'NEXT CHAPTER:' : 'SOBERED UP:'}</b> ${esc(needs.join(' · ') || 'one more good night')}</button>
+  ${sc ? `<button class="cardflag env mk ${wig === 'env' ? 'wig' : ''}" style="${at(470, 140, 345, 96)}" onclick="scenPopup(false)">${ENVELOPE}<span><b>${esc(sc.title)}</b><small>${s.scen.left} day${s.scen.left === 1 ? '' : 's'} left · tap to read</small></span></button>` : ''}
+  <span class="where2" style="${at(560, 700, 255, 42)}">${esc(s.housing.toUpperCase())}${s.job ? ' · EMPLOYED' : ''}</span>
+  <span class="val mk" style="${at(48, 834, 230, 58)}">$${s.cash}</span>
+  <span class="bar2 gold" style="${at(49, 892, 218, 19)}"><i style="width:${Math.min(100, Math.round(s.cash / cashGoal * 100))}%"></i></span>
+  <span class="val mk c" style="${at(312, 832, 240, 58)}">${s.stress}</span>
+  <span class="bar2" style="${at(316, 892, 232, 19)}"><i style="width:${s.stress}%"></i></span>
+  <span class="val mk c" style="${at(597, 832, 220, 58)}">${s.connection}</span>
+  <span class="bar2 gold" style="${at(601, 892, 210, 19)}"><i style="width:${s.connection}%"></i></span>
+  <span class="hword ${odds ? 'hot' : ''}" style="${at(228, 950, 340, 62)}">${esc(heatWords(s).toUpperCase())}</span>
+  <span class="htag mk ${odds ? 'hot' : ''}" style="${at(584, 952, 236, 52)}">${odds >= 1 ? 'TONIGHT' : odds ? pct(odds) + '% tonight' : 'Safe tonight'}</span>
+  <div class="heatslot" style="${at(112, 1016, 682, 26)}">${heatMeter(s.heat, null, false)}</div>
+  </div>
+  ${board(wig)}
+  <div class="endstage"><img src="${SK}today-bottom.webp" alt=""><button class="hot endbtn ${wig === 'end' ? 'wig' : ''}" onclick="night()" aria-label="${s.actions ? 'Call it a day' : 'Next day'}"></button></div>`;
+}
+function chapterDone(){
+  const g = fig().sex === 'girl';
+  return `${topbar('<b>SOBERED UP</b>')}<section class="paper event win"><span class="kicker">DAY ${s.result.day}</span><h1 class="mk">SOBERED UP.</h1><div style="text-align:center"><img src="${myFig(4)}" alt="" style="max-height:220px"></div>
+  <p>Twelve bucks and a bottom bunk, ${s.result.day} days ago. Now ${g ? 'she’s' : 'he’s'} got a lease, a job, a sponsor and people who pick up the phone. Nobody handed ${g ? 'her' : 'him'} that. You did it one day at a time.</p>
+  <p class="note">${s.milestones.length} little big wins on the way. Check your story.</p>
+  <button class="paper red big mk" onclick="go('progress')">SEE THE STORY</button><button class="paper big cream mk" onclick="restart()">NEW RUN</button></section>`;
+}
+// THE MORNING: cards that came due (receipts, streaks, rent), last night's card, then the envelope.
+function cardPop(c){
+  const kick = { receipt: 'IT CAME BACK', streak: 'UNLOCKED', expired: 'YOU LET IT RIDE', rent: 'RENT DAY', news: 'HEADS UP' }[c.kind] || 'TODAY';
+  const chips = [c.s ? `<span class="chip2 ${c.s > 0 ? 'bad' : 'good'}">${c.s > 0 ? '+' : '−'}${Math.abs(c.s)} STRESS</span>` : '', c.c ? `<span class="chip2 ${c.c > 0 ? 'good' : 'bad'}">${c.c > 0 ? '+$' : '−$'}${Math.abs(c.c)}</span>` : '', c.n ? `<span class="chip2 ${c.n > 0 ? 'good' : 'bad'}">${c.n > 0 ? '+' : '−'}${Math.abs(c.n)} CONNECTION</span>` : ''].join('');
+  return show(`<div class="lolt mk ${c.kind === 'streak' ? '' : 'red'}">${kick}</div>${c.who ? `<p class="note" style="margin:0">${esc(person(c.who).name)}</p>` : ''}<h2 class="mk">${esc(c.title)}</h2><p class="say">${esc(c.text)}</p>
+  ${c.h ? heatMeter(s.heat, s.heat - c.h) : ''}${chips ? `<div class="chips">${chips}</div>` : ''}${trustLine(c.t)}
+  <button class="paper red big mk" onclick="s.cards.shift();save();closeModal();render()">GOT IT</button>`, 'card');
+}
+function trustLine(t){
+  const e = Object.entries(t || {}).filter(([k, v]) => v && person(k));
+  return e.length ? `<div class="trust">${e.map(([k, v]) => `<span class="t-${k} ${v > 0 ? 'up' : 'dn'}">${esc(person(k).name)} ${v > 0 ? '▲' : '▼'}</span>`).join('')}</div>` : '';
+}
+function morning(){
+  if (page !== 'life' || s.lockedUp || s.levelUp || document.querySelector('#modal .ov')) return;
+  if (s.cards && s.cards.length) return cardPop(s.cards[0]);
+  const next = s.show && s.show[0]; if (!next) return;
+  if (next === 'night') { const n = nightCard(s.night); if (!n) { s.show.shift(); return morning(); }
+    return show(`<div class="lolt mk">LIFE ON LIFE’S TERMS</div><p class="note" style="margin:0">Last night</p><h2 class="mk">${esc(n.title)}</h2><p class="say">${esc(n.text)}</p>${heatMeter(s.heat, s.heat - n.heat)}${n.stress ? `<div class="chips"><span class="chip2 ${n.stress > 0 ? 'bad' : 'good'}">${n.stress > 0 ? '+' : '−'}${Math.abs(n.stress)} STRESS</span></div>` : ''}<button class="paper red big mk" onclick="s.show.shift();save();closeModal();render()">GOT IT</button>`, 'card'); }
+  if (next === 'scen') return scenPopup(true);
+}
+function scenPopup(fromMorning){
+  if (!s.scen) return;
+  if (!s.ui || s.ui.day !== s.day) s.ui = { day: s.day, done: [] }; s.ui.read = true;
+  const c = scenFor(s, s.scen.id), fresh = s.scen.fresh && fromMorning, who = person(c.who);
+  show(`<div class="envtop">${ENVELOPE}<div class="lolt mk red">YOU GOT A MESSAGE</div></div>${who ? `<p class="note" style="margin:0">${esc(who.name)}</p>` : ''}<h2 class="mk">${esc(c.title)}</h2><p class="say">${esc(forSex(s, c.setup))}</p>
+  ${heatMeter(s.heat, fresh ? s.heat - c.now : null)}
+  <p class="note"><b>Every night you leave it, the heat climbs.</b> ${s.scen.left} day${s.scen.left === 1 ? '' : 's'} to deal with it. Moves marked <b>✔ ENDS IT</b> handle it. Every choice costs something.</p>
+  <button class="paper red big mk" onclick="${fromMorning ? 's.show=[];' : ''}save();closeModal();render()">GOT IT</button>`, 'card');
+}
+
+function confirmAction(id){
+  const p = preview(s, id), why = whyNot(s, id), row = ROW_OF[id], sc = p.scen;
+  const after = Math.max(0, Math.min(100, s.heat + p.e.h));
+  const chips = [p.e.c ? `<span class="chip2 ${p.e.c > 0 ? 'good' : 'bad'}">${p.e.c > 0 ? '+$' : '−$'}${Math.abs(p.e.c)}</span>` : '', p.e.s ? `<span class="chip2 ${p.e.s > 0 ? 'bad' : 'good'}">${p.e.s > 0 ? '+' : '−'}${Math.abs(p.e.s)} STRESS</span>` : '', p.e.n ? `<span class="chip2 ${p.e.n > 0 ? 'good' : 'bad'}">${p.e.n > 0 ? '+' : '−'}${Math.abs(p.e.n)} CONNECTION</span>` : ''].join('');
+  const rowWord = { spiritual: 'SPIRITUAL MOVE', work: 'WORK MOVE', life: 'LIFE MOVE' }[row];
+  show(`<div style="text-align:center;color:var(--ink)">${moveIcon(id).replace('class="mi"', 'class="mi" style="width:70px;height:70px"')}</div><div class="lolt mk ${row === 'life' ? 'red' : ''}">${rowWord}</div><h2 class="mk">${esc(MOVES[id].label)}</h2><p class="mline">“${esc(MOVES[id].line)}”</p>
+  ${sc ? `<p class="note" style="margin:0 0 4px">vs. <b>${esc(sc.title)}</b> · ${p.end ? '<b>this ends it</b>' : 'it’s still on you after this'}</p>` : ''}
+  ${heatMeter(after, s.heat)}
+  ${p.zeroed ? '<p class="zero">You did a spiritual move first, so this adds no heat.</p>' : row === 'work' && p.e.h > 0 ? '<p class="note">Do a spiritual move first and this adds no heat.</p>' : ''}
+  ${row === 'life' ? '<p class="note"><b>Feels good now.</b> It leaves a receipt, and it comes back in a few days.</p>' : ''}
+  ${chips ? `<div class="chips">${chips}</div>` : ''}${trustLine(p.t)}${p.note ? `<p class="note">${esc(p.note)}</p>` : ''}
+  <button class="paper red big mk" ${why ? 'disabled' : ''} onclick="doMove('${id}')">${why ? esc(why.toUpperCase()) : 'DO IT'}</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep thinking</button>`);
+}
+function doMove(id){
+  closeModal();
+  const was = s.heat, r = action(s, id); if (!r) return render();
+  markDone(id); sfx('move'); save(); render();
+  setTimeout(() => show(`<span class="kicker">${esc(r.title)}</span><h2 class="mk">${r.end ? (ROW_OF[id] === 'life' ? 'THAT’S ONE WAY TO END IT.' : 'HANDLED.') : esc(MOVES[id].label.toUpperCase()) + '.'}</h2><p class="say">${esc(r.say)}</p>${heatMeter(s.heat, was)}${trustLine(r.trust)}${r.still ? '<p class="note">It’s still on you.</p>' : ''}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`), 120);
+}
+function night(){
+  const odds = lockOdds(s);
+  if (s.actions) show(`<h2 class="mk">CALL IT A DAY?</h2><p>${s.actions} move${s.actions === 1 ? '' : 's'} left. They don’t carry over. Food, rent when it’s due, and the night still happen. Life on life’s terms adds heat every night.</p>${heatMeter(s.heat)}<button class="paper red big mk" onclick="closeModal();sleep()">FINISH TODAY</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Use my time</button>`);
+  else sleep();
+}
+function sleep(){
+  sfx('night');
+  const day = s.day, odds = pct(lockOdds(s));
+  const m = document.getElementById('modal');
+  m.innerHTML = `<div class="night"><div><h1 class="mk">NIGHT ${day}</h1><p>${odds ? odds + '% chance the lights show up.' : 'Nobody’s looking for you.'}</p><div class="dots">● ● ●</div></div></div>`;
+  window.scrollTo(0, 0);
+  setTimeout(() => {
+    endDay(s); save();
+    if (s.lockedUp || s.result) { m.innerHTML = ''; render(); return; }
+    const box = m.querySelector('.night > div');
+    if (box) { box.innerHTML = `<h1 class="mk">NIGHT ${day}</h1><div class="made mk">${odds ? 'You made it.' : 'Slept fine.'}</div><p>Morning. Life on life’s terms.</p><small>Tap anywhere</small>`; m.querySelector('.night').onclick = () => { m.innerHTML = ''; render(); }; }
+    setTimeout(() => { if (m.querySelector('.night')) { m.innerHTML = ''; render(); } }, 1400);
+  }, odds ? 1600 : 900);
+}
+function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, chapter 1, $${CFG.startCash}. This run gets wiped.</p><button class="paper red big mk" onclick="newRun(true)">PICK A NEW HOMIE</button><button class="paper big cream mk" onclick="newRun(false)">SAME HOMIE</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
+function rules(){
+  const H = CFG.heat;
+  show('<h2 class="mk">HOW IT WORKS.</h2>'
+  + '<p><b>Heat</b> is the meter with the flames. Life on life’s terms adds heat every night, more if you skipped the spiritual stuff, and every night a situation sits there. Past the white line the cops might come, up to ' + pct(H.maxOdds) + '% a night. Fill it all the way and they come for sure. Locked up = back to chapter 1.</p>'
+  + '<p><b>Spiritual moves</b> always help. Do one first and work adds no heat that day. <b>Life moves</b> feel good, cost a lot of heat, and leave a receipt that comes back.</p>'
+  + '<p><b>People remember.</b> Pops, Big Ray, Darlene, Mom and Shorty like you more or less with every move. Ghost too, and that’s the problem.</p>'
+  + '<p><b>Money:</b> food is $' + CFG.food + ' a night. Rent every ' + CFG.rentDays + ' days: $' + CFG.rent.slice(1).join(', $') + ' as you move up. Owe two weeks and you lose the bed.</p>'
+  + '<p><b>Chapters:</b> 1 get hired, 3 meetings, survive rent day. 2 a week employed, the raise, 2 rents on time, $400. 3 Pops as sponsor, a car, connection 60, $750 (moving out costs $' + CFG.moveIn + '). 4 ' + WIN.rents + ' rents on time, ' + WIN.cool + ' days under the line, day ' + WIN.standing + ' standing: SOBERED UP.</p>'
+  + '<button class="paper red big mk" onclick="closeModal()">LET’S GO</button>');
+}
+function warnings(){
+  const a = [];
+  if (s.heat >= 70) a.push(['warn', 'The heat is real. Spiritual moves bring it down.']);
+  else if (s.heat > CFG.heat.safe) a.push(['warn', 'You’re past the line. Hit a meeting or make a call.']);
+  if (s.stress >= CFG.heat.maxedStress) a.push(['warn', 'Stress ' + s.stress + '. Rest.']);
+  if (s.connection < CFG.heat.aloneBelow) a.push(['warn', 'Connection ' + s.connection + '. Nobody’s in your corner.']);
+  if (s.day % CFG.rentDays === 0) a.push(['', 'Rent’s due tonight: $' + rentDue(s) + '.']);
+  else if (s.day % CFG.rentDays === CFG.rentDays - 1) a.push(['', 'Rent’s tomorrow night: $' + rentDue(s) + '.']);
+  if (s.arrears) a.push(['warn', 'You owe $' + s.arrears + '. Owe two weeks and you lose the bed.']);
+  if (!s.job && s.day > 1) a.push(['warn', 'No job. Look for a better job to find one.']);
+  return a;
+}
+function progress(){
+  return `${topbar('YOUR <b>STORY</b>')}${s.lockedUp ? '<button class="paper red big mk" onclick="startOver()">START OVER</button>' : ''}<div class="paper" style="padding:10px"><div class="ladder">${LEVELS.map(L => `<div class="rung ${L.n > s.level ? 'no' : ''} ${L.n === s.level ? 'cur paper' : ''}"><img src="${myFig(L.n)}" alt=""><span class="mk">CH ${L.n}</span><br>${esc(L.name)}</div>`).join('')}</div>
+  <p class="note">${s.result ? 'SOBERED UP on day ' + s.result.day + '.' : (s.level < 4 ? 'Next chapter needs: ' : 'SOBERED UP needs: ') + esc(nextNeeds(s).join(', ') || 'one more good night') + '.'} Get locked up and it’s back to chapter 1.</p></div>
+  <div class="banner"><span class="mk">YOUR PEOPLE</span></div><div class="ppl">${PEOPLE.filter(p => p.id !== 'darlene' || s.job || s.flags.includes('darlene_introduced')).map(p => `<div class="paper pp t-${p.id}"><div class="pi mk">${p.name[0]}</div><div class="pt"><b class="mk">${esc(p.name)}</b>${p.id === 'pops' && s.sponsor ? ' · <b>YOUR SPONSOR</b>' : ''}<small>${esc(p.role)}</small><div class="tb">${Array.from({ length: 10 }, (_, i) => `<i class="${i < s.trust[p.id] ? 'on' : ''}"></i>`).join('')}</div><small><i>“${esc(p.say)}”</i></small></div></div>`).join('')}</div>
+  <div class="banner"><span class="mk">LITTLE BIG WINS</span></div>${s.milestones.length ? s.milestones.map(x => `<div class="paper badge">★ ${esc(x)}</div>`).join('') : '<p class="onwall">The first one’s waiting. Getting hired counts.</p>'}
+  <div class="banner"><span class="mk">WHAT HAPPENED</span></div>${s.log.map(x => `<div class="log">${esc(x)}</div>`).join('')}`;
 }
 
 /* ---------- render ---------- */
@@ -560,7 +764,7 @@ function render(){
   if (inGame) nav.innerHTML = navBar();
   if (inGame && s.lockedUp && page !== 'progress' && !document.querySelector('#modal .pop')) lockupUI();
   else if (inGame && s.levelUp && !document.querySelector('#modal .ov')) levelUpUI();
-  else if (page === 'life' && (s.expired || (s.show && s.show.length))) setTimeout(morning, 350);
+  else if (page === 'life' && ((s.cards && s.cards.length) || (s.show && s.show.length))) setTimeout(morning, 350);
   setTimeout(flushNotices, 60);
 }
 
@@ -575,42 +779,7 @@ function closeModal(fromBack){
   if (!fromBack && history.state && history.state.m) { skipPop = true; history.back(); }
 }
 function chime(){ if (!s.settings.sound) return; try { const a = new (window.AudioContext||window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); g.gain.value = .025; o.frequency.value = 440; o.start(); o.stop(a.currentTime + .1); o.onended = () => a.close(); } catch {} }
-function confirmAction(id){
-  const p = preview(s, id), sc = p.scen, m = sc && sc.moves[id], ok = canDo(s, id);
-  const t = id === 'job' && jobHuntTarget(s) > s.job ? 'Steps you up to ' + jobs[jobHuntTarget(s)].name.toLowerCase() + ' ($' + jobs[jobHuntTarget(s)].wage + ' a shift).' : id === 'job' && !s.items.includes('phone') ? 'Nobody can call you back without a phone.' : '';
-  show(`<div style="text-align:center"><img src="${ic(MOVE_ICON[id])}" alt="" style="width:76px"></div><h2 class="mk">${ACTION_LABEL[id]}</h2>
-  ${sc ? `<p class="note" style="margin:0 0 6px">vs. <b>${esc(sc.title)}</b></p>` : ''}
-  <p class="fxline">${esc(fx(p.e, p.end)) || 'nothing changes'}</p>
-  ${sc ? `<p>${p.end ? '<b>This ends it.</b>' : '<b>It’s still on you after this.</b>'}</p>${m.gain ? `<p class="gl"><b>+</b> ${esc(m.gain)}</p>` : ''}${m.lose ? `<p class="gl"><b>−</b> ${esc(m.lose)}</p>` : ''}` : ''}
-  ${t ? `<p>${esc(t)}</p>` : ''}
-  <button class="paper red big mk" ${ok ? '' : 'disabled'} onclick="doMove('${id}')">${ok ? 'DO IT' : 'CAN’T AFFORD IT'}</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep thinking</button>`);
-}
-function doMove(id){
-  closeModal();
-  const r = action(s, id); if (!r) return render();
-  markDone(id); sfx('move'); save(); render();
-  setTimeout(() => show(`<span class="kicker">${esc(r.title)}</span><h2 class="mk">${r.end ? 'HANDLED.' : ACTION_LABEL[id].toUpperCase() + '.'}</h2><p class="say">${esc(r.say)}</p><p class="fxline">${esc(fx(r.e, false))}</p>${r.end ? '' : s.scen ? '<p class="note">It’s still on you.</p>' : ''}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`), 120);
-}
 function startOver(){ startMusic(); s = restartKeepFigure(s); document.getElementById('modal').innerHTML = ''; save(); go('life'); }
-function night(){
-  const odds = pct(lockOdds(s));
-  if (s.actions) show(`<h2 class="mk">CALL IT A DAY?</h2><p>${s.actions} move${s.actions === 1 ? '' : 's'} left. They don’t carry over. Food, rent when it’s due, and the night still happen.${odds ? '<br><b>Heat ' + s.heat + ': ' + odds + '% chance the lights show up tonight.</b>' : ''}</p><button class="paper red big mk" onclick="closeModal();sleep()">FINISH TODAY</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Use my time</button>`);
-  else sleep();
-}
-function sleep(){
-  sfx('night');
-  const day = s.day, odds = pct(lockOdds(s)), heat = s.heat;
-  const m = document.getElementById('modal');
-  m.innerHTML = `<div class="night"><div><h1 class="mk">NIGHT ${day}</h1><p>${odds ? 'Heat ' + heat + '. ' + odds + '% chance the lights show up.' : 'Heat ' + heat + '. Nobody’s looking for you.'}</p><div class="dots">● ● ●</div></div></div>`;
-  window.scrollTo(0, 0);
-  setTimeout(() => {
-    endDay(s); save();
-    if (s.lockedUp) { m.innerHTML = ''; render(); return; }
-    const box = m.querySelector('.night > div');
-    if (box) { box.innerHTML = `<h1 class="mk">NIGHT ${day}</h1><div class="made mk">${odds ? 'You made it.' : 'Slept fine.'}</div><p>Morning. Life on life’s terms.</p><small>Tap anywhere</small>`; m.querySelector('.night').onclick = () => { m.innerHTML = ''; render(); }; }
-    setTimeout(() => { if (m.querySelector('.night')) { m.innerHTML = ''; render(); } }, 1400);
-  }, odds ? 1600 : 900);
-}
 function intro(){
   // Mike's words (15 Oct 2026). Girl homies get "her" instead of "him".
   const g = s.look.done && fig().sex === 'girl';
@@ -626,27 +795,7 @@ function intro(){
   + '<h3 class="mk howh big2">LOCKED UP. COVERED UP. OR SOBERED UP.</h3><p>' + w('Choose wisely. He\'s counting on you.') + '</p>'
   + '<button class="paper red big mk" onclick="s.settings.introSeen=true;save();closeModal();render()">GOT IT</button>', 'card');
 }
-function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, level 1, $${CFG.startCash}. This run gets wiped.</p><button class="paper red big mk" onclick="newRun(true)">PICK A NEW HOMIE</button><button class="paper big cream mk" onclick="newRun(false)">SAME HOMIE</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
 function newRun(pickNew){ const was = s.look.fig; s = restartKeepFigure(s); if (pickNew) { s.look.done = false; pickSel = was; } closeModal(); save(); go(pickNew ? 'pick' : 'life'); }
-function rules(){
-  const H = CFG.heat;
-  show('<h2 class="mk">THE NUMBERS.</h2><p><b>Heat</b> climbs every night you skip the sober stuff (+' + H.noSupport.slice(1).join(', +') + '…), every night you don’t take a breath (+' + H.noRest + '), when stress is ' + H.maxedStress + '+ or you’re alone (connection under ' + H.aloneBelow + '), and every night a situation is left hanging. Over ' + H.safe + ', the chance the cops come tonight is on the meter, up to ' + pct(H.maxOdds) + '%.</p>'
-  + '<p><b>Levels:</b> ' + LEVELS.slice(1).map(L => 'Level ' + L.n + ' needs ' + L.need.balanced + ' balanced days and a ' + jobs[L.need.job].name.toLowerCase() + ' job' + (L.need.cash ? ', $' + L.need.cash + ' saved' : '') + (L.need.noDebt ? ', rent paid up' : '')).join('. ') + '. A balanced day = stress under ' + CFG.balance.stress + ', connection ' + CFG.balance.connection + '+, heat ' + H.safe + ' or less at bedtime.</p>'
-  + '<p>Rent is $' + CFG.rent + ' every ' + CFG.rentDays + ' days. Food is $' + CFG.food + ' a night. Owe $' + CFG.bedLossArrears + ' and you lose the bed.</p><button class="paper red big mk" onclick="closeModal()">LET’S GO</button>');
-}
-
-/* ---------- little pop-up notices (same as Sobered Up) ---------- */
-function warnings(){
-  const a = [];
-  if (s.heat >= 70) a.push(['warn', 'Heat ' + s.heat + '. Tonight’s a gamble. Hit support.']);
-  else if (s.heat > CFG.heat.safe) a.push(['warn', 'Heat’s up. Support or a call brings it down.']);
-  if (s.stress >= CFG.heat.maxedStress) a.push(['warn', 'Stress ' + s.stress + '. Rest.']);
-  if (s.connection < CFG.heat.aloneBelow) a.push(['warn', 'Connection ' + s.connection + '. Nobody’s in your corner.']);
-  if (s.day % CFG.rentDays === CFG.rentDays - 1) a.push(['', 'Rent’s tomorrow: $' + rentDue(s) + '.']);
-  if (s.arrears) a.push(['warn', 'You owe $' + s.arrears + '. At $' + CFG.bedLossArrears + ' you lose the bed.']);
-  if (s.warnings) a.push(['warn', s.warnings + ' of ' + CFG.bedLossWarnings + ' house warnings.']);
-  return a;
-}
 const noticed = new Set();
 function notify(text, kind = '', ms = 4500){
   let box = document.getElementById('notices');
@@ -656,7 +805,7 @@ function notify(text, kind = '', ms = 4500){
   n.onclick = gone; box.appendChild(n); setTimeout(gone, ms);
 }
 function flushNotices(){
-  if (page !== 'life' || s.lockedUp || s.result || s.expired || (s.show && s.show.length) || document.querySelector('#modal .ov')) return;
+  if (page !== 'life' || s.lockedUp || s.result || (s.cards && s.cards.length) || (s.show && s.show.length) || document.querySelector('#modal .ov')) return;
   let i = 0;
   for (const [kind, text] of warnings()) { const k = s.day + ':' + text; if (!noticed.has(k)) { noticed.add(k); setTimeout(() => notify(text, kind), 700 * i++); } }
 }
