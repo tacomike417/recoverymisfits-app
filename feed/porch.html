@@ -1571,7 +1571,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v243</span>
+  <span class="ver" id="ver">v244</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -4009,7 +4009,7 @@ html.kb .ch-bar{padding-bottom:8px}
         '<button type="button" data-mm="friends">Friends' + cnt(reqCount()) + '</button><button type="button" data-mm="saved">Saved shares</button>' +
         '<button type="button" class="wide mm-games" data-mm="games"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 7h9a5 5 0 0 1 4.8 6.4l-1 3.4a2.6 2.6 0 0 1-4.4 1.1L13.6 16h-3.2l-2.3 1.9a2.6 2.6 0 0 1-4.4-1.1l-1-3.4A5 5 0 0 1 7.5 7z"/><path d="M7.5 10.2v3.4M5.8 11.9h3.4"/></svg>Games</button>' +
         (isBoard ? '<button type="button" class="wide mm-board" data-mm="board"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></svg>Cornerstones board</button>' : "") +
-        (isMod ? '<button type="button" class="mm-mod" data-mm="mod">Reports' + cnt(modCount) + '</button><button type="button" class="mm-mod" data-mm="desk">Share desk</button>' : "") +
+        (isMod ? '<button type="button" class="mm-mod" data-mm="mod">Reports' + cnt(modCount) + '</button><button type="button" class="mm-mod" data-mm="desk">Share desk</button><button type="button" class="mm-mod wide" data-mm="posters">My posters</button>' : "") +
       "</div>" +
       '<button type="button" class="mm-out" data-mm="signout">Sign out</button>';
     open("memenu");
@@ -6099,6 +6099,8 @@ html.kb .ch-bar{padding-bottom:8px}
       var which = mm.dataset.mm, LAYER = { games: "games", profile: "profile", notes: "notes", saved: "saved", friends: "friends", findf: "setup", mod: "mod", edit: "editp" };
       var go = function () {
         if (which === "desk") { location.href = "/feed/share-desk.html"; return; }
+        /* v244 (16 Oct 2026, Mike): his print-ready posters, one tap to send them to the library */
+        if (which === "posters") { location.href = "/feed/posters.html"; return; }
         if (which === "board") { location.href = "/feed/cornerstones.html"; return; }
         if (which === "games") { open("games"); return; }
         if (which === "help") { location.href = "/help.html"; return; }
@@ -6106,7 +6108,7 @@ html.kb .ch-bar{padding-bottom:8px}
         else if (which === "switch") { if (A.switcher) A.switcher(); else location.href = "/account.html"; }
         else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else if (which === "signout") signOutHere(); else gate(openEdit);
       };
-      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout|tour|switch|help|desk|board)$/.test(which) ? "editp" : "");
+      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout|tour|switch|help|desk|board|posters)$/.test(which) ? "editp" : "");
       /* already open underneath (say, your own profile)? close the menu to show it */
       if (lay && stack.indexOf($(lay)) < 0 && t.closest("#memenu")) return go();
       closeTop().then(go); return; }
