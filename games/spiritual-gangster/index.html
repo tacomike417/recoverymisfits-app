@@ -968,15 +968,17 @@ function flames(h){
   return Array.from({ length: n }, (_, i) => `<img src="${A}ui/mv/flame.webp" alt="" style="width:${Math.round(sz * (i === n - 1 ? 1.3 : .9))}px">`).join('');
 }
 // the heat meter: no numbers, just how hot it is. from = where it was (shows the change).
-function heatMeter(h, from = null, words = true, anim = false){
+function heatMeter(h, from = null, words = true, anim = false, risk = 0){
   const odds = h > CFG.heat.safe ? Math.min(CFG.heat.maxOdds, (h - CFG.heat.safe) / (100 - CFG.heat.safe) * CFG.heat.maxOdds) : 0;
   const tag = h >= 100 ? '<b>COPS ARE COMING TONIGHT</b>' : h > CFG.heat.safe ? `<b>COPS MIGHT COME · ${pct(odds)}%</b>` : 'NO COPS TONIGHT';
-  const ch = from === null || from === h ? '' : h > from ? '<b>MORE HEAT ▲</b>' : '<span style="color:#2f6b3a">COOLED OFF ▼</span>';
+  const ch = risk && anim ? '<b>TONIGHT GOT RISKIER ▲</b>' : from === null || from === h ? '' : h > from ? '<b>MORE HEAT ▲</b>' : '<span style="color:#2f6b3a">COOLED OFF ▼</span>';
   /* v7.2 (Mike, 15 Oct 2026): after DO IT the meter MOVES -- the bar slides from
      where the heat was to where it is now and a stamp slams down on it, so you
      know right away you just bought yourself a pile of heat (or cooled off).
      Same meter, same stamp look as the rest of the game; no emojis. */
-  const dh = from === null ? 0 : h - from;
+  /* The stamp tells the truth: the bar, the party, Ghost add a little heat on
+     the meter but a lot of danger tonight (risk), so they count for more. */
+  const dh = from === null ? 0 : h - from + Math.round(risk / 2);
   const stamp = !anim || from === null ? '' : dh > 0 ? `<span class="hstamp mk up">${dh >= 15 ? 'WAY MORE HEAT' : dh >= 8 ? 'MORE HEAT' : 'A LITTLE HEAT'}</span>`
     : dh < 0 ? `<span class="hstamp mk dn">${dh <= -15 ? 'COOLED WAY OFF' : 'COOLED OFF'}</span>` : '<span class="hstamp mk same">NO NEW HEAT</span>';
   const startW = anim && from !== null ? Math.max(3, Math.min(from, 100)) : Math.max(3, h);
@@ -1146,8 +1148,8 @@ function doMove(id){
   const was = s.heat, r = action(s, id); if (!r) return render();
   markDone(id); sfx('move'); save(); render();
   const cv = !r.scen && !s.scen && convoFor('move_' + id);
-  if (cv && !(s.seenMove || []).includes(id)) { s.seenMove = (s.seenMove || []).concat(id); save(); return setTimeout(() => { show(textThread(cv, ['crew', 'bar', 'party', 'ghostlink'].includes(id) ? '10:4' + (s.day % 10) + ' PM' : '2:1' + (s.day % 10) + ' PM') + `<h2 class="mk" style="margin-top:8px">${esc(labelFor(id).toUpperCase())}.</h2><p class="say">${esc(hs(r.say))}</p>${heatMeter(s.heat, was, true, true)}${trustLine(r.trust)}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`, 'card phonecard'); textsPlay(); kickHeat(); }, 120); }
-  setTimeout(() => { show(`<span class="kicker">${esc(r.title)}</span><h2 class="mk">${r.end ? (ROW_OF[id] === 'life' ? 'THAT’S ONE WAY TO END IT.' : 'HANDLED.') : esc(labelFor(id).toUpperCase()) + '.'}</h2><p class="say">${esc(r.say)}</p>${heatMeter(s.heat, was, true, true)}${trustLine(r.trust)}${r.still ? '<p class="note">It’s still on you.</p>' : ''}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`); kickHeat(); }, 120);
+  if (cv && !(s.seenMove || []).includes(id)) { s.seenMove = (s.seenMove || []).concat(id); save(); return setTimeout(() => { show(textThread(cv, ['crew', 'bar', 'party', 'ghostlink'].includes(id) ? '10:4' + (s.day % 10) + ' PM' : '2:1' + (s.day % 10) + ' PM') + `<h2 class="mk" style="margin-top:8px">${esc(labelFor(id).toUpperCase())}.</h2><p class="say">${esc(hs(r.say))}</p>${heatMeter(s.heat, was, true, true, MOVES[id].risk || 0)}${trustLine(r.trust)}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`, 'card phonecard'); textsPlay(); kickHeat(); }, 120); }
+  setTimeout(() => { show(`<span class="kicker">${esc(r.title)}</span><h2 class="mk">${r.end ? (ROW_OF[id] === 'life' ? 'THAT’S ONE WAY TO END IT.' : 'HANDLED.') : esc(labelFor(id).toUpperCase()) + '.'}</h2><p class="say">${esc(r.say)}</p>${heatMeter(s.heat, was, true, true, MOVES[id].risk || 0)}${trustLine(r.trust)}${r.still ? '<p class="note">It’s still on you.</p>' : ''}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`); kickHeat(); }, 120);
 }
 function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, chapter 1, $${CFG.startCash}. This run gets wiped.</p><button class="paper red big mk" onclick="newRun(true)">PICK A NEW GANGSTER</button><button class="paper big cream mk" onclick="newRun(false)">SAME GANGSTER</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
 function rules(){

@@ -445,6 +445,12 @@ function preview(s, id) {
   if (id === 'meeting' && s.workToday) note = 'The meeting was during your shift.';
   if (id === 'call' && (s.sponsor || s.trust.pops >= 8)) { e.h -= 5; note = 'Your sponsor picks up. −5 more heat.'; }
   else if (id === 'call' && s.trust.pops <= 1) { e.h = Math.round(e.h / 2); note = 'Pops let it ring. Half the help.'; }
+  /* v7.2 (Mike, 15 Oct 2026: "what is going on here?"): one bad move used to
+     get scrubbed clean the same afternoon -- f**k it (+25) undone by a meeting
+     and a call. Now only the FIRST cool-down of the day counts in full; every
+     one after it cools about a third less. A bad day leaves a mark. (Half was
+     too hard: the sim's win rate dropped under 20%.) */
+  if (e.h < 0 && (s.coolToday || 0) >= 1) { e.h = Math.round(e.h * 2 / 3); note = (note ? note + ' ' : '') + 'Already cooled off once today. This one cools a little less.'; }
   return { e, t, end: !!(m && m.end), gives: m ? m.gives : [], say: m ? forSex(s, m.say) : null, scen: m ? c : null, zeroed, note };
 }
 // '' = you can do it, otherwise why not
@@ -497,6 +503,7 @@ function action(s, id) {
   const p = preview(s, id), row = ROW_OF[id];
   s.actions -= id === 'work' || id === 'double' ? CFG.shiftMoves : 1;
   apply(s, p.e);
+  if (p.e.h < 0) s.coolToday = (s.coolToday || 0) + 1;
   if (row === 'spiritual') { s.spiritToday = true; s.supportToday = true; s.daysSinceSupport = 0; s.spirit = clamp(s.spirit + (SPIRIT[id] || 0), 0, 100); }
   if (row === 'life') { s.lifeToday = (s.lifeToday || 0) + 1; s.spirit = clamp(s.spirit + SPIRIT.life, 0, 100); }
   if (row === 'people' || row === 'places') {
@@ -873,7 +880,7 @@ function endDay(s) {
   if (s.result) return true;
   s.day += tl; s.turn = (s.turn || 1) + 1; s.tl = turnLenFor(s.sober);
   s.actions = s.missingDay ? 1 : CFG.actions; s.missingDay = false; s.lifeToday = 0; s.riskToday = 0; s.wildBoost = {};
-  s.spiritToday = false; s.supportToday = false; s.restToday = false; s.meetToday = false; s.helpToday = false; s.workToday = 0; s.zeroedToday = false; s.lastOutcome = null; s.today = [];
+  s.spiritToday = false; s.supportToday = false; s.restToday = false; s.meetToday = false; s.helpToday = false; s.workToday = 0; s.zeroedToday = false; s.coolToday = 0; s.lastOutcome = null; s.today = [];
   startDay(s, false);
   return true;
 }
