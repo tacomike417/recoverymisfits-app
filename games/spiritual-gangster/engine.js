@@ -9,7 +9,7 @@
               then SOBERED UP. Rent every 7 days grows with you: $100, $140, $175, $250.
    Situations live in situations.js (ChatGPT wrote them, Mike approved). Night cards in cards.js. */
 
-const VERSION = 'v7.1';
+const VERSION = 'v7.2';   // v7.2: Mike's playtest notes -- How to Play, one Pops, the meter moves after DO IT
 const SAVE_KEY = 'sober-gangster-v5';
 const ACTION_IDS = ['meeting', 'call', 'help', 'rest', 'rides', 'work', 'betterjob', 'double', 'quit', 'argue', 'ignore', 'fkit', 'crew', 'ex', 'ghostlink', 'block', 'bar', 'party', 'look', 'carfund', 'movefund', 'date', 'bizfund'];
 const ROWS = [   // top to bottom on the screen (Mike: life, work, spiritual; then people, places and things)
@@ -154,7 +154,7 @@ const FIGURES = [
   { id: 'lady-ink',    name: 'Lady Ink',    sex: 'girl', who: 'Late 20s. Sleeves of ink. Wants her own shop one day.' },
   { id: 'big-country', name: 'Big Country', sex: 'guy',  who: 'Farm boy, 30s. Lost his license. Rides a bike now.' },
   { id: 'suit',        name: 'Suit',        sex: 'guy',  who: '40s. Lost the corner office. Still has the briefcase.' },
-  { id: 'pops',        name: 'Pops',        sex: 'guy',  who: '60s. Second chance. Makes the coffee for everybody.' },
+  { id: 'pops',        name: 'Earl',        sex: 'guy',  who: '60s. Second chance. Makes the coffee for everybody.' },   // was "Pops" too -- Mike, 15 Oct 2026: only one Pops, the old-timer at the meetings. id stays 'pops' so his pictures still load.
   { id: 'soccer-mom',  name: 'Soccer Mom',  sex: 'girl', who: 'Late 30s. Big sunglasses. Wants her kids back.' },
   { id: 'nurse-nikki', name: 'Nurse Nikki', sex: 'girl', who: 'Early 30s. Lost her nursing license. Wants it back.' },
   { id: 'party-girl',  name: 'Party Girl',  sex: 'girl', who: '24. Lots of rings. The party ended. She didn’t.' }

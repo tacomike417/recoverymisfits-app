@@ -324,6 +324,17 @@ nav .navon{background:radial-gradient(ellipse at 50% 60%,rgba(247,207,92,.45),tr
 .hmw{display:flex;justify-content:space-between;font:800 13px 'Barlow Condensed';letter-spacing:.4px;color:#5a4636;margin:0 4px 6px}
 .hmw b{color:var(--red2)}
 .hm.big{height:18px}
+/* v7.2: the meter after DO IT. Bar slides, then the stamp slams down. */
+.hm.anim{margin-top:40px}
+.hm.anim .fill{transition:width .9s cubic-bezier(.3,.9,.3,1) .15s}
+.hm.anim.up.go{animation:hmshake .45s ease-in-out .95s 1}
+@keyframes hmshake{0%,100%{translate:0}20%{translate:-4px}40%{translate:4px}60%{translate:-3px}80%{translate:2px}}
+.hstamp{position:absolute;right:4px;bottom:calc(100% + 6px);border:3px solid var(--red2);color:var(--red2);font:400 21px/1.15 'Caveat Brush';padding:0 7px;background:#fff8;border-radius:3px;white-space:nowrap;
+  opacity:0;transform:rotate(-7deg) scale(2.3);transition:opacity .12s ease-in 1s,transform .22s cubic-bezier(.5,1.8,.6,1) 1s;z-index:3}
+.hstamp.dn{border-color:#2f6b3a;color:#2f6b3a}
+.hstamp.same{border-color:#111;color:#111}
+.hm.go .hstamp{opacity:1;transform:rotate(-7deg) scale(1)}
+@media (prefers-reduced-motion:reduce){.hm.anim .fill,.hstamp{transition:none}.hm.anim.up.go{animation:none}}
 /* the heat bar on the Today skin */
 .heatslot{position:absolute;z-index:3}
 .heatslot .hm{margin:0;height:100%;border-width:1px}
@@ -598,7 +609,7 @@ function settings(){
   <button class="paper set" onclick="toggleSound()"><span class="mk">Sound: ${s.settings.mute ? 'OFF' : 'ON'}</span><small>The music and the sound effects. Same as the speaker up top.</small></button>
   <button class="paper set" onclick="intro()"><span class="mk">How to play</span><small>The short version.</small></button>
   <button class="paper set" onclick="rules()"><span class="mk">How it works</span><small>Heat, people, money, chapters.</small></button>
-  <button class="paper set" onclick="restart()"><span class="mk">Start a new run</span><small>Back to chapter 1, day 1. Pick a new homie or keep this one.</small></button>
+  <button class="paper set" onclick="restart()"><span class="mk">Start a new run</span><small>Back to chapter 1, day 1. Pick a new gangster or keep the same one.</small></button>
   <footer>Spiritual Gangster ${VERSION} · Recovery Misfits · Saves on this phone automatically.<br>A life game, not recovery advice. Original characters.</footer>`;
 }
 
@@ -957,11 +968,26 @@ function flames(h){
   return Array.from({ length: n }, (_, i) => `<img src="${A}ui/mv/flame.webp" alt="" style="width:${Math.round(sz * (i === n - 1 ? 1.3 : .9))}px">`).join('');
 }
 // the heat meter: no numbers, just how hot it is. from = where it was (shows the change).
-function heatMeter(h, from = null, words = true){
+function heatMeter(h, from = null, words = true, anim = false){
   const odds = h > CFG.heat.safe ? Math.min(CFG.heat.maxOdds, (h - CFG.heat.safe) / (100 - CFG.heat.safe) * CFG.heat.maxOdds) : 0;
-  const tag = h >= 100 ? '<b>THEY’RE COMING TONIGHT</b>' : h > CFG.heat.safe ? `<b>COPS MIGHT COME · ${pct(odds)}%</b>` : 'SAFE TONIGHT';
-  const ch = from === null || from === h ? '' : h > from ? '<b>HEAT UP ▲</b>' : '<span style="color:#2f6b3a">HEAT DOWN ▼</span>';
-  return `<div class="hm big ${heatLevel(h)}">${from !== null && from !== h ? `<i class="was" style="width:${Math.min(from, 100)}%"></i>` : ''}<i class="fill" style="width:${Math.max(3, h)}%"><span class="flames">${flames(h)}</span></i><b class="hl" style="left:${CFG.heat.safe}%"></b></div>${words ? `<div class="hmw"><span>${ch || 'HEAT'}</span><span>${tag}</span></div>` : ''}`;
+  const tag = h >= 100 ? '<b>COPS ARE COMING TONIGHT</b>' : h > CFG.heat.safe ? `<b>COPS MIGHT COME · ${pct(odds)}%</b>` : 'NO COPS TONIGHT';
+  const ch = from === null || from === h ? '' : h > from ? '<b>MORE HEAT ▲</b>' : '<span style="color:#2f6b3a">COOLED OFF ▼</span>';
+  /* v7.2 (Mike, 15 Oct 2026): after DO IT the meter MOVES -- the bar slides from
+     where the heat was to where it is now and a stamp slams down on it, so you
+     know right away you just bought yourself a pile of heat (or cooled off).
+     Same meter, same stamp look as the rest of the game; no emojis. */
+  const dh = from === null ? 0 : h - from;
+  const stamp = !anim || from === null ? '' : dh > 0 ? `<span class="hstamp mk up">${dh >= 15 ? 'WAY MORE HEAT' : dh >= 8 ? 'MORE HEAT' : 'A LITTLE HEAT'}</span>`
+    : dh < 0 ? `<span class="hstamp mk dn">${dh <= -15 ? 'COOLED WAY OFF' : 'COOLED OFF'}</span>` : '<span class="hstamp mk same">NO NEW HEAT</span>';
+  const startW = anim && from !== null ? Math.max(3, Math.min(from, 100)) : Math.max(3, h);
+  return `<div class="hm big ${heatLevel(h)}${anim ? ' anim' + (dh > 0 ? ' up' : '') : ''}" ${anim ? `data-to="${Math.max(3, h)}"` : ''}>${stamp}${from !== null && from !== h ? `<i class="was" style="width:${Math.min(from, 100)}%"></i>` : ''}<i class="fill" style="width:${startW}%"><span class="flames">${flames(h)}</span></i><b class="hl" style="left:${CFG.heat.safe}%"></b></div>${words ? `<div class="hmw"><span>${ch || 'HEAT'}</span><span>${tag}</span></div>` : ''}`;
+}
+// slide every animated meter on screen to its new level, then slam the stamp
+function kickHeat(){
+  document.querySelectorAll('.hm.anim[data-to]').forEach(m => {
+    const to = m.dataset.to; m.removeAttribute('data-to');
+    requestAnimationFrame(() => requestAnimationFrame(() => { m.querySelector('.fill').style.width = to + '%'; m.classList.add('go'); }));
+  });
 }
 // a heat change on a button: flames up (red) or down (green), sized by how much
 function heatPip(dh, zero){
@@ -1048,7 +1074,7 @@ function life(){
   <span class="val mk c" style="${at(597, 832, 220, 58)}">${s.connection}</span>
   <span class="bar2 gold" style="${at(601, 892, 210, 19)}"><i style="width:${s.connection}%"></i></span>
   <span class="hword ${odds ? 'hot' : ''}" style="${at(228, 950, 340, 62)}">${esc(heatWords(s).toUpperCase())}</span>
-  <span class="htag mk ${odds ? 'hot' : ''}" style="${at(584, 952, 236, 52)}">${odds >= 1 ? 'TONIGHT' : odds ? pct(odds) + '% tonight' : 'Safe tonight'}</span>
+  <span class="htag mk ${odds ? 'hot' : ''}" style="${at(584, 952, 236, 52)}">${odds >= 1 ? 'TONIGHT' : odds ? pct(odds) + '% tonight' : 'No cops tonight'}</span>
   <div class="heatslot" style="${at(112, 1016, 682, 26)}">${heatMeter(s.heat, null, false)}</div>
   </div>
   ${board(wig)}${wig && wig !== 'env' ? `<button class="gohint mk" onclick="toWig()">${wig === 'end' ? (s.actions ? 'DONE? CALL IT A DAY ↓' : 'OUT OF MOVES · NEXT DAY ↓') : `MOVE ${CFG.actions - s.actions + 1} OF ${CFG.actions} · TIP: ${esc(labelFor(wig).toUpperCase())} ↓`}</button>` : ''}
@@ -1120,10 +1146,10 @@ function doMove(id){
   const was = s.heat, r = action(s, id); if (!r) return render();
   markDone(id); sfx('move'); save(); render();
   const cv = !r.scen && !s.scen && convoFor('move_' + id);
-  if (cv && !(s.seenMove || []).includes(id)) { s.seenMove = (s.seenMove || []).concat(id); save(); return setTimeout(() => { show(textThread(cv, ['crew', 'bar', 'party', 'ghostlink'].includes(id) ? '10:4' + (s.day % 10) + ' PM' : '2:1' + (s.day % 10) + ' PM') + `<h2 class="mk" style="margin-top:8px">${esc(labelFor(id).toUpperCase())}.</h2><p class="say">${esc(hs(r.say))}</p>${heatMeter(s.heat, was)}${trustLine(r.trust)}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`, 'card phonecard'); textsPlay(); }, 120); }
-  setTimeout(() => show(`<span class="kicker">${esc(r.title)}</span><h2 class="mk">${r.end ? (ROW_OF[id] === 'life' ? 'THAT’S ONE WAY TO END IT.' : 'HANDLED.') : esc(labelFor(id).toUpperCase()) + '.'}</h2><p class="say">${esc(r.say)}</p>${heatMeter(s.heat, was)}${trustLine(r.trust)}${r.still ? '<p class="note">It’s still on you.</p>' : ''}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`), 120);
+  if (cv && !(s.seenMove || []).includes(id)) { s.seenMove = (s.seenMove || []).concat(id); save(); return setTimeout(() => { show(textThread(cv, ['crew', 'bar', 'party', 'ghostlink'].includes(id) ? '10:4' + (s.day % 10) + ' PM' : '2:1' + (s.day % 10) + ' PM') + `<h2 class="mk" style="margin-top:8px">${esc(labelFor(id).toUpperCase())}.</h2><p class="say">${esc(hs(r.say))}</p>${heatMeter(s.heat, was, true, true)}${trustLine(r.trust)}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`, 'card phonecard'); textsPlay(); kickHeat(); }, 120); }
+  setTimeout(() => { show(`<span class="kicker">${esc(r.title)}</span><h2 class="mk">${r.end ? (ROW_OF[id] === 'life' ? 'THAT’S ONE WAY TO END IT.' : 'HANDLED.') : esc(labelFor(id).toUpperCase()) + '.'}</h2><p class="say">${esc(r.say)}</p>${heatMeter(s.heat, was, true, true)}${trustLine(r.trust)}${r.still ? '<p class="note">It’s still on you.</p>' : ''}<button class="paper red big mk" onclick="closeModal();render()">GOT IT</button>`); kickHeat(); }, 120);
 }
-function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, chapter 1, $${CFG.startCash}. This run gets wiped.</p><button class="paper red big mk" onclick="newRun(true)">PICK A NEW HOMIE</button><button class="paper big cream mk" onclick="newRun(false)">SAME HOMIE</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
+function restart(){ show(`<h2 class="mk">NEW RUN?</h2><p>Back to day 1, chapter 1, $${CFG.startCash}. This run gets wiped.</p><button class="paper red big mk" onclick="newRun(true)">PICK A NEW GANGSTER</button><button class="paper big cream mk" onclick="newRun(false)">SAME GANGSTER</button><button class="ghost" style="color:var(--ink)" onclick="closeModal()">Keep this run</button>`); }
 function rules(){
   const H = CFG.heat;
   show('<h2 class="mk">HOW IT WORKS.</h2>'
@@ -1189,19 +1215,20 @@ function closeModal(fromBack){
 function chime(){ if (!s.settings.sound) return; try { const a = new (window.AudioContext||window.webkitAudioContext)(), o = a.createOscillator(), g = a.createGain(); o.connect(g); g.connect(a.destination); g.gain.value = .025; o.frequency.value = 440; o.start(); o.stop(a.currentTime + .1); o.onended = () => a.close(); } catch {} }
 function startOver(){ startMusic(); s = restartKeepFigure(s); document.getElementById('modal').innerHTML = ''; save(); go('life'); }
 function intro(){
-  // Mike's words (15 Oct 2026). Girl homies get "her" instead of "him".
-  const g = s.look.done && fig().sex === 'girl';
-  const w = txt => !g ? txt : txt.replace(/\bYOUR GUY\b/g, 'YOUR GIRL').replace(/\bHIM\b/g, 'HER').replace(/\bHe's\b/g, "She's").replace(/\bHis\b/g, 'Her').replace(/\bhis\b/g, 'her').replace(/\bhim\b/g, 'her').replace(/\bhe\b/g, 'she').replace(/\bHe\b/g, 'She').replace(/\bguy\b/g, 'girl');
-  const H = (h, p) => `<h3 class="mk howh">${w(h)}</h3><p>${w(p)}</p>`;
+  // Mike's words (15 Oct 2026), second pass: "your gangster" and "they", so it
+  // fits a guy or a girl, and it says up front what kind of game this is -- slow,
+  // a few minutes a day, not a side-scroller you blow through in one sitting.
+  const H = (h, p) => `<h3 class="mk howh">${h}</h3><p>${p}</p>`;
   show('<div class="lolt mk">HOW TO PLAY</div>'
-  + H('MEET YOUR GUY.', 'He\'s broke. His life\'s a mess. He\'s trying to get sober and start over.<br>And lucky for him, he\'s got you.')
-  + H('CHECK ON THE LITTLE BASTARD.', 'Show up every day. See how he\'s doing. Life\'s gonna throw some shit at him, and you\'re the one helping him deal with it.')
-  + H('YOU GET 3 MOVES A DAY.', 'Get him to work. Call somebody. Handle some business. Make a bad decision. It\'s your call.<br><b>But every move has consequences.</b>')
-  + H('THEN LIFE HAPPENS.', 'See how he makes out over the next 24 hours. Maybe he gets ahead. Maybe he gets knocked on his ass.<br>Tomorrow? New day. New problems.')
-  + H('GET HIM A YEAR.', 'Thirty days and a turn becomes a week. Ninety and it’s a month. The cops don’t get nicer. His life gets fuller: a car, a girl, rent, a kid who needs a sponsor. Fit the program into all of it. One year sober is the finish line.')
-  + H('KEEP HIM OUT OF TROUBLE.', 'Watch his money, stress, connections, and HEAT. Too much heat and the cops might come knocking.')
-  + H('BUILD HIM A LIFE.', 'Get him working. Get him connected. Get him his own place. Give the little bastard something worth staying sober for.<br>And somewhere along the way, you might actually start giving a shit about him.')
-  + '<h3 class="mk howh big2">LOCKED UP. COVERED UP. OR SOBERED UP.</h3><p>' + w('Choose wisely. He\'s counting on you.') + '</p>'
+  + H('MEET YOUR GANGSTER.', 'They\'re broke. Their life\'s a mess. They\'re trying to get sober and start over.<br>And lucky for them, they\'ve got you.')
+  + H('CHECK ON THE LITTLE BASTARD.', 'Show up every day. See how they\'re doing. Life\'s gonna throw some shit at them, and you\'re the one helping them deal with it.')
+  + H('YOU ONLY GET 3 MOVES A DAY.', 'That\'s it. Three. Then they\'re on their own till morning. This game moves slow, one day at a time, same as the real thing. Make every move count.<br><b>Because every move has consequences.</b>')
+  + H('THEN LIFE HAPPENS.', 'See how they make out over the next 24 hours. Maybe they get ahead. Maybe they get knocked on their ass.<br>Tomorrow? New day. New problems.')
+  + H('GET THEM A YEAR.', 'One year sober is the finish line. Thirty days in, a turn becomes a week. Ninety in, it\'s a month. The cops don\'t get nicer. Their life gets fuller: a car, somebody special, rent, a kid who needs a sponsor. Fit the program into all of it.')
+  + H('NO, YOU\'RE NOT PLAYING FOR A YEAR.', 'A typical run takes about 60 to 90 days of real time. <b>And that\'s sober time for you too.</b><br>Check in for a few minutes every day. Make sure your gangster\'s on track and not locked up, and get them moving.')
+  + H('KEEP THEM OUT OF TROUBLE.', 'Watch their money, stress, connections, and HEAT. Too much heat and the cops might come knocking.')
+  + H('BUILD THEM A LIFE.', 'Get them working. Get them connected. Get them their own place. Give the little bastard something worth staying sober for.<br>And somewhere along the way, you might actually start giving a shit about them.')
+  + '<h3 class="mk howh big2">LOCKED UP. COVERED UP. OR SOBERED UP.</h3><p>Choose wisely. They\'re counting on you.</p>'
   + '<button class="paper red big mk" onclick="s.settings.introSeen=true;save();closeModal();render()">GOT IT</button>', 'card');
 }
 function newRun(pickNew){ const was = s.look.fig; s = restartKeepFigure(s); if (pickNew) { s.look.done = false; pickSel = was; } closeModal(); save(); go(pickNew ? 'pick' : 'life'); }
