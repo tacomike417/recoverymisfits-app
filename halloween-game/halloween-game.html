@@ -1,74 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>One Day Back · Recovery Misfits</title>
+<meta name="theme-color" content="#000">
+<link rel="icon" href="/icon-192.png">
+<style>
+/* ONE DAY BACK (17 Oct 2026, Mike). PART ONE IS A MOVIE. PART TWO IS THE GAME.
 
-  <title>Recovery Misfits Halloween Game</title>
+   This page replaced the chain of chapter0-intro / chapter1-story / chapter1-gameplay
+   / script.js. Those files are still in the folder, untouched, but nothing loads them.
+   Mike: "what I want works linear but what I have in the actual game are two parallel
+   linear things, and they don't always match up." So now there is one line:
+   title -> movie -> (part two, when it's built) -> ending.
 
-  <style>
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      overflow: hidden;
-    }
-
-    #game {
-      width: 100%;
-      height: 100%;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #game img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-  </style>
+   Phone first, 393. Tap to start (phones won't play sound until somebody taps).
+   A tap during the movie skips to the end of it. Phone back from the movie goes to
+   the title, not out of the app. The X top-left on the title is the way out. */
+@font-face{font-family:"Bangers";src:url("assets/fonts/Bangers-Regular.ttf") format("truetype");font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;color:#f1e7cf;font-family:Arial,sans-serif;overflow:hidden}
+.scr{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px}
+.scr.on{display:flex}
+/* title */
+#title{background:#000 url("assets/title/chapter0-intro-4.png") center/cover no-repeat}
+#title::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,.35) 0%,rgba(0,0,0,.75) 100%)}
+#title>*{position:relative}
+#title .out{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;width:42px;height:42px;border:1px solid rgba(241,231,207,.4);border-radius:50%;background:rgba(0,0,0,.6);color:#f1e7cf;font:400 22px/1 Arial,sans-serif;display:grid;place-items:center;text-decoration:none;z-index:3}
+.k{font:700 13px Arial,sans-serif;letter-spacing:.22em;color:#e0bd6a;margin:0 0 6px}
+h1{margin:0;font:400 64px/1 "Bangers",Impact,sans-serif;letter-spacing:.03em;text-shadow:4px 4px 0 #000}
+.sub{margin:10px 0 0;font:700 17px/1.4 Arial,sans-serif;color:#f1e7cf;text-shadow:2px 2px 0 #000}
+.sub b{color:#e0bd6a}
+.btn{margin-top:28px;padding:18px 36px;border:0;border-radius:16px;background:linear-gradient(135deg,#f3dfa0,#e0bd6a 55%,#c9973a);color:#1a1408;font:400 30px/1 "Bangers",Impact,sans-serif;letter-spacing:.05em;box-shadow:0 10px 30px rgba(224,189,106,.3);cursor:pointer}
+.btn:active{transform:scale(.97)}
+.fine{margin-top:18px;font:13px/1.5 Arial,sans-serif;color:#b9ad92;max-width:320px}
+.bottom{display:flex;flex-direction:column;align-items:center}
+/* movie */
+#movie{background:#000;padding:0}
+#movie video{width:100%;height:100%;object-fit:contain;background:#000}
+#skip{position:absolute;right:14px;bottom:calc(22px + env(safe-area-inset-bottom));padding:10px 16px;border:1px solid rgba(241,231,207,.35);border-radius:999px;background:rgba(0,0,0,.55);color:#f1e7cf;font:700 14px Arial,sans-serif;opacity:0;transition:opacity .3s}
+#skip.show{opacity:1}
+/* after */
+#after{background:#000}
+#after h2{margin:0;font:400 54px/1.05 "Bangers",Impact,sans-serif;color:#e0bd6a}
+#after p{font:700 17px/1.5 Arial,sans-serif;max-width:340px;margin:14px 0 0}
+.row{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap;justify-content:center}
+.ghost{padding:14px 20px;border:1.5px solid rgba(241,231,207,.4);border-radius:14px;background:none;color:#f1e7cf;font:700 15px Arial,sans-serif;text-decoration:none;cursor:pointer}
+</style>
 </head>
-
 <body>
 
-  <div id="game"></div>
+<section id="title" class="scr on">
+  <a class="out" href="/fun.html" aria-label="Back to games">&#x2715;</a>
+  <div class="bottom">
+    <p class="k">RECOVERY MISFITS PRESENTS</p>
+    <h1>ONE DAY BACK</h1>
+    <p class="sub">Part movie. <b>Part game.</b> About ten minutes.</p>
+    <button class="btn" id="start" type="button">TAP TO START</button>
+    <p class="fine">Sound on. A tap during the movie skips ahead.</p>
+  </div>
+</section>
 
-  <script src="chapter0-intro.js"></script>
+<section id="movie" class="scr">
+  <video id="vid" playsinline preload="auto" src="assets/movies/part-one.mp4"></video>
+  <button id="skip" type="button">Skip &rsaquo;</button>
+</section>
 
-  <script src="level1-dialogue.js"></script>
+<section id="after" class="scr">
+  <p class="k">END OF PART ONE</p>
+  <h2>PART TWO:<br>TRICK OR TREAT</h2>
+  <p>Coming by Halloween. The guys suit up and go get the chocolate back.</p>
+  <div class="row">
+    <button class="ghost" id="again" type="button">Watch it again</button>
+    <a class="ghost" href="/fun.html">Back to games</a>
+  </div>
+</section>
 
-  <script src="chapter1-gameplay.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var vid = $("vid"), skip = $("skip");
+  function show(id) {
+    document.querySelectorAll(".scr").forEach(function (s) { s.classList.toggle("on", s.id === id); });
+  }
+  /* PHONE BACK: the movie and the end card are one step on top of the title. Back from
+     either lands on the title, never out of the app. */
+  function go(id) { show(id); try { history.pushState({ odb: id }, ""); } catch (e) {} }
+  window.addEventListener("popstate", function () {
+    try { vid.pause(); } catch (e) {}
+    show("title");
+  });
 
-  <script src="chapter1-story.js"></script>
+  function playMovie() {
+    go("movie");
+    vid.currentTime = 0;
+    var p = vid.play(); if (p && p.catch) p.catch(function () {});
+    skip.classList.remove("show");
+    setTimeout(function () { skip.classList.add("show"); }, 2500);
+  }
+  function done() { try { vid.pause(); } catch (e) {} show("after"); }
 
-  <!-- NEW: LOAD CHAPTER 2 -->
-  <script src="chapter2-story.js"></script>
-
-  <script>
-    window.addEventListener("DOMContentLoaded", function () {
-
-      if (
-        window.HalloweenGame &&
-        window.HalloweenGame.chapter0Intro
-      ) {
-
-        window.HalloweenGame.chapter0Intro.start();
-
-      } else {
-
-        console.error(
-          "chapter0-intro.js did not load."
-        );
-
-      }
-
-    });
-  </script>
-
+  $("start").addEventListener("click", playMovie);
+  $("again").addEventListener("click", playMovie);
+  vid.addEventListener("ended", done);
+  skip.addEventListener("click", function (e) { e.stopPropagation(); done(); });
+  /* a tap on the picture itself also skips, once the skip pill is up */
+  vid.addEventListener("click", function () { if (skip.classList.contains("show")) done(); });
+  /* came back to the tab mid-movie: carry on */
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && $("movie").classList.contains("on") && vid.paused && !vid.ended) { var p = vid.play(); if (p && p.catch) p.catch(function () {}); }
+  });
+})();
+</script>
 </body>
 </html>
