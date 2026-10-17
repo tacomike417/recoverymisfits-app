@@ -1071,9 +1071,24 @@
        and it keeps that button's id on purpose: assets/account.js paints your picture on
        #rmAccountBtn and opens the switcher when you hold it, account.html opens the
        switcher on a tap, and the Porch turns it into your menu. All of that still works
-       because the id did not change -- only where the button lives. */
+       because the id did not change -- only where the button lives.
+
+       17 Oct 2026 (Mike): "You" went two different places -- the account page from Today, your
+       Porch menu from the Porch -- "they're going to click it once and be like, oh, this is
+       something else." Now it is ONE place: your Porch menu. Somebody with an account goes
+       straight to the Porch with the menu open (this phone is marked beta on the way, so the
+       Porch lock lets them in -- it's still a beta, the door is just visible now). Somebody with
+       no account at all gets the beta invite page. account.html is only the sign-in door now.
+       The href below is the fallback; youHref() picks the real one at tap time. */
     { href: "/account.html", label: "You", you: true }
   ];
+
+  function youHref() {
+    var has = false; try { has = !!localStorage.getItem("rm_account_v1"); } catch (e) {}
+    if (!has) return "/beta.html";
+    try { localStorage.setItem("rm_beta", "1"); } catch (e) {}
+    return "/feed/porch.html?me=1";
+  }
 
   injectStyles();
 
@@ -1459,6 +1474,10 @@
       a.classList.add("navYou");
       a.id = "rmAccountBtn";
       a.setAttribute("aria-label", "Your account");
+      /* 17 Oct 2026: decided at tap time, not at build time -- an account can be made after the
+         bar was drawn. On the Porch its own tap handler takes over and opens the menu in place. */
+      a.href = youHref();
+      a.addEventListener("click", function () { a.href = youHref(); });
       a.innerHTML = '<span class="ico"><img src="/assets/rail/icon-account.webp" alt="" width="24" height="24"></span><span>' + it.label + "</span>";
     } else {
       a.innerHTML = `<span class="ico">${it.icon}</span><span>${it.label}</span>`;

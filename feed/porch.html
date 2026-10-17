@@ -939,6 +939,10 @@ html.fullon #main{visibility:hidden}
 #memenu .menu .mm-switch{margin-top:8px;background:#1b1a17;border-color:#1b1a17;color:#f7f1e3;font-weight:800}
 #memenu .menu .mm-switch:active{background:#33312b}
 #memenu .mm-ico{width:20px;height:20px;fill:none;stroke:#e0bd6a;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+/* v245: Join the Porch, on top of the menu for a no-email account */
+#memenu .menu .mm-join{flex-direction:column;gap:2px;margin-bottom:10px;min-height:58px;background:linear-gradient(135deg,#f3dfa0,#e0bd6a 55%,#c9973a);border-color:#c9973a;color:#1a1408;font-weight:800;font-size:17px}
+#memenu .menu .mm-join small{display:block;font:600 12.5px/1.3 Arial,sans-serif;color:#4a3a14}
+#memenu .menu .mm-join:active{background:#e0bd6a}
 #memenu .menu .mm-out{margin-top:8px;min-height:42px;background:#fbe7e2;border-color:#e2a69a;color:#a8321f;font-weight:800}
 #memenu .menu .mm-out:active{background:#f6d5cd}
 /* v233: the compact menu's top line: you, a pencil, a question mark */
@@ -1571,7 +1575,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v244</span>
+  <span class="ver" id="ver">v245</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -4005,7 +4009,12 @@ html.kb .ch-bar{padding-bottom:8px}
       '<button type="button" class="mm-ic" data-mm="edit" aria-label="Edit profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4L16.500 4.500a2.100 2.100 0 0 1 3 3L8 19z"/></svg></button>' +
       '<button type="button" class="mm-ic" data-mm="help" aria-label="Help">?</button>';
     var cnt = function (n) { return n ? '<span class="mcount">' + n + "</span>" : ""; };
-    $("mmbody").innerHTML = '<div class="mm-grid">' +
+    /* JOIN THE PORCH (v245, 17 Oct 2026, Mike): a name-and-password account lands here from the "You"
+       button with no confirmed email, so the menu would be just a name and Sign out. One gold
+       button on top does the email step (rules first if they haven't agreed). Gone once confirmed. */
+    var needsJoin = !isMod && !(me.member && me.member.verified_at);
+    $("mmbody").innerHTML = (needsJoin ? '<button type="button" class="mm-join" data-mm="joinporch">Join the Porch<small>Add an email and you can share, make Spins and message</small></button>' : "") +
+      '<div class="mm-grid">' +
         '<button type="button" data-mm="friends">Friends' + cnt(reqCount()) + '</button><button type="button" data-mm="saved">Saved shares</button>' +
         '<button type="button" class="wide mm-games" data-mm="games"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 7h9a5 5 0 0 1 4.8 6.4l-1 3.4a2.6 2.6 0 0 1-4.4 1.1L13.6 16h-3.2l-2.3 1.9a2.6 2.6 0 0 1-4.4-1.1l-1-3.4A5 5 0 0 1 7.5 7z"/><path d="M7.5 10.2v3.4M5.8 11.9h3.4"/></svg>Games</button>' +
         (isBoard ? '<button type="button" class="wide mm-board" data-mm="board"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></svg>Cornerstones board</button>' : "") +
@@ -6106,9 +6115,11 @@ html.kb .ch-bar{padding-bottom:8px}
         if (which === "help") { location.href = "/help.html"; return; }
         if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends(); else if (which === "coins") location.href = "/coins.html"; else if (which === "invite") invite(); else if (which === "findf") openSetup("friends"); else if (which === "tour") { if (window.PorchTour) window.PorchTour.open(0); }
         else if (which === "switch") { if (A.switcher) A.switcher(); else location.href = "/account.html"; }
+        /* v245: the email step, then back to the menu with the Join button gone */
+        else if (which === "joinporch") gate(function () { toast("You're on the Porch ✓"); paintPin(); paintLook(); openMeMenu(); });
         else if (which === "mod") openMod(); else if (which === "leave") askLeave(); else if (which === "signout") signOutHere(); else gate(openEdit);
       };
-      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout|tour|switch|help|desk|board|posters)$/.test(which) ? "editp" : "");
+      var lay = LAYER[which] || (which === "edit" || !/^(account|coins|invite|leave|signout|tour|switch|help|desk|board|posters|joinporch)$/.test(which) ? "editp" : "");
       /* already open underneath (say, your own profile)? close the menu to show it */
       if (lay && stack.indexOf($(lay)) < 0 && t.closest("#memenu")) return go();
       closeTop().then(go); return; }
@@ -7452,6 +7463,9 @@ html.kb .ch-bar{padding-bottom:8px}
     if (gcq && /^[0-9a-f-]{36}$/i.test(gcq)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openGChat(gcq); }
     var gq = new URLSearchParams(location.search).get("g");
     if (gq && /^([0-9a-f-]{36}|[a-z0-9][a-z0-9-]{1,28}[a-z0-9])$/i.test(gq)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} openGroup(gq); }
+    /* ?me=1 opens YOUR MENU (v245, 17 Oct 2026, Mike): the "You" button in the bottom bar, tapped on
+       another page, lands here with the menu already open -- one tap, same place, every page. */
+    if (/[?&]me=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} setTimeout(function () { try { openMeMenu(); } catch (e) {} }, 600); }
     /* ?new=1 opens the share dial (6 Oct 2026): the + in the bottom bar, tapped on another page */
     if (/[?&]new=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} setTimeout(function () { try { if (!dialOpen()) toggleDial(); } catch (e) {} }, 600); }
     /* ?invite=1 opens the invite card (4 Oct 2026): Welcome Matt's "invite a friend" message links here */

@@ -53,9 +53,14 @@ h1{margin:0;font:400 44px/1.02 "RM Head",Impact,sans-serif;letter-spacing:.01em;
 .why p{margin:0 0 10px;font:15.5px/1.5 Arial,sans-serif;color:#ddd2b8}
 .why p:last-child{margin-bottom:0}
 .why b{color:#f1e7cf}
+/* THE WAY OUT (17 Oct 2026, Mike): the "You" button brings people here now, so this is a screen
+   inside the app, not only a link somebody texted. A small X, top left, back to Today. */
+.out{position:fixed;top:calc(10px + env(safe-area-inset-top));left:12px;z-index:5;width:40px;height:40px;border:1px solid rgba(214,179,106,.35);border-radius:50%;background:rgba(31,31,27,.9);color:#f1e7cf;font:400 22px/1 Arial,sans-serif;display:grid;place-items:center;text-decoration:none}
+.out:active{background:#3a3730}
 </style>
 </head>
 <body>
+<a class="out" href="/" aria-label="Back to Today">&#x2715;</a>
 <main>
   <img class="logo" src="/icon-192.png" alt="">
   <p class="k">RECOVERY MISFITS · BETA</p>
@@ -88,12 +93,9 @@ h1{margin:0;font:400 44px/1.02 "RM Head",Impact,sans-serif;letter-spacing:.01em;
   var who = "";
   try { who = (JSON.parse(localStorage.getItem("rm_account_v1") || "null") || {}).name || ""; } catch (e) {}
   if (who) {
-    /* already has an account on this phone: nothing to make, just walk in */
-    document.getElementById("h").innerHTML = "You&rsquo;re in";
-    document.getElementById("lede").textContent = "Hey " + who + ". The Porch is open for you now.";
-    document.getElementById("steps").hidden = true;
-    var go = document.getElementById("go"); go.textContent = "Open the Porch"; go.href = "/feed/porch.html";
-    document.getElementById("alt").hidden = true;
+    /* already has an account on this phone: nothing to read here, straight onto the Porch with
+       your menu open (17 Oct 2026, Mike: no second tap). The old "You're in" screen is gone. */
+    location.replace("/feed/porch.html?me=1");
   }
 })();
 </script>
