@@ -548,6 +548,23 @@
       .navItem.navPlus.x .plus { transform: rotate(45deg); }
       .navItem.navPlus:active .plus { transform: scale(.93); }
 
+      /* THE PORCH HAS A CHIMNEY (v247, 17 Oct 2026, Mike): "little puffs of smoke coming out of a
+         chimney ... instead of the smoke, little pink hearts." Quiet for six seconds, then three
+         hearts pop out close together, like somebody just reacted. He picked the bursts because
+         "that button in particular is not distracting at all", and wanted it for everybody. The
+         hearts rise from a little right of the roof peak, where a chimney would be. */
+      .navItem.navPorch { position: relative; overflow: visible; }
+      .navItem.navPorch .sky { position: absolute; left: calc(50% + 7px); top: 10px; width: 0; height: 0; pointer-events: none; }
+      .navItem.navPorch .hb { position: absolute; left: 0; bottom: 0; width: 9px; height: 9px; transform: translate(-50%, 0) scale(.6); opacity: 0; color: #ff5c8a; will-change: transform, opacity; }
+      .navItem.navPorch .hb svg { width: 100%; height: 100%; fill: currentColor; display: block; filter: drop-shadow(0 0 2px rgba(255,92,138,.55)); }
+      .navItem.navPorch .hb.go { animation: rmHeartUp var(--t, 1.9s) ease-out forwards; }
+      @keyframes rmHeartUp {
+        0% { opacity: 0; transform: translate(-50%, 2px) scale(.6); }
+        12% { opacity: 1; }
+        100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), -30px) scale(1.15); }
+      }
+      @media (prefers-reduced-motion: reduce) { .navItem.navPorch .hb { display: none; } }
+
       /* YOU. The picture is painted in by assets/account.js (or by the Porch page). */
       .navItem.navYou .ico { overflow: visible; }
       .navItem.navYou .ico img { width: 22px; height: 22px; display: block; flex: none; }
@@ -1482,9 +1499,31 @@
       a.innerHTML = '<span class="ico"><img src="/assets/rail/icon-account.webp" alt="" width="24" height="24"></span><span>' + it.label + "</span>";
     } else {
       a.innerHTML = `<span class="ico">${it.icon}</span><span>${it.label}</span>`;
+      if (it.label === "Porch") { a.classList.add("navPorch"); a.insertAdjacentHTML("afterbegin", '<span class="sky" aria-hidden="true"></span>'); }
     }
     navLinks.appendChild(a);
   });
+  startChimney();
+
+  /* THE CHIMNEY (v247). One timer for the page; it finds the Porch button fresh each time,
+     because the bar gets rebuilt (the day count changes, an account switch). Nothing runs
+     while the tab is hidden, so a phone in a pocket isn't animating for nobody. */
+  function startChimney() {
+    if (window.__rmChimney) return;
+    var HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 3 4.5 6.7 4.5c2 0 3.6 1.1 4.3 2.6.7-1.5 2.3-2.6 4.3-2.6 3.7 0 5.8 3.8 4.3 7.2C19.5 16.4 12 21 12 21z"/></svg>';
+    function pop() {
+      var sky = document.querySelector(".navItem.navPorch .sky"); if (!sky) return;
+      var d = document.createElement("span"); d.className = "hb"; d.innerHTML = HEART;
+      d.style.setProperty("--dx", (Math.random() * 14 - 7).toFixed(0) + "px");
+      d.style.setProperty("--t", (1.7 + Math.random() * 0.6).toFixed(2) + "s");
+      sky.appendChild(d);
+      requestAnimationFrame(function () { d.classList.add("go"); });
+      setTimeout(function () { d.remove(); }, 2600);
+    }
+    function burst() { if (document.hidden) return; pop(); setTimeout(pop, 260); setTimeout(pop, 520); }
+    setTimeout(burst, 1200);
+    window.__rmChimney = setInterval(burst, 6000);
+  }
 
   /* THE GREETING, IF THERE IS SOMEBODY TO GREET. Signed out, it is simply
      not in the DOM. */

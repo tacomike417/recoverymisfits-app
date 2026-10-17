@@ -31,7 +31,7 @@
    normal browser behavior after four seconds, so this can never be the
    reason somebody is staring at a blank screen. */
 
-const VERSION = "you246-2026-10-17";   // v246: your menu pops up on every page
+const VERSION = "chimney247-2026-10-17";   // v247: hearts out of the Porch chimney
 
 /* SHARING INTO THE APP (1 Oct 2026, Mike: "would you like to share this to your
    spins or would you like to make a post?"). On Android, the app shows up in the
