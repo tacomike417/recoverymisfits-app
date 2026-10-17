@@ -1575,7 +1575,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v245</span>
+  <span class="ver" id="ver">v246</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -7466,6 +7466,16 @@ html.kb .ch-bar{padding-bottom:8px}
     /* ?me=1 opens YOUR MENU (v245, 17 Oct 2026, Mike): the "You" button in the bottom bar, tapped on
        another page, lands here with the menu already open -- one tap, same place, every page. */
     if (/[?&]me=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} setTimeout(function () { try { openMeMenu(); } catch (e) {} }, 600); }
+    /* YOUR MENU ON OTHER PAGES (v246, 17 Oct 2026): assets/account.js shows the menu in place, and its
+       buttons that are Porch screens land here with that screen open: friends, saved, games, edit, join. */
+    var fromMenu = (location.search.match(/[?&](friends|saved|games|edit|join)=1/) || [])[1];
+    if (fromMenu) {
+      try { history.replaceState(null, "", location.pathname); } catch (e) {}
+      setTimeout(function () { try {
+        if (fromMenu === "friends") openFriends(); else if (fromMenu === "saved") openSaved(); else if (fromMenu === "games") open("games");
+        else if (fromMenu === "edit") gate(openEdit); else gate(function () { toast("You're on the Porch \u2713"); paintPin(); paintLook(); });
+      } catch (e) {} }, 600);
+    }
     /* ?new=1 opens the share dial (6 Oct 2026): the + in the bottom bar, tapped on another page */
     if (/[?&]new=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} setTimeout(function () { try { if (!dialOpen()) toggleDial(); } catch (e) {} }, 600); }
     /* ?invite=1 opens the invite card (4 Oct 2026): Welcome Matt's "invite a friend" message links here */

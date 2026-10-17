@@ -733,11 +733,81 @@
     document.addEventListener("dragstart", function (e) { if (e.target.closest && e.target.closest(SEL)) e.preventDefault(); }, true);
   })();
 
+  /* ---- YOUR MENU, ON EVERY PAGE (v246, 17 Oct 2026) ------------------------
+     Mike: "if I'm on the today page and I click You, I'm expecting my menu to pop up, not my
+     menu and take me somewhere where I didn't agree on." So the same paper sheet the Porch
+     shows comes up right here, on whatever page you are on. Buttons that ARE Porch screens
+     (your profile, Friends, Saved, Games) go to the Porch and open that screen on arrival --
+     a trip you asked for. Sign out and Help work in place. The Porch page keeps drawing its
+     own fuller menu (moderator rows and counts); this one is for everywhere else. */
+  var mmEl = null;
+  var MM_CSS = ".rm-mm{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.66);font-family:Arial,sans-serif}" +
+    ".rm-mm-box{position:relative;width:100%;max-width:480px;max-height:84vh;overflow:auto;padding:10px 16px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:#f7f1e3;color:#1b1a17;border-top:1px solid #d8ceb6}" +
+    ".rm-mm-g{width:44px;height:5px;margin:2px auto 10px;border-radius:3px;background:#cfc4aa}" +
+    ".rm-mm-x{position:absolute;right:8px;top:8px;width:44px;height:44px;border:0;border-radius:50%;background:none;color:#1b1a17;font-size:20px;cursor:pointer}" +
+    ".rm-mm-head{display:flex;align-items:center;gap:8px;padding:0 38px 10px 0;border-bottom:1px solid #d8ceb6}" +
+    ".rm-mm-me{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:2px 0;border:0;background:none;color:#1b1a17;text-align:left;cursor:pointer;font-family:Arial,sans-serif}" +
+    ".rm-mm-av{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:#c9a24a;color:#1a1408;font:800 18px Arial,sans-serif}" +
+    ".rm-mm-av img{width:100%;height:100%;object-fit:cover;display:block}" +
+    ".rm-mm-me span{min-width:0}.rm-mm-me b{display:block;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
+    ".rm-mm-me small{display:block;margin-top:2px;color:#8a6118;font:700 13px Arial,sans-serif}" +
+    ".rm-mm-ic{flex:none;width:42px;height:42px;padding:0;border:1px solid #d8ceb6;border-radius:50%;background:#fffdf8;color:#1b1a17;font:800 19px Arial,sans-serif;display:grid;place-items:center;cursor:pointer}" +
+    ".rm-mm-ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}" +
+    ".rm-mm-menu{padding-top:10px}.rm-mm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}" +
+    ".rm-mm-menu button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;padding:8px 10px;border:1px solid #d8ceb6;border-radius:12px;background:#fffdf8;color:#1b1a17;font:700 15px Arial,sans-serif;text-align:center;cursor:pointer}" +
+    ".rm-mm-menu button:active{background:#efe6d0}.rm-mm-grid .wide{grid-column:1/-1}" +
+    ".rm-mm-menu .rm-mm-games svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}" +
+    ".rm-mm-menu .rm-mm-join{flex-direction:column;gap:2px;margin-bottom:10px;min-height:58px;background:linear-gradient(135deg,#f3dfa0,#e0bd6a 55%,#c9973a);border-color:#c9973a;color:#1a1408;font-weight:800;font-size:17px}" +
+    ".rm-mm-menu .rm-mm-join small{display:block;font:600 12.5px/1.3 Arial,sans-serif;color:#4a3a14}" +
+    ".rm-mm-menu .rm-mm-out{margin-top:8px;min-height:42px;background:#fbe7e2;border-color:#e2a69a;color:#a8321f;font-weight:800}";
+  function mmCSS() { if (document.getElementById("rm-mm-css")) return; var st = document.createElement("style"); st.id = "rm-mm-css"; st.textContent = MM_CSS; document.head.appendChild(st); }
+  function mmShut() { if (mmEl) { mmEl.remove(); mmEl = null; } }
+  function mmClose() {
+    if (!mmEl) return;
+    if (mmEl._own) { mmEl._own = false; try { history.back(); return; } catch (e) {} }
+    mmShut();
+  }
+  /* a Porch screen: this phone is marked beta on the way (it's still a beta, the door is visible) */
+  function mmGo(q) { try { localStorage.setItem("rm_beta", "1"); } catch (e) {} location.href = "/feed/porch.html?" + q; }
+  function meMenu() {
+    if (!session) { location.href = "/beta.html"; return; }
+    if (mmEl) return;
+    mmCSS();
+    var f = faces()[session.name] || {}, n = session.name;
+    var av = f.av ? '<img src="' + esc(faceURL(f.av)) + '" alt="">' : esc(n.slice(0, 2).toUpperCase());
+    var onPorch = false; try { onPorch = localStorage.getItem("rm_porch_ok") === "1"; } catch (e) {}
+    mmEl = document.createElement("div"); mmEl.className = "rm-mm"; mmEl.setAttribute("role", "dialog"); mmEl.setAttribute("aria-modal", "true"); mmEl.setAttribute("aria-label", "Your menu");
+    mmEl.innerHTML = '<div class="rm-mm-box"><div class="rm-mm-g"></div><button type="button" class="rm-mm-x" data-mm-x aria-label="Close">&#10005;</button>' +
+      '<div class="rm-mm-head"><button type="button" class="rm-mm-me" data-mm="u=me"><span class="rm-mm-av">' + av + '</span><span><b>' + esc(n) + '</b><small>See my profile &rsaquo;</small></span></button>' +
+      '<button type="button" class="rm-mm-ic" data-mm="edit=1" aria-label="Edit profile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/></svg></button>' +
+      '<button type="button" class="rm-mm-ic" data-mm-help aria-label="Help">?</button></div>' +
+      '<div class="rm-mm-menu">' +
+      (onPorch ? "" : '<button type="button" class="rm-mm-join" data-mm="join=1">Join the Porch<small>Add an email and you can share, make Spins and message</small></button>') +
+      '<div class="rm-mm-grid"><button type="button" data-mm="friends=1">Friends</button><button type="button" data-mm="saved=1">Saved shares</button>' +
+      '<button type="button" class="wide rm-mm-games" data-mm="games=1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 7h9a5 5 0 0 1 4.8 6.4l-1 3.4a2.6 2.6 0 0 1-4.4 1.1L13.6 16h-3.2l-2.3 1.9a2.6 2.6 0 0 1-4.4-1.1l-1-3.4A5 5 0 0 1 7.5 7z"/><path d="M7.5 10.2v3.4M5.8 11.9h3.4"/></svg>Games</button></div>' +
+      '<button type="button" class="rm-mm-out" data-mm-out>Sign out</button></div></div>';
+    document.body.appendChild(mmEl);
+    /* the phone's back button closes it, a plain history step, same as the switcher */
+    try { history.pushState({ rmmm: 1 }, ""); mmEl._own = true; window.addEventListener("popstate", function once() { window.removeEventListener("popstate", once); if (mmEl) { mmEl._own = false; mmShut(); } }); } catch (e) {}
+    mmEl.addEventListener("click", function (e) {
+      if (e.target === mmEl || e.target.closest("[data-mm-x]")) return mmClose();
+      if (e.target.closest("[data-mm-help]")) { location.href = "/help.html"; return; }
+      if (e.target.closest("[data-mm-out]")) {
+        /* same as the Porch's Sign out: another account on this phone takes over, else the sign-in door */
+        signOut(); mmShut();
+        location.replace(session ? location.pathname : "/account.html"); return;
+      }
+      var b = e.target.closest("[data-mm]"); if (b) mmGo(b.getAttribute("data-mm"));
+    });
+    loadFaces([n]).then(function () { var m = faces()[n]; var a = mmEl && mmEl.querySelector(".rm-mm-av"); if (a && m && m.av && !a.querySelector("img")) a.innerHTML = '<img src="' + esc(faceURL(m.av)) + '" alt="">'; });
+  }
+
   window.RMAccount = {
     accounts: accounts,      /* every account signed in on this phone */
     switchTo: switchTo,      /* then reload the page */
     switcher: switcher,      /* the sheet */
     rollout: rollout,        /* the pills that roll out of the You button (v233) */
+    meMenu: meMenu,          /* your menu, on every page but the Porch (v246) */
     signedIn: function () { return !!session; },
     name: function () { return (session && session.name) || ""; },
     signUp: signUp,
