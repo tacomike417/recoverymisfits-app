@@ -1101,7 +1101,7 @@
 
   function hasAccount() { try { return !!localStorage.getItem("rm_account_v1"); } catch (e) { return false; } }
   function openYou(e) {
-    if (/\/feed\/porch\.html$/.test(location.pathname)) return;       /* the Porch catches this tap itself */
+    if (/\/feed\/porch(\.html)?\/?$/.test(location.pathname)) return;       /* the Porch catches this tap itself */
     if (!hasAccount()) return;                                           /* the link goes to /beta.html on its own */
     e.preventDefault();
     loadAccount().then(function (ok) {
