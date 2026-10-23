@@ -53,7 +53,7 @@ const WORDS: Record<string, string> = {
   comment: "commented on your share", reply: "replied to your comment", proud: "loved your share",
   metoo: "said Me too", mention: "tagged you", follow: "started following you", report: "was reported. Take a look.",
   friend_request: "sent you a friend request", friend_accept: "accepted your friend request",
-  respin: "respun your Spin",
+  respin: "respun your Spin", wall: "wrote on your page",
   comment_love: "loved your comment", reshare: "reshared your share",
   // groups (1 Oct 2026)
   group_cokeeper: "asked you to co-keep a group", group_review: "applied to start a group. Take a look.",

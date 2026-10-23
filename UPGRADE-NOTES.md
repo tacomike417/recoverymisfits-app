@@ -1188,3 +1188,16 @@ know what was posted today, and what is scheduled for later today, thats it sinc
 - If the computer is off and a post does not go out, nothing shows up under POSTED. That is the tell.
 - The porch.html pill did not change (porch.html was not touched). sw.js is house127.
 - NOT DONE: the same log for Infinite Pulls.
+
+## v248 (23 Oct 2026) - write on somebody's page
+Mike: people are signing up, the new-folks rail said "Say hi", and there was no way to post on
+their page. "post on these peoples feeds like they do in facebook ... same post types ... we need
+that breadcrumb thing" (Facebook's "Dan Buckley ▸ Mike Nasvadi").
+- porch_posts.wall_of = whose page it was written on (supabase/porch_74_wall.sql). Still the writer's share.
+- The card reads "writer ▸ whose page"; both names open a profile. Shows on the Porch and in that person's grid.
+- On everybody else's profile, one line above the grid: "Write something to <name>…", or "Say hi to <name> 👋"
+  when they joined in the last two weeks. Same composer, same post types. After it posts you land back on their page.
+- Rule picked by Claude, Mike can change it: any confirmed member can write on any member's page, unless one has
+  blocked the other. Not inside a group, not a reshare.
+- The person whose page it is gets an alert ("wrote on your page", phone too) and can take it off their page (⋯ menu).
+- [ ] Mike: run porch_74_wall.sql, deploy porch + porch-push, push.

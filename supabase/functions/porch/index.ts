@@ -617,6 +617,20 @@ Deno.serve(async (req) => {
       if (groupId || photos.length || coin) return json({ error: "A reshare is just the share and your words." }, 400);
       reshareOf = orig.id;
     }
+    /* WRITE ON SOMEBODY'S PAGE (23 Oct 2026, Mike: "post on these peoples feeds like they do in
+       facebook"). wall_of = whose page. Any confirmed member, on any member's page, unless one
+       has blocked the other. Not inside a group, not a reshare. supabase/porch_74_wall.sql. */
+    let wallOf: string | null = null;
+    if (b.wall_of) {
+      if (typeof b.wall_of !== "string" || !/^[0-9a-f-]{36}$/i.test(b.wall_of)) return json({ error: "That page isn't here." }, 404);
+      if (b.wall_of === user.id) return json({ error: "That's your own page. Just share." }, 400);
+      if (groupId || reshareOf) return json({ error: "A share on somebody's page is just your words and pictures." }, 400);
+      const { data: theirs } = await admin.from("porch_members").select("user_id").eq("user_id", b.wall_of).maybeSingle();
+      if (!theirs) return json({ error: "That page isn't here." }, 404);
+      const { data: wblocked } = await admin.rpc("porch_blocked", { a: user.id, b: b.wall_of });
+      if (wblocked) return json({ error: "You can't write on their page." }, 403);
+      wallOf = b.wall_of;
+    }
     if (!text && !photos.length && !coin && !reshareOf) return json({ error: "Say something or add a photo." }, 400);
     const paths: string[] = coin ? ["/assets/coins/" + coin] : [];
     for (const p of coin ? [] : photos) {
@@ -632,7 +646,7 @@ Deno.serve(async (req) => {
     const style = Number.isInteger(b.card_style) ? Math.max(0, Math.min(18, b.card_style)) : null;
     const link_preview = paths.length ? null : await previewFor(text);
     const { data, error } = await admin.from("porch_posts")
-      .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style, link_preview: reshareOf ? null : link_preview, ...(groupId ? { group_id: groupId } : {}), ...(reshareOf ? { reshare_of: reshareOf } : {}), ...(tagGroup ? { tag_group_id: tagGroup } : {}) })
+      .insert({ user_id: user.id, need, body: text || null, photo_paths: paths, card_style: paths.length ? null : style, link_preview: reshareOf ? null : link_preview, ...(groupId ? { group_id: groupId } : {}), ...(reshareOf ? { reshare_of: reshareOf } : {}), ...(tagGroup ? { tag_group_id: tagGroup } : {}), ...(wallOf ? { wall_of: wallOf } : {}) })
       .select("id").single();
     if (error) return json({ error: "That didn't go through. Try again." }, 500);
     return json({ ok: true, id: data.id, care });
@@ -891,8 +905,10 @@ Deno.serve(async (req) => {
   if (b.action === "remove") {
     const table = b.post_id ? "porch_posts" : "porch_comments";
     const id = b.post_id || b.comment_id;
-    const { data: gone, error } = await admin.from(table).update({ hidden_at: new Date().toISOString() }).eq("id", id).eq("user_id", user.id)
-      .select(b.post_id ? "photo_paths" : "id");
+    /* your own, or (a share) one somebody wrote on YOUR page (porch_74): either of you can take it down */
+    let q = admin.from(table).update({ hidden_at: new Date().toISOString() }).eq("id", id);
+    q = b.post_id ? q.or("user_id.eq." + user.id + ",wall_of.eq." + user.id) : q.eq("user_id", user.id);
+    const { data: gone, error } = await q.select(b.post_id ? "photo_paths" : "id");
     if (error) return json({ error: "Couldn't remove it." }, 500);
     if (b.post_id && gone?.[0]) await dropPhotos((gone[0] as any).photo_paths || []);
     return json({ ok: true });
