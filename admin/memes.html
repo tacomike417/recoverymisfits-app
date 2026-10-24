@@ -180,7 +180,7 @@
     const last = {}, out = {};
     let day = start, n = 0;
     while (day <= until) {
-      const ready = memes.filter(m => added[m.file] <= day).map(m => m.file);
+      const ready = memes.filter(m => added[m.file] <= day && !(m.retired && toDate(m.retired) <= day)).map(m => m.file);
       const fresh = ready.filter(f => !(f in last));
       const seen = ready.filter(f => f in last).sort((a, b) => (last[a] - last[b]) || (rank[a] - rank[b]));
       let pick = null;
@@ -210,7 +210,7 @@
     Object.keys(sched).sort().forEach(d => (runs[sched[d]] = runs[sched[d]] || []).push(d));
     const newest = (data.memes || []).reduce((a, m) => (m.added > a ? m.added : a), '');
 
-    all = (data.memes || []).filter(m => m.file).map(m => {
+    all = (data.memes || []).filter(m => m.file && !m.retired).map(m => {   // retired ones are out of the rotation
       const id = m.file.replace(/\.[^.]+$/, '');
       const dates = runs[m.file] || [];
       const past = dates.filter(d => d <= today);

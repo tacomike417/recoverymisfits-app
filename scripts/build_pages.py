@@ -647,10 +647,15 @@ def meme_schedule(data, until):
     rank = {m['file']: i for i, m in enumerate(memes)}
     added = {m['file']: datetime.date.fromisoformat(m.get('added') or data.get('start'))
              for m in memes}
+    # "retired": "<date>" takes a meme out from that date on; days before it
+    # stay exactly as they ran (24 Oct 2026, the dictionary cards).
+    retired = {m['file']: datetime.date.fromisoformat(m['retired'])
+               for m in memes if m.get('retired')}
     last, out = {}, {}
     day, n = start, 0
     while day <= until:
-        ready = [m['file'] for m in memes if added[m['file']] <= day]
+        ready = [m['file'] for m in memes if added[m['file']] <= day
+                 and not (m['file'] in retired and retired[m['file']] <= day)]
         fresh = [f for f in ready if f not in last]
         seen = sorted((f for f in ready if f in last), key=lambda f: (last[f], rank[f]))
         pick = None
@@ -676,7 +681,7 @@ def build_memes(out_root, pages=True):
         return 0
     with open(MEMES_PATH, encoding='utf-8') as f:
         data = json.load(f)
-    files = [m['file'] for m in data.get('memes', []) if m.get('file')]
+    files = [m['file'] for m in data.get('memes', []) if m.get('file') and not m.get('retired')]
 
     today = local_today()
     sched = meme_schedule(data, today + datetime.timedelta(days=MEME_DAYS_AHEAD))
