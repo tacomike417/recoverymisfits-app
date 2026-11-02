@@ -1529,6 +1529,27 @@ html.kb .ch-bar{padding-bottom:8px}
 /* v239 (14 Oct 2026, Mike: "I like the feeling of belonging"): the count, in a full sentence, under Bob */
 .bob-under{margin:7px 4px 0;text-align:center;color:var(--soft);font:600 13.5px/1.3 Arial,sans-serif}
 .bob-under:empty{display:none}
+/* THE SKIVVIES GROUP (2 Nov 2026, Mike: "the skivvies group on Recovery Misfits has to look like skivvies").
+   Coral and cream, and one thing to do: write a note. Same in every theme. */
+#group.skv .g-btn:not(.line){background:#f35d40;color:#fff}
+#group.skv .g-head h2{font-family:"RM Head",Impact,sans-serif;letter-spacing:.01em;text-transform:uppercase}
+.skv-pin{margin:14px 16px 6px;background:#fff6f0;color:#102520;border-radius:18px;padding:16px 16px 14px;border:2px solid #f35d40}
+.skv-pin h3{margin:0 0 6px;font:400 26px/1.05 "RM Head",Impact,sans-serif;text-transform:uppercase;color:#102520}
+.skv-pin p{margin:0 0 12px;font:500 15px/1.45 Arial,sans-serif;color:#2b3c37}
+.skv-pin button{width:100%;height:50px;border:0;border-radius:14px;background:#f35d40;color:#fff;font:900 17px Arial,sans-serif;cursor:pointer}
+.skv-pin small{display:block;margin-top:9px;font:600 12.5px/1.4 Arial,sans-serif;color:#52635c;text-align:center}
+.skv-sheet{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.skv-sheet .in{width:100%;max-width:520px;max-height:92vh;overflow:auto;background:#fff6f0;color:#102520;border-radius:22px 22px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom))}
+.skv-sheet h3{margin:0 0 4px;font:400 28px/1.05 "RM Head",Impact,sans-serif;text-transform:uppercase}
+.skv-sheet p{margin:0 0 12px;font:500 14.5px/1.45 Arial,sans-serif;color:#2b3c37}
+.skv-sheet label{display:block;font:800 14px Arial,sans-serif;margin:12px 0 6px}
+.skv-sheet textarea,.skv-sheet input{width:100%;box-sizing:border-box;border:1px solid #bdcbc2;border-radius:12px;padding:13px;background:#fff;color:#102520;font:16px/1.45 Arial,sans-serif}
+.skv-sheet textarea{min-height:150px;resize:vertical}
+.skv-sheet .ct{font:700 12px Arial,sans-serif;color:#52635c;text-align:right;margin-top:4px}
+.skv-sheet .go{width:100%;height:52px;margin-top:14px;border:0;border-radius:14px;background:#f35d40;color:#fff;font:900 17px Arial,sans-serif;cursor:pointer}
+.skv-sheet .go:disabled{background:#c1c9c3}
+.skv-sheet .no{width:100%;margin-top:6px;background:none;border:0;padding:12px;font:800 15px Arial,sans-serif;color:#52635c;cursor:pointer}
+.skv-sheet .say{min-height:20px;margin:8px 0 0;font:800 14px Arial,sans-serif;color:#c03a22}
 </style>
 <link rel="stylesheet" href="/assets/bob/bob.css?v=241">
 <script src="/assets/bob/bob.js?v=241"></script>
@@ -1549,6 +1570,9 @@ html.kb .ch-bar{padding-bottom:8px}
   /* THE BETA DOOR (2 Oct 2026): a phone that opened /beta.html is a beta phone and gets in
      too. Still not the launch: everybody without that link lands on the soon page. */
   var beta = false; try { beta = localStorage.getItem("rm_beta") === "1"; } catch (e) {}
+  /* THE SKIVVIES CREW (2 Nov 2026, Mike): somebody who joined at recoverymisfits.org/skivvies gets in
+     too, so the Skivvies group works for them. They are ordinary members, not beta testers. */
+  try { beta = beta || localStorage.getItem("rm_lane") === "skivvies"; } catch (e) {}
   if (!beta && ["tacomike417", "misfit_tester", "fire_l0ve", "krazyk226", "recoverymisfits", "spiritualmisfit", "shitmysponsorsays", "anotherdaysober", "welcomematt", "soberriot", "realmrhyde"].indexOf(String(who).toLowerCase()) < 0) location.replace("/feed/soon.html");
 })();
 </script>
@@ -6773,6 +6797,60 @@ html.kb .ch-bar{padding-bottom:8px}
       : tagged.length ? '<p class="g-quiet">Nothing shared inside the group yet. Be the first.</p>' : '<p class="pempty">Nothing shared here yet.' + (inIt ? " Be the first." : "") + "</p>";
     var porch = tagged.length ? '<div class="g-lab g-sec">ON THE PORCH <span>everybody sees these</span></div>' + strip(tagged) : "";
     pg.innerHTML = head + asksHTML + '<div class="g-feed">' + inside + porch + "</div>";
+    skvPaint(pg, g, canSee && inIt);
+  }
+  /* THE SKIVVIES GROUP (2 Nov 2026, Mike). Members write notes here, not shares: the note goes to the
+     Skivvies admin (Miscellaneous project, edge function skivvies-note), Mike reads it, and an approved
+     one goes up in this group from the skivvies account. supabase/porch_76_skivvies_lane.sql */
+  var SKV_FN = "https://gxkvfkrtisfamrkugezx.supabase.co/functions/v1/skivvies-note";
+  var SKV_KEY = "sb_publishable_F4tfLsMOP45OISv_InmMnQ_jRKu3zTy";
+  function skvPaint(pg, g, member) {
+    var on = String(g.slug || "").toLowerCase() === "skivvies";
+    $("group").classList.toggle("skv", on);
+    if (!on) return;
+    var sh = pg.querySelector("[data-gshare]");
+    if (sh) { sh.removeAttribute("data-gshare"); sh.setAttribute("data-skvnote", ""); sh.textContent = "\u270D\uFE0F Write a note"; }
+    if (!member) return;
+    var pin = document.createElement("div");
+    pin.className = "skv-pin";
+    pin.innerHTML = "<h3>Write a note for somebody\u2019s first day</h3>" +
+      "<p>We print it and it goes in their pack with their new underwear. Say what you wish somebody had said to you.</p>" +
+      '<button type="button" data-skvnote>\u270D\uFE0F Write a note</button>' +
+      "<small>Every note is read before it goes out. Approved notes show up here, and we\u2019ll message you.</small>";
+    var feed = pg.querySelector(".g-feed");
+    if (feed) feed.parentNode.insertBefore(pin, feed);
+  }
+  function skvNote() {
+    gate(function () {
+      if (document.querySelector(".skv-sheet")) return;
+      var el = document.createElement("div");
+      el.className = "skv-sheet"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", "Write a note");
+      el.innerHTML = '<div class="in"><h3>Write a note</h3>' +
+        "<p>Somebody gets this on day one. Keep it short, keep it real. No last names, phone numbers or links.</p>" +
+        '<label for="skvBody">Your note</label><textarea id="skvBody" maxlength="600" placeholder="You made it here. That\u2019s the hardest part\u2026"></textarea><div class="ct" id="skvCt">0 / 600</div>' +
+        '<label for="skvSign">Sign it <span style="font-weight:600;color:#52635c">(optional)</span></label><input id="skvSign" maxlength="40" placeholder="Leave blank: \u201Csomebody in recovery\u201D" autocomplete="off">' +
+        '<p class="say" id="skvSay" role="status" aria-live="polite"></p>' +
+        '<button type="button" class="go" id="skvGo" disabled>Send my note</button><button type="button" class="no" id="skvNo">Not now</button></div>';
+      document.body.appendChild(el);
+      var body = el.querySelector("#skvBody"), go = el.querySelector("#skvGo");
+      var shut = function () { el.remove(); };
+      el.addEventListener("click", function (e) { if (e.target === el) shut(); });
+      el.querySelector("#skvNo").addEventListener("click", shut);
+      body.addEventListener("input", function () { el.querySelector("#skvCt").textContent = body.value.length + " / 600"; go.disabled = body.value.trim().length < 2; });
+      go.addEventListener("click", async function () {
+        go.disabled = true; go.textContent = "Sending\u2026"; el.querySelector("#skvSay").textContent = "";
+        var j = null, ok = false;
+        try {
+          var t = await tok();
+          var r = await fetch(SKV_FN, { method: "POST", headers: { apikey: SKV_KEY, Authorization: "Bearer " + (t || ""), "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "submit", body: body.value, sign: el.querySelector("#skvSign").value }) });
+          j = await r.json().catch(function () { return null; }); ok = r.ok && j && j.ok;
+        } catch (e) { j = { error: "No connection. Try again when you have signal." }; }
+        if (!ok) { go.disabled = false; go.textContent = "Send my note"; el.querySelector("#skvSay").textContent = (j && j.error) || "That didn\u2019t send. Try again."; return; }
+        shut(); toast("Thank you \uD83E\uDDE1 We\u2019ll read it and let you know.");
+      });
+      setTimeout(function () { try { body.focus(); } catch (e) {} }, 50);
+    });
   }
   function openGroupCompose() { if (!groupOpen) return; nextComposeGroup = groupOpen.id; gate(function () { openCompose("say"); }); }
   function groupWho() {
@@ -6922,6 +7000,7 @@ html.kb .ch-bar{padding-bottom:8px}
       if (!r2.ok) { b.disabled = false; return toast(r2.error); }
       toast(b.dataset.yes ? "Approved. The group is open." : "Done. They've been told it didn't open."); checkNotes(); return paintGroups();
     }
+    if (t.closest("[data-skvnote]")) return skvNote();
     if (t.closest("[data-gshare]")) return openGroupCompose();
     if (t.closest("[data-gwho]")) return groupWho();
     if (t.closest("[data-gmore]")) return groupMore();

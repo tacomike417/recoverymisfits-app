@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Join the Skivvies crew</title>
+<meta name="description" content="Write a note for somebody's first day in recovery. It goes in their pack with their new underwear.">
+<meta name="theme-color" content="#fff6f0">
+<meta property="og:title" content="Join the Skivvies crew">
+<meta property="og:description" content="Write a note for somebody's first day in recovery. It goes in their pack.">
+<meta property="og:image" content="https://recoverymisfits.org/assets/house/skivvies/cover.webp">
+<link rel="icon" href="/assets/house/skivvies/avatar.webp">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Anton&display=swap" rel="stylesheet">
+<!--
+  THE SKIVVIES LANE (2 Nov 2026, Mike).
+  "If they join through Recovery Misfits, it's got to be simple ... can't hit them with the coin
+  thing, the survival pile, the walkthrough ... it stays focused on skivvies."
+
+  One page, Skivvies colors. A Recovery Misfits account (Level 2: a confirmed email, the same
+  porch-confirm code every Porch member gets), then straight into the Skivvies group. No sober
+  date step, no coin, no Survival Pile, no tour, no Welcome Matt, no invite ask
+  (supabase/porch_76_skivvies_lane.sql switches Matt off for lane accounts).
+  Someone who already has an RM account just signs in and joins.
+-->
+<style>
+:root{--ink:#102520;--coral:#f35d40;--cream:#fff6f0;--muted:#52635c;--line:#e6d9d0}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--cream);color:var(--ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit}
+main{max-width:460px;margin:0 auto;padding:max(22px,env(safe-area-inset-top)) 18px 40px}
+.top{display:flex;align-items:center;gap:12px}
+.top img{width:58px;height:58px;border-radius:16px;box-shadow:0 2px 0 rgba(16,37,32,.12)}
+.top b{font-weight:900;font-size:24px;letter-spacing:-.04em}
+.top span{display:block;font-size:12px;color:var(--muted);font-weight:700}
+h1{font:400 40px/1 Anton,Impact,sans-serif;text-transform:uppercase;letter-spacing:.01em;margin:22px 0 8px}
+.lede{font-size:17px;line-height:1.45;margin:0 0 18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;margin:0 0 14px}
+.seg{display:flex;background:#f3e7de;border-radius:14px;padding:4px;margin:0 0 14px}
+.seg button{flex:1;border:0;background:none;border-radius:11px;padding:11px 6px;font-weight:800;font-size:15px;color:var(--muted);cursor:pointer}
+.seg button[aria-selected=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+label{display:block;font-weight:800;font-size:14px;margin:12px 0 6px}
+input[type=text],input[type=email],input[type=password],input[inputmode=numeric]{width:100%;border:1px solid #bdcbc2;border-radius:12px;padding:14px;background:#fff;color:var(--ink);font-size:16px}
+.pw{position:relative}.pw input{padding-right:70px}
+.pw button{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:none;font-weight:800;color:var(--muted);padding:8px;cursor:pointer}
+.hint{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.4}
+.check{display:flex;gap:10px;align-items:flex-start;margin:16px 0 0;font-size:14px;line-height:1.4;font-weight:600}
+.check input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--coral)}
+.check a{color:#c03a22}
+.btn{display:block;width:100%;border:0;border-radius:14px;background:var(--coral);color:#fff;padding:17px;font-weight:900;font-size:17px;cursor:pointer;margin-top:16px;text-align:center;text-decoration:none}
+.btn:disabled{background:#c1c9c3}
+.link{background:none;border:0;color:#c03a22;font-weight:800;text-decoration:underline;text-underline-offset:4px;padding:10px 0;cursor:pointer;font-size:15px}
+.msg{min-height:22px;font-weight:800;font-size:14px;margin:10px 0 0}
+.msg.bad{color:#c03a22}.msg.ok{color:#2f7d55}
+.code{font-size:30px !important;letter-spacing:.35em;text-align:center;font-weight:900}
+.how{list-style:none;padding:0;margin:0}
+.how li{display:flex;gap:12px;align-items:flex-start;padding:9px 0;font-size:15px;line-height:1.4}
+.how li i{flex:none;width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;font:900 14px/28px Inter,sans-serif;text-align:center;font-style:normal}
+.small{font-size:13px;color:var(--muted);line-height:1.45;margin:16px 0 0;text-align:center}
+.small a{color:var(--muted)}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <img src="/assets/house/skivvies/avatar.webp" alt="" width="58" height="58">
+    <div><b>Skivvies</b><span>with Recovery Misfits</span></div>
+  </div>
+
+  <!-- ===== 1. THE ASK ===== -->
+  <section id="s-join">
+    <h1>Join the Skivvies crew</h1>
+    <p class="lede">Write a note for somebody&rsquo;s first day in recovery. We print it and it goes in their pack, with their new underwear.</p>
+
+    <div class="card" id="signedBox" hidden>
+      <p style="margin:0;font-size:15px">You&rsquo;re signed in as <b id="signedName"></b>.</p>
+      <button type="button" class="btn" id="joinMe">Join the crew</button>
+      <button type="button" class="link" id="notMe">Use a different account</button>
+    </div>
+
+    <div class="card" id="formBox">
+      <div class="seg" role="tablist" aria-label="New or already have an account">
+        <button type="button" role="tab" id="tNew" aria-selected="true">I&rsquo;m new</button>
+        <button type="button" role="tab" id="tOld" aria-selected="false">I have an RM account</button>
+      </div>
+      <form id="form" novalidate>
+        <label for="nm">Username</label>
+        <input id="nm" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="username">
+        <p class="hint" id="nmHint">This is your Recovery Misfits name. Not your real name unless you want it to be.</p>
+
+        <label for="pw">Password</label>
+        <div class="pw"><input id="pw" type="text" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false"><button type="button" id="peek">Hide</button></div>
+        <p class="hint" id="pwHint">At least 8 characters.</p>
+
+        <div id="newOnly">
+          <label for="em">Email</label>
+          <input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
+          <p class="hint">We send one 6-digit code to keep the spam out. Then it&rsquo;s scrambled and thrown away. Nobody sees it.</p>
+          <label class="check"><input type="checkbox" id="ok"><span>I&rsquo;m 18 or older, and I agree to the <a href="/privacy.html" target="_blank" rel="noopener">privacy policy</a> and the house rules: be kind, keep it clean, no selling.</span></label>
+        </div>
+
+        <button type="submit" class="btn" id="go">Join the crew</button>
+        <p class="msg" id="say" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+
+    <div class="card">
+      <ul class="how">
+        <li><i>1</i><span>Make a free Recovery Misfits account. It&rsquo;s where the Skivvies crew hangs out.</span></li>
+        <li><i>2</i><span>Write a note in the Skivvies group. Short and from the heart.</span></li>
+        <li><i>3</i><span>We read every one. When it&rsquo;s printed and packed, it goes up in the group and we tell you.</span></li>
+      </ul>
+    </div>
+    <p class="small">Skivvies is a project of Cornerstones Recovery. <a href="https://skivvies.org">skivvies.org</a></p>
+  </section>
+
+  <!-- ===== 2. THE CODE ===== -->
+  <section id="s-code" hidden>
+    <h1>Check your email</h1>
+    <p class="lede" id="codeLede">We sent a 6-digit code. It works for 15 minutes. Check spam if you don&rsquo;t see it.</p>
+    <div class="card">
+      <div id="mailRow" hidden>
+        <label for="em2">Email</label>
+        <input id="em2" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false">
+        <button type="button" class="btn" id="send2">Send my code</button>
+      </div>
+      <div id="codeRow">
+        <label for="cd">Code</label>
+        <input id="cd" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+        <button type="button" class="btn" id="verify" disabled>Confirm</button>
+        <button type="button" class="link" id="again">Send it again, or use a different email</button>
+      </div>
+      <p class="msg" id="cdSay" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- ===== 3. ON THE WAY ===== -->
+  <section id="s-going" hidden>
+    <h1>You&rsquo;re in</h1>
+    <p class="lede">Taking you to the Skivvies group&hellip;</p>
+  </section>
+</main>
+
+<script src="/assets/account.js"></script>
+<script>
+(function () {
+  "use strict";
+  var A = window.RMAccount;
+  var $ = function (id) { return document.getElementById(id); };
+  var FN = "https://rlytvfehbglsjfvprtbp.supabase.co/functions/v1/porch-confirm";
+  var DB = "https://rlytvfehbglsjfvprtbp.supabase.co";
+  var KEY = "sb_publishable_5r-l8Bj8PjXhq5qpp1b26g_QQ7xPQ7P";
+  var mode = "new", isNew = false, busy = false;
+  function say(el, t, kind) { el.textContent = t || ""; el.className = "msg" + (kind ? " " + kind : ""); }
+  function show(which) { ["s-join", "s-code", "s-going"].forEach(function (s) { $(s).hidden = s !== which; }); window.scrollTo(0, 0); }
+  function set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  async function call(url, body, auth) {
+    try {
+      var t = auth ? await A.token() : null;
+      var h = { apikey: KEY, "Content-Type": "application/json" };
+      if (t) h.Authorization = "Bearer " + t;
+      var r = await fetch(url, { method: "POST", headers: h, body: JSON.stringify(body || {}) });
+      var j = r.status === 204 ? null : await r.json().catch(function () { return null; });
+      return { ok: r.ok, data: j, error: !r.ok ? ((j && (j.error || j.message)) || "That didn't go through. Try again.") : "" };
+    } catch (e) { return { ok: false, error: "No connection. Try again when you have signal." }; }
+  }
+
+  /* ---- signed in already on this phone ---- */
+  function paintSigned() {
+    var on = A.signedIn();
+    $("signedBox").hidden = !on; $("formBox").hidden = on;
+    if (on) $("signedName").textContent = A.name();
+  }
+  $("notMe").addEventListener("click", function () { $("signedBox").hidden = true; $("formBox").hidden = false; setMode("old"); });
+  $("joinMe").addEventListener("click", function () { isNew = false; joinCrew(); });
+
+  /* ---- new / existing ---- */
+  function setMode(m) {
+    mode = m;
+    $("tNew").setAttribute("aria-selected", m === "new"); $("tOld").setAttribute("aria-selected", m === "old");
+    $("newOnly").hidden = m !== "new"; $("nmHint").hidden = m !== "new"; $("pwHint").hidden = m !== "new";
+    $("pw").setAttribute("autocomplete", m === "new" ? "new-password" : "current-password");
+    $("go").textContent = m === "new" ? "Join the crew" : "Sign in and join";
+    say($("say"), "");
+  }
+  $("tNew").addEventListener("click", function () { setMode("new"); });
+  $("tOld").addEventListener("click", function () { setMode("old"); });
+  $("peek").addEventListener("click", function () {
+    var hid = $("pw").type === "password"; $("pw").type = hid ? "text" : "password"; this.textContent = hid ? "Hide" : "Show";
+  });
+
+  $("form").addEventListener("submit", async function (e) {
+    e.preventDefault(); if (busy) return;
+    var name = $("nm").value.trim(), pw = $("pw").value, em = $("em").value.trim();
+    if (!name || !pw) return say($("say"), "Your username and password, please.", "bad");
+    if (mode === "new") {
+      if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(em)) return say($("say"), "Add your email. We only use it for the one code.", "bad");
+      if (!$("ok").checked) return say($("say"), "Tick the box first: 18 or older, and the house rules.", "bad");
+    }
+    busy = true; $("go").disabled = true;
+    say($("say"), mode === "new" ? "Making your account…" : "Signing in…");
+    var res = mode === "new" ? await A.signUp(name, pw) : await A.signIn(name, pw);
+    busy = false; $("go").disabled = false;
+    if (!res.ok) return say($("say"), res.error, "bad");
+    say($("say"), "");
+    if (mode === "new") {
+      isNew = true;
+      /* everything the Porch would otherwise stop them for, already answered */
+      var uid = A.uid ? A.uid() : "";
+      set("rm_age_ok", "1"); set("rm_level_pick", "2");
+      if (uid) { set("rm_porch_rules_" + uid, "1"); set("rm_invite_asked_" + uid, "1"); }
+      set("rm_porch_tour_off", "1"); set("rm_welcome_seen", String(Date.now()));
+      set("rm_porch_setup_done", "1"); set("rm_porch_setup_done_" + A.name(), "1");
+      $("em").value = "";
+      show("s-code"); codeRow("code");
+      say($("cdSay"), "Sending your code…");
+      var s = await call(FN, { action: "send", email: em }, true);
+      if (s.ok) { say($("cdSay"), ""); try { $("cd").focus(); } catch (e2) {} }
+      else { codeRow("mail"); say($("cdSay"), s.error, "bad"); }
+      return;
+    }
+    isNew = false;
+    joinCrew();
+  });
+
+  /* ---- the code ---- */
+  function codeRow(which) {
+    $("mailRow").hidden = which !== "mail"; $("codeRow").hidden = which !== "code";
+    $("codeLede").textContent = which === "code"
+      ? "We sent a 6-digit code. It works for 15 minutes. Check spam if you don’t see it."
+      : "One more thing: confirm an email so you can write notes. We send one code, then throw the email away.";
+    $("cd").value = ""; $("verify").disabled = true;
+  }
+  $("cd").addEventListener("input", function () { this.value = this.value.replace(/\D/g, "").slice(0, 6); $("verify").disabled = this.value.length !== 6; });
+  $("again").addEventListener("click", function () { say($("cdSay"), ""); codeRow("mail"); });
+  $("send2").addEventListener("click", async function () {
+    var b = this, e = $("em2").value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(e)) return say($("cdSay"), "That doesn’t look like an email.", "bad");
+    b.disabled = true; b.textContent = "Sending…";
+    var r = await call(FN, { action: "send", email: e }, true);
+    b.disabled = false; b.textContent = "Send my code";
+    if (!r.ok) return say($("cdSay"), r.error, "bad");
+    $("em2").value = ""; say($("cdSay"), ""); codeRow("code");
+  });
+  $("verify").addEventListener("click", async function () {
+    var b = this; b.disabled = true; b.textContent = "Checking…"; say($("cdSay"), "");
+    var r = await call(FN, { action: "verify", code: $("cd").value }, true);
+    b.textContent = "Confirm";
+    if (!r.ok) { b.disabled = false; return say($("cdSay"), r.error, "bad"); }
+    joinCrew();
+  });
+
+  /* ---- in the group ---- */
+  async function joinCrew() {
+    var r = await call(DB + "/rest/v1/rpc/skivvies_lane_join", { p_new: !!isNew }, true);
+    if (!r.ok) {
+      if (/confirm/i.test(r.error)) { show("s-code"); codeRow("mail"); return; }   /* an RM account with no email yet */
+      show("s-join"); paintSigned();
+      return say($("say"), r.error, "bad");
+    }
+    set("rm_lane", "skivvies");
+    show("s-going");
+    location.replace("/feed/porch.html?g=skivvies");
+  }
+
+  /* already in the crew on this phone: straight to the group */
+  try { if (A.signedIn() && localStorage.getItem("rm_lane") === "skivvies") { location.replace("/feed/porch.html?g=skivvies"); return; } } catch (e) {}
+  setMode("new");
+  paintSigned();
+})();
+</script>
+</body>
+</html>

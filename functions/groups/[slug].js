@@ -27,6 +27,9 @@ async function card(slug) {
 export async function onRequestGet({ params, request }) {
   const slug = String(params.slug || '').toLowerCase();
   const origin = new URL(request.url).origin;
+  /* THE SKIVVIES CREW (2 Nov 2026, Mike): the Skivvies group has its own front door, in Skivvies colors,
+     that signs people up without the rest of the app (skivvies.html). */
+  if (slug === 'skivvies') return Response.redirect(origin + '/skivvies', 302);
   const ok = /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/.test(slug);
   const g = ok ? await card(slug) : null;
   const title = g ? g.name + ' · a group on Recovery Misfits' : 'A group on Recovery Misfits';
