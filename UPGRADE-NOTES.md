@@ -2,6 +2,21 @@
 
 One list for this project. New ideas and decisions go here.
 
+## 🏛️ CORNERSTONES HEADQUARTERS, v3 (3 Nov 2026)
+Mike brought a six-screen mockup: "pull out my phone, find what I need, and get it to somebody in seconds."
+feed/cornerstones.html is rebuilt around it (phone first, 393, black and gold), hash-routed so the arrow and the
+phone's back button both work: Home (four doors + Tasks & deadlines), I'm at the bank (the bank/ papers in order,
+one combined PDF, View each / Email packet), Prove we're a nonprofit (the IRS letter, Save / Email), Who's in charge
+(board + governance papers), Search (quick chips, recently viewed), Tasks & deadlines, All documents (folders with
+real counts, bank/statements included), one paper (date, type, use, page preview, View fullscreen / Save / Email),
+Admin (add a paper, add a task). Email = the phone's share sheet; on a computer it saves the file and opens a new
+email to attach it to (a web page can't attach by itself).
+- Nothing invented: every count comes from the bucket, every date from the file name, every task from the Nov 2026
+  cleanup (supabase/porch_77_cornerstones_hq.sql, table cornerstones_tasks, board only, same cornerstones_is_board()).
+- Same protection as v2: private bucket, RLS on storage.objects and the tasks table, board-only RPCs.
+- Files are named date first (2026-11-02__What_It_Is.pdf); the Add sheet writes them that way.
+Deploy: git push (Pages). SQL: porch_77 (applied from the session on 3 Nov).
+
 ## ⛔ NO PORCH LAUNCH BEFORE OCTOBER 20, 2026
 Mike, 1 Oct 2026: "do not let me launch this before Oct 20. I feel like I need to have you
 help me slow down so I don't rush something that is confusing for people."

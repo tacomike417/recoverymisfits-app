@@ -9,123 +9,263 @@
 <link rel="icon" href="/icon-192.png">
 <style>html{background:#11110f}body{background:#11110f;color:#f1e7cf;margin:0}</style>
 <style>
-/* THE CORNERSTONES BOARD FOLDER (11 Oct 2026, Mike: "create a cornerstones folder and put all our cornerstone
-   stuff in there for the board members to see ... it only shows up for CrazyK226, that Fire Love account, and
-   the Taco Mike account ... I need the ability to send that to the bank when I get there").
+/* CORNERSTONES HEADQUARTERS. v3, 3 Nov 2026 (Mike: a six-screen mockup, "pull out my phone, find what I need, and
+   get it to somebody in seconds"). Phone first, at 393. Black and gold, same as the Porch.
 
-   v2, same day (Mike: "put our profile pictures ... so we see each other", "organized in like rectangle icons",
-   "what the hell to even show the bank ... put that in its own separate container", newest minutes only):
-     THE BOARD     the three of us, picture, name, job, Porch name (tap it for their profile)
-     FOR THE BANK  the papers to show the bank, in the order to show them. Tap = full screen. Send = Share sheet.
-                   "One PDF of all of them" makes a single file with a cover page.
-     MINUTES       the newest minutes only (the old ones stay on Google Drive)
-     BOARD PAPERS  everything else
-   The papers' folder in the bucket says which box they land in: bank/, minutes/, papers/.
-
-   WHO CAN SEE IT: the board only (supabase/porch_70_cornerstones.sql). The papers sit in a PRIVATE storage
-   bucket and the database says no to anybody else. No papers, names or passwords in this file: the repo is public.
-   Phone first, at 393. */
+   SCREENS (hash routes, so the phone's back button and the arrow both work):
+     #home      What do you need to do? Four doors + Tasks & deadlines.
+     #bank      I'm at the bank: the papers in bank/, in order; one combined PDF; email it.
+     #proof     Prove we're a nonprofit: straight to the IRS 501(c)(3) letter.
+     #who       Who's in charge: the board, officers, governance papers.
+     #search    Find paperwork.
+     #tasks     Tasks & deadlines (table cornerstones_tasks, porch_77). Real items only.
+     #docs      All documents: folders with real counts. #docs/<folder> lists one.
+     #doc/<path> One paper: date, type, use, a preview, View / Save / Email.
+     #admin     The board, add a paper, add a task.
+   The papers live in the PRIVATE "cornerstones" bucket (porch_70). The database says who is on the board;
+   nobody else gets a byte. No papers, names, EINs or passwords in this file: the repo is public.
+   Earlier versions: v1/v2 (11 Oct 2026) the board folder with For the bank / Minutes / Board papers. */
 @font-face{font-family:"RM Head";src:url("/assets/fonts/anton-400.woff2") format("woff2");font-display:swap}
 @font-face{font-family:"RM Rail";src:url("/assets/fonts/oswald-500.woff2") format("woff2");font-weight:500;font-display:swap}
-*{box-sizing:border-box}
-:root{--gold:#e0bd6a;--line:rgba(224,189,106,.28);--muted:#a99d82;--card:#191814;--ok:#9fd49f;--bad:#e58b7c}
+*{box-sizing:border-box}[hidden]{display:none!important}
+:root{--gold:#e0bd6a;--gold2:#c9a24d;--line:rgba(224,189,106,.28);--muted:#a99d82;--card:#191814;--ok:#9fd49f;--bad:#e58b7c;--red:#c43b3b}
 body{font:16px/1.4 Arial,sans-serif;-webkit-text-size-adjust:100%}
-button,input,select{font:inherit;color:inherit}
-main{max-width:520px;margin:0 auto;padding:0 12px calc(40px + env(safe-area-inset-bottom))}
-.top{position:sticky;top:0;z-index:5;background:#11110f;padding:calc(10px + env(safe-area-inset-top)) 0 8px}
-.bar{display:flex;align-items:center;gap:10px}
-.back{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--gold);display:grid;place-items:center;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--gold)}
+main{max-width:520px;margin:0 auto;padding:0 12px calc(86px + env(safe-area-inset-bottom))}
+.top{position:sticky;top:0;z-index:5;background:#11110f;padding:calc(10px + env(safe-area-inset-top)) 0 6px}
+.bar{display:flex;align-items:center;gap:8px}
+.ib{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--gold);display:grid;place-items:center;text-decoration:none;cursor:pointer}
 svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-h1{flex:1;margin:0;font:400 30px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em;text-transform:uppercase}
-.ver{flex:none;padding:3px 10px;border-radius:999px;background:#fff;color:#000;font:800 12px Arial,sans-serif}
+h1{flex:1;margin:0;text-align:center;font:400 26px/1 "RM Head",Impact,sans-serif;letter-spacing:.04em;text-transform:uppercase}
+.ver{position:absolute;right:0;top:calc(56px + env(safe-area-inset-top));padding:2px 8px;border-radius:999px;background:#fff;color:#000;font:800 11px Arial,sans-serif}
+.scr{display:none}.scr.on{display:block}
 .say{margin:26px 8px;text-align:center;color:var(--muted);font-size:16px}
 .say a{color:var(--gold);font-weight:800}
 .say b{display:block;margin-bottom:6px;color:#f1e7cf;font:400 26px "RM Head",Impact,sans-serif;text-transform:uppercase}
-h2{margin:26px 2px 10px;font:500 14px "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
-/* THE BOARD */
-.org{margin:4px 2px 0;color:var(--muted);font-size:14px}
-.board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+/* the brush header */
+.brush{display:flex;align-items:center;gap:12px;margin:18px 0 10px}
+.brush svg{width:40px;height:40px;flex:none;color:#f1e7cf}
+.brush span{display:inline-block;padding:6px 16px;background:var(--gold);color:#11110f;font:400 24px/1.1 "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;border-radius:6px 14px 6px 14px;transform:skew(-4deg)}
+.brush.c{justify-content:center;text-align:center}
+.lead{margin:0 6px 14px;text-align:center;color:#d9cfb6;font-size:15px}
+h2{margin:20px 2px 8px;font:500 13px "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+/* HOME */
+.mark{margin:6px 0 4px;text-align:center}
+.mark .rm{font:400 20px/1 "RM Head",Impact,sans-serif;letter-spacing:.12em;color:#f1e7cf;text-transform:uppercase}
+.mark .star{color:var(--gold);font-size:14px;margin:2px 0}
+.mark .cs{font:400 44px/1 "RM Head",Impact,sans-serif;letter-spacing:.06em;color:var(--gold);text-transform:uppercase}
+.mark .hq{margin-top:6px;font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.3em;color:#f1e7cf;text-transform:uppercase}
+.mark .sub{margin-top:4px;color:var(--muted);font-size:13px}
+.doors{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.door{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:150px;padding:14px 10px;border:1px solid var(--line);border-radius:18px;background:var(--card);text-align:center;cursor:pointer;position:relative}
+.door.hot{background:var(--gold);color:#11110f;border-color:var(--gold)}
+.door svg{width:38px;height:38px;color:var(--gold)}
+.door.hot svg{color:#11110f}
+.door b{font:400 19px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase}
+.door small{font-size:12px;color:var(--muted);line-height:1.3}
+.door.hot small{color:#2a2410}
+.door .go{position:absolute;right:10px;bottom:8px;font-size:18px}
+.wide{display:flex;align-items:center;gap:10px;width:100%;min-height:58px;margin-top:10px;padding:0 14px;border:2px solid var(--gold);border-radius:16px;background:none;color:var(--gold);font:400 19px "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;text-align:left}
+.wide svg{width:26px;height:26px;flex:none}
+.wide .n{margin-left:auto;display:grid;place-items:center;min-width:26px;height:26px;padding:0 7px;border-radius:999px;background:var(--red);color:#fff;font:800 13px Arial,sans-serif}
+.wide .arr{margin-left:6px}
+/* LISTS OF PAPERS */
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;min-height:60px;padding:8px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card);text-align:left;cursor:pointer;width:100%}
+.row .ic{flex:none;width:40px;display:flex;flex-direction:column;align-items:center;color:#f1e7cf}
+.row .ic svg{width:26px;height:26px}
+.row .ic em{font:800 9px Arial,sans-serif;font-style:normal;letter-spacing:.06em;padding:1px 4px;border-radius:4px;background:#f1e7cf;color:#11110f;margin-top:-2px}
+.row .tx{flex:1;min-width:0}
+.row .tx b{display:block;font:700 15px/1.25 Arial,sans-serif;overflow-wrap:anywhere}
+.row .tx small{color:var(--muted);font-size:13px}
+.row .arr{color:var(--gold);font-size:20px;flex:none}
+.row.folder .ic{color:var(--gold)}
+.row .cnt{flex:none;color:var(--muted);font-size:14px;margin-right:2px}
+.box{margin-top:8px;padding:12px;border-radius:18px;border:1px solid var(--line);background:#15140f}
+.box.gold{border:2px solid var(--gold);background:linear-gradient(180deg,#1f1b10,#15140f)}
+.box.red{border-color:rgba(196,59,59,.6);background:#1c1313}
+.box h2{margin-top:2px}
+.none{margin:0;padding:14px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:15px}
+/* BUTTONS */
+.big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:56px;margin-top:10px;border:0;border-radius:16px;background:var(--gold);color:#11110f;font:400 20px "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
+.big svg{width:24px;height:24px}
+.big small{display:block;font:600 12px Arial,sans-serif;letter-spacing:0;text-transform:none;color:#2a2410}
+.big.line{background:none;border:2px solid var(--gold);color:var(--gold)}
+.big.line small{color:var(--muted)}
+.big:disabled{opacity:.5}
+.two{display:flex;gap:10px}
+.two .big{flex:1}
+.msg{min-height:0;margin:8px 2px 0;font-size:14px;color:var(--gold)}
+.msg.bad{color:var(--bad)}
+.note{margin:22px 4px 0;color:var(--muted);font-size:13px;text-align:center}
+/* DOC DETAIL */
+.dhead{display:flex;align-items:center;gap:12px;margin:12px 0 10px}
+.dhead .ic{flex:none;width:48px;display:flex;flex-direction:column;align-items:center}
+.dhead .ic svg{width:34px;height:34px;color:#f1e7cf}
+.dhead .ic em{font:800 10px Arial,sans-serif;font-style:normal;padding:1px 5px;border-radius:4px;background:#f1e7cf;color:#11110f;margin-top:-3px}
+.dhead b{display:block;font:400 22px/1.1 "RM Head",Impact,sans-serif;letter-spacing:.02em}
+.dhead small{color:var(--muted);font-size:14px}
+.facts{padding:4px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.facts div{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(224,189,106,.14);font-size:15px}
+.facts div:last-child{border:0}
+.facts span{flex:none;width:58px;color:var(--gold);font-weight:800}
+.prev{position:relative;margin-top:12px;background:#fff;border-radius:10px;min-height:200px;display:grid;place-items:center;overflow:hidden}
+.prev canvas,.prev img{display:block;width:100%;height:auto}
+.prev .wait{color:#555;font-size:14px}
+.pager{display:flex;align-items:center;justify-content:center;gap:16px;margin:8px 0 2px;color:var(--muted);font-size:14px}
+.pager button{min-width:44px;height:40px;border:1px solid var(--line);border-radius:10px;background:none;color:var(--gold);font-size:20px;cursor:pointer}
+.pager button:disabled{opacity:.3}
+.pager b{padding:3px 12px;border-radius:999px;background:#2a2720;color:#f1e7cf;font:700 13px Arial,sans-serif}
+.rmlink{display:block;margin:18px auto 0;background:none;border:0;color:var(--bad);font-size:14px;text-decoration:underline;cursor:pointer}
+/* BOARD */
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
 .pp{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px 12px;border:1px solid var(--line);border-radius:16px;background:var(--card);text-align:center;text-decoration:none;color:inherit}
 .pp .av{width:64px;height:64px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#3a3427;border:2px solid var(--gold);font:400 24px "RM Head",Impact,sans-serif;color:#f1e7cf}
 .pp .av img{width:100%;height:100%;object-fit:cover}
 .pp b{font:700 14px/1.2 Arial,sans-serif}
 .pp .role{font:500 12px "RM Rail",Oswald,sans-serif;letter-spacing:.14em;color:var(--gold);text-transform:uppercase}
 .pp small{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
-/* THE BOXES OF TILES */
-.box{margin-top:6px;padding:14px 12px 14px;border-radius:20px;border:1px solid var(--line);background:#15140f}
-.box.bank{border:2px solid var(--gold);background:linear-gradient(180deg,#1f1b10,#15140f)}
-.box .lead{margin:0 2px 12px;color:var(--muted);font-size:14px}
-.box h2{margin-top:0}
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tile{position:relative;display:flex;flex-direction:column;min-height:148px;border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
-.tile .show{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 12px 8px;border:0;background:none;text-align:left;cursor:pointer}
-.tile .show .num{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--gold);color:#11110f;font:400 17px "RM Head",Impact,sans-serif}
-.tile .show svg{color:var(--gold)}
-.tile .show b{font:700 15px/1.25 Arial,sans-serif;overflow-wrap:anywhere}
-.tile .show small{color:var(--muted);font-size:12px}
-.tile .send{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border:0;border-top:1px solid var(--line);background:rgba(224,189,106,.08);color:var(--gold);font-weight:800;font-size:14px;cursor:pointer}
-.tile .send svg{width:18px;height:18px}
-.none{margin:0;padding:14px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:15px}
-.big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;margin-top:12px;border:0;border-radius:16px;background:var(--gold);color:#11110f;font:400 20px "RM Head",Impact,sans-serif;letter-spacing:.03em;text-transform:uppercase;cursor:pointer}
-.big.line{background:none;border:1.5px solid var(--gold);color:var(--gold);min-height:50px;font-size:18px}
-.big:disabled{opacity:.5}
-.two{display:flex;gap:10px}
-.two .big{flex:1}
-.msg{min-height:0;margin:8px 2px 0;font-size:14px;color:var(--gold)}
-.msg.bad{color:var(--bad)}
-.note{margin:24px 4px 0;color:var(--muted);font-size:13px;text-align:center}
-/* add sheet */
+/* SEARCH */
+.sbar{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 14px;border-radius:999px;background:#f1e7cf;color:#11110f}
+.sbar svg{width:22px;height:22px;flex:none;color:#11110f}
+.sbar input{flex:1;min-width:0;border:0;background:none;font-size:16px;color:#11110f;outline:none}
+.sbar input::placeholder{color:#6b6250}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{min-height:38px;padding:0 14px;border:1.5px solid var(--gold);border-radius:999px;background:none;color:#f1e7cf;font-size:14px;cursor:pointer}
+.chip.on{background:var(--gold);color:#11110f}
+/* TASKS */
+.task{display:flex;align-items:center;gap:12px;min-height:60px;padding:8px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card);text-align:left;cursor:pointer;width:100%}
+.task .dot{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:800 15px Arial,sans-serif}
+.task .dot.red{background:var(--red);color:#fff}
+.task .dot.cal{border:1.5px solid var(--gold);color:var(--gold)}
+.task .dot.ok{background:#3a8f3a;color:#fff}
+.task .tx{flex:1;min-width:0}
+.task .tx b{display:block;font:700 15px/1.25 Arial,sans-serif}
+.task .tx small{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.task .tx small.due{color:var(--bad);font-weight:700}
+.task .arr{color:var(--gold);font-size:20px}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--gold);color:#11110f;font:800 12px Arial,sans-serif;margin-left:8px}
+.pill.red{background:var(--red);color:#fff}
+/* sheets */
 .sheet{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6)}
 .sheet.show{display:flex}
 .sheet .sbox{width:100%;max-width:520px;max-height:92vh;overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:#1b1a16;border-top:1px solid var(--line)}
 .sheet h3{margin:0 0 4px;font:400 26px "RM Head",Impact,sans-serif;text-transform:uppercase}
 .sheet p{margin:0 0 6px;color:var(--muted);font-size:14px}
+.sheet p.body{color:#f1e7cf;font-size:15px}
 label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.04em}
 .in{width:100%;min-height:48px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:#11110f;font-size:16px}
+textarea.in{min-height:80px;resize:vertical}
+.menu{position:fixed;inset:0;z-index:20;display:none;align-items:flex-start;justify-content:flex-end;background:rgba(0,0,0,.5)}
+.menu.show{display:flex}
+.menu .mbox{margin:calc(60px + env(safe-area-inset-top)) 12px 0;min-width:230px;padding:8px;border-radius:16px;background:#1b1a16;border:1px solid var(--line)}
+.menu a,.menu button{display:block;width:100%;padding:12px 14px;border:0;background:none;color:#f1e7cf;font-size:16px;text-align:left;text-decoration:none;border-radius:10px;cursor:pointer}
+.menu a:active,.menu button:active{background:#2a2720}
 /* the full-screen viewer */
 #view{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;background:#000}
 #view.show{display:flex}
 .vbar{flex:none;display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 8px 8px;background:#11110f;border-bottom:1px solid var(--line)}
 .vbar b{flex:1;min-width:0;font:700 15px/1.2 Arial,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ib{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--gold);display:grid;place-items:center;cursor:pointer}
+.vbar .ib{border-radius:12px}
 #pages{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:8px 0 calc(70px + env(safe-area-inset-bottom));text-align:center}
 #pages canvas,#pages img{display:block;margin:0 auto 8px;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.6)}
 #pages .wait{color:var(--muted);margin-top:40px}
 .vfoot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:10px;padding:10px 10px calc(10px + env(safe-area-inset-bottom));pointer-events:none}
 .vfoot button{pointer-events:auto;min-width:52px;height:48px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:rgba(17,17,15,.92);color:var(--gold);font-weight:800;cursor:pointer}
-.vfoot .rm{color:var(--bad)}
-.conf{display:none;position:absolute;left:10px;right:10px;bottom:calc(68px + env(safe-area-inset-bottom));padding:14px;border-radius:16px;background:#1b1a16;border:1px solid var(--bad);text-align:center}
-.conf.show{display:block}
-.conf p{margin:0 0 10px}
-.toast{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:40;margin:0 auto;max-width:496px;padding:14px;border-radius:14px;background:#1b1a16;border:1px solid var(--line);color:var(--gold);font-size:15px;text-align:center}
+.toast{position:fixed;left:12px;right:12px;bottom:calc(90px + env(safe-area-inset-bottom));z-index:40;margin:0 auto;max-width:496px;padding:14px;border-radius:14px;background:#1b1a16;border:1px solid var(--line);color:var(--gold);font-size:15px;text-align:center}
 .toast.bad{color:var(--bad)}
+/* bottom nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:space-around;padding:6px 6px calc(8px + env(safe-area-inset-bottom));background:#0b0b0a;border-top:1px solid var(--line)}
+nav.tabs button{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:70px;padding:4px 6px;border:0;background:none;color:#cdbf9c;font:700 12px Arial,sans-serif;cursor:pointer}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button.on{color:var(--gold)}
+nav.tabs button.on svg{stroke:var(--gold)}
 </style>
 </head>
 <body>
 <main>
   <div class="top">
     <div class="bar">
-      <a class="back" href="/feed/porch.html" aria-label="Back to the Porch"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
-      <h1>Cornerstones</h1>
-      <span class="ver">v2</span>
+      <button type="button" class="ib" id="back" aria-label="Back"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <h1 id="title">Cornerstones</h1>
+      <button type="button" class="ib" id="menubtn" aria-label="Menu"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
   </div>
-  <div id="list"><p class="say">Loading…</p></div>
+  <span class="ver">v3</span>
+  <div id="gate"></div>
+  <section class="scr" id="s-home"></section>
+  <section class="scr" id="s-bank"></section>
+  <section class="scr" id="s-proof"></section>
+  <section class="scr" id="s-who"></section>
+  <section class="scr" id="s-search"></section>
+  <section class="scr" id="s-tasks"></section>
+  <section class="scr" id="s-docs"></section>
+  <section class="scr" id="s-doc"></section>
+  <section class="scr" id="s-admin"></section>
 </main>
 
-<!-- ADD -->
-<div class="sheet" id="add" role="dialog" aria-modal="true" aria-label="Add new minutes">
+<nav class="tabs" id="tabs" hidden>
+  <button type="button" data-go="home"><svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/></svg>Home</button>
+  <button type="button" data-go="docs"><svg class="i" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Documents</button>
+  <button type="button" data-go="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</button>
+  <button type="button" data-go="admin"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6"/><path d="M17 11h5M19.5 8.5v5"/></svg>Admin</button>
+</nav>
+
+<!-- MENU -->
+<div class="menu" id="menu"><div class="mbox">
+  <a href="/feed/porch.html">Back to the Porch</a>
+  <button type="button" data-go="admin">Add a paper</button>
+  <button type="button" id="reload">Reload the folder</button>
+  <a href="/account.html">Account</a>
+</div></div>
+
+<!-- ADD A PAPER -->
+<div class="sheet" id="add" role="dialog" aria-modal="true" aria-label="Add a paper">
   <div class="sbox">
-    <h3>Add new minutes</h3>
-    <p>After each meeting: a PDF of the minutes, or a photo of the signed page. Only the board can see it.</p>
+    <h3>Add a paper</h3>
+    <p>A PDF, or a photo of a signed page. Only the board can see it. Name it with the date first, like the rest.</p>
     <label class="f" for="addfile">THE FILE</label>
     <input class="in" type="file" id="addfile" accept="application/pdf,image/*">
+    <label class="f" for="adddate">DATE ON THE PAPER</label>
+    <input class="in" type="date" id="adddate">
     <label class="f" for="addname">CALL IT</label>
-    <input class="in" type="text" id="addname" maxlength="80" placeholder="Board Minutes, Nov 14 2026">
+    <input class="in" type="text" id="addname" maxlength="80" placeholder="Board Minutes, signed">
     <label class="f" for="addsec">PUT IT IN</label>
     <select class="in" id="addsec"></select>
     <div class="msg" id="addmsg"></div>
     <div class="two"><button type="button" class="big line" data-x="add">Close</button><button type="button" class="big" id="addgo">Save</button></div>
+  </div>
+</div>
+
+<!-- A TASK -->
+<div class="sheet" id="tsheet" role="dialog" aria-modal="true" aria-label="Task">
+  <div class="sbox">
+    <h3 id="tt"></h3>
+    <p id="tdue"></p>
+    <p class="body" id="tnote"></p>
+    <p id="tlink"></p>
+    <div class="msg" id="tmsg"></div>
+    <div class="two"><button type="button" class="big line" data-x="tsheet">Close</button><button type="button" class="big" id="tdone">Mark done</button></div>
+    <button type="button" class="rmlink" id="trm">Remove this task</button>
+  </div>
+</div>
+
+<!-- ADD A TASK -->
+<div class="sheet" id="tadd" role="dialog" aria-modal="true" aria-label="Add a task">
+  <div class="sbox">
+    <h3>Add a task</h3>
+    <p>A deadline (has a date) or a to-do (no date). The whole board sees it.</p>
+    <label class="f" for="tatitle">WHAT</label>
+    <input class="in" type="text" id="tatitle" maxlength="120" placeholder="File the 990-N">
+    <label class="f" for="tadate">DUE (leave blank for a to-do)</label>
+    <input class="in" type="date" id="tadate">
+    <label class="f" for="tanote">NOTES</label>
+    <textarea class="in" id="tanote" maxlength="600" placeholder="Where, how, what to bring"></textarea>
+    <label class="f" for="talink">WEB ADDRESS (optional)</label>
+    <input class="in" type="url" id="talink" placeholder="https://">
+    <div class="msg" id="tamsg"></div>
+    <div class="two"><button type="button" class="big line" data-x="tadd">Close</button><button type="button" class="big" id="tago">Save</button></div>
   </div>
 </div>
 
@@ -137,9 +277,7 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
     <button type="button" class="ib" id="vshare" aria-label="Send this paper"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
   </div>
   <div id="pages"></div>
-  <div class="conf" id="conf"><p>Take this paper out of the folder for the whole board?</p>
-    <div class="two"><button type="button" class="big line" id="confno">Keep it</button><button type="button" class="big" id="confyes" style="background:var(--bad)">Take it out</button></div></div>
-  <div class="vfoot"><button type="button" id="zout" aria-label="Smaller">&minus;</button><button type="button" id="zin" aria-label="Bigger">+</button><button type="button" class="rm" id="vrm">Remove</button></div>
+  <div class="vfoot"><button type="button" id="zout" aria-label="Smaller">&minus;</button><button type="button" id="zin" aria-label="Bigger">+</button></div>
 </div>
 
 <script src="/assets/account.js"></script>
@@ -150,32 +288,78 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
   var A = window.RMAccount, KEY = A && A.anonKey;
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
-  /* THE BOXES. A paper's folder in the bucket says which box it lands in. */
-  var SECS = [
-    ["bank", "For the bank", "Show them in this order. Tap one to put it full screen. Send opens your phone's share menu (text, email)."],
-    ["minutes", "Minutes", "The newest minutes. Older ones stay on Google Drive."],
-    ["papers", "Board papers", ""]
-  ];
-  var SVG = function (d, c) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + d + "</svg>"; };
+  var SVG = function (d) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + d + "</svg>"; };
   var ICO = {
-    doc: SVG('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'),
+    doc: SVG('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>'),
+    folder: SVG('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'),
+    bank: SVG('<path d="M3 10l9-6 9 6"/><path d="M4 10h16M6 10v8M10 10v8M14 10v8M18 10v8M3 18h18M2 21h20"/>'),
+    shield: SVG('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'),
+    people: SVG('<circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6"/><path d="M15 14c3 0 6 1.5 6 5"/>'),
+    find: SVG('<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M14 3v5h5"/><circle cx="16" cy="16" r="3.5"/><path d="M21 21l-2.5-2.5"/>'),
+    tasks: SVG('<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v3H9z"/><path d="M8 12l2 2 4-4M8 17h8"/>'),
+    stack: SVG('<rect x="6" y="3" width="13" height="16" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h10"/>'),
+    eye: SVG('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+    mail: SVG('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'),
+    save: SVG('<path d="M12 3v12"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"/>'),
     send: SVG('<path d="M12 3v12"/><path d="M7.5 7.5L12 3l4.5 4.5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>'),
     plus: SVG('<path d="M12 5v14M5 12h14"/>'),
-    stack: SVG('<rect x="6" y="3" width="13" height="16" rx="2"/><path d="M4 7v12a2 2 0 0 0 2 2h10"/>'),
-    eye: SVG('<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>')
+    search: SVG('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>'),
+    cal: SVG('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+    check: SVG('<path d="M5 12l4 4L19 7"/>')
   };
-  var docs = [], people = [], blobs = {}, cur = null, zoom = 1, packet = null;
+  /* THE FOLDERS. A paper's folder in the bucket says where it lands. Counts are real: whatever is in the bucket. */
+  var FOLDERS = [
+    { key: "bank",       label: "For the bank",          use: "Papers a bank asks for" },
+    { key: "filings",    label: "State filings (Ohio)",  use: "Filed with the Ohio Secretary of State" },
+    { key: "minutes",    label: "Board minutes",         use: "The board's record of what it decided" },
+    { key: "papers",     label: "Board papers",          use: "Policies, letters, IRS forms, working papers" },
+    { key: "statements", label: "Bank statements",       use: "Monthly statements (bank/statements/)" }
+  ];
+  var docs = [], people = [], tasks = [], blobs = {}, cur = null, zoom = 1, packet = null, stack = [];
 
-  /* "1_IRS_501(c)(3)_Letter__Aug_12_2024.pdf" -> title "IRS 501(c)(3) Letter", line "Aug 12 2024" */
+  /* ---------------------------------------------------------------- NAMES ON THE FILES
+     "2026-11-02__Board_Minutes__signed.pdf"  -> date 2026-11-02, title "Board Minutes", sub "signed"
+     "1_IRS_501(c)(3)_Letter__Aug_12_2024.pdf" -> title "IRS 501(c)(3) Letter", sub "Aug 12 2024" (older style)
+     "Huntington_x4845_2025-01.pdf"            -> title "Huntington statement", sub "January 2025" */
+  var MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   function parts(name) {
-    var bits = name.replace(/\.[a-z0-9]+$/i, "").replace(/^\d+_/, "").split("__").map(function (s) { return s.replace(/_/g, " ").trim(); });
-    return { title: bits[0], sub: bits.slice(1).join(" · ") };
+    var base = name.replace(/\.[a-z0-9]+$/i, ""), m, date = "", title, sub = "";
+    if ((m = /^(\d{4})-(\d{2})-(\d{2})__(.+)$/.exec(base))) {
+      date = m[1] + "-" + m[2] + "-" + m[3]; var bits = m[4].split("__").map(function (s) { return s.replace(/_/g, " ").trim(); });
+      title = bits[0]; sub = bits.slice(1).join(" · ");
+    } else if ((m = /^Huntington_x(\d{4})_(\d{4})-(\d{2})$/.exec(base))) {
+      date = m[2] + "-" + m[3] + "-01"; title = "Huntington statement"; sub = MON[+m[3] - 1] + " " + m[2] + " · account x" + m[1];
+    } else {
+      var b2 = base.replace(/^\d+_/, "").split("__").map(function (s) { return s.replace(/_/g, " ").trim(); });
+      title = b2[0]; sub = b2.slice(1).join(" · ");
+      var dm = /([A-Z][a-z]{2}) (\d{1,2}) (\d{4})/.exec(sub); if (dm) { var mi = MON.findIndex(function (x) { return x.indexOf(dm[1]) === 0; }); if (mi >= 0) date = dm[3] + "-" + ("0" + (mi + 1)).slice(-2) + "-" + ("0" + dm[2]).slice(-2); }
+    }
+    return { title: title, sub: sub, date: date };
   }
-  function order(name) { var m = /^(\d+)_/.exec(name); return m ? +m[1] : 0; }
+  function nice(d) { if (!d) return ""; var p = d.split("-"); return MON[+p[1] - 1] + " " + (+p[2]) + ", " + p[0]; }
   function enc(path) { return path.split("/").map(encodeURIComponent).join("/"); }
-  function say(big, small) { $("list").innerHTML = '<p class="say"><b>' + big + "</b>" + small + "</p>"; }
   function toast(t, bad) { var p = document.createElement("p"); p.className = "toast" + (bad ? " bad" : ""); p.textContent = t; document.body.appendChild(p); setTimeout(function () { p.remove(); }, 4500); }
+  function kindOf(d) {
+    if (d.folder === "statements") return "Bank statement";
+    if (d.folder === "minutes") return "Board minutes";
+    if (d.folder === "filings") return /APPROVED/i.test(d.name) ? "Ohio filing, approved" : /Receipt/i.test(d.name) ? "Ohio receipt" : "Ohio filing";
+    if (/IRS/i.test(d.title)) return /501/.test(d.title) ? "IRS determination letter" : "IRS form";
+    if (/Articles/i.test(d.title)) return "Articles of Incorporation";
+    if (/Bylaws/i.test(d.title)) return "Bylaws";
+    if (/Policy/i.test(d.title)) return "Policy";
+    return d.folder === "bank" ? "Bank paper" : "Board paper";
+  }
+  function useOf(d) {
+    if (/501/.test(d.title)) return "Proves tax-exempt nonprofit status (501(c)(3))";
+    if (/Articles/i.test(d.title)) return "Proves the corporation exists in Ohio";
+    if (/Bylaws/i.test(d.title)) return "How the board runs";
+    if (/Minutes/i.test(d.title)) return "Shows who the board and officers are";
+    if (d.folder === "statements") return "Money in and out, one month";
+    if (d.folder === "filings") return "State record of a change";
+    return (FOLDERS.filter(function (f) { return f.key === d.folder; })[0] || {}).use || "";
+  }
 
+  /* ---------------------------------------------------------------- THE DATABASE */
   async function hdr(extra) {
     var t = await A.token(), h = { apikey: KEY, Authorization: "Bearer " + (t || KEY) };
     for (var k in extra || {}) h[k] = extra[k];
@@ -186,11 +370,28 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
     if (!r.ok) { var e = new Error("rpc " + r.status); e.status = r.status; throw e; }
     return r.json();
   }
+  async function rest(path, method, body, extra) {
+    var h = await hdr({ "Content-Type": "application/json", Prefer: "return=representation" });
+    for (var k in extra || {}) h[k] = extra[k];
+    var r = await fetch(DB + "/rest/v1/" + path, { method: method || "GET", headers: h, body: body ? JSON.stringify(body) : undefined });
+    if (!r.ok) { var e = new Error("rest " + r.status); e.status = r.status; throw e; }
+    return r.status === 204 ? null : r.json();
+  }
   async function list(prefix) {
     var r = await fetch(DB + "/storage/v1/object/list/" + BUCKET, { method: "POST", headers: await hdr({ "Content-Type": "application/json" }),
       body: JSON.stringify({ prefix: prefix, limit: 500, offset: 0, sortBy: { column: "name", order: "asc" } }) });
     if (!r.ok) throw new Error("list " + r.status);
-    return (await r.json()).filter(function (o) { return o.id && o.name !== ".emptyFolderPlaceholder"; });
+    return (await r.json()).filter(function (o) { return o.name !== ".emptyFolderPlaceholder"; });
+  }
+  /* every file under a folder, subfolders too (statements sit in bank/statements/2025, /2026) */
+  async function listAll(prefix) {
+    var rows = await list(prefix), out = [];
+    for (var i = 0; i < rows.length; i++) {
+      var o = rows[i];
+      if (o.id) out.push({ name: o.name, path: prefix + o.name, meta: o.metadata || {}, at: o.created_at || "" });
+      else out = out.concat(await listAll(prefix + o.name + "/"));
+    }
+    return out;
   }
   async function getBlob(d) {
     if (blobs[d.path]) return blobs[d.path];
@@ -202,78 +403,354 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
   }
 
   async function load() {
-    if (!A || !A.signedIn()) return say("Sign in first", 'This folder is for the Cornerstones board. <a href="/account.html">Sign in</a>, then come back.');
-    try { if ((await rpc("cornerstones_is_board")) !== true) return say("Not for this account", 'This folder is for the Cornerstones board. <a href="/feed/porch.html">Back to the Porch</a>'); }
-    catch (e) { return say("Couldn't load", e.status === 404 ? "The folder isn't switched on yet. Run porch_70_cornerstones.sql." : "Check your signal and try again."); }
+    $("gate").innerHTML = '<p class="say">Loading…</p>'; $("tabs").hidden = true;
+    if (!A || !A.signedIn()) return gate("Sign in first", 'This is the Cornerstones board\'s headquarters. <a href="/account.html">Sign in</a>, then come back.');
+    try { if ((await rpc("cornerstones_is_board")) !== true) return gate("Not for this account", 'This is for the Cornerstones board. <a href="/feed/porch.html">Back to the Porch</a>'); }
+    catch (e) { return gate("Couldn't load", e.status === 404 ? "The folder isn't switched on yet. Run porch_70_cornerstones.sql." : "Check your signal and try again."); }
     try { people = await rpc("cornerstones_people"); } catch (e) { people = []; }
     try {
       var all = [];
-      var lists = await Promise.all(SECS.map(function (s) { return list(s[0] + "/"); }));
+      var lists = await Promise.all(["bank/", "filings/", "minutes/", "papers/"].map(listAll));
       lists.forEach(function (rows, i) {
         rows.forEach(function (o) {
-          var p = parts(o.name);
-          all.push({ path: SECS[i][0] + "/" + o.name, name: o.name, sec: SECS[i][0], title: p.title, sub: p.sub, ord: order(o.name),
-            type: (o.metadata && o.metadata.mimetype) || (/\.pdf$/i.test(o.name) ? "application/pdf" : "image/jpeg"), at: o.created_at || "" });
+          var p = parts(o.name), top = ["bank", "filings", "minutes", "papers"][i];
+          var folder = (top === "bank" && o.path.indexOf("bank/statements/") === 0) ? "statements" : top;
+          all.push({ path: o.path, name: o.name, folder: folder, title: p.title, sub: p.sub, date: p.date, at: o.at,
+            type: o.meta.mimetype || (/\.pdf$/i.test(o.name) ? "application/pdf" : "image/jpeg"), size: o.meta.size || 0, pdf: /\.pdf$/i.test(o.name) });
         });
       });
-      all.sort(function (a, b) { return a.ord - b.ord || (b.at > a.at ? 1 : b.at < a.at ? -1 : 0); });
-      docs = all; draw();
-    } catch (e) { say("Couldn't load", "Check your signal and try again."); }
+      docs = all;
+    } catch (e) { return gate("Couldn't load", "Check your signal and try again."); }
+    try { tasks = await rest("cornerstones_tasks?select=*&order=sort.asc,due.asc.nullslast"); } catch (e) { tasks = null; }   /* null: porch_77 not run yet */
+    $("gate").innerHTML = ""; $("tabs").hidden = false;
+    route();
+  }
+  function gate(big, small) { $("gate").innerHTML = '<p class="say"><b>' + big + "</b>" + small + "</p>"; }
+
+  /* ---------------------------------------------------------------- ROUTES */
+  var SCREENS = { home: "Cornerstones", bank: "Cornerstones", proof: "Cornerstones", who: "Cornerstones", search: "Cornerstones", tasks: "Cornerstones", docs: "Cornerstones", doc: "Cornerstones", admin: "Cornerstones" };
+  function go(h) { location.hash = h; }
+  function route() {
+    var h = (location.hash || "#home").slice(1), key = h.split("/")[0], arg = h.slice(key.length + 1);
+    if (!SCREENS[key]) { key = "home"; arg = ""; }
+    document.querySelectorAll(".scr").forEach(function (s) { s.classList.remove("on"); });
+    document.querySelectorAll("nav.tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.go === key || (key === "doc" && b.dataset.go === "docs")); });
+    $("back").style.visibility = key === "home" ? "hidden" : "visible"; $("title").style.visibility = key === "home" ? "hidden" : "visible";
+    window.scrollTo(0, 0);
+    ({ home: drawHome, bank: drawBank, proof: drawProof, who: drawWho, search: drawSearch, tasks: drawTasks, docs: drawDocs, doc: drawDoc, admin: drawAdmin })[key](decodeURIComponent(arg));
+    $("s-" + key).classList.add("on");
+  }
+  window.addEventListener("hashchange", route);
+  $("back").onclick = function () { if (history.length > 1) history.back(); else go("home"); };
+  $("menubtn").onclick = function () { $("menu").classList.add("show"); };
+  $("reload").onclick = function () { $("menu").classList.remove("show"); blobs = {}; packet = null; load(); };
+
+  /* ---------------------------------------------------------------- HOME */
+  function brush(text, icon, center) { return '<div class="brush' + (center ? " c" : "") + '">' + (icon ? '<svg class="i" viewBox="0 0 24 24">' + icon.replace(/^<svg[^>]*>|<\/svg>$/g, "") + "</svg>" : "") + "<span>" + esc(text) + "</span></div>"; }
+  function attention() {
+    if (!tasks) return 0;
+    var soon = Date.now() + 60 * 864e5;
+    return tasks.filter(function (t) { return !t.done_at && (t.kind === "todo" || (t.due && new Date(t.due + "T12:00:00").getTime() <= soon)); }).length;
+  }
+  function drawHome() {
+    var n = attention();
+    $("s-home").innerHTML =
+      '<div class="mark"><div class="rm">Recovery Misfits</div><div class="star">★</div><div class="cs">Cornerstones</div><div class="hq">Nonprofit headquarters</div><div class="sub">Documents · Governance · Compliance</div></div>' +
+      brush("What do you need to do?", "", true) +
+      '<div class="doors">' +
+      '<button type="button" class="door hot" data-go="bank">' + ICO.bank + "<b>I'm at<br>the bank</b><small>All bank paperwork ready together</small><span class=\"go\">›</span></button>" +
+      '<button type="button" class="door" data-go="proof">' + ICO.shield + "<b>Prove we're<br>a nonprofit</b><small>IRS tax-exempt letter &amp; status</small></button>" +
+      '<button type="button" class="door" data-go="who">' + ICO.people + "<b>Who's<br>in charge?</b><small>Board, officers &amp; governance</small></button>" +
+      '<button type="button" class="door" data-go="search">' + ICO.find + "<b>Find<br>paperwork</b><small>Search or browse all documents</small></button>" +
+      "</div>" +
+      '<button type="button" class="wide" data-go="tasks">' + ICO.tasks + "Tasks &amp; deadlines" + (n ? '<span class="n">' + n + "</span>" : "") + '<span class="arr">›</span></button>' +
+      '<p class="note">' + docs.length + " papers in the folder. Only the board can open this.</p>";
   }
 
+  /* ---------------------------------------------------------------- A LIST OF PAPERS */
+  function rowOf(d, n) {
+    var i = docs.indexOf(d);
+    return '<button type="button" class="row" data-doc="' + i + '"><span class="ic">' + ICO.doc + "<em>" + (d.pdf ? "PDF" : "IMG") + "</em></span>" +
+      '<span class="tx"><b>' + (n ? n + ". " : "") + esc(d.title) + "</b><small>" + esc(d.date ? nice(d.date) + (d.sub ? " · " + d.sub : "") : d.sub) + "</small></span><span class=\"arr\">›</span></button>";
+  }
+  function dedupe(list) { var seen = {}; return list.filter(function (d) { var k = (d.title + "|" + d.date).toLowerCase(); if (seen[k]) return false; seen[k] = 1; return true; }); }
+  function byDate(a, b) { return (b.date || "") > (a.date || "") ? 1 : (b.date || "") < (a.date || "") ? -1 : (a.title > b.title ? 1 : -1); }
+  function bankDocs() {
+    /* the order a bank asks for them: 501(c)(3) letter, Articles, the newest minutes, then the rest */
+    var d = docs.filter(function (x) { return x.folder === "bank"; });
+    function rank(x) { return /501/.test(x.title) ? 0 : /Articles/i.test(x.title) ? 1 : /Minutes/i.test(x.title) ? 2 : 3; }
+    return d.sort(function (a, b) { return rank(a) - rank(b) || byDate(a, b); });
+  }
+
+  /* ---------------------------------------------------------------- I'M AT THE BANK */
+  function drawBank() {
+    var d = bankDocs();
+    $("s-bank").innerHTML = brush("Bank packet", ICO.bank) +
+      '<p class="lead">Everything a bank typically needs to open or manage a nonprofit account.</p>' +
+      '<div class="box"><h2>Includes (' + d.length + " document" + (d.length === 1 ? "" : "s") + ")</h2>" +
+      (d.length ? '<div class="rows">' + d.map(function (x, k) { return rowOf(x, k + 1); }).join("") + "</div>" : '<p class="none">Nothing in the bank folder yet. Add papers under Admin and put them in "For the bank".</p>') + "</div>" +
+      (d.length ? '<button type="button" class="big" id="pkgo">' + ICO.stack + "<span>Get complete packet<small>One PDF with all " + d.length + "</small></span></button>" +
+      '<div class="msg" id="pkmsg"></div>' +
+      '<div class="two" id="pkdone" hidden><button type="button" class="big line" id="pkview">' + ICO.eye + "View packet</button><button type=\"button\" class=\"big line\" id=\"pksave\">" + ICO.save + "Save packet</button></div>" +
+      '<div class="two"><button type="button" class="big line" data-go="docs/bank">' + ICO.eye + "View each file</button><button type=\"button\" class=\"big line\" id=\"pkmail\">" + ICO.mail + "Email packet</button></div>" : "") +
+      '<p class="note">Tap a paper to see it. The packet is made on your phone when you ask for it.</p>';
+    if (packet) { $("pkgo").hidden = true; $("pkdone").hidden = false; }
+  }
+  async function makePacket(thenShare) {
+    var chosen = bankDocs(), m = $("pkmsg");
+    if (packet) { if (thenShare) emailFile(packet, packetName(), "Cornerstones Recovery - Bank packet"); return; }
+    $("pkgo").disabled = true; m.className = "msg"; m.textContent = "Getting the papers…";
+    try {
+      if (!window.PDFLib) await loadScript("/assets/vendor/pdf-lib.min.js");
+      var L = window.PDFLib, out = await L.PDFDocument.create();
+      var font = await out.embedFont(L.StandardFonts.Helvetica), bold = await out.embedFont(L.StandardFonts.HelveticaBold);
+      var cover = out.addPage([612, 792]), starts = [];
+      for (var i = 0; i < chosen.length; i++) {
+        var d = chosen[i];
+        m.textContent = "Adding " + (i + 1) + " of " + chosen.length + ": " + d.title;
+        var b = await getBlob(d); starts.push(out.getPageCount() + 1);
+        if (/pdf/.test(b.type)) {
+          var src = await L.PDFDocument.load(await b.arrayBuffer(), { ignoreEncryption: true });
+          (await out.copyPages(src, src.getPageIndices())).forEach(function (p) { out.addPage(p); });
+        } else {
+          var img = await out.embedJpg(await toJpeg(b)), pg = out.addPage([612, 792]);
+          var sc = Math.min(560 / img.width, 740 / img.height);
+          pg.drawImage(img, { x: (612 - img.width * sc) / 2, y: (792 - img.height * sc) / 2, width: img.width * sc, height: img.height * sc });
+        }
+      }
+      var y = 720, ink = L.rgb(0.1, 0.1, 0.1), grey = L.rgb(0.4, 0.4, 0.4);
+      cover.drawText("Cornerstones Recovery, Inc.", { x: 60, y: y, size: 24, font: bold, color: ink }); y -= 28;
+      cover.drawText("Papers for the bank", { x: 60, y: y, size: 16, font: font, color: grey }); y -= 22;
+      cover.drawText("Ohio nonprofit corporation  -  Charter No. 5261374", { x: 60, y: y, size: 12, font: font, color: grey }); y -= 18;
+      cover.drawText("Put together " + new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }), { x: 60, y: y, size: 12, font: font, color: grey }); y -= 40;
+      cover.drawText("WHAT IS INSIDE", { x: 60, y: y, size: 11, font: bold, color: ink }); y -= 22;
+      chosen.forEach(function (d, i) {
+        if (y < 70) return;
+        var t = (d.title + (d.date ? " - " + nice(d.date) : "") + (d.sub ? " - " + d.sub : "")).replace(/·/g, "-"); if (t.length > 70) t = t.slice(0, 68) + "...";
+        cover.drawText((i + 1) + ".  " + t, { x: 60, y: y, size: 12, font: font, color: ink });
+        cover.drawText("page " + starts[i], { x: 500, y: y, size: 11, font: font, color: grey }); y -= 22;
+      });
+      packet = new Blob([await out.save()], { type: "application/pdf" });
+      m.textContent = ""; $("pkgo").hidden = true; $("pkdone").hidden = false;
+      if (thenShare) emailFile(packet, packetName(), "Cornerstones Recovery - Bank packet");
+    } catch (e) {
+      m.className = "msg bad"; m.textContent = "Couldn't make it. Check your signal and try again.";
+    }
+    $("pkgo").disabled = false;
+  }
+  function packetName() { return "Cornerstones Recovery - Bank packet - " + new Date().toISOString().slice(0, 10) + ".pdf"; }
+  async function toJpeg(blob) {
+    var bm = await createImageBitmap(blob), c = document.createElement("canvas");
+    var s = Math.min(1, 2200 / Math.max(bm.width, bm.height));
+    c.width = Math.round(bm.width * s); c.height = Math.round(bm.height * s);
+    var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(bm, 0, 0, c.width, c.height);
+    return new Promise(function (ok) { c.toBlob(function (b) { b.arrayBuffer().then(ok); }, "image/jpeg", 0.9); });
+  }
+
+  /* ---------------------------------------------------------------- PROVE WE'RE A NONPROFIT */
+  function drawProof() {
+    var letter = docs.filter(function (d) { return /501/.test(d.title); }).sort(byDate)[0];
+    var arts = docs.filter(function (d) { return /Articles/i.test(d.title); }).sort(byDate), seenA = {};
+    arts = arts.filter(function (d) { if (seenA[d.date]) return false; seenA[d.date] = 1; return true; });   /* the same Articles sit in bank/ and papers/ */
+    $("s-proof").innerHTML = brush("Prove we're a nonprofit", ICO.shield) +
+      '<p class="lead">The IRS letter is the one people ask for. The Articles show the corporation exists in Ohio.</p>' +
+      (letter ? '<div class="box gold"><h2>IRS tax-exempt letter</h2><div class="rows">' + rowOf(letter) + "</div>" +
+        '<div class="two"><button type="button" class="big" data-save="' + docs.indexOf(letter) + '">' + ICO.save + "Save PDF</button><button type=\"button\" class=\"big line\" data-mail=\"" + docs.indexOf(letter) + '">' + ICO.mail + "Email</button></div></div>" :
+        '<p class="none">No IRS 501(c)(3) letter in the folder yet. Add it under Admin, in "For the bank".</p>') +
+      (arts.length ? '<div class="box"><h2>Articles of incorporation</h2><div class="rows">' + arts.map(function (d) { return rowOf(d); }).join("") + "</div></div>" : "") +
+      '<p class="note">Tax-exempt status comes from the IRS, not the state. The letter is the proof.</p>';
+  }
+
+  /* ---------------------------------------------------------------- WHO'S IN CHARGE */
   function pic(p) { return p.charAt(0) === "/" || p.indexOf("data:") === 0 ? p : DB + "/storage/v1/object/public/porch/" + p; }
   function initials(n) { return String(n || "?").split(/\s+/).map(function (w) { return w.charAt(0); }).join("").slice(0, 2).toUpperCase(); }
-  function tile(d, n) {
-    var i = docs.indexOf(d);
-    return '<div class="tile"><button type="button" class="show" data-open="' + i + '">' +
-      (n ? '<span class="num">' + n + "</span>" : ICO.doc) +
-      "<b>" + esc(d.title) + "</b>" + (d.sub ? "<small>" + esc(d.sub) + "</small>" : "") + "</button>" +
-      '<button type="button" class="send" data-share="' + i + '">' + ICO.send + "Send</button></div>";
-  }
-  function draw() {
-    var h = '<p class="org">Cornerstones Recovery Inc. · doing its work as Recovery Misfits</p>';
-    if (people.length) h += '<div class="board">' + people.map(function (p) {
+  function boardHtml() {
+    if (!people.length) return '<p class="none">The board list isn\'t loaded.</p>';
+    return '<div class="board">' + people.map(function (p) {
       return '<a class="pp" href="/feed/porch.html?u=' + encodeURIComponent(p.handle) + '">' +
         '<span class="av">' + (p.avatar_path ? '<img src="' + esc(pic(p.avatar_path)) + '" alt="">' : esc(initials(p.name || p.handle))) + "</span>" +
         "<b>" + esc(p.name || p.handle) + '</b><span class="role">' + esc(p.role || "") + "</span><small>(" + esc(p.handle) + ")</small></a>";
     }).join("") + "</div>";
-    SECS.forEach(function (s) {
-      var mine = docs.filter(function (d) { return d.sec === s[0]; }), bank = s[0] === "bank";
-      h += '<section class="box' + (bank ? " bank" : "") + '"><h2>' + esc(s[1]) + "</h2>" + (s[2] ? '<p class="lead">' + esc(s[2]) + "</p>" : "");
-      h += mine.length ? '<div class="tiles">' + mine.map(function (d, k) { return tile(d, bank ? k + 1 : 0); }).join("") + "</div>" : '<p class="none">Nothing here yet.</p>';
-      if (bank && mine.length > 1) h += '<button type="button" class="big line" id="pkgo">' + ICO.stack + "One PDF of all " + mine.length + "</button>" +
-        '<div class="two" id="pkdone" hidden><button type="button" class="big line" id="pkview">' + ICO.eye + 'See it</button><button type="button" class="big" id="pkshare">' + ICO.send + "Send it</button></div>" +
-        '<div class="msg" id="pkmsg"></div>';
-      if (s[0] === "minutes") h += '<button type="button" class="big line" id="addbtn">' + ICO.plus + "Add new minutes</button>";
-      h += "</section>";
-    });
-    h += '<p class="note">Only the three of you can open this folder.</p>';
-    $("list").innerHTML = h;
-    packet = null;
+  }
+  function drawWho() {
+    var gov = dedupe(docs.filter(function (d) { return /Bylaws|Minutes|Articles|Conflict/i.test(d.title); }).sort(byDate));
+    $("s-who").innerHTML = brush("Who's in charge?", ICO.people) +
+      '<p class="lead">Cornerstones Recovery, Inc. is run by its board. These three are the board and the officers.</p>' +
+      boardHtml() +
+      '<h2>Governance papers</h2>' + (gov.length ? '<div class="rows">' + gov.map(function (d) { return rowOf(d); }).join("") + "</div>" : '<p class="none">Nothing yet.</p>') +
+      '<p class="note">Tap a name for their Porch profile. The newest minutes name the officers.</p>';
   }
 
-  /* SEND. The phone's own share menu (text, email, Drive). On a computer it saves the file instead. */
-  async function sendFile(blob, fname, label) {
-    var f = new File([blob], fname, { type: blob.type || "application/pdf" });
-    if (navigator.canShare && navigator.canShare({ files: [f] })) {
-      try { await navigator.share({ files: [f], title: label }); } catch (e) { if (e && e.name === "NotAllowedError") return "again"; }
-      return "";
+  /* ---------------------------------------------------------------- SEARCH */
+  var RECENT_KEY = "rm_cs_recent";
+  function recent() { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch (e) { return []; } }
+  function touch(d) { try { var r = recent().filter(function (p) { return p !== d.path; }); r.unshift(d.path); localStorage.setItem(RECENT_KEY, JSON.stringify(r.slice(0, 5))); } catch (e) {} }
+  var CHIPS = [["Bank paperwork", "bank"], ["Tax-exempt letter", "501"], ["Articles of incorporation", "articles"], ["Board members", "minutes"], ["Meeting minutes", "minutes"], ["Statements", "statement"], ["Ohio filings", "ohio"]];
+  function drawSearch() {
+    var rec = recent().map(function (p) { return docs.filter(function (d) { return d.path === p; })[0]; }).filter(Boolean);
+    $("s-search").innerHTML = brush("Search documents", ICO.search) + '<p class="lead">Find what you need fast.</p>' +
+      '<div class="sbar">' + ICO.search + '<input type="search" id="q" placeholder="Try &quot;tax letter&quot;, &quot;bank&quot;, &quot;minutes&quot;" autocomplete="off"></div>' +
+      '<h2>Quick searches</h2><div class="chips">' + CHIPS.map(function (c) { return '<button type="button" class="chip" data-q="' + esc(c[1]) + '">' + esc(c[0]) + "</button>"; }).join("") + "</div>" +
+      '<div id="sres"></div>' +
+      (rec.length ? '<h2>Recently viewed</h2><div class="rows">' + rec.map(function (d) { return rowOf(d); }).join("") + "</div>" : "");
+    $("q").addEventListener("input", function () { search(this.value); });
+    setTimeout(function () { var q = $("q"); if (q && !("ontouchstart" in window)) q.focus(); }, 50);
+  }
+  function search(q) {
+    q = (q || "").trim().toLowerCase(); var box = $("sres");
+    if (!q) { box.innerHTML = ""; return; }
+    var words = q.split(/\s+/);
+    var hits = docs.filter(function (d) {
+      var hay = (d.title + " " + d.sub + " " + d.folder + " " + kindOf(d) + " " + useOf(d) + " " + nice(d.date) + " " + d.date).toLowerCase();
+      return words.every(function (w) { return hay.indexOf(w) >= 0; });
+    }).sort(byDate);
+    box.innerHTML = "<h2>" + hits.length + " found</h2>" + (hits.length ? '<div class="rows">' + hits.map(function (d) { return rowOf(d); }).join("") + "</div>" : '<p class="none">Nothing matches. Try one word.</p>');
+  }
+
+  /* ---------------------------------------------------------------- TASKS & DEADLINES */
+  function dueText(t) {
+    if (!t.due) return "";
+    var days = Math.round((new Date(t.due + "T12:00:00") - Date.now()) / 864e5);
+    if (days < 0) return "Past due · was " + nice(t.due);
+    if (days === 0) return "Due today";
+    return "Due " + nice(t.due) + (days <= 60 ? " · " + days + " days" : "");
+  }
+  function taskRow(t, state) {
+    var dot = state === "done" ? '<span class="dot ok">' + ICO.check + "</span>" : state === "hot" ? '<span class="dot red">!</span>' : '<span class="dot cal">' + ICO.cal + "</span>";
+    var sub = state === "done" ? "Done " + nice(String(t.done_at).slice(0, 10)) : t.due ? dueText(t) : (t.note || "");
+    var hot = state === "hot" && t.due && new Date(t.due + "T12:00:00") < Date.now();
+    return '<button type="button" class="task" data-task="' + t.id + '">' + dot + '<span class="tx"><b>' + esc(t.title) + '</b><small class="' + (hot ? "due" : "") + '">' + esc(sub) + "</small></span><span class=\"arr\">›</span></button>";
+  }
+  function drawTasks() {
+    if (!tasks) { $("s-tasks").innerHTML = brush("Tasks & deadlines", ICO.tasks) + '<p class="none">The task list isn\'t switched on yet. Run porch_77_cornerstones_hq.sql in the Recovery Misfits Supabase project.</p>'; return; }
+    var soon = Date.now() + 60 * 864e5, open = tasks.filter(function (t) { return !t.done_at; });
+    var hot = open.filter(function (t) { return t.kind === "todo" || (t.due && new Date(t.due + "T12:00:00").getTime() <= soon); }).sort(function (a, b) { return (a.due || "9") > (b.due || "9") ? 1 : -1; });
+    var up = open.filter(function (t) { return hot.indexOf(t) < 0; }).sort(function (a, b) { return (a.due || "9") > (b.due || "9") ? 1 : -1; });
+    var done = tasks.filter(function (t) { return t.done_at; }).sort(function (a, b) { return a.done_at < b.done_at ? 1 : -1; }).slice(0, 6);
+    $("s-tasks").innerHTML = brush("Tasks & deadlines", ICO.tasks) + '<p class="lead">What needs attention and what\'s coming up.</p>' +
+      '<div class="box red"><h2>Needs attention (' + hot.length + ")</h2>" + (hot.length ? '<div class="rows">' + hot.map(function (t) { return taskRow(t, "hot"); }).join("") + "</div>" : '<p class="none">Nothing pressing.</p>') + "</div>" +
+      '<div class="box"><h2>Upcoming (' + up.length + ")</h2>" + (up.length ? '<div class="rows">' + up.map(function (t) { return taskRow(t, "up"); }).join("") + "</div>" : '<p class="none">No dates on the calendar yet.</p>') + "</div>" +
+      '<div class="box"><h2>Completed (recent)</h2>' + (done.length ? '<div class="rows">' + done.map(function (t) { return taskRow(t, "done"); }).join("") + "</div>" : '<p class="none">Nothing ticked off yet.</p>') + "</div>" +
+      '<button type="button" class="big line" id="taddbtn">' + ICO.plus + "Add a task</button>" +
+      '<p class="note">"Needs attention" is anything due in the next 60 days, past due, or a to-do with no date.</p>';
+  }
+  var curTask = null;
+  function openTask(id) {
+    var t = tasks.filter(function (x) { return x.id === id; })[0]; if (!t) return; curTask = t;
+    $("tt").textContent = t.title;
+    $("tdue").textContent = t.done_at ? "Done " + nice(String(t.done_at).slice(0, 10)) + (t.done_by ? " by " + t.done_by : "") : (t.due ? dueText(t) : "To-do, no date");
+    $("tnote").textContent = t.note || "";
+    $("tlink").innerHTML = t.link ? '<a href="' + esc(t.link) + '" target="_blank" rel="noopener">Open: ' + esc(t.link.replace(/^https?:\/\//, "").split("/")[0]) + " ↗</a>" : "";
+    $("tdone").textContent = t.done_at ? "Not done after all" : "Mark done";
+    $("tmsg").textContent = ""; $("tmsg").className = "msg";
+    $("tsheet").classList.add("show");
+  }
+  async function toggleTask() {
+    var t = curTask; if (!t) return; $("tdone").disabled = true;
+    try {
+      var me = ""; try { me = A.name() || ""; } catch (e) {}
+      var up = await rest("cornerstones_tasks?id=eq." + t.id, "PATCH", { done_at: t.done_at ? null : new Date().toISOString(), done_by: t.done_at ? null : (me || null) });
+      tasks = tasks.map(function (x) { return x.id === t.id ? up[0] : x; });
+      $("tsheet").classList.remove("show"); drawTasks(); toast(t.done_at ? "Put back on the list." : "Done. Nice.");
+    } catch (e) { $("tmsg").className = "msg bad"; $("tmsg").textContent = "Couldn't save that. Check your signal."; }
+    $("tdone").disabled = false;
+  }
+  async function removeTask() {
+    var t = curTask; if (!t || !confirm("Remove this task for the whole board?")) return;
+    try { await rest("cornerstones_tasks?id=eq." + t.id, "DELETE"); tasks = tasks.filter(function (x) { return x.id !== t.id; }); $("tsheet").classList.remove("show"); drawTasks(); }
+    catch (e) { $("tmsg").className = "msg bad"; $("tmsg").textContent = "Couldn't remove it."; }
+  }
+  async function saveTask() {
+    var title = $("tatitle").value.trim(), due = $("tadate").value || null, note = $("tanote").value.trim() || null, link = $("talink").value.trim() || null, m = $("tamsg");
+    if (!title) { m.className = "msg bad"; m.textContent = "Say what it is."; return; }
+    m.className = "msg"; m.textContent = "Saving…"; $("tago").disabled = true;
+    try {
+      var row = await rest("cornerstones_tasks", "POST", { title: title, due: due, note: note, link: link, kind: due ? "deadline" : "todo", sort: 5 });
+      tasks.push(row[0]); $("tadd").classList.remove("show"); drawTasks(); if (location.hash !== "#tasks") go("tasks");
+    } catch (e) { m.className = "msg bad"; m.textContent = "Couldn't save it. Check your signal."; }
+    $("tago").disabled = false;
+  }
+
+  /* ---------------------------------------------------------------- ALL DOCUMENTS */
+  function drawDocs(folder) {
+    if (folder) {
+      var f = FOLDERS.filter(function (x) { return x.key === folder; })[0] || { label: folder };
+      var mine = docs.filter(function (d) { return d.folder === folder; }).sort(folder === "bank" ? function (a, b) { return bankDocs().indexOf(a) - bankDocs().indexOf(b); } : byDate);
+      $("s-docs").innerHTML = brush(f.label, ICO.folder) + (f.use ? '<p class="lead">' + esc(f.use) + "</p>" : "") +
+        (mine.length ? '<div class="rows">' + mine.map(function (d, k) { return rowOf(d, folder === "bank" ? k + 1 : 0); }).join("") + "</div>" : '<p class="none">Nothing in this folder yet.</p>') +
+        '<button type="button" class="big line" id="addbtn">' + ICO.plus + "Add a paper here</button>";
+      $("s-docs").dataset.folder = folder; return;
     }
-    var u = URL.createObjectURL(f), a = document.createElement("a");
+    delete $("s-docs").dataset.folder;
+    $("s-docs").innerHTML = brush("All documents", ICO.stack) + '<p class="lead">Complete document library. ' + docs.length + " papers.</p><div class=\"rows\">" +
+      FOLDERS.map(function (f) { var n = docs.filter(function (d) { return d.folder === f.key; }).length;
+        return '<button type="button" class="row folder" data-go="docs/' + f.key + '"><span class="ic">' + ICO.folder + '</span><span class="tx"><b>' + esc(f.label) + "</b><small>" + esc(f.use) + '</small></span><span class="cnt">' + n + '</span><span class="arr">›</span></button>'; }).join("") +
+      "</div>" + '<button type="button" class="big line" id="addbtn">' + ICO.plus + "Add a paper</button>";
+  }
+
+  /* ---------------------------------------------------------------- ONE PAPER */
+  var prev = { d: null, pdf: null, page: 1, n: 1 };
+  function drawDoc(path) {
+    var d = docs.filter(function (x) { return x.path === path; })[0];
+    if (!d) { $("s-doc").innerHTML = '<p class="none">That paper isn\'t in the folder.</p>'; return; }
+    touch(d); var i = docs.indexOf(d);
+    $("s-doc").innerHTML =
+      '<div class="dhead"><span class="ic">' + ICO.doc + "<em>" + (d.pdf ? "PDF" : "IMG") + "</em></span><div><b>" + esc(d.title) + "</b><small>" + esc(d.sub || kindOf(d)) + "</small></div></div>" +
+      '<div class="facts"><div><span>Date:</span>' + esc(d.date ? nice(d.date) : "On the paper") + "</div><div><span>Type:</span>" + esc(kindOf(d)) + "</div><div><span>Use:</span>" + esc(useOf(d)) + "</div></div>" +
+      '<div class="prev" id="prev"><span class="wait">Opening…</span></div>' +
+      '<div class="pager" id="pager" hidden><button type="button" id="pprev">‹</button><b id="pnum">1 of 1</b><button type="button" id="pnext">›</button></div>' +
+      '<button type="button" class="big" data-open="' + i + '">' + ICO.eye + "View fullscreen</button>" +
+      '<div class="two"><button type="button" class="big line" data-save="' + i + '">' + ICO.save + "Save " + (d.pdf ? "PDF" : "image") + '</button><button type="button" class="big line" data-mail="' + i + '">' + ICO.mail + "Email</button></div>" +
+      '<p class="note">Folder: ' + esc((FOLDERS.filter(function (f) { return f.key === d.folder; })[0] || {}).label || d.folder) + (d.size ? " · " + Math.round(d.size / 1024) + " KB" : "") + "</p>" +
+      '<button type="button" class="rmlink" data-rm="' + i + '">Take this paper out of the folder</button>';
+    preview(d);
+  }
+  async function preview(d) {
+    prev = { d: d, pdf: null, page: 1, n: 1 }; var box = $("prev");
+    try {
+      var b = await getBlob(d); if (prev.d !== d) return;
+      if (!/pdf/.test(b.type)) { box.innerHTML = '<img alt="" src="' + URL.createObjectURL(b) + '">'; return; }
+      var lib = await pdfjs(); prev.pdf = await lib.getDocument({ data: new Uint8Array(await b.arrayBuffer()) }).promise; if (prev.d !== d) return;
+      prev.n = prev.pdf.numPages; $("pager").hidden = prev.n < 2; await paintPrev();
+    } catch (e) { box.innerHTML = '<span class="wait">Couldn\'t open it. Check your signal.</span>'; }
+  }
+  async function paintPrev() {
+    var box = $("prev"), pg = await prev.pdf.getPage(prev.page), w = box.clientWidth || 360;
+    var vp = pg.getViewport({ scale: w / pg.getViewport({ scale: 1 }).width }), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var c = document.createElement("canvas"); c.width = Math.round(vp.width * dpr); c.height = Math.round(vp.height * dpr);
+    await pg.render({ canvasContext: c.getContext("2d"), viewport: vp, transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null }).promise;
+    box.innerHTML = ""; box.appendChild(c);
+    $("pnum").textContent = prev.page + " of " + prev.n; $("pprev").disabled = prev.page <= 1; $("pnext").disabled = prev.page >= prev.n;
+  }
+
+  /* ---------------------------------------------------------------- SAVE / EMAIL / SEND */
+  function niceName(d) {
+    var t = (d.title + (d.date ? " - " + d.date : "") + (d.sub ? " - " + d.sub : "")).replace(/[\\/:*?"<>|·]/g, "-");
+    return "Cornerstones Recovery - " + t + (d.pdf ? ".pdf" : (d.name.match(/\.[a-z0-9]+$/i) || [".jpg"])[0]);
+  }
+  function download(blob, fname) {
+    var u = URL.createObjectURL(blob), a = document.createElement("a");
     a.href = u; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
+  }
+  /* EMAIL. On a phone: the share sheet (pick Gmail, Messages, Drive). On a computer the file is saved and a
+     new email opens with the subject filled in; attach the saved file. (A web page can't attach a file to an email by itself.) */
+  async function emailFile(blob, fname, label) {
+    var f = new File([blob], fname, { type: blob.type || "application/pdf" });
+    if (navigator.canShare && navigator.canShare({ files: [f] })) {
+      try { await navigator.share({ files: [f], title: label, text: label }); } catch (e) { if (e && e.name === "NotAllowedError") return "again"; }
+      return "";
+    }
+    download(blob, fname);
+    setTimeout(function () { location.href = "mailto:?subject=" + encodeURIComponent(label) + "&body=" + encodeURIComponent("Attached: " + fname + "\n\nCornerstones Recovery, Inc."); }, 600);
+    toast("Saved to your downloads. Attach it to the email that opens.");
     return "";
   }
-  function niceName(d) {
-    var t = (d.title + (d.sub ? " - " + d.sub : "")).replace(/[\\/:*?"<>|·]/g, "-");
-    return "Cornerstones Recovery - " + t + (/pdf/.test(d.type) ? ".pdf" : (d.name.match(/\.[a-z0-9]+$/i) || [".jpg"])[0]);
-  }
-  async function shareDoc(d, btn) {
+  async function saveDoc(d, btn) { if (btn) btn.disabled = true; try { download(await getBlob(d), niceName(d)); toast("Saved."); } catch (e) { toast("Couldn't get that paper. Check your signal.", true); } if (btn) btn.disabled = false; }
+  async function mailDoc(d, btn) {
     if (btn) btn.disabled = true;
-    try {
-      /* a big paper on slow signal: the phone only opens Share right after a tap, so it asks for one more */
-      if ((await sendFile(await getBlob(d), niceName(d), d.title)) === "again") toast("It's ready. Tap Send again.");
-    } catch (e) { toast("Couldn't get that paper. Check your signal.", true); }
+    try { if ((await emailFile(await getBlob(d), niceName(d), "Cornerstones Recovery - " + d.title)) === "again") toast("It's ready. Tap Email again."); }
+    catch (e) { toast("Couldn't get that paper. Check your signal.", true); }
     if (btn) btn.disabled = false;
   }
 
@@ -288,9 +765,7 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
   }
   async function openView(d, blob) {
     cur = { d: d, blob: blob }; zoom = 1;
-    $("vtitle").textContent = d ? d.title : "Bank papers, all in one";
-    $("vrm").style.display = d ? "" : "none";
-    $("conf").classList.remove("show");
+    $("vtitle").textContent = d ? d.title : "Bank packet";
     $("view").classList.add("show");
     try { history.pushState({ v: 1 }, ""); } catch (e) {}
     try { var el = document.documentElement; if (el.requestFullscreen && !document.fullscreenElement) el.requestFullscreen().catch(function () {}); } catch (e) {}
@@ -325,114 +800,85 @@ label.f{display:block;margin:12px 0 4px;color:var(--muted);font-size:13px;font-w
     try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
     if (!fromBack) { try { history.back(); } catch (e) {} }
   }
-  window.addEventListener("popstate", function () { closeView(true); });
+  window.addEventListener("popstate", function () { if ($("view").classList.contains("show")) closeView(true); });
 
-  /* ---------------------------------------------------------------- ONE PDF OF THE BANK PAPERS */
-  async function toJpeg(blob) {
-    var bm = await createImageBitmap(blob), c = document.createElement("canvas");
-    var s = Math.min(1, 2200 / Math.max(bm.width, bm.height));
-    c.width = Math.round(bm.width * s); c.height = Math.round(bm.height * s);
-    var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(bm, 0, 0, c.width, c.height);
-    return new Promise(function (ok) { c.toBlob(function (b) { b.arrayBuffer().then(ok); }, "image/jpeg", 0.9); });
+  /* ---------------------------------------------------------------- ADMIN */
+  function drawAdmin() {
+    $("s-admin").innerHTML = brush("Admin", ICO.people) + '<p class="lead">The board, and the two things only the board can do here.</p>' +
+      boardHtml() +
+      '<button type="button" class="big" id="addbtn">' + ICO.plus + "Add a paper</button>" +
+      '<button type="button" class="big line" id="taddbtn">' + ICO.plus + "Add a task</button>" +
+      '<div class="box" style="margin-top:14px"><h2>How it\'s protected</h2><p class="lead" style="text-align:left;margin:0">Every paper sits in a private storage bucket. The database checks the account that\'s signed in against the board list before it hands over a single byte, lists a file, or saves a task. There are no public links.</p></div>' +
+      '<p class="note">Name papers with the date first (2026-11-02__What_It_Is.pdf). The library sorts by it.</p>';
   }
-  async function makePacket() {
-    var chosen = docs.filter(function (d) { return d.sec === "bank"; }), m = $("pkmsg");
-    $("pkgo").disabled = true; m.className = "msg"; m.textContent = "Getting the papers…";
-    try {
-      if (!window.PDFLib) await loadScript("/assets/vendor/pdf-lib.min.js");
-      var L = window.PDFLib, out = await L.PDFDocument.create();
-      var font = await out.embedFont(L.StandardFonts.Helvetica), bold = await out.embedFont(L.StandardFonts.HelveticaBold);
-      var cover = out.addPage([612, 792]), starts = [];
-      for (var i = 0; i < chosen.length; i++) {
-        var d = chosen[i];
-        m.textContent = "Adding " + (i + 1) + " of " + chosen.length + ": " + d.title;
-        var b = await getBlob(d); starts.push(out.getPageCount() + 1);
-        if (/pdf/.test(b.type)) {
-          var src = await L.PDFDocument.load(await b.arrayBuffer(), { ignoreEncryption: true });
-          (await out.copyPages(src, src.getPageIndices())).forEach(function (p) { out.addPage(p); });
-        } else {
-          var img = await out.embedJpg(await toJpeg(b)), pg = out.addPage([612, 792]);
-          var sc = Math.min(560 / img.width, 740 / img.height);
-          pg.drawImage(img, { x: (612 - img.width * sc) / 2, y: (792 - img.height * sc) / 2, width: img.width * sc, height: img.height * sc });
-        }
-      }
-      var y = 720, ink = L.rgb(0.1, 0.1, 0.1), grey = L.rgb(0.4, 0.4, 0.4);
-      cover.drawText("Cornerstones Recovery Inc.", { x: 60, y: y, size: 24, font: bold, color: ink }); y -= 28;
-      cover.drawText("Papers for the bank", { x: 60, y: y, size: 16, font: font, color: grey }); y -= 22;
-      cover.drawText("Ohio nonprofit corporation  ·  EIN 99-4095027", { x: 60, y: y, size: 12, font: font, color: grey }); y -= 18;
-      cover.drawText("Put together " + new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }), { x: 60, y: y, size: 12, font: font, color: grey }); y -= 40;
-      cover.drawText("WHAT IS INSIDE", { x: 60, y: y, size: 11, font: bold, color: ink }); y -= 22;
-      chosen.forEach(function (d, i) {
-        if (y < 70) return;
-        var t = (d.title + (d.sub ? " - " + d.sub : "")).replace(/·/g, "-"); if (t.length > 70) t = t.slice(0, 68) + "...";
-        cover.drawText((i + 1) + ".  " + t, { x: 60, y: y, size: 12, font: font, color: ink });
-        cover.drawText("page " + starts[i], { x: 500, y: y, size: 11, font: font, color: grey }); y -= 22;
-      });
-      packet = new Blob([await out.save()], { type: "application/pdf" });
-      m.textContent = ""; $("pkgo").hidden = true; $("pkdone").hidden = false;
-    } catch (e) {
-      m.className = "msg bad"; m.textContent = "Couldn't make it. Check your signal and try again.";
-    }
-    $("pkgo").disabled = false;
-  }
-  function packetName() { return "Cornerstones Recovery - Bank Papers - " + new Date().toISOString().slice(0, 10) + ".pdf"; }
-
-  /* ---------------------------------------------------------------- ADD */
   function openAdd() {
-    $("addsec").innerHTML = SECS.map(function (s) { return '<option value="' + s[0] + '">' + esc(s[1]) + "</option>"; }).join("");
-    $("addsec").value = "minutes"; $("addfile").value = ""; $("addname").value = ""; $("addmsg").textContent = ""; $("addmsg").className = "msg"; $("addgo").disabled = false;
+    $("addsec").innerHTML = FOLDERS.map(function (s) { return '<option value="' + s.key + '">' + esc(s.label) + "</option>"; }).join("");
+    $("addsec").value = $("s-docs").dataset.folder || "papers"; $("addfile").value = ""; $("addname").value = ""; $("adddate").value = new Date().toISOString().slice(0, 10);
+    $("addmsg").textContent = ""; $("addmsg").className = "msg"; $("addgo").disabled = false;
     $("add").classList.add("show");
   }
   $("addfile").addEventListener("change", function () {
-    var f = this.files[0]; if (f && !$("addname").value) $("addname").value = f.name.replace(/\.[a-z0-9]+$/i, "").replace(/[_-]+/g, " ").slice(0, 80);
+    var f = this.files[0]; if (f && !$("addname").value) $("addname").value = f.name.replace(/\.[a-z0-9]+$/i, "").replace(/[_-]+/g, " ").replace(/^\d{4} \d{2} \d{2} ?/, "").slice(0, 80);
   });
   async function saveAdd() {
-    var f = $("addfile").files[0], nm = $("addname").value.trim(), m = $("addmsg");
+    var f = $("addfile").files[0], nm = $("addname").value.trim(), dt = $("adddate").value, sec = $("addsec").value, m = $("addmsg");
     m.className = "msg bad";
     if (!f) { m.textContent = "Pick the file first."; return; }
     if (f.size > 25 * 1048576) { m.textContent = "That file is over 25 MB. Try a smaller scan."; return; }
     if (!nm) { m.textContent = "Give it a name."; return; }
+    if (!dt) { m.textContent = "Put the date that's on the paper."; return; }
     var ext = /pdf/.test(f.type) ? ".pdf" : f.type === "image/png" ? ".png" : f.type === "image/webp" ? ".webp" : f.type === "image/heic" ? ".heic" : ".jpg";
-    /* "Board Minutes, Nov 14 2026" -> "Board_Minutes__Nov_14_2026": the comma turns into the small line under the title */
-    var key = $("addsec").value + "/" + nm.replace(/\s+-\s+|\s*[·,]\s*/g, "__").replace(/[^A-Za-z0-9()'&+._ -]/g, "").replace(/ /g, "_").replace(/^\d+_/, "").slice(0, 90) + ext;
+    /* "Board Minutes, signed" + 2026-11-02 -> "2026-11-02__Board_Minutes__signed": the comma turns into the small line under the title */
+    var folder = sec === "statements" ? "bank/statements/" + dt.slice(0, 4) : sec;
+    var key = folder + "/" + dt + "__" + nm.replace(/\s+-\s+|\s*[·,]\s*/g, "__").replace(/[^A-Za-z0-9()'&+._ -]/g, "").replace(/ /g, "_").slice(0, 90) + ext;
     if (docs.some(function (d) { return d.path === key; })) key = key.replace(/(\.[a-z]+)$/, "__" + Date.now().toString(36) + "$1");
     m.className = "msg"; m.textContent = "Saving…"; $("addgo").disabled = true;
     try {
       var r = await fetch(DB + "/storage/v1/object/" + BUCKET + "/" + enc(key), { method: "POST", headers: await hdr({ "Content-Type": f.type || "application/octet-stream", "x-upsert": "false" }), body: f });
       if (!r.ok) throw new Error("up " + r.status);
-      $("add").classList.remove("show"); await load();
+      $("add").classList.remove("show"); packet = null; await load(); go("doc/" + encodeURIComponent(key)); toast("Saved for the whole board.");
     } catch (e) { m.className = "msg bad"; m.textContent = "Couldn't save it. Check your signal and try again."; $("addgo").disabled = false; }
   }
-  async function removeCur() {
-    var d = cur && cur.d; if (!d) return;
+  async function removeDoc(d) {
+    if (!confirm("Take \"" + d.title + "\" out of the folder for the whole board?")) return;
     try {
       var r = await fetch(DB + "/storage/v1/object/" + BUCKET, { method: "DELETE", headers: await hdr({ "Content-Type": "application/json" }), body: JSON.stringify({ prefixes: [d.path] }) });
       if (!r.ok) throw new Error("rm " + r.status);
-      delete blobs[d.path]; closeView(false); await load();
-    } catch (e) { $("conf").querySelector("p").textContent = "Couldn't take it out. Check your signal."; }
+      delete blobs[d.path]; packet = null; await load(); go("docs/" + d.folder); toast("Taken out.");
+    } catch (e) { toast("Couldn't take it out. Check your signal.", true); }
   }
 
   /* ---------------------------------------------------------------- TAPS */
   document.addEventListener("click", function (e) {
-    var t = e.target;
-    var o = t.closest("[data-open]"); if (o) return openView(docs[+o.dataset.open]);
-    var s = t.closest("[data-share]"); if (s) return shareDoc(docs[+s.dataset.share], s);
-    var x = t.closest("[data-x]"); if (x) return $(x.dataset.x).classList.remove("show");
-    if (t.closest("#pkgo")) return makePacket();
-    if (t.closest("#pkshare")) { if (packet) sendFile(packet, packetName(), "Cornerstones Recovery - Bank Papers"); return; }
+    var t = e.target, b;
+    if ((b = t.closest("[data-go]"))) { $("menu").classList.remove("show"); return go(b.dataset.go); }
+    if ((b = t.closest("[data-doc]"))) return go("doc/" + encodeURIComponent(docs[+b.dataset.doc].path));
+    if ((b = t.closest("[data-open]"))) return openView(docs[+b.dataset.open]);
+    if ((b = t.closest("[data-save]"))) return saveDoc(docs[+b.dataset.save], b);
+    if ((b = t.closest("[data-mail]"))) return mailDoc(docs[+b.dataset.mail], b);
+    if ((b = t.closest("[data-rm]"))) return removeDoc(docs[+b.dataset.rm]);
+    if ((b = t.closest("[data-task]"))) return openTask(+b.dataset.task);
+    if ((b = t.closest("[data-q]"))) { $("q").value = b.dataset.q; search(b.dataset.q); return; }
+    if ((b = t.closest("[data-x]"))) return $(b.dataset.x).classList.remove("show");
+    if (t.closest("#pkgo")) return makePacket(false);
+    if (t.closest("#pkmail")) return makePacket(true);
+    if (t.closest("#pksave")) { if (packet) { download(packet, packetName()); toast("Saved."); } return; }
     if (t.closest("#pkview")) { if (packet) openView(null, packet); return; }
     if (t.closest("#addbtn")) return openAdd();
-    if (t.classList.contains("sheet")) return t.classList.remove("show");
+    if (t.closest("#taddbtn")) { if (!tasks) return toast("Run porch_77 first.", true); $("tatitle").value = ""; $("tadate").value = ""; $("tanote").value = ""; $("talink").value = ""; $("tamsg").textContent = ""; $("tadd").classList.add("show"); return; }
+    if (t.closest("#pprev")) { if (prev.page > 1) { prev.page--; paintPrev(); } return; }
+    if (t.closest("#pnext")) { if (prev.page < prev.n) { prev.page++; paintPrev(); } return; }
+    if (t.classList.contains("sheet") || t.classList.contains("menu")) return t.classList.remove("show");
   });
   $("addgo").onclick = saveAdd;
+  $("tdone").onclick = toggleTask;
+  $("trm").onclick = removeTask;
+  $("tago").onclick = saveTask;
   $("vclose").onclick = function () { closeView(false); };
-  $("vshare").onclick = function () { if (!cur) return; if (cur.d) shareDoc(cur.d); else sendFile(cur.blob, packetName(), "Cornerstones Recovery - Bank Papers"); };
+  $("vshare").onclick = function () { if (!cur) return; if (cur.d) mailDoc(cur.d); else emailFile(cur.blob, packetName(), "Cornerstones Recovery - Bank packet"); };
   $("zin").onclick = function () { if (cur && zoom < 3) { zoom = Math.min(3, zoom + 0.5); paint(); } };
   $("zout").onclick = function () { if (cur && zoom > 1) { zoom = Math.max(1, zoom - 0.5); paint(); } };
-  $("vrm").onclick = function () { $("conf").querySelector("p").textContent = "Take this paper out of the folder for the whole board?"; $("conf").classList.add("show"); };
-  $("confno").onclick = function () { $("conf").classList.remove("show"); };
-  $("confyes").onclick = removeCur;
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { if ($("view").classList.contains("show")) closeView(false); else document.querySelectorAll(".sheet.show").forEach(function (s) { s.classList.remove("show"); }); } });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { if ($("view").classList.contains("show")) closeView(false); else document.querySelectorAll(".sheet.show,.menu.show").forEach(function (s) { s.classList.remove("show"); }); } });
 
   load();
 })();
