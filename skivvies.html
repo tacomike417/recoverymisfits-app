@@ -141,7 +141,7 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
     <!-- ===== 4. IN ===== -->
     <section id="s-done" hidden>
       <h1>Thanks for helping</h1>
-      <p class="sub">Taking you to the Skivvies group on recoverymisfits.org&hellip;</p>
+      <p class="sub" id="doneSub">Taking you to the Skivvies group on recoverymisfits.org&hellip;</p>
       <div class="spin" aria-hidden="true"></div>
     </section>
   </div>
@@ -159,6 +159,15 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
   var KEY = "sb_publishable_5r-l8Bj8PjXhq5qpp1b26g_QQ7xPQ7P";
   var STEPS = ["s-pick", "s-in", "s-new", "s-code", "s-done"];
   var isNew = false, busy = false;
+  /* came from skivvies.org "Write a note" (?to=note): after sign-in, go BACK to skivvies.org to write it there
+     (Mike, 3 Nov 2026). The sign-in token rides in the #hash, which never reaches a server; skivvies.org keeps it
+     for that tab only and wipes it from the address. */
+  var TO_NOTE = /[?&]to=note\b/.test(location.search);
+  async function backToSkivvies() {
+    var t = await A.token();
+    if (!t) { step("s-pick", true); return; }
+    location.replace("https://skivvies.org/write-a-note#rm=" + encodeURIComponent(t) + "&u=" + encodeURIComponent(A.name() || ""));
+  }
   function say(id, t) { $(id).textContent = t || ""; }
   function set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
@@ -286,11 +295,12 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
     }
     set("rm_lane", "skivvies");
     paintStep("s-done");
+    if (TO_NOTE) { $("doneSub").textContent = "Taking you back to skivvies.org to write it\u2026"; setTimeout(backToSkivvies, 500); return; }
     setTimeout(function () { location.replace("/feed/porch.html?g=skivvies"); }, 700);
   }
 
   /* already in the crew on this phone: straight to the group */
-  try { if (A.signedIn() && localStorage.getItem("rm_lane") === "skivvies") { location.replace("/feed/porch.html?g=skivvies"); return; } } catch (e) {}
+  try { if (A.signedIn() && localStorage.getItem("rm_lane") === "skivvies") { if (TO_NOTE) { paintStep("s-done"); $("doneSub").textContent = "Taking you back to skivvies.org\u2026"; backToSkivvies(); } else location.replace("/feed/porch.html?g=skivvies"); return; } } catch (e) {}
   step("s-pick", true);
 })();
 </script>
