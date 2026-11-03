@@ -23,7 +23,23 @@
        (supabase/porch_76_skivvies_lane.sql switches Matt off for lane accounts).
   Every step after the first is one phone-back (or the arrow) from the step before.
 -->
+<script>
+/* THE HOP (3 Nov 2026, Mike: "it flashes some pages and looks spammy"). Coming from skivvies.org "Write a note"
+   (?to=note) and already signed in on this browser: show nothing but a Skivvies-cream screen while we bounce
+   straight back. Only the sign-in / sign-up screens ever show, and only when they're needed. ?switch=1 (from
+   "Not you?" on Skivvies) shows the account picker instead. */
+(function () {
+  try {
+    var q = location.search;
+    if (/[?&]to=note\b/.test(q) && !/[?&]switch=1\b/.test(q) && localStorage.getItem("rm_account_v1")) document.documentElement.className += " hop";
+  } catch (e) {}
+})();
+</script>
 <style>
+html.hop,html.hop body{background:#fff6f0}
+html.hop main{display:none}
+html.hop body::after{content:"";position:fixed;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:16px;background:url(/assets/house/skivvies/avatar.webp) center/cover;opacity:0;animation:hopin .25s .6s forwards}
+@keyframes hopin{to{opacity:1}}
 @font-face{font-family:"RM Head";src:url("/assets/fonts/anton-400.woff2") format("woff2");font-display:swap}
 :root{--bg:#11110f;--card:#1b1a17;--line:#34322c;--text:#f1e7cf;--soft:#c9bfa8;--muted:#958b76;--gold:#e0bd6a;--field:#23221e}
 *{box-sizing:border-box}
@@ -162,10 +178,11 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
   /* came from skivvies.org "Write a note" (?to=note): after sign-in, go BACK to skivvies.org to write it there
      (Mike, 3 Nov 2026). The sign-in token rides in the #hash, which never reaches a server; skivvies.org keeps it
      for that tab only and wipes it from the address. */
-  var TO_NOTE = /[?&]to=note\b/.test(location.search);
+  var TO_NOTE = /[?&]to=note\b/.test(location.search), SWITCH = /[?&]switch=1\b/.test(location.search);
+  function hop(on) { document.documentElement.classList.toggle("hop", !!on); }
   async function backToSkivvies() {
     var t = await A.token();
-    if (!t) { step("s-pick", true); return; }
+    if (!t) { hop(false); step("s-pick", true); return; }
     location.replace("https://skivvies.org/write-a-note#rm=" + encodeURIComponent(t) + "&u=" + encodeURIComponent(A.name() || ""));
   }
   function say(id, t) { $(id).textContent = t || ""; }
@@ -289,18 +306,21 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
   async function joinCrew() {
     var r = await call(DB + "/rest/v1/rpc/skivvies_lane_join", { p_new: !!isNew }, true);
     if (!r.ok) {
+      hop(false);
       if (/confirm/i.test(r.error)) { step("s-code", true); codeRow("mail"); return; }   /* an RM account with no email yet */
       step("s-pick", true);
       return say("pickSay", r.error);
     }
     set("rm_lane", "skivvies");
     paintStep("s-done");
-    if (TO_NOTE) { $("doneSub").textContent = "Taking you back to skivvies.org to write it\u2026"; setTimeout(backToSkivvies, 500); return; }
+    if (TO_NOTE) { hop(true); backToSkivvies(); return; }
     setTimeout(function () { location.replace("/feed/porch.html?g=skivvies"); }, 700);
   }
 
   /* already in the crew on this phone: straight to the group */
-  try { if (A.signedIn() && localStorage.getItem("rm_lane") === "skivvies") { if (TO_NOTE) { paintStep("s-done"); $("doneSub").textContent = "Taking you back to skivvies.org\u2026"; backToSkivvies(); } else location.replace("/feed/porch.html?g=skivvies"); return; } } catch (e) {}
+  if (TO_NOTE && A.signedIn() && !SWITCH) { hop(true); isNew = false; joinCrew(); return; }   /* joins the group if they aren't in it yet, then straight back */
+  hop(false);
+  try { if (A.signedIn() && !TO_NOTE && localStorage.getItem("rm_lane") === "skivvies") { location.replace("/feed/porch.html?g=skivvies"); return; } } catch (e) {}
   step("s-pick", true);
 })();
 </script>
