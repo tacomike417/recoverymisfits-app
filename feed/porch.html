@@ -1538,7 +1538,26 @@ html.kb .ch-bar{padding-bottom:8px}
 .skv-pin p{margin:0 0 12px;font:500 15px/1.45 Arial,sans-serif;color:#2b3c37}
 .skv-pin button{width:100%;height:50px;border:0;border-radius:14px;background:#f35d40;color:#fff;font:900 17px Arial,sans-serif;cursor:pointer}
 .skv-pin small{display:block;margin-top:9px;font:600 12.5px/1.4 Arial,sans-serif;color:#52635c;text-align:center}
-.skv-sheet{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.skv-top{margin:12px 16px 6px}
+.skv-what{margin:0 0 10px;font:500 15px/1.45 Arial,sans-serif;color:var(--ink,#102520)}
+.skv-what b{font-weight:900}
+.skv-count{margin:0 0 10px;padding:12px 14px;border-radius:14px;background:#102520;color:#fff6f0;font:700 15px/1.3 Arial,sans-serif}
+.skv-count b{color:#f8bc54;font-size:22px}
+.skv-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.skv-t{display:block;width:100%;border-radius:18px;text-decoration:none;border:0;padding:0;background:none;cursor:pointer}
+.skv-t img{width:100%;height:auto;display:block}
+.skv-t:active{transform:scale(.97)}
+.skv-inv{aspect-ratio:294/260;display:flex;flex-direction:column;justify-content:flex-end;box-sizing:border-box;padding:12px;background:#f35d40;border:3px solid #102520;border-radius:18px;margin:2% 1.5%;color:#fff;text-align:center}
+.skv-inv b{font:400 clamp(20px,6vw,26px)/1 "RM Head",Impact,sans-serif;letter-spacing:.01em}
+.skv-inv small{margin-top:5px;font:600 12.5px/1.3 Arial,sans-serif}
+.skv-out{margin:16px 0 4px}
+.skv-out h4{margin:0 0 8px;font:400 22px/1 "RM Head",Impact,sans-serif;text-transform:uppercase;color:#f35d40}
+.skv-strip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
+.skv-card{flex:0 0 78%;scroll-snap-align:start;background:#fff6f0;color:#102520;border:2px solid #102520;border-radius:16px;padding:14px;box-sizing:border-box}
+.skv-card p{margin:0 0 8px;font:600 15px/1.4 Arial,sans-serif}
+.skv-card span{display:block;font:700 13px Arial,sans-serif;color:#52635c}
+.skv-card em{display:inline-block;margin-top:8px;font:900 13px Arial,sans-serif;font-style:normal;color:#f35d40}
+.skv-sheet{position:fixed;inset:0;z-index:30000;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
 .skv-sheet .in{width:100%;max-width:520px;max-height:92vh;overflow:auto;background:#fff6f0;color:#102520;border-radius:22px 22px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom))}
 .skv-sheet h3{margin:0 0 4px;font:400 28px/1.05 "RM Head",Impact,sans-serif;text-transform:uppercase}
 .skv-sheet p{margin:0 0 12px;font:500 14.5px/1.45 Arial,sans-serif;color:#2b3c37}
@@ -1604,7 +1623,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v249</span>
+  <span class="ver" id="ver">v251</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -6810,15 +6829,50 @@ html.kb .ch-bar{padding-bottom:8px}
     if (!on) return;
     var sh = pg.querySelector("[data-gshare]");
     if (sh) { sh.removeAttribute("data-gshare"); sh.setAttribute("data-skvnote", ""); sh.textContent = "\u270D\uFE0F Write a note"; }
-    if (!member) return;
-    var pin = document.createElement("div");
-    pin.className = "skv-pin";
-    pin.innerHTML = "<h3>Write a note for somebody\u2019s first day</h3>" +
-      "<p>We print it and it goes in their pack with their new underwear. Say what you wish somebody had said to you.</p>" +
-      '<button type="button" data-skvnote>\u270D\uFE0F Write a note</button>' +
-      "<small>When your note goes in a pack, it shows up here and we\u2019ll message you.</small>";
+    /* THE TOP OF THE GROUP (4 Nov 2026, Mike: "it's totally lacking on what this is"). What we do in
+       3 lines, the live Skivvies Count, the same 4 picture tiles as skivvies.org, and the notes that
+       already went out in packs. Everybody who opens the group sees it, member or not. */
+    var SK = "https://skivvies.org/img/buttons/";
+    var tile = function (img, label, attrs) {
+      var tag = attrs.indexOf("href=") === 0 ? "a" : "button";
+      return "<" + tag + ' class="skv-t" ' + (tag === "button" ? 'type="button" ' : "") + attrs + ' aria-label="' + label + '"><img src="' + SK + img + '-588.webp" srcset="' + SK + img + "-588.webp 588w, " + SK + img + '-882.webp 882w" sizes="46vw" width="294" height="260" alt=""></' + tag + ">";
+    };
+    var top = document.createElement("div");
+    top.className = "skv-top";
+    top.innerHTML = '<p class="skv-what"><b>New underwear for day one.</b> Men and women starting recovery in Stark County get a fresh pack from us. You write the notes. We print them and tuck one in every pack.</p>' +
+      '<div class="skv-count" id="skvCount" hidden></div>' +
+      '<div class="skv-tiles">' +
+        tile("donate_a_pack", "Donate a pack on skivvies.org", 'href="https://skivvies.org/cover-someones-butt"') +
+        tile("write_a_note", "Write a note for somebody\u2019s first day", 'data-skvnote') +
+        tile("request_supplies", "Request underwear for your program or shelter", 'href="https://skivvies.org/request-underwear"') +
+        (member ? '<button type="button" class="skv-t skv-inv" data-ginvite aria-label="Invite a friend to the Skivvies group"><b>INVITE A FRIEND</b><small>Bring somebody into the Skivvies crew.</small></button>'
+                : tile("join_the_group", "Join the Skivvies group", 'data-gjoin="' + g.id + '"')) +
+      "</div>" +
+      '<div class="skv-out" id="skvOut" hidden><h4>Notes that went out</h4><div class="skv-strip" id="skvStrip"></div></div>';
     var feed = pg.querySelector(".g-feed");
-    if (feed) feed.parentNode.insertBefore(pin, feed);
+    if (feed) feed.parentNode.insertBefore(top, feed);
+    skvLoad();
+  }
+  async function skvLoad() {
+    var H = { apikey: SKV_KEY, Authorization: "Bearer " + SKV_KEY };
+    var BASE = SKV_FN.replace("/functions/v1/skivvies-note", "");
+    try {
+      var r = await fetch(BASE + "/rest/v1/skivvies_butt_count?select=people", { headers: H });
+      var d = r.ok ? await r.json() : [];
+      var n = (d || []).reduce(function (t, x) { return t + (x.people || 0); }, 0);
+      var c = $("skvCount");
+      if (c) { c.hidden = false; c.innerHTML = n >= 2 ? "\uD83C\uDF51 <b>" + n.toLocaleString() + "</b> butts covered so far" : "\uD83C\uDF51 The first packs go out soon. Every butt gets counted."; }
+    } catch (e) {}
+    try {
+      var r2 = await fetch(BASE + "/rest/v1/rpc/skivvies_notes_out", { method: "POST", headers: Object.assign({ "Content-Type": "application/json" }, H), body: "{}" });
+      var notes = r2.ok ? await r2.json() : [];
+      if (!notes || !notes.length || !$("skvStrip")) return;
+      $("skvStrip").innerHTML = notes.map(function (x) {
+        var u = x.used_count >= 2 ? "\uD83C\uDF51 in " + x.used_count + " packs" : "\uD83C\uDF51 in a pack";
+        return '<div class="skv-card"><p>\u201C' + esc(x.body) + '\u201D</p><span>\u2014 ' + esc(x.sign_as || "somebody in recovery") + "</span><em>" + u + "</em></div>";
+      }).join("");
+      $("skvOut").hidden = false;
+    } catch (e) {}
   }
   function skvNote() {
     gate(function () {
