@@ -31,7 +31,7 @@
    normal browser behavior after four seconds, so this can never be the
    reason somebody is staring at a blank screen. */
 
-const VERSION = "skv251-2026-11-04";   // v251: Skivvies group top: what we do, count, tiles, notes that went out
+const VERSION = "skv253-2026-11-04";   // v253: smooth skivvies.org -> group, Back goes home to skivvies.org
 
 /* SHARING INTO THE APP (1 Oct 2026, Mike: "would you like to share this to your
    spins or would you like to make a post?"). On Android, the app shows up in the

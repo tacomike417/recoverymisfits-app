@@ -31,7 +31,9 @@
 (function () {
   try {
     var q = location.search;
-    if (/[?&]to=note\b/.test(q) && !/[?&]switch=1\b/.test(q) && localStorage.getItem("rm_account_v1")) document.documentElement.className += " hop";
+    /* ?to=group (4 Nov 2026, Mike: "the pages are all jumping around ... it looks spammy"): the Join the Group
+       tile on skivvies.org. Signed in already = the same quiet cream screen, then straight into the group. */
+    if (/[?&]to=(note|group)\b/.test(q) && !/[?&]switch=1\b/.test(q) && localStorage.getItem("rm_account_v1")) document.documentElement.className += " hop";
   } catch (e) {}
 })();
 </script>
@@ -178,7 +180,8 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
   /* came from skivvies.org "Write a note" (?to=note): after sign-in, go BACK to skivvies.org to write it there
      (Mike, 3 Nov 2026). The sign-in token rides in the #hash, which never reaches a server; skivvies.org keeps it
      for that tab only and wipes it from the address. */
-  var TO_NOTE = /[?&]to=note\b/.test(location.search), SWITCH = /[?&]switch=1\b/.test(location.search);
+  var TO_NOTE = /[?&]to=note\b/.test(location.search), TO_GROUP = /[?&]to=group\b/.test(location.search), SWITCH = /[?&]switch=1\b/.test(location.search);
+  var GROUP_URL = "/feed/porch.html?g=skivvies&from=skv";   /* from=skv: the Porch keeps the cream screen up and Back goes home to skivvies.org */
   function hop(on) { document.documentElement.classList.toggle("hop", !!on); }
   async function backToSkivvies() {
     var t = await A.token();
@@ -314,13 +317,15 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
     set("rm_lane", "skivvies");
     paintStep("s-done");
     if (TO_NOTE) { hop(true); backToSkivvies(); return; }
-    setTimeout(function () { location.replace("/feed/porch.html?g=skivvies"); }, 700);
+    if (document.documentElement.classList.contains("hop")) { location.replace(GROUP_URL); return; }
+    setTimeout(function () { location.replace(GROUP_URL); }, 700);
   }
 
   /* already in the crew on this phone: straight to the group */
   if (TO_NOTE && A.signedIn() && !SWITCH) { hop(true); isNew = false; joinCrew(); return; }   /* joins the group if they aren't in it yet, then straight back */
+  if (TO_GROUP && A.signedIn() && !SWITCH) { hop(true); isNew = false; joinCrew(); return; }   /* joins if they aren't in yet, then into the group */
   hop(false);
-  try { if (A.signedIn() && !TO_NOTE && localStorage.getItem("rm_lane") === "skivvies") { location.replace("/feed/porch.html?g=skivvies"); return; } } catch (e) {}
+  try { if (A.signedIn() && !TO_NOTE && localStorage.getItem("rm_lane") === "skivvies") { hop(true); location.replace(GROUP_URL); return; } } catch (e) {}
   step("s-pick", true);
 })();
 </script>
