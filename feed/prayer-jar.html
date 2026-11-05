@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cookie's Prayer Jar · Recovery Misfits</title>
+<meta name="theme-color" content="#fff5fa">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/icon-192.png">
+<style>
+/* COOKIE'S PRAYER JAR (v1, 5 Nov 2026). Mike: Corinna writes her own prayers and needs a place to keep them.
+   "She needs to be able to EASILY put them in, like copied from her phone, and pasted in, and then if she needs
+   to edit the title, or date, or whatever it needs to be EASY, simple and intuitive." Private: only she can read
+   them (table porch_prayers, porch_80). Only she gets the button (prayer_jar_users). Phone first, at 393.
+
+   SCREENS (hash routes, so the phone's back button and the arrow both work):
+     (none)     the jar: Add a prayer, then her prayers, newest first
+     #new       paste a new one: one big box, a Paste button, title fills itself from the first line, date = today
+     #p/<id>    read one: Copy, Edit
+     #e/<id>    change one: title, date, words; Delete at the bottom (tap twice)
+   A half-typed prayer is kept on the phone until it's saved, so nothing is lost if she leaves. */
+*{box-sizing:border-box}[hidden]{display:none!important}
+:root{--pink:#e5197f;--pink2:#c40f69;--soft:#fde3f0;--line:#f4bfd9;--ink:#3a1027;--muted:#8d5a74;--bg:#fff5fa}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:18px/1.45 Arial,sans-serif;-webkit-text-size-adjust:100%}
+button,input,textarea{font:inherit;color:inherit}
+main{max-width:520px;margin:0 auto;padding:0 14px calc(40px + env(safe-area-inset-bottom))}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(8px + env(safe-area-inset-top)) 0 4px;display:flex;align-items:center;gap:8px}
+.bk{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--pink);display:grid;place-items:center;cursor:pointer}
+.bk svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.top h1{flex:1;margin:0;font:800 19px/1.2 Arial,sans-serif;color:var(--pink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ver{flex:none;padding:3px 9px;border-radius:999px;background:#fff;color:#000;border:1px solid #ddd;font:800 11px Arial,sans-serif}
+.banner{display:block;width:100%;height:auto;margin:4px 0 12px}
+.big{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:60px;border:0;border-radius:18px;background:var(--pink);color:#fff;font:800 20px Arial,sans-serif;box-shadow:0 4px 0 var(--pink2);cursor:pointer}
+.big:active{transform:translateY(2px);box-shadow:0 2px 0 var(--pink2)}
+.big.soft{background:#fff;color:var(--pink2);border:2px solid var(--pink);box-shadow:none}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.find{width:100%;margin:14px 0 2px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:#fff}
+.list{margin-top:14px;display:grid;gap:10px}
+.card{display:block;width:100%;text-align:left;padding:14px 16px;border:1.5px solid var(--line);border-radius:16px;background:#fff;cursor:pointer}
+.card b{display:block;font-size:19px;color:var(--ink)}
+.card small{display:block;margin:2px 0 6px;color:var(--muted);font-size:14px;font-weight:700}
+.card span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#5d3a4c;font-size:16px}
+.empty{margin:22px 4px;text-align:center;color:var(--muted)}
+label{display:block;margin:14px 2px 6px;font-weight:800;font-size:16px;color:var(--pink2)}
+.hint{margin:4px 2px 0;font-size:14px;color:var(--muted)}
+input[type=text],input[type=date],textarea{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:14px;background:#fff;font-size:18px}
+input:focus,textarea:focus{outline:none;border-color:var(--pink)}
+textarea{min-height:34vh;resize:vertical;line-height:1.5}
+.read h2{margin:6px 2px 2px;font:800 24px/1.2 Arial,sans-serif;color:var(--ink)}
+.read .when{margin:0 2px 14px;color:var(--muted);font-weight:700;font-size:15px}
+.read .words{white-space:pre-wrap;padding:16px;border-radius:16px;background:#fff;border:1.5px solid var(--line);font-size:19px;line-height:1.6}
+.acts{margin-top:16px}
+.del{display:block;width:100%;margin-top:26px;padding:14px;border:0;background:none;color:#b0243c;font-weight:800;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:90vw;padding:12px 18px;border-radius:14px;background:var(--ink);color:#fff;font-weight:700;z-index:50}
+.gate{margin:30px 6px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <button type="button" class="bk" id="back" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <h1 id="title"></h1>
+    <span class="ver">v1</span>
+  </div>
+  <div id="app"></div>
+</main>
+<script src="/assets/account.js"></script>
+<script>
+(function () {
+  "use strict";
+  var DB = "https://rlytvfehbglsjfvprtbp.supabase.co", A = window.RMAccount, KEY = A && A.anonKey;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var app = $("app"), all = [], loaded = false, DRAFT = "rm_prayer_draft";
+
+  /* ---- the database ---- */
+  async function hdr(extra) { var t = await A.token(), h = { apikey: KEY, Authorization: "Bearer " + (t || KEY) }; for (var k in extra || {}) h[k] = extra[k]; return h; }
+  async function rest(path, method, body) {
+    var r = await fetch(DB + "/rest/v1/" + path, { method: method || "GET", headers: await hdr({ "Content-Type": "application/json", Prefer: "return=representation" }), body: body ? JSON.stringify(body) : undefined });
+    if (!r.ok) { var e = new Error("rest " + r.status); e.status = r.status; throw e; }
+    return r.status === 204 ? null : r.json();
+  }
+  async function allowed() {
+    var r = await fetch(DB + "/rest/v1/rpc/prayer_jar_ok", { method: "POST", headers: await hdr({ "Content-Type": "application/json" }), body: "{}" });
+    return r.ok && (await r.json()) === true;
+  }
+  async function load() { all = await rest("porch_prayers?select=*&order=prayed_on.desc,created_at.desc"); loaded = true; }
+
+  /* ---- little helpers ---- */
+  function toast(t) { var o = document.querySelector(".toast"); if (o) o.remove(); var d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 2200); }
+  function today() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function nice(ymd) { var p = String(ymd || "").split("-"); if (p.length < 3) return ""; return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }); }
+  /* the title fills itself from the first line she pastes, until she types her own */
+  function firstLine(s) { var l = String(s || "").split("\n").map(function (x) { return x.trim(); }).filter(Boolean)[0] || ""; return l.length > 60 ? l.slice(0, 57).replace(/\s+\S*$/, "") + "…" : l; }
+  function byId(id) { return all.filter(function (p) { return p.id === id; })[0]; }
+  function setTitle(t) { $("title").textContent = t; document.title = (t ? t + " · " : "") + "Cookie's Prayer Jar"; }
+
+  /* ---- screens ---- */
+  function home() {
+    setTitle("");
+    var q = (sessionStorage.getItem("rm_pj_q") || "").toLowerCase();
+    var list = all.filter(function (p) { return !q || (p.title + " " + p.body).toLowerCase().indexOf(q) >= 0; });
+    app.innerHTML = '<img class="banner" src="/assets/prayer-jar/banner.webp" alt="Cookie\'s Prayer Jar" width="1000" height="333">' +
+      '<button type="button" class="big" data-go="#new">＋ Add a prayer</button>' +
+      (all.length >= 6 ? '<input class="find" id="find" type="search" placeholder="Find a prayer" value="' + esc(q) + '" autocomplete="off">' : "") +
+      '<div class="list" id="list">' + (list.length ? list.map(function (p) {
+        return '<button type="button" class="card" data-go="#p/' + p.id + '"><b>' + esc(p.title || firstLine(p.body) || "A prayer") + "</b><small>" + esc(nice(p.prayed_on)) + "</small><span>" + esc(p.body) + "</span></button>";
+      }).join("") : '<p class="empty">' + (all.length ? "Nothing matches that." : "Your prayers will be kept here.<br>Tap <b>Add a prayer</b> to put the first one in.") + "</p>") + "</div>";
+    var f = $("find"); if (f) f.addEventListener("input", function () { sessionStorage.setItem("rm_pj_q", f.value); var pos = f.selectionStart; home(); var g = $("find"); g.focus(); try { g.setSelectionRange(pos, pos); } catch (e) {} });
+  }
+  function read(p) {
+    setTitle("");
+    app.innerHTML = '<div class="read"><h2>' + esc(p.title || firstLine(p.body) || "A prayer") + '</h2><p class="when">' + esc(nice(p.prayed_on)) + '</p><div class="words">' + esc(p.body) + "</div>" +
+      '<div class="row acts"><button type="button" class="big soft" id="copy">Copy</button><button type="button" class="big" data-go="#e/' + p.id + '">Edit</button></div></div>';
+    $("copy").addEventListener("click", function () {
+      var t = (p.title ? p.title + "\n\n" : "") + p.body;
+      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast("Copied ✓"); }, function () { toast("Press and hold the words to copy them."); });
+    });
+  }
+  function form(p) {
+    var isNew = !p, d = isNew ? (JSON.parse(localStorage.getItem(DRAFT) || "null") || {}) : p;
+    var typedTitle = !isNew || !!d.titleTyped;
+    setTitle(isNew ? "New prayer" : "Edit prayer");
+    app.innerHTML =
+      (isNew ? '<button type="button" class="big soft" id="paste">📋 Paste my prayer</button><p class="hint" id="pastehint">Copy it on your phone first, then tap Paste.</p>' : "") +
+      '<label for="body">' + (isNew ? "Your prayer" : "The words") + '</label><textarea id="body" placeholder="Paste or type your prayer here">' + esc(d.body || "") + "</textarea>" +
+      '<label for="ttl">Title</label><input type="text" id="ttl" maxlength="120" value="' + esc(d.title || "") + '" placeholder="Fills in from the first line">' +
+      '<label for="day">Date</label><input type="date" id="day" value="' + esc(d.prayed_on || today()) + '">' +
+      '<div class="acts"><button type="button" class="big" id="save">' + (isNew ? "Save it in the jar" : "Save changes") + "</button></div>" +
+      (isNew ? "" : '<button type="button" class="del" id="del">Delete this prayer</button>');
+    var body = $("body"), ttl = $("ttl"), day = $("day");
+    function keep() { if (!isNew) return; try { localStorage.setItem(DRAFT, JSON.stringify({ body: body.value, title: ttl.value, prayed_on: day.value, titleTyped: typedTitle })); } catch (e) {} }
+    function autoTitle() { if (!typedTitle) ttl.value = firstLine(body.value); }
+    body.addEventListener("input", function () { autoTitle(); keep(); });
+    ttl.addEventListener("input", function () { typedTitle = ttl.value.trim() !== ""; keep(); });
+    day.addEventListener("change", keep);
+    if ($("paste")) $("paste").addEventListener("click", async function () {
+      try {
+        var t = await navigator.clipboard.readText();
+        if (!t || !t.trim()) { $("pastehint").textContent = "Nothing copied yet. Copy your prayer first, then tap Paste."; return; }
+        body.value = body.value.trim() ? body.value.replace(/\s+$/, "") + "\n\n" + t : t;
+        autoTitle(); keep(); toast("Pasted ✓");
+      } catch (e) {
+        body.focus();
+        $("pastehint").textContent = "Press and hold inside the big box, then tap Paste.";
+      }
+    });
+    $("save").addEventListener("click", async function () {
+      var words = body.value.replace(/\s+$/, "");
+      if (!words.trim()) { toast("Put your prayer in the big box first."); body.focus(); return; }
+      var row = { body: words, title: (ttl.value.trim() || firstLine(words)).slice(0, 120), prayed_on: day.value || today() };
+      var b = $("save"); b.disabled = true; b.textContent = "Saving…";
+      try {
+        if (isNew) { var r = await rest("porch_prayers", "POST", row); all.unshift(r[0]); try { localStorage.removeItem(DRAFT); } catch (e) {} }
+        else { row.updated_at = new Date().toISOString(); var u = await rest("porch_prayers?id=eq." + p.id, "PATCH", row); var i = all.indexOf(p); if (i >= 0) all[i] = u[0]; }
+        all.sort(function (a, z) { return a.prayed_on < z.prayed_on ? 1 : a.prayed_on > z.prayed_on ? -1 : (a.created_at < z.created_at ? 1 : -1); });
+        toast("Saved ✓");
+        history.back();
+      } catch (e) { b.disabled = false; b.textContent = isNew ? "Save it in the jar" : "Save changes"; toast("That didn't save. Check your signal and tap Save again."); }
+    });
+    if ($("del")) $("del").addEventListener("click", async function () {
+      var b = $("del");
+      if (!b.dataset.sure) { b.dataset.sure = "1"; b.textContent = "Tap again to delete it for good"; return; }
+      b.disabled = true;
+      try { await rest("porch_prayers?id=eq." + p.id, "DELETE"); all = all.filter(function (x) { return x.id !== p.id; }); toast("Deleted"); location.replace("#"); }
+      catch (e) { b.disabled = false; toast("That didn't delete. Try again."); }
+    });
+    if (isNew && !body.value) setTimeout(function () { try { $("paste").focus(); } catch (e) {} }, 50);
+  }
+
+  function route() {
+    window.scrollTo(0, 0);
+    if (!loaded) return;
+    var h = location.hash.slice(1), m;
+    if (h === "new") return form(null);
+    if ((m = h.match(/^p\/(.+)$/)) && byId(m[1])) return read(byId(m[1]));
+    if ((m = h.match(/^e\/(.+)$/)) && byId(m[1])) return form(byId(m[1]));
+    home();
+  }
+  document.addEventListener("click", function (e) { var g = e.target.closest("[data-go]"); if (g) location.hash = g.getAttribute("data-go").slice(1); });
+  window.addEventListener("hashchange", route);
+  /* the arrow: one step back inside the jar; from the jar itself, back where she came from (or the Porch) */
+  $("back").addEventListener("click", function () {
+    if (location.hash.length > 1) { history.back(); return; }
+    var fromSite = false; try { fromSite = new URL(document.referrer).origin === location.origin; } catch (e) {}
+    if (fromSite && history.length > 1) history.back(); else location.href = "/feed/porch.html";
+  });
+
+  (async function start() {
+    if (!A || !A.signedIn()) { app.innerHTML = '<p class="gate">Sign in to Recovery Misfits to open your prayer jar.</p><a class="big" href="/account.html" style="text-decoration:none">Sign in</a>'; return; }
+    app.innerHTML = '<img class="banner" src="/assets/prayer-jar/banner.webp" alt="Cookie\'s Prayer Jar" width="1000" height="333"><p class="gate">Opening your jar…</p>';
+    try {
+      if (!(await allowed())) { app.innerHTML = '<p class="gate">This prayer jar is a private one.</p>'; return; }
+      await load(); route();
+    } catch (e) { app.innerHTML = '<p class="gate">Couldn\'t open the jar. Check your signal and try again.</p><button type="button" class="big" onclick="location.reload()">Try again</button>'; }
+  })();
+})();
+</script>
+</body>
+</html>

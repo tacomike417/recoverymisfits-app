@@ -995,6 +995,7 @@ html.fullon #main{visibility:hidden}
 #games .gm-card b{display:block;font:400 21px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.02em}
 #games .gm-card small{display:block;margin-top:5px;color:var(--soft);font:600 13.5px/1.3 Arial,sans-serif}
 /* v236: the Cornerstones board folder (board only) */
+#memenu .menu .mm-pj{display:block;padding:0;min-height:0;border:0;background:none;border-radius:16px;overflow:hidden}#memenu .menu .mm-pj img{display:block;width:100%;height:auto}
 #memenu .menu .mm-board{background:#1b1a17;border-color:#1b1a17;color:#e0bd6a;font-weight:800}
 #memenu .menu .mm-board:active{background:#33312b}
 #memenu .menu .mm-board svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
@@ -1634,7 +1635,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v253</span>
+  <span class="ver" id="ver">v254</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2237,6 +2238,7 @@ html.kb .ch-bar{padding-bottom:8px}
     /* v236 (11 Oct 2026, Mike): the CORNERSTONES board folder, in your menu for the board only
        (krazyk226, fire_l0ve, tacomike417). The database decides: supabase/porch_70_cornerstones.sql. */
     try { isBoard = (await rpc("cornerstones_is_board", {})) === true; } catch (e) { isBoard = false; }
+    try { isPrayer = (await rpc("prayer_jar_ok", {})) === true; } catch (e) { isPrayer = false; }   /* v254: Cookie's Prayer Jar (porch_80) */
     paintPin();
     paintLook();
   }
@@ -2369,7 +2371,7 @@ html.kb .ch-bar{padding-bottom:8px}
 
   /* ================================================================ THE FEED */
   var posts = {}, comments = {}, mine = {}, oldest = null, loading = false, done = false;
-  var tab = "all", friends = {}, reqOut = {}, reqIn = {}, newest = null, saved = {}, isMod = false, isBoard = false;
+  var tab = "all", friends = {}, reqOut = {}, reqIn = {}, newest = null, saved = {}, isMod = false, isBoard = false, isPrayer = false;
 
   /* RESHARE (1 Oct 2026): the original share, shown inside the reshare with its author's
      name. Tapping it opens the original. Loaded on demand, wherever a reshare shows up. */
@@ -4096,6 +4098,8 @@ html.kb .ch-bar{padding-bottom:8px}
       '<div class="mm-grid">' +
         '<button type="button" data-mm="friends">Friends' + cnt(reqCount()) + '</button><button type="button" data-mm="saved">Saved shares</button>' +
         '<button type="button" class="wide mm-games" data-mm="games"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 7h9a5 5 0 0 1 4.8 6.4l-1 3.4a2.6 2.6 0 0 1-4.4 1.1L13.6 16h-3.2l-2.3 1.9a2.6 2.6 0 0 1-4.4-1.1l-1-3.4A5 5 0 0 1 7.5 7z"/><path d="M7.5 10.2v3.4M5.8 11.9h3.4"/></svg>Games</button>' +
+        /* v254: same rows, same order as the menu on every other page (assets/account.js) */
+        (isPrayer ? '<button type="button" class="wide mm-pj" data-mm="prayers" aria-label="Cookie\'s Prayer Jar"><img src="/assets/prayer-jar/banner.webp" alt="" width="1000" height="333"></button>' : "") +
         (isBoard ? '<button type="button" class="wide mm-board" data-mm="board"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></svg>Cornerstones board</button>' : "") +
         (isMod ? '<button type="button" class="mm-mod" data-mm="mod">Reports' + cnt(modCount) + '</button><button type="button" class="mm-mod" data-mm="desk">Share desk</button><button type="button" class="mm-mod wide" data-mm="posters">My posters</button>' : "") +
       "</div>" +
@@ -6191,6 +6195,7 @@ html.kb .ch-bar{padding-bottom:8px}
         /* v244 (16 Oct 2026, Mike): his print-ready posters, one tap to send them to the library */
         if (which === "posters") { location.href = "/feed/posters.html"; return; }
         if (which === "board") { location.href = "/feed/cornerstones.html"; return; }
+        if (which === "prayers") { location.href = "/feed/prayer-jar.html"; return; }
         if (which === "games") { open("games"); return; }
         if (which === "help") { location.href = "/help.html"; return; }
         if (which === "profile") openProfile(me.uid); else if (which === "notes") openNotes(); else if (which === "saved") openSaved(); else if (which === "account") location.href = "/account.html"; else if (which === "friends") openFriends(); else if (which === "coins") location.href = "/coins.html"; else if (which === "invite") invite(); else if (which === "findf") openSetup("friends"); else if (which === "tour") { if (window.PorchTour) window.PorchTour.open(0); }
@@ -7646,11 +7651,11 @@ html.kb .ch-bar{padding-bottom:8px}
     if (/[?&]me=1/.test(location.search)) { try { history.replaceState(null, "", location.pathname); } catch (e) {} setTimeout(function () { try { openMeMenu(); } catch (e) {} }, 600); }
     /* YOUR MENU ON OTHER PAGES (v246, 17 Oct 2026): assets/account.js shows the menu in place, and its
        buttons that are Porch screens land here with that screen open: friends, saved, games, edit, join. */
-    var fromMenu = (location.search.match(/[?&](friends|saved|games|edit|join)=1/) || [])[1];
+    var fromMenu = (location.search.match(/[?&](friends|saved|games|edit|join|mod)=1/) || [])[1];
     if (fromMenu) {
       try { history.replaceState(null, "", location.pathname); } catch (e) {}
       setTimeout(function () { try {
-        if (fromMenu === "friends") openFriends(); else if (fromMenu === "saved") openSaved(); else if (fromMenu === "games") open("games");
+        if (fromMenu === "mod") { if (isMod) openMod(); } else if (fromMenu === "friends") openFriends(); else if (fromMenu === "saved") openSaved(); else if (fromMenu === "games") open("games");
         else if (fromMenu === "edit") gate(openEdit); else gate(function () { toast("You're on the Porch \u2713"); paintPin(); paintLook(); });
       } catch (e) {} }, 600);
     }

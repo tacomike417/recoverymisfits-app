@@ -759,6 +759,9 @@
     ".rm-mm-menu .rm-mm-games svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}" +
     ".rm-mm-menu .rm-mm-join{flex-direction:column;gap:2px;margin-bottom:10px;min-height:58px;background:linear-gradient(135deg,#f3dfa0,#e0bd6a 55%,#c9973a);border-color:#c9973a;color:#1a1408;font-weight:800;font-size:17px}" +
     ".rm-mm-menu .rm-mm-join small{display:block;font:600 12.5px/1.3 Arial,sans-serif;color:#4a3a14}" +
+    ".rm-mm-menu .rm-mm-board{background:#1b1a17;border-color:#1b1a17;color:#e0bd6a;font-weight:800}.rm-mm-menu .rm-mm-board svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}" +
+    ".rm-mm-menu .rm-mm-mod{min-height:40px;font-size:13.5px;color:#6e675b}" +
+    ".rm-mm-menu .rm-mm-pj,.mm-pj{display:block!important;padding:0!important;min-height:0!important;border:0!important;background:none!important;border-radius:16px;overflow:hidden}.rm-mm-pj img,.mm-pj img{display:block;width:100%;height:auto}" +
     ".rm-mm-menu .rm-mm-out{margin-top:8px;min-height:42px;background:#fbe7e2;border-color:#e2a69a;color:#a8321f;font-weight:800}";
   function mmCSS() { if (document.getElementById("rm-mm-css")) return; var st = document.createElement("style"); st.id = "rm-mm-css"; st.textContent = MM_CSS; document.head.appendChild(st); }
   function mmShut() { if (mmEl) { mmEl.remove(); mmEl = null; } }
@@ -769,6 +772,26 @@
   }
   /* a Porch screen: this phone is marked beta on the way (it's still a beta, the door is visible) */
   function mmGo(q) { try { localStorage.setItem("rm_beta", "1"); } catch (e) {} location.href = "/feed/porch.html?" + q; }
+  /* YOUR MENU IS THE SAME EVERYWHERE (v254, 5 Nov 2026, Mike: "the you menu is back to being different when you are
+     on the daily stack page and the porch ... it needs to be the same no matter where you are on the site").
+     The Porch's menu had grown rows this one didn't have (Cornerstones board, the moderator rows). Now both ask the
+     server once, rm_menu_extras(), and draw the same rows in the same order. Kept on the phone so it opens complete. */
+  var MMX = "rm_menu_x";
+  function mmExtrasHTML(x) {
+    x = x || {};
+    return (x.prayers ? '<button type="button" class="wide rm-mm-pj" data-mm-href="/feed/prayer-jar.html" aria-label="Cookie\'s Prayer Jar"><img src="/assets/prayer-jar/banner.webp" alt="" width="1000" height="333"></button>' : "") +
+      (x.board ? '<button type="button" class="wide rm-mm-board" data-mm-href="/feed/cornerstones.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></svg>Cornerstones board</button>' : "") +
+      (x.mod ? '<button type="button" class="rm-mm-mod" data-mm="mod=1">Reports</button><button type="button" class="rm-mm-mod" data-mm-href="/feed/share-desk.html">Share desk</button><button type="button" class="rm-mm-mod wide" data-mm-href="/feed/posters.html">My posters</button>' : "");
+  }
+  function mmExtrasCached() { try { var c = JSON.parse(localStorage.getItem(MMX) || "null"); return c && session && c.n === session.name ? c.x : null; } catch (e) { return null; } }
+  async function mmExtras() {
+    var t = await token(); if (!t) return null;
+    var r = await fetch(URL_BASE + "/rest/v1/rpc/rm_menu_extras", { method: "POST", headers: { apikey: ANON_KEY, Authorization: "Bearer " + t, "Content-Type": "application/json" }, body: "{}" });
+    if (!r.ok) return null;
+    var x = await r.json();
+    try { localStorage.setItem(MMX, JSON.stringify({ n: session.name, x: x })); } catch (e) {}
+    return x;
+  }
   function meMenu() {
     if (!session) { location.href = "/beta.html"; return; }
     if (mmEl) return;
@@ -784,7 +807,7 @@
       '<div class="rm-mm-menu">' +
       (onPorch ? "" : '<button type="button" class="rm-mm-join" data-mm="join=1">Join the Porch<small>Add an email and you can share, make Spins and message</small></button>') +
       '<div class="rm-mm-grid"><button type="button" data-mm="friends=1">Friends</button><button type="button" data-mm="saved=1">Saved shares</button>' +
-      '<button type="button" class="wide rm-mm-games" data-mm="games=1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 7h9a5 5 0 0 1 4.8 6.4l-1 3.4a2.6 2.6 0 0 1-4.4 1.1L13.6 16h-3.2l-2.3 1.9a2.6 2.6 0 0 1-4.4-1.1l-1-3.4A5 5 0 0 1 7.5 7z"/><path d="M7.5 10.2v3.4M5.8 11.9h3.4"/></svg>Games</button></div>' +
+      '<button type="button" class="wide rm-mm-games" data-mm="games=1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 7h9a5 5 0 0 1 4.8 6.4l-1 3.4a2.6 2.6 0 0 1-4.4 1.1L13.6 16h-3.2l-2.3 1.9a2.6 2.6 0 0 1-4.4-1.1l-1-3.4A5 5 0 0 1 7.5 7z"/><path d="M7.5 10.2v3.4M5.8 11.9h3.4"/></svg>Games</button><span id="rm-mm-x" style="display:contents">' + mmExtrasHTML(mmExtrasCached()) + '</span></div>' +
       '<button type="button" class="rm-mm-out" data-mm-out>Sign out</button></div></div>';
     document.body.appendChild(mmEl);
     /* the phone's back button closes it, a plain history step, same as the switcher */
@@ -792,6 +815,7 @@
     mmEl.addEventListener("click", function (e) {
       if (e.target === mmEl || e.target.closest("[data-mm-x]")) return mmClose();
       if (e.target.closest("[data-mm-help]")) { location.href = "/help.html"; return; }
+      var hr = e.target.closest("[data-mm-href]"); if (hr) { location.href = hr.getAttribute("data-mm-href"); return; }
       if (e.target.closest("[data-mm-out]")) {
         /* same as the Porch's Sign out: another account on this phone takes over, else the sign-in door */
         signOut(); mmShut();
@@ -799,6 +823,7 @@
       }
       var b = e.target.closest("[data-mm]"); if (b) mmGo(b.getAttribute("data-mm"));
     });
+    mmExtras().then(function (x) { var slot = mmEl && mmEl.querySelector("#rm-mm-x"); if (x && slot) slot.innerHTML = mmExtrasHTML(x); }).catch(function () {});
     loadFaces([n]).then(function () { var m = faces()[n]; var a = mmEl && mmEl.querySelector(".rm-mm-av"); if (a && m && m.av && !a.querySelector("img")) a.innerHTML = '<img src="' + esc(faceURL(m.av)) + '" alt="">'; });
   }
 
