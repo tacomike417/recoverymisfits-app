@@ -61,7 +61,7 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
   <div class="top">
     <button type="button" class="bk" id="back" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <h1 id="title"></h1>
-    <span class="ver">v1</span>
+    <span class="ver">v2</span>
   </div>
   <div id="app"></div>
 </main>
@@ -93,6 +93,8 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
   function nice(ymd) { var p = String(ymd || "").split("-"); if (p.length < 3) return ""; return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }); }
   /* the title fills itself from the first line she pastes, until she types her own */
   function firstLine(s) { var l = String(s || "").split("\n").map(function (x) { return x.trim(); }).filter(Boolean)[0] || ""; return l.length > 60 ? l.slice(0, 57).replace(/\s+\S*$/, "") + "…" : l; }
+  /* search: every word she types has to be in there somewhere, in any order ("patience mike" finds it) */
+  function matches(text, q) { var t = String(text || "").toLowerCase(); return String(q || "").toLowerCase().split(/\s+/).filter(Boolean).every(function (w) { return t.indexOf(w) >= 0; }); }
   function byId(id) { return all.filter(function (p) { return p.id === id; })[0]; }
   function setTitle(t) { $("title").textContent = t; document.title = (t ? t + " · " : "") + "Cookie's Prayer Jar"; }
 
@@ -100,14 +102,20 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
   function home() {
     setTitle("");
     var q = (sessionStorage.getItem("rm_pj_q") || "").toLowerCase();
-    var list = all.filter(function (p) { return !q || (p.title + " " + p.body).toLowerCase().indexOf(q) >= 0; });
+    var list = all;
     app.innerHTML = '<img class="banner" src="/assets/prayer-jar/banner.webp" alt="Cookie\'s Prayer Jar" width="1000" height="333">' +
       '<button type="button" class="big" data-go="#new">＋ Add a prayer</button>' +
       (all.length >= 6 ? '<input class="find" id="find" type="search" placeholder="Find a prayer" value="' + esc(q) + '" autocomplete="off">' : "") +
       '<div class="list" id="list">' + (list.length ? list.map(function (p) {
-        return '<button type="button" class="card" data-go="#p/' + p.id + '"><b>' + esc(p.title || firstLine(p.body) || "A prayer") + "</b><small>" + esc(nice(p.prayed_on)) + "</small><span>" + esc(p.body) + "</span></button>";
-      }).join("") : '<p class="empty">' + (all.length ? "Nothing matches that." : "Your prayers will be kept here.<br>Tap <b>Add a prayer</b> to put the first one in.") + "</p>") + "</div>";
-    var f = $("find"); if (f) f.addEventListener("input", function () { sessionStorage.setItem("rm_pj_q", f.value); var pos = f.selectionStart; home(); var g = $("find"); g.focus(); try { g.setSelectionRange(pos, pos); } catch (e) {} });
+        var hit = matches(p.title + " " + p.body + " " + nice(p.prayed_on), q);
+        return '<button type="button" class="card" data-go="#p/' + p.id + '"' + (hit ? "" : " hidden") + '><b>' + esc(p.title || firstLine(p.body) || "A prayer") + "</b><small>" + esc(nice(p.prayed_on)) + "</small><span>" + esc(p.body) + "</span></button>";
+      }).join("") : "") + '<p class="empty" id="nomatch"' + (list.length || !all.length ? " hidden" : "") + '>Nothing matches that.</p>' +
+      (all.length ? "" : '<p class="empty">Your prayers will be kept here.<br>Tap <b>Add a prayer</b> to put the first one in.</p>') + "</div>";
+    var f = $("find"); if (f) f.addEventListener("input", function () {
+      sessionStorage.setItem("rm_pj_q", f.value); var any = false;
+      document.querySelectorAll("#list .card").forEach(function (c) { var hit = matches(c.textContent, f.value); c.hidden = !hit; any = any || hit; });
+      var n = $("nomatch"); if (n) n.hidden = any;
+    });
   }
   function read(p) {
     setTitle("");
@@ -119,7 +127,9 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
     });
   }
   function form(p) {
-    var isNew = !p, d = isNew ? (JSON.parse(localStorage.getItem(DRAFT) || "null") || {}) : p;
+    var isNew = !p, KEYD = isNew ? DRAFT : DRAFT + ":" + p.id, kept = null;
+    try { kept = JSON.parse(localStorage.getItem(KEYD) || "null"); } catch (e) {}
+    var d = kept || (isNew ? {} : p);
     var typedTitle = !isNew || !!d.titleTyped;
     setTitle(isNew ? "New prayer" : "Edit prayer");
     app.innerHTML =
@@ -128,9 +138,11 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
       '<label for="ttl">Title</label><input type="text" id="ttl" maxlength="120" value="' + esc(d.title || "") + '" placeholder="Fills in from the first line">' +
       '<label for="day">Date</label><input type="date" id="day" value="' + esc(d.prayed_on || today()) + '">' +
       '<div class="acts"><button type="button" class="big" id="save">' + (isNew ? "Save it in the jar" : "Save changes") + "</button></div>" +
+      (kept ? '<button type="button" class="del" id="over" style="color:var(--muted)">' + (isNew ? "Clear this and start over" : "Undo my changes") + "</button>" : "") +
       (isNew ? "" : '<button type="button" class="del" id="del">Delete this prayer</button>');
     var body = $("body"), ttl = $("ttl"), day = $("day");
-    function keep() { if (!isNew) return; try { localStorage.setItem(DRAFT, JSON.stringify({ body: body.value, title: ttl.value, prayed_on: day.value, titleTyped: typedTitle })); } catch (e) {} }
+    if ($("over")) $("over").addEventListener("click", function () { try { localStorage.removeItem(KEYD); } catch (e) {} form(p); toast(isNew ? "Cleared" : "Back to how it was"); });
+    function keep() { try { localStorage.setItem(KEYD, JSON.stringify({ body: body.value, title: ttl.value, prayed_on: day.value, titleTyped: typedTitle })); } catch (e) {} }
     function autoTitle() { if (!typedTitle) ttl.value = firstLine(body.value); }
     body.addEventListener("input", function () { autoTitle(); keep(); });
     ttl.addEventListener("input", function () { typedTitle = ttl.value.trim() !== ""; keep(); });
@@ -149,21 +161,26 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
     $("save").addEventListener("click", async function () {
       var words = body.value.replace(/\s+$/, "");
       if (!words.trim()) { toast("Put your prayer in the big box first."); body.focus(); return; }
+      if (words.length > 20000) { toast("That one is too long for the jar. Try splitting it into two."); return; }
       var row = { body: words, title: (ttl.value.trim() || firstLine(words)).slice(0, 120), prayed_on: day.value || today() };
       var b = $("save"); b.disabled = true; b.textContent = "Saving…";
       try {
-        if (isNew) { var r = await rest("porch_prayers", "POST", row); all.unshift(r[0]); try { localStorage.removeItem(DRAFT); } catch (e) {} }
+        if (isNew) { var r = await rest("porch_prayers", "POST", row); all.unshift(r[0]); }
         else { row.updated_at = new Date().toISOString(); var u = await rest("porch_prayers?id=eq." + p.id, "PATCH", row); var i = all.indexOf(p); if (i >= 0) all[i] = u[0]; }
         all.sort(function (a, z) { return a.prayed_on < z.prayed_on ? 1 : a.prayed_on > z.prayed_on ? -1 : (a.created_at < z.created_at ? 1 : -1); });
+        try { localStorage.removeItem(KEYD); } catch (e) {}
         toast("Saved ✓");
         history.back();
-      } catch (e) { b.disabled = false; b.textContent = isNew ? "Save it in the jar" : "Save changes"; toast("That didn't save. Check your signal and tap Save again."); }
+      } catch (e) {
+        b.disabled = false; b.textContent = isNew ? "Save it in the jar" : "Save changes";
+        toast(e.status === 401 || e.status === 403 ? "You got signed out. Your prayer is kept here. Sign back in, then tap Save." : "That didn't save. Your prayer is kept here. Check your signal and tap Save again.");
+      }
     });
     if ($("del")) $("del").addEventListener("click", async function () {
       var b = $("del");
       if (!b.dataset.sure) { b.dataset.sure = "1"; b.textContent = "Tap again to delete it for good"; return; }
       b.disabled = true;
-      try { await rest("porch_prayers?id=eq." + p.id, "DELETE"); all = all.filter(function (x) { return x.id !== p.id; }); toast("Deleted"); location.replace("#"); }
+      try { await rest("porch_prayers?id=eq." + p.id, "DELETE"); all = all.filter(function (x) { return x.id !== p.id; }); try { localStorage.removeItem(KEYD); } catch (e) {} toast("Deleted"); if (history.length > 2) history.go(-2); else location.replace("#"); }
       catch (e) { b.disabled = false; toast("That didn't delete. Try again."); }
     });
     if (isNew && !body.value) setTimeout(function () { try { $("paste").focus(); } catch (e) {} }, 50);
