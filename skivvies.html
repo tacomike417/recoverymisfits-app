@@ -22,6 +22,11 @@
     3. In the Skivvies group. No sober date step, coin, Survival Pile, tour, Welcome Matt or invite ask
        (supabase/porch_76_skivvies_lane.sql switches Matt off for lane accounts).
   Every step after the first is one phone-back (or the arrow) from the step before.
+
+  ?to=share&k=gave|out&c=<line>&n=<count> (6 Nov 2026, Mike): "I covered somebody's butt" share from skivvies.org.
+  Same door: sign in or up, join the Skivvies group, then the share card (drawn by skivvies.org/card.js, in the
+  Skivvies look) is handed to the Porch the way RMToPorch does it, and they land on the composer with the card
+  and a line in place, the Skivvies group tagged. Nothing posts by itself; they tap Share.
 -->
 <script>
 /* THE HOP (3 Nov 2026, Mike: "it flashes some pages and looks spammy"). Coming from skivvies.org "Write a note"
@@ -33,7 +38,7 @@
     var q = location.search;
     /* ?to=group (4 Nov 2026, Mike: "the pages are all jumping around ... it looks spammy"): the Join the Group
        tile on skivvies.org. Signed in already = the same quiet cream screen, then straight into the group. */
-    if (/[?&]to=(note|group)\b/.test(q) && !/[?&]switch=1\b/.test(q) && localStorage.getItem("rm_account_v1")) document.documentElement.className += " hop";
+    if (/[?&]to=(note|group|share)\b/.test(q) && !/[?&]switch=1\b/.test(q) && localStorage.getItem("rm_account_v1")) document.documentElement.className += " hop";
   } catch (e) {}
 })();
 </script>
@@ -99,7 +104,7 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
       <button type="button" class="btn" id="pickHave">I have a Recovery Misfits account</button>
       <button type="button" class="btn line" id="pickNew">Create a free account</button>
       <p class="msg" id="pickSay" role="status" aria-live="polite"></p>
-      <p class="fine">recoverymisfits.org will add you to its Skivvies group, where the notes go. That&rsquo;s all it does.</p>
+      <p class="fine" id="pickFine">recoverymisfits.org will add you to its Skivvies group, where the notes go. That&rsquo;s all it does.</p>
     </section>
 
     <!-- ===== 2a. SIGN IN ===== -->
@@ -181,6 +186,26 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
      (Mike, 3 Nov 2026). The sign-in token rides in the #hash, which never reaches a server; skivvies.org keeps it
      for that tab only and wipes it from the address. */
   var TO_NOTE = /[?&]to=note\b/.test(location.search), TO_GROUP = /[?&]to=group\b/.test(location.search), SWITCH = /[?&]switch=1\b/.test(location.search);
+  var TO_SHARE = /[?&]to=share\b/.test(location.search);
+  /* the share card: drawn here by skivvies.org/card.js (so the picture is the same one they saw there),
+     put on the "rm-share-in" shelf like RMToPorch does, then the Porch opens its composer with it. */
+  async function shareToPorch() {
+    var q = new URLSearchParams(location.search);
+    var kind = q.get("k") === "out" ? "out" : "gave", line = parseInt(q.get("c") || "0", 10) || 0, count = parseInt(q.get("n") || "0", 10) || 0;
+    try {
+      if (!window.SkivviesCard) await new Promise(function (ok, no) { var sc = document.createElement("script"); sc.src = "https://skivvies.org/card.js?v=1"; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+      var blob = await window.SkivviesCard.make({ kind: kind, line: line, count: count });
+      var words = (window.SkivviesCard.LINES[kind][line] || "").replace(/\n/g, " ") + " skivvies.org";
+      var c = await caches.open("rm-share-in");
+      var keys = await c.keys(); for (var i = 0; i < keys.length; i++) await c.delete(keys[i]);
+      await c.put("/share-in/f0", new Response(blob, { headers: { "Content-Type": "image/png" } }));
+      await c.put("/share-in/meta", new Response(JSON.stringify({ n: 1, names: ["skivvies-card.png"], types: ["image/png"], title: "", text: words, url: "", at: Date.now(), how: "post", tag: "skivvies" }), { headers: { "Content-Type": "application/json" } }));
+      location.replace("/feed/porch.html?shared=1&from=skv");
+    } catch (e) {
+      /* the card didn't draw (old browser, no canvas): still land them in the group with the line to post */
+      location.replace(GROUP_URL);
+    }
+  }
   var GROUP_URL = "/feed/porch.html?g=skivvies&from=skv";   /* from=skv: the Porch keeps the cream screen up and Back goes home to skivvies.org */
   function hop(on) { document.documentElement.classList.toggle("hop", !!on); }
   async function backToSkivvies() {
@@ -225,6 +250,7 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
   }
 
   /* ---- 1. pick ---- */
+  if (TO_SHARE) { try { $("pickFine").textContent = "Your card goes on the Porch from your account, and you join the Skivvies group. You tap Share; nothing posts by itself."; } catch (e) {} }
   if (A.signedIn()) {
     $("meRow").hidden = false; $("meName").textContent = A.name(); $("meAv").textContent = (A.name() || "?").charAt(0);
     $("pickHave").textContent = "Use a different account";
@@ -317,6 +343,7 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
     set("rm_lane", "skivvies");
     paintStep("s-done");
     if (TO_NOTE) { hop(true); backToSkivvies(); return; }
+    if (TO_SHARE) { hop(true); $("doneSub").textContent = "Setting up your post on the Porch\u2026"; shareToPorch(); return; }
     if (document.documentElement.classList.contains("hop")) { location.replace(GROUP_URL); return; }
     setTimeout(function () { location.replace(GROUP_URL); }, 700);
   }
@@ -324,6 +351,7 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
   /* already in the crew on this phone: straight to the group */
   if (TO_NOTE && A.signedIn() && !SWITCH) { hop(true); isNew = false; joinCrew(); return; }   /* joins the group if they aren't in it yet, then straight back */
   if (TO_GROUP && A.signedIn() && !SWITCH) { hop(true); isNew = false; joinCrew(); return; }   /* joins if they aren't in yet, then into the group */
+  if (TO_SHARE && A.signedIn() && !SWITCH) { hop(true); isNew = false; joinCrew(); return; }   /* joins if they aren't in yet, then the card goes to the Porch composer */
   hop(false);
   try { if (A.signedIn() && !TO_NOTE && localStorage.getItem("rm_lane") === "skivvies") { hop(true); location.replace(GROUP_URL); return; } } catch (e) {}
   step("s-pick", true);

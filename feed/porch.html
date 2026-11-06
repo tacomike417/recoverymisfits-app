@@ -7484,7 +7484,7 @@ html.kb .ch-bar{padding-bottom:8px}
     if (Date.now() - meta.at > 864e5) return;
     var words = [];
     [meta.title, meta.text, meta.url].forEach(function (w) { w = String(w || "").trim(); if (w && !words.some(function (x) { return x.indexOf(w) >= 0; })) words.push(w); });
-    shared = { files: files, words: words.join("\n") };
+    shared = { files: files, words: words.join("\n"), tag: meta.tag || "" };   /* tag: a group to tag on the post (Skivvies share, 6 Nov 2026) */
     var vids = files.filter(function (f) { return /^video\//.test(f.type); }), pics = files.filter(function (f) { return /^image\//.test(f.type); });
     var canSpin = files.length > 0, canPost = pics.length > 0 || (!files.length && shared.words);
     if (!canSpin && !canPost) return toast("That didn't come through. Try sharing it again.");
@@ -7509,6 +7509,13 @@ html.kb .ch-bar{padding-bottom:8px}
       openCompose(pics.length ? "snap" : "say");
       if (s.words) { $("cbody").value = s.words; paintCompose(); }
       if (pics.length) addComposeFiles(pics);
+      /* a share that names a group (Skivvies, 6 Nov 2026): tag it if they're in it and it's open to tag */
+      if (s.tag && !composeGroup) myOpenGroups().then(function (gs) {
+        var g = gs.find(function (x) { return String(x.name || "").trim().toLowerCase() === String(s.tag).toLowerCase() || x.id === s.tag; });
+        if (!g) return; tagGroup = g.id;
+        groupPick("cgwrap", "cgroups", true, function () { return tagGroup; }, function (v) { tagGroup = v; });
+        paintCompose();
+      }).catch(function () {});
       if (pics.length < s.files.length) toast("Videos go in Spins, so the video was left out.");
     });
   }

@@ -31,7 +31,7 @@
    normal browser behavior after four seconds, so this can never be the
    reason somebody is staring at a blank screen. */
 
-const VERSION = "pj254-2026-11-05";   // v254: one You menu everywhere + Cookie's Prayer Jar
+const VERSION = "skv255-2026-11-06";   // v255: Skivvies share cards land on the composer, Skivvies group tagged.   // v254: one You menu everywhere + Cookie's Prayer Jar
 
 /* SHARING INTO THE APP (1 Oct 2026, Mike: "would you like to share this to your
    spins or would you like to make a post?"). On Android, the app shows up in the
