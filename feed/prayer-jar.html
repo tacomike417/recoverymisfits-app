@@ -18,6 +18,7 @@
      #new       paste a new one: one big box, a Paste button, title fills itself from the first line, date = today
      #p/<id>    read one: Copy, Edit
      #e/<id>    change one: title, date, words; Delete at the bottom (tap twice)
+     #m/<id>    v4: play one of her guided meditations (a video, private like the prayers)
    A half-typed prayer is kept on the phone until it's saved, so nothing is lost if she leaves. */
 *{box-sizing:border-box}[hidden]{display:none!important}
 :root{--pink:#e5197f;--pink2:#c40f69;--soft:#fde3f0;--line:#f4bfd9;--ink:#3a1027;--muted:#8d5a74;--bg:#fff5fa}
@@ -54,6 +55,19 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
 .del{display:block;width:100%;margin-top:26px;padding:14px;border:0;background:none;color:#b0243c;font-weight:800;cursor:pointer}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:90vw;padding:12px 18px;border-radius:14px;background:var(--ink);color:#fff;font-weight:700;z-index:50}
 .gate{margin:30px 6px;text-align:center;color:var(--muted)}
+/* v3: her own way in. Hold a finger in the empty box and a Paste bubble comes up right there. */
+.med{display:block;width:100%;margin:14px 0 0;padding:0;border:1.5px solid var(--line);border-radius:18px;background:#fff;overflow:hidden;text-align:left;cursor:pointer}
+.med .pic{position:relative;display:block}
+.med img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.med .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:50%;background:rgba(229,25,127,.92);display:grid;place-items:center;box-shadow:0 4px 14px rgba(58,16,39,.35)}
+.med .play svg{width:34px;height:34px;fill:#fff;margin-left:5px}
+.med b{display:block;padding:12px 16px 0;font-size:19px;color:var(--ink)}
+.med small{display:block;padding:2px 16px 14px;color:var(--muted);font-size:14px;font-weight:700}
+.sec{margin:22px 2px 0;font:800 16px Arial,sans-serif;color:var(--pink2)}
+.watch video{display:block;width:100%;aspect-ratio:16/9;border-radius:16px;background:#1b0a14}
+.watch h2{margin:14px 2px 2px;font:800 24px/1.2 Arial,sans-serif;color:var(--ink)}
+.watch p{margin:4px 2px 0;color:var(--muted);font-size:16px}
+.pbub{position:fixed;z-index:40;transform:translate(-50%,-100%);padding:12px 22px;border:0;border-radius:12px;background:var(--ink);color:#fff;font:800 18px Arial,sans-serif;box-shadow:0 6px 18px rgba(58,16,39,.35);cursor:pointer}
 </style>
 </head>
 <body>
@@ -61,7 +75,7 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
   <div class="top">
     <button type="button" class="bk" id="back" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <h1 id="title"></h1>
-    <span class="ver">v2</span>
+    <span class="ver">v4</span>
   </div>
   <div id="app"></div>
 </main>
@@ -73,6 +87,12 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
   var app = $("app"), all = [], loaded = false, DRAFT = "rm_prayer_draft";
+  /* v4 (13 Nov 2026). Corinna's guided meditations live in the jar too. The video sits in the private
+     "prayer-jar" storage bucket (porch_81), so only the jar's people can play it. To add another one:
+     put the .mp4 in that bucket, a picture in /assets/prayer-jar/, and a line here. */
+  var MEDS = [
+    { id: "journey", title: "Journey to the Other Side", sub: "A guided meditation · 18 minutes", file: "journey-to-the-other-side.mp4", pic: "/assets/prayer-jar/journey.jpg" }
+  ];
 
   /* ---- the database ---- */
   async function hdr(extra) { var t = await A.token(), h = { apikey: KEY, Authorization: "Bearer " + (t || KEY) }; for (var k in extra || {}) h[k] = extra[k]; return h; }
@@ -96,6 +116,29 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
   /* search: every word she types has to be in there somewhere, in any order ("patience mike" finds it) */
   function matches(text, q) { var t = String(text || "").toLowerCase(); return String(q || "").toLowerCase().split(/\s+/).filter(Boolean).every(function (w) { return t.indexOf(w) >= 0; }); }
   function byId(id) { return all.filter(function (p) { return p.id === id; })[0]; }
+  function medById(id) { return MEDS.filter(function (m) { return m.id === id; })[0]; }
+  function medCards() {
+    return MEDS.length ? '<p class="sec">My meditations</p>' + MEDS.map(function (m) {
+      return '<button type="button" class="med" data-go="#m/' + m.id + '"><span class="pic"><img src="' + m.pic + '" alt="" width="960" height="540"><span class="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg></span></span><b>' + esc(m.title) + "</b><small>" + esc(m.sub) + "</small></button>";
+    }).join("") + '<p class="sec">My prayers</p>' : "";
+  }
+  /* play one. The link to the video is made fresh each time and only works for a few hours. */
+  async function watch(m) {
+    setTitle("");
+    app.innerHTML = '<div class="watch"><video id="vid" controls playsinline preload="metadata" poster="' + m.pic + '"></video><h2>' + esc(m.title) + "</h2><p>" + esc(m.sub) + '</p><p id="vmsg">Getting it ready…</p></div>';
+    var v = $("vid"), msg = $("vmsg");
+    try {
+      var r = await fetch(DB + "/storage/v1/object/sign/prayer-jar/" + encodeURIComponent(m.file), { method: "POST", headers: await hdr({ "Content-Type": "application/json" }), body: JSON.stringify({ expiresIn: 21600 }) });
+      if (!r.ok) throw new Error("sign " + r.status);
+      var j = await r.json(), u = j.signedURL || j.signedUrl;
+      if (!$("vid")) return;             /* she already went back */
+      v.src = DB + "/storage/v1" + u;
+      msg.textContent = "Find a comfortable place, then tap play.";
+      v.addEventListener("error", function () { msg.textContent = "The video didn't load. Check your signal, go back, and open it again."; });
+      if ("mediaSession" in navigator && window.MediaMetadata) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: m.title, artist: "Cookie's Prayer Jar", artwork: [{ src: m.pic, sizes: "960x540", type: "image/jpeg" }] }); } catch (e) {} }
+    } catch (e) { msg.textContent = "Couldn't get the video. Check your signal and try again."; }
+  }
+  function stopVideo() { var v = $("vid"); if (v) { try { v.pause(); v.removeAttribute("src"); v.load(); } catch (e) {} } }
   function setTitle(t) { $("title").textContent = t; document.title = (t ? t + " · " : "") + "Cookie's Prayer Jar"; }
 
   /* ---- screens ---- */
@@ -104,7 +147,8 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
     var q = (sessionStorage.getItem("rm_pj_q") || "").toLowerCase();
     var list = all;
     app.innerHTML = '<img class="banner" src="/assets/prayer-jar/banner.webp" alt="Cookie\'s Prayer Jar" width="1000" height="333">' +
-      '<button type="button" class="big" data-go="#new">＋ Add a prayer</button>' +
+      medCards() +
+      '<button type="button" class="big" data-go="#new"' + (MEDS.length ? ' style="margin-top:10px"' : "") + '>＋ Add a prayer</button>' +
       (all.length >= 6 ? '<input class="find" id="find" type="search" placeholder="Find a prayer" value="' + esc(q) + '" autocomplete="off">' : "") +
       '<div class="list" id="list">' + (list.length ? list.map(function (p) {
         var hit = matches(p.title + " " + p.body + " " + nice(p.prayed_on), q);
@@ -147,17 +191,45 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
     body.addEventListener("input", function () { autoTitle(); keep(); });
     ttl.addEventListener("input", function () { typedTitle = ttl.value.trim() !== ""; keep(); });
     day.addEventListener("change", keep);
-    if ($("paste")) $("paste").addEventListener("click", async function () {
+    async function pasteIn() {
       try {
         var t = await navigator.clipboard.readText();
-        if (!t || !t.trim()) { $("pastehint").textContent = "Nothing copied yet. Copy your prayer first, then tap Paste."; return; }
+        if (!t || !t.trim()) { if ($("pastehint")) $("pastehint").textContent = "Nothing copied yet. Copy your prayer first, then tap Paste."; else toast("Nothing copied yet."); return; }
         body.value = body.value.trim() ? body.value.replace(/\s+$/, "") + "\n\n" + t : t;
         autoTitle(); keep(); toast("Pasted ✓");
       } catch (e) {
         body.focus();
-        $("pastehint").textContent = "Press and hold inside the big box, then tap Paste.";
+        if ($("pastehint")) $("pastehint").textContent = "Press and hold inside the big box, then tap Paste."; else toast("Couldn't paste. Try again.");
       }
-    });
+    }
+    if ($("paste")) $("paste").addEventListener("click", pasteIn);
+    /* v3 (10 Nov 2026). Mike: Corinna copies, then holds her finger inside the box the way she does everywhere
+       else, and on her Android no Paste came up. The phone skips its own Paste bubble on an EMPTY box, so the
+       jar shows one itself, right at her finger. Once there are words in the box the phone's own menu works,
+       so this only steps in while the box is empty. */
+    (function holdToPaste() {
+      var tmr = 0, x0 = 0, y0 = 0, bub = null;
+      function hide() { if (bub) { bub.remove(); bub = null; } }
+      function show(x, y) {
+        if (bub || body.value.trim() || !navigator.clipboard || !navigator.clipboard.readText) return;
+        bub = document.createElement("button"); bub.type = "button"; bub.className = "pbub"; bub.textContent = "Paste";
+        bub.style.left = Math.min(innerWidth - 60, Math.max(60, x)) + "px"; bub.style.top = Math.max(70, y - 14) + "px";
+        bub.addEventListener("click", function () { hide(); pasteIn(); });
+        document.body.appendChild(bub);
+      }
+      function stop() { clearTimeout(tmr); tmr = 0; }
+      body.addEventListener("touchstart", function (e) {
+        hide(); stop(); if (body.value.trim() || e.touches.length !== 1) return;
+        x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+        tmr = setTimeout(function () { tmr = 0; show(x0, y0); }, 480);
+      }, { passive: true });
+      body.addEventListener("touchmove", function (e) { var t = e.touches[0]; if (tmr && t && (Math.abs(t.clientX - x0) > 12 || Math.abs(t.clientY - y0) > 12)) stop(); }, { passive: true });
+      ["touchend", "touchcancel"].forEach(function (ev) { body.addEventListener(ev, stop, { passive: true }); });
+      body.addEventListener("contextmenu", function (e) { if (!body.value.trim() && navigator.clipboard && navigator.clipboard.readText) { e.preventDefault(); stop(); show(e.clientX || x0, e.clientY || y0); } });
+      body.addEventListener("input", hide);
+      document.addEventListener("pointerdown", function (e) { if (bub && e.target !== bub && e.target !== body) hide(); }, true);
+      window.addEventListener("hashchange", hide); window.addEventListener("scroll", hide, { passive: true });
+    })();
     $("save").addEventListener("click", async function () {
       var words = body.value.replace(/\s+$/, "");
       if (!words.trim()) { toast("Put your prayer in the big box first."); body.focus(); return; }
@@ -189,7 +261,9 @@ textarea{min-height:34vh;resize:vertical;line-height:1.5}
   function route() {
     window.scrollTo(0, 0);
     if (!loaded) return;
+    stopVideo();
     var h = location.hash.slice(1), m;
+    if ((m = h.match(/^m\/(.+)$/)) && medById(m[1])) return watch(medById(m[1]));
     if (h === "new") return form(null);
     if ((m = h.match(/^p\/(.+)$/)) && byId(m[1])) return read(byId(m[1]));
     if ((m = h.match(/^e\/(.+)$/)) && byId(m[1])) return form(byId(m[1]));

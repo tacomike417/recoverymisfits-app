@@ -31,7 +31,7 @@
    normal browser behavior after four seconds, so this can never be the
    reason somebody is staring at a blank screen. */
 
-const VERSION = "skv256-2026-11-10";   // v256: tap the words of a long post to open it   // v255: Skivvies share cards land on the composer, Skivvies group tagged.   // v254: one You menu everywhere + Cookie's Prayer Jar
+const VERSION = "skv258-2026-11-13";   // v258: Prayer Jar v4, Corinna's guided meditation video plays in the jar (private)   // v257: Prayer Jar, hold in the empty box for a Paste bubble   // v256: tap the words of a long post to open it   // v255: Skivvies share cards land on the composer, Skivvies group tagged.   // v254: one You menu everywhere + Cookie's Prayer Jar
 
 /* SHARING INTO THE APP (1 Oct 2026, Mike: "would you like to share this to your
    spins or would you like to make a post?"). On Android, the app shows up in the
