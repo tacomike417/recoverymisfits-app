@@ -33,6 +33,24 @@
     document.head.appendChild(w);
   })();
 
+  /* WHO RUNS THIS (16 Nov 2026, Mike: "is the cornerstones info at the bottom of
+     recovery misfits? it should be."). One quiet line at the end of every page,
+     the same as skivvies.org's footer. Google Play checks the site belongs to the
+     organization, and anybody who wonders who is behind the app can see it. It
+     goes in from here because this file is already on every page. */
+  (function orgLine() {
+    if (document.getElementById("rm-org-line")) return;
+    const p = document.createElement("p");
+    p.id = "rm-org-line";
+    p.textContent = "Recovery Misfits is a program of Cornerstones Recovery, Inc., a 501(c)(3) nonprofit. EIN 99-4095027.";
+    p.style.cssText = "margin:28px auto 8px;padding:0 18px;max-width:520px;text-align:center;" +
+      "font:400 11px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#8f897d;opacity:.85;";
+    const tail = document.querySelector("main .tailroom");
+    if (tail) tail.parentNode.insertBefore(p, tail);
+    else (document.querySelector("main") || document.body).appendChild(p);
+    if (!tail && !document.querySelector("main")) p.style.marginBottom = "110px";
+  })();
+
   (function loadCoins() {
     if (document.getElementById("rm-coins-js")) return;
     const c = document.createElement("script");
