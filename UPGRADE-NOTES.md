@@ -42,6 +42,16 @@ about half the members hit a page saying "opens October 20" weeks after that dat
       Porch: gold arrow up, minus off, plus back, Prayers drawer, saves at once to the same account .stack,
       says so plainly if it can't save. Back or X = on the Porch where you were. The stack behind it
       changes as you go.
+- [x] v267: THE NEW PORCH LOOK (Mike approved round 2 of the ChatGPT kit mockup: "i like that build it").
+      Gold theme only (t-classic); teal and light untouched. Grain under the page, posts sit right on it
+      with a thin line between (no boxes), white Inter text, gold-ringed faces, gold heart pill (still a
+      heart), dark comments. Daily stack: woodgrain bar + books icon + READ | REFLECT | SHARE, wide gritty
+      cards with the next peeking in, brush "READ NEXT" tab, Edit / dots / "3 of 7" / fold underneath.
+      Fonts saved in /assets/fonts (barlowc-*, inter-*), textures in /assets/porch (painted, not the kit's).
+      REFLECT = today's talk about the reading in view: one house post per reading per day (need='reflect',
+      hidden from the feed), so comments/hearts/replies/reports all just work. SQL: porch_83_reflect.sql
+      (applied from the session 22 Nov). A card shows a talk count once 2+ have said something.
+      SHARE = a Porch share: our own readings in full, AA/Hazelden as title + date + link.
 - [ ] Ideas Mike hasn't said yes to yet: "Talk about it" after a reading (opens a share with the reading's
       #tag), and a small "N people read this today" line on a card (counts only, never names).
       Mike: the post has to carry the reading (or a chunk) plus a link out. Our own items (absolute,

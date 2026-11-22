@@ -56,6 +56,16 @@
     if (it.ico) return '<img class="dsico" src="/' + it.ico.replace(/^\/+/, "") + '" alt="" aria-hidden="true">';
     return '<span class="dsico dsdrawn">' + (it.icoHTML || D.PRAY_ICO) + "</span>";
   }
+  /* the kit's drawings where they fit, our own icons everywhere else */
+  var BOOKS = '<svg class="dsbooks" viewBox="0 0 256 256" aria-hidden="true"><g stroke="#EDB83F" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"><path d="M42 67 159 21l58 31-118 51z" fill="#CB9732"/><path d="M42 67v35l57 29 118-50V52L99 103z" fill="#181714"/><path d="M58 88 99 108l104-43" stroke="#F1EBDD" fill="none" stroke-width="3"/><path d="M36 124 153 79l62 32-120 51z" fill="#DBA738"/><path d="M36 124v34l59 33 120-51v-29L95 162z" fill="#181714"/><path d="M48 147 95 170l106-47" stroke="#F1EBDD" fill="none" stroke-width="3"/><path d="M45 185 161 141l54 29-118 51z" fill="#C58F27"/><path d="M45 185v27l52 25 118-45v-22L97 221z" fill="#181714"/><path d="M59 204 97 224l102-42" stroke="#F1EBDD" fill="none" stroke-width="3"/></g></svg>';
+  var SUNBOOK = '<svg viewBox="0 0 256 256" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M128 91a42 42 0 0 0-84 0h84Z" transform="translate(42 0)" fill="#EDB83F" stroke="#EDB83F" stroke-width="3"/><g stroke="#EDB83F" stroke-width="3"><path d="M128 91 L213 68"/><path d="M128 91 L204 47"/><path d="M128 91 L190 29"/><path d="M128 91 L172 15"/><path d="M128 91 L151 6"/><path d="M128 91 L128 3"/><path d="M128 91 L105 6"/><path d="M128 91 L84 15"/><path d="M128 91 L66 29"/><path d="M128 91 L52 47"/><path d="M128 91 L43 68"/></g><path d="M24 118q54-18 104 10 50-28 104-10v96q-57-17-104 11-47-28-104-11z" fill="#F1EBDD" stroke="#EDB83F" stroke-width="6"/><path d="M128 130v90" stroke="#15140E" stroke-width="6"/><path d="M41 134q41-9 73 9M41 150q41-9 73 9M41 166q41-9 73 9M41 182q41-9 73 9M142 143q32-18 73-9M142 159q32-18 73-9M142 175q32-18 73-9M142 191q32-18 73-9" stroke="#282219" stroke-width="3"/><path d="M23 221q54-14 105 15 52-28 106-15" stroke="#EDB83F" stroke-width="5"/></g></svg>';
+  var SPROUT = '<svg viewBox="0 0 256 256" aria-hidden="true"><g fill="none" stroke="#F1EBDD" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M130 220V105"/><path d="M130 146C81 142 56 113 46 52c56 1 85 27 86 74" fill="#BBB19A"/><path d="M130 122C132 72 157 43 213 33c-1 57-26 91-83 109" fill="#E9DFC6"/><path d="M130 146 76 87M130 124 182 76" stroke="#786E57" stroke-width="4"/></g></svg>';
+  var CHECK = '<svg class="dstick" viewBox="0 0 256 256" role="img" aria-label="Read"><circle cx="128" cy="128" r="94" fill="#000a" stroke="#E6B13C" stroke-width="12"/><path d="m78 127 34 33 67-72" fill="none" stroke="#F1EBDD" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var TALK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+  var ART = { reflections: SUNBOOK, anotherday: SPROUT };
+  function art(it) { return ART[it.id] || ico(it); }
+  var rcounts = {};
+
   function opensOver(it) { return it && (it.kind === "prayer" || it.kind === "absolute" || it.kind === "evening"); }
 
   /* ---- what the account says ---- */
@@ -122,34 +132,59 @@
         '<span class="dsarrow" aria-hidden="true">&#8964;</span></button>';
       return;
     }
-    var d = new Date();
-    var day = d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+    /* THE NEW LOOK (v267, 22 Nov 2026, Mike: "i like that build it"). The woodgrain bar with READ | REFLECT |
+       SHARE, wide gritty cards with the next one peeking in, Edit + dots + "3 of 7" + fold under them.
+       Everything it does is the same as before: same readings, same doors, same ticks, same editor. */
+    var oldRow = document.getElementById("dscards"), keep = oldRow ? oldRow.scrollLeft : null;
     box.innerHTML =
       '<section class="dsbox" aria-label="Your daily stack">' +
-        '<div class="dshead"><span class="dssun" aria-hidden="true"></span>' +
-          '<div class="dst"><b>Your Daily Stack</b><span>' + esc(day) + " · " + esc(count) + '</span></div>' +
-          '<button type="button" class="dsedit" data-ds-edit>Edit</button>' +
-          '<button type="button" class="dsfold" data-ds-fold="1" aria-label="Fold it up" aria-expanded="true">&#8963;</button></div>' +
+        '<div class="dsbar">' + BOOKS + '<h2>The Daily Stack</h2>' +
+          '<nav aria-label="For the reading in view">' +
+            '<button type="button" data-ds-act="read">Read</button><i aria-hidden="true"></i>' +
+            '<button type="button" data-ds-act="reflect">Reflect</button><i aria-hidden="true"></i>' +
+            '<button type="button" data-ds-act="share">Share</button></nav></div>' +
         '<div class="dswrap"><button type="button" class="dsl" aria-label="Back" hidden>&#8249;</button><button type="button" class="dsr" aria-label="More" hidden>&#8250;</button>' +
         '<div class="dscards" id="dscards">' +
           shown.map(function (id) {
             var it = D.byId(id), isDone = openedNow.indexOf(id) !== -1, isNext = id === next;
-            var h = D.HREF[id];
+            var h = D.HREF[id], n = rcounts[id] || 0;
             var tag = opensOver(it) ? 'button type="button"' : 'a href="' + esc(h ? h.href : "/index.html?today=1") + '"' + (h && h.ext ? ' target="_blank" rel="noopener"' : "");
             var end = opensOver(it) ? "button" : "a";
             return '<' + tag + ' class="dscard' + (isDone ? " done" : "") + (isNext ? " next" : "") + '" data-ds-id="' + esc(id) + '">' +
-              (isNext ? '<span class="dsgo">Read next</span>' : "") +
-              (isDone ? '<span class="dstick" aria-label="Read">✓</span>' : "") +
-              ico(it) + '<b>' + esc(it.t) + '</b><span>' + esc(it.d) + '</span></' + end + '>';
+              '<span class="dsart">' + art(it) + '</span>' +
+              '<span class="dscp">' + (isNext ? '<span class="dsgo">Read next</span>' : "") +
+                '<b>' + esc(it.t) + '</b><span>' + esc(it.d) + '</span></span>' +
+              (isDone ? CHECK : "") +
+              (n >= 2 ? '<span class="dstalk" data-ds-talk="' + esc(id) + '" aria-label="' + n + ' people talking about this today">' + TALK + n + '</span>' : "") +
+              '</' + end + '>';
           }).join("") +
         '</div></div>' +
-        '<div class="dsdots" aria-hidden="true">' + shown.map(function (id) { return '<i' + (openedNow.indexOf(id) !== -1 ? ' class="f"' : "") + '></i>'; }).join("") + '</div>' +
+        '<div class="dsmeta"><button type="button" class="dsedit" data-ds-edit>&#9998; Edit</button>' +
+          '<span class="dsdots" aria-hidden="true">' + shown.map(function (id) { return '<i' + (openedNow.indexOf(id) !== -1 ? ' class="f"' : "") + '></i>'; }).join("") + '</span>' +
+          '<span class="dsct"><b id="dsCur">1</b> of ' + total + '</span>' +
+          '<button type="button" class="dsfold" data-ds-fold="1" aria-label="Fold it up" aria-expanded="true">&#8963;</button></div>' +
       '</section>';
     var row = document.getElementById("dscards");
-    /* start on the next one to read, so nobody swipes past what they already did */
-    var nx = row && row.querySelector(".dscard.next");
-    if (row && nx) row.scrollLeft = Math.max(0, nx.offsetLeft - row.offsetLeft - 14);
+    /* first paint of the day starts on the next one to read; a repaint keeps your place */
+    if (row && keep !== null) row.scrollLeft = keep;
+    else { var nx = row && row.querySelector(".dscard.next"); if (row && nx) row.scrollLeft = Math.max(0, nx.offsetLeft - row.firstElementChild.offsetLeft); }
     dragScroll(row);
+    row.addEventListener("scroll", markCurrent, { passive: true });
+    markCurrent();
+  }
+
+  /* WHICH CARD IS IN VIEW. READ, REFLECT and SHARE all act on it, and "3 of 7" says which it is. */
+  function currentCard() {
+    var row = document.getElementById("dscards"); if (!row) return null;
+    var cs = row.querySelectorAll(".dscard"), best = null, bd = 1e9, x0 = row.getBoundingClientRect().left + 12;
+    for (var i = 0; i < cs.length; i++) { var d0 = Math.abs(cs[i].getBoundingClientRect().left - x0); if (d0 < bd) { bd = d0; best = i; } }
+    return best === null ? null : { i: best, el: cs[best], id: cs[best].getAttribute("data-ds-id") };
+  }
+  function markCurrent() {
+    var c = currentCard(); if (!c) return;
+    var n = document.getElementById("dsCur"); if (n) n.textContent = c.i + 1;
+    var dots = box.querySelectorAll(".dsdots i");
+    for (var i = 0; i < dots.length; i++) dots[i].classList.toggle("c", i === c.i);
   }
 
   /* ---- ON A COMPUTER (v265, Mike: "i cannot scroll side to side on a computer, fix that").
@@ -380,12 +415,82 @@
     var g = t.closest("[data-group]"); if (g) { var k = g.getAttribute("data-group"); groupOpen[k] = !groupOpen[k]; var b = marks(); paintEditor(); travel(b, null); return; }
   });
 
+
+  /* ==========================================================================
+     READ | REFLECT | SHARE (v267). All three act on the card in view.
+       READ    opens it, exactly like tapping the card.
+       REFLECT opens today's conversation about that reading: one thread per reading per day, an ordinary
+               Porch post from the house account (supabase/porch_83_reflect.sql), so comments, hearts,
+               replies, reports and alerts all work the way they do everywhere else. The feed hides them.
+       SHARE   starts a Porch share about the reading. Our own readings (the prayers, the Absolute, First
+               Things, Francis) go in whole; the others go in as title, date and a link, because AA's
+               and Hazelden's words are theirs.
+     ========================================================================== */
+  var SITE = "https://recoverymisfits.org";
+  function todayWords() { return new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }); }
+  function fullText(it) {
+    if (it.kind === "absolute") { var a = D.todayAbsolute().a; return a.name + "\n" + a.ask + "\n" + a.body; }
+    if (it.kind === "evening") { var n = D.todayIntention().e; return n.line + "\n" + n.qs.map(function (q) { return "• " + q; }).join("\n") + "\n" + D.MORNING_CLOSER; }
+    if (it.kind === "prayer") return (it.text || []).join("\n");
+    return "";
+  }
+  function linkFor(id) { var h = D.HREF[id]; if (!h) return ""; return h.ext ? h.href : SITE + h.href; }
+  function doRead(c) { c.el.click(); }
+  function doShare(c) {
+    var it = D.byId(c.id), txt = fullText(it), link = linkFor(c.id);
+    var words = "📖 " + it.t + " · " + todayWords() + "\n" + (txt ? txt + "\n" : "") + (link ? link + "\n" : "") + "\n";
+    if (window.RMToPorch) window.RMToPorch({ words: words });
+  }
+  function reflectHead(it) {
+    var h = document.getElementById("rfhead"); if (!h) return;
+    var link = linkFor(it.id), host = "";
+    try { host = link ? new URL(link).hostname.replace(/^www\./, "") : ""; } catch (e) {}
+    var go = opensOver(it) ? '<button type="button" class="rfgo" data-rf-read="' + esc(it.id) + '">Read it</button>'
+      : link ? '<a class="rfgo" href="' + esc(link) + '"' + (/^https?:/.test(link) && link.indexOf(SITE) !== 0 ? ' target="_blank" rel="noopener"' : "") + '>Read it' + (host && host !== "recoverymisfits.org" ? " ↗" : "") + '</a>' : "";
+    h.innerHTML = '<div class="rfx"><span class="rfart">' + art(it) + '</span><div><b>' + esc(it.t) + '</b><span>' + esc(todayWords()) + '</span>' + go + '</div></div>' +
+      '<p class="rfq">What did today’s reading say to you?</p>';
+    h.hidden = false;
+    var t = document.querySelector("#comments .chead b"); if (t) t.textContent = "Reflect · Today";
+  }
+  function reflectDone() {
+    var h = document.getElementById("rfhead"); if (h) { h.hidden = true; h.innerHTML = ""; }
+    var t = document.querySelector("#comments .chead b"); if (t) t.textContent = "Comments";
+    loadCounts();
+  }
+  function doReflect(id) {
+    var P = window.Porch, it = D.byId(id); if (!P || !it) return;
+    P.gate(async function () {
+      var pid = null;
+      try { pid = await P.rpc("rm_reflect_thread", { p_reading: id, p_title: it.t }); } catch (e) {}
+      if (!pid) return P.toast("That didn’t open. Check your signal and try again.");
+      reflectHead(it);
+      P.openCommentsFor(pid, reflectDone);
+    });
+  }
+  function loadCounts() {
+    var P = window.Porch; if (!P || !P.rpc) return;
+    P.rpc("rm_reflect_counts", {}).then(function (c) { rcounts = c || {}; paint(); }).catch(function () {});
+  }
+  document.addEventListener("click", function (e) {
+    var r = e.target.closest && e.target.closest("[data-rf-read]"); if (!r) return;
+    e.preventDefault(); var it = D.byId(r.getAttribute("data-rf-read")); if (it) { markOpened(it.id); readOver(it); }
+  });
+
   /* ---- taps ---- */
   box.addEventListener("click", function (e) {
     var t = e.target;
     if (t.closest("[data-ds-add]")) { setFlag("on"); paint(); return; }
     if (t.closest("[data-ds-no]")) { setFlag("off"); paint(); return; }
     if (t.closest("[data-ds-edit]")) { e.preventDefault(); openEditor(); return; }
+    var act = t.closest("[data-ds-act]");
+    if (act) {
+      e.preventDefault(); var cur = currentCard(); if (!cur) return;
+      var what = act.getAttribute("data-ds-act");
+      if (what === "read") doRead(cur); else if (what === "reflect") doReflect(cur.id); else doShare(cur);
+      return;
+    }
+    var tk = t.closest("[data-ds-talk]");
+    if (tk) { e.preventDefault(); e.stopPropagation(); if (!dragged) doReflect(tk.getAttribute("data-ds-talk")); return; }
     var fb = t.closest("[data-ds-fold]");
     if (fb) { foldSet(fb.getAttribute("data-ds-fold") === "1"); paint(); return; }
     var c = t.closest("[data-ds-id]");
@@ -415,6 +520,7 @@
         arr = D.resolve(blob.stack || (Array.isArray(blob.stackOff) ? { order: D.DEFAULT_ORDER, off: blob.stackOff.concat(D.DEFAULT_OFF) } : fromCache()));   /* the old shape: same as Today reads it */
         openedNow = openedFrom(blob);
         paint();
+        setTimeout(loadCounts, 1200);   /* after the Porch is up */
       }).catch(function () { paint(); });
       return;
     }

@@ -31,6 +31,14 @@ html.skvhop body::before{content:"";position:fixed;inset:0;z-index:19999;backgro
 <link rel="icon" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <style>
+@font-face{font-family:"RM Barlow";src:url("/assets/fonts/barlowc-700.woff2") format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"RM Barlow";src:url("/assets/fonts/barlowc-800.woff2") format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:"RM Barlow";src:url("/assets/fonts/barlowc-800i.woff2") format("woff2");font-weight:800;font-style:italic;font-display:swap}
+@font-face{font-family:"RM Inter";src:url("/assets/fonts/inter-400.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"RM Inter";src:url("/assets/fonts/inter-500i.woff2") format("woff2");font-weight:500;font-style:italic;font-display:swap}
+@font-face{font-family:"RM Inter";src:url("/assets/fonts/inter-600.woff2") format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"RM Inter";src:url("/assets/fonts/inter-700.woff2") format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"RM Inter";src:url("/assets/fonts/inter-800.woff2") format("woff2");font-weight:800;font-display:swap}
 @font-face{font-family:"RM Rail";src:url("/assets/fonts/oswald-500.woff2") format("woff2");font-weight:500;font-display:swap}
 @font-face{font-family:"RM Head";src:url("/assets/fonts/anton-400.woff2") format("woff2");font-display:swap}
 @font-face{font-family:"RM Hand";src:url("/assets/fonts/caveat-600.woff2") format("woff2");font-display:swap}
@@ -713,10 +721,6 @@ html.fullon #main{visibility:hidden}
 #dstack[hidden]{display:none}
 #dstack{margin:10px 12px 4px}
 .dssun{flex:none;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 50% 62%,#f5d27a,#d99a2b);box-shadow:0 0 14px rgba(245,190,90,.45)}
-.dsbox{border:1.5px solid color-mix(in srgb,var(--gold2) 55%,transparent);border-radius:18px;background:linear-gradient(165deg,color-mix(in srgb,var(--gold2) 13%,transparent),color-mix(in srgb,var(--gold2) 3%,transparent));padding:12px 0 10px}
-.dshead{display:flex;align-items:center;gap:10px;padding:0 12px 0 14px}
-.dst{flex:1;min-width:0}.dst b{display:block;font:400 19px/1.1 "RM Head",Impact,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:var(--cream)}
-.dst span{display:block;font:600 12.5px Arial,sans-serif;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dsedit{flex:none;font:800 13px Arial,sans-serif;color:var(--gold2);background:none;border:0;cursor:pointer;text-decoration:none;padding:10px 8px;min-height:44px;display:flex;align-items:center}
 /* the editor sheet (v266) */
 .dsenote{font:14px/1.45 Arial,sans-serif}
@@ -739,8 +743,6 @@ html.fullon #main{visibility:hidden}
 .dseempty{font:italic 14px Arial,sans-serif}
 .dsesay{margin:10px 0 0!important;padding:10px 12px;border-radius:12px;background:#fdecea;color:#8a2a1c!important;font:700 14px Arial,sans-serif}
 .dsesay.busy{background:none;color:var(--muted)!important;padding:4px 0;font-weight:600}
-.dsfold{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid color-mix(in srgb,var(--gold2) 45%,transparent);background:none;color:var(--gold2);font:700 17px/1 Arial,sans-serif;cursor:pointer;padding:0 0 2px}
-.dscards{display:flex;gap:10px;padding:12px 14px 4px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;cursor:grab}
 .dscards::-webkit-scrollbar{display:none}.dscards.grab{cursor:grabbing;scroll-snap-type:none}
 .dscards.grab .dscard{pointer-events:none}
 .dswrap{position:relative}
@@ -751,16 +753,6 @@ html.fullon #main{visibility:hidden}
   .dsl[hidden],.dsr[hidden]{display:none}
   .dsl:hover,.dsr:hover{background:var(--gold2);color:var(--ink)}
 }
-.dscard{flex:none;width:140px;min-height:158px;border-radius:14px;padding:12px 11px 11px;position:relative;display:flex;flex-direction:column;gap:4px;justify-content:flex-end;background:var(--card);border:1px solid color-mix(in srgb,var(--gold2) 25%,transparent);color:var(--cream);text-decoration:none;text-align:left;scroll-snap-align:start;cursor:pointer;font:inherit;-webkit-user-drag:none;user-select:none}
-.dscard .dsico{display:block;width:62px;height:40px;object-fit:contain;margin:0 0 auto}
-.dscard .dsdrawn svg{width:40px;height:40px;fill:none;stroke:var(--gold2);stroke-width:2}
-.dscard b{font:400 17px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.02em;text-transform:uppercase}
-.dscard>span:last-child{font:600 12px/1.3 Arial,sans-serif;color:var(--soft)}
-.dscard.done{opacity:.55}
-.dstick{position:absolute;top:9px;right:9px;width:22px;height:22px;border-radius:50%;background:var(--gold2);color:var(--ink);font:900 13px/22px Arial,sans-serif;text-align:center}
-.dscard.next{border:2px solid var(--gold2);box-shadow:0 0 18px color-mix(in srgb,var(--gold2) 35%,transparent)}
-.dsgo{position:absolute;top:9px;right:9px;background:var(--gold2);color:var(--ink);font:800 10px Arial,sans-serif;padding:3px 7px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase}
-.dsdots{display:flex;gap:6px;justify-content:center;margin-top:8px}.dsdots i{width:7px;height:7px;border-radius:50%;background:color-mix(in srgb,var(--gold2) 30%,transparent)}.dsdots i.f{background:var(--gold2)}
 .dsstrip{width:100%;border:1.5px solid color-mix(in srgb,var(--gold2) 45%,transparent);border-radius:999px;display:flex;align-items:center;gap:10px;padding:7px 8px 7px 9px;background:color-mix(in srgb,var(--gold2) 8%,transparent);color:var(--cream);cursor:pointer;font:inherit;text-align:left;min-height:46px}
 .dsstrip .dssun{width:24px;height:24px}
 .dsstrip b{flex:none;font:400 15px "RM Head",Impact,sans-serif;letter-spacing:.05em;text-transform:uppercase}
@@ -780,6 +772,93 @@ html.fullon #main{visibility:hidden}
 .dsevl{font:700 20px/1.35 Georgia,serif!important}
 .dsevq{margin:0 0 12px;padding-left:20px}.dsevq li{font:16px/1.5 Arial,sans-serif;margin:0 0 8px}
 .dsevx{font:italic 16px/1.5 Georgia,serif!important}
+/* ===== THE DAILY STACK, NEW LOOK (v267, 22 Nov 2026, Mike: "i like that build it"). Every theme gets the
+   layout; the gold theme gets the textures (below, html.t-classic). Fonts: Barlow Condensed + Inter, kept
+   in /assets/fonts like Anton and Oswald, so they work on bad signal. ===== */
+#dstack{margin:8px 0 0}
+#dstack .dsbox{padding:0 0 12px;border-bottom:1px solid var(--line)}
+.dsbar{margin:0 12px 10px;min-height:48px;display:flex;align-items:center;gap:9px;padding:6px 6px 6px 8px;background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.dsbar .dsbooks{width:36px;height:36px;flex:none}
+.dsbar h2{margin:0;font:italic 800 26px/1 "RM Barlow","Barlow Condensed",Impact,sans-serif;letter-spacing:.4px;color:var(--cream);white-space:nowrap;text-transform:uppercase;text-shadow:0 2px 3px rgba(0,0,0,.6)}
+.dsbar nav{margin-left:auto;display:flex;align-items:center}
+.dsbar nav button{background:none;border:0;padding:12px 5px;min-height:44px;cursor:pointer;font:700 13px/1 "RM Barlow","Barlow Condensed",sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--cream);opacity:.88}
+.dsbar nav button:hover,.dsbar nav button:focus-visible{color:var(--gold2);opacity:1}
+.dsbar nav i{width:1px;height:13px;background:var(--muted);opacity:.6}
+#dstack .dscards{display:flex;gap:10px;overflow-x:auto;padding:2px 12px 10px;scroll-padding-left:12px;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;cursor:grab}
+#dstack .dscard{flex:0 0 78%;max-width:352px;min-height:152px;position:relative;overflow:hidden;scroll-snap-align:start;display:flex;align-items:center;gap:8px;padding:14px 12px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--cream);text-decoration:none;text-align:left;font:inherit;cursor:pointer;-webkit-user-drag:none;user-select:none}
+#dstack .dscard.next{border-color:var(--gold2);box-shadow:0 0 14px color-mix(in srgb,var(--gold2) 22%,transparent)}
+#dstack .dsart{flex:0 0 40%;display:grid;place-items:center;position:relative;z-index:1}
+#dstack .dsart svg{width:100%;max-width:118px;height:auto;filter:drop-shadow(0 3px 3px rgba(0,0,0,.6))}
+#dstack .dsart .dsico{width:100%;max-width:118px;height:auto;object-fit:contain}
+#dstack .dsart .dsdrawn{display:grid;place-items:center;width:100%}
+#dstack .dsart .dsdrawn svg{width:76%;max-width:96px;fill:none;stroke:var(--cream);stroke-width:2.2}
+#dstack .dscp{position:relative;z-index:1;min-width:0;display:block}
+#dstack .dscp b{display:block;margin:0 0 6px;font:800 28px/.92 "RM Barlow","Barlow Condensed",Impact,sans-serif;text-transform:uppercase;color:var(--cream);letter-spacing:.2px}
+#dstack .dscp>span:last-child{display:block;font:italic 500 13px/1.32 "RM Inter",Inter,system-ui,sans-serif;color:var(--soft)}
+#dstack .dsgo{display:inline-block;margin:0 0 7px;padding:5px 12px 4px;font:800 12px/1 "RM Barlow","Barlow Condensed",sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--ink);background:var(--gold2);border-radius:3px}
+#dstack .dstick{position:absolute;z-index:2;top:10px;right:10px;width:30px;height:30px}
+#dstack .dscard.done{opacity:.68}
+#dstack .dstalk{position:absolute;z-index:2;bottom:9px;right:10px;display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.5);border:1px solid var(--line);color:var(--cream);font:700 12px "RM Inter",Inter,sans-serif}
+#dstack .dstalk svg{width:14px;height:14px}
+.dsmeta{display:flex;align-items:center;padding:0 10px 0 6px;position:relative;min-height:44px}
+.dsmeta .dsedit{font:700 13px "RM Inter",Inter,system-ui,sans-serif}
+.dsmeta .dsdots{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:8px;margin:0}
+.dsmeta .dsdots i{width:9px;height:9px;border-radius:50%;background:var(--muted);opacity:.5}
+.dsmeta .dsdots i.f{background:#ffd14d;opacity:1}
+.dsmeta .dsdots i.c{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--gold2);opacity:1}
+.dsmeta .dsct{margin-left:auto;font:500 12.5px "RM Inter",Inter,system-ui,sans-serif;color:var(--muted);margin-right:8px}
+.dsmeta .dsct b{font-weight:700;color:var(--cream)}
+.dsmeta .dsfold{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid color-mix(in srgb,var(--gold2) 45%,transparent);background:none;color:var(--gold2);font:700 15px/1 Arial,sans-serif;cursor:pointer;padding:0 0 2px}
+/* REFLECT, at the top of the comments sheet */
+#rfhead[hidden]{display:none}
+.rfx{display:flex;gap:12px;align-items:center;margin:2px 0 12px;padding:12px;border-radius:14px;border:2px solid var(--pgold,#9c7428)}
+.rfx .rfart{flex:0 0 78px;display:grid;place-items:center}.rfx .rfart svg,.rfx .rfart img{width:78px;height:auto}
+.rfx .rfart .dsdrawn svg{width:54px;fill:none;stroke:currentColor;stroke-width:2.2}
+.rfx b{display:block;font:800 25px/.95 "RM Barlow","Barlow Condensed",Impact,sans-serif;text-transform:uppercase}
+.rfx span{display:block;font:500 12.5px "RM Inter",Inter,sans-serif;opacity:.75;margin:4px 0 8px}
+.rfgo{display:inline-block;border:0;cursor:pointer;font:700 13px "RM Inter",Inter,sans-serif;color:#15120c;background:#e6b13c;padding:8px 12px;border-radius:10px;text-decoration:none}
+.rfq{font:italic 500 14px/1.4 "RM Inter",Inter,sans-serif;margin:0 0 12px;padding-left:10px;border-left:3px solid #e6b13c}
+
+/* ===== THE GOLD THEME, NEW LOOK (v267). Grain under everything, posts sitting right on it with a thin line
+   between, white Inter text, gold heart pill, dark comments. Teal and light themes are untouched. ===== */
+html.t-classic body,html.t-classic #main{background:#121110 url("/assets/porch/grain.jpg") repeat}
+html.t-classic .dsbar{background:url("/assets/porch/wood.jpg") center/cover;border-color:#4a4231;box-shadow:inset 0 0 14px rgba(0,0,0,.8)}
+html.t-classic #dstack .dscard{background:url("/assets/porch/card.jpg") center/cover;border-color:#6b6150;box-shadow:inset 0 0 26px rgba(0,0,0,.8)}
+html.t-classic #dstack .dscard.next{border-color:#e6b13c;box-shadow:inset 0 0 26px rgba(0,0,0,.8),0 0 0 1px #000,0 0 14px rgba(230,177,60,.22)}
+html.t-classic #dstack .dscp b{color:#f4f0e5;text-shadow:0 2px 3px #000}
+html.t-classic #dstack .dscp>span:last-child{color:#ece5d6}
+html.t-classic #dstack .dsgo{background:url("/assets/porch/brush.png") center/100% 100% no-repeat;color:#15120c;border-radius:0}
+html.t-classic #dstack .dscard.done .dscp b,html.t-classic #dstack .dscard.done .dscp>span:last-child{color:#b9b09f}
+html.t-classic #dstack .dsart .dsico{filter:brightness(1.35) drop-shadow(0 2px 2px #000)}
+html.t-classic #dstack .dsbox{border-bottom-color:#3a342a}
+html.t-classic article.post{background:transparent!important;border:0!important;border-bottom:1px solid #3a342a!important;border-radius:0!important;box-shadow:none!important;margin-left:0!important;margin-right:0!important;color:#f4f0e5}
+html.t-classic article.post .body{font:400 15.5px/1.5 "RM Inter",Inter,system-ui,sans-serif;color:#f4f0e5}
+html.t-classic article.post .who b,html.t-classic article.post .who b .un{font:800 15.5px "RM Inter",Inter,system-ui,sans-serif;color:#f4f0e5}
+html.t-classic article.post .who small{font:500 12.5px "RM Inter",Inter,system-ui,sans-serif;color:#bdb5a7}
+html.t-classic article.post .ph .av{box-shadow:0 0 0 2px #e6b13c}
+html.t-classic article.post .acts{gap:14px;align-items:center}
+html.t-classic article.post .acts>[data-react]{display:inline-flex!important;align-items:center;gap:7px;height:36px!important;min-height:36px!important;padding:0 14px!important;border-radius:20px!important;border:1.5px solid #e6b13c!important;color:#e6b13c!important;background:none!important;font:600 14px "RM Inter",Inter,sans-serif!important;margin:4px 0}
+html.t-classic article.post .acts>[data-react] svg{color:#e6b13c!important;stroke:#e6b13c!important}
+html.t-classic article.post .acts>[data-react].on svg{fill:#e6b13c!important}
+html.t-classic article.post .acts>.send1{margin-left:auto!important}
+html.t-classic article.post .cm-paper{background:transparent!important;border-top:0!important;color:#f4f0e5!important}
+html.t-classic article.post .cm-say{background:none!important;border:0!important}
+html.t-classic article.post .cm-say span:last-child{background:#1c1a16!important;border:1px solid #3d3831!important;color:#bdb5a7!important;font-family:"RM Inter",Inter,system-ui,sans-serif!important}
+html.t-classic #comments .sheet{--pp:#141311;--pink:#f4f0e5;--pmute:#bdb5a7;--pfaint:#9a9284;--pline:#3a342a;--pbub:#1c1a16;--pgold:#e6b13c;background:#141311 url("/assets/porch/grain.jpg") repeat!important;border-color:#3a342a!important;color:#f4f0e5;font-family:"RM Inter",Inter,system-ui,sans-serif}
+html.t-classic #comments .sheet .g{background:#4a443a!important}
+html.t-classic #comments .chead b{font:800 22px "RM Barlow","Barlow Condensed",Impact,sans-serif;letter-spacing:.5px;text-transform:uppercase;color:#f4f0e5}
+html.t-classic #comments .c1 .bub{font:400 15px/1.45 "RM Inter",Inter,system-ui,sans-serif;border-radius:14px}
+html.t-classic #comments .c1 .bub b .un{font:800 14px "RM Inter",Inter,system-ui,sans-serif;color:#f4f0e5}
+html.t-classic #comments .c1 .av{box-shadow:0 0 0 2px #e6b13c}
+html.t-classic #comments .cheart svg{stroke:#bdb5a7}
+html.t-classic #comments .cheart.on svg{fill:#e6b13c;stroke:#e6b13c}
+html.t-classic #comments .c1 small [data-creply]{color:#e6b13c}
+html.t-classic #comments .bk.shx{color:#f4f0e5}
+html.t-classic #comments .cbar{background:#0f0e0c;border-top:1px solid #3a342a}
+html.t-classic #comments #cin{background:#1c1a16;color:#f4f0e5;border:1px solid #3d3831}
+html.t-classic #comments #cgo{background:#e6b13c;color:#15120c}
+html.t-classic #comments .rfx{background:url("/assets/porch/card.jpg") center/cover;border-color:#e6b13c;color:#f4f0e5}
+html.t-classic #comments .rfq{color:#d8cfbf}
 .dsinfo{width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;background:none;color:inherit;font:800 12px/1 Georgia,serif;cursor:pointer;margin-left:4px;padding:0}
 /* GROUP PICTURES (4 Oct 2026): a group can have its own picture and banner; keepers change them */
 .pa-fc b{color:var(--cream)}
@@ -1710,7 +1789,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v266</span>
+  <span class="ver" id="ver">v267</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1996,6 +2075,7 @@ html.kb .ch-bar{padding-bottom:8px}
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div>
     <div class="chead"><b>Comments</b></div>
+    <div id="rfhead" hidden></div>   <!-- v267: REFLECT puts today's reading here (feed/daily-stack.js) -->
     <div id="clist"></div>
     <div class="atbar" id="atm"></div>
     <div class="replyto" id="replyto"></div>
@@ -2723,7 +2803,7 @@ html.kb .ch-bar{padding-bottom:8px}
       var list = tab === "following" && !realFollows.length ? [] : await rest(q + (tab === "following" ? "&user_id=in.(" + realFollows.join(",") + ")" : ""));
       if (list.length < PAGE) done = true;
       if (list.length) oldestSeen = list[list.length - 1].created_at;
-      list = list.filter(function (p) { return !muted[p.user_id]; });
+      list = list.filter(function (p) { return !muted[p.user_id] && p.need !== "reflect"; });   /* v267: Reflect threads live on the daily stack, not the feed */
       /* SPINS IN THE FEED (2 Oct 2026, Mike picked mockup B): every Spin already has a
          share row (need "moment"). It shows as a square picture with a play button; a tap
          opens the Spin player. */
@@ -4006,7 +4086,7 @@ html.kb .ch-bar{padding-bottom:8px}
   function soberText(d) { var x = String(d).split("-"); return "Sober since " + MON[+x[1] - 1] + " " + (+x[2]) + ", " + x[0]; }
   async function postsFor(uid) {
     if (isSample(uid)) return Object.keys(posts).map(function (k) { return posts[k]; }).filter(function (p) { return p.user_id === uid; });
-    var list = await rest("porch_posts?or=(user_id.eq." + uid + ",wall_of.eq." + uid + ")&need=neq.moment&group_id=is.null&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,tag_group_id,wall_of&order=created_at.desc&limit=60");
+    var list = await rest("porch_posts?or=(user_id.eq." + uid + ",wall_of.eq." + uid + ")&need=not.in.(moment,reflect)&group_id=is.null&select=id,user_id,need,body,photo_paths,card_style,created_at,edited_at,link_preview,reshare_of,tag_group_id,wall_of&order=created_at.desc&limit=60");
     /* RESHARES ARE ON THE PROFILE TOO (v186, Mike: "let's add in reshares ... in the same card grid"). The tile shows
        the share they passed along, with a small reshare mark. The originals are fetched here in one go. */
     var rsIds = list.map(function (p) { return p.reshare_of; }).filter(function (x, i, a) { return x && origs[x] === undefined && a.indexOf(x) === i; });
@@ -5533,7 +5613,7 @@ html.kb .ch-bar{padding-bottom:8px}
   async function checkNew() {
     if (!newest || document.hidden) return;
     try {
-      var q = "porch_posts?created_at=gt." + encodeURIComponent(newest) + "&group_id=is.null&select=id";
+      var q = "porch_posts?created_at=gt." + encodeURIComponent(newest) + "&group_id=is.null&or=(need.is.null,need.neq.reflect)&select=id";
       if (tab === "following") { var f = Object.keys(friends).filter(function (k) { return !isSample(k); }); if (!f.length) return; q += "&user_id=in.(" + f.join(",") + ")"; }
       var r = await fetch(DB + "/rest/v1/" + q, { method: "HEAD", headers: { apikey: KEY, Authorization: "Bearer " + ((await tok()) || KEY), Prefer: "count=exact" } });
       var n = parseInt((r.headers.get("content-range") || "*/0").split("/")[1], 10) || 0;
@@ -7847,7 +7927,7 @@ html.kb .ch-bar{padding-bottom:8px}
 <script src="/assets/share-sheet.js" defer></script>
 <script src="/feed/photo-fun.js?v=2" defer></script>
 <script src="/feed/tour.js?v=6" defer></script>
-<script src="/assets/stack-data.js?v=264" defer></script>
-<script src="/feed/daily-stack.js?v=266" defer></script>
+<script src="/assets/stack-data.js?v=267" defer></script>
+<script src="/feed/daily-stack.js?v=267" defer></script>
 </body>
 </html>
