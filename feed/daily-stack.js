@@ -130,6 +130,7 @@
           '<div class="dst"><b>Your Daily Stack</b><span>' + esc(day) + " · " + esc(count) + '</span></div>' +
           '<a class="dsedit" href="/index.html?today=1&amp;edit=stack">Edit</a>' +
           '<button type="button" class="dsfold" data-ds-fold="1" aria-label="Fold it up" aria-expanded="true">&#8963;</button></div>' +
+        '<div class="dswrap"><button type="button" class="dsl" aria-label="Back" hidden>&#8249;</button><button type="button" class="dsr" aria-label="More" hidden>&#8250;</button>' +
         '<div class="dscards" id="dscards">' +
           shown.map(function (id) {
             var it = D.byId(id), isDone = openedNow.indexOf(id) !== -1, isNext = id === next;
@@ -141,7 +142,7 @@
               (isDone ? '<span class="dstick" aria-label="Read">✓</span>' : "") +
               ico(it) + '<b>' + esc(it.t) + '</b><span>' + esc(it.d) + '</span></' + end + '>';
           }).join("") +
-        '</div>' +
+        '</div></div>' +
         '<div class="dsdots" aria-hidden="true">' + shown.map(function (id) { return '<i' + (openedNow.indexOf(id) !== -1 ? ' class="f"' : "") + '></i>'; }).join("") + '</div>' +
       '</section>';
     var row = document.getElementById("dscards");
@@ -151,14 +152,61 @@
     dragScroll(row);
   }
 
-  /* ---- a mouse can drag the row on a computer, like the strips on Ohio Peer Supporter ---- */
+  /* ---- ON A COMPUTER (v265, Mike: "i cannot scroll side to side on a computer, fix that").
+     Three ways, all of them: drag it with the mouse (like the strips on Ohio Peer Supporter), roll the
+     mouse wheel over it, or click the arrows at its ends. The arrows only show on a computer with a
+     mouse, and only on a side that has more to see. Phones swipe, as before. ---- */
   var dragged = false;
+  var STEP = function (row) { var c = row.querySelector(".dscard"); return c ? c.offsetWidth + 10 : 150; };
+  function arrows(row) {
+    var wrap = row.parentNode; if (!wrap) return;
+    var l = wrap.querySelector(".dsl"), r = wrap.querySelector(".dsr");
+    if (!l || !r) return;
+    var max = row.scrollWidth - row.clientWidth;
+    l.hidden = row.scrollLeft <= 4; r.hidden = row.scrollLeft >= max - 4 || max <= 4;
+  }
   function dragScroll(row) {
     if (!row || row._drag) return; row._drag = 1;
-    var down = false, x0 = 0, s0 = 0;
-    row.addEventListener("mousedown", function (e) { down = true; dragged = false; x0 = e.pageX; s0 = row.scrollLeft; row.classList.add("grab"); e.preventDefault(); });
-    window.addEventListener("mousemove", function (e) { if (!down) return; var dx = e.pageX - x0; if (Math.abs(dx) > 5) dragged = true; row.scrollLeft = s0 - dx; });
-    window.addEventListener("mouseup", function () { down = false; row.classList.remove("grab"); setTimeout(function () { dragged = false; }, 0); });
+    var down = false, x0 = 0, s0 = 0, id = null;
+    row.addEventListener("pointerdown", function (e) {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      down = true; dragged = false; x0 = e.clientX; s0 = row.scrollLeft; id = e.pointerId;
+    });
+    row.addEventListener("pointermove", function (e) {
+      if (!down || e.pointerId !== id) return;
+      var dx = e.clientX - x0;
+      if (!dragged && Math.abs(dx) > 5) { dragged = true; row.classList.add("grab"); try { row.setPointerCapture(id); } catch (x) {} }
+      if (dragged) { row.scrollLeft = s0 - dx; e.preventDefault(); }
+    });
+    function up() {
+      if (!down) return; down = false;
+      if (dragged) {
+        row.classList.remove("grab");
+        setTimeout(function () { dragged = false; }, 0);
+      }
+    }
+    row.addEventListener("pointerup", up); row.addEventListener("pointercancel", up);
+    row.addEventListener("dragstart", function (e) { e.preventDefault(); });
+    /* the wheel: one card per notch, and only while there is somewhere to go -- at either end the page scrolls as usual */
+    var wheelBusy = 0;
+    row.addEventListener("wheel", function (e) {
+      var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (!d) return;
+      var max = row.scrollWidth - row.clientWidth;
+      if ((d > 0 && row.scrollLeft >= max - 4) || (d < 0 && row.scrollLeft <= 4)) return;
+      e.preventDefault();
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { row.scrollLeft += d; return; }      /* a trackpad swipes sideways on its own */
+      var now = Date.now(); if (now - wheelBusy < 180) return; wheelBusy = now;
+      row.scrollBy({ left: (d > 0 ? 1 : -1) * STEP(row), behavior: "smooth" });
+    }, { passive: false });
+    row.addEventListener("scroll", function () { arrows(row); }, { passive: true });
+    var wrap = row.parentNode;
+    if (wrap) wrap.addEventListener("click", function (e) {
+      var b = e.target.closest && e.target.closest(".dsl,.dsr"); if (!b) return;
+      e.preventDefault(); e.stopPropagation();
+      row.scrollBy({ left: (b.classList.contains("dsr") ? 1 : -1) * STEP(row) * 2, behavior: "smooth" });
+    });
+    setTimeout(function () { arrows(row); }, 50);
   }
 
   /* ---- opened: the same list Today keeps ---- */

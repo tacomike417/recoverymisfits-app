@@ -35,8 +35,13 @@ about half the members hit a page saying "opens October 20" weeks after that dat
       goes to Today's own editor (/index.html?edit=stack). Fold to one line, remembered for the day; new
       day starts open; all read folds itself green. Never used readings: one "Start your day here?"
       offer, Add or X, kept in the account (blob.porchStack "on"/"off"). Code: feed/daily-stack.js.
+- [x] v265: the daily stack scrolls sideways on a computer: drag it, roll the mouse wheel over it, or click the
+      arrows at its ends (arrows only show with a mouse, only on a side with more to see).
 - [ ] Ideas Mike hasn't said yes to yet: "Talk about it" after a reading (opens a share with the reading's
       #tag), and a small "N people read this today" line on a card (counts only, never names).
+      Mike: the post has to carry the reading (or a chunk) plus a link out. Our own items (absolute,
+      First Things Francis, public-domain prayers, On Awakening) can go in whole; Daily Reflections and
+      24 Hours a Day are copyrighted, so those posts carry title + date + link + the person's own words.
 - [ ] Email nudge to come back: DISCUSS FIRST. Today the sign-up promises "we send one code, then we
       throw the email away", so a nudge means changing that promise or asking separately.
 - [ ] nathanp and nathanp1282 have the same sober date: looks like somebody locked out who made a
