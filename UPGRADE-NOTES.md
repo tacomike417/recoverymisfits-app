@@ -55,6 +55,12 @@ about half the members hit a page saying "opens October 20" weeks after that dat
 - [x] v268: NO DEAD ENDS (Mike: "you can't back out of [Meme of the Day] without using your phone's back
       buttons ... No more dead ends"). topbar.js puts a gold back arrow top left on EVERY page except the Porch
       and Today. It goes back where you came from, or to the Porch if you came in from outside.
+- [x] v269: TAP A READING, THE TALK COMES WITH IT (Mike: "only for the daily readings"). READ | REFLECT |
+      SHARE came off the bar. Daily Reflections, 24 Hours a Day and Another Day Sober: tapping the card opens
+      the reading as always, and coming back to the Porch brings up "Talk about today's reading" over it
+      (reading on top + Read it again, then comments; "Be the first" when empty). The "Talk" chip on those
+      three cards opens it straight away; it shows "N talking" from 2 up. Other cards: unchanged.
+- [ ] SHARE a reading: later, inside the talk sheet (Mike: "that's where the share thing would go").
 - [ ] Ideas Mike hasn't said yes to yet: "Talk about it" after a reading (opens a share with the reading's
       #tag), and a small "N people read this today" line on a card (counts only, never names).
       Mike: the post has to carry the reading (or a chunk) plus a link out. Our own items (absolute,

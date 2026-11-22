@@ -65,6 +65,11 @@
   var ART = { reflections: SUNBOOK, anotherday: SPROUT };
   function art(it) { return ART[it.id] || ico(it); }
   var rcounts = {};
+  /* THE TALK (v269, Mike: "only for the daily readings. Daily Reflections, 24 Hours a Day, Another Day
+     Sober. You don't need it for all the other stuff."). Tap one of these three: the reading opens like
+     always, and when you come back to the Porch its conversation is waiting in a sheet on top. */
+  var TALKS = { reflections: 1, hours24: 1, anotherday: 1 };
+  var PEND = "rm_talk_pending";
 
   function opensOver(it) { return it && (it.kind === "prayer" || it.kind === "absolute" || it.kind === "evening"); }
 
@@ -138,11 +143,7 @@
     var oldRow = document.getElementById("dscards"), keep = oldRow ? oldRow.scrollLeft : null;
     box.innerHTML =
       '<section class="dsbox" aria-label="Your daily stack">' +
-        '<div class="dsbar">' + BOOKS + '<h2>The Daily Stack</h2>' +
-          '<nav aria-label="For the reading in view">' +
-            '<button type="button" data-ds-act="read">Read</button><i aria-hidden="true"></i>' +
-            '<button type="button" data-ds-act="reflect">Reflect</button><i aria-hidden="true"></i>' +
-            '<button type="button" data-ds-act="share">Share</button></nav></div>' +
+        '<div class="dsbar">' + BOOKS + '<h2>The Daily Stack</h2></div>' +   /* v269: READ | REFLECT | SHARE came off (Mike: confusing). Share comes back later, inside the talk sheet. */
         '<div class="dswrap"><button type="button" class="dsl" aria-label="Back" hidden>&#8249;</button><button type="button" class="dsr" aria-label="More" hidden>&#8250;</button>' +
         '<div class="dscards" id="dscards">' +
           shown.map(function (id) {
@@ -153,9 +154,9 @@
             return '<' + tag + ' class="dscard' + (isDone ? " done" : "") + (isNext ? " next" : "") + '" data-ds-id="' + esc(id) + '">' +
               '<span class="dsart">' + art(it) + '</span>' +
               '<span class="dscp">' + (isNext ? '<span class="dsgo">Read next</span>' : "") +
-                '<b>' + esc(it.t) + '</b><span>' + esc(it.d) + '</span></span>' +
+                '<b>' + esc(it.t) + '</b><span>' + esc(it.d) + '</span>' +
+                (TALKS[id] ? '<em class="dstalk" data-ds-talk="' + esc(id) + '" role="button" aria-label="Talk about today\u2019s ' + esc(it.t) + '">' + TALK + (n >= 2 ? n + " talking" : "Talk") + '</em>' : "") + '</span>' +
               (isDone ? CHECK : "") +
-              (n >= 2 ? '<span class="dstalk" data-ds-talk="' + esc(id) + '" aria-label="' + n + ' people talking about this today">' + TALK + n + '</span>' : "") +
               '</' + end + '>';
           }).join("") +
         '</div></div>' +
@@ -446,15 +447,21 @@
     var link = linkFor(it.id), host = "";
     try { host = link ? new URL(link).hostname.replace(/^www\./, "") : ""; } catch (e) {}
     var go = opensOver(it) ? '<button type="button" class="rfgo" data-rf-read="' + esc(it.id) + '">Read it</button>'
-      : link ? '<a class="rfgo" href="' + esc(link) + '"' + (/^https?:/.test(link) && link.indexOf(SITE) !== 0 ? ' target="_blank" rel="noopener"' : "") + '>Read it' + (host && host !== "recoverymisfits.org" ? " ↗" : "") + '</a>' : "";
+      : link ? '<a class="rfgo" href="' + esc(link) + '"' + (/^https?:/.test(link) && link.indexOf(SITE) !== 0 ? ' target="_blank" rel="noopener"' : "") + '>Read it again' + (host && host !== "recoverymisfits.org" ? " ↗" : "") + '</a>' : "";
     h.innerHTML = '<div class="rfx"><span class="rfart">' + art(it) + '</span><div><b>' + esc(it.t) + '</b><span>' + esc(todayWords()) + '</span>' + go + '</div></div>' +
-      '<p class="rfq">What did today’s reading say to you?</p>';
+      '<p class="rfq">What did it say to you?</p>' +
+      '<div class="rfempty"><b>Be the first</b>Nobody\u2019s said anything about today\u2019s reading yet. What did it stir up for you?</div>';
     h.hidden = false;
-    var t = document.querySelector("#comments .chead b"); if (t) t.textContent = "Reflect · Today";
+    var t = document.querySelector("#comments .chead b"); if (t) t.textContent = "Talk about today\u2019s reading";
+    var cm = document.getElementById("comments"); if (cm) cm.classList.add("rf");
+    var ask = function () { var b = document.getElementById("cin"); if (b && cm && cm.classList.contains("rf") && b.placeholder === "Say something kind\u2026") b.placeholder = "Say what it stirred up\u2026"; };
+    [60, 400, 1200].forEach(function (ms) { setTimeout(ask, ms); });
   }
   function reflectDone() {
     var h = document.getElementById("rfhead"); if (h) { h.hidden = true; h.innerHTML = ""; }
     var t = document.querySelector("#comments .chead b"); if (t) t.textContent = "Comments";
+    var cm = document.getElementById("comments"); if (cm) cm.classList.remove("rf");
+    var b = document.getElementById("cin"); if (b) b.placeholder = "Say something kind\u2026";
     loadCounts();
   }
   function doReflect(id) {
@@ -482,13 +489,6 @@
     if (t.closest("[data-ds-add]")) { setFlag("on"); paint(); return; }
     if (t.closest("[data-ds-no]")) { setFlag("off"); paint(); return; }
     if (t.closest("[data-ds-edit]")) { e.preventDefault(); openEditor(); return; }
-    var act = t.closest("[data-ds-act]");
-    if (act) {
-      e.preventDefault(); var cur = currentCard(); if (!cur) return;
-      var what = act.getAttribute("data-ds-act");
-      if (what === "read") doRead(cur); else if (what === "reflect") doReflect(cur.id); else doShare(cur);
-      return;
-    }
     var tk = t.closest("[data-ds-talk]");
     if (tk) { e.preventDefault(); e.stopPropagation(); if (!dragged) doReflect(tk.getAttribute("data-ds-talk")); return; }
     var fb = t.closest("[data-ds-fold]");
@@ -498,6 +498,7 @@
     if (dragged) { e.preventDefault(); return; }       /* the end of a mouse drag is not a tap */
     var id = c.getAttribute("data-ds-id"), it = D.byId(id);
     markOpened(id);
+    if (TALKS[id]) { try { sessionStorage.setItem(PEND, JSON.stringify({ id: id, at: Date.now() })); } catch (x) {} }
     if (opensOver(it)) { e.preventDefault(); readOver(it); setTimeout(paint, 400); return; }
     /* a link: let it go (same page, or a new tab for the outside sites); repaint for when they come back */
     setTimeout(paint, 300);
@@ -530,5 +531,20 @@
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") paint(); });
   setInterval(function () { var k = todayKey(); if (k !== paint._k) { paint._k = k; if (blob) openedNow = openedFrom(blob); paint(); } }, 60000);
   paint._k = todayKey();
+  /* COMING BACK FROM THE READING. An outside site opened in a new tab: this page becomes visible again.
+     Another Day Sober opened in this tab: the Porch loads fresh. Either way the talk sheet comes up, once,
+     if they come back within half an hour. */
+  function talkIfPending() {
+    var v = null; try { v = JSON.parse(sessionStorage.getItem(PEND) || "null"); } catch (e) {}
+    if (!v || !TALKS[v.id] || Date.now() - v.at > 30 * 60000 || Date.now() - v.at < 1500) return;
+    try { sessionStorage.removeItem(PEND); } catch (e) {}
+    var n = 0;
+    (function go() {
+      if (window.Porch && window.Porch.gate && !document.querySelector(".layer.open")) return doReflect(v.id);
+      if (++n < 30) setTimeout(go, 300);
+    })();
+  }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") setTimeout(talkIfPending, 350); });
+  window.addEventListener("pageshow", function () { setTimeout(talkIfPending, 900); });
   window.PorchDailyStack = { paint: paint };
 })();

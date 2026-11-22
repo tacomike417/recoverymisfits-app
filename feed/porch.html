@@ -794,11 +794,11 @@ html.fullon #main{visibility:hidden}
 #dstack .dsart .dsdrawn svg{width:76%;max-width:96px;fill:none;stroke:var(--cream);stroke-width:2.2}
 #dstack .dscp{position:relative;z-index:1;min-width:0;display:block}
 #dstack .dscp b{display:block;margin:0 0 6px;font:800 28px/.92 "RM Barlow","Barlow Condensed",Impact,sans-serif;text-transform:uppercase;color:var(--cream);letter-spacing:.2px}
-#dstack .dscp>span:last-child{display:block;font:italic 500 13px/1.32 "RM Inter",Inter,system-ui,sans-serif;color:var(--soft)}
+#dstack .dscp>span:not(.dsgo){display:block;font:italic 500 13px/1.32 "RM Inter",Inter,system-ui,sans-serif;color:var(--soft)}
 #dstack .dsgo{display:inline-block;margin:0 0 7px;padding:5px 12px 4px;font:800 12px/1 "RM Barlow","Barlow Condensed",sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--ink);background:var(--gold2);border-radius:3px}
 #dstack .dstick{position:absolute;z-index:2;top:10px;right:10px;width:30px;height:30px}
 #dstack .dscard.done{opacity:.68}
-#dstack .dstalk{position:absolute;z-index:2;bottom:9px;right:10px;display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.5);border:1px solid var(--line);color:var(--cream);font:700 12px "RM Inter",Inter,sans-serif}
+#dstack .dstalk{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:5px 10px;min-height:30px;border-radius:999px;background:rgba(0,0,0,.5);border:1px solid #e6b13c;color:#f4f0e5;font:700 12px "RM Inter",Inter,sans-serif;font-style:normal;cursor:pointer}
 #dstack .dstalk svg{width:14px;height:14px}
 .dsmeta{display:flex;align-items:center;padding:0 10px 0 6px;position:relative;min-height:44px}
 .dsmeta .dsedit{font:700 13px "RM Inter",Inter,system-ui,sans-serif}
@@ -818,6 +818,12 @@ html.fullon #main{visibility:hidden}
 .rfx span{display:block;font:500 12.5px "RM Inter",Inter,sans-serif;opacity:.75;margin:4px 0 8px}
 .rfgo{display:inline-block;border:0;cursor:pointer;font:700 13px "RM Inter",Inter,sans-serif;color:#15120c;background:#e6b13c;padding:8px 12px;border-radius:10px;text-decoration:none}
 .rfq{font:italic 500 14px/1.4 "RM Inter",Inter,sans-serif;margin:0 0 12px;padding-left:10px;border-left:3px solid #e6b13c}
+/* v269: an empty talk says "Be the first" instead of the usual line */
+.rfempty{display:none;text-align:center;margin:34px 16px 10px;font:15px/1.5 "RM Inter",Inter,sans-serif;opacity:.85}
+.rfempty b{display:block;font:800 26px "RM Barlow","Barlow Condensed",Impact,sans-serif;text-transform:uppercase;margin-bottom:6px;opacity:1}
+#comments.rf .sheet:has(#clist > p:only-child) .rfempty{display:block}
+#comments.rf .sheet:has(#clist > p:only-child) .rfq{display:none}
+#comments.rf #clist > p:only-child{display:none}
 
 /* ===== THE GOLD THEME, NEW LOOK (v267). Grain under everything, posts sitting right on it with a thin line
    between, white Inter text, gold heart pill, dark comments. Teal and light themes are untouched. ===== */
@@ -826,9 +832,9 @@ html.t-classic .dsbar{background:url("/assets/porch/wood.jpg") center/cover;bord
 html.t-classic #dstack .dscard{background:url("/assets/porch/card.jpg") center/cover;border-color:#6b6150;box-shadow:inset 0 0 26px rgba(0,0,0,.8)}
 html.t-classic #dstack .dscard.next{border-color:#e6b13c;box-shadow:inset 0 0 26px rgba(0,0,0,.8),0 0 0 1px #000,0 0 14px rgba(230,177,60,.22)}
 html.t-classic #dstack .dscp b{color:#f4f0e5;text-shadow:0 2px 3px #000}
-html.t-classic #dstack .dscp>span:last-child{color:#ece5d6}
+html.t-classic #dstack .dscp>span:not(.dsgo){color:#ece5d6}
 html.t-classic #dstack .dsgo{background:url("/assets/porch/brush.png") center/100% 100% no-repeat;color:#15120c;border-radius:0}
-html.t-classic #dstack .dscard.done .dscp b,html.t-classic #dstack .dscard.done .dscp>span:last-child{color:#b9b09f}
+html.t-classic #dstack .dscard.done .dscp b,html.t-classic #dstack .dscard.done .dscp>span:not(.dsgo){color:#b9b09f}
 html.t-classic #dstack .dsart .dsico{filter:brightness(1.35) drop-shadow(0 2px 2px #000)}
 html.t-classic #dstack .dsbox{border-bottom-color:#3a342a}
 html.t-classic article.post{background:transparent!important;border:0!important;border-bottom:1px solid #3a342a!important;border-radius:0!important;box-shadow:none!important;margin-left:0!important;margin-right:0!important;color:#f4f0e5}
@@ -1789,7 +1795,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v267</span>
+  <span class="ver" id="ver">v269</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -7928,6 +7934,6 @@ html.kb .ch-bar{padding-bottom:8px}
 <script src="/feed/photo-fun.js?v=2" defer></script>
 <script src="/feed/tour.js?v=6" defer></script>
 <script src="/assets/stack-data.js?v=267" defer></script>
-<script src="/feed/daily-stack.js?v=267" defer></script>
+<script src="/feed/daily-stack.js?v=269" defer></script>
 </body>
 </html>
