@@ -37,6 +37,11 @@ about half the members hit a page saying "opens October 20" weeks after that dat
       offer, Add or X, kept in the account (blob.porchStack "on"/"off"). Code: feed/daily-stack.js.
 - [x] v265: the daily stack scrolls sideways on a computer: drag it, roll the mouse wheel over it, or click the
       arrows at its ends (arrows only show with a mouse, only on a side with more to see).
+- [x] v266: EDIT RIGHT ON THE PORCH (Mike: "you cheaped out ... it jumps all these different screens and never
+      goes back to the porch... don't cheap out"). Edit opens the Today editor's twin as a sheet over the
+      Porch: gold arrow up, minus off, plus back, Prayers drawer, saves at once to the same account .stack,
+      says so plainly if it can't save. Back or X = on the Porch where you were. The stack behind it
+      changes as you go.
 - [ ] Ideas Mike hasn't said yes to yet: "Talk about it" after a reading (opens a share with the reading's
       #tag), and a small "N people read this today" line on a card (counts only, never names).
       Mike: the post has to carry the reading (or a chunk) plus a link out. Our own items (absolute,

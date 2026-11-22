@@ -111,7 +111,7 @@
 
     if (!total) {
       box.innerHTML = '<div class="dsstrip"><span class="dssun" aria-hidden="true"></span><b>Daily Stack</b>' +
-        '<em>Nothing in it yet</em><a class="dsedit" href="/index.html?today=1&amp;edit=stack">Pick some</a></div>';
+        '<em>Nothing in it yet</em><button type="button" class="dsedit" data-ds-edit>Pick some</button></div>';
       return;
     }
     if (folded) {
@@ -128,7 +128,7 @@
       '<section class="dsbox" aria-label="Your daily stack">' +
         '<div class="dshead"><span class="dssun" aria-hidden="true"></span>' +
           '<div class="dst"><b>Your Daily Stack</b><span>' + esc(day) + " · " + esc(count) + '</span></div>' +
-          '<a class="dsedit" href="/index.html?today=1&amp;edit=stack">Edit</a>' +
+          '<button type="button" class="dsedit" data-ds-edit>Edit</button>' +
           '<button type="button" class="dsfold" data-ds-fold="1" aria-label="Fold it up" aria-expanded="true">&#8963;</button></div>' +
         '<div class="dswrap"><button type="button" class="dsl" aria-label="Back" hidden>&#8249;</button><button type="button" class="dsr" aria-label="More" hidden>&#8250;</button>' +
         '<div class="dscards" id="dscards">' +
@@ -256,11 +256,136 @@
     if (window.PorchLayer) window.PorchLayer.open("dsread");
   }
 
+
+  /* ==========================================================================
+     THE EDITOR, RIGHT HERE ON THE PORCH (v266, Mike: "you cheaped out in coding the edit feature
+     and now it jumps all these different screens and never goes back to the porch... don't cheap
+     out"). Edit opens a sheet over the Porch; Back or the X closes it and you are on the Porch,
+     where you were. It is the Today page's editor, the same rules and the same words:
+       - the gold arrow moves a reading up (to move one down, move the one under it up)
+       - minus takes a reading off; nothing is deleted, it waits under "Not shown"
+       - plus puts it back where it was; the prayers wait in their own drawer
+       - every change is saved to the account at once (the same .stack the Today page reads),
+         and if it can't be saved the sheet goes back and says so in plain words
+     The stack behind the sheet changes as you go, so you can see what you did.
+     ========================================================================== */
+  var UPSVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V6M6 12l6-6 6 6"/></svg>';
+  var GROUPS = { prayer: "Prayers" };
+  var groupOpen = {};
+  var lastGood = null;
+  var chain = Promise.resolve();
+  var QUIET = false;
+  try { QUIET = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+
+  function snap() { return { order: arr.order.slice(), off: arr.off.slice() }; }
+  function reshow() { arr = D.resolve({ order: arr.order, off: arr.off }); }
+  function isOff(id) { return arr.off.indexOf(id) !== -1; }
+  function $e(id) { return document.getElementById(id); }
+
+  function eRowOn(it, i) {
+    return '<div class="dserow" data-row-id="' + esc(it.id) + '">' +
+      '<button class="dsmv" type="button" data-move="' + esc(it.id) + '"' + (i === 0 ? " disabled" : "") +
+        ' aria-label="Move ' + esc(it.t) + ' up one">' + UPSVG + '</button>' +
+      ico(it) + '<span class="dset"><b>' + esc(it.t) + '</b><span>' + esc(it.d) + '</span></span>' +
+      '<button class="dstg" type="button" data-take="' + esc(it.id) + '" aria-label="Take ' + esc(it.t) + ' off your stack">&minus;</button></div>';
+  }
+  function eRowOff(it) {
+    return '<div class="dserow isoff" data-row-id="' + esc(it.id) + '">' +
+      ico(it) + '<span class="dset"><b>' + esc(it.t) + '</b><span>' + esc(it.d) + '</span></span>' +
+      '<button class="dstg add" type="button" data-addback="' + esc(it.id) + '" aria-label="Put ' + esc(it.t) + ' back on your stack">+</button></div>';
+  }
+  function paintEditor() {
+    var on = arr.shown, setAside = arr.order.filter(isOff), loose = [], boxed = {}, kinds = [];
+    setAside.forEach(function (id) {
+      var it = D.byId(id), k = it && it.kind;
+      if (k && GROUPS[k]) { if (!boxed[k]) { boxed[k] = []; kinds.push(k); } boxed[k].push(id); } else loose.push(id);
+    });
+    $e("dseOn").innerHTML = on.map(function (id, i) { return eRowOn(D.byId(id), i); }).join("");
+    $e("dseOff").innerHTML = loose.map(function (id) { return eRowOff(D.byId(id)); }).join("") +
+      kinds.map(function (k) {
+        var open = !!groupOpen[k], list = boxed[k];
+        return '<div class="dsgrp' + (open ? " open" : "") + '"><button class="dsgh" type="button" data-group="' + k + '" aria-expanded="' + open + '">' +
+          '<span>' + GROUPS[k] + '</span><em>' + list.length + '</em><span class="dsgc" aria-hidden="true">&#8964;</span></button>' +
+          '<div' + (open ? "" : " hidden") + '>' + list.map(function (id) { return eRowOff(D.byId(id)); }).join("") + '</div></div>';
+      }).join("");
+    $e("dseOnEmpty").hidden = on.length > 0;
+    $e("dseOffEmpty").hidden = setAside.length > 0;
+  }
+  function marks() {
+    var m = {};
+    document.querySelectorAll("#dsedit [data-row-id]").forEach(function (el) { m[el.getAttribute("data-row-id")] = el.getBoundingClientRect().top; });
+    return m;
+  }
+  function travel(before, nudge) {
+    var moved = [];
+    document.querySelectorAll("#dsedit [data-row-id]").forEach(function (el) {
+      var id = el.getAttribute("data-row-id");
+      if (id === nudge) { el.classList.remove("justmoved"); void el.offsetWidth; el.classList.add("justmoved"); }
+      if (QUIET || !(id in before)) return;
+      var d = before[id] - el.getBoundingClientRect().top; if (!d) return;
+      el.style.transition = "none"; el.style.transform = "translateY(" + d + "px)"; moved.push(el);
+    });
+    if (moved.length) requestAnimationFrame(function () {
+      moved.forEach(function (el) { el.style.transition = "transform .28s cubic-bezier(.2,.8,.2,1)"; el.style.transform = "translateY(0)"; });
+    });
+  }
+  function say(t, busy) { var b = $e("dseSay"); if (!b) return; b.textContent = t || ""; b.hidden = !t; b.className = "dsesay" + (busy ? " busy" : ""); }
+  function save() {
+    var A = window.RMAccount;
+    if (!A || !A.update) return Promise.resolve(false);
+    chain = chain.then(function () {
+      var want = { order: arr.order.slice(), off: arr.off.slice() };
+      return A.update(function (data) { data.stack = want; delete data.stackOff; return data; }).then(function (ok) {
+        if (ok === false) return false;
+        lastGood = snap();
+        if (blob) { blob.stack = want; delete blob.stackOff; }
+        try { localStorage.setItem("rm_stack", JSON.stringify({ order: want.order, off: want.off, uid: uid() })); } catch (e) {}
+        return true;
+      });
+    }).catch(function () { return false; });
+    return chain;
+  }
+  function change(work, nudge) {
+    var was = lastGood || snap();
+    work(); reshow();
+    var b = marks(); paintEditor(); travel(b, nudge); paint();
+    if (!navigator.onLine) return undo(was, "You’re offline, so that didn’t save. Try again when you have signal.");
+    say("Saving…", true);
+    save().then(function (ok) { if (ok) say(""); else undo(was, "That didn’t save. Check your signal and try again."); });
+  }
+  function undo(was, why) {
+    arr = D.resolve(was);
+    var b = marks(); paintEditor(); travel(b, null); paint();
+    say(why);
+  }
+  function move(id) {
+    var on = arr.shown, at = on.indexOf(id); if (at < 1) return;
+    var a = arr.order.indexOf(on[at]), b = arr.order.indexOf(on[at - 1]);
+    change(function () { var o = arr.order; var x = o[a]; o[a] = o[b]; o[b] = x; }, id);
+    var again = document.querySelector('#dsedit [data-move="' + id + '"]');
+    if (again && !again.disabled) { try { again.focus({ preventScroll: true }); } catch (e) {} }
+  }
+  function openEditor() {
+    if (!navigator.onLine) { say(""); }
+    lastGood = snap(); groupOpen = {};
+    paintEditor(); say(navigator.onLine ? "" : "You’re offline. You can look, but changes need a signal.");
+    if (window.PorchLayer) window.PorchLayer.open("dsedit");
+    try { document.querySelector("#dsedit .sheet").scrollTop = 0; } catch (e) {}
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target; if (!t.closest || !t.closest("#dsedit")) return;
+    var mv = t.closest("[data-move]"); if (mv && !mv.disabled) { move(mv.getAttribute("data-move")); return; }
+    var tk = t.closest("[data-take]"); if (tk) { var id = tk.getAttribute("data-take"); change(function () { if (!isOff(id)) arr.off.push(id); }, id); return; }
+    var ad = t.closest("[data-addback]"); if (ad) { var id2 = ad.getAttribute("data-addback"); change(function () { arr.off = arr.off.filter(function (x) { return x !== id2; }); }, id2); return; }
+    var g = t.closest("[data-group]"); if (g) { var k = g.getAttribute("data-group"); groupOpen[k] = !groupOpen[k]; var b = marks(); paintEditor(); travel(b, null); return; }
+  });
+
   /* ---- taps ---- */
   box.addEventListener("click", function (e) {
     var t = e.target;
     if (t.closest("[data-ds-add]")) { setFlag("on"); paint(); return; }
     if (t.closest("[data-ds-no]")) { setFlag("off"); paint(); return; }
+    if (t.closest("[data-ds-edit]")) { e.preventDefault(); openEditor(); return; }
     var fb = t.closest("[data-ds-fold]");
     if (fb) { foldSet(fb.getAttribute("data-ds-fold") === "1"); paint(); return; }
     var c = t.closest("[data-ds-id]");
