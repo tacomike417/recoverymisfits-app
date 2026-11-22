@@ -1637,7 +1637,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v262</span>
+  <span class="ver" id="ver">v263</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -2905,6 +2905,19 @@ html.kb .ch-bar{padding-bottom:8px}
       open("join");
     }
     if (shown === 1) last = Date.now();
+    /* EVERY TAP ASKS (v263, 22 Nov 2026, Mike: "we need to be more strict on the clicking portion,
+       whenever someone clicks we need to prompt the join the conversation sign up thing").
+       Not a member: scrolling is free, but any tap anywhere (a post, a name, a picture, the bar)
+       brings up the join sheet. The only taps that go through are the join sheet itself, the
+       Join free box at the top, and the sign-up / sign-in links. */
+    document.addEventListener("click", function (e) {
+      if (signedIn()) return;
+      var t = e.target;
+      if (!t || !t.closest) return;
+      if (t.closest("#join, #joinbar, a[href*='account.html']")) return;
+      e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      if (!busy()) open("join");
+    }, true);
     setTimeout(show, 30000);
     setTimeout(show, 150000);
     window.addEventListener("scroll", function () {

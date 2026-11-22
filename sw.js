@@ -31,7 +31,7 @@
    normal browser behavior after four seconds, so this can never be the
    reason somebody is staring at a blank screen. */
 
-const VERSION = "skv262-2026-11-22";   // v262: recoverymisfits.org opens on the Porch, Porch first in the bar, the join nudge   // v261: the Porch is open to everybody (lock off, sign-up asks for the email, soon page sends people in)   // v260: Member stats page   // v259: Cornerstones Recovery line at the bottom of every page   // v258: Prayer Jar v4, Corinna's guided meditation video plays in the jar (private)   // v257: Prayer Jar, hold in the empty box for a Paste bubble   // v256: tap the words of a long post to open it   // v255: Skivvies share cards land on the composer, Skivvies group tagged.   // v254: one You menu everywhere + Cookie's Prayer Jar
+const VERSION = "skv263-2026-11-22";   // v263: on the Porch, any tap by a non-member brings up the join sheet   // v262: recoverymisfits.org opens on the Porch, Porch first in the bar, the join nudge   // v261: the Porch is open to everybody (lock off, sign-up asks for the email, soon page sends people in)   // v260: Member stats page   // v259: Cornerstones Recovery line at the bottom of every page   // v258: Prayer Jar v4, Corinna's guided meditation video plays in the jar (private)   // v257: Prayer Jar, hold in the empty box for a Paste bubble   // v256: tap the words of a long post to open it   // v255: Skivvies share cards land on the composer, Skivvies group tagged.   // v254: one You menu everywhere + Cookie's Prayer Jar
 
 /* SHARING INTO THE APP (1 Oct 2026, Mike: "would you like to share this to your
    spins or would you like to make a post?"). On Android, the app shows up in the

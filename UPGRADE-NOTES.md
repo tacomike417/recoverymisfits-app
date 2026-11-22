@@ -19,6 +19,8 @@ about half the members hit a page saying "opens October 20" weeks after that dat
       Strangers scroll and look (house posts + Public profiles only), can't act; the join sheet says
       "Pull up a chair ... Join the conversation" and pops up by itself after ~4 posts or 30 s, once more
       later, never more. "You" with no account goes to sign-up, not the old beta page.
+- [x] v263: stricter. Not a member: any tap on the Porch (post, name, picture, bottom bar) brings up the
+      join sheet. Only the join sheet, the Join free box and the sign-up/sign-in links go through.
 
 **Left**
 - [ ] Old house posts saying "October 20": 2 posts + 2 Spins (Oct 6 and 10). Mike decides: delete or leave.
