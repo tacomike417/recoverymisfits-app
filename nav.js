@@ -1088,11 +1088,12 @@
   const items = [
     /* 30 Sep 2026 (Mike picked A): Home becomes TODAY with a sunrise, because the front
        page is the daily reading. Same page, same link; just the name and the picture. */
-    { href: "/index.html", label: "Today", icon: ICONS.today },
     /* 1 Oct 2026 (Mike): THE PORCH takes the Memes spot. The beta testers land on the
        Porch; everybody else gets "coming at the end of October" (feed/soon.html).
        Memes are still on Today (Meme of the Day + the rail) and at /meme.html. */
     { href: "/feed/porch.html", label: "Porch", icon: ICONS.porch },
+    /* v262 (22 Nov 2026, Mike): "Porch first, then Today". The Porch is the front door now. */
+    { href: "/index.html", label: "Today", icon: ICONS.today },
     /* 6 Oct 2026 (Mike: "I keep hitting that share button to get to account ... that's just
        how social media has it"). The bar is five now: Today, Porch, +, Invite, You.
        LISTEN, FUN AND TOOLS MOVED TO THE TODAY PAGE ("More on the shelf", under the stack).
@@ -1114,7 +1115,7 @@
        somewhere." So now it is ONE thing: YOUR MENU pops up right where you are, on every page
        (assets/account.js meMenu, v246). The Porch draws its own fuller copy. Somebody with no
        account at all gets the beta invite page. account.html is only the sign-in door now. */
-    { href: "/beta.html", label: "You", you: true }
+    { href: "/account.html?next=feed", label: "You", you: true }   /* v262: no account yet = the sign-up, not the old beta page */
   ];
 
   function hasAccount() { try { return !!localStorage.getItem("rm_account_v1"); } catch (e) { return false; } }
@@ -1990,9 +1991,12 @@ window.RMToPorch = async function (o) {
 (function () {
   "use strict";
   var DB = "https://rlytvfehbglsjfvprtbp.supabase.co", SRC = "rm_src_v1", SENT = "rm_src_sent", PING = "rm_ping_v1";
+  try { sessionStorage.setItem("rm_in", "1"); } catch (e) {}   /* v262: this visit is in, so Today stays Today */
   try {
     if (!localStorage.getItem(SRC)) {
       var q = new URLSearchParams(location.search), ref = document.referrer || "", host = "";
+      /* v262: the home page hops to the Porch, so the real referrer was saved before the hop */
+      try { var r0 = sessionStorage.getItem("rm_ref0"); if (r0 !== null && (!ref || /recoverymisfits/.test(ref))) ref = r0; } catch (e) {}
       try { host = ref ? new URL(ref).hostname.replace(/^www\./, "") : ""; } catch (e) {}
       if (/recoverymisfits/.test(host)) host = "";
       var s = q.get("utm_source") || q.get("via") || "";

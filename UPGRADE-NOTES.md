@@ -14,13 +14,18 @@ about half the members hit a page saying "opens October 20" weeks after that dat
 - [x] v261: THE PORCH IS OPEN TO EVERYBODY. Tester lock off (feed/porch.html), PORCH_OPEN = true
       (account.html, so sign-up asks for the email), feed/soon.html sends people straight in,
       Today's Porch card just says "Come hang out", Porch version pill fixed (it said v254).
+- [x] v262: THE PORCH IS THE FRONT DOOR. recoverymisfits.org opens on the Porch (index.html hops there on
+      the first page of a visit; the Today tab still works). Bottom bar: Porch, Today, +, Invite, You.
+      Strangers scroll and look (house posts + Public profiles only), can't act; the join sheet says
+      "Pull up a chair ... Join the conversation" and pops up by itself after ~4 posts or 30 s, once more
+      later, never more. "You" with no account goes to sign-up, not the old beta page.
 
 **Left**
 - [ ] Old house posts saying "October 20": 2 posts + 2 Spins (Oct 6 and 10). Mike decides: delete or leave.
 - [ ] Test accounts: baberight, piggywiggy, jffkfkjr, somedaymaybe? Mark them so the stats skip them.
 - [ ] Cloudflare visitor counts on (Mike, in Cowork).
 - [ ] Anonymous count: landed -> started sign-up -> finished -> came back. Not until Mike says go.
-- [ ] Porch as the front door: where a new sign-up lands. Mike designs it first.
+- [ ] Fold the daily stack into the Porch (Mike: "we're going to integrate that daily stack into the porch").
 - [ ] Email nudge to come back: DISCUSS FIRST. Today the sign-up promises "we send one code, then we
       throw the email away", so a nudge means changing that promise or asking separately.
 - [ ] nathanp and nathanp1282 have the same sober date: looks like somebody locked out who made a

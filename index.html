@@ -2,6 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>
+/* THE FRONT DOOR IS THE PORCH (v262, 22 Nov 2026, Mike: "land on recoverymisfits.org and it takes you
+   to the porch"). The first page of a visit is the Porch. Once you are in, the Today tab comes here as
+   always: nav.js marks the visit ("rm_in") on every page. ?today=1 always stays here. Where they came
+   from (Facebook, Google...) is kept so the stats still know after the hop. */
+(function () {
+  try {
+    var p = location.pathname;
+    if (p !== "/" && p !== "/index.html") return;
+    if (/[?&]today=/.test(location.search) || sessionStorage.getItem("rm_in")) return;
+    sessionStorage.setItem("rm_in", "1");
+    sessionStorage.setItem("rm_ref0", document.referrer || "");
+    location.replace("/feed/porch.html" + location.search + location.hash);
+  } catch (e) {}
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Recovery Misfits &mdash; Another Day Sober and the Daily Readings</title>
 <meta name="theme-color" content="#11110f">

@@ -1637,7 +1637,7 @@ html.kb .ch-bar{padding-bottom:8px}
     <div class="ft-sub"><button type="button" class="on" data-tab="all">EVERYONE</button><button type="button" data-tab="following">FRIENDS</button><button type="button" data-tab="groups">GROUPS<i class="gtab-n" id="gtabn" hidden></i></button><button type="button" class="tspin" data-spins><svg viewBox="0 0 24 24" aria-hidden="true" style="color:#e0bd6a"><circle cx="6.6" cy="7" r="2.7" style="fill:currentColor;stroke:none"/><circle cx="12.9" cy="6.2" r="3.5" style="fill:currentColor;stroke:none"/><path fill-rule="evenodd" style="fill:currentColor;stroke:none" d="M4 10.6h10.6a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM7.8 12.8v5.6l4.6-2.8z"/><path style="fill:currentColor;stroke:none" d="M17.4 13.9 22 11.3v8.6l-4.6-2.6z"/></svg>SPINS</button></div>
   </div></div>
   <!-- VERSION (Mike, 30 Sep 2026): bump this on every change so he can tell at a glance which one his phone has -->
-  <span class="ver" id="ver">v261</span>
+  <span class="ver" id="ver">v262</span>
 </div>
 <script src="/topbar.js" defer></script>
 
@@ -1687,11 +1687,13 @@ html.kb .ch-bar{padding-bottom:8px}
 <div id="join" class="layer" role="dialog" aria-modal="true" aria-label="Your recovery, your way">
   <div class="dim" data-close></div>
   <div class="sheet"><div class="g"></div>
-    <h3>Join us. It's free.</h3>
-    <p>Make an account to share, comment and cheer people on. It takes a minute. No real name needed.</p>
-    <a class="btn" href="/account.html?next=feed">Join free</a>
+    <!-- v262 (22 Nov 2026, Mike): "join in the conversation or start one, help out vibe, friendly language with a nudge" -->
+    <h3>Pull up a chair.</h3>
+    <p>This is the Porch. Good people between meetings. Jump into a conversation, start your own, or just say hi. Somebody here has been where you are.</p>
+    <a class="btn" href="/account.html?next=feed">Join the conversation</a>
     <a class="btn jb-alt" href="/account.html?signin=1&next=feed">I have an account</a>
     <button type="button" class="link" data-close>Keep looking around</button>
+    <p style="margin:12px 0 0;text-align:center;font:600 13px Arial,sans-serif;opacity:.75">Free. Any name you like. Nobody outside sees you here.</p>
   </div>
 </div>
 
@@ -2886,6 +2888,32 @@ html.kb .ch-bar{padding-bottom:8px}
     }, 250);
   }
   var pendingRaw = false;
+  /* THE NUDGE (v262, 22 Nov 2026, Mike): somebody who isn't a member can scroll around and look, but
+     can't do anything; tapping like, comment or share already opens the join sheet (gate above).
+     After a little looking (past about 4 posts, or 30 seconds) the same sheet comes up by itself.
+     "Keep looking around" closes it, and it comes back once more, a couple of minutes later. Never more. */
+  (function nudge() {
+    var N = "rm_nudge_n", shown = 0, last = 0;
+    try { shown = Number(sessionStorage.getItem(N)) || 0; } catch (e) {}
+    function busy() { return !!document.querySelector(".layer.open"); }
+    function show() {
+      if (signedIn() || shown >= 2) return;
+      if (shown === 1 && Date.now() - last < 120000) return;
+      if (busy()) return;
+      shown++; last = Date.now();
+      try { sessionStorage.setItem(N, String(shown)); } catch (e) {}
+      open("join");
+    }
+    if (shown === 1) last = Date.now();
+    setTimeout(show, 30000);
+    setTimeout(show, 150000);
+    window.addEventListener("scroll", function () {
+      if (shown >= 2 || signedIn()) return;
+      var f = document.getElementById("feed"); if (!f) return;
+      var k = f.children[shown === 0 ? 4 : 12];
+      if (k && k.getBoundingClientRect().bottom < 0) show();
+    }, { passive: true });
+  })();
   var RULES_KEY = function () { return "rm_porch_rules_" + (me.uid || ""); };
   /* THE "I'M IN" SHEET IS RETIRED (3 Oct 2026, Mike: "this whole part needs to be put when they do
      the checkbox ... and the I'm in button taken off"). Everybody agrees to the house rules once,
