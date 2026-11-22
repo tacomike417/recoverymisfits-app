@@ -27,7 +27,16 @@ about half the members hit a page saying "opens October 20" weeks after that dat
 - [ ] Test accounts: baberight, piggywiggy, jffkfkjr, somedaymaybe? Mark them so the stats skip them.
 - [ ] Cloudflare visitor counts on (Mike, in Cowork).
 - [ ] Anonymous count: landed -> started sign-up -> finished -> came back. Not until Mike says go.
-- [ ] Fold the daily stack into the Porch (Mike: "we're going to integrate that daily stack into the porch").
+- [x] v264: YOUR DAILY STACK ON THE PORCH. Only the owner sees it, at the top of their own Porch feed (not on
+      Groups). Swipe sideways; it starts on the next one to read; read ones get a check; the dots fill in.
+      Same stack as Today in every way: same readings (now ONE list in /assets/stack-data.js that Today
+      and the Porch both read), same arrangement, same "opened today" ticks, same doors (pages, outside
+      sites in a new tab, prayers/absolute/First Things open over the page and Back closes them). Edit
+      goes to Today's own editor (/index.html?edit=stack). Fold to one line, remembered for the day; new
+      day starts open; all read folds itself green. Never used readings: one "Start your day here?"
+      offer, Add or X, kept in the account (blob.porchStack "on"/"off"). Code: feed/daily-stack.js.
+- [ ] Ideas Mike hasn't said yes to yet: "Talk about it" after a reading (opens a share with the reading's
+      #tag), and a small "N people read this today" line on a card (counts only, never names).
 - [ ] Email nudge to come back: DISCUSS FIRST. Today the sign-up promises "we send one code, then we
       throw the email away", so a nudge means changing that promise or asking separately.
 - [ ] nathanp and nathanp1282 have the same sober date: looks like somebody locked out who made a
