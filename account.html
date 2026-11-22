@@ -330,7 +330,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
         <span class="radio" aria-hidden="true"></span>
         <span class="k">ALSO FREE</span><span class="t">Pull up a chair</span>
         <ul><li>Everything in Look around</li><li>Post, make Spins, add friends, send messages</li><li>Confirm an email once. It&rsquo;s never kept or shown.</li></ul>
-        <span class="soon" id="lvl2soon" hidden>Opens October 20</span>
+        <span class="soon" id="lvl2soon" hidden></span>
       </button>
     </div>
     <p class="say" id="sayLvl" role="status" aria-live="polite"></p>
@@ -694,7 +694,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
   /* LEVEL 2 = THE PORCH. Until the Porch opens (NOT before Oct 20, and only when Mike
      says so: see UPGRADE-NOTES.md) only the beta testers get it. Same list as the
      Porch's own lock in feed/porch.html. Flip PORCH_OPEN to true at launch. */
-  var PORCH_OPEN = false;
+  var PORCH_OPEN = true;   /* v261 (22 Nov 2026, Mike): the Porch is open */
   var TESTERS = ["tacomike417", "misfit_tester", "fire_l0ve", "krazyk226", "recoverymisfits", "spiritualmisfit", "shitmysponsorsays", "anotherdaysober", "welcomematt"];   /* recoverymisfits = the house account (2 Oct 2026) */
   /* THE BETA DOOR (2 Oct 2026): a phone that opened /beta.html (or came here with ?beta=1)
      is a beta phone. Level 2 and the Porch are open for it. See beta.html. */
@@ -939,7 +939,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     var done = profDone();
     if (!porchFor(A.name())) {
       $("pcKick").textContent = "Pull up a chair · the Porch";
-      $("pcTxt").textContent = "Post, make Spins, add friends and message. It opens October 20.";
+      $("pcTxt").textContent = "Post, make Spins, add friends and message.";
       c.classList.remove("plain"); $("pcKick").hidden = false; $("pcTxt").hidden = false; $("num2").hidden = true; $("row2").hidden = true;
       $("pcGo").hidden = true; $("pcMine").hidden = true; return;
     }
@@ -1006,7 +1006,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     $("emField").hidden = !nu || !open;
     $("dealPost").innerHTML = open
       ? "Want to see what members share, and post? Add an email. We send one code, then we throw the email away. That keeps outsiders from nosing around. It&rsquo;s all we&rsquo;ll ever ask you for."
-      : "The Porch, where members share, opens October 20. That&rsquo;s when we&rsquo;ll ask for an email, once, to send you one code. Nothing else, ever.";
+      : "Want to see what members share, and post? Add an email. We send one code, then we throw the email away.";
     $("formLede").hidden = nu;
     $("pickedBar").hidden = true;
   }
@@ -1080,7 +1080,7 @@ if (/[?&]next=feed/.test(location.search)) document.body.setAttribute("data-rm-n
     b.addEventListener("click", function () {
       var l = b.getAttribute("data-lvl");
       if (l === "2" && !lvl2Open()) {
-        say($("sayLvl"), "Pull up a chair opens with the Porch on October 20. Start with Look around and move up then.", "good");
+        say($("sayLvl"), "Pull up a chair is the Porch. Come on in.", "good");
         return;
       }
       say($("sayLvl"), "");

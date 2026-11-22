@@ -2,6 +2,33 @@
 
 One list for this project. New ideas and decisions go here.
 
+## 🎄 THE CHRISTMAS PUSH (22 Nov 2026, Mike: "i'd like to get this kicking by christmas")
+**What the stats showed (v260):** 23 real members, about 5 actually using the Porch, about 15 came once and
+never came back. Everyone who stayed joined the Porch. The ones who stay are 1 to 5 years sober; newcomers
+and old-timers both drifted off. And the Porch had never really opened: the October lock was still on, so
+about half the members hit a page saying "opens October 20" weeks after that date.
+
+**Done**
+- [x] v260: Member stats page in Mike's You menu (feed/stats.html, supabase/porch_82_member_stats.sql).
+      Starts recording where new people came from and a daily "last seen".
+- [x] v261: THE PORCH IS OPEN TO EVERYBODY. Tester lock off (feed/porch.html), PORCH_OPEN = true
+      (account.html, so sign-up asks for the email), feed/soon.html sends people straight in,
+      Today's Porch card just says "Come hang out", Porch version pill fixed (it said v254).
+
+**Left**
+- [ ] Old house posts saying "October 20": 2 posts + 2 Spins (Oct 6 and 10). Mike decides: delete or leave.
+- [ ] Test accounts: baberight, piggywiggy, jffkfkjr, somedaymaybe? Mark them so the stats skip them.
+- [ ] Cloudflare visitor counts on (Mike, in Cowork).
+- [ ] Anonymous count: landed -> started sign-up -> finished -> came back. Not until Mike says go.
+- [ ] Porch as the front door: where a new sign-up lands. Mike designs it first.
+- [ ] Email nudge to come back: DISCUSS FIRST. Today the sign-up promises "we send one code, then we
+      throw the email away", so a nudge means changing that promise or asking separately.
+- [ ] nathanp and nathanp1282 have the same sober date: looks like somebody locked out who made a
+      second account. Look at how a person gets back in.
+- [ ] Conversations for the 1 to 5 year crowd (Mike knows these; he's been there).
+- [ ] Leftovers from the October launch list below: Gmail plus trick, invite address, beta door off,
+      welcome post on top, welcome crew, iPhone check, a start-to-finish sign-up as a brand-new person.
+
 ## 🏛️ CORNERSTONES HEADQUARTERS, v3 (3 Nov 2026)
 Mike brought a six-screen mockup: "pull out my phone, find what I need, and get it to somebody in seconds."
 feed/cornerstones.html is rebuilt around it (phone first, 393, black and gold), hash-routed so the arrow and the
@@ -17,7 +44,7 @@ email to attach it to (a web page can't attach by itself).
 - Files are named date first (2026-11-02__What_It_Is.pdf); the Add sheet writes them that way.
 Deploy: git push (Pages). SQL: porch_77 (applied from the session on 3 Nov).
 
-## ⛔ NO PORCH LAUNCH BEFORE OCTOBER 20, 2026
+## ✅ (DONE: the Porch opened 22 Nov 2026, v261) NO PORCH LAUNCH BEFORE OCTOBER 20, 2026
 Mike, 1 Oct 2026: "do not let me launch this before Oct 20. I feel like I need to have you
 help me slow down so I don't rush something that is confusing for people."
 Launch means taking the Mike-only lock off feed/porch.html. Until Oct 20 it stays locked,
