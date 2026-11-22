@@ -52,6 +52,9 @@ about half the members hit a page saying "opens October 20" weeks after that dat
       hidden from the feed), so comments/hearts/replies/reports all just work. SQL: porch_83_reflect.sql
       (applied from the session 22 Nov). A card shows a talk count once 2+ have said something.
       SHARE = a Porch share: our own readings in full, AA/Hazelden as title + date + link.
+- [x] v268: NO DEAD ENDS (Mike: "you can't back out of [Meme of the Day] without using your phone's back
+      buttons ... No more dead ends"). topbar.js puts a gold back arrow top left on EVERY page except the Porch
+      and Today. It goes back where you came from, or to the Porch if you came in from outside.
 - [ ] Ideas Mike hasn't said yes to yet: "Talk about it" after a reading (opens a share with the reading's
       #tag), and a small "N people read this today" line on a card (counts only, never names).
       Mike: the post has to carry the reading (or a chunk) plus a link out. Our own items (absolute,

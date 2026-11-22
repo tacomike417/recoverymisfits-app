@@ -104,6 +104,29 @@
       }
       .rm-ver:active{background:rgba(215,178,83,.22)}
 
+      /* NO DEAD ENDS (v268, 22 Nov 2026, Mike: "when you go to the meme of the day, you can't back out of it
+         without using your phone's back buttons. You need to put the back buttons in. No more dead ends.")
+         A small arrow, top left, on every page except the two homes (the Porch and Today). It goes back
+         where you came from; if you came in from outside (a link, a fresh app open), it goes to the Porch. */
+      .rm-back{
+        position:absolute;
+        top:50%;
+        left:8px;
+        margin-top:calc(env(safe-area-inset-top, 0px) / 2 - 22px);
+        z-index:2;
+        width:44px;height:44px;
+        display:grid;place-items:center;
+        border:0;border-radius:50%;
+        background:rgba(255,255,255,.06);
+        color:#e6b13c;
+        cursor:pointer;
+        -webkit-tap-highlight-color:transparent;
+      }
+      .rm-back svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+      .rm-back:active{background:rgba(230,177,60,.22)}
+      #rm-topbar.has-back .rm-logo{width:min(72%, 320px)}
+      #rm-topbar.has-back .rm-back{left:4px;width:40px;height:40px;margin-top:calc(env(safe-area-inset-top, 0px) / 2 - 20px)}
+
       .rm-logo{
         width:min(80%, 320px);
         height:auto;
@@ -323,13 +346,30 @@
      to an app whose changes speak for themselves, and it cost every visitor
      a fetch of a whole page on every load to find out there was nothing to
      say. The Updates tab it fed became SHARE -- see nav.js. */
+  /* The two homes have no back arrow: the Porch (the front door) and Today. Everything else does. */
+  function needsBack() {
+    const p = location.pathname.replace(/\/+$/, "") || "/";
+    return !(p === "/" || p === "/index.html" || p === "/index" || /^\/feed\/porch(\.html)?$/.test(p));
+  }
   mount.innerHTML = `
     <div class="rm-topbar-inner">
       <img class="rm-logo" src="/PWA-header.png" alt="Recovery Misfits" />
     </div>
+    ${needsBack() ? `<button class="rm-back" type="button" id="rmBack" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>` : ""}
     ${SHOW_VER ? `<button class="rm-ver" type="button" id="rmVer"
             title="Tap to reload past the cache">${RM_VERSION}</button>` : ""}
   `;
+
+  const backBtn = document.getElementById("rmBack");
+  if (backBtn) mount.classList.add("has-back");
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      let ours = false;
+      try { ours = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {}
+      if (ours && history.length > 1) history.back();
+      else location.href = "/feed/porch.html";
+    });
+  }
 
   /* A cache-busting query on the reload, so the badge is also the answer to
      "am I actually seeing the new one". Absent unless the switch is on. */
