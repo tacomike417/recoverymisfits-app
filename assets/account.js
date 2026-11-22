@@ -781,6 +781,7 @@
     x = x || {};
     return (x.prayers ? '<button type="button" class="wide rm-mm-pj" data-mm-href="/feed/prayer-jar.html" aria-label="Cookie\'s Prayer Jar"><img src="/assets/prayer-jar/banner.webp" alt="" width="1000" height="333"></button>' : "") +
       (x.board ? '<button type="button" class="wide rm-mm-board" data-mm-href="/feed/cornerstones.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></svg>Cornerstones board</button>' : "") +
+      (x.stats ? '<button type="button" class="wide rm-mm-board" data-mm-href="/feed/stats.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Member stats</button>' : "") +   /* v260: tacomike417 only (porch_82) */
       (x.mod ? '<button type="button" class="rm-mm-mod" data-mm="mod=1">Reports</button><button type="button" class="rm-mm-mod" data-mm-href="/feed/share-desk.html">Share desk</button><button type="button" class="rm-mm-mod wide" data-mm-href="/feed/posters.html">My posters</button>' : "");
   }
   function mmExtrasCached() { try { var c = JSON.parse(localStorage.getItem(MMX) || "null"); return c && session && c.n === session.name ? c.x : null; } catch (e) { return null; } }

@@ -1815,7 +1815,8 @@
     if (modal) return modal;
 
     const code = (window.RM_QR && window.RM_QR.svg)
-      ? window.RM_QR.svg(SHARE_URL, { margin: 2, dark: "#111111", light: "#ffffff" })
+      ? window.RM_QR.svg(SHARE_URL + "?via=qr", {   /* v260: a scan in person shows up as "qr" on the stats page */
+         margin: 2, dark: "#111111", light: "#ffffff" })
       : "";
 
     modal = document.createElement("div");
@@ -1889,7 +1890,7 @@
          that silently did something gets pressed four times. */
       try {
         if (navigator.share) {
-          await navigator.share({ title: "Recovery Misfits", url: SHARE_URL });
+          await navigator.share({ title: "Recovery Misfits", url: SHARE_URL + "?via=share" });
           return;
         }
       } catch (_) { return; }
@@ -1973,3 +1974,71 @@ window.RMToPorch = async function (o) {
   } catch (e) {}
   location.href = "/feed/porch.html?shared=1";
 };
+
+
+/* ==========================================================================
+   MEMBER STATS, THE RECORDING SIDE (v260, 22 Nov 2026, Mike: "build me a stats page ... so I can get an idea of
+   who signed up, and if they are using the site, and where they came from and what they are even doing").
+   Read on /feed/stats.html (tacomike417 only, supabase/porch_82_member_stats.sql). Two things, both allowed to fail:
+
+   1. WHERE THEY CAME FROM. The very first visit on this phone notes the link it came in on (?via=qr / share /
+      invite, utm_source, or the site that sent them: Facebook, Instagram, Google...). It stays on the phone and
+      goes up once, the first time they are signed in. People who were here before v260 have none.
+   2. LAST SEEN. Signed-in people only: which part of the app they opened today (the page name, nothing they
+      write), at most once every 15 minutes per page.
+   ========================================================================== */
+(function () {
+  "use strict";
+  var DB = "https://rlytvfehbglsjfvprtbp.supabase.co", SRC = "rm_src_v1", SENT = "rm_src_sent", PING = "rm_ping_v1";
+  try {
+    if (!localStorage.getItem(SRC)) {
+      var q = new URLSearchParams(location.search), ref = document.referrer || "", host = "";
+      try { host = ref ? new URL(ref).hostname.replace(/^www\./, "") : ""; } catch (e) {}
+      if (/recoverymisfits/.test(host)) host = "";
+      var s = q.get("utm_source") || q.get("via") || "";
+      if (!s) s = /facebook|fb\.me|fb\.com/.test(host) ? "facebook" : /instagram/.test(host) ? "instagram" :
+        /google\./.test(host) ? "google" : /youtube|youtu\.be/.test(host) ? "youtube" : /tiktok/.test(host) ? "tiktok" :
+        /bing|duckduckgo|yahoo/.test(host) ? "search" : /skivvies/.test(host) ? "skivvies" : host || "direct";
+      localStorage.setItem(SRC, JSON.stringify({ s: s.slice(0, 60), r: ref.slice(0, 300), l: (location.pathname + location.search).slice(0, 300),
+        i: (q.get("i") || "").replace(/[^0-9a-f]/gi, "").slice(0, 8), t: new Date().toISOString() }));
+    }
+  } catch (e) {}
+
+  function part() {
+    var p = location.pathname.replace(/index\.html$/, "").replace(/\.html$/, "").replace(/^\/+|\/+$/g, "");
+    if (!p) return "today";
+    if (/^feed\/porch/.test(p)) return "porch";
+    return p.replace(/^feed\//, "").slice(0, 40);
+  }
+  function account() {
+    if (window.RMAccount) return Promise.resolve(window.RMAccount);
+    return new Promise(function (done) {
+      var n = 0, t = setInterval(function () {
+        if (window.RMAccount || ++n > 40) { clearInterval(t); done(window.RMAccount || null); }
+        else if (n === 12 && !document.querySelector('script[src="/assets/account.js"]')) {
+          var tag = document.createElement("script"); tag.src = "/assets/account.js"; document.head.appendChild(tag);
+        }
+      }, 250);
+    });
+  }
+  async function ping() {
+    try {
+      if (!localStorage.getItem("rm_account_v1")) return;
+      var pt = part(), today = new Date().toDateString(), last = {};
+      try { last = JSON.parse(localStorage.getItem(PING) || "{}"); } catch (e) {}
+      if (last.d !== today) last = { d: today };
+      if (last[pt] && Date.now() - last[pt] < 15 * 60 * 1000) return;
+      var A = await account(); if (!A || !A.signedIn || !A.signedIn()) return;
+      var tok = await A.token(); if (!tok) return;
+      var body = { p_part: pt }, src = null;
+      if (!localStorage.getItem(SENT)) { try { src = JSON.parse(localStorage.getItem(SRC) || "null"); } catch (e) {} }
+      if (src) { body.p_src = src.s; body.p_ref = src.r || null; body.p_landing = src.l || null; body.p_first = src.t || null; body.p_inv = src.i || null; }
+      var r = await fetch(DB + "/rest/v1/rpc/rm_ping", { method: "POST", headers: { apikey: A.anonKey, Authorization: "Bearer " + tok, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (!r.ok) return;
+      last[pt] = Date.now(); localStorage.setItem(PING, JSON.stringify(last));
+      if (src) localStorage.setItem(SENT, "1");
+    } catch (e) {}
+  }
+  setTimeout(ping, 2500);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) ping(); });
+})();

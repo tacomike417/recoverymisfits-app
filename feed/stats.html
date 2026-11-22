@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Member stats · Recovery Misfits</title>
+<meta name="theme-color" content="#11110f">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/icon-192.png">
+<style>html{background:#11110f}body{background:#11110f;color:#f1e7cf;margin:0}</style>
+<style>
+/* MEMBER STATS (v260, 22 Nov 2026). Mike: "build me a stats page ... so I can get an idea of who signed up, and if
+   they are using the site, and where they came from and what they are even doing... make it general for me to glance
+   at and see, but when i click on their name it gives me as much detailed info as possible".
+
+   WHO CAN SEE IT: tacomike417 only. The database checks (rm_stats_ok, supabase/porch_82_member_stats.sql); this file
+   holds no password because the repo is public.
+   COMPUTER WINS (Mike's pick): a wide table at a glance; on a phone the table scrolls sideways and a person opens
+   full screen. Message words are never shown, only how many. Sober dates show (Mike: "i do want to see ... what
+   length of sobriety is coming on board").
+
+   Where "last seen" comes from, best first: the new daily note (rm_seen, from v260 on), the Porch's own last-seen,
+   the last day they opened a reading (kept on their account), their last sign-in. */
+@font-face{font-family:"RM Head";src:url("/assets/fonts/anton-400.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"RM Rail";src:url("/assets/fonts/oswald-500.woff2") format("woff2");font-weight:500;font-display:swap}
+*{box-sizing:border-box}
+:root{--gold:#e0bd6a;--line:rgba(224,189,106,.24);--muted:#a99d82;--card:#191814;--card2:#211f1a;--ok:#9fd49f;--warn:#e8a25c;--off:#6f6756}
+body{font:15px/1.4 Arial,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--gold)}
+main{max-width:1320px;margin:0 auto;padding:0 20px 60px}
+.top{position:sticky;top:0;z-index:5;background:#11110f;padding:calc(14px + env(safe-area-inset-top)) 0 10px;border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:12px}
+.back{flex:none;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--gold);display:grid;place-items:center;text-decoration:none;cursor:pointer}
+.back svg,.x svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+h1{flex:1;margin:0;font:400 30px/1 "RM Head",Impact,sans-serif;letter-spacing:.02em;text-transform:uppercase}
+.ver{flex:none;padding:3px 10px;border-radius:999px;background:#fff;color:#000;font:800 12px Arial,sans-serif}
+.tog{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;cursor:pointer;user-select:none}
+.tog input{width:18px;height:18px;accent-color:#e0bd6a}
+.say{margin:60px auto;max-width:420px;text-align:center;color:var(--muted);font-size:16px}
+.say b{display:block;margin-bottom:6px;color:#f1e7cf;font:400 26px "RM Head",Impact,sans-serif;text-transform:uppercase}
+h2{margin:26px 2px 10px;font:500 14px "RM Rail",Oswald,"Arial Narrow",sans-serif;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+h2 small{margin-left:8px;color:var(--muted);letter-spacing:.02em;font:13px Arial,sans-serif;text-transform:none}
+.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:16px}
+.tile{padding:14px 14px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.tile b{display:block;font:400 34px/1 "RM Head",Impact,sans-serif;color:#f1e7cf}
+.tile span{display:block;margin-top:6px;color:var(--muted);font-size:13px;line-height:1.3}
+.three{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:12px}
+.box{padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.bars{display:flex;align-items:flex-end;gap:6px;height:120px;padding-top:16px}
+.bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.bars i{display:block;width:100%;min-height:2px;border-radius:5px 5px 2px 2px;background:var(--gold)}
+.bars em{font:700 12px Arial,sans-serif;font-style:normal;color:#f1e7cf}
+.bars small{color:var(--muted);font-size:11px;white-space:nowrap}
+.hb{display:grid;grid-template-columns:110px 1fr 34px;align-items:center;gap:10px;margin:7px 0;font-size:14px}
+.hb span{color:var(--muted)}.hb i{display:block;height:12px;border-radius:6px;background:var(--gold);min-width:3px}.hb b{text-align:right}
+.note{margin:8px 0 0;color:var(--muted);font-size:12.5px}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+th,td{padding:10px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid rgba(224,189,106,.12)}
+th{position:sticky;top:0;background:var(--card2);color:var(--gold);font:500 12.5px "RM Rail",Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;user-select:none}
+th.on::after{content:" \25BE"}th.on.up::after{content:" \25B4"}
+td.n,th.n{text-align:right}
+tbody tr{cursor:pointer}tbody tr:hover{background:#1d1b17}
+.who{display:flex;align-items:center;gap:10px}
+.av{flex:none;width:32px;height:32px;border-radius:50%;background:#2a2721;color:var(--gold);display:grid;place-items:center;font:800 12px Arial;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
+.who b{font-size:15px}
+.tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.g{background:var(--ok)}.y{background:var(--warn)}.r{background:var(--off)}
+.dim{color:var(--off)}
+/* the person */
+.shade{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55)}
+.panel{position:fixed;top:0;right:0;bottom:0;z-index:21;width:min(640px,100%);overflow-y:auto;background:#141310;border-left:1px solid var(--line);padding:0 22px 60px}
+.ph{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:14px;padding:calc(16px + env(safe-area-inset-top)) 0 14px;background:#141310;border-bottom:1px solid var(--line)}
+.ph .av{width:54px;height:54px;font-size:18px}
+.ph h3{flex:1;margin:0;font:400 26px/1.05 "RM Head",Impact,sans-serif;letter-spacing:.02em}
+.ph h3 small{display:block;margin-top:4px;font:14px Arial,sans-serif;color:var(--muted);letter-spacing:0}
+.x{flex:none;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--gold);display:grid;place-items:center;cursor:pointer}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.fact{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.fact span{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.fact b{display:block;margin-top:3px;font-size:15px;overflow-wrap:anywhere}
+.fact span.dot{display:inline-block;margin-right:7px}
+.fact i{display:block;font-style:normal;color:var(--muted);font-size:13px;margin-top:2px;overflow-wrap:anywhere}
+.cnts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cnts div{padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);text-align:center}
+.cnts b{display:block;font:400 26px/1 "RM Head",Impact,sans-serif}
+.cnts span{display:block;margin-top:4px;color:var(--muted);font-size:12px}
+.cal{display:grid;grid-template-columns:repeat(30,1fr);gap:3px}
+.cal i{aspect-ratio:1;border-radius:4px;background:#24221d}
+.cal i.l1{background:#6b5a2e}.cal i.l2{background:#a8883f}.cal i.l3{background:#e0bd6a}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:#f1e7cf;font-size:13.5px;cursor:pointer}
+.chip small{color:var(--muted);margin-left:4px}
+.tl{margin:0;padding:0;list-style:none}
+.tl li{display:grid;grid-template-columns:128px 86px 1fr;gap:10px;padding:8px 2px;border-bottom:1px solid rgba(224,189,106,.1);font-size:14px}
+.tl time{color:var(--muted);font-size:13px}.tl b{color:var(--gold);font-size:13px;text-transform:uppercase}
+.tl span{overflow-wrap:anywhere}
+@media (max-width:900px){.tiles{grid-template-columns:repeat(3,1fr)}.three{grid-template-columns:1fr}main{padding:0 12px 50px}}
+@media (max-width:520px){.cal{grid-template-columns:repeat(15,1fr)}.tiles{grid-template-columns:repeat(2,1fr)}.facts{grid-template-columns:1fr}.cnts{grid-template-columns:repeat(2,1fr)}.tl li{grid-template-columns:1fr;gap:2px}.panel{padding:0 14px 50px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div class="bar">
+      <a class="back" id="back" href="/" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+      <h1>Member stats</h1>
+      <label class="tog"><input type="checkbox" id="showall"> Show house &amp; test accounts</label>
+      <span class="ver">v260</span>
+    </div>
+  </div>
+  <div id="app"><p class="say">Loading…</p></div>
+</main>
+<div id="pp"></div>
+<script src="/assets/account.js"></script>
+<script>
+(function () {
+  "use strict";
+  var DB = "https://rlytvfehbglsjfvprtbp.supabase.co";
+  var A = window.RMAccount;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var ALL = [], SORT = { k: "joined", up: false }, DAY = 864e5;
+
+  async function rpc(fn, body) {
+    var t = await A.token();
+    var r = await fetch(DB + "/rest/v1/rpc/" + fn, { method: "POST", headers: { apikey: A.anonKey, Authorization: "Bearer " + t, "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+    if (!r.ok) { var e = new Error(fn + " " + r.status); e.status = r.status; throw e; }
+    return r.json();
+  }
+  function say(big, small) { $("app").innerHTML = '<p class="say"><b>' + big + "</b>" + small + "</p>"; }
+
+  /* ---------------- dates ---------------- */
+  function startOf(d) { d = new Date(d); d.setHours(0, 0, 0, 0); return d; }
+  function dayDate(s) { if (!s) return null; var p = String(s).slice(0, 10).split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function mmdd(s) {               /* a reading day kept as "11-18": this year, or last year if that would be in the future */
+    if (!s) return null; var p = s.split("-"), now = new Date(), d = new Date(now.getFullYear(), +p[0] - 1, +p[1]);
+    if (d > now) d.setFullYear(d.getFullYear() - 1); return d;
+  }
+  function ago(d) {
+    if (!d) return "never";
+    var n = Math.round((startOf(new Date()) - startOf(d)) / DAY);
+    return n <= 0 ? "today" : n === 1 ? "yesterday" : n < 30 ? n + " days ago" : n < 365 ? Math.round(n / 30) + " mo ago" : Math.round(n / 365) + " yr ago";
+  }
+  function nice(d, time) {
+    if (!d) return "—"; d = new Date(d);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: d.getFullYear() === new Date().getFullYear() ? undefined : "numeric" }) +
+      (time ? " · " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "");
+  }
+  function soberDays(s) { var d = dayDate(s); return d ? Math.floor((startOf(new Date()) - d) / DAY) : null; }
+  function soberTxt(s) {
+    var n = soberDays(s); if (n == null) return "—"; if (n < 0) return "future date";
+    if (n < 60) return n + (n === 1 ? " day" : " days");
+    if (n < 730) return Math.floor(n / 30.44) + " months";
+    var y = Math.floor(n / 365.25), m = Math.floor((n - y * 365.25) / 30.44);
+    return y + " yr" + (y > 1 ? "s" : "") + (m ? " " + m + " mo" : "");
+  }
+  function bucket(s) {
+    var n = soberDays(s); if (n == null || n < 0) return "No date";
+    return n < 30 ? "Under 30 days" : n < 182 ? "1 to 6 months" : n < 365 ? "6 to 12 months" : n < 1826 ? "1 to 5 years" : "5+ years";
+  }
+  /* last seen: the best of everything we know, with where it came from */
+  function seen(u) {
+    var c = [];
+    if (u.seen_day) c.push([dayDate(u.seen_day), "opened the app"]);
+    if (u.porch_seen) c.push([new Date(u.porch_seen), "on the Porch"]);
+    if (u.read_mmdd) c.push([mmdd(u.read_mmdd), "opened a reading"]);
+    if (u.last_in) c.push([new Date(u.last_in), "signed in"]);
+    c.sort(function (a, b) { return b[0] - a[0]; });
+    return c[0] || [null, ""];
+  }
+  function light(d) { if (!d) return "r"; var n = (startOf(new Date()) - startOf(d)) / DAY; return n <= 7 ? "g" : n <= 30 ? "y" : "r"; }
+  function face(u, big) {
+    var p = u.avatar_path || (u.member && u.member.avatar_path);
+    return '<span class="av">' + (p ? '<img src="' + esc(p.charAt(0) === "/" ? p : DB + "/storage/v1/object/public/porch/" + p) + '" alt="" loading="lazy">' : esc(String(u.handle || "?").slice(0, 2).toUpperCase())) + "</span>";
+  }
+  var SRCNAME = { qr: "QR code (in person)", share: "Shared link", invite: "Porch invite", direct: "Typed it / no link", facebook: "Facebook", instagram: "Instagram", google: "Google", youtube: "YouTube", tiktok: "TikTok", search: "Other search", skivvies: "Skivvies" };
+  var srcName = function (s) { return s ? SRCNAME[s] || s : ""; };
+
+  /* ---------------- the overview ---------------- */
+  function rows() { var all = $("showall").checked; return ALL.filter(function (u) { return all || u.kind === "member"; }); }
+  function draw() {
+    var list = rows(), now = startOf(new Date());
+    list.forEach(function (u) { var s = seen(u); u._seen = s[0]; u._how = s[1]; u._sober = soberDays(u.sober); u._act = (+u.posts) + (+u.comments) + (+u.likes) + (+u.messages); });
+    var wk = list.filter(function (u) { return now - startOf(u.joined) < 7 * DAY; }).length;
+    var mo = list.filter(function (u) { return now - startOf(u.joined) < 30 * DAY; }).length;
+    var act7 = list.filter(function (u) { return u._seen && now - startOf(u._seen) <= 7 * DAY; }).length;
+    var act30 = list.filter(function (u) { return u._seen && now - startOf(u._seen) <= 30 * DAY; }).length;
+    var porch = list.filter(function (u) { return u.porch; }).length;
+    var talkers = list.filter(function (u) { return u._act > 0; }).length;
+
+    /* sign-ups per week, last 12 weeks */
+    var weeks = [], mon = new Date(now); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+    for (var i = 11; i >= 0; i--) { var a = new Date(mon.getTime() - i * 7 * DAY); weeks.push({ a: a, b: new Date(a.getTime() + 7 * DAY), n: 0 }); }
+    list.forEach(function (u) { var j = new Date(u.joined); weeks.forEach(function (w) { if (j >= w.a && j < w.b) w.n++; }); });
+    var wmax = Math.max(1, Math.max.apply(null, weeks.map(function (w) { return w.n; })));
+
+    var BK = ["Under 30 days", "1 to 6 months", "6 to 12 months", "1 to 5 years", "5+ years", "No date"], bk = {};
+    list.forEach(function (u) { var b = bucket(u.sober); bk[b] = (bk[b] || 0) + 1; });
+    var bmax = Math.max(1, Math.max.apply(null, BK.map(function (b) { return bk[b] || 0; })));
+    var src = {}, srcN = 0;
+    list.forEach(function (u) { if (u.src) { src[u.src] = (src[u.src] || 0) + 1; srcN++; } });
+    var srcK = Object.keys(src).sort(function (a, b) { return src[b] - src[a]; }), smax = Math.max(1, srcN);
+
+    var hb = function (label, n, max) { return '<div class="hb"><span>' + esc(label) + '</span><i style="width:' + Math.round(n / max * 100) + '%"></i><b>' + n + "</b></div>"; };
+
+    $("app").innerHTML =
+      '<div class="tiles">' +
+        tile(list.length, "members") + tile(wk, "new this week") + tile(mo, "new in the last 30 days") +
+        tile(act7, "seen in the last 7 days") + tile(act30, "seen in the last 30 days") + tile(porch, "on the Porch (email added)") +
+      "</div>" +
+      '<div class="three">' +
+        '<div><h2>Sign-ups per week <small>last 12 weeks</small></h2><div class="box"><div class="bars">' +
+          weeks.map(function (w) { return '<div><em>' + (w.n || "") + '</em><i style="height:' + Math.round(w.n / wmax * 100) + '%"></i><small>' + (w.a.getMonth() + 1) + "/" + w.a.getDate() + "</small></div>"; }).join("") +
+        '</div><p class="note">' + talkers + " of " + list.length + " have shared, commented, liked or messaged on the Porch.</p></div></div>" +
+        '<div><h2>Time sober</h2><div class="box">' + BK.map(function (b) { return hb(b, bk[b] || 0, bmax); }).join("") + "</div></div>" +
+        '<div><h2>Where they came from</h2><div class="box">' +
+          (srcK.length ? srcK.map(function (k) { return hb(srcName(k), src[k], smax); }).join("") : '<p class="note" style="margin:0">Nothing yet.</p>') +
+          '<p class="note">Recording started Nov 22, 2026. Only people who sign up from now on have this.</p></div></div>' +
+      "</div>" +
+      "<h2>Everybody <small>" + list.length + " · tap a name for everything</small></h2>" +
+      '<div class="wrap"><table><thead><tr>' +
+        th("handle", "Member") + th("joined", "Joined") + th("_seen", "Last seen") + th("days30", "Days on (30)", 1) + th("_sober", "Sober") +
+        th("porch", "Porch") + th("posts", "Shares", 1) + th("comments", "Comments", 1) + th("likes", "Likes", 1) + th("messages", "Messages", 1) + th("friends", "Friends", 1) + th("src", "Came from") +
+      "</tr></thead><tbody>" + sorted(list).map(row).join("") + "</tbody></table></div>" +
+      '<p class="note">Last seen uses the best thing we know: the daily app note (new as of Nov 22), the Porch, the last reading they opened, or their last sign-in. Days on (30) counts from Nov 22 on.</p>';
+  }
+  function tile(n, label) { return '<div class="tile"><b>' + n + "</b><span>" + label + "</span></div>"; }
+  function th(k, label, num) { return '<th data-k="' + k + '" class="' + (num ? "n " : "") + (SORT.k === k ? "on" + (SORT.up ? " up" : "") : "") + '">' + label + "</th>"; }
+  function sorted(list) {
+    var k = SORT.k, s = SORT.up ? 1 : -1;
+    return list.slice().sort(function (a, b) {
+      var x = a[k], y = b[k];
+      if (k === "joined" || k === "_seen") { x = x ? +new Date(x) : 0; y = y ? +new Date(y) : 0; }
+      else if (k === "handle" || k === "src") { x = String(x || "~"); y = String(y || "~"); return s * x.localeCompare(y); }
+      else if (k === "_sober") { x = x == null ? -1 : x; y = y == null ? -1 : y; }
+      else { x = +x || 0; y = +y || 0; }
+      return s * (x - y);
+    });
+  }
+  function num(n) { return +n ? n : '<span class="dim">·</span>'; }
+  function row(u) {
+    return '<tr data-id="' + esc(u.id) + '"><td><div class="who">' + face(u) + "<b>" + esc(u.handle) + "</b>" + (u.kind !== "member" ? '<span class="tag">' + esc(u.kind) + "</span>" : "") + "</div></td>" +
+      "<td>" + nice(u.joined) + '</td><td><span class="dot ' + light(u._seen) + '"></span>' + ago(u._seen) + "</td>" +
+      '<td class="n">' + num(u.days30) + "</td><td>" + soberTxt(u.sober) + "</td>" +
+      "<td>" + (u.porch ? "yes" : '<span class="dim">no</span>') + "</td>" +
+      '<td class="n">' + num(u.posts) + '</td><td class="n">' + num(u.comments) + '</td><td class="n">' + num(u.likes) + '</td><td class="n">' + num(u.messages) + '</td><td class="n">' + num(u.friends) + "</td>" +
+      "<td>" + (u.src ? esc(srcName(u.src)) : '<span class="dim">—</span>') + "</td></tr>";
+  }
+
+  /* ---------------- one person ---------------- */
+  var READ = { awakening: "On Awakening", hours24: "24 Hours a Day", reflections: "Daily Reflections", anotherday: "Another Day Sober", evening: "Evening reading", absolute: "Absolute of the day", meme: "Meme of the day" };
+  async function openPerson(id) {
+    $("pp").innerHTML = '<div class="shade" data-close></div><aside class="panel"><div class="ph"><h3>Loading…</h3><button type="button" class="x" data-close aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></aside>';
+    document.body.style.overflow = "hidden";
+    try { history.pushState({ p: id }, ""); } catch (e) {}
+    var u;
+    try { u = await rpc("rm_admin_user", { p_id: id }); } catch (e) { $("pp").querySelector(".ph h3").textContent = "Couldn't load"; return; }
+    if (!u) return;
+    var m = u.member || {}, c = u.counts || {}, s = u.source;
+    var list = ALL.find(function (x) { return x.id === id; }) || {}, ls = seen(list);
+    var parts = {}; (u.seen || []).forEach(function (d) { (d.parts || []).forEach(function (p) { parts[p] = (parts[p] || 0) + 1; }); });
+    var pk = Object.keys(parts).sort(function (a, b) { return parts[b] - parts[a]; });
+    var opened = u.opened && typeof u.opened === "object" ? Object.keys(u.opened).sort().reverse() : [];
+    /* 90-day calendar from the daily notes */
+    var byDay = {}; (u.seen || []).forEach(function (d) { byDay[String(d.day).slice(0, 10)] = d.hits; });
+    var cal = "", today = startOf(new Date());
+    for (var i = 89; i >= 0; i--) {
+      var d = new Date(today.getTime() - i * DAY), k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"), h = byDay[k] || 0;
+      cal += '<i class="' + (h ? h >= 8 ? "l3" : h >= 3 ? "l2" : "l1" : "") + '" title="' + nice(d) + (h ? " · " + h + " visits" : "") + '"></i>';
+    }
+    var fact = function (label, big, small) { return '<div class="fact"><span>' + label + "</span><b>" + big + "</b>" + (small ? "<i>" + small + "</i>" : "") + "</div>"; };
+    var cnt = function (n, label) { return "<div><b>" + (+n || 0) + "</b><span>" + label + "</span></div>"; };
+    var WHAT = { share: "Shared", spin: "Spin", comment: "Comment", like: "Liked", message: "Message", friend: "Friended", group: "Joined", "high five": "High five" };
+
+    $("pp").querySelector(".panel").innerHTML =
+      '<div class="ph">' + face(u) + "<h3>" + esc(u.handle) + (u.kind !== "member" ? '<span class="tag">' + esc(u.kind) + "</span>" : "") +
+        "<small>" + esc(m.real_name || "") + (m.real_name && m.bio ? " · " : "") + esc(m.bio || "") + "</small></h3>" +
+        '<button type="button" class="x" data-close aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+      '<div class="facts">' +
+        fact("Joined", nice(u.joined, true), ago(new Date(u.joined))) +
+        fact("Last seen", '<span class="dot ' + light(ls[0]) + '"></span>' + ago(ls[0]), ls[1] ? esc(ls[1]) + (ls[0] ? " · " + nice(ls[0]) : "") : "") +
+        fact("Sober date", u.sober ? nice(dayDate(u.sober)) : "Not set", u.sober ? soberTxt(u.sober) + " sober" : "") +
+        fact("Came from", s ? esc(srcName(s.src)) : '<span class="dim">Not recorded</span>',
+          s ? [s.ref ? "From " + esc(s.ref) : "", s.landing ? "Landed on " + esc(s.landing) : "", u.invited_by ? "Invited by " + esc(u.invited_by) : "", s.first_visit ? "First visit " + nice(s.first_visit, true) : ""].filter(Boolean).join("<br>") : "Signed up before Nov 22, 2026") +
+        fact("Porch", m.verified_at ? "Email added " + nice(m.verified_at) : '<span class="dim">Readings only, no email</span>',
+          m.verified_at ? ["Profile: " + esc(m.visibility || "—"), m.welcomed_at ? "Welcomed " + nice(m.welcomed_at) : "", m.away_at ? "Deactivated " + nice(m.away_at) : "", m.frozen_at ? "Frozen " + nice(m.frozen_at) : "", u.porch_seen ? "Last on the Porch " + nice(u.porch_seen, true) : ""].filter(Boolean).join("<br>") : "") +
+        fact("Last sign-in", nice(u.last_in, true), "Most people stay signed in, so this is often their first day") +
+      "</div>" +
+      "<h2>On the Porch</h2>" +
+      '<div class="cnts">' + cnt(c.posts, "shares") + cnt(c.spins, "Spins") + cnt(c.spin_views, "Spin views") + cnt(c.comments, "comments") +
+        cnt(c.likes_given, "likes given") + cnt(c.likes_got, "likes received") + cnt(c.messages, "messages sent") + cnt(c.chats, "chats") +
+        cnt(c.friends, "friends") + cnt(c.groups, "groups") + cnt(c.high_fives, "High Fives") + cnt(c.profile_views, "profile views") + "</div>" +
+      "<h2>Days they opened the app <small>last 90 days · from Nov 22 on</small></h2><div class=\"cal\">" + cal + "</div>" +
+      (pk.length ? "<h2>What they open</h2><div class=\"chips\">" + pk.map(function (p) { return '<span class="chip" style="cursor:default">' + esc(p) + "<small>" + parts[p] + (parts[p] === 1 ? " day" : " days") + "</small></span>"; }).join("") + "</div>" : "") +
+      (opened.length ? "<h2>Readings <small>the last day they opened readings</small></h2><div class=\"chips\">" +
+        opened.slice(0, 1).map(function (k) { return '<span class="chip" style="cursor:default">' + nice(mmdd(k)) + "</span>" + (u.opened[k] || []).map(function (r) { return '<span class="chip" style="cursor:default">' + esc(READ[r] || r) + "</span>"; }).join(""); }).join("") + "</div>" : "") +
+      ((u.friends || []).length ? "<h2>Friends <small>" + u.friends.length + "</small></h2><div class=\"chips\">" + u.friends.map(chipFor).join("") + "</div>" : "") +
+      ((u.groups || []).length ? "<h2>Groups</h2><div class=\"chips\">" + u.groups.map(function (g) { return '<span class="chip" style="cursor:default">' + esc(g) + "</span>"; }).join("") + "</div>" : "") +
+      ((u.invited || []).length ? "<h2>People they brought in</h2><div class=\"chips\">" + u.invited.map(chipFor).join("") + "</div>" : "") +
+      "<h2>Everything they've done <small>newest first · message words are never shown</small></h2>" +
+      ((u.timeline || []).length ? '<ul class="tl">' + u.timeline.map(function (t) {
+          return "<li><time>" + nice(t.at, true) + "</time><b>" + esc(WHAT[t.what] || t.what) + "</b><span>" + (t.what === "message" ? '<span class="dim">a message</span>' : t.what === "like" ? esc(t.words === "proud" ? "Love this" : t.words || "") : esc(t.words || "") || '<span class="dim">(a picture or card)</span>') + "</span></li>";
+        }).join("") + "</ul>" : '<p class="note">Nothing on the Porch yet.</p>');
+  }
+  function chipFor(h) {
+    var x = ALL.find(function (u) { return u.handle === h; });
+    return '<button type="button" class="chip"' + (x ? ' data-id="' + esc(x.id) + '"' : "") + ">" + esc(h) + "</button>";
+  }
+  function closePerson(fromPop) {
+    if (!$("pp").innerHTML) return;
+    $("pp").innerHTML = ""; document.body.style.overflow = "";
+    if (!fromPop) { try { history.back(); } catch (e) {} }
+  }
+
+  /* ---------------- wiring ---------------- */
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-close]"); if (t) { closePerson(); return; }
+    var h = e.target.closest("th[data-k]");
+    if (h) { var k = h.getAttribute("data-k"); SORT = { k: k, up: SORT.k === k ? !SORT.up : k === "handle" }; draw(); return; }
+    var r = e.target.closest("[data-id]");
+    if (r) { if ($("pp").innerHTML) { $("pp").innerHTML = ""; try { history.replaceState(null, ""); } catch (x) {} } openPerson(r.getAttribute("data-id")); }
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePerson(); });
+  window.addEventListener("popstate", function () { closePerson(true); });   /* the phone's back button closes the person first */
+  $("back").addEventListener("click", function (e) { if (history.length > 1 && document.referrer.indexOf(location.host) >= 0) { e.preventDefault(); history.back(); } });
+  $("showall").addEventListener("change", draw);
+
+  async function start() {
+    if (!A || !A.signedIn()) return say("Sign in first", 'This page is for tacomike417. <a href="/account.html">Sign in</a>, then come back.');
+    try {
+      var ok = await rpc("rm_stats_ok", {});
+      if (ok !== true) return say("Not for this account", 'Member stats are for tacomike417. <a href="/">Back home</a>');
+      ALL = await rpc("rm_admin_stats", {});
+      draw();
+    } catch (e) { say("Couldn't load", e && e.status === 404 ? "The stats aren't switched on yet. Run porch_82_member_stats.sql." : "Check your signal and try again."); }
+  }
+  start();
+})();
+</script>
+</body>
+</html>
