@@ -60,6 +60,14 @@ about half the members hit a page saying "opens October 20" weeks after that dat
       the reading as always, and coming back to the Porch brings up "Talk about today's reading" over it
       (reading on top + Read it again, then comments; "Be the first" when empty). The "Talk" chip on those
       three cards opens it straight away; it shows "N talking" from 2 up. Other cards: unchanged.
+- [x] v270 (TEST BUILD, Mike: "let's try it and let me test"): tapping Daily Reflections / 24 Hours /
+      Another Day Sober opens the WHITE talk sheet (like First Things, Francis) right away, no jumping out.
+      "Open link" (always those words): AA/Hazelden open in their own window (both sites refuse to be shown
+      inside ours, tested 24 Nov); Another Day Sober opens in a lightbox over the Porch. "N talking" chip from 2 up.
+- [ ] THE DAILY POSTS (decided 22-24 Nov, waiting on "code"): 6 AM, autopilot, server side. Claude (API credits)
+      writes an original opener per reading + a question, posted by a rotating house account (Skivvies,
+      Spiritual Misfit and the other house crew); a house account leaves the first comment in its own voice,
+      1-2 house comments max, then they only answer members. No copied paragraphs. Open question: in the feed too?
 - [ ] SHARE a reading: later, inside the talk sheet (Mike: "that's where the share thing would go").
 - [ ] Ideas Mike hasn't said yes to yet: "Talk about it" after a reading (opens a share with the reading's
       #tag), and a small "N people read this today" line on a card (counts only, never names).

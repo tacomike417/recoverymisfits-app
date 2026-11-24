@@ -155,7 +155,7 @@
               '<span class="dsart">' + art(it) + '</span>' +
               '<span class="dscp">' + (isNext ? '<span class="dsgo">Read next</span>' : "") +
                 '<b>' + esc(it.t) + '</b><span>' + esc(it.d) + '</span>' +
-                (TALKS[id] ? '<em class="dstalk" data-ds-talk="' + esc(id) + '" role="button" aria-label="Talk about today\u2019s ' + esc(it.t) + '">' + TALK + (n >= 2 ? n + " talking" : "Talk") + '</em>' : "") + '</span>' +
+                (TALKS[id] && n >= 2 ? '<em class="dstalk" data-ds-talk="' + esc(id) + '" role="button" aria-label="Talk about today\u2019s ' + esc(it.t) + '">' + TALK + n + " talking</em>" : "") + '</span>' +
               (isDone ? CHECK : "") +
               '</' + end + '>';
           }).join("") +
@@ -446,8 +446,13 @@
     var h = document.getElementById("rfhead"); if (!h) return;
     var link = linkFor(it.id), host = "";
     try { host = link ? new URL(link).hostname.replace(/^www\./, "") : ""; } catch (e) {}
-    var go = opensOver(it) ? '<button type="button" class="rfgo" data-rf-read="' + esc(it.id) + '">Read it</button>'
-      : link ? '<a class="rfgo" href="' + esc(link) + '"' + (/^https?:/.test(link) && link.indexOf(SITE) !== 0 ? ' target="_blank" rel="noopener"' : "") + '>Read it again' + (host && host !== "recoverymisfits.org" ? " ↗" : "") + '</a>' : "";
+    /* "Open link", always those words (Mike). Ours opens in the lightbox over the Porch; AA's and Hazelden's
+       open in their own window (on the installed app that slides up over it with an X), since their sites
+       refuse to be shown inside ours. */
+    var own = link && link.indexOf(SITE) === 0;
+    var go = opensOver(it) ? '<button type="button" class="rfgo" data-rf-read="' + esc(it.id) + '">Open link</button>'
+      : own ? '<button type="button" class="rfgo" data-rf-light="' + esc(link.slice(SITE.length)) + '" data-rf-title="' + esc(it.t) + '">Open link</button>'
+      : link ? '<a class="rfgo" href="' + esc(link) + '" target="_blank" rel="noopener">Open link \u2197</a>' : "";
     h.innerHTML = '<div class="rfx"><span class="rfart">' + art(it) + '</span><div><b>' + esc(it.t) + '</b><span>' + esc(todayWords()) + '</span>' + go + '</div></div>' +
       '<p class="rfq">What did it say to you?</p>' +
       '<div class="rfempty"><b>Be the first</b>Nobody\u2019s said anything about today\u2019s reading yet. What did it stir up for you?</div>';
@@ -479,6 +484,13 @@
     P.rpc("rm_reflect_counts", {}).then(function (c) { rcounts = c || {}; paint(); }).catch(function () {});
   }
   document.addEventListener("click", function (e) {
+    var lb = e.target.closest && e.target.closest("[data-rf-light]"); if (!lb) return;
+    e.preventDefault();
+    document.getElementById("dslTitle").textContent = lb.getAttribute("data-rf-title") || "Today\u2019s reading";
+    document.getElementById("dslFrame").src = lb.getAttribute("data-rf-light");
+    if (window.PorchLayer) window.PorchLayer.open("dslight");
+  });
+  document.addEventListener("click", function (e) {
     var r = e.target.closest && e.target.closest("[data-rf-read]"); if (!r) return;
     e.preventDefault(); var it = D.byId(r.getAttribute("data-rf-read")); if (it) { markOpened(it.id); readOver(it); }
   });
@@ -498,7 +510,8 @@
     if (dragged) { e.preventDefault(); return; }       /* the end of a mouse drag is not a tap */
     var id = c.getAttribute("data-ds-id"), it = D.byId(id);
     markOpened(id);
-    if (TALKS[id]) { try { sessionStorage.setItem(PEND, JSON.stringify({ id: id, at: Date.now() })); } catch (x) {} }
+    /* v270: the three daily readings open their white talk sheet right here; "Open link" inside it opens the reading */
+    if (TALKS[id]) { e.preventDefault(); doReflect(id); setTimeout(paint, 400); return; }
     if (opensOver(it)) { e.preventDefault(); readOver(it); setTimeout(paint, 400); return; }
     /* a link: let it go (same page, or a new tab for the outside sites); repaint for when they come back */
     setTimeout(paint, 300);
