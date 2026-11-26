@@ -66,6 +66,9 @@ about half the members hit a page saying "opens October 20" weeks after that dat
       inside ours, tested 24 Nov); Another Day Sober opens in a lightbox over the Porch. "N talking" chip from 2 up.
 - [x] v271 (26 Nov 2026, Mike, from his phone): First Things, Francis: the day's line of the prayer is set big and
       bold with room over it, like the Absolute's word. Porch sheet (feed/porch.html) and Today (index.html).
+- [x] v272 (26 Nov 2026, Mike, from his phone): HOW IT WORKS from the original manuscript ("followed our
+      directions", "to others, especially alcoholics"), its own page (how-it-works.html, built from On
+      Awakening). In the daily stack editor on Today and the Porch; off until you add it (assets/stack-data.js).
 - [ ] THE DAILY POSTS (decided 22-24 Nov, waiting on "code"): 6 AM, autopilot, server side. Claude (API credits)
       writes an original opener per reading + a question, posted by a rotating house account (Skivvies,
       Spiritual Misfit and the other house crew); a house account leaves the first comment in its own voice,

@@ -32,6 +32,22 @@
     d: "One a day. Made to be shared.",
     icoHTML: MEME_ICO
   });
+  /* HOW IT WORKS (v272, 26 Nov 2026, Mike: "find how it works from the original manuscript... put that up
+     there in the daily stack so I can start reading that again every single day"). The opening of Chapter
+     Five through the twelve steps and the a, b, c, in the ORIGINAL MANUSCRIPT wording ("followed our
+     directions", "to others, especially alcoholics"), which is public domain. Its own page, like On
+     Awakening. Off until somebody adds it, like everything added after launch. */
+  var HIW_ICO =
+    '<svg class="ico ico-drawn" viewBox="0 0 48 48" aria-hidden="true">' +
+      '<path d="M7 40h9v-8h9v-8h9v-8h8" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<path d="M10 22l10-10M20 12h-6M20 12v6" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</svg>';
+  ITEMS.push({
+    id: "howitworks",
+    t: "How It Works",
+    d: "The original manuscript. Read it daily.",
+    icoHTML: HIW_ICO
+  });
   /* MEETING GUIDE. AA's own meeting finder app -- a door out, on for
      everybody like the meme, and removable in the editor like any row. */
   ITEMS.push({
@@ -319,7 +335,7 @@
      to be passed around, and a feature nobody can see does not get passed
      around -- so it is on for everybody, and anyone who does not want it can
      take it off in the editor like any other row. */
-  var DEFAULT_OFF = READY.map(function (p) { return p.id; }).concat(["absolute", "evening", "meetings"]);
+  var DEFAULT_OFF = READY.map(function (p) { return p.id; }).concat(["absolute", "evening", "meetings", "howitworks"]);
 
   /* WHERE EACH DOOR GOES. On Today these live on the rows themselves; the Porch
      needs them too. ext = opens in a new tab, the same as on Today. */
@@ -328,6 +344,7 @@
     hours24:     { href: "https://www.hazeldenbettyford.org/thought-for-the-day", ext: true },
     reflections: { href: "https://www.aa.org/daily-reflections", ext: true },
     anotherday:  { href: "/another-day-sober.html" },
+    howitworks:  { href: "/how-it-works.html" },
     meme:        { href: "/meme.html" },
     meetings:    { href: "https://www.aa.org/meeting-guide-app", ext: true }
   };

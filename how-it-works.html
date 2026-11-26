@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How It Works — Recovery Misfits</title>
+<meta name="theme-color" content="#0e0e0d">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recovery Misfits">
+<link rel="apple-touch-icon" href="./icon-192.png">
+
+<!-- THE SAME STYLESHEET ANOTHER DAY SOBER USES, and that is the whole point
+     of this rewrite. This page was a white-and-beige article that happened
+     to live at the same address as the app -- its own colors, its own type,
+     its own buttons. Everything shared is now genuinely shared: change the
+     reading screen once and both change. -->
+<style>html{background:#0e0e0d}body{background:#0e0e0d;color:#eee6d5;margin:0}</style>
+<link rel="stylesheet" href="./assets/daily-reading.css">
+
+<style>
+  /* ---- what this page has that Another Day Sober does not ---------------
+     Two things, and only two, so the rest of the screen stays literally the
+     same stylesheet rather than a copy that will drift. */
+
+  /* TODAY'S READING ---------------------------------- 1 OF 1 */
+  .prog{margin:2px 0 13px}
+  .prog-row{
+    display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+    font-family:var(--ui);font-weight:800;font-size:9.5px;letter-spacing:1.9px;
+    text-transform:uppercase;color:var(--muted);
+  }
+  .prog-row .of{color:var(--gold)}
+  .prog-bar{
+    position:relative;height:3px;margin-top:7px;border-radius:2px;
+    background:rgba(238,230,213,.12);overflow:hidden;
+  }
+  .prog-bar i{
+    position:absolute;inset:0 0 0 0;border-radius:2px;
+    background:linear-gradient(90deg,var(--gold),#f0d68a);
+  }
+  /* The dot at the start, as the mockup draws it. */
+  .prog-bar::before{
+    content:"";position:absolute;left:0;top:50%;width:7px;height:7px;
+    margin-top:-3.5px;border-radius:50%;background:var(--gold);z-index:1;
+  }
+
+  /* 1938 ORIGINAL MANUSCRIPT · PG 39-40 */
+  .source{
+    display:inline-block;margin:0 0 14px;padding:6px 12px;
+    border-radius:999px;border:1px solid rgba(215,178,83,.34);
+    background:rgba(215,178,83,.10);
+    font-family:var(--ui);font-weight:800;text-transform:uppercase;color:var(--gold);
+    /* ONE LINE, ALWAYS. Wrapped, it stranded "40" on a line of its own under
+       a pill, which reads as a mistake rather than a label. Sized off the
+       viewport so it still fits at 320px without being tiny at 430. */
+    font-size:clamp(8px, 2.45vw, 9.5px);
+    letter-spacing:clamp(.9px, .38vw, 1.6px);
+    white-space:nowrap;
+  }
+
+  /* ---- THE TEXT SITS ON THE PAPER --------------------------------------
+     There WAS a card here, and it was a mistake. Three nested insets had
+     stacked up on a 393px phone:
+
+         27px  torn border, each side
+        + 7px  the sheet's own padding
+        +33px  main's padding, shared with Another Day Sober
+        +15px  the card's border and padding
+
+     ...which left 229px of text on a 393px screen. Fifty-eight per cent.
+     A thousand words of 1938 manuscript down a column that narrow is a
+     chore to read and it looked like a receipt.
+
+     So: no card, and this page takes its own side padding rather than the
+     shared 33px. The reading runs on the paper itself and still stops well
+     clear of the torn edge -- the tear ends at 27px and the text starts at
+     50px, so there is a 23px margin of plain paper between the words and
+     anything ragged. Another Day Sober keeps the narrower measure it was
+     drawn with; it is a short daily, not this. */
+  main{padding:6px 16px 20px}
+  .reading{font-size:14px;line-height:1.7}
+  .reading p{margin:0 0 15px}
+  /* HOW IT WORKS (v272): the twelve steps as a numbered list, and the a, b, c set in a little */
+  .reading ol.steps{margin:0 0 17px;padding:0 0 0 1.75em}
+  .reading ol.steps li{margin:0 0 10px;padding-left:2px}
+  .reading ol.steps li::marker{font-weight:800;color:var(--gold)}
+  .reading p.abc{margin:0 0 9px;padding-left:1.1em;font-weight:700}
+  .reading p.abc + p:not(.abc){margin-top:17px}
+  /* NEVER BREAK A WORD IN HALF. The brief asks for it by name, and a
+     hyphenated "self-seek-ing" in the middle of a spiritual instruction
+     reads as a typo in the original rather than a browser doing its job. */
+  .reading p{overflow-wrap:normal;word-break:normal;hyphens:none}
+
+  .note{
+    margin:14px 0 0;font-family:var(--ui);font-size:10.5px;line-height:1.5;
+    color:var(--muted);
+  }
+  .note b{color:var(--ivory);font-weight:700}
+
+  /* ---- the region check --------------------------------------------------
+     KEPT, DELIBERATELY. This reading is US-only for copyright reasons and
+     the redesign brief does not mention it, which is exactly how a
+     protection like this gets dropped in a repaint. It fails OPEN, the same
+     as before: a flaky lookup shows the reading rather than locking out a
+     real US visitor. */
+  .geo-wait{
+    font-family:var(--ui);font-size:12px;color:var(--muted);
+    padding:18px 2px;
+  }
+  .geo-no h2{
+    font-family:var(--serif);font-size:16px;color:#fff;margin:0 0 8px;
+  }
+  .geo-no p{font-family:var(--ui);font-size:12px;line-height:1.55;color:var(--muted);margin:0}
+</style>
+</head>
+
+<!-- Opened from Readings, so Readings is the tab that stays lit. -->
+<body data-rm-nav="readings.html">
+
+<div id="rm-topbar"></div>
+<script src="./topbar.js" defer></script>
+
+<div class="sheet">
+<img class="tape tl" src="assets/pages/d-tape-tl.webp" alt="" aria-hidden="true">
+<img class="tape tr" src="assets/pages/d-tape-tr.webp" alt="" aria-hidden="true">
+<img class="tape bl" src="assets/pages/d-tape-bl.webp" alt="" aria-hidden="true">
+<img class="tape br" src="assets/pages/d-tape-br.webp" alt="" aria-hidden="true">
+
+<main>
+
+  <header class="pub">
+    <img class="art" src="assets/pages/d-book.webp" alt="" aria-hidden="true" width="122" height="111">
+    <div>
+      <h1 class="name">How It Works</h1>
+      <p class="tag">the original directions</p>
+      <img class="rule" src="assets/pages/d-rule.webp" alt="" aria-hidden="true" width="297" height="17">
+    </div>
+  </header>
+
+  <div class="controls">
+    <button class="ctl" id="smaller" type="button" aria-label="Make the text smaller">A&minus;</button>
+    <button class="ctl" id="bigger"  type="button" aria-label="Make the text bigger">A+</button>
+    <button class="ctl" id="speak"   type="button" aria-pressed="false" aria-label="Read this aloud">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 2.2v2.1a7.8 7.8 0 0 1 0 15.4v2.1a9.9 9.9 0 0 0 0-19.6z"/></svg>
+    </button>
+  </div>
+
+  <div class="prog">
+    <div class="prog-row"><span>Today&rsquo;s reading</span><span class="of">1 of 1</span></div>
+    <div class="prog-bar"><i></i></div>
+  </div>
+
+  <div class="body">
+
+    <p class="geo-wait" id="geo-checking">Checking availability&hellip;</p>
+
+    <div class="geo-no" id="geo-blocked" hidden>
+      <h2>Not available in your region</h2>
+      <p>This reading is limited to visitors in the United States for copyright reasons.</p>
+    </div>
+
+    <div id="geo-ok" hidden>
+      <span class="source">Original Manuscript &middot; Chapter Five</span>
+      <article class="reading" id="reading"></article>
+      <p class="note">
+        Source: <b>Alcoholics Anonymous, the Original Manuscript, Chapter Five.</b> Public domain.
+        Presented here as a historical recovery reading.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    <img class="rule" src="assets/pages/d-sharerule.webp" alt="" aria-hidden="true" width="676" height="8">
+    <button class="share" id="share" type="button" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m0 0L8 7m4-4 4 4M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Share this reading
+    </button>
+    <p class="say" id="say" role="status" aria-live="polite"></p>
+    <a class="back" href="./readings.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back to Readings
+    </a>
+  </div>
+
+</main>
+</div>
+
+<div class="tailroom"></div>
+
+<div id="rm-bottom-nav"></div>
+<script src="./nav.js" defer></script>
+
+<script>
+(function () {
+  "use strict";
+
+  /* THE PASSAGE LIVES IN JS, NOT IN THE MARKUP, and that is not decoration:
+     it is why the region check is worth anything. Sitting in the static HTML
+     it would be in the page source for anyone who fetched the raw file,
+     checked or not. Same reasoning as the page this replaces. */
+  var PASSAGE_HTML = [
+    "<p>Rarely have we seen a person fail who has thoroughly followed our directions. Those who do not recover are people who cannot or will not completely give themselves to this simple program, usually men and women who are constitutionally incapable of being honest with themselves. There are such unfortunates. They are not at fault; they seem to have been born that way. They are naturally incapable of grasping and developing a way of life which demands rigorous honesty. Their chances are less than average. There are those, too, who suffer from grave emotional and mental disorders, but many of them do recover if they have the capacity to be honest.</p>",
+    "<p>Our stories disclose in a general way what we used to be like, what happened, and what we are like now. If you have decided you want what we have and are willing to go to any length to get it - then you are ready to follow directions.</p>",
+    "<p>At some of these you may balk. You may think you can find an easier, softer way. We doubt if you can. With all the earnestness at our command, we beg of you to be fearless and thorough from the very start. Some of us have tried to hold on to our old ideas and the result was nil until we let go absolutely.</p>",
+    "<p>Remember that you are dealing with alcohol - cunning, baffling, powerful! Without help it is too much for you. But there is One who has all power - That One is God. You must find Him now!</p>",
+    "<p>Half measures will avail you nothing. You stand at the turning point. Throw yourself under His protection and care with complete abandon.</p>",
+    "<p>Now we think you can take it! Here are the steps we took, which are suggested as your Program of Recovery:</p>",
+    "<ol class=\"steps\"><li>Admitted we were powerless over alcohol - that our lives had become unmanageable.</li><li>Came to believe that a Power greater than ourselves could restore us to sanity.</li><li>Made a decision to turn our will and our lives over to the care and direction of God <i>as we understood Him.</i></li><li>Made a searching and fearless moral inventory of ourselves.</li><li>Admitted to God, to ourselves, and to another human being the exact nature of our wrongs.</li><li>Were entirely willing that God remove all these defects of character.</li><li>Humbly, on our knees, asked Him to remove our shortcomings - holding nothing back.</li><li>Made a list of all persons we had harmed, and became willing to make complete amends to them all.</li><li>Made direct amends to such people wherever possible, except when to do so would injure them or others.</li><li>Continued to take personal inventory and when we were wrong promptly admitted it.</li><li>Sought through prayer and meditation to improve our contact with God, praying only for knowledge of His will for us and the power to carry that out.</li><li>Having had a spiritual experience as the result of this course of action, we tried to carry this message to others, especially alcoholics, and to practice these principles in all our affairs.</li></ol>",
+    "<p>You may exclaim, \"What an order! I can't go through with it.\" Do not be discouraged. No one among us has been able to maintain anything like perfect adherence to these principles. We are not saints. The point is, that we are willing to grow along spiritual lines. The principles we have set down are guides to progress. We claim spiritual progress rather than spiritual perfection.</p>",
+    "<p>Our description of the alcoholic, the chapter to the agnostic, and our personal adventures before and after, have been designed to sell you three pertinent ideas:</p>",
+    "<p class=\"abc\">(a) That you are alcoholic and cannot manage your own life.</p>",
+    "<p class=\"abc\">(b) That probably no human power can relieve your alcoholism.</p>",
+    "<p class=\"abc\">(c) That God can and will.</p>",
+    "<p>If you are not convinced on these vital issues, you ought to re-read the book to this point or else throw it away!</p>",
+    "<p>If you are convinced, you are now at step three, which is that you make a decision to turn your will and your life over to God as you understand Him.</p>"
+  ].join("");
+
+  var readingEl  = document.getElementById("reading");
+  var sayEl      = document.getElementById("say");
+  var shareBtn   = document.getElementById("share");
+  var checkingEl = document.getElementById("geo-checking");
+  var blockedEl  = document.getElementById("geo-blocked");
+  var okEl       = document.getElementById("geo-ok");
+
+  /* ---- text size ---------------------------------------------------------
+     THE SAME KEY ANOTHER DAY SOBER USES. Somebody who set their reading two
+     sizes bigger over there should not have to do it again here -- it is one
+     person reading one app, not two pages with two opinions. */
+  var SIZE_KEY = "dp_reading_size_px";
+  var MIN = 12, MAX = 24, STEP = 2, DEFAULT_SIZE = 14;
+
+  function savedSize() {
+    try {
+      var v = parseInt(localStorage.getItem(SIZE_KEY), 10);
+      if (!isNaN(v)) return Math.max(MIN, Math.min(MAX, v));
+    } catch (e) {}
+    return DEFAULT_SIZE;
+  }
+  function setSize(px) {
+    px = Math.max(MIN, Math.min(MAX, px));
+    readingEl.style.fontSize = px + "px";
+    try { localStorage.setItem(SIZE_KEY, String(px)); } catch (e) {}
+    return px;
+  }
+  setSize(savedSize());
+  document.getElementById("smaller").onclick = function () { setSize(savedSize() - STEP); };
+  document.getElementById("bigger").onclick  = function () { setSize(savedSize() + STEP); };
+
+  /* ---- read aloud --------------------------------------------------------
+     Started by a tap and by nothing else, and the button says which way it
+     is pointing so nobody presses it twice and gets two voices. */
+  var speakBtn = document.getElementById("speak");
+  var synth = window.speechSynthesis;
+  function stopSpeaking() {
+    try { synth.cancel(); } catch (e) {}
+    speakBtn.setAttribute("aria-pressed", "false");
+    speakBtn.setAttribute("aria-label", "Read this aloud");
+    if (/Reading aloud/.test(sayEl.textContent)) sayEl.textContent = "";
+  }
+  if (!synth) {
+    speakBtn.hidden = true;
+  } else {
+    speakBtn.onclick = function () {
+      if (synth.speaking || synth.paused) { stopSpeaking(); return; }
+      var words = readingEl.textContent.trim();
+      if (!words) { sayEl.textContent = "Nothing to read yet."; return; }
+      var u = new SpeechSynthesisUtterance(words);
+      u.rate = 0.95;
+      u.onend = stopSpeaking;
+      u.onerror = function () { stopSpeaking(); sayEl.textContent = "Read aloud is not available on this device."; };
+      synth.speak(u);
+      speakBtn.setAttribute("aria-pressed", "true");
+      speakBtn.setAttribute("aria-label", "Stop reading aloud");
+      sayEl.textContent = "Reading aloud. Tap the speaker again to stop.";
+    };
+    /* Leaving with a voice still going is how somebody ends up with the app
+       talking at them from a tab they thought they closed. */
+    window.addEventListener("pagehide", function () { try { synth.cancel(); } catch (e) {} });
+  }
+
+  /* ---- share ------------------------------------------------------------- */
+  var PAGE_URL = "https://recoverymisfits.org/how-it-works.html";
+  shareBtn.onclick = function () {
+    var text = "Check this out: How It Works, from the original manuscript";
+    if (navigator.share) {
+      navigator.share({ title: "How It Works — Recovery Misfits", text: text, url: PAGE_URL })
+        .catch(function () { /* they backed out; nothing to report */ });
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(PAGE_URL).then(function () {
+        sayEl.textContent = "Link copied.";
+      }, function () { sayEl.textContent = PAGE_URL; });
+      return;
+    }
+    sayEl.textContent = PAGE_URL;
+  };
+
+  /* ---- the region check --------------------------------------------------
+     Carried over from the page this replaces, behavior for behavior. US only
+     for copyright reasons, and it FAILS OPEN: if the lookup is down or the
+     signal is bad, show the reading rather than lock out somebody in Ohio
+     over a network hiccup. */
+  function showBlocked() {
+    checkingEl.hidden = true;
+    blockedEl.hidden = false;
+    shareBtn.hidden = true;
+  }
+  function showContent() {
+    readingEl.innerHTML = PASSAGE_HTML;
+    setSize(savedSize());
+    checkingEl.hidden = true;
+    okEl.hidden = false;
+    shareBtn.hidden = false;
+  }
+
+  fetch("https://get.geojs.io/v1/ip/country.json")
+    .then(function (res) {
+      if (!res.ok) throw new Error("geo lookup failed");
+      return res.json();
+    })
+    .then(function (data) {
+      if (data && data.country === "US") showContent();
+      else showBlocked();
+    })
+    .catch(showContent);
+})();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js"); }
+</script>
+
+</body>
+</html>
