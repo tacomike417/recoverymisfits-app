@@ -69,6 +69,8 @@ about half the members hit a page saying "opens October 20" weeks after that dat
 - [x] v272 (26 Nov 2026, Mike, from his phone): HOW IT WORKS from the original manuscript ("followed our
       directions", "to others, especially alcoholics"), its own page (how-it-works.html, built from On
       Awakening). In the daily stack editor on Today and the Porch; off until you add it (assets/stack-data.js).
+- [x] v274 (same day, Mike: "use the one that is the current one for everybody. I don't want to confuse
+      anybody"): How It Works now carries the wording read in meetings, not the manuscript's.
 - [ ] THE DAILY POSTS (decided 22-24 Nov, waiting on "code"): 6 AM, autopilot, server side. Claude (API credits)
       writes an original opener per reading + a question, posted by a rotating house account (Skivvies,
       Spiritual Misfit and the other house crew); a house account leaves the first comment in its own voice,

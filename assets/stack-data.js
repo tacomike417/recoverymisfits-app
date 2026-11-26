@@ -36,7 +36,10 @@
      there in the daily stack so I can start reading that again every single day"). The opening of Chapter
      Five through the twelve steps and the a, b, c, in the ORIGINAL MANUSCRIPT wording ("followed our
      directions", "to others, especially alcoholics"), which is public domain. Its own page, like On
-     Awakening. Off until somebody adds it, like everything added after launch. */
+     Awakening. Off until somebody adds it, like everything added after launch.
+     v274, SAME DAY: Mike changed his mind -- "use the one that is the current one for everybody. I don't
+     want to confuse anybody." The page now carries the wording read in meetings ("followed our path",
+     "spiritual awakening", "to alcoholics"), not the manuscript's. */
   var HIW_ICO =
     '<svg class="ico ico-drawn" viewBox="0 0 48 48" aria-hidden="true">' +
       '<path d="M7 40h9v-8h9v-8h9v-8h8" stroke-linecap="round" stroke-linejoin="round"/>' +
@@ -45,7 +48,7 @@
   ITEMS.push({
     id: "howitworks",
     t: "How It Works",
-    d: "The original manuscript. Read it daily.",
+    d: "Chapter Five. Read it daily.",
     icoHTML: HIW_ICO
   });
   /* MEETING GUIDE. AA's own meeting finder app -- a door out, on for
